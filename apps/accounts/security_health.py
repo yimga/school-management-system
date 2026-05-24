@@ -184,9 +184,23 @@ class SecurityTaskRegistry:
         return DEFAULT_WEIGHTS
 
 
+def invalidate_security_strength_cache(user, school=None) -> None:
+    """Drop cached strength after password/MFA/review changes."""
+    if not user or not getattr(user, "pk", None):
+        return
+    try:
+        from apps.siteconfig.cache_utils import get_tenant_cache_prefix
+
+        school_id = getattr(school, "id", None) or getattr(user, "school_id", None)
+        prefix = f"school:{school_id}" if school_id else get_tenant_cache_prefix()
+    except (ImportError, AttributeError, TypeError):
+        prefix = "public"
+    cache.delete(f"{prefix}:security_strength:{user.pk}")
+
+
 def calculate_profile_strength(user, school=None, use_cache=True) -> float:
     """
-    Return security health score 0–100.
+    Return security health score 0–100 (platform evaluator; MFA cap + critical vulns).
     Optional cache (TTL 5 min) keyed by tenant + user.pk (World Engine §8).
     """
     if not user or not user.is_authenticated:
@@ -203,13 +217,9 @@ def calculate_profile_strength(user, school=None, use_cache=True) -> float:
         cached = cache.get(cache_key)
         if cached is not None:
             return float(cached)
-    weights = SecurityTaskRegistry.get_weights(school)
-    earned = 0.0
-    for task in SecurityTaskRegistry.get_tasks():
-        w = weights.get(task.code, DEFAULT_WEIGHTS.get(task.code, 0))
-        if task.check(user):
-            earned += w
-    score = min(100.0, max(0.0, (earned / TOTAL_POINTS) * 100.0))
+    from apps.accounts.profile_security_evaluation import evaluate_user_profile_security
+
+    score = float(evaluate_user_profile_security(user)["security_score"])
     if use_cache:
         cache.set(cache_key, score, timeout=300)  # 5 min
     return round(score, 1)

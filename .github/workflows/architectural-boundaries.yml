@@ -42,6 +42,12 @@ on:
       - "beta/school-management-system/scripts/scan_pii_logging_smell.py"
       - "beta/school-management-system/var/security-audit-baseline-pii-logging-smell.json"
       - "beta/school-management-system/scripts/scan_companion_canonical_headers_drift.py"
+      - "beta/school-management-system/scripts/scan_flex_collapse_risk.py"
+      - "beta/school-management-system/scripts/scan_horizontal_overflow_risk.py"
+      - "beta/school-management-system/scripts/scan_sticky_with_overflow_hidden.py"
+      - "beta/school-management-system/var/security-audit-baseline-flex-collapse-risk.json"
+      - "beta/school-management-system/var/security-audit-baseline-horizontal-overflow-risk.json"
+      - "beta/school-management-system/var/security-audit-baseline-sticky-with-overflow-hidden.json"
       - "beta/school-management-system/var/security-audit-baseline-canonical-headers-drift.json"
       - "beta/school-management-system/apps/migration_cloud/accelerators/runmycampus_canonical.py"
       - "beta/school-management-system/companion-tauri/src-tauri/src/canonical_headers.json"
@@ -447,6 +453,25 @@ jobs:
       - name: Run reveal-armed invariants scanner --strict
         run: |
           python scripts/scan_reveal_armed_invariants.py --strict
+
+  layout-frame-guard:
+    name: "Layout frame guard (flex collapse + horizontal overflow + sticky clip)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: beta/school-management-system
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run layout-frame guard scanners --strict
+        run: |
+          python scripts/scan_flex_collapse_risk.py --strict
+          python scripts/scan_horizontal_overflow_risk.py --strict
+          python scripts/scan_sticky_with_overflow_hidden.py --strict
 
   theme-attribute-contract:
     name: "Theme attribute contract (data-theme = effective, never preference)"

@@ -206,7 +206,7 @@ a.cp-chip:hover {
 }
 
 .cp-overview-grid {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
   margin-top: 1.6rem;
 }
 
@@ -443,7 +443,7 @@ a.cp-queue-card-header:hover {
 }
 
 .cp-footprint-metrics {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr));
 }
 
 .cp-footprint-card strong {
@@ -753,7 +753,7 @@ body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout {
   display: flex;
   flex-direction: column;
 }
-body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout .row,
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout > .row,
 body.control-plane-shell[data-rmc-cp-scroll="document"] .portal-layout-row {
   flex: 1 1 auto;
   min-height: auto;

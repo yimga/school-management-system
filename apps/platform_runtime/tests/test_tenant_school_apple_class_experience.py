@@ -15,17 +15,19 @@ class TenantSchoolAppleClassExperienceTests(SimpleTestCase):
         setup drawer + the tenant-safe shell-root attribute survive as the
         load-bearing experience contract.
         """
-        text = (ROOT / "templates" / "platform_runtime" / "school_configuration_center.html").read_text(encoding="utf-8")
+        template = (ROOT / "templates" / "platform_runtime" / "school_configuration_center.html").read_text(encoding="utf-8")
+        nav = (ROOT / "apps" / "platform_runtime" / "operational_center_nav.py").read_text(encoding="utf-8")
+        bundle = f"{template}\n{nav}"
         for token in (
             "data-apple-class-tenant-school-admin",
             "apple_class_quick_profile_drawer.html",
+            "rmc_operational_center_frame.html",
             "without exposing platform-only actions",
-            # Readiness coverage now comes from the consolidated summary strip:
             "world_class_summary_strip.html",
             "School readiness",
         ):
             with self.subTest(token=token):
-                self.assertIn(token, text)
+                self.assertIn(token, bundle)
 
     def test_tenant_school_admin_does_not_expose_global_registry(self):
         text = (ROOT / "templates" / "platform_runtime" / "school_configuration_center.html").read_text(encoding="utf-8").lower()

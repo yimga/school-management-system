@@ -19,6 +19,12 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.accounts.profile_security_evaluation import (
+    evaluate_user_profile_security,
+    get_security_posture_review_interval_days,
+    record_security_posture_review,
+)
+from apps.accounts.security_health import invalidate_security_strength_cache
 from apps.accounts.security_health import (
     calculate_profile_strength,
     get_missing_tasks,
@@ -45,6 +51,14 @@ def api_security_strength(request):
     """
     user = request.user
     school = getattr(request, "school", None)
+    sessions_count = None
+    try:
+        sessions_count = int(request.GET.get("active_sessions", ""))
+    except (TypeError, ValueError):
+        pass
+    evaluation = evaluate_user_profile_security(
+        user, school=school, active_sessions_count=sessions_count
+    )
     strength = calculate_profile_strength(user, school=school, use_cache=True)
     missing = get_missing_tasks(user, school=school)
     grace_days = get_security_grace_period_days(school)
@@ -52,9 +66,18 @@ def api_security_strength(request):
     return JsonResponse(
         {
             "strength": strength,
+            "security_score": evaluation["security_score"],
+            "profile_completeness": evaluation["profile_completeness"],
+            "critical_vulnerabilities": evaluation["critical_vulnerabilities"],
+            "ux_optimizations": evaluation["ux_optimizations"],
+            "strength_band": evaluation["strength_band"],
+            "strength_label": evaluation["strength_label"],
             "missing_tasks": missing,
             "grace_period_days": grace_days,
             "within_grace_period": within_grace,
+            "security_posture_review_due": evaluation.get("security_posture_review_due"),
+            "days_until_posture_review": evaluation.get("days_until_posture_review"),
+            "minimum_score_for_role": evaluation.get("minimum_score_for_role"),
         }
     )
 
@@ -269,3 +292,49 @@ def sessions_revoke(request, session_key):
     ):
         return JsonResponse({"ok": True})
     return redirect("accounts:sessions_page")
+
+
+@login_required
+def security_posture_review(request):
+    """
+    Quarterly security posture check-in for every user (default every 90 days).
+    GET: review dashboard; POST: acknowledge completion.
+    """
+    from django.utils.http import url_has_allowed_host_and_scheme
+    from django.utils.translation import gettext as _
+
+    from apps.accounts.operator_account_render import render_account_page
+
+    school = getattr(request, "school", None)
+    user = request.user
+    if request.method == "POST":
+        record_security_posture_review(user)
+        invalidate_security_strength_cache(user, school)
+        request.session.pop("security_posture_review_nagged", None)
+        log_security_event(
+            user,
+            SecurityAuditLog.EventType.PWD_RESET,
+            request=request,
+            school=school,
+        )
+        next_url = request.POST.get("next") or request.GET.get("next")
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}
+        ):
+            return redirect(next_url)
+        return redirect("accounts:user_profile")
+
+    evaluation = evaluate_user_profile_security(user, school=school)
+    interval_days = get_security_posture_review_interval_days(school)
+    context = {
+        "profile_security": evaluation,
+        "posture_review_interval_days": interval_days,
+        "next_url": request.GET.get("next", ""),
+    }
+    return render_account_page(
+        request,
+        portal_template="accounts/security_posture_review.html",
+        body_template="accounts/partials/operator_security_posture_review_body.html",
+        context=context,
+        page_title=_("Security posture review"),
+    )

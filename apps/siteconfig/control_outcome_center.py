@@ -125,6 +125,15 @@ OPERATOR_SURFACE_MATURITY_PROOFS: dict[str, dict[str, Any]] = {
             "read-only policy diff route binding",
         ),
     },
+    "super:offboarding_queue": {
+        "label": "Offboarding queue",
+        "criteria": OPERATOR_MATURITY_CRITERIA,
+        "proofs": (
+            "apps.schools.tests.test_super_offboarding_http",
+            "apps.schools.tests.test_tenant_offboarding_integration",
+            "scripts/verify_tenant_offboarding_surface.py",
+        ),
+    },
 }
 
 # Outcome link target: plain URL name, or (viewname, reverse kwargs) for admin bridges, etc.

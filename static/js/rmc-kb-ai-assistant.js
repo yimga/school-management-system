@@ -157,9 +157,21 @@
 
 
   function activeUrl() {
-
+    try {
+      var params = new URLSearchParams(window.location.search || "");
+      var override = (params.get("active_url") || "").trim();
+      if (override) {
+        return override;
+      }
+      var root = document.querySelector("[data-rmc-page='help-center']");
+      if (root) {
+        var attr = (root.getAttribute("data-rmc-help-active-url") || "").trim();
+        if (attr) {
+          return attr;
+        }
+      }
+    } catch (_e) {}
     return window.location.pathname || "/";
-
   }
 
 

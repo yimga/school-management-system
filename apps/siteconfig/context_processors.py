@@ -128,6 +128,7 @@ def _get_pinned_sidebar_items(request, all_items):
             default_pin_map = {
                 "TEACHER": ["teacher_workflow", "preferences"],
                 "PARENT": ["parent_workflow", "preferences"],
+                "STUDENT": ["student_workflow", "preferences"],
             }
             seeded_pins = [
                 item_id
@@ -732,11 +733,20 @@ def site_settings(request):
         try:
             from apps.schools.control_plane_nav import (
                 build_control_plane_nav,
+                build_manager_platform_admin_primary_nav,
                 build_primary_control_plane_nav,
+                is_manager_platform_admin_path,
             )
 
             ctx["CONTROL_PLANE_NAV"] = build_control_plane_nav(request)
-            ctx["PRIMARY_CONTROL_PLANE_NAV"] = build_primary_control_plane_nav(request)
+            if is_manager_platform_admin_path(path):
+                ctx["PRIMARY_CONTROL_PLANE_NAV"] = (
+                    build_manager_platform_admin_primary_nav(request)
+                )
+            else:
+                ctx["PRIMARY_CONTROL_PLANE_NAV"] = build_primary_control_plane_nav(
+                    request
+                )
             # Phase 8: Pinned control plane items (Quick access)
             pinned_cp_ids = []
             try:
@@ -767,7 +777,6 @@ def site_settings(request):
                 from apps.schools.control_plane_nav import (
                     build_manager_platform_admin_nav,
                     build_studio_focus_sidebar,
-                    is_manager_platform_admin_path,
                     is_manager_studio_focus_path,
                 )
 

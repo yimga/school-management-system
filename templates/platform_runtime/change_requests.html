@@ -1,17 +1,20 @@
 {% extends "control_plane_base.html" %}
 {% load i18n %}
-{% block cp_title %}Change Requests{% endblock %}
+{% block cp_title %}{% trans "Change Requests" %}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
-<section class="cp-page" data-page-marker="rmc-configuration-change-requests" data-apple-class-governed-installation="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required">
-  {% include "components/world_class_page_hero.html" with hero_id="change-requests-title" role="Platform operators" title="Change requests" subtitle="Approval, scheduling, application, cancellation, audit, and rollback posture for governed configuration changes." purpose="Configuration governance" status="Approval queue" primary_url="/configuration/" primary_label="Configuration center" secondary_url="/configuration/registries/health/" secondary_label="Registry health" visual_title="Governance queue" visual_body="Risk level, approver, tenant scope, and health are visible before changes are applied." %}
-  {% include "components/world_class_guided_stepper.html" %}
-  <div class="change-request-summary rmc-wcx-grid mb-3" data-change-request-summary>
-    <div class="cp-card"><span class="small text-muted">{% trans "Pending" %}</span><div class="h5 mb-0">{{ change_request_summary.pending|default:0 }}</div></div>
-    <div class="cp-card"><span class="small text-muted">{% trans "Scheduled" %}</span><div class="h5 mb-0">{{ change_request_summary.scheduled|default:0 }}</div></div>
-    <div class="cp-card"><span class="small text-muted">{% trans "Applied" %}</span><div class="h5 mb-0">{{ change_request_summary.applied|default:0 }}</div></div>
-    <div class="cp-card"><span class="small text-muted">{% trans "Rejected" %}</span><div class="h5 mb-0">{{ change_request_summary.rejected|default:0 }}</div></div>
-    <div class="cp-card"><span class="small text-muted">{% trans "Failed" %}</span><div class="h5 mb-0">{{ change_request_summary.failed|default:0 }}</div></div>
+<section class="cp-page" data-page-marker="rmc-configuration-change-requests" data-apple-class-governed-installation="1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-operational-workbench="1">
+  {% url 'configuration:center' as wcx_config_url %}
+  {% url 'configuration:registry_health' as wcx_registry_health_url %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="configuration_change_requests" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_config_url primary_label=_("Configuration center") secondary_url=wcx_registry_health_url secondary_label=_("Registry health") %}
+  <div class="change-request-summary rmc-ops-metrics-grid" data-rmc-ops-metrics-grid="1" data-rmc-ops-metrics-cols="5" data-change-request-summary>
+    <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Pending" %}</span><div class="cp-kpi__value">{{ change_request_summary.pending|default:0 }}</div></div>
+    <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Scheduled" %}</span><div class="cp-kpi__value">{{ change_request_summary.scheduled|default:0 }}</div></div>
+    <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Applied" %}</span><div class="cp-kpi__value">{{ change_request_summary.applied|default:0 }}</div></div>
+    <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Rejected" %}</span><div class="cp-kpi__value">{{ change_request_summary.rejected|default:0 }}</div></div>
+    <div class="cp-kpi"><span class="cp-kpi__label">{% trans "Failed" %}</span><div class="cp-kpi__value">{{ change_request_summary.failed|default:0 }}</div></div>
   </div>
+  {% include "components/world_class_guided_stepper.html" %}
   <nav class="rmc-cr-stepper mb-3" aria-label="{% trans 'Change request lifecycle' %}">
     <ol class="rmc-cr-stepper__list list-unstyled d-flex flex-wrap gap-2 small mb-0">
       <li><span class="badge text-bg-secondary">{% trans "Requested" %}</span></li>
@@ -24,15 +27,12 @@
     </ol>
   </nav>
   {% include "components/apple_class_visual_workflow_path.html" %}
-  <div class="rmc-wcx-grid mb-3">
-    {% include "components/apple_class_dependency_graph.html" with graph_id="change-request-dependencies" title="Dependency graph" source="Requested change" dependency="Required approvals" target="Scheduled rollout" %}
-    {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="change-request-drawer" role="Approval drawer" title="Quick approve/reject panel" body="Operators can inspect risk, approver, audit, and rollback posture without losing the queue." primary_url="/configuration/change-requests/" primary_label="Review queue" %}
-    {% include "components/apple_class_glass_panel.html" with panel_id="change-request-health" label="Installation Health" title="Monitor before apply" body="Health, Rollback availability, and external blockers remain visible through the rollout path." %}
-  </div>
+  {% include "components/apple_class_dependency_graph.html" with graph_id="change-request-dependencies" title="Dependency graph" source="Requested change" dependency="Required approvals" target="Scheduled rollout" %}
+  {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="change-request-drawer" role="Approval drawer" title="Quick approve/reject panel" body="Operators can inspect risk, approver, audit, and rollback posture without losing the queue." primary_url="/configuration/change-requests/" primary_label="Review queue" %}
   <div class="cp-card">
     <table data-world-class-table="summarized-first">
-      <caption>Configuration change requests with target, type, risk, status, tenant, and action.</caption>
-      <thead><tr><th>Target</th><th>Type</th><th>Risk</th><th>Status</th><th>Tenant</th><th></th></tr></thead>
+      <caption>{% trans "Configuration change requests with target, type, risk, status, tenant, and action." %}</caption>
+      <thead><tr><th>{% trans "Target" %}</th><th>{% trans "Type" %}</th><th>{% trans "Risk" %}</th><th>{% trans "Status" %}</th><th>{% trans "Tenant" %}</th><th></th></tr></thead>
       <tbody>
         {% for row in change_requests %}
           <tr>
@@ -41,7 +41,7 @@
             <td>{{ row.risk_level }}</td>
             <td>{{ row.status }}</td>
             <td>{{ row.school }}</td>
-            <td><a href="{% url 'configuration:change_request_detail' row.id %}">View</a></td>
+            <td><a href="{% url 'configuration:change_request_detail' row.id %}">{% trans "View" %}</a></td>
           </tr>
         {% empty %}
           <tr><td colspan="6">{% include "components/cp_empty.html" with cp_empty_title="No change requests yet" cp_empty_hint="New blueprint and pack requests will appear here with risk, approval, scheduling, and audit state." %}</td></tr>

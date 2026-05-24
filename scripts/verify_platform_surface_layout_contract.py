@@ -69,15 +69,15 @@ def main() -> int:
         "control_plane_skeleton.html",
     )
     add(
-        "document_scroll_skeleton",
-        "Control-plane skeleton uses document scroll contract",
-        _contains("templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="document"'),
+        "canvas_scroll_skeleton",
+        "Control-plane skeleton uses app-shell canvas scroll contract",
+        _contains("templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="canvas"'),
         "control_plane_skeleton.html",
     )
     add(
-        "document_scroll_admin_manager",
-        "Manager Unfold admin shell sets data-rmc-cp-scroll=document (parity with /super/)",
-        _contains("templates/admin/base_site.html", "data-rmc-cp-scroll', 'document'")
+        "canvas_scroll_admin_manager",
+        "Manager Unfold admin shell sets data-rmc-cp-scroll=canvas (parity with /super/)",
+        _contains("templates/admin/base_site.html", "data-rmc-cp-scroll', 'canvas'")
         and _not_contains("templates/admin/base.html", 'data-rmc-cp-scroll="main"'),
         "admin/base_site.html",
     )
@@ -110,10 +110,33 @@ def main() -> int:
     )
     add(
         "chrome_styles_partial_assets",
-        "Shared chrome styles partial bundles layout + premium + fold",
+        "Shared chrome styles partial bundles layout + premium + fold + frame guard",
         _contains("templates/partials/rmc_platform_chrome_styles.html", "rmc-platform-chrome-premium.css")
-        and _contains("templates/partials/rmc_platform_chrome_styles.html", "rmc-platform-chrome-layout.css"),
+        and _contains("templates/partials/rmc_platform_chrome_styles.html", "rmc-platform-chrome-layout.css")
+        and _contains("templates/partials/rmc_platform_chrome_styles.html", "rmc-layout-frame-guard.css"),
         "rmc_platform_chrome_styles.html",
+    )
+    add(
+        "layout_frame_guard_css",
+        "Layout frame guard prevents nested .row / grid collapse in main content",
+        _exists("static/css/rmc-layout-frame-guard.css")
+        and _contains("static/css/rmc-layout-frame-guard.css", "flex-wrap: wrap !important")
+        and _contains("static/css/rmc-layout-frame-guard.css", "platform-readiness-strip"),
+        "rmc-layout-frame-guard.css",
+    )
+    add(
+        "shell_row_direct_child_only",
+        "Document-scroll shell row nowrap scoped to direct layout rows only",
+        _contains("static/css/manager-control-plane.css", ".cp-layout > .row")
+        and _not_contains("static/css/manager-control-plane.css", ".cp-layout .row,"),
+        "manager-control-plane.css",
+    )
+    add(
+        "flex_collapse_scanner_baseline",
+        "Flex-collapse risk scanner baseline is zero",
+        _exists("var/security-audit-baseline-flex-collapse-risk.json")
+        and '"finding_count": 0' in _read("var/security-audit-baseline-flex-collapse-risk.json"),
+        "var/security-audit-baseline-flex-collapse-risk.json",
     )
     add(
         "platform_chrome_layout_contract",

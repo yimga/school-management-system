@@ -9,7 +9,13 @@ ROOT = Path(__file__).resolve().parents[3]
 class ConfigurationCenterWorldClassExperienceTests(SimpleTestCase):
     def test_configuration_center_groups_modules_with_readiness_and_actions(self):
         text = (ROOT / "templates" / "platform_runtime" / "configuration_center.html").read_text(encoding="utf-8")
-        self.assertIn("world_class_page_hero.html", text)
+        frame = (ROOT / "templates" / "components" / "rmc_operational_center_frame.html").read_text(encoding="utf-8")
+        self.assertIn("rmc_operational_center_frame.html", text)
+        self.assertIn("data-rmc-operational-center-frame", frame)
+        self.assertIn("data-rmc-ops-nav-grid", frame)
+        self.assertIn("cp-steering", frame)
+        self.assertIn("cp-steering__path", frame)
+        self.assertIn("cp-btn--primary", frame)
         self.assertIn("Platform Configuration Center", text)
         self.assertIn("data-world-class-module-groups", text)
         for group in ("operating-models", "runtime-governance", "data-migration", "ecosystem", "trust-money", "experience"):

@@ -1,0 +1,44 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Security posture review" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-rmc-page="security-posture-review">
+  <div class="page-header mb-3">
+    <div class="eyebrow text-muted small text-uppercase">{% trans "Quarterly check-in" %}</div>
+    <h1 class="h3 mb-1">{% trans "Review your account security" %}</h1>
+    <p class="text-muted mb-0">
+      {% blocktrans with days=posture_review_interval_days %}RunMyCampus asks every {{ days }} days that you confirm your password, MFA, and profile contact details are still correct.{% endblocktrans %}
+    </p>
+  </div>
+
+  {% include "accounts/partials/_profile_security_gauge.html" %}
+
+  <div class="content-card mb-3" style="padding:1rem 1.25rem;">
+    <h2 class="h6">{% trans "Checklist" %}</h2>
+    <ul class="small mb-0">
+      <li>{% trans "Password is strong and not expired" %}</li>
+      <li>{% trans "Multi-factor authentication is enabled" %}</li>
+      <li>{% trans "Email is verified and up to date" %}</li>
+      <li>{% trans "Active sessions belong to devices you still use" %}</li>
+    </ul>
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:mfa_setup' %}">{% trans "MFA setup" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:password_change' %}">{% trans "Change password" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:sessions_page' %}">{% trans "Active sessions" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:profile_edit' %}">{% trans "Edit profile" %}</a>
+    </div>
+  </div>
+
+  <form method="post" class="content-card" style="padding:1rem 1.25rem;">
+    {% csrf_token %}
+    {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+    <p class="small text-muted mb-3">{% trans "By confirming, you attest that you reviewed your security settings this quarter." %}</p>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="submit" class="btn btn-primary">{% trans "I reviewed my security posture" %}</button>
+      <a class="btn btn-outline-secondary" href="{% url 'accounts:user_profile' %}">{% trans "Back to profile" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

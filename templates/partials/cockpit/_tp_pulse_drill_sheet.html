@@ -1,0 +1,14 @@
+{% load i18n %}
+<dialog class="rmc-sheet" id="rmcTpPulseDrillSheet" aria-label="{% trans 'Snapshot metric detail' %}">
+  <div class="rmc-sheet__handle" aria-hidden="true"></div>
+  <header class="rmc-sheet__header">
+    <h3 class="rmc-sheet__title" id="rmcTpPulseDrillTitle">{% trans "Metric detail" %}</h3>
+    <button class="rmc-sheet__close" type="button" aria-label="{% trans 'Close' %}" data-rmc-sheet-close>&times;</button>
+  </header>
+  <div class="rmc-sheet__body">
+    <p class="small text-muted mb-2" id="rmcTpPulseDrillHead"></p>
+    <p class="fs-4 fw-semibold mb-1" id="rmcTpPulseDrillValue"></p>
+    <p class="mb-2" id="rmcTpPulseDrillLabel"></p>
+    <p class="small text-secondary mb-0" id="rmcTpPulseDrillDelta"></p>
+  </div>
+</dialog>

@@ -96,6 +96,7 @@
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     {% include "partials/rmc_platform_chrome_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}">
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
     {# Phase G (2026-05-12): platform-wide long-page grammar. #}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
@@ -139,6 +140,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
     {# v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). #}
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
     {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
@@ -165,7 +167,11 @@
         {% block cp_shell_sidebar %}{% endblock %}
       </aside>
       <div class="rmc-app-shell__canvas">
+        {% block cp_shell_canvas_chrome %}{% endblock %}
         <div class="rmc-app-shell__canvas-body cp-shell-content{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}">
+          {% if request.user.is_authenticated %}
+          {% include "accounts/partials/_security_posture_banner.html" %}
+          {% endif %}
           {% comment %} v3.57.10 (2026-05-22): the 7 cockpit 200x dashboard sections
              (live_world_map / forecast_lane / slo_clocks / tenant_heatmap / revenue_waterfall /
              audit_feed / trust_nutrition) + platform_pulse strip were lifted OUT of the shell

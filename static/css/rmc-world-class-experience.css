@@ -205,7 +205,7 @@ button.cp-context-drawer-toggle i,
 
 .rmc-wcx-summary-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
   gap: 0.75rem;
   margin: 1rem 0;
 }
@@ -242,7 +242,7 @@ button.cp-context-drawer-toggle i,
 
 .rmc-wcx-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
   gap: 1rem;
   min-width: 0;
 }
@@ -252,7 +252,12 @@ button.cp-context-drawer-toggle i,
 .rmc-wcx-actions > *,
 .rmc-wcx-action-rail__actions > * {
   min-width: 0;
-  overflow-wrap: anywhere;
+}
+
+.rmc-wcx-grid > * :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6),
+.rmc-wcx-summary-strip > * :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6) {
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 main ol,
@@ -315,7 +320,7 @@ body.control-plane-shell #cp-main-content .rmc-wcx-product-card .badge.text-bg-l
 
 .rmc-wcx-stepper {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(5.5rem, 100%), 1fr));
   gap: 0.35rem;
   margin: 1rem 0;
 }
@@ -538,7 +543,7 @@ body.control-plane-shell #cp-main-content .rmc-wcx-product-card .badge.text-bg-l
 
 .rmc-acx-workflow-path {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(5.5rem, 100%), 1fr));
   gap: 0.35rem;
   margin: 1rem 0;
 }
@@ -558,7 +563,7 @@ body.control-plane-shell #cp-main-content .rmc-wcx-product-card .badge.text-bg-l
 
 .rmc-acx-dependency-graph__nodes {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
   gap: 0.5rem;
   align-items: center;
 }

@@ -1,0 +1,150 @@
+/**
+ * Layout frame guard — prevents flex/grid collapse in page content areas.
+ * Shell layout rows (sidebar + main) may use nowrap; nested Bootstrap rows and
+ * WCX grids inside main content must wrap and keep readable min widths.
+ */
+
+/* Shared content roots (app-shell canvas + legacy main columns) */
+:is(
+    body.control-plane-shell,
+    body.admin-manager-shell,
+    body.manager-portal-bridge,
+    body.portal-body-with-layout
+  )
+  :is(
+    #cp-main-content,
+    .cp-page-body,
+    .cp-admin-page-body,
+    #content,
+    #content-main,
+    #main-content,
+    .portal-page-body,
+    .rmc-app-shell__canvas-body
+  )
+  .row:not(.portal-layout-row):not(.flex-lg-row) {
+  flex-wrap: wrap !important;
+  align-items: stretch;
+}
+
+:is(
+    body.control-plane-shell,
+    body.admin-manager-shell,
+    body.manager-portal-bridge,
+    body.portal-body-with-layout
+  )
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, #content-main, #main-content, .portal-page-body, .rmc-app-shell__canvas-body)
+  .row:not(.portal-layout-row)
+  > [class*="col-"] {
+  flex: 0 0 auto;
+  min-width: min(100%, 12rem);
+  max-width: 100%;
+}
+
+/* Definition-list rows (Bootstrap .row on <dl>) */
+:is(body.control-plane-shell, body.admin-manager-shell)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, #content-main, .rmc-app-shell__canvas-body)
+  dl.row {
+  flex-wrap: wrap !important;
+}
+
+/* WCX + platform readiness grids */
+:is(body.control-plane-shell, body.admin-manager-shell, body.manager-portal-bridge)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, #content-main, .rmc-app-shell__canvas-body)
+  :is(.rmc-wcx-grid, .platform-readiness-strip):not([data-rmc-ops-nav-grid]) {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+
+:is(body.control-plane-shell, body.admin-manager-shell, body.manager-portal-bridge)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, #content-main, .rmc-app-shell__canvas-body)
+  .rmc-wcx-summary-strip:not([data-rmc-ops-nav-grid]) {
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+}
+
+/* Operational workbenches: fixed KPI columns (preview cp-kpi-row) */
+body.control-plane-shell
+  #cp-main-content [data-rmc-operational-workbench="1"] .rmc-wcx-summary-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 992px) {
+  body.control-plane-shell
+    #cp-main-content [data-rmc-operational-workbench="1"] .rmc-wcx-summary-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+:is(body.control-plane-shell, body.admin-manager-shell, body.manager-portal-bridge)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, #content-main, .rmc-app-shell__canvas-body)
+  :is(.rmc-wcx-grid, .platform-readiness-strip):not([data-rmc-ops-nav-grid])
+  > * {
+  min-width: min(100%, 12rem);
+}
+
+/* Manager dashboard grids (6-up overview cards etc.) */
+:is(body.control-plane-shell, body.admin-manager-shell)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, .rmc-app-shell__canvas-body)
+  :is(.cp-overview-grid,
+    .cp-health-grid,
+    .cp-readiness-grid,
+    .cp-workstream-grid,
+    .cp-footprint-metrics,
+    .cp-hero-grid,
+    .cp-queue-grid,
+    .rmc-cockpit-pulse__cards) {
+  grid-template-columns: repeat(auto-fit, minmax(min(14rem, 100%), 1fr)) !important;
+}
+
+:is(body.control-plane-shell, body.admin-manager-shell)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, .rmc-app-shell__canvas-body)
+  :is(.cp-grid-2, .cp-grid-3) {
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr)) !important;
+}
+
+/* Multi-step rails — wrap instead of 8-up sliver columns */
+:is(body.control-plane-shell, body.admin-manager-shell)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, .rmc-app-shell__canvas-body)
+  :is(.rmc-wcx-stepper, .rmc-acx-workflow-path) {
+  grid-template-columns: repeat(auto-fit, minmax(min(5.5rem, 100%), 1fr));
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+:is(body.control-plane-shell, body.admin-manager-shell)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, .rmc-app-shell__canvas-body)
+  .rmc-acx-dependency-graph__nodes {
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+}
+
+/* Apple-class panels + meters — readable copy; no vertical letter-stacking */
+.rmc-acx-glass-panel,
+.rmc-acx-data-quality,
+.rmc-wcx-risk-card,
+.rmc-wcx-product-card,
+.rmc-wcx-metric {
+  min-width: min(100%, 12rem);
+}
+
+.rmc-acx-glass-panel :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6),
+.rmc-acx-data-quality :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6),
+.rmc-wcx-risk-card :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6),
+.rmc-wcx-product-card :is(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6),
+.rmc-acx-glass-panel p,
+.rmc-acx-data-quality p,
+.rmc-wcx-risk-card p,
+.rmc-wcx-product-card p {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: auto;
+}
+
+/* Chip / action rows in content wrap on narrow viewports */
+:is(body.control-plane-shell, body.admin-manager-shell)
+  :is(#cp-main-content, .cp-page-body, .cp-admin-page-body, .rmc-app-shell__canvas-body)
+  :is(.cp-chip-row, .rmc-os-action-bar, [data-rmc-os-primary-action-slot]) {
+  flex-wrap: wrap !important;
+  gap: 0.5rem;
+}

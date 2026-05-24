@@ -655,6 +655,49 @@ def build_portal_sidebar_items(request, site):
             }
         )
 
+    # --- Student ---
+    if role == User.Role.STUDENT:
+        items.append(
+            {
+                "id": "student_workflow",
+                "label": "My Workflow",
+                "url": _safe_reverse("portal:student_workflow"),
+                "icon": "bi-diagram-3",
+                "section": "My Workflow",
+                "badge": workflow_badge,
+            }
+        )
+        items.append(
+            {
+                "id": "student_home",
+                "label": "Student Home",
+                "url": _safe_reverse("portal:student_portal_grades"),
+                "icon": "bi-house",
+                "section": "Learning",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "student_syllabus",
+                "label": "Syllabus Coverage",
+                "url": _safe_reverse("portal:portal_syllabus"),
+                "icon": "bi-journal-bookmark",
+                "section": "Learning",
+                "badge": None,
+            }
+        )
+        items.append(
+            {
+                "id": "student_help",
+                "label": "Help Center",
+                "url": _safe_reverse("feedback:help_center"),
+                "icon": "bi-life-preserver",
+                "section": "Support",
+                "badge": None,
+            }
+        )
+
     # --- Portal Tools (per-feature RBAC). Documents goes under Content & Documents; for staff it's added in staff block to avoid duplicate section. ---
     if callable(getattr(site, "get_feature_control_settings", None)):
         portal_cfg = site.get_feature_control_settings().get("portal_features") or {}

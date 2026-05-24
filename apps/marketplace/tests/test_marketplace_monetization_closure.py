@@ -6,7 +6,7 @@ import uuid
 from decimal import Decimal
 
 from django.test import Client, TestCase, override_settings
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.models import Permission, User
@@ -156,20 +156,17 @@ class MarketplaceMonetizationClosureTests(TestCase):
             ).exists()
         )
 
-    def test_monetization_dashboard_200_for_manager(self):
-        c = self._login_admin()
-        url = reverse(
-            "marketplace:monetization_dashboard",
-            urlconf="config.tenant_urls",
-        )
-        resp = c.get(url)
-        self.assertEqual(resp.status_code, 200)
+    def test_monetization_dashboard_not_exposed_on_tenant_marketplace_urlconf(self):
+        with self.assertRaises(NoReverseMatch):
+            reverse(
+                "marketplace:monetization_dashboard",
+                urlconf="config.tenant_urls",
+            )
 
-    def test_monetization_dashboard_403_for_teacher(self):
-        c = self._login_teacher()
+    def test_tenant_marketplace_purchase_intent_route_still_resolves(self):
         url = reverse(
-            "marketplace:monetization_dashboard",
+            "marketplace:app_purchase_intent",
+            kwargs={"app_id": self.free_app.pk},
             urlconf="config.tenant_urls",
         )
-        resp = c.get(url)
-        self.assertNotEqual(resp.status_code, 200)
+        self.assertEqual(url, f"/marketplace/app/{self.free_app.pk}/purchase-intent/")

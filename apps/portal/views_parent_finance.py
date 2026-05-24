@@ -22,6 +22,7 @@ from apps.people.models import StudentGuardian
 from apps.platform_runtime.helpers import get_effective_flags
 
 from .services import guardian_student_links, guardian_students
+from .tenant_pagination import paginate_for_request, pagination_extra_query
 
 
 @parent_portal_required
@@ -93,10 +94,12 @@ def parent_finance(request: HttpRequest):
     int((paid / total_due) * 100) if total_due else 0
     bool(students)
 
+    page_obj = paginate_for_request(request, invoices_qs, per_page=20)
+
     payment_method_counts = Counter()
     invoice_rows = []
     reminders = []
-    for inv in invoices_qs:
+    for inv in page_obj.object_list:
         link = generate_payment_link(inv)
         payments = list(inv.payments.all())
         receipt = payments[0] if payments else None
@@ -188,6 +191,8 @@ def parent_finance(request: HttpRequest):
                 ("total_amount", _("Amount (low to high)")),
             ],
             "selected_order": order_param,
+            "page_obj": page_obj,
+            "pagination_extra_query": pagination_extra_query(request),
         },
     )
 

@@ -4,6 +4,13 @@
  * Keep path rules in this file only; templates load the script, do not duplicate inline logic.
  */
 (function () {
+  var root = document.documentElement;
+  if (
+    root.getAttribute("data-rmc-tp-v3-role-home") === "1" ||
+    root.getAttribute("data-rmc-tp-v3-shell") === "1"
+  ) {
+    return;
+  }
   var path = (window.location.pathname || "").toLowerCase();
   var page = "";
   if (path.indexOf("/portal/parent") !== -1 || path.indexOf("/parent/dashboard") !== -1) {

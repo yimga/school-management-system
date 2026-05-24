@@ -72,19 +72,15 @@ class BaseRunMyCampusAdminSite(UnfoldAdminSite):
         except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             context["extra_userlinks"] = ""
         try:
-            from django_otp import user_has_device
+            from apps.accounts.mfa_ui_context import build_mfa_ui_context
 
-            show = (
-                request.user.is_authenticated
-                and request.user.is_staff
-                and not user_has_device(request.user)
-                and not request.session.get("mfa_banner_dismissed")
-            )
-            context["show_mfa_banner"] = show
-            context["mfa_setup_url"] = reverse("accounts:mfa_setup") if show else ""
+            context.update(build_mfa_ui_context(request))
         except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             context["show_mfa_banner"] = False
             context["mfa_setup_url"] = ""
+            context["show_mfa_header_icon"] = False
+            context["mfa_enrolled"] = False
+            context["mfa_setup_needed"] = False
         try:
             context["integrations_changelist_url"] = reverse(
                 "admin:integrations_marketplace_integration_changelist"

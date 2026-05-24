@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block title %}Cahier de Texte{% endblock %}
 {% block content %}
+<div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Cahier de Texte</h1>
 {% include "widgets/dashboard_hero.html" with hero=hero %}
 <div class="card mb-3">
@@ -44,7 +45,7 @@
     <h5 class="card-title">My entries</h5>
     {% if entries %}
     <div class="table-responsive">
-      <table class="table table-sm table-family align-middle">
+      <table class="table table-sm table-family align-middle rmc-data-table">
         <caption class="visually-hidden">{% trans "My entries" %}</caption>
         <thead><tr><th>Date</th><th>Class / Subject</th><th>Title</th><th>Status</th></tr></thead>
         <tbody>
@@ -59,9 +60,13 @@
         </tbody>
       </table>
     </div>
+    {% if page_obj %}
+    {% include "components/pagination.html" with page_obj=page_obj %}
+    {% endif %}
     {% else %}
-    <p class="text-muted mb-0">No entries yet.</p>
+    {% include "components/tp_empty.html" with tp_empty_title=_("No entries yet") tp_empty_hint=_("Submit your first lesson diary entry above.") tp_empty_icon="📓" %}
     {% endif %}
   </div>
+</div>
 </div>
 {% endblock %}

@@ -163,6 +163,21 @@ class User(AbstractUser):
         blank=True,
         help_text="Last time user triggered Emergency Lockdown (for 24h cooldown).",
     )
+    password_strength_score = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="zxcvbn score 0–4 when password was last set.",
+    )
+    password_changed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp of last successful password change.",
+    )
+    last_security_posture_review_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Last quarterly security posture review completed by the user.",
+    )
     preferred_language = models.CharField(
         max_length=16,
         blank=True,

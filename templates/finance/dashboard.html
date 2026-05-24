@@ -9,16 +9,17 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 <script src="{% static 'js/_pages/finance__dashboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Money Center" %}</h1>
-<div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace" data-apple-class-billing-ux="1">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-os-center="money_center" data-rmc-ux-role-dashboard="finance-workspace" data-apple-class-billing-ux="1" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
 {% phase8_dashboard_declaration "finance/dashboard.html" %}
 {% url 'finance:invoices' as wcx_money_primary_url %}
 {% url 'finance:payment_readiness_dashboard' as wcx_payment_readiness_url %}
-{% include "components/world_class_page_hero.html" with hero_id="money-center-title" role=_("Finance team") title=_("Money Center") subtitle=_("Package comparison, entitlement posture, usage meters, billing impact, manual fallback, external PSP status, and revenue/share honesty in one guided finance workspace.") purpose=_("School money center") status=_("Payment readiness visible") primary_url=wcx_money_primary_url primary_label=_("Open invoices") secondary_url=wcx_payment_readiness_url secondary_label=_("Payment readiness") visual_title=_("Know what can be collected") visual_body=_("Invoices and receipts are in-product; live PSP collection requires external onboarding, keys, webhooks, and settlement proof.") %}
+{% include "components/rmc_operational_center_frame.html" with os_center_key="money_center" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_money_primary_url primary_label=_("Open invoices") secondary_url=wcx_payment_readiness_url secondary_label=_("Payment readiness") %}
 {% include "components/world_class_summary_strip.html" with readiness="Manual + PSP" readiness_label=_("Payment posture") risk=_("External") risk_label=_("Gateway readiness") next_step=_("Invoices") next_step_label=_("Primary action") blockers=_("Settlement") blockers_label=_("No fake live payments") %}
 {% include "components/platform_readiness_strip.html" with inline_field_prefix='money-center' tenant_label=request.tenant.display_name|default:'' %}
 {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}

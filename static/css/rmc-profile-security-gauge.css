@@ -1,0 +1,117 @@
+.rmc-security-gauge {
+  --rmc-gauge-score: 0;
+  --rmc-gauge-color: var(--ds-danger);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rmc-security-gauge[data-strength-band="average"] {
+  --rmc-gauge-color: var(--ds-warning);
+}
+
+.rmc-security-gauge[data-strength-band="strong"] {
+  --rmc-gauge-color: var(--ds-success);
+}
+
+.rmc-security-gauge__dial {
+  position: relative;
+  width: min(100%, 220px);
+  margin-inline: auto;
+}
+
+.rmc-security-gauge__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.rmc-security-gauge__arc {
+  fill: none;
+  stroke: var(--surface-overlay, rgba(128, 128, 128, 0.2));
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+
+.rmc-security-gauge__value-arc {
+  fill: none;
+  stroke: var(--rmc-gauge-color);
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--motion-normal, 0.35s) var(--ease-standard, ease);
+}
+
+.rmc-security-gauge__needle {
+  fill: var(--rmc-gauge-color);
+  transform-origin: 100px 100px;
+  transform: rotate(calc(-90deg + (var(--rmc-gauge-score) * 1.8deg)));
+  transition: transform var(--motion-normal, 0.35s) var(--ease-standard, ease);
+}
+
+.rmc-security-gauge__score {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  font-size: var(--type-size-headline-m, 1.5rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.rmc-security-gauge__label {
+  text-align: center;
+  font-size: var(--type-size-caption);
+  font-weight: 600;
+  color: var(--rmc-gauge-color);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rmc-security-gauge__completeness {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.rmc-security-gauge__completeness-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-overlay, rgba(128, 128, 128, 0.2));
+  overflow: hidden;
+}
+
+.rmc-security-gauge__completeness-fill {
+  height: 100%;
+  background: var(--school-primary, var(--bs-primary));
+  border-radius: inherit;
+  transition: width var(--motion-normal, 0.35s) var(--ease-standard, ease);
+}
+
+.rmc-security-gauge__vuln-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.rmc-security-gauge__vuln-item {
+  padding: 0.55rem 0.65rem;
+  border-radius: var(--radius-md, 8px);
+  background: var(--ds-danger-bg);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 35%, transparent);
+  font-size: var(--type-size-caption);
+}
+
+.rmc-security-gauge__vuln-item strong {
+  display: block;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.rmc-security-gauge__ux-item {
+  font-size: var(--type-size-caption);
+  color: var(--text-secondary, var(--admin-content-text-muted));
+}

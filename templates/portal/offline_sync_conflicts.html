@@ -6,7 +6,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Sync conflicts" %} — {{ block.super }}</h1>
-<div class="container py-4" data-rmc-offline-conflicts="1" data-rmc-os-center="offline_sync_conflicts">
+<div class="container py-4" data-rmc-offline-conflicts="1" data-rmc-os-center="offline_sync_conflicts" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   {% trans "Offline Sync" as oc_eyebrow %}
   {% trans "Resolve divergences between your offline edits and the latest server record — every choice is audited." as oc_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="offline_sync_conflicts" center_eyebrow=oc_eyebrow center_title=_("Offline Sync Center — conflicts") center_purpose=oc_purpose %}

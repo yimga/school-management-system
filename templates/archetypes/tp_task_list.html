@@ -1,0 +1,7 @@
+{% extends "portal_base.html" %}
+{# Archetype: tenant portal v3 task list (paginated table + tp-empty) #}
+{% block content %}
+<div class="tp-task-list rmc-reveal" data-rmc-reveal data-page-archetype="task-list" data-rmc-scroll-policy="paginate">
+  {% block archetype_task_list_body %}{% endblock %}
+</div>
+{% endblock %}

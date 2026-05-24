@@ -87,12 +87,12 @@ EXPERIENCE_CONTROL_SCREENS: list[dict[str, Any]] = [
         "risk": "none",
     },
     {
-        "id": "marketplace_monetization_dashboard",
+        "id": "marketplace_purchase_intent",
         "primary_user": "operator",
-        "primary_action": "Monetization / revenue overview (tenant)",
-        "reverse_spec": ("marketplace", "monetization_dashboard"),
+        "primary_action": "Review purchase intent for a tenant marketplace app",
+        "reverse_spec": ("marketplace", "app_purchase_intent"),
         "urlconf": "config.tenant_urls",
-        "kwargs": {},
+        "kwargs": {"app_id": 1},
         "risk": "needs_review",
     },
     {

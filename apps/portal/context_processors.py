@@ -82,6 +82,33 @@ def support_deflection_urls(request):
         return {}
 
 
+def tp_v3_role_home(request):
+    """Tenant v3 100x role-home shell contract (preview parity, batch 1490+)."""
+    from apps.portal.tenant_role_home import tp_v3_role_home_shell_context
+
+    return tp_v3_role_home_shell_context(request)
+
+
+def tenant_experience_command(request):
+    """Tenant dashboard/profile/tool command payload for authenticated users."""
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return {}
+    try:
+        from apps.portal.tenant_experience_command import (
+            build_tenant_experience_command,
+        )
+
+        return {
+            "tenant_experience_command": build_tenant_experience_command(
+                request,
+                str(getattr(user, "role", "") or ""),
+            )
+        }
+    except Exception:
+        return {"tenant_experience_command": {"enabled": False, "actions": []}}
+
+
 def help_contextual(request):
     """Proactive nudges + contextual help drawer (batches 1346/1352/1353)."""
     from apps.portal.help_proactive_inline import (

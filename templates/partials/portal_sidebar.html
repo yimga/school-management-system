@@ -29,7 +29,8 @@ SiteSettings.cockpit_payload.
   {% endfor %}
 </div>
 {% endif %}
-<!-- User Header -->
+{% if not tp_v3_tenant_shell %}
+<!-- User Header (legacy — v3 100x tenant shell uses tp-header brand only) -->
 <div class="sidebar-header" id="preview-sidebar-header" data-preview-label="{% trans 'Sidebar user block' %}" data-preview-changes="{% trans 'User name, role from account' %}">
   <div class="sidebar-header-content">
     <div class="sidebar-avatar">
@@ -52,6 +53,7 @@ SiteSettings.cockpit_payload.
   </div>
   {% endif %}
 </div>
+{% endif %}
 
 <nav class="nav flex-column gap-0" data-sidebar-nav="true" data-shell-nav-family="portal" data-rmc-os-nav="1" data-rmc-os-role-cluster="{{ rmc_os_shell.role_cluster|default:'school_staff' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %} role="navigation" aria-label="{% trans 'Portal navigation' %}" data-preview-label="{% trans 'Sidebar navigation' %}" data-preview-changes="{% trans 'Menu items, order from Site Settings' %}">
   {% if request.user.is_authenticated %}
@@ -173,6 +175,21 @@ SiteSettings.cockpit_payload.
         <div class="sidebar-section-title">{% trans "Account" %}</div>
         <a class="nav-link nav-pill" href="{% url 'portal:link_child' %}"><i class="bi bi-link-45deg me-2"></i>{% trans "Link a child" %}</a>
         <a class="nav-link nav-pill" href="{% url 'portal:claim_invite' %}"><i class="bi bi-ticket me-2"></i>{% trans "Claim invite" %}</a>
+      {% elif request.user.role == 'STUDENT' %}
+        <div class="sidebar-section-title">{% trans "Home" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:student_portal_grades' %}"><i class="bi bi-house me-2"></i>{% trans "Student Home" %}</a>
+        <div class="sidebar-section-title">{% trans "My Workflow" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:student_workflow' %}"><i class="bi bi-diagram-3 me-2"></i>{% trans "My Workflow" %}</a>
+        <div class="sidebar-section-title">{% trans "Learning" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'portal:portal_syllabus' %}"><i class="bi bi-journal-bookmark me-2"></i>{% trans "Syllabus Coverage" %}</a>
+        <div class="sidebar-section-title">{% trans "Communication" %}</div>
+        <a class="nav-link nav-pill d-flex align-items-center justify-content-between" href="{% url 'accounts:user_messages' %}">
+          <span><i class="bi bi-chat-dots me-2"></i>{% trans_term "Messages" key="message" plural=True %}</span>
+          {% if messages_unread_count %}<span class="badge bg-primary rounded-pill">{{ messages_unread_count }}</span>{% endif %}
+        </a>
+        <div class="sidebar-section-title">{% trans "Support" %}</div>
+        <a class="nav-link nav-pill" href="{% url 'accounts:user_profile' %}"><i class="bi bi-person me-2"></i>{% trans "My Profile" %}</a>
+        <a class="nav-link nav-pill" href="{% url 'feedback:help_center' %}"><i class="bi bi-life-preserver me-2"></i>{% trans "Help Center" %}</a>
       {% elif request.user.role != 'TEACHER' %}
         {% if request.user.is_staff or request.user.is_superuser or request.user.role == 'ADMIN' or request.user.role == 'LEADERSHIP' or request.user.role == 'IT_ADMIN' %}
         {% comment %}RBAC: staff sections; Admin Panel last (includes Site Settings, Region Configuration). No duplicate sections.{% endcomment %}
@@ -243,8 +260,8 @@ SiteSettings.cockpit_payload.
       {% endif %}
     {% endif %}
 
-    {% comment %}RBAC: Recent Activity shows other users' actions; hide for teachers and parents to avoid leaking info.{% endcomment %}
-    {% if request.user.role != 'TEACHER' and request.user.role != 'PARENT' %}
+    {% comment %}RBAC: Recent Activity shows other users' actions; hide for student, teacher, and parent portals to avoid leaking info.{% endcomment %}
+    {% if request.user.role != 'STUDENT' and request.user.role != 'TEACHER' and request.user.role != 'PARENT' %}
     <div class="sidebar-collapsible mt-3 recent-activity-block">
       <div class="sidebar-collapsible-header recent-activity-toggle" role="button" aria-expanded="true" title="{% trans 'Click to expand or collapse' %}">
         <span>{% trans "Recent Activity" %}</span>

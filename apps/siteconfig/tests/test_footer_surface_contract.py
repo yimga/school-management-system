@@ -41,6 +41,16 @@ class FooterSurfaceContractTests(SimpleTestCase):
         )
         self.assertIn('data-rmc-footer-surface="tenant-standard"', text)
 
+    def test_operator_footer_uses_preview_cp_footer_layout(self):
+        text = Path("templates/partials/rmc_operator_footer_compact.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("cp-footer-inner", text)
+        self.assertIn("cp-footer-ribbon--primary", text)
+        self.assertIn("rmc-civic-footer__social", text)
+        self.assertIn("SOC 2 · ISO 27001 · FERPA · GDPR", text)
+        self.assertIn('data-rmc-footer-surface="operator-compact"', text)
+
     def test_base_html_loads_footer_surface_css_for_tenant_guard(self):
         text = Path("templates/base.html").read_text(encoding="utf-8")
         self.assertIn("rmc-footer-surfaces.css", text)

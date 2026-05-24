@@ -130,6 +130,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
   {# v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). #}
   <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
   {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
   <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
@@ -266,17 +267,6 @@
       </span>
       <div class="preview-cue-actions">
         <a href="{% url 'siteconfig:toggle_preview_mode' %}?next={{ request.path }}">{{ PREVIEW_TOGGLE_LABEL }}</a>
-      </div>
-    </div>
-  {% endif %}
-  {% if show_mfa_banner %}
-    <div class="preview-cue preview-cue--ready mfa-encourage-banner" role="region" aria-label="{% trans 'MFA setup' %}">
-      <span>
-        <strong>{% trans "Stronger security" %}</strong> &mdash; {% trans "Set up MFA (TOTP) to protect your account. Free and quick." %}
-      </span>
-      <div class="preview-cue-actions">
-        <a href="{{ mfa_setup_url }}?next={{ request.get_full_path|urlencode }}" class="btn-mfa-setup">{% trans "Set up MFA" %}</a>
-        <a href="{% url 'accounts:dismiss_mfa_banner' %}?next={{ request.get_full_path|urlencode }}" class="btn-mfa-dismiss">{% trans "Dismiss" %}</a>
       </div>
     </div>
   {% endif %}

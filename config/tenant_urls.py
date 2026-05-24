@@ -77,6 +77,7 @@ from apps.platform_runtime.views_administration import (
     internal_admin_alias_redirect,
     school_configuration_center,
     tenant_blueprint_setup,
+    tenant_import_setup,
     tenant_pack_setup,
     tenant_configuration_forbidden,
 )
@@ -267,7 +268,7 @@ urlpatterns = [
     path("school/configuration/", school_configuration_center, name="school_configuration_center_canonical"),
     path("school/setup/blueprints/", tenant_blueprint_setup, name="tenant_blueprint_setup"),
     path("school/setup/packs/", tenant_pack_setup, name="tenant_pack_setup"),
-    path("school/setup/imports/", school_surface_redirect, {"surface": "imports"}, name="school_setup_imports"),
+    path("school/setup/imports/", tenant_import_setup, name="school_setup_imports"),
     path(
         "school/setup/migration-cloud/",
         include(
@@ -563,7 +564,7 @@ urlpatterns = [
     path(
         "requests/", include(("apps.requests.urls", "requests"), namespace="requests")
     ),
-    path("", include(("apps.feedback.urls", "feedback"), namespace="feedback")),
+    path("", include(("apps.feedback.tenant_urls", "feedback"), namespace="feedback")),
     path(
         "organization/network/",
         parent_tenant_dashboard,

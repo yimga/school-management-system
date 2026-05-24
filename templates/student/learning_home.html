@@ -13,6 +13,7 @@
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
 {% block content %}
+{% include "partials/tenant/hero_greeting.html" %}
 {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 
    v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in the collapsable

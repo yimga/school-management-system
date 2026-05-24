@@ -832,4 +832,11 @@ def cockpit_context(request) -> dict[str, Any]:
     if tat_section:
         tenant_cockpit["tenant_activity_ticker"] = tat_section
 
+    try:
+        from apps.portal.tenant_cockpit_enrichment import enrich_tenant_cockpit_for_request
+
+        tenant_cockpit = enrich_tenant_cockpit_for_request(request, tenant_cockpit)
+    except Exception:
+        pass
+
     return {"cockpit": tenant_cockpit, "rmc_page_help_on_copilot_rail": False}

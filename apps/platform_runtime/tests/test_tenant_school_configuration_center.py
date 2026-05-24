@@ -76,7 +76,6 @@ class TenantSchoolConfigurationCenterTests(TestCase):
         client = self._admin_client()
 
         expected = {
-            "/school/setup/imports/": "/siteconfig/onboarding/",
             "/school/apps/": "/settings/app-catalog/",
             "/school/billing/": "/finance/",
             "/school/money/": "/finance/",
@@ -91,6 +90,12 @@ class TenantSchoolConfigurationCenterTests(TestCase):
                 response = client.get(path)
                 self.assertEqual(response.status_code, 302)
                 self.assertEqual(response["Location"], target)
+
+        response = client.get("/school/setup/imports/")
+        self.assertEqual(response.status_code, 200, msg=response.content[:500])
+        body = response.content.decode("utf-8", errors="replace")
+        self.assertIn("School Import Setup", body)
+        self.assertIn('data-rmc-workflow-contract="imports"', body)
 
     def test_school_browser_qa_aliases_resolve_for_tenant_admin(self):
         ComplianceProfile.objects.create(

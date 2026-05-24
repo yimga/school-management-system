@@ -487,7 +487,27 @@ def teacher_dashboard(request: HttpRequest):
         return error
     year, term = get_active_year_and_term()
     if not year or not term:
-        return HttpResponseForbidden("No active academic year/term set by admin yet.")
+        from apps.portal.tenant_role_home import build_tp_hero_context
+
+        return render(
+            request,
+            "teacher/dashboard.html",
+            {
+                **build_tp_hero_context(request, role=User.Role.TEACHER),
+                "teacher_show_legacy_dashboard": False,
+                "display_widgets": [],
+                "year": year,
+                "term": term,
+                "teacher_fast_workflows": [],
+                "teacher_alerts": [
+                    {
+                        "title": "Academic year setup needed",
+                        "message": "Ask an admin to activate the current academic year and term.",
+                        "tone": "warning",
+                    }
+                ],
+            },
+        )
 
     teacher_profile, assignments, students_qs, classrooms = teacher_scope(
         request.user, academic_year=year
@@ -1095,7 +1115,15 @@ def teacher_dashboard(request: HttpRequest):
         role_home_show_legacy,
     )
 
-    tp_hero = build_tp_hero_context(request, role=User.Role.TEACHER)
+    pending_marks = int(widget_data.get("tasks", {}).get("pending_evaluations") or 0)
+    completion_pct = int(widget_data.get("completion_pct") or 0)
+    tp_hero = build_tp_hero_context(
+        request,
+        role=User.Role.TEACHER,
+        pending_evaluations=pending_marks,
+        completion_pct=completion_pct,
+        attendance_pct=int(attendance_pct) if attendance_pct is not None else None,
+    )
 
     return render(
         request,
@@ -1179,9 +1207,60 @@ def teacher_workflow_center(request: HttpRequest):
     teacher, error = _get_teacher_or_forbid(request)
     if error:
         return error
+    from apps.portal.tenant_role_home import build_tp_hero_context
+    from apps.portal.tenant_workflow_portal import build_tenant_workflow_portal
+
     year, term = get_active_year_and_term()
     if not year or not term:
-        return HttpResponseForbidden("No active academic year/term set by admin yet.")
+        steps = [
+            {
+                "title": "Academic year setup",
+                "subtitle": "Your school needs an active academic year and term before teaching workflows can fully run.",
+                "step_key": "academic-year",
+                "icon": "bi-calendar-event",
+                "done": False,
+                "progress_label": "Setup needed",
+                "tip": "Ask an admin to activate the current academic year and term in School Studio.",
+                "links": [
+                    link
+                    for link in [
+                        _teacher_workflow_link("Teacher hub", "portal:teacher_dashboard_alias"),
+                        _teacher_workflow_link("Help", "feedback:help_center"),
+                    ]
+                    if link
+                ],
+                "step_index": 1,
+                "total_steps": 1,
+            }
+        ]
+        workflow_progress = {
+            "assignments": 0,
+            "completion_pct": 0,
+            "pending_marks": 0,
+            "present_today": False,
+            "pending_leaves": 0,
+        }
+        return render(
+            request,
+            "teacher/workflow_center.html",
+            {
+                **build_tp_hero_context(request, role=User.Role.TEACHER),
+                "active_year": year,
+                "active_term": term,
+                "steps": steps,
+                "workflow_progress": workflow_progress,
+                "workflow_empty_state": True,
+                "workflow_portal": build_tenant_workflow_portal(
+                    request,
+                    role=User.Role.TEACHER,
+                    steps=steps,
+                    workflow_progress=workflow_progress,
+                    active_year=year,
+                    active_term=term,
+                    empty_state=True,
+                ),
+            },
+        )
 
     teacher_profile, assignments, students_qs, classrooms = teacher_scope(
         request.user, academic_year=year
@@ -1203,6 +1282,7 @@ def teacher_workflow_center(request: HttpRequest):
                 "subtitle": "You don't have any classes assigned yet.",
                 "step_key": "assignments",
                 "icon": "bi-person-badge",
+                "done": False,
                 "progress_label": "No classes assigned",
                 "tip": "Contact your administrator to be assigned to classes. Once assigned, you'll see marks entry, attendance, and other workflow steps here.",
                 "links": _filter_links(
@@ -1232,6 +1312,22 @@ def teacher_workflow_center(request: HttpRequest):
                     "pending_leaves": 0,
                 },
                 "workflow_empty_state": True,
+                **build_tp_hero_context(request, role=User.Role.TEACHER),
+                "workflow_portal": build_tenant_workflow_portal(
+                    request,
+                    role=User.Role.TEACHER,
+                    steps=steps,
+                    workflow_progress={
+                        "assignments": 0,
+                        "completion_pct": 0,
+                        "pending_marks": 0,
+                        "present_today": False,
+                        "pending_leaves": 0,
+                    },
+                    active_year=year,
+                    active_term=term,
+                    empty_state=True,
+                ),
             },
         # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
         )
@@ -1289,6 +1385,7 @@ def teacher_workflow_center(request: HttpRequest):
             "subtitle": "Onboarding, assignments, and schedule.",
             "step_key": "profile",
             "icon": "bi-person-badge",
+            "done": bool(assignments),
             "progress_label": f"{len(assignments)} classes"
             if assignments
             else "No assignments",
@@ -1307,6 +1404,7 @@ def teacher_workflow_center(request: HttpRequest):
             "subtitle": "Your attendance and class attendance.",
             "step_key": "daily",
             "icon": "bi-calendar-check",
+            "done": bool(present_today),
             "progress_label": "Checked in today" if present_today else "Not checked in",
             "tip": "Check in when you arrive; take class attendance for each period.",
             "links": _filter_links(
@@ -1322,6 +1420,7 @@ def teacher_workflow_center(request: HttpRequest):
             "subtitle": "Enter marks (Sequences 1–6), submit for approval.",
             "step_key": "marks",
             "icon": "bi-pencil-square",
+            "done": pending_marks == 0,
             "progress_label": f"{completion_pct}% entered · {pending_marks} pending"
             if total_slots
             else "No slots",
@@ -1342,6 +1441,7 @@ def teacher_workflow_center(request: HttpRequest):
             "subtitle": "Report cards, announcements, parent contact.",
             "step_key": "reports",
             "icon": "bi-chat-dots",
+            "done": completion_pct >= 80,
             "progress_label": None,
             "tip": "After approval, admin publishes reports; use messages for parent alerts.",
             "links": _filter_links(
@@ -1367,6 +1467,7 @@ def teacher_workflow_center(request: HttpRequest):
             "subtitle": "Your attendance record, pay history, leave.",
             "step_key": "pay",
             "icon": "bi-wallet2",
+            "done": bool(present_today) and pending_leaves == 0,
             "progress_label": f"Present today · {pending_leaves} leave request(s)"
             if present_today
             else f"Not checked in · {pending_leaves} leave request(s)",
@@ -1399,10 +1500,25 @@ def teacher_workflow_center(request: HttpRequest):
         request,
         "teacher/workflow_center.html",
         {
+            **build_tp_hero_context(
+                request,
+                role=User.Role.TEACHER,
+                pending_evaluations=int(pending_marks or 0),
+                completion_pct=int(completion_pct or 0),
+            ),
             "active_year": year,
             "active_term": term,
             "steps": steps,
             "workflow_progress": workflow_progress,
+            "workflow_portal": build_tenant_workflow_portal(
+                request,
+                role=User.Role.TEACHER,
+                steps=steps,
+                workflow_progress=workflow_progress,
+                active_year=year,
+                active_term=term,
+                empty_state=False,
+            ),
         },
     )
 

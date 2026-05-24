@@ -100,8 +100,10 @@ def main() -> int:
     admin_base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
     if "_workspace_context.html" in admin_base:
         errors.append("admin/base.html: workspace_context must not ship in manager sidebar")
-    if admin_base.find("cp-live-strip") < 0 or admin_base.find("cp-live-strip") > admin_base.find("cp-nav-row"):
-        errors.append("admin/base.html: live ticker must precede primary nav row")
+    if admin_base.find("cp-live-strip") < 0 or admin_base.find("cp-nav-row") < 0:
+        errors.append("admin/base.html: missing cp-live-strip or cp-nav-row")
+    elif admin_base.find("cp-nav-row") > admin_base.find("cp-live-strip"):
+        errors.append("admin/base.html: primary nav row must precede live ticker strip")
     if "_ai_copilot_rail.html" not in admin_base:
         errors.append("admin/base.html: manager copilot rail include missing")
 

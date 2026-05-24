@@ -13,12 +13,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _run(cmd: list[str], label: str) -> list[str]:
+    import os
+
+    env = os.environ.copy()
+    env.setdefault("PYTHONPATH", str(ROOT))
     proc = subprocess.run(
         cmd,
         cwd=ROOT,
         capture_output=True,
         text=True,
         timeout=360,
+        env=env,
     )
     out = (proc.stdout or "") + (proc.stderr or "")
     if proc.returncode != 0:

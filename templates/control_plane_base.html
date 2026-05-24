@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'css/rmc-premium-os.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 {# Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). #}
 <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
 {% comment %} Pass A: manager-specific polish (card surfaces, studio toolbar, rail, sidebar).
@@ -27,35 +28,34 @@
 
 {% block cp_shell_header %}
 {% comment %}
-  v3.62.8: v8 200x header stack on every /super/* page (utility + scrolling live ticker + primary nav).
-  Landing pages may override cp_shell_header_ticker for richer demo payloads.
+  v3.90.16: v8 200x header — utility + live ticker only; primary nav lives in canvas chrome
+  so the sidebar begins directly under the live strip (no AD/workspace block).
 {% endcomment %}
 <div class="cp-header" data-rmc-cp-header-200x="1">
   <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
     <div class="cp-header__row cp-header__row--utility">
       {% include "partials/manager_operator_topbar.html" %}
     </div>
-    <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
-      {% block cp_shell_header_ticker %}
-        {% include "partials/cockpit/_activity_ticker.html" %}
-      {% endblock %}
-    </div>
-    <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
-      {% include "partials/control_plane_primary_nav.html" %}
-    </div>
+    {% block cp_shell_header_ticker %}
+    {# cp-live-strip: v8 200x live activity row (DOM from _activity_ticker.html) #}
+      {% include "partials/cockpit/_activity_ticker.html" %}
+    {% endblock %}
   </div>
 </div>
 {% endblock %}
 
 {% block cp_shell_sidebar %}
 <div id="cp-sidebar-col" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
-  <div class="cp-sidebar cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
-    {% comment %} v3.85.0: workspace identity card removed — sidebar nav starts at
-       Home/Studio row height; copilot rail owns page-help. Re-enable via
-       cockpit.workspace_context.enabled in SiteSettings. {% endcomment %}
-    {% block control_plane_sidebar %}
-      {% include "partials/control_plane_sidebar.html" %}
-    {% endblock %}
+  {% block control_plane_sidebar %}
+    {% include "partials/control_plane_sidebar.html" %}
+  {% endblock %}
+</div>
+{% endblock %}
+
+{% block cp_shell_canvas_chrome %}
+<div class="rmc-app-shell__canvas-chrome cp-canvas-chrome-nav" data-rmc-cp-canvas-nav="1">
+  <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
+    {% include "partials/control_plane_primary_nav.html" %}
   </div>
 </div>
 {% endblock %}
@@ -72,7 +72,7 @@
 {% endblock %}
 
 <div class="container-fluid px-3 py-2 cp-layout d-flex flex-column" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
-  <main id="cp-main-content" class="cp-main-col rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane">
+  <main id="cp-main-content" class="cp-main-col rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane" data-rmc-static-chrome="1">
     {% include "partials/shell_chrome_django_messages_control_plane.html" %}
     {% include "partials/shell_chrome_impersonation_session_strip.html" %}
     {% if cp_show_operator_disclaimer %}

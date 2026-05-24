@@ -1,15 +1,13 @@
 {
   "summary": {
-    "templates_scanned": 1356,
-    "pages_with_findings": 15,
-    "finding_total": 17,
+    "templates_scanned": 1371,
+    "pages_with_findings": 16,
+    "finding_total": 16,
     "by_finding": {
       "inline_script_count": 7,
-      "missing_h1": 3,
+      "missing_h1": 4,
       "marketing_form_missing_honeypot": 2,
       "multiple_h1": 2,
-      "missing_skip_link": 1,
-      "missing_main_landmark": 1,
       "form_missing_csrf_token": 1
     }
   },
@@ -383,6 +381,22 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\accounts\\partials\\_profile_security_gauge.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 3
+    },
+    {
+      "path": "templates\\accounts\\partials\\_security_posture_banner.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\accounts\\partials\\notifications_body.html",
       "is_partial": true,
       "is_marketing": false,
@@ -421,6 +435,14 @@
       "extends_base": false,
       "findings": [],
       "inline_style_count": 1
+    },
+    {
+      "path": "templates\\accounts\\partials\\operator_security_posture_review_body.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\accounts\\partials\\workflow_center_builder_strip.html",
@@ -517,6 +539,14 @@
       "extends_base": false,
       "findings": [],
       "inline_style_count": 1
+    },
+    {
+      "path": "templates\\accounts\\security_posture_review.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 2
     },
     {
       "path": "templates\\accounts\\security_trust_hub.html",
@@ -1447,7 +1477,27 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\archetypes\\tp_form_wizard.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\archetypes\\tp_role_home.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\archetypes\\tp_task_list.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
@@ -2541,11 +2591,7 @@
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
-      "findings": [
-        "missing_skip_link",
-        "missing_h1",
-        "missing_main_landmark"
-      ],
+      "findings": [],
       "inline_style_count": 0
     },
     {
@@ -5250,7 +5296,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 1
+      "inline_style_count": 0
     },
     {
       "path": "templates\\partials\\ai_nutrition_label.html",
@@ -5581,6 +5627,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cockpit\\_tp_pulse_drill_sheet.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\cockpit\\_trust_nutrition.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5861,6 +5915,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_authenticated_theme_tail.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_command_bar.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5966,6 +6028,14 @@
     },
     {
       "path": "templates\\partials\\rmc_social_meta.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_theme_experience_dual_plane_styles.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6205,7 +6275,39 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\tenant\\experience_command_strip.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\tenant\\hero_greeting.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\tenant\\tp_breadcrumb.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\tenant\\tp_header_brand.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\tenant\\workflow_portal.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6622,6 +6724,14 @@
     },
     {
       "path": "templates\\platform_runtime\\tenant_blueprint_setup.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\platform_runtime\\tenant_import_setup.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
@@ -7158,7 +7268,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 1
+      "inline_style_count": 0
     },
     {
       "path": "templates\\portal\\signature_request_create.html",
@@ -9869,6 +9979,14 @@
       "inline_style_count": 1
     },
     {
+      "path": "templates\\student\\workflow_center.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\student360\\student_360_page.html",
       "is_partial": false,
       "is_marketing": false,
@@ -10756,7 +10874,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 1
+      "inline_style_count": 0
     },
     {
       "path": "templates\\unfold\\helpers\\app_list.html",

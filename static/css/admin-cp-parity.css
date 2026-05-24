@@ -700,7 +700,7 @@ body.admin-manager-shell #changelist-filter {
   }
 }
 
-/* Platform admin sidebar: every app/model link reachable. */
+/* Platform admin sidebar: nested scroll for long app trees (manager shell overrides below). */
 .cp-sidebar-platform-admin .cp-platform-admin-app-tree {
   max-height: min(calc(100vh - 9rem), 100%);
   overflow-y: auto !important;
@@ -708,11 +708,13 @@ body.admin-manager-shell #changelist-filter {
   overscroll-behavior: contain;
 }
 
-/* Manager /admin/ embed: model lists stay visible without Alpine x-show. */
-body.admin-manager-shell [data-rmc-platform-admin-sidebar="1"] .admin-sidebar-model-list {
-  display: flex !important;
-  flex-direction: column;
-  gap: 0.25rem;
+body.admin-manager-shell .cp-sidebar-platform-admin .cp-platform-admin-app-tree {
+  max-height: none;
+  overflow: visible !important;
+}
+
+body.admin-manager-shell .cp-sidebar-platform-admin .admin-sidebar-app-groups {
+  overflow: visible;
 }
 
 body.admin-manager-shell .cp-layout > .row.flex-lg-row {

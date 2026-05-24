@@ -7,7 +7,7 @@
 {% block backend_page %}
 <link rel="stylesheet" href="{% static 'css/rmc-help-center-engage.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-help-unified-hub.css' %}">
-<div class="container-fluid py-4 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-page="help-center">
+<div class="container-fluid py-4 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-page="help-center" data-rmc-page-help-context-label="{% trans 'Help for this page:' %}">
   <div class="d-flex align-items-center gap-3 mb-3">
     <div class="mkt-advisor-figure mkt-advisor-figure--muted mkt-advisor-figure--reveal d-none d-md-inline-flex" aria-hidden="true">
       {% include "marketing/components/_advisor_character.html" with pose="welcoming" size=140 accessible_label="" %}
@@ -222,5 +222,6 @@
   {% if kb_typeahead_url %}<div class="d-none" data-kb-typeahead-url="{{ kb_typeahead_url }}"></div>{% endif %}
   <script src="{% static 'js/rmc-help-search-typeahead.js' %}" defer></script>
   <script src="{% static 'js/rmc-kb-ai-assistant.js' %}" defer></script>
+  <script src="{% static 'js/rmc-operator-help-center.js' %}" defer></script>
 </div>
 {% endblock %}

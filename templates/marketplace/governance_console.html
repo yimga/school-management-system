@@ -12,18 +12,20 @@
 <link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 {% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
 <div
-  class="container-fluid py-4 control-plane-shell rmc-cp-compact"
-  data-page-archetype="catalog"
+  class="container-fluid py-2 control-plane-shell rmc-cp-compact"
+  data-page-archetype="operational-workbench"
   data-decision-engine="surface"
   data-ux-qa-marker="marketplace-governance"
   data-rmc-scroll-policy="paginate"
+  data-rmc-operational-workbench="1"
 >
 {% phase8_dashboard_declaration "marketplace/governance_console.html" %}
 
   {% url 'super:app_catalog' as app_catalog_url %}
-  {% include "components/world_class_page_hero.html" with hero_id="marketplace-governance-title" role=_("Platform marketplace operators") title=_("Marketplace governance") subtitle=_("Publishers, listing reviews, security posture, kill switches, and revenue share — paginated queues so the console stays within page-fold limits.") purpose=_("Marketplace governance") status=_("Governed") primary_url="#gov-queues" primary_label=_("Review queues") secondary_url=app_catalog_url secondary_label=_("App catalog") visual_title=_("Contain blast radius") visual_body=_("Approve listings, triage payouts, and flip kill switches without scrolling through an endless table.") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="marketplace_governance" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#gov-queues" primary_label=_("Review queues") secondary_url=app_catalog_url secondary_label=_("App catalog") %}
 
   <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
     <a class="nav-link" href="#gov-glance">{% trans "At a glance" %}</a>

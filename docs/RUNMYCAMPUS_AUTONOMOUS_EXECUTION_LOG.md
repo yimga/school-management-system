@@ -1,5 +1,33 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Tenant portal residuals batch 1491 (2026-05-24)
+
+**A. Scope:** Close batch 1490 residuals for all tenants: server pagination on parent finance, teacher marks pager, teacher/admin hero live metrics, Lane 2 E2E without subdomain DNS dependency.
+
+**B. Shipped:** `tenant_pagination.py`; parent finance paginated; marks_list pagination partial; `tenant_role_home` contextual metrics for TEACHER/ADMIN; `tenant-login.js` + expanded Playwright tenant matrix; `verify_tenant_portal_list_pagination.py`.
+
+**C. Proof:** `TENANT_PORTAL_LIST_PAGINATION_PASS`; `PREVIEW_SHELL_100X_PARITY_COMPLETE`; tests **14/14**.
+
+**D. Residual:** `?simple=1` legacy escape intentional.
+
+**E. SW:** `sms-v3.90.7-tenant-portal-residuals-close-2026-05-24`.
+
+**F. Verdict:** **TENANT PORTAL RESIDUALS — REPO SCOPE COMPLETE.**
+
+## Slice — Preview Shell 100x tenant v3 completion batch 1490 (2026-05-22)
+
+**A. Scope:** Close the aggressive tenant push (P0–P4) from `PREVIEW_SHELL_100X_PARITY_PLAN.md` — universal v3 shell, chrome dedupe, live parent cockpit data, 30 inner-page pagination markers, tenant pulse sheet, a11y, verifiers green.
+
+**B. Shipped:** `portal_base.html` gates legacy/floating chrome on `tp_v3_tenant_shell`; `rmc-tenant-v3-100x-role-home.css` inner-page header dedupe + reduced-motion + label contrast; `apps/portal/tenant_cockpit_realdata.py` + enrichment hook; `hero_greeting.html` contextual line + STUDENT copy; 30 tenant templates paginate markers (`scripts/apply_tenant_phase4_paginate_markers.py`); registry `phase4_tenant_portal_pagination_targets` expanded; `rmc-tp-pulse-sheet.js`; tests `test_tenant_cockpit_realdata.py`; tenant parity verifier extended.
+
+**C. Proof:** `verify_preview_shell_100x_tenant_parity.py` PASS; `verify_preview_shell_100x_phase4.py` PASS; `verify_preview_shell_100x_phase5.py` PASS; `verify_preview_shell_100x_completion.py` PASS; portal tests **16/16**; `audit_template_render_safety.py` 0.
+
+**D. Residual:** Lane 2 tenant Playwright host; per-view server Paginator burndown on finance/marks lists; teacher/backend live hero metrics.
+
+**E. SW:** `sms-v3.90.4-tenant-v3-100x-completion-2026-05-22`.
+
+**F. Verdict:** **PREVIEW_SHELL_TENANT_V3_100X — REPO SCOPE COMPLETE** (Lane 1).
+
 ## Slice — Education OS next-realm re-architecture batch 1489 (2026-05-24)
 
 **A. Scope:** 27-phase next-realm re-architecture executed on top of batch 1488's `GEOS REPO SCORE READY — HONEST REPO SCOPE` baseline. Goal: push the platform from "collection of Django apps" into a governed Education Operating System with 8 platform layers, stable canonical primitives, a metadata layer that absorbs all tenant variance, runtime engines that interpret metadata + enforce permissions + validate rules + render forms + route workflows + compile tenant manifests + audit every change + support offline/edge + govern tenant resources + protect tenant boundaries. PWA-first mandate preserved — native iOS/Android explicitly deferred until first-100-schools + PWA installability proof. No fake vendor integrations.

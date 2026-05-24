@@ -39,6 +39,16 @@ from apps.platform_runtime.installation_health import (
 )
 from apps.platform_runtime.models import BlueprintInstallation, ConfigurationChangeRequest
 from apps.platform_runtime.models import PackInstallation
+from apps.platform_runtime.operational_center_nav import (
+    blueprint_marketplace_frame_context,
+    tenant_blueprint_setup_frame_context,
+    tenant_import_setup_frame_context,
+    tenant_pack_setup_frame_context,
+    change_requests_frame_context,
+    configuration_center_frame_context,
+    pack_marketplace_frame_context,
+    school_configuration_frame_context,
+)
 from apps.platform_runtime.pack_apply import apply_pack
 from apps.platform_runtime.pack_contract import get_pack, list_packs
 from apps.platform_runtime.pack_impact import analyze_pack_impact
@@ -63,7 +73,7 @@ def configuration_center(request):
             "summary": compute_configuration_summary(),
             "page_marker": "rmc-platform-configuration-center",
             "os_center_key": "platform_configuration_center",
-            "center_purpose": "Governed facade over existing SiteConfig, Studio OS, marketplace, metadata, runtime, security, billing, and automation systems.",
+            **configuration_center_frame_context(),
         },
     )
 
@@ -140,6 +150,7 @@ def blueprint_marketplace(request):
             "schools": schools,
             "selected_school": _selected_school(request),
             "page_marker": "rmc-blueprint-marketplace-depth",
+            **blueprint_marketplace_frame_context(),
         },
     )
 
@@ -305,6 +316,7 @@ def pack_marketplace(request, pack_route: str):
             "pack_type": pack_type,
             "selected_school": _selected_school(request),
             "schools": School.objects.filter(is_active=True).order_by("name")[:50],
+            **pack_marketplace_frame_context(),
         },
     )
 
@@ -439,6 +451,57 @@ def school_configuration_center(request):
             "school": school,
             "sections": TENANT_CONFIGURATION_SECTIONS,
             "page_marker": "rmc-school-configuration-center",
+            **school_configuration_frame_context(),
+        },
+    )
+
+
+@login_required
+def tenant_import_setup(request):
+    school = getattr(request, "school", None)
+    if school is None or not tenant_operator_hub_eligible(request.user):
+        return HttpResponseForbidden("Tenant school import setup access required.")
+    import_cards = [
+        {
+            "key": "students",
+            "title": "Students and guardians",
+            "detail": "Start with a clean roster so attendance, reports, fees, and parent access have real records.",
+            "template_label": "Student CSV template",
+            "cta_label": "Open student import",
+            "cta_url": "/admin/accounts/student/import/",
+        },
+        {
+            "key": "staff",
+            "title": "Staff and teachers",
+            "detail": "Load staff before assigning classes, subjects, attendance owners, or approval flows.",
+            "template_label": "Staff CSV template",
+            "cta_label": "Open staff setup",
+            "cta_url": "/siteconfig/onboarding/step/staff/",
+        },
+        {
+            "key": "fees",
+            "title": "Fees and balances",
+            "detail": "Bring fee categories and balances after the roster is ready; keep manual receipts auditable.",
+            "template_label": "Finance import checklist",
+            "cta_label": "Open finance setup",
+            "cta_url": "/finance/payment-setup/",
+        },
+        {
+            "key": "migration_cloud",
+            "title": "Migration Cloud",
+            "detail": "Use connector intake when the source system is PowerSchool, Veracross, FACTS, spreadsheets, or a custom SIS.",
+            "template_label": "Connector handoff",
+            "cta_label": "Open migration intake",
+            "cta_url": "/migration/",
+        },
+    ]
+    return render(
+        request,
+        "platform_runtime/tenant_import_setup.html",
+        {
+            "school": school,
+            "import_cards": import_cards,
+            "page_marker": "rmc-tenant-import-setup",
         },
     )
 
@@ -491,6 +554,7 @@ def tenant_blueprint_setup(request):
             "preview": preview,
             "result": result,
             "page_marker": "rmc-tenant-blueprint-setup",
+            **tenant_blueprint_setup_frame_context(),
         },
     )
 
@@ -550,6 +614,7 @@ def tenant_pack_setup(request):
             "installations": installations,
             "result": result,
             "page_marker": "rmc-tenant-pack-setup",
+            **tenant_pack_setup_frame_context(),
         },
     )
 
@@ -588,6 +653,7 @@ def change_requests(request):
             "change_request_summary": summary,
             "page_obj": page_obj,
             "pagination_extra_query": q.urlencode(),
+            **change_requests_frame_context(),
         },
     )
 

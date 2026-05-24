@@ -155,6 +155,21 @@ body.control-plane-shell .cp-page-h1-row {
   margin-bottom: 1rem;
 }
 
+body.control-plane-shell .cp-page-h1-row__copy {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+body.control-plane-shell .cp-page-h1-row__actions {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+body.admin-manager-shell .cp-page-h1-row__copy,
+body.admin-manager-shell .cp-page-h1-row__actions {
+  min-width: 0;
+}
+
 body.control-plane-shell .cp-page-h1 {
   font-size: var(--type-size-2xl, 1.5rem);
   font-weight: 600;

@@ -1,0 +1,98 @@
+{% load i18n %}
+<div
+  class="tp-workflow-portal"
+  data-rmc-tenant-workflow-portal="1"
+  data-rmc-tenant-workflow-role="{{ workflow_portal.role }}"
+>
+  {% include "partials/tenant/experience_command_strip.html" %}
+
+  <section class="tp-workflow-hero" aria-labelledby="tp-workflow-title">
+    <div class="tp-workflow-hero__copy">
+      <span class="tp-workflow-eyebrow">{{ workflow_portal.eyebrow }}</span>
+      <h1 id="tp-workflow-title">{{ workflow_portal.title }}</h1>
+      <p>{{ workflow_portal.subtitle }}</p>
+      <div class="tp-workflow-meta">
+        <span>{% trans "Year" %}: <strong>{{ workflow_portal.active_year_label|default:"-" }}</strong></span>
+        <span>{% trans "Term" %}: <strong>{{ workflow_portal.active_term_label|default:"-" }}</strong></span>
+      </div>
+    </div>
+    <div class="tp-workflow-hero__action">
+      <div class="tp-workflow-ring" aria-label="{% trans 'Workflow completion' %}">
+        <strong>{{ workflow_portal.completion_pct }}%</strong>
+        <span>{% trans "complete" %}</span>
+      </div>
+      {% if workflow_portal.primary_action.url %}
+      <a class="tp-workflow-primary" href="{{ workflow_portal.primary_action.url }}">
+        <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
+        <span>{{ workflow_portal.primary_action.label }}</span>
+      </a>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if workflow_portal.empty_state %}
+  <section class="tp-workflow-empty" role="status" data-rmc-workflow-empty-state="1">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    <div>
+      <strong>{% trans "Setup needed before this workflow can run fully." %}</strong>
+      <span>{% trans "The page still stays useful with the next best action instead of leaving you at a dead end." %}</span>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="tp-workflow-metrics" aria-label="{% trans 'Workflow metrics' %}">
+    {% for metric in workflow_portal.metrics %}
+    <div class="tp-workflow-metric" data-tone="{{ metric.tone|default:'neutral' }}">
+      <span>{{ metric.label }}</span>
+      <strong>{{ metric.value }}</strong>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="tp-workflow-focus" data-rmc-workflow-focus="1" aria-label="{% trans 'Next best action' %}">
+    <div>
+      <span class="tp-workflow-eyebrow">{% trans "Next best action" %}</span>
+      <h2>{{ workflow_portal.focus.title_clean|default:workflow_portal.title }}</h2>
+      {% if workflow_portal.focus.subtitle %}<p>{{ workflow_portal.focus.subtitle }}</p>{% endif %}
+      {% if workflow_portal.focus.tip %}<small><i class="bi bi-lightbulb" aria-hidden="true"></i> {{ workflow_portal.focus.tip }}</small>{% endif %}
+    </div>
+    <div class="tp-workflow-focus__actions">
+      {% for action in workflow_portal.secondary_actions %}
+      <a href="{{ action.url }}">{{ action.label }}</a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="tp-workflow-steps" role="list" aria-label="{% trans 'Workflow steps' %}">
+    {% for step in workflow_portal.steps %}
+    <article
+      class="tp-workflow-step"
+      id="step-{{ step.step_key }}"
+      role="listitem"
+      data-rmc-workflow-step="{{ step.step_key }}"
+      data-state="{% if step.done %}done{% else %}next{% endif %}"
+    >
+      <div class="tp-workflow-step__top">
+        <span class="tp-workflow-step__index">{{ step.step_index }}</span>
+        <span class="tp-workflow-step__status">{{ step.status_label }}</span>
+      </div>
+      <h3><i class="bi {{ step.icon|default:'bi-circle' }}" aria-hidden="true"></i>{{ step.title_clean }}</h3>
+      <p>{{ step.subtitle }}</p>
+      {% if step.progress_label %}<div class="tp-workflow-step__progress">{{ step.progress_label }}</div>{% endif %}
+      {% if step.links %}
+      <div class="tp-workflow-step__links">
+        {% for link in step.links %}
+        <a href="{{ link.url }}">{{ link.label }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+
+  <section class="tp-workflow-support" aria-label="{% trans 'Workflow support' %}">
+    {% if workflow_portal.home_url %}<a href="{{ workflow_portal.home_url }}"><i class="bi bi-house" aria-hidden="true"></i>{{ workflow_portal.home_label }}</a>{% endif %}
+    {% if workflow_portal.help_url %}<a href="{{ workflow_portal.help_url }}?q={{ workflow_portal.role|lower }}%20workflow"><i class="bi bi-life-preserver" aria-hidden="true"></i>{% trans "Help" %}</a>{% endif %}
+    {% if workflow_portal.feedback_url %}<a href="{{ workflow_portal.feedback_url }}?module={{ workflow_portal.role|lower }}-workflow"><i class="bi bi-chat-dots" aria-hidden="true"></i>{% trans "Feedback" %}</a>{% endif %}
+  </section>
+</div>

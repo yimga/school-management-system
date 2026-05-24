@@ -23,6 +23,7 @@ REQUIRED_SCRIPTS = (
     "scripts/verify_preview_shell_100x_tenant_parity.py",
     "scripts/verify_preview_shell_100x_phase4.py",
     "scripts/verify_preview_shell_100x_phase5.py",
+    "scripts/verify_tenant_portal_list_pagination.py",
     "scripts/verify_copilot_rail_contract.py",
 )
 

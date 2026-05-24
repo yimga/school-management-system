@@ -1,0 +1,21 @@
+{% load i18n %}
+{% comment %} v3 100x tenant header brand (preview_app_shell_tenant_portal_v3_100x). {% endcomment %}
+<a href="{{ home_href|default:'#' }}" class="tp-brand" data-rmc-tp-header-brand="1">
+  <span class="tp-brand__mark" aria-hidden="true">
+    {% if SITE_LOGO_URL %}
+      <img src="{{ SITE_LOGO_URL }}" alt="" class="tp-brand__logo" decoding="async" loading="eager" width="44" height="44">
+    {% else %}
+      {{ SITE.site_name|default:"S"|slice:":1" }}
+    {% endif %}
+  </span>
+  <span class="tp-brand__text">
+    <span class="tp-brand__name">
+      {{ SITE.site_name|default:SITE.company_name|default:"School" }}
+      <span class="tp-brand__pill">{{ tp_brand_surface_pill|default:_("Family portal") }}</span>
+    </span>
+    <span class="tp-brand__tagline">
+      {% if tp_brand_year_label %}<span class="tp-brand__year-badge">{{ tp_brand_year_label }}</span>{% endif %}
+      <span>{{ tp_brand_tagline|default:_("Your school workspace") }}</span>
+    </span>
+  </span>
+</a>

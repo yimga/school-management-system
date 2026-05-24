@@ -42,9 +42,9 @@ body.admin-manager-shell[data-rmc-cp-scroll="document"] .cp-shell-content {
 }
 
 body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout.min-h-0,
-body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout .row.min-h-0,
+body.control-plane-shell[data-rmc-cp-scroll="document"] .cp-layout > .row.min-h-0,
 body.admin-manager-shell[data-rmc-cp-scroll="document"] .cp-layout.min-h-0,
-body.admin-manager-shell[data-rmc-cp-scroll="document"] .cp-layout .row.min-h-0 {
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .cp-layout > .row.min-h-0 {
   min-height: auto !important;
   flex-grow: 0 !important;
 }

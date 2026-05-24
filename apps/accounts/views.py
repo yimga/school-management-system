@@ -423,7 +423,7 @@ def user_profile(request):
         "filled": filled,
         "missing": missing,
     }
-    # Active sessions count (for Security line)
+    # Active sessions count (for Security line) — computed before security evaluation
     try:
         from django.contrib.sessions.models import Session
         from django.utils import timezone as tz
@@ -444,6 +444,17 @@ def user_profile(request):
         ValueError,
     ):
         context["active_sessions_count"] = None
+
+    try:
+        from apps.accounts.profile_security_evaluation import evaluate_user_profile_security
+
+        context["profile_security"] = evaluate_user_profile_security(
+            request.user,
+            school=getattr(request, "school", None),
+            active_sessions_count=context.get("active_sessions_count"),
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        context["profile_security"] = None
 
     # PII masking (plan 3.21): full address/DOB masked until re-auth.
     try:
@@ -1130,6 +1141,10 @@ def redirect_view(request):
         if dash_view == "ATTENDANCE":
             return _redirect_with_params("portal:parent_dashboard")
         return _redirect_with_params("portal:parent_dashboard")
+    if role == User.Role.STUDENT:
+        if dash_view == "WORKFLOW":
+            return _redirect_with_params("portal:student_workflow")
+        return _redirect_with_params("portal:student_portal_grades")
 
     # Default: admin
     return _redirect_with_params("admin:index")
@@ -2673,7 +2688,23 @@ def backend_dashboard(request):
         role_home_show_legacy,
     )
 
-    context.update(build_tp_hero_context(request, role=User.Role.ADMIN))
+    pending_access_requests = 0
+    try:
+        from apps.requests.models import AccessRequest
+
+        pending_access_requests = AccessRequest.objects.filter(
+            status=AccessRequest.Status.PENDING
+        ).count()
+    except ACCOUNTS_SOFT_FAILURES:
+        pending_access_requests = 0
+
+    context.update(
+        build_tp_hero_context(
+            request,
+            role=User.Role.ADMIN,
+            pending_access_requests=pending_access_requests,
+        )
+    )
     context["backend_show_legacy_dashboard"] = role_home_show_legacy(request)
     return render(request, "accounts/backend_dashboard.html", context)
 
@@ -2828,15 +2859,37 @@ def backend_ops_watch_data(request):
 
 
 class PasswordChangeView(DjangoPasswordChangeView):
-    """Clear requires_password_change after successful change (Security Powerhouse)."""
+    """Clear requires_password_change; persist zxcvbn score + rotation timestamp."""
 
     success_url = reverse_lazy("accounts:password_change_done")
 
     def form_valid(self, form):
-        from apps.accounts.models import User
+        from django.utils import timezone
+        from django.utils.translation import gettext as _
 
-        User.objects.filter(pk=form.user.pk).update(requires_password_change=False)
-        return super().form_valid(form)
+        from apps.accounts.models import User
+        from apps.accounts.security_health import invalidate_security_strength_cache
+
+        try:
+            score = int(self.request.POST.get("password_strength_score", "0"))
+        except (TypeError, ValueError):
+            score = 0
+        if score < 3:
+            form.add_error(
+                "new_password1",
+                _("Choose a stronger password (score at least 3 of 4)."),
+            )
+            return self.form_invalid(form)
+        response = super().form_valid(form)
+        User.objects.filter(pk=form.user.pk).update(
+            requires_password_change=False,
+            password_strength_score=score,
+            password_changed_at=timezone.now(),
+        )
+        invalidate_security_strength_cache(
+            form.user, getattr(self.request, "school", None)
+        )
+        return response
 
     def get_success_url(self):
         next_url = self.request.session.pop("password_change_next", None)

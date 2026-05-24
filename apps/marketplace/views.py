@@ -200,7 +200,10 @@ def governance_console(request):
     )
     catalog_counts = get_platform_catalog_counts()
     listings_page = Paginator(listings, 15).get_page(request.GET.get("page") or 1)
+    from apps.platform_runtime.operational_center_nav import marketplace_governance_frame_context
+
     context = {
+        **marketplace_governance_frame_context(),
         "metrics": metrics,
         "listings": list(listings_page.object_list),
         "page_obj": listings_page,
@@ -477,6 +480,8 @@ def blueprint_marketplace(request):
         "packs_total": packs_qs.count(),
         "showing": len(packs),
     }
+    from apps.platform_runtime.operational_center_nav import blueprint_marketplace_frame_context
+
     return render(
         request,
         "marketplace/blueprint_marketplace.html",
@@ -491,6 +496,7 @@ def blueprint_marketplace(request):
             "school_bundles": school_bundles,
             "preview": preview,
             "catalog_counts": catalog_counts,
+            **blueprint_marketplace_frame_context(),
         },
     )
 
@@ -692,10 +698,13 @@ def app_catalog(request):
         pass
     # endregion
 
+    from apps.platform_runtime.operational_center_nav import app_catalog_frame_context
+
     return render(
         request,
         "marketplace/app_catalog.html",
         {
+            **app_catalog_frame_context(),
             "listings": listings_page,
             "page_obj": page_obj,
             "search_query": search_query,
@@ -771,10 +780,13 @@ def sandbox_inspector(request):
     installations_page = Paginator(installations_qs, 20).get_page(
         request.GET.get("page") or 1
     )
+    from apps.platform_runtime.operational_center_nav import sandbox_inspector_frame_context
+
     return render(
         request,
         "marketplace/sandbox_inspector.html",
         {
+            **sandbox_inspector_frame_context(),
             "installations": list(installations_page.object_list),
             "page_obj": installations_page,
             "pagination_extra_query": "",
@@ -800,6 +812,8 @@ def installation_health(request):
     installations_page = Paginator(installations_qs, 20).get_page(
         request.GET.get("page") or 1
     )
+    from apps.platform_runtime.operational_center_nav import installation_health_frame_context
+
     return render(
         request,
         "marketplace/installation_health.html",
@@ -808,6 +822,7 @@ def installation_health(request):
             "page_obj": installations_page,
             "pagination_extra_query": "",
             "dashboard_url": dashboard_url,
+            **installation_health_frame_context(),
         },
     )
 
@@ -1178,6 +1193,8 @@ def tenant_app_catalog(request):
             "plan_tier": plan_context.get("tier_key"),
         },
     )
+    from apps.platform_runtime.operational_center_nav import tenant_app_catalog_frame_context
+
     return render(
         request,
         "marketplace/tenant_app_catalog.html",
@@ -1192,6 +1209,7 @@ def tenant_app_catalog(request):
             "platform_pack_catalog": platform_pack_catalog,
             "plan_context": plan_context,
             "catalog_install_app_id": catalog_install_app_id,
+            **tenant_app_catalog_frame_context(),
         },
     )
 

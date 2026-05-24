@@ -5,7 +5,7 @@
 {% block title %}Attendance{% endblock %}
 
 {% block content %}
-<div data-task="teacher_attendance" data-task-step="teacher:attendance-session">
+<div data-task="teacher_attendance" data-task-step="teacher:attendance-session" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
   {% include "partials/help_module_inline_assistant.html" %}

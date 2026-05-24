@@ -53,6 +53,20 @@
 .cp-grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); }
 .cp-grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
 
+.rmc-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 1.25rem);
+  min-width: 0;
+}
+
+.rmc-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+  min-width: 0;
+}
+
 .cp-button {
   display: inline-flex;
   align-items: center;

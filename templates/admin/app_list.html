@@ -3,7 +3,7 @@
   Sidebar structure: Start → School setup (with Advanced collapsed) → Libraries & help → [All applications collapsed].
   State: getQuickAccessState() for overview/setup/content; allAppsOpen false unless current path in app list.
 {% endcomment %}
-<div id="nav-sidebar-apps" class="admin-sidebar-apps {% if platform_admin_sidebar_embed %}min-h-0 flex-grow-1 d-flex flex-column overflow-hidden{% else %}h-0 grow overflow-auto d-flex flex-column{% endif %}" role="navigation" aria-label="{% trans 'Applications' %}">
+<div id="nav-sidebar-apps" class="admin-sidebar-apps {% if platform_admin_sidebar_embed %}admin-sidebar-apps--embed{% else %}h-0 grow overflow-auto d-flex flex-column{% endif %}" role="navigation" aria-label="{% trans 'Applications' %}">
   {% if not platform_admin_sidebar_embed %}
   <div class="admin-sidebar-nav-block" id="admin-sidebar-pinned-wrap">
     <h2 class="admin-sidebar-section-title admin-sidebar-section-title--muted">{% trans "Pinned" %}</h2>
@@ -128,7 +128,10 @@
   {% endif %}
 
   {% if app_list %}
-  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: {% if platform_admin_sidebar_embed %}true{% else %}false{% endif %} }" role="group" aria-label="{% trans 'Apps' %}">
+  {% if platform_admin_sidebar_embed %}
+  <div class="admin-sidebar-app-groups admin-sidebar-app-groups--embed" role="group" aria-label="{% trans 'Apps' %}">
+  {% else %}
+  <div class="admin-sidebar-all-apps" x-data="{ allAppsOpen: false }" role="group" aria-label="{% trans 'Apps' %}">
     <h2 class="admin-sidebar-section-title admin-sidebar-section-title--secondary">
       <button type="button" class="admin-sidebar-all-apps-trigger" @click="allAppsOpen = !allAppsOpen" :aria-expanded="allAppsOpen" aria-label="{% trans 'Toggle Apps' %}" @keydown.enter.prevent="allAppsOpen = !allAppsOpen" @keydown.space.prevent="allAppsOpen = !allAppsOpen">
         <span>{% trans "Apps" %}</span>
@@ -136,6 +139,7 @@
       </button>
     </h2>
     <div class="admin-sidebar-app-groups" role="group" x-show="allAppsOpen" x-transition.50ms>
+  {% endif %}
     {% for app in app_list %}
     {% ifchanged app.section %}
       {% if not forloop.first %}<hr class="admin-sidebar-section-divider" aria-hidden="true">{% endif %}
@@ -150,7 +154,7 @@
       </h2>
     {% endifchanged %}
     <div class="app-{{ app.app_label }} module admin-sidebar-app-group{% if app.app_url in request.path %} current-app{% endif %}"
-         x-data="{ open: {% if app.app_url in request.path %}true{% elif request.path == '/admin/' or request.path == '/admin' %}true{% else %}false{% endif %} }">
+         x-data="{ open: {% if app.app_url in request.path %}true{% else %}false{% endif %} }">
       {% if app.models and not app.hidden %}
       <div class="admin-sidebar-app-title d-flex align-items-center gap-1">
         <a href="{{ app.app_url }}" class="block truncate flex-grow-1"
@@ -194,7 +198,9 @@
     </div>
     {% endfor %}
     </div>
+  {% if not platform_admin_sidebar_embed %}
   </div>
+  {% endif %}
   {% else %}
   <p class="px-4 py-3 text-sm">
     {% trans "You don't have permission to view or edit anything." as error_message %}

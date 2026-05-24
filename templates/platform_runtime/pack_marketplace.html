@@ -1,63 +1,65 @@
 {% extends "control_plane_base.html" %}
+{% load i18n %}
 
-{% block cp_title %}Pack Installation{% endblock %}
-
+{% block cp_title %}{% trans "Pack Installation" %}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
-<section class="cp-page" data-rmc-scroll-policy="paginate" data-page-marker="rmc-pack-installation-marketplace" data-apple-class-governed-installation="1">
+<section class="cp-page" data-rmc-scroll-policy="paginate" data-page-marker="rmc-pack-installation-marketplace" data-apple-class-governed-installation="1" data-rmc-operational-workbench="1" data-page-archetype="operational-workbench">
   {% url 'configuration:pack_installations' as wcx_pack_installations_url %}
-  {% include "components/world_class_page_hero.html" with hero_id="pack-marketplace-title" role="Platform operators" title="Pack installation" subtitle="Preview, simulate, impact-analyze, request approval, schedule, apply, monitor, deactivate, and roll back installable platform packs." purpose="Governed pack installation" status="Tenant boundary visible" primary_url=wcx_pack_installations_url primary_label="Installation history" secondary_url="/configuration/" secondary_label="Configuration center" visual_title="Guided pack flow" visual_body="Preview, simulation, risk, approval state, dependency graph, audit timeline, and health stay visible." %}
+  {% url 'configuration:center' as wcx_config_url %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="pack_marketplace" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_pack_installations_url primary_label=_("Installation history") secondary_url=wcx_config_url secondary_label=_("Configuration center") %}
   {% include "components/world_class_guided_stepper.html" %}
   {% include "components/apple_class_visual_workflow_path.html" %}
   {% include "components/apple_class_dependency_graph.html" with graph_id="pack-dependency-graph" title="Pack dependency graph" source="Pack" dependency="Prerequisites" target="Runtime installation" %}
 
   <div class="cp-grid cp-grid-3">
     {% for pack in packs %}
-      <article class="cp-card rmc-wcx-surface rmc-reveal" data-world-class-governed-install-card="1">
+      <article class="cp-card rmc-wcx-surface" data-world-class-governed-install-card="1">
         <div class="cp-card-header">
-          <h1>{{ pack.name }}</h1>
+          <h2 class="h5 mb-0">{{ pack.name }}</h2>
           <span class="cp-badge">{{ pack.status }}</span>
         </div>
         <p>{{ pack.description }}</p>
         {% if pack.aliases %}
-          <p class="cp-muted">Also supports: {{ pack.aliases|join:", " }}</p>
+          <p class="cp-muted">{% trans "Also supports:" %} {{ pack.aliases|join:", " }}</p>
         {% endif %}
         <dl class="cp-meta-list">
-          <dt>Owner</dt><dd>{{ pack.owner }}</dd>
-          <dt>Roles</dt><dd>{{ pack.target_roles|join:", " }}</dd>
-          <dt>Safety</dt><dd>{{ pack.safety_level }}</dd>
-          <dt>Approval state</dt><dd data-world-class-approval-state="visible">Risk-based approval visible before apply</dd>
-          <dt>Rollback</dt><dd data-world-class-rollback-posture="available">Deactivate and rollback paths available after install</dd>
+          <dt>{% trans "Owner" %}</dt><dd>{{ pack.owner }}</dd>
+          <dt>{% trans "Roles" %}</dt><dd>{{ pack.target_roles|join:", " }}</dd>
+          <dt>{% trans "Safety" %}</dt><dd>{{ pack.safety_level }}</dd>
+          <dt>{% trans "Approval state" %}</dt><dd data-world-class-approval-state="visible">{% trans "Risk-based approval visible before apply" %}</dd>
+          <dt>{% trans "Rollback" %}</dt><dd data-world-class-rollback-posture="available">{% trans "Deactivate and rollback paths available after install" %}</dd>
           {% if pack.pack_type == "workflow_pack" %}
-            <dt>Trigger</dt><dd>{{ pack.triggers|join:", " }}</dd>
-            <dt>Condition</dt><dd>{{ pack.conditions|join:", " }}</dd>
-            <dt>Action</dt><dd>{{ pack.actions|join:", " }}</dd>
-            <dt>Simulation</dt><dd>{{ pack.simulation_available }}</dd>
+            <dt>{% trans "Trigger" %}</dt><dd>{{ pack.triggers|join:", " }}</dd>
+            <dt>{% trans "Condition" %}</dt><dd>{{ pack.conditions|join:", " }}</dd>
+            <dt>{% trans "Action" %}</dt><dd>{{ pack.actions|join:", " }}</dd>
+            <dt>{% trans "Simulation" %}</dt><dd>{{ pack.simulation_available }}</dd>
           {% endif %}
         </dl>
         {% if pack.external_dependencies %}
-          <p class="cp-warning">External blockers: {{ pack.external_dependencies|join:", " }}</p>
+          <p class="cp-warning">{% trans "External blockers:" %} {{ pack.external_dependencies|join:", " }}</p>
         {% endif %}
         <div class="cp-action-row">
           {% if pack_route == "workflow-packs" %}
-            <a class="cp-button" href="{% url 'configuration:workflow_pack_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
-            <a class="cp-button" href="{% url 'configuration:workflow_pack_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
-            <a class="cp-button" href="{% url 'configuration:workflow_pack_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
-            <a class="cp-button cp-button-primary" href="{% url 'configuration:workflow_pack_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
+            <a class="cp-button" href="{% url 'configuration:workflow_pack_preview' pack.key %}?school={{ selected_school.slug }}">{% trans "Preview" %}</a>
+            <a class="cp-button" href="{% url 'configuration:workflow_pack_simulation' pack.key %}?school={{ selected_school.slug }}">{% trans "Simulate" %}</a>
+            <a class="cp-button" href="{% url 'configuration:workflow_pack_impact' pack.key %}?school={{ selected_school.slug }}">{% trans "Impact" %}</a>
+            <a class="cp-button cp-button-primary" href="{% url 'configuration:workflow_pack_apply' pack.key %}?school={{ selected_school.slug }}">{% trans "Apply" %}</a>
           {% elif pack_route == "dashboard-packs" %}
-            <a class="cp-button" href="{% url 'configuration:dashboard_pack_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
-            <a class="cp-button" href="{% url 'configuration:dashboard_pack_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
-            <a class="cp-button" href="{% url 'configuration:dashboard_pack_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
-            <a class="cp-button cp-button-primary" href="{% url 'configuration:dashboard_pack_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
+            <a class="cp-button" href="{% url 'configuration:dashboard_pack_preview' pack.key %}?school={{ selected_school.slug }}">{% trans "Preview" %}</a>
+            <a class="cp-button" href="{% url 'configuration:dashboard_pack_simulation' pack.key %}?school={{ selected_school.slug }}">{% trans "Simulate" %}</a>
+            <a class="cp-button" href="{% url 'configuration:dashboard_pack_impact' pack.key %}?school={{ selected_school.slug }}">{% trans "Impact" %}</a>
+            <a class="cp-button cp-button-primary" href="{% url 'configuration:dashboard_pack_apply' pack.key %}?school={{ selected_school.slug }}">{% trans "Apply" %}</a>
           {% elif pack_route == "experience-templates" %}
-            <a class="cp-button" href="{% url 'configuration:experience_template_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
-            <a class="cp-button" href="{% url 'configuration:experience_template_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
-            <a class="cp-button" href="{% url 'configuration:experience_template_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
-            <a class="cp-button cp-button-primary" href="{% url 'configuration:experience_template_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
+            <a class="cp-button" href="{% url 'configuration:experience_template_preview' pack.key %}?school={{ selected_school.slug }}">{% trans "Preview" %}</a>
+            <a class="cp-button" href="{% url 'configuration:experience_template_simulation' pack.key %}?school={{ selected_school.slug }}">{% trans "Simulate" %}</a>
+            <a class="cp-button" href="{% url 'configuration:experience_template_impact' pack.key %}?school={{ selected_school.slug }}">{% trans "Impact" %}</a>
+            <a class="cp-button cp-button-primary" href="{% url 'configuration:experience_template_apply' pack.key %}?school={{ selected_school.slug }}">{% trans "Apply" %}</a>
           {% else %}
-            <a class="cp-button" href="{% url 'configuration:policy_bundle_preview' pack.key %}?school={{ selected_school.slug }}">Preview</a>
-            <a class="cp-button" href="{% url 'configuration:policy_bundle_simulation' pack.key %}?school={{ selected_school.slug }}">Simulate</a>
-            <a class="cp-button" href="{% url 'configuration:policy_bundle_impact' pack.key %}?school={{ selected_school.slug }}">Impact</a>
-            <a class="cp-button cp-button-primary" href="{% url 'configuration:policy_bundle_apply' pack.key %}?school={{ selected_school.slug }}">Apply</a>
+            <a class="cp-button" href="{% url 'configuration:policy_bundle_preview' pack.key %}?school={{ selected_school.slug }}">{% trans "Preview" %}</a>
+            <a class="cp-button" href="{% url 'configuration:policy_bundle_simulation' pack.key %}?school={{ selected_school.slug }}">{% trans "Simulate" %}</a>
+            <a class="cp-button" href="{% url 'configuration:policy_bundle_impact' pack.key %}?school={{ selected_school.slug }}">{% trans "Impact" %}</a>
+            <a class="cp-button cp-button-primary" href="{% url 'configuration:policy_bundle_apply' pack.key %}?school={{ selected_school.slug }}">{% trans "Apply" %}</a>
           {% endif %}
         </div>
       </article>
@@ -65,6 +67,6 @@
   </div>
   {% include "components/pagination.html" %}
   {% include "components/world_class_timeline.html" %}
-  <p><a class="cp-button" href="{% url 'configuration:pack_installations' %}">Installation history</a></p>
+  <p><a class="cp-button" href="{% url 'configuration:pack_installations' %}">{% trans "Installation history" %}</a></p>
 </section>
 {% endblock %}

@@ -3,7 +3,7 @@
 {% block title %}Messaging - {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
 {% block content %}
-  <div class="container py-4">
+  <div class="container py-4" data-page-archetype="task-list" data-rmc-scroll-policy="paginate">
     <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
       <div>
         {# Aesthetic-v2 page-header grammar. Styled by patterns.css. #}
@@ -62,9 +62,11 @@
               {% endfor %}
             </div>
           {% else %}
-            <p class="text-muted mb-0">
-              {% if is_student %}No messages yet. When a teacher or staff member messages you, the conversation will appear here.{% endif %}
-              {% if not is_student %}No direct messages yet. Use <strong>New message</strong> to start a conversation, or you'll see threads here once someone messages you.{% endif %}</p>
+            {% if is_student %}
+            {% include "components/tp_empty.html" with tp_empty_title="No messages yet" tp_empty_hint="When a teacher or staff member messages you, the conversation will appear here." tp_empty_icon="💬" %}
+            {% else %}
+            {% include "components/tp_empty.html" with tp_empty_title="No direct messages yet" tp_empty_hint="Use New message to start a conversation." tp_empty_icon="💬" %}
+            {% endif %}
           {% endif %}
         {% else %}
           <div class="mb-2 d-flex justify-content-between align-items-center">

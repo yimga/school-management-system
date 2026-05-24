@@ -47,7 +47,7 @@
   font-size: 1.0625rem;
   font-weight: 500;
   color: var(--color-primary-700, #4338CA); /* off-token-allow: marketing-band-greeting-brand */ /* theme-locked-allow: brand-token */
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-greeting-chip */
 }
 
 .mkt-local-first-band__divider {
@@ -80,7 +80,7 @@
   border-radius: 999px;
   background: color-mix(in oklab, var(--text-primary, #1A1A1F) 5%, transparent); /* theme-locked-allow: chip-tint-text */
   color: var(--text-secondary, rgba(26, 26, 31, 0.7));
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-pill */
 }
 
 .mkt-local-first-band__chip--trust {

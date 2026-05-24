@@ -7,7 +7,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/proof-pages.css' %}">
 <link rel="stylesheet" href="{% static 'css/marketplace-tenant-app-catalog.css' %}">
-
+<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 {% endblock %}
 
 {% block backend_page %}
@@ -21,7 +21,7 @@
     </nav>
   </div>
   {% else %}
-  {% include "components/world_class_page_hero.html" with hero_id="tenant-app-catalog-title" role=_("School administrators") title=_("School App Catalog") subtitle=_("Sandbox-first school app installation with visible scopes, billing model, install impact, webhook health, partner status, and uninstall posture.") purpose=_("Tenant app catalog") status=_("Tenant-safe") primary_url="#tenant-catalog-grid" primary_label=_("Browse apps") secondary_url="/school/settings/" secondary_label=_("School configuration") visual_title=_("Install without surprises") visual_body=_("Paid and plan-gated apps show honest upgrade and external settlement posture before activation.") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_app_catalog" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#tenant-catalog-grid" primary_label=_("Browse apps") secondary_url="/school/settings/" secondary_label=_("School configuration") %}
   {% include "components/world_class_summary_strip.html" with readiness="Sandbox" readiness_label=_("Preview first") risk=_("Scopes") risk_label=_("Consent required") next_step=_("Browse") next_step_label=_("Low-click install") blockers=_("Billing") blockers_label=_("External PSP honest") %}
   {% include "components/platform_readiness_strip.html" with inline_field_prefix='tenant-app-catalog' tenant_label=request.tenant.display_name|default:'' %}
   {# v2.68 Wave A: dependency graph is reference material — collapse so the catalog grid is the first thing admins see. #}

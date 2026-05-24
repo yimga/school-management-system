@@ -535,6 +535,8 @@ def get_effective_policy(
             "security_weights",
             "security_weights_override",
             "security_grace_period_days",
+            "security_posture_review_interval_days",
+            "password_rotation_days",
             "provisioning",
             "contact_email",
             "term_preset",

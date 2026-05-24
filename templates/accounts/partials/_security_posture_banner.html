@@ -1,0 +1,20 @@
+{% load i18n %}
+{% if request.user.is_authenticated and security_posture_review_due and security_posture_review_url %}
+<div class="alert alert-warning border-warning mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert" data-rmc-security-posture-banner="1">
+  <div class="small">
+    <strong>{% trans "Quarterly security review due" %}</strong>
+    — {% trans "Confirm your password, MFA, and contact details for this quarter." %}
+  </div>
+  <a class="btn btn-sm btn-warning" href="{{ security_posture_review_url }}{% if request.get_full_path %}?next={{ request.get_full_path|urlencode }}{% endif %}">
+    {% trans "Review now" %}
+  </a>
+</div>
+{% elif request.user.is_authenticated and account_security_score is not None and account_security_score < 40 %}
+<div class="alert alert-danger border-danger mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert" data-rmc-security-posture-banner="1">
+  <div class="small">
+    <strong>{% trans "Account at risk" %}</strong>
+    — {% blocktrans with score=account_security_score %}Security strength {{ score }}/100. Enable MFA and fix critical issues.{% endblocktrans %}
+  </div>
+  <a class="btn btn-sm btn-danger" href="{% url 'accounts:user_profile' %}#profile-security-strength">{% trans "Fix security" %}</a>
+</div>
+{% endif %}

@@ -158,13 +158,17 @@ def marketing_pricing_packages_clarity(request):
         except Exception:
             cta_url = reverse("marketing_contact")
         rows.append({**p, "cta_url": cta_url})
+    from apps.platform_runtime.operational_center_nav import pricing_packages_frame_context
+
+    live_psp_caveat = data.get("live_psp_caveat", "")
     return render(
         request,
         "marketing/pricing_packages.html",
         {
             "seo_title": "Packages — clarity without fake unlimiteds",
-            "live_psp_caveat": data.get("live_psp_caveat", ""),
+            "live_psp_caveat": live_psp_caveat,
             "packages": rows,
+            **pricing_packages_frame_context(live_psp_caveat=live_psp_caveat),
         },
     )
 

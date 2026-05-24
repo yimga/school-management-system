@@ -11,7 +11,7 @@
 {% block backend_title %}{{ classroom_pl }} - Backend{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_classroom_create' as add_url %}

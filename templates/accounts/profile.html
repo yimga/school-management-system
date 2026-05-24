@@ -34,9 +34,11 @@
         <a class="btn btn-sm btn-primary" href="{% url 'accounts:redirect' %}"><i class="bi bi-house me-1"></i>{% trans "Dashboard" %}</a>
       </div>
     </div>
+    {% include "partials/tenant/experience_command_strip.html" %}
 
     <div class="row g-3">
       <div class="col-lg-5">
+        {% include "accounts/partials/_profile_security_gauge.html" %}
         <div class="content-card" style="padding:20px 22px">
           <div class="d-flex align-items-center gap-3">
             <div class="avatar avatar-lg profile-avatar-wrap" style="overflow:hidden">
@@ -76,15 +78,15 @@
                 <div class="d-flex justify-content-between"><span class="text-muted">Active sessions</span><span class="fw-semibold">{{ active_sessions_count }} device{{ active_sessions_count|pluralize }}</span></div>
               {% endif %}
               {% if mfa_enabled is not None %}
-                <div class="d-flex justify-content-between align-items-center gap-2">
-                  <span class="text-muted">MFA</span>
+                <div class="d-flex justify-content-between align-items-center gap-2" id="mfa-security">
+                  <span class="text-muted">{% trans "Multi-factor authentication" %}</span>
                   <span>
                     {% if mfa_enabled %}
-                      <span class="fw-semibold text-success">Enabled</span>
-                      <a class="btn btn-outline-secondary btn-sm py-0 ms-1" href="{% url 'accounts:mfa_setup' %}">Manage</a>
+                      <span class="fw-semibold text-success">{% trans "Enabled" %}</span>
+                      <a class="btn btn-outline-secondary btn-sm py-0 ms-1" href="{% url 'accounts:mfa_setup' %}">{% trans "Manage" %}</a>
                     {% else %}
-                      <span class="fw-semibold text-muted">Not set up</span>
-                      <a class="btn btn-outline-secondary btn-sm py-0 ms-1" href="{% url 'accounts:mfa_setup' %}">Set up</a>
+                      <span class="fw-semibold text-muted">{% trans "Not set up" %}</span>
+                      <a class="btn btn-primary btn-sm py-0 ms-1" href="{% url 'accounts:mfa_setup' %}">{% trans "Set up" %}</a>
                     {% endif %}
                   </span>
                 </div>

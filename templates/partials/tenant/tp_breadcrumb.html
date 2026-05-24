@@ -1,0 +1,15 @@
+{% load i18n %}
+{% if BREADCRUMBS and BREADCRUMBS|length > 1 %}
+<nav class="tp-breadcrumb rmc-reveal" data-rmc-reveal aria-label="{% trans 'Breadcrumb' %}">
+  {% for crumb in BREADCRUMBS %}
+    {% if not forloop.first %}
+      <span class="tp-breadcrumb__separator" aria-hidden="true">›</span>
+    {% endif %}
+    {% if crumb.active %}
+      <span class="tp-breadcrumb__current">{{ crumb.label }}</span>
+    {% else %}
+      <a href="{{ crumb.url }}">{{ crumb.label }}</a>
+    {% endif %}
+  {% endfor %}
+</nav>
+{% endif %}

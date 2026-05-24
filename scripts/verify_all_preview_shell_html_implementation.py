@@ -40,7 +40,7 @@ IMPLEMENTATION: dict[str, dict] = {
     "admin-v1-200x": {
         "label": "Platform /admin/ (manager host)",
         "templates": (
-            ("templates/admin/base.html", ("cp-header", "cp-nav-row", "cp-live-strip", 'data-rmc-cp-header-200x="1"')),
+            ("templates/admin/base.html", ("cp-header", "cp-nav-row", "_activity_ticker.html", 'data-rmc-cp-header-200x="1"')),
             ("templates/admin/base_site.html", ("rmc-admin-v1-200x.css", "rmc-cp-header-200x.css", "rmc-cp-sidebar-200x.css")),
             ("templates/admin/index_superadmin.html", ("cp-hero", "cp-steering", "cp-kpi-strip", "cp-catalog-card", "data-rmc-admin-catalog-index", "admin_v1_index_surface_previews", "rmc-page-fold-nav", "rmc-admin-catalog-section")),
             ("templates/admin/partials/admin_v1_index_surface_previews.html", ("cp-changelist", "cp-form-frame", "cp-platform-tag-row")),
@@ -49,7 +49,7 @@ IMPLEMENTATION: dict[str, dict] = {
             ("templates/partials/manager_platform_admin_sidebar.html", ("cp-sidebar-platform-admin", "data-rmc-platform-admin-sidebar")),
         ),
         "order_checks": (
-            ("templates/admin/base.html", "cp-live-strip", "cp-nav-row"),
+            ("templates/admin/base.html", "cp-nav-row", "_activity_ticker.html"),
         ),
         "css_files": (
             "static/css/rmc-admin-v1-200x.css",
@@ -65,15 +65,16 @@ IMPLEMENTATION: dict[str, dict] = {
     "manager-v8-200x": {
         "label": "Control plane /super/ (manager host)",
         "templates": (
-            ("templates/control_plane_base.html", ("cp-header", "cp-nav-row", "cp-live-strip", 'data-rmc-cp-header-200x="1"')),
+            ("templates/control_plane_base.html", ("cp-header", "cp-nav-row", "cp_shell_header_ticker", "cp_shell_canvas_chrome", 'data-rmc-cp-header-200x="1"')),
             ("templates/control_plane_skeleton.html", ("rmc-cp-header-200x.css", "rmc-cp-sidebar-200x.css", "rmc-platform-inner-pages.css")),
+            ("templates/partials/control_plane_sidebar.html", ("cp-sidebar__group", "cp-sidebar__item", "cp-sidebar__section")),
             ("templates/partials/control_plane_primary_nav.html", ("cp-primary-nav",)),
             ("templates/control_plane_skeleton.html", ("help_contextual_drawer.html",)),
-            ("templates/partials/cockpit/_activity_ticker.html", ("cp-activity-ticker",)),
+            ("templates/partials/cockpit/_activity_ticker.html", ("cp-activity-ticker", "cp-live-strip")),
             ("templates/partials/manager_operator_topbar.html", ("cp-brand__tagline", "cp-header-search")),
         ),
         "order_checks": (
-            ("templates/control_plane_base.html", "cp-live-strip", "cp-nav-row"),
+            ("templates/control_plane_base.html", "cp_shell_header_ticker", "cp-nav-row"),
         ),
         "css_files": (
             "static/css/rmc-cp-header-200x.css",
@@ -82,8 +83,14 @@ IMPLEMENTATION: dict[str, dict] = {
             "static/css/rmc-platform-inner-pages.css",
         ),
         "css_selectors": (
-            "static/css/rmc-cp-header-200x.css",
-            (".cp-primary-nav", ".cp-activity-ticker", ".cp-live-strip", ".cp-nav-row"),
+            (
+                "static/css/rmc-cp-header-200x.css",
+                (".cp-primary-nav", ".cp-activity-ticker", ".cp-live-strip", ".cp-nav-row"),
+            ),
+            (
+                "static/css/rmc-cp-sidebar-200x.css",
+                (".cp-sidebar__section", ".cp-sidebar__item", ".cp-sidebar__group"),
+            ),
         ),
         "preview_markers": ("cp-primary-nav", "cp-activity-ticker", "cp-header__row--utility"),
     },
@@ -260,21 +267,19 @@ def _check_render_smoke() -> list[str]:
     import django
 
     django.setup()
-    from django.contrib.auth import get_user_model
     from django.test import Client
 
-    User = get_user_model()
-    user, _ = User.objects.get_or_create(
-        username="preview_html_impl_verify",
-        defaults={"is_staff": True, "is_superuser": True},
+    from scripts._manager_render_smoke import (
+        MANAGER_HOST,
+        ensure_manager_smoke_user,
+        prepare_manager_smoke_client,
     )
-    if not user.check_password("verify-pass"):
-        user.set_password("verify-pass")
-        user.save(update_fields=["password"])
 
+    user = ensure_manager_smoke_user("preview_html_impl_verify")
     client = Client()
     client.force_login(user)
-    host = "manager.runmycampus.com"
+    prepare_manager_smoke_client(client)
+    host = MANAGER_HOST
     probes: tuple[tuple[str, tuple[str, ...]], ...] = (
         (
             "/admin/",

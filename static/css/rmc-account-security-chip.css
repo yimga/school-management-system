@@ -1,0 +1,31 @@
+.rmc-security-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--type-size-micro, 0.6875rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.rmc-security-chip[data-band="weak"] {
+  color: var(--ds-danger);
+  background: var(--ds-danger-bg);
+  border-color: color-mix(in srgb, var(--ds-danger) 35%, transparent);
+}
+
+.rmc-security-chip[data-band="average"] {
+  color: var(--ds-warning);
+  background: var(--ds-warning-bg);
+  border-color: color-mix(in srgb, var(--ds-warning) 35%, transparent);
+}
+
+.rmc-security-chip[data-band="strong"] {
+  color: var(--ds-success, var(--success-fg));
+  background: var(--success-bg);
+  border-color: color-mix(in srgb, var(--ds-success, #28a745) 35%, transparent);
+}

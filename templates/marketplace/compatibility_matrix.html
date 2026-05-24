@@ -10,10 +10,11 @@
 <link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 {% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell rmc-cp-compact" data-page-archetype="catalog" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1">
   {% url 'super:marketplace_governance' as governance_url %}
-  {% include "components/world_class_page_hero.html" with hero_id="compatibility-matrix-title" role=_("Platform operators") title=_("Compatibility matrix") subtitle=_("Country, blueprint family, and plan-tier gates per app — paginated so install rules stay scannable.") purpose=_("Compatibility") status=_("Install gates") primary_url="#compat-table" primary_label=_("Browse matrix") secondary_url=governance_url secondary_label=_("Governance") visual_title=_("Block bad fits early") visual_body=_("Compatibility is evaluated before sandbox install in the app catalog.") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="compatibility_matrix" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#compat-table" primary_label=_("Browse matrix") secondary_url=governance_url secondary_label=_("Governance") %}
 
   <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
     <a class="nav-link" href="#compat-glance">{% trans "At a glance" %}</a>

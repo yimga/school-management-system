@@ -4,7 +4,7 @@
 {% block title %}{% trans "Invoice Detail" %}{% endblock %}
 
 {% block content %}
-<div class="rmc-print-v2" data-page-archetype="record-detail">
+<div class="rmc-print-v2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
 {% comment %} v3.57.7+ (2026-05-21): civic brand block per rmc-print-v2 grammar
    so PDF / print renders of this invoice carry the wordmark + motto + crest
    header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}

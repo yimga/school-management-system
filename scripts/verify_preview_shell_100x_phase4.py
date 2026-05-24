@@ -36,6 +36,7 @@ def main() -> int:
         if not (ROOT / partial).is_file():
             findings.append(f"missing {partial}")
 
+    data: dict = {}
     if not REGISTRY.is_file():
         findings.append("missing preview_shell_100x_parity_registry.json")
     else:
@@ -54,10 +55,27 @@ def main() -> int:
             if 'data-rmc-scroll-policy="paginate"' not in body:
                 findings.append(f"{rel}: missing data-rmc-scroll-policy=paginate")
 
+        tenant_targets = data.get("phase4_tenant_portal_pagination_targets") or []
+        if len(tenant_targets) < 30:
+            findings.append(
+                "registry phase4_tenant_portal_pagination_targets needs 30 entries "
+                f"(has {len(tenant_targets)})"
+            )
+        for rel in tenant_targets:
+            path = ROOT / rel
+            if not path.is_file():
+                findings.append(f"missing tenant pagination target: {rel}")
+                continue
+            body = path.read_text(encoding="utf-8", errors="replace")
+            if 'data-rmc-scroll-policy="paginate"' not in body:
+                findings.append(f"{rel}: missing data-rmc-scroll-policy=paginate")
+
     for rel in (
         "templates/archetypes/cp_operator_dashboard.html",
         "templates/archetypes/cp_admin_backoffice.html",
         "templates/archetypes/tp_role_home.html",
+        "templates/archetypes/tp_task_list.html",
+        "templates/archetypes/tp_form_wizard.html",
     ):
         if not (ROOT / rel).is_file():
             findings.append(f"missing archetype {rel}")

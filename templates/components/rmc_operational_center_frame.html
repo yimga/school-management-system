@@ -1,0 +1,51 @@
+{% load i18n %}
+{# Compact operational header — v8/admin 200x steering row + static group detail (no duplicate shell hero). #}
+<section class="rmc-operational-center-frame"
+         data-rmc-operational-center-frame="1"
+         data-rmc-static-chrome="1"
+         {% if os_center_key %}data-rmc-os-center="{{ os_center_key }}"{% endif %}
+         aria-labelledby="rmc-ops-center-title">
+  <div class="cp-steering rmc-operational-center-frame__steering">
+    <div class="cp-steering__icon" aria-hidden="true">◇</div>
+    <div class="cp-steering__body">
+      {% if center_eyebrow %}
+      <div class="cp-steering__label">{{ center_eyebrow }}</div>
+      {% endif %}
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <h1 id="rmc-ops-center-title" class="cp-page-h1 mb-0">{{ center_title|default:_("Operations") }}</h1>
+        {% if status_badge_text %}
+        <span class="badge rounded-pill {% if status_badge_variant == 'success' %}text-bg-success{% elif status_badge_variant == 'warning' %}text-bg-warning{% elif status_badge_variant == 'danger' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">{{ status_badge_text }}</span>
+        {% endif %}
+      </div>
+      {% if center_purpose %}
+      <div class="cp-steering__copy" data-rmc-os-center-purpose="1">{{ center_purpose }}</div>
+      {% endif %}
+      {% if primary_url and primary_label or secondary_url and secondary_label %}
+      <div class="cp-hero__actions">
+        {% if primary_url and primary_label %}<a class="cp-btn cp-btn--primary" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
+        {% if secondary_url and secondary_label %}<a class="cp-btn cp-btn--ghost" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% if nav_groups %}
+    <nav class="cp-steering__paths" aria-label="{% trans 'Operational groups' %}" data-rmc-ops-nav-pills="1">
+      {% for group in nav_groups %}
+      <span class="cp-steering__path{% if forloop.first %} is-active{% endif %}"
+            data-rmc-ops-nav-pill="{{ group.key|default:forloop.counter }}"
+            title="{{ group.title }} — {{ group.body }}">{{ group.label }}</span>
+      {% endfor %}
+    </nav>
+    {% endif %}
+  </div>
+  {% if nav_groups %}
+  <div class="rmc-ops-nav-detail" data-rmc-ops-nav-grid="1" data-apple-class-configuration-groups="operating-models runtime-governance trust-money">
+    {% for group in nav_groups %}
+    <article class="rmc-ops-nav-detail__card" data-rmc-ops-nav-card="{{ group.key|default:forloop.counter }}">
+      <span class="rmc-ops-nav-detail__label">{{ group.label }}</span>
+      <h2 class="rmc-ops-nav-detail__title h6 mb-1">{{ group.title }}</h2>
+      <p class="rmc-ops-nav-detail__body small text-muted mb-0">{{ group.body }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>

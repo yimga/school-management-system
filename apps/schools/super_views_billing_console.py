@@ -19,6 +19,7 @@ from apps.billing.models import (
     TenantSubscription,
 )
 from apps.billing.services import ensure_subscription_for_school
+from apps.platform_runtime.operational_center_nav import billing_command_frame_context
 
 from .models import School, TenantApiUsage
 
@@ -148,6 +149,7 @@ def billing_dashboard(request):
         request,
         "schools/billing_dashboard.html",
         {
+            **billing_command_frame_context(),
             "trial_schools": trial_schools,
             "account_summary": list(account_summary),
             "subscription_summary": list(subscription_summary),

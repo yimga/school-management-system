@@ -41,6 +41,7 @@ from .views_common import (
 # Re-export for urlconf (apps.portal.urls)
 from .views_student import (
     student_portal_grades,  # noqa: F401
+    student_workflow_center,  # noqa: F401
     admissions_application_status,  # noqa: F401
     portal_syllabus,  # noqa: F401
     preview_student_syllabus,  # noqa: F401

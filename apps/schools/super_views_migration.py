@@ -156,11 +156,14 @@ def super_migration_cloud(request):
         "webhooks": _optional_reverse("migration_cloud_super:operator_webhook_list"),
         "maa": _optional_reverse("migration_cloud_super:maa_v2_promotion_dashboard"),
     }
+    from apps.platform_runtime.operational_center_nav import migration_center_frame_context
+
     data_quality_meter = migration_data_quality_meter(summary)
     return render(
         request,
         "schools/super_migration_cloud.html",
         {
+            **migration_center_frame_context(),
             "summary": summary,
             "data_quality_meter": data_quality_meter,
             "profiles": profiles,

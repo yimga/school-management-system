@@ -5,29 +5,24 @@
 
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 <link rel="stylesheet" href="{% static 'css/manager-aesthetic-polish.css' %}">
 {% endblock %}
 
 {% block backend_page %}
-<main class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1">
-  {% include "components/world_class_page_hero.html" with hero_id="school-settings-title" role=_("School administrators") title=_("School Configuration Center") subtitle=_("A tenant-safe setup cockpit for school settings, blueprints, packs, imports, apps, money, workflows, offline posture, audit, and security.") purpose=_("Tenant-safe school setup") status=_("Tenant scoped only") primary_url="/school/setup/blueprints/" primary_label=_("Continue setup") secondary_url="/school/audit/" secondary_label=_("Review audit trail") visual_title=_("Know exactly what to do next") visual_body=_("School readiness, blockers, and next best action stay visible without exposing platform-only actions.") %}
+<main class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-os-center="school_configuration_center" data-rmc-school-configuration-center="{{ page_marker }}" data-apple-class-tenant-school-admin="1" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="school_configuration_center" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/school/setup/blueprints/" primary_label=_("Continue setup") secondary_url="/school/audit/" secondary_label=_("Review audit trail") %}
   {% include "components/world_class_summary_strip.html" with readiness="74%" readiness_label=_("School readiness") risk=_("Visible") risk_label=_("Tenant blockers") next_step=_("Setup") next_step_label=_("Blueprints and packs") blockers=_("External") blockers_label=_("Payments and integrations honest") %}
-  {% include "components/platform_readiness_strip.html" with inline_field_prefix='school-cfg' tenant_label=request.tenant.display_name|default:'' %}
-  {% comment %} v2.53 (2026-05-15) — duplicate apple_class_metric_card "School
-     Readiness Score 74%" + glass_panel "Today / Next Best Action" stripped
-     here. Both values lived in the world_class_summary_strip above. The
-     setup drawer survives as a collapsed teaser so school admins still get
-     a guided-step affordance without losing the surface to a redundant
-     metric panel. {% endcomment %}
+  {% include "components/platform_readiness_strip.html" with inline_field_prefix='school-cfg' hide_inline=1 tenant_label=request.tenant.display_name|default:'' %}
   {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="school-setup-drawer" role=_("Setup drawer") title=_("Fix setup in place") body=_("School admins can open guided steps from the current page without page hopping.") primary_url="/school/setup/imports/" primary_label=_("Open imports") %}
 
   <div class="row g-3">
     {% for section in sections %}
     <div class="col-12 col-lg-6">
-      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface rmc-reveal" data-school-configuration-section="{{ section.name }}" data-world-class-tenant-card="1">
+      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-school-configuration-section="{{ section.name }}" data-world-class-tenant-card="1">
         <div class="card-body">
           <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
-            <h1 class="h5 mb-0">{{ section.name }}</h1>
+            <h2 class="h5 mb-0">{{ section.name }}</h2>
             <span class="badge bg-light border">{{ section.status }}</span>
           </div>
           {% include "components/world_class_readiness_meter.html" with title=_("School readiness score") value="74" caption=_("This section is tenant-safe and excludes platform-wide registry controls.") %}

@@ -17,8 +17,10 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-charts.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-tokens.css' %}">
+{% if backend_show_legacy_dashboard %}
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2.css' %}">
 <link rel="stylesheet" href="{% static 'css/backend-dashboard-v2-contract.css' %}">
+{% endif %}
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
 {% comment %} v3.59.x Wave A (2026-05-22): tenant-dashboard v2 cascade carries .tp-* primitives

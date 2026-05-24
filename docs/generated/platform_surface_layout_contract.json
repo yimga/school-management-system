@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-19T22:34:37.275287+00:00",
+  "generated_at": "2026-05-24T17:34:53.046956+00:00",
   "verdict": "PLATFORM_SURFACE_LAYOUT_PASS",
-  "passed": 12,
+  "passed": 19,
   "failed": 0,
   "rows": [
     {
@@ -17,14 +17,14 @@
       "proof": "control_plane_skeleton.html"
     },
     {
-      "check_id": "document_scroll_skeleton",
-      "description": "Control-plane skeleton uses document scroll contract",
+      "check_id": "canvas_scroll_skeleton",
+      "description": "Control-plane skeleton uses app-shell canvas scroll contract",
       "status": "PASS",
       "proof": "control_plane_skeleton.html"
     },
     {
-      "check_id": "document_scroll_admin_manager",
-      "description": "Manager Unfold admin shell sets data-rmc-cp-scroll=document",
+      "check_id": "canvas_scroll_admin_manager",
+      "description": "Manager Unfold admin shell sets data-rmc-cp-scroll=canvas (parity with /super/)",
       "status": "PASS",
       "proof": "admin/base_site.html"
     },
@@ -33,6 +33,54 @@
       "description": "Manager portal bridge body sets data-rmc-cp-scroll=document",
       "status": "PASS",
       "proof": "portal_base.html"
+    },
+    {
+      "check_id": "portal_document_scroll_all_hosts",
+      "description": "Tenant portal body uses document scroll (not manager-only)",
+      "status": "PASS",
+      "proof": "portal_base.html"
+    },
+    {
+      "check_id": "marketing_chrome_sweep",
+      "description": "Marketing shell wires sticky chrome layout + fold standards",
+      "status": "PASS",
+      "proof": "marketing/base_marketing.html"
+    },
+    {
+      "check_id": "base_shell_chrome_partial",
+      "description": "base.html wires platform chrome styles + document scroll",
+      "status": "PASS",
+      "proof": "base.html"
+    },
+    {
+      "check_id": "chrome_styles_partial_assets",
+      "description": "Shared chrome styles partial bundles layout + premium + fold + frame guard",
+      "status": "PASS",
+      "proof": "rmc_platform_chrome_styles.html"
+    },
+    {
+      "check_id": "layout_frame_guard_css",
+      "description": "Layout frame guard prevents nested .row / grid collapse in main content",
+      "status": "PASS",
+      "proof": "rmc-layout-frame-guard.css"
+    },
+    {
+      "check_id": "shell_row_direct_child_only",
+      "description": "Document-scroll shell row nowrap scoped to direct layout rows only",
+      "status": "PASS",
+      "proof": "manager-control-plane.css"
+    },
+    {
+      "check_id": "flex_collapse_scanner_baseline",
+      "description": "Flex-collapse risk scanner baseline is zero",
+      "status": "PASS",
+      "proof": "var/security-audit-baseline-flex-collapse-risk.json"
+    },
+    {
+      "check_id": "platform_chrome_layout_contract",
+      "description": "Platform chrome partial wired on control-plane skeleton",
+      "status": "PASS",
+      "proof": "rmc_platform_chrome partials"
     },
     {
       "check_id": "no_viewport_height_trap_css",
@@ -69,12 +117,6 @@
       "description": "authenticated-shell-manager.js loaded once from skeleton",
       "status": "PASS",
       "proof": "skeleton only"
-    },
-    {
-      "check_id": "django_contract_tests",
-      "description": "Django contract tests for surface layout",
-      "status": "PASS",
-      "proof": "Found 18 test(s).\nSystem check identified no issues (0 silenced).\n"
     }
   ]
 }

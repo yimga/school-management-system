@@ -3,6 +3,7 @@
 from django.test import RequestFactory, SimpleTestCase
 
 from apps.schools.control_plane_nav import (
+    build_manager_platform_admin_primary_nav,
     build_primary_control_plane_nav,
     build_tenant_operator_primary_nav,
 )
@@ -123,6 +124,43 @@ class PrimaryControlPlaneNavTests(SimpleTestCase):
         req.urlconf = "config.manager_urls"
         nav = {x["id"]: x for x in build_primary_control_plane_nav(req)}
         self.assertTrue(nav["primary_marketplace"]["is_current"])
+
+
+class ManagerPlatformAdminPrimaryNavTests(SimpleTestCase):
+    """build_manager_platform_admin_primary_nav resolves 7 backoffice pills on /admin/."""
+
+    def test_seven_pills_stable_order(self):
+        request = RequestFactory().get("/admin/")
+        request.urlconf = "config.manager_urls"
+        primary = build_manager_platform_admin_primary_nav(request)
+        ids = [x["id"] for x in primary]
+        self.assertEqual(len(primary), 7, msg=ids)
+        self.assertEqual(
+            ids,
+            [
+                "admin_backoffice",
+                "admin_config",
+                "admin_studio",
+                "admin_control_plane",
+                "admin_catalog",
+                "admin_access",
+                "admin_health",
+            ],
+        )
+
+    def test_backoffice_current_on_admin_index(self):
+        request = RequestFactory().get("/admin/accounts/user/")
+        request.urlconf = "config.manager_urls"
+        nav = {x["id"]: x for x in build_manager_platform_admin_primary_nav(request)}
+        self.assertTrue(nav["admin_backoffice"]["is_current"])
+        self.assertFalse(nav["admin_control_plane"]["is_current"])
+
+    def test_control_plane_current_on_super_dashboard(self):
+        request = RequestFactory().get("/super/")
+        request.urlconf = "config.manager_urls"
+        nav = {x["id"]: x for x in build_manager_platform_admin_primary_nav(request)}
+        self.assertTrue(nav["admin_control_plane"]["is_current"])
+        self.assertFalse(nav["admin_backoffice"]["is_current"])
 
 
 class TenantOperatorPrimaryNavTests(SimpleTestCase):

@@ -197,9 +197,14 @@ def main() -> int:
         failures.append("platform_runtime.tasks missing engine_room_sync_ollama chain")
 
     palette_js = (ROOT / "static/js/rmc-command-palette.js").read_text(encoding="utf-8")
+    page_help_js = (ROOT / "static/js/rmc-page-context-help.js").read_text(encoding="utf-8")
     for marker in ("help_center_url", 'row.type === "escalate"', "rmc:cmdk:active_url", "active_url"):
         if marker not in palette_js:
             failures.append(f"rmc-command-palette.js missing: {marker!r}")
+    if "help_center_url" not in page_help_js:
+        failures.append("rmc-page-context-help.js must route via help_center_url")
+    if "from=page_help" not in page_help_js or "active_url" not in page_help_js:
+        failures.append("rmc-page-context-help.js missing page-aware help center params")
 
     ai_center_js = (ROOT / "static/js/_pages/siteconfig__ai_center.js").read_text(encoding="utf-8")
     if "data-active-url-override" not in ai_center_js:

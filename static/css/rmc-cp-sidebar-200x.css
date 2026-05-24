@@ -1,18 +1,258 @@
 ﻿/**
- * Control plane + manager /admin/ sidebar â€” v8 200x preview parity.
- * v3.62.12 (2026-05-22)
+ * Control plane + manager /admin/ sidebar — v8 200x preview parity.
+ * v3.90.16 (2026-05-24)
  */
 
+/* ── Canvas chrome (primary nav below live strip, sidebar starts higher) ── */
+body.control-plane-shell .rmc-app-shell__canvas {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-chrome {
+  flex: 0 0 auto;
+  min-width: 0;
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(var(--cp-glow-indigo, 99, 102, 241), 0.12), transparent 60%),
+    linear-gradient(180deg, var(--cp-chrome-bg, #0a0d22) 0%, var(--cp-chrome-bg-deep, #070918) 100%);
+  color: var(--cp-chrome-text, var(--text-primary));
+  border-bottom: 1px solid var(--cp-chrome-hairline, var(--hairline));
+  position: relative;
+  z-index: 20;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-nav-row {
+  padding: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.cp-canvas-chrome-nav {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body.control-plane-shell .rmc-app-shell__sidebar {
+  align-self: stretch;
+}
+
+body.control-plane-shell #cp-sidebar-col {
+  min-height: 0;
+  height: 100%;
+}
+
+/* ── v8 sidebar inner (preview cp-sidebar-inner) ── */
+body.control-plane-shell .cp-sidebar-inner[data-rmc-cp-sidebar-v8="1"],
+body.control-plane-shell nav.cp-sidebar-inner[data-rmc-cp-sidebar-v8="1"] {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Workspace context intentionally omitted on /super/ — hide if legacy include remains */
+body.control-plane-shell .cp-sidebar-inner .cp-workspace-context,
+body.control-plane-shell .cp-sidebar-inner .rmc-cockpit-workspace {
+  display: none !important;
+}
+
+/* ── Section headers (left-aligned, uppercase eyebrow) ── */
+body.control-plane-shell .cp-sidebar__section {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-chrome-text-muted, var(--text-tertiary));
+  padding: 12px 12px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  font-weight: 700;
+}
+
+/* ── Collapsible groups (details/summary) ── */
+body.control-plane-shell .cp-sidebar__group {
+  margin: 0;
+  padding: 0;
+}
+
+body.control-plane-shell .cp-sidebar__group > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+body.control-plane-shell .cp-sidebar__group > summary::-webkit-details-marker {
+  display: none;
+}
+
+body.control-plane-shell .cp-sidebar__group > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  transition: transform var(--motion-fast, 150ms);
+  color: var(--cp-chrome-text-muted, var(--text-tertiary));
+}
+
+body.control-plane-shell .cp-sidebar__group[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+body.control-plane-shell .cp-sidebar__group > summary:hover {
+  color: var(--cp-chrome-text, var(--text-primary));
+}
+
+body.control-plane-shell .cp-sidebar__group > .cp-sidebar__item {
+  padding-left: 28px;
+}
+
+/* Manager /admin/ catalog sidebar (manager_platform_admin_sidebar.html) */
+body.admin-manager-shell .cp-sidebar__group-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+body.admin-manager-shell .cp-sidebar__group--apps {
+  margin-top: 0.25rem;
+}
+
+body.admin-manager-shell .cp-sidebar__group-toggle {
+  color: var(--cp-chrome-text-muted, var(--text-tertiary));
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+body.admin-manager-shell .cp-sidebar__group-toggle:hover,
+body.admin-manager-shell .cp-sidebar__group-toggle:focus-visible {
+  color: var(--cp-chrome-text, var(--text-primary));
+}
+
+/* ── Nav items ── */
+body.control-plane-shell .cp-sidebar__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--cp-chrome-text, var(--text-primary));
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.35;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
+  min-width: 0;
+}
+
+body.control-plane-shell .cp-sidebar__item:hover,
+body.control-plane-shell .cp-sidebar__item:focus-visible {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: fixed-shell-accent */
+  color: var(--cp-chrome-text, var(--text-primary));
+}
+
+body.control-plane-shell .cp-sidebar__item[aria-current="page"],
+body.control-plane-shell .cp-sidebar__item.cp-sidebar__item--current {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.4), rgba(16, 185, 129, 0.3)); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3); /* off-token-allow: fixed-shell-accent */
+}
+
+body.control-plane-shell .cp-sidebar__item-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+body.control-plane-shell .cp-sidebar__item-label .cp-nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.control-plane-shell .cp-sidebar__item .cp-nav-icon {
+  width: 1.05rem;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Colored icons per group (preview emoji parity via accent rotation) */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 1) .cp-nav-icon { color: #60a5fa; } /* off-token-allow: sidebar-icon-accent */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 2) .cp-nav-icon { color: #a78bfa; } /* off-token-allow: sidebar-icon-accent */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 3) .cp-nav-icon { color: #34d399; } /* off-token-allow: sidebar-icon-accent */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 4) .cp-nav-icon { color: #fbbf24; } /* off-token-allow: sidebar-icon-accent */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 5) .cp-nav-icon { color: #f472b6; } /* off-token-allow: sidebar-icon-accent */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 6) .cp-nav-icon { color: #38bdf8; } /* off-token-allow: sidebar-icon-accent */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 7) .cp-nav-icon { color: #fb923c; } /* off-token-allow: sidebar-icon-accent */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 8) .cp-nav-icon { color: #4ade80; } /* off-token-allow: sidebar-icon-accent */
+
+body.control-plane-shell .cp-sidebar__item[aria-current="page"] .cp-nav-icon,
+body.control-plane-shell .cp-sidebar__item.cp-sidebar__item--current .cp-nav-icon {
+  color: #fff; /* off-token-allow: fixed-shell-accent */
+}
+
+/* Pin on hover */
+body.control-plane-shell .cp-sidebar__pin {
+  opacity: 0;
+  color: var(--cp-chrome-text-muted, var(--text-secondary));
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+body.control-plane-shell .cp-sidebar__item:hover .cp-sidebar__pin,
+body.control-plane-shell .cp-sidebar__item:focus-within .cp-sidebar__pin,
+body.control-plane-shell .cp-sidebar__pin.cp-pin-pinned {
+  opacity: 0.6;
+}
+
+body.control-plane-shell .cp-sidebar__pin:hover {
+  opacity: 1;
+}
+
+/* ── Legacy Bootstrap nav (admin-manager-shell fallback) ── */
 body.control-plane-shell .cp-sidebar .rmc-cockpit-workspace,
 body.admin-manager-shell .cp-sidebar .rmc-cockpit-workspace {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 10px 12px;
-  border-radius: var(--radius-md, 10px);
-  background: rgba(255, 255, 255, 0.03); /* off-token-allow: fixed-shell-accent */
-  border: 1px solid var(--cp-chrome-hairline, var(--hairline));
-  margin-bottom: 14px;
+  display: none;
 }
 
 body.control-plane-shell .cp-sidebar .cp-nav-section-label,
@@ -27,7 +267,6 @@ body.admin-manager-shell .cp-sidebar .rmc-type-eyebrow {
   font-weight: 700;
 }
 
-body.control-plane-shell .cp-sidebar .nav-link,
 body.admin-manager-shell .cp-sidebar-nav .nav-link {
   display: flex;
   align-items: center;
@@ -40,21 +279,19 @@ body.admin-manager-shell .cp-sidebar-nav .nav-link {
   transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
 }
 
-body.control-plane-shell .cp-sidebar .nav-link:hover,
-body.control-plane-shell .cp-sidebar .nav-link:focus-visible,
 body.admin-manager-shell .cp-sidebar-nav .nav-link:hover,
 body.admin-manager-shell .cp-sidebar-nav .nav-link:focus-visible {
   background: rgba(255, 255, 255, 0.04); /* off-token-allow: fixed-shell-accent */
   color: var(--cp-chrome-text, var(--text-primary));
 }
 
-body.control-plane-shell .cp-sidebar .nav-link.active,
 body.admin-manager-shell .cp-sidebar-nav .nav-link.active {
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.15)); /* off-token-allow: fixed-shell-accent */
   border-color: rgba(99, 102, 241, 0.3); /* off-token-allow: fixed-shell-accent */
   color: #fff; /* off-token-allow: fixed-shell-accent */
 }
 
+/* Tenant portal sidebar (unchanged) */
 body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .list-group-item,
 body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .nav-link {
   border-radius: 9px;
@@ -71,4 +308,13 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-sidebar-inner .list-g
   color: #fff; /* off-token-allow: fixed-shell-accent */
   border-color: transparent;
   box-shadow: 0 2px 8px rgba(30, 111, 58, 0.2);
+}
+
+/* Mobile offcanvas — same v8 grammar */
+body.control-plane-shell .cp-sidebar-offcanvas .cp-sidebar-inner[data-rmc-cp-sidebar-v8="1"] {
+  padding: 12px 10px;
+}
+
+body.control-plane-shell .cp-sidebar-offcanvas .cp-sidebar__item {
+  font-size: 14px;
 }

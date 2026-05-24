@@ -35,6 +35,7 @@
    the per-tab attribute on the rail itself. {% endcomment %}
 
 {% if cockpit.ai_copilot_rail.enabled %}
+{% url 'manager_help_center' as rmc_copilot_page_help_url %}
 <aside class="rmc-app-shell__copilot"
        aria-label="{% trans 'AI copilot' %}"
        data-rmc-copilot-rail
@@ -58,10 +59,10 @@
               data-rmc-operator-notebook-toggle
               title="{% trans 'Toggle operator notebook' %}"
               aria-label="{% trans 'Toggle operator notebook' %}">✎</button>
-      <button class="lx-copilot__rail-icon lx-copilot__rail-icon--help" type="button"
+      <a class="lx-copilot__rail-icon lx-copilot__rail-icon--help" href="{{ rmc_copilot_page_help_url }}"
               data-rmc-page-help
               title="{% trans 'Need help on this page?' %}"
-              aria-label="{% trans 'Need help on this page?' %}">?</button>
+              aria-label="{% trans 'Need help on this page?' %}">?</a>
       <div class="lx-copilot__kbd" aria-hidden="true">⌘ K</div>
     </div>
 
@@ -101,12 +102,12 @@
       </nav>
 
       <div class="lx-copilot__page-help-wrap">
-        <button type="button" class="lx-copilot__page-help" data-rmc-page-help
+        <a class="lx-copilot__page-help" href="{{ rmc_copilot_page_help_url }}" data-rmc-page-help
                 title="{% trans 'Need help on this page?' %}"
                 aria-label="{% trans 'Need help on this page?' %}">
           <span class="lx-copilot__page-help-icon" aria-hidden="true">?</span>
           <span class="lx-copilot__page-help-label">{% trans "Need help on this page?" %}</span>
-        </button>
+        </a>
       </div>
 
       {% if cockpit.ai_copilot_rail.insight_text %}

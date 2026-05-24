@@ -1,16 +1,21 @@
 {% load i18n %}
 {% comment %} Wave 1: one product language — Home, Studio, Operations, Marketplace, Analytics, Migration, Support, Control.
+   Manager /admin/ uses MANAGER_PLATFORM_ADMIN_SHELL pills (Backoffice, Config center, …).
    Pass D aesthetic: indigo→emerald gradient for the active pill (matches the
    platform palette); subtle ghost surface for inactive pills (no harsh
    white-on-dark borders). {% endcomment %}
 {% if PRIMARY_CONTROL_PLANE_NAV %}
-<nav class="cp-primary-nav rmc-horizontal-nav-rail px-3 py-2 border-bottom" aria-label="{% trans 'Primary product navigation' %}">
+<nav class="cp-primary-nav rmc-horizontal-nav-rail{% if MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--admin-backoffice{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--control-plane{% endif %} px-3 py-2 border-bottom" aria-label="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Platform backoffice navigation' %}{% else %}{% trans 'Primary product navigation' %}{% endif %}">
   {% for item in PRIMARY_CONTROL_PLANE_NAV %}
   <a href="{{ item.url }}"
-     class="cp-primary-nav__pill {% if item.is_current %}cp-primary-nav__pill--active{% endif %}"
-     {% if item.is_current %}aria-current="page"{% endif %}
+     class="cp-primary-nav__pill cp-nav-pill{% if item.is_current %} cp-primary-nav__pill--active cp-nav-pill--active{% endif %}"
+     {% if item.is_current %}aria-current="page" data-active{% endif %}
      data-cp-primary-id="{{ item.id }}">
-    <i class="bi {{ item.icon }}" aria-hidden="true"></i>
+    {% if item.glyph %}
+      <span class="cp-nav-pill__glyph" aria-hidden="true">{{ item.glyph }}</span>
+    {% elif item.icon %}
+      <i class="bi {{ item.icon }}" aria-hidden="true"></i>
+    {% endif %}
     <span>{% trans item.label %}</span>
   </a>
   {% endfor %}

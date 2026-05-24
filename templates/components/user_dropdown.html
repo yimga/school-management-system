@@ -48,6 +48,11 @@
           {% endwith %}
         </div>
         <div class="user-role-badge">
+          {% if account_security_score is not None %}
+          <span class="rmc-security-chip ms-1" data-band="{{ account_security_band|default:'weak' }}" title="{% trans 'Account security strength' %}">
+            <i class="bi bi-shield-fill" aria-hidden="true"></i>{{ account_security_score }}
+          </span>
+          {% endif %}
           {% if request.user.role == 'ADMIN' %}
             <i class="bi bi-shield-check"></i> {% trans "Admin" %}
           {% elif request.user.role == 'LEADERSHIP' %}
@@ -169,6 +174,22 @@
           <i class="bi bi-gear"></i>
           <span>{% trans "Settings" %}</span>
           <kbd>Alt</kbd>+<kbd>S</kbd>
+        </a>
+      </li>
+      {% if security_posture_review_due and security_posture_review_url %}
+      <li>
+        <a class="dropdown-item text-warning" href="{{ security_posture_review_url }}">
+          <i class="bi bi-shield-exclamation"></i>
+          <span>{% trans "Quarterly security review" %}</span>
+          <span class="badge bg-warning text-dark ms-auto">{% trans "Due" %}</span>
+        </a>
+      </li>
+      {% endif %}
+      <li>
+        <a class="dropdown-item" href="{% url 'accounts:mfa_setup' %}">
+          <i class="bi bi-shield-lock"></i>
+          <span>{% trans "Multi-factor authentication" %}</span>
+          {% if mfa_setup_needed %}<span class="badge bg-warning text-dark ms-auto">{% trans "Set up" %}</span>{% elif mfa_enrolled %}<span class="badge bg-success ms-auto">{% trans "On" %}</span>{% endif %}
         </a>
       </li>
       <li>

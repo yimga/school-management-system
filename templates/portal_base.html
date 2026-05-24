@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console workflow_guidance_tags %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -64,6 +64,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
     {# v3.55.0 (2026-05-21): civic 4-tier centered footer (tenant + manager dark variant). #}
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
     {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
@@ -75,6 +76,9 @@
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-canvas-100x.css' %}">
     {# v3.62.8 (2026-05-22): tenant portal v3 100x header (frosted tp-header + ticker row). #}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-header-100x.css' %}">
+    {% if tp_v3_tenant_shell %}
+    <link rel="stylesheet" href="{% static 'css/rmc-tenant-v3-100x-role-home.css' %}">
+    {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
     {# v3.56.0 (2026-05-21): tenant per-role dashboard v2 (today snapshot + quick actions + events + activity + achievements + spotlight + child context). #}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
@@ -113,6 +117,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
     {% include "partials/rmc_platform_chrome_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-footer-visibility.css' %}">
@@ -220,7 +225,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1" data-copilot="collapsed"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}portal-sidebar-tone-light{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="document" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1" data-copilot="collapsed"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -232,11 +237,10 @@
           <div class="cp-header__row cp-header__row--utility">
             {% include "partials/manager_operator_topbar.html" %}
           </div>
-          <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
-            {% block portal_shell_header_ticker %}
-              {% include "partials/cockpit/_activity_ticker.html" %}
-            {% endblock %}
-          </div>
+          {% block portal_shell_header_ticker %}
+            {# cp-live-strip: manager portal bridge live activity row #}
+            {% include "partials/cockpit/_activity_ticker.html" %}
+          {% endblock %}
           {% if PRIMARY_CONTROL_PLANE_NAV %}
           <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
             {% include "partials/control_plane_primary_nav.html" %}
@@ -248,7 +252,10 @@
     {% else %}
     <div class="tp-header" data-rmc-tenant-header-100x="1">
       {% block portal_shell_header_ticker_tenant %}
+        {% comment %} v3 100x preview: no header ticker on role-home landings (canvas owns the story). {% endcomment %}
+        {% if not tp_v3_tenant_shell %}
         {% include "partials/cockpit/_activity_ticker.html" %}
+        {% endif %}
       {% endblock %}
     <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
       <div class="container-fluid px-3 tp-header__row-inner" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
@@ -282,11 +289,18 @@
         {% url 'feedback:help_center' as help_center_url %}
         {% endif %}
         <div id="preview-header-brand" class="d-inline-flex align-items-center" data-preview-label="{% trans 'Logo & site name' %}">
-        {% comment %} v2.57 (2026-05-15) — adopted rmc_brand_mark across all portal
-           role branches. Tenant SITE.logo cascades into the same squircle frame so
-           layout is stable. Wordmark uses SITE.site_name with a "School System"
-           fallback (matching the original behavior). {% endcomment %}
-        {% if request.user.role == 'ADMIN' or request.user.is_staff %}
+        {% if tp_v3_tenant_shell %}
+          {% if request.user.role == 'TEACHER' %}
+            {% include "partials/tenant/tp_header_brand.html" with home_href=teacher_url %}
+          {% elif request.user.role == 'PARENT' %}
+            {% include "partials/tenant/tp_header_brand.html" with home_href=parent_url %}
+          {% elif request.user.role == 'STUDENT' %}
+            {% url 'portal:student_portal_grades' as student_home_url %}
+            {% include "partials/tenant/tp_header_brand.html" with home_href=student_home_url %}
+          {% else %}
+            {% include "partials/tenant/tp_header_brand.html" with home_href=backend_url %}
+          {% endif %}
+        {% elif request.user.role == 'ADMIN' or request.user.is_staff %}
           {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=backend_url label=SITE.site_name|default:"School System" %}
         {% elif request.user.role == 'TEACHER' %}
           {% include "components/rmc_brand_mark.html" with size=34 variant="lockup" href=teacher_url label=SITE.site_name|default:"School System" %}
@@ -295,12 +309,12 @@
         {% endif %}
         </div>
 
-        {% if request.user.is_authenticated %}
+        {% if request.user.is_authenticated and not tp_v3_tenant_shell %}
           <a class="btn btn-sm btn-outline-secondary d-none d-md-inline-flex align-items-center gap-1 ms-2" href="{{ portal_home_url }}" aria-label="{% trans 'Home' %}">
             <i class="bi bi-house" aria-hidden="true"></i>
             <span class="d-none d-sm-inline">{% trans 'Home' %}</span>
           </a>
-        {% else %}
+        {% elif not request.user.is_authenticated %}
           <a class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 ms-2" href="{% url 'home' %}" aria-label="{% trans 'Home' %}">
             <i class="bi bi-house" aria-hidden="true"></i>
             <span class="d-none d-sm-inline">{% trans 'Home' %}</span>
@@ -408,7 +422,7 @@
             {% include "partials/control_plane_sidebar.html" %}
           </div>
           {% else %}
-          <div class="tp-sidebar-inner sidebar p-3">
+          <div class="tp-sidebar-inner sidebar p-3{% if tp_v3_tenant_shell %} tp-sidebar-inner--v3{% endif %}">
             {% include "partials/portal_sidebar.html" %}
           </div>
           {% endif %}
@@ -449,12 +463,16 @@
       <div class="portal-main-col col-lg-9 col-xl-10 rmc-shell-main" id="main-content" role="main" tabindex="-1" data-shell-main="portal" data-rmc-shell-main="portal">
         <div class="page-wrap rmc-shell-content-grid" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'tenant-portal' }}" data-rmc-shell-content-grid="1">
           {% include "partials/shell_chrome_impersonation_session_strip.html" %}
+          {% if tp_v3_tenant_shell %}
+            {% include "partials/tenant/tp_breadcrumb.html" %}
+          {% else %}
           {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.tenant_portal_breadcrumb_surface %}
             {% include "partials/breadcrumbs.html" %}
           {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
             {% block breadcrumb_actions %}{% endblock %}
           {% include "partials/shell_chrome_breadcrumb_row_close.html" %}
-            {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
+          {% endif %}
+            {% if request.user.is_authenticated and request.public_host_kind != 'manager' and not tp_v3_tenant_shell %}
             {% block rmc_workspace_os_header %}
             {% include "components/rmc_os_page_header.html" %}
             {% endblock %}
@@ -462,7 +480,7 @@
               {% block rmc_os_shell_primary_action %}{% endblock %}
             </div>
             {% endif %}
-            {% if request.user.is_authenticated and request.public_host_kind != 'manager' and request.resolver_match and request.resolver_match.namespace|default:'' != 'studio_os' %}
+            {% if request.user.is_authenticated and request.public_host_kind != 'manager' and not tp_v3_tenant_shell and request.resolver_match and request.resolver_match.namespace|default:'' != 'studio_os' %}
               {% if request.user|tenant_operator_hub_visible %}
                 {% include "partials/tenant_studio_product_strip.html" %}
                 <div class="mb-3">
@@ -470,7 +488,9 @@
                 </div>
               {% endif %}
             {% endif %}
+            {% if not tp_v3_tenant_shell %}
             {% include "components/rmc_os_status_strip.html" %}
+            {% endif %}
             {% if runmycampus_demo_sandbox %}
             <div class="alert alert-info border-info mb-3 py-2 small" role="status" data-rmc-demo-sandbox-banner="1">
               <strong>{% trans "Demo sandbox" %}</strong> — {% trans "This tenant is flagged as a demonstration environment. Data may be reset; do not use for regulated production records." %}
@@ -478,14 +498,17 @@
             {% include "components/demo_guided_hints.html" %}
             {% endif %}
             {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
-
             {% if request.user.is_authenticated %}
+            {% include "accounts/partials/_security_posture_banner.html" %}
+            {% endif %}
+
+            {% if request.user.is_authenticated and not tp_v3_tenant_shell %}
             {% block rmc_zero_click_strip %}
             {% include "partials/rmc_zero_click_command_strip.html" with triage_anchor="#main-content" %}
             {% endblock %}
             {% endif %}
 
-            {% if dashboard_stats_cards %}
+            {% if dashboard_stats_cards and not tp_v3_tenant_shell %}
               <div class="mb-3">
                 <div class="section-title">
                   <i class="bi bi-graph-up-arrow"></i>
@@ -508,12 +531,12 @@
 
             {% comment %}Controlled platform: one next-action strip for every authenticated portal page (override block to hide). Skipped on manager host because the strip references tenant-only portal: URLs.{% endcomment %}
             {% block shell_next_action_strip %}
-            {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
+            {% if request.user.is_authenticated and request.public_host_kind != 'manager' and not tp_v3_tenant_shell %}
             {% include "components/next_action_strip.html" %}
             {% endif %}
             {% endblock %}
 
-            <div class="portal-page-body" data-rmc-portal-page-body="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
+            <div class="portal-page-body{% if tp_v3_tenant_shell %} tp-canvas-body{% endif %}" data-rmc-portal-page-body="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
             {% include "components/_workflow_auto_chrome.html" %}
             {% block content %}{% endblock %}
 
@@ -664,8 +687,8 @@
     {# Floating Back to top - visible after scrolling down #}
     {% include 'components/back_to_top.html' %}
 
-    {# Messages chathead: staff/teacher only (RBAC); parents use Contact School #}
-    {% if request.user.is_authenticated and request.user.role != 'PARENT' %}
+    {# Messages chathead: staff/teacher only (RBAC); parents use Contact School. Hidden on v3 tenant shell (header + ⌘K). #}
+    {% if request.user.is_authenticated and request.user.role != 'PARENT' and not tp_v3_tenant_shell %}
     <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="{% trans 'Open Messages' %}" title="{% trans 'Messages' %}">
       <i class="bi bi-chat-dots-fill"></i>
       {% if messages_unread_count %}<span class="portal-chathead-badge">{{ messages_unread_count }}</span>{% endif %}
@@ -673,12 +696,16 @@
     {% endif %}
 
     {% comment %} v3.60: AI copilot restored for assist-dock when tenant AI policy allows (staff/teacher/admin). {% endcomment %}
-    {% if request.user.is_authenticated and show_kb_ai_assistant_panel|default:False %}
+    {% if request.user.is_authenticated and show_kb_ai_assistant_panel|default:False and not tp_v3_tenant_shell %}
       {% include "components/ai_copilot.html" %}
     {% endif %}
 
     {% comment %} Phase G (2026-05-12): platform-wide ⌘K command palette (Apple Spotlight-style).
        Single answer to "long endless nav" — jump to any page or action from any page. {% endcomment %}
+    {% if tp_v3_tenant_shell %}
+    {% include "partials/cockpit/_tp_pulse_drill_sheet.html" %}
+    <script src="{% static 'js/rmc-tp-pulse-sheet.js' %}" defer></script>
+    {% endif %}
     {% if request.user.is_authenticated %}
       {% include 'components/rmc_command_palette.html' %}
       <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
@@ -734,7 +761,7 @@
     </div>
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
     {% endif %}
-    {% if proactive_help_nudge %}
+    {% if proactive_help_nudge and not tp_v3_tenant_shell %}
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}
     {% include "partials/help_contextual_drawer.html" %}
@@ -761,11 +788,11 @@
     {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
     {% include "partials/rmc_command_bar.html" %}
     {% endif %}
-    {# v3.61.2 (2026-05-22): Lifecycle concierge — only renders when lifecycle_concierge_enabled is True. #}
-    {% if lifecycle_concierge_enabled %}
+    {# v3.61.2 (2026-05-22): Lifecycle concierge — hidden on v3 100x role homes (hero + cockpit own onboarding). #}
+    {% if lifecycle_concierge_enabled and not tp_v3_tenant_shell %}
     <link rel="stylesheet" href="{% static 'css/rmc-lifecycle-concierge.css' %}">
     <script src="{% static 'js/_pages/rmc-lifecycle-concierge.js' %}" defer></script>
-    {% endif %}
     {% include "lifecycle/concierge_modal.html" %}
+    {% endif %}
   </body>
 </html>

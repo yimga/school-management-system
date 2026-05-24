@@ -9,11 +9,12 @@
 <link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 {% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell rmc-cp-compact" data-page-archetype="catalog" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1">
   {% phase8_dashboard_declaration "marketplace/sandbox_inspector.html" %}
   {% url 'super:marketplace_governance' as governance_url %}
-  {% include "components/world_class_page_hero.html" with hero_id="sandbox-inspector-title" role=_("Platform operators") title=_("Sandbox inspector") subtitle=_("Installations awaiting promotion — paginated list with promote-to-production actions.") purpose=_("Sandbox") status=_("Pre-activation") primary_url="#sandbox-list" primary_label=_("View sandboxes") secondary_url=governance_url secondary_label=_("Governance") visual_title=_("Stage before go-live") visual_body=_("Every install starts in sandbox; promote only after school validation.") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="sandbox_inspector" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#sandbox-list" primary_label=_("View sandboxes") secondary_url=governance_url secondary_label=_("Governance") %}
 
   <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
     <a class="nav-link" href="#sandbox-glance">{% trans "At a glance" %}</a>

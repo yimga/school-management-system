@@ -124,6 +124,9 @@ def main() -> int:
 
     client = Client(HTTP_HOST=HOST)
     client.force_login(user)
+    from scripts._manager_render_smoke import prepare_manager_smoke_client
+
+    prepare_manager_smoke_client(client)
 
     rows: list[dict] = []
     failures: list[str] = []

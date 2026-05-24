@@ -210,6 +210,19 @@
   font-size: 1.05rem;
 }
 
+.rmc-platform-header__icon-btn--mfa-warn {
+  border-color: color-mix(in oklab, var(--warning) 55%, var(--hairline));
+  color: var(--warning);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--warning) 18%, transparent);
+}
+
+.rmc-platform-header__icon-btn--mfa-warn:hover,
+.rmc-platform-header__icon-btn--mfa-warn:focus-visible {
+  border-color: var(--warning);
+  color: var(--warning);
+  background: color-mix(in oklab, var(--warning) 12%, transparent);
+}
+
 .rmc-platform-header__chip {
   display: inline-flex;
   align-items: center;

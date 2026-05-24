@@ -20,9 +20,12 @@ from apps.accounts.decorators import role_required
 from apps.communication.models import Message
 from apps.people.models import StudentProfile
 from apps.siteconfig.config_service import get_effective_site_settings
+from apps.academics.services import get_active_year_and_term
 
 from .models import PortalFeatureItem
 from .views_common import PORTAL_FEATURES_META
+from .tenant_role_home import build_tp_hero_context
+from .tenant_workflow_portal import build_tenant_workflow_portal
 
 
 @login_required
@@ -132,11 +135,138 @@ def student_learning_home(request: HttpRequest):
         "activity": activity,
     }
 
+    from apps.portal.tenant_role_home import build_tp_hero_context
+
     _ = site  # reserved for enable_student_portal wiring
     return render(
         request,
         "student/learning_home.html",
-        {"phase7_de": phase7_de},
+        {
+            "phase7_de": phase7_de,
+            **build_tp_hero_context(
+                request,
+                role=User.Role.STUDENT,
+                unread_messages=unread,
+            ),
+        },
+    )
+
+
+@login_required
+@role_required(User.Role.STUDENT)
+def student_workflow_center(request: HttpRequest):
+    """Student workflow center: one simple path for daily learning tasks."""
+    profile = None
+    try:
+        profile = (
+            StudentProfile.objects.filter(user=request.user, is_active=True)
+            .select_related("classroom")
+            .first()
+        )
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        profile = None
+
+    unread = 0
+    try:
+        unread = Message.objects.filter(recipient=request.user, is_read=False).count()
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        unread = 0
+
+    try:
+        resource_count = PortalFeatureItem.objects.filter(
+            feature=PortalFeatureItem.Feature.SYLLABUS,
+            is_active=True,
+        ).count()
+    except (AttributeError, DatabaseError, TypeError, ValueError):
+        resource_count = 0
+
+    year, term = get_active_year_and_term(school=getattr(request, "school", None))
+    profile_state = "Ready" if profile is not None else "Setup needed"
+    steps = [
+        {
+            "title": "1) Read school messages",
+            "subtitle": "Start with announcements and direct messages from school.",
+            "step_key": "messages",
+            "icon": "bi-chat-dots",
+            "done": unread == 0,
+            "progress_label": f"{unread} unread message(s)",
+            "tip": "Unread messages can include schedule changes, teacher notes, and school reminders.",
+            "links": [{"label": "Open messages", "url": reverse("accounts:user_messages")}],
+        },
+        {
+            "title": "2) Check syllabus and resources",
+            "subtitle": "Open class resources, syllabus items, and learning documents.",
+            "step_key": "resources",
+            "icon": "bi-journal-text",
+            "done": resource_count > 0,
+            "progress_label": f"{resource_count} resource(s) available",
+            "tip": "Use this before class or homework so you always have the latest materials.",
+            "links": [{"label": "Open syllabus", "url": reverse("portal:portal_syllabus")}],
+        },
+        {
+            "title": "3) Confirm class profile",
+            "subtitle": "Make sure your student record and class are connected.",
+            "step_key": "profile",
+            "icon": "bi-person-badge",
+            "done": profile is not None,
+            "progress_label": profile_state,
+            "tip": "If your class is missing, ask the school office to link your login.",
+            "links": [{"label": "Profile", "url": reverse("accounts:user_profile")}],
+        },
+        {
+            "title": "4) Plan today",
+            "subtitle": "Use the student home as your daily launch point.",
+            "step_key": "today",
+            "icon": "bi-calendar-check",
+            "done": True,
+            "progress_label": "Student home available",
+            "tip": "Keep this page simple: messages, resources, and profile first.",
+            "links": [{"label": "Student home", "url": reverse("portal:student_portal_grades")}],
+        },
+        {
+            "title": "5) Get help",
+            "subtitle": "Open help when you are blocked.",
+            "step_key": "help",
+            "icon": "bi-life-preserver",
+            "done": True,
+            "progress_label": "Help available",
+            "tip": "Ask early when you cannot access a class, result, or resource.",
+            "links": [{"label": "Help center", "url": reverse("feedback:help_center")}],
+        },
+    ]
+    total_steps = len(steps)
+    for i, step in enumerate(steps, start=1):
+        step["step_index"] = i
+        step["total_steps"] = total_steps
+
+    workflow_progress = {
+        "unread_messages": unread,
+        "profile_state": profile_state,
+        "resource_count": resource_count,
+    }
+    return render(
+        request,
+        "student/workflow_center.html",
+        {
+            **build_tp_hero_context(
+                request,
+                role=User.Role.STUDENT,
+                unread_messages=unread,
+            ),
+            "active_year": year,
+            "active_term": term,
+            "steps": steps,
+            "workflow_progress": workflow_progress,
+            "workflow_portal": build_tenant_workflow_portal(
+                request,
+                role=User.Role.STUDENT,
+                steps=steps,
+                workflow_progress=workflow_progress,
+                active_year=year,
+                active_term=term,
+                empty_state=profile is None,
+            ),
+        },
     )
 
 

@@ -1,0 +1,56 @@
+{% load i18n %}
+{% if tenant_experience_command.enabled %}
+<section
+  class="tp-experience-command rmc-reveal"
+  data-rmc-reveal
+  data-rmc-tenant-experience-command="1"
+  data-rmc-tenant-role="{{ tenant_experience_command.role }}"
+  aria-label="{% trans 'Tenant command summary' %}"
+>
+  <div class="tp-experience-command__score">
+    <span class="tp-experience-command__eyebrow">{{ tenant_experience_command.score_label }}</span>
+    <strong>{{ tenant_experience_command.score }}%</strong>
+    <span>{{ tenant_experience_command.school.detail }}</span>
+  </div>
+  <div class="tp-experience-command__signals">
+    <a class="tp-experience-signal" href="{{ tenant_experience_command.school.url|default:'#' }}" data-rmc-tenant-signal="school">
+      <span class="tp-experience-signal__icon"><i class="bi bi-building-check" aria-hidden="true"></i></span>
+      <span>
+        <strong>{{ tenant_experience_command.school.label }}</strong>
+        <small>{{ tenant_experience_command.school.detail }}</small>
+      </span>
+    </a>
+    <a class="tp-experience-signal" href="{{ tenant_experience_command.profile.url|default:'#' }}" data-rmc-tenant-signal="profile">
+      <span class="tp-experience-signal__icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+      <span>
+        <strong>{{ tenant_experience_command.profile.label }}</strong>
+        <small>{{ tenant_experience_command.profile.detail }}</small>
+      </span>
+    </a>
+    <div class="tp-experience-signal" data-rmc-tenant-signal="local-global">
+      <span class="tp-experience-signal__icon"><i class="bi bi-globe2" aria-hidden="true"></i></span>
+      <span>
+        <strong>{{ tenant_experience_command.local_global.label }}</strong>
+        <small>{{ tenant_experience_command.local_global.detail }}</small>
+      </span>
+    </div>
+  </div>
+  {% if tenant_experience_command.primary_action %}
+  <div class="tp-experience-command__actions" data-rmc-tenant-toolbelt="1">
+    <a class="tp-experience-action tp-experience-action--primary" href="{{ tenant_experience_command.primary_action.url }}">
+      <i class="bi {{ tenant_experience_command.primary_action.icon }}" aria-hidden="true"></i>
+      <span>
+        <strong>{{ tenant_experience_command.primary_action.label }}</strong>
+        <small>{{ tenant_experience_command.primary_action.meta }}</small>
+      </span>
+    </a>
+    {% for action in tenant_experience_command.secondary_actions %}
+    <a class="tp-experience-action" href="{{ action.url }}" data-tone="{{ action.tone }}">
+      <i class="bi {{ action.icon }}" aria-hidden="true"></i>
+      <span>{{ action.label }}</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

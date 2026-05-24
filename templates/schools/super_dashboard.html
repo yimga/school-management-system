@@ -4,19 +4,11 @@
 
 {% block cp_title %}{% trans "Control Plane" %}{% endblock %}
 
-{% comment %} v3.58.0 (2026-05-22): live activity ticker lives INSIDE the dark header chrome
-   on landing pages (matches v8 200x preview). Self-gates on cockpit.activity_ticker.cards. {% endcomment %}
 {% block cp_shell_header_ticker %}
   {% include "partials/cockpit/_activity_ticker.html" %}
 {% endblock %}
 
-{% block breadcrumbs %}
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb mb-0">
-    <li class="breadcrumb-item active" aria-current="page">{% trans "Control Plane" %}</li>
-  </ol>
-</nav>
-{% endblock %}
+{% block breadcrumbs %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}

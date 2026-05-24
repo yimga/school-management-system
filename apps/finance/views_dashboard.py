@@ -259,6 +259,8 @@ def dashboard(request: HttpRequest):
         "finance_metrics": finance_metrics,
         **dashboard_data,
     }
+    from apps.platform_runtime.operational_center_nav import money_center_frame_context
+
     context.update(
         {
             "allow_custom_layout": allow_custom_layout,
@@ -269,6 +271,7 @@ def dashboard(request: HttpRequest):
             "finance_requests_count": finance_requests_qs.count(),
             "finance_request_notifications": finance_requests_qs[:5],
             "finance_request_link": finance_request_link,
+            **money_center_frame_context(),
         }
     )
     return render(request, "finance/dashboard.html", context)

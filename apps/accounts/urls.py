@@ -73,6 +73,7 @@ from .views_security import (
     api_security_activity,
     api_security_export_log,
     api_security_lockdown,
+    security_posture_review,
     sessions_page,
     sessions_revoke,
 )
@@ -436,6 +437,11 @@ urlpatterns = [
         "profile/security/strength/",
         api_security_strength,
         name="api_security_strength",
+    ),
+    path(
+        "profile/security/review/",
+        security_posture_review,
+        name="security_posture_review",
     ),
     path(
         "profile/security/activity/",

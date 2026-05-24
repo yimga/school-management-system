@@ -189,21 +189,19 @@ def check_render() -> list[str]:
     import django
 
     django.setup()
-    from django.contrib.auth import get_user_model
     from django.test import Client
 
-    User = get_user_model()
-    user, _ = User.objects.get_or_create(
-        username="manager_admin_cp_layout_verify",
-        defaults={"is_staff": True, "is_superuser": True},
+    from scripts._manager_render_smoke import (
+        MANAGER_HOST,
+        ensure_manager_smoke_user,
+        prepare_manager_smoke_client,
     )
-    if not user.check_password("verify-pass"):
-        user.set_password("verify-pass")
-        user.save(update_fields=["password"])
 
+    user = ensure_manager_smoke_user("manager_admin_cp_layout_verify")
     client = Client()
     client.force_login(user)
-    host = "manager.runmycampus.com"
+    prepare_manager_smoke_client(client)
+    host = MANAGER_HOST
     probes: tuple[tuple[str, tuple[str, ...]], ...] = (
             (
                 "/admin/",
@@ -216,7 +214,9 @@ def check_render() -> list[str]:
                     "cp-admin-page-body",
                     'data-shell-nav-family="platform-admin"',
                     "data-rmc-platform-admin-sidebar",
-                    "admin-sidebar-all-apps",
+                    "admin-sidebar-app-groups",
+                    "cp-admin-sidebar-apps",
+                    "cp-sidebar__group-toggle",
                     "data-rmc-admin-catalog-index",
                     "cp-hero__title",
                     'data-rmc-cp-header-200x="1"',
@@ -269,9 +269,9 @@ def check_render() -> list[str]:
                     f"{path}: rendered header must stack cp-live-strip before cp-nav-row (v8 200x)"
                 )
         elif path.startswith("/admin"):
-            if live_pos < 0 or nav_pos < 0 or live_pos > nav_pos:
+            if live_pos < 0 or nav_pos < 0 or nav_pos > live_pos:
                 errors.append(
-                    f"{path}: rendered header must stack cp-live-strip before cp-nav-row (utility → ticker → nav)"
+                    f"{path}: rendered header must stack cp-nav-row before cp-live-strip (admin v1 200x)"
                 )
     return errors
 

@@ -1,9 +1,12 @@
 {% extends "schools/marketing_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{{ seo_title }}{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
+{% endblock %}
 {% block content %}
-<div class="container py-5">
-  {% include "components/world_class_page_hero.html" with hero_id="pricing-packages-title" role=_("Buyers and operators") title=_("Packages") subtitle=live_psp_caveat purpose=_("Package comparison") status=_("Payment readiness honest") primary_url="/book-demo/" primary_label=_("Book demo") secondary_url="/trust/" secondary_label=_("Review trust posture") visual_title=_("Compare impact before rollout") visual_body=_("Entitlements, usage posture, support, marketplace access, and PSP caveats stay visible before a buyer chooses a package.") %}
+<div class="container py-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="pricing_packages" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/book-demo/" primary_label=_("Book demo") secondary_url="/trust/" secondary_label=_("Review trust posture") %}
   {% include "components/world_class_summary_strip.html" with readiness="Package fit" readiness_label=_("Compare modules") risk=_("PSP external") risk_label=_("No live payment claim") next_step=_("Demo") next_step_label=_("Guided buyer action") blockers=_("Settlement") blockers_label=_("External proof required") %}
   <div class="bento-grid">
     {% for p in packages %}

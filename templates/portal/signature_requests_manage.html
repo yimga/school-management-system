@@ -5,7 +5,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Signature Requests Management</h1>
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   {% url 'portal:signature_request_create' as create_url %}
   {% include "studio_os/components/page_header.html" with title="Signature Requests" subtitle="Manage electronic signature requests for forms" action_url=create_url action_text="Create Request" %}
   <div class="d-flex gap-2 mb-3 small">

@@ -42,6 +42,7 @@ from .views import (
     cahier_visa,
     cahier_request_revisions,
     student_portal_grades,
+    student_workflow_center,
     admissions_application_status,
     portal_syllabus,
     preview_student_syllabus,
@@ -246,6 +247,7 @@ urlpatterns = [
     ),
     # Student onboarding
     path("student/onboarding/", student_onboarding_wizard, name="student_onboarding"),
+    path("student/workflow/", student_workflow_center, name="student_workflow"),
     # Semantic aliases for Phase 7 URL cleanup
     path("student-portal/grades/", student_portal_grades, name="student_portal_grades"),
     path(

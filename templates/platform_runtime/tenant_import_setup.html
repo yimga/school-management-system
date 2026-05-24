@@ -1,0 +1,76 @@
+{% extends "backend_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "School Import Setup" %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
+{% endblock %}
+
+{% block backend_page %}
+<main class="container-fluid py-3"
+      data-page-marker="{{ page_marker }}"
+      data-page-archetype="operational-workbench"
+      data-rmc-operational-workbench="1"
+      data-rmc-static-chrome="1"
+      data-rmc-workflow-contract="imports"
+      data-rmc-readiness-state="visible"
+      data-rmc-blocker-state="visible"
+      data-rmc-help-state="visible"
+      data-rmc-feedback-state="visible"
+      data-rmc-mobile-proof="responsive">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_import_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/migration/" primary_label=_("Open Migration Cloud") secondary_url="/siteconfig/onboarding/" secondary_label=_("Back to activation checklist") %}
+
+  <section class="row g-3 mb-4" aria-label="{% trans 'Import readiness summary' %}">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100 rmc-wcx-surface">
+        <div class="card-body">
+          <div class="text-uppercase text-muted small">{% trans "Primary next action" %}</div>
+          <h2 class="h5 mb-2">{% trans "Prepare roster" %}</h2>
+          <p class="small text-muted mb-0">{% trans "Students and guardians unlock attendance, fees, reports, and parent access." %}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100 rmc-wcx-surface">
+        <div class="card-body">
+          <div class="text-uppercase text-muted small">{% trans "Blocker state" %}</div>
+          <h2 class="h5 mb-2">{% trans "Source files required" %}</h2>
+          <p class="small text-muted mb-0">{% trans "Upload clean CSV/XLSX files or use Migration Cloud for source-system exports." %}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100 rmc-wcx-surface">
+        <div class="card-body">
+          <div class="text-uppercase text-muted small">{% trans "Help and feedback" %}</div>
+          <h2 class="h5 mb-2">{% trans "Ask before launch" %}</h2>
+          <p class="small text-muted mb-2">{% trans "Use help or page feedback if an import file, field, or source-system export is unclear." %}</p>
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'feedback:help_center' %}?q=imports">{% trans "Import help" %}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'feedback:school_feedback' %}?module=imports&route=/school/setup/imports/">{% trans "Send feedback" %}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="row g-3" aria-label="{% trans 'Import paths' %}">
+    {% for card in import_cards %}
+    <div class="col-lg-6">
+      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-rmc-import-card="{{ card.key }}">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <h2 class="h5 mb-1">{{ card.title }}</h2>
+              <p class="text-muted small mb-2">{{ card.detail }}</p>
+              <span class="badge text-bg-secondary">{{ card.template_label }}</span>
+            </div>
+            <a class="btn btn-primary btn-sm" href="{{ card.cta_url }}">{{ card.cta_label }}</a>
+          </div>
+        </div>
+      </article>
+    </div>
+    {% endfor %}
+  </section>
+</main>
+{% endblock %}

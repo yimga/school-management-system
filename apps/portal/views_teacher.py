@@ -578,11 +578,17 @@ def cahier_list(request: HttpRequest):
         assignments_qs = SubjectAssignment.objects.filter(pk__in=sa_ids).select_related(
             "classroom", "subject", "specialty"
         )
-    entries = (
+    from django.core.paginator import Paginator
+
+    entries_qs = (
         CahierDeTexteEntry.objects.filter(teacher=profile)
         .select_related("subject_assignment__classroom", "subject_assignment__subject")
-        .order_by("-entry_date")[:50]
+        .order_by("-entry_date")
     )
+    paginator = Paginator(entries_qs, 20)
+    page_number = request.GET.get("page") or 1
+    page_obj = paginator.get_page(page_number)
+    entries = page_obj.object_list
     form = CahierDeTexteEntryForm(request.POST or None)
     form.fields["subject_assignment"].queryset = assignments_qs
     if request.method == "POST" and form.is_valid():
@@ -611,6 +617,7 @@ def cahier_list(request: HttpRequest):
         {
             "hero": hero,
             "entries": entries,
+            "page_obj": page_obj,
             "form": form,
             "curriculum_nodes": curriculum_nodes,
         },

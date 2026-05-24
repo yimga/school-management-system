@@ -4,25 +4,22 @@
 
 {% block cp_title %}{% trans "Blueprint Marketplace" %}{% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
-<section class="container-fluid py-3" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-blueprint-marketplace="{{ page_marker }}" data-apple-class-governed-installation="1">
+<section class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-blueprint-marketplace="{{ page_marker }}" data-apple-class-governed-installation="1" data-rmc-operational-workbench="1">
   {% url 'configuration:center' as wcx_config_url %}
   {% url 'configuration:blueprint_installations' as wcx_installations_url %}
-  {% include "components/world_class_page_hero.html" with hero_id="blueprint-marketplace-title" role=_("Platform operators") title=_("Blueprint Marketplace") subtitle=_("Preview, simulate impact, request approval, schedule, apply, monitor, and roll back tenant operating models with visible external blockers.") purpose=_("Governed blueprint installation") status=_("Approval aware") primary_url=wcx_installations_url primary_label=_("Installation history") secondary_url=wcx_config_url secondary_label=_("Configuration center") visual_title=_("Blueprint readiness") visual_body=_("Dependency, approval, health, and rollback posture are visible before any install path is offered.") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="blueprint_marketplace" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=wcx_installations_url primary_label=_("Installation history") secondary_url=wcx_config_url secondary_label=_("Configuration center") %}
   {% include "components/world_class_guided_stepper.html" %}
   {% include "components/apple_class_visual_workflow_path.html" %}
   {% include "components/apple_class_dependency_graph.html" with graph_id="blueprint-dependency-graph" title=_("Blueprint install graph") source=_("Blueprint") dependency=_("Packs and policies") target=_("Tenant operating model") %}
   {% include "components/world_class_summary_strip.html" with readiness="76%" risk=_("Approval-aware") next_step=_("Preview") blockers=_("PSP") %}
-  {% include "components/platform_readiness_strip.html" with inline_field_prefix='blueprint-mkt' %}
-
-  <div class="mb-3">
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'configuration:blueprint_installations' %}">{% trans "Installation history" %}</a>
-  </div>
+  {% include "components/platform_readiness_strip.html" with inline_field_prefix='blueprint-mkt' hide_inline=1 %}
 
   <div class="row g-3">
     {% for blueprint in blueprints %}
     <div class="col-12 col-xl-6">
-      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface rmc-reveal" data-blueprint-card="{{ blueprint.key }}" data-world-class-governed-install-card="1">
+      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-blueprint-card="{{ blueprint.key }}" data-world-class-governed-install-card="1">
         <div class="card-body">
           <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
             <h1 class="h5 mb-0">{{ blueprint.name }}</h1>

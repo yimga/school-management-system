@@ -590,6 +590,10 @@ urlpatterns = [
     ),
     path("", include(("apps.feedback.urls", "feedback"), namespace="feedback")),
     path(
+        "super/feedback/",
+        include(("apps.feedback.operator_urls", "feedback_operator"), namespace="feedback_operator"),
+    ),
+    path(
         "organization/network/",
         parent_tenant_dashboard,
         name="organization_network_dashboard",

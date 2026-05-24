@@ -1,8 +1,8 @@
 {
   "version": "2026-05-18",
-  "count": 591,
-  "operator_count": 416,
-  "admin_changelist_count": 175,
+  "count": 609,
+  "operator_count": 433,
+  "admin_changelist_count": 176,
   "routes": [
     {
       "path": "/",
@@ -1019,6 +1019,12 @@
       "sweep": true
     },
     {
+      "path": "/admin/siteconfig/platformpulsesnapshot/",
+      "name": "siteconfig_platformpulsesnapshot_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
       "path": "/admin/siteconfig/productfeedback/",
       "name": "siteconfig_productfeedback_changelist",
       "tier": "admin_changelist",
@@ -1205,6 +1211,36 @@
       "sweep": true
     },
     {
+      "path": "/configuration/experience-templates/",
+      "name": "experience_template_marketplace",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/experience-templates/apply/",
+      "name": "experience_template_apply",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/experience-templates/impact/",
+      "name": "experience_template_impact",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/experience-templates/preview/",
+      "name": "experience_template_preview",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/configuration/experience-templates/simulate/",
+      "name": "experience_template_simulation",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/configuration/pack-installations/",
       "name": "pack_installations",
       "tier": "operator",
@@ -1369,6 +1405,24 @@
     {
       "path": "/siteconfig/automation/builder/",
       "name": "school_automation_builder",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/billing-stripe/",
+      "name": "billing_stripe_connect",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/billing-stripe/connect/",
+      "name": "billing_stripe_connect_start",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/billing-stripe/return/",
+      "name": "billing_stripe_connect_return",
       "tier": "operator",
       "sweep": true
     },
@@ -1813,6 +1867,18 @@
     {
       "path": "/siteconfig/super/configure/cockpit/previews/",
       "name": "cockpit_previews",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/super/configure/marketing-voice/",
+      "name": "marketing_voice_configure",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/siteconfig/super/configure/theme-personality/",
+      "name": "theme_personality_configure",
       "tier": "operator",
       "sweep": true
     },
@@ -2651,6 +2717,12 @@
       "sweep": true
     },
     {
+      "path": "/super/lifecycle/",
+      "name": "lifecycle_timeline",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/marketplace-governance/",
       "name": "marketplace_governance_alias",
       "tier": "operator",
@@ -3053,6 +3125,12 @@
       "sweep": true
     },
     {
+      "path": "/super/migration/intake-ai-ask/",
+      "name": "intake_ai_ask",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/migration/legacy-lockout/",
       "name": "bundle_legacy_lockout",
       "tier": "operator",
@@ -3377,6 +3455,12 @@
       "sweep": true
     },
     {
+      "path": "/super/provisioning/jobs/",
+      "name": "provisioning_jobs",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
       "path": "/super/pulse/",
       "name": "pulse",
       "tier": "operator",
@@ -3409,6 +3493,30 @@
     {
       "path": "/super/schools/",
       "name": "schools_list",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/schools/bulk-create/",
+      "name": "schools_bulk_create",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/schools/clone/",
+      "name": "schools_clone",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/schools/migration-intent/",
+      "name": "schools_migration_intent",
+      "tier": "operator",
+      "sweep": true
+    },
+    {
+      "path": "/super/schools/rapid/",
+      "name": "schools_rapid_create",
       "tier": "operator",
       "sweep": true
     },

@@ -79,6 +79,7 @@ from apps.siteconfig.config_service import (
 from apps.platform_runtime.structured_logging import log_view_exception
 from apps.siteconfig.models_support import filter_portal_items
 from apps.portal.tenant_role_home import build_tp_hero_context
+from apps.portal.tenant_workflow_portal import build_tenant_workflow_portal
 from apps.siteconfig.dashboard_resolver import for_role as dashboard_for_role
 from .runtime_helpers import get_policy_for_request
 from .views_common import (
@@ -257,6 +258,7 @@ def parent_workflow_center(request: HttpRequest):
             "subtitle": "Connect your account to your child's profile to see results and finance.",
             "step_key": "link",
             "icon": "bi-link-45deg",
+            "done": bool(students),
             "progress_label": f"{links.count()} child(ren) linked"
             if links.exists()
             else "No children linked yet",
@@ -273,6 +275,7 @@ def parent_workflow_center(request: HttpRequest):
             "subtitle": "View report cards, term results, and attendance.",
             "step_key": "results",
             "icon": "bi-journal-check",
+            "done": can_view_results,
             "progress_label": f"{links.count()} profile(s) · Attendance {attendance_pct}%"
             if can_view_results
             else "Link a child first",
@@ -291,6 +294,7 @@ def parent_workflow_center(request: HttpRequest):
             "subtitle": "Invoices, payments, and balance.",
             "step_key": "finance",
             "icon": "bi-cash-stack",
+            "done": can_view_finance and finance_balance <= Decimal("0.00"),
             "progress_label": f"Balance: {finance_balance}"
             if can_view_finance
             else "Finance access not granted",
@@ -302,6 +306,7 @@ def parent_workflow_center(request: HttpRequest):
             "subtitle": "Contact the school and stay in touch.",
             "step_key": "communication",
             "icon": "bi-chat-dots",
+            "done": can_view_results,
             "progress_label": None,
             "tip": "Send a message or request a callback.",
             "links": _filter_links(
@@ -317,6 +322,7 @@ def parent_workflow_center(request: HttpRequest):
             "subtitle": "School handbooks, timetables, and forms.",
             "step_key": "documents",
             "icon": "bi-folder2-open",
+            "done": can_view_results,
             "progress_label": None,
             "tip": "Download documents published by the school.",
             "links": _filter_links(
@@ -349,10 +355,28 @@ def parent_workflow_center(request: HttpRequest):
         request,
         "parent/workflow_center.html",
         {
+            **build_tp_hero_context(
+                request,
+                role=User.Role.PARENT,
+                children_names=", ".join(
+                    s.get_full_name() or s.first_name or "" for s in students[:3] if s
+                ),
+                has_fees_due=can_view_finance and finance_balance > Decimal("0.00"),
+                attendance_pct=int(attendance_pct) if attendance_pct is not None else None,
+            ),
             "active_year": year,
             "active_term": term,
             "steps": steps,
             "workflow_progress": workflow_progress,
+            "workflow_portal": build_tenant_workflow_portal(
+                request,
+                role=User.Role.PARENT,
+                steps=steps,
+                workflow_progress=workflow_progress,
+                active_year=year,
+                active_term=term,
+                empty_state=not bool(students),
+            ),
         },
     )
 
@@ -1220,6 +1244,9 @@ def parent_dashboard(request: HttpRequest):
                     if s
                 ),
                 has_fees_due=has_fees_due,
+                pending_signatures=int(signature_stats.get("pending") or 0),
+                unread_messages=int(unread_messages_aggregate or 0),
+                attendance_pct=int(attendance_pct) if attendance_pct is not None else None,
             ),
         },
     )

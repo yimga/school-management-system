@@ -9,7 +9,7 @@
 {% block backend_title %}{{ teacher_pl }} - Backend{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_teacher_create' as create_url %}

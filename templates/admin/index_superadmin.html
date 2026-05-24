@@ -30,14 +30,6 @@
   </div>
   {% endif %}
 
-  <nav class="rmc-page-fold-nav rmc-section-nav cp-section__fold-nav sticky-top" aria-label="{% trans 'On this page' %}">
-    <a href="#rmc-admin-sec-hero" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Overview" %}</a>
-    <a href="#rmc-admin-sec-catalog" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Model catalog" %}</a>
-    <a href="#rmc-admin-sec-tags" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Platform tags" %}</a>
-    <a href="#rmc-admin-sec-changelist" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Changelist preview" %}</a>
-    <a href="#rmc-admin-sec-changeform" class="rmc-page-fold-nav__link" data-rmc-section-anchor>{% trans "Change form preview" %}</a>
-  </nav>
-
   <section class="cp-hero" id="rmc-admin-sec-hero" data-rmc-section-anchor>
     <div class="cp-hero__eyebrow">{% trans "Platform Backoffice" %}</div>
     <h1 class="cp-hero__title">{% trans "Operator catalog & raw records" %}</h1>
@@ -53,6 +45,13 @@
       <a class="cp-btn" href="{% url 'studio_os:shell' %}">⌘ {% trans "Open Studio" %}</a>
       <button type="button" class="cp-btn cp-btn--ghost" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K · {% trans "command palette" %}</button>
     </div>
+    <nav class="cp-hero__actions cp-hero__actions--sections rmc-page-fold-nav rmc-section-nav" aria-label="{% trans 'On this page' %}">
+      <a href="#rmc-admin-sec-hero" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Overview" %}</a>
+      <a href="#rmc-admin-sec-catalog" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Model catalog" %}</a>
+      <a href="#rmc-admin-sec-tags" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Platform tags" %}</a>
+      <a href="#rmc-admin-sec-changelist" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Changelist preview" %}</a>
+      <a href="#rmc-admin-sec-changeform" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Change form preview" %}</a>
+    </nav>
   </section>
 
   <div class="cp-steering" role="region" aria-label="{% trans 'Operator steering' %}">

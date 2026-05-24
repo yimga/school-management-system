@@ -11,7 +11,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Finances" %}</h1>
-  <div class="report-card-print-wrapper" data-page-archetype="record-detail" data-task="parent_payment" data-task-step="finance:page">
+  <div class="report-card-print-wrapper" data-page-archetype="record-detail" data-task="parent_payment" data-task-step="finance:page" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print" data-rmc-parent-finance-toolbar="1">
     {% if rmc_conversion_single_action_enforced|default:False %}
     <a class="btn btn-sm btn-primary" href="#parent-finance-invoices" data-action="jump-invoices" data-task-step="finance:jump-table">{% trans "Jump to invoices" %}</a>
@@ -219,6 +219,9 @@
             </tbody>
           </table>
         </div>
+        {% if page_obj %}
+        {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
+        {% endif %}
       {% else %}
         {% url 'portal:parent_dashboard' as parent_dash_url %}
         {% include "components/rmc_empty_state.html" with icon="bi-receipt-cutoff" title=_("No invoices yet") message=_("Finance will publish fee invoices here when they are ready. You can still review reminders below.") primary_url=parent_dash_url primary_label=_("Back to parent home") %}

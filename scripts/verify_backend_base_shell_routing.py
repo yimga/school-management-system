@@ -98,6 +98,9 @@ def _manager_render_probe(mgr_host: str) -> list[str]:
 
     client = Client(HTTP_HOST=mgr_host)
     client.force_login(user)
+    from scripts._manager_render_smoke import prepare_manager_smoke_client
+
+    prepare_manager_smoke_client(client)
     probes = (
         ("apicenter:dashboard", ()),
         ("apicenter:api_keys", ()),

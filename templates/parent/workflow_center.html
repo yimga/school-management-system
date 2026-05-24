@@ -1,101 +1,15 @@
 {% extends "portal_base.html" %}
-{% load static i18n terminology_tags %}
-{# Wave 14 (v3.62.19): lexicon — "{% blocktrans with t=wc_parent_sg %}{{ t }} Home{% endblocktrans %}" → tenant term. #}
-{% term "parent" capitalize=True as wc_parent_sg %}
-{% term "student" plural=True as wc_student_pl %}
+{% load static i18n %}
 
-{% block title %}My Workflow{% endblock %}
+{% block title %}{% trans "Family workflow" %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
-<script src="{% static 'js/_pages/parent__workflow_center.js' %}"></script>
-
+<script src="{% static 'js/_pages/parent__workflow_center.js' %}" defer></script>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid" id="workflow-main" data-page-archetype="operational-workbench">
-  <nav aria-label="Breadcrumb" class="mb-3">
-    <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'portal:parent_dashboard' %}">{% blocktrans with t=wc_parent_sg %}{{ t }} Home{% endblocktrans %}</a></li>
-      <li class="breadcrumb-item active" aria-current="page">My Workflow</li>
-    </ol>
-  </nav>
-
-  <section class="workflow-hero" aria-labelledby="workflow-hero-title" aria-describedby="workflow-hero-desc">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
-      <div>
-        <h1 id="workflow-hero-title">My Workflow</h1>
-        <p id="workflow-hero-desc">What you've done → where you are → what's next. Follow the steps below to stay on top of your children's progress and school tasks.</p>
-        <p class="small text-muted mb-0 mt-1">Link children · Results & attendance · Finance · Communication · Documents.</p>
-      </div>
-      <div class="d-flex flex-wrap gap-2 align-items-center">
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_dashboard' %}">
-          <i class="bi bi-house me-1"></i>{% blocktrans with t=wc_parent_sg %}{{ t }} Home{% endblocktrans %}
-        </a>
-        <a class="btn btn-sm btn-outline-secondary" href="{% url 'siteconfig:set_default_dashboard_view' %}?view=OVERVIEW&amp;next={% url 'portal:parent_dashboard' %}">
-          <i class="bi bi-pin-angle me-1"></i>Use Dashboard as default view
-        </a>
-        <a class="btn btn-sm btn-primary" href="{% url 'portal:link_child' %}">
-          <i class="bi bi-link-45deg me-1"></i>Link a child
-        </a>
-      </div>
-    </div>
-    <div class="mt-2 small text-muted">
-      Active year: <strong>{{ active_year.name|default:"—" }}</strong> · Active term: <strong>{{ active_term.label|default:active_term|default:"—" }}</strong>
-    </div>
-    {% if workflow_progress %}
-    <div class="workflow-progress-summary">
-      <span class="badge bg-primary">Children linked: {{ workflow_progress.children_linked|default:0 }}</span>
-      <span class="badge bg-success">Attendance: {{ workflow_progress.attendance_pct|default:0 }}%</span>
-      {% if workflow_progress.can_view_finance %}
-      <span class="badge bg-info">Balance: {{ workflow_progress.finance_balance }}</span>
-      {% if workflow_progress.finance_overdue %}<span class="badge bg-warning text-dark">{{ workflow_progress.finance_overdue }} overdue</span>{% endif %}
-      {% else %}
-      <span class="badge bg-secondary">Finance: request access</span>
-      {% endif %}
-    </div>
-    {% endif %}
-    {% if steps %}
-    <div class="workflow-quick-jump mt-2 pt-2" style="border-top: 1px solid rgba(168, 160, 146,0.2);">
-      <span class="text-muted me-2">Jump to:</span>
-      {% for step in steps %}
-        <a href="#step-{{ step.step_key }}" class="me-2"><i class="bi {{ step.icon|default:'bi-circle' }} me-1"></i>{{ step.title }}</a>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </section>
-
-  {% if steps %}
-  <div class="mb-3" role="region" aria-label="Workflow progress">
-    <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
-      <span>Workflow — {{ steps|length }} steps</span>
-    </div>
-  </div>
-  <div class="workflow-grid" role="list" aria-label="Workflow steps">
-    {% for step in steps %}
-      <article class="workflow-card rmc-reveal" id="step-{{ step.step_key }}" aria-labelledby="step-title-{{ step.step_key }}">
-        <div class="card-body">
-          <div class="workflow-step-meta">Step {{ step.step_index }} of {{ step.total_steps }}</div>
-          <h3 id="step-title-{{ step.step_key }}" class="workflow-title d-flex align-items-center h6 mb-0">
-            <i class="bi {{ step.icon|default:'bi-circle' }} workflow-step-icon" aria-hidden="true"></i>
-            {{ step.title }}
-          </h3>
-          <div class="workflow-subtitle">{{ step.subtitle }}</div>
-          {% if step.progress_label %}
-          <div class="workflow-progress-label">{{ step.progress_label }}</div>
-          {% endif %}
-          {% if step.tip %}
-          <div class="workflow-tip"><i class="bi bi-lightbulb me-1"></i>{{ step.tip }}</div>
-          {% endif %}
-          <div class="workflow-links">
-            {% for link in step.links %}
-              <a class="btn btn-sm btn-outline-primary" href="{{ link.url }}">{{ link.label }}</a>
-            {% endfor %}
-          </div>
-        </div>
-      </article>
-    {% endfor %}
-  </div>
-  {% endif %}
+<div class="tp-canvas-body" id="workflow-main" data-page-archetype="tenant-workflow-portal" data-rmc-parent-workflow-redesign="1">
+  {% include "partials/tenant/workflow_portal.html" %}
 </div>
 {% endblock %}

@@ -46,7 +46,7 @@ PII safety:
   <div class="tp-snapshot__cards">
     {# v3.59.x Wave 11 Agent X (2026-05-22): mono-pill v8 200x preview parity on snapshot cards. #}
     {% for card in ts.cards %}
-    <article class="tp-snap-card rmc-stat-card--mono" data-rmc-tp-snap-card>
+    <article class="tp-snap-card rmc-stat-card--mono" data-rmc-tp-snap-card data-rmc-tp-pulse-drill tabindex="0" role="button">
       <div class="tp-snap-card__head">
         {% if card.icon %}<span class="tp-snap-card__icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
         {{ card.head }}

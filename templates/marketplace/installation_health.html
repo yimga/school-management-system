@@ -2,6 +2,7 @@
 {% load i18n static phase8_tags %}
 
 {% block cp_title %}{% trans "Installation health" %}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -10,10 +11,10 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1" data-rmc-page-fold-nav="required">
   {% phase8_dashboard_declaration "marketplace/installation_health.html" %}
   {% url 'super:marketplace_sandbox_inspector' as sandbox_url %}
-  {% include "components/world_class_page_hero.html" with hero_id="installation-health-title" role=_("Platform operators") title=_("Installation health") subtitle=_("Last health check per active install — paginated table with refresh actions.") purpose=_("Health") status=_("Operational") primary_url="#health-table" primary_label=_("View health") secondary_url=sandbox_url secondary_label=_("Sandbox") visual_title=_("Catch drift early") visual_body=_("Use record_installation_health in services to keep status current.") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="installation_health" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#health-table" primary_label=_("View health") secondary_url=sandbox_url secondary_label=_("Sandbox") %}
 
   <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
     <a class="nav-link" href="#health-glance">{% trans "At a glance" %}</a>

@@ -1,22 +1,19 @@
 {% extends "control_plane_base.html" %}
-{% load i18n phase8_tags %}
+{% load i18n static phase8_tags %}
 
 {% block cp_title %}{% trans "Platform Configuration Center" %}{% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
+
 {% block cp_content %}
-<section class="container-fluid py-3" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-os-center="platform_configuration_center" data-rmc-configuration-center="{{ page_marker }}" data-apple-class-configuration-console="1">
+<section class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-os-center="platform_configuration_center" data-rmc-configuration-center="{{ page_marker }}" data-apple-class-configuration-console="1" data-rmc-operational-workbench="1">
   {% phase8_dashboard_declaration "platform_runtime/configuration_center.html" %}
   {% url 'configuration:change_requests' as wcx_change_requests_url %}
-  {% include "components/world_class_page_hero.html" with hero_id="configuration-title" role=_("Platform operators") title=_("Platform Configuration Center") subtitle=_("The governed AWS Console for education configuration: operating models, runtime governance, migration, ecosystem, trust, billing, and experience in one low-click workspace.") purpose=_("Governed platform configuration") status=_("UI/UX transformation active") primary_url=wcx_change_requests_url primary_label=_("Review change requests") secondary_url="/internal-admin/" secondary_label=_("Open raw fallback") visual_title=_("Configure without losing control") visual_body=_("Every module shows owner, readiness, scope, next action, and proof so depth stays accessible without exposing tenant-unsafe controls.") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key=os_center_key center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose nav_groups=configuration_nav_groups primary_url=wcx_change_requests_url primary_label=_("Review change requests") secondary_url="/internal-admin/" secondary_label=_("Open raw fallback") %}
   {% include "components/world_class_summary_strip.html" with readiness=summary.readiness_display readiness_label=summary.readiness_label risk=summary.risk_level risk_label=summary.risk_label next_step=summary.next_step next_step_label=summary.next_step_label blockers=summary.blockers_display blockers_label=summary.blockers_label %}
-  {% include "components/platform_readiness_strip.html" with inline_field_prefix='cfg-center' %}
-  <section class="rmc-wcx-grid mb-4 rmc-reveal" data-apple-class-configuration-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
-    {% include "components/apple_class_glass_panel.html" with panel_id="configuration-operating-models" label=_("Operating Models") title=_("Blueprints, packages, packs, policies") body=_("Operators see model readiness before opening advanced configuration.") %}
-    {% include "components/apple_class_glass_panel.html" with panel_id="configuration-runtime-governance" label=_("Runtime Governance") title=_("Change requests, rules, registries") body=_("Approvals, health, and drift stay in the command layer.") %}
-    {% include "components/apple_class_glass_panel.html" with panel_id="configuration-trust-money" label=_("Trust + Money") title=_("Compliance, security, billing") body=_("External dependencies remain explicit instead of hidden behind status color.") %}
-  </section>
+  {% include "components/platform_readiness_strip.html" with inline_field_prefix='cfg-center' hide_inline=1 %}
 
-  <div class="alert alert-secondary border-0 shadow-sm mb-4" role="note">
+  <div class="alert alert-secondary border-0 shadow-sm mb-3" role="note">
     <strong>{% trans "Raw admin remains technical fallback." %}</strong>
     {% trans "Use /super/ for platform operations, /configuration/ for governed platform configuration, tenant school settings for school-scoped changes, and /internal-admin/ only for raw model fallback." %}
     <a class="ms-2" href="{% url 'configuration:change_requests' %}">{% trans "Review change requests" %}</a>
@@ -26,12 +23,12 @@
   <div class="row g-3" data-world-class-module-groups="operating-models runtime-governance data-migration ecosystem trust-money experience">
     {% for module in modules %}
     <div class="col-12 col-xl-6">
-      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface rmc-reveal" data-configuration-module="{{ module.key }}" data-world-class-module-card="1">
+      <article class="card border-0 shadow-sm h-100 rmc-wcx-surface" data-configuration-module="{{ module.key }}" data-world-class-module-card="1">
         <div class="card-body d-flex flex-column gap-3">
           <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
             <div>
               <span class="rmc-wcx-icon mb-2" aria-hidden="true">*</span>
-              <h1 class="h5 mb-1">{{ module.title }}</h1>
+              <h2 class="h5 mb-1">{{ module.title }}</h2>
               <p class="small text-muted mb-0">{{ module.purpose }}</p>
             </div>
             <span class="badge bg-{{ module.status_tone }}-subtle text-{{ module.status_tone }}-emphasis border" data-module-status-tone="{{ module.status_tone }}">{{ module.status_label }}</span>

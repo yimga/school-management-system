@@ -256,11 +256,20 @@ def main() -> int:
         "tests/interaction-integrity.test.tsx",
     )
 
+    tenant_urls_text = (ROOT / "config" / "tenant_urls.py").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    feedback_mounted = (
+        'include(("apps.feedback.urls", "feedback")' in tenant_urls_text
+        or 'include(("apps.feedback.tenant_urls", "feedback")' in tenant_urls_text
+    ) and 'namespace="feedback"' in tenant_urls_text
     add(
         "16",
         "Tenant urlconf mounts feedback (Help Center on subdomain)",
-        _contains("config/tenant_urls.py", 'include(("apps.feedback.urls", "feedback")')
-        and _contains("templates/schools/partials/school_finder_bento.html", "marketing_public_href"),
+        feedback_mounted
+        and _contains(
+            "templates/schools/partials/school_finder_bento.html", "marketing_public_href"
+        ),
         "tenant_urls + school_finder_bento",
     )
 

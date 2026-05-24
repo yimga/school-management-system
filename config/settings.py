@@ -331,6 +331,7 @@ MIDDLEWARE = [
 MIDDLEWARE += [
     "apps.compliance.middleware.ComplianceGuardMiddleware",  # Phase Compliance: region → feature_code RESTRICTED/DISABLED
     "django_otp.middleware.OTPMiddleware",
+    "apps.accounts.middleware_security_posture.SecurityPostureReviewMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.accounts.middleware.ManagerTenantPrimarySurfaceBlockMiddleware",  # manager: no /studio/hubs/* or /authentication/backend/*
     "apps.siteconfig.middleware.OperatorSiteconfigManagerShellMiddleware",  # operators: tenant siteconfig URLs → manager shell
@@ -429,11 +430,15 @@ TEMPLATES = [
                 "apps.siteconfig.page_personality.personality_overrides_context_processor",  # v3.59.x Wave 11 Agent W — operator theme-personality CSS overrides
                 "apps.siteconfig.cockpit_context.cockpit_context",  # v3.55.0 cockpit (manager only) — brand tagline + activity ticker + platform pulse + workspace context
                 "apps.accounts.context_processors.dashboard_context",  # Dashboard header/footer data
+                "apps.accounts.mfa_ui_context.operator_mfa_context",  # Manager MFA header icon + profile links
+                "apps.accounts.context_processors_security.account_security_context",
                 "apps.accounts.context_processors.sidebar_record_context",
                 "apps.schools.context_processors.marketing_base_url",  # MARKETING_BASE_URL for cross-host links
                 "apps.schools.context_processors.conversion_enforcement_context",
                 "apps.schools.context_processors.operator_surface_ia_context",
                 "apps.schools.context_processors.dashboard_topology_context",
+                "apps.portal.context_processors.tp_v3_role_home",  # v3 100x role-home shell dedupe
+                "apps.portal.context_processors.tenant_experience_command",  # Shared tenant dashboard/profile/tool command strip
                 "apps.portal.context_processors.announcements",  # Global announcements banner
                 "apps.portal.context_processors.platform_status_strip",  # Public-safe platform incident strip
                 "apps.portal.context_processors.support_deflection_urls",  # KB deflection on all ticket forms

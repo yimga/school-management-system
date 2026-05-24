@@ -875,6 +875,7 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
   background: rgba(255,255,255,0.04); /* off-token-allow: dark-chrome-copilot-glass */
   cursor: pointer;
   font-size: 13px;
+  text-decoration: none;
 }
 .lx-copilot__rail-icon:hover {
   background: rgba(255,255,255,0.10); /* off-token-allow: dark-chrome-copilot-glass */
@@ -905,6 +906,7 @@ body[data-rmc-shell-main="control-plane"] .lx-audit__row--danger,
   text-align: start;
   cursor: pointer;
   font-family: inherit;
+  text-decoration: none;
 }
 .lx-copilot__page-help:hover,
 .lx-copilot__page-help:focus-visible {

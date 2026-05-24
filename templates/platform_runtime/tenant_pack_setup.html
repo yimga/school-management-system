@@ -3,10 +3,11 @@
 {% block title %}School Pack Setup{% endblock %}
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 {% endblock %}
 {% block backend_page %}
-<main class="page-shell" data-page-marker="rmc-tenant-pack-setup" data-apple-class-tenant-school-admin="1">
-  {% include "components/world_class_page_hero.html" with hero_id="tenant-pack-title" role="School administrators" title="Pack setup" subtitle="Preview, simulate, request approval, apply approved low-risk changes, deactivate, and roll back tenant-safe packs for the school." purpose="Tenant pack setup" status="Tenant-safe" primary_url="/school/setup/packs/?simulate=1" primary_label="Simulate selected pack" secondary_url="/school/settings/" secondary_label="School configuration" visual_title="Guided school setup" visual_body="Next action, risk, approval, external blockers, and rollback posture stay visible." %}
+<main class="page-shell container-fluid py-3" data-page-marker="rmc-tenant-pack-setup" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-apple-class-tenant-school-admin="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_pack_setup" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="/school/setup/packs/?simulate=1" primary_label="Simulate selected pack" secondary_url="/school/settings/" secondary_label="School configuration" %}
   {% include "components/world_class_guided_stepper.html" %}
   {% include "components/apple_class_visual_workflow_path.html" with path_id="tenant-pack-flow" title="Tenant Pack Flow" %}
   {% if result %}<section class="panel"><h1>Result</h1><p>OK: {{ result.ok }}</p><p>{{ result.errors|join:", " }}</p><p>{{ result.status }}</p></section>{% endif %}

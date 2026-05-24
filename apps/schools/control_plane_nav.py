@@ -418,6 +418,138 @@ def build_primary_control_plane_nav(request):
     return out
 
 
+def _admin_primary_nav_is_current(request_path: str, item_id: str) -> bool:
+    """Highlight manager /admin/ header pills (admin v1 200x preview set)."""
+    p = (request_path or "").split("?", 1)[0]
+    if p == "/admin":
+        p = "/admin/"
+    elif p and not p.endswith("/"):
+        p = f"{p}/"
+
+    def _starts(*prefixes: str) -> bool:
+        return any(p.startswith(prefix) for prefix in prefixes)
+
+    if item_id == "admin_backoffice":
+        return p == "/admin/" or p.startswith("/admin/")
+    if item_id == "admin_config":
+        return _starts(
+            "/siteconfig/console/",
+            "/siteconfig/feature-control/",
+            "/siteconfig/configuration/",
+            "/siteconfig/grading-settings/",
+            "/siteconfig/modules/",
+            "/siteconfig/installed-packages/",
+            "/siteconfig/dashboard-configuration/",
+            "/siteconfig/get-blueprints/",
+            "/siteconfig/sync-center/",
+            "/siteconfig/domains/",
+            "/siteconfig/metadata/",
+        )
+    if item_id == "admin_studio":
+        return p.startswith("/studio/")
+    if item_id == "admin_control_plane":
+        if p.startswith("/admin/"):
+            return False
+        return _starts("/super/")
+    if item_id == "admin_catalog":
+        return _starts(
+            "/super/metadata-catalog/",
+            "/super/marketplace/apps/",
+            "/super/marketplace/",
+            "/super/registries/",
+        )
+    if item_id == "admin_access":
+        return _starts("/super/trust/")
+    if item_id == "admin_health":
+        return _starts(
+            "/super/tenant-health/",
+            "/super/customer-success/",
+            "/super/pulse/",
+        )
+    return False
+
+
+def build_manager_platform_admin_primary_nav(request):
+    """
+    Horizontal primary nav for manager-host ``/admin/*`` (admin v1 200x preview).
+
+    Distinct from ``build_primary_control_plane_nav`` (``/super/*`` product language).
+    """
+    urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
+    raw = [
+        {
+            "id": "admin_backoffice",
+            "label": _("Backoffice"),
+            "url_name": "admin:index",
+            "glyph": "🏛",
+        },
+        {
+            "id": "admin_config",
+            "label": _("Config center"),
+            "url_name": "siteconfig:console_domains_hub",
+            "glyph": "⚙",
+        },
+        {
+            "id": "admin_studio",
+            "label": _("Studio"),
+            "url_name": "studio_os:shell",
+            "glyph": "⌘",
+        },
+        {
+            "id": "admin_control_plane",
+            "label": _("Control plane"),
+            "url_name": "super:dashboard",
+            "glyph": "↗",
+        },
+        {
+            "id": "admin_catalog",
+            "label": _("Catalog"),
+            "url_name": "super:metadata_catalog",
+            "glyph": "📚",
+        },
+        {
+            "id": "admin_access",
+            "label": _("Access"),
+            "url_name": "super:trust_center",
+            "glyph": "🔐",
+        },
+        {
+            "id": "admin_health",
+            "label": _("Health"),
+            "url_name": "super:tenant_health",
+            "glyph": "🩺",
+        },
+    ]
+    path = getattr(request, "path", "") or ""
+    out = []
+    for row in raw:
+        url = _safe_reverse(
+            row["url_name"],
+            urlconf=urlconf,
+            kwargs=row.get("kwargs"),
+            args=row.get("args"),
+        )
+        if not url:
+            continue
+        out.append(
+            {
+                "id": row["id"],
+                "label": row["label"],
+                "url": url,
+                "glyph": row.get("glyph", ""),
+                "icon": row.get("icon", ""),
+                "is_current": _admin_primary_nav_is_current(path, row["id"]),
+            }
+        )
+    actives = [i for i, item in enumerate(out) if item["is_current"]]
+    if len(actives) > 1:
+        keep = actives[-1]
+        for i, item in enumerate(out):
+            if i != keep:
+                item["is_current"] = False
+    return out
+
+
 def _tenant_operator_primary_is_current(request_path: str, item_id: str) -> bool:
     """Highlight tenant operator primary pills (paths are tenant / default urlconf)."""
     p = (request_path or "").split("?", 1)[0]

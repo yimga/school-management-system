@@ -251,17 +251,20 @@ body.portal-body-with-layout:not(.marketing-surface) .portal-layout-wrap > secti
 }
 
 body.control-plane-shell .cp-header__row--utility .rmc-platform-header__inner {
-  padding-block: 8px;
-  min-height: 48px;
+  padding: 10px 20px;
+  min-height: 52px;
 }
 
 body.control-plane-shell .cp-live-strip,
 body.admin-manager-shell .cp-live-strip {
-  padding-block: 5px;
-  min-height: 28px;
+  padding-block: 0;
+  min-height: 0;
 }
 
-body.control-plane-shell .cp-nav-row,
+body.control-plane-shell .cp-nav-row {
+  padding-block: 0;
+}
+
 body.admin-manager-shell .cp-nav-row {
   padding-block: 6px;
 }

@@ -17,12 +17,11 @@
                 <div class="cp-header__row cp-header__row--utility">
                   {% include "partials/manager_operator_topbar.html" %}
                 </div>
-                <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
-                  {% include "partials/cockpit/_activity_ticker.html" %}
-                </div>
                 <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
                   {% include "partials/control_plane_primary_nav.html" %}
                 </div>
+                {# cp-live-strip: admin v1 200x live strip after nav row #}
+                {% include "partials/cockpit/_activity_ticker.html" %}
               </div>
             </div>
             {% else %}

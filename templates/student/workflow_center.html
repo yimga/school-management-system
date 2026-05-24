@@ -1,0 +1,10 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Student workflow" %}{% endblock %}
+
+{% block content %}
+<div class="tp-canvas-body" id="workflow-main" data-page-archetype="tenant-workflow-portal" data-rmc-student-workflow-redesign="1">
+  {% include "partials/tenant/workflow_portal.html" %}
+</div>
+{% endblock %}

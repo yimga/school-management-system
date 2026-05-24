@@ -13,7 +13,7 @@ _MKT_IDS = frozenset(
     {
         "marketplace_catalog",
         "installed_apps",
-        "marketplace_monetization_dashboard",
+        "marketplace_purchase_intent",
     }
 )
 

@@ -94,8 +94,12 @@ class InteractionIntegrityContractTests(SimpleTestCase):
 
     def test_tenant_urlconf_includes_feedback_namespace(self):
         text = (ROOT / "config/tenant_urls.py").read_text(encoding="utf-8")
-        self.assertIn('include(("apps.feedback.urls", "feedback")', text)
-        self.assertIn("namespace=\"feedback\"", text)
+        self.assertTrue(
+            'include(("apps.feedback.urls", "feedback")' in text
+            or 'include(("apps.feedback.tenant_urls", "feedback")' in text,
+            "tenant urlconf must mount feedback help center namespace",
+        )
+        self.assertIn('namespace="feedback"', text)
 
     def test_tenant_school_templates_use_marketing_public_find_school(self):
         for rel in (

@@ -243,7 +243,7 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
 }
 
 /* v3.62.12 — /super/ header stack: utility → live strip → primary nav (v8 200x).
-   /admin/ backoffice keeps utility → nav → live strip (admin v1 200x preview). */
+   /admin/ backoffice: utility → nav row → live strip (admin v1 200x preview). */
 .cp-header .cp-nav-row {
   display: flex;
   flex-wrap: wrap;
@@ -252,15 +252,18 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
   border-bottom: 1px solid var(--cp-chrome-hairline);
 }
 
+/* v3.90.12 — full-bleed live ticker (preview v8 200x: edge-to-edge gradient band) */
 .cp-header .cp-live-strip {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 8px 20px;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  padding: 0;
+  margin: 0;
   font-size: 12px;
   color: var(--cp-chrome-text-muted);
   border-bottom: 1px solid var(--cp-chrome-hairline);
-  overflow-x: auto;
+  overflow: hidden;
   white-space: nowrap;
 }
 
@@ -268,13 +271,155 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
 .cp-header .cp-live-strip .cp-activity-ticker {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex: 1;
   min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 4px 0 4px 20px;
+  border: 0;
+  border-bottom: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(239, 68, 68, 0.04) 0%,
+    transparent 30%,
+    transparent 100%
+  ); /* off-token-allow: ticker-bg-danger-fade */
+  font-size: 11px;
+  color: var(--cp-chrome-text);
+  overflow: hidden;
+}
+
+.cp-header .cp-live-strip .rmc-cockpit-ticker__viewport,
+.cp-header .cp-live-strip .cp-activity-ticker__viewport {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+  contain: none;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    var(--cp-chrome-bg, #07091a) 24px,
+    var(--cp-chrome-bg, #07091a) calc(100% - 60px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    var(--cp-chrome-bg, #07091a) 24px,
+    var(--cp-chrome-bg, #07091a) calc(100% - 60px),
+    transparent 100%
+  );
+}
+
+.cp-header .cp-live-strip .rmc-cockpit-ticker__track,
+.cp-header .cp-live-strip .cp-activity-ticker__track {
+  display: inline-flex;
+  position: relative;
+  top: auto;
+  left: auto;
+  width: max-content;
+  max-width: none;
+  min-height: 0;
+  align-items: center;
+  gap: 36px;
+  overflow: visible;
+  animation: rmc-cockpit-ticker-scroll var(--rmc-cockpit-ticker-seconds, 40s) linear infinite;
+  will-change: transform;
+}
+
+.cp-header .cp-live-strip .rmc-cockpit-ticker__track > .rmc-cockpit-ticker__event,
+.cp-header .cp-live-strip .cp-activity-ticker__track > .cp-activity-ticker__event,
+.cp-header .cp-live-strip .rmc-cockpit-ticker__track > .rmc-cockpit-ticker__event:nth-child(n + 2),
+.cp-header .cp-live-strip .cp-activity-ticker__track > .cp-activity-ticker__event:nth-child(n + 2) {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}
+
+.cp-header .cp-live-strip .rmc-cockpit-ticker:hover .rmc-cockpit-ticker__track,
+.cp-header .cp-live-strip .rmc-cockpit-ticker:focus-within .rmc-cockpit-ticker__track,
+.cp-header .cp-live-strip .cp-activity-ticker:hover .cp-activity-ticker__track,
+.cp-header .cp-live-strip .cp-activity-ticker:focus-within .cp-activity-ticker__track {
+  animation-play-state: paused;
+}
+
+/* v3.90.13 — v8 200x preview compact header density (/super/) */
+body.control-plane-shell .cp-header .cp-navbar.statement-header,
+body.control-plane-shell .cp-header .rmc-platform-header.rmc-control-plane-chrome__top {
+  min-height: 0;
+  padding: 0;
+}
+
+body.control-plane-shell .cp-header__row--utility {
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+}
+
+body.control-plane-shell .cp-header__row--utility .cp-navbar.statement-header {
+  border-bottom: 0;
+  padding-block: 0;
+  background: transparent;
+}
+
+body.control-plane-shell .cp-header .rmc-platform-header {
+  min-height: 0;
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__inner {
+  padding: 10px 20px;
+  min-height: 52px;
+}
+
+body.control-plane-shell .cp-header .cp-nav-row {
+  display: block;
+  padding: 0;
+  gap: 0;
+  border-bottom: none;
+}
+
+body.control-plane-shell .cp-header .cp-nav-row .cp-primary-nav,
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-nav-row .cp-primary-nav {
+  display: flex;
+  gap: 4px;
+  padding: 6px 20px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  border-bottom: 1px solid var(--cp-chrome-hairline);
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+body.control-plane-shell .cp-header .cp-primary-nav,
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav {
+  justify-content: center;
+}
+
+body.control-plane-shell .cp-header .rmc-app-shell__header,
+body.control-plane-shell .cp-header {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-nav-row .cp-primary-nav {
+  border-bottom: none;
+}
+
+body.control-plane-shell #cp-main-content > .container-fluid.cp-layout {
+  padding-top: 0.25rem;
+}
+
+body.control-plane-shell [data-shell-chrome="breadcrumb-row"]:has([data-shell-chrome="breadcrumb-slot"]:empty) {
+  display: none;
   margin: 0;
   padding: 0;
-  border: 0;
-  background: transparent;
+  min-height: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -282,4 +427,49 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
   .cp-header .cp-activity-ticker__track {
     animation: none;
   }
+}
+
+/* /super/ primary nav pills (mirror admin backoffice grammar) */
+body.control-plane-shell .cp-primary-nav--control-plane {
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+body.control-plane-shell .cp-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(255, 255, 255, 0.03); /* off-token-allow: fixed-shell-accent */
+  border: 1px solid transparent;
+  color: var(--cp-chrome-text-muted, var(--text-secondary));
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--motion-fast, 150ms), color var(--motion-fast, 150ms);
+  flex: 0 0 auto;
+}
+
+body.control-plane-shell .cp-nav-pill:hover {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: fixed-shell-accent */
+  color: var(--cp-chrome-text, var(--text-primary));
+}
+
+body.control-plane-shell .cp-nav-pill--active,
+body.control-plane-shell .cp-nav-pill[data-active] {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.18)); /* off-token-allow: fixed-shell-accent */
+  border-color: rgba(99, 102, 241, 0.4); /* off-token-allow: fixed-shell-accent */
+  color: #fff; /* off-token-allow: fixed-shell-accent */
+}
+
+body.control-plane-shell .cp-nav-pill__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1em;
+  font-size: 0.95em;
+  line-height: 1;
+  flex-shrink: 0;
 }
