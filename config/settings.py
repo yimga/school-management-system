@@ -325,6 +325,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.SuperAdminRateLimitMiddleware",  # 12.7: rate limit /super/ (120/min per user)
     "apps.schools.middleware_enterprise_security.EnterpriseSuperHttpAuditMiddleware",  # optional: ENTERPRISE_SUPER_HTTP_AUDIT=1
     "apps.schools.middleware.FeatureGatekeeperMiddleware",  # Phase D: enforce plan feature by path
+    "apps.finance.subscription_gate.FinanceSubscriptionGateMiddleware",  # SFDP 1426: 402 on finance writes when billing inactive
     "apps.schools.middleware.UsageLimitMiddleware",  # Phase D (optional, on by default): Plan max_students/max_staff; set DISABLE_USAGE_LIMIT_MIDDLEWARE=1 to turn off
 ]
 MIDDLEWARE += [

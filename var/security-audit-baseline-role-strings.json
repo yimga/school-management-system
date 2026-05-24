@@ -7,7 +7,7 @@
   "excluded_tails": [
     "management/commands"
   ],
-  "finding_count": 292,
+  "finding_count": 313,
   "findings": [
     {
       "line": 44,
@@ -375,7 +375,7 @@
       "role": "PROPRIETOR"
     },
     {
-      "line": 243,
+      "line": 248,
       "path": "apps/api/offline_replay_views.py",
       "role": "ADMIN"
     },
@@ -523,6 +523,31 @@
       "line": 56,
       "path": "apps/apicenter/views.py",
       "role": "ADMIN"
+    },
+    {
+      "line": 96,
+      "path": "apps/brand_experience/template_ai_recommender.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 97,
+      "path": "apps/brand_experience/template_ai_recommender.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 98,
+      "path": "apps/brand_experience/template_ai_recommender.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 99,
+      "path": "apps/brand_experience/template_ai_recommender.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 100,
+      "path": "apps/brand_experience/template_ai_recommender.py",
+      "role": "PROPRIETOR"
     },
     {
       "line": 68,
@@ -810,7 +835,7 @@
       "role": "STUDENT"
     },
     {
-      "line": 1305,
+      "line": 1316,
       "path": "apps/finance/services.py",
       "role": "PARENT"
     },
@@ -893,6 +918,16 @@
       "line": 87,
       "path": "apps/platform_runtime/context_processors.py",
       "role": "PARENT"
+    },
+    {
+      "line": 73,
+      "path": "apps/portal/ai_intent_router.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 73,
+      "path": "apps/portal/ai_intent_router.py",
+      "role": "PROPRIETOR"
     },
     {
       "line": 77,
@@ -1160,12 +1195,22 @@
       "role": "TEACHER"
     },
     {
-      "line": 175,
+      "line": 132,
+      "path": "apps/siteconfig/command_bar_registry.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 133,
+      "path": "apps/siteconfig/command_bar_registry.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 179,
       "path": "apps/siteconfig/command_bar_registry.py",
       "role": "ADMIN"
     },
     {
-      "line": 175,
+      "line": 179,
       "path": "apps/siteconfig/command_bar_registry.py",
       "role": "PROPRIETOR"
     },
@@ -1210,42 +1255,42 @@
       "role": "ADMIN"
     },
     {
-      "line": 264,
+      "line": 274,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "STUDENT"
     },
     {
-      "line": 265,
+      "line": 275,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "TEACHER"
     },
     {
-      "line": 266,
+      "line": 276,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "PARENT"
     },
     {
-      "line": 267,
+      "line": 277,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "ADMIN"
     },
     {
-      "line": 590,
+      "line": 600,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "STUDENT"
     },
     {
-      "line": 591,
+      "line": 601,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "TEACHER"
     },
     {
-      "line": 592,
+      "line": 602,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "PARENT"
     },
     {
-      "line": 593,
+      "line": 603,
       "path": "apps/siteconfig/models_dashboard.py",
       "role": "ADMIN"
     },
@@ -1440,6 +1485,66 @@
       "role": "ADMIN"
     },
     {
+      "line": 70,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 72,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 74,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 76,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 98,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 124,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "ADMIN"
+    },
+    {
+      "line": 127,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 147,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "PROPRIETOR"
+    },
+    {
+      "line": 149,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "TEACHER"
+    },
+    {
+      "line": 151,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "PARENT"
+    },
+    {
+      "line": 153,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "STUDENT"
+    },
+    {
+      "line": 155,
+      "path": "apps/siteconfig/portal_visual_presets_registry.py",
+      "role": "ADMIN"
+    },
+    {
       "line": 439,
       "path": "apps/siteconfig/views.py",
       "role": "ADMIN"
@@ -1470,7 +1575,7 @@
       "role": "TEACHER"
     }
   ],
-  "generated_at": "2026-05-22T22:32:55+00:00",
+  "generated_at": "2026-05-24T00:46:44+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

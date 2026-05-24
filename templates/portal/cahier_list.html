@@ -7,7 +7,9 @@
 <div class="card mb-3">
   <div class="card-body">
     <h5 class="card-title">New entry</h5>
-    <form method="post">
+    <form method="post"
+          data-rmc-offline-form="notes_report" data-offline-action-type="notes_report"
+          data-draft-key="cahier_new_entry" data-draft-max-age-hours="24">
       {% csrf_token %}
       <div class="row g-2">
         <div class="col-md-4">{{ form.subject_assignment.label_tag }}{{ form.subject_assignment }}</div>

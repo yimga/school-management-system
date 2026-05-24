@@ -159,8 +159,8 @@
       <div class="tdm-hero__profile card-glass">
         <div class="tdm-profile-top">
           {% if request.user.profile_photo %}
-          {% term "teacher" capitalize=True as _td_teacher_sg %}
-          <img src="{{ request.user.profile_photo.url }}" alt="{% blocktrans with t=_td_teacher_sg %}{{ t }} profile photo{% endblocktrans %}" class="tdm-avatar" loading="lazy" decoding="async">
+          {% term "teacher" capitalize=True as td_teacher_sg %}
+          <img src="{{ request.user.profile_photo.url }}" alt="{% blocktrans with t=td_teacher_sg %}{{ t }} profile photo{% endblocktrans %}" class="tdm-avatar" loading="lazy" decoding="async">
           {% else %}
           <div class="tdm-avatar fallback">{% firstof request.user.username|default:"T" "T" %}</div>
           {% endif %}
@@ -205,8 +205,8 @@
           <div class="kpi tdm-stat card-glass purple">
             <div class="d-flex align-items-start justify-content-between gap-2">
               {# Wave 12: tenant-lexicon "Classes today" — reads as the tenant's classroom term (e.g. "Cours" in FR, "வகுப்புகள்" in TA). #}
-              {% term "classroom" plural=True capitalize=True as _classroom_pl_t %}
-              <span class="label tdm-stat-label">{% blocktrans with t=_classroom_pl_t %}{{ t }} today{% endblocktrans %}</span>
+              {% term "classroom" plural=True capitalize=True as classroom_pl_t %}
+              <span class="label tdm-stat-label">{% blocktrans with t=classroom_pl_t %}{{ t }} today{% endblocktrans %}</span>
               <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>
             </div>
             <div class="value tdm-stat-value" data-rmc-metric-value>{{ assignments|length|default:0 }}</div>
@@ -252,8 +252,8 @@
         <div class="card-glass tdm-panel" data-rmc-ux-section="my-classes">
           <div class="tdm-panel-head">
             <div>
-              {% term "classroom" plural=True as _classroom_pl_lc %}
-              <p class="tdm-eyebrow">{% blocktrans with t=_classroom_pl_lc %}My {{ t }}{% endblocktrans %}</p>
+              {% term "classroom" plural=True as classroom_pl_lc %}
+              <p class="tdm-eyebrow">{% blocktrans with t=classroom_pl_lc %}My {{ t }}{% endblocktrans %}</p>
               <h3>{% trans "Today" %}</h3>
             </div>
             <div class="tdm-panel-actions">
@@ -391,8 +391,8 @@
               {% endif %}
             </article>
           </div>
-          {% term "teacher" capitalize=True as _td_teacher_sg_actions %}
-          <div class="tdm-action-grid" aria-label="{% blocktrans with t=_td_teacher_sg_actions %}{{ t }} action blocks{% endblocktrans %}">
+          {% term "teacher" capitalize=True as td_teacher_sg_actions %}
+          <div class="tdm-action-grid" aria-label="{% blocktrans with t=td_teacher_sg_actions %}{{ t }} action blocks{% endblocktrans %}">
             <article class="tdm-action-card rmc-reveal">
               <div class="tdm-compact-head">
                 <h4>{% trans "At-risk follow-up" %}</h4>

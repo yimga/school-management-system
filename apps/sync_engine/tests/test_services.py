@@ -77,3 +77,4 @@ class SyncEngineServicesTests(TestCase):
         )
         self.assertEqual(res["applied"], 1)
         self.assertEqual(len(res["conflicts"]), 1)
+        self.assertEqual(res["conflicts"][0].get("policy"), "manual_review")

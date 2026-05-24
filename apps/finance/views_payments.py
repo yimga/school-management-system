@@ -745,7 +745,17 @@ def payment_provider_webhook(request: HttpRequest, provider_slug: str):
         )
         return HttpResponseBadRequest("Webhook payload must be a JSON object.")
 
+    from apps.finance.webhooks.normalizer import normalize_provider_payload
+
+    metadata_block = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
+    canonical_event = normalize_provider_payload(
+        provider_code,
+        data,
+        metadata=metadata_block,
+    )
     reference_id = _extract_reference(data) or "unknown"
+    if canonical_event is not None and canonical_event.event_id:
+        reference_id = canonical_event.event_id
     from apps.finance.webhook_ingress import resolve_webhook_dedup_bucket
 
     header_map = {

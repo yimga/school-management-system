@@ -39,6 +39,18 @@ class StripeGateway(BasePaymentGateway):
                 message="Stripe gateway not configured.",
                 raw_response={"status": "not_configured", "missing": missing},
             )
+        school = kwargs.get("school")
+        connect_account_id = ""
+        connect_charges_enabled = False
+        if school is not None:
+            try:
+                from apps.schools.stripe_connect_settings import get_stripe_connect_payload
+
+                sc = get_stripe_connect_payload(school)
+                connect_account_id = str(sc.get("account_id") or "").strip()
+                connect_charges_enabled = bool(sc.get("charges_enabled"))
+            except (ImportError, AttributeError, TypeError):
+                connect_account_id = ""
         return GatewayResult(
             success=True,
             transaction_id=f"stripe_{reference}",
@@ -51,6 +63,8 @@ class StripeGateway(BasePaymentGateway):
                 "currency": currency,
                 "description": description or "",
                 "platform_fee": str(platform_fee or Decimal("0")),
+                "stripe_connect_account_id": connect_account_id,
+                "stripe_connect_charges_enabled": connect_charges_enabled,
             },
         )
 

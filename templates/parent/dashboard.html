@@ -253,8 +253,8 @@
         <li><a href="#parent-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
         <li><a href="#parent-glance"><i class="bi bi-house-heart" aria-hidden="true"></i>{% trans "Family" %}</a></li>
         {# Wave 12: "Children" reads as the tenant's "student" term plural — many schools call them "wards", "pupils", "learners". #}
-        {% term "student" plural=True capitalize=True as _student_pl_p %}
-        <li><a href="#parent-children"><i class="bi bi-people" aria-hidden="true"></i>{{ _student_pl_p }}</a></li>
+        {% term "student" plural=True capitalize=True as student_pl_p %}
+        <li><a href="#parent-children"><i class="bi bi-people" aria-hidden="true"></i>{{ student_pl_p }}</a></li>
         <li><a href="#parent-next"><i class="bi bi-arrow-right-circle" aria-hidden="true"></i>{% trans "Next up" %}</a></li>
       </ul>
     </nav>
@@ -414,8 +414,8 @@
           {% endif %}
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
             {# Wave 12: "My Children" reads as "My <tenant-student-term-plural>". #}
-            {% term "student" plural=True capitalize=True as _student_pl_h %}
-            <h2 id="children-heading" class="h6 mb-0"><i class="bi bi-people-fill"></i> {% blocktrans with t=_student_pl_h %}My {{ t }}{% endblocktrans %} {% if links %}({{ links|length }}){% endif %}</h2>
+            {% term "student" plural=True capitalize=True as student_pl_h %}
+            <h2 id="children-heading" class="h6 mb-0"><i class="bi bi-people-fill"></i> {% blocktrans with t=student_pl_h %}My {{ t }}{% endblocktrans %} {% if links %}({{ links|length }}){% endif %}</h2>
             <a href="{% url 'portal:parent_medal_case' %}" class="btn btn-sm btn-outline-primary">{% trans "Medal case" %}</a>
           </div>
           <div class="parent-children-grid row g-3 rmc-reveal-stagger">
@@ -432,8 +432,8 @@
                       <h3 class="h6 mb-0">{{ card.link.student.get_full_name }}</h3>
                       <p class="small text-muted mb-0">{{ card.link.student.grade|default:_("N/A") }} - {{ card.link.student.section|default:_("N/A") }}</p>
                       {% if card.badges %}
-                      {% term "student" capitalize=True as _pd_student_sg %}
-                      <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="{% blocktrans with t=_pd_student_sg %}{{ t }} badges{% endblocktrans %}">
+                      {% term "student" capitalize=True as pd_student_sg %}
+                      <div class="d-flex flex-wrap gap-1 mt-1" role="list" aria-label="{% blocktrans with t=pd_student_sg %}{{ t }} badges{% endblocktrans %}">
                         {% for b in card.badges %}
                         <span class="badge rounded-pill" style="background: var(--school-primary); color: var(--text-on-brand);" role="listitem">{{ b.badge_type.label }}</span>
                         {% endfor %}

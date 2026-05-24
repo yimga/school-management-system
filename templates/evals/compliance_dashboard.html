@@ -80,8 +80,8 @@
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover table-striped mb-0">
-                      {% term "teacher" capitalize=True as _teacher_sg_cap %}
-                      <caption class="visually-hidden">{% blocktrans with t=_teacher_sg_cap %}{{ t }} Submission Status{% endblocktrans %}</caption>
+                      {% term "teacher" capitalize=True as teacher_sg_cap %}
+                      <caption class="visually-hidden">{% blocktrans with t=teacher_sg_cap %}{{ t }} Submission Status{% endblocktrans %}</caption>
                         <thead class="bg-light">
                             <tr>
                                 <th>Teacher</th>
@@ -162,13 +162,13 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="detailsModalLabel">{% blocktrans with t=_teacher_sg_cap %}{{ t }} deadline details{% endblocktrans %}</h5>
+                <h5 class="modal-title" id="detailsModalLabel">{% blocktrans with t=teacher_sg_cap %}{{ t }} deadline details{% endblocktrans %}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <div class="modal-body">
                 <h6 id="teacherName" class="mb-3"></h6>
                 <table class="table table-sm align-middle">
-                  <caption class="visually-hidden">{% blocktrans with t=_teacher_sg_cap %}{{ t }} deadline details{% endblocktrans %}</caption>
+                  <caption class="visually-hidden">{% blocktrans with t=teacher_sg_cap %}{{ t }} deadline details{% endblocktrans %}</caption>
                     <thead class="table-light">
                         <tr>
                             <th scope="col">{% trans_term "Subject" key="subject" %}</th>

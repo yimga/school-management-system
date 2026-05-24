@@ -13,7 +13,9 @@
 
     <div class="card shadow-sm">
       <div class="card-body">
-        <form method="post" action="{% url 'accounts:direct_compose' %}" aria-label="Compose new message">
+        <form method="post" action="{% url 'accounts:direct_compose' %}" aria-label="Compose new message"
+              data-rmc-offline-form="notes_report" data-offline-action-type="notes_report"
+              data-draft-key="direct_compose_{{ request.user.id }}" data-draft-max-age-hours="24">
           {% csrf_token %}
           <div class="mb-3">
             <label for="recipient" class="form-label">To</label>

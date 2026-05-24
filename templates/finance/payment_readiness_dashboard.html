@@ -97,6 +97,37 @@
     </div>
   </div>
 
+  {% if lane2_corridors %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5">{% trans "Global PSP matrix (Lane 2)" %}</h2>
+      <p class="small text-muted">{% trans "Register truth + tenant Integration — verified_live only with evidence on disk." %}</p>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th>{% trans "PSP" %}</th>
+              <th>{% trans "Register" %}</th>
+              <th>{% trans "Integration" %}</th>
+              <th>{% trans "Evidence" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in lane2_corridors %}
+            <tr>
+              <td>{{ row.label }}</td>
+              <td><span class="badge bg-secondary">{{ row.register_status }}</span></td>
+              <td>{% if row.integration_configured %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+              <td class="small"><code>{{ row.evidence_path }}</code></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   {% if latest_checks %}
   <div class="card shadow-sm">
     <div class="card-body">

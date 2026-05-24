@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "batch": "1174",
+  "phase": "live_payment_reconciliation",
+  "recorded_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "school_slug": "<pilot-school>",
+  "deployment_host": "https://your-tenant.runmycampus.com",
+  "supervised_charge": {
+    "provider": "stripe",
+    "payment_intent_id": "pi_\u2026",
+    "charge_id": "ch_\u2026",
+    "invoice_id": "<internal-invoice-uuid>",
+    "amount_minor": 0,
+    "currency": "USD"
+  },
+  "health_snapshot": {
+    "command": "python manage.py check_payment_gateways --school=<slug> --mode=metadata",
+    "snapshot_id": "<PaymentGatewayHealthSnapshot-uuid>",
+    "recorded_at": "YYYY-MM-DDTHH:MM:SSZ",
+    "status_summary": "missing_credentials|ready|production_ping_ok"
+  },
+  "settlement_artifact": {
+    "kind": "stripe_payout_export|paystack_settlement_csv|flutterwave_settlement|manual_reconciliation",
+    "reference_path": "<operator-vault-or-dashboard-export-path>",
+    "payout_id": "po_\u2026",
+    "settled_at": "YYYY-MM-DDTHH:MM:SSZ"
+  },
+  "webhook_delivery_ids": [
+    "we_\u2026"
+  ],
+  "ledger_entry_ids": [
+    "<platform-ledger-uuid>"
+  ],
+  "reconciliation_owner": "<finance-role>",
+  "operator": "<name-or-role>",
+  "notes": "Redact PII; store Stripe dashboard export paths only \u2014 never API keys or card data. Fill redacted IDs after supervised live charge; never commit secrets.",
+  "evidence_status": "pending_operator",
+  "initialized_at": "2026-05-23T23:53:44Z"
+}

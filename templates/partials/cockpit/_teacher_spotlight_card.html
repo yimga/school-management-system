@@ -1,6 +1,6 @@
 {% load i18n terminology_tags %}
-{% term "teacher" capitalize=True as _teacher_sg %}
-{% blocktrans asvar _spotlight_label with t=_teacher_sg %}{{ t }} spotlight{% endblocktrans %}
+{% term "teacher" capitalize=True as teacher_sg %}
+{% blocktrans asvar spotlight_label with t=teacher_sg %}{{ t }} spotlight{% endblocktrans %}
 {% comment %}
 Teacher spotlight card — v3.56.0 (2026-05-21)
 
@@ -29,9 +29,9 @@ PII safety:
 {% endcomment %}
 {% if cockpit.teacher_spotlight.enabled and cockpit.teacher_spotlight.teacher_name %}
 {% with ts=cockpit.teacher_spotlight %}
-<section class="tp-spotlight" aria-label="{{ _spotlight_label }}" data-rmc-cockpit-section="teacher_spotlight_card">
+<section class="tp-spotlight" aria-label="{{ spotlight_label }}" data-rmc-cockpit-section="teacher_spotlight_card">
   <div class="tp-spotlight__head">
-    <h3 class="tp-spotlight__title">{{ ts.title|default:_spotlight_label }}</h3>
+    <h3 class="tp-spotlight__title">{{ ts.title|default:spotlight_label }}</h3>
     {% if ts.sub %}<div class="tp-spotlight__sub">{{ ts.sub }}</div>{% endif %}
   </div>
   <div class="tp-spotlight__teacher">

@@ -4,7 +4,7 @@
 {% load rmc_explain_tags %}
 {% load region_format %}
 {% load static phase8_tags %}
-{% term "parent" capitalize=True as _inv_parent_sg %}
+{% term "parent" capitalize=True as inv_parent_sg %}
 
 {% block title %}{% trans_term "Invoices" key="invoice" plural=True %}{% endblock %}
 
@@ -114,7 +114,7 @@
             <th scope="col">{% trans "Due" %}</th>
             <th scope="col">{% trans_term "Student" key="student" %}</th>
             {% if user.is_staff or user.is_superuser %}
-            <th scope="col">{% blocktrans with t=_inv_parent_sg %}{{ t }} access{% endblocktrans %}</th>
+            <th scope="col">{% blocktrans with t=inv_parent_sg %}{{ t }} access{% endblocktrans %}</th>
             {% endif %}
             <th scope="col">{% trans "Split billing" %}</th>
             <th scope="col" class="text-end">{% trans "Total" %}</th>
@@ -222,7 +222,7 @@
             <th scope="col">{% trans "Due" %}</th>
             <th scope="col">{% trans_term "Student" key="student" %}</th>
             {% if user.is_staff or user.is_superuser %}
-            <th scope="col">{% blocktrans with t=_inv_parent_sg %}{{ t }} access{% endblocktrans %}</th>
+            <th scope="col">{% blocktrans with t=inv_parent_sg %}{{ t }} access{% endblocktrans %}</th>
             {% endif %}
             <th scope="col">{% trans "Split billing" %}</th>
             <th scope="col" class="text-end">{% trans "Total" %}</th>

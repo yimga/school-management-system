@@ -160,8 +160,8 @@
   {% else %}
     <section class="card results-table-card border-0 shadow-sm rmc-reveal" aria-labelledby="results-table-heading">
       <div class="card-body p-0">
-        {% term "subject" plural=True capitalize=True as _res_subject_pl %}
-        <h2 id="results-table-heading" class="visually-hidden">{% blocktrans with t=_res_subject_pl %}{{ t }} results{% endblocktrans %}</h2>
+        {% term "subject" plural=True capitalize=True as res_subject_pl %}
+        <h2 id="results-table-heading" class="visually-hidden">{% blocktrans with t=res_subject_pl %}{{ t }} results{% endblocktrans %}</h2>
         <div class="table-responsive">
           <table class="table table-sm table-striped align-middle table-mobile-cards mb-0 table-family" aria-label="{% trans 'Term results: subject, coefficient, sequence and exam scores, average, and status' %}">
             <thead class="table-light">

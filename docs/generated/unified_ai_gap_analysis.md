@@ -1,6 +1,6 @@
 # Unified AI — gap analysis (2026-05-22, gear 2)
 
-**Verdict:** Lane 1 (repo) **Phase A + B + C + Gear 2 complete** per `scripts/verify_unified_ai_assistant.py` (49 checks) → **UNIFIED_AI_ASSISTANT_PASS**; Lane 2 contract → **UNIFIED_AI_LANE2_READINESS_PASS**.
+**Verdict:** Lane 1 (repo) **Phase A + B + C + Gear 2 complete** per `scripts/verify_unified_ai_assistant.py` (49 checks) → **UNIFIED_AI_ASSISTANT_PASS**; Lane 2 contract → **UNIFIED_AI_LANE2_READINESS_PASS**; GEOS matrix composite gate → **GEOS_99_COMPOSITE_PASS** (100%) after batch **1476** internal-pilot evidence + register sync.
 
 ## Shipped in-repo (no duplicate stacks)
 

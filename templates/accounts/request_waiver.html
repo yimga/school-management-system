@@ -20,7 +20,9 @@
           <div class="card-body">
             <h1 class="h4 mb-3">{% trans "Request subscription waiver" %}</h1>
             <p class="text-muted small">{% trans "Submit a reason and optional proof (e.g. NGO status). Platform support will review your request." %}</p>
-            <form method="post" action="" enctype="multipart/form-data">
+            <form method="post" action="" enctype="multipart/form-data"
+                  data-rmc-offline-form="notes_report" data-offline-action-type="notes_report"
+                  data-draft-key="request_waiver_{{ request.user.id }}" data-draft-max-age-hours="48">
               {% csrf_token %}
               {% if form.non_field_errors %}
                 <div class="alert alert-danger">{{ form.non_field_errors }}</div>

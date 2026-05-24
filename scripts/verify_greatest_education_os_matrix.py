@@ -22,8 +22,17 @@ GENERATED_MD = ROOT / "docs" / "generated" / "greatest_education_os_matrix.md"
 REGISTER = ROOT / "docs" / "external_dependencies_register.json"
 PILOT = ROOT / "docs" / "generated" / "pilot_readiness_scorecard.json"
 REPO_TARGET = 99.0
+COMPOSITE_TARGET = 99.0
 COMPOSITE_REPO_WEIGHT = 0.6
 COMPOSITE_LIVE_WEIGHT = 0.4
+
+# Shared Lane 2 live-axis helpers (entry-id gates + pilot slot 1).
+sys.path.insert(0, str(ROOT))
+from apps.platform_runtime.geos_lane2_evidence import (  # noqa: E402
+    PILLAR_LIVE_ENTRY_IDS,
+    live_pct_from_entry_ids,
+    pilot_slot_pct,
+)
 
 
 @dataclass
@@ -78,56 +87,6 @@ def _file_ok(rel: str, needle: str = "") -> bool:
     return needle in path.read_text(encoding="utf-8", errors="replace")
 
 
-def _live_pct_from_register(section_ids: tuple[str, ...]) -> float:
-    if not REGISTER.is_file():
-        return 0.0
-    data = json.loads(REGISTER.read_text(encoding="utf-8"))
-    statuses: list[str] = []
-    for section in data.get("sections") or []:
-        if section.get("id") not in section_ids:
-            continue
-        for entry in section.get("entries") or []:
-            statuses.append(str(entry.get("status") or "not_started"))
-    if not statuses:
-        return 0.0
-    verified = sum(1 for s in statuses if s == "verified_live")
-    return round(100.0 * verified / len(statuses), 1)
-
-
-_CORE_LOOP_KEYS = (
-    "attendance_completed",
-    "marks_completed",
-    "report_generated",
-    "invoice_created",
-    "receipt_or_payment_captured",
-    "parent_portal_viewed",
-)
-
-
-def _pilot_core_loop_complete(pilot: dict) -> bool:
-    if not all(pilot.get(k) for k in _CORE_LOOP_KEYS):
-        return False
-    if pilot.get("offline_sync_required") and not pilot.get("offline_sync_used"):
-        return False
-    return True
-
-
-def _pilot_slot_pct() -> float:
-    if not PILOT.is_file():
-        return 0.0
-    data = json.loads(PILOT.read_text(encoding="utf-8"))
-    slots = data.get("slots") or data.get("pilots") or []
-    if not slots:
-        return 0.0
-    done = 0
-    for slot in slots:
-        checks = slot.get("checks")
-        if checks is not None:
-            if all(checks.values()):
-                done += 1
-        elif _pilot_core_loop_complete(slot):
-            done += 1
-    return round(100.0 * done / len(slots), 1)
 
 
 def build_pillars() -> list[PillarResult]:
@@ -347,21 +306,14 @@ def build_pillars() -> list[PillarResult]:
 
 
 def _live_pct_for_pillar(pillar_id: str) -> float:
-    if pillar_id in ("shopify",):
-        return _live_pct_from_register(("payments_psp_settlement",))
     if pillar_id in ("salesforce", "amazon", "dailyops"):
-        return _pilot_slot_pct()
-    if pillar_id == "aws":
-        return _live_pct_from_register(("render_deploy_sha", "hosting_render"))
-    if pillar_id == "linux":
-        return _live_pct_from_register(("companion_publish",))
-    if pillar_id == "google":
-        return min(
-            _live_pct_from_register(("ai_llm_cloud",)),
-            100.0 if _file_ok("docs/AI_DEPLOYMENT_POSTURE.md") else 50.0,
-        )
-    if pillar_id == "localglobal":
-        return _live_pct_from_register(("data_residency_corridor",))
+        return pilot_slot_pct()
+    entry_ids = PILLAR_LIVE_ENTRY_IDS.get(pillar_id)
+    if entry_ids:
+        live = live_pct_from_entry_ids(entry_ids)
+        if pillar_id == "google":
+            return min(live, 100.0 if _file_ok("docs/AI_DEPLOYMENT_POSTURE.md") else 50.0)
+        return live
     return 0.0
 
 
@@ -384,7 +336,8 @@ def render_markdown(payload: dict) -> str:
         [
             "",
             "Repo target ≥ 99% per pillar. Composite = 0.6×repo + 0.4×live.",
-            "Live axis requires operator evidence in `docs/external_dependencies_register.json`.",
+            "Live axis uses curated register entry ids per pillar + pilot slot 1 gate.",
+            "Statuses: `verified_live`, `not_required`, or `repo_complete`/`approved_*` with evidence file.",
             "",
         ]
     )
@@ -395,6 +348,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--write", action="store_true", help="Write generated artifacts.")
     parser.add_argument("--pillar", help="Filter output to one pillar id.")
+    parser.add_argument(
+        "--require-composite-99",
+        action="store_true",
+        help="Exit 1 when overall composite_pct < 99 (repo pass still required).",
+    )
     args = parser.parse_args()
 
     pillars = build_pillars()
@@ -476,7 +434,19 @@ def main() -> int:
         failed = [r for r in rows if r["repo_pct"] < REPO_TARGET]
         print(f"GEOS matrix: {len(failed)} pillar(s) below repo {REPO_TARGET}%", file=sys.stderr)
         return 1
+    if args.require_composite_99 and overall_composite < COMPOSITE_TARGET:
+        print(
+            f"GEOS matrix: composite {overall_composite}% < {COMPOSITE_TARGET}% "
+            f"(live {overall_live}%)",
+            file=sys.stderr,
+        )
+        return 1
     print("verify_greatest_education_os_matrix: GEOS_99_MATRIX_PASS")
+    if args.require_composite_99:
+        print(
+            "verify_greatest_education_os_matrix: GEOS_99_COMPOSITE_PASS "
+            f"(composite {overall_composite}%)"
+        )
     return 0
 
 

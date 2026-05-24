@@ -35,7 +35,9 @@
 {% include "partials/help_deflection_strip.html" with deflection_surface="support_ticket" %}
 <div class="card">
   <div class="card-body">
-    <form method="post" id="support-request-form" dir="auto" data-rmc-offline-form="support_ticket" data-draft-key="support_request" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced message' %}" data-deflection-form-auto>
+    <form method="post" id="support-request-form" dir="auto"
+          data-rmc-offline-form="support_ticket" data-offline-action-type="support_ticket"
+          data-draft-key="support_request" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced message' %}" data-deflection-form-auto>
       {% csrf_token %}
       <input type="hidden" name="deflection_acknowledged" id="deflection_acknowledged" data-deflection-ack value="0">
       {{ form.as_p }}

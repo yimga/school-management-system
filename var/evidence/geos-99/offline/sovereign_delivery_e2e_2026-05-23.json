@@ -4,6 +4,7 @@
   "batch_range": "1406-1412",
   "generated_at": "2026-05-23",
   "lane": 1,
+  "evidence_status": "repo_complete",
   "repo_complete": true,
   "corridor_live": false,
   "proof": {

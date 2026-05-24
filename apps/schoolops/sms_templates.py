@@ -142,3 +142,57 @@ def render_low_balance_sms(
         else:
             body = truncated
     return body
+
+
+SMS_PAYMENT_RECEIVED_BY_LOCALE: Mapping[str, str] = {
+    "en": "Payment received for {student}. Ref {reference}. Check the parent portal.",
+    "fr": "Paiement reçu pour {student}. Réf {reference}. Consultez le portail parents.",
+    "es": "Pago recibido para {student}. Ref {reference}. Revise el portal de padres.",
+    "pt": "Pagamento recebido para {student}. Ref {reference}. Veja o portal dos pais.",
+    "ar": "تم استلام دفعة لـ {student}. المرجع {reference}. راجع بوابة أولياء الأمور.",
+}
+
+
+def render_payment_received_sms(
+    *,
+    locale: str,
+    context: Mapping[str, str],
+) -> str:
+    """<=160 char SMS for payment.received (SFDP 1431)."""
+    code = _normalize_locale(locale)
+    template = SMS_PAYMENT_RECEIVED_BY_LOCALE.get(
+        code, SMS_PAYMENT_RECEIVED_BY_LOCALE["en"],
+    )
+    student = (context.get("student_name") or "your student")[:20]
+    reference = (context.get("reference") or "—")[:24]
+    body = template.format(student=student, reference=reference)
+    if len(body) > SMS_MAX_CHARS:
+        body = body[: SMS_MAX_CHARS - 1] + "…"
+    return body
+
+
+SMS_PAYMENT_RECEIVED_BY_LOCALE: Mapping[str, str] = {
+    "en": "Payment received for {student}. Ref {reference}. Check the parent portal.",
+    "fr": "Paiement reçu pour {student}. Réf {reference}. Consultez le portail parents.",
+    "es": "Pago recibido para {student}. Ref {reference}. Revise el portal de padres.",
+    "pt": "Pagamento recebido para {student}. Ref {reference}. Veja o portal dos pais.",
+    "ar": "تم استلام دفعة لـ {student}. المرجع {reference}. راجع بوابة أولياء الأمور.",
+}
+
+
+def render_payment_received_sms(
+    *,
+    locale: str,
+    context: Mapping[str, str],
+) -> str:
+    """<=160 char SMS for payment.received (SFDP 1431)."""
+    code = _normalize_locale(locale)
+    template = SMS_PAYMENT_RECEIVED_BY_LOCALE.get(
+        code, SMS_PAYMENT_RECEIVED_BY_LOCALE["en"],
+    )
+    student = (context.get("student_name") or "your student")[:20]
+    reference = (context.get("reference") or "—")[:24]
+    body = template.format(student=student, reference=reference)
+    if len(body) > SMS_MAX_CHARS:
+        body = body[: SMS_MAX_CHARS - 1] + "…"
+    return body

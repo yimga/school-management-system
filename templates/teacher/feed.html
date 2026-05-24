@@ -1,14 +1,14 @@
 {% extends "portal_base.html" %}
 {% load i18n %}
 {% load region_format terminology_tags %}
-{% term "teacher" capitalize=True as _teacher_sg %}
+{% term "teacher" capitalize=True as teacher_sg %}
 {% block title %}{% trans "Feed" %}{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Feed" %}</h1>
 <div class="container-fluid">
   <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb mb-0">
-      <li class="breadcrumb-item"><a href="{% url 'portal:teacher_dashboard_alias' %}">{% blocktrans with t=_teacher_sg %}{{ t }} home{% endblocktrans %}</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'portal:teacher_dashboard_alias' %}">{% blocktrans with t=teacher_sg %}{{ t }} home{% endblocktrans %}</a></li>
       <li class="breadcrumb-item active" aria-current="page">{% trans "Feed" %}</li>
     </ol>
   </nav>

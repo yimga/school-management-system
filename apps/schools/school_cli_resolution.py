@@ -30,7 +30,14 @@ def resolve_school_arg(slug_or_id) -> "School | None":
     by_slug = School.objects.filter(slug=s).first()
     if by_slug is not None:
         return by_slug
-    by_pk = School.objects.filter(pk=s).first()
+    try:
+        import uuid
+
+        uuid.UUID(s)
+    except ValueError:
+        by_pk = None
+    else:
+        by_pk = School.objects.filter(pk=s).first()
     if by_pk is not None:
         return by_pk
     if s.isdigit():

@@ -79,6 +79,7 @@ jobs:
             apps.platform_runtime.tests.test_offline_action_types \
             apps.sync_engine.tests.test_sodp_conflict_grade \
             apps.platform_runtime.tests.test_offline_provision_signup_apply \
+            apps.sync_engine.tests.test_services \
             apps.portal.tests.test_offline_enqueue_sodp \
             apps.schoolops.tests.test_email_delivery_idempotency \
             --verbosity=1 --no-input

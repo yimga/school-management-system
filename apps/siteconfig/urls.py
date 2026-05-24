@@ -123,6 +123,11 @@ from .views_ai_governance import ai_governance
 from .views_ai_center import ai_center
 from .views_billing_plan import billing_plan_readonly
 from .views_billing_stripe import billing_checkout_start, billing_customer_portal
+from .views_billing_stripe_connect import (
+    billing_stripe_connect,
+    billing_stripe_connect_return,
+    billing_stripe_connect_start,
+)
 from .views_tour import tour_steps_api, tour_steps_public_api
 from .views_tour_analytics import tour_analytics_api
 from .views_tour_info import tour_info_tag_api
@@ -229,6 +234,21 @@ urlpatterns = [
         "billing/portal/",
         billing_customer_portal,
         name="billing_customer_portal",
+    ),
+    path(
+        "billing-stripe/",
+        billing_stripe_connect,
+        name="billing_stripe_connect",
+    ),
+    path(
+        "billing-stripe/connect/",
+        billing_stripe_connect_start,
+        name="billing_stripe_connect_start",
+    ),
+    path(
+        "billing-stripe/return/",
+        billing_stripe_connect_return,
+        name="billing_stripe_connect_return",
     ),
     path(
         "ai/governance/",

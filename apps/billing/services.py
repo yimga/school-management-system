@@ -1559,6 +1559,21 @@ def run_revenue_share_payout_execution(
     return summary
 
 
+def sync_stripe_connect_from_webhook_snapshot(*, school, snapshot: dict) -> bool:
+    """Persist Stripe Connect account object from billing webhook snapshot."""
+    account_obj = snapshot.get("stripe_connect_account")
+    if not isinstance(account_obj, dict) or not school:
+        return False
+    try:
+        from apps.schools.stripe_connect_settings import merge_stripe_account_object
+
+        merge_stripe_account_object(school, account_obj)
+        school.save(update_fields=["settings"])
+        return True
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
 def convert_quote_to_subscription(quote_id: int):
     """
     Commercial platform (29.10): convert an accepted Quote to TenantSubscription.

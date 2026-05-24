@@ -10,6 +10,8 @@ from typing import Any
 
 from django.db.models import Count
 
+from apps.sync_engine.conflict_resolver import resolve_one
+
 
 def get_pending_changes(
     school_id: int | None,
@@ -77,13 +79,17 @@ def apply_remote(
         eid = str(change.get("id") or change.get("entity_id") or "")
         key = (entity, eid)
         if key in seen and entity and eid:
-            conflicts.append(
-                {
-                    "reason": "duplicate_remote_operation",
-                    "entity": entity,
-                    "id": eid,
-                }
-            )
+            conflict_row = {
+                "reason": "duplicate_remote_operation",
+                "entity": entity,
+                "id": eid,
+                "remote_timestamp": change.get("client_timestamp")
+                or change.get("timestamp"),
+            }
+            decision = resolve_one(conflict_row)
+            conflict_row["policy"] = decision.get("action")
+            conflict_row["policy_reason"] = decision.get("reason")
+            conflicts.append(conflict_row)
             continue
         if entity and eid:
             seen.add(key)

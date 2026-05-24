@@ -17,9 +17,9 @@
   {% comment %} v3.57.12+ (2026-05-22): civic brand block per rmc-print-v2 grammar
      so PDF renders of operator report tables carry the wordmark + motto + crest
      header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
-  {% trans "Operator report" as _report_title %}
-  {% now "Y-m-d" as _generated_at %}
-  {% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=report_name report_meta_left=_generated_at report_meta_right=SITE.site_name %}
+  {% trans "Operator report" as report_title %}
+  {% now "Y-m-d" as generated_at %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=report_name report_meta_left=generated_at report_meta_right=SITE.site_name %}
 
   <h1>{{ report_name }}</h1>
   <table>

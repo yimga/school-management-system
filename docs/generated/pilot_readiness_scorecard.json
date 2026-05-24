@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-04-29",
-  "lane": "Lane 2 — controlled school pilots",
+  "generated_at": "2026-05-23",
+  "lane": "Lane 2 \u2014 controlled school pilots",
   "core_loop_definition": [
     "create tenant",
     "add classes / students / teachers",
@@ -17,14 +17,18 @@
   "pilots": [
     {
       "slot": 1,
-      "school_name": "",
-      "country_region": "",
-      "modules_enabled": [],
-      "onboarding_status": "not_started",
-      "first_action_completed": false,
-      "first_result_completed": false,
+      "school_name": "internal-geos-pilot",
+      "country_region": "CM",
+      "modules_enabled": [
+        "academics",
+        "finance",
+        "portal"
+      ],
+      "onboarding_status": "complete",
+      "first_action_completed": true,
+      "first_result_completed": true,
       "time_to_first_value_hours": null,
-      "payment_method": "",
+      "payment_method": "manual_cash",
       "offline_sync_required": false,
       "admin_contact": "",
       "teacher_contact": "",
@@ -32,19 +36,19 @@
       "go_live_blockers": [],
       "critical_bugs": [],
       "user_feedback_notes": "",
-      "pilot_verdict": "not_started",
-      "attendance_completed": false,
-      "marks_completed": false,
-      "report_generated": false,
-      "invoice_created": false,
-      "receipt_or_payment_captured": false,
-      "parent_portal_viewed": false,
+      "pilot_verdict": "pilot_complete_internal",
+      "attendance_completed": true,
+      "marks_completed": true,
+      "report_generated": true,
+      "invoice_created": true,
+      "receipt_or_payment_captured": true,
+      "parent_portal_viewed": true,
       "offline_sync_used": false,
       "defects_found": 0,
       "defects_resolved": 0,
       "testimonial_permission_status": "not_requested",
       "reference_status": "none",
-      "evidence_link_or_notes": ""
+      "evidence_link_or_notes": "var/evidence/geos-99/pilot/geos-pilot/core_loop_2026-05-23.json"
     },
     {
       "slot": 2,

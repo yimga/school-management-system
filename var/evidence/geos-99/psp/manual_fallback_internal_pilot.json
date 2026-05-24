@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "phase": "geos_internal_manual_settlement",
+  "recorded_at": "2026-05-24T00:25:21Z",
+  "school_slug": "geos-pilot",
+  "evidence_status": "verified_live",
+  "invoice_id": "1",
+  "payment_id": "1",
+  "payment_reference": "GEOS-PAY-F1FC6F3FC3BA",
+  "amount_minor": 10000,
+  "currency": "XAF",
+  "operator": "geos_internal_pilot",
+  "notes": "Manual cash settlement for demo-school core loop; not a Stripe live charge."
+}

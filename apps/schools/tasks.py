@@ -933,6 +933,12 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         school.is_active = True
         school.save(update_fields=["is_active", "settings", "updated_at"])
         try:
+            from apps.finance.payment_provision import bind_tenant_payment_policy_safe
+
+            bind_tenant_payment_policy_safe(school)
+        except ImportError:
+            pass
+        try:
             from apps.platform_runtime.offline_mode_bundle import (
                 maybe_apply_offline_bundle_on_provision,
             )

@@ -2,8 +2,8 @@
 {% load static i18n phase8_tags terminology_tags %}
 {# Wave 13 (v3.62.17): "Student" reads as tenant's term — "Learner" in CBC #}
 {# Kenya, "Pupil" in UK independent, "विद्यार्थी" in IN-HI, "Ward" in PK. #}
-{% term "student" capitalize=True as _student_sg %}
-{% block title %}{% blocktrans with t=_student_sg %}{{ t }} home{% endblocktrans %}{% endblock %}
+{% term "student" capitalize=True as student_sg %}
+{% block title %}{% blocktrans with t=student_sg %}{{ t }} home{% endblocktrans %}{% endblock %}
 {% block body_extra_class %}dashboard-page-student{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
@@ -47,7 +47,7 @@
   <header class="rmc-page-header rmc-page-header-glow mb-3" data-rmc-aesthetic-page-header="student" data-tour="student-header">
     <div class="eyebrow rmc-page-eyebrow">{% trans "My learning" %}</div>
     {# v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.page-h1 strong` gradient-text rule. #}
-    <h1 class="page-h1" data-rmc-injected-h1="1">{% blocktrans with name=request.user.first_name|default:_student_sg %}Hi <strong>{{ name }}</strong>.{% endblocktrans %}</h1>
+    <h1 class="page-h1" data-rmc-injected-h1="1">{% blocktrans with name=request.user.first_name|default:student_sg %}Hi <strong>{{ name }}</strong>.{% endblocktrans %}</h1>
     <p class="page-sub">{% trans "Your priorities for today." %}</p>
   </header>
   <div data-tour="student-decision-strip">

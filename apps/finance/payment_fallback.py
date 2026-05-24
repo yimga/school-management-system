@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from apps.finance.local_checkout_context import build_checkout_rail_cards, payment_method_choices
+from apps.finance.payment_fx_display import settlement_display_for_profile
 from apps.finance.regional_payment_profiles import (
     get_normalized_regional_profile,
     get_regional_profile,
@@ -27,10 +29,14 @@ def corridor_bundle_for_invoice(invoice: Any) -> dict[str, Any]:
     normalized = get_normalized_regional_profile(cc) or {}
     primary = (regional.get("primary_rails") or ["BANK"])[:3]
     backup = (regional.get("backup_rails") or [])[:5]
+    normalized = get_normalized_regional_profile(cc) or {}
+    checkout = build_checkout_rail_cards(cc)
     return {
         "country_code": cc,
         "currency_code": currency,
         "label": regional.get("label"),
+        "currency_display": normalized.get("currency_display"),
+        "minor_units": normalized.get("minor_units"),
         "primary_rails": primary,
         "backup_rails": backup,
         "primary_rail": normalized.get("primary_rail") or (primary[0] if primary else None),
@@ -43,6 +49,14 @@ def corridor_bundle_for_invoice(invoice: Any) -> dict[str, Any]:
         "notes": regional.get("notes") or "",
         "provider_notes": normalized.get("provider_notes") or "",
         "operator_setup_steps": normalized.get("operator_setup_steps") or [],
+        "checkout_rail_cards": checkout.get("cards") or [],
+        "payment_method_choices": payment_method_choices(cc),
+        "settlement_display": settlement_display_for_profile(
+            normalized, getattr(invoice, "balance_amount", "")
+        ),
+        "locale_hints": normalized.get("locale_hints") or {},
+        "risk_tier": normalized.get("risk_tier"),
+        "small_market_fallback": normalized.get("small_market_fallback"),
         "primary_method": primary[0] if primary else None,
         "backup_method": backup[0] if backup else None,
     }

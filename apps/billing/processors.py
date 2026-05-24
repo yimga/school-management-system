@@ -308,6 +308,23 @@ class StripeConnectProcessor(BasePlatformBillingProcessor):
         external_subscription_ref = obj.get("subscription") or obj.get("id")
         stripe_status = str(obj.get("status") or "").strip().lower()
 
+        if event_type == "account.updated":
+            acct_meta = obj.get("metadata") if isinstance(obj.get("metadata"), dict) else {}
+            return [
+                {
+                    "school_slug": school_slug
+                    or acct_meta.get("tenant_slug")
+                    or acct_meta.get("school_slug"),
+                    "school_id": school_id or acct_meta.get("school_id"),
+                    "event_type": event_type,
+                    "stripe_connect_account": obj,
+                    "account_status": "active"
+                    if obj.get("charges_enabled")
+                    else "pending",
+                    "payload": payload,
+                }
+            ]
+
         if event_type == "checkout.session.completed":
             billed = _to_decimal_minor_units(obj.get("amount_total"))
             if billed is None and obj.get("amount_subtotal") is not None:

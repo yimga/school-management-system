@@ -15,7 +15,9 @@
   </div>
 </aside>
 {% endif %}
-<form method="post" class="card card-body" data-deflection-form-auto>
+<form method="post" class="card card-body" data-deflection-form-auto
+      data-rmc-offline-form="notes_report" data-offline-action-type="notes_report"
+      data-draft-key="forum_new_topic" data-draft-max-age-hours="24">
   {% csrf_token %}
   <div class="mb-3">
     <label class="form-label" for="forum-category">{% trans "Category" %}</label>

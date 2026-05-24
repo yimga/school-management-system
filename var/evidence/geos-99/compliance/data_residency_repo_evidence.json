@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:36:19Z",
+  "evidence_status": "repo_complete",
+  "proof": "apps/schools/data_residency_settings.py + docs/compliance/DATA_RESIDENCY_LEGAL_GUIDE.md",
+  "notes": "Repo cascade complete; corridor legal opinion remains operator/counsel."
+}

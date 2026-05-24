@@ -1,19 +1,19 @@
 {% extends "portal_base.html" %}
 {% load region_format i18n terminology_tags %}
-{% term "classroom" capitalize=True as _syll_class_sg %}
-{% term "classroom" plural=True as _syll_class_pl_lc %}
-{% term "subject" plural=True as _syll_subject_pl_lc %}
-{% term "teacher" plural=True as _syll_teacher_pl_lc %}
+{% term "classroom" capitalize=True as syll_class_sg %}
+{% term "classroom" plural=True as syll_class_pl_lc %}
+{% term "subject" plural=True as syll_subject_pl_lc %}
+{% term "teacher" plural=True as syll_teacher_pl_lc %}
 
-{% block title %}{% blocktrans with t=_syll_class_sg %}{{ t }} Syllabus{% endblocktrans %}{% endblock %}
+{% block title %}{% blocktrans with t=syll_class_sg %}{{ t }} Syllabus{% endblocktrans %}{% endblock %}
 
 {% block content %}
   <div class="card mb-4 shadow-sm">
     <div class="card-body">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
         <div>
-          <h1 class="mb-1">{% blocktrans with t=_syll_class_sg %}{{ t }} Syllabus{% endblocktrans %}</h1>
-          <p class="text-muted mb-2">{% blocktrans with sp=_syll_subject_pl_lc cp=_syll_class_pl_lc tp=_syll_teacher_pl_lc %}Download term planners, {{ sp }} outlines, and {{ cp }} agendas curated by your {{ tp }}.{% endblocktrans %}</p>
+          <h1 class="mb-1">{% blocktrans with t=syll_class_sg %}{{ t }} Syllabus{% endblocktrans %}</h1>
+          <p class="text-muted mb-2">{% blocktrans with sp=syll_subject_pl_lc cp=syll_class_pl_lc tp=syll_teacher_pl_lc %}Download term planners, {{ sp }} outlines, and {{ cp }} agendas curated by your {{ tp }}.{% endblocktrans %}</p>
           <p class="small text-muted mb-0">{{ feature.description }}</p>
         </div>
         <div class="d-flex flex-wrap gap-2">

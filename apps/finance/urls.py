@@ -27,6 +27,13 @@ from .views import (
 from .views_reports import finance_reports, submit_report_request
 from .views_payment_setup import payment_readiness_setup
 from .views_payment_readiness_dashboard import payment_readiness_dashboard
+from .views_global_payment_command_center import global_payment_command_center
+from .views_offline_bursar_queue import (
+    offline_payment_intent_approve,
+    offline_payment_intent_bulk_approve,
+    offline_payment_intent_queue,
+    offline_payment_intent_queue_export,
+)
 
 app_name = "finance"
 
@@ -41,6 +48,31 @@ urlpatterns = [
         "payment-readiness/",
         payment_readiness_dashboard,
         name="payment_readiness_dashboard",
+    ),
+    path(
+        "payment-command-center/",
+        global_payment_command_center,
+        name="global_payment_command_center",
+    ),
+    path(
+        "offline-intents/queue/",
+        offline_payment_intent_queue,
+        name="offline_payment_intent_queue",
+    ),
+    path(
+        "offline-intents/<int:intent_id>/approve/",
+        offline_payment_intent_approve,
+        name="offline_payment_intent_approve",
+    ),
+    path(
+        "offline-intents/bulk-approve/",
+        offline_payment_intent_bulk_approve,
+        name="offline_payment_intent_bulk_approve",
+    ),
+    path(
+        "offline-intents/queue/export.csv",
+        offline_payment_intent_queue_export,
+        name="offline_payment_intent_queue_export",
     ),
     path("invoices/", invoice_list, name="invoices"),
     path("invoices/<int:invoice_id>/", invoice_detail, name="invoice_detail"),

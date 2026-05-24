@@ -249,7 +249,18 @@ def availability_map_from_rows(rows: list[dict[str, Any]]) -> dict[str, bool]:
 
 
 CARD_BANK_SLUGS = frozenset({"card", "bank", "bank_transfer", "sepa"})
-PSP_INTEGRATION_SLUGS = frozenset({"stripe", "paystack", "flutterwave"})
+PSP_INTEGRATION_SLUGS = frozenset(
+    {
+        "stripe",
+        "paystack",
+        "flutterwave",
+        "razorpay",
+        "pesapal",
+        "mercado_pago",
+        "mercadopago",
+        "dlocal",
+    }
+)
 
 
 def integration_secret_hint_present(cfg: dict[str, Any] | None) -> bool:
@@ -433,6 +444,54 @@ def _ping_flutterwave(cfg: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _ping_razorpay(cfg: dict[str, Any]) -> dict[str, Any]:
+    """Non-charge GET /v1/payments?count=1 (Basic auth)."""
+    import base64
+
+    base = {
+        "rail_code": "RAZORPAY",
+        "provider_key": "razorpay",
+        "mode": "production_ping",
+        "external_action_needed": "",
+    }
+    key_id = _resolve_secret(cfg, ("RAZORPAY_KEY_ID",), ("key_id", "api_key"))
+    key_secret = _resolve_secret(
+        cfg, ("RAZORPAY_KEY_SECRET", "RAZORPAY_SECRET_KEY"), ("key_secret", "secret_key")
+    )
+    if not key_id or not key_secret:
+        return {
+            **base,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": "Razorpay key_id/key_secret not configured.",
+            "action_required": "Configure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.",
+        }
+    token = base64.b64encode(f"{key_id}:{key_secret}".encode()).decode("ascii")
+    status, _ = _http_get_json(
+        "https://api.razorpay.com/v1/payments?count=1",
+        headers={"Authorization": f"Basic {token}", "Accept": "application/json"},
+    )
+    if status == 200:
+        return {
+            **base,
+            "status": GatewayHealthStatus.READY,
+            "message": "Razorpay /v1/payments returned 200 (non-charge ping).",
+            "action_required": "",
+        }
+    if status in (401, 403):
+        return {
+            **base,
+            "status": GatewayHealthStatus.MISSING_CREDENTIALS,
+            "message": f"Razorpay rejected credentials (HTTP {status}).",
+            "action_required": "Verify live keys after merchant KYC.",
+        }
+    return {
+        **base,
+        "status": GatewayHealthStatus.DEGRADED,
+        "message": f"Razorpay ping failed (HTTP {status or 'no response'}).",
+        "action_required": "Check network egress.",
+    }
+
+
 def _ping_stripe(cfg: dict[str, Any]) -> dict[str, Any]:
     """Stripe Balance.retrieve — non-charge. Prefers stripe SDK; falls back to HTTPS GET."""
     base = {
@@ -539,6 +598,8 @@ def run_safe_production_ping(
         return _ping_paystack(cfg)
     if slug_l == "flutterwave":
         return _ping_flutterwave(cfg)
+    if slug_l == "razorpay":
+        return _ping_razorpay(cfg)
 
     return {
         **base,

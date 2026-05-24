@@ -27,7 +27,7 @@
     "verify:five-pillar": "python scripts/verify_five_pillar_platform_completion.py --write --run-tests",
     "verify:six-pillar": "python scripts/verify_six_pillar_global_dominance.py --write --run-tests",
     "verify:ecosystem-sovereignty": "python scripts/verify_ecosystem_sovereignty_matrix.py --write --run-tests",
-    "verify:geos-99": "python scripts/verify_greatest_education_os_matrix.py --write && python scripts/verify_email_delivery_surface.py && python scripts/verify_geos_locale_chrome_coverage.py && python scripts/verify_geos_lane2_scaffold.py",
+    "verify:geos-99": "python scripts/verify_greatest_education_os_matrix.py --write && python scripts/verify_greatest_education_os_matrix.py --require-composite-99 && python scripts/verify_email_delivery_surface.py && python scripts/verify_geos_locale_chrome_coverage.py && python scripts/verify_geos_lane2_scaffold.py",
     "verify:geos-ai-lane1": "python scripts/verify_help_center_tiers.py && python scripts/verify_render_online_ai_posture.py && python scripts/verify_ai_engine_room.py && python scripts/verify_support_pipeline_integrity.py && python scripts/verify_kb_embedding_coverage.py && python scripts/verify_greatest_education_os_matrix.py",
     "verify:geos-ai-phase-a": "npm run verify:geos-ai-lane1 && python scripts/verify_unified_ai_assistant.py",
     "verify:geos-ai-phase-bc": "npm run verify:geos-ai-phase-a && python scripts/run_sqlite_memory_tests.py apps.portal.tests.test_unified_ai_phases_bc --verbosity=1",

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "phase": "phase2_connect_pilot",
+  "recorded_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "school_slug": "<pilot-school>",
+  "stripe_connect_account_id": "acct_\u2026",
+  "onboarding_completed_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "first_destination_charge_id": "pi_\u2026 or ch_\u2026",
+  "connected_payout_id": "po_\u2026",
+  "webhook_events": [
+    "account.updated",
+    "payment_intent.succeeded",
+    "payout.paid"
+  ],
+  "tenant_onboarding_route": "/siteconfig/billing-stripe/",
+  "operator": "<name-or-role>",
+  "notes": "School is merchant of record; platform application fee optional. Fill redacted IDs after supervised live charge; never commit secrets.",
+  "evidence_status": "pending_operator",
+  "initialized_at": "2026-05-23T23:51:11Z"
+}

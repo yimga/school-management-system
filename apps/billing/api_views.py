@@ -11,7 +11,7 @@ from apps.billing.models import (
     PlatformBillingProcessorConfig,
 )
 from apps.billing.processors import get_platform_billing_processor
-from apps.billing.services import apply_processor_snapshot, finalize_marketplace_addon_payment
+from apps.billing.services import apply_processor_snapshot, finalize_marketplace_addon_payment, sync_stripe_connect_from_webhook_snapshot
 from apps.observability.incident_services import upsert_platform_incident
 from apps.observability.models import PlatformIncident
 from apps.schools.models import School
@@ -237,6 +237,7 @@ def platform_billing_processor_webhook(request, processor_code: str):
             message=str(snapshot.get("message") or "").strip(),
             processor_source_ref=str(snapshot.get("processor_source_ref") or "").strip(),
         )
+        sync_stripe_connect_from_webhook_snapshot(school=school, snapshot=snapshot)
         finalize_marketplace_addon_payment(
             school,
             snapshot,

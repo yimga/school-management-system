@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "phase": "phase1_platform_direct_charge",
+  "recorded_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "deployment_host": "https://your-tenant.runmycampus.com",
+  "stripe_mode": "live",
+  "evidence_kind": "supervised_charge_and_refund",
+  "invoice_id": "<internal-invoice-uuid>",
+  "payment_intent_id": "pi_\u2026",
+  "charge_id": "ch_\u2026",
+  "refund_id": "re_\u2026",
+  "webhook_delivery_ids": [
+    "we_\u2026"
+  ],
+  "ledger_entry_ids": [
+    "<platform-ledger-uuid>"
+  ],
+  "operator": "<name-or-role>",
+  "notes": "Redact PII; store Stripe dashboard export paths only. Fill redacted IDs after supervised live charge; never commit secrets.",
+  "evidence_status": "pending_operator",
+  "initialized_at": "2026-05-23T23:51:11Z"
+}

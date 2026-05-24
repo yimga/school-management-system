@@ -12,6 +12,10 @@ from . import orange_money  # noqa: F401
 from . import stripe  # noqa: F401
 from . import paystack  # noqa: F401
 from . import flutterwave  # noqa: F401
+from . import razorpay  # noqa: F401
+from . import pesapal  # noqa: F401
+from . import mercado_pago  # noqa: F401
+from . import dlocal  # noqa: F401
 
 __all__ = [
     "BasePaymentGateway",

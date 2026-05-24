@@ -24,10 +24,29 @@
     );
   }
 
+  function isElementVisible(el) {
+    if (!el || !el.getBoundingClientRect) return false;
+    var st = window.getComputedStyle(el);
+    if (st.display === "none" || st.visibility === "hidden" || st.pointerEvents === "none") {
+      return false;
+    }
+    if (parseFloat(st.opacity) === 0) {
+      return false;
+    }
+    var rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
   function visibleModalOpen() {
-    return !!document.querySelector(
-      ".modal.show, .modal[style*='display: block'], .offcanvas.show"
+    var nodes = document.querySelectorAll(
+      ".modal.show, .modal[style*='display: block'], .modal[style*='display:block'], .offcanvas.show, .offcanvas[style*='display: block'], .offcanvas[style*='display:block']"
     );
+    for (var i = 0; i < nodes.length; i += 1) {
+      if (isElementVisible(nodes[i])) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function hideModalOverlay() {

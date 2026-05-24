@@ -44,7 +44,9 @@
 
 <div class="card">
   <div class="card-body">
-    <form method="post" enctype="multipart/form-data" id="contact-school-form" dir="auto" data-draft-key="parent_contact_school" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced request' %}">
+    <form method="post" enctype="multipart/form-data" id="contact-school-form" dir="auto"
+          data-rmc-offline-form="support_ticket" data-offline-action-type="support_ticket"
+          data-draft-key="parent_contact_school" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced request' %}">
       {% csrf_token %}
       {{ form.as_p }}
       <button class="btn btn-primary" type="submit">{% trans "Submit request" %}</button>

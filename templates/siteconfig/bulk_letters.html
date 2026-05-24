@@ -23,8 +23,8 @@
       <div class="fw-semibold text-body fs-6">{{ bulk_letters_operator_summary.classrooms }}</div>
     </div>
     <div class="border rounded-2 px-2 py-1 small bg-body-secondary text-body-secondary flex-grow-1" style="min-width: 7rem; max-width: 12rem;">
-      {% term "student" plural=True capitalize=True as _bl_student_pl %}
-      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% blocktrans with t=_bl_student_pl %}{{ t }} (total){% endblocktrans %}</div>
+      {% term "student" plural=True capitalize=True as bl_student_pl %}
+      <div class="text-uppercase" style="font-size:var(--type-size-micro); letter-spacing:0.04em;">{% blocktrans with t=bl_student_pl %}{{ t }} (total){% endblocktrans %}</div>
       <div class="fw-semibold text-body fs-6">{{ bulk_letters_operator_summary.students_total }}</div>
     </div>
   </div>

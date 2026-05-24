@@ -8,8 +8,8 @@
 {% comment %} v3.57.7+ (2026-05-21): civic brand block per rmc-print-v2 grammar
    so PDF / print renders of this invoice carry the wordmark + motto + crest
    header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
-{% trans "Invoice" as _report_title %}
-{% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=invoice.reference|default:invoice.id report_meta_left=invoice.issue_date|format_date report_meta_right=school %}
+{% trans "Invoice" as report_title %}
+{% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=invoice.reference|default:invoice.id report_meta_left=invoice.issue_date|format_date report_meta_right=school %}
 
 {% if access_denied %}
 <div class="card border-warning mb-3">
@@ -261,6 +261,7 @@
   </div>
 
   {% if payment_corridor %}
+  {% include "finance/partials/local_checkout_rail_cards.html" %}
   <div class="card mb-3 border-secondary-subtle">
     <div class="card-body">
       <h5 class="h6 mb-2">{% trans "Regional payment corridor" %}</h5>
@@ -306,10 +307,14 @@
             <label class="form-label">{% trans "Payment Method" %} <span class="text-danger">*</span></label>
             <select class="form-select" name="payment_method" required>
               <option value="">{% trans "Select method..." %}</option>
+              {% for code, label in payment_corridor.payment_method_choices %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% empty %}
               <option value="CASH">{% trans "Cash" %}</option>
               <option value="BANK">{% trans "Bank Transfer" %}</option>
               <option value="MTN_MOMO">{% trans "MTN MoMo" %}</option>
               <option value="ORANGE_MOMO">{% trans "Orange Money" %}</option>
+              {% endfor %}
             </select>
           </div>
           <div class="col-md-3">

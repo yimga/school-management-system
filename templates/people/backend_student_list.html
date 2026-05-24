@@ -11,10 +11,10 @@
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_create' as create_url %}
-      {% term "student" plural=True capitalize=True as _student_pl %}
-      {% term "student" capitalize=True as _student_sg %}
-      {% blocktrans asvar _student_add_text with t=_student_sg %}Add {{ t }}{% endblocktrans %}
-      {% include "studio_os/components/page_header.html" with title=_student_pl subtitle=_("Manage student records") action_url=create_url action_text=_student_add_text %}
+      {% term "student" plural=True capitalize=True as student_pl %}
+      {% term "student" capitalize=True as student_sg %}
+      {% blocktrans asvar student_add_text with t=student_sg %}Add {{ t }}{% endblocktrans %}
+      {% include "studio_os/components/page_header.html" with title=student_pl subtitle=_("Manage student records") action_url=create_url action_text=student_add_text %}
 
       {% comment %} Pass 8 Wave 2: added list-filter-bar + form-system--dense so canonical filter-bar
          CSS (dense micro-labels, harmonized search affordance) styles this row identically

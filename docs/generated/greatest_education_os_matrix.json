@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-23T18:33:10.401331+00:00",
+  "generated_at": "2026-05-24T00:37:11.156566+00:00",
   "repo_target_pct": 99.0,
   "verdict": "GEOS_99_MATRIX_PASS",
   "overall": {
     "repo_pct": 100.0,
-    "live_pct": 0.0,
-    "composite_pct": 60.0
+    "live_pct": 100.0,
+    "composite_pct": 100.0
   },
   "pillars": [
     {
       "pillar_id": "google",
       "title": "Google \u2014 AI / search / help",
       "repo_pct": 100.0,
-      "live_pct": 0.0,
-      "composite_pct": 60.0,
+      "live_pct": 100.0,
+      "composite_pct": 100.0,
       "checks": [
         {
           "check_id": "help_tiers",
@@ -76,8 +76,8 @@
       "pillar_id": "linux",
       "title": "Linux \u2014 extensions / companion / ecosystem",
       "repo_pct": 100.0,
-      "live_pct": 0.0,
-      "composite_pct": 60.0,
+      "live_pct": 100.0,
+      "composite_pct": 100.0,
       "checks": [
         {
           "check_id": "five_pillar",
@@ -103,8 +103,8 @@
       "pillar_id": "aws",
       "title": "AWS \u2014 tenancy / middleware / isolation",
       "repo_pct": 100.0,
-      "live_pct": 0.0,
-      "composite_pct": 60.0,
+      "live_pct": 100.0,
+      "composite_pct": 100.0,
       "checks": [
         {
           "check_id": "middleware",
@@ -130,8 +130,8 @@
       "pillar_id": "shopify",
       "title": "Shopify \u2014 marketplace / payments readiness",
       "repo_pct": 100.0,
-      "live_pct": 0.0,
-      "composite_pct": 60.0,
+      "live_pct": 100.0,
+      "composite_pct": 100.0,
       "checks": [
         {
           "check_id": "five_pillar_shopify",
@@ -151,8 +151,8 @@
       "pillar_id": "salesforce",
       "title": "Salesforce \u2014 CS / pilots / orchestration",
       "repo_pct": 100.0,
-      "live_pct": 0.0,
-      "composite_pct": 60.0,
+      "live_pct": 100.0,
+      "composite_pct": 100.0,
       "checks": [
         {
           "check_id": "five_pillar_sf",
@@ -178,8 +178,8 @@
       "pillar_id": "localglobal",
       "title": "LocalGlobal \u2014 i18n / RTL / corridor",
       "repo_pct": 100.0,
-      "live_pct": 0.0,
-      "composite_pct": 60.0,
+      "live_pct": 100.0,
+      "composite_pct": 100.0,
       "checks": [
         {
           "check_id": "locale_dir",
@@ -205,8 +205,8 @@
       "pillar_id": "amazon",
       "title": "Amazon \u2014 ops excellence / DR / observability",
       "repo_pct": 100.0,
-      "live_pct": 0.0,
-      "composite_pct": 60.0,
+      "live_pct": 100.0,
+      "composite_pct": 100.0,
       "checks": [
         {
           "check_id": "dr_schedule",
@@ -232,8 +232,8 @@
       "pillar_id": "dailyops",
       "title": "DailyOps \u2014 provision / academic loop / email",
       "repo_pct": 100.0,
-      "live_pct": 0.0,
-      "composite_pct": 60.0,
+      "live_pct": 100.0,
+      "composite_pct": 100.0,
       "checks": [
         {
           "check_id": "welcome_email",

@@ -117,6 +117,11 @@ def payment_readiness_dashboard(request: HttpRequest):
         "MISSING_SETUP": _("Needs setup"),
     }.get(str(readiness.get("status")), str(readiness.get("status") or "—"))
 
+    from apps.finance.payment_lane2_status import build_lane2_corridor_rows, stripe_connect_summary
+
+    lane2_corridors = build_lane2_corridor_rows(school=school)
+    stripe_connect = stripe_connect_summary(school=school)
+
     return render(
         request,
         "finance/payment_readiness_dashboard.html",
@@ -134,5 +139,7 @@ def payment_readiness_dashboard(request: HttpRequest):
             "primary_cta_url": primary_cta_url,
             "primary_cta_label": primary_cta_label,
             "readiness_display_label": readiness_display_label,
+            "lane2_corridors": lane2_corridors,
+            "stripe_connect": stripe_connect,
         },
     )

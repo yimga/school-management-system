@@ -101,7 +101,9 @@ body.portal-body-with-layout:not(.control-plane-shell) .rmc-sidebar-page-help {
   margin: 8px 0 10px;
 }
 
-body[data-rmc-help-in-sidebar="1"].portal-body-with-layout:not(.control-plane-shell),
+body[data-rmc-help-in-sidebar="1"].portal-body-with-layout:not(.control-plane-shell)
+  #portalHeader
+  .topbar-icon-btn[data-rmc-page-help],
 body[data-rmc-help-in-nav="1"].portal-body-with-layout:not(.control-plane-shell)
   #portalHeader
   .topbar-icon-btn[data-rmc-page-help] {

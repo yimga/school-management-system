@@ -37,6 +37,30 @@ def main() -> int:
     if "provision.signup" not in bootstrap:
         findings.append("rmc-offline-auth-bootstrap missing provision.signup enqueue")
 
+    oqc = _text("static/js/offline-queue-client.js")
+    if "runProcessQueue" not in oqc or "rmc-offline-conflicts-updated" not in oqc:
+        findings.append("offline-queue-client must refresh conflict count after process")
+    if "offlineConflictsUrl" not in _text("templates/portal_base.html"):
+        findings.append("portal_base SMS_OFFLINE_CONFIG missing offlineConflictsUrl")
+
+    status_js = _text("static/js/offline-status-bar.js")
+    if "conflictsPortalUrl" not in status_js:
+        findings.append("offline-status-bar missing portal conflicts bridge")
+
+    services = _text("apps/sync_engine/services.py")
+    if "resolve_one" not in services:
+        findings.append("apply_remote must use conflict_resolver.resolve_one")
+
+    form_hits = 0
+    templates_root = ROOT / "templates"
+    if templates_root.is_dir():
+        for path in templates_root.rglob("*.html"):
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if 'data-rmc-offline-form="' in text:
+                form_hits += 1
+    if form_hits < 14:
+        findings.append(f"expected >=14 templates with data-rmc-offline-form (found {form_hits})")
+
     portal = _text("templates/portal_base.html")
     for needle in (
         "form-draft-save.js",

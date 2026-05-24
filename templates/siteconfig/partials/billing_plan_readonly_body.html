@@ -214,6 +214,9 @@
     {% endif %}
     {% endif %}
     {% endif %}
+    {% if school %}
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'siteconfig:billing_stripe_connect' %}">{% trans "School payouts (Stripe Connect)" %}</a>
+    {% endif %}
   </div>
 
   <div class="alert alert-light border small" role="status" data-rmc-billing-next-steps="1">

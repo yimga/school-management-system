@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load i18n static %}
 {% block title %}Payment setup & readiness{% endblock %}
 
 {% block content %}
@@ -47,6 +47,25 @@
       </div>
     </div>
     <div class="col-lg-5 rmc-reveal">
+      {% if simple_payment_flow.choices %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Payment rails for this school" %}</h2>
+          <ul class="list-unstyled mb-0">
+            {% for choice in simple_payment_flow.choices %}
+            <li class="mb-2">
+              <span class="badge bg-secondary me-1">{{ choice.role }}</span>
+              <strong>{{ choice.label }}</strong>
+              <span class="text-muted small">({{ choice.code }})</span>
+            </li>
+            {% endfor %}
+          </ul>
+          <p class="small text-muted mt-2 mb-0">
+            <a href="{% url 'finance:offline_payment_intent_queue' %}">{% trans "Review offline payment queue" %}</a>
+          </p>
+        </div>
+      </div>
+      {% endif %}
       <div class="card shadow-sm mb-3">
         <div class="card-body">
           <h2 class="h5">Country & currency</h2>
@@ -89,6 +108,78 @@
         <div class="card-body">
           <h2 class="h6 text-muted">Outside RunMyCampus</h2>
           <p class="small mb-0">{{ readiness.provider_notes }}</p>
+        </div>
+      </div>
+      {% endif %}
+      <div class="card shadow-sm mt-3">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Engine 1 — Stripe Connect (platform payouts)" %}</h2>
+          <p class="small text-muted mb-2">
+            {% trans "School → RunMyCampus SaaS billing. Separate from parent tuition (Engine 2)." %}
+          </p>
+          <dl class="row mb-2 small">
+            <dt class="col-sm-6">{% trans "Connected" %}</dt>
+            <dd class="col-sm-6">
+              {% if stripe_connect.connected %}
+              <span class="badge bg-success">{% trans "Yes" %}</span>
+              {% else %}
+              <span class="badge bg-warning text-dark">{% trans "Not yet" %}</span>
+              {% endif %}
+            </dd>
+            {% if stripe_connect.account_id %}
+            <dt class="col-sm-6">{% trans "Account" %}</dt>
+            <dd class="col-sm-6"><code>{{ stripe_connect.account_id }}</code></dd>
+            {% endif %}
+          </dl>
+          <a class="btn btn-sm btn-outline-primary" href="{{ stripe_connect_url }}">
+            {% trans "Open Stripe Connect setup" %}
+          </a>
+        </div>
+      </div>
+      {% if lane2_corridors %}
+      <div class="card shadow-sm mt-3" data-rmc-scroll-policy="paginate">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Lane 2 — live PSP proof (Engine 2 + Stripe cards)" %}</h2>
+          <p class="small text-muted">
+            {% trans "Repo-ready ≠ corridor-live. File evidence under var/evidence/geos-99/psp/ before flipping register to verified_live." %}
+          </p>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0 rmc-data-table">
+              <thead>
+                <tr>
+                  <th>{% trans "PSP" %}</th>
+                  <th>{% trans "Register" %}</th>
+                  <th>{% trans "Integration" %}</th>
+                  <th>{% trans "Live proof" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in lane2_corridors %}
+                <tr>
+                  <td>
+                    <span class="badge bg-secondary me-1">{{ row.engine }}</span>
+                    {{ row.label }}
+                  </td>
+                  <td><code class="small">{{ row.register_status }}</code></td>
+                  <td>
+                    {% if row.integration_configured %}
+                    <span class="badge bg-success">{% trans "Keys row" %}</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">{% trans "Missing" %}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if row.live_proof %}
+                    <span class="badge bg-success">verified_live</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{% trans "Pending" %}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       {% endif %}

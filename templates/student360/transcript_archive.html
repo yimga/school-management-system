@@ -9,9 +9,9 @@
   {% comment %} v3.57.7+ (2026-05-21): civic brand block per rmc-print-v2 grammar
      so PDF / print renders of this transcript archive carry the wordmark + motto +
      crest header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
-  {% trans "Transcript" as _report_title %}
-  {% now "Y-m-d" as _generated_at %}
-  {% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=student.get_full_name report_meta_left=_generated_at report_meta_right=school %}
+  {% trans "Transcript" as report_title %}
+  {% now "Y-m-d" as generated_at %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=student.get_full_name report_meta_left=generated_at report_meta_right=school %}
 
   <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>

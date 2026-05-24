@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% load i18n terminology_tags %}
-{% term "guardian" capitalize=True as _ccst_guardian_sg %}
+{% term "guardian" capitalize=True as ccst_guardian_sg %}
 
 {% block title %}{% trans "Consent campaign status" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
 
@@ -10,7 +10,7 @@
     <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to migration status" %}</a>
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mt-2">
       <div>
-        <h1 class="h2 mb-1">{% blocktrans with t=_ccst_guardian_sg %}{{ t }} consent campaign{% endblocktrans %}</h1>
+        <h1 class="h2 mb-1">{% blocktrans with t=ccst_guardian_sg %}{{ t }} consent campaign{% endblocktrans %}</h1>
         <p class="text-secondary mb-0">{% trans "Live progress and per-token controls." %}</p>
       </div>
       <a href="{% url 'migration_guardian_consent_admin:guardian-consent-campaign-start' intake_id=intake.id %}" class="btn btn-outline-primary btn-sm">{% trans "Send to more guardians" %}</a>

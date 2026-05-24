@@ -10,8 +10,8 @@
   {% comment %} v3.57.11+ (2026-05-21): civic brand block per rmc-print-v2 grammar
      so PDF / print renders of the term report carry the wordmark + motto + crest
      header. Translated title pre-resolved to avoid lazy-callable leak. {% endcomment %}
-  {% trans "Term report" as _report_title %}
-  {% include "partials/rmc_print_v2_brand_block.html" with report_title=_report_title report_subtitle=student_name report_meta_left=generated_at|format_date report_meta_right=school %}
+  {% trans "Term report" as report_title %}
+  {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=student_name report_meta_left=generated_at|format_date report_meta_right=school %}
   <nav class="ds-action-bar d-print-none mb-2" aria-label="{% trans 'Report actions' %}">
     <button type="button" class="btn btn-sm btn-primary ds-btn" onclick="window.print()">{% trans "Print or save as PDF" %}</button>
   </nav>
@@ -58,7 +58,7 @@
     <div class="box">
       <b>Summary</b><br>
       Average: <b>{{ summary.average|format_number:2|default:"-" }}</b><br>
-      {% term "classroom" capitalize=True as _cl_sg %}{% trans "Rank in" %} {{ _cl_sg }}: <b>{{ summary.class_rank_display|default:"-" }}</b><br>
+      {% term "classroom" capitalize=True as cl_sg %}{% trans "Rank in" %} {{ cl_sg }}: <b>{{ summary.class_rank_display|default:"-" }}</b><br>
       Specialty Rank: <b>{{ summary.specialty_rank_display|default:"-" }}</b><br>
       School Rank: <b>{{ summary.school_rank_display|default:"-" }}</b><br>
       Status: <b>{{ summary.promotion_status|default:"-" }}</b>
@@ -117,7 +117,7 @@
 
   <div class="grid" style="margin-top:10px;">
     <div class="box">
-      {% term "teacher" capitalize=True as _t_sg %}<b>{{ _t_sg }} {% trans "Remark" %}</b><br>
+      {% term "teacher" capitalize=True as t_sg %}<b>{{ t_sg }} {% trans "Remark" %}</b><br>
       {{ summary.teacher_remark }}
     </div>
     <div class="box">

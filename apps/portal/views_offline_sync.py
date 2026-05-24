@@ -370,3 +370,40 @@ def api_offline_process(request: HttpRequest) -> JsonResponse:
         limit=50,
     )
     return JsonResponse({"ok": True, **summary})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_offline_apply_batch(request: HttpRequest) -> JsonResponse:
+    """Preflight client delta batches through ``apply_remote`` + conflict_resolver policies."""
+    school, err = _require_school(request)
+    if err:
+        return JsonResponse({"ok": False, "error": "no_school"}, status=403)
+
+    data = _parse_json(request)
+    if not data:
+        return JsonResponse({"ok": False, "error": "invalid_json"}, status=400)
+
+    changes = data.get("changes")
+    if not isinstance(changes, list):
+        return JsonResponse({"ok": False, "error": "changes_must_be_list"}, status=400)
+
+    device_id = str(data.get("device_id") or "")[:128] or None
+    from apps.platform_runtime.offline_queue import apply_client_batch
+
+    result = apply_client_batch(
+        school.pk,
+        request.user.pk,
+        changes,
+        device_id=device_id,
+    )
+    conflicts = result.get("conflicts") or []
+    manual_review = sum(1 for row in conflicts if row.get("policy") == "manual_review")
+    return JsonResponse(
+        {
+            "ok": True,
+            **result,
+            "conflict_count": len(conflicts),
+            "manual_review_count": manual_review,
+        }
+    )

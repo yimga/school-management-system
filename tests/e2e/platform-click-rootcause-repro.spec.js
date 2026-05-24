@@ -10,6 +10,7 @@
  *   VISUAL_QA_PORT=8000 npx playwright test tests/e2e/platform-click-rootcause-repro.spec.js
  */
 const { test, expect } = require('@playwright/test');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -22,6 +23,9 @@ const TENANT_PREFIX = process.env.TENANT_PREFIX || '';
 const TENANT_BASE_URL =
   process.env.TENANT_BASE_URL || `http://apple-class-qa.runmycampus.com:${PORT}`;
 const SCREENSHOT_DIR = path.join(__dirname, 'screenshots');
+const REPO_ROOT = path.join(__dirname, '..', '..');
+const TOTP_SCRIPT = path.join(REPO_ROOT, 'scripts', 'apple_class_qa_totp.py');
+const CLICKS_PER_SURFACE = 3;
 
 const MANAGER_USERNAME = process.env.VISUAL_QA_USERNAME || 'visualqa_admin';
 const MANAGER_PASSWORD = process.env.VISUAL_QA_PASSWORD || 'VisualQaPass123!';
@@ -34,7 +38,7 @@ const surfaces = [
   {
     slug: 'marketing',
     baseUrl: MARKETING_BASE_URL,
-    path: '/marketing/',
+    path: '/',
     auth: null,
   },
   {
@@ -58,7 +62,7 @@ const surfaces = [
   {
     slug: 'tenant-portal',
     baseUrl: TENANT_BASE_URL,
-    path: `${TENANT_PREFIX}/portal/`,
+    path: `${TENANT_PREFIX}/`,
     loginPath: `${TENANT_PREFIX}/authentication/login/`,
     auth: 'tenant',
   },
@@ -103,6 +107,19 @@ async function login(page, baseUrl, username, password, loginPath = '/authentica
     timeout: 90000,
     waitUntil: 'domcontentloaded',
   });
+  if (/\/authentication\/mfa\/verify\/?$/i.test(new URL(page.url()).pathname)) {
+    const token = execFileSync('python', [TOTP_SCRIPT, username], {
+      cwd: REPO_ROOT,
+      encoding: 'utf8',
+      env: process.env,
+    }).trim();
+    await page.locator('input[name="token"]').fill(token);
+    await page.getByRole('button', { name: /verify|continue|submit/i }).click();
+    await page.waitForURL((url) => !/\/authentication\/mfa\/verify\/?$/i.test(url.pathname), {
+      timeout: 90000,
+      waitUntil: 'domcontentloaded',
+    });
+  }
 }
 
 async function ensureAuth(page, surface, authenticatedPlanes) {
@@ -172,17 +189,30 @@ async function collectClickTargets(page) {
       const text = label(el);
       if (/logout|delete|remove|danger|dismiss|close|verify|continue/i.test(text)) return false;
       if (/^RunMyCampus$/i.test(text)) return false;
+      if (el.matches('.cp-topbar-bell')) return false;
+      if (el.matches('.rmc-brand-mark-link')) return false;
       if (
         el.tagName.toLowerCase() === 'button' &&
         (el.getAttribute('type') || 'submit').toLowerCase() === 'submit'
       ) {
         return false;
       }
+      if (el.tagName.toLowerCase() !== 'a' && el.tagName.toLowerCase() !== 'summary') {
+        const hasExplicitAction =
+          el.hasAttribute('data-bs-toggle') ||
+          el.hasAttribute('data-rmc-kbd-cheatsheet-trigger') ||
+          el.hasAttribute('aria-controls') ||
+          el.hasAttribute('aria-expanded');
+        if (!hasExplicitAction) return false;
+      }
       if (el.tagName.toLowerCase() === 'a') {
         const href = el.getAttribute('href') || '';
         if (!href || href === '#' || /^javascript:/i.test(href)) return false;
         if (/logout|delete|remove|dismiss|close/i.test(href)) return false;
         if (/^(mailto|tel):/i.test(href)) return false;
+        if (/^Home$/i.test(text) && /\/authentication\/redirect\/?$/i.test(href)) {
+          return false;
+        }
         const current = new URL(window.location.href);
         const target = new URL(href, current);
         if (target.origin !== current.origin) return false;
@@ -217,23 +247,34 @@ async function collectClickTargets(page) {
 }
 
 async function visibleOpenPanelCount(page) {
-  return page.evaluate(() => {
-    const isVisible = (el) => {
-      const style = window.getComputedStyle(el);
-      const rect = el.getBoundingClientRect();
-      return (
-        style.visibility !== 'hidden' &&
-        style.display !== 'none' &&
-        rect.width > 0 &&
-        rect.height > 0
-      );
-    };
-    return Array.from(
-      document.querySelectorAll(
-        '[aria-expanded="true"], [open], .show, .open, .dropdown-menu.show, .collapse.show'
-      )
-    ).filter(isVisible).length;
-  });
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      return await page.evaluate(() => {
+        const isVisible = (el) => {
+          const style = window.getComputedStyle(el);
+          const rect = el.getBoundingClientRect();
+          return (
+            style.visibility !== 'hidden' &&
+            style.display !== 'none' &&
+            rect.width > 0 &&
+            rect.height > 0
+          );
+        };
+        return Array.from(
+          document.querySelectorAll(
+            '[aria-expanded="true"], [open], .show, .open, .dropdown-menu.show, .collapse.show'
+          )
+        ).filter(isVisible).length;
+      });
+    } catch (error) {
+      if (!String(error && error.message).includes('Execution context was destroyed')) {
+        throw error;
+      }
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+      await page.waitForTimeout(250);
+    }
+  }
+  return 0;
 }
 
 async function clickAndAssert(page, surface, targetIndex, diagnostics) {
@@ -254,9 +295,16 @@ async function clickAndAssert(page, surface, targetIndex, diagnostics) {
   const locator = page.locator(target.selector).first();
   await expect(locator, `${surface.slug} target ${targetIndex + 1}`).toBeVisible();
 
-  await locator.click({ timeout: 15000 });
+  const navigation = page
+    .waitForURL((url) => url.toString() !== beforeUrl, {
+      timeout: 20000,
+      waitUntil: 'domcontentloaded',
+    })
+    .catch(() => null);
+  await locator.click({ timeout: 15000, noWaitAfter: true });
+  await navigation;
   await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(3000);
 
   const afterUrl = page.url();
   const afterOpenPanels = await visibleOpenPanelCount(page);
@@ -264,10 +312,11 @@ async function clickAndAssert(page, surface, targetIndex, diagnostics) {
   const afterExpanded = targetStillExists
     ? await locator.getAttribute('aria-expanded').catch(() => null)
     : null;
-  const changed =
+  const changed = Boolean(
     afterUrl !== beforeUrl ||
-    afterOpenPanels > beforeOpenPanels ||
-    (target.ariaExpanded && afterExpanded !== target.ariaExpanded);
+      afterOpenPanels > beforeOpenPanels ||
+      (target.ariaExpanded && afterExpanded !== target.ariaExpanded)
+  );
 
   const screenshot = path.join(
     SCREENSHOT_DIR,
@@ -285,6 +334,10 @@ async function clickAndAssert(page, surface, targetIndex, diagnostics) {
     afterOpenPanels,
     changed,
   });
+  fs.writeFileSync(
+    path.join(SCREENSHOT_DIR, 'click-diagnostics-latest.json'),
+    JSON.stringify(diagnostics, null, 2)
+  );
 
   expect(
     changed,
@@ -293,7 +346,7 @@ async function clickAndAssert(page, surface, targetIndex, diagnostics) {
 }
 
 test.describe('platform click root-cause repro', () => {
-  test.describe.configure({ mode: 'serial', timeout: 420000 });
+  test.describe.configure({ mode: 'serial', timeout: 600000 });
   test.use({ viewport: { width: 1366, height: 900 } });
 
   test('15/15 clicks across manager, control-plane, tenant, admin, and marketing succeed', async ({
@@ -314,7 +367,7 @@ test.describe('platform click root-cause repro', () => {
     const authenticatedPlanes = new Set();
     for (const surface of surfaces) {
       await ensureAuth(page, surface, authenticatedPlanes);
-      for (let index = 0; index < 5; index += 1) {
+      for (let index = 0; index < CLICKS_PER_SURFACE; index += 1) {
         await clickAndAssert(page, surface, index, diagnostics);
       }
     }

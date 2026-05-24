@@ -17,9 +17,20 @@
     "UpdateAPIView",
     "ViewSet"
   ],
-  "finding_count": 0,
-  "findings": [],
-  "generated_at": "2026-05-23T00:36:17+00:00",
+  "finding_count": 2,
+  "findings": [
+    {
+      "class": "OfflineTokenMintView",
+      "line": 31,
+      "path": "apps/api/offline_device_api.py"
+    },
+    {
+      "class": "SyncBundleUploadView",
+      "line": 13,
+      "path": "apps/api/sync_bundle_api.py"
+    }
+  ],
+  "generated_at": "2026-05-24T00:46:31+00:00",
   "rule": "DRF view classes in apps/api/ must carry @extend_schema or @extend_schema_view",
   "scan_dir": "apps/api",
   "schema_decorators": [

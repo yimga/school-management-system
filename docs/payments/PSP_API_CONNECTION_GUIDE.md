@@ -4,7 +4,18 @@ This is the **operator runbook** for connecting each external payment provider t
 
 > "What do I, the operator with merchant credentials in hand, do to make this corridor verified-live?"
 
-Cross-reference: `docs/payments/PAYMENT_ENVIRONMENT_CONTRACT.md`, `docs/payments/PAYMENT_BLOCKER_CLASSIFICATION.md`, `docs/payments/LIVE_PSP_READINESS_CHECKLIST.md`, `docs/external_dependencies_register.json`.
+Cross-reference: `docs/payments/PAYMENT_ENVIRONMENT_CONTRACT.md`, `docs/payments/PAYMENT_BLOCKER_CLASSIFICATION.md`, `docs/payments/LIVE_PSP_READINESS_CHECKLIST.md`, `docs/external_dependencies_register.json`, `docs/plans/SOVEREIGN_FINANCIAL_DELIVERY_PLATFORM_PLAN.md` §8, `docs/plans/STRIPE_CONNECT_PLATFORM_SETTLEMENT_PLAN.md`.
+
+## Dual-engine boundary (Engine 1 vs Engine 2)
+
+| Engine | Money flow | Rails | Operator surface |
+|---|---|---|---|
+| **Engine 1 — Platform SaaS** | School → RunMyCampus | Stripe Checkout + **Connect** (`/siteconfig/billing-stripe/`) | Register ids `stripe_global_cards`, `stripe_connect_platform` |
+| **Engine 2 — Tenant tuition** | Parent → School | Country matrix: Paystack, Flutterwave, MTN MoMo, Orange, cash/proof | Register ids `paystack_wa`, `flutterwave_multi_country`, `mtn_momo`, `orange_money` |
+
+**Lane 2 playbook (all corridors):** `apps/finance/payment_lane2_checklist.py` → evidence under `var/evidence/geos-99/psp/` → flip register row to `verified_live` only after supervised charge JSON exists.
+
+**Verifiers:** `python scripts/verify_dual_engine_financial_program.py` (ties SFDP 1420–1431 + Stripe 1415–1417).
 
 ## What stays repo-side, what is external
 
@@ -75,7 +86,50 @@ Expected `status` values:
 
 ### 1.3 Gotchas
 - Stripe test keys (`sk_test_*`) intentionally fail the production ping — that is correct behavior.
-- If your business is in a country Stripe does not support directly, use Stripe Atlas or fall back to Paystack/Flutterwave.
+- If your business is in a country Stripe does not support directly, use Stripe Atlas or fall back to Paystack/Flutterwave for regional corridors.
+- **Connect long-term:** select **Build a platform or marketplace** during onboarding even if Phase 1 is a direct platform charge. Connect uses the same platform account.
+
+---
+
+## 1A. Stripe Connect — phased platform settlement (GEOS step 5)
+
+Canonical plan: [`docs/plans/STRIPE_CONNECT_PLATFORM_SETTLEMENT_PLAN.md`](../plans/STRIPE_CONNECT_PLATFORM_SETTLEMENT_PLAN.md).
+
+### Phase 1 — Platform direct (do first)
+
+Complete §1.1–§1.2 above, then one supervised pilot invoice charge + refund. Evidence template:
+
+`var/evidence/geos-99/psp/stripe/phase1_platform_charge_evidence.template.json`
+
+### Phase 2 — Connect Express (pilot school)
+
+1. Stripe Dashboard → **Connect** → Get started → **Express** connected accounts.
+2. Enable Connect on the platform processor (`PlatformBillingProcessorConfig.metadata`):
+
+   ```json
+   {
+     "connect_enabled": true,
+     "connect_account_type": "express",
+     "application_fee_percent": "2.5"
+   }
+   ```
+
+3. School admin opens tenant URL **`/siteconfig/billing-stripe/`** (named route `siteconfig:billing_stripe_connect`).
+4. Complete Stripe-hosted onboarding; return URL **`/siteconfig/billing-stripe/return/`** refreshes account status.
+5. Register Connect webhook events on the same endpoint (minimum add): `account.updated`, `account.application.deauthorized`.
+6. First tuition payment where payout settles to the connected account; save evidence:
+
+   `var/evidence/geos-99/psp/stripe/phase2_connect_pilot_evidence.template.json`
+
+### Phase 3 — Production default
+
+- Link from **Plan & entitlements** → **School payouts (Stripe Connect)** (shipped in repo).
+- New schools: include Connect step in Studio / billing setup checklist.
+- Africa corridors: keep Paystack / Flutterwave / MoMo register rows alongside Connect.
+
+**Platform narrative for Stripe review:**
+
+> RunMyCampus is education software. Schools (connected accounts) collect tuition and fees from parents. The platform provides invoicing and payment technology and may charge a software or processing fee. Schools are the merchants of record for tuition; we are the platform facilitator.
 
 ---
 

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:25:21Z",
+  "school_slug": "geos-pilot",
+  "lane": "internal_pilot",
+  "evidence_status": "verified_live",
+  "core_loop": {
+    "attendance_id": 1,
+    "evaluation_count": 0,
+    "invoice_id": "1",
+    "invoice_created": true,
+    "payment_id": "1",
+    "payment_created": true,
+    "payment_method": "manual_cash"
+  },
+  "parent_portal_simulated": true,
+  "report_generated": true,
+  "marks_synthetic": true,
+  "notes": "Supervised internal demo-school loop; not a public customer reference."
+}

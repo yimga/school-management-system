@@ -15,8 +15,8 @@
     <div>
       {# Aesthetic-v2 page-header grammar. Styled by patterns.css. #}
       <div class="eyebrow">{% trans "Daily attendance" %}</div>
-      {% term "teacher" capitalize=True as _teacher_sg %}
-      <h1 class="page-h1 mb-0">{% blocktrans with t=_teacher_sg %}{{ t }} attendance{% endblocktrans %}</h1>
+      {% term "teacher" capitalize=True as teacher_sg %}
+      <h1 class="page-h1 mb-0">{% blocktrans with t=teacher_sg %}{{ t }} attendance{% endblocktrans %}</h1>
       <p class="page-sub mb-0">{% trans "Mark today's roll and review trends." %}</p>
     </div>
     <nav class="ds-action-bar d-flex flex-wrap gap-2" role="toolbar" aria-label="{% trans 'Exports' %}" data-rmc-teacher-attendance-actions="1">
@@ -74,11 +74,11 @@
             </div>
           {% else %}
             {% url 'portal:teacher_dashboard_alias' as teacher_dash_url %}
-            {% term "classroom" plural=True as _classroom_pl %}
-            {% term "teacher" as _teacher_sg_lc %}
-            {% blocktrans asvar _attn_empty_msg with cl=_classroom_pl %}Records appear here after you take attendance for your {{ cl }}.{% endblocktrans %}
-            {% blocktrans asvar _attn_back_label with t=_teacher_sg_lc %}Back to {{ t }} home{% endblocktrans %}
-            {% include "components/rmc_empty_state.html" with icon="bi-calendar-week" title=_("No attendance history yet") message=_attn_empty_msg primary_url=teacher_dash_url primary_label=_attn_back_label secondary_url=export_url secondary_label=_("Export CSV") %}
+            {% term "classroom" plural=True as classroom_pl %}
+            {% term "teacher" as teacher_sg_lc %}
+            {% blocktrans asvar attn_empty_msg with cl=classroom_pl %}Records appear here after you take attendance for your {{ cl }}.{% endblocktrans %}
+            {% blocktrans asvar attn_back_label with t=teacher_sg_lc %}Back to {{ t }} home{% endblocktrans %}
+            {% include "components/rmc_empty_state.html" with icon="bi-calendar-week" title=_("No attendance history yet") message=attn_empty_msg primary_url=teacher_dash_url primary_label=attn_back_label secondary_url=export_url secondary_label=_("Export CSV") %}
           {% endif %}
         </div>
       </div>

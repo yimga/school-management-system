@@ -7,21 +7,21 @@
 {# Wave 13 (v3.62.17): lexicon adoption — header + subtitle + back-link #}
 {# use {% term %} so "Student" reads as the tenant's term (e.g. "Eleve" in #}
 {# FR, "विद्यार्थी" in IN-HI, "Ward" in PK). #}
-{% term "student" capitalize=True as _student_sg %}
-{% term "student" plural=True as _student_pl_lc %}
-{% term "student" plural=True capitalize=True as _student_pl %}
-{% block title %}{% blocktrans with t=_student_sg %}Create {{ t }}{% endblocktrans %} - {% trans "Backend" %}{% endblock %}
+{% term "student" capitalize=True as student_sg %}
+{% term "student" plural=True as student_pl_lc %}
+{% term "student" plural=True capitalize=True as student_pl %}
+{% block title %}{% blocktrans with t=student_sg %}Create {{ t }}{% endblocktrans %} - {% trans "Backend" %}{% endblock %}
 
 {% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="record-detail">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_list' as list_url %}
-      {% blocktrans asvar _stu_create_title with t=_student_sg %}Create {{ t }}{% endblocktrans %}
-      {% term "student" as _student_sg_lc %}
-      {% blocktrans asvar _stu_create_sub with t=_student_sg_lc %}Add a new {{ t }} to the system{% endblocktrans %}
-      {% blocktrans asvar _stu_create_back with t=_student_pl %}Back to {{ t }}{% endblocktrans %}
-      {% include "studio_os/components/page_header.html" with title=_stu_create_title subtitle=_stu_create_sub action_url=list_url action_text=_stu_create_back %}
+      {% blocktrans asvar stu_create_title with t=student_sg %}Create {{ t }}{% endblocktrans %}
+      {% term "student" as student_sg_lc %}
+      {% blocktrans asvar stu_create_sub with t=student_sg_lc %}Add a new {{ t }} to the system{% endblocktrans %}
+      {% blocktrans asvar stu_create_back with t=student_pl %}Back to {{ t }}{% endblocktrans %}
+      {% include "studio_os/components/page_header.html" with title=stu_create_title subtitle=stu_create_sub action_url=list_url action_text=stu_create_back %}
 
       {% if has_draft %}
       <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">

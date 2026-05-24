@@ -17,6 +17,9 @@
 {% block extrajs %}
 {{ block.super }}
 {% include "partials/rmc_analytics_viz_bundle.html" %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script> <!-- sri-allow: chart-js-pinned-v4.4.1-jsdelivr -->
+<script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
+<script src="{% static 'js/_pages/analytics__dashboard-2.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -566,8 +569,8 @@
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-2">{% term "student" capitalize=True %} {% trans "improvement list" %}</h5>
-        {% term "student" plural=True capitalize=True as _analytics_stu_pl %}
-        <div class="text-muted small mb-2">{% blocktrans with t=_analytics_stu_pl %}{{ t }} whose averages improved between terms.{% endblocktrans %}</div>
+        {% term "student" plural=True capitalize=True as analytics_stu_pl %}
+        <div class="text-muted small mb-2">{% blocktrans with t=analytics_stu_pl %}{{ t }} whose averages improved between terms.{% endblocktrans %}</div>
         <div class="table-responsive">
           <table class="table table-sm align-middle table-family">
             <caption class="visually-hidden">{% term "student" capitalize=True %} {% trans "improvement list" %}</caption>
@@ -671,11 +674,4 @@
     </div>
   </div>
 </div> <!-- /analytics-dashboard-widgets -->
-{% endblock %}
-
-{% block extrajs %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script> <!-- sri-allow: chart-js-pinned-v4.4.1-jsdelivr -->
-<script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
-<script src="{% static 'js/_pages/analytics__dashboard-2.js' %}"></script>
-</div>
 {% endblock %}

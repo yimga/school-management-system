@@ -55,7 +55,18 @@ body:not(:has(.offcanvas.show)) .offcanvas-backdrop {
 body.admin-manager-shell .modal-backdrop:not(.show),
 body.admin-premium-shell .modal-backdrop:not(.show),
 body.control-plane-shell .modal-backdrop:not(.show),
-body.portal-body-with-layout .modal-backdrop:not(.show) {
+body.portal-body-with-layout .modal-backdrop:not(.show),
+body.admin-manager-shell .offcanvas-backdrop:not(.show),
+body.admin-premium-shell .offcanvas-backdrop:not(.show),
+body.control-plane-shell .offcanvas-backdrop:not(.show),
+body.portal-body-with-layout .offcanvas-backdrop:not(.show) {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Global fallback: kill any stale Bootstrap backdrop that is not currently shown. */
+.modal-backdrop:not(.show),
+.offcanvas-backdrop:not(.show) {
   display: none !important;
   pointer-events: none !important;
 }

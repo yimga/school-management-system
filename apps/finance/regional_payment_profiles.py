@@ -11,6 +11,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from apps.finance.payment_local_global_contract import apply_phase3_enrichment
+
 _DATA_FILE = Path(__file__).resolve().parent / "data" / "regional_payment_profiles.json"
 
 
@@ -41,6 +43,9 @@ def normalize_regional_profile_row(raw: dict[str, Any] | None) -> dict[str, Any]
     if not raw or not isinstance(raw, dict):
         return None
     out = dict(raw)
+    cc = str(out.get("country_code") or "").upper()[:2]
+    if cc:
+        out = apply_phase3_enrichment(cc, out)
     primaries = list(out.get("primary_rails") or [])
     backups = list(out.get("backup_rails") or [])
     out["primary_rail"] = str(out.get("primary_rail") or (primaries[0] if primaries else "") or "")

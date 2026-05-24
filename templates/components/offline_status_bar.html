@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
   Global connection status for offline-first UX.
   Shows: Connected (green) | Offline - N items will sync (orange) | Syncing... (spinner).
@@ -28,7 +29,10 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <p class="small text-body-secondary mb-2">These items could not sync (e.g. changed on server or validation error).</p>
+        <p class="small text-body-secondary mb-2">These items could not sync (e.g. changed on server or validation error). For queued offline actions with server-side diffs, use the portal conflict screen.</p>
+        {% if OFFLINE_CONFLICTS_URL %}
+        <p class="small mb-2"><a id="sms-offline-conflicts-portal-link" href="{{ OFFLINE_CONFLICTS_URL }}" class="btn btn-sm btn-warning">{% trans "Open Offline Sync conflicts" %}</a></p>
+        {% endif %}
         <ol class="small text-body-secondary mb-3 ps-3">
           <li>Open the linked page below (or the relevant screen).</li>
           <li>Re-apply your changes there and submit while online.</li>

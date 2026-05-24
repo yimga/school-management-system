@@ -72,9 +72,13 @@ def merge_stripe_account_object(school, account: dict[str, Any]) -> dict[str, An
     charges = bool(account.get("charges_enabled"))
     payouts = bool(account.get("payouts_enabled"))
     details = bool(account.get("details_submitted"))
+    requirements = account.get("requirements")
+    disabled = ""
+    if isinstance(requirements, dict):
+        disabled = str(requirements.get("disabled_reason") or "").strip()
     if charges and details:
         status = ONBOARDING_COMPLETE
-    elif account.get("requirements", {}).get("disabled_reason"):
+    elif disabled:
         status = ONBOARDING_RESTRICTED
     else:
         status = ONBOARDING_PENDING

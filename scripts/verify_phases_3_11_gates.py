@@ -275,6 +275,42 @@ def main(argv: list[str] | None = None) -> int:
         "GEOS-99: Lane 2 operator evidence scaffold",
     )
     run(
+        [py, _script_path("verify_stripe_platform_settlement_scaffold.py"), *base_args],
+        "GEOS-99: Stripe Connect platform settlement scaffold",
+    )
+    run(
+        [py, _script_path("verify_sovereign_financial_delivery_scaffold.py"), *base_args],
+        "SFDP: sovereign financial delivery scaffold (1421+)",
+    )
+    run(
+        [py, _script_path("verify_sovereign_financial_delivery_completion.py"), *base_args],
+        "SFDP: sovereign financial delivery completion (1431)",
+    )
+    run(
+        [py, _script_path("verify_payment_gateway_lane2_scaffold.py"), *base_args],
+        "SFDP: payment gateway Lane 2 scaffold",
+    )
+    run(
+        [py, _script_path("verify_dual_engine_financial_program.py"), *base_args],
+        "SFDP: dual-engine financial program",
+    )
+    run(
+        [py, _script_path("verify_sovereign_financial_phase2_scaffold.py"), *base_args],
+        "SFDP: Phase 2 scaffold",
+    )
+    run(
+        [py, _script_path("verify_sovereign_financial_phase2_completion.py"), *base_args],
+        "SFDP: Phase 2 completion",
+    )
+    run(
+        [py, _script_path("verify_sovereign_financial_local_global_force.py"), *base_args],
+        "SFDP: Phase 3 local-global force",
+    )
+    run(
+        [py, _script_path("verify_sovereign_financial_local_global_completion.py"), *base_args],
+        "SFDP: Phase 3 local-global completion (1452-1475)",
+    )
+    run(
         [py, _script_path("verify_six_pillar_global_dominance.py"), "--write", *base_args],
         "Platform: six-pillar global dominance (sovereignty + five-pillar + AI + forensic)",
     )

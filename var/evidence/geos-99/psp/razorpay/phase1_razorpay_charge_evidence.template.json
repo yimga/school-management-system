@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "register_id": "razorpay_india",
+  "school_slug": "<tenant-slug>",
+  "payment_id": "<redacted>",
+  "amount_minor": 0,
+  "currency": "INR",
+  "captured_at_utc": "YYYY-MM-DDTHH:MM:SSZ"
+}

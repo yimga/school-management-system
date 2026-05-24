@@ -60,6 +60,7 @@ from .views_support import (
     support_ticket_detail,
 )
 from .views_offline_sync import (
+    api_offline_apply_batch,
     api_offline_enqueue,
     api_offline_process,
     offline_sync_conflicts,
@@ -189,6 +190,7 @@ urlpatterns = [
     path("offline/conflicts/", offline_sync_conflicts, name="offline_sync_conflicts"),
     path("api/offline/enqueue/", api_offline_enqueue, name="api_offline_enqueue"),
     path("api/offline/process/", api_offline_process, name="api_offline_process"),
+    path("api/offline/apply-batch/", api_offline_apply_batch, name="api_offline_apply_batch"),
     # Backwards compatibility: older templates and tests expect 'parent_performance'
     path("parent/performance/", parent_child_results, name="parent_performance"),
     path("forums/", views_forums.forum_home, name="forum_home"),

@@ -139,6 +139,34 @@
     }
   }
 
+  function applyServerConflictCount(summary) {
+    if (!summary || typeof summary.conflicts !== 'number') return;
+    var bar = document.getElementById('rmc-offline-sync-bar');
+    if (bar) {
+      bar.setAttribute('data-server-conflicts', String(summary.conflicts));
+    }
+    var cfg = getConfig();
+    var conflictsUrl = cfg.offlineConflictsUrl || cfg.offline_conflicts_url;
+    if (summary.conflicts > 0) {
+      try {
+        document.dispatchEvent(new CustomEvent('rmc-offline-conflicts-updated', {
+          bubbles: true,
+          detail: { count: summary.conflicts, url: conflictsUrl || '' }
+        }));
+      } catch (e) {}
+    }
+  }
+
+  function runProcessQueue() {
+    var cfg = getConfig();
+    var processUrl = cfg.offlineProcessUrl || cfg.offline_process_url;
+    if (!processUrl) return Promise.resolve(null);
+    return postJson(processUrl, {}).then(function (res) {
+      if (res.ok && res.json) applyServerConflictCount(res.json);
+      return res;
+    });
+  }
+
   function flushRowsFromLS() {
     var cfg = getConfig();
     var enqueueUrl = cfg.offlineEnqueueUrl || cfg.offline_enqueue_url;
@@ -172,7 +200,7 @@
     return chain.then(function () {
       writeOutboxLS(remaining);
       if (processUrl && synced > 0) {
-        return postJson(processUrl, {}).then(function () { return { ok: true, drained: synced }; });
+        return runProcessQueue().then(function () { return { ok: true, drained: synced }; });
       }
       return { ok: true, drained: synced };
     });
@@ -209,7 +237,7 @@
       return seq.then(function () {
         return flushRowsFromLS().then(function (lsRes) {
           if (processUrl && synced > 0) {
-            return postJson(processUrl, {}).then(function () {
+            return runProcessQueue().then(function () {
               return { ok: true, drained: synced + (lsRes.drained || 0) };
             });
           }

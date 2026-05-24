@@ -106,7 +106,7 @@
 //   - Spring success checkmark + haptic helper (Navigator.vibrate on
 //     rmc:success/warning/error events, reduced-motion-respecting).
 //   - 834px iPad split-view breakpoint adopted across components.
-const CACHE_VERSION = "sms-v3.72.0-sodp-typed-enqueue-provision-2026-05-23";
+const CACHE_VERSION = "sms-v3.83.1-click-failure-rootcause-fix-2026-05-23";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -749,6 +749,7 @@ async function replayQueue(syncType) {
           url: url.replace(origin, ""),
           status: response.status,
           message: message || ("HTTP " + response.status),
+          conflict: response.status === 409,
         });
         await deleteSyncItem(item.id);
         failed++;
@@ -823,6 +824,7 @@ async function replayQueueLimit(syncType, limit) {
           url: url.replace(origin, ""),
           status: response.status,
           message: message || ("HTTP " + response.status),
+          conflict: response.status === 409,
         });
         await deleteSyncItem(item.id);
         failed++;

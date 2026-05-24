@@ -184,7 +184,12 @@ class OfflineReplayBatchAPI(APIView):
                 if isinstance(msg, list):
                     msg = " ".join(str(m) for m in msg)
                 failed_items.append(
-                    {"url": path, "status": resp.status_code, "message": str(msg)}
+                    {
+                        "url": path,
+                        "status": resp.status_code,
+                        "message": str(msg),
+                        "conflict": resp.status_code == 409,
+                    }
                 )
 
         return Response(

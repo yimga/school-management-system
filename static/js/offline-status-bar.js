@@ -197,6 +197,11 @@
     }
   }
 
+  function conflictsPortalUrl() {
+    var cfg = getConfig();
+    return (cfg.offlineConflictsUrl || cfg.offline_conflicts_url || '').trim();
+  }
+
   function refreshConflictsButton() {
     if (!conflictsBtn) return;
     var list = getStoredConflicts();
@@ -208,7 +213,17 @@
     var list = getStoredConflicts();
     var listEl = document.getElementById('sms-offline-conflicts-list');
     var modal = document.getElementById('sms-offline-conflicts-modal');
+    var portalLink = document.getElementById('sms-offline-conflicts-portal-link');
     if (!listEl || !modal) return;
+    var portalUrl = conflictsPortalUrl();
+    if (portalLink) {
+      if (portalUrl) {
+        portalLink.href = portalUrl;
+        portalLink.classList.remove('d-none');
+      } else {
+        portalLink.classList.add('d-none');
+      }
+    }
     listEl.innerHTML = '';
     list.forEach(function (item) {
       var li = document.createElement('li');
@@ -216,6 +231,9 @@
       var path = (item.url || '').trim();
       var label = path.replace(/^\/api\//, '').replace(/\/$/, '') || 'Item';
       var msg = item.message || ('HTTP ' + (item.status || ''));
+      if (item.conflict || item.status === 409) {
+        msg = (msg ? msg + ' — ' : '') + 'Conflict with server record.';
+      }
       var link = document.createElement('a');
       link.href = path ? path : '#';
       link.className = 'text-break';
@@ -355,6 +373,22 @@
 
     if (syncBtn) syncBtn.addEventListener('click', function () { triggerSyncNow(); });
     if (conflictsBtn) conflictsBtn.addEventListener('click', function () { showConflictsModal(); });
+    document.addEventListener('rmc-offline-conflicts-updated', function (ev) {
+      var detail = ev && ev.detail ? ev.detail : {};
+      var count = parseInt(detail.count, 10) || 0;
+      if (count <= 0) return;
+      var bar = document.getElementById('rmc-offline-sync-bar');
+      if (bar) bar.setAttribute('data-server-conflicts', String(count));
+      if (typeof document.dispatchEvent === 'function') {
+        document.dispatchEvent(new CustomEvent('showToast', {
+          detail: {
+            message: count + ' queued item(s) need conflict resolution in Offline Sync.',
+            type: 'warning',
+            duration: 6000
+          }
+        }));
+      }
+    });
     var dismissBtn = document.getElementById('sms-offline-conflicts-dismiss-btn');
     if (dismissBtn) dismissBtn.addEventListener('click', clearConflictsAndClose);
 
@@ -410,6 +444,19 @@
             var combined = existing.concat(items);
             setStoredConflicts(combined);
             refreshConflictsButton();
+          }
+          var hasHttpConflict = items.some(function (it) {
+            return it && (it.conflict || it.status === 409);
+          });
+          var portalUrl = conflictsPortalUrl();
+          if (hasHttpConflict && portalUrl && typeof document.dispatchEvent === 'function') {
+            document.dispatchEvent(new CustomEvent('showToast', {
+              detail: {
+                message: 'Server conflict detected. Open the Offline Sync conflicts screen to choose keep mine / use latest.',
+                type: 'warning',
+                duration: 7000
+              }
+            }));
           }
           if (failed > 0 && typeof document.dispatchEvent === 'function') {
             document.dispatchEvent(new CustomEvent('showToast', {

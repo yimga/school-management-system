@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n terminology_tags %}
-{% term "guardian" plural=True capitalize=True as _ccs_guardian_pl %}
-{% term "guardian" as _ccs_guardian_sg_lc %}
+{% term "guardian" plural=True capitalize=True as ccs_guardian_pl %}
+{% term "guardian" as ccs_guardian_sg_lc %}
 
 {% block title %}{% trans "Start consent campaign" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
 
@@ -53,7 +53,7 @@
             <strong>{% trans "What happens after submit:" %}</strong>
             <ul class="mb-0">
               <li>{% trans "A unique unguessable consent URL is generated for each row." %}</li>
-              <li>{% blocktrans with t=_ccs_guardian_pl %}{{ t }} receive an email containing their URL.{% endblocktrans %}</li>
+              <li>{% blocktrans with t=ccs_guardian_pl %}{{ t }} receive an email containing their URL.{% endblocktrans %}</li>
               <li>{% trans "Each consent token is valid for 30 days." %}</li>
               <li>{% trans "Decisions are recorded with the guardian's IP and browser at the moment of decision, for legal record." %}</li>
             </ul>

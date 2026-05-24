@@ -16,6 +16,7 @@ _TEMPLATE_RENDERERS: dict[str, str] = {
     "low_meal_balance": "schoolops/email/locale/{locale}/low_meal_balance",
     "exam_readiness": "schoolops/email/locale/{locale}/exam_readiness",
     "fee_reminder": "schoolops/email/locale/{locale}/fee_reminder",
+    "payment_received": "schoolops/email/locale/{locale}/payment_received",
     "transport_delay": "schoolops/email/locale/{locale}/transport_delay",
     "wellbeing_checkin": "schoolops/email/locale/{locale}/wellbeing_checkin",
 }
@@ -72,6 +73,18 @@ def render_notification_intent(
         body = (
             "Hello — this is a reminder about an outstanding school fee balance. "
             "Sign in to the parent portal for details and payment options."
+        )
+        return subject, body, None
+    if template_key == "payment_received":
+        student = ctx.get("student_name") or "your student"
+        amount = ctx.get("amount") or ""
+        currency = ctx.get("currency") or ""
+        reference = ctx.get("reference") or ""
+        subject = "Payment received"
+        body = (
+            f"Hello — we recorded a payment for {student}. "
+            f"Amount: {amount} {currency}. Reference: {reference}. "
+            "Sign in to the parent portal for your receipt."
         )
         return subject, body, None
     if template_key == "transport_delay":

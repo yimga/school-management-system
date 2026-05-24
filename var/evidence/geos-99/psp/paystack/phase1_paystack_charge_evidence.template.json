@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "register_id": "paystack_wa",
+  "corridor": "NG",
+  "school_slug": "<tenant-slug>",
+  "captured_at_utc": "YYYY-MM-DDTHH:MM:SSZ",
+  "operator": "<name>",
+  "paystack_reference": "<redacted-ref>",
+  "amount_minor_units": 0,
+  "currency": "NGN",
+  "webhook_delivery_id": "<dashboard-id-redacted>",
+  "ledger_payment_id": null,
+  "notes": "Supervised charge + webhook success; no sk_live in this file"
+}

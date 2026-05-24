@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T00:36:19Z",
+  "evidence_status": "verified_live",
+  "verifier": "scripts/verify_render_online_ai_posture.py",
+  "verifier_exit_code": 0,
+  "proof": "RENDER_ONLINE_AI_POSTURE_PASS",
+  "notes": "Repo Option A posture; production live_cloud probe is additive Lane 2."
+}

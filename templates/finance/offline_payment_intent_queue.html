@@ -1,0 +1,78 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Offline payment review queue" %}{% endblock %}
+
+{% block content %}
+<div class="container py-4" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <p class="text-muted small mb-1">{% trans "Finance · Cash desk" %}</p>
+      <h1 class="h3 mb-0">{% trans "Offline payment review queue" %}</h1>
+      <p class="text-muted mb-0">{% trans "Approve queued proofs before balances update." %}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:offline_payment_intent_queue_export' %}">{% trans "Export CSV" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:payment_readiness_dashboard' %}">{% trans "Payment readiness" %}</a>
+    </div>
+  </div>
+
+  {% if page_obj %}
+  <form method="post" action="{% url 'finance:offline_payment_intent_bulk_approve' %}" class="mb-3">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary btn-sm">{% trans "Approve selected (max 50)" %}</button>
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover rmc-data-table mb-0">
+        <thead>
+          <tr>
+            <th><span class="visually-hidden">{% trans "Select" %}</span></th>
+            <th>{% trans "Invoice" %}</th>
+            <th>{% trans "Student" %}</th>
+            <th>{% trans "Amount" %}</th>
+            <th>{% trans "Method" %}</th>
+            <th>{% trans "Reference" %}</th>
+            <th>{% trans "Queued" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for intent in page_obj %}
+          <tr>
+            <td>
+              <input type="checkbox" name="intent_ids" value="{{ intent.pk }}" class="form-check-input" aria-label="{% trans 'Select intent' %}">
+            </td>
+            <td>{{ intent.invoice.reference|default:intent.invoice_id }}</td>
+            <td>{{ intent.invoice.student|default:"—" }}</td>
+            <td>{{ intent.amount }}</td>
+            <td>{{ intent.payment_method }}</td>
+            <td class="text-truncate" style="max-width: 12rem;">{{ intent.transaction_reference|default:"—" }}</td>
+            <td>{{ intent.created_at }}</td>
+            <td>
+              <form method="post" action="{% url 'finance:offline_payment_intent_approve' intent.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-primary">{% trans "Approve" %}</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">{% trans "No payments waiting for review." %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="card-footer">
+      {% include "components/pagination.html" with page_obj=page_obj %}
+    </div>
+    {% endif %}
+  </div>
+  {% if page_obj %}
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

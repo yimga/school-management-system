@@ -59,7 +59,9 @@
 
         {% if can_reply %}
         <div class="border-top p-3">
-          <form method="post" action="{% url 'accounts:direct_thread' other_user.id %}" aria-label="Reply in conversation">
+          <form method="post" action="{% url 'accounts:direct_thread' other_user.id %}" aria-label="Reply in conversation"
+                data-rmc-offline-form="notes_report" data-offline-action-type="notes_report"
+                data-draft-key="direct_thread_{{ other_user.id }}" data-draft-max-age-hours="24">
             {% csrf_token %}
             <input type="hidden" name="subject" value="Direct message">
             <div class="mb-2">

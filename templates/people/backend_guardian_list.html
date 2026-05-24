@@ -3,20 +3,20 @@
 {% load static terminology_tags %}
 {% comment %}Wave 12 (v3.62.16): "Guardians" / "Parent" / "students" all read as
    tenant-localized lexicon terms.{% endcomment %}
-{% term "guardian" plural=True capitalize=True as _guardian_pl %}
-{% term "guardian" capitalize=True as _guardian_sg %}
-{% term "parent" capitalize=True as _parent_sg %}
-{% term "student" plural=True as _student_pl_lc %}
-{% block backend_title %}{{ _guardian_pl }} - Backend{% endblock %}
+{% term "guardian" plural=True capitalize=True as guardian_pl %}
+{% term "guardian" capitalize=True as guardian_sg %}
+{% term "parent" capitalize=True as parent_sg %}
+{% term "student" plural=True as student_pl_lc %}
+{% block backend_title %}{{ guardian_pl }} - Backend{% endblock %}
 
 {% block backend_page %}
 <div class="container-fluid py-4" data-page-archetype="operational-workbench">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_list' as back_url %}
-      {% blocktrans asvar _guardian_subtitle with p=_parent_sg g=_guardian_sg s=_student_pl_lc %}{{ p }} and {{ g }} links to {{ s }}{% endblocktrans %}
-      {% blocktrans asvar _back_text with t=_student_pl_lc %}Back to {{ t }}{% endblocktrans %}
-      {% include "studio_os/components/page_header.html" with title=_guardian_pl subtitle=_guardian_subtitle action_url=back_url action_text=_back_text %}
+      {% blocktrans asvar guardian_subtitle with p=parent_sg g=guardian_sg s=student_pl_lc %}{{ p }} and {{ g }} links to {{ s }}{% endblocktrans %}
+      {% blocktrans asvar back_text with t=student_pl_lc %}Back to {{ t }}{% endblocktrans %}
+      {% include "studio_os/components/page_header.html" with title=guardian_pl subtitle=guardian_subtitle action_url=back_url action_text=back_text %}
 
       <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search" data-rmc-autosubmit="1">
         <div class="row g-2 align-items-end">

@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static i18n region_format terminology_tags %}
-{% term "parent" capitalize=True as _ucal_parent_sg %}
-{% term "teacher" capitalize=True as _ucal_teacher_sg %}
+{% term "parent" capitalize=True as ucal_parent_sg %}
+{% term "teacher" capitalize=True as ucal_teacher_sg %}
 {% block title %}{% trans "Calendar" %} – {{ site.site_name|default:"Portal" }}{% endblock %}
 {% block content %}
 <div class="container py-4">
@@ -14,8 +14,8 @@
     </div>
     <nav aria-label="{% trans 'Portal navigation' %}">
       {% if is_parent %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Back to dashboard" %}</a>{% endif %}
-      {% if is_teacher %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">{% blocktrans with t=_ucal_teacher_sg %}Back to {{ t }} hub{% endblocktrans %}</a>{% endif %}
-      {% if not is_parent and not is_teacher %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% blocktrans with t=_ucal_parent_sg %}{{ t }} dashboard{% endblocktrans %}</a><a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">{% blocktrans with t=_ucal_teacher_sg %}{{ t }} hub{% endblocktrans %}</a>{% endif %}
+      {% if is_teacher %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">{% blocktrans with t=ucal_teacher_sg %}Back to {{ t }} hub{% endblocktrans %}</a>{% endif %}
+      {% if not is_parent and not is_teacher %}<a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% blocktrans with t=ucal_parent_sg %}{{ t }} dashboard{% endblocktrans %}</a><a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:teacher_dashboard_alias' %}">{% blocktrans with t=ucal_teacher_sg %}{{ t }} hub{% endblocktrans %}</a>{% endif %}
     </nav>
   </div>
   <div class="card border-0 shadow-sm">

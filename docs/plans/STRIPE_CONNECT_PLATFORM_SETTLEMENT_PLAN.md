@@ -4,7 +4,7 @@
 **Plan owner:** RunMyCampus platform billing
 **Created:** 2026-05-23
 **Target SW range:** `sms-v3.71.1` → `sms-v3.72.x`
-**Batch IDs:** **1413** (program) → **1414** Phase 1 scaffold → **1415** Phase 2 Connect onboarding → **1416** Phase 3 production default
+**Batch IDs:** **1414** (program) → **1415** Phase 1 scaffold → **1416** Phase 2 Connect onboarding → **1417** Phase 3 production default
 **GEOS lane:** Step 5 — PSP settlement (`docs/generated/geos_lane2_operator_checklist.md`)
 **Handoff-ready for:** Claude Code, Codex, Cursor — single build contract; do not spawn parallel payment strategy docs
 
@@ -54,14 +54,14 @@ RunMyCampus long-term money flow is **Stripe Connect**: each school is a connect
 | 5 | One supervised pilot invoice charge + refund | `var/evidence/geos-99/psp/stripe/phase1_platform_charge_*.json` |
 | 6 | Non-charge ping | `python manage.py check_payment_gateways --school=<slug> --provider=stripe --mode=production_ping` |
 
-**Lane 1 deliverables (batch 1414):**
+**Lane 1 deliverables (batch 1415):**
 
 - Evidence scaffold under `var/evidence/geos-99/psp/stripe/`
 - `scripts/verify_stripe_platform_settlement_scaffold.py` → **STRIPE_PLATFORM_SETTLEMENT_SCAFFOLD_PASS**
 - PSP guide §1 Connect preamble + Phase 1 checklist
 - External register rows: `stripe_global_cards`, `stripe_connect_platform`
 
-### Phase 2 — Connect enabled (batch 1415)
+### Phase 2 — Connect enabled (batch 1416)
 
 **Goal:** One pilot school completes Express onboarding; payout lands on connected account.
 
@@ -108,7 +108,7 @@ RunMyCampus long-term money flow is **Stripe Connect**: each school is a connect
 }
 ```
 
-### Phase 3 — Production default (batch 1416)
+### Phase 3 — Production default (batch 1417)
 
 **Goal:** New schools get Connect onboarding in School Studio / billing setup; Africa corridors use Paystack / Flutterwave / MoMo alongside Connect where Stripe is supported.
 
@@ -152,7 +152,7 @@ Same signing secret on the platform webhook endpoint unless Stripe Dashboard req
 - [ ] Plan file is canonical (this document)
 - [ ] Phase 1 evidence scaffold + verifier green
 - [ ] Phase 2 Connect onboarding routes resolve; mocked HTTP tests pass
-- [ ] SOT §11.4 batches 1413–1416 recorded after validation
+- [ ] SOT §11.4 batches 1414–1417 recorded after validation
 - [ ] `docs/external_dependencies_register.json` updated
 - [ ] Service worker bumped on static/template wave
 
@@ -173,7 +173,7 @@ You are the RunMyCampus Stripe Connect settlement build agent.
 
 READ FIRST (mandatory, no parallel strategy docs):
 - docs/plans/STRIPE_CONNECT_PLATFORM_SETTLEMENT_PLAN.md
-- docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §11.4 batches 1413–1416
+- docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md §11.4 batches 1414–1417
 - docs/payments/PSP_API_CONNECTION_GUIDE.md
 - apps/billing/processors.py (StripeConnectProcessor)
 - apps/billing/stripe_checkout.py (HTTP pattern)
@@ -181,12 +181,12 @@ READ FIRST (mandatory, no parallel strategy docs):
 
 MISSION: Ship Lane 1 repo-complete for Phases 1–3 scaffolding. Lane 2 (live Stripe KYB, keys, pilot charge) is operator-only — scaffold evidence paths, never fabricate verified_live.
 
-PHASE 1 (batch 1414):
+PHASE 1 (batch 1415):
 - var/evidence/geos-99/psp/stripe/README.md + phase1/phase2 evidence JSON templates
 - scripts/verify_stripe_platform_settlement_scaffold.py → STRIPE_PLATFORM_SETTLEMENT_SCAFFOLD_PASS
 - Extend PSP_API_CONNECTION_GUIDE.md with Connect phases + Express onboarding URLs
 
-PHASE 2 (batch 1415):
+PHASE 2 (batch 1416):
 - apps/schools/stripe_connect_settings.py (get/set payload, is_stripe_connected, merge from Stripe account object)
 - apps/billing/stripe_connect_onboarding.py (create_express_account, create_account_link, fetch_account, platform_connect_config from processor metadata)
 - apps/siteconfig/views_billing_stripe_connect.py + templates/siteconfig/billing_stripe_connect.html
@@ -195,7 +195,7 @@ PHASE 2 (batch 1415):
 - apps/billing/services.py or webhook apply hook: persist sync to School.settings when school_id in metadata
 - Tests with mocked urllib (no live Stripe)
 
-PHASE 3 (batch 1416):
+PHASE 3 (batch 1417):
 - Link from billing_plan_readonly_body.html to billing_stripe_connect
 - apps/finance/gateways/stripe.py: when school has stripe_connect.account_id + charges_enabled, include in initiate raw_response
 - Update external_dependencies_register.json (stripe_connect_platform row)
@@ -227,3 +227,19 @@ When Lane 1 is green, stop only if a true external blocker remains (operator has
 - Pilot school Connect KYC completion
 - Marketplace template monetization flip (`RMC_TEMPLATE_MONETIZATION_ENABLED`) — still counsel-pending per `docs/TEMPLATE_MARKETPLACE_WAVE_E_COUNSEL_PENDING.md`
 - Paystack / Flutterwave / MoMo corridors — parallel register rows, not replaced by Connect
+
+### Lane 2 operator runner (batches 1170 / 1171 / 1174)
+
+Repo cannot flip `verified_live`. Use:
+
+```bash
+python scripts/run_lane2_operator_playbook.py --school=<slug> --batch=all --init-evidence --write-report
+```
+
+| Batch | Evidence files | Next operator action |
+|---|---|---|
+| **1170** | `phase1_platform_charge_evidence.json`, `phase2_connect_pilot_evidence.json` | Stripe KYB (all 3 products) → supervised charge + Connect pilot |
+| **1171** | `var/evidence/geos-99/psp/<psp>/phase1_*_evidence.json` | Enable `Integration(provider=payments)` → metadata → production_ping |
+| **1174** | `live_reconciliation_evidence.json` | Health snapshot + settlement artifact (redacted IDs) |
+
+Exit **2** = scaffold OK, evidence still `pending_operator`. Aligns with SFDP plan **§8.1** and **§8.3**.

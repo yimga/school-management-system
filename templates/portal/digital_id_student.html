@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static i18n terminology_tags %}
-{% term "student" capitalize=True as _id_student_sg %}
-{% block title %}{% blocktrans with t=_id_student_sg %}{{ t }}'s ID{% endblocktrans %} – {{ site_name }}{% endblock %}
+{% term "student" capitalize=True as id_student_sg %}
+{% block title %}{% blocktrans with t=id_student_sg %}{{ t }}'s ID{% endblocktrans %} – {{ site_name }}{% endblock %}
 {% block extrastyle %}
 
 {% endblock %}
@@ -10,7 +10,7 @@
   <div class="d-flex justify-content-between align-items-center mb-3 no-print">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_dashboard' %}">{% trans "Back to dashboard" %}</a>
   </div>
-  <div class="card shadow-sm mx-auto" style="max-width: 22rem; border-radius: 12px; overflow: hidden;" aria-label="{% blocktrans with t=_id_student_sg %}{{ t }} digital ID card{% endblocktrans %}">
+  <div class="card shadow-sm mx-auto" style="max-width: 22rem; border-radius: 12px; overflow: hidden;" aria-label="{% blocktrans with t=id_student_sg %}{{ t }} digital ID card{% endblocktrans %}">
     <div class="card-header text-white text-center py-2" style="background: var(--school-primary, #4f46e5);">
       <strong>{{ site_name }}</strong>
     </div>

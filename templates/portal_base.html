@@ -595,6 +595,7 @@
       "paymentSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_payment_sync|default:"1"|yesno:"true,false" }},
       "offlineEnqueueUrl": {% if OFFLINE_API_ENQUEUE_URL %}"{{ OFFLINE_API_ENQUEUE_URL|escapejs }}"{% else %}null{% endif %},
       "offlineProcessUrl": {% if OFFLINE_API_PROCESS_URL %}"{{ OFFLINE_API_PROCESS_URL|escapejs }}"{% else %}null{% endif %},
+      "offlineConflictsUrl": {% if OFFLINE_CONFLICTS_URL %}"{{ OFFLINE_CONFLICTS_URL|escapejs }}"{% else %}null{% endif %},
       "offlineTokenMintUrl": {% if OFFLINE_TOKEN_MINT_URL %}"{{ OFFLINE_TOKEN_MINT_URL|escapejs }}"{% else %}null{% endif %},
       "deltaEndpointUrl": "",
       "hubBaseUrl": "{% if OFFLINE_DELIVERY_CLIENT.hubBaseUrl %}{{ OFFLINE_DELIVERY_CLIENT.hubBaseUrl|escapejs }}{% else %}{{ SITE.backend_feature_flags.hub_base_url|default:""|escapejs }}{% endif %}",

@@ -1,0 +1,25 @@
+{% load i18n %}
+{% if payment_corridor.checkout_rail_cards %}
+<section class="mb-3" aria-labelledby="local-checkout-rails-heading" data-rmc-scroll-policy="paginate">
+  <h6 id="local-checkout-rails-heading" class="text-muted text-uppercase small mb-2">{% trans "Pay with" %}</h6>
+  {% if payment_corridor.currency_display %}
+  <p class="small text-muted mb-2">{{ payment_corridor.currency_display }}</p>
+  {% endif %}
+  <div class="d-flex flex-wrap gap-2">
+    {% for card in payment_corridor.checkout_rail_cards %}
+    <div class="card border-0 shadow-sm flex-grow-1" style="min-width: 8rem; max-width: 14rem;">
+      <div class="card-body py-2 px-3">
+        <div class="fw-semibold small">{{ card.label }}</div>
+        <span class="badge text-bg-light text-uppercase">{{ card.tier }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if payment_corridor.small_market_fallback %}
+  <p class="small text-muted mt-2 mb-0">{% trans "If online payment is unavailable, use cash desk or upload proof — staff will reconcile." %}</p>
+  {% endif %}
+  {% if payment_corridor.settlement_display.fx_disclaimer %}
+  <p class="small text-muted mt-1 mb-0">{{ payment_corridor.settlement_display.fx_disclaimer }}</p>
+  {% endif %}
+</section>
+{% endif %}

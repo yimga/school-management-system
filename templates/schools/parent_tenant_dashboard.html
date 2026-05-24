@@ -1,10 +1,10 @@
 {% extends "backend_base.html" %}
 {% load i18n static phase8_tags %}
 {% load terminology_tags %}
-{% term "parent" capitalize=True as _ptd_parent_sg %}
+{% term "parent" capitalize=True as ptd_parent_sg %}
 
-{% block title %}{% blocktrans with t=_ptd_parent_sg %}{{ t }} tenant dashboard{% endblocktrans %} – {{ parent_school.name }}{% endblock %}
-{% block backend_title %}{% blocktrans with t=_ptd_parent_sg %}{{ t }} tenant dashboard{% endblocktrans %}{% endblock %}
+{% block title %}{% blocktrans with t=ptd_parent_sg %}{{ t }} tenant dashboard{% endblocktrans %} – {{ parent_school.name }}{% endblock %}
+{% block backend_title %}{% blocktrans with t=ptd_parent_sg %}{{ t }} tenant dashboard{% endblocktrans %}{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}

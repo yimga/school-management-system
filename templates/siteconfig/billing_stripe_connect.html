@@ -1,0 +1,66 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Stripe Connect" %} — {% trans "School payouts" %}{% endblock %}
+
+{% block content %}
+<main id="main-content" class="rmc-page-stack content-max-960" data-rmc-scroll-policy="paginate">
+  <header class="rmc-page-header">
+    <nav class="mb-2">
+      <a href="{% url 'siteconfig:billing_plan_readonly' %}" class="btn btn-sm btn-outline-secondary">{% trans "Plan & entitlements" %}</a>
+    </nav>
+    <h1 class="h2">{% trans "Stripe Connect — school payouts" %}</h1>
+    <p class="rmc-muted">
+      {% trans "Connect your school as the merchant of record for tuition. Stripe hosts identity verification; payout bank details stay with Stripe." %}
+    </p>
+  </header>
+
+  {% if not allow_tenant_connect %}
+  <div class="alert alert-warning" role="status">{% trans "Platform operator has disabled tenant Stripe Connect onboarding." %}</div>
+  {% elif not processor_ready %}
+  <div class="alert alert-warning" role="status">{% trans "Platform Stripe credentials are not configured yet." %}</div>
+  {% elif not connect_enabled %}
+  <div class="alert alert-warning" role="status">{% trans "Stripe Connect is not enabled on the platform billing processor." %}</div>
+  {% else %}
+  <section class="card border-0 shadow-sm mb-3" aria-labelledby="stripe-connect-status-heading">
+    <div class="card-body">
+      <h2 id="stripe-connect-status-heading" class="h5">{% trans "Connection status" %}</h2>
+      <dl class="row small mb-0">
+        <dt class="col-sm-4 text-muted">{% trans "Account type" %}</dt>
+        <dd class="col-sm-8"><code>{{ connect_account_type|default:"express" }}</code></dd>
+        <dt class="col-sm-4 text-muted">{% trans "Account id" %}</dt>
+        <dd class="col-sm-8">
+          {% if stripe_connect.account_id %}
+          <code>{{ stripe_connect.account_id|truncatechars:24 }}</code>
+          {% else %}
+          <span class="text-muted">{% trans "Not created yet" %}</span>
+          {% endif %}
+        </dd>
+        <dt class="col-sm-4 text-muted">{% trans "Onboarding" %}</dt>
+        <dd class="col-sm-8">
+          {% if stripe_connected %}
+          <span class="badge text-bg-success">{% trans "Connected" %}</span>
+          {% else %}
+          <span class="badge text-bg-secondary">{{ stripe_connect.onboarding_status|default:"pending" }}</span>
+          {% endif %}
+        </dd>
+        <dt class="col-sm-4 text-muted">{% trans "Charges enabled" %}</dt>
+        <dd class="col-sm-8">{% if stripe_connect.charges_enabled %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+        <dt class="col-sm-4 text-muted">{% trans "Payouts enabled" %}</dt>
+        <dd class="col-sm-8">{% if stripe_connect.payouts_enabled %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+      </dl>
+    </div>
+  </section>
+
+  <div class="d-flex flex-wrap gap-2">
+    {% if stripe_connected %}
+    <span class="btn btn-success disabled" aria-disabled="true">{% trans "Stripe connected" %}</span>
+    {% else %}
+    <a class="btn btn-primary" href="{% url 'siteconfig:billing_stripe_connect_start' %}">
+      {% if stripe_connect.account_id %}{% trans "Continue Stripe onboarding" %}{% else %}{% trans "Connect with Stripe" %}{% endif %}
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

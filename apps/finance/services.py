@@ -647,6 +647,17 @@ def apply_payment(payment: Payment) -> None:
     try:
         inv = payment.invoice
         sch = getattr(inv, "school", None) or getattr(payment, "school", None)
+        if sch is not None and getattr(payment, "status", "") in ("completed", "success", "paid"):
+            from apps.finance.payment_notification_intent import dispatch_payment_received_intent
+
+            dispatch_payment_received_intent(school=sch, payment=payment)
+    except Exception:
+        logging.getLogger(__name__).warning(
+            "payment_received notification intent failed", exc_info=True
+        )
+    try:
+        inv = payment.invoice
+        sch = getattr(inv, "school", None) or getattr(payment, "school", None)
         if sch is not None:
             from apps.schools.funnel_events import (
                 record_payment_outcome_signal,

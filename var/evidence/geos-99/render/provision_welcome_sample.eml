@@ -1,0 +1,22 @@
+Content-Type: multipart/alternative;
+ boundary="===============0074537470211108437=="
+MIME-Version: 1.0
+Subject: [GEOS evidence] Welcome to RunMyCampus
+From: noreply@runmycampus.com
+To: evidence-capture@example.com
+Date: Sat, 23 May 2026 20:27:55 -0400
+Message-ID: <177958247536.134568.5136210589960506705@HY-OFFICE>
+
+--===============0074537470211108437==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+Sample provision welcome (evidence capture; no PII).
+--===============0074537470211108437==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+<p>Sample provision welcome HTML (GEOS Lane 2 evidence).</p>
+--===============0074537470211108437==--

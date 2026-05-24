@@ -2,12 +2,12 @@
 {% load static %}
 {% load i18n %}
 {% load terminology_tags %}
-{% term "teacher" as _rct_teacher_sg_lc %}
-{% term "teacher" capitalize=True as _rct_teacher_sg %}
-{% blocktrans asvar _rct_title with t=_rct_teacher_sg_lc %}Take {{ t }} attendance{% endblocktrans %}
-{% block title %}{{ _rct_title }}{% endblock %}
+{% term "teacher" as rct_teacher_sg_lc %}
+{% term "teacher" capitalize=True as rct_teacher_sg %}
+{% blocktrans asvar rct_title with t=rct_teacher_sg_lc %}Take {{ t }} attendance{% endblocktrans %}
+{% block title %}{{ rct_title }}{% endblock %}
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ _rct_title }}</h1>
+  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ rct_title }}</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
   <div class="card mb-3">
     <div class="card-body">
@@ -27,8 +27,8 @@
               data-rmc-attendance-scope="teacher"
               data-draft-key="teacher_roll_{{ date_value }}"
               data-draft-max-age-hours="72"
-              data-offline-hint="{% blocktrans with t=_rct_teacher_sg_lc %}Offline: {{ t }} attendance is queued and syncs when you are back online.{% endblocktrans %}"
-              data-draft-pending-label="{% blocktrans with t=_rct_teacher_sg %}{{ t }} attendance{% endblocktrans %}">
+              data-offline-hint="{% blocktrans with t=rct_teacher_sg_lc %}Offline: {{ t }} attendance is queued and syncs when you are back online.{% endblocktrans %}"
+              data-draft-pending-label="{% blocktrans with t=rct_teacher_sg %}{{ t }} attendance{% endblocktrans %}">
           {% csrf_token %}
           <input type="hidden" name="date" value="{{ date_value }}">
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">

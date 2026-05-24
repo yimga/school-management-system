@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "register_id": "flutterwave_multi_country",
+  "corridor": "CM",
+  "school_slug": "<tenant-slug>",
+  "captured_at_utc": "YYYY-MM-DDTHH:MM:SSZ",
+  "operator": "<name>",
+  "tx_ref": "<redacted-tx-ref>",
+  "flw_transaction_id": "<redacted-id>",
+  "amount": "0.00",
+  "currency": "XAF",
+  "webhook_verified": true,
+  "flw_secret_hash_configured": true,
+  "ledger_payment_id": null,
+  "notes": "Supervised charge; FLW_SECRET_HASH verified; no live secret in file"
+}
