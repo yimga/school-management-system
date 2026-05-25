@@ -110,7 +110,7 @@
 // v3.84.9: Page-help dedupe — suppress floating drawer / portal topbar / assist-dock relocation when copilot rail owns help.
 // v3.90.28: Copilot rail ? — help center href fallback (anchor + data-rmc-help-center-url) when cmdk JSON absent.
 // v3.90.32: Help center 10x — page-aware inbound, KB auto-gen hub cards, 38 /super/ templates → control_plane_base sidebar unify.
-const CACHE_VERSION = "sms-v3.90.58-static-inline-section-nav-2026-05-25";
+const CACHE_VERSION = "sms-v3.90.62-cp-200x-landing-inline-heatmap-grid-fix-2026-05-25";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

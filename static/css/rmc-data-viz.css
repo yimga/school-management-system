@@ -50,6 +50,23 @@
   align-items: flex-start;
 }
 
+/* v3.90.59: v8 200x heatmap uses `.lx-heatmap__grid` (20-col CSS grid + aspect-ratio
+   tiles). This file loads AFTER rmc-cp-200x.css — without this guard, `display:flex`
+   on `.rmc-heatmap` clobbered the grid and collapsed tiles to a single visible cell. */
+.lx-heatmap__grid.rmc-heatmap {
+  display: grid;
+  flex-wrap: unset;
+  padding: 0;
+  align-items: stretch;
+}
+
+.lx-heatmap__grid.rmc-heatmap .lx-heatmap__tile.rmc-heatmap__tile {
+  inline-size: auto;
+  block-size: auto;
+  min-inline-size: 0;
+  min-block-size: 0;
+}
+
 .rmc-heatmap--grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(28px, 1fr));

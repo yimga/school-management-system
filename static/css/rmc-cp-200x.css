@@ -149,6 +149,20 @@
   .lx-cols-2 { grid-template-columns: 1fr; }
 }
 
+/* Manager /super/ landing stack — preview v8 density (no collapsible chrome). */
+.rmc-cp-200x-landing {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 0.75rem;
+}
+.rmc-cp-200x-landing > .lx-card,
+.rmc-cp-200x-landing > .lx-slo,
+.rmc-cp-200x-landing > .lx-forecast-section,
+.rmc-cp-200x-landing > .lx-cols-2 {
+  margin-bottom: 0;
+}
+
 /* ============================================================
    Shared luxury card chrome (used by elements 2 / 5 / 6 / 7 / 8)
    ============================================================ */

@@ -316,6 +316,8 @@ def _resolve_tenant_heatmap() -> dict[str, Any] | None:
         )
         if not rows:
             return None
+        # tenant-isolation-allow: platform-cockpit-cross-tenant-heatmap-total
+        total = School.objects.filter(is_active=True).count()
         tiles = []
         for r in rows:
             status = "healthy" if r.get("is_approved") else "warn"
@@ -329,6 +331,10 @@ def _resolve_tenant_heatmap() -> dict[str, Any] | None:
         return {
             "enabled": True,
             "eyebrow": _("Tenants · health grid"),
+            "meta_text": _("{shown} of {total} · last refreshed 60s ago").format(
+                shown=len(tiles),
+                total=total,
+            ),
             "tiles": tiles,
         }
     except Exception:

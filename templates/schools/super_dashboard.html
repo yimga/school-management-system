@@ -35,36 +35,37 @@
    v3.58.0 (2026-05-22): activity ticker moved back INTO the dark header chrome
    (cp_shell_header_ticker block) to match v8 preview placement between utility
    row and primary nav. {% endcomment %}
-{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): each cockpit section wrapped in
-   the collapsable primitive so operators can fold sections they don't need.
-   State persists per-section via localStorage. Inner partials keep their
-   own cockpit.<section>.enabled self-gate. {% endcomment %}
-{% comment %} Platform pulse + operator presence render in control_plane_base canvas chrome / header — no duplicate collapsible stack here. {% endcomment %}
+{% comment %} v3.90.59: 200x landing sections render inline (preview v8 parity) — no
+   collapsible wrappers. Persisted collapse state was leaving closed <details> shells
+   that read as empty ruled bands on /super/ while cockpit health still reported
+   would_render=true. {% endcomment %}
+<div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-section-nav="off">
 {% if cockpit.live_world_map.enabled %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("Live world map") key="super__live_world_map" include_partial="partials/cockpit/_live_world_map.html" chrome="section" %}
+{% include "partials/cockpit/_live_world_map.html" %}
 {% endif %}
 {% if cockpit.forecast_lane.enabled and cockpit.forecast_lane.cards %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("Forecast lane") key="super__forecast_lane" include_partial="partials/cockpit/_forecast_lane.html" chrome="section" %}
+{% include "partials/cockpit/_forecast_lane.html" %}
 {% endif %}
 {% if cockpit.slo_clocks.enabled and cockpit.slo_clocks.clocks %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("SLO clocks") key="super__slo_clocks" include_partial="partials/cockpit/_slo_clocks.html" chrome="section" %}
+{% include "partials/cockpit/_slo_clocks.html" %}
 {% endif %}
 {% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles or cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
 <div class="lx-cols-2" data-rmc-cockpit-cols="heatmap-trust">
   {% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Tenant health heatmap") key="super__tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" chrome="section" %}
+  {% include "partials/cockpit/_tenant_heatmap.html" %}
   {% endif %}
   {% if cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust nutrition") key="super__trust_nutrition" include_partial="partials/cockpit/_trust_nutrition.html" chrome="section" %}
+  {% include "partials/cockpit/_trust_nutrition.html" %}
   {% endif %}
 </div>
 {% endif %}
 {% if cockpit.revenue_waterfall.enabled and cockpit.revenue_waterfall.bars %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("Revenue waterfall") key="super__revenue_waterfall" include_partial="partials/cockpit/_revenue_waterfall.html" chrome="section" %}
+{% include "partials/cockpit/_revenue_waterfall.html" %}
 {% endif %}
 {% if cockpit.audit_feed.enabled and cockpit.audit_feed.events %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("Audit feed") key="super__audit_feed" include_partial="partials/cockpit/_audit_feed.html" chrome="section" %}
+{% include "partials/cockpit/_audit_feed.html" %}
 {% endif %}
+</div>
 {% comment %} v3.58.x Wave 10 Agent S (2026-05-22): Trust pillars alerts feed — closes
    the v8 200x preview's alerts-feed gap (Audit chain integrity / MAA signatures
    / Encryption at rest / FERPA retention / Webhook signing / MFA enforcement /
