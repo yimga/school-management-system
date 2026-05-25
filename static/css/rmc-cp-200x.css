@@ -138,6 +138,17 @@
 }
 
 
+/* Two-column layout (preview v8 200x: heatmap + trust nutrition side-by-side) */
+.lx-cols-2 {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .lx-cols-2 { grid-template-columns: 1fr; }
+}
+
 /* ============================================================
    Shared luxury card chrome (used by elements 2 / 5 / 6 / 7 / 8)
    ============================================================ */

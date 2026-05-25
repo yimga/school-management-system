@@ -251,17 +251,15 @@
     {% url 'portal:parent_contact_school' as parent_contact_url %}
     {% url 'portal:claim_invite' as parent_claim_invite_url %}
     {# Phase G follow-through (2026-05-12): section nav for 614L parent dashboard. #}
-    <nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3" aria-label="{% trans 'Family dashboard sections' %}" data-rmc-section-nav-curated="1">
-      <details class="rmc-section-nav__toc" open>
-        <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
-        <ul class="rmc-section-nav__list">
-          <li><a href="#parent-attention" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
-          <li><a href="#parent-glance" data-rmc-section-anchor><i class="bi bi-house-heart" aria-hidden="true"></i>{% trans "Family" %}</a></li>
-          {% term "student" plural=True capitalize=True as student_pl_p %}
-          <li><a href="#parent-children" data-rmc-section-anchor><i class="bi bi-people" aria-hidden="true"></i>{{ student_pl_p }}</a></li>
-          <li><a href="#parent-next" data-rmc-section-anchor><i class="bi bi-arrow-right-circle" aria-hidden="true"></i>{% trans "Next up" %}</a></li>
-        </ul>
-      </details>
+    <nav class="rmc-section-nav rmc-section-nav--inline mb-2" aria-label="{% trans 'Family dashboard sections' %}" data-rmc-section-nav-curated="1">
+      <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
+      <div class="rmc-surface-subnav" role="list">
+        <a href="#parent-attention" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a>
+        <a href="#parent-glance" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-house-heart" aria-hidden="true"></i>{% trans "Family" %}</a>
+        {% term "student" plural=True capitalize=True as student_pl_p %}
+        <a href="#parent-children" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-people" aria-hidden="true"></i>{{ student_pl_p }}</a>
+        <a href="#parent-next" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-arrow-right-circle" aria-hidden="true"></i>{% trans "Next up" %}</a>
+      </div>
     </nav>
 
     <section id="parent-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="parent" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">

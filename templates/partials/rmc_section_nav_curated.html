@@ -1,8 +1,10 @@
 {% load i18n %}
-{# Curated "On this page" TOC — pass section_nav_items: [{id, label}, ...] #}
+{# Curated in-page section jumps — pass section_nav_items: [{id, label}, ...] #}
+{# Default: static inline subnav (no sticky, no details pill). Opt-in legacy TOC: section_nav_mode="toc" #}
 {% if section_nav_items %}
+  {% if section_nav_mode == "toc" %}
 <nav
-  class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3{% if section_nav_vertical %} rmc-section-nav--vertical{% endif %}"
+  class="rmc-section-nav rmc-section-nav--toc mb-3{% if section_nav_vertical %} rmc-section-nav--vertical{% endif %}"
   aria-label="{% trans 'On this page' %}"
   data-rmc-section-nav-curated="1"
 >
@@ -11,10 +13,24 @@
     <ul class="rmc-section-nav__list">
       {% for item in section_nav_items %}
       <li>
-        <a href="#{{ item.id }}" data-rmc-section-anchor>{{ item.label }}</a>
+        <a href="#{{ item.id }}" class="rmc-section-nav__link" data-rmc-section-anchor>{{ item.label }}</a>
       </li>
       {% endfor %}
     </ul>
   </details>
 </nav>
+  {% else %}
+<nav
+  class="rmc-section-nav rmc-section-nav--inline mb-2"
+  aria-label="{% trans 'On this page' %}"
+  data-rmc-section-nav-curated="1"
+>
+  <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
+  <div class="rmc-surface-subnav" role="list">
+    {% for item in section_nav_items %}
+    <a href="#{{ item.id }}" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{{ item.label }}</a>
+    {% endfor %}
+  </div>
+</nav>
+  {% endif %}
 {% endif %}

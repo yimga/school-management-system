@@ -8,9 +8,7 @@
 
 /* Sticky in-page section / category nav (2+ fold pages) */
 [data-rmc-page-fold-nav="required"] .rmc-page-fold-nav,
-[data-rmc-page-fold-nav="required"] .feature-cat-tabs.rmc-page-fold-nav--sticky,
-.portal-page-body[data-rmc-page-fold-nav="required"] .rmc-page-fold-nav--sticky,
-.cp-page-body[data-rmc-page-fold-nav="required"] .rmc-section-nav.rmc-page-fold-nav--sticky {
+.portal-page-body[data-rmc-page-fold-nav="required"] .rmc-page-fold-nav--sticky {
   position: sticky;
   top: var(--rmc-fold-nav-sticky-top);
   z-index: 1020;

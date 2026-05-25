@@ -114,9 +114,9 @@ def main() -> int:
         "feature_control_panel_content.html",
     )
     add(
-        "feature_control_sticky_tabs",
-        "Feature control category tabs are sticky nav",
-        "rmc-page-fold-nav--sticky" in fc and "<nav" in fc,
+        "feature_control_category_tabs",
+        "Feature control category tabs present (static, not sticky)",
+        "feature-cat-tabs" in fc and "<nav" in fc and "rmc-page-fold-nav--sticky" not in fc,
         "feature_control_panel_content.html",
     )
 
@@ -129,8 +129,9 @@ def main() -> int:
     )
     add(
         "admin_index_section_nav",
-        "Platform admin index uses curated TOC section nav",
-        "partials/rmc_section_nav_curated.html" in admin_index,
+        "Platform admin index section jumps in unified hero toolbar",
+        "cp-hero__actions-group--sections" in admin_index
+        and "data-rmc-section-anchor" in admin_index,
         "templates/admin/index_superadmin.html",
     )
     add(

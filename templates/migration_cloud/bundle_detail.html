@@ -71,18 +71,16 @@
     </dl>
   </header>
 
-  <nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
-    <details class="rmc-section-nav__toc" open>
-      <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
-      <ul class="rmc-section-nav__list">
-        <li><a href="#ai-plan" data-rmc-section-anchor>{% trans "AI plan" %}</a></li>
-        <li><a href="#artifacts" data-rmc-section-anchor>{% trans "Artifacts" %}</a></li>
-        <li><a href="#discovery" data-rmc-section-anchor>{% trans "Discovery" %}</a></li>
-        <li><a href="#mapping" data-rmc-section-anchor>{% trans "Mapping" %}</a></li>
-        <li><a href="#reconciliation" data-rmc-section-anchor>{% trans "Reconciliation" %}</a></li>
-        <li><a href="#actions" data-rmc-section-anchor>{% trans "Actions" %}</a></li>
-      </ul>
-    </details>
+  <nav class="rmc-section-nav rmc-section-nav--inline mb-2" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
+    <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
+    <div class="rmc-surface-subnav" role="list">
+      <a href="#ai-plan" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "AI plan" %}</a>
+      <a href="#artifacts" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Artifacts" %}</a>
+      <a href="#discovery" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Discovery" %}</a>
+      <a href="#mapping" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Mapping" %}</a>
+      <a href="#reconciliation" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Reconciliation" %}</a>
+      <a href="#actions" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Actions" %}</a>
+    </div>
   </nav>
 
   <nav class="rmc-section-nav rmc-section-nav--secondary" aria-label="{% trans 'Bundle surfaces' %}" data-rmc-section-nav-skip="1">

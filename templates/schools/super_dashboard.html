@@ -49,17 +49,21 @@
 {% if cockpit.slo_clocks.enabled and cockpit.slo_clocks.clocks %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("SLO clocks") key="super__slo_clocks" include_partial="partials/cockpit/_slo_clocks.html" chrome="section" %}
 {% endif %}
-{% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("Tenant health heatmap") key="super__tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" chrome="section" %}
+{% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles or cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
+<div class="lx-cols-2" data-rmc-cockpit-cols="heatmap-trust">
+  {% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Tenant health heatmap") key="super__tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" chrome="section" %}
+  {% endif %}
+  {% if cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust nutrition") key="super__trust_nutrition" include_partial="partials/cockpit/_trust_nutrition.html" chrome="section" %}
+  {% endif %}
+</div>
 {% endif %}
 {% if cockpit.revenue_waterfall.enabled and cockpit.revenue_waterfall.bars %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Revenue waterfall") key="super__revenue_waterfall" include_partial="partials/cockpit/_revenue_waterfall.html" chrome="section" %}
 {% endif %}
 {% if cockpit.audit_feed.enabled and cockpit.audit_feed.events %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Audit feed") key="super__audit_feed" include_partial="partials/cockpit/_audit_feed.html" chrome="section" %}
-{% endif %}
-{% if cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("Trust nutrition") key="super__trust_nutrition" include_partial="partials/cockpit/_trust_nutrition.html" chrome="section" %}
 {% endif %}
 {% comment %} v3.58.x Wave 10 Agent S (2026-05-22): Trust pillars alerts feed — closes
    the v8 200x preview's alerts-feed gap (Audit chain integrity / MAA signatures

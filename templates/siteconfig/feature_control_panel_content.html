@@ -74,7 +74,7 @@
       {# disclosure for power users who need the full view. Search across all #}
       {# categories still filters across hidden tabs. #}
       {% if categories %}
-      <nav class="rmc-segmented rmc-segmented--scrollable mb-3 feature-cat-tabs rmc-page-fold-nav--sticky" role="tablist" aria-label="{% trans 'Feature categories' %}" data-feature-cat-tabs="1">
+      <nav class="rmc-segmented rmc-segmented--scrollable mb-3 feature-cat-tabs" role="tablist" aria-label="{% trans 'Feature categories' %}" data-feature-cat-tabs="1">
         {% for cat in categories %}
         <button type="button"
                 class="rmc-segmented__btn feature-cat-tab {% if forloop.first %}active{% endif %}"

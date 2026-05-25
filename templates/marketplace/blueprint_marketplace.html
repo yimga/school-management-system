@@ -17,16 +17,14 @@
   {% url 'super:marketplace_governance' as governance_url %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="blueprint_marketplace" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#bp-catalog" primary_label=_("Browse packs") secondary_url=governance_url secondary_label=_("Governance") %}
 
-  <nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
-    <details class="rmc-section-nav__toc" open>
-      <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
-      <ul class="rmc-section-nav__list">
-        <li><a href="#bp-glance" data-rmc-section-anchor>{% trans "At a glance" %}</a></li>
-        <li><a href="#bp-catalog" data-rmc-section-anchor>{% trans "Packs" %}</a></li>
-        <li><a href="#bp-rollback" data-rmc-section-anchor>{% trans "Rollback" %}</a></li>
-        <li><a href="#bp-guide" data-rmc-section-anchor>{% trans "Guide" %}</a></li>
-      </ul>
-    </details>
+  <nav class="rmc-section-nav rmc-section-nav--inline mb-2" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
+    <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
+    <div class="rmc-surface-subnav" role="list">
+      <a href="#bp-glance" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "At a glance" %}</a>
+      <a href="#bp-catalog" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Packs" %}</a>
+      <a href="#bp-rollback" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Rollback" %}</a>
+      <a href="#bp-guide" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Guide" %}</a>
+    </div>
   </nav>
 
   {% if messages %}

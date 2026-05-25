@@ -38,6 +38,10 @@ RE_GHOST_JUMP = re.compile(
     r"cp-btn--ghost[^>]*data-rmc-section-anchor|data-rmc-section-anchor[^>]*cp-btn--ghost",
     re.I,
 )
+RE_HERO_TOOLBAR_SECTIONS = re.compile(
+    r"cp-hero__actions--toolbar[\s\S]{0,4000}cp-hero__actions-group--sections",
+    re.I,
+)
 RE_H2_H3_ID = re.compile(r"<h[23][^>]*\bid\s*=", re.I)
 RE_H2_H3_ANY = re.compile(r"<h[23]\b", re.I)
 RE_EXTENDS = re.compile(r'\{%\s*extends\s+["\']([^"\']+)["\']')
@@ -54,6 +58,10 @@ RE_DEPRECATED_HORIZONTAL = re.compile(
     re.I,
 )
 RE_TOC_NAV = re.compile(r"rmc-section-nav--toc|rmc-section-nav__toc")
+RE_STICKY_SECTION_NAV = re.compile(
+    r"rmc-section-nav[^>]*rmc-page-fold-nav--sticky|"
+    r"rmc-page-fold-nav--sticky[^>]*rmc-section-nav"
+)
 
 OPERATOR_MARKERS = (
     "control_plane",
@@ -109,6 +117,8 @@ class FileRow:
     section_nav_curated: bool
     section_nav_skip: bool
     uses_toc_nav: bool
+    sticky_section_nav: bool
+    hero_toolbar_section_anchors: bool
     deprecated_horizontal: bool
     risk: str
     notes: list[str] = field(default_factory=list)
@@ -141,9 +151,16 @@ def _classify_surface(rel: str, text: str) -> str:
 
 def _risk_for(row: FileRow) -> tuple[str, list[str]]:
     notes: list[str] = []
+    if row.sticky_section_nav:
+        return "high", [
+            "sticky section-nav TOC — use rmc-section-nav--inline or hero toolbar anchors"
+        ]
+
     if row.deprecated_horizontal:
-        return "high", ["deprecated horizontal pill rail — migrate to rmc-section-nav--toc"]
+        return "high", ["deprecated horizontal pill rail — migrate to rmc-section-nav--inline"]
     if row.ghost_jump_links:
+        if row.hero_toolbar_section_anchors:
+            return "ok", ["section anchors in unified cp-hero__actions--toolbar row"]
         return "high", ["cp-btn--ghost section jumps — use rmc_section_nav_curated partial"]
 
     if row.section_nav_off:
@@ -232,6 +249,8 @@ def scan_templates() -> list[FileRow]:
             section_nav_curated=bool(RE_SECTION_NAV_CURATED.search(text)),
             section_nav_skip=bool(RE_SECTION_NAV_SKIP.search(text)),
             uses_toc_nav=bool(RE_TOC_NAV.search(text)),
+            sticky_section_nav=bool(RE_STICKY_SECTION_NAV.search(text)),
+            hero_toolbar_section_anchors=bool(RE_HERO_TOOLBAR_SECTIONS.search(text)),
             deprecated_horizontal=bool(RE_DEPRECATED_HORIZONTAL.search(text)),
             risk="ok",
         )
@@ -253,7 +272,7 @@ def shell_contract_checks() -> list[dict[str, str]]:
         ("chrome_toc_css", "rmc-section-nav-toc.css" in chrome, "rmc_platform_chrome_styles.html"),
         ("portal_fold_nav", 'data-rmc-page-fold-nav="required"' in portal, "portal_base.html"),
         ("cp_fold_nav", 'data-rmc-page-fold-nav="required"' in cp, "control_plane_base.html"),
-        ("auto_nav_toc", "rmc-section-nav--toc" in js, "rmc-page-fold-standards.js"),
+        ("auto_nav_inline", "rmc-section-nav--inline" in js, "rmc-page-fold-standards.js"),
         ("curated_partial", (TEMPLATES / "partials/rmc_section_nav_curated.html").is_file(), "rmc_section_nav_curated.html"),
     ):
         checks.append({"check_id": name, "status": "PASS" if ok else "FAIL", "proof": proof})

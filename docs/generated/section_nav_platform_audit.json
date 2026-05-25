@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-25T13:31:07.618447+00:00",
+  "generated_at": "2026-05-25T15:47:07.465938+00:00",
   "finding_count": 60,
   "summary": {
     "by_surface": {
@@ -18,7 +18,7 @@
     "medium_risk_count": 0,
     "unmitigated_high_risk_count": 0,
     "deprecated_horizontal_count": 0,
-    "ghost_jump_count": 0
+    "ghost_jump_count": 1
   },
   "shell_contract": [
     {
@@ -37,7 +37,7 @@
       "proof": "control_plane_base.html"
     },
     {
-      "check_id": "auto_nav_toc",
+      "check_id": "auto_nav_inline",
       "status": "PASS",
       "proof": "rmc-page-fold-standards.js"
     },
@@ -66,7 +66,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -89,6 +91,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -109,6 +113,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -129,6 +135,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -147,8 +155,10 @@
       "h2_h3_total": 0,
       "nav_label_attrs": 0,
       "section_nav_curated": false,
-      "section_nav_skip": false,
+      "section_nav_skip": true,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -171,6 +181,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -193,6 +205,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -213,6 +227,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -224,19 +240,21 @@
       "fold_required": true,
       "section_nav_off": false,
       "section_nav_auto": false,
-      "hand_nav": false,
-      "ghost_jump_links": 0,
-      "anchor_count": 2,
+      "hand_nav": true,
+      "ghost_jump_links": 1,
+      "anchor_count": 3,
       "h2_h3_with_id": 1,
       "h2_h3_total": 2,
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": true,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
-        "data-rmc-section-nav=curated or TOC partial"
+        "section anchors in unified cp-hero__actions--toolbar row"
       ]
     },
     {
@@ -255,6 +273,8 @@
       "section_nav_curated": false,
       "section_nav_skip": true,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -276,7 +296,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -299,6 +321,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -319,6 +343,8 @@
       "section_nav_curated": true,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -341,6 +367,8 @@
       "section_nav_curated": true,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -363,6 +391,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -383,6 +413,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -403,6 +435,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -423,6 +457,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -443,6 +479,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -463,6 +501,8 @@
       "section_nav_curated": true,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -485,6 +525,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -507,6 +549,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -529,6 +573,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -548,7 +594,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -570,7 +618,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -592,7 +642,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -614,7 +666,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -636,7 +690,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -658,7 +714,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -680,7 +738,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": true,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -703,6 +763,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -724,7 +786,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -747,6 +811,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -767,6 +833,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -787,6 +855,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -800,13 +870,15 @@
       "section_nav_auto": false,
       "hand_nav": true,
       "ghost_jump_links": 0,
-      "anchor_count": 1,
+      "anchor_count": 2,
       "h2_h3_with_id": 0,
       "h2_h3_total": 0,
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
       "uses_toc_nav": true,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -829,6 +901,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -849,6 +923,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -871,6 +947,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -893,6 +971,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -915,6 +995,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -937,6 +1019,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -959,6 +1043,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -979,6 +1065,8 @@
       "section_nav_curated": true,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1001,6 +1089,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1023,6 +1113,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1045,6 +1137,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1067,6 +1161,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1089,6 +1185,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1111,6 +1209,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
@@ -1131,6 +1231,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1153,6 +1255,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1175,6 +1279,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1197,6 +1303,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1210,7 +1318,7 @@
       "fold_required": true,
       "section_nav_off": true,
       "section_nav_auto": false,
-      "hand_nav": true,
+      "hand_nav": false,
       "ghost_jump_links": 0,
       "anchor_count": 1,
       "h2_h3_with_id": 0,
@@ -1219,6 +1327,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1241,6 +1351,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1263,6 +1375,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1284,7 +1398,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1307,6 +1423,8 @@
       "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
@@ -1328,7 +1446,9 @@
       "nav_label_attrs": 0,
       "section_nav_curated": true,
       "section_nav_skip": false,
-      "uses_toc_nav": true,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [

@@ -193,10 +193,7 @@ body[data-rmc-cp-notify-pulse="1"] .cp-topbar-bell__badge {
 /* --- Long-page section nav (control plane dark canvas) --- */
 html[data-surface="control-plane"]
   [data-rmc-page-fold-nav="required"]
-  .rmc-page-fold-nav--sticky,
-html[data-surface="control-plane"]
-  [data-rmc-page-fold-nav="required"]
-  .rmc-section-nav.rmc-page-fold-nav--sticky {
+  .rmc-page-fold-nav--sticky:not(.rmc-section-nav) {
   top: calc(var(--rmc-cp-chrome-offset, 72px) + 0.5rem);
   margin-inline: 0;
   padding: 0.4rem 0.65rem;
@@ -214,10 +211,10 @@ html[data-surface="control-plane"]
 
 html[data-surface="control-plane"]
   [data-rmc-page-fold-nav="required"]
-  .rmc-page-fold-nav--sticky a.is-active,
+  .rmc-page-fold-nav--sticky:not(.rmc-section-nav) a.is-active,
 html[data-surface="control-plane"]
   [data-rmc-page-fold-nav="required"]
-  .rmc-section-nav.rmc-page-fold-nav--sticky a[aria-current="true"] {
+  .rmc-page-fold-nav--sticky:not(.rmc-section-nav) a[aria-current="true"] {
   background: color-mix(in oklab, var(--school-primary, #6366f1) 22%, transparent);
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--school-primary, #6366f1) 40%, transparent);
 }

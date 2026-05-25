@@ -39,17 +39,21 @@
       <em>/super/, Config center, and Studio</em> — raw records live here for the moments those don't fit.
       {% endblocktrans %}
     </p>
-    <div class="cp-hero__actions cp-hero__actions--toolbar" role="toolbar" aria-label="{% trans 'Catalog actions' %}">
+    <div class="cp-hero__actions cp-hero__actions--toolbar rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions' %}" data-rmc-section-nav-curated="1">
       <div class="cp-hero__actions-group cp-hero__actions-group--primary" role="group" aria-label="{% trans 'Primary actions' %}">
         <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "New school" %}</a>
         <a class="cp-btn" href="{% url 'siteconfig:console_domains_hub' %}">⚙ {% trans "Open Config center" %}</a>
         <a class="cp-btn" href="{% url 'studio_os:shell' %}">⌘ {% trans "Open Studio" %}</a>
         <button type="button" class="cp-btn cp-btn--ghost" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K · {% trans "command palette" %}</button>
       </div>
+      <span class="cp-hero__actions-sep" aria-hidden="true"></span>
+      <div class="cp-hero__actions-group cp-hero__actions-group--sections" role="group" aria-label="{% trans 'On this page' %}">
+        {% for item in admin_catalog_section_nav_items %}
+        <a class="cp-btn cp-btn--ghost" href="#{{ item.id }}" data-rmc-section-anchor>{{ item.label }}</a>
+        {% endfor %}
+      </div>
     </div>
   </section>
-
-  {% include "partials/rmc_section_nav_curated.html" with section_nav_items=admin_catalog_section_nav_items %}
 
   <div class="cp-steering" role="region" aria-label="{% trans 'Operator steering' %}">
     <div class="cp-steering__icon" aria-hidden="true">✓</div>

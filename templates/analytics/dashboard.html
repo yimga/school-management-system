@@ -28,15 +28,13 @@
 <div class="container-fluid py-2" data-page-archetype="role-home" data-rmc-os-center="insights_center" data-rmc-ux-role-dashboard="analytics-insights" data-rmc-scroll-policy="paginate">
 
 {# Phase G follow-through (2026-05-12): section nav for the 649L insights dashboard. #}
-<nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3" aria-label="{% trans 'Insights sections' %}" data-rmc-section-nav-curated="1">
-  <details class="rmc-section-nav__toc" open>
-    <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
-    <ul class="rmc-section-nav__list">
-      <li><a href="#insights-main" data-rmc-section-anchor><i class="bi bi-bar-chart" aria-hidden="true"></i>{% trans "Main" %}</a></li>
-      <li><a href="#insights-secondary" data-rmc-section-anchor><i class="bi bi-graph-up" aria-hidden="true"></i>{% trans "Trends" %}</a></li>
-      <li><a href="#insights-tertiary" data-rmc-section-anchor><i class="bi bi-collection" aria-hidden="true"></i>{% trans "Detail" %}</a></li>
-    </ul>
-  </details>
+<nav class="rmc-section-nav rmc-section-nav--inline mb-2" aria-label="{% trans 'Insights sections' %}" data-rmc-section-nav-curated="1">
+  <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
+  <div class="rmc-surface-subnav" role="list">
+    <a href="#insights-main" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-bar-chart" aria-hidden="true"></i>{% trans "Main" %}</a>
+    <a href="#insights-secondary" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-graph-up" aria-hidden="true"></i>{% trans "Trends" %}</a>
+    <a href="#insights-tertiary" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor><i class="bi bi-collection" aria-hidden="true"></i>{% trans "Detail" %}</a>
+  </div>
 </nav>
 {% if finance_requests_count %}
   <article class="insight-card warning mb-4" data-rmc-insight-card="1" data-rmc-insight-tone="warning">

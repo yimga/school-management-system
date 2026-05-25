@@ -17,6 +17,8 @@
     </div>
   </div>
 
+  {% include "partials/rmc_section_nav_curated.html" with section_nav_items=help_section_nav_items %}
+
   {% include "feedback/partials/help_center_engage_strip.html" %}
 
   {% include "feedback/partials/help_center_support_lane.html" %}
@@ -24,8 +26,6 @@
   {% include "partials/help_community_lane.html" %}
 
   {% include "partials/help_persona_quickstart.html" with kb_search_url=kb_search_url %}
-
-  {% include "partials/rmc_section_nav_curated.html" with section_nav_items=help_section_nav_items %}
 
   {% include "partials/help_deflection_strip.html" with deflection_surface="help_center" %}
   {% include "feedback/partials/help_center_quick_feature.html" %}

@@ -210,6 +210,7 @@
 
     var root = roots[0];
     if (sectionNavDisabled(root)) return;
+    if (root.querySelector('[data-rmc-section-nav="off"]')) return;
     if (
       document.querySelector("[data-rmc-section-nav-curated]") ||
       root.closest('[data-rmc-section-nav="curated"]')
@@ -250,37 +251,32 @@
     if (items.length < 2) return;
 
     var nav = document.createElement("nav");
-    nav.className =
-      "rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3";
+    nav.className = "rmc-section-nav rmc-section-nav--inline mb-2";
     nav.setAttribute("aria-label", "On this page");
     nav.setAttribute("data-rmc-auto-section-nav", "1");
 
-    var details = document.createElement("details");
-    details.className = "rmc-section-nav__toc";
-    details.setAttribute("open", "open");
+    var label = document.createElement("span");
+    label.className = "rmc-section-nav__inline-label";
+    label.textContent = "Jump to";
 
-    var summary = document.createElement("summary");
-    summary.className = "rmc-section-nav__toc-trigger";
-    summary.textContent = "On this page";
-
-    var list = document.createElement("ul");
-    list.className = "rmc-section-nav__list";
+    var subnav = document.createElement("div");
+    subnav.className = "rmc-surface-subnav";
+    subnav.setAttribute("role", "list");
     items.forEach(function (item, idx) {
-      var li = document.createElement("li");
       var a = document.createElement("a");
       a.href = "#" + item.id;
       a.textContent = item.label;
+      a.className = "rmc-section-nav__link";
+      a.setAttribute("role", "listitem");
       a.setAttribute("data-rmc-section-anchor", "1");
       if (idx === 0) {
         a.classList.add("is-active");
         a.classList.add("active");
       }
-      li.appendChild(a);
-      list.appendChild(li);
+      subnav.appendChild(a);
     });
-    details.appendChild(summary);
-    details.appendChild(list);
-    nav.appendChild(details);
+    nav.appendChild(label);
+    nav.appendChild(subnav);
 
     var mount =
       root.querySelector(".card-body") ||

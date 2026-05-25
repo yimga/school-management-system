@@ -36,9 +36,26 @@ html[data-bs-theme="light"] #cp-main-content .rmc-acx-glass-panel,
 html[data-resolved-theme="light"] #cp-main-content .rmc-acx-metric-card,
 html[data-bs-theme="light"] #cp-main-content .rmc-acx-metric-card,
 html[data-resolved-theme="light"] #cp-main-content .studio-os__card,
-html[data-bs-theme="light"] #cp-main-content .studio-os__card {
+html[data-bs-theme="light"] #cp-main-content .studio-os__card,
+html[data-resolved-theme="light"] #cp-main-content .lx-card,
+html[data-bs-theme="light"] #cp-main-content .lx-card,
+html[data-resolved-theme="light"] #cp-main-content .lx-trust,
+html[data-bs-theme="light"] #cp-main-content .lx-trust,
+html[data-resolved-theme="light"] #cp-main-content .lx-audit,
+html[data-bs-theme="light"] #cp-main-content .lx-audit,
+html[data-resolved-theme="light"] #cp-main-content .lx-heatmap,
+html[data-bs-theme="light"] #cp-main-content .lx-heatmap,
+html[data-resolved-theme="light"] #cp-main-content .lx-waterfall,
+html[data-bs-theme="light"] #cp-main-content .lx-waterfall,
+html[data-resolved-theme="light"] #cp-main-content .lx-world,
+html[data-bs-theme="light"] #cp-main-content .lx-world,
+html[data-resolved-theme="light"] #cp-main-content .lx-forecast,
+html[data-bs-theme="light"] #cp-main-content .lx-forecast,
+html[data-resolved-theme="light"] #cp-main-content .lx-forecast-section,
+html[data-bs-theme="light"] #cp-main-content .lx-forecast-section {
   background-color: var(--surface-elevated, var(--color-base-0));
   border-color: rgba(26, 22, 18, 0.08); /* off-token-allow: always-dark-warm-bg */
+  color: var(--text-primary, var(--color-base-900));
 }
 
 html[data-resolved-theme="light"] #cp-main-content .card-header,
@@ -435,7 +452,15 @@ body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .cp-admin-pag
 [data-theme="dark"] #cp-main-content .proof-card,
 [data-theme="dark"] #cp-main-content .proof-compare-table,
 [data-theme="dark"] #cp-main-content .proof-step,
-[data-theme="dark"] #cp-main-content .proof-preview {
+[data-theme="dark"] #cp-main-content .proof-preview,
+[data-theme="dark"] #cp-main-content .lx-card,
+[data-theme="dark"] #cp-main-content .lx-trust,
+[data-theme="dark"] #cp-main-content .lx-audit,
+[data-theme="dark"] #cp-main-content .lx-heatmap,
+[data-theme="dark"] #cp-main-content .lx-waterfall,
+[data-theme="dark"] #cp-main-content .lx-world,
+[data-theme="dark"] #cp-main-content .lx-forecast,
+[data-theme="dark"] #cp-main-content .lx-forecast-section {
   background-color: var(--surface-elevated, #2c241d);
   border-color: var(--hairline-strong, rgba(245, 220, 180, 0.18));
   color: var(--text-primary, #f5efe3);

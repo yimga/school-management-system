@@ -115,10 +115,43 @@
   }
 }
 
+/* Deprecated: sticky TOC under page-fold — use .rmc-section-nav--inline (static) instead */
 [data-rmc-page-fold-nav="required"] .rmc-section-nav--toc.rmc-page-fold-nav--sticky {
-  position: sticky;
-  top: var(--rmc-fold-nav-sticky-top, 4.25rem);
-  z-index: 1020;
+  position: static;
+  top: auto;
+  z-index: auto;
+}
+
+/* Static inline section jumps — default for curated + auto-generated nav */
+.rmc-section-nav--inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+  max-width: 100%;
+}
+
+.rmc-section-nav__inline-label {
+  flex: 0 0 auto;
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.rmc-section-nav--inline .rmc-surface-subnav {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+body.admin-manager-shell .cp-admin-v1-index .cp-hero + .cp-steering {
+  margin-top: 0;
+}
+
+body.admin-manager-shell .cp-admin-v1-index .cp-steering {
+  margin-bottom: 0.5rem;
 }
 
 /* Cross-page surface subnav (e.g. AI Center tabs) — segmented control, not scroll pills */
