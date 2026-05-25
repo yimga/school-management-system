@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block backend_page %}
-  <div class="container-fluid py-4" data-page-archetype="record-detail">
+  <div class="container-fluid py-2" data-page-archetype="record-detail">
     {% workflow_resolve "compliance-erasure-request" as wf %}
     {% if wf %}
       {% with status=wf|workflow_status_payload:request panel=wf|workflow_help_panel_payload:request %}

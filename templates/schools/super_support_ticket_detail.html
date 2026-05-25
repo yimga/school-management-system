@@ -1,6 +1,7 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n phase8_tags %}
 {% block cp_title %}{% trans "Support ticket" %} — {{ ticket.subject|truncatechars:60 }}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
@@ -30,8 +31,8 @@
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:support_dashboard' %}">{% trans "Back to queue" %}</a>
   </div>
 
-  <div class="row g-3 mb-4 rmc-reveal-stagger">
-    <div class="col-lg-8 rmc-reveal">
+  <div class="row g-3 mb-4 rmc-reveal-stagger" data-rmc-balanced-layout="operator-detail-rail">
+    <div class="col-lg-8 rmc-reveal" data-dashboard-column="main">
       <div class="card border-0 shadow-sm">
         <div class="card-header">{% trans "Request" %}</div>
         <div class="card-body">
@@ -39,7 +40,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-4 rmc-reveal">
+    <div class="col-lg-4 rmc-reveal" data-dashboard-column="rail">
       {% if tenant_message_admin_url %}
       <div class="card border-0 shadow-sm mb-3">
         <div class="card-header">{% trans "Linked communication" %}</div>

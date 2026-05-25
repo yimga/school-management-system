@@ -1,5 +1,5 @@
 {% load i18n %}
-<div class="container-fluid py-3" data-rmc-page="operator-profile">
+<div class="container-fluid py-3 rmc-account-shell rmc-account-shell--operator" data-rmc-page="operator-profile" data-rmc-balanced-profile="1">
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <div>
       <div class="text-muted small text-uppercase">{% trans "Account" %}</div>
@@ -21,12 +21,24 @@
     </div>
   </div>
 
-  <div class="row g-3">
-    <div class="col-lg-5">
+  <div class="rmc-account-layout-grid" data-rmc-balanced-layout="account-profile">
+    <section class="rmc-account-layout-grid__primary" data-dashboard-column="main" aria-label="{% trans 'Account security status' %}">
       {% include "accounts/partials/_profile_security_gauge.html" %}
-      {% include "accounts/partials/_profile_security_hub.html" %}
       {% if show_mfa_inline_wizard %}{% include "accounts/partials/_mfa_setup_wizard_inline.html" %}{% endif %}
-      <div class="card shadow-sm">
+    </section>
+    <aside class="rmc-account-layout-grid__rail" data-dashboard-column="rail" aria-label="{% trans 'Account actions and details' %}">
+      <div class="card shadow-sm rmc-account-quick-links">
+        <div class="card-body">
+          <h2 class="h6">{% trans "Quick links" %}</h2>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">{% trans "Notifications" %}</a>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_home' %}">{% trans "Knowledge base" %}</a>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_documentation' %}">{% trans "Documentation" %}</a>
+          </div>
+        </div>
+      </div>
+      {% include "accounts/partials/_profile_security_hub.html" %}
+      <div class="card shadow-sm rmc-account-identity-card">
         <div class="card-body">
           <div class="d-flex align-items-center gap-3 mb-3">
             <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center flex-shrink-0" style="width:56px;height:56px;font-weight:700;">
@@ -62,18 +74,6 @@
           </dl>
         </div>
       </div>
-    </div>
-    <div class="col-lg-7">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h2 class="h6">{% trans "Quick links" %}</h2>
-          <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_notifications' %}">{% trans "Notifications" %}</a>
-            <a class="btn btn-outline-primary btn-sm" href="{% url 'kb:kb_home' %}">{% trans "Knowledge base" %}</a>
-            <a class="btn btn-outline-primary btn-sm" href="{% url 'accounts:user_documentation' %}">{% trans "Documentation" %}</a>
-          </div>
-        </div>
-      </div>
-    </div>
+    </aside>
   </div>
 </div>

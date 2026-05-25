@@ -7,7 +7,7 @@
 {% block title %}{% term "student" plural=True capitalize=True %} - {% trans "Backend" %}{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="task-list" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-page-archetype="task-list" data-rmc-scroll-policy="paginate">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_create' as create_url %}

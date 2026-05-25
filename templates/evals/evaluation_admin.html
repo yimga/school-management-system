@@ -22,7 +22,7 @@
 </div>
 
 <div class="row g-3 mb-4 rmc-reveal-stagger" id="bulk-create-section">
-  <div class="col-lg-5 rmc-reveal">
+  <div class="col-lg-6 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-3">{% trans "Bulk Create Evaluations" %}</h5>
@@ -50,7 +50,7 @@
       </div>
     </div>
   </div>
-  <div class="col-lg-7 rmc-reveal">
+  <div class="col-lg-6 rmc-reveal">
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-3">{% trans "Filter Evaluations" %}</h5>
@@ -195,7 +195,7 @@
     {% if evals %}
     <div class="table-responsive" data-table-density-key="evaluation_admin">
       <!-- large-collection-allow: dashboard-widget-capped-list -->
- class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Evaluations: student, class, subject, evidence, and score components' %}">
+<table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Evaluations: student, class, subject, evidence, and score components' %}">
         <thead>
           <tr>
             <th scope="col">{% trans_term "Student" key="student" %}</th>

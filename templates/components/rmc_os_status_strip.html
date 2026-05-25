@@ -3,6 +3,7 @@
 Use a real <section> landmark instead of <div role="region"> per ARIA 1.2 SC4.1.2:
 semantic elements are preferred when an equivalent role exists.
 {% endcomment %}
+{% if strip_items or platform_status_strip and platform_status_strip.show %}
 <section class="rmc-os-status-stack" data-rmc-os-status-strip="1" aria-label="{% trans 'Platform and connectivity status' %}">
   {% if strip_items %}
   <div class="d-flex flex-wrap gap-2 mb-2" data-rmc-os-strip-items="1" role="list">
@@ -20,3 +21,4 @@ semantic elements are preferred when an equivalent role exists.
     {% include "components/offline_sync_status_bar.html" %}
   {% endif %}
 </section>
+{% endif %}

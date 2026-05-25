@@ -98,6 +98,9 @@
         {% endif %}
       </ul>
       <div class="d-flex align-items-center gap-2 flex-shrink-0">
+        {% if request.user.is_authenticated %}
+        {% include "partials/rmc_security_posture_nav_button.html" %}
+        {% endif %}
         {% if not PUBLIC_BRAND_MODE %}
         {% include "marketing/components/_theme_toggle.html" %}
         {% endif %}

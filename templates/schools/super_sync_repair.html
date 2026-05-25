@@ -6,7 +6,7 @@
 {% block cp_title %}Sync Repair — {{ school.name }}{% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
   {% include "studio_os/components/page_header.html" with title="Emergency Sync Repair" subtitle=school.name action_url=dashboard_url action_text="Back to Super Dashboard" %}
   <p class="text-muted small">School: <strong>{{ school.name }}</strong> ({{ school.id }})</p>
 

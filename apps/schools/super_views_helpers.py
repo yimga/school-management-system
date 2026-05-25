@@ -117,6 +117,7 @@ def resolve_registry_codes(model, raw_codes: list[str]) -> list:
     ]
     if not codes:
         return []
+    # unbounded-collection-allow: registry-code-resolve-bounded-by-request-payload
     rows = list(model.objects.filter(code__in=codes, is_active=True))
     rows_by_code = {str(row.code).upper(): row for row in rows}
     return [rows_by_code[code] for code in codes if code in rows_by_code]

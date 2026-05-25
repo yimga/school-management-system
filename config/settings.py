@@ -2756,7 +2756,14 @@ AI_ALLOW_RULES_FALLBACK = os.getenv("AI_ALLOW_RULES_FALLBACK", "1").strip().lowe
 OLLAMA_BASE_URL = (os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434") or "http://127.0.0.1:11434").strip().rstrip("/")
 OLLAMA_MODEL = (os.getenv("OLLAMA_MODEL", "ai-center-master") or "ai-center-master").strip()
 # Probe common dev hosts (127.0.0.1, localhost, host.docker.internal, WSL gateway) when unset or unreachable.
-OLLAMA_AUTO_DISCOVER = os.getenv("OLLAMA_AUTO_DISCOVER", "1").strip().lower() in (
+_OLLAMA_AUTO_DISCOVER_DEFAULT = (
+    "0"
+    if (RUNNING_TESTS or _IS_CLOUD_DEPLOYED)
+    else "1"
+)
+OLLAMA_AUTO_DISCOVER = os.getenv(
+    "OLLAMA_AUTO_DISCOVER", _OLLAMA_AUTO_DISCOVER_DEFAULT
+).strip().lower() in (
     "1",
     "true",
     "yes",
@@ -2783,6 +2790,14 @@ OLLAMA_AUTO_START = os.getenv("OLLAMA_AUTO_START", _OLLAMA_AUTO_START_DEFAULT).s
     "yes",
     "on",
 )
+# Manager /super/ landing: demo payloads mirror docs/generated v8 200x preview HTML.
+# Set COCKPIT_200X_RENDER_PREVIEW_DEMO=0 on Render only when real SVG/layout builders replace demo cards.
+COCKPIT_200X_RENDER_PREVIEW_DEMO = os.getenv(
+    "COCKPIT_200X_RENDER_PREVIEW_DEMO", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+COCKPIT_100X_RENDER_PREVIEW_DEMO = os.getenv(
+    "COCKPIT_100X_RENDER_PREVIEW_DEMO", "1"
+).strip().lower() in ("1", "true", "yes", "on")
 AI_CENTER_LOG_PROMPTS = os.getenv("AI_CENTER_LOG_PROMPTS", "0").strip().lower() in (
     "1",
     "true",

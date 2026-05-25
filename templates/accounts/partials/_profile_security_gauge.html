@@ -2,7 +2,7 @@
 {% if profile_security %}
 <link rel="stylesheet" href="{% static 'css/rmc-profile-security-gauge.css' %}">
 {% with ps=profile_security score=profile_security.security_score band=profile_security.strength_band %}
-<div class="rmc-security-gauge content-card mb-3" data-strength-band="{{ band }}" style="--rmc-gauge-score: {{ score }};" id="profile-security-strength" data-rmc-section-anchor>
+<div class="rmc-security-gauge content-card mb-3" data-strength-band="{{ band }}" style="--rmc-gauge-score: {{ score }};" id="profile-security-strength" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Security strength' %}">
   <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
     <div>
       <div class="eyebrow text-muted small text-uppercase">{% trans "Account protection" %}</div>

@@ -78,17 +78,16 @@ def _resolve_operator_presence() -> dict[str, Any] | None:
             initials = (u.username[:2] or "??").upper()
             avatars.append({
                 "initials": initials,
-                "slug": _hash_prefix(u.username, 8),
-                "tone": "indigo",
+                "gradient_slug": "indigo",
             })
         count = recent.count() if hasattr(recent, "count") else len(online)
         return {
             "enabled": True,
-            "label": _("Operators online"),
-            "online_count": int(count),
+            "operators_online_count": int(count),
             "avatars": avatars,
-            "status_label": _("All systems handling well") if count > 0 else _("No operators online"),
-            "status_tone": "ok" if count > 0 else "muted",
+            "status_pill_text": (
+                _("All systems handling well") if count > 0 else _("No operators online")
+            ),
         }
     except Exception:
         logger.warning("panels: operator_presence resolver failed", exc_info=True)
@@ -220,19 +219,19 @@ def _resolve_audit_feed() -> dict[str, Any] | None:
         events = []
         for r in rows:
             etype = r.get("event_type") or ""
+            severity = _severity_for_event(etype)
             events.append({
-                "icon": _icon_for_event(etype),
-                "severity": _severity_for_event(etype),
-                "actor_hashed": (r.get("actor_id") or "—")[:12] if r.get("actor_id") else "—",
-                "tenant_hashed": (r.get("tenant_id_hash") or "—")[:12],
-                "text": _text_for_event(etype),
-                "time_label": _relative_ts(r.get("created_at_iso")),
+                "time": _relative_ts(r.get("created_at_iso")),
+                "actor": (r.get("actor_id") or "—")[:12] if r.get("actor_id") else "—",
+                "event": _text_for_event(etype),
+                "scope": (r.get("tenant_id_hash") or "—")[:12],
+                "severity": severity,
+                "severity_label": severity.upper(),
             })
         if not events:
             return None
         return {
             "enabled": True,
-            "label": _("Audit feed"),
             "events": events,
         }
     except Exception:
@@ -281,13 +280,21 @@ def _resolve_world_map() -> dict[str, Any] | None:
             for r, c in buckets.items() if c > 0
         ]
         regional_rows.sort(key=lambda row: row["count"], reverse=True)
+        dot_tokens = ("indigo", "emerald", "amber", "rose")
         return {
             "enabled": True,
-            "label": _("Global footprint"),
-            "hero_value": str(total),
-            "hero_suffix": _("schools live"),
-            "hero_sub": _("Across all regions"),
-            "regional_rows": regional_rows,
+            "eyebrow": _("Global footprint"),
+            "schools_live": str(total),
+            "schools_live_label": _("schools live"),
+            "subline": _("Across all regions"),
+            "regional_breakdown": [
+                {
+                    "label": row["region"],
+                    "count": row["count"],
+                    "dot_color_token": dot_tokens[idx % len(dot_tokens)],
+                }
+                for idx, row in enumerate(regional_rows)
+            ],
         }
     except Exception:
         logger.warning("panels: world_map resolver failed", exc_info=True)
@@ -311,16 +318,18 @@ def _resolve_tenant_heatmap() -> dict[str, Any] | None:
             return None
         tiles = []
         for r in rows:
-            tone = "ok" if r.get("is_approved") else "warn"
+            status = "healthy" if r.get("is_approved") else "warn"
             tiles.append({
                 "label": (r.get("country_code") or "").upper() or "—",
-                "tone": tone,
-                "slug_hash": _hash_prefix(r.get("slug") or "", 6),
+                "status": status,
+                "cell_value": "",
+                "cell_secondary": "",
+                "tenant_slug": _hash_prefix(r.get("slug") or "", 8),
             })
         return {
             "enabled": True,
-            "label": _("Tenant health heatmap"),
-            "tile_rows": tiles,
+            "eyebrow": _("Tenants · health grid"),
+            "tiles": tiles,
         }
     except Exception:
         logger.warning("panels: tenant_heatmap resolver failed", exc_info=True)
@@ -332,61 +341,8 @@ def _resolve_tenant_heatmap() -> dict[str, Any] | None:
 # ============================================================
 
 def _resolve_forecast_lane() -> dict[str, Any] | None:
-    """Simple 7-day rolling rates, no ML — just observable counts."""
-    try:
-        from apps.schools.models import School
-        from apps.billing.models import TenantSubscription
-        from apps.automation.models import MigrationRun
-        now = timezone.now()
-        week_ago = now - timedelta(days=7)
-
-        # tenant-isolation-allow: platform-cockpit-cross-tenant-forecast-mrr
-        active_mrr = Decimal("0.00")
-        Status = TenantSubscription.Status
-        Cycle = TenantSubscription.BillingCycle
-        for sub in TenantSubscription.objects.filter(
-            status__in=[Status.ACTIVE, Status.TRIALING]
-        ).only("billed_amount", "billing_cycle").iterator():
-            amount = sub.billed_amount or Decimal("0.00")
-            if sub.billing_cycle == Cycle.ANNUAL:
-                amount = amount / Decimal("12")
-            active_mrr += amount
-
-        # tenant-isolation-allow: platform-cockpit-cross-tenant-forecast-new-schools
-        new_schools_7d = School.objects.filter(created_at__gte=week_ago).count() if hasattr(School, "created_at") else 0
-        # tenant-isolation-allow: platform-cockpit-cross-tenant-forecast-incidents
-        incidents_7d = MigrationRun.objects.filter(
-            started_at__gte=week_ago, status__iexact="failed",
-        ).count()
-
-        cards = [
-            {
-                "label": _("MRR"),
-                "value": f"${active_mrr / 1000:.1f}k" if active_mrr >= 1000 else f"${active_mrr:.0f}",
-                "delta": _("Active subscriptions"),
-                "trend": "up" if active_mrr > 0 else "flat",
-            },
-            {
-                "label": _("New schools · 7d"),
-                "value": str(new_schools_7d),
-                "delta": _("Last 7 days"),
-                "trend": "up" if new_schools_7d > 0 else "flat",
-            },
-            {
-                "label": _("Incidents · 7d"),
-                "value": str(incidents_7d),
-                "delta": _("Failed migration runs"),
-                "trend": "down" if incidents_7d > 0 else "flat",
-            },
-        ]
-        return {
-            "enabled": True,
-            "label": _("Forecast lane · 7d"),
-            "cards": cards,
-        }
-    except Exception:
-        logger.warning("panels: forecast_lane resolver failed", exc_info=True)
-        return None
+    """Defer to demo/operator SVG cards until a layout builder emits template keys."""
+    return None
 
 
 # ============================================================
@@ -406,32 +362,31 @@ def _resolve_slo_clocks() -> dict[str, Any] | None:
             {
                 "label": _("Webhook health"),
                 "value": f"{webhook_health_pct}%",
-                "tone": "ok" if webhook_health_pct >= 95 else ("warn" if webhook_health_pct >= 80 else "danger"),
-                "sub": _("Active / total subscriptions"),
+                "dot_status": "ok" if webhook_health_pct >= 95 else ("warn" if webhook_health_pct >= 80 else "danger"),
+                "sublabel": _("Active / total subscriptions"),
             },
             {
                 "label": _("Audit chain"),
-                "value": "verified",  # weekly verify beat (v3.39.0) reports this; we trust the absence of failure email
-                "tone": "ok",
-                "sub": _("Mondays 02:00 UTC"),
+                "value": "verified",
+                "dot_status": "ok",
+                "sublabel": _("Mondays 02:00 UTC"),
             },
             {
                 "label": _("Key rotation"),
                 "value": "monthly",
-                "tone": "ok",
-                "sub": _("Beat: first of month 04:00 UTC"),
+                "dot_status": "ok",
+                "sublabel": _("Beat: first of month 04:00 UTC"),
             },
             {
                 "label": _("DR drill"),
                 "value": _("scheduled"),
-                "tone": "muted",
-                "sub": _("Next: check var/dr-drill-schedule.json"),
+                "dot_status": "info",
+                "sublabel": _("Next: check var/dr-drill-schedule.json"),
             },
         ]
         return {
             "enabled": True,
-            "label": _("SLO clocks"),
-            "clocks_rows": clocks,
+            "clocks": clocks,
         }
     except Exception:
         logger.warning("panels: slo_clocks resolver failed", exc_info=True)
@@ -443,39 +398,8 @@ def _resolve_slo_clocks() -> dict[str, Any] | None:
 # ============================================================
 
 def _resolve_revenue_waterfall() -> dict[str, Any] | None:
-    """5-bar waterfall: Active / Trial / Past-due / Suspended / Canceled."""
-    try:
-        from apps.billing.models import TenantSubscription
-        Status = TenantSubscription.Status
-        # tenant-isolation-allow: platform-cockpit-cross-tenant-revenue-waterfall
-        qs = TenantSubscription.objects.all().only("status", "billed_amount", "billing_cycle")
-        totals: dict[str, Decimal] = {s.value: Decimal("0.00") for s in Status}
-        Cycle = TenantSubscription.BillingCycle
-        for sub in qs.iterator():
-            amt = sub.billed_amount or Decimal("0.00")
-            if sub.billing_cycle == Cycle.ANNUAL:
-                amt = amt / Decimal("12")
-            if sub.status in totals:
-                totals[sub.status] += amt
-        bars = [
-            {"label": _("Active"),    "value": float(totals.get(Status.ACTIVE, Decimal("0"))),    "severity": "success"},
-            {"label": _("Trialing"),  "value": float(totals.get(Status.TRIALING, Decimal("0"))),  "severity": "info"},
-            {"label": _("Past due"),  "value": float(totals.get(Status.PAST_DUE, Decimal("0"))),  "severity": "warn"},
-            {"label": _("Suspended"), "value": float(totals.get(Status.SUSPENDED, Decimal("0"))), "severity": "warn"},
-            {"label": _("Canceled"),  "value": float(totals.get(Status.CANCELED, Decimal("0"))),  "severity": "danger"},
-        ]
-        start = float(totals.get(Status.ACTIVE, Decimal("0")))
-        end = sum(b["value"] for b in bars if b["severity"] in ("success", "info"))
-        return {
-            "enabled": True,
-            "label": _("Revenue waterfall"),
-            "start_value": f"${start / 1000:.1f}k" if start >= 1000 else f"${start:.0f}",
-            "end_value": f"${end / 1000:.1f}k" if end >= 1000 else f"${end:.0f}",
-            "bars": bars,
-        }
-    except Exception:
-        logger.warning("panels: revenue_waterfall resolver failed", exc_info=True)
-        return None
+    """Defer SVG bar geometry to demo/operator payload until layout builder ships."""
+    return None
 
 
 # ============================================================
@@ -492,13 +416,13 @@ def _resolve_trust_nutrition() -> dict[str, Any] | None:
             created_at_iso__gte=(timezone.now() - timedelta(days=7)).isoformat()
         ).count()
         rows = [
-            {"label": _("Audit chain integrity"), "value": _("verified"), "tone": "ok"},
-            {"label": _("MAA signatures (7d)"),   "value": str(recent_audit), "tone": "info"},
-            {"label": _("Encryption at rest"),    "value": _("AES-256 · MultiFernet"), "tone": "ok"},
-            {"label": _("FERPA retention"),       "value": _("90d floor"), "tone": "ok"},
-            {"label": _("Webhook signing"),       "value": _("HMAC-SHA256 + canonical JSON"), "tone": "ok"},
-            {"label": _("MFA enforcement"),       "value": _("operator-required"), "tone": "ok"},
-            {"label": _("Companion handshake"),   "value": _("X25519 sealed box"), "tone": "ok"},
+            {"label": _("Audit chain integrity"), "value": _("verified"), "status": "ok"},
+            {"label": _("MAA signatures (7d)"), "value": str(recent_audit), "status": "info"},
+            {"label": _("Encryption at rest"), "value": _("AES-256 · MultiFernet"), "status": "ok"},
+            {"label": _("FERPA retention"), "value": _("90d floor"), "status": "ok"},
+            {"label": _("Webhook signing"), "value": _("HMAC-SHA256 + canonical JSON"), "status": "ok"},
+            {"label": _("MFA enforcement"), "value": _("operator-required"), "status": "ok"},
+            {"label": _("Companion handshake"), "value": _("X25519 sealed box"), "status": "ok"},
         ]
         return {
             "enabled": True,

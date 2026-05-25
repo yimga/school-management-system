@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{% static 'css/student-360-bento.css' %}">
 {% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-4 student-360-page" data-page-archetype="record-detail">
+<div class="container-fluid py-2 student-360-page" data-page-archetype="record-detail">
   <nav class="mb-3" aria-label="{% trans 'Breadcrumb' %}">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'accounts:backend_student_list' %}">{% trans_term "Students" key="student" plural=True %}</a></li>

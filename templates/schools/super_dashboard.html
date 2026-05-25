@@ -39,24 +39,38 @@
    the collapsable primitive so operators can fold sections they don't need.
    State persists per-section via localStorage. Inner partials keep their
    own cockpit.<section>.enabled self-gate. {% endcomment %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("Platform pulse") key="super__platform_pulse" include_partial="partials/cockpit/_platform_pulse.html" chrome="section" %}
-{# v3.58.10: operator presence capsule (200x Element 10) — header-style strip, self-gated. #}
-{% include "partials/cockpit/_operator_presence.html" %}
+{% comment %} Platform pulse + operator presence render in control_plane_base canvas chrome / header — no duplicate collapsible stack here. {% endcomment %}
+{% if cockpit.live_world_map.enabled %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Live world map") key="super__live_world_map" include_partial="partials/cockpit/_live_world_map.html" chrome="section" %}
+{% endif %}
+{% if cockpit.forecast_lane.enabled and cockpit.forecast_lane.cards %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Forecast lane") key="super__forecast_lane" include_partial="partials/cockpit/_forecast_lane.html" chrome="section" %}
+{% endif %}
+{% if cockpit.slo_clocks.enabled and cockpit.slo_clocks.clocks %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("SLO clocks") key="super__slo_clocks" include_partial="partials/cockpit/_slo_clocks.html" chrome="section" %}
+{% endif %}
+{% if cockpit.tenant_heatmap.enabled and cockpit.tenant_heatmap.tiles %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Tenant health heatmap") key="super__tenant_heatmap" include_partial="partials/cockpit/_tenant_heatmap.html" chrome="section" %}
+{% endif %}
+{% if cockpit.revenue_waterfall.enabled and cockpit.revenue_waterfall.bars %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Revenue waterfall") key="super__revenue_waterfall" include_partial="partials/cockpit/_revenue_waterfall.html" chrome="section" %}
+{% endif %}
+{% if cockpit.audit_feed.enabled and cockpit.audit_feed.events %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Audit feed") key="super__audit_feed" include_partial="partials/cockpit/_audit_feed.html" chrome="section" %}
+{% endif %}
+{% if cockpit.trust_nutrition.enabled and cockpit.trust_nutrition.rows %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust nutrition") key="super__trust_nutrition" include_partial="partials/cockpit/_trust_nutrition.html" chrome="section" %}
+{% endif %}
 {% comment %} v3.58.x Wave 10 Agent S (2026-05-22): Trust pillars alerts feed — closes
    the v8 200x preview's alerts-feed gap (Audit chain integrity / MAA signatures
    / Encryption at rest / FERPA retention / Webhook signing / MFA enforcement /
    Companion handshake). Distinct from `_trust_nutrition.html`. Self-gates on
    `cockpit.trust_pillars_alerts.enabled` so it renders nothing until opted in
    via /super/configure/cockpit/. {% endcomment %}
+{% if cockpit.trust_pillars_alerts.enabled and cockpit.trust_pillars_alerts.pillars %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="super__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
-<div id="super-dashboard-main" class="container-fluid py-4" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
+{% endif %}
+<div id="super-dashboard-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-rmc-premium-command-center="1" data-page-header="platform-command-center" data-page-archetype="role-home" data-decision-engine="surface" data-apple-class-super-command-center="1"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% phase8_dashboard_declaration "schools/super_dashboard.html" %}
   {% url 'super:create_school_wizard' as wcx_create_school_url %}
   {% url 'configuration:center' as wcx_configuration_url %}
@@ -330,7 +344,7 @@
           {% endfor %}
         </div>
         <div class="row g-3 mt-1">
-          <div class="col-lg-5">
+          <div class="col-lg-6">
             <div class="cp-stack-card">
               <div class="cp-mini-heading">{% trans "Webhook migration posture" %}</div>
               <div class="cp-stack-metric">{% blocktrans with n=webhook_stack.legacy_groups|default:0 %}Legacy groups {{ n }}{% endblocktrans %}</div>
@@ -341,7 +355,7 @@
               {% endif %}
             </div>
           </div>
-          <div class="col-lg-7">
+          <div class="col-lg-6">
             <div class="cp-stack-card">
               <div class="cp-mini-heading">{% trans "Operational posture" %}</div>
               <div class="cp-stack-row">
@@ -517,30 +531,37 @@
         </div>
       </section>
 
-      <section class="cp-panel rmc-reveal" id="cp-tenant-registry">
+      <section class="cp-panel rmc-reveal" id="cp-tenant-registry" data-rmc-scroll-policy="paginate">
         <div class="cp-panel-header">
           <div>
             <span class="cp-panel-eyebrow">{% trans "School registry" %}</span>
             <h2 class="cp-panel-title">{% trans "Search, triage, and drill into every school" %}</h2>
           </div>
           <div class="cp-panel-header-actions">
+            <a href="{% url 'super:schools_list' %}" class="btn btn-outline-secondary btn-sm">{% trans "Full directory" %}</a>
             <a href="{% url 'super:export_schools_csv' %}" class="btn btn-outline-secondary btn-sm">{% trans "Export schools" %}</a>
             <a href="{% url 'super:tenant_health' %}" class="btn btn-outline-secondary btn-sm">{% trans "School health" %}</a>
           </div>
         </div>
-        <div class="cp-toolbar">
-          <input type="search" id="cp-school-search" class="form-control" placeholder="{% trans 'Search schools, countries, systems, risk flags' %}">
-          <select id="cp-school-filter" class="form-select">
-            <option value="all">{% trans "All schools" %}</option>
-            <option value="attention">{% trans "Needs attention" %}</option>
-            <option value="pending">{% trans "Pending approval" %}</option>
-            <option value="inactive">{% trans "Inactive" %}</option>
-            <option value="healthy">{% trans "Healthy" %}</option>
+        <form id="cp-registry-filter-form" class="cp-toolbar cp-registry-toolbar" method="get" action="{{ request.path }}#cp-tenant-registry" role="search">
+          <input type="search" id="cp-school-search" name="registry_q" value="{{ registry_search }}" class="form-control" placeholder="{% trans 'Search schools, countries, systems, risk flags' %}" autocomplete="off">
+          <select id="cp-school-filter" name="registry_state" class="form-select" aria-label="{% trans 'Filter schools' %}">
+            <option value="all"{% if registry_state == "all" %} selected{% endif %}>{% trans "All schools" %}</option>
+            <option value="attention"{% if registry_state == "attention" %} selected{% endif %}>{% trans "Needs attention" %}</option>
+            <option value="pending"{% if registry_state == "pending" %} selected{% endif %}>{% trans "Pending approval" %}</option>
+            <option value="inactive"{% if registry_state == "inactive" %} selected{% endif %}>{% trans "Inactive" %}</option>
+            <option value="healthy"{% if registry_state == "healthy" %} selected{% endif %}>{% trans "Healthy" %}</option>
           </select>
-          <div class="cp-toolbar-summary">{% blocktrans with total=schools|length %}<span id="cp-visible-school-count">{{ total }}</span> of {{ total }} schools visible{% endblocktrans %}</div>
-        </div>
+          <input type="hidden" name="page" value="1">
+          {% if current_request_month %}<input type="hidden" name="month" value="{{ current_request_month }}">{% endif %}
+          <div class="cp-toolbar-summary">
+            {% blocktrans with visible=registry_page|length total=registry_total_count page=registry_page.number pages=registry_page.paginator.num_pages %}
+            Page {{ page }} of {{ pages }} — <span id="cp-visible-school-count">{{ visible }}</span> of {{ total }} schools in this view
+            {% endblocktrans %}
+          </div>
+        </form>
         <div class="table-responsive cp-table-wrap cp-registry-table-wrap">
-          <table class="table table-family table-hover mb-0 cp-table cp-registry-table align-middle" data-density="condensed">
+          <table class="table table-family table-hover mb-0 cp-table cp-registry-table align-middle rmc-data-table" data-density="condensed">
             <caption class="visually-hidden">{% trans "Search, triage, and drill into every school" %}</caption>
             <thead>
               <tr>
@@ -668,6 +689,7 @@
             </tbody>
           </table>
         </div>
+        {% include "components/pagination.html" with page_obj=registry_page pagination_extra_query=registry_pagination_extra_query show_page_size=True page_size=registry_page_size page_size_options=registry_page_size_options %}
       </section>
     </div>
 

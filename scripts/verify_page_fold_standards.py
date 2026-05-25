@@ -129,9 +129,15 @@ def main() -> int:
     )
     add(
         "admin_index_section_nav",
-        "Platform admin index includes rmc-page-fold-nav section anchors",
-        "rmc-page-fold-nav" in admin_index and "data-rmc-section-anchor" in admin_index,
+        "Platform admin index uses curated TOC section nav",
+        "partials/rmc_section_nav_curated.html" in admin_index,
         "templates/admin/index_superadmin.html",
+    )
+    add(
+        "section_nav_toc_css",
+        "Platform chrome loads section-nav TOC stylesheet",
+        "rmc-section-nav-toc.css" in _read("templates/partials/rmc_platform_chrome_styles.html"),
+        "templates/partials/rmc_platform_chrome_styles.html",
     )
     add(
         "admin_index_catalog_collapsed",

@@ -76,7 +76,6 @@
    demo cards by default. Now only the manager landing template (schools/super_dashboard.html)
    includes it. Other /super/ pages keep their own personality. Breadcrumb stays
    (universally useful, no-op when breadcrumb_trail absent). {% endcomment %}
-{% include "partials/cockpit/_breadcrumb.html" %}
 {% block rmc_operator_surface_strip %}
 {% include "components/rmc_operator_surface_strip.html" %}
 {% endblock %}
@@ -103,11 +102,11 @@
     {% endif %}
     {% endblock %}
     {% block cp_workspace_header %}
-    {% if not cp_page_title %}
+    {% if show_cp_workspace_header and not cp_page_title and not page_provides_own_h1 %}
     {% include "components/rmc_os_page_header.html" %}
     {% endif %}
     {% endblock %}
-    <div class="d-flex flex-wrap justify-content-end gap-2 mb-3" data-rmc-os-primary-action-slot="1" data-rmc-primary-action-slot="1">
+    <div class="d-flex flex-wrap justify-content-end gap-2 mb-0" data-rmc-os-primary-action-slot="1" data-rmc-primary-action-slot="1">
       {% block rmc_os_shell_primary_action %}{% endblock %}
     </div>
     {% block cp_status_strip %}

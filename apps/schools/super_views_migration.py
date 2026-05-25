@@ -81,6 +81,7 @@ def super_migration_cloud(request):
         else None
     )
 
+    # unbounded-collection-allow: migration-profile-catalog-reference-table-small-cardinality
     profiles = list(
         MigrationProfile.objects.filter(is_active=True).order_by("sort_order", "slug")
     )
@@ -193,6 +194,7 @@ def super_migration_profile_registry(request):
     from apps.automation.models import MigrationProfile
     from itertools import groupby
 
+    # unbounded-collection-allow: migration-profile-catalog-reference-table-small-cardinality
     profiles = list(
         MigrationProfile.objects.filter(is_active=True).order_by(
             "source_system", "profile_category", "sort_order", "slug"

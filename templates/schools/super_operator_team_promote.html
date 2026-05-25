@@ -3,6 +3,7 @@
 
 {% block cp_title %}{% trans "Promotion requests" %}{% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
@@ -18,7 +19,7 @@
   {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_team_promote" center_eyebrow=_("Platform operators") center_title=_("Promotion requests") center_purpose=_("Dual-control tier promotions for platform operators.") primary_url=roster_url primary_label=_("Back to roster") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 
   <div class="row g-3">
-    <div class="col-lg-5">
+    <div class="col-lg-6">
       <div class="card shadow-sm">
         <div class="card-header">{% trans "New promotion request (dual control)" %}</div>
         <div class="card-body">
@@ -57,7 +58,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-7">
+    <div class="col-lg-6">
       <div class="card shadow-sm">
         <div class="card-header">{% trans "Pending approvals" %}</div>
         <div class="card-body p-0 table-responsive">

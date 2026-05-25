@@ -361,6 +361,9 @@
             {% endif %}
 
             <div class="topbar-controls d-flex align-items-center gap-2">
+              {% if not PRIMARY_CONTROL_PLANE_NAV %}
+              {% include "partials/rmc_security_posture_nav_button.html" %}
+              {% endif %}
               {% if available_languages %}
               {% include "partials/language_switcher.html" %}
               {% endif %}

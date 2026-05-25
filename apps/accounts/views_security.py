@@ -359,6 +359,15 @@ def security_posture_review(request):
 
 @login_required
 @require_POST
+def security_posture_session_modal_ack(request):
+    from apps.accounts.security_posture_notifications import acknowledge_session_modal
+
+    acknowledge_session_modal(request)
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
 def notification_corner_snooze(request):
     from apps.accounts.security_posture_notifications import snooze_corner_notifications
 

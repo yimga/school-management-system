@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 
 from django.db import DatabaseError
-from django.db.models import Count, OuterRef, Subquery, Sum
+from django.db.models import Count, Sum
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
@@ -43,6 +43,15 @@ from .super_views_dashboard_helpers import (
 from .super_views_helpers import (
     safe_platform_incidents_url,
     safe_school_timeline_url,
+)
+from .super_dashboard_registry import (
+    REGISTRY_PAGE_SIZE_OPTIONS,
+    build_registry_queryset,
+    compute_fleet_registry_metrics,
+    enrich_school_for_registry,
+    load_brand_profile_ids,
+    load_country_names,
+    paginate_registry,
 )
 
 
@@ -93,60 +102,14 @@ def super_dashboard_v2(request):
     from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
     from apps.observability.models import PlatformIncident
     from apps.observability.monitoring import SystemHealthMonitor
-    from apps.brand_experience.models import BrandProfile
     from apps.siteconfig.models import RevenueSnapshot
 
     first_of_month = parse_month_param(request)
     month_options = build_month_options_list(12)
     current_request_month = first_of_month.strftime("%Y-%m")
 
-    latest_event_query = SchoolProvisioningEvent.objects.filter(
-        school_id=OuterRef("pk")
-    ).order_by("-created_at", "-id")
-    latest_subscription_query = TenantSubscription.objects.filter(
-        school_id=OuterRef("pk")
-    ).order_by("-updated_at", "-created_at")
-    country_names = {
-        code: name
-        for code, name in CountryRegistry.objects.filter(is_active=True).values_list(
-            "code", "name"
-        )
-    }
-    schools = list(
-        School.objects.all()
-        .select_related("subdivision", "default_region")
-        .prefetch_related(
-            "tenant_systems__system", "education_levels", "education_system_types"
-        )
-        .order_by("-is_active", "name")
-        .annotate(member_count=Count("memberships"))
-        .annotate(student_count=Count("student_profiles", distinct=True))
-        .annotate(teacher_count=Count("teacher_profiles", distinct=True))
-        .annotate(
-            latest_event_type=Subquery(latest_event_query.values("event_type")[:1])
-        )
-        .annotate(latest_event_status=Subquery(latest_event_query.values("status")[:1]))
-        .annotate(
-            latest_event_created_at=Subquery(
-                latest_event_query.values("created_at")[:1]
-            )
-        )
-        .annotate(
-            latest_subscription_status=Subquery(
-                latest_subscription_query.values("status")[:1]
-            )
-        )
-        .annotate(
-            latest_subscription_amount=Subquery(
-                latest_subscription_query.values("billed_amount")[:1]
-            )
-        )
-        .annotate(
-            latest_subscription_period_end=Subquery(
-                latest_subscription_query.values("current_period_end")[:1]
-            )
-        )
-    )
+    country_names = load_country_names()
+    brand_profile_ids = load_brand_profile_ids()
 
     total_mrr = total_waived = waiver_percentage = 0
     revenue_by_country = []
@@ -185,7 +148,7 @@ def super_dashboard_v2(request):
         .prefetch_related("tenant_systems__system")
         .order_by("-created_at")
         .annotate(member_count=Count("memberships"))
-        .annotate(student_count=Count("student_profiles", distinct=True))
+        .annotate(student_count=Count("student_profiles", distinct=True))[:50]
     )
     for school in pending_schools:
         school.timeline_url = safe_school_timeline_url(school.pk)
@@ -193,7 +156,7 @@ def super_dashboard_v2(request):
         school.country_display = country_names.get(
             school.canonical_country_code, school.canonical_country_code or "Unassigned"
         )
-    pending_approval_count = len(pending_schools)
+    pending_approval_count = School.objects.filter(is_approved=False).count()
 
     health_top_tables = []
     health_schema_stats = []
@@ -284,9 +247,13 @@ def super_dashboard_v2(request):
             is_active=True
         ).count(),
     }
-    brand_profile_ids = set(BrandProfile.objects.values_list("school_id", flat=True))
     churn_risk_lookup = {
         str(row["school"].id): row
+        for row in command_center.get("tenant_churn_risk_rows", [])
+        if row.get("school") is not None
+    }
+    churn_risk_school_ids = {
+        row["school"].pk
         for row in command_center.get("tenant_churn_risk_rows", [])
         if row.get("school") is not None
     }
@@ -295,130 +262,46 @@ def super_dashboard_v2(request):
         for incident in platform_incidents
         if getattr(incident, "affected_school_id", None)
     }
-    countries_live_codes = {
-        school.canonical_country_code
-        for school in schools
-        if school.canonical_country_code
-    }
-    countries_live_count = len(countries_live_codes)
-    identity_complete_count = 0
-    brand_profile_count = 0
-    verified_domain_count = 0
-    custom_domain_count = 0
-    impersonation_ready_count = 0
-    attention_school_count = 0
-    recent_schools = sorted(
-        schools, key=lambda school: (school.created_at, school.name), reverse=True
-    )[:8]
-
-    for school in schools:
-        school.timeline_url = safe_school_timeline_url(school.pk)
-        school.sync_repair_url = reverse("super:sync_repair", args=[school.pk])
-        school.selected_systems = selected_system_names(school)
-        school.country_display = country_names.get(
-            school.canonical_country_code, school.canonical_country_code or "Unassigned"
-        )
-        school.subdivision_display = (
-            school.subdivision.name if school.subdivision_id else "-"
-        )
-        school.education_level_labels = [
-            education_level_label(level, school.canonical_country_code)
-            for level in school.education_levels.all()
-        ]
-        school.education_system_type_labels = [
-            education_system_type_label(system_type, school.canonical_country_code)
-            for system_type in school.education_system_types.all()
-        ]
-        school.has_brand_profile = (
-            school.id in brand_profile_ids
-            or brand_profile_for_school(school) is not None
-        )
-        school.brand_status = (
-            "BrandProfile" if school.has_brand_profile else "Legacy fallback"
-        )
-        school.subscription_status = (
-            school.latest_subscription_status or "UNSEEDED"
-        ).upper()
-        school.subscription_tone = status_tone(school.subscription_status)
-        school.identity_status = "missing"
-        if (
-            school.canonical_country_code
-            or school.education_level_labels
-            or school.education_system_type_labels
-        ):
-            school.identity_status = "partial"
-        if (
-            school.canonical_country_code
-            and school.education_level_labels
-            and school.education_system_type_labels
-        ):
-            school.identity_status = "complete"
-        school.identity_tone = status_tone(
-            "success" if school.identity_status == "complete" else "warning"
-        )
-        school.attention_reasons = []
-        if not school.is_approved:
-            school.attention_reasons.append("Pending approval")
-        if (
-            getattr(school, "latest_event_status", "")
-            == SchoolProvisioningEvent.Status.ERROR
-        ):
-            school.attention_reasons.append("Provisioning error")
-        if school.subscription_status in {
-            TenantSubscription.Status.PAST_DUE,
-            TenantSubscription.Status.SUSPENDED,
-        }:
-            school.attention_reasons.append(
-                f"Billing {school.subscription_status.lower().replace('_', ' ')}"
-            )
-        risk_row = churn_risk_lookup.get(str(school.pk))
-        if risk_row and risk_row.get("reasons"):
-            school.attention_reasons.append(risk_row["reasons"][0])
-        if school.pk in incident_school_ids:
-            school.attention_reasons.append("Open platform incident")
-        if school.identity_status != "complete":
-            school.attention_reasons.append("Canonical identity incomplete")
-        school.attention_reasons = school.attention_reasons[:4]
-        if school.attention_reasons:
-            attention_school_count += 1
-        school.roster_state = "healthy"
-        if not school.is_active:
-            school.roster_state = "inactive"
-        elif not school.is_approved:
-            school.roster_state = "pending"
-        elif school.attention_reasons:
-            school.roster_state = "attention"
-        school.roster_search = " ".join(
-            filter(
-                None,
-                [
-                    school.name,
-                    school.slug,
-                    school.subdomain,
-                    school.country_display,
-                    school.subdivision_display,
-                    " ".join(school.education_level_labels),
-                    " ".join(school.education_system_type_labels),
-                    " ".join(school.selected_systems),
-                    " ".join(school.attention_reasons),
-                    school.subscription_status,
-                ],
-            )
-        ).lower()
-        if school.identity_status == "complete":
-            identity_complete_count += 1
-        if school.has_brand_profile:
-            brand_profile_count += 1
-        if school.custom_domain:
-            custom_domain_count += 1
-        if school.custom_domain_verified:
-            verified_domain_count += 1
-        if school.impersonation_consent_granted_at:
-            impersonation_ready_count += 1
-
-    schools.sort(
-        key=lambda school: (-len(school.attention_reasons), school.name.lower())
+    fleet_metrics = compute_fleet_registry_metrics(
+        incident_school_ids=incident_school_ids,
+        churn_risk_school_ids=churn_risk_school_ids,
     )
+    school_count = fleet_metrics.school_count
+    identity_complete_count = fleet_metrics.identity_complete_count
+    brand_profile_count = fleet_metrics.brand_profile_count
+    verified_domain_count = fleet_metrics.verified_domain_count
+    custom_domain_count = fleet_metrics.custom_domain_count
+    impersonation_ready_count = fleet_metrics.impersonation_ready_count
+    attention_school_count = fleet_metrics.attention_school_count
+    countries_live_count = fleet_metrics.countries_live_count
+
+    (
+        registry_page,
+        registry_search,
+        registry_state,
+        registry_page_size,
+        registry_pagination_extra_query,
+    ) = paginate_registry(
+        request,
+        incident_school_ids=incident_school_ids,
+        churn_risk_school_ids=churn_risk_school_ids,
+        churn_risk_lookup=churn_risk_lookup,
+        country_names=country_names,
+        brand_profile_ids=brand_profile_ids,
+    )
+    schools = list(registry_page.object_list)
+
+    recent_schools = list(
+        build_registry_queryset().order_by("-created_at", "name")[:8]
+    )
+    for school in recent_schools:
+        enrich_school_for_registry(
+            school,
+            country_names=country_names,
+            brand_profile_ids=brand_profile_ids,
+            incident_school_ids=incident_school_ids,
+            churn_risk_lookup=churn_risk_lookup,
+        )
 
     country_rollup = list(
         School.objects.exclude(country_code="")
@@ -441,7 +324,6 @@ def super_dashboard_v2(request):
         row["actual_revenue"] = revenue_row.get("actual") or 0
         row["waived_revenue"] = revenue_row.get("waived") or 0
 
-    school_count = len(schools)
     if total_mrr is not None and total_mrr > 0:
         north_star_label = "Total MRR"
         north_star_formatted = f"${total_mrr:,.2f}"
@@ -492,7 +374,7 @@ def super_dashboard_v2(request):
         {
             "label": "Fleet tenants",
             "value": school_count,
-            "meta": f"{sum(1 for school in schools if school.is_active)} active / {pending_approval_count} pending approval",
+            "meta": f"{fleet_metrics.active_school_count} active / {pending_approval_count} pending approval",
             "tone": "blue",
         },
         {
@@ -716,6 +598,13 @@ def super_dashboard_v2(request):
         "schools/super_dashboard.html",
         {
             "schools": schools,
+            "registry_page": registry_page,
+            "registry_search": registry_search,
+            "registry_state": registry_state,
+            "registry_page_size": registry_page_size,
+            "registry_page_size_options": REGISTRY_PAGE_SIZE_OPTIONS,
+            "registry_pagination_extra_query": registry_pagination_extra_query,
+            "registry_total_count": registry_page.paginator.count,
             "pending_schools": pending_schools,
             "pending_approval_count": pending_approval_count,
             "total_mrr": total_mrr,

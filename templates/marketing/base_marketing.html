@@ -46,6 +46,7 @@
   {# v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer. #}
   <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
   {% include "partials/rmc_platform_chrome_styles.html" %}
+  {% if request.user.is_authenticated %}{% include "partials/rmc_security_posture_layout_styles.html" %}{% endif %}
   <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-critical.min.css' %}">
   <link rel="prefetch" href="{% static 'marketing/css/marketing-enhanced.min.css' %}" as="style">
@@ -102,6 +103,7 @@
   <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
   <script src="{% static 'marketing/js/horizontal-carousel.js' %}" defer></script>
   {% include 'components/toast_notifications.html' %}
+  {% if request.user.is_authenticated %}{% include "partials/shell_chrome_security_posture_banner.html" %}{% endif %}
   <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-proof-interactions.js' %}" defer></script>
   {% include 'marketing/partials/marketing_analytics.html' %}

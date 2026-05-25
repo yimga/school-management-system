@@ -424,6 +424,12 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
         except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             context["admin_index_kpis"] = []
         try:
+            from apps.portal.help_section_nav import admin_catalog_section_nav_items
+
+            context["admin_catalog_section_nav_items"] = admin_catalog_section_nav_items()
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            context["admin_catalog_section_nav_items"] = []
+        try:
             from apps.siteconfig.admin_index_surface import (
                 build_admin_index_surface_context,
             )

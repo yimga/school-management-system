@@ -184,6 +184,7 @@
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     {% include "partials/rmc_platform_chrome_styles.html" %}
+    {% if request.user.is_authenticated %}{% include "partials/rmc_security_posture_layout_styles.html" %}{% endif %}
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
@@ -238,6 +239,7 @@
 
         <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
           {% if request.user.is_authenticated %}
+            {% include "partials/rmc_security_posture_nav_button.html" %}
             <span class="small d-none d-md-inline topbar-username">{% blocktrans with name=request.user.username %}Logged in as {{ name }}{% endblocktrans %}</span>
             <span class="small text-white-50 d-none d-md-inline align-self-center ms-2">Press <kbd>?</kbd> for keyboard shortcuts</span>
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a>
@@ -336,6 +338,7 @@
        {% endcomment %}
 
     {% include 'components/toast_notifications.html' %}
+    {% if request.user.is_authenticated %}{% include "partials/shell_chrome_security_posture_banner.html" %}{% endif %}
     {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section runtime. Module-load gates on .rmc-collapsable presence so it's no-op on pages without any. #}
     <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
     {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. #}

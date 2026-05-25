@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="record-detail">
+<div class="container-fluid py-2" data-page-archetype="record-detail">
   {% include "studio_os/components/page_header.html" with title=_("Field impact") subtitle=entity.code|add:"."|add:field.field_name action_url=catalog_url action_text=_("Back to Catalog") %}
   <div class="py-2">
   <h5 class="mb-3"><code>{{ entity.code }}.{{ field.field_name }}</code> — {{ field.label|default:field.field_name }}</h5>

@@ -4,6 +4,7 @@
 
 {% block cp_title %}{% trans "Security & audit" %}{% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
@@ -14,7 +15,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div id="super-security-hub-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-super-security-hub="1">
+<div id="super-security-hub-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-super-security-hub="1">
   {% phase8_dashboard_declaration "schools/super_security_hub.html" %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="security_hub" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <h1 class="h4 mb-3">{% trans "Security & enterprise audit" %}</h1>
@@ -67,7 +68,7 @@
     <div class="card-header">{% trans "Impersonation & proxy (platform operator)" %}</div>
     <div class="card-body p-0 table-responsive" style="max-height: 18rem; overflow-y: auto;">
       <!-- large-collection-allow: dashboard-widget-capped-list -->
- class="table table-sm table-family mb-0 small">
+<table class="table table-sm table-family mb-0 small">
         <caption class="visually-hidden">{% trans "Impersonation & proxy (platform operator)" %}</caption>
         <thead><tr><th>{% trans "When (UTC)" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Peer / approval" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Action" %}</th><th>{% trans "Reason" %}</th><th>{% trans "Read-only" %}</th></tr></thead>
         <tbody>

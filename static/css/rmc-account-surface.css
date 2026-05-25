@@ -12,6 +12,143 @@
   padding: var(--space-5) var(--space-6);
 }
 
+.rmc-account-shell[data-rmc-balanced-profile="1"] {
+  --rmc-account-shell-max: 1480px;
+  --rmc-account-shell-gap: clamp(1rem, 1.3vw, 1.5rem);
+  --rmc-account-primary-min: minmax(min(100%, 31rem), 0.95fr);
+  --rmc-account-rail-min: minmax(min(100%, 35rem), 1.25fr);
+  width: min(100%, var(--rmc-account-shell-max));
+  margin-inline: auto;
+  min-width: 0;
+}
+
+body.control-plane-shell #cp-main-content .rmc-account-shell[data-rmc-balanced-profile="1"] {
+  max-width: min(100%, var(--rmc-account-shell-max));
+  padding-inline: clamp(0.35rem, 1vw, 1rem) !important;
+  padding-top: 0.65rem !important;
+}
+
+.rmc-account-shell[data-rmc-balanced-profile="1"] .rmc-account-page-header,
+.rmc-account-shell[data-rmc-balanced-profile="1"] > .d-flex:first-child {
+  margin-bottom: clamp(0.75rem, 1.2vw, 1.15rem);
+}
+
+.rmc-account-layout-grid {
+  display: grid;
+  grid-template-columns: var(--rmc-account-primary-min) var(--rmc-account-rail-min);
+  gap: var(--rmc-account-shell-gap);
+  align-items: start;
+  min-width: 0;
+}
+
+.rmc-account-layout-grid[data-rmc-balanced-layout="account-profile"] {
+  width: 100%;
+}
+
+.rmc-account-layout-grid__primary,
+.rmc-account-layout-grid__rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rmc-account-shell-gap);
+  min-width: 0;
+}
+
+.rmc-account-layout-grid__rail {
+  align-self: stretch;
+}
+
+.rmc-account-layout-grid :is(.card, .content-card, .rmc-security-gauge, .rmc-profile-security-hub, .rmc-mfa-inline-wizard) {
+  margin-bottom: 0 !important;
+  min-width: 0;
+}
+
+.rmc-account-layout-grid :is(.card, .content-card) {
+  border-radius: var(--token-radius-lg, 14px);
+  border-color: var(--admin-content-border, var(--hairline));
+}
+
+.rmc-account-layout-grid .rmc-account-quick-links .card-body,
+.rmc-account-layout-grid .rmc-account-identity-card.card .card-body {
+  padding: var(--space-5, 1.25rem) var(--space-6, 1.5rem);
+}
+
+.rmc-account-layout-grid .rmc-account-quick-links .btn,
+.rmc-account-layout-grid .rmc-profile-security-hub .btn,
+.rmc-account-layout-grid .rmc-security-gauge .btn {
+  min-height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rmc-account-layout-grid .rmc-security-gauge {
+  position: relative;
+  overflow: clip;
+}
+
+.rmc-account-layout-grid .rmc-security-gauge__vuln-list {
+  max-height: min(19rem, 42vh);
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.rmc-account-layout-grid .rmc-security-gauge__vuln-item {
+  overflow-wrap: anywhere;
+}
+
+.rmc-account-layout-grid .rmc-profile-security-hub__grid {
+  --bs-gutter-x: 0.75rem;
+  --bs-gutter-y: 0.75rem;
+}
+
+.rmc-account-layout-grid .rmc-profile-security-hub__grid > [class*="col-"] {
+  min-width: 0;
+}
+
+.rmc-account-layout-grid .rmc-profile-security-hub__panel {
+  height: 100%;
+}
+
+body.control-plane-shell #cp-main-content .operator-siteconfig-cp-body:has([data-rmc-balanced-profile="1"]) {
+  padding-bottom: 1rem;
+}
+
+body.control-plane-shell #cp-main-content .operator-siteconfig-cp-body [data-rmc-balanced-profile="1"] {
+  color: var(--admin-content-text, inherit);
+}
+
+@media (min-width: 1400px) {
+  .rmc-account-shell[data-rmc-balanced-profile="1"] {
+    --rmc-account-primary-min: minmax(32rem, 0.82fr);
+    --rmc-account-rail-min: minmax(40rem, 1.18fr);
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .rmc-account-layout-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rmc-account-layout-grid .rmc-security-gauge__vuln-list {
+    max-height: none;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .rmc-account-shell[data-rmc-balanced-profile="1"] {
+    --rmc-account-shell-gap: 0.85rem;
+  }
+
+  .rmc-account-layout-grid .rmc-account-quick-links .card-body,
+  .rmc-account-layout-grid .rmc-account-identity-card.card .card-body,
+  .profile-shell .rmc-account-card-pad,
+  .rmc-profile-security-hub,
+  .rmc-mfa-inline-wizard,
+  .rmc-security-gauge.content-card {
+    padding: 1rem;
+  }
+}
+
 .profile-shell .rmc-account-role-badge {
   font-size: var(--type-size-micro);
   padding: 1px var(--space-2);

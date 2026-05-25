@@ -419,21 +419,15 @@ def _section_companion_fleet() -> dict[str, Any]:
         )
 
         # tenant-isolation-allow: command-center-cross-tenant-snapshot-staff-only
-        receipts_30d = list(
-            CompanionUploadReceipt.objects
-            .filter(received_at__gte=thirty_days_ago)
-            .only("plaintext_byte_size")
+        receipts_30d_qs = CompanionUploadReceipt.objects.filter(
+            received_at__gte=thirty_days_ago
         )
-        upload_count_30d = len(receipts_30d)
-        # Defensive read — Agent 4 of this wave may rename
-        # ``plaintext_byte_size`` → ``byte_size``. Survive either.
-        bytes_total_30d = 0
-        for r in receipts_30d:
-            bytes_total_30d += int(
-                getattr(r, "plaintext_byte_size", 0)
-                or getattr(r, "byte_size", 0)
-                or 0
-            )
+        upload_count_30d = receipts_30d_qs.count()
+        from django.db.models import Sum
+
+        bytes_total_30d = int(
+            receipts_30d_qs.aggregate(total=Sum("plaintext_byte_size"))["total"] or 0
+        )
 
         # MAA signature coverage — distinct tenants w/ an active signed
         # MAA vs total tenants with any keypair.

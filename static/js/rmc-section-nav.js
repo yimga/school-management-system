@@ -65,7 +65,11 @@
       });
 
       function markActive(activeLink) {
-        links.forEach(function (a) { a.classList.toggle("is-active", a === activeLink); });
+        links.forEach(function (a) {
+          var on = a === activeLink;
+          a.classList.toggle("is-active", on);
+          a.classList.toggle("active", on);
+        });
       }
 
       if (!("IntersectionObserver" in window) || !targets.length) {

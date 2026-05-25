@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="{% static 'css/rmc-kb-operator.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-help-center-engage.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-help-unified-hub.css' %}">
-<div class="rmc-kb-operator rmc-help-center rmc-help-center--v2" data-rmc-page="help-center" data-page-archetype="decision-console" data-rmc-page-help-context-label="{% trans 'Help for this page:' %}">
+<div class="rmc-kb-operator rmc-help-center rmc-help-center--v2" data-rmc-page="help-center" data-page-archetype="decision-console" data-rmc-section-nav="curated" data-rmc-page-help-context-label="{% trans 'Help for this page:' %}">
   <div class="rmc-kb-operator__hero card border-0 shadow-sm mb-4">
     <div class="card-body">
       <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
@@ -62,8 +62,8 @@
   </div>
   {% endif %}
 
-  <div class="row g-3 mb-4">
-    <div class="col-lg-7">
+  <div class="row g-3 mb-4" data-rmc-balanced-layout="operator-form-rail">
+    <div class="col-lg-7" data-dashboard-column="main">
       <div class="card border-0 shadow-sm h-100" id="rmc-help-quick-feature">
         <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
           <h3 class="h6 mb-0"><i class="bi bi-lightbulb me-1"></i>{% trans "Quick feature request" %}</h3>
@@ -110,7 +110,7 @@
         </div>
       </div>
     </div>
-    <div class="col-lg-5">
+    <div class="col-lg-5" data-dashboard-column="rail">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header">
           <h3 class="h6 mb-0">{% trans "Your recent requests" %}</h3>
@@ -136,6 +136,8 @@
       </div>
     </div>
   </div>
+
+  {% include "partials/rmc_section_nav_curated.html" with section_nav_items=help_section_nav_items section_nav_vertical=True %}
 
   {% include "partials/help_persona_quickstart.html" with kb_search_url=kb_search_url %}
 
@@ -252,9 +254,9 @@
   {% endif %}
 
   {% for section in help_sections %}
-  <section class="mb-4" aria-labelledby="rmc-help-section-{{ section.id }}">
+  <section class="mb-4" id="rmc-help-section-{{ section.id }}" data-rmc-section-anchor data-rmc-section-nav-label="{{ section.title }}" aria-labelledby="rmc-help-section-{{ section.id }}-title">
     <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-2">
-      <h3 id="rmc-help-section-{{ section.id }}" class="h5 mb-0">{{ section.title }}</h3>
+      <h3 id="rmc-help-section-{{ section.id }}-title" class="h5 mb-0">{{ section.title }}</h3>
       <p class="small text-tertiary mb-0">{{ section.description }}</p>
     </div>
     <div class="row g-3">

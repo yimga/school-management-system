@@ -1,0 +1,99 @@
+/**
+ * Security posture nav control + session modal (all authenticated shells).
+ */
+
+.rmc-security-posture-nav {
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: none;
+  gap: 0.35rem;
+}
+
+.rmc-security-posture-nav__score {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.85;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-overlay);
+}
+
+.rmc-security-posture-nav--critical {
+  border-color: var(--status-danger-border, var(--hairline));
+  color: var(--status-danger-text, var(--text-primary));
+  background: color-mix(in srgb, var(--status-danger-bg, #dc3545) 18%, var(--surface-elevated));
+}
+
+.rmc-security-posture-nav--warning {
+  border-color: var(--status-warning-border, var(--hairline));
+  color: var(--status-warning-text, var(--text-primary));
+  background: color-mix(in srgb, var(--status-warning-bg, #ffc107) 14%, var(--surface-elevated));
+}
+
+.rmc-security-posture-nav--ok {
+  border-color: var(--status-success-border, var(--hairline));
+  color: var(--status-success-text, var(--text-primary));
+  background: color-mix(in srgb, var(--status-success-bg, #198754) 12%, var(--surface-elevated));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rmc-security-posture-nav--critical {
+    animation: rmc-security-pulse-fast 1.1s ease-in-out infinite;
+  }
+  .rmc-security-posture-nav--warning {
+    animation: rmc-security-pulse-slow 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes rmc-security-pulse-fast {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--status-danger-bg, #dc3545) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+@keyframes rmc-security-pulse-slow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--status-warning-bg, #ffc107) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px transparent;
+  }
+}
+
+.rmc-security-posture-modal__header--critical {
+  border-bottom: 2px solid var(--status-danger-border, var(--hairline));
+}
+
+.rmc-security-posture-modal__header--warning {
+  border-bottom: 2px solid var(--status-warning-border, var(--hairline));
+}
+
+.rmc-security-posture-modal__header--ok {
+  border-bottom: 2px solid var(--status-success-border, var(--hairline));
+}
+
+.cp-primary-nav .rmc-security-posture-nav {
+  flex-shrink: 0;
+}
+
+.tp-actions .rmc-security-posture-nav {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.8125rem;
+}
+
+.mkt-platform-header .rmc-security-posture-nav {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.8125rem;
+  color: var(--text-on-dark, #fff);
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
+}

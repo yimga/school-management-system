@@ -78,6 +78,7 @@ from .views_security import (
     notification_corner_mark_read,
     notification_corner_snooze,
     security_posture_review,
+    security_posture_session_modal_ack,
     sessions_page,
     sessions_revoke,
 )
@@ -495,6 +496,11 @@ urlpatterns = [
         "profile/security/review/",
         security_posture_review,
         name="security_posture_review",
+    ),
+    path(
+        "profile/security/session-modal/ack/",
+        security_posture_session_modal_ack,
+        name="security_posture_session_modal_ack",
     ),
     path(
         "notifications/corner/snooze/",

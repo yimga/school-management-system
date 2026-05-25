@@ -56,6 +56,17 @@ class ManagerNavConvergenceTests(SimpleTestCase):
         self.assertIn("Platform Overview", labels)
         self.assertGreaterEqual(len(complete), 4)
 
+    def test_complete_sidebar_dedupes_repeated_group_labels(self):
+        complete = build_manager_complete_sidebar_groups(self._req("/super/"))
+        labels = [str(g.get("label") or "").casefold() for g in complete]
+        self.assertEqual(len(labels), len(set(labels)))
+        for group in complete:
+            keys = [
+                str(item.get("id") or item.get("url") or item.get("label") or "").casefold()
+                for item in group.get("items") or []
+            ]
+            self.assertEqual(len(keys), len(set(keys)), msg=group.get("label"))
+
 
 
     def test_unified_groups_unchanged(self):

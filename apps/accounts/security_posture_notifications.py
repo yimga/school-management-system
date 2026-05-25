@@ -15,6 +15,51 @@ logger = logging.getLogger(__name__)
 
 POSTURE_NOTIFICATION_TITLE = "Quarterly security review due"
 SESSION_CORNER_SNOOZE_KEY = "rmc_security_posture_corner_snoozed"
+SESSION_MODAL_ACK_KEY = "rmc_security_posture_modal_ack"
+
+
+def security_posture_zone(
+    *,
+    score: int,
+    meets_platform_minimum: bool,
+    security_posture_review_due: bool,
+    security_posture_blocked: bool,
+) -> str:
+    """Nav + modal severity: critical | warning | ok."""
+    if security_posture_blocked or not meets_platform_minimum:
+        return "critical"
+    if security_posture_review_due or score < 70:
+        return "warning"
+    from apps.accounts.profile_security_evaluation import strength_band
+
+    if strength_band(score) == "weak":
+        return "warning"
+    return "ok"
+
+
+def is_session_modal_acknowledged(request) -> bool:
+    return bool(
+        getattr(request, "session", None)
+        and request.session.get(SESSION_MODAL_ACK_KEY)
+    )
+
+
+def acknowledge_session_modal(request) -> None:
+    if getattr(request, "session", None) is not None:
+        request.session[SESSION_MODAL_ACK_KEY] = True
+
+
+def should_show_session_modal(
+    request,
+    *,
+    zone: str,
+) -> bool:
+    user = getattr(request, "user", None)
+    if not getattr(user, "is_authenticated", False):
+        return False
+    if is_session_modal_acknowledged(request):
+        return False
+    return zone in {"critical", "warning"}
 
 
 def is_corner_snoozed(request) -> bool:
@@ -82,12 +127,8 @@ def build_corner_notification_payload(notification, *, review_url: str) -> dict[
 
 
 def inline_security_posture_banner_active(request) -> bool:
-    """True when the collapsible inline banner should render (corner toast suppressed)."""
-    user = getattr(request, "user", None)
-    if not getattr(user, "is_authenticated", False) or is_corner_snoozed(request):
-        return False
-    school = getattr(request, "school", None)
-    return is_security_posture_review_due(user, school)
+    """Deprecated: inline banner removed in favor of nav control + session modal."""
+    return False
 
 
 def corner_notifications_for_request(request) -> list[dict[str, Any]]:

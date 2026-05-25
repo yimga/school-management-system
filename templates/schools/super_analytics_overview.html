@@ -11,6 +11,7 @@
 
 {% block cp_title %}{% trans "Analytics & Observability" %}{% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
@@ -23,7 +24,7 @@
 {% block cp_content %}
 {% operator_console_strip %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#analytics-overview-main">{% trans "Skip to analytics overview" %}</a>
-<div id="analytics-overview-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
+<div id="analytics-overview-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_analytics_overview.html" %}
   {% if operator_super_analytics_overview_links %}
   <div class="card shadow-sm border-0 page-family-content-card mb-3">

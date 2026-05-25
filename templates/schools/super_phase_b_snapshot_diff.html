@@ -15,7 +15,7 @@
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#phase-b-snapshot-diff-main">{% trans "Skip to Phase B snapshot diff content" %}</a>
-<div id="phase-b-snapshot-diff-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="decision-console" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
+<div id="phase-b-snapshot-diff-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="decision-console" data-decision-engine="surface"{% include "schools/partials/decision_architecture_attrs.html" %}>
   {% phase8_dashboard_declaration "schools/super_phase_b_snapshot_diff.html" %}
   {% include "studio_os/components/page_header.html" with title=_("Phase B snapshot diff") subtitle=_("Live SiteSettings ownership slice vs materialized snapshots: whole-row checksum, per-key fingerprints, unified diff.") action_url=dashboard_url action_text=_("Back to dashboard") %}
 
@@ -61,7 +61,7 @@
 
   <div class="table-responsive mb-4">
     <!-- large-collection-allow: dashboard-widget-capped-list -->
- class="table table-sm table-bordered align-middle">
+<table class="table table-sm table-bordered align-middle">
       <caption class="visually-hidden">{% trans "Operator curated links" %}</caption>
       <thead class="table-light">
         <tr>

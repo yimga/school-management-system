@@ -208,4 +208,60 @@ def build_manager_complete_sidebar_groups(request) -> list[dict]:
     head = build_manager_unified_sidebar_groups(request)
     body = build_control_plane_nav(request)
     tail = build_manager_catalog_nav_groups(request)
-    return head + body + tail
+    return _dedupe_complete_sidebar_groups(head + body + tail)
+
+
+def _dedupe_complete_sidebar_groups(groups: list[dict]) -> list[dict]:
+    """
+    Keep the complete sidebar compact when control-plane groups and admin-catalog
+    sections share labels. The first group keeps its placement; later groups with
+    the same label append only unseen item ids.
+    """
+    merged: list[dict] = []
+    label_index: dict[str, int] = {}
+    seen_group_ids: set[str] = set()
+    for group in groups:
+        label = str(group.get("label") or "").strip()
+        group_id = str(group.get("group_id") or "").strip()
+        key = label.casefold() or group_id.casefold()
+        if not key:
+            continue
+        if group_id and group_id in seen_group_ids:
+            continue
+        if group_id:
+            seen_group_ids.add(group_id)
+        if key not in label_index:
+            clone = dict(group)
+            clone["items"] = _dedupe_complete_sidebar_items(group.get("items") or [])
+            if clone["items"]:
+                label_index[key] = len(merged)
+                merged.append(clone)
+            continue
+        target = merged[label_index[key]]
+        existing = {
+            str(item.get("id") or item.get("url") or item.get("label") or "").casefold()
+            for item in target.get("items") or []
+        }
+        appended = []
+        for item in group.get("items") or []:
+            item_key = str(item.get("id") or item.get("url") or item.get("label") or "").casefold()
+            if not item_key or item_key in existing:
+                continue
+            existing.add(item_key)
+            appended.append(item)
+        if appended:
+            target["items"] = list(target.get("items") or []) + appended
+            target["expanded"] = bool(target.get("expanded") or group.get("expanded"))
+    return merged
+
+
+def _dedupe_complete_sidebar_items(items: list[dict]) -> list[dict]:
+    seen: set[str] = set()
+    deduped: list[dict] = []
+    for item in items:
+        key = str(item.get("id") or item.get("url") or item.get("label") or "").casefold()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+    return deduped

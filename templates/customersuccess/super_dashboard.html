@@ -42,7 +42,7 @@
    trust-pillars alerts feed too — it's an operator landing surface like
    super_dashboard.html. Self-gates on cockpit.trust_pillars_alerts.enabled. {% endcomment %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Trust pillars alerts") key="cs_super__trust_pillars_alerts" include_partial="partials/cockpit/_trust_pillars_alerts.html" chrome="section" %}
-<div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-2 control-plane-shell" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "customersuccess/super_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with eyebrow="Customer Success · 11.3 + 11.4" title="Benchmark & Customer Success" subtitle="Section 11.3 Benchmark intelligence • 11.4 Customer success (health, risk alerts, interventions, workflow failures)." action_url=dashboard_url action_text="Back to dashboard" %}
 

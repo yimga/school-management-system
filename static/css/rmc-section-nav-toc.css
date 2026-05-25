@@ -1,0 +1,163 @@
+/**
+ * Section nav — "On this page" TOC (dropdown) + optional vertical sticky rail.
+ * Replaces horizontal pill scroll rails for long operator/tenant pages.
+ */
+
+.rmc-section-nav--toc {
+  margin-bottom: 0.75rem;
+  max-width: 100%;
+}
+
+.rmc-section-nav__toc {
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: color-mix(
+    in oklab,
+    var(--surface-elevated, var(--surface-canvas)) 94%,
+    transparent
+  );
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.rmc-section-nav__toc > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  user-select: none;
+}
+
+.rmc-section-nav__toc > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rmc-section-nav__toc > summary::after {
+  content: "▾";
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  transition: transform var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+
+.rmc-section-nav__toc[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+.rmc-section-nav--toc .rmc-section-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem 0.5rem 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  max-height: min(16rem, 40vh);
+  overflow-y: auto;
+}
+
+.rmc-section-nav--toc .rmc-section-nav__list a {
+  display: block;
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--radius-sm, 8px);
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rmc-section-nav--toc .rmc-section-nav__list a:hover {
+  background: var(--surface-overlay);
+  color: var(--text-primary);
+}
+
+.rmc-section-nav--toc .rmc-section-nav__list a.is-active,
+.rmc-section-nav--toc .rmc-section-nav__list a.active {
+  background: color-mix(in oklab, var(--school-primary, #4f46e5) 14%, transparent);
+  color: var(--school-primary, var(--text-primary));
+}
+
+/* Vertical sticky rail (wide viewports) — opt-in via .rmc-section-nav--vertical */
+@media (min-width: 1200px) {
+  .rmc-section-nav-layout {
+    display: grid;
+    grid-template-columns: minmax(11rem, 14rem) minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+  }
+
+  .rmc-section-nav--vertical.rmc-section-nav--toc .rmc-section-nav__toc {
+    position: sticky;
+    top: var(--rmc-fold-nav-sticky-top, 4.25rem);
+    border: var(--border-width-hairline, 0.5px) solid var(--hairline);
+  }
+
+  .rmc-section-nav--vertical.rmc-section-nav--toc .rmc-section-nav__toc > summary {
+    pointer-events: none;
+  }
+
+  .rmc-section-nav--vertical.rmc-section-nav--toc .rmc-section-nav__toc > summary::after {
+    display: none;
+  }
+
+  .rmc-section-nav--vertical.rmc-section-nav--toc .rmc-section-nav__toc[open] .rmc-section-nav__list,
+  .rmc-section-nav--vertical.rmc-section-nav--toc .rmc-section-nav__list {
+    max-height: calc(100vh - 8rem);
+  }
+}
+
+[data-rmc-page-fold-nav="required"] .rmc-section-nav--toc.rmc-page-fold-nav--sticky {
+  position: sticky;
+  top: var(--rmc-fold-nav-sticky-top, 4.25rem);
+  z-index: 1020;
+}
+
+/* Cross-page surface subnav (e.g. AI Center tabs) — segmented control, not scroll pills */
+.rmc-surface-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-md, 12px);
+  border: var(--border-width-hairline, 0.5px) solid var(--hairline);
+  background: color-mix(
+    in oklab,
+    var(--surface-elevated, var(--surface-canvas)) 92%,
+    transparent
+  );
+}
+
+.rmc-surface-subnav .rmc-section-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm, 8px);
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  white-space: nowrap;
+}
+
+.rmc-surface-subnav .rmc-section-nav__link:hover {
+  background: var(--surface-overlay);
+  color: var(--text-primary);
+}
+
+.rmc-surface-subnav .rmc-section-nav__link.is-active,
+.rmc-surface-subnav .rmc-section-nav__link.active {
+  background: color-mix(in oklab, var(--school-primary, #4f46e5) 14%, transparent);
+  color: var(--school-primary, var(--text-primary));
+}

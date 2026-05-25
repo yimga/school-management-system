@@ -129,32 +129,57 @@ def build_command_center_data() -> dict:
     except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
-    # Tenant churn risk heuristic
+    # Tenant churn risk heuristic (candidate schools only — not full fleet materialization)
     try:
+        from django.db.models import Q
+
+        inactive_cutoff = now - timedelta(days=30)
+        trial_cutoff = today + timedelta(days=7)
+        inactive_count = (
+            School.objects.filter(is_active=True)
+            .filter(
+                Q(last_activity__isnull=True) | Q(last_activity__lt=inactive_cutoff)
+            )
+            .count()
+        )
+        trial_soon_count = (
+            School.objects.filter(
+                is_active=True,
+                billing_type=School.BillingType.FREE_TRIAL,
+                trial_end_date__isnull=False,
+                trial_end_date__lte=trial_cutoff,
+            ).count()
+        )
+        risk_candidates = School.objects.filter(is_active=True).filter(
+            Q(last_activity__isnull=True)
+            | Q(last_activity__lt=inactive_cutoff)
+            | Q(
+                billing_type=School.BillingType.FREE_TRIAL,
+                trial_end_date__isnull=False,
+                trial_end_date__lte=trial_cutoff,
+            )
+            | Q(pk__in=stale_urgent_school_ids)
+        )
         schools = list(
-            School.objects.filter(is_active=True).only(
+            risk_candidates.only(
                 "id",
                 "name",
                 "slug",
                 "last_activity",
                 "billing_type",
                 "trial_end_date",
-            )
+            ).order_by("name")[:500]
         )
         risk_rows = []
-        inactive_count = 0
-        trial_soon_count = 0
         for school in schools:
             reasons = []
             last_activity = getattr(school, "last_activity", None)
             if not last_activity or (now - last_activity) > timedelta(days=30):
                 reasons.append("No activity in 30+ days")
-                inactive_count += 1
             if getattr(school, "billing_type", "") == School.BillingType.FREE_TRIAL:
                 trial_end = getattr(school, "trial_end_date", None)
-                if trial_end and trial_end <= (today + timedelta(days=7)):
+                if trial_end and trial_end <= trial_cutoff:
                     reasons.append("Free trial ending in <= 7 days")
-                    trial_soon_count += 1
             if school.id in stale_urgent_school_ids:
                 reasons.append("Urgent support ticket stale 48h+")
             if reasons:

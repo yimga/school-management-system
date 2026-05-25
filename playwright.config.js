@@ -20,7 +20,11 @@ module.exports = defineConfig({
     use: {
       channel: 'chromium',
       launchOptions: {
-        args: [`--host-resolver-rules=${_hostRules}`],
+        args: [
+          `--host-resolver-rules=${_hostRules}`,
+          '--proxy-server=direct://',
+          '--proxy-bypass-list=*',
+        ],
       },
     },
   }],

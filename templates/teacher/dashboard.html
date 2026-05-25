@@ -91,13 +91,16 @@
     {% url 'portal:teacher_attendance' as teacher_attendance_url %}
 
     {# Phase G follow-through (2026-05-12): section nav for 593L teacher dashboard. #}
-    <nav class="rmc-section-nav rmc-section-nav--horizontal rmc-horizontal-nav-rail mb-3" data-tour="teacher-section-nav" aria-label="{% trans 'Teaching dashboard sections' %}">
-      <ul class="rmc-section-nav__list">
-        <li><a href="#teacher-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
-        <li><a href="#teacher-today"><i class="bi bi-calendar3" aria-hidden="true"></i>{% trans "Today" %}</a></li>
-        <li><a href="#teacher-metrics"><i class="bi bi-bar-chart" aria-hidden="true"></i>{% trans "Metrics" %}</a></li>
-        <li><a href="#teacher-classes"><i class="bi bi-mortarboard" aria-hidden="true"></i>{% trans_term "Classes" key="class" plural=True %}</a></li>
-      </ul>
+    <nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3" data-tour="teacher-section-nav" aria-label="{% trans 'Teaching dashboard sections' %}" data-rmc-section-nav-curated="1">
+      <details class="rmc-section-nav__toc" open>
+        <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
+        <ul class="rmc-section-nav__list">
+          <li><a href="#teacher-attention" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
+          <li><a href="#teacher-today" data-rmc-section-anchor><i class="bi bi-calendar3" aria-hidden="true"></i>{% trans "Today" %}</a></li>
+          <li><a href="#teacher-metrics" data-rmc-section-anchor><i class="bi bi-bar-chart" aria-hidden="true"></i>{% trans "Metrics" %}</a></li>
+          <li><a href="#teacher-classes" data-rmc-section-anchor><i class="bi bi-mortarboard" aria-hidden="true"></i>{% trans_term "Classes" key="class" plural=True %}</a></li>
+        </ul>
+      </details>
     </nav>
 
     <section id="teacher-attention" data-rmc-section-anchor class="mb-3 rmc-reveal" data-rmc-intelligent-insights="teacher" data-rmc-ux-section="what-needs-attention" data-tour="teacher-attention" aria-label="{% trans 'What needs attention' %}">

@@ -386,6 +386,7 @@ def super_plan_edit(request, pk: int):
             return redirect("super:plans_list")
     else:
         form = PlanSuperForm(instance=plan)
+    # unbounded-collection-allow: platform-catalog-addon-reference-table-small-cardinality
     addons = list(PlanAddon.objects.all().order_by("name"))
     return render(
         request,

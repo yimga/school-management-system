@@ -251,15 +251,17 @@
     {% url 'portal:parent_contact_school' as parent_contact_url %}
     {% url 'portal:claim_invite' as parent_claim_invite_url %}
     {# Phase G follow-through (2026-05-12): section nav for 614L parent dashboard. #}
-    <nav class="rmc-section-nav rmc-section-nav--horizontal rmc-horizontal-nav-rail mb-3" aria-label="{% trans 'Family dashboard sections' %}">
-      <ul class="rmc-section-nav__list">
-        <li><a href="#parent-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
-        <li><a href="#parent-glance"><i class="bi bi-house-heart" aria-hidden="true"></i>{% trans "Family" %}</a></li>
-        {# Wave 12: "Children" reads as the tenant's "student" term plural — many schools call them "wards", "pupils", "learners". #}
-        {% term "student" plural=True capitalize=True as student_pl_p %}
-        <li><a href="#parent-children"><i class="bi bi-people" aria-hidden="true"></i>{{ student_pl_p }}</a></li>
-        <li><a href="#parent-next"><i class="bi bi-arrow-right-circle" aria-hidden="true"></i>{% trans "Next up" %}</a></li>
-      </ul>
+    <nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3" aria-label="{% trans 'Family dashboard sections' %}" data-rmc-section-nav-curated="1">
+      <details class="rmc-section-nav__toc" open>
+        <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
+        <ul class="rmc-section-nav__list">
+          <li><a href="#parent-attention" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Attention" %}</a></li>
+          <li><a href="#parent-glance" data-rmc-section-anchor><i class="bi bi-house-heart" aria-hidden="true"></i>{% trans "Family" %}</a></li>
+          {% term "student" plural=True capitalize=True as student_pl_p %}
+          <li><a href="#parent-children" data-rmc-section-anchor><i class="bi bi-people" aria-hidden="true"></i>{{ student_pl_p }}</a></li>
+          <li><a href="#parent-next" data-rmc-section-anchor><i class="bi bi-arrow-right-circle" aria-hidden="true"></i>{% trans "Next up" %}</a></li>
+        </ul>
+      </details>
     </nav>
 
     <section id="parent-attention" data-rmc-section-anchor class="mb-3" data-rmc-intelligent-insights="parent" data-rmc-ux-section="what-needs-attention" aria-label="{% trans 'What needs attention' %}">
@@ -396,7 +398,7 @@
     {% endif %}
 
     <!-- Main Content Grid -->
-    <div class="row g-3 parent-content-row">
+    <div class="row g-3 parent-content-row" data-rmc-balanced-layout="tenant-dashboard-rail">
       <!-- Left Column - Main Content -->
       <div class="col-lg-8" data-dashboard-column="main">
         
@@ -424,7 +426,7 @@
           <div class="parent-children-grid row g-3 rmc-reveal-stagger">
             {% for card in child_cards %}
             {% if forloop.counter0 < 2 or child_cards|length <= 2 %}
-            <div class="{% if child_cards|length == 1 %}col-xl-7 col-lg-7 col-md-7 col-12{% else %}col-md-6{% endif %} rmc-reveal" data-dashboard-column="main" id="child-card-{{ card.link.student.id }}">
+            <div class="{% if child_cards|length == 1 %}col-xl-6 col-lg-6 col-md-6 col-12{% else %}col-md-6{% endif %} rmc-reveal" data-dashboard-column="main" id="child-card-{{ card.link.student.id }}">
               <div class="card h-100 child-card" data-widget-id="parent-child-{{ forloop.counter0 }}">
                 <div class="card-body">
                   <div class="child-header d-flex align-items-center gap-3 mb-3">
@@ -490,7 +492,7 @@
             {% endif %}
             {% if child_cards|length == 1 %}
             {% with focus_child=child_cards.0 %}
-            <div class="col-xl-5 col-lg-5 col-md-5 col-12 rmc-reveal" data-dashboard-column="main">
+            <div class="col-xl-6 col-lg-6 col-md-6 col-12 rmc-reveal" data-dashboard-column="main">
               <div class="card h-100 child-fill-card" data-widget-id="parent-single-child-fill">
                 <div class="card-body">
                   <div class="child-fill-section">
@@ -595,7 +597,7 @@
       </div>
 
       <!-- Right Column - Sidebar (compressed to 3 stacked modules) -->
-      <aside class="col-lg-4 parent-sidebar-col rmc-reveal" aria-label="{% trans 'Dashboard sidebar' %}">
+      <aside class="col-lg-4 parent-sidebar-col rmc-reveal" data-dashboard-column="rail" aria-label="{% trans 'Dashboard sidebar' %}">
         <div class="sidebar-sticky parent-sidebar-cards">
           <div class="card parent-sidebar-card mb-2" data-widget-id="parent-contact-and-messages">
             <div class="card-body">

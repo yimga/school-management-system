@@ -477,9 +477,19 @@ a.cp-queue-card-header:hover {
   overflow: hidden;
 }
 
+.cp-registry-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding-block: 0.5rem;
+  margin-bottom: 0.5rem;
+  background: var(--cp-panel-bg);
+  border-bottom: 1px solid var(--hairline, rgba(154, 180, 214, 0.14));
+}
+
 .cp-registry-table-wrap {
-  max-height: min(64rem, calc(100vh - 18rem));
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .cp-registry-table {

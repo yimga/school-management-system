@@ -1,0 +1,23 @@
+{
+  "canonical_previews": {
+    "manager-v8-200x": "docs/generated/preview_app_shell_manager_v8_200x.html",
+    "admin-v1-200x": "docs/generated/preview_app_shell_admin_v1_200x.html",
+    "tenant-portal-v3-100x": "docs/generated/preview_app_shell_tenant_portal_v3_100x.html"
+  },
+  "finding_count": 0,
+  "findings": [],
+  "checks": {
+    "preview_files": 0,
+    "preview_body_order": 0,
+    "production_wiring": 0,
+    "production_order": 0,
+    "operational_frame_suppress": 0
+  },
+  "sub_gates": {
+    "verify_platform_layout_compact.py": "  authenticated_shells: 5/5 load compact CSS",
+    "verify_all_preview_shell_html_implementation.py": "DEBUG 2026-05-25 09:46:26,755 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.008) COMMIT; args=None; alias=default",
+    "verify_platform_shell_preview_parity.py": "PLATFORM_SHELL_PREVIEW_PARITY_PASS"
+  },
+  "generated_at": "2026-05-25T13:46:28Z",
+  "remediation_status": "PASS"
+}

@@ -382,7 +382,9 @@ def super_plans_list(request):
     """List platform Plan. Config surface is Configuration Control Center (no admin residue)."""
     from apps.plans_entitlements.models import Plan, PlanAddon
 
+    # unbounded-collection-allow: platform-catalog-plan-reference-table-small-cardinality
     plans = list(Plan.objects.all().order_by("slug"))
+    # unbounded-collection-allow: platform-catalog-addon-reference-table-small-cardinality
     addons = list(PlanAddon.objects.all().order_by("name"))
     return render(
         request,

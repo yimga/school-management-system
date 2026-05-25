@@ -316,6 +316,46 @@ def ai_rules_fallback_allowed() -> bool:
     return bool(getattr(settings, "AI_ALLOW_RULES_FALLBACK", True))
 
 
+def log_ai_startup_posture(
+    *,
+    health: dict[str, Any],
+    conn: dict[str, Any] | None = None,
+) -> None:
+    """Emit a single startup line matching the provider that answered the reachability probe."""
+    conn = conn or {}
+    provider = str(health.get("provider") or "none").strip().lower()
+    reachable = bool(health.get("reachable"))
+    profile = str(health.get("deployment_profile") or "online")
+
+    if reachable and provider == "litellm":
+        logger.info(
+            "AI startup: live cloud AI (profile=%s, provider=litellm)",
+            profile,
+        )
+        return
+    if reachable and provider == "ollama":
+        logger.info(
+            "AI startup: live Ollama at %s (discovery=%s)",
+            conn.get("base_url"),
+            conn.get("discovery_source"),
+        )
+        return
+    if ollama_require_live():
+        logger.error(
+            "AI startup: OLLAMA_REQUIRE_LIVE=1 but no live AI provider (ollama base=%s). "
+            "Assistants will return 'live AI unavailable' (not template fallback). "
+            "Run: python scripts/verify_ollama_live.py --strict --invoke",
+            conn.get("base_url"),
+        )
+        return
+    if ai_rules_fallback_allowed():
+        logger.warning(
+            "AI startup: no live AI provider; intelligent grounded fallback is active "
+            "(profile=%s).",
+            profile,
+        )
+
+
 def invalidate_ollama_connection_cache() -> None:
     """Clear cached auto-discovered base (e.g. after starting ``ollama serve``)."""
     try:

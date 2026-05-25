@@ -1,0 +1,20 @@
+{% load i18n %}
+{# Curated "On this page" TOC — pass section_nav_items: [{id, label}, ...] #}
+{% if section_nav_items %}
+<nav
+  class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3{% if section_nav_vertical %} rmc-section-nav--vertical{% endif %}"
+  aria-label="{% trans 'On this page' %}"
+  data-rmc-section-nav-curated="1"
+>
+  <details class="rmc-section-nav__toc"{% if section_nav_toc_open != False %} open{% endif %}>
+    <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
+    <ul class="rmc-section-nav__list">
+      {% for item in section_nav_items %}
+      <li>
+        <a href="#{{ item.id }}" data-rmc-section-anchor>{{ item.label }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </details>
+</nav>
+{% endif %}

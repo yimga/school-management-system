@@ -106,12 +106,15 @@ backend-shell dashboard-page-backend
      942-line dashboard is navigable instead of an endless scroll. {% endcomment %}
   <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
     {% include "components/rmc_shell_switcher.html" %}
-    <nav class="rmc-section-nav rmc-section-nav--horizontal rmc-horizontal-nav-rail" aria-label="{% trans 'Dashboard sections' %}">
-      <ul class="rmc-section-nav__list">
-        <li><a href="#section-today"><i class="bi bi-sunrise" aria-hidden="true"></i>{% trans "Today" %}</a></li>
-        <li><a href="#section-attention"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Needs attention" %}</a></li>
-        <li><a href="#section-readiness"><i class="bi bi-clipboard-data" aria-hidden="true"></i>{% term "school" capitalize=True %} {% trans "readiness" %}</a></li>
-      </ul>
+    <nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky" aria-label="{% trans 'Dashboard sections' %}" data-rmc-section-nav-curated="1">
+      <details class="rmc-section-nav__toc" open>
+        <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
+        <ul class="rmc-section-nav__list">
+          <li><a href="#section-today" data-rmc-section-anchor><i class="bi bi-sunrise" aria-hidden="true"></i>{% trans "Today" %}</a></li>
+          <li><a href="#section-attention" data-rmc-section-anchor><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>{% trans "Needs attention" %}</a></li>
+          <li><a href="#section-readiness" data-rmc-section-anchor><i class="bi bi-clipboard-data" aria-hidden="true"></i>{% term "school" capitalize=True %} {% trans "readiness" %}</a></li>
+        </ul>
+      </details>
     </nav>
   </div>
 

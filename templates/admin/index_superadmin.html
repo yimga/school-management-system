@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-page-fold-nav="required" data-rmc-scroll-policy="paginate">
+<div class="cp-admin-v1-index cp-admin-index rmc-admin-catalog-index" data-rmc-os-shell="control-plane" data-page-archetype="operator-command-center" data-rmc-admin-catalog-index="1" data-rmc-page-fold-nav="required" data-rmc-section-nav="curated" data-rmc-scroll-policy="paginate">
 
   {% if PREVIEW_MODE_ENABLED %}
   <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between mx-4 mt-3 mb-0">
@@ -39,23 +39,17 @@
       <em>/super/, Config center, and Studio</em> — raw records live here for the moments those don't fit.
       {% endblocktrans %}
     </p>
-    <div class="cp-hero__actions cp-hero__actions--toolbar rmc-page-fold-nav rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions and on-page navigation' %}">
+    <div class="cp-hero__actions cp-hero__actions--toolbar" role="toolbar" aria-label="{% trans 'Catalog actions' %}">
       <div class="cp-hero__actions-group cp-hero__actions-group--primary" role="group" aria-label="{% trans 'Primary actions' %}">
         <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "New school" %}</a>
         <a class="cp-btn" href="{% url 'siteconfig:console_domains_hub' %}">⚙ {% trans "Open Config center" %}</a>
         <a class="cp-btn" href="{% url 'studio_os:shell' %}">⌘ {% trans "Open Studio" %}</a>
         <button type="button" class="cp-btn cp-btn--ghost" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K · {% trans "command palette" %}</button>
       </div>
-      <span class="cp-hero__actions-sep" aria-hidden="true"></span>
-      <div class="cp-hero__actions-group cp-hero__actions-group--sections" role="group" aria-label="{% trans 'On this page' %}">
-        <a href="#rmc-admin-sec-hero" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Overview" %}</a>
-        <a href="#rmc-admin-sec-catalog" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Model catalog" %}</a>
-        <a href="#rmc-admin-sec-tags" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Platform tags" %}</a>
-        <a href="#rmc-admin-sec-changelist" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Changelist preview" %}</a>
-        <a href="#rmc-admin-sec-changeform" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Change form preview" %}</a>
-      </div>
     </div>
   </section>
+
+  {% include "partials/rmc_section_nav_curated.html" with section_nav_items=admin_catalog_section_nav_items %}
 
   <div class="cp-steering" role="region" aria-label="{% trans 'Operator steering' %}">
     <div class="cp-steering__icon" aria-hidden="true">✓</div>

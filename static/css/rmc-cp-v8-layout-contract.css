@@ -38,7 +38,7 @@ body.control-plane-shell #cp-main-content {
   padding: 20px clamp(16px, 2vw, 24px) 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   min-width: 0;
   overflow-x: hidden;
 }
@@ -46,7 +46,7 @@ body.control-plane-shell #cp-main-content {
 body.control-plane-shell .cp-page-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   min-width: 0;
 }
 

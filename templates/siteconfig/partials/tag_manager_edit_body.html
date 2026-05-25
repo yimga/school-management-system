@@ -1,6 +1,6 @@
 {% load i18n %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Edit tag" %}: {{ tag.name }}</h1>
-<div class="container-fluid py-4" data-page-archetype="record-detail">
+<div class="container-fluid py-2" data-page-archetype="record-detail">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <form method="post" class="card card-body shadow-sm">
       {% csrf_token %}

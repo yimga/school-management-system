@@ -8,7 +8,7 @@
 {% block cp_content %}
 {% operator_console_strip %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#migration-cloud-main">{% trans "Skip to migration cloud" %}</a>
-  <div id="migration-cloud-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-migration-ux="1" data-rmc-operational-workbench="1">
+  <div id="migration-cloud-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-migration-ux="1" data-rmc-operational-workbench="1">
     {% phase8_dashboard_declaration "schools/super_migration_cloud.html" %}
     {% with migration_new_url=migration_cloud_operator_urls.new|default:dashboard_url migration_health_url=migration_cloud_operator_urls.health|default:registry_url %}
     {% include "components/rmc_operational_center_frame.html" with os_center_key="migration_center" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=migration_new_url primary_label=_("Start migration") secondary_url=migration_health_url secondary_label=_("Operator health") %}
@@ -153,8 +153,8 @@
       </div>
     </div>
 
-    <div class="row g-4 rmc-reveal-stagger">
-      <div class="col-xl-4 rmc-reveal">
+    <div class="row g-4 rmc-reveal-stagger" data-rmc-balanced-layout="operator-detail-rail">
+      <div class="col-xl-4 rmc-reveal" data-dashboard-column="rail">
         <div class="card shadow-sm border-0 page-family-content-card mb-4">
           <div class="card-body">
             <h5 class="card-title">Connector profiles</h5>
@@ -192,7 +192,7 @@
         </div>
       </div>
 
-      <div class="col-xl-8 rmc-reveal">
+      <div class="col-xl-8 rmc-reveal" data-dashboard-column="main">
         <div class="card shadow-sm border-0 page-family-content-card mb-4">
           <div class="card-body">
             <h5 class="card-title">Profile readiness</h5>
@@ -234,7 +234,7 @@
             <h5 class="card-title">Recent migration runs</h5>
             <div class="table-responsive">
               <!-- large-collection-allow: dashboard-widget-capped-list -->
- class="table table-sm align-middle mb-0 table-family" aria-label="Recent cloud migration runs">
+              <table class="table table-sm align-middle mb-0 table-family" aria-label="Recent cloud migration runs">
                 <thead>
                   <tr>
                     <th scope="col">Started</th>

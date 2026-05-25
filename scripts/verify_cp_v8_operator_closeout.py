@@ -36,6 +36,11 @@ def main() -> int:
             "surface_preview_interactivity",
             ["python", "scripts/verify_surface_preview_interactivity.py"],
         ),
+        (
+            "unbounded_collection",
+            ["python", "scripts/verify_unbounded_collection_surfaces.py"],
+        ),
+        ("large_collection", ["python", "scripts/audit_large_collection_surfaces.py"]),
     ]
     assets = [
         "static/css/rmc-cp-v8-layout-contract.css",
@@ -75,6 +80,10 @@ def main() -> int:
         if name == "admin_steering_strip" and "OK" not in out and "PASS" not in out:
             failed.append((name, out[-300:]))
         if name == "surface_preview_interactivity" and "OK" not in out:
+            failed.append((name, out[-300:]))
+        if name == "unbounded_collection" and "UNBOUNDED_COLLECTION_SURFACE_PASS" not in out:
+            failed.append((name, out[-300:]))
+        if name == "large_collection" and "LARGE_COLLECTION_SURFACE_PASS" not in out:
             failed.append((name, out[-300:]))
 
     if failed:

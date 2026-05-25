@@ -1,6 +1,6 @@
 {% load static i18n phase8_tags %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Configuration Center — dashboards by role" %}</h1>
-<div class="container-fluid py-4 professional-page" data-decision-engine="surface" data-rmc-os-center="configuration_center_dashboards" data-rmc-scroll-policy="paginate">
+<div class="container-fluid py-2 professional-page" data-decision-engine="surface" data-rmc-os-center="configuration_center_dashboards" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "siteconfig/dashboard_configuration_hub.html" %}
   {% url 'siteconfig:dashboard_hub' as cfg_hub_url %}
   {% trans "Configuration" as cfg_eyebrow %}

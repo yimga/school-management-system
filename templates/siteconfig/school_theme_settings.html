@@ -6,7 +6,7 @@
 
 {% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Admin theme – {{ school.name }}</h1>
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-2">
     {% trans "This controls Unfold, Jazzmin, or Sneat for this school's admin and backend surfaces. Save, then refresh if styles look stale." as school_theme_banner_body %}
     {% include "partials/shell_chrome_contextual_info_banner.html" with chrome_banner_title="Admin theme scope" chrome_banner_body=school_theme_banner_body %}
     {% url 'siteconfig:user_preferences' as school_theme_prefs_url %}

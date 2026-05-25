@@ -1,4 +1,5 @@
 // Lexicon Settings — live preview + filter. CSP-clean (no inline <script>).
+// unbounded-collection-allow: lexicon-vocabulary-grid-bounded-by-catalog-keys
 (function () {
   "use strict";
   function init() {

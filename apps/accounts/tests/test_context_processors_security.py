@@ -24,17 +24,18 @@ class AccountSecurityContextTests(TestCase):
         request.session = {}
         self.assertEqual(account_security_context(request), {})
 
-    def test_authenticated_exposes_inline_and_corner_fields(self):
+    def test_authenticated_exposes_zone_and_session_modal(self):
         request = self.rf.get("/super/")
         request.user = self.user
         request.session = {}
         ctx = account_security_context(request)
         self.assertTrue(ctx["security_posture_review_due"])
-        self.assertTrue(ctx["security_posture_inline_banner"])
+        self.assertFalse(ctx["security_posture_inline_banner"])
+        self.assertIn(ctx["security_posture_zone"], {"warning", "critical"})
+        self.assertTrue(ctx["security_posture_session_modal_show"])
         self.assertFalse(ctx["security_posture_corner_snoozed"])
-        self.assertEqual(ctx["rmc_corner_notifications"], [])
 
-    def test_snooze_hides_inline_and_corner(self):
+    def test_snooze_hides_corner_notifications(self):
         request = self.rf.get("/super/")
         request.user = self.user
         request.session = {}

@@ -3,6 +3,7 @@
 
 {% block cp_title %}{% trans "Team & identity" %}{% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
@@ -13,7 +14,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
   {% if can_manage %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_team_roster" center_eyebrow=_("Platform operators") center_title=_("Team & identity") center_purpose=_("Roster, MFA posture, tiers, and platform scopes — separate from tenant school staff.") primary_url=invite_url primary_label=_("Invite operator") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   {% else %}

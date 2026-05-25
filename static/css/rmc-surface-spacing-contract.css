@@ -182,6 +182,43 @@ body.admin-manager-shell[data-rmc-admin-index-v200x="1"] .cp-kpi-strip {
   margin-right: 0;
 }
 
+/* Platform-wide: compact py-4/py-5 on CP + portal canvas (templates not yet codemodded) */
+body.control-plane-shell #cp-main-content .container-fluid.py-4:not([data-rmc-density="open"]),
+body.control-plane-shell #cp-main-content .container-fluid.py-5:not([data-rmc-density="open"]),
+body.control-plane-shell .cp-page-body .container-fluid.py-4:not([data-rmc-density="open"]),
+body.portal-body-with-layout #main-content .container-fluid.py-4:not([data-rmc-density="open"]),
+body.portal-body-with-layout .portal-page-body .container-fluid.py-4:not([data-rmc-density="open"]),
+body.backend-shell #main-content .container-fluid.py-4:not([data-rmc-density="open"]),
+body.admin-manager-shell .cp-admin-page-body .container-fluid.py-4:not([data-rmc-density="open"]) {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.65rem !important;
+}
+
+/* Collapse double vertical gap between stacked sections */
+body.control-plane-shell #cp-main-content > section.mb-4,
+body.control-plane-shell #cp-main-content > .row.mb-4,
+body.control-plane-shell .cp-page-body > section.mb-4 {
+  margin-bottom: 0.75rem !important;
+}
+
+body.control-plane-shell #cp-main-content .mb-5,
+body.control-plane-shell .cp-page-body .mb-5,
+body.portal-body-with-layout #main-content .mb-5 {
+  margin-bottom: 1rem !important;
+}
+
+body.control-plane-shell #cp-main-content .mt-5,
+body.control-plane-shell .cp-page-body .mt-5 {
+  margin-top: 1rem !important;
+}
+
+/* Nested cp-layout inside padded canvas — zero extra pad */
+body.control-plane-shell #cp-main-content > .container-fluid.cp-layout {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  gap: 0.75rem;
+}
+
 /* Table toolbars: align btn-sm to frame pill height on workbenches */
 body.control-plane-shell #cp-main-content
   :is(
@@ -219,4 +256,38 @@ body.control-plane-shell #cp-main-content
 body.control-plane-shell .rmc-app-shell__canvas-body .rmc-page > .container-fluid.py-4 {
   padding-top: 0.75rem !important;
   padding-bottom: 0.75rem !important;
+}
+
+/* Super landing: tight stack between 200x cockpit sections (preview v8 density) */
+body.control-plane-shell #cp-main-content > .rmc-collapsable {
+  margin-bottom: 0.5rem;
+}
+
+body.control-plane-shell #cp-main-content > .rmc-collapsable:last-of-type {
+  margin-bottom: 0.75rem;
+}
+
+body.control-plane-shell #super-dashboard-main {
+  margin-top: 0;
+  padding-top: 0.5rem !important;
+}
+
+/* Canvas chrome pulse + nav: no double gap under primary pills */
+body.control-plane-shell .rmc-cp-canvas-pulse {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+body.control-plane-shell .cp-canvas-chrome-nav {
+  gap: 0.35rem;
+}
+
+body.control-plane-shell .cp-primary-nav {
+  margin-bottom: 0;
+  padding-bottom: 0.35rem !important;
+}
+
+body.admin-manager-shell[data-rmc-admin-shell="1"] .cp-primary-nav {
+  margin-bottom: 0;
+  padding-bottom: 0.35rem !important;
 }

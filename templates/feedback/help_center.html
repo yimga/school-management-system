@@ -7,7 +7,7 @@
 {% block backend_page %}
 <link rel="stylesheet" href="{% static 'css/rmc-help-center-engage.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-help-unified-hub.css' %}">
-<div class="container-fluid py-2 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-page="help-center" data-rmc-page-help-context-label="{% trans 'Help for this page:' %}">
+<div class="container-fluid py-2 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-page="help-center" data-rmc-section-nav="curated" data-rmc-page-help-context-label="{% trans 'Help for this page:' %}">
   <div class="d-flex align-items-center gap-3 mb-3">
     <div class="mkt-advisor-figure mkt-advisor-figure--muted mkt-advisor-figure--reveal d-none d-md-inline-flex" aria-hidden="true">
       {% include "marketing/components/_advisor_character.html" with pose="welcoming" size=140 accessible_label="" %}
@@ -25,10 +25,12 @@
 
   {% include "partials/help_persona_quickstart.html" with kb_search_url=kb_search_url %}
 
+  {% include "partials/rmc_section_nav_curated.html" with section_nav_items=help_section_nav_items %}
+
   {% include "partials/help_deflection_strip.html" with deflection_surface="help_center" %}
   {% include "feedback/partials/help_center_quick_feature.html" %}
 
-  <div class="row g-3 mb-4">
+  <div id="rmc-help-quick-lane" class="row g-3 mb-4" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Quick links' %}">
     <section class="col-md-6 col-xl-2">
       <a href="{% url 'kb:kb_home' %}" class="card shadow-sm h-100 text-decoration-none">
         <div class="card-body">
@@ -103,7 +105,7 @@
     </section>
   </div>
 
-  <section class="card shadow-sm mb-4">
+  <section id="rmc-help-search" class="card shadow-sm mb-4" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'Search help' %}">
     <div class="card-body">
       <form method="get" action="{% url 'feedback:help_center' %}" class="row g-3 align-items-end">
         <div class="col-lg-8">
@@ -151,7 +153,7 @@
   </section>
 
   <div class="row g-3">
-    <section class="col-lg-7">
+    <section id="rmc-help-release-notes" class="col-lg-6" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'What's new' %}">
       <div class="card shadow-sm h-100">
         <div class="card-header">
           <h2 class="h6 mb-0">{% trans "What's new" %}</h2>
@@ -186,7 +188,7 @@
       </div>
     </section>
 
-    <section class="col-lg-5">
+    <section id="rmc-help-you-said" class="col-lg-6" data-rmc-section-anchor data-rmc-section-nav-label="{% trans 'You said. We did.' %}">
       <div class="card shadow-sm h-100">
         <div class="card-header">
           <h2 class="h6 mb-0">{% trans "You said. We did." %}</h2>

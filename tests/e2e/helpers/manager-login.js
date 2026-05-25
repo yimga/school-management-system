@@ -17,6 +17,9 @@ const MANAGER_BASE_URL =
  * @param {import('@playwright/test').Page} page
  */
 async function ensureManagerHost(page) {
+  if (!page.url() || page.url() === 'about:blank') {
+    return;
+  }
   const current = new URL(page.url());
   if (current.hostname === MANAGER_HOST) {
     return;
@@ -37,10 +40,16 @@ async function loginManager(page, opts = {}) {
   const password = opts.password || process.env.VISUAL_QA_PASSWORD || 'VisualQaPass123!';
 
   const loginUrl = `${MANAGER_BASE_URL.replace(/\/$/, '')}/authentication/login/`;
-  await page.goto(loginUrl, {
-    waitUntil: 'domcontentloaded',
-    timeout: 60000,
-  });
+  const currentUrl = page.url() ? new URL(page.url()) : null;
+  if (!currentUrl || !/\/authentication\/login\/?$/i.test(currentUrl.pathname)) {
+    await page.goto(loginUrl, {
+      waitUntil: 'commit',
+      timeout: 60000,
+    });
+  }
+  await page.keyboard.press('Escape').catch(() => {});
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Page.stopLoading').catch(() => {});
 
   const roleSelect = page.locator('select[name="role"]');
   if (await roleSelect.count()) {
@@ -49,19 +58,20 @@ async function loginManager(page, opts = {}) {
 
   await page.locator('input[name="username"]').fill(username);
   await page.locator('input[name="password"]').fill(password);
-  await page.getByRole('button', { name: /log in/i }).click();
 
   const leftLogin = page.waitForURL(
     (url) => !/\/authentication\/login\/?$/i.test(url.pathname),
-    { timeout: 90000, waitUntil: 'domcontentloaded' }
-  );
+    { timeout: 90000, waitUntil: 'commit' }
+  ).catch(() => null);
   const shellReady = page
     .locator(
       '#cp-main-content, [data-rmc-operator-surface-strip], .admin-cp-unified-page, #content'
     )
     .first()
-    .waitFor({ state: 'visible', timeout: 90000 });
+    .waitFor({ state: 'visible', timeout: 90000 })
+    .catch(() => null);
 
+  await page.locator('form').first().evaluate((form) => form.requestSubmit());
   await Promise.race([leftLogin, shellReady]);
   await ensureManagerHost(page);
 
@@ -105,18 +115,16 @@ async function hasManagerSession(page) {
 async function ensureManagerSession(page, opts = {}) {
   await ensureManagerHost(page);
   await page.goto(`${MANAGER_BASE_URL.replace(/\/$/, '')}/super/`, {
-    waitUntil: 'domcontentloaded',
+    waitUntil: 'commit',
     timeout: 60000,
   });
+  await page.keyboard.press('Escape').catch(() => {});
   const onLogin =
     (await page.locator('input[name="username"]').count()) > 0 ||
     /\/authentication\/login\/?$/i.test(new URL(page.url()).pathname);
   if (onLogin) {
     await loginManager(page, opts);
-    await page.goto(`${MANAGER_BASE_URL.replace(/\/$/, '')}/super/`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    });
+    await page.keyboard.press('Escape').catch(() => {});
   }
 }
 

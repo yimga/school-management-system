@@ -496,4 +496,5 @@
   {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
   {% endif %}
   <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
+  {% if request.user.is_authenticated %}{% include 'components/back_to_top.html' %}{% endif %}
 {% endblock %}

@@ -16,9 +16,14 @@
   {% url 'super:marketplace_governance' as governance_url %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="compatibility_matrix" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#compat-table" primary_label=_("Browse matrix") secondary_url=governance_url secondary_label=_("Governance") %}
 
-  <nav class="rmc-page-fold-nav rmc-section-nav rmc-cp-compact__fold-nav" aria-label="{% trans 'On this page' %}">
-    <a class="nav-link" href="#compat-glance">{% trans "At a glance" %}</a>
-    <a class="nav-link" href="#compat-table">{% trans "Matrix" %}</a>
+  <nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
+    <details class="rmc-section-nav__toc" open>
+      <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
+      <ul class="rmc-section-nav__list">
+        <li><a href="#compat-glance" data-rmc-section-anchor>{% trans "At a glance" %}</a></li>
+        <li><a href="#compat-table" data-rmc-section-anchor>{% trans "Matrix" %}</a></li>
+      </ul>
+    </details>
   </nav>
 
   <section id="compat-glance" data-rmc-section-anchor class="rmc-reveal mb-3">

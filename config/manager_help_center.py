@@ -25,6 +25,7 @@ from apps.schools.control_plane import require_control_plane_access
 from apps.portal.help_page_inbound import feature_form_initial_from_request, parse_help_landing_inbound
 from apps.portal.help_unified_hub import operator_public_kb_lane
 from apps.schools.operator_help_signals import operator_help_signal_bundle
+from apps.portal.help_section_nav import manager_help_section_nav_items
 from apps.schools.operator_report_render import render_manager_report_page
 
 
@@ -333,11 +334,16 @@ def manager_help_center(request):
         .order_by("-created_at")[:5]
     )
 
+    help_sections = _help_center_sections()
     return render_manager_report_page(
         request,
         body_template="schools/partials/manager_help_center_body.html",
         context={
-            "help_sections": _help_center_sections(),
+            "help_sections": help_sections,
+            "help_section_nav_items": manager_help_section_nav_items(
+                help_sections,
+                include_featured=bool((signals.get("kb") or {}).get("featured")),
+            ),
             "engage_actions": _engage_actions(),
             "signals": signals,
             "kb_search_url": kb_search_url,

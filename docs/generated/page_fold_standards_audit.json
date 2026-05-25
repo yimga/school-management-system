@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-24T18:14:16.268336+00:00",
+  "generated_at": "2026-05-25T13:29:38.420894+00:00",
   "pass": true,
   "rows": [
     {
@@ -25,6 +25,42 @@
       "description": "templates/control_plane_skeleton.html loads page fold standards assets",
       "status": "PASS",
       "proof": "templates/control_plane_skeleton.html"
+    },
+    {
+      "check_id": "shell_templates_base.html_back_to_top",
+      "description": "templates/base.html includes back-to-top",
+      "status": "PASS",
+      "proof": "templates/base.html"
+    },
+    {
+      "check_id": "shell_templates_base.html_fold_assets",
+      "description": "templates/base.html loads page fold standards assets",
+      "status": "PASS",
+      "proof": "templates/base.html"
+    },
+    {
+      "check_id": "shell_templates_marketing_base_marketing.html_back_to_top",
+      "description": "templates/marketing/base_marketing.html includes back-to-top",
+      "status": "PASS",
+      "proof": "templates/marketing/base_marketing.html"
+    },
+    {
+      "check_id": "shell_templates_marketing_base_marketing.html_fold_assets",
+      "description": "templates/marketing/base_marketing.html loads page fold standards assets",
+      "status": "PASS",
+      "proof": "templates/marketing/base_marketing.html"
+    },
+    {
+      "check_id": "shell_templates_admin_base.html_back_to_top",
+      "description": "templates/admin/base.html includes back-to-top",
+      "status": "PASS",
+      "proof": "templates/admin/base.html"
+    },
+    {
+      "check_id": "shell_templates_admin_base.html_fold_assets",
+      "description": "templates/admin/base.html loads page fold standards assets",
+      "status": "PASS",
+      "proof": "templates/admin/base.html"
     },
     {
       "check_id": "shell_templates_portal_base.html_manager",
@@ -88,9 +124,15 @@
     },
     {
       "check_id": "admin_index_section_nav",
-      "description": "Platform admin index includes rmc-page-fold-nav section anchors",
+      "description": "Platform admin index uses curated TOC section nav",
       "status": "PASS",
       "proof": "templates/admin/index_superadmin.html"
+    },
+    {
+      "check_id": "section_nav_toc_css",
+      "description": "Platform chrome loads section-nav TOC stylesheet",
+      "status": "PASS",
+      "proof": "templates/partials/rmc_platform_chrome_styles.html"
     },
     {
       "check_id": "admin_index_catalog_collapsed",

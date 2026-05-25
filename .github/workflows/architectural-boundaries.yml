@@ -90,6 +90,9 @@ on:
       - "beta/school-management-system/scripts/verify_manager_admin_cp_layout.py"
       - "beta/school-management-system/scripts/audit_security_posture_banner_layout.py"
       - "beta/school-management-system/scripts/audit_sidebar_disclosure_overflow.py"
+      - "beta/school-management-system/scripts/audit_section_nav_platform.py"
+      - "beta/school-management-system/static/css/rmc-section-nav-toc.css"
+      - "beta/school-management-system/templates/partials/rmc_section_nav_curated.html"
       - "beta/school-management-system/scripts/scan_main_content_text_utilities.py"
       - "beta/school-management-system/var/security-audit-baseline-main-content-text-utilities.json"
       - "beta/school-management-system/static/css/theme-platform-contrast.css"
@@ -951,5 +954,6 @@ jobs:
           python scripts/verify_manager_admin_cp_layout.py
           python scripts/audit_security_posture_banner_layout.py
           python scripts/audit_sidebar_disclosure_overflow.py
+          python scripts/audit_section_nav_platform.py --strict --write
           python scripts/scan_main_content_text_utilities.py
           python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1

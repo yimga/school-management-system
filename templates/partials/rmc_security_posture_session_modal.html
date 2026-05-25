@@ -1,0 +1,64 @@
+{% load i18n static %}
+{% if request.user.is_authenticated and account_security_score is not None %}
+<div class="modal fade rmc-security-posture-modal"
+     id="rmcSecurityPostureSessionModal"
+     tabindex="-1"
+     aria-labelledby="rmcSecurityPostureSessionModalLabel"
+     aria-hidden="true"
+     data-rmc-security-posture-modal="1"
+     data-rmc-security-zone="{{ security_posture_zone|default:'ok' }}"
+     {% if security_posture_session_modal_show %}data-rmc-security-posture-auto-show="1"{% endif %}>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rmc-security-posture-modal__content">
+      <div class="modal-header rmc-security-posture-modal__header rmc-security-posture-modal__header--{{ security_posture_zone|default:'ok' }}">
+        <h2 class="modal-title h5 mb-0" id="rmcSecurityPostureSessionModalLabel">
+          <i class="bi bi-shield-lock me-2" aria-hidden="true"></i>
+          {% if security_posture_zone == 'critical' %}
+            {% trans "Action required: strengthen your account" %}
+          {% elif security_posture_zone == 'warning' %}
+            {% trans "Security reminder" %}
+          {% else %}
+            {% trans "Account security" %}
+          {% endif %}
+        </h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" data-rmc-security-posture-modal-close="1" aria-label="{% trans 'Close' %}"></button>
+      </div>
+      <div class="modal-body">
+        <p class="rmc-security-posture-modal__score mb-3">
+          {% if account_security_band %}
+            {% blocktrans with score=account_security_score label=account_security_band %}Strength {{ score }}/100 ({{ label }}).{% endblocktrans %}
+          {% else %}
+            {% blocktrans with score=account_security_score %}Strength {{ score }}/100.{% endblocktrans %}
+          {% endif %}
+        </p>
+        {% if security_posture_blocked %}
+        <p class="mb-3">
+          {% blocktrans with required=security_minimum_required gap=security_minimum_gap %}This platform requires at least {{ required }}/100. You are {{ gap }} points below the minimum.{% endblocktrans %}
+        </p>
+        {% elif security_posture_review_due %}
+        <p class="mb-3">{% trans "Confirm your password, MFA, and contact details for this quarter before you continue." %}</p>
+        {% elif account_security_score < 70 %}
+        <p class="mb-3">{% trans "Enable MFA, verify your email, and complete recovery options to reach a strong posture." %}</p>
+        {% else %}
+        <p class="mb-3">{% trans "Your account meets the current minimum. Keep MFA and recovery options up to date." %}</p>
+        {% endif %}
+        <ul class="rmc-security-posture-modal__checklist list-unstyled small mb-0">
+          <li><i class="bi bi-check2-circle me-2" aria-hidden="true"></i>{% trans "Multi-factor authentication" %}</li>
+          <li><i class="bi bi-check2-circle me-2" aria-hidden="true"></i>{% trans "Verified contact email" %}</li>
+          <li><i class="bi bi-check2-circle me-2" aria-hidden="true"></i>{% trans "Recovery options on file" %}</li>
+        </ul>
+      </div>
+      <div class="modal-footer flex-wrap gap-2">
+        {% if security_posture_review_due and security_posture_review_url %}
+        <a class="btn btn-primary" href="{{ security_posture_review_url }}{% if request.get_full_path %}?next={{ request.get_full_path|urlencode }}{% endif %}">{% trans "Complete quarterly review" %}</a>
+        {% endif %}
+        <a class="btn btn-{% if security_posture_zone == 'critical' %}danger{% elif security_posture_zone == 'warning' %}warning{% else %}outline-secondary{% endif %}" href="{% url 'accounts:user_profile' %}#profile-security-strength">{% trans "Open security settings" %}</a>
+        <a class="btn btn-outline-secondary" href="{% url 'accounts:mfa_setup' %}">{% trans "MFA setup" %}</a>
+        <button type="button" class="btn btn-outline-secondary ms-auto" data-bs-dismiss="modal" data-rmc-security-posture-modal-close="1">{% trans "Dismiss for this session" %}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="application/json" id="rmc-security-posture-modal-config" nonce="{{ csp_nonce }}">{"ack_url":"{% filter escapejs %}{% url 'accounts:security_posture_session_modal_ack' %}{% endfilter %}","auto_show":{% if security_posture_session_modal_show %}true{% else %}false{% endif %}}</script>
+<script src="{% static 'js/rmc-security-posture-session-modal.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endif %}

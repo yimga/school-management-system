@@ -651,10 +651,13 @@ def help_center(request):
     community_lane = tenant_community_lane(request)
     support_hub = build_tenant_support_hub_context(request)
     help_section = (request.GET.get("section") or "").strip()
+    from apps.portal.help_section_nav import tenant_help_section_nav_items
+
     return render(
         request,
         "feedback/help_center.html",
         {
+            "help_section_nav_items": tenant_help_section_nav_items(),
             "role": role,
             "school": school,
             "community_lane": community_lane,

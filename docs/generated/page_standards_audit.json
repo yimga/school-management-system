@@ -1,11 +1,11 @@
 {
   "summary": {
-    "templates_scanned": 1371,
-    "pages_with_findings": 16,
-    "finding_total": 16,
+    "templates_scanned": 1395,
+    "pages_with_findings": 18,
+    "finding_total": 18,
     "by_finding": {
-      "inline_script_count": 7,
-      "missing_h1": 4,
+      "inline_script_count": 8,
+      "missing_h1": 5,
       "marketing_form_missing_honeypot": 2,
       "multiple_h1": 2,
       "form_missing_csrf_token": 1
@@ -322,7 +322,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 34
+      "inline_style_count": 28
     },
     {
       "path": "templates\\accounts\\mfa_verify.html",
@@ -330,7 +330,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 11
+      "inline_style_count": 10
     },
     {
       "path": "templates\\accounts\\migration_legacy_view.html",
@@ -381,12 +381,36 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\accounts\\operator_invite_accept.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\partials\\_mfa_setup_wizard_inline.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
       "path": "templates\\accounts\\partials\\_profile_security_gauge.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
       "findings": [],
-      "inline_style_count": 3
+      "inline_style_count": 6
+    },
+    {
+      "path": "templates\\accounts\\partials\\_profile_security_hub.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\accounts\\partials\\_security_posture_banner.html",
@@ -482,7 +506,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 17
+      "inline_style_count": 14
     },
     {
       "path": "templates\\accounts\\profile_edit.html",
@@ -546,7 +570,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 2
+      "inline_style_count": 1
     },
     {
       "path": "templates\\accounts\\security_trust_hub.html",
@@ -573,12 +597,54 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\accounts\\tenant_identity_detail.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\tenant_identity_invite.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\tenant_identity_regulator_grant.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\tenant_identity_roster.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\accounts\\tenant_impersonation_audit.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
       "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\tenant_staff_invite_accept.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
     },
     {
       "path": "templates\\accounts\\workflow_center.html",
@@ -962,7 +1028,7 @@
       "is_marketing": false,
       "extends_base": false,
       "findings": [],
-      "inline_style_count": 0
+      "inline_style_count": 1
     },
     {
       "path": "templates\\admin\\platform_runtime\\runtimedefaults\\change_form.html",
@@ -2299,6 +2365,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\components\\rmc_operational_center_frame.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\components\\rmc_operator_surface_strip.html",
       "is_partial": true,
       "is_marketing": false,
@@ -3020,6 +3094,14 @@
     },
     {
       "path": "templates\\feedback\\partials\\help_center_quick_feature.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\feedback\\partials\\help_center_support_lane.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -5835,6 +5917,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\manager_complete_sidebar_nav.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\manager_login_footer.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5852,6 +5942,14 @@
     },
     {
       "path": "templates\\partials\\manager_platform_admin_sidebar.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\manager_unified_sidebar_groups.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -5939,6 +6037,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_dropdown_viewport_safe_boot.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_info_tag.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5968,6 +6074,16 @@
       "is_marketing": false,
       "extends_base": false,
       "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_notification_corner_boot.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [
+        "inline_script_count:1"
+      ],
       "inline_style_count": 0
     },
     {
@@ -6011,6 +6127,38 @@
       "inline_style_count": 7
     },
     {
+      "path": "templates\\partials\\rmc_section_nav_curated.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_security_posture_layout_styles.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_security_posture_nav_button.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_security_posture_session_modal.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_shortcuts_i18n.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6020,6 +6168,14 @@
     },
     {
       "path": "templates\\partials\\rmc_shortcuts_nav_data.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_sidebar_disclosure_contract_styles.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6236,6 +6392,14 @@
     },
     {
       "path": "templates\\partials\\shell_chrome_page_heading_actions_strip.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\shell_chrome_security_posture_banner.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -8666,6 +8830,38 @@
     },
     {
       "path": "templates\\schools\\super_operator_policy.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schools\\super_operator_team_detail.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 3
+    },
+    {
+      "path": "templates\\schools\\super_operator_team_invite.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schools\\super_operator_team_promote.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schools\\super_operator_team_roster.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,

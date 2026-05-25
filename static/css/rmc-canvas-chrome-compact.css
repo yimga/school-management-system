@@ -1,0 +1,150 @@
+/**
+ * rmc-canvas-chrome-compact.css — kill canvas voids under workspace chrome.
+ * v3.90.50 (2026-05-24)
+ *
+ * Fixes: flex-grow empty space below RunMyCampus workspace strip, duplicate
+ * headers, legacy security banner reservation, admin backoffice pill row pushed
+ * to viewport bottom.
+ */
+
+/* ── Never render deprecated inline security banner ── */
+.rmc-security-posture-banner,
+[data-rmc-security-posture-banner="1"] {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* ── Canvas / main: content-height only (all scroll modes) ── */
+body.control-plane-shell .rmc-app-shell__canvas-body,
+body.control-plane-shell .rmc-app-shell__canvas,
+body.admin-manager-shell .rmc-app-shell__canvas-body,
+body.admin-manager-shell .rmc-app-shell__canvas,
+body.portal-body-with-layout .rmc-app-shell__canvas-body,
+body.backend-shell .rmc-app-shell__canvas-body {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  align-content: flex-start;
+}
+
+body.control-plane-shell .cp-layout,
+body.control-plane-shell #cp-main-content,
+body.control-plane-shell .cp-page-body,
+body.admin-manager-shell .admin-cp-unified-page .cp-layout,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content,
+body.admin-manager-shell .cp-admin-page-body,
+body.admin-manager-shell #cp-main-content.cp-admin-canvas-main,
+body.portal-body-with-layout #main-content,
+body.backend-shell #main-content {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+body.control-plane-shell #cp-main-content {
+  gap: 0.5rem;
+  padding-top: 12px;
+  padding-bottom: 16px;
+}
+
+body.control-plane-shell .cp-page-body {
+  gap: 0.65rem;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* ── Duplicate workspace strip: pages ship operational center frame ── */
+body.control-plane-shell #cp-main-content:has(.cp-page-body [data-rmc-operational-center-frame="1"])
+  > .rmc-os-page-header {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body.portal-body-with-layout #main-content .page-wrap:has([data-rmc-operational-center-frame="1"])
+  > .rmc-os-page-header,
+body.backend-shell #main-content .page-wrap:has([data-rmc-operational-center-frame="1"])
+  > .rmc-os-page-header {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ── Collapse empty chrome slots ── */
+body.control-plane-shell #cp-main-content > [data-rmc-os-primary-action-slot="1"]:not(:has(a, button, [href])) {
+  display: none;
+  margin: 0;
+  padding: 0;
+}
+
+body.control-plane-shell #cp-main-content > .rmc-os-status-stack:not(:has(.badge, .alert, [data-rmc-platform-status])) {
+  display: none;
+}
+
+body.control-plane-shell .rmc-os-payment-readiness-slot:empty {
+  display: none;
+}
+
+/* ── Breadcrumb + operator surface strip: tight ── */
+body.control-plane-shell .rmc-cockpit-breadcrumb,
+body.control-plane-shell .rmc-app-shell__canvas-body > .rmc-cockpit-breadcrumb {
+  margin: 0 0 0.35rem;
+  padding: 0 clamp(12px, 2vw, 20px);
+}
+
+body.control-plane-shell .rmc-operator-workspace-nav {
+  margin-bottom: 0.25rem !important;
+  padding-top: 0.35rem !important;
+  padding-bottom: 0.35rem !important;
+}
+
+body.control-plane-shell .cp-page-header,
+body.control-plane-shell .breadcrumb {
+  margin-bottom: 0.35rem !important;
+}
+
+/* ── Admin manager backoffice: pills stay under chrome, not viewport floor ── */
+body.admin-manager-shell .admin-cp-unified-page {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+body.admin-manager-shell .admin-cp-unified-page .cp-layout,
+body.admin-manager-shell .admin-cp-unified-page .cp-layout > .row,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .grow,
+body.admin-manager-shell .admin-cp-unified-page #cp-main-content > .cp-admin-main-scroll-pane {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+body.admin-manager-shell .rmc-operator-workspace-nav {
+  flex: 0 0 auto;
+  margin-bottom: 0.35rem;
+}
+
+body.admin-manager-shell .rmc-admin-breadcrumb-nav {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.35rem !important;
+}
+
+body.admin-manager-shell .cp-admin-page-body {
+  padding-top: 0.35rem !important;
+}
+
+/* Tenant portal / backend: no flex void under header breadcrumb */
+body.portal-body-with-layout .portal-page-body,
+body.backend-shell .portal-page-body {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+body.portal-body-with-layout #main-content .breadcrumb,
+body.backend-shell #main-content .breadcrumb {
+  margin-bottom: 0.35rem;
+}

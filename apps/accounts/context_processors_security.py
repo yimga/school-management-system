@@ -15,6 +15,9 @@ from apps.accounts.profile_security_evaluation import (
 from apps.accounts.security_posture_notifications import (
     corner_notifications_for_request,
     is_corner_snoozed,
+    is_session_modal_acknowledged,
+    security_posture_zone,
+    should_show_session_modal,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,6 +59,12 @@ def account_security_context(request):
         required = int(evaluation.get("security_minimum_required") or 0)
         gap = int(evaluation.get("security_minimum_gap") or 0)
         show_block_banner = not meets_min and required > 0
+        zone = security_posture_zone(
+            score=score,
+            meets_platform_minimum=meets_min,
+            security_posture_review_due=review_due,
+            security_posture_blocked=show_block_banner,
+        )
         return {
             "account_security_score": score,
             "account_security_band": band,
@@ -68,10 +77,15 @@ def account_security_context(request):
             "security_posture_review_due": review_due,
             "security_posture_review_url": review_url,
             "security_posture_corner_snoozed": is_corner_snoozed(request),
-            "security_posture_inline_banner": (
-                (review_due or show_block_banner) and not is_corner_snoozed(request)
-            ),
+            "security_posture_inline_banner": False,
             "security_posture_blocked": show_block_banner,
+            "security_posture_zone": zone,
+            "security_posture_session_modal_show": should_show_session_modal(
+                request, zone=zone
+            ),
+            "security_posture_session_modal_ack": is_session_modal_acknowledged(
+                request
+            ),
             "rmc_corner_notifications": corner_notifications_for_request(request),
         }
     except _SOFT:

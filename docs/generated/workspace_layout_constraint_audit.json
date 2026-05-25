@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T04:05:20.744748+00:00",
+  "generated_at": "2026-05-25T12:46:42.370886+00:00",
   "schema_version": 1,
   "verdict": "WORKSPACE_LAYOUT_READY",
   "checks": [
@@ -13,7 +13,7 @@
       "id": "page_fold_standards",
       "status": "PASS",
       "detail": "verify_page_fold_standards.py exit 0",
-      "proof": "[PASS] cursor_rule: Cursor rule documents fold standards\n[PASS] feature_control_fold_nav: Feature control marks data-rmc-page-fold-nav=required\n[PASS] feature_control_paginate_policy: Feature control marks data-rmc-scroll-policy=paginate\n[PASS] feature_control_sticky_tabs: Feature control category tabs are sticky nav\n[PASS] pagination_partial: Shared numbered pagination partial exists\n[PASS] back_to_top_two_fold_threshold: Back-to-top uses 2-fold scroll threshold\n\nPAGE_FOLD_STANDARDS: 15/15 PASS"
+      "proof": "tegory tabs are sticky nav\n[PASS] admin_index_fold_nav: Platform admin index marks data-rmc-page-fold-nav=required\n[PASS] admin_index_section_nav: Platform admin index includes rmc-page-fold-nav section anchors\n[PASS] admin_index_catalog_collapsed: Platform admin catalog sections default collapsed (no open attribute)\n[PASS] pagination_partial: Shared numbered pagination partial exists\n[PASS] back_to_top_two_fold_threshold: Back-to-top uses 2-fold scroll threshold\n\nPAGE_FOLD_STANDARDS: 24/24 PASS"
     },
     {
       "id": "platform_chromatic_compliance",

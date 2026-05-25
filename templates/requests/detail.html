@@ -5,7 +5,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Request {{ req.reference }}</h1>
-<div class="container-fluid py-4" data-page-archetype="record-detail">
+<div class="container-fluid py-2" data-page-archetype="record-detail">
   {% url 'requests:dashboard' as back_url %}
   {% include "studio_os/components/page_header.html" with title=req.reference subtitle=req.get_request_type_display action_url=back_url action_text="Back to list" %}
   <p class="mb-3"><span class="badge {% if req.status == 'APPROVED' %}bg-success{% elif req.status == 'DENIED' %}bg-danger{% elif req.status == 'CLARIFICATION_REQUESTED' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">{{ req.get_status_display }}</span></p>

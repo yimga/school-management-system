@@ -57,6 +57,7 @@ def ai_model_hub(request):
     from apps.siteconfig.models import RegionalAIConfig
     from apps.siteconfig.tasks import AI_HEALTH_CACHE_PREFIX
 
+    # unbounded-collection-allow: regional-ai-config-reference-table-small-cardinality
     configs = list(
         RegionalAIConfig.objects.filter(is_active=True).order_by("regional_cluster")
     )
@@ -97,6 +98,7 @@ def global_ai_version(request):
         request.session["ai_upgrade_run_id"] = run_id
         return redirect("super:global_ai_version_progress", run_id=run_id)
 
+    # unbounded-collection-allow: regional-ai-cluster-list-small-cardinality
     clusters = list(
         RegionalAIConfig.objects.filter(is_active=True)
         .values_list("regional_cluster", flat=True)

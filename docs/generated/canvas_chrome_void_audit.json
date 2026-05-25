@@ -1,0 +1,12 @@
+{
+  "finding_count": 0,
+  "findings": [],
+  "checks": {
+    "legacy_banner": 0,
+    "cp_base_breadcrumb": 0,
+    "compact_css": 0,
+    "cp_templates": 0
+  },
+  "generated_at": "2026-05-25T13:05:14Z",
+  "remediation_status": "PASS"
+}

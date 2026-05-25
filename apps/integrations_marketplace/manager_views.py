@@ -113,7 +113,9 @@ def manager_bulk_prestage(request):
                 "connectors": [c.to_dict() for c in list_oauth_connectors()],
                 # tenant-isolation-allow: control-plane operator surface walks
                 # every active tenant by design.
-                "schools": list(School.objects.filter(is_active=True).order_by("name")),
+                "schools": list(
+                    School.objects.filter(is_active=True).order_by("name")[:200]
+                ),
             },
         )
 

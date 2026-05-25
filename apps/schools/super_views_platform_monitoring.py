@@ -14,6 +14,10 @@ from apps.tenancy.context import TenantContext
 
 from .control_plane_lifecycle import get_lifecycle_snapshot
 from .models import School, TenantApiUsage, TenantQuotaLimit
+from .super_dashboard_registry import (
+    REGISTRY_PAGE_SIZE_OPTIONS,
+    paginate_operator_schools,
+)
 from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 from apps.platform_runtime.operator_identity import (
     PLATFORM_SCOPE_TENANT_READ,
@@ -24,11 +28,15 @@ from apps.platform_runtime.operator_identity import (
 @require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_usage(request):
     """Plan I: Per-tenant API usage and quota limits for super-admin billing/health."""
-    schools = list(
+    base_qs = (
         School.objects.filter(is_active=True)
         .annotate(student_count=Count("student_profiles", distinct=True))
         .order_by("name")
     )
+    page, search, page_size, pagination_extra_query = paginate_operator_schools(
+        request, base_qs, default_page_size=50
+    )
+    schools = list(page.object_list)
     school_ids = [s.pk for s in schools]
     usage_agg = {
         (r["school_id"], r["limit_type"]): r["total"]
@@ -49,7 +57,15 @@ def super_usage(request):
     return render(
         request,
         "schools/super_usage.html",
-        {"schools": schools},
+        {
+            "schools": schools,
+            "page_obj": page,
+            "search_query": search,
+            "page_size": page_size,
+            "page_size_options": REGISTRY_PAGE_SIZE_OPTIONS,
+            "pagination_extra_query": pagination_extra_query,
+            "total_school_count": page.paginator.count,
+        },
     )
 
 
@@ -58,19 +74,7 @@ def super_pulse(request):
     """S13: Global Pulse Map — HTML view for super dashboard link. Same data as API v1 super/pulse."""
     from apps.siteconfig.models import RevenueSnapshot
 
-    schools = list(
-        School.objects.filter(is_active=True)
-        .annotate(student_count=Count("student_profiles", distinct=True))
-        .values(
-            "id",
-            "name",
-            "slug",
-            "subdomain",
-            "default_region_id",
-            "student_count",
-            "last_activity",
-        )
-    )
+    active_qs = School.objects.filter(is_active=True)
     first_of_month = timezone.now().date().replace(day=1)
     try:
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
@@ -80,21 +84,36 @@ def super_pulse(request):
         total_revenue = (snapshots["total"] or 0) + (snapshots["waived"] or 0)
     except DatabaseError:
         total_revenue = 0
-    total_students = sum(s["student_count"] for s in schools)
+    total_students = active_qs.aggregate(
+        total=Count("student_profiles")
+    )["total"] or 0
+    active_school_count = active_qs.count()
     by_country = list(
-        School.objects.filter(is_active=True)
-        .values("default_region_id")
-        .annotate(
+        active_qs.values("default_region_id").annotate(
             school_count=Count("id"),
             student_count=Count("student_profiles", distinct=True),
         )
     )
+    page, search, page_size, pagination_extra_query = paginate_operator_schools(
+        request,
+        active_qs.annotate(
+            student_count=Count("student_profiles", distinct=True)
+        ).order_by("name"),
+        default_page_size=50,
+    )
+    tenants = list(page.object_list)
     return render(
         request,
         "schools/super_pulse.html",
         {
-            "tenants": schools,
+            "tenants": tenants,
+            "page_obj": page,
+            "search_query": search,
+            "page_size": page_size,
+            "page_size_options": REGISTRY_PAGE_SIZE_OPTIONS,
+            "pagination_extra_query": pagination_extra_query,
             "total_students": total_students,
+            "active_school_count": active_school_count,
             "total_revenue": total_revenue,
             "by_country": by_country,
         },
@@ -107,12 +126,14 @@ def super_tenant_health(request):
     from apps.platform_runtime.models import PlatformOperatorTenantHealthLink
     from apps.policies.resolver import get_effective_policy
 
-    schools = list(
-        School.objects.all()
-        .annotate(student_count=Count("student_profiles", distinct=True))
-        .order_by("name")
+    base_qs = School.objects.all().annotate(
+        student_count=Count("student_profiles", distinct=True)
+    ).order_by("name")
+    page, search, page_size, pagination_extra_query = paginate_operator_schools(
+        request, base_qs, default_page_size=50
     )
-    for school in schools:
+    tenants = list(page.object_list)
+    for school in tenants:
         school.lifecycle = get_lifecycle_snapshot(school)
         sector = (getattr(school, "primary_sector", None) or "").strip().upper()
         if sector in ("PUBLIC", "GOVERNMENT_MINISTRY"):
@@ -128,7 +149,13 @@ def super_tenant_health(request):
         request,
         "schools/super_tenant_health.html",
         {
-            "tenants": schools,
+            "tenants": tenants,
+            "page_obj": page,
+            "search_query": search,
+            "page_size": page_size,
+            "page_size_options": REGISTRY_PAGE_SIZE_OPTIONS,
+            "pagination_extra_query": pagination_extra_query,
+            "total_tenant_count": page.paginator.count,
             "operator_tenant_health_links": operator_tenant_health_links,
         },
     )

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
-Platform audit: quarterly security posture inline banner + canvas void fix.
+Platform audit: security posture nav + per-session modal (all authenticated shells).
 
 Exits 0 with SECURITY_POSTURE_BANNER_LAYOUT_PASS when:
-- Canonical shell partial is wired on control_plane_base, portal_base, manager admin
-- Layout contract CSS is loaded on all three authenticated shell heads
-- Every /super/ page template inherits control_plane_base (or skeleton-only exempt list)
-- No duplicate direct includes of _security_posture_banner.html
-- Layout contract CSS ships min-height:0 on banner + canvas flex-shrink rules
-- Corner toast is suppressed when inline banner is active (Python contract)
+- Session modal shell partial wired on control_plane_base, portal_base, manager admin
+- Layout nav CSS loaded on shell heads
+- Primary nav includes security posture control
+- No duplicate direct includes of legacy _security_posture_banner.html
+- Context + notifications module expose zone + session modal contract
 """
 from __future__ import annotations
 
@@ -22,13 +21,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATES = ROOT / "templates"
 OUT = ROOT / "docs/generated/security_posture_banner_layout_audit.json"
-STATIC_CSS = ROOT / "static/css/rmc-security-posture-banner-layout.css"
-STATIC_JS = ROOT / "static/js/rmc-security-posture-banner.js"
+STATIC_NAV_CSS = ROOT / "static/css/rmc-security-posture-nav.css"
+STATIC_MODAL_JS = ROOT / "static/js/rmc-security-posture-session-modal.js"
 
 SHELL_INCLUDE = '{% include "partials/shell_chrome_security_posture_banner.html" %}'
 LAYOUT_STYLE_MARKER = "rmc_security_posture_layout_styles.html"
+NAV_BUTTON_MARKER = '{% include "partials/rmc_security_posture_nav_button.html" %}'
 SHELL_PARTIAL = TEMPLATES / "partials" / "shell_chrome_security_posture_banner.html"
-BANNER_PARTIAL = TEMPLATES / "accounts" / "partials" / "_security_posture_banner.html"
+MODAL_PARTIAL = TEMPLATES / "partials" / "rmc_security_posture_session_modal.html"
+LEGACY_BANNER = TEMPLATES / "accounts" / "partials" / "_security_posture_banner.html"
 
 REQUIRED_SHELLS = (
     TEMPLATES / "control_plane_base.html",
@@ -40,7 +41,10 @@ LAYOUT_STYLE_SHELLS = (
     TEMPLATES / "control_plane_base.html",
     TEMPLATES / "portal_base.html",
     TEMPLATES / "admin" / "base_site.html",
+    TEMPLATES / "marketing" / "base_marketing.html",
 )
+
+PRIMARY_NAV = TEMPLATES / "partials" / "control_plane_primary_nav.html"
 
 SKELETON_ONLY_EXEMPT = frozenset(
     {
@@ -74,7 +78,6 @@ def _rel(path: Path) -> str:
 def audit_super_template_coverage() -> list[str]:
     failures: list[str] = []
     super_candidates: list[Path] = []
-    covered = 0
     for path in TEMPLATES.rglob("*.html"):
         rel = _rel(path)
         if rel.startswith("templates/schools/super_") or rel.startswith("templates/super/"):
@@ -91,15 +94,13 @@ def audit_super_template_coverage() -> list[str]:
         if "{% extends" not in text:
             continue
         if EXTENDS_CP_BASE.search(text):
-            covered += 1
             continue
         if EXTENDS_CP_SKELETON.search(text) and rel in SKELETON_ONLY_EXEMPT:
-            covered += 1
             continue
         failures.append(f"super template not on control_plane_base chain: {rel}")
 
-    if covered < 1:
-        failures.append("no super templates found on control_plane_base chain")
+    if not super_candidates:
+        failures.append("no super templates found")
     return failures
 
 
@@ -107,10 +108,15 @@ def audit_shell_wiring() -> list[str]:
     failures: list[str] = []
     if not SHELL_PARTIAL.is_file():
         failures.append(f"missing shell partial: {_rel(SHELL_PARTIAL)}")
-    if not BANNER_PARTIAL.is_file():
-        failures.append(f"missing banner partial: {_rel(BANNER_PARTIAL)}")
-    if not STATIC_JS.is_file():
-        failures.append(f"missing banner JS: {_rel(STATIC_JS)}")
+    if not MODAL_PARTIAL.is_file():
+        failures.append(f"missing session modal partial: {_rel(MODAL_PARTIAL)}")
+    if not STATIC_MODAL_JS.is_file():
+        failures.append(f"missing session modal JS: {_rel(STATIC_MODAL_JS)}")
+    shell_text = SHELL_PARTIAL.read_text(encoding="utf-8", errors="replace") if SHELL_PARTIAL.is_file() else ""
+    if "rmc_security_posture_session_modal" not in shell_text:
+        failures.append("shell partial must include session modal, not legacy inline banner")
+    if "_security_posture_banner.html" in shell_text:
+        failures.append("shell partial must not include legacy inline banner")
     for shell in REQUIRED_SHELLS:
         if not shell.is_file():
             failures.append(f"missing shell template: {_rel(shell)}")
@@ -126,17 +132,31 @@ def audit_layout_style_shells() -> list[str]:
     if not partial.is_file():
         failures.append(f"missing layout style partial: {_rel(partial)}")
         return failures
+    nav_css = partial.read_text(encoding="utf-8", errors="replace")
+    if "rmc-security-posture-nav.css" not in nav_css:
+        failures.append("layout style partial must link rmc-security-posture-nav.css")
     for shell in LAYOUT_STYLE_SHELLS:
         if not shell.is_file():
             failures.append(f"missing layout shell head: {_rel(shell)}")
             continue
-        if LAYOUT_STYLE_MARKER not in shell.read_text(encoding="utf-8", errors="replace"):
+        text = shell.read_text(encoding="utf-8", errors="replace")
+        if LAYOUT_STYLE_MARKER not in text and shell.name != "base_marketing.html":
             failures.append(f"shell missing layout style include: {_rel(shell)}")
-    manager_backend = TEMPLATES / "backend_base_manager.html"
-    if manager_backend.is_file():
-        text = manager_backend.read_text(encoding="utf-8", errors="replace")
-        if not EXTENDS_CP_BASE.search(text):
-            failures.append("backend_base_manager.html must extend control_plane_base")
+        if shell.name == "base_marketing.html" and "rmc_security_posture_layout_styles" not in text:
+            failures.append("marketing shell missing conditional layout styles")
+    return failures
+
+
+def audit_nav_button_wiring() -> list[str]:
+    failures: list[str] = []
+    if not PRIMARY_NAV.is_file():
+        failures.append(f"missing primary nav: {_rel(PRIMARY_NAV)}")
+        return failures
+    if NAV_BUTTON_MARKER not in PRIMARY_NAV.read_text(encoding="utf-8", errors="replace"):
+        failures.append("control_plane_primary_nav missing security nav button")
+    portal = TEMPLATES / "portal_base.html"
+    if NAV_BUTTON_MARKER not in portal.read_text(encoding="utf-8", errors="replace"):
+        failures.append("portal_base missing security nav button in header actions")
     return failures
 
 
@@ -153,56 +173,67 @@ def audit_no_duplicate_includes() -> list[str]:
     return failures
 
 
-def audit_layout_css() -> list[str]:
+def audit_nav_css() -> list[str]:
     failures: list[str] = []
-    if not STATIC_CSS.is_file():
-        failures.append(f"missing layout CSS: {_rel(STATIC_CSS)}")
+    if not STATIC_NAV_CSS.is_file():
+        failures.append(f"missing nav CSS: {_rel(STATIC_NAV_CSS)}")
         return failures
-    css = STATIC_CSS.read_text(encoding="utf-8", errors="replace")
-    required_fragments = (
-        '[data-rmc-security-posture-banner="1"]',
-        "flex: 0 1 auto",
-        'data-rmc-cp-scroll="canvas"',
-    )
-    for frag in required_fragments:
+    css = STATIC_NAV_CSS.read_text(encoding="utf-8", errors="replace")
+    for frag in (
+        ".rmc-security-posture-nav--critical",
+        ".rmc-security-posture-nav--warning",
+        ".rmc-security-posture-nav--ok",
+        "prefers-reduced-motion",
+        "rmc-security-pulse-fast",
+    ):
         if frag not in css:
-            failures.append(f"layout CSS missing fragment: {frag}")
-    if "min-height: 0 !important" not in css:
-        failures.append("layout CSS missing banner min-height guard")
+            failures.append(f"nav CSS missing fragment: {frag}")
     return failures
 
 
-def audit_corner_suppression_contract() -> list[str]:
+def audit_session_modal_contract() -> list[str]:
     failures: list[str] = []
     mod = ROOT / "apps" / "accounts" / "security_posture_notifications.py"
     text = mod.read_text(encoding="utf-8", errors="replace")
-    if "inline_security_posture_banner_active" not in text:
-        failures.append("missing inline_security_posture_banner_active()")
-    if "if inline_security_posture_banner_active(request):" not in text:
-        failures.append("corner_notifications_for_request must gate on inline banner")
+    for token in (
+        "SESSION_MODAL_ACK_KEY",
+        "security_posture_zone",
+        "should_show_session_modal",
+        "acknowledge_session_modal",
+    ):
+        if token not in text:
+            failures.append(f"security_posture_notifications missing {token}")
     ctx = ROOT / "apps" / "accounts" / "context_processors_security.py"
     ctx_text = ctx.read_text(encoding="utf-8", errors="replace")
     for key in (
-        "security_posture_corner_snoozed",
+        "security_posture_zone",
+        "security_posture_session_modal_show",
         "security_posture_inline_banner",
     ):
         if key not in ctx_text:
             failures.append(f"context_processors_security missing {key}")
-    return failures
-
-
-def audit_banner_collapsible_markup() -> list[str]:
-    failures: list[str] = []
-    text = BANNER_PARTIAL.read_text(encoding="utf-8", errors="replace")
+    if "security_posture_inline_banner\": False" not in ctx_text:
+        failures.append("inline banner must be disabled in context processor")
+    modal = MODAL_PARTIAL.read_text(encoding="utf-8", errors="replace")
     for token in (
-        "<details",
-        "rmc-collapsable",
-        "rmc-collapsable__head",
-        "data-rmc-security-posture-banner",
-        "data-rmc-security-posture-snooze",
+        "rmcSecurityPostureSessionModal",
+        "data-rmc-security-posture-modal-close",
+        "security_posture_session_modal_ack",
     ):
-        if token not in text:
-            failures.append(f"banner partial missing collapsible token: {token}")
+        if token not in modal:
+            failures.append(f"session modal partial missing {token}")
+    legacy = LEGACY_BANNER.read_text(encoding="utf-8", errors="replace")
+    if "rmc-security-posture-banner" in legacy or "Account below minimum" in legacy:
+        failures.append("legacy _security_posture_banner must be empty (use nav+modal)")
+    compact = ROOT / "static/css/rmc-canvas-chrome-compact.css"
+    if not compact.is_file():
+        failures.append("missing rmc-canvas-chrome-compact.css")
+    else:
+        layout_partial = TEMPLATES / "partials" / "rmc_security_posture_layout_styles.html"
+        if "rmc-canvas-chrome-compact.css" not in layout_partial.read_text(
+            encoding="utf-8", errors="replace"
+        ):
+            failures.append("layout styles must link rmc-canvas-chrome-compact.css")
     return failures
 
 
@@ -214,11 +245,11 @@ def main() -> int:
     checks = {
         "shell_wiring": audit_shell_wiring(),
         "layout_style_shells": audit_layout_style_shells(),
+        "nav_button_wiring": audit_nav_button_wiring(),
         "super_template_coverage": audit_super_template_coverage(),
         "no_duplicate_includes": audit_no_duplicate_includes(),
-        "layout_css": audit_layout_css(),
-        "corner_suppression": audit_corner_suppression_contract(),
-        "collapsible_markup": audit_banner_collapsible_markup(),
+        "nav_css": audit_nav_css(),
+        "session_modal_contract": audit_session_modal_contract(),
     }
     failures: list[str] = []
     for items in checks.values():

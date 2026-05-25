@@ -1,5 +1,6 @@
 /**
  * Platform /admin/ model catalog — filter sidebar + index by search string.
+ * unbounded-collection-allow: admin-catalog-bounded-django-model-registry
  */
 (function () {
   "use strict";

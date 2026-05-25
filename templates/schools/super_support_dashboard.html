@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 {% endblock %}
 {% block cp_title %}Support — Super Admin{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
 {% block breadcrumbs %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb mb-0">
@@ -16,7 +17,7 @@
 {% block cp_content %}
 {% url 'super:dashboard' as dashboard_url %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#support-dashboard-main">{% trans "Skip to support dashboard content" %}</a>
-<div id="support-dashboard-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
+<div id="support-dashboard-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_support_dashboard.html" %}
   {% if operator_support_dashboard_links %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">

@@ -22,6 +22,7 @@ from apps.platform_runtime.operator_identity import (
 @require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def export_schools_csv(request):
     """Export schools list as CSV (powerhouse upgrade: export)."""
+    # unbounded-collection-allow: csv-export-streams-full-fleet-by-operator-request
     latest_event_query = SchoolProvisioningEvent.objects.filter(
         school_id=OuterRef("pk")
     ).order_by("-created_at", "-id")

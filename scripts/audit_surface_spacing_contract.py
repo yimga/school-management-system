@@ -81,17 +81,46 @@ def scan() -> list[dict[str, str]]:
                 }
             )
 
-        if ARCHETYPE in text or WORKBENCH in text:
+        in_cp_chain = (
+            'extends "control_plane_base' in text
+            or any(rel.startswith(p) for p in CP_ROOTS)
+        )
+        if in_cp_chain and surface == "super":
             if "container-fluid py-4" in text and 'data-rmc-density="open"' not in text:
                 if rel in ALLOW_LANDING:
-                    continue
-                if surface in ("super", "tenant") and "wizard" not in rel.lower():
+                    pass
+                elif any(x in rel.lower() for x in ("wizard", "onboard", "setup-studio")):
+                    pass
+                else:
                     findings.append(
                         {
                             "file": rel,
                             "surface": surface,
                             "issue": "operational_py4_padding",
-                            "severity": "low",
+                            "severity": "medium",
+                        }
+                    )
+            if re.search(r"\bcontent-max-(?:520|640|960|1200|narrow)\b", text):
+                findings.append(
+                    {
+                        "file": rel,
+                        "surface": surface,
+                        "issue": "content_max_width_clamp",
+                        "severity": "high",
+                    }
+                )
+
+        if ARCHETYPE in text or WORKBENCH in text:
+            if "container-fluid py-4" in text and 'data-rmc-density="open"' not in text:
+                if rel in ALLOW_LANDING:
+                    continue
+                if surface == "tenant" and "wizard" not in rel.lower():
+                    findings.append(
+                        {
+                            "file": rel,
+                            "surface": surface,
+                            "issue": "operational_py4_padding",
+                            "severity": "medium",
                         }
                     )
 

@@ -15,7 +15,7 @@
   <div class="alert alert-warning">{% trans "No tenant context — open this page on your school subdomain." %}</div>
   {% endif %}
   <div class="row g-4">
-    <div class="col-lg-5">
+    <div class="col-lg-6">
       <label class="form-label">{% trans "Dataset" %}</label>
       <select id="gr-dataset" class="form-select form-select-sm"></select>
 
@@ -81,7 +81,7 @@
         <button type="button" id="gr-saved-run" class="btn btn-outline-primary">{% trans "Run" %}</button>
       </div>
     </div>
-    <div class="col-lg-7">
+    <div class="col-lg-6">
       <label class="form-label">{% trans "Output" %}</label>
       <p class="small text-body-secondary mb-2" data-rmc-governed-output-empty-hint="1">{% trans "Run Preview to see rows here — then export CSV/JSON or save the definition." %}</p>
       <pre id="gr-output" class="border rounded p-3 bg-light small mb-0" style="max-height:560px;overflow:auto;" data-task="governed_report_export" data-task-step="analytics:governed-output"></pre>

@@ -16,36 +16,36 @@
     });
   }
 
-  function wireSchoolFilters() {
+  function wireSchoolRegistryFilters() {
+    var form = document.getElementById("cp-registry-filter-form");
     var searchInput = document.getElementById("cp-school-search");
     var stateFilter = document.getElementById("cp-school-filter");
-    var rows = Array.prototype.slice.call(document.querySelectorAll(".cp-school-row"));
-    var visibleCounter = document.getElementById("cp-visible-school-count");
-    if (!rows.length || !searchInput || !stateFilter) return;
+    if (!form || !searchInput || !stateFilter) return;
 
-    function apply() {
-      var query = String(searchInput.value || "").toLowerCase().trim();
-      var state = String(stateFilter.value || "all").toLowerCase();
-      var visible = 0;
-
-      rows.forEach(function (row) {
-        var haystack = String(row.getAttribute("data-search") || "");
-        var rowState = String(row.getAttribute("data-state") || "healthy").toLowerCase();
-        var matchesQuery = !query || haystack.indexOf(query) >= 0;
-        var matchesState = state === "all" || rowState === state;
-        var show = matchesQuery && matchesState;
-        row.classList.toggle("is-hidden", !show);
-        if (show) visible += 1;
-      });
-
-      if (visibleCounter) {
-        visibleCounter.textContent = String(visible);
+    var debounceTimer = null;
+    function submitRegistry(resetPage) {
+      if (resetPage) {
+        var pageInput = form.querySelector('input[name="page"]');
+        if (pageInput) pageInput.value = "1";
       }
+      form.submit();
     }
 
-    searchInput.addEventListener("input", apply);
-    stateFilter.addEventListener("change", apply);
-    apply();
+    searchInput.addEventListener("input", function () {
+      window.clearTimeout(debounceTimer);
+      debounceTimer = window.setTimeout(function () {
+        submitRegistry(true);
+      }, 400);
+    });
+    stateFilter.addEventListener("change", function () {
+      submitRegistry(true);
+    });
+    form.addEventListener("submit", function () {
+      var pageInput = form.querySelector('input[name="page"]');
+      if (pageInput && document.activeElement === searchInput) {
+        pageInput.value = "1";
+      }
+    });
   }
 
   function wireApprovalButtons() {
@@ -87,7 +87,7 @@
 
   onReady(function () {
     wireMonthSelector();
-    wireSchoolFilters();
+    wireSchoolRegistryFilters();
     wireApprovalButtons();
   });
 })();

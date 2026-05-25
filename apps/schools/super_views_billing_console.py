@@ -33,23 +33,16 @@ from .models import School, TenantApiUsage
 @require_platform_scope(PLATFORM_SCOPE_BILLING_READ)
 def billing_dashboard(request):
     """Platform billing console: subscriptions, usage, and recent platform ledger activity."""
-    active_schools = list(
-        School.objects.filter(is_active=True)
+    trial_schools = list(
+        School.objects.filter(
+            is_active=True, billing_type=School.BillingType.FREE_TRIAL
+        )
         .select_related("plan", "default_region")
         .annotate(student_count=Count("student_profiles", distinct=True))
-        .order_by("name")
+        .order_by("trial_end_date", "name")[:100]
     )
-    for school in active_schools:
+    for school in trial_schools:
         ensure_subscription_for_school(school)
-
-    trial_schools = [
-        school
-        for school in active_schools
-        if school.billing_type == School.BillingType.FREE_TRIAL
-    ]
-    trial_schools.sort(
-        key=lambda school: (school.trial_end_date or timezone.now().date(), school.name)
-    )
     school_ids = [s.pk for s in trial_schools]
     usage_agg = {}
     if school_ids:

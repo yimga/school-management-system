@@ -4,6 +4,7 @@
 
 {% block cp_title %}{{ module.title }}{% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
 <section class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-os-center="platform_configuration_center" data-rmc-configuration-module="{{ module.key }}" data-rmc-page-purpose="{{ module.purpose }}" data-rmc-scroll-policy="paginate"{% if module.key == "migrations" %} data-apple-class-migration-ux="1"{% elif module.key == "billing" %} data-apple-class-billing-ux="1"{% elif module.key == "app-catalog" %} data-apple-class-app-catalog="1"{% endif %}>
   {% include "components/rmc_operational_center_frame.html" with os_center_key="configuration_module_detail" center_eyebrow=_("Platform operators") center_title={{ module.title }} center_purpose={{ module.purpose }} primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}

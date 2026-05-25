@@ -1,5 +1,5 @@
 {% load i18n %}
-<nav class="rmc-section-nav rmc-page-fold-nav mb-3" aria-label="{% trans 'AI Center sections' %}">
+<nav class="rmc-surface-subnav rmc-page-fold-nav mb-3" aria-label="{% trans 'AI Center sections' %}" data-rmc-section-nav-curated="1">
   <a class="rmc-section-nav__link{% if ai_center_active == 'home' %} is-active{% endif %}" href="{{ ai_center_home_url }}">{% trans "Overview" %}</a>
   <a class="rmc-section-nav__link{% if ai_center_active == 'inventory' %} is-active{% endif %}" href="{{ ai_inventory_url }}">{% trans "Inventory" %}</a>
   <a class="rmc-section-nav__link{% if ai_center_active == 'kb_drafts' %} is-active{% endif %}" href="{{ ai_kb_drafts_url }}">{% trans "KB drafts" %}</a>

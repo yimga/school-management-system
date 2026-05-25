@@ -71,16 +71,21 @@
     </dl>
   </header>
 
-  <nav class="rmc-section-nav" aria-label="{% trans 'Bundle sections' %}">
-    <a href="#ai-plan">{% trans "AI plan" %}</a>
-    <a href="#artifacts">{% trans "Artifacts" %}</a>
-    <a href="#discovery">{% trans "Discovery" %}</a>
-    <a href="#mapping">{% trans "Mapping" %}</a>
-    <a href="#reconciliation">{% trans "Reconciliation" %}</a>
-    <a href="#actions">{% trans "Actions" %}</a>
+  <nav class="rmc-section-nav rmc-section-nav--toc rmc-page-fold-nav--sticky mb-3" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
+    <details class="rmc-section-nav__toc" open>
+      <summary class="rmc-section-nav__toc-trigger">{% trans "On this page" %}</summary>
+      <ul class="rmc-section-nav__list">
+        <li><a href="#ai-plan" data-rmc-section-anchor>{% trans "AI plan" %}</a></li>
+        <li><a href="#artifacts" data-rmc-section-anchor>{% trans "Artifacts" %}</a></li>
+        <li><a href="#discovery" data-rmc-section-anchor>{% trans "Discovery" %}</a></li>
+        <li><a href="#mapping" data-rmc-section-anchor>{% trans "Mapping" %}</a></li>
+        <li><a href="#reconciliation" data-rmc-section-anchor>{% trans "Reconciliation" %}</a></li>
+        <li><a href="#actions" data-rmc-section-anchor>{% trans "Actions" %}</a></li>
+      </ul>
+    </details>
   </nav>
 
-  <nav class="rmc-section-nav rmc-section-nav--secondary" aria-label="{% trans 'Bundle surfaces' %}">
+  <nav class="rmc-section-nav rmc-section-nav--secondary" aria-label="{% trans 'Bundle surfaces' %}" data-rmc-section-nav-skip="1">
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_progress' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_progress' bundle_id=bundle.pk %}{% endif %}">{% trans "Progress (DAG)" %}</a>
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_conflicts' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_conflicts' bundle_id=bundle.pk %}{% endif %}">{% trans "Conflicts" %}</a>
     <a href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_assets' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_assets' bundle_id=bundle.pk %}{% endif %}">{% trans "Binary assets" %}</a>

@@ -4,6 +4,7 @@
 
 {% block cp_title %}School Health Monitor{% endblock %}
 
+{% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
   <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#tenant-health-main">{% trans "Skip to school health table" %}</a>
   <div id="tenant-health-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
@@ -22,12 +23,16 @@
     {% endif %}
     {% url 'super:dashboard' as super_dashboard_url %}
     {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_health" center_eyebrow=_("Platform operators") center_title="School Health Monitor" center_purpose="Last activity and status per school. API: GET /api/v1/super/tenant-health" primary_url=super_dashboard_url primary_label="Back to Schools" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+    <form method="get" class="d-flex flex-wrap align-items-center gap-2 mb-3" role="search">
+      <input type="search" name="q" value="{{ search_query }}" class="form-control" placeholder="{% trans 'Search schools by name or slug' %}" autocomplete="off">
+      <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Search" %}</button>
+      <span class="text-muted small ms-auto">{% blocktrans with total=total_tenant_count %} {{ total }} schools in fleet{% endblocktrans %}</span>
+    </form>
     <div class="card shadow-sm border-0 page-family-content-card">
       <div class="card-body p-0">
         {% if tenants %}
         <div class="table-responsive table-density-comfortable">
-          <!-- large-collection-allow: dashboard-widget-capped-list -->
- class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
+          <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
             <caption class="visually-hidden">{% trans "School Health Monitor" %}</caption>
             <thead class="table-light">
               <tr>
@@ -100,6 +105,7 @@
         {% include "components/rmc_empty_state.html" with icon="bi-building" title=_("No schools") message=_("Nothing here yet.") %}
         {% endif %}
       </div>
+      {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query show_page_size=True page_size=page_size page_size_options=page_size_options %}
     </div>
   </div>
 {% endblock %}

@@ -1,0 +1,67 @@
+{
+  "generated_at": "2026-05-25T14:23:03.564683+00:00",
+  "verdict": "ACCOUNT_PROFILE_LAYOUT_BALANCED",
+  "failed": 0,
+  "checks": [
+    {
+      "check_id": "templates/accounts/partials/operator_profile_body.html:balanced_marker",
+      "status": "PASS",
+      "detail": "profile template declares the balanced account layout contract",
+      "proof": "templates/accounts/partials/operator_profile_body.html"
+    },
+    {
+      "check_id": "templates/accounts/partials/operator_profile_body.html:primary_and_rail",
+      "status": "PASS",
+      "detail": "profile template has explicit primary and rail regions",
+      "proof": "templates/accounts/partials/operator_profile_body.html"
+    },
+    {
+      "check_id": "templates/accounts/partials/operator_profile_body.html:quick_links_not_lonely",
+      "status": "PASS",
+      "detail": "quick links rail is followed by security hub and identity content",
+      "proof": "templates/accounts/partials/operator_profile_body.html"
+    },
+    {
+      "check_id": "templates/accounts/profile.html:balanced_marker",
+      "status": "PASS",
+      "detail": "profile template declares the balanced account layout contract",
+      "proof": "templates/accounts/profile.html"
+    },
+    {
+      "check_id": "templates/accounts/profile.html:primary_and_rail",
+      "status": "PASS",
+      "detail": "profile template has explicit primary and rail regions",
+      "proof": "templates/accounts/profile.html"
+    },
+    {
+      "check_id": "templates/accounts/profile.html:quick_links_not_lonely",
+      "status": "PASS",
+      "detail": "quick links rail is followed by security hub and identity content",
+      "proof": "templates/accounts/profile.html"
+    },
+    {
+      "check_id": "account_css_balanced_grid",
+      "status": "PASS",
+      "detail": "shared CSS defines desktop balance, rail stacking, and mobile collapse",
+      "proof": "static/css/rmc-account-surface.css"
+    },
+    {
+      "check_id": "operator_shell_loads_account_css",
+      "status": "PASS",
+      "detail": "manager operator shell loads account surface CSS",
+      "proof": "templates/siteconfig/operator_control_plane_page.html"
+    },
+    {
+      "check_id": "complete_sidebar_dedupe_contract",
+      "status": "PASS",
+      "detail": "complete manager sidebar merges repeated section labels and duplicate items",
+      "proof": "apps/schools/manager_nav_convergence.py"
+    },
+    {
+      "check_id": "quick_links_two_column_risk_scan",
+      "status": "PASS",
+      "detail": "quick-link two-column templates without balanced contract: 0",
+      "proof": ""
+    }
+  ]
+}

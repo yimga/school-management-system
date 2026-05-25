@@ -77,9 +77,19 @@ html[data-bs-theme="dark"] #cp-main-content .breadcrumb .active {
   color: var(--text-primary) !important;
 }
 
-#cp-main-content a:not(.btn):not(.nav-link),
-body.admin-manager-shell #main a:not(.btn):not(.nav-link) {
+#cp-main-content a:not(.btn):not(.nav-link):not(.cp-btn),
+body.admin-manager-shell #main a:not(.btn):not(.nav-link):not(.cp-btn) {
   color: var(--school-accent, var(--brand-primary, var(--color-indigo-500)));
+}
+
+#cp-main-content .rmc-section-nav a:not(.btn):not(.cp-btn),
+#cp-main-content .rmc-page-fold-nav a:not(.btn):not(.cp-btn),
+body.admin-manager-shell .rmc-section-nav a:not(.btn):not(.cp-btn),
+body.admin-manager-shell .rmc-page-fold-nav a:not(.btn):not(.cp-btn),
+.portal-page-body .rmc-section-nav a:not(.btn),
+.portal-page-body .rmc-page-fold-nav a:not(.btn) {
+  color: var(--text-secondary);
+  text-decoration: none;
 }
 
 #cp-main-content .results table th,

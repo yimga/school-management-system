@@ -13,7 +13,7 @@
 {% block title %}{% blocktrans with t=student_sg %}Create {{ t }}{% endblocktrans %} - {% trans "Backend" %}{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="record-detail">
+<div class="container-fluid py-2" data-page-archetype="record-detail">
   <div class="row">
     <div class="col-12">
       {% url 'accounts:backend_student_list' as list_url %}
