@@ -5,7 +5,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Sessions & devices" %} — {{ block.super }}</h1>
-<div class="container mt-4">
+<div class="container mt-4" data-rmc-scroll-policy="paginate">
   <div class="row justify-content-center">
     <div class="col-lg-10">
       <div class="card shadow-sm">
@@ -29,7 +29,10 @@
                 {% for s in sessions %}
                 <tr>
                   <td>
-                    {% if s.is_current %}
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{% if s.is_current %}
                     <span class="badge bg-primary">{% trans "This device" %}</span>
                     {% endif %}
                     <span class="text-muted small">{{ s.user_agent }}</span>
@@ -42,7 +45,8 @@
                       <button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Revoke" %}</button>
                     </form>
                     {% endif %}
-                  </td>
+                  </div>
+                </details></td>
                 </tr>
                 {% endfor %}
               </tbody>

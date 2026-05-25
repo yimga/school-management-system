@@ -5,9 +5,9 @@
 {% block cp_title %}Platform Incidents{% endblock %}
 
 {% block cp_content %}
-<div class="container py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
 {% phase8_dashboard_declaration "observability/platform_incidents.html" %}
-  {% include "studio_os/components/page_header.html" with title=_("Platform incident console") subtitle=_("Shared control-plane incidents for availability, security, billing, integrations, and data integrity.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="platform_incidents" center_eyebrow=_("Platform operators") center_title=_("Platform incident console") center_purpose=_("Shared control-plane incidents for availability, security, billing, integrations, and data integrity.") primary_url=dashboard_url primary_label=_("Back to Dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <div class="alert border small mb-3 rmc-surface-muted-panel" role="region" aria-label="{% trans 'Operator documentation' %}">
     <strong>{% trans "Runbooks (repository paths for operators)" %}:</strong>
     <code class="d-block mt-1">docs/N24_OBSERVABILITY_AND_ONCALL.md</code>
@@ -63,7 +63,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 table-family" aria-label="Platform incidents">
+        <table class="table table-hover align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" aria-label="Platform incidents">
           <thead class="table-light">
             <tr>
               <th scope="col">Incident</th>
@@ -104,11 +104,16 @@
                 {% endif %}
               </td>
               <td class="text-end">
+                <details class="rmc-row-disclosure d-inline-block text-start">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
                 <div class="btn-group btn-group-sm">
                   <button class="btn btn-outline-secondary incident-action" data-incident-id="{{ incident.id }}" data-action="acknowledge">Acknowledge</button>
                   <button class="btn btn-outline-warning incident-action" data-incident-id="{{ incident.id }}" data-action="mitigate">Mitigate</button>
                   <button class="btn btn-outline-success incident-action" data-incident-id="{{ incident.id }}" data-action="resolve">Resolve</button>
                 </div>
+                  </div>
+                </details>
               </td>
             </tr>
             {% empty %}

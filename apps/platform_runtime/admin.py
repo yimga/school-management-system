@@ -894,3 +894,45 @@ class PilotDefectAdmin(ModelAdmin):
 
 
 register_platform_admin(PilotDefect, PilotDefectAdmin)
+
+
+from apps.platform_runtime.models_operator_identity import (
+    PlatformOperatorInvite,
+    PlatformOperatorProfile,
+    PlatformOperatorPromotionRequest,
+)
+
+
+class PlatformOperatorProfileAdmin(ModelAdmin):
+    list_display = ("user", "tier", "status", "mfa_required", "updated_at")
+    list_filter = ("status", "tier", "mfa_required")
+    search_fields = ("user__username", "user__email")
+    raw_id_fields = ("user", "invited_by")
+
+
+class PlatformOperatorInviteAdmin(ModelAdmin):
+    list_display = ("email", "tier", "expires_at", "accepted_at", "created_at")
+    list_filter = ("tier",)
+    search_fields = ("email",)
+    readonly_fields = ("token", "created_at", "accepted_at")
+
+
+class PlatformOperatorPromotionRequestAdmin(ModelAdmin):
+    list_display = (
+        "target_user",
+        "requested_tier",
+        "status",
+        "requester",
+        "peer_approver",
+        "created_at",
+    )
+    list_filter = ("status", "requested_tier")
+    search_fields = ("target_user__username", "reason")
+    raw_id_fields = ("target_user", "requester", "peer_approver")
+
+
+register_platform_admin(PlatformOperatorProfile, PlatformOperatorProfileAdmin)
+register_platform_admin(PlatformOperatorInvite, PlatformOperatorInviteAdmin)
+register_platform_admin(
+    PlatformOperatorPromotionRequest, PlatformOperatorPromotionRequestAdmin
+)

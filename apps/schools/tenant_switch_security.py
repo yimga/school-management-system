@@ -106,8 +106,15 @@ def user_may_access_school_api(
         return False
     if school is None or not getattr(school, "is_active", True):
         return False
-    if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
+    if getattr(user, "is_superuser", False):
         return True
+    try:
+        from apps.platform_runtime.operator_identity import user_is_platform_operator
+
+        if user_is_platform_operator(user):
+            return True
+    except ImportError:
+        pass
 
     from apps.schools.models import School, SchoolMembership
 

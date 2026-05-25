@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block backend_page %}
-<div class="compliance-dashboard" data-page-archetype="operational-workbench">
+<div class="compliance-dashboard" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 {% phase8_dashboard_declaration "compliance/dashboard.html" %}
 {% if phase7_de %}
 {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
@@ -93,7 +93,7 @@
                 <a class="chip" href="{% url 'compliance:compliance_reporting:audit_trail' %}?days=90">90d</a>
             </div>
         </div>
-        <div class="chart-container">
+        <div class="chart-container" data-rmc-scroll-policy="paginate">
             <canvas id="activityChartCanvas"></canvas>
         </div>
         <script type="application/json" id="activityData">
@@ -128,7 +128,7 @@
     <div class="section-two-col">
         <div class="section">
             <h2>{% trans "Model Changes (Last 7 Days)" %}</h2>
-            <table class="data-table">
+            <table class="data-table table-sm table-sticky-head rmc-data-table">
               <caption class="visually-hidden">{% trans "Model Changes (Last 7 Days)" %}</caption>
                 <thead>
                     <tr>
@@ -173,7 +173,7 @@
     <!-- Recent Audit Logs -->
     <div class="section">
         <h2>{% trans "Recent Audit Activity" %}</h2>
-        <table class="data-table">
+        <table class="data-table table-sm table-sticky-head rmc-data-table">
           <caption class="visually-hidden">{% trans "Recent Audit Activity" %}</caption>
             <thead>
                 <tr>

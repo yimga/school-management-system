@@ -728,7 +728,9 @@ def site_settings(request):
     # Manager control-plane shell: compact operator footer (rmc_operator_footer_compact), not marketing mega-footer.
     ctx["SHOW_MANAGER_CORPORATE_FOOTER"] = public_host_kind == "manager"
     ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
-    ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": []}
+    ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": [], "groups": []}
+    ctx["MANAGER_UNIFIED_SIDEBAR_GROUPS"] = []
+    ctx["MANAGER_COMPLETE_SIDEBAR_NAV"] = []
     if ctx["CONTROL_PLANE_SHELL"]:
         try:
             from apps.schools.control_plane_nav import (
@@ -737,7 +739,17 @@ def site_settings(request):
                 build_primary_control_plane_nav,
                 is_manager_platform_admin_path,
             )
+            from apps.schools.manager_nav_convergence import (
+                build_manager_complete_sidebar_groups,
+                build_manager_unified_sidebar_groups,
+            )
 
+            ctx["MANAGER_UNIFIED_SIDEBAR_GROUPS"] = build_manager_unified_sidebar_groups(
+                request
+            )
+            ctx["MANAGER_COMPLETE_SIDEBAR_NAV"] = build_manager_complete_sidebar_groups(
+                request
+            )
             ctx["CONTROL_PLANE_NAV"] = build_control_plane_nav(request)
             if is_manager_platform_admin_path(path):
                 ctx["PRIMARY_CONTROL_PLANE_NAV"] = (
@@ -764,6 +776,11 @@ def site_settings(request):
             except (DatabaseError, ImportError, TypeError, ValueError):
                 pass
             by_id = {}
+            for grp in ctx["MANAGER_COMPLETE_SIDEBAR_NAV"]:
+                for it in grp.get("items") or []:
+                    iid = it.get("id")
+                    if iid and it.get("url"):
+                        by_id[iid] = it
             for grp in ctx["CONTROL_PLANE_NAV"]:
                 for it in grp.get("items") or []:
                     iid = it.get("id")
@@ -792,7 +809,7 @@ def site_settings(request):
                 ctx["MANAGER_PLATFORM_ADMIN_NAV"] = (
                     build_manager_platform_admin_nav(request)
                     if ctx["MANAGER_PLATFORM_ADMIN_SHELL"]
-                    else {"quick_links": []}
+                    else {"quick_links": [], "guided_links": [], "groups": []}
                 )
                 if ctx["MANAGER_PLATFORM_ADMIN_SHELL"]:
                     try:
@@ -809,7 +826,13 @@ def site_settings(request):
                 ctx["STUDIO_FOCUS_SHELL"] = False
                 ctx["STUDIO_FOCUS_SIDEBAR"] = []
                 ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
-                ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": []}
+                ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {
+                    "quick_links": [],
+                    "guided_links": [],
+                    "groups": [],
+                }
+                ctx["MANAGER_UNIFIED_SIDEBAR_GROUPS"] = []
+                ctx["MANAGER_COMPLETE_SIDEBAR_NAV"] = []
         except OPTIONAL_CONTEXT_ERRORS:
             ctx["CONTROL_PLANE_NAV"] = []
             ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
@@ -818,7 +841,13 @@ def site_settings(request):
             ctx["STUDIO_FOCUS_SHELL"] = False
             ctx["STUDIO_FOCUS_SIDEBAR"] = []
             ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
-            ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": []}
+            ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {
+                "quick_links": [],
+                "guided_links": [],
+                "groups": [],
+            }
+            ctx["MANAGER_UNIFIED_SIDEBAR_GROUPS"] = []
+            ctx["MANAGER_COMPLETE_SIDEBAR_NAV"] = []
     else:
         ctx["CONTROL_PLANE_NAV"] = []
         ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
@@ -827,7 +856,13 @@ def site_settings(request):
         ctx["STUDIO_FOCUS_SHELL"] = False
         ctx["STUDIO_FOCUS_SIDEBAR"] = []
         ctx["MANAGER_PLATFORM_ADMIN_SHELL"] = False
-        ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {"quick_links": [], "guided_links": []}
+        ctx["MANAGER_PLATFORM_ADMIN_NAV"] = {
+            "quick_links": [],
+            "guided_links": [],
+            "groups": [],
+        }
+        ctx["MANAGER_UNIFIED_SIDEBAR_GROUPS"] = []
+        ctx["MANAGER_COMPLETE_SIDEBAR_NAV"] = []
         try:
             from apps.accounts.permissions import tenant_operator_hub_eligible
             from apps.schools.control_plane_nav import build_tenant_operator_primary_nav
@@ -1027,6 +1062,7 @@ def site_settings(request):
     ctx["OFFLINE_API_ENQUEUE_URL"] = None
     ctx["OFFLINE_API_PROCESS_URL"] = None
     ctx["OFFLINE_TOKEN_MINT_URL"] = None
+    ctx["OFFLINE_PERMISSION_SNAPSHOT_URL"] = None
     if ctx.get("SHOW_OFFLINE_STATUS_BAR") and user and getattr(
         user, "is_authenticated", False
     ):
@@ -1036,6 +1072,9 @@ def site_settings(request):
             ctx["OFFLINE_API_ENQUEUE_URL"] = reverse("portal:api_offline_enqueue")
             ctx["OFFLINE_API_PROCESS_URL"] = reverse("portal:api_offline_process")
             ctx["OFFLINE_TOKEN_MINT_URL"] = reverse("api:devices-offline-token")
+            ctx["OFFLINE_PERMISSION_SNAPSHOT_URL"] = reverse(
+                "api:offline-permission-snapshot",
+            )
         except NoReverseMatch:
             pass
     # Super Admin / Schools: global toggle to show or hide /super/ and Schools link.

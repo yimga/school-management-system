@@ -334,10 +334,6 @@ async function clickAndAssert(page, surface, targetIndex, diagnostics) {
     afterOpenPanels,
     changed,
   });
-  fs.writeFileSync(
-    path.join(SCREENSHOT_DIR, 'click-diagnostics-latest.json'),
-    JSON.stringify(diagnostics, null, 2)
-  );
 
   expect(
     changed,
@@ -376,6 +372,10 @@ test.describe('platform click root-cause repro', () => {
       body: JSON.stringify({ diagnostics, consoleErrors }, null, 2),
       contentType: 'application/json',
     });
+    fs.writeFileSync(
+      path.join(SCREENSHOT_DIR, 'click-diagnostics-latest.json'),
+      JSON.stringify({ diagnostics, consoleErrors }, null, 2)
+    );
     const hardErrors = consoleErrors.filter((line) =>
       /pageerror:|Uncaught|TypeError|ReferenceError|is not a function|Cannot read prop/i.test(line)
     );

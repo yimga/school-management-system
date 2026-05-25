@@ -17,6 +17,33 @@
     }
   }
 
+  function trimUrl(value) {
+    return (value || "").trim();
+  }
+
+  function helpBaseFromTrigger(btn) {
+    if (!btn) {
+      return "";
+    }
+    var href = trimUrl(btn.getAttribute("href"));
+    if (href && href !== "#") {
+      return href;
+    }
+    var rail = btn.closest ? btn.closest("[data-rmc-copilot-rail]") : null;
+    if (rail) {
+      var railUrl = trimUrl(rail.getAttribute("data-rmc-help-center-url"));
+      if (railUrl) {
+        return railUrl;
+      }
+    }
+    var bodyUrl = trimUrl(document.body && document.body.getAttribute("data-rmc-help-center-url"));
+    if (bodyUrl) {
+      return bodyUrl;
+    }
+    var cfg = cmdkConfig();
+    return trimUrl(cfg.help_center_url);
+  }
+
   function activePath() {
     if (typeof window === "undefined" || !window.location) {
       return "";
@@ -76,19 +103,21 @@
     );
   }
 
-  function openPageHelp() {
-    var cfg = cmdkConfig();
+  function openPageHelp(btn) {
     var path = activePath();
     var query = contextualQuery();
-    var helpBase = (cfg.help_center_url || "").trim();
+    var helpBase = helpBaseFromTrigger(btn);
     if (helpBase) {
       window.location.href = buildHelpCenterUrl(helpBase, path, query);
-      return;
+      return true;
     }
-    var aiBase = (cfg.ai_center_url || "").trim();
+    var cfg = cmdkConfig();
+    var aiBase = trimUrl(cfg.ai_center_url);
     if (aiBase) {
       window.location.href = buildAiCenterFallback(aiBase, path, query);
+      return true;
     }
+    return false;
   }
 
   document.addEventListener("click", function (e) {
@@ -100,7 +129,9 @@
     if (btn === document.body || btn === document.documentElement) {
       return;
     }
+    if (!openPageHelp(btn)) {
+      return;
+    }
     e.preventDefault();
-    openPageHelp();
   });
 })();

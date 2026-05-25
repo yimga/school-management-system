@@ -5,7 +5,7 @@
 {% block title %}{% trans "Consent campaign status" %} · {{ SITE.site_name|default:"RunMyCampus" }}{% endblock %}
 
 {% block content %}
-<main class="container py-4 rmc-page rmc-page--migration-cloud-customer rmc-mc-customer-page" id="main" data-rmc-migration-cloud-surface>
+<main class="container py-4 rmc-page rmc-page--migration-cloud-customer rmc-mc-customer-page" id="main" data-rmc-migration-cloud-surface data-rmc-scroll-policy="paginate">
   <header class="mb-4">
     <a href="{% url 'migration_intake_customer:migration-intake-status' id=intake.id %}" class="text-secondary text-decoration-none">{% trans "← Back to migration status" %}</a>
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mt-2">
@@ -45,14 +45,18 @@
               <td><small>{{ t.token_issued_at|date:"Y-m-d" }}</small></td>
               <td>{{ t.resend_count }} / {{ resend_max }}</td>
               <td>
-                <form method="post" action="{% url 'migration_guardian_consent_admin:guardian-consent-resend' intake_id=intake.id token_id=t.id %}" class="d-inline">
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'migration_guardian_consent_admin:guardian-consent-resend' intake_id=intake.id token_id=t.id %}" class="d-inline">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-sm btn-outline-secondary"
                           {% if t.resend_count >= resend_max %}disabled{% endif %}>
                     {% trans "Resend" %}
                   </button>
                 </form>
-              </td>
+            </div>
+          </details></td>
             </tr>
           {% endfor %}
         </tbody>

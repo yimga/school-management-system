@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-05-25T11:08:59.050570+00:00",
+  "finding_count": 0,
+  "rows": [
+    {
+      "check_id": "rbac-edit-role-get-scoped",
+      "ok": true,
+      "proof": "edit_role GET uses school queryset"
+    },
+    {
+      "check_id": "rbac-temp-grants-school-filter",
+      "ok": true,
+      "proof": "temporary grants filtered to school"
+    },
+    {
+      "check_id": "migration-0038",
+      "ok": true,
+      "proof": "0038 migration present"
+    },
+    {
+      "check_id": "regulator-role-school",
+      "ok": true,
+      "proof": "regulator grant uses school FK"
+    },
+    {
+      "check_id": "verify_super_platform_scope_coverage.py",
+      "ok": true,
+      "proof": "SUPER_PLATFORM_SCOPE_COVERAGE_PASS"
+    }
+  ],
+  "honest_deferred": [
+    "Zanzibar/ReBAC graph engine \u2014 NOT_IMPLEMENTED (manifest documents)",
+    "CRDT edge IAM \u2014 NOT_IMPLEMENTED (manifest documents)",
+    "operator_invite_accept \u2014 public by design (token URL)",
+    "super_config_hub_redirect \u2014 redirect only"
+  ]
+}

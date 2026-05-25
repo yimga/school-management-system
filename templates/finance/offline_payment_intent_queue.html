@@ -42,7 +42,10 @@
           {% for intent in page_obj %}
           <tr>
             <td>
-              <input type="checkbox" name="intent_ids" value="{{ intent.pk }}" class="form-check-input" aria-label="{% trans 'Select intent' %}">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<input type="checkbox" name="intent_ids" value="{{ intent.pk }}" class="form-check-input" aria-label="{% trans 'Select intent' %}">
             </td>
             <td>{{ intent.invoice.reference|default:intent.invoice_id }}</td>
             <td>{{ intent.invoice.student|default:"—" }}</td>
@@ -55,7 +58,8 @@
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-primary">{% trans "Approve" %}</button>
               </form>
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% empty %}
           <tr>

@@ -15,6 +15,11 @@ from django.urls import NoReverseMatch, reverse
 
 from .decision_architecture import get_decision_architecture_for_page
 from .models import School
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_FLEET,
+    PLATFORM_SCOPE_SECURITY_READ,
+    require_platform_scope,
+)
 
 _PLAYBOOK_EXECUTION_TASK_NAME = "automation.playbook.execute"
 PLAYBOOK_OPERATOR_HUB_CSV_MAX_ROWS = 500
@@ -138,6 +143,7 @@ def _playbook_operator_hub_csv_response(playbook_exec_qs) -> HttpResponse:
     return response
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_runtime_inspector(request):
     """Control plane: inspect tenant_runtime for a selected school (effective blueprint, packs, overrides)."""
     from apps.platform_runtime.runtime_inspector import (
@@ -173,6 +179,7 @@ def super_runtime_inspector(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_runtime_truth_hub(request):
     """
     Read-only platform summary: RuntimeDefaults singleton + slim tenant site settings row.
@@ -284,6 +291,7 @@ def super_runtime_truth_hub(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def super_workflow_simulator(request):
     """Control plane: simulate workflow/pack resolution for a selected school and role."""
     from apps.platform_runtime.models import PlatformOperatorWorkflowSimulatorLink
@@ -332,6 +340,7 @@ def super_workflow_simulator(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def super_playbook_operator_hub(request):
     """
     Control plane: migration playbooks, recent ``execute_playbook`` audit rows, and

@@ -1,3 +1,4 @@
+<div data-rmc-scroll-policy="paginate">
 {% load i18n region_format terminology_tags %}
 <!doctype html>
 <html>
@@ -75,7 +76,8 @@
         | Mock {{ weights.mock_weight }}% | Practical {{ weights.practical_weight }}%
       {% endfor %}
     </div>
-    <table aria-label="Term subject marks and remarks">
+    <!-- large-collection-allow: print-report-fixed-layout -->
+<table aria-label="Term subject marks and remarks">
       <thead>
         <tr>
           <th scope="col">Subject</th>
@@ -132,3 +134,5 @@
   </div>
 </body>
 </html>
+
+</div>

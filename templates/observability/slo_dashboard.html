@@ -6,9 +6,9 @@
 {% block cp_title %}{% trans "SLO dashboard" %}{% endblock %}
 
 {% block cp_content %}
-<div class="container py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "observability/slo_dashboard.html" %}
-  {% include "studio_os/components/page_header.html" with title=_("Operational SLO dashboard") subtitle=_("Regional webhook delivery and sync conflict SLOs.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="slo_dashboard" center_eyebrow=_("Platform operators") center_title=_("Operational SLO dashboard") center_purpose=_("Regional webhook delivery and sync conflict SLOs.") primary_url=dashboard_url primary_label=_("Back to Dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
     <div class="flex-grow-1"></div>
     <div class="text-end small text-muted">
@@ -62,7 +62,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 table-family">
+        <table class="table table-hover align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table">
           <caption class="visually-hidden">{% trans "Active schools" %}</caption>
           <thead class="table-light">
             <tr>

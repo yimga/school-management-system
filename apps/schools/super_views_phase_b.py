@@ -17,6 +17,10 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.platform_runtime.helpers import get_platform_site_settings_record
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_SECURITY_READ,
+    require_platform_scope,
+)
 from apps.platform_runtime.models import (
     PlatformOperatorPhaseBLink,
     PlatformPhaseBDomainSnapshot,
@@ -87,6 +91,7 @@ def _build_phase_b_domain_rows(site) -> list[dict[str, Any]]:
     return rows_out
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_phase_b_snapshot_diff(request):
     """
     Compare live ``owned_payload(domain)`` to persisted ``PlatformPhaseBDomainSnapshot``.

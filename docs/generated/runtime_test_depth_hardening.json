@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T22:00:00+00:00",
+  "batch": 1506,
+  "policy": "Audit-existence tests were preserved as contract pins. This batch adds runtime tests that exercise service logic, not just artifact existence.",
+  "before_state": {
+    "artifact_existence_only_tests": "many existing tests assert apps/<x>/<module>.py exists and parses — preserved as contract pins",
+    "runtime_exercising_tests_for_new_modules": 0
+  },
+  "after_state": {
+    "new_runtime_test_modules": 22,
+    "new_runtime_tests_passing": 109,
+    "files": [
+      "apps/communication/tests/test_channel_adapter_runtime.py",
+      "apps/communication/tests/test_omnichannel_routing_runtime.py",
+      "apps/communication/tests/test_teacher_availability_guard_runtime.py",
+      "apps/finance/tests/test_payment_rail_adapter_runtime.py",
+      "apps/finance/tests/test_payment_idempotency_runtime.py",
+      "apps/finance/tests/test_manual_fallback_runtime.py",
+      "apps/finance/tests/test_permission_to_pay_runtime.py",
+      "apps/sync_engine/tests/test_tenant_manifest_compiler_runtime.py",
+      "apps/sync_engine/tests/test_offline_queue_contract_runtime.py",
+      "apps/platform_runtime/tests/test_pwa_manifest_runtime.py",
+      "apps/platform_runtime/tests/test_service_worker_cache_policy_runtime.py",
+      "apps/global_registries/tests/test_schema_mapping_runtime.py",
+      "apps/interop/tests/test_transfer_envelope_runtime.py",
+      "apps/observability/tests/test_telemetry_buffer_runtime.py",
+      "apps/migration_cloud/tests/test_ai_auto_mapping_runtime.py",
+      "apps/brand_experience/tests/test_template_marketplace_runtime.py",
+      "apps/brand_experience/tests/test_template_preview_apply_rollback_runtime.py",
+      "apps/brand_experience/tests/test_template_tenant_boundary_runtime.py",
+      "apps/siteconfig/tests/test_tenant_studio_template_selection_runtime.py",
+      "apps/studio_os/tests/test_studio_os_template_integration_runtime.py",
+      "apps/schoolops/tests/test_substitute_handover_runtime.py",
+      "apps/schoolops/tests/test_lost_belongings_qr_runtime.py"
+    ]
+  },
+  "exercising_what": [
+    "Hash invariants (tenant_id is hashed before logging/audit emit)",
+    "Idempotency rejection on diverging intent with same key",
+    "Manual cash fallback rail behavior across currencies",
+    "Webhook signature verify (HMAC-SHA256 + compare_digest)",
+    "Capacity FIFO drop ordering in telemetry buffer",
+    "Sensitive-key scrub in manifest + buffer payloads",
+    "Time-boxed expiry on substitute handover packet",
+    "Guardian threshold gate in permission-to-pay",
+    "PII redaction in lost-belongings sighting notes",
+    "Canonical-field validation rejecting unknown keys in transfer envelopes",
+    "Auto-mapping credential rejection + human-review gate",
+    "PWA manifest parses + display mode + icons",
+    "Service worker registers install/activate/fetch handlers",
+    "Service worker has no hardcoded secret assignments",
+    "Template marketplace URL namespace resolves under tenant URLconf",
+    "Operator-only templates 404 on tenant scope",
+    "Studio OS navigation references experience/templates"
+  ],
+  "graphql_safety_tests": {
+    "added_modules": [
+      "apps/api/tests/test_graphql_security_contract.py",
+      "apps/security/tests/test_graphql_tenant_safety.py"
+    ],
+    "tests": 14,
+    "pass": 14
+  },
+  "verdict": "RUNTIME TEST DEPTH HARDENED — REPO SCOPE."
+}

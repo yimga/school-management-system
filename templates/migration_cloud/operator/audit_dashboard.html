@@ -1,4 +1,4 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 <!-- v3.38.0 Agent 5 — tamper-evident audit log dashboard. This template renders the last 200 audit events. It NEVER renders: * raw actor emails (only the SHA-256 hex prefix) * raw subject IDs (only the SHA-256 hex prefix) * raw tenant slugs (only the 12-hex tenant_id_hash prefix) Payload summaries are re-sanitized in the view before render as defense-in-depth; if any sensitive-keyword key sneaked in, the row's payload column displays {"_error":"payload_rejected_at_render"}. -->
@@ -6,7 +6,7 @@
 {% block page_title %}{{ page_title|default:"Audit log" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-audit-dashboard" id="main">
+<main class="rmc-page rmc-page--operator-audit-dashboard" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
     <h1 class="rmc-h1">{% trans "Migration Cloud audit log" %}</h1>

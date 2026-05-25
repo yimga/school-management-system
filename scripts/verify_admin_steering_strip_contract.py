@@ -50,6 +50,10 @@ def main() -> int:
     index = (ROOT / "templates/admin/index_superadmin.html").read_text(encoding="utf-8")
     if "admin_index_kpis" not in index:
         findings.append("index_superadmin must render admin_index_kpis")
+    if "cp-hero__actions--toolbar" not in index:
+        findings.append("index_superadmin must use unified cp-hero__actions--toolbar")
+    if "</div>\n    <nav class=\"cp-hero__actions" in index.replace("\r\n", "\n"):
+        findings.append("index_superadmin must not split hero CTAs and section nav on two rows")
 
     app_index = (ROOT / "templates/admin/app_index.html").read_text(encoding="utf-8")
     if "admin_app_index_models" not in app_index or "super_url" not in app_index:

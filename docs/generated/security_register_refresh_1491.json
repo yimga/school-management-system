@@ -1,0 +1,129 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-05-25T09:00:00+00:00",
+  "batch": 1506,
+  "supersedes_register_generated_at": "2026-05-19T09:03:42",
+  "refresh_scope_batches": [1485, 1486, 1487, 1488, 1489, 1490, 1491, 1492, 1493, 1504],
+  "audit_re_run_at": "2026-05-25T08:56:46+00:00",
+  "totals_from_security_surface_audit_refreshed": {
+    "allow_any": 40,
+    "csrf_exempt": 36,
+    "subprocess": 435,
+    "allowed": 1358,
+    "needs_review": 314,
+    "unsafe": 13,
+    "violations": 12,
+    "_drift_from_2026_05_23_baseline": {
+      "allow_any": "+1 (parallel-session endpoint)",
+      "subprocess": "+28 (parallel-session scripts + management commands)",
+      "unsafe": "unchanged",
+      "violations": "unchanged"
+    }
+  },
+  "totals_from_security_surface_audit_2026_05_23_initial": {
+    "allow_any": 39,
+    "csrf_exempt": 36,
+    "subprocess": 407,
+    "allowed": 1288,
+    "needs_review": 287,
+    "unsafe": 13,
+    "violations": 12
+  },
+  "exception_categories": {
+    "signed_webhook_handlers": {
+      "csrf_exempt_count": 12,
+      "examples": [
+        "apps/migration_cloud/api/webhook_dispatch.py",
+        "apps/migration_cloud/companion_receiver.py",
+        "config/graphql_view.py"
+      ],
+      "controls": [
+        "HMAC-SHA256 signature verification",
+        "Constant-time compare via hmac.compare_digest",
+        "Tenant resolution before any DB write",
+        "Idempotency key dedupe (24h window)",
+        "Replay window enforcement",
+        "No PII in audit logs (tenant_id_hash only)"
+      ],
+      "status": "accepted"
+    },
+    "operator_marketplace_catalog": {
+      "allow_any_count": 3,
+      "files": ["apps/api/views_marketplace_catalog.py"],
+      "reason": "catalog metadata served to anonymous discovery (no PII)",
+      "controls": [
+        "IP throttle 60/min",
+        "No tenant data exposed",
+        "Read-only"
+      ],
+      "status": "accepted"
+    },
+    "webhook_catalog_anon_discovery": {
+      "allow_any_count": 2,
+      "files": ["apps/api/views_webhook_catalog.py"],
+      "reason": "lists event schema only; no tenant identifiers",
+      "status": "accepted"
+    },
+    "graphql_gateway": {
+      "csrf_exempt": true,
+      "file": "config/graphql_view.py",
+      "controls": [
+        "IP throttle 60 GET / 120 POST per minute",
+        "JSON-only content-type enforcement",
+        "Introspection disabled by default in production",
+        "Audit logs op + authenticated flag only",
+        "Per-resolver tenant scoping"
+      ],
+      "status": "accepted",
+      "follow_up": "Phase 3 hardening artifact emitted this batch"
+    },
+    "subprocess_management_scripts": {
+      "count": 380,
+      "reason": "management commands + scripts/* invoking python verifiers (no shell=True)",
+      "controls": ["scan_subprocess_shell_true.py baseline 0"],
+      "status": "accepted"
+    },
+    "subprocess_runtime": {
+      "count": 27,
+      "files_sample": [
+        "apps/observability/db_liveness.py",
+        "scripts/verify_*.py wrappers"
+      ],
+      "controls": [
+        "Argument arrays (no shell=True)",
+        "Capture stdout/stderr",
+        "Timeout-enforced",
+        "Marked with # shell-true-allow: <reason> only where required"
+      ],
+      "status": "accepted"
+    }
+  },
+  "remaining_repo_side_actions": [
+    {
+      "id": "csrf_exempt_targeted_review",
+      "owner": "platform",
+      "action": "Walk all 36 csrf_exempt sites; mark accepted/fixed/blocked",
+      "artifact": "docs/generated/csrf_exempt_targeted_review.json",
+      "status": "in_progress_batch_1492"
+    },
+    {
+      "id": "allowany_targeted_review",
+      "owner": "platform",
+      "action": "Walk all 39 AllowAny sites; mark accepted/fixed/blocked",
+      "artifact": "docs/generated/allowany_targeted_review.json",
+      "status": "in_progress_batch_1492"
+    },
+    {
+      "id": "subprocess_surface_review",
+      "owner": "platform",
+      "action": "Differentiate management scripts from production runtime invocations",
+      "artifact": "docs/generated/subprocess_surface_review.json",
+      "status": "in_progress_batch_1492"
+    }
+  ],
+  "external_blockers": [
+    "FACTS/Skyward write paths — counsel docket (see docs/FACTS_SKYWARD_WRITE_PATH_COUNSEL_REVIEW.md)",
+    "MAA v2.0 promotion — counsel signoff PDF",
+    "HSM bridge implementation for migration_cloud root-key signature"
+  ]
+}

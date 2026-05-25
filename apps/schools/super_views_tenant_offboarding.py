@@ -12,6 +12,12 @@ from django.views.decorators.http import require_http_methods
 from apps.compliance.models_audit import AuditLog
 from apps.schools.control_plane import log_control_plane_action
 from apps.schools.models import School
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_AUDIT_EXPORT,
+    PLATFORM_SCOPE_FLEET,
+    PLATFORM_SCOPE_SECURITY_WRITE,
+    require_platform_scope,
+)
 from apps.schools.tenant_offboarding import (
     apply_purge,
     dry_run_purge,
@@ -38,6 +44,7 @@ def _json_error(message: str, *, status: int = 400, code: str = "error") -> Json
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def api_school_offboarding(request, school_id):
     school = get_object_or_404(School, id=school_id)
     return JsonResponse({"ok": True, **get_offboarding_snapshot(school)})
@@ -80,6 +87,7 @@ def api_school_offboarding_export(request, school_id):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def api_school_offboarding_deactivate(request, school_id):
     school = get_object_or_404(School, id=school_id)
     try:
@@ -103,6 +111,7 @@ def api_school_offboarding_deactivate(request, school_id):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def api_school_offboarding_hold(request, school_id):
     school = get_object_or_404(School, id=school_id)
     body = _parse_json_body(request)
@@ -124,6 +133,7 @@ def api_school_offboarding_hold(request, school_id):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def api_school_offboarding_purge(request, school_id):
     school = get_object_or_404(School, id=school_id)
     body = _parse_json_body(request)
@@ -193,6 +203,7 @@ def api_school_offboarding_purge(request, school_id):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def api_school_offboarding_dual_approve(request, school_id):
     school = get_object_or_404(School, id=school_id)
     body = _parse_json_body(request)

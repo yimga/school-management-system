@@ -108,7 +108,9 @@
 //   - 834px iPad split-view breakpoint adopted across components.
 // v3.84.8: Copilot rail page-help — "Need help on this page?" on collapsed ? icon + expanded label (data-rmc-page-help → rmc-page-context-help.js).
 // v3.84.9: Page-help dedupe — suppress floating drawer / portal topbar / assist-dock relocation when copilot rail owns help.
-const CACHE_VERSION = "sms-v3.90.24-operational-workbench-last-sweep-2026-05-22";
+// v3.90.28: Copilot rail ? — help center href fallback (anchor + data-rmc-help-center-url) when cmdk JSON absent.
+// v3.90.32: Help center 10x — page-aware inbound, KB auto-gen hub cards, 38 /super/ templates → control_plane_base sidebar unify.
+const CACHE_VERSION = "sms-v3.90.48-iam-snapshot-cache-rebac-enforce-2026-05-24";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

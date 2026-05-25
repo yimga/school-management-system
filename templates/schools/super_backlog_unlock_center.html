@@ -13,16 +13,12 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 content-max-1200" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_backlog_unlock_center.html" %}
-  <header class="mb-4 d-flex flex-wrap align-items-start justify-content-between gap-3">
-    <div class="min-w-0">
-      <p class="text-uppercase small mb-1">{% trans "Control plane" %}</p>
-      <h1 class="h2 mb-2">{% trans "Backlog unlock center" %}</h1>
-      <p class="mb-0">
-        {% blocktrans %}Machine-evaluated gates and explicit program/external rows. Refresh after merges or CI so ready items surface without relying on memory.{% endblocktrans %}
-      </p>
-      <p class="small mb-0 mt-2">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="backlog_unlock_center" center_eyebrow=_("Platform operators") center_title=_("Backlog unlock center") center_purpose=_("Machine-evaluated gates and explicit program/external rows. Refresh after merges or CI so ready items surface without relying on memory.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
+    <div>
+      <p class="small mb-0">
         {% trans "Viewing profile" %}:
         <span class="badge bg-secondary">{{ evaluation_profile }}</span>
         {% if evaluation %}
@@ -37,7 +33,7 @@
     </div>
     <div class="d-flex flex-wrap gap-2 align-items-center">
       {% if operator_policy_url %}
-      <a href="{{ operator_policy_url }}" class="btn btn-outline-light btn-sm">{% trans "Operator policy" %}</a>
+      <a href="{{ operator_policy_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Operator policy" %}</a>
       {% endif %}
       <form method="post" class="d-flex flex-wrap align-items-center gap-2">
         {% csrf_token %}
@@ -51,7 +47,7 @@
         </button>
       </form>
     </div>
-  </header>
+  </div>
 
   <div class="alert alert-secondary border-secondary mb-3 small">
     {% blocktrans %}Running evaluation executes repository verification scripts and logs backlog_dependency_met transitions when items leave waiting (same as CI when emit-events is on). Full matrix can take many minutes and overlaps other gate bundles by design. For automation use{% endblocktrans %}

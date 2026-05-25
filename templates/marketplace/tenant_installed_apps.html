@@ -7,9 +7,9 @@
 {% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Installed apps" %}</h1>
 {# ds-action-bar #}{# data-page-header via studio_os/components/page_header.html #}
-<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-task="marketplace_install" data-task-step="marketplace:installed-list" data-rmc-zero-click="1">
+<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-task="marketplace_install" data-task-step="marketplace:installed-list" data-rmc-zero-click="1">
   {% trans "Back to app catalog" as back_action %}
-  {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="tenant_installed_apps" center_eyebrow=_("Platform operators") center_title=page_title center_purpose=page_subtitle primary_url=action_url primary_label=back_action status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   {% if not school %}
   <p class="text-muted">{% trans "No school context." %}</p>
   {% else %}

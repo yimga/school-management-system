@@ -315,6 +315,16 @@ def build_portal_sidebar_items(request, site):
     )
     items.append(
         {
+            "id": "help_center",
+            "label": "Help center",
+            "url": _safe_reverse("feedback:help_center"),
+            "icon": "bi-life-preserver",
+            "section": "Account",
+            "badge": None,
+        }
+    )
+    items.append(
+        {
             "id": "kb",
             "label": "Knowledge Base",
             "url": _safe_reverse("kb:kb_home"),
@@ -947,6 +957,21 @@ def build_portal_sidebar_items(request, site):
                 }
             )
         _rbac_url = studio_shell_url or _safe_reverse("accounts:rbac")
+        _tenant_identity_url = _safe_reverse("accounts:tenant_identity_roster")
+        if _tenant_identity_url and (
+            is_superuser
+            or (getattr(user, "role", "") or "").upper() in ("ADMIN", "IT_ADMIN", "LEADERSHIP")
+        ):
+            items.append(
+                {
+                    "id": "tenant_identity",
+                    "label": "Staff Identity & Access",
+                    "url": _tenant_identity_url,
+                    "icon": "bi-person-badge",
+                    "section": "People & Access",
+                    "badge": None,
+                }
+            )
         if _rbac_url:
             items.append(
                 {

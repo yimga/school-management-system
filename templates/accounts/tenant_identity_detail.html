@@ -1,0 +1,75 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{{ staff_user.get_username }} — {% trans "Staff identity" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2" data-page-archetype="task-form">
+  <nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb mb-0 small">
+      <li class="breadcrumb-item"><a href="{{ roster_url }}">{% trans "Staff identity" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ staff_user.get_username }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-3">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Membership" %}</div>
+        <div class="card-body">
+          <dl class="row mb-0 small">
+            <dt class="col-sm-4">{% trans "Username" %}</dt>
+            <dd class="col-sm-8">{{ staff_user.get_username }}</dd>
+            <dt class="col-sm-4">{% trans "Email" %}</dt>
+            <dd class="col-sm-8">{{ staff_user.email|default:"—" }}</dd>
+            <dt class="col-sm-4">{% trans "Effective role" %}</dt>
+            <dd class="col-sm-8"><span class="badge text-bg-secondary">{{ effective_role }}</span></dd>
+            <dt class="col-sm-4">{% trans "MFA" %}</dt>
+            <dd class="col-sm-8">
+              {% if mfa_ok %}
+              <span class="badge text-bg-success">{% trans "Enrolled" %}</span>
+              {% else %}
+              <span class="badge text-bg-warning">{% trans "Not enrolled" %}</span>
+              {% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Active sessions" %}</div>
+        <div class="card-body">
+          {% if sessions %}
+          <ul class="list-unstyled small mb-3">
+            {% for s in sessions %}
+            <li class="mb-1"><code>{{ s.key_prefix }}</code> — {% trans "expires" %} {{ s.expire_date|date:"SHORT_DATETIME_FORMAT" }}</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="small text-muted mb-3">{% trans "No active sessions found." %}</p>
+          {% endif %}
+          {% if can_manage %}
+          <form method="post" action="{{ revoke_sessions_url }}" class="d-inline" onsubmit="return confirm('{% trans "Revoke all sessions for this user?" %}');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Revoke all sessions" %}</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if can_manage %}
+  <div class="d-flex flex-wrap gap-2 mt-3">
+    <a class="btn btn-sm btn-outline-primary" href="{{ rbac_url }}?user={{ staff_user.pk }}">{% trans "Edit RBAC roles" %}</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ regulator_url }}">{% blocktrans with body=gov_body_label %}{{ body }} grant{% endblocktrans %}</a>
+    <form method="post" action="{{ offboard_url }}" class="d-inline" onsubmit="return confirm('{% trans "Remove this user from the school?" %}');">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard from school" %}</button>
+    </form>
+    <a class="btn btn-sm btn-outline-secondary" href="{{ roster_url }}">{% trans "Back to roster" %}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

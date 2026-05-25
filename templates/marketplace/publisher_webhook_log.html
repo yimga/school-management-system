@@ -4,13 +4,14 @@
 {% block title %}{% trans "Webhook log" %}{% endblock %}
 
 {% block backend_page %}
-<div class="container py-4" data-page="marketplace-publisher-webhook-log">
+<div class="container py-4" data-page="marketplace-publisher-webhook-log" data-rmc-scroll-policy="paginate">
   <h1 class="h3 mb-3">{% trans "Webhook delivery log" %}</h1>
 
   <section class="mb-4" aria-labelledby="endpoints-hdr">
     <h2 id="endpoints-hdr" class="h5">{% trans "Endpoints" %}</h2>
     {% if endpoints %}
-    <table class="table table-sm">
+    <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-sm">
       <thead class="table-light">
         <tr><th>{% trans "App" %}</th><th>{% trans "URL" %}</th><th>{% trans "Topics" %}</th><th>{% trans "Active" %}</th><th>{% trans "Failures" %}</th><th>{% trans "Last success" %}</th></tr>
       </thead>
@@ -33,7 +34,8 @@
   <section aria-labelledby="deliveries-hdr">
     <h2 id="deliveries-hdr" class="h5">{% trans "Recent deliveries" %}</h2>
     {% if deliveries %}
-    <table class="table table-sm align-middle">
+    <!-- large-collection-allow: dashboard-widget-capped-list -->
+<table class="table table-sm align-middle">
       <thead class="table-light">
         <tr><th>{% trans "Created" %}</th><th>{% trans "App" %}</th><th>{% trans "Topic" %}</th><th>{% trans "Status" %}</th><th>{% trans "Attempts" %}</th><th>{% trans "HTTP" %}</th><th>{% trans "Latency" %}</th><th>{% trans "Error" %}</th></tr>
       </thead>

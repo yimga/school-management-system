@@ -100,6 +100,12 @@ def main() -> int:
     admin_base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
     if "_workspace_context.html" in admin_base:
         errors.append("admin/base.html: workspace_context must not ship in manager sidebar")
+    if 'data-rmc-backoffice-frame="v2"' not in admin_base:
+        errors.append("admin/base.html: missing backoffice frame v2 marker")
+    if 'data-rmc-backoffice-scroll-root="canvas"' not in admin_base:
+        errors.append("admin/base.html: missing backoffice canvas scroll-root marker")
+    if 'data-rmc-backoffice-page-body="1"' not in admin_base:
+        errors.append("admin/base.html: missing backoffice page body marker")
     if admin_base.find("cp-live-strip") < 0 or admin_base.find("cp-nav-row") < 0:
         errors.append("admin/base.html: missing cp-live-strip or cp-nav-row")
     elif admin_base.find("cp-nav-row") > admin_base.find("cp-live-strip"):
@@ -135,6 +141,14 @@ def main() -> int:
     changelist_tpl = (ROOT / "templates/admin/change_list.html").read_text(encoding="utf-8")
     if "cp-changelist-live" not in changelist_tpl or "cp-changelist--preview" in changelist_tpl:
         errors.append("change_list.html: must use cp-changelist-live (not preview grid class)")
+    if 'data-rmc-admin-table-contract="native-table-scroll"' not in changelist_tpl:
+        errors.append("change_list.html: missing native table scroll contract marker")
+    change_form_tpl = (ROOT / "templates/admin/change_form.html").read_text(encoding="utf-8")
+    if 'data-rmc-admin-form-contract="premium-form-frame"' not in change_form_tpl:
+        errors.append("change_form.html: missing premium form frame contract marker")
+    submit_line_tpl = (ROOT / "templates/admin/submit_line.html").read_text(encoding="utf-8")
+    if 'data-rmc-admin-submit-contract="sticky-safe-actions"' not in submit_line_tpl:
+        errors.append("submit_line.html: missing sticky-safe action contract marker")
     preview_tpl = (ROOT / "templates/admin/partials/admin_v1_index_surface_previews.html").read_text(
         encoding="utf-8"
     )
@@ -146,6 +160,28 @@ def main() -> int:
         errors.append("rmc-admin-v1-200x.css: preview changelist grid must be scoped to --preview")
     if not (ROOT / "static/css/rmc-admin-changelist-live.css").is_file():
         errors.append("rmc-admin-changelist-live.css: missing live changelist stylesheet")
+    else:
+        live_css = (ROOT / "static/css/rmc-admin-changelist-live.css").read_text(encoding="utf-8")
+        for token in (
+            "overflow-x: auto",
+            "display: table !important",
+            "display: table-row !important",
+            "display: table-cell !important",
+            "white-space: nowrap",
+        ):
+            if token not in live_css:
+                errors.append(f"rmc-admin-changelist-live.css: missing {token}")
+    parity_css = (ROOT / "static/css/admin-cp-parity.css").read_text(encoding="utf-8")
+    for token in (
+        "--rmc-backoffice-gutter",
+        "--rmc-backoffice-form-max",
+        "data-rmc-admin-form-contract=\"premium-form-frame\"",
+        "data-rmc-admin-submit-contract=\"sticky-safe-actions\"",
+        "#cp-main-content #content-main.cp-form-frame",
+        ".cp-form-frame",
+    ):
+        if token not in parity_css:
+            errors.append(f"admin-cp-parity.css: missing {token}")
 
     errors.extend(_run([py, "scripts/verify_theme_tail_no_bleed.py"], "theme_tail_no_bleed"))
 

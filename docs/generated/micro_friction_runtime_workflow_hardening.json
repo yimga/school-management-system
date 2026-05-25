@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "workflows": {
+    "substitute_handover_blueprint": {
+      "module": "apps/schoolops/substitute_handover.py",
+      "service_entrypoints": ["build_packet", "access_check", "TeacherAbsenceTrigger"],
+      "tenant_scoping": "tenant_id_hash on every packet; raw tenant_id never persisted in packet",
+      "time_boxing": "grace_minutes window; access_check returns False after valid_until",
+      "medical_iep_gate": "default ON (gated=True); explicit opt-in flag to expose",
+      "audit_event_id": "uuid4 per packet",
+      "tests": "apps/schoolops/tests/test_substitute_handover_runtime.py (6 tests, all PASS)"
+    },
+    "permission_to_pay_workflow": {
+      "module": "apps/finance/permission_to_pay.py",
+      "service_entrypoints": ["open_request", "record_guardian_approval", "authorize_payment"],
+      "guardian_threshold": "tenant-configurable Decimal; below threshold bypasses guardian gate",
+      "payment_routing": "delegates to apps.finance.payment_rail_adapter.registry().authorize() with idempotency key = request_id",
+      "manual_fallback": "manual-cash rail always registered via register_manual_fallback()",
+      "no_live_psp_call": true,
+      "tests": "apps/finance/tests/test_permission_to_pay_runtime.py (4 tests, all PASS)"
+    },
+    "lost_belongings_qr_loop": {
+      "module": "apps/schoolops/lost_belongings_qr.py",
+      "service_entrypoints": ["mint_tag", "record_finder_sighting", "record_staff_recovery"],
+      "qr_code": "secrets.token_urlsafe(8) per asset",
+      "anonymous_finder_path": "no auth required; redacted notes only",
+      "parent_notification_contract": "notify_parent flag; actual send routes via communication channel adapter",
+      "pii_redaction": "label_hint rejects email-like strings; notes scrubbed if sensitive tokens detected",
+      "tests": "apps/schoolops/tests/test_lost_belongings_qr_runtime.py (5 tests, all PASS)"
+    }
+  },
+  "totals": {
+    "workflows_implemented": 3,
+    "test_modules": 3,
+    "tests": 15,
+    "tests_pass": 15
+  },
+  "honest_residuals": [
+    "Real WhatsApp / SMS parent notification awaits live channel credentials",
+    "Real QR code printing is operator-side (browser-side svg generation TODO)",
+    "Real PSP payment authorization awaits live credentials"
+  ]
+}

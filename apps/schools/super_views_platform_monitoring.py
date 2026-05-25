@@ -15,8 +15,13 @@ from apps.tenancy.context import TenantContext
 from .control_plane_lifecycle import get_lifecycle_snapshot
 from .models import School, TenantApiUsage, TenantQuotaLimit
 from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_usage(request):
     """Plan I: Per-tenant API usage and quota limits for super-admin billing/health."""
     schools = list(
@@ -48,6 +53,7 @@ def super_usage(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_pulse(request):
     """S13: Global Pulse Map — HTML view for super dashboard link. Same data as API v1 super/pulse."""
     from apps.siteconfig.models import RevenueSnapshot
@@ -95,6 +101,7 @@ def super_pulse(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_tenant_health(request):
     """S13: Tenant Health Monitor — HTML view for super dashboard link. Wedge 14–22: missing statutory for PUBLIC/GOVERNMENT_MINISTRY."""
     from apps.platform_runtime.models import PlatformOperatorTenantHealthLink
@@ -127,6 +134,7 @@ def super_tenant_health(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_tenant_360(request, school_id):
     """Phase 9: Tenant 360 — identity, domain, blueprint, policy, plan, workflow/dashboard packs, runtime inspector."""
     from apps.platform_runtime.runtime_resolver import build_tenant_runtime
@@ -222,6 +230,7 @@ def super_tenant_360(request, school_id):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_control_health_dashboard(request):
     """
     Control plane health hub: single entry for runbooks, SLOs, incidents, tenant health.

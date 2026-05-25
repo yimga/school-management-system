@@ -4,7 +4,7 @@
 {% block title %}{% trans "Sales pipeline" %}{% endblock %}
 {% block content %}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
-<div class="container py-3" style="max-width: 76rem" data-rmc-sales-command-center="1">
+<div class="container py-3" style="max-width: 76rem" data-rmc-sales-command-center="1" data-rmc-scroll-policy="paginate">
   <div class="ds-action-bar d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
     <h1 class="h3 mb-0">{% trans "Internal pipeline" %}</h1>
     <a class="btn btn-sm btn-primary ds-btn" href="{% url 'sales:lead_create' %}">{% trans "Add lead" %}</a>

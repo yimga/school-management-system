@@ -3,7 +3,7 @@
 {% block title %}{% trans "Facilities" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Facilities / maintenance requests" %}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-rmc-scroll-policy="paginate">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -23,7 +23,11 @@
       <tbody>
         {% for t in tickets %}
         <tr>
-          <td>{{ t.title }}<br><span class="small text-secondary">{{ t.description|truncatechars:80|default:"" }}</span></td>
+          <td>
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+{{ t.title }}<br><span class="small text-secondary">{{ t.description|truncatechars:80|default:"" }}</span></td>
           <td>{{ t.location|default:"—" }}</td>
           <td><span class="badge bg-secondary">{{ t.get_status_display }}</span></td>
           <td class="small">{{ t.created_at|date:"Y-m-d H:i" }}</td>
@@ -35,7 +39,8 @@
               {% if t.status != "closed" %}<button type="submit" name="new_status" value="closed" class="btn btn-outline-success btn-sm">{% trans "Close" %}</button>{% endif %}
               {% if t.status != "open" %}<button type="submit" name="new_status" value="open" class="btn btn-outline-secondary btn-sm">{% trans "Reopen" %}</button>{% endif %}
             </form>
-          </td>
+                  </div>
+                </details></td>
         </tr>
         {% empty %}<tr><td colspan="5">{% trans "No requests yet." %}</td></tr>{% endfor %}
       </tbody>

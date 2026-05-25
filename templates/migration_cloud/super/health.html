@@ -1,4 +1,4 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 <!-- v3.38.0 Agent 4 — Migration Cloud operator health dashboard. Six panels in a 3-col grid for incident response: 1. Webhook deliveries (last 24h, by status) 2. MAA signs (last 7d, by version) 3. Companion uploads (last 24h, count + bytes per HASHED tenant) 4. Active Companion keypairs (per HASHED tenant) 5. Pending legacy hash sunsets (single count) 6. Zero-tolerance scanner baselines (8 rows) Hard contract: this template NEVER renders raw tenant slugs (only the 12-hex sha256 prefix the view computed), and NEVER renders signature bytes / MAA body / private key material. Auto-refreshes every 60s via meta refresh so an operator can keep it open. -->

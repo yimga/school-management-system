@@ -5,7 +5,7 @@
 {% block title %}Exam Session{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid" data-rmc-scroll-policy="paginate">
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2 mb-3">
     <div>
       <h1 class="fw-bold mb-1">{{ session.name }}</h1>
@@ -87,7 +87,8 @@
 
       {% if candidates %}
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family" aria-label="{% trans 'Certification session candidates' %}">
+        <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-sm align-middle table-family" aria-label="{% trans 'Certification session candidates' %}">
           <thead>
             <tr>
               <th scope="col">{% trans_term "Student" key="student" %}</th>

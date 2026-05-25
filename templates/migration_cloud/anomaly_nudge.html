@@ -1,10 +1,10 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 {% block page_title %}{{ page_title }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--migration-cloud-review" id="main">
+<main class="rmc-page rmc-page--migration-cloud-review" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <a class="rmc-back"
        href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">

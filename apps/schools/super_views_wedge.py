@@ -12,6 +12,10 @@ from urllib.parse import quote, urlencode
 from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse, NoReverseMatch
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
 
 def _safe_reverse(name, *args, **kwargs):
@@ -163,6 +167,7 @@ def _operator_deep_links(wedge_id: int) -> list[dict[str, str]]:
     return out
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_ministry_report_stubs(request):
     """Per institution type: ministry / accreditation report stub catalog (Phase J+)."""
     from apps.platform_runtime.learning_institution_catalog import (
@@ -222,6 +227,7 @@ def super_ministry_report_stubs(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_ministry_stub_pdf(request):
     """Manager-host ministry stub PDF (same bytes as tenant API) — super access only."""
     stub = (request.GET.get("stub") or "").strip()
@@ -258,6 +264,7 @@ def super_ministry_stub_pdf(request):
     return resp
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_district_enterprise(request):
     """Wedge 4: District / ERP operator surface — decision links, not a toggle wall."""
     from apps.interop import erp_coexistence
@@ -299,6 +306,7 @@ def super_district_enterprise(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_learning_institution_catalog_json(request):
     """Machine-readable catalog for partners / Studio automation (23–43)."""
     from django.http import JsonResponse
@@ -328,6 +336,7 @@ def super_learning_institution_catalog_json(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_learning_delivery_packs(request):
     """Wedges 23–30 / 31–43 catalog: delivery modes + institution-type pack mapping."""
     from apps.platform_runtime.learning_institution_catalog import (
@@ -361,6 +370,7 @@ def super_learning_delivery_packs(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_curriculum_packs(request):
     """Starter & region packs — W1 and W3 operator checklists (?wedge=1|3); DNA + REGIONAL_POLICY_PACKS."""
     from apps.platform_runtime.wedge_line_registry import BEACHHEAD_BLUEPRINT_PACKS
@@ -435,6 +445,7 @@ def super_curriculum_packs(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_one_sis_any_lms(request):
     """Wedge 2: One SIS, any LMS — shipped guided flow: configure → SSO → roster → grade passback; certified LMS status."""
     from apps.platform_runtime.lms_certification_registry import as_template_rows
@@ -474,6 +485,7 @@ def super_one_sis_any_lms(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_advancement_hub(request):
     """Wedge 5: Advancement — Alumni, campaigns, aid; Phase 2 donor/campaign/gift/receipt; identity graph."""
     alumni_list_url = _safe_reverse("accounts:backend_alumni_list")
@@ -498,6 +510,7 @@ def super_advancement_hub(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_advancement_phase2_placeholder(request):
     """Phase 2 advancement: donors + gifts (CRM v1); super-only."""
     from decimal import Decimal, InvalidOperation
@@ -581,6 +594,7 @@ def super_advancement_phase2_placeholder(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_he_pack(request):
     """Wedge 6: HE pack as cohesive product — degree_audit, enrollment, catalog; months-not-years."""
     plans_url = _safe_reverse("super:plans_list")
@@ -602,6 +616,7 @@ def super_he_pack(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_geography(request):
     """Wedges 7–13: Region packs by continent — Africa, Asia, Europe, North America, South America, Oceania, MENA."""
     from apps.siteconfig.tenant_config import REGIONAL_POLICY_PACKS
@@ -743,6 +758,7 @@ def super_geography(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_education_systems(request):
     """SOT §0.2.1: Wedges 14–22 — Education systems (Public, Private, Charter, International, etc.). Control-plane visibility and links."""
     from apps.registries.services import list_sector_system_types_14_22
@@ -823,6 +839,7 @@ def super_education_systems(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_group_campuses(request):
     """Wedge 22: Group & campuses — list hierarchy (parent_school_id / hierarchy_path), add campus to group."""
     from apps.schools.models import School
@@ -884,6 +901,7 @@ def super_group_campuses(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_wedge_index(request):
     """Canonical index: one stable URL per wedge (1–45) via wedge_operator_detail."""
     from apps.platform_runtime.wedge_line_registry import WEDGE_LINES
@@ -911,6 +929,7 @@ def super_wedge_index(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_wedge_operator_detail(request, wedge_id: int):
     """Standalone operator surface for a single wedge id (canonical /super/wedge/<id>/)."""
     if wedge_id < 1 or wedge_id > 45:
@@ -944,6 +963,7 @@ def super_wedge_operator_detail(request, wedge_id: int):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_native_roster_connectors(request):
     """Super-only: exercise Clever v3.1 + ClassLink OneRoster clients with district credentials."""
     import json

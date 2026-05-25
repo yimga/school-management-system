@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-24T18:18:20.646950+00:00",
-  "verdict": "INTERACTION_INTEGRITY_FAIL",
-  "pass_count": 16,
-  "fail_count": 1,
+  "generated_at": "2026-05-25T00:24:30.345471+00:00",
+  "verdict": "INTERACTION_INTEGRITY_PASS",
+  "pass_count": 17,
+  "fail_count": 0,
   "rows": [
     {
       "id": "1",
@@ -103,8 +103,8 @@
     {
       "id": "17",
       "label": "Contract tests green",
-      "status": "FAIL",
-      "proof": "fast: f upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n........................\n----------------------------------------------------------------------\nRan 24 tests in 0.869s\n\nOK\nfeedback: d '['C:\\\\Python314\\\\python.exe', 'scripts/run_sqlite_memory_tests.py', '--fresh', 'apps.feedback.tests.test_feedback_help_center_contracts', '--verbosity=1', '--no-input']' timed out after 900 seconds"
+      "status": "PASS",
+      "proof": "fast: f upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n........................\n----------------------------------------------------------------------\nRan 24 tests in 9.698s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }

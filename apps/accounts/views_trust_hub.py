@@ -60,6 +60,7 @@ def security_trust_hub(request):
             "security_export": _safe_reverse("accounts:api_security_export_log"),
             "security_activity": _safe_reverse("accounts:api_security_activity"),
             "rbac": _safe_reverse("accounts:rbac"),
+            "tenant_identity": _safe_reverse("accounts:tenant_identity_roster"),
             "compliance": _safe_reverse("compliance:dashboard"),
             "apicenter": _safe_reverse("apicenter:dashboard"),
             "tenant_activity": _safe_reverse("accounts:tenant_activity_log"),

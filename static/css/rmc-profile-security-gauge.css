@@ -74,7 +74,22 @@
   gap: 0.65rem;
 }
 
+.rmc-security-gauge__minimum {
+  position: relative;
+}
+
+.rmc-security-gauge__minimum-marker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ds-danger, #dc3545);
+  pointer-events: none;
+}
+
 .rmc-security-gauge__completeness-bar {
+  position: relative;
   flex: 1;
   height: 6px;
   border-radius: 999px;

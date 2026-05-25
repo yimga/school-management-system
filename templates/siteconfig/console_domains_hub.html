@@ -5,6 +5,7 @@
 {% block title %}{% trans "Configuration Control Center" %}{% endblock %}
 
 {% block content %}
+{% include "partials/help_module_inline_assistant.html" %}
 {% phase8_dashboard_declaration "siteconfig/console_domains_hub.html" %}
 <span class="visually-hidden" aria-hidden="true" data-decision-engine="surface"></span>
 <div data-page-header="configuration-control-center">

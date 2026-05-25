@@ -38,7 +38,7 @@
       {% include "partials/help_deflection_strip.html" with deflection_surface="help_search" %}
       <form method="get" action="{{ kb_search_url }}" class="input-group rmc-help-center__search position-relative" role="search" id="rmc-help-center-search" data-deflection-form-auto>
         <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
-        <input type="search" name="q" class="form-control" placeholder="{% trans 'Search articles, FAQs, and runbooks…' %}" aria-label="{% trans 'Search help' %}" autocomplete="off" data-rmc-help-search-input>
+        <input type="search" name="q" class="form-control" placeholder="{% trans 'Search articles, FAQs, and runbooks…' %}" aria-label="{% trans 'Search help' %}" autocomplete="off" data-rmc-help-search-input{% if help_search_initial_q %} value="{{ help_search_initial_q }}"{% endif %}>
         <button class="btn btn-primary" type="submit">{% trans "Search" %}</button>
       </form>
       <p class="small text-tertiary mt-2 mb-0"><kbd>?</kbd> {% trans "focus search" %} · <kbd>Ctrl</kbd>+<kbd>K</kbd> {% trans "command palette" %}</p>

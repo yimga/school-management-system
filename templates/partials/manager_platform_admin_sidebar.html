@@ -1,58 +1,13 @@
-{% load i18n static unfold %}
-<nav class="cp-sidebar-nav cp-sidebar-platform-admin d-flex flex-column" id="{% firstof sidebar_nav_id 'cpSidebarNav' %}" aria-label="{% trans 'Platform backoffice navigation' %}" data-sidebar-nav="true" data-shell-nav-family="platform-admin" data-rmc-platform-admin-sidebar="1">
-  {% if MANAGER_PLATFORM_ADMIN_NAV and MANAGER_PLATFORM_ADMIN_NAV.quick_links %}
-  <p class="cp-sidebar__group-label cp-nav-section-label cp-sidebar__group-label--first rmc-type-eyebrow mb-2 mt-0">{% trans "Start" %}</p>
-  <ul class="nav flex-column gap-1 mb-3 ps-0">
-    {% for item in MANAGER_PLATFORM_ADMIN_NAV.quick_links %}
-    <li class="nav-item">
-      <a class="nav-link text-white d-flex align-items-center {% if item.is_current %}active{% endif %}" href="{{ item.url }}">
-        <i class="bi {{ item.icon }} me-2 cp-nav-icon" aria-hidden="true"></i>
-        <span class="cp-nav-label">{{ item.label }}</span>
-      </a>
-    </li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-  {% if MANAGER_PLATFORM_ADMIN_NAV.guided_links %}
-  <p class="cp-sidebar__group-label cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Guided setup" %}</p>
-  <ul class="nav flex-column gap-1 mb-3 ps-0">
-    {% for item in MANAGER_PLATFORM_ADMIN_NAV.guided_links %}
-    <li class="nav-item">
-      <a class="nav-link text-white d-flex align-items-center {% if item.is_current %}active{% endif %}" href="{{ item.url }}">
-        <i class="bi {{ item.icon }} me-2 cp-nav-icon" aria-hidden="true"></i>
-        <span class="cp-nav-label">{{ item.label }}</span>
-      </a>
-    </li>
-    {% endfor %}
-  </ul>
-  {% endif %}
-  <div class="rmc-sidebar-catalog-search px-1 mb-2">
-    <label class="visually-hidden" for="rmcSidebarCatalogSearch">{% trans "Filter apps and models" %}</label>
-    <input type="search" id="rmcSidebarCatalogSearch" class="form-control form-control-sm" data-rmc-sidebar-catalog-search placeholder="{% trans 'Filter models…' %}" autocomplete="off">
-    <p class="rmc-sidebar-catalog-empty small text-muted mb-0 mt-1" data-rmc-sidebar-catalog-empty hidden>{% trans "No matches" %}</p>
-  </div>
-  {% if admin_catalog and admin_catalog.sections %}
-  <div class="cp-sidebar__group" data-rmc-cp-sidebar-group="catalog">
-  <p class="cp-sidebar__group-label cp-nav-section-label rmc-type-eyebrow mb-2">{% trans "Catalog by section" %}</p>
-  <ul class="nav flex-column gap-1 mb-2 ps-0 cp-sidebar-catalog-sections cp-sidebar__group-list">
-    {% for section in admin_catalog.sections %}
-    <li class="nav-item">
-      <a class="nav-link text-white d-flex align-items-center justify-content-between" href="{% url 'admin:index' %}#rmc-admin-sec-{{ forloop.counter }}">
-        <span class="cp-nav-label">{{ section.title }}</span>
-        <span class="cp-sidebar__link-count small opacity-75">{{ section.model_count }}</span>
-      </a>
-    </li>
-    {% endfor %}
-  </ul>
-  </div>
-  {% endif %}
-  <div class="cp-sidebar__group cp-sidebar__group--apps" data-rmc-cp-sidebar-group="apps">
-  <button type="button" class="cp-sidebar__group-toggle cp-nav-group-toggle border-0 bg-transparent text-start w-100 d-flex align-items-center p-0 mb-1" data-bs-toggle="collapse" data-bs-target="#cp-admin-sidebar-apps" aria-expanded="true" aria-controls="cp-admin-sidebar-apps">
-    <i class="bi bi-chevron-down me-1 cp-nav-group-chevron" aria-hidden="true"></i>
-    <span class="cp-sidebar__group-label cp-nav-section-label rmc-type-eyebrow mb-0">{% trans "Apps" %}</span>
-  </button>
-  <div class="collapse show cp-platform-admin-app-tree" id="cp-admin-sidebar-apps" data-rmc-platform-admin-app-tree>
-    {% include "admin/app_list.html" with app_list=available_apps show_changelinks=False platform_admin_sidebar_embed=True %}
-  </div>
+{% load i18n static %}
+<nav class="cp-sidebar-nav cp-sidebar-platform-admin d-flex flex-column cp-sidebar-nav--complete"
+     id="{% firstof sidebar_nav_id 'cpSidebarNav' %}"
+     aria-label="{% trans 'Platform navigation' %}"
+     data-sidebar-nav="true"
+     data-shell-nav-family="platform-admin"
+     data-rmc-platform-admin-sidebar="1"
+     data-rmc-unified-sidebar="1"
+     data-rmc-complete-sidebar="1">
+  <div class="admin-sidebar-app-groups cp-admin-sidebar-apps" id="cp-admin-sidebar-apps" role="group" aria-label="{% trans 'Platform admin apps' %}">
+    {% include "partials/manager_complete_sidebar_nav.html" %}
   </div>
 </nav>

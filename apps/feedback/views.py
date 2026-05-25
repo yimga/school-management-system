@@ -541,6 +541,13 @@ def help_center(request):
     school = get_request_school(request)
     is_op = is_operator(request.user)
     can_request_features = role not in ("parent", "student")
+    from apps.portal.help_page_inbound import (
+        feature_form_initial_from_request,
+        parse_help_landing_inbound,
+    )
+
+    page_help_inbound = parse_help_landing_inbound(request)
+    search_title = page_help_inbound.get("help_search_initial_q") or request.GET.get("q", "")
     recent_release_notes = list(
         ReleaseNote.objects.filter(
             is_public=True, published_at__isnull=False
@@ -548,8 +555,8 @@ def help_center(request):
     )
     help_resources = suggest_help_resources(
         request,
-        title=request.GET.get("q", ""),
-        module=request.GET.get("module", ""),
+        title=search_title,
+        module=page_help_inbound.get("page_help_module") or request.GET.get("module", ""),
         category=request.GET.get("category", ""),
         limit=6,
     )
@@ -578,11 +585,14 @@ def help_center(request):
         pinned_feedback_route = "feedback:student_feedback"
 
     feature_quick_form = FeatureRequestForm(
-        initial={
-            "module": request.GET.get("module", ""),
-            "title": request.GET.get("title", ""),
-            "affected_roles": "ADMIN,TEACHER",
-        }
+        initial=feature_form_initial_from_request(
+            request,
+            {
+                "module": request.GET.get("module", ""),
+                "title": request.GET.get("title", ""),
+                "affected_roles": "ADMIN,TEACHER",
+            },
+        )
     )
     apply_bootstrap_form_styles(feature_quick_form)
     if (
@@ -636,8 +646,11 @@ def help_center(request):
     except Exception:
         pass
     from apps.portal.help_unified_hub import tenant_community_lane
+    from apps.portal.tenant_support_hub import build_tenant_support_hub_context
 
     community_lane = tenant_community_lane(request)
+    support_hub = build_tenant_support_hub_context(request)
+    help_section = (request.GET.get("section") or "").strip()
     return render(
         request,
         "feedback/help_center.html",
@@ -645,6 +658,8 @@ def help_center(request):
             "role": role,
             "school": school,
             "community_lane": community_lane,
+            "support_hub": support_hub,
+            "help_section": help_section,
             "is_operator": is_op,
             "can_request_features": can_request_features,
             "release_notes": recent_release_notes,
@@ -657,6 +672,7 @@ def help_center(request):
             "recent_features": recent_features,
             "feature_center_url": links.get("feature_center") or "",
             "contact_center_url": links.get("contact_center") or "",
+            **page_help_inbound,
             **deflection_urls,
         },
     )

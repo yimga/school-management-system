@@ -6,7 +6,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Strategic Reporting" %}</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% url 'analytics:dashboard' as back_url %}
   {% include "studio_os/components/page_header.html" with title=_("Strategic Reporting") subtitle=_("Leadership view: enrollment, capacity, and school roadmap.") action_url=back_url action_text=_("Analytics") %}
 

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "what_is_proven_in_repo": [
+    "Service worker file exists and parses (131,834 bytes)",
+    "Service worker CACHE_VERSION monotonic via verify_service_worker_version.py --check-monotonic",
+    "Manifest files exist (manifest.json + manifest-portal.json)",
+    "Service worker registration script wired into shells (per scan_pwa_manifest_coverage.py baseline 0)",
+    "Offline queue contract module + tests (apps/sync_engine/tenant_manifest_compiler.py)",
+    "Skip-cache routes documented (auth / admin / audit endpoints)",
+    "Tenant cache safety logout-purge wired",
+    "Native app posture explicitly DEFERRED"
+  ],
+  "what_remains_for_full_pwa_certification_external": [
+    "Browser-recorded install-prompt appearance on Android Chrome",
+    "Browser-recorded service-worker active state on iOS Safari (with known iOS quirks)",
+    "Browser-recorded offline fallback page render under DevTools network=offline",
+    "Browser-recorded IndexedDB write through service-worker fetch interceptor",
+    "Browser-recorded tenant cache isolation across two tenants"
+  ],
+  "lane2_browser_status": "harness present (scripts/run_tenant_portal_lane2_e2e.sh); browser execution requires provisioned tenant + Playwright runner (external)",
+  "honest_verdict": "PWA PROOF PARTIAL — REPO SCOPE complete; browser certification pending Lane 2 execution"
+}

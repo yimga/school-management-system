@@ -3,7 +3,7 @@
 {% block title %}Grade Approvals{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h1 class="mb-0">Grade Approval Requests</h1>
@@ -28,7 +28,7 @@
 
 {% if requests %}
   <div class="table-responsive">
-    <table class="table table-hover align-middle table-family" aria-label="Grade approval requests: subject, teacher, status, and actions">
+    <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="Grade approval requests: subject, teacher, status, and actions">
       <thead class="table-light">
         <tr>
           <th scope="col">Subject</th>

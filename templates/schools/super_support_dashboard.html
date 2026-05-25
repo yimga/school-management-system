@@ -16,7 +16,7 @@
 {% block cp_content %}
 {% url 'super:dashboard' as dashboard_url %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#support-dashboard-main">{% trans "Skip to support dashboard content" %}</a>
-<div id="support-dashboard-main" class="container-fluid py-4" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div id="support-dashboard-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_support_dashboard.html" %}
   {% if operator_support_dashboard_links %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
@@ -31,7 +31,7 @@
     </div>
   </div>
   {% endif %}
-  {% include "studio_os/components/page_header.html" with title=_("Support mission control") subtitle=_("Ticket queue, SLA, and support health.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="support_dashboard" center_eyebrow=_("Platform operators") center_title=_("Support mission control") center_purpose=_("Ticket queue, SLA, and support health.") primary_url=dashboard_url primary_label=_("Back to dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   {% if phase7_de %}
   {% include "components/decision_engine_surface.html" with de_eyebrow=phase7_de.eyebrow de_headline_label=phase7_de.headline_label de_headline_value=phase7_de.headline_value de_headline_meta=phase7_de.headline_meta de_metrics=phase7_de.metrics de_urgent_queue=phase7_de.urgent_queue de_next_actions=phase7_de.next_actions de_activity=phase7_de.activity %}
   {% endif %}
@@ -100,7 +100,7 @@
          hx-get="{% url 'super:support_queue_fragment' %}?status={{ status_filter }}&priority={{ priority_filter }}"
          hx-trigger="every 60s, load"
          hx-swap="innerHTML">
-      {% include "schools/super_support_queue_fragment.html" with tickets=tickets request_user_id=request_user_id sla_response_hours=sla_response_hours sla_resolution_hours=sla_resolution_hours %}
+      {% include "schools/super_support_queue_fragment.html" with tickets=tickets page_obj=page_obj pagination_extra_query=pagination_extra_query request_user_id=request_user_id sla_response_hours=sla_response_hours sla_resolution_hours=sla_resolution_hours %}
     </div>
   </div>
 </div>

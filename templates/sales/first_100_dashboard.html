@@ -3,7 +3,7 @@
 {% load terminology_tags %}
 {% block cp_title %}{% trans "First 100 schools" %}{% endblock %}
 {% block cp_content %}
-<div class="container-lg py-4" data-decision-engine="surface" data-rmc-first-100-dashboard="1">
+<div class="container-lg py-4" data-decision-engine="surface" data-rmc-first-100-dashboard="1" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "sales/first_100_dashboard.html" %}
   <header class="mb-4 d-flex flex-wrap justify-content-between gap-2">
     <div>
@@ -25,7 +25,8 @@
   </div>
 
   <div class="table-responsive">
-    <table class="table table-sm align-middle table-family">
+    <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-sm align-middle table-family">
       <caption class="visually-hidden">{% trans "Stages" %}</caption>
       <thead>
         <tr>

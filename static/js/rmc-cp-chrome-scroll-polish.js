@@ -8,8 +8,70 @@
 
   function sidebarNodes() {
     return document.querySelectorAll(
-      ".cp-sidebar-inner, #cp-sidebar-col .cp-sidebar-inner, .portal-sidebar-col .sidebar"
+      ".cp-sidebar-inner, #cp-sidebar-col .cp-sidebar-inner, #nav-sidebar-apps, .admin-sidebar-apps, .portal-sidebar-col .sidebar, #portal-sidebar-col .sidebar"
     );
+  }
+
+  function scrollContainerFor(el) {
+    if (!el) return null;
+    return (
+      el.closest(
+        ".cp-sidebar-inner, #nav-sidebar-apps, .admin-sidebar-apps, .portal-sidebar-col .sidebar, #portal-sidebar-col .sidebar"
+      ) || null
+    );
+  }
+
+  function ensureDisclosureVisible(target) {
+    var container = scrollContainerFor(target);
+    if (!container) return;
+    requestAnimationFrame(function () {
+      var targetRect = target.getBoundingClientRect();
+      var containerRect = container.getBoundingClientRect();
+      if (targetRect.bottom > containerRect.bottom - 4) {
+        container.scrollTop += targetRect.bottom - containerRect.bottom + 12;
+      } else if (targetRect.top < containerRect.top + 4) {
+        container.scrollTop -= containerRect.top - targetRect.top + 12;
+      }
+      updateSidebarFades(container);
+    });
+  }
+
+  function bindDisclosureToggles(root) {
+    var scope = root || document;
+    scope.querySelectorAll(".cp-sidebar-inner details, #nav-sidebar-apps details").forEach(function (detailsEl) {
+      if (detailsEl.getAttribute("data-rmc-disclosure-bound")) return;
+      detailsEl.setAttribute("data-rmc-disclosure-bound", "1");
+      detailsEl.addEventListener("toggle", function () {
+        if (detailsEl.open) {
+          ensureDisclosureVisible(detailsEl);
+        }
+        sidebarNodes().forEach(updateSidebarFades);
+      });
+    });
+    scope.querySelectorAll("#nav-sidebar-apps .admin-sidebar-app-toggle, #nav-sidebar .admin-sidebar-app-toggle").forEach(function (btn) {
+      if (btn.getAttribute("data-rmc-disclosure-bound")) return;
+      btn.setAttribute("data-rmc-disclosure-bound", "1");
+      btn.addEventListener("click", function () {
+        var group = btn.closest(".admin-sidebar-app-group");
+        if (group) {
+          window.requestAnimationFrame(function () {
+            ensureDisclosureVisible(group);
+          });
+        }
+      });
+    });
+    scope.querySelectorAll("#nav-sidebar-apps .admin-sidebar-all-apps-trigger").forEach(function (btn) {
+      if (btn.getAttribute("data-rmc-disclosure-bound")) return;
+      btn.setAttribute("data-rmc-disclosure-bound", "1");
+      btn.addEventListener("click", function () {
+        var block = btn.closest(".admin-sidebar-all-apps");
+        if (block) {
+          window.requestAnimationFrame(function () {
+            ensureDisclosureVisible(block);
+          });
+        }
+      });
+    });
   }
 
   function updateSidebarFades(el) {
@@ -74,6 +136,7 @@
       el.setAttribute("data-rmc-sidebar-scroll-bound", "1");
       el.addEventListener("scroll", onScroll, { passive: true });
     });
+    bindDisclosureToggles(document);
   }
 
   function init() {

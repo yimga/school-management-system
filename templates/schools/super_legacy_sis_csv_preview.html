@@ -13,9 +13,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
-  <h1 class="h4">{% trans "Read-only legacy CSV preview" %}</h1>
-  <p class="text-secondary small">{% trans "Upload district export; first 500 rows shown. No write-back." %}</p>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="legacy_sis_csv_preview" center_eyebrow=_("Platform operators") center_title=_("Read-only legacy CSV preview") center_purpose=_("Upload district export; first 500 rows shown. No write-back.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+
   <form method="post" enctype="multipart/form-data" class="mb-4">
     {% csrf_token %}
     <input type="file" name="csv" accept=".csv" class="form-control" required>

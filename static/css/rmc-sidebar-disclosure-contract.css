@@ -1,0 +1,169 @@
+/**
+ * Sidebar disclosure contract — accordion / Apps menus must not clip or bleed.
+ * Outer rail clips; inner rail scrolls; open groups never use nested max-height traps.
+ * v3.90.44 (2026-05-24)
+ */
+
+/* ── Canvas scroll: sidebar column fills grid row, single inner scroll ── */
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__sidebar,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__sidebar {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] #cp-sidebar-col,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] #cp-sidebar-col {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] .cp-sidebar-inner,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .cp-sidebar-inner,
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] nav.cp-sidebar-inner,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] nav.cp-sidebar-inner {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Control plane / manager accordion groups: never clip open children ── */
+.cp-sidebar-inner .cp-sidebar__group,
+.cp-sidebar-inner details.cp-sidebar__group,
+.cp-sidebar-nav .cp-sidebar__group {
+  overflow: visible;
+  max-height: none;
+}
+
+.cp-sidebar-inner .cp-sidebar__group[open],
+.cp-sidebar-nav .cp-sidebar__group[open] {
+  overflow: visible;
+  max-height: none;
+}
+
+/* Long labels wrap inside the rail instead of bleeding horizontally */
+.cp-sidebar__item-label .cp-nav-label,
+.cp-sidebar__item .cp-nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.cp-sidebar__group[open] .cp-sidebar__item-label .cp-nav-label {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-overflow: clip;
+}
+
+/* ── Tenant + manager Django admin: Apps tree scrolls on #nav-sidebar-apps ── */
+#nav-sidebar,
+#nav-sidebar-inner {
+  min-height: 0;
+}
+
+#nav-sidebar-apps,
+.admin-sidebar-apps {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#nav-sidebar .admin-sidebar-model-list,
+#nav-sidebar-apps .admin-sidebar-model-list,
+.admin-sidebar-app-groups,
+.admin-sidebar-all-apps,
+.admin-sidebar-app-group {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+#nav-sidebar .admin-sidebar-link-text,
+#nav-sidebar-apps .admin-sidebar-link-text,
+#nav-sidebar .admin-sidebar-model-link-text,
+#nav-sidebar-apps .admin-sidebar-model-link-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#nav-sidebar .admin-sidebar-app-title a,
+#nav-sidebar-apps .admin-sidebar-app-title a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Remove nested scroll traps — parent rail owns vertical scroll */
+body.admin-manager-shell .cp-platform-admin-app-tree,
+body.admin-manager-shell #cp-admin-sidebar-apps,
+body.admin-manager-shell #cp-admin-sidebar-apps.admin-sidebar-apps--embed {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.cp-sidebar-platform-admin .cp-platform-admin-app-tree {
+  max-height: none;
+  overflow: visible;
+}
+
+/* ── Tenant portal sidebar: collapsible blocks + long nav labels ── */
+.portal-sidebar-col .sidebar,
+#portal-sidebar-col .sidebar,
+.tp-sidebar-inner.sidebar {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.portal-sidebar-col .sidebar-collapsible__body,
+.tp-sidebar-inner .sidebar-collapsible__body {
+  overflow: visible;
+  max-height: none;
+}
+
+.portal-sidebar-col .nav-link,
+.portal-sidebar-col .nav-pill,
+.tp-sidebar-inner .nav-link {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ── Scrollbar visibility when sidebar content overflows ── */
+.cp-sidebar-inner,
+#nav-sidebar-apps,
+.admin-sidebar-apps,
+.portal-sidebar-col .sidebar {
+  scrollbar-width: thin;
+}
+
+.cp-sidebar-inner::-webkit-scrollbar,
+#nav-sidebar-apps::-webkit-scrollbar,
+.admin-sidebar-apps::-webkit-scrollbar,
+.portal-sidebar-col .sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.cp-sidebar-inner::-webkit-scrollbar-thumb,
+#nav-sidebar-apps::-webkit-scrollbar-thumb,
+.admin-sidebar-apps::-webkit-scrollbar-thumb,
+.portal-sidebar-col .sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22); /* off-token-allow: sidebar-scroll-thumb */
+  border-radius: 4px;
+  min-height: 40px;
+}
+
+body:not(.portal-backend-dark):not(.control-plane-shell) #nav-sidebar-apps::-webkit-scrollbar-thumb,
+body:not(.portal-backend-dark):not(.control-plane-shell) .admin-sidebar-apps::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.28); /* off-token-allow: sidebar-scroll-thumb */
+}

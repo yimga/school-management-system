@@ -19,11 +19,18 @@ from apps.billing.models import (
     TenantSubscription,
 )
 from apps.billing.services import ensure_subscription_for_school
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_BILLING_READ,
+    require_platform_scope,
+)
 from apps.platform_runtime.operational_center_nav import billing_command_frame_context
+from apps.schools.control_plane import require_super_access_with_host
 
 from .models import School, TenantApiUsage
 
 
+@require_super_access_with_host
+@require_platform_scope(PLATFORM_SCOPE_BILLING_READ)
 def billing_dashboard(request):
     """Platform billing console: subscriptions, usage, and recent platform ledger activity."""
     active_schools = list(

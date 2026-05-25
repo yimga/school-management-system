@@ -1,7 +1,7 @@
 {% load static %}
 {% load i18n region_format %}
 {# Shared body: full portal page, embed=1 iframe, or Studio Output native (no iframe). #}
-<div class="container-fluid py-2 py-lg-4 doc-library-page{% if studio_output_native %} studio-output-native-documents{% endif %}" data-page-archetype="operational-workbench"{% if studio_output_native %} data-studio-output-native="documents"{% endif %}>
+<div class="container-fluid py-2 py-lg-4 doc-library-page{% if studio_output_native %} studio-output-native-documents{% endif %}" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1"{% if studio_output_native %} data-studio-output-native="documents"{% endif %} data-rmc-scroll-policy="paginate">
   {% include "studio_os/components/page_header.html" with title="Document Library" subtitle="Manage school documents, lifecycle stages, and pack-driven retention." action_url=document_upload_url action_text="Upload Document" %}
   <div class="d-flex gap-2 mb-3 small flex-wrap">
     {% if embed and not studio_output_native %}
@@ -128,7 +128,8 @@
     <div class="card-body">
       {% if documents %}
         <div class="table-responsive ds-table-wrap">
-          <table class="table table-hover align-middle table-family" aria-label="{% trans 'Document library' %}">
+          <!-- large-collection-allow: document-library-row-actions -->
+          <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Document library' %}">
             <thead>
               <tr>
                 <th scope="col">{% trans "Title" %}</th>
@@ -209,6 +210,9 @@
                     <div class="text-muted small">{% trans "by" %} {{ doc.created_by.get_full_name|default:doc.created_by.username }}</div>
                   </td>
                   <td class="text-end">
+                    <details class="rmc-row-disclosure d-inline-block text-start">
+                      <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                      <div class="rmc-row-disclosure__body mt-1">
                     <div class="btn-group btn-group-sm">
                       {% if doc.file %}
                         <a href="{% url 'portal:document_download' doc.id %}" class="btn btn-outline-primary" title="{% trans 'Download' %}">
@@ -231,6 +235,8 @@
                         <i class="bi bi-trash"></i>
                       </button>
                     </div>
+                      </div>
+                    </details>
                   </td>
                 </tr>
               {% endfor %}

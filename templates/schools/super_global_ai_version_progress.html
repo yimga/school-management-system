@@ -14,8 +14,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
-  {% include "studio_os/components/page_header.html" with title=_("Global AI upgrade progress") subtitle=_("Upgrade run in progress. Run ID below.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="global_ai_version_progress" center_eyebrow=_("Platform operators") center_title=_("Global AI upgrade progress") center_purpose=_("Upgrade run in progress. Run ID below.") primary_url=dashboard_url primary_label=_("Back to dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <div class="card shadow-sm">
     <div class="card-body">
       <p id="progress-text">{% trans "Loading…" %}</p>

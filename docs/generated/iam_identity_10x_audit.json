@@ -1,0 +1,69 @@
+{
+  "generated_at": "2026-05-25T11:08:59.165867+00:00",
+  "finding_count": 0,
+  "super_scope_ratio": 1.0,
+  "super_scope_scoped": 126,
+  "super_scope_total": 126,
+  "rows": [
+    {
+      "check_id": "minimum-strength-middleware",
+      "ok": true,
+      "proof": "settings MIDDLEWARE"
+    },
+    {
+      "check_id": "security-minimum-settings",
+      "ok": true,
+      "proof": "minimum score env"
+    },
+    {
+      "check_id": "rbac-pdp-wired",
+      "ok": true,
+      "proof": "rbac PDP decorator"
+    },
+    {
+      "check_id": "tenant-pdp-wired",
+      "ok": true,
+      "proof": "tenant identity PDP"
+    },
+    {
+      "check_id": "operator-seed-command",
+      "ok": true,
+      "proof": "ensure_platform_operator_profiles"
+    },
+    {
+      "check_id": "tenant-demo-seed-command",
+      "ok": true,
+      "proof": "seed_tenant_identity_demo"
+    },
+    {
+      "check_id": "permission-manifest-v1",
+      "ok": true,
+      "proof": "colon token manifest"
+    },
+    {
+      "check_id": "rebac-offline-slice",
+      "ok": true,
+      "proof": "batch 1507 rebac + snapshot"
+    },
+    {
+      "check_id": "super-scope-coverage-80pct",
+      "ok": true,
+      "proof": "126/126 handlers scoped (100%)"
+    },
+    {
+      "check_id": "batch-1505-audit",
+      "ok": true,
+      "proof": "BATCH_1505_COMPLETENESS_PASS"
+    },
+    {
+      "check_id": "scope-verifier",
+      "ok": true,
+      "proof": "SUPER_PLATFORM_SCOPE_COVERAGE_PASS"
+    },
+    {
+      "check_id": "matrix-knows-platform-scope",
+      "ok": true,
+      "proof": "audit_role_permission_matrix"
+    }
+  ]
+}

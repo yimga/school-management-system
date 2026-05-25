@@ -320,6 +320,39 @@ body.admin-manager-shell[data-rmc-admin-index-v200x="1"] .cp-hero {
   gap: 10px;
   margin-top: 10px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+/* v3.90.39 — single toolbar row (primary CTAs + section anchors), admin v1 200x preview */
+.cp-hero__actions--toolbar {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  row-gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.cp-hero__actions-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cp-hero__actions-sep {
+  flex: 0 0 1px;
+  align-self: stretch;
+  width: 1px;
+  min-height: 28px;
+  margin: 0 2px;
+  background: var(--hairline-strong, var(--hairline));
+}
+
+.cp-hero__actions-group--sections .cp-btn {
+  font-size: 12px;
+  padding: 6px 12px;
 }
 
 .cp-btn {
@@ -792,6 +825,14 @@ body.admin-manager-shell .cp-catalog {
   margin-bottom: 6px;
 }
 
+button.cp-filter-pill,
+button.cp-pager__pill {
+  cursor: pointer;
+  font-family: inherit;
+  appearance: none;
+  border-style: solid;
+}
+
 .cp-filter-pill {
   display: inline-flex;
   align-items: center;
@@ -999,6 +1040,34 @@ body.admin-manager-shell .cp-catalog {
   font-weight: 600;
   color: var(--text-tertiary);
   border-bottom: 2px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  font-family: inherit;
+}
+
+button.cp-form__tab:focus-visible {
+  outline: 2px solid var(--school-primary, var(--primary));
+  outline-offset: 2px;
+}
+
+.cp-fieldset[data-cp-form-panel]:not([data-active]) {
+  display: none;
+}
+
+.cp-field__input:read-only {
+  opacity: 0.85;
+}
+
+.cp-form__preview-status:not(.visually-hidden) {
+  margin: 0 22px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .cp-form__tab[data-active] {
@@ -1034,6 +1103,10 @@ body.admin-manager-shell .cp-catalog {
   display: flex;
   flex-direction: column;
   gap: 5px;
+}
+
+.cp-field--wide {
+  grid-column: 1 / -1;
 }
 
 .cp-field__label {
@@ -1115,6 +1188,100 @@ body.admin-manager-shell .cp-catalog {
   flex-shrink: 0;
 }
 
+.cp-audit__dot[data-tone="success"] {
+  background: var(--success, #22c55e);
+}
+
+.cp-audit__dot[data-tone="warn"] {
+  background: var(--warning, #eab308);
+}
+
+.cp-nps-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cp-nps-metric__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cp-nps-metric__score {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  color: var(--text-primary);
+}
+
+.cp-nps-metric[data-tone="success"] .cp-nps-metric__score {
+  color: var(--success, #16a34a);
+}
+
+.cp-nps-metric[data-tone="warn"] .cp-nps-metric__score {
+  color: var(--warning, #ca8a04);
+}
+
+.cp-nps-metric[data-tone="danger"] .cp-nps-metric__score {
+  color: var(--danger, #dc2626);
+}
+
+.cp-nps-metric__delta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+}
+
+.cp-nps-metric__delta[data-tone="up"] {
+  color: var(--success, #16a34a);
+}
+
+.cp-nps-metric__delta[data-tone="down"] {
+  color: var(--danger, #dc2626);
+}
+
+.cp-nps-metric__spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 36px;
+  padding: 4px 0;
+}
+
+.cp-nps-metric__bar {
+  flex: 1;
+  min-width: 6px;
+  border-radius: 3px 3px 0 0;
+  background: color-mix(in oklab, var(--school-primary, #4f46e5) 55%, var(--surface-canvas));
+}
+
+.cp-nps-metric__breakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+}
+
+.cp-nps-metric__breakdown li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+
+.cp-nps-metric__caption {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.45;
+}
+
 .cp-audit__body {
   display: flex;
   flex-direction: column;
@@ -1175,19 +1342,17 @@ body.admin-manager-shell .rmc-app-shell__sidebar .cp-sidebar {
   height: 100%;
 }
 
-body.admin-manager-shell .cp-admin-v1-index .cp-hero__actions--sections {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 6px;
-  padding: 0;
-  z-index: auto;
-  background: transparent;
+body.admin-manager-shell .cp-admin-v1-index .cp-hero__actions--toolbar {
+  margin-top: 10px;
 }
 
-body.admin-manager-shell .cp-admin-v1-index .cp-hero__actions--sections .cp-btn {
-  font-size: 12px;
-  padding: 6px 12px;
+@media (max-width: 720px) {
+  body.admin-manager-shell .cp-admin-v1-index .cp-hero__actions-sep {
+    display: none;
+  }
+  body.admin-manager-shell .cp-admin-v1-index .cp-hero__actions-group--sections {
+    flex-basis: 100%;
+  }
 }
 
 body.admin-manager-shell .rmc-admin-catalog-details {

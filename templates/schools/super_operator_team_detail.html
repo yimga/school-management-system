@@ -1,0 +1,168 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{{ operator_user.get_username }}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ roster_url }}">{% trans "Team" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ operator_user.get_username }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_team_detail" center_eyebrow=_("Platform operators") center_title=operator_user.get_username center_purpose=_("Profile, MFA posture, scopes, sessions, and promotion history.") primary_url=roster_url primary_label=_("Back to roster") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+
+  {% if is_canonical_admin %}
+  <div class="alert alert-info py-2 small mb-3" role="status">
+    {% trans "This is the canonical platform super-admin account (admin). It cannot be offboarded and always retains break_glass tier." %}
+  </div>
+  {% endif %}
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Profile" %}</div>
+        <div class="card-body small">
+          <dl class="row mb-0">
+            <dt class="col-4">{% trans "Email" %}</dt>
+            <dd class="col-8">{{ operator_user.email|default:"—" }}</dd>
+            <dt class="col-4">{% trans "Tier" %}</dt>
+            <dd class="col-8">{{ tier_label|default:profile.tier }}</dd>
+            <dt class="col-4">{% trans "Status" %}</dt>
+            <dd class="col-8"><span class="text-capitalize">{{ profile.status }}</span></dd>
+            <dt class="col-4">{% trans "MFA" %}</dt>
+            <dd class="col-8">
+              {% if mfa_ok %}
+              <span class="badge text-bg-success">{% trans "Enrolled" %}</span>
+              {% else %}
+              <span class="badge text-bg-warning">{% trans "Required" %}</span>
+              {% endif %}
+            </dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">{% trans "Effective platform scopes" %}</div>
+        <div class="card-body">
+          {% if scopes %}
+          <ul class="list-unstyled small mb-0 d-flex flex-wrap gap-1">
+            {% for code in scopes %}
+            <li><code class="small">{{ code }}</code></li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="text-muted small mb-0">{% trans "No scopes resolved." %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if can_manage %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-header">{% trans "Actions" %}</div>
+    <div class="card-body d-flex flex-wrap gap-2 align-items-center">
+      <form method="post" action="{% url 'super:operator_team_revoke_sessions' operator_user.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Revoke all sessions" %}</button>
+      </form>
+      {% if not is_canonical_admin %}
+        {% if profile.status == "active" %}
+        <form method="post" action="{{ suspend_url }}" onsubmit="return confirm('{% trans "Suspend this operator?" %}');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Suspend" %}</button>
+        </form>
+        {% elif profile.status == "suspended" %}
+        <form method="post" action="{{ reactivate_url }}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-success">{% trans "Reactivate" %}</button>
+        </form>
+        {% endif %}
+      {% endif %}
+      {% if can_offboard %}
+      <form method="post" action="{% url 'super:operator_team_offboard' operator_user.pk %}" onsubmit="return confirm('{% trans "Offboard this operator?" %}');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Offboard" %}</button>
+      </form>
+      {% elif is_canonical_admin %}
+      <span class="small text-muted">{% trans "Platform admin cannot be offboarded." %}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header">{% trans "Active sessions (sample)" %}</div>
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-sm mb-0 rmc-data-table">
+        <thead><tr><th>{% trans "Session" %}</th><th>{% trans "Expires" %}</th></tr></thead>
+        <tbody>
+          {% for s in sessions %}
+          <tr><td>{{ s.key_prefix }}</td><td>{{ s.expire_date }}</td></tr>
+          {% empty %}
+          <tr><td colspan="2" class="text-muted text-center py-3">{% trans "No active sessions found." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if impersonation_rows %}
+  <div class="card shadow-sm mb-3" data-rmc-impersonation-audit-strip="1">
+    <div class="card-header">{% trans "Impersonation & proxy (recent)" %}</div>
+    <div class="card-body p-0 table-responsive" style="max-height: 18rem; overflow-y: auto;">
+      <table class="table table-sm table-family mb-0 small">
+        <caption class="visually-hidden">{% trans "Impersonation & proxy (platform operator)" %}</caption>
+        <thead>
+          <tr>
+            <th>{% trans "When (UTC)" %}</th>
+            <th>{% trans "Peer / approval" %}</th>
+            <th>{% trans_term "School" key="school" %}</th>
+            <th>{% trans "Action" %}</th>
+            <th>{% trans "Reason" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in impersonation_rows %}
+          <tr>
+            <td class="text-nowrap">{{ row.created_at|date:"Y-m-d H:i" }}</td>
+            <td>{% if row.peer_actor %}{{ row.peer_actor.get_username }}{% else %}—{% endif %}</td>
+            <td class="text-truncate" style="max-width: 8rem;" title="{{ row.school.name }}">{{ row.school.name|default:row.school_id }}</td>
+            <td>{{ row.get_action_display }}</td>
+            <td class="text-truncate" style="max-width: 10rem;" title="{{ row.reason|default:'' }}">{% if row.reason %}{{ row.reason|truncatechars:80 }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if promotion_rows %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-header">{% trans "Promotion history" %}</div>
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-sm mb-0">
+        <thead><tr><th>{% trans "Tier" %}</th><th>{% trans "Status" %}</th><th>{% trans "When" %}</th></tr></thead>
+        <tbody>
+          {% for p in promotion_rows %}
+          <tr>
+            <td>{{ p.requested_tier }}</td>
+            <td><span class="text-capitalize">{{ p.status }}</span></td>
+            <td>{{ p.created_at }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

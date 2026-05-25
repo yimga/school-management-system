@@ -32,13 +32,17 @@ def _get_client_ip(request):
 
 
 def _can_impersonate(request):
-    """True if request.user is allowed to impersonate (SUPERADMIN or is_superuser)."""
+    """True when actor has control-plane access and platform.impersonate scope."""
     if not getattr(request.user, "is_authenticated", False):
         return False
-    if getattr(request.user, "is_superuser", False):
-        return True
-    role = (getattr(request.user, "role", "") or "").upper()
-    return role == "SUPERADMIN"
+    if not user_has_control_plane_access(request.user):
+        return False
+    from apps.platform_runtime.operator_identity import (
+        PLATFORM_SCOPE_IMPERSONATE,
+        user_has_platform_scope,
+    )
+
+    return user_has_platform_scope(request.user, PLATFORM_SCOPE_IMPERSONATE)
 
 
 @require_POST
@@ -59,18 +63,30 @@ def switch_to_tenant(request):
     peer_user = None
     if getattr(school, "impersonation_dual_control", False):
         from django.contrib import messages
+        from apps.platform_runtime.operator_identity import (
+            PLATFORM_SCOPE_IMPERSONATE,
+            user_has_platform_scope,
+        )
 
+        peer_id = (request.POST.get("peer_approver_id") or "").strip()
         peer_email = (request.POST.get("peer_approver_email") or "").strip().lower()
-        if not peer_email:
+        if peer_id:
+            try:
+                peer_user = _User.objects.get(pk=int(peer_id))
+            except (ValueError, _User.DoesNotExist):
+                messages.error(request, "Peer approver was not found.")
+                return redirect("super:dashboard")
+        elif peer_email:
+            try:
+                peer_user = _User.objects.get(email__iexact=peer_email)
+            except _User.DoesNotExist:
+                messages.error(request, "Peer approver email was not found.")
+                return redirect("super:dashboard")
+        else:
             messages.error(
                 request,
-                "This school requires a second approver email (four-eyes impersonation).",
+                "This school requires a second approver (four-eyes impersonation).",
             )
-            return redirect("super:dashboard")
-        try:
-            peer_user = _User.objects.get(email__iexact=peer_email)
-        except _User.DoesNotExist:
-            messages.error(request, "Peer approver email was not found.")
             return redirect("super:dashboard")
         if peer_user.pk == request.user.pk:
             messages.error(
@@ -82,6 +98,12 @@ def switch_to_tenant(request):
             messages.error(
                 request,
                 "Peer approver must be a platform operator (superuser or SUPERADMIN).",
+            )
+            return redirect("super:dashboard")
+        if not user_has_platform_scope(peer_user, PLATFORM_SCOPE_IMPERSONATE):
+            messages.error(
+                request,
+                "Peer approver must have platform.impersonate scope.",
             )
             return redirect("super:dashboard")
     reason = (request.POST.get("impersonation_reason") or "").strip()

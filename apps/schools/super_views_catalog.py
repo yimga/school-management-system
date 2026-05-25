@@ -8,8 +8,13 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 
 from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_workflow_packs_catalog(request):
     """Phase 4: Control-plane workflow pack catalog. Wedge 14–22: filter/badge by primary_sector."""
     from django.db.models import Q
@@ -45,6 +50,7 @@ def super_workflow_packs_catalog(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_dashboard_packs_catalog(request):
     """Phase 4: Control-plane dashboard pack catalog. Wedge 14–22: filter/badge by primary_sector."""
     from django.db.models import Q
@@ -80,6 +86,7 @@ def super_dashboard_packs_catalog(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_blueprints_catalog(request):
     """Phase 3: Control-plane blueprint pack catalog. Wedge 14–22: filter/badge by primary_sector."""
     from apps.policies.models import BlueprintPack
@@ -138,6 +145,7 @@ def super_blueprints_catalog(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_policies_catalog(request):
     """Phase 3: Control-plane policy bundle catalog."""
     from apps.policies.models import PolicyBundle
@@ -174,6 +182,7 @@ def super_policies_catalog(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_registries_overview(request):
     """Phase 2: Control-plane registry governance — list registry types and counts with links to admin."""
     from django.contrib.admin.sites import site as default_admin_site
@@ -254,6 +263,7 @@ def super_registries_overview(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_metadata_catalog(request):
     """Metadata catalog: entity/field search (metadata app) + platform catalog (schema, experience, runtime, registry)."""
     entities: list = []
@@ -285,6 +295,7 @@ def super_metadata_catalog(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_metadata_catalog_field_impact(request, entity_code, field_name):
     """Impact view for a single field: list dependent workflows/dashboards/reports (plan todo 4)."""
     from apps.metadata.models import (

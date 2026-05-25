@@ -5,7 +5,7 @@
 {% block title %}{% trans "Grade import" %}{% endblock %}
 
 {% block content %}
-<main id="main-content" role="main" class="container-fluid py-2" data-page-archetype="operational-workbench">
+<main id="main-content" role="main" class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
 <h1>{% trans "Bulk grade import" %}</h1>
 <p class="help">
   {% trans "Upload a CSV using the template headers. You can preview before applying." %}
@@ -43,7 +43,8 @@
       <p class="success">
         {% trans "Preview looks good." %} {% if active_year %}{% trans "Active year" %}: {{ active_year }}{% endif %}
       </p>
-      <table class="listtable">
+      <!-- large-collection-allow: print-report-fixed-layout -->
+<table class="listtable">
         <caption class="visually-hidden">{% trans "Preview results" %}</caption>
         <thead>
           <tr>

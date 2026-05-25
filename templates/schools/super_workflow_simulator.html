@@ -15,7 +15,7 @@
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#workflow-simulator-main">{% trans "Skip to workflow simulator content" %}</a>
-<div id="workflow-simulator-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench">
+<div id="workflow-simulator-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
   {% if operator_workflow_simulator_links %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
@@ -29,7 +29,7 @@
     </div>
   </div>
   {% endif %}
-  {% include "studio_os/components/page_header.html" with title="Workflow simulator" subtitle="Simulate workflow/pack resolution for a selected school and role." action_url=dashboard_url action_text="Back to dashboard" %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="workflow_simulator" center_eyebrow=_("Platform operators") center_title="Workflow simulator" center_purpose="Simulate workflow/pack resolution for a selected school and role." primary_url=dashboard_url primary_label="Back to dashboard" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <div class="card shadow-sm border-0 page-family-content-card card-grammar mb-3">
     <div class="card-body">
       <form method="get" class="row g-3 align-items-end">

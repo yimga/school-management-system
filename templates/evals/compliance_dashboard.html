@@ -12,7 +12,8 @@
 {% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+{% include "partials/help_module_inline_assistant.html" %}
+<div class="container-fluid mt-4" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
     {% phase8_dashboard_declaration "evals/compliance_dashboard.html" %}
     <div class="row">
         <div class="col-12">
@@ -79,7 +80,7 @@
                     <h5 class="mb-0">Teacher Submission Status</h5>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0">
+                    <table class="table table-hover table-striped mb-0 table-sm table-sticky-head rmc-data-table">
                       {% term "teacher" capitalize=True as teacher_sg_cap %}
                       <caption class="visually-hidden">{% blocktrans with t=teacher_sg_cap %}{{ t }} Submission Status{% endblocktrans %}</caption>
                         <thead class="bg-light">

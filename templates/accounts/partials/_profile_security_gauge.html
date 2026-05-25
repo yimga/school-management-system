@@ -2,7 +2,7 @@
 {% if profile_security %}
 <link rel="stylesheet" href="{% static 'css/rmc-profile-security-gauge.css' %}">
 {% with ps=profile_security score=profile_security.security_score band=profile_security.strength_band %}
-<div class="rmc-security-gauge content-card mb-3" data-strength-band="{{ band }}" style="--rmc-gauge-score: {{ score }}; padding: 1.1rem 1.25rem;" id="profile-security-strength" data-rmc-section-anchor>
+<div class="rmc-security-gauge content-card mb-3" data-strength-band="{{ band }}" style="--rmc-gauge-score: {{ score }};" id="profile-security-strength" data-rmc-section-anchor>
   <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
     <div>
       <div class="eyebrow text-muted small text-uppercase">{% trans "Account protection" %}</div>
@@ -21,6 +21,27 @@
     <div class="rmc-security-gauge__score">{{ score }}</div>
   </div>
   <div class="rmc-security-gauge__label">{{ profile_security.strength_label }}</div>
+
+  {% if profile_security.security_minimum_required %}
+  <div class="rmc-security-gauge__minimum mt-2" role="status">
+    <div class="d-flex justify-content-between small mb-1">
+      <span class="text-muted">{% trans "Required minimum" %}</span>
+      <span class="fw-semibold" style="font-variant-numeric: tabular-nums;">
+        {{ profile_security.security_minimum_required }}/100
+        {% if not profile_security.meets_platform_minimum %}
+        <span class="text-danger">({% blocktrans with gap=profile_security.security_minimum_gap %}{{ gap }} below{% endblocktrans %})</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="rmc-security-gauge__completeness-bar" aria-hidden="true">
+      <div class="rmc-security-gauge__completeness-fill {% if not profile_security.meets_platform_minimum %}bg-danger{% endif %}" style="width: {{ profile_security.security_score }}%; max-width: 100%;"></div>
+      <div class="rmc-security-gauge__minimum-marker" style="left: {{ profile_security.security_minimum_required }}%;" title="{% trans 'Minimum required' %}"></div>
+    </div>
+    {% if not profile_security.meets_platform_minimum %}
+    <p class="small text-danger mb-0 mt-2">{% trans "You must reach the minimum score before using school workflows. Enable MFA, verify email, and use a strong password." %}</p>
+    {% endif %}
+  </div>
+  {% endif %}
 
   <div class="rmc-security-gauge__completeness mt-2">
     <span class="small text-muted">{% trans "Profile completeness" %}</span>

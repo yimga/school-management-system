@@ -129,6 +129,55 @@ def main() -> int:
         ("1360-marketing-kb-category-url", _ok("config/urls.py", "marketing_kb_category")),
         ("1360-mkt-kb-category-template", (ROOT / "templates/marketing/kb_category_public.html").is_file()),
         ("1360-mkt-hub-category-link", _ok("templates/marketing/partials/mkt_help_hub.html", "marketing_kb_category")),
+        # Batch 1484 — page-aware help landing + KB auto-gen hub links
+        ("1484-help-page-inbound", _ok("apps/portal/help_page_inbound.py", "parse_help_landing_inbound")),
+        ("1484-manager-help-inbound", _ok("config/manager_help_center.py", "parse_help_landing_inbound")),
+        ("1484-tenant-help-inbound", _ok("apps/feedback/views.py", "parse_help_landing_inbound")),
+        ("1484-kb-auto-gen-cards", _ok("config/manager_help_center.py", "super:ai_center_generate_kb")),
+        ("1484-help-search-prefill", _ok("templates/schools/partials/manager_help_center_body.html", "help_search_initial_q")),
+        ("1484-404-help-hub", _ok("templates/errors/404.html", "manager_help_center")),
+        ("1484-sidebar-help-center", _ok("apps/siteconfig/portal_sidebar_items.py", '"id": "help_center"')),
+        # Batch 1485 — honest 10x finish (corpus, hub merge, auto-draft, inline AI)
+        ("1485-workflow-corpus-module", (ROOT / "apps/portal/workflow_kb_corpus.py").is_file()),
+        ("1485-seed-corpus-cmd", (ROOT / "apps/portal/management/commands/seed_workflow_kb_corpus.py").is_file()),
+        ("1485-verify-corpus", (ROOT / "scripts/verify_workflow_kb_corpus.py").is_file()),
+        ("1485-hub-merge-lane", _ok("templates/feedback/help_center.html", "help_center_support_lane")),
+        ("1485-support-hub-redirect", _ok("apps/portal/views_support.py", "feedback:help_center")),
+        ("1485-portal-help-entry", _ok("apps/feedback/services.py", '"portal_help": "feedback:help_center"')),
+        ("1485-staging-auto-draft", _ok("config/settings.py", "_HELP_AUTO_DRAFT_DEFAULT")),
+        ("1485-inline-evals", _ok("templates/evals/compliance_dashboard.html", "help_module_inline_assistant")),
+        ("1485-inline-siteconfig", _ok("templates/siteconfig/console_domains_hub.html", "help_module_inline_assistant")),
+        ("1485-inline-migration", _ok("templates/migration_cloud/operator/command_center.html", "help_module_inline_assistant")),
+        ("1485-inline-prefixes", _ok("apps/portal/help_proactive_inline.py", "/siteconfig/")),
+        # Batch 1486 — full Phase 9 corpus + auto-draft posture + admin/super help bridge
+        ("1486-audit-corpus-module", (ROOT / "apps/portal/workflow_kb_corpus_audit.py").is_file()),
+        ("1486-all-corpus-merge", _ok("apps/portal/workflow_kb_corpus.py", "ALL_WORKFLOW_KB_CORPUS")),
+        ("1486-audit-refresh-cmd", (ROOT / "scripts/refresh_workflow_help_kb_audit_kb_status.py").is_file()),
+        ("1486-auto-draft-posture", (ROOT / "scripts/verify_help_auto_draft_posture.py").is_file()),
+        ("1486-admin-tenant-help", _ok("templates/admin/app_list.html", "feedback:help_center")),
+        ("1486-admin-super-bridge", (ROOT / "scripts/verify_admin_super_help_nav_bridge.py").is_file()),
+        # Batch 1487 — editorial high-stakes runbooks + admin/super nav convergence
+        ("1487-editorial-corpus", (ROOT / "apps/portal/workflow_kb_corpus_editorial.py").is_file()),
+        ("1487-editorial-verify", (ROOT / "scripts/verify_workflow_kb_editorial.py").is_file()),
+        ("1487-nav-convergence-module", (ROOT / "apps/schools/manager_nav_convergence.py").is_file()),
+        ("1487-nav-convergence-verify", (ROOT / "scripts/verify_manager_nav_convergence.py").is_file()),
+        ("1487-cp-nav-convergence", _ok(
+            "apps/schools/manager_nav_convergence.py",
+            "build_manager_complete_sidebar_groups",
+        )),
+        # Batch 1500 — enriched corpus + complete sidebar + platform back-to-top
+        ("1500-corpus-enrich", (ROOT / "apps/portal/workflow_kb_corpus_enrich.py").is_file()),
+        ("1500-corpus-quality-verify", (ROOT / "scripts/verify_workflow_kb_corpus_quality.py").is_file()),
+        ("1500-complete-sidebar-partial", (ROOT / "templates/partials/manager_complete_sidebar_nav.html").is_file()),
+        ("1500-complete-sidebar-context", (
+            _ok("apps/siteconfig/context_processors.py", "MANAGER_COMPLETE_SIDEBAR_NAV")
+            and _ok("apps/siteconfig/context_processors.py", "build_manager_complete_sidebar_groups")
+        )),
+        ("1500-back-to-top-verify", (ROOT / "scripts/verify_platform_back_to_top.py").is_file()),
+        ("1500-back-to-top-idempotent", _ok(
+            "static/js/_pages/components__back_to_top.js",
+            "data-rmc-mounted",
+        )),
     ]
     failed = [cid for cid, ok in checks if not ok]
     if failed:

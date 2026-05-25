@@ -1,0 +1,68 @@
+/**
+ * Platform-wide Bootstrap dropdown clipping fix (header / shell overflow traps).
+ * v3.90.31 (2026-05-24)
+ */
+
+:root {
+  --rmc-dropdown-z: 1090;
+  --rmc-dropdown-backdrop-z: 1085;
+}
+
+/* Elevate open menus above shell chrome, copilot rail, sticky headers */
+.dropdown-menu.show,
+.dropdown-menu[data-bs-popper] {
+  z-index: var(--rmc-dropdown-z);
+}
+
+/* Header / topbar must not clip open menus (control plane + portal + admin) */
+.rmc-app-shell__header:has(.dropdown-menu.show),
+.cp-header:has(.dropdown-menu.show),
+.rmc-platform-header:has(.dropdown-menu.show),
+.statement-header:has(.dropdown-menu.show),
+.navbar:has(.dropdown-menu.show),
+.rmc-platform-header__actions:has(.dropdown-menu.show),
+.rmc-platform-header__toolbar:has(.dropdown-menu.show),
+.user-dropdown-wrapper:has(.dropdown-menu.show),
+.rmc-operator-workspace-dropdown:has(.dropdown-menu.show) {
+  overflow: visible;
+  z-index: calc(var(--rmc-dropdown-z) - 1);
+}
+
+body.control-plane-shell .cp-header:has(.dropdown-menu.show),
+body.control-plane-shell .rmc-app-shell__header:has(.dropdown-menu.show),
+body.control-plane-shell .rmc-app-shell__canvas-chrome:has(.dropdown-menu.show),
+body.control-plane-shell .rmc-platform-header__inner:has(.dropdown-menu.show) {
+  overflow: visible;
+}
+
+/* Portal / base shells — same clipping traps in statement-header + portal chrome */
+.rmc-app-shell__header:has(.dropdown-menu.show),
+.statement-header:has(.dropdown-menu.show),
+.portal-layout-wrap:has(.dropdown-menu.show) {
+  overflow: visible;
+}
+
+/* User + workspace menus: scroll inside menu, not behind header */
+.user-dropdown-menu.dropdown-menu.show,
+.rmc-operator-workspace-dropdown .dropdown-menu.show {
+  max-height: min(70vh, 32rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.user-dropdown-wrapper,
+.rmc-operator-workspace-dropdown {
+  position: relative;
+}
+
+/* Search results panel uses same stacking contract */
+.cp-search-results-panel.show,
+#cpSearchResults.show {
+  z-index: var(--rmc-dropdown-z);
+}
+
+/* Offcanvas / modal stay above dropdowns */
+.modal,
+.offcanvas {
+  z-index: calc(var(--rmc-dropdown-z) + 10);
+}

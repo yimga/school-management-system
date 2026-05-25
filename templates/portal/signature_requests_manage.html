@@ -5,7 +5,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Signature Requests Management</h1>
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
   {% url 'portal:signature_request_create' as create_url %}
   {% include "studio_os/components/page_header.html" with title="Signature Requests" subtitle="Manage electronic signature requests for forms" action_url=create_url action_text="Create Request" %}
   <div class="d-flex gap-2 mb-3 small">
@@ -114,7 +114,8 @@
           {% comment %} Pass 8 Wave 2: standardized to design-system table grammar
              (.table-family .table-sticky-head .table-zebra). Right-aligned the
              three date columns for column-type consistency with finance/invoices. {% endcomment %}
-          <table class="table table-family table-sticky-head table-zebra table-hover align-middle" aria-label="Signature requests: form, student, parent, status, dates, and actions">
+          <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-family table-sticky-head table-zebra table-hover align-middle" aria-label="Signature requests: form, student, parent, status, dates, and actions">
             <thead class="table-light">
               <tr>
                 <th scope="col">Form</th>

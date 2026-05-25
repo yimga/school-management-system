@@ -20,6 +20,10 @@ from apps.platform_runtime.business_value import get_business_value_snapshot
 from apps.platform_runtime.models import AIActionAuditLog, PlatformEventLog
 from apps.sales.models import Lead
 from apps.schools.models import School
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
 _ROOT = Path(settings.BASE_DIR)
 if str(_ROOT / "scripts") not in sys.path:
@@ -63,6 +67,7 @@ def _parse_sot_slices_fallback(sot_path: Path) -> dict[int, str | None]:
     return out
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_founder_dashboard(request):
     gen = _ROOT / "docs" / "generated"
     observability_ledger = _load_json(gen / "observability_ledger.json") or {}

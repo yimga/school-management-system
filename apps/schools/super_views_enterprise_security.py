@@ -21,6 +21,10 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from apps.accounts.models import SecurityAuditLog, User
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_SECURITY_READ,
+    require_platform_scope,
+)
 
 
 def _repo_root() -> Path:
@@ -357,6 +361,7 @@ def _decode_session_user_ids(limit: int = 150):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_security_hub(request):
     """Primary operator security dashboard: links + recent signals + audit tails."""
     dashboard_url = reverse("super:dashboard")

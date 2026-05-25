@@ -7,16 +7,16 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-def get_user_role(user) -> str:
+def get_user_role(user, school=None) -> str:
     """
     Get normalized user role string.
 
-    Args:
-        user: User instance or None
-
-    Returns:
-        Uppercase role string, or empty string if no user/role
+    When school is provided, membership role wins over global User.role.
     """
+    if school is not None:
+        from apps.accounts.tenant_identity import get_effective_role
+
+        return get_effective_role(user, school)
     if not user:
         return ""
     return (getattr(user, "role", "") or "").upper()

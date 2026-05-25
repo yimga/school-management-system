@@ -1,0 +1,207 @@
+{
+  "generated_at": "2026-05-25T11:08:59.156058+00:00",
+  "finding_count": 0,
+  "migration_0038": true,
+  "access_roles_helpers": true,
+  "rbac_edit_role_school_scoped": true,
+  "rows": [
+    {
+      "view": "super_analytics_overview",
+      "module": "super_views_overview_surfaces.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_apply_policy_bundle_to_sandbox",
+      "module": "super_views_policy.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_audit_export",
+      "module": "super_views_trust_surface.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_billing_accounts_list",
+      "module": "super_views_config.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_compliance_overview",
+      "module": "super_views_trust_surface.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_control_health_dashboard",
+      "module": "super_views_platform_monitoring.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_fleet_governed_changes",
+      "module": "super_views_config.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_governed_data_query",
+      "module": "super_views_beyond_reach.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_incidents_list",
+      "module": "super_views_config.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_legacy_sis_csv_preview",
+      "module": "super_views_beyond_reach.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_migration_cloud",
+      "module": "super_views_migration.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_migration_csv_diff",
+      "module": "super_views_beyond_reach.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_migration_exception_ack",
+      "module": "super_views_migration.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_migration_profile_registry",
+      "module": "super_views_migration.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_migration_quarantine_waive",
+      "module": "super_views_migration.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_migration_rollback",
+      "module": "super_views_migration.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_migration_runs_list",
+      "module": "super_views_config.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_offboarding_queue",
+      "module": "super_views_offboarding_queue.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_platform_events",
+      "module": "super_views_trust_surface.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_playbook_operator_hub",
+      "module": "super_views_runtime_ops.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_policy_diff",
+      "module": "super_views_policy.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_pulse",
+      "module": "super_views_platform_monitoring.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_runtime_inspector",
+      "module": "super_views_runtime_ops.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_runtime_truth_hub",
+      "module": "super_views_runtime_ops.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_schools_list",
+      "module": "super_views_overview_surfaces.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_security_hub",
+      "module": "super_views_enterprise_security.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_security_surface_dashboard",
+      "module": "super_views_security_surface.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_support_tickets_export_csv",
+      "module": "super_views_support.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_tenant_360",
+      "module": "super_views_platform_monitoring.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_tenant_health",
+      "module": "super_views_platform_monitoring.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_trust_center",
+      "module": "super_views_trust_surface.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_usage",
+      "module": "super_views_platform_monitoring.py",
+      "ok": true,
+      "proof": "decorated"
+    },
+    {
+      "view": "super_workflow_simulator",
+      "module": "super_views_runtime_ops.py",
+      "ok": true,
+      "proof": "decorated"
+    }
+  ]
+}

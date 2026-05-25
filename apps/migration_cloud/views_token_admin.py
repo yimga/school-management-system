@@ -23,6 +23,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.paginator import Paginator
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -111,11 +112,17 @@ class MigrationCloudTokenListView(View):
                 qs = qs.filter(user_id=int(user_filter))
         except (TypeError, ValueError):
             pass
-        rows = [_token_row_for_table(r) for r in qs[:500]]
+        paginator = Paginator(qs.order_by("-created_at"), 25)
+        page_obj = paginator.get_page(request.GET.get("page") or 1)
+        extra = request.GET.copy()
+        extra.pop("page", None)
+        rows = [_token_row_for_table(r) for r in page_obj.object_list]
         context = {
             "page_title": "Migration Cloud — scoped API tokens",
             "shell": kwargs.get("shell", "super"),
             "rows": rows,
+            "page_obj": page_obj,
+            "pagination_extra_query": extra.urlencode(),
             "filter_tenant_id": tenant_filter or "",
             "filter_user_id": user_filter or "",
         }

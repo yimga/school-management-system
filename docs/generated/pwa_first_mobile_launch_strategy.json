@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "strategy": "PWA-first launch; native wrappers deferred until 100-school stability + PWA browser-proven installability on iOS Safari + Android Chrome",
+  "native_app_posture": "DEFERRED",
+  "wrapper_options_for_later": ["Capacitor", "Tauri", "Android WebView", "iOS WKWebView"],
+  "wrapper_decision_criteria": [
+    ">=100 active schools running stable on PWA",
+    "Browser-recorded install prompt success >= 70% on Android Chrome",
+    "Browser-recorded offline write-queue replay > 95% success rate",
+    "Counsel signoff on push-notification PII handling",
+    "Operator-team capacity for app-store review cycle"
+  ],
+  "pwa_artifact_state": {
+    "static/manifest.json": "present",
+    "static/manifest-portal.json": "present",
+    "static/js/service-worker.js": "present",
+    "static/js/rmc-service-worker-registration.js": "present"
+  },
+  "service_worker_version": "sms-v3.91.0-runtime-proof-hardening-2026-05-24",
+  "service_worker_monotonic_baseline": "var/security-audit-baseline-service-worker-version.json"
+}

@@ -4,7 +4,7 @@
 {% block backend_title %}Approval Workflow Hub{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% url 'studio_os:workflow_center' as workflow_center_url %}
   {% include "studio_os/components/page_header.html" with title=_("Approval Workflow Hub") subtitle=_("Review and action all pending approvals in one place.") action_url=workflow_center_url action_text=_("Workflow Center") %}
 

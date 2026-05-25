@@ -13,6 +13,11 @@ from django.urls import reverse
 
 from .decision_architecture import get_decision_architecture_for_page
 from .models import School
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_SECURITY_READ,
+    PLATFORM_SCOPE_SECURITY_WRITE,
+    require_platform_scope,
+)
 
 
 def _policy_bundle_impact_preview(bundle_id):
@@ -64,6 +69,7 @@ def _policy_bundle_impact_preview(bundle_id):
         }
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_policy_diff(request):
     """Phase 9: Policy diff viewer — compare platform default, country/region, blueprint, tenant override. GAP.7: impact preview."""
     from apps.policies.models import PolicyBundle
@@ -167,6 +173,7 @@ def super_policy_diff(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_apply_policy_bundle_to_sandbox(request):
     """GAP.8: Apply a policy bundle to a sandbox school (staged rollout). POST: bundle_id, sandbox_school_id."""
     if request.method != "POST":

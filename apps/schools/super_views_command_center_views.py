@@ -15,8 +15,13 @@ from .models import School
 from .super_views_command_center_data import build_command_center_data
 from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 from .super_views_helpers import safe_platform_incidents_url
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_command_center(request):
     """
     Phase 3 mission-control surface combining approvals, billing, support, and risk posture.
@@ -66,6 +71,7 @@ def super_command_center(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_command_center_v2(request):
     """Operational queue drill-down for the manager control plane."""
     from apps.billing.models import TenantSubscription

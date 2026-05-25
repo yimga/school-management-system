@@ -1,20 +1,53 @@
-{% load i18n %}
-{% if request.user.is_authenticated and security_posture_review_due and security_posture_review_url %}
-<div class="alert alert-warning border-warning mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert" data-rmc-security-posture-banner="1">
-  <div class="small">
-    <strong>{% trans "Quarterly security review due" %}</strong>
-    — {% trans "Confirm your password, MFA, and contact details for this quarter." %}
+{% load i18n static %}
+{% if request.user.is_authenticated and security_posture_blocked and not security_posture_corner_snoozed %}
+<details class="rmc-collapsable rmc-security-posture-banner rmc-security-posture-banner--blocked" data-rmc-security-posture-banner="1" data-rmc-collapsable-chrome="bare" open>
+  <summary class="rmc-collapsable__head">
+    <span class="rmc-collapsable__title">{% trans "Account below minimum security" %}</span>
+    <span class="rmc-collapsable__chevron" aria-hidden="true">▾</span>
+  </summary>
+  <div class="rmc-collapsable__body rmc-security-posture-banner__body">
+    <p class="rmc-security-posture-banner__copy mb-0">
+      {% blocktrans with score=account_security_score required=security_minimum_required gap=security_minimum_gap %}Your security strength is {{ score }}/100. This platform requires at least {{ required }}/100 ({{ gap }} points to go).{% endblocktrans %}
+    </p>
+    <div class="rmc-security-posture-banner__actions">
+      <a class="btn btn-sm btn-danger" href="{% url 'accounts:user_profile' %}#profile-security-strength">{% trans "Strengthen account" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:mfa_setup' %}">{% trans "Enable MFA" %}</a>
+    </div>
   </div>
-  <a class="btn btn-sm btn-warning" href="{{ security_posture_review_url }}{% if request.get_full_path %}?next={{ request.get_full_path|urlencode }}{% endif %}">
-    {% trans "Review now" %}
-  </a>
-</div>
+</details>
+{% elif request.user.is_authenticated and security_posture_review_due and security_posture_review_url and not security_posture_corner_snoozed %}
+<details class="rmc-collapsable rmc-security-posture-banner" data-rmc-security-posture-banner="1" data-rmc-collapsable-chrome="bare" open>
+  <summary class="rmc-collapsable__head">
+    <span class="rmc-collapsable__title">{% trans "Quarterly security review due" %}</span>
+    <span class="rmc-collapsable__chevron" aria-hidden="true">▾</span>
+  </summary>
+  <div class="rmc-collapsable__body rmc-security-posture-banner__body">
+    <p class="rmc-security-posture-banner__copy mb-0">
+      {% trans "Confirm your password, MFA, and contact details for this quarter." %}
+    </p>
+    <div class="rmc-security-posture-banner__actions">
+      <a class="btn btn-sm btn-warning" href="{{ security_posture_review_url }}{% if request.get_full_path %}?next={{ request.get_full_path|urlencode }}{% endif %}">
+        {% trans "Review now" %}
+      </a>
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-security-posture-snooze="1">
+        {% trans "Remind me later" %}
+      </button>
+    </div>
+  </div>
+</details>
 {% elif request.user.is_authenticated and account_security_score is not None and account_security_score < 40 %}
-<div class="alert alert-danger border-danger mb-3 py-2 d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert" data-rmc-security-posture-banner="1">
-  <div class="small">
-    <strong>{% trans "Account at risk" %}</strong>
-    — {% blocktrans with score=account_security_score %}Security strength {{ score }}/100. Enable MFA and fix critical issues.{% endblocktrans %}
+<details class="rmc-collapsable rmc-security-posture-banner rmc-security-posture-banner--danger" data-rmc-security-posture-banner="1" data-rmc-collapsable-chrome="bare" open>
+  <summary class="rmc-collapsable__head">
+    <span class="rmc-collapsable__title">{% trans "Account at risk" %}</span>
+    <span class="rmc-collapsable__chevron" aria-hidden="true">▾</span>
+  </summary>
+  <div class="rmc-collapsable__body rmc-security-posture-banner__body">
+    <p class="rmc-security-posture-banner__copy mb-0">
+      {% blocktrans with score=account_security_score %}Security strength {{ score }}/100. Enable MFA and fix critical issues.{% endblocktrans %}
+    </p>
+    <div class="rmc-security-posture-banner__actions">
+      <a class="btn btn-sm btn-danger" href="{% url 'accounts:user_profile' %}#profile-security-strength">{% trans "Fix security" %}</a>
+    </div>
   </div>
-  <a class="btn btn-sm btn-danger" href="{% url 'accounts:user_profile' %}#profile-security-strength">{% trans "Fix security" %}</a>
-</div>
+</details>
 {% endif %}

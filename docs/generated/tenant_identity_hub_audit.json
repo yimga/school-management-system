@@ -1,0 +1,126 @@
+{
+  "generated_at": "2026-05-25T11:11:07.115840+00:00",
+  "finding_count": 1,
+  "rows": [
+    {
+      "check_id": "urls-roster",
+      "ok": true,
+      "proof": "accounts/urls.py"
+    },
+    {
+      "check_id": "urls-invite",
+      "ok": true,
+      "proof": "accounts/urls.py"
+    },
+    {
+      "check_id": "urls-accept",
+      "ok": true,
+      "proof": "accounts/urls.py"
+    },
+    {
+      "check_id": "urls-regulator",
+      "ok": true,
+      "proof": "accounts/urls.py regulator"
+    },
+    {
+      "check_id": "model-invite",
+      "ok": true,
+      "proof": "TenantStaffInvite model"
+    },
+    {
+      "check_id": "helpers-module",
+      "ok": true,
+      "proof": "tenant_identity.py"
+    },
+    {
+      "check_id": "views-module",
+      "ok": true,
+      "proof": "views_tenant_identity.py"
+    },
+    {
+      "check_id": "template-roster",
+      "ok": true,
+      "proof": "tenant_identity_roster.html"
+    },
+    {
+      "check_id": "forms-school-scope",
+      "ok": true,
+      "proof": "forms school scope"
+    },
+    {
+      "check_id": "rbac-membership-guard",
+      "ok": true,
+      "proof": "rbac membership guard"
+    },
+    {
+      "check_id": "rbac-edit-role-school-scoped",
+      "ok": true,
+      "proof": "rbac edit_role GET scoped"
+    },
+    {
+      "check_id": "admin-tenant-scope",
+      "ok": true,
+      "proof": "TenantScopedUserAdmin"
+    },
+    {
+      "check_id": "admin-staff-invite",
+      "ok": true,
+      "proof": "TenantStaffInviteAdmin"
+    },
+    {
+      "check_id": "api-staff-bypass-removed",
+      "ok": true,
+      "proof": "tenant_switch_security"
+    },
+    {
+      "check_id": "nav-link",
+      "ok": true,
+      "proof": "portal sidebar"
+    },
+    {
+      "check_id": "trust-hub-link",
+      "ok": true,
+      "proof": "trust hub urls"
+    },
+    {
+      "check_id": "roster-pagination",
+      "ok": true,
+      "proof": "roster template"
+    },
+    {
+      "check_id": "roster-dead-hrefs",
+      "ok": true,
+      "proof": "no dead hrefs"
+    },
+    {
+      "check_id": "iam-localization-module",
+      "ok": true,
+      "proof": "iam_localization.py"
+    },
+    {
+      "check_id": "regulator-grant-view",
+      "ok": true,
+      "proof": "regulator grant view"
+    },
+    {
+      "check_id": "template-regulator",
+      "ok": true,
+      "proof": "regulator template"
+    },
+    {
+      "check_id": "localized-role-roster",
+      "ok": true,
+      "proof": "localized roles in views"
+    },
+    {
+      "check_id": "migration-0037",
+      "ok": true,
+      "proof": "0037 migration"
+    },
+    {
+      "check_id": "django-tests",
+      "ok": false,
+      "proof": " (apps.accounts.tests.test_tenant_rbac_scope.TenantRbacScopeTests.test_rbac_get_edit_role_rejects_other_school_role)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\accounts\\tests\\test_tenant_rbac_scope.py\", line 78, in test_rbac_get_edit_role_rejects_other_school_role\n    self.assertIsNone(response.context_data.get(\"edit_role_id\"))\n                      ^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'HttpResponse' object has no attribute 'context_data'\n\n----------------------------------------------------------------------\nRan 16 tests in 105.839s\n\nFAILED (errors=1)\nPreserving test database for alias 'default'..."
+    }
+  ]
+}

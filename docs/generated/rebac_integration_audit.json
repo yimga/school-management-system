@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-05-25T11:30:28.949508+00:00",
+  "blocker_count": 0,
+  "gap_count": 0,
+  "rows": [
+    {
+      "check_id": "api-snapshot-url",
+      "ok": true,
+      "detail": "permission_snapshot route",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "api-intent-url",
+      "ok": true,
+      "detail": "iam_intent route",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "apps-rebac-signals",
+      "ok": true,
+      "detail": "apps.py ready()",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "models-imported",
+      "ok": true,
+      "detail": "models.py re-export",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "settings-rmc-rebac",
+      "ok": true,
+      "detail": "RMC_REBAC_* env",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "pdp-inject-rebac",
+      "ok": true,
+      "detail": "PDP context",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "manifest-postgres-rebac",
+      "ok": true,
+      "detail": "manifest status",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "client-js-snapshot-cache",
+      "ok": true,
+      "detail": "rmc-iam-snapshot-cache.js",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "finance-rebac-permission",
+      "ok": true,
+      "detail": "finance ViewSets",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "grades-rebac-enforce",
+      "ok": true,
+      "detail": "mobile sync_batch grades",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "portal-wires-snapshot-js",
+      "ok": true,
+      "detail": "portal_base",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "offline-action-iam-type",
+      "ok": true,
+      "detail": "SODP registry",
+      "severity": "blocker"
+    },
+    {
+      "check_id": "migration-0039",
+      "ok": true,
+      "detail": "C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\accounts\\migrations\\0039_rebac_tuples_offline_iam.py",
+      "severity": "blocker"
+    }
+  ]
+}

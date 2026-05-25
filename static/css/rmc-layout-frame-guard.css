@@ -72,7 +72,25 @@ body.control-plane-shell
 
 @media (min-width: 992px) {
   body.control-plane-shell
-    #cp-main-content [data-rmc-operational-workbench="1"] .rmc-wcx-summary-strip {
+    #cp-main-content [data-rmc-operational-workbench="1"] .rmc-wcx-summary-strip,
+  body.control-plane-shell
+    #cp-main-content [data-page-archetype="operational-workbench"] .rmc-wcx-summary-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+body.portal-body-with-layout
+  :is(#main-content, .portal-page-body, .rmc-app-shell__canvas-body)
+  :is([data-rmc-operational-workbench="1"], [data-page-archetype="operational-workbench"])
+  .rmc-wcx-summary-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 992px) {
+  body.portal-body-with-layout
+    :is(#main-content, .portal-page-body)
+    :is([data-rmc-operational-workbench="1"], [data-page-archetype="operational-workbench"])
+    .rmc-wcx-summary-strip {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

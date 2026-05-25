@@ -362,6 +362,19 @@ def main() -> int:
             print(f"Unknown pillar: {args.pillar}", file=sys.stderr)
             return 1
 
+    # 6-dimension honest scoring layer (batch 1492 audit closure).
+    # Sibling module avoids regressing legacy 2-axis consumers.
+    try:
+        from apps.platform_runtime.geos_scoring_semantics import (  # noqa: E402
+            NATIVE_APP_STATUS_DEFERRED,
+            NATIVE_APP_STRATEGY,
+            score_pillar,
+        )
+    except Exception:  # pragma: no cover — defensive import
+        score_pillar = None  # type: ignore
+        NATIVE_APP_STATUS_DEFERRED = "DEFERRED"
+        NATIVE_APP_STRATEGY = "PWA-first"
+
     rows = []
     all_repo_pass = True
     for pr in pillars:
@@ -369,24 +382,45 @@ def main() -> int:
         composite = pr.composite_pct(live_pct)
         if pr.repo_pct < REPO_TARGET:
             all_repo_pass = False
-        rows.append(
-            {
-                "pillar_id": pr.pillar_id,
-                "title": pr.title,
-                "repo_pct": pr.repo_pct,
-                "live_pct": live_pct,
-                "composite_pct": composite,
-                "checks": [
-                    {
-                        "check_id": c.check_id,
-                        "description": c.description,
-                        "passed": c.passed,
-                        "proof": c.proof,
-                    }
-                    for c in pr.checks
-                ],
+        row = {
+            "pillar_id": pr.pillar_id,
+            "title": pr.title,
+            "repo_pct": pr.repo_pct,
+            "live_pct": live_pct,
+            "composite_pct": composite,
+            "checks": [
+                {
+                    "check_id": c.check_id,
+                    "description": c.description,
+                    "passed": c.passed,
+                    "proof": c.proof,
+                }
+                for c in pr.checks
+            ],
+        }
+        if score_pillar is not None:
+            honest = score_pillar(
+                pillar_id=pr.pillar_id,
+                repo_pct=pr.repo_pct,
+                legacy_live_pct=live_pct,
+                # Conservative defaults — only flip True when on-disk live/external proof lands.
+                has_public_live_evidence=False,
+                has_external_vendor_evidence=False,
+                has_pwa_browser_evidence=False,
+            )
+            row["honest"] = {
+                "repo_pct": honest.repo_pct,
+                "internal_pilot_pct": honest.internal_pilot_pct,
+                "public_live_pct": honest.public_live_pct,
+                "pwa_pct": honest.pwa_pct,
+                "external_vendor_pct": honest.external_vendor_pct,
+                "market_ready_pct": honest.market_ready_pct,
+                "composite_pct": honest.composite_pct,
+                "native_app_status": honest.native_app_status,
+                "verdict": honest.verdict,
+                "explanation": honest.explanation,
             }
-        )
+        rows.append(row)
 
     overall_repo = round(
         sum(r["repo_pct"] for r in rows) / len(rows) if rows else 0.0, 1
@@ -399,8 +433,24 @@ def main() -> int:
         1,
     )
 
+    honest_overall = {}
+    if rows and "honest" in rows[0]:
+        def _avg(field: str) -> float:
+            return round(sum(r["honest"][field] for r in rows) / len(rows), 1)
+        honest_overall = {
+            "repo_pct": _avg("repo_pct"),
+            "internal_pilot_pct": _avg("internal_pilot_pct"),
+            "public_live_pct": _avg("public_live_pct"),
+            "pwa_pct": _avg("pwa_pct"),
+            "external_vendor_pct": _avg("external_vendor_pct"),
+            "market_ready_pct": _avg("market_ready_pct"),
+            "composite_pct": _avg("composite_pct"),
+            "native_app_status": NATIVE_APP_STATUS_DEFERRED,
+            "native_app_strategy": NATIVE_APP_STRATEGY,
+        }
+
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repo_target_pct": REPO_TARGET,
         "verdict": "GEOS_99_MATRIX_PASS" if all_repo_pass else "GEOS_99_MATRIX_FAIL",
@@ -409,6 +459,7 @@ def main() -> int:
             "live_pct": overall_live,
             "composite_pct": overall_composite,
         },
+        "honest_overall": honest_overall,
         "pillars": rows,
     }
 

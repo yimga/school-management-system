@@ -40,6 +40,9 @@ def main() -> int:
     shell_checks = [
         ("templates/portal_base.html", "back_to_top.html", "rmc-page-fold-standards"),
         ("templates/control_plane_skeleton.html", "back_to_top.html", "rmc-page-fold-standards"),
+        ("templates/base.html", "back_to_top.html", "rmc-page-fold-standards"),
+        ("templates/marketing/base_marketing.html", "back_to_top.html", "rmc-page-fold-standards"),
+        ("templates/admin/base.html", "back_to_top.html", "rmc-page-fold-standards"),
         ("templates/portal_base.html", 'data-rmc-page-fold-nav="required"', "manager"),
         ("templates/control_plane_base.html", 'data-rmc-page-fold-nav="required"', "cp-page-body"),
     ]

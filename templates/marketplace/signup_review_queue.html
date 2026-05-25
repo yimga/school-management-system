@@ -4,7 +4,7 @@
 {% block title %}{% trans "Publisher signups" %}{% endblock %}
 
 {% block backend_page %}
-<div class="container py-4" data-page="marketplace-signup-review-queue">
+<div class="container py-4" data-page="marketplace-signup-review-queue" data-rmc-scroll-policy="paginate">
   <h1 class="h3 mb-3">{% trans "Publisher signup queue" %}</h1>
   {% if messages %}
     {% for m in messages %}<div class="alert alert-info">{{ m }}</div>{% endfor %}
@@ -42,7 +42,10 @@
               {% endif %}
             </td>
             <td>
-              <form method="post" action="{% url 'super:marketplace_signup_decide' signup_id=s.id %}" class="d-inline">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'super:marketplace_signup_decide' signup_id=s.id %}" class="d-inline">
                 {% csrf_token %}
                 <input type="text" name="notes" placeholder="{% trans 'Notes' %}" class="form-control form-control-sm d-inline-block" style="width:9rem;">
                 <button name="action" value="approve" class="btn btn-sm btn-success"
@@ -51,7 +54,8 @@
                 </button>
                 <button name="action" value="reject" class="btn btn-sm btn-outline-danger">{% trans "Reject" %}</button>
               </form>
-            </td>
+                  </motion>
+                </details></td>
           </tr>
           {% endfor %}
         </tbody>

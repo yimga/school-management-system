@@ -12,6 +12,10 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_PROVISION,
+    require_platform_scope,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +43,7 @@ from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
 
 
 @require_POST
+@require_platform_scope(PLATFORM_SCOPE_PROVISION)
 def api_create_school(request):
     """
     Validate payload, create School row (is_active=False), enqueue provisioning task.

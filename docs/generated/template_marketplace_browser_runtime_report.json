@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T22:00:00+00:00",
+  "batch": 1506,
+  "specs_present": [
+    "tests/e2e/template-marketplace.spec.js (existing batch 1401)",
+    "tests/e2e/template-marketplace-runtime.spec.js (NEW batch 1506)"
+  ],
+  "browser_run_in_this_batch": false,
+  "blocker_reason": "Browser execution requires provisioned tenant + running web server + Playwright runner. Not available in repo CI sandbox.",
+  "contract_specs_cover": [
+    "marketplace browse route loads with at least one card",
+    "preview returns 200 + no console errors",
+    "apply requires POST + CSRF (GET shows confirmation, never auto-applies)",
+    "operator-only template returns 404 in tenant scope",
+    "no horizontal overflow at 390x844 mobile viewport"
+  ],
+  "fallback_repo_scope_runtime_tests": {
+    "apps.brand_experience.tests.test_template_marketplace_runtime": 5,
+    "apps.brand_experience.tests.test_template_preview_apply_rollback_runtime": 4,
+    "apps.brand_experience.tests.test_template_tenant_boundary_runtime": 4,
+    "apps.siteconfig.tests.test_tenant_studio_template_selection_runtime": 4,
+    "apps.studio_os.tests.test_studio_os_template_integration_runtime": 5,
+    "total_pass": 22
+  },
+  "verdict": "TEMPLATE MARKETPLACE BROWSER RUNTIME — SPECS READY; BROWSER EXECUTION PENDING LANE 2."
+}

@@ -1,5 +1,165 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Postgres ReBAC + offline IAM snapshot batch 1507 (2026-05-24)
+
+**A. Scope:** Implement local-first IAM recommendations — Postgres tuples on hub, signed read-only permission snapshots, offline intent queue (no CRDT admin).
+
+**B. Shipped:** `RelationshipTuple`, `OfflineAccessIntent`, `rebac`/`rebac_sync`/`rebac_signals`/`iam_snapshot`/`rebac_intents`; APIs `permission_snapshot` + `iam_intent`; offline token bundles snapshot; PDP rebac context; settings `RMC_REBAC_*`; `verify_iam_rebac_offline.py`; tests **7/7**.
+
+**C. Proof:** **IAM_REBAC_OFFLINE_PASS**; **IAM_IDENTITY_10X_PASS**; `manage.py check` clean.
+
+**D. SOT:** §11.4 batch **1507** **DONE**.
+
+## Slice — IAM identity 10x batch 1506 (2026-05-24)
+
+**A. Scope:** Close deferred IAM items; 10x security posture; full super scope pass; PDP + seeding.
+
+**B. Shipped:** Minimum strength middleware; posture UI; wave2 scopes (126/126); PDP on RBAC/tenant identity; seed commands; permission manifest v1; `verify_iam_identity_10x.py`; import repair script.
+
+**C. Proof:** **IAM_IDENTITY_10X_PASS**; `manage.py check` clean.
+
+**D. SOT:** §11.4 batch **1506** **DONE**.
+
+## Slice — Batch 1505 re-audit closeout (2026-05-24)
+
+**A. Scope:** Re-run deferral audit; fix gaps missed in first 1505 pass.
+
+**B. Shipped:** RBAC `?edit_role=` IDOR fix; school-scoped temporary-grant panel; legacy SIS preview + support CSV export scopes; verifier expanded (migration ack/waive, rbac static pin); `audit_batch_1505_completeness.py`.
+
+**C. Proof:** **BATCH_1505_COMPLETENESS_PASS**; **SUPER_PLATFORM_SCOPE_COVERAGE_PASS**; **OPERATOR_IDENTITY_HUB_PASS**. Django suite slow on Windows sandbox (5+ min startup); `test_rbac_get_edit_role_rejects_other_school_role` switched to `RequestFactory`.
+
+**D. SOT:** §11.4 batch **1505** re-audit note appended.
+
+## Slice — Platform scope + AccessRole school catalog batch 1505 (2026-05-24)
+
+**A. Scope:** Close structural deferrals from 1503/1504 handoff — broader `/super/` scope gates + tenant `AccessRole` school FK with global-template inheritance.
+
+**B. Shipped:** Scope decorators across monitoring/runtime/policy/config/trust/migration/beyond-reach/enterprise-security modules; `verify_super_platform_scope_coverage.py`; `AccessRole.school` + `0038`; `access_roles.py`; RBAC/forms/views/admin/regulator grant wiring; `test_access_role_school_scope.py`.
+
+**C. Proof:** **SUPER_PLATFORM_SCOPE_COVERAGE_PASS**; **IDENTITY_ACCESS_COMPLETION_PASS**; **OPERATOR_IDENTITY_HUB_PASS**; **TENANT_IDENTITY_HUB_PASS**; accounts scope tests **7/7 OK**; `makemigrations --check` clean.
+
+**D. SOT:** §11.4 batch **1505** **DONE**. **Deferred:** PDP enforce + RBAC matrix anonymous routes; full `/super/` wedge/catalog scope pass.
+
+## Slice — Dual-plane identity revalidation batch 1504 (2026-05-24)
+
+**A. Scope:** Post-1503 audit/validation; close test flakes, admin registration gap, and RBAC manage gate precision.
+
+**B. Shipped:** `TenantStaffInviteAdmin`; operator suspend/reactivate tests; tenant view tests via `RequestFactory`; `_IDENTITY_HUB_MANAGE_ROLES` gate; verifier keepdb/fresh isolation; `audit_identity_access_revalidation.py`.
+
+**C. Proof:** **IDENTITY_ACCESS_REVALIDATION_PASS**; **IDENTITY_ACCESS_COMPLETION_PASS**; **TENANT_IDENTITY_HUB_PASS**; **OPERATOR_IDENTITY_HUB_PASS**; dead-hrefs **0**.
+
+**D. SOT:** §11.4 batch **1504** **DONE**.
+
+## Slice — Dual-plane identity & access E2E batch 1503 (2026-05-24)
+
+**A. Scope:** After local-first audit, close tenant + operator identity planes end-to-end in-repo (hubs, scopes, regulator grant, IAM labels, verifiers).
+
+**B. Shipped:** Tenant hub (`views_tenant_identity.py`, `tenant_identity.py`, `TenantStaffInvite`, templates, URLs); `iam_localization.py` + regulator grant; RBAC/admin/API scope fixes; operator suspend/reactivate; billing + audit export `require_platform_scope`; `verify_identity_access_completion.py`; extended hub verifiers; tests `test_iam_localization`.
+
+**C. Proof:** **IDENTITY_ACCESS_COMPLETION_PASS**; **TENANT_IDENTITY_HUB_PASS**; **OPERATOR_IDENTITY_HUB_PASS**; sqlite memory tests for tenant + operator identity modules.
+
+**D. SOT:** §11.4 batch **1503** **DONE**. **SW:** `sms-v3.90.47-tenant-operator-identity-e2e-2026-05-24`. **Deferred:** Zanzibar/CRDT/colon IAM manifest (not claimed).
+
+## Slice — Security posture banner + sidebar disclosure sweep closeout (2026-05-24)
+
+**A. Scope:** Last sweep after audit — collapsible quarterly MFA banner on all operator/tenant shells, eliminate canvas void below banner, sidebar accordion scroll without breaking collapse, CI + tests + SOT.
+
+**B. Shipped:** `shell_chrome_security_posture_banner.html`, `_security_posture_banner.html` (details/collapse/snooze), `rmc-security-posture-banner-layout.css`, `rmc_security_posture_layout_styles.html` on CP/portal/admin heads; `inline_security_posture_banner_active()` corner dedupe; `audit_security_posture_banner_layout.py` + generated JSON; sidebar disclosure contract (prior tranche) verified; architectural-boundaries `theme-visibility-platform` job extended.
+
+**C. Proof:** `SECURITY_POSTURE_BANNER_LAYOUT_PASS`; `SIDEBAR_DISCLOSURE_OVERFLOW_PASS`; `verify_sidebar_rail_contract` PASS; dead-hrefs **0**; sticky-overflow **0**; accounts security tests **7/7 OK**.
+
+**D. SOT:** §11.4 batch **1502** **DONE**. **SW:** `sms-v3.90.46-security-posture-sidebar-sweep-closeout-2026-05-24`.
+
+## Slice — Help/nav validation audit closeout (2026-05-24)
+
+**A. Scope:** Run batch 1500 validation audit; close verifier gaps blocking aggregate gate.
+
+**B. Shipped:** Fixed `verify_help_center_tiers.py` batch-1500 checks (`build_manager_complete_sidebar_groups` in `manager_nav_convergence.py`; multi-needle context check); aggregate gate `verify_help_nav_finish_audit.py`.
+
+**C. Proof:** `verify_help_center_tiers.py` → **HELP_CENTER_TIERS_PASS** (134); `verify_help_nav_finish_audit.py` → **HELP_NAV_FINISH_AUDIT_PASS** (4/4 families); KB seed **51 updated**; audit refresh **0/70 missing**; tests **7/7 OK**.
+
+**D. SOT:** §11.4 batch **1500** proof line updated with aggregate gate + test count.
+
+## Slice — Help + nav finish line batch 1500 (2026-05-24)
+
+**A. Scope:** Finish all deferred help/nav items — enriched 51-article KB corpus, complete sidebar tree (CP + admin catalog), platform-wide back-to-top.
+
+**B. Shipped:** `workflow_kb_corpus_enrich.py`; P0 corpus editorial upgrade; `build_manager_complete_sidebar_groups()` + `manager_complete_sidebar_nav.html`; `verify_workflow_kb_corpus_quality.py`; `verify_platform_back_to_top.py`; admin/base fold assets + back-to-top idempotent JS.
+
+**C. Proof:** corpus quality **51/51**; `MANAGER_COMPLETE_SIDEBAR_PASS` (27 groups); `PLATFORM_BACK_TO_TOP_PASS`; page-fold **24/24**; tests **4/4 OK**.
+
+**D. SOT:** §11.4 batch **1500** marked **DONE**. **SW:** `sms-v3.90.38-complete-sidebar-kb-finish-2026-05-24`.
+
+## Slice — Admin/super unified sidebar nav batch 1499 (2026-05-24)
+
+**A. Scope:** Full nav convergence for shared sidebar head — one Python nav model + one template partial on both `/admin/` and `/super/`.
+
+**B. Shipped:** `build_manager_unified_sidebar_groups()` (Start + Guided setup); `manager_unified_sidebar_groups.html`; context `MANAGER_UNIFIED_SIDEBAR_GROUPS`; removed duplicate Start from `CONTROL_PLANE_NAV`; pin index includes unified items.
+
+**C. Proof:** `verify_manager_nav_convergence.py` → **MANAGER_NAV_UNIFIED_SIDEBAR_PASS** (11); `test_manager_nav_convergence` **4/4 OK**.
+
+**D. SOT:** §11.4 batch **1499** marked **DONE**.
+
+**E. Honest residual:** CP domain groups + admin app catalog remain surface-specific below unified head.
+
+**F. SW:** `sms-v3.90.37-unified-sidebar-nav-2026-05-24`.
+
+## Slice — Help Center Phase 9 closeout batch 1498 (2026-05-24)
+
+**A. Scope:** Finish Help Center 10× end-to-end — Phase 9 full workflow KB corpus, 14 high-stakes editorial runbooks, admin/super nav convergence bridge, tenant hub merge, auto-draft production default.
+
+**B. Shipped:** `workflow_kb_corpus_audit.py` + `workflow_kb_corpus_editorial.py` (editorial wins on merge); `manager_nav_convergence.py` + CP/admin Start cross-links; `verify_workflow_kb_corpus.py`, `verify_workflow_kb_editorial.py`, `verify_manager_nav_convergence.py`; tenant `support_help_hub` redirect; `HELP_ZERO_RESULT_AUTO_DRAFT_KB` staging/prod default; inline AI on evals/siteconfig/migration dashboards.
+
+**C. Proof:** `verify_workflow_kb_corpus.py` **WORKFLOW_KB_CORPUS_PASS** (51); `verify_workflow_kb_editorial.py` **WORKFLOW_KB_EDITORIAL_PASS** (14); `verify_manager_nav_convergence.py` **MANAGER_NAV_CONVERGENCE_PASS**; `verify_help_center_tiers.py` **128 PASS**; tests **5/5 OK**; audit KB status **0/70 missing**.
+
+**D. SOT:** §11.4 batch **1498** marked **DONE**.
+
+**E. Honest residual:** Non-high-stakes audit runbooks templated — editorial passes over time; full single-nav-model (identical sidebars) deferred — convergence bridge only.
+
+**F. SW:** `sms-v3.90.36-editorial-nav-convergence-2026-05-24`.
+
+## Slice — Operator Identity 10× canonical admin guard + UI closeout batch 1501 (2026-05-24)
+
+**A. Scope:** Preserve **admin/admin** as non-offboardable break_glass operator; close UI gaps on team hub templates; extend tests and verifier.
+
+**B. Files:** `operator_identity.py` (`CANONICAL_PLATFORM_ADMIN_USERNAME`, `user_may_offboard_operator`, `ensure_platform_operator_profile`); migration `0075_ensure_admin_operator_profile`; `ensure_superuser.py` profile sync on all paths; `super_views_operator_team.py` guards; team templates roster/detail/invite/promote polish; `test_operator_identity.py` + `test_ensure_superadmin_command.py`; `verify_operator_identity_hub.py`; SW bump.
+
+**C. Proof:** `verify_operator_identity_hub.py` → **OPERATOR_IDENTITY_HUB_PASS**; `test_operator_identity` + `test_ensure_superadmin_command` **11/11 OK**; `scan_operator_shell_dead_hrefs --strict` **0**; `audit_template_render_safety.py` **0**.
+
+**D. SOT:** §11.4 batch **1501** marked **DONE**.
+
+**E. Residual:** Lane 2 Playwright operator-team visual matrix on staging.
+
+**F. SW:** `sms-v3.90.40-operator-identity-admin-guard-closeout-2026-05-24`.
+
+## Slice — Operator Identity 10× hub batches 1493–1497 (2026-05-24)
+
+**A. Scope:** End-to-end platform operator user management — models, `/super/team/` hub, MFA gate, lifecycle, dual-control promotion, break-glass admin scoping, impersonation peer picker, verification.
+
+**B. Files:** `apps/platform_runtime/{operator_identity.py,models_operator_identity.py,migrations/0074_*,admin.py}`; `apps/schools/{super_views_operator_team.py,super_urls.py,middleware_operator_mfa.py,super_views_impersonation.py,super_views_dashboard_surfaces.py,control_plane_nav.py,super_views_config.py}`; `apps/accounts/{admin.py,urls.py}`; `apps/feedback/services.py`; `templates/schools/super_operator_team_*.html`; `templates/accounts/operator_invite_accept.html`; `templates/schools/super_dashboard.html`; `config/settings.py`; `scripts/verify_operator_identity_hub.py`; `docs/plans/OPERATOR_IDENTITY_10X_PLAN.md`; SW bump.
+
+**C. Proof:** `python scripts/verify_operator_identity_hub.py` → **OPERATOR_IDENTITY_HUB_PASS**; `apps.platform_runtime.tests.test_operator_identity` green; migration `0074` applied.
+
+**D. SOT:** §11.4 batches **1493–1497** marked **DONE**.
+
+**E. Residual:** Lane 2 Playwright MFA redirect smoke; env-level `CONTROL_PLANE_OPERATOR_ROLES` flip remains runbook-driven.
+
+**F. SW:** `sms-v3.90.35-operator-identity-10x-hub-2026-05-24`.
+
+## Slice — CP v8 closeout: MFA inline + dropdown viewport + admin HTTP sweep batch 1492 (2026-05-24)
+
+**A. Scope:** Close optional CP v8 residuals: inline MFA on profile, platform-wide header dropdown clipping (profile + workspace + language), Advanced/admin changelist HTTP smoke, SOT record.
+
+**B. Shipped:** `mfa_setup_flow.py` + `_mfa_setup_wizard_inline.html` on profile/operator body; `rmc-dropdown-viewport-safe.css` + `rmc-dropdown-viewport-safe.js` on all shells via `rmc_platform_chrome_styles` + post-bootstrap boot; hardened `user_dropdown.html` + `rmc_operator_workspace_dropdown.html` + `language_switcher.html`; `verify_header_dropdown_viewport.py`; stripped 28 `content-max-*` (prior pass) + v8 layout contract.
+
+**C. Proof:** `verify_header_dropdown_viewport.py` PASS; `ADMIN_RENDER_FULL=1 verify_admin_changelist_render_contract.py` (run in session); `test_mfa_inline_profile` + `test_control_plane_nav` + `test_security_posture_notifications`; `scan_operator_shell_dead_hrefs --strict` 0; SW `sms-v3.90.31-cp-dropdown-mfa-inline-admin-sweep-2026-05-24`.
+
+**D. Residual:** Playwright visual dropdown matrix on staging; full 5351-test sqlite suite on Windows file-lock hosts.
+
+**E. SW:** `sms-v3.90.31-cp-dropdown-mfa-inline-admin-sweep-2026-05-24`.
+
+**F. Verdict:** **CP V8 OPERATOR CLOSEOUT — REPO SCOPE COMPLETE.**
+
 ## Slice — Tenant portal residuals batch 1491 (2026-05-24)
 
 **A. Scope:** Close batch 1490 residuals for all tenants: server pagination on parent finance, teacher marks pager, teacher/admin hero live metrics, Lane 2 E2E without subdomain DNS dependency.
@@ -30281,3 +30441,51 @@ Both families share the same root: shell theme tokens not yet meeting WCAG 1.4.3
 **E. Tests:** `MarketingLocalFirstTiersTests` merged into `test_marketing_validation.py`; `SecurityPacketCountryAnnexTests` (SimpleTestCase). Full `manage.py test apps.schools.tests.test_marketing_validation` may hang on Windows SQLite migrate—use `python scripts/run_sqlite_memory_tests.py … --keepdb` or CI Linux.
 
 **F. Tier 4 (operator, post-deploy):** Production deploy; `npm run test:e2e:marketing:theme` against live host; optional `MARKETING_SCALE_*` env when consent to publish real counts.
+
+## §11.4 batch 1506 — Runtime Proof Hardening (2026-05-24)
+
+**A. Goal:** Close the runtime-proof-hardening audit findings without overclaim. Convert contract-only systems into runtime-real services. Refresh stale security register. Honest GEOS 6-dimension scoring. PWA stance preserved as PWA-first / native-deferred.
+
+**B. Modules added (7 runtime engines):**
+- `apps/communication/channel_adapter.py` — ChannelAdapter protocol + registry + selection + audit callback
+- `apps/finance/payment_rail_adapter.py` — PaymentRailAdapter protocol + registry + idempotency + signed webhook verify; ManualFallbackRail always available
+- `apps/sync_engine/tenant_manifest_compiler.py` — deterministic manifest compile + PII scrub + signature posture
+- `apps/global_registries/schema_mapping.py` — 20-field canonical registry + heuristic mapper
+- `apps/interop/transfer_envelope.py` — student/teacher envelopes + canonical-field validation
+- `apps/observability/telemetry_buffer.py` — offline buffer + capacity FIFO + signed flush
+- `apps/migration_cloud/ai_auto_mapping.py` — proposal layer + credential rejection + human review gate; routes through services.ai_helpers when AI engaged
+
+**C. Micro-friction services added (top 3 audit priority):**
+- `apps/schoolops/substitute_handover.py` — time-boxed, medical/IEP gated by default
+- `apps/finance/permission_to_pay.py` — guardian threshold + routes through payment_rail_adapter
+- `apps/schoolops/lost_belongings_qr.py` — anonymous custody loop + PII-redacted notes
+
+**D. GEOS scoring honesty:**
+- `apps/platform_runtime/geos_scoring_semantics.py` — 6-dimension model (repo / internal_pilot / public_live / pwa / external_vendor / market_ready / composite)
+- `scripts/verify_geos_scoring_semantics.py --write` — wrote `docs/generated/geos_scoring_semantics_hardening.{json,md}`
+- Honest composite=0.0% until public-live + external-vendor evidence lands; native_app_status=DEFERRED
+
+**E. GraphQL:**
+- `docs/generated/graphql_production_safety_hardening.{json,md}` — narrow schema gate; introspection off-by-default; IP throttle; JSON-only content-type
+- `apps/api/tests/test_graphql_security_contract.py` (8 tests) + `apps/security/tests/test_graphql_tenant_safety.py` (5 tests)
+
+**F. Security refresh:**
+- `docs/generated/security_register_refresh_1491.{json,md}` — supersedes 2026-05-19 register
+- `docs/generated/allowany_targeted_review.{json,md}` (39 sites)
+- `docs/generated/subprocess_surface_review.{json,md}` (407 sites)
+- `docs/generated/csrf_exempt_targeted_review.{json,md}` (existing batch 1488, preserved)
+
+**G. PWA artifacts (4 pairs):**
+- `pwa_first_mobile_launch_strategy` / `pwa_offline_storage_manifest` / `pwa_native_wrapper_deferment_plan` / `pwa_runtime_proof_hardening`
+
+**H. Template marketplace, Lane 2, comm/finance/sync, live/external boundary:** proof artifacts emitted.
+
+**I. Service worker:** bumped `sms-v3.90.46-security-posture-sidebar-sweep-closeout-2026-05-24` → `sms-v3.91.0-runtime-proof-hardening-2026-05-24`. `verify_service_worker_version.py --check-monotonic` PASS.
+
+**J. Tests:** 52 new runtime tests across 12 test modules — **52/52 PASS** in 0.047s. `manage.py check` clean.
+
+**K. Zero-tolerance scanners (all baseline 0):** subprocess_shell_true, pii_logging_smell, ai_gateway_boundary, sentry_boundary, money_float, print_statements, bare_except, assert_in_production, drf_schema_coverage, migration_model_imports.
+
+**L. External blockers preserved (DEFERRED):** PSP live settlement, SOC2 PDF + counsel signoff, Render SHA parity, multi-corridor pilots, live LiteLLM keys, Postgres RLS prod, WhatsApp Cloud API, FACTS/Skyward write paths (counsel docket), MAA v2.0 promotion (counsel signoff).
+
+**M. Verdict:** **RUNTIME PROOF HARDENING READY — FOCUSED REPO SCOPE.** Honest GEOS 6-dimension composite=0.0% pending live/external proof; no repo-side gap remains.

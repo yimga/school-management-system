@@ -71,7 +71,18 @@ body.control-plane-shell nav.cp-sidebar-inner[data-rmc-cp-sidebar-v8="1"] {
   gap: 4px;
   min-width: 0;
   height: 100%;
+  max-height: 100%;
   box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+body.control-plane-shell .rmc-app-shell__sidebar {
+  overflow: hidden;
+  min-height: 0;
 }
 
 /* Workspace context intentionally omitted on /super/ — hide if legacy include remains */
@@ -141,6 +152,29 @@ body.admin-manager-shell .cp-sidebar__group-list {
 
 body.admin-manager-shell .cp-sidebar__group--apps {
   margin-top: 0.25rem;
+}
+
+body.admin-manager-shell nav[data-rmc-platform-admin-sidebar="1"] {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+/* Nested scroll removed — rmc-sidebar-disclosure-contract.css (parent rail scrolls). */
+body.admin-manager-shell .cp-platform-admin-app-tree,
+body.admin-manager-shell #cp-admin-sidebar-apps {
+  max-height: none;
+  overflow: visible;
+}
+
+body.admin-manager-shell .cp-platform-admin-app-tree .app-list,
+body.admin-manager-shell .cp-platform-admin-app-tree #nav-sidebar {
+  max-height: none;
 }
 
 body.admin-manager-shell .cp-sidebar__group-toggle {

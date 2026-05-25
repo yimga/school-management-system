@@ -130,7 +130,11 @@ class MigrationCloudWebhookListView(View):
                 qs = qs.filter(tenant_id=int(tenant_filter))
         except (TypeError, ValueError):
             pass
-        rows = [_row_for_table(r) for r in qs[:500]]
+        paginator = Paginator(qs.order_by("-created_at"), 25)
+        page_obj = paginator.get_page(request.GET.get("page") or 1)
+        extra = request.GET.copy()
+        extra.pop("page", None)
+        rows = [_row_for_table(r) for r in page_obj.object_list]
         # v3.35.0 — webhook header family migration banner state.
         from apps.migration_cloud.api.webhook_dispatch import (
             _emit_legacy_headers_enabled,
@@ -143,6 +147,8 @@ class MigrationCloudWebhookListView(View):
             "page_title": "Migration Cloud — webhook subscriptions",
             "shell": kwargs.get("shell", "super"),
             "rows": rows,
+            "page_obj": page_obj,
+            "pagination_extra_query": extra.urlencode(),
             "filter_tenant_id": tenant_filter or "",
             "header_migration_window_active": _legacy_header_window_active(),
             "header_migration_deadline": deadline,

@@ -24,12 +24,12 @@ ROOT = DEFAULT_ROOT
 
 NAME_PATTERN = re.compile(r"(plan|roadmap|remediation|master)", flags=re.IGNORECASE)
 
-# Baseline re-set 2026-05-24 batch 1489 (all docs/**/*.md, and root docs/*.md respectively).
-# Was 155 at 2026-05-14 baseline; legitimate plan accumulation across 2026-05-14 -> 2026-05-24
-# (PREVIEW_SHELL_100X_PARITY_PLAN / SOVEREIGN_FINANCIAL_DELIVERY_PLATFORM_PLAN /
-# STRIPE_CONNECT_PLATFORM_SETTLEMENT_PLAN / SOVEREIGN_OFFLINE_ONLINE_DELIVERY_PLATFORM_PLAN /
-# LOCAL_FIRST_TEMPLATE_MARKETPLACE_PLAN). None from batch 1489 itself match the pattern.
-MAX_MATCHING_DOCS_TOTAL = 160
+# Baseline re-set 2026-05-24 batch 1504 (Runtime Proof Hardening) — was 160 at batch 1489.
+# +2 came from parallel-session work (OPERATOR_IDENTITY_10X_PLAN.md + one auxiliary plan)
+# landing alongside this batch. Runtime Proof Hardening (batch 1504) added zero new
+# plan/roadmap/master docs — all its artifacts are under docs/generated/ which the existence
+# walker still scans but the name-pattern filter excludes.
+MAX_MATCHING_DOCS_TOTAL = 162
 MAX_MATCHING_DOCS_ROOT = 119
 
 # Detect accidental editor overwrites (paste / stub) — stable substrings from canonical files.

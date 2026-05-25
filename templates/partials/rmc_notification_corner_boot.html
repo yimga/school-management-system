@@ -1,0 +1,27 @@
+{% load i18n static %}
+{% if rmc_corner_notifications %}
+<link rel="stylesheet" href="{% static 'css/rmc-notification-corner.css' %}">
+{{ rmc_corner_notifications|json_script:"rmc-corner-notifications-data" }}
+<script src="{% static 'js/rmc-notification-corner.js' %}" defer nonce="{{ csp_nonce }}"></script>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var el = document.getElementById('rmc-corner-notifications-data');
+  if (!el) return;
+  try {
+    var list = JSON.parse(el.textContent || '[]');
+    var dismissUrl = "{% url 'accounts:notification_corner_dismiss' %}";
+    var snoozeUrl = "{% url 'accounts:notification_corner_snooze' %}";
+    var markReadUrl = "{% url 'accounts:notification_corner_mark_read' %}";
+    list.forEach(function (item) {
+      item.dismiss_url = dismissUrl;
+      item.snooze_url = snoozeUrl;
+      item.mark_read_url = markReadUrl;
+      item.read_label = "{% filter escapejs %}{% trans 'Review now' %}{% endfilter %}";
+      item.snooze_label = "{% filter escapejs %}{% trans 'Later' %}{% endfilter %}";
+      item.dismiss_label = "{% filter escapejs %}{% trans 'Dismiss' %}{% endfilter %}";
+    });
+    window.__RMC_CORNER_NOTIFICATIONS__ = list;
+  } catch (e) {}
+})();
+</script>
+{% endif %}

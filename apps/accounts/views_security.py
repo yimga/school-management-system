@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
@@ -311,6 +312,22 @@ def security_posture_review(request):
         record_security_posture_review(user)
         invalidate_security_strength_cache(user, school)
         request.session.pop("security_posture_review_nagged", None)
+        from apps.accounts.security_posture_notifications import (
+            POSTURE_NOTIFICATION_TITLE,
+            clear_corner_snooze,
+        )
+
+        clear_corner_snooze(request)
+        try:
+            from apps.finance.models import Notification
+
+            Notification.objects.filter(
+                recipient=user,
+                title=POSTURE_NOTIFICATION_TITLE,
+                is_read=False,
+            ).update(is_read=True)
+        except Exception:  # noqa: BLE001
+            pass
         log_security_event(
             user,
             SecurityAuditLog.EventType.PWD_RESET,
@@ -338,3 +355,60 @@ def security_posture_review(request):
         context=context,
         page_title=_("Security posture review"),
     )
+
+
+@login_required
+@require_POST
+def notification_corner_snooze(request):
+    from apps.accounts.security_posture_notifications import snooze_corner_notifications
+
+    snooze_corner_notifications(request)
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def notification_corner_dismiss(request):
+    from apps.accounts.security_posture_notifications import POSTURE_NOTIFICATION_TITLE
+
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        body = {}
+    notification_id = body.get("notification_id")
+    try:
+        from apps.finance.models import Notification
+
+        qs = Notification.objects.filter(recipient=request.user, is_read=False)
+        if notification_id:
+            qs = qs.filter(pk=notification_id)
+        else:
+            qs = qs.filter(title=POSTURE_NOTIFICATION_TITLE)
+        qs.update(is_read=True)
+    except Exception:  # noqa: BLE001
+        pass
+    return JsonResponse({"ok": True})
+
+
+@login_required
+@require_POST
+def notification_corner_mark_read(request):
+    from apps.accounts.security_posture_notifications import POSTURE_NOTIFICATION_TITLE
+
+    try:
+        body = json.loads(request.body.decode("utf-8") or "{}")
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        body = {}
+    notification_id = body.get("notification_id")
+    try:
+        from apps.finance.models import Notification
+
+        qs = Notification.objects.filter(recipient=request.user, is_read=False)
+        if notification_id:
+            qs = qs.filter(pk=notification_id)
+        else:
+            qs = qs.filter(title=POSTURE_NOTIFICATION_TITLE)
+        qs.update(is_read=True)
+    except Exception:  # noqa: BLE001
+        pass
+    return JsonResponse({"ok": True})

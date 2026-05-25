@@ -5,10 +5,10 @@
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-usage-main">{% trans "Skip to usage table" %}</a>
-<div id="super-usage-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div id="super-usage-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
     {% phase8_dashboard_declaration "schools/super_usage.html" %}
     {% url 'super:dashboard' as super_dashboard_url %}
-    {% include "studio_os/components/page_header.html" with title="Per-school API usage & quotas" subtitle="Usage is sampled (throttled writes). Quotas are configured in Admin → School quota limits." action_url=super_dashboard_url action_text="Back to Schools" %}
+    {% include "components/rmc_operational_center_frame.html" with os_center_key="usage" center_eyebrow=_("Platform operators") center_title="Per-school API usage & quotas" center_purpose="Usage is sampled (throttled writes). Quotas are configured in Admin → School quota limits." primary_url=super_dashboard_url primary_label="Back to Schools" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
     <div class="card shadow-sm border-0 page-family-content-card">
       <div class="card-body p-0">
         {% if schools %}

@@ -1,0 +1,73 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Staff identity" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
+  <nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb mb-0 small">
+      <li class="breadcrumb-item"><a href="{{ trust_hub_url }}">{% trans "Security & trust" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Staff identity" %}</li>
+    </ol>
+  </nav>
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% trans "Staff identity & access" %}</h1>
+      <p class="text-muted small mb-0">{% blocktrans with s=school.name %}School-scoped roster for <strong>{{ s }}</strong> — membership, MFA posture, invites.{% endblocktrans %}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ trust_hub_url }}">{% trans "Trust hub" %}</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ rbac_url }}">{% trans "RBAC" %}</a>
+      <a class="btn btn-sm btn-outline-primary" href="{{ regulator_url }}">{% blocktrans with body=gov_body_label %}Grant {{ body }} access{% endblocktrans %}</a>
+      <a class="btn btn-sm btn-primary" href="{{ invite_url }}">{% trans "Invite staff" %}</a>
+    </div>
+  </div>
+
+  <div class="alert alert-secondary py-2 small mb-3" role="status">
+    {% blocktrans with enrolled=mfa_enrolled_count total=mfa_total_count %}MFA enrolled: <strong>{{ enrolled }}</strong> / {{ total }} staff with membership.{% endblocktrans %}
+  </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-hover mb-0 align-middle rmc-data-table">
+        <caption class="visually-hidden">{% trans "School staff roster" %}</caption>
+        <thead class="table-light">
+          <tr>
+            <th>{% trans "User" %}</th>
+            <th>{% trans "Role" %}</th>
+            <th>{% trans "MFA" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>
+              <strong>{{ row.user.get_username }}</strong>
+              {% if row.user.email %}<div class="small text-muted">{{ row.user.email }}</div>{% endif %}
+            </td>
+            <td><span class="badge text-bg-secondary">{{ row.effective_role }}</span></td>
+            <td>
+              {% if row.mfa_ok %}
+              <span class="badge text-bg-success">{% trans "Enrolled" %}</span>
+              {% else %}
+              <span class="badge text-bg-warning">{% trans "Not enrolled" %}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-secondary" href="{{ row.detail_url }}">{% trans "Details" %}</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-4">{% trans "No staff members on this school roster." %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% include "components/pagination.html" %}
+</div>
+{% endblock %}

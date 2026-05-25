@@ -17,6 +17,10 @@ from django.views.decorators.http import require_http_methods
 
 from apps.siteconfig.models_feature_controls import FeatureToggleDefinition
 from apps.siteconfig.models_global_experience import GradingScaleConfig
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_SECURITY_WRITE,
+    require_platform_scope,
+)
 from apps.siteconfig.models_platform_catalog import (
     CountryMultiplier,
     Plan,
@@ -277,6 +281,7 @@ def _render_delete_confirm(
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_region_edit(request, code: str):
     region = get_object_or_404(RegionConfig, pk=code)
     if request.method == "POST":
@@ -298,6 +303,7 @@ def super_region_edit(request, code: str):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_region_add(request):
     if request.method == "POST":
         form = RegionConfigSuperForm(request.POST)
@@ -320,6 +326,7 @@ def super_region_add(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_grading_edit(request, pk: int):
     row = get_object_or_404(GradingScaleConfig.objects.select_related("region"), pk=pk)
     if request.method == "POST":
@@ -341,6 +348,7 @@ def super_grading_edit(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_grading_add(request):
     initial = {}
     rc = (request.GET.get("region") or "").strip()
@@ -367,6 +375,7 @@ def super_grading_add(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_plan_edit(request, pk: int):
     plan = get_object_or_404(Plan, pk=pk)
     if request.method == "POST":
@@ -395,6 +404,7 @@ def super_plan_edit(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_plan_add(request):
     if request.method == "POST":
         form = PlanSuperForm(request.POST)
@@ -414,6 +424,7 @@ def super_plan_add(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_plan_addon_edit(request, pk: int):
     addon = get_object_or_404(PlanAddon, pk=pk)
     if request.method == "POST":
@@ -435,6 +446,7 @@ def super_plan_addon_edit(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_plan_addon_add(request):
     if request.method == "POST":
         form = PlanAddonSuperForm(request.POST)
@@ -457,6 +469,7 @@ def super_plan_addon_add(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_feature_toggle_edit(request, pk: int):
     row = get_object_or_404(FeatureToggleDefinition, pk=pk)
     if request.method == "POST":
@@ -478,6 +491,7 @@ def super_feature_toggle_edit(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_feature_toggle_add(request):
     if request.method == "POST":
         form = FeatureToggleDefinitionSuperForm(request.POST)
@@ -500,6 +514,7 @@ def super_feature_toggle_add(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_region_delete(request, code: str):
     region = get_object_or_404(RegionConfig, pk=code)
     from apps.schools.models import School
@@ -552,6 +567,7 @@ def super_region_delete(request, code: str):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_grading_delete(request, pk: int):
     row = get_object_or_404(GradingScaleConfig.objects.select_related("region"), pk=pk)
     if request.method == "POST" and request.POST.get("confirm") == "yes":
@@ -571,6 +587,7 @@ def super_grading_delete(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_plan_delete(request, pk: int):
     plan = get_object_or_404(Plan, pk=pk)
     if request.method == "POST" and request.POST.get("confirm") == "yes":
@@ -596,6 +613,7 @@ def super_plan_delete(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_plan_addon_delete(request, pk: int):
     addon = get_object_or_404(PlanAddon, pk=pk)
     if request.method == "POST" and request.POST.get("confirm") == "yes":
@@ -615,6 +633,7 @@ def super_plan_addon_delete(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_feature_toggle_delete(request, pk: int):
     row = get_object_or_404(FeatureToggleDefinition, pk=pk)
     state_count = row.states.count()
@@ -653,6 +672,7 @@ def super_feature_toggle_delete(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_country_multiplier_add(request):
     if request.method == "POST":
         form = CountryMultiplierSuperForm(request.POST)
@@ -672,6 +692,7 @@ def super_country_multiplier_add(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_country_multiplier_edit(request, pk: int):
     row = get_object_or_404(CountryMultiplier, pk=pk)
     if request.method == "POST":
@@ -693,6 +714,7 @@ def super_country_multiplier_edit(request, pk: int):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_country_multiplier_delete(request, pk: int):
     row = get_object_or_404(CountryMultiplier, pk=pk)
     if request.method == "POST" and request.POST.get("confirm") == "yes":

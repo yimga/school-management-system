@@ -13,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.iam_snapshot import offline_capability_bitmap
 from apps.accounts.models_offline_device import DeviceRegistration, OfflineCapabilityToken
 
 
@@ -49,7 +50,10 @@ class OfflineTokenMintView(APIView):
         ser = OfflineTokenMintSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
         device_id = ser.validated_data["device_id"].strip()
-        perms = ser.validated_data.get("permission_bitmap") or ["attendance.mark", "grade.submit"]
+        perms = ser.validated_data.get("permission_bitmap") or offline_capability_bitmap(
+            request.user,
+            school=school,
+        )
         device, _created = DeviceRegistration.objects.update_or_create(
             school=school,
             user=request.user,
@@ -72,11 +76,22 @@ class OfflineTokenMintView(APIView):
             permission_bitmap=perms,
             expires_at=expires_at,
         )
+        from apps.accounts.iam_snapshot import build_permission_snapshot, sign_snapshot
+
+        snap = sign_snapshot(
+            build_permission_snapshot(
+                request.user,
+                school=school,
+                offline_token=True,
+                device_id=device_id,
+            ),
+        )
         return Response(
             {
                 "capability_blob": raw_token,
                 "expires_at": expires_at.isoformat(),
                 "permission_bitmap": perms,
+                "iam_snapshot": snap,
             },
             status=status.HTTP_201_CREATED,
         )

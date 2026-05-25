@@ -16,6 +16,10 @@ from apps.platform_runtime.models import PlatformOperatorMigrationCloudLink
 
 from .models import School
 from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_MIGRATION,
+    require_platform_scope,
+)
 
 
 def _optional_reverse(name: str) -> str:
@@ -52,6 +56,7 @@ def migration_data_quality_meter(summary: dict) -> dict:
     }
 
 
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def super_migration_cloud(request):
     """Migration cloud pillar: control-plane governance for profiles, runs, parity, and rollback."""
     from apps.accounts.migration_services import compute_parity
@@ -182,6 +187,7 @@ def super_migration_cloud(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def super_migration_profile_registry(request):
     """Migration Profile Registry: list profiles grouped by source_system and profile_category."""
     from apps.automation.models import MigrationProfile
@@ -217,6 +223,7 @@ def super_migration_profile_registry(request):
 
 
 @require_POST
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def super_migration_rollback(request, run_id):
     from apps.automation.models import MigrationRun
 
@@ -241,6 +248,7 @@ def super_migration_rollback(request, run_id):
 
 
 @require_POST
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def super_migration_exception_ack(request, run_id):
     """Close a run-level exception queue item (operator reviewed errors)."""
     from apps.automation.models import MigrationRun
@@ -270,6 +278,7 @@ def super_migration_exception_ack(request, run_id):
 
 
 @require_POST
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def super_migration_quarantine_waive(request, record_id):
     """Operator waives a quarantined row (no replay)."""
     from apps.automation.models import MigrationQuarantineRecord
@@ -321,6 +330,7 @@ def _sync_repair_force_overwrite_conflict(conflict, resolved_by):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def sync_repair(request, school_id):
     """
     Phase G: Super Admin Emergency Sync Repair. List SyncConflict for a school;

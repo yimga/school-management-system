@@ -1,0 +1,12 @@
+{% load static i18n %}
+{% if request.user.is_authenticated %}
+  {% if security_posture_review_due and security_posture_review_url and not security_posture_corner_snoozed %}
+<link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
+{% include "accounts/partials/_security_posture_banner.html" %}
+<script src="{% static 'js/rmc-security-posture-banner.js' %}" defer nonce="{{ csp_nonce }}"></script>
+<script type="application/json" id="rmc-security-posture-snooze-config" nonce="{{ csp_nonce }}">{"snooze_url":"{% filter escapejs %}{% url 'accounts:notification_corner_snooze' %}{% endfilter %}"}</script>
+  {% elif account_security_score is not None and account_security_score < 40 %}
+<link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
+{% include "accounts/partials/_security_posture_banner.html" %}
+  {% endif %}
+{% endif %}

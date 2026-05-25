@@ -111,10 +111,31 @@
   /**
    * Push one logical action to the server queue (idempotent when idempotency_key set).
    */
+  var OFFLINE_ACTION_CAPABILITY = {
+    'attendance.mark': 'attendance.mark',
+    attendance: 'attendance.mark',
+    'grade.submit': 'grade.submit',
+    grading: 'grade.submit',
+    'payment.proof_upload': 'finance.manage',
+    'payment_receipt': 'finance.manage',
+  };
+
+  function offlineActionAllowed(actionType) {
+    var code = OFFLINE_ACTION_CAPABILITY[actionType];
+    if (!code) return true;
+    if (!global.RMCIamSnapshot || typeof global.RMCIamSnapshot.hasCapability !== 'function') {
+      return true;
+    }
+    return global.RMCIamSnapshot.hasCapability(code);
+  }
+
   function enqueueAction(payload) {
     if (!payload || typeof payload !== 'object') return;
     var actionType = payload.action_type || payload.type;
     if (!actionType) return;
+    if (!offlineActionAllowed(actionType)) {
+      return;
+    }
 
     var row = {
       id: 'c-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9),

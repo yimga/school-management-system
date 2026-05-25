@@ -700,12 +700,10 @@ body.admin-manager-shell #changelist-filter {
   }
 }
 
-/* Platform admin sidebar: nested scroll for long app trees (manager shell overrides below). */
+/* Platform admin sidebar: nested scroll retired — parent rail scrolls (rmc-sidebar-disclosure-contract.css). */
 .cp-sidebar-platform-admin .cp-platform-admin-app-tree {
-  max-height: min(calc(100vh - 9rem), 100%);
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  max-height: none;
+  overflow: visible !important;
 }
 
 body.admin-manager-shell .cp-sidebar-platform-admin .cp-platform-admin-app-tree {
@@ -795,4 +793,174 @@ body.admin-manager-shell[data-rmc-cp-scroll="canvas"] #page.admin-cp-unified-pag
   width: auto !important;
   min-width: 0 !important;
   max-width: none !important;
+}
+
+/* Backoffice frame v2: dense, calm, and bounded manager /admin/ workspace. */
+body.admin-manager-shell {
+  --rmc-backoffice-gutter: clamp(0.85rem, 1.35vw, 1.4rem);
+  --rmc-backoffice-gap: clamp(0.75rem, 1vw, 1rem);
+  --rmc-backoffice-form-max: 1180px;
+  --rmc-backoffice-control-h: 2.45rem;
+}
+
+body.admin-manager-shell .admin-cp-unified-page .rmc-app-shell__canvas {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-canvas) 94%, var(--surface-bg) 6%), var(--surface-bg));
+}
+
+body.admin-manager-shell .cp-admin-canvas-main {
+  min-width: 0;
+  gap: 0;
+}
+
+body.admin-manager-shell .cp-admin-page-body {
+  width: 100%;
+  min-width: 0;
+  padding-inline: var(--rmc-backoffice-gutter) !important;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+}
+
+body.admin-manager-shell #content {
+  min-width: 0;
+  width: 100%;
+}
+
+body.admin-manager-shell .rmc-admin-breadcrumb-nav {
+  padding-inline: var(--rmc-backoffice-gutter) !important;
+}
+
+body.admin-manager-shell .rmc-admin-breadcrumb {
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+body.admin-manager-shell .cp-form-frame {
+  width: min(100%, var(--rmc-backoffice-form-max)) !important;
+  max-width: var(--rmc-backoffice-form-max) !important;
+  margin-inline: auto;
+  padding-bottom: 0.5rem;
+}
+
+body.admin-manager-shell.change-form #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] {
+  width: min(100%, var(--rmc-backoffice-form-max)) !important;
+  max-width: var(--rmc-backoffice-form-max) !important;
+  margin: 0 auto !important;
+}
+
+body.admin-manager-shell.change-form .admin-cp-unified-page #cp-main-content #content-main.cp-form-frame[data-rmc-admin-form-contract="premium-form-frame"] {
+  width: min(100%, var(--rmc-backoffice-form-max)) !important;
+  max-width: var(--rmc-backoffice-form-max) !important;
+  margin: 0 auto !important;
+}
+
+body.admin-manager-shell .cp-form-frame > form {
+  min-width: 0;
+}
+
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] fieldset.module,
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .module,
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .inline-group {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 14px);
+  background: var(--surface-elevated);
+  box-shadow: var(--elev-1);
+  overflow: clip;
+}
+
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] fieldset.module h2,
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .module > h2,
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .inline-group h2 {
+  margin: 0;
+  padding: 0.72rem 0.9rem;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(.form-row, .form-group, .field-box) {
+  min-width: 0;
+}
+
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(label, .form-label) {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(.help, .helptext, .readonly) {
+  color: var(--text-tertiary);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="password"], input[type="search"], textarea, select) {
+  min-height: var(--rmc-backoffice-control-h);
+  border-radius: var(--radius-md, 10px);
+  border-color: var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+}
+
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] :is(input, textarea, select):focus {
+  border-color: var(--school-primary, var(--primary));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--school-primary, var(--primary)) 18%, transparent);
+  outline: none;
+}
+
+body.admin-manager-shell.change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] {
+  z-index: 42;
+}
+
+body.admin-manager-shell.change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] > div {
+  margin-top: 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 14px) var(--radius-lg, 14px) 0 0;
+  background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+  box-shadow: var(--elev-2);
+}
+
+body.admin-manager-shell.change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] button,
+body.admin-manager-shell.change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] a {
+  min-height: 2.35rem;
+  border-radius: var(--radius-md, 10px);
+  white-space: nowrap;
+}
+
+body.admin-manager-shell.change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] button[name="_save"] {
+  color: var(--text-on-brand, #fff);
+  background: var(--school-primary, var(--primary));
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--school-primary, var(--primary)) 24%, transparent);
+}
+
+body.admin-manager-shell .cp-sidebar-platform-admin .admin-sidebar-app-groups {
+  min-width: 0;
+}
+
+body.admin-manager-shell .cp-sidebar-platform-admin .cp-sidebar__group {
+  border-radius: var(--radius-md, 10px);
+}
+
+body.admin-manager-shell .cp-sidebar-platform-admin .cp-sidebar__group-toggle {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  padding-inline: 0.65rem;
+}
+
+@media (max-width: 991.98px) {
+  body.admin-manager-shell {
+    --rmc-backoffice-gutter: 0.75rem;
+  }
+
+  body.admin-manager-shell .cp-form-frame {
+    width: 100%;
+  }
+
+  body.admin-manager-shell.change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] {
+    position: static !important;
+  }
 }

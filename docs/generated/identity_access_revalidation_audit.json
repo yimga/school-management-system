@@ -1,0 +1,26 @@
+{
+  "generated_at": "2026-05-25T08:56:33.926235+00:00",
+  "finding_count": 2,
+  "rows": [
+    {
+      "check_id": "operator-verifier",
+      "ok": true,
+      "proof": "OPERATOR_IDENTITY_HUB_PASS"
+    },
+    {
+      "check_id": "tenant-verifier",
+      "ok": false,
+      "proof": "TENANT_IDENTITY_HUB_FAIL"
+    },
+    {
+      "check_id": "completion-gate",
+      "ok": false,
+      "proof": "IDENTITY_ACCESS_COMPLETION_FAIL"
+    },
+    {
+      "check_id": "makemigrations-accounts",
+      "ok": true,
+      "proof": "accounts makemigrations --check"
+    }
+  ]
+}

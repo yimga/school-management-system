@@ -36,7 +36,7 @@
     {% if is_manager_host and not is_popup %}
         {% include "admin/includes/admin_change_form_header.html" %}
     {% endif %}
-    <div id="content-main" class="{% if is_manager_host %}cp-form-frame{% endif %}">
+    <div id="content-main" class="{% if is_manager_host %}cp-form-frame{% endif %}"{% if is_manager_host %} data-rmc-admin-form-contract="premium-form-frame"{% endif %}>
         {% include "unfold/helpers/popup_header.html" %}
 
         {% block form_before %}{% endblock %}

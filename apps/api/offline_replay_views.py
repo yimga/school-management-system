@@ -267,6 +267,7 @@ class PrefetchUrlsAPI(APIView):
             urls = [base + "/api/dashboard/student/"]
         else:
             urls = []
+        urls.append(base + "/api/offline/permission_snapshot/")
         return Response({"urls": urls[:30]})
 
 

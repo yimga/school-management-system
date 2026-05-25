@@ -22,6 +22,7 @@ from apps.feedback.forms import FeatureRequestForm
 from apps.feedback.models import FeatureRequest
 from apps.feedback.services import submit_feature_request, support_entry_points
 from apps.schools.control_plane import require_control_plane_access
+from apps.portal.help_page_inbound import feature_form_initial_from_request, parse_help_landing_inbound
 from apps.portal.help_unified_hub import operator_public_kb_lane
 from apps.schools.operator_help_signals import operator_help_signal_bundle
 from apps.schools.operator_report_render import render_manager_report_page
@@ -130,6 +131,26 @@ def _help_center_sections() -> list[dict]:
                     _("Governed assistants — ask questions grounded in platform docs."),
                     "bi-stars",
                     "siteconfig:ai_center",
+                ),
+                card(
+                    _("KB draft factory"),
+                    _(
+                        "Code-aware KB drafts from platform routes — human review before publish."
+                    ),
+                    "bi-robot",
+                    "super:ai_center_kb_drafts",
+                ),
+                card(
+                    _("Generate how-tos from code"),
+                    _("Scan platform routes and emit draft operator runbooks."),
+                    "bi-magic",
+                    "super:ai_center_generate_kb",
+                ),
+                card(
+                    _("FAQ candidates"),
+                    _("AI-suggested FAQ entries from support friction signals."),
+                    "bi-patch-question-fill",
+                    "super:ai_center_faq_candidates",
                 ),
                 card(
                     _("My documentation"),
@@ -250,13 +271,17 @@ def manager_help_center(request):
     signals = operator_help_signal_bundle()
     kb_search_url = _link("kb:kb_search")
     support_links = support_entry_points(request)
+    page_help_inbound = parse_help_landing_inbound(request)
 
     feature_quick_form = FeatureRequestForm(
-        initial={
-            "module": request.GET.get("module", ""),
-            "title": request.GET.get("title", ""),
-            "affected_roles": "ADMIN,TEACHER",
-        }
+        initial=feature_form_initial_from_request(
+            request,
+            {
+                "module": request.GET.get("module", ""),
+                "title": request.GET.get("title", ""),
+                "affected_roles": "ADMIN,TEACHER",
+            },
+        )
     )
     apply_bootstrap_form_styles(feature_quick_form)
     if request.method == "POST" and request.POST.get("form_kind") == "feature_quick":
@@ -327,6 +352,7 @@ def manager_help_center(request):
             "ai_review_url": _link("manager_ai_review_queue"),
             "analytics_url": _link("manager_help_analytics"),
             "public_kb_lane": operator_public_kb_lane(),
+            **page_help_inbound,
         },
         page_title=str(_("Help center")),
         page_archetype="decision-console",

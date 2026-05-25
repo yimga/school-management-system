@@ -13,9 +13,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-rmc-scroll-policy="paginate" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
   {% trans "Productized /api/ai/* endpoints" as gw_subtitle %}
-  {% include "studio_os/components/page_header.html" with title=_("AI gateway console") subtitle=gw_subtitle action_url=dashboard_url action_text=_("Back to dashboard") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="ai_gateway_console" center_eyebrow=_("Platform operators") center_title=_("AI gateway console") center_purpose=gw_subtitle primary_url=dashboard_url primary_label=_("Back to dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   {% if provider_status %}
   <div class="alert alert-light border d-flex flex-wrap align-items-center gap-3 py-2 mb-3" role="status" aria-live="polite">
     <span class="badge text-bg-{% if provider_status.has_live_provider and health_probe.reachable %}success{% elif provider_status.has_live_provider %}warning{% else %}secondary{% endif %}">

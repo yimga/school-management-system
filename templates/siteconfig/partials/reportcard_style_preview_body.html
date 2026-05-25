@@ -1,3 +1,4 @@
+<div data-rmc-scroll-policy="paginate">
 {% load static i18n region_format report_style_tags %}
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -49,7 +50,8 @@
   <div class="card">
     <div class="card-body">
       <h5 class="mb-3">Sample term table</h5>
-      <table class="report-table table-family align-middle" aria-label="Sample term report table preview">
+      <!-- large-collection-allow: print-report-fixed-layout -->
+<table class="report-table table-family align-middle table-sm table-sticky-head rmc-data-table" aria-label="Sample term report table preview">
         <thead>
           <tr>
             <th scope="col">{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
@@ -112,3 +114,5 @@
       </div>
     </div>
   </div>
+
+</div>

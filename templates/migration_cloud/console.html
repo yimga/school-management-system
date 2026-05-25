@@ -1,4 +1,4 @@
-{% extends "control_plane_skeleton.html" %}<!-- default; portal override via include if shell==portal -->
+{% extends "control_plane_base.html" %}<!-- default; portal override via include if shell==portal -->
 {% comment %}
   Migration Cloud — operator + tenant console (Phase U6 scaffold).
 
@@ -24,7 +24,7 @@
 {% block page_title %}{{ page_title|default:"Migration Cloud" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--migration-cloud" id="main">
+<main class="rmc-page rmc-page--migration-cloud" id="main" data-rmc-scroll-policy="paginate">
   {% if messages %}
   <div class="rmc-banner-stack" role="status">
     {% for m in messages %}
@@ -53,7 +53,8 @@
   </header>
 
   {% if bundles %}
-  <table class="rmc-data-table rmc-data-table--migrations">
+  <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="rmc-data-table rmc-data-table--migrations">
     <thead>
       <tr>
         <th>{% trans "Label" %}</th>

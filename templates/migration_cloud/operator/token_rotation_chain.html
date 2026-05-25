@@ -1,10 +1,10 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 {% block page_title %}{{ page_title|default:"Token rotation chain" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-token-chain" id="main">
+<main class="rmc-page rmc-page--operator-token-chain" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Token rotation chain" %}</h1>
     <p class="rmc-lede">

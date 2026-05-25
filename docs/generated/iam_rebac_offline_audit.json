@@ -1,0 +1,78 @@
+{
+  "generated_at": "2026-05-25T11:30:28.760512+00:00",
+  "finding_count": 0,
+  "rows": [
+    {
+      "check_id": "models-rebac",
+      "ok": true
+    },
+    {
+      "check_id": "rebac-check-api",
+      "ok": true
+    },
+    {
+      "check_id": "rebac-sync-writers",
+      "ok": true
+    },
+    {
+      "check_id": "rebac-signals",
+      "ok": true
+    },
+    {
+      "check_id": "iam-snapshot",
+      "ok": true
+    },
+    {
+      "check_id": "offline-intents",
+      "ok": true
+    },
+    {
+      "check_id": "snapshot-api",
+      "ok": true
+    },
+    {
+      "check_id": "migration-0039",
+      "ok": true
+    },
+    {
+      "check_id": "mgmt-sync-command",
+      "ok": true
+    },
+    {
+      "check_id": "settings-rebac",
+      "ok": true
+    },
+    {
+      "check_id": "url-permission-snapshot",
+      "ok": true
+    },
+    {
+      "check_id": "url-iam-intent",
+      "ok": true
+    },
+    {
+      "check_id": "manifest-rebac-implemented",
+      "ok": true
+    },
+    {
+      "check_id": "token-bundles-snapshot",
+      "ok": true
+    },
+    {
+      "check_id": "iam-snapshot-js",
+      "ok": true
+    },
+    {
+      "check_id": "finance-rebac-drf",
+      "ok": true
+    },
+    {
+      "check_id": "mobile-grade-rebac",
+      "ok": true
+    },
+    {
+      "check_id": "pdp-rebac-context",
+      "ok": true
+    }
+  ]
+}

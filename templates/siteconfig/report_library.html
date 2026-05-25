@@ -70,7 +70,8 @@
                 {% endfor %}
               </div>
               <div class="table-responsive mb-3">
-                <table class="table table-sm align-middle mb-0 table-family">
+                <!-- large-collection-allow: catalog-link-row-actions -->
+ class="table table-sm align-middle mb-0 table-family">
                   <caption class="visually-hidden">{{ key|cut:"_" }}</caption>
                   <tbody>
                     {% for row in report_pack_preview.rows %}
@@ -108,7 +109,8 @@
 
   {% if reports %}
     <div class="table-responsive">
-      <table class="table table-striped align-middle table-family">
+      <!-- large-collection-allow: catalog-link-row-actions -->
+<table class="table table-striped align-middle table-family table-sm table-sticky-head rmc-data-table">
         <caption class="visually-hidden">{% trans "Dependencies" %}</caption>
         <thead>
           <tr>
@@ -124,7 +126,7 @@
               <td>{{ report.name }}</td>
               <td class="text-muted">{{ report.description|default:"—" }}</td>
               <td>{{ report.get_preferred_format_display }}</td>
-              <td class="text-end">
+              <td class="text-end"><details class="rmc-row-disclosure d-inline-block text-start"><summary class="btn btn-sm btn-outline-secondary">Actions</summary><div class="rmc-row-disclosure__body mt-1">
                 <div class="btn-group btn-group-sm">
                   <a class="btn btn-primary" href="{% url 'siteconfig:report_download' report.slug %}" title="Download (default format)">
                     <i class="bi bi-download me-1"></i> Download

@@ -1,5 +1,5 @@
 {% load i18n static %}
-<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench">
+<div class="container-fluid py-3 studio-os-subpage-canvas" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% trans "Back to Automation" as back_action %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}
   {% include "studio_os/partials/automation_dependency_graph_body.html" with graph=graph %}

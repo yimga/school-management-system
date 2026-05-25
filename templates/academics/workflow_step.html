@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
 {% load i18n %}
 {% block backend_page %}
-<div class="container py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   <h1>{{ current_step.title|default:workflow_key }}</h1>
   <p class="text-muted">Step {{ step_index|add:1 }} of {{ step_count }}</p>
   <form method="post" class="mt-3">

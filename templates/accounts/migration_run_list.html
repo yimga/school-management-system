@@ -3,7 +3,7 @@
 {% load region_format %}
 {% block backend_title %}{% trans "Migration runs" %}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:migration_wizard' %}">{% trans "Migration wizard" %}</a>
@@ -33,7 +33,10 @@
           <td>{{ run.row_count }}</td>
           <td>{{ run.started_at|date:"SHORT_DATETIME_FORMAT" }}</td>
           <td>
-            {% if run.legacy_snapshot.rows %}
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+{% if run.legacy_snapshot.rows %}
             <a href="{% url 'accounts:migration_legacy_view' run.id %}">{% trans "View legacy" %}</a>
             {% else %}
             <span class="text-muted">—</span>
@@ -41,7 +44,8 @@
             {% if run.can_rollback %}
             <form method="post" action="{% url 'accounts:migration_rollback' run.id %}" class="d-inline ms-1">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Rollback" %}</button></form>
             {% endif %}
-          </td>
+            </div>
+          </details></td>
         </tr>
         {% empty %}
         <tr>

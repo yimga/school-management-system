@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "total_subprocess_sites": 407,
+  "review_buckets": {
+    "scripts_directory": {
+      "count": 215,
+      "rule": "scripts/verify_*.py + audit_*.py + scan_*.py — operator/CI verifiers invoking other verifiers; argument arrays; capture_output=True; timeout enforced",
+      "controls": ["No shell=True (scan_subprocess_shell_true.py baseline 0)"]
+    },
+    "management_commands": {
+      "count": 88,
+      "rule": "apps/*/management/commands/*.py — staff-only entry; argument arrays; no remote shell"
+    },
+    "ci_companion_release_tooling": {
+      "count": 32,
+      "rule": "companion-tauri / companion-docker / sigstore / cosign workflows + preflight scripts"
+    },
+    "test_harness": {
+      "count": 51,
+      "rule": "Test fixtures spinning subprocess for sandbox isolation; argument arrays; never user input"
+    },
+    "lane2_evidence_capture": {
+      "count": 14,
+      "rule": "Lane 2 evidence-capture scripts; operator-invoked only; no auto-exec from request handlers"
+    },
+    "runtime_observability": {
+      "count": 7,
+      "rule": "DB-liveness probes and sentry source-context lookups; argument arrays; timeout-enforced",
+      "files_sample": [
+        "apps/observability/db_liveness.py",
+        "apps/observability/source_context.py"
+      ]
+    }
+  },
+  "verdict": "All 407 subprocess sites accounted for. scan_subprocess_shell_true.py baseline 0 — no shell=True. No repo-side fix required."
+}

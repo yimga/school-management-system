@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "harness_present": true,
+  "harness_path": "scripts/run_tenant_portal_lane2_e2e.sh",
+  "playwright_specs_present": true,
+  "spec_files": [
+    "tests/e2e/template-marketplace.spec.js",
+    "tests/e2e/helpers/tenant-login.js"
+  ],
+  "ran_browser_in_this_batch": false,
+  "honest_blocker": "Browser execution requires a provisioned tenant + live Playwright runner + provisioned test credentials. Not available in repo CI sandbox.",
+  "what_repo_proof_covers": [
+    "Spec files parse",
+    "Helper login flow code-reviewed",
+    "Selectors point at real DOM IDs in templates",
+    "No tenant secrets committed"
+  ],
+  "what_lane2_browser_run_would_cover": [
+    "Tenant login through portal shell",
+    "Portal pagination",
+    "Studio / Tenant Studio nav",
+    "Template marketplace browse + apply + rollback",
+    "PWA install prompt + offline fallback",
+    "No horizontal overflow",
+    "No console fatal errors",
+    "No cross-tenant data leakage"
+  ],
+  "verdict": "LANE 2 HARNESS READY — BROWSER EXECUTION PENDING. Repo-scope spec coverage complete; live browser proof external."
+}

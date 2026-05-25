@@ -133,7 +133,7 @@
           {% endif %}
         </div>
         <div class="table-responsive">
-          <table class="table table-sm table-striped table-family align-middle">
+ class="table table-sm table-striped table-family align-middle">
             <caption class="visually-hidden">{% trans "Enter Marks" %}</caption>
             <thead>
               <tr>
@@ -247,7 +247,8 @@
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
 
-        <table class="gradebook-table table-family" aria-label="Marks entry by student" data-tour="gradebook-grid">
+        <!-- large-collection-allow: marks-entry-inline-grid -->
+        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Marks entry by student" data-tour="gradebook-grid">
           <thead>
             <tr>
               <th scope="col">Student</th>

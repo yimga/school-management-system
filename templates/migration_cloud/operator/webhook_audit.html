@@ -1,4 +1,4 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 <!-- v3.37.0 Agent 5 — per-subscription audit view. This template renders summary forensics for the last 200 deliveries for ONE subscription. It NEVER renders: * signature bytes (only a boolean "signed: yes/no") * HMAC secret material (never reaches the template context) * payload body content (only the byte-length integer) The operator support team uses this view to answer "we never got delivery X" — they can see status, attempt count, HTTP response code, and whether the row was signed; they can then click Replay to re-fire the delivery to the partner endpoint. -->
@@ -6,7 +6,7 @@
 {% block page_title %}{{ page_title|default:"Webhook subscription audit" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-webhook-audit" id="main">
+<main class="rmc-page rmc-page--operator-webhook-audit" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
@@ -73,11 +73,15 @@
         <td>{% if r.replay_of_id %}<a href="#row-{{ r.replay_of_id }}">#{{ r.replay_of_id }}</a>{% else %}—{% endif %}</td>
         <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
         <td>
-          <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_replay' delivery_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_replay' delivery_id=r.id %}{% endif %}" class="rmc-form--inline">
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_replay' delivery_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_replay' delivery_id=r.id %}{% endif %}" class="rmc-form--inline">
             {% csrf_token %}
             <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Replay" %}</button>
           </form>
-        </td>
+            </div>
+          </details></td>
       </tr>
       {% endfor %}
     </tbody>

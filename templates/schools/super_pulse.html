@@ -7,10 +7,10 @@
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-pulse-main">{% trans "Skip to pulse map content" %}</a>
-<div id="super-pulse-main" class="container-fluid py-4" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div id="super-pulse-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
     {% phase8_dashboard_declaration "schools/super_pulse.html" %}
     {% url 'super:dashboard' as dashboard_url %}
-    {% include "studio_os/components/page_header.html" with title=_("Global Pulse Map") subtitle=_("Schools, student counts, and global revenue. API: GET /api/v1/super/pulse") action_url=dashboard_url action_text=_("Back to Schools") %}
+    {% include "components/rmc_operational_center_frame.html" with os_center_key="pulse" center_eyebrow=_("Platform operators") center_title=_("Global Pulse Map") center_purpose=_("Schools, student counts, and global revenue. API: GET /api/v1/super/pulse") primary_url=dashboard_url primary_label=_("Back to Schools") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
     <p class="text-muted small">Schools, student counts, and global revenue. API: <code>GET /api/v1/super/pulse</code></p>
     <div class="row g-3 mb-4 rmc-reveal-stagger">
       <div class="col-md-4 rmc-reveal">

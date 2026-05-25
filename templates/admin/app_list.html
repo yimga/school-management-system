@@ -116,6 +116,12 @@
       </li>
       {% endif %}
       <li>
+        <a href="{% url 'feedback:help_center' %}?section=support" class="admin-sidebar-link {% if '/help/' in request.path and '/kb/' not in request.path %}active{% endif %}">
+          <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></span>
+          <span class="admin-sidebar-link-text">{% trans "Help center" %}</span>
+        </a>
+      </li>
+      <li>
         <a href="{% url 'kb:kb_home' %}" class="admin-sidebar-link {% if '/kb/' in request.path %}active{% endif %}">
           <span class="admin-sidebar-icon inline-flex shrink-0" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 4v16"/></svg></span>
           <span class="admin-sidebar-link-text">{% trans "Knowledge Base" %}</span>
@@ -171,7 +177,7 @@
           </span>
         </button>
       </div>
-      <ol class="admin-sidebar-model-list flex flex-col gap-1 px-0 mx-0 overflow-hidden" style="list-style: none; margin-left: 0; padding-left: 0;" x-show="open" x-transition.50ms role="list" :aria-hidden="!open">
+      <ol class="admin-sidebar-model-list flex flex-col gap-1 px-0 mx-0" style="list-style: none; margin-left: 0; padding-left: 0;" x-show="open" x-transition.50ms role="list" :aria-hidden="!open">
         {% for model in app.models %}
         {% if not model.hidden %}
         <li class="model-{{ model.object_name|lower }}{% if model.admin_url and model.admin_url in request.path %} current-model{% endif %}" role="listitem">

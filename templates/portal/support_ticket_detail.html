@@ -13,7 +13,7 @@
   tabindex="-1"
 >
 <div class="mb-3">
-  <a href="{% url 'portal:support_help_hub' %}" class="small">{% trans "← Back to Help & support" %}</a>
+  <a href="{% url 'feedback:help_center' %}?section=support" class="small">{% trans "← Back to Help & support" %}</a>
 </div>
 <h1 class="h4 mb-1" id="support-ticket-heading">{{ ticket.subject|truncatechars:80 }}</h1>
 <p class="text-muted small mb-3">{{ ticket.get_status_display }} · {{ ticket.updated_at|date:"M j, Y H:i" }}</p>

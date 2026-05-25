@@ -5,7 +5,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Generate Fee Invoices</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 {% url 'finance:dashboard' as generate_fees_back_url %}
 {% include "studio_os/components/page_header.html" with title="Generate Fee Invoices" subtitle="Create invoices for all students in a fee plan." action_url=generate_fees_back_url action_text="Back to Finance" %}
 <div class="d-flex justify-content-end mb-2">

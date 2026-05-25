@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 {% endblock %}
 {% block content %}
-<div class="container py-4" data-decision-engine="surface">
+<div class="container py-4" data-decision-engine="surface" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "schools/marketing_funnel_dashboard.html" %}
   <h1 class="mb-4">{% trans "Conversion funnel" %}</h1>
   <p class="text-muted">{% trans "Closed-loop events + billing truth. Staff only. Low traffic periods show “insufficient volume” — never read as product failure." %}</p>
@@ -81,7 +81,8 @@
     <h2 class="h5 mb-3">{% trans "Tenant lifecycle (recent schools sample)" %}</h2>
     <p class="small text-muted">{% trans "Derived from funnel + billing + health; not a billing ledger." %}</p>
     <div class="table-responsive">
-      <table class="table table-sm table-bordered">
+      <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-sm table-bordered">
         <caption class="visually-hidden">{% trans "Tenant lifecycle (recent schools sample)" %}</caption>
         <thead><tr><th>{% trans "State" %}</th><th>{% trans "Schools (sample)" %}</th></tr></thead>
         <tbody>
@@ -194,7 +195,8 @@
     <h2 class="h5 mb-3">{% trans "By channel (last 30 days)" %}</h2>
     <p class="text-muted small">{% trans "Breakdown by utm_source / utm_medium. Use ?utm_source=...&utm_medium=... on landing and signup URLs to attribute traffic." %}</p>
     <div class="table-responsive">
-      <table class="table table-bordered">
+      <!-- large-collection-allow: dashboard-widget-capped-list -->
+      <table class="table table-bordered table-sm table-sticky-head rmc-data-table">
         <caption class="visually-hidden">{% trans "By channel (last 30 days)" %}</caption>
         <thead>
           <tr>

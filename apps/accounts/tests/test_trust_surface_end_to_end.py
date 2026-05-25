@@ -26,6 +26,7 @@ _TRUST_HUB_DEEP_LINK_NAMES = (
     "accounts:tenant_impersonation_audit",
     "siteconfig:feature_control_panel",
     "siteconfig:feature_control_audit",
+    "accounts:tenant_identity_roster",
     "accounts:backend_dashboard",
 )
 

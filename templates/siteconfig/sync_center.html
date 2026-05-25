@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block backend_page %}
-  <div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-shell-surface="sync-center" data-cp-evidence-surface="sync-center">
+  <div class="container-fluid py-3 cp-evidence-page" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="sync-center" data-cp-evidence-surface="sync-center" data-rmc-scroll-policy="paginate">
     {% include "studio_os/components/page_header.html" with title=_("Sync Center") subtitle=_("Conflicts from offline sync. Resolve by keeping server version, client version, or discarding.") action_url=action_url|default:None action_text=action_text|default:None %}
     {% if sync_available %}
     <div class="d-flex flex-wrap align-items-stretch gap-2 mb-3 cp-evidence-summary" data-rmc-operator-evidence-summary="1" aria-label="{% trans 'Summary' %}">
@@ -59,7 +59,10 @@
                     <td>{{ c.get_status_display }}</td>
                     <td>{{ c.created_at|date:"Y-m-d H:i" }}</td>
                     <td>
-                      {% if c.client_data or c.server_data %}
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+{% if c.client_data or c.server_data %}
                         <button type="button" class="btn btn-sm btn-outline-info me-1" data-bs-toggle="collapse" data-bs-target="#sync-payload-{{ c.id }}" aria-expanded="false">{% trans "Side-by-side" %}</button>
                       {% endif %}
                       {% if c.status == "PENDING" %}
@@ -81,7 +84,8 @@
                       {% else %}
                         —
                       {% endif %}
-                    </td>
+            </div>
+          </details></td>
                   </tr>
                   {% if c.client_data or c.server_data %}
                   <tr class="collapse" id="sync-payload-{{ c.id }}">

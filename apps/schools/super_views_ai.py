@@ -12,8 +12,13 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_SECURITY_READ,
+    require_platform_scope,
+)
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_ai_gateway_console(request):
     """
     Control plane: one page of JSON POST consoles for every productized /api/ai/* endpoint
@@ -43,6 +48,7 @@ def super_ai_gateway_console(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def ai_model_hub(request):
     """
     Super Admin: list regions with default_model, fallback_model, last_health_check_at, status.
@@ -72,6 +78,7 @@ def ai_model_hub(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def global_ai_version(request):
     """
     Super Admin: form with target model_id and "Upgrade all regions" button.
@@ -106,6 +113,7 @@ def global_ai_version(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def global_ai_version_progress(request, run_id):
     """Poll endpoint or page showing regions_done/regions_total for the run."""
     from apps.siteconfig.tasks import AI_UPGRADE_PROGRESS_PREFIX

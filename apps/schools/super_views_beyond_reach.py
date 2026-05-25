@@ -12,6 +12,12 @@ from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_MIGRATION,
+    PLATFORM_SCOPE_SECURITY_READ,
+    require_platform_scope,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +28,7 @@ def _is_superuser(u):
 
 @user_passes_test(_is_superuser)
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def super_migration_csv_diff(request):
     """Compare two CSV uploads (same headers); BR-04."""
     ctx = {
@@ -86,6 +93,7 @@ def super_migration_csv_diff(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def super_legacy_sis_csv_preview(request):
     """Read-only table preview; BR-09."""
     ctx = {
@@ -147,6 +155,7 @@ def _platform_events_24h():
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_governed_data_query(request):
     """POST intent=active_schools_count|platform_events_24h|inactive_schools_count; BR-07."""
     ctx = {

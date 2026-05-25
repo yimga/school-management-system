@@ -1,12 +1,23 @@
 {
-  "schema_version": 1,
-  "generated_at": "2026-05-24T00:37:11.156566+00:00",
+  "schema_version": 2,
+  "generated_at": "2026-05-25T09:10:08.427197+00:00",
   "repo_target_pct": 99.0,
   "verdict": "GEOS_99_MATRIX_PASS",
   "overall": {
     "repo_pct": 100.0,
     "live_pct": 100.0,
     "composite_pct": 100.0
+  },
+  "honest_overall": {
+    "repo_pct": 100.0,
+    "internal_pilot_pct": 100.0,
+    "public_live_pct": 0.0,
+    "pwa_pct": 60.0,
+    "external_vendor_pct": 0.0,
+    "market_ready_pct": 0.0,
+    "composite_pct": 0.0,
+    "native_app_status": "DEFERRED",
+    "native_app_strategy": "PWA-first launch strategy. Capacitor/Tauri/WebView wrappers deferred until at least 100 schools are stable on the web core and PWA installability is browser-proven on iOS Safari + Android Chrome."
   },
   "pillars": [
     {
@@ -20,7 +31,7 @@
           "check_id": "help_tiers",
           "description": "verify_help_center_tiers.py",
           "passed": true,
-          "proof": "verify_help_center_tiers: HELP_CENTER_TIERS_PASS (99 checks)"
+          "proof": "verify_help_center_tiers: HELP_CENTER_TIERS_PASS (134 checks)"
         },
         {
           "check_id": "ai_posture",
@@ -70,7 +81,19 @@
           "passed": true,
           "proof": "portal_base.html"
         }
-      ]
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 100.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
     },
     {
       "pillar_id": "linux",
@@ -97,7 +120,19 @@
           "passed": true,
           "proof": "batch 1357"
         }
-      ]
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 100.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
     },
     {
       "pillar_id": "aws",
@@ -124,7 +159,19 @@
           "passed": true,
           "proof": "ai_workflow_bridge.py"
         }
-      ]
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 100.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
     },
     {
       "pillar_id": "shopify",
@@ -145,7 +192,19 @@
           "passed": true,
           "proof": "apps/finance/payment_gateway_health.py"
         }
-      ]
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 100.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
     },
     {
       "pillar_id": "salesforce",
@@ -172,7 +231,19 @@
           "passed": true,
           "proof": "apps/customersuccess"
         }
-      ]
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 100.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
     },
     {
       "pillar_id": "localglobal",
@@ -199,7 +270,19 @@
           "passed": true,
           "proof": "kb_embeddings.py"
         }
-      ]
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 100.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
     },
     {
       "pillar_id": "amazon",
@@ -226,7 +309,19 @@
           "passed": true,
           "proof": "observability/metrics.py"
         }
-      ]
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 100.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
     },
     {
       "pillar_id": "dailyops",
@@ -253,7 +348,19 @@
           "passed": true,
           "proof": "command_bar_registry.py"
         }
-      ]
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 100.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
     }
   ]
 }

@@ -5,7 +5,8 @@
       : Math.max(window.innerHeight || 0, 320);
   var scrollThreshold = fold * 2;
   var btn = document.getElementById("back-to-top-btn");
-  if (!btn) return;
+  if (!btn || btn.getAttribute("data-rmc-mounted") === "1") return;
+  btn.setAttribute("data-rmc-mounted", "1");
 
   function getScrollContainer() {
     return window.RMC && window.RMC.getScrollContainer

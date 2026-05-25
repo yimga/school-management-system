@@ -13,6 +13,10 @@ from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 
 from apps.platform_runtime.models import PlatformOperatorSuperDashboardLink
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 from apps.registries.models import (
     CountryRegistry,
     EducationLevelRegistry,
@@ -49,6 +53,7 @@ def _optional_reverse_for_request(request, name: str) -> str:
         return ""
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_super_dashboard_layout(request):
     """GET: return section_order for current user. POST/PUT/PATCH: save section_order (JSON body)."""
     from apps.runtime_blueprints.models import (
@@ -81,6 +86,7 @@ def api_super_dashboard_layout(request):
     pref.save(update_fields=["section_order", "updated_at"])
     return JsonResponse({"section_order": pref.get_section_order()})
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_dashboard_v2(request):
     """Mission-control control plane for the manager host."""
     from apps.billing.models import BillingAccount, TenantSubscription
@@ -700,6 +706,11 @@ def super_dashboard_v2(request):
     operator_super_dashboard_links = filter_operational_dashboard_links(
         PlatformOperatorSuperDashboardLink.objects.order_by("sort_order", "slug")
     )
+    from apps.schools.super_views_operator_team import operator_peer_picker_context
+
+    peer_operators = operator_peer_picker_context(
+        exclude_user_id=request.user.pk if request.user.is_authenticated else None
+    )
     return render(
         request,
         "schools/super_dashboard.html",
@@ -756,5 +767,6 @@ def super_dashboard_v2(request):
                 "super_dashboard"
             ),
             "operator_super_dashboard_links": operator_super_dashboard_links,
+            "peer_operators": peer_operators,
         },
     )

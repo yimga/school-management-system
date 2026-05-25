@@ -60,6 +60,9 @@
       });
       if (!res.ok) return;
       var data = await res.json();
+      if (window.RMCIamSnapshot && window.RMCIamSnapshot.applyMintResponse) {
+        window.RMCIamSnapshot.applyMintResponse(data);
+      }
       if (data && data.capability_blob_b64 && window.RMCOfflineAuthVault.saveSealed) {
         window.RMCOfflineAuthVault.saveSealed({
           blob_b64: data.capability_blob_b64,

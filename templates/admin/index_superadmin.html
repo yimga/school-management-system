@@ -39,19 +39,22 @@
       <em>/super/, Config center, and Studio</em> — raw records live here for the moments those don't fit.
       {% endblocktrans %}
     </p>
-    <div class="cp-hero__actions">
-      <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "New school" %}</a>
-      <a class="cp-btn" href="{% url 'siteconfig:console_domains_hub' %}">⚙ {% trans "Open Config center" %}</a>
-      <a class="cp-btn" href="{% url 'studio_os:shell' %}">⌘ {% trans "Open Studio" %}</a>
-      <button type="button" class="cp-btn cp-btn--ghost" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K · {% trans "command palette" %}</button>
+    <div class="cp-hero__actions cp-hero__actions--toolbar rmc-page-fold-nav rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions and on-page navigation' %}">
+      <div class="cp-hero__actions-group cp-hero__actions-group--primary" role="group" aria-label="{% trans 'Primary actions' %}">
+        <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "New school" %}</a>
+        <a class="cp-btn" href="{% url 'siteconfig:console_domains_hub' %}">⚙ {% trans "Open Config center" %}</a>
+        <a class="cp-btn" href="{% url 'studio_os:shell' %}">⌘ {% trans "Open Studio" %}</a>
+        <button type="button" class="cp-btn cp-btn--ghost" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K · {% trans "command palette" %}</button>
+      </div>
+      <span class="cp-hero__actions-sep" aria-hidden="true"></span>
+      <div class="cp-hero__actions-group cp-hero__actions-group--sections" role="group" aria-label="{% trans 'On this page' %}">
+        <a href="#rmc-admin-sec-hero" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Overview" %}</a>
+        <a href="#rmc-admin-sec-catalog" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Model catalog" %}</a>
+        <a href="#rmc-admin-sec-tags" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Platform tags" %}</a>
+        <a href="#rmc-admin-sec-changelist" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Changelist preview" %}</a>
+        <a href="#rmc-admin-sec-changeform" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Change form preview" %}</a>
+      </div>
     </div>
-    <nav class="cp-hero__actions cp-hero__actions--sections rmc-page-fold-nav rmc-section-nav" aria-label="{% trans 'On this page' %}">
-      <a href="#rmc-admin-sec-hero" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Overview" %}</a>
-      <a href="#rmc-admin-sec-catalog" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Model catalog" %}</a>
-      <a href="#rmc-admin-sec-tags" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Platform tags" %}</a>
-      <a href="#rmc-admin-sec-changelist" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Changelist preview" %}</a>
-      <a href="#rmc-admin-sec-changeform" class="cp-btn cp-btn--ghost" data-rmc-section-anchor>{% trans "Change form preview" %}</a>
-    </nav>
   </section>
 
   <div class="cp-steering" role="region" aria-label="{% trans 'Operator steering' %}">
@@ -121,7 +124,7 @@
         </ul>
         {% endif %}
         <div class="cp-catalog-card__foot">
-          <a href="#rmc-admin-sec-{{ forloop.counter }}">{% blocktrans with n=section.model_count %}View all {{ n }} →{% endblocktrans %}</a>
+          <a href="#rmc-admin-catalog-sec-{{ forloop.counter }}" data-rmc-catalog-expand-details="rmc-admin-catalog-sec-{{ forloop.counter }}">{% blocktrans with n=section.model_count %}View all {{ n }} →{% endblocktrans %}</a>
         </div>
       </article>
       {% endfor %}

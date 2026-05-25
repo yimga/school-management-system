@@ -1,0 +1,86 @@
+{% load i18n %}
+{% if request.user.is_authenticated %}
+<section class="rmc-profile-security-hub content-card mb-3" id="profile-security-hub" data-rmc-section-anchor aria-labelledby="profile-security-hub-title">
+  <div class="rmc-profile-security-hub__head">
+    <div>
+      <div class="eyebrow text-muted small text-uppercase">{% trans "Account protection" %}</div>
+      <h2 id="profile-security-hub-title" class="h6 mb-0">{% trans "Security center" %}</h2>
+    </div>
+    {% if security_posture_review_due %}
+    <span class="badge text-bg-warning">{% trans "Review due" %}</span>
+    {% elif profile_security %}
+    <span class="badge text-bg-secondary">{{ profile_security.strength_label }}</span>
+    {% endif %}
+  </div>
+
+  <div class="row g-3 rmc-profile-security-hub__grid">
+    <div class="col-md-4">
+      <article class="rmc-profile-security-hub__panel h-100">
+        <h3 class="h6 mb-2"><i class="bi bi-shield-lock me-1" aria-hidden="true"></i>{% trans "Posture review" %}</h3>
+        {% if security_posture_review_due %}
+        <p class="small text-muted mb-2">{% trans "Confirm password, MFA, and contact details for this quarter." %}</p>
+        <a class="btn btn-warning btn-sm" href="{{ security_posture_review_url }}">{% trans "Start review" %}</a>
+        {% else %}
+        <p class="small text-muted mb-2">
+          {% if profile_security.days_until_posture_review is not None %}
+          {% blocktrans with days=profile_security.days_until_posture_review %}Next review in {{ days }} days.{% endblocktrans %}
+          {% else %}
+          {% trans "Quarterly review is up to date." %}
+          {% endif %}
+        </p>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ security_posture_review_url }}">{% trans "View checklist" %}</a>
+        {% endif %}
+      </article>
+    </div>
+
+    <div class="col-md-4">
+      <article class="rmc-profile-security-hub__panel h-100">
+        <h3 class="h6 mb-2"><i class="bi bi-phone me-1" aria-hidden="true"></i>{% trans "MFA & passkeys" %}</h3>
+        {% if mfa_enabled %}
+        <p class="small mb-2"><span class="text-success fw-semibold">{% trans "Authenticator enabled" %}</span></p>
+        {% else %}
+        <p class="small text-muted mb-2">{% trans "Add a second factor to block credential-stuffing." %}</p>
+        {% endif %}
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-sm {% if mfa_enabled %}btn-outline-secondary{% else %}btn-primary{% endif %}" href="{% url 'accounts:mfa_setup' %}">
+            {% if mfa_enabled %}{% trans "Manage MFA" %}{% else %}{% trans "Set up MFA" %}{% endif %}
+          </a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:password_change' %}">{% trans "Password" %}</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-md-4">
+      <article class="rmc-profile-security-hub__panel h-100">
+        <h3 class="h6 mb-2"><i class="bi bi-laptop me-1" aria-hidden="true"></i>{% trans "Sessions & alerts" %}</h3>
+        <p class="small text-muted mb-2">
+          {% if active_sessions_count is not None %}
+          {% blocktrans with n=active_sessions_count %}Active on {{ n }} device(s).{% endblocktrans %}
+          {% else %}
+          {% trans "Review devices signed into your account." %}
+          {% endif %}
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:sessions_page' %}">{% trans "Sessions" %}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:user_notifications' %}">{% trans "Inbox" %}</a>
+          <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:notification_preferences' %}">{% trans "Preferences" %}</a>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  {% if profile_security and profile_security.critical_vulnerabilities %}
+  <div class="rmc-profile-security-hub__critical mt-3">
+    <div class="small fw-semibold mb-2">{% trans "Critical items" %}</div>
+    <ul class="list-unstyled small mb-0">
+      {% for item in profile_security.critical_vulnerabilities|slice:":4" %}
+      <li class="mb-2">
+        <strong>{{ item.threat }}</strong>
+        <span class="text-muted d-block">{{ item.remediation_step }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+{% endif %}

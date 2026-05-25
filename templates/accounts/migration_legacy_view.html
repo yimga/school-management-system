@@ -3,7 +3,7 @@
 {% load region_format %}
 {% block backend_title %}{% trans "Legacy data (read-only)" %}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <p class="text-muted small mb-3">Run #{{ run.id }} — {{ run.migration_type }} ({{ run.started_at|date:"SHORT_DATETIME_FORMAT" }}).</p>
   <div class="table-responsive">

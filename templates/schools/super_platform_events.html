@@ -15,9 +15,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="operational-workbench">
-  <h1 class="h4">{% trans "Platform event log" %}</h1>
-  <p class="text-secondary small">{% trans "emit_platform_event persistence (pack apply, rollback, catalog). Numbered pages, 25 per page." %}</p>
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="platform_events" center_eyebrow=_("Platform operators") center_title=_("Platform event log") center_purpose=_("emit_platform_event persistence (pack apply, rollback, catalog). Numbered pages, 25 per page.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+
   <div class="table-responsive">
     <table class="table table-sm table-striped table-family align-middle">
       <caption class="visually-hidden">{% trans "Platform event log" %}</caption>

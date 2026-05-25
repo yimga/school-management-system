@@ -1,0 +1,110 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Promotion requests" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ roster_url }}">{% trans "Team" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Promotions" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_team_promote" center_eyebrow=_("Platform operators") center_title=_("Promotion requests") center_purpose=_("Dual-control tier promotions for platform operators.") primary_url=roster_url primary_label=_("Back to roster") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+
+  <div class="row g-3">
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "New promotion request (dual control)" %}</div>
+        <div class="card-body">
+          <form method="post" class="vstack gap-3">
+            {% csrf_token %}
+            <div>
+              <label class="form-label" for="target_user_id">{% trans "Target operator" %}</label>
+              <select class="form-select" id="target_user_id" name="target_user_id" required>
+                {% for u in operators %}
+                <option value="{{ u.pk }}">{{ u.get_username }} ({{ u.email|default:"no email" }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="tier">{% trans "Requested tier" %}</label>
+              <select class="form-select" id="tier" name="tier" required>
+                {% for value, label in tier_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="peer_approver_id">{% trans "Peer approver" %}</label>
+              <select class="form-select" id="peer_approver_id" name="peer_approver_id" required>
+                {% for u in peer_operators %}
+                <option value="{{ u.pk }}">{{ u.get_username }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="reason">{% trans "Reason" %}</label>
+              <input type="text" class="form-control" id="reason" name="reason" maxlength="255" placeholder="{% trans 'Why is this promotion needed?' %}">
+            </div>
+            <button type="submit" class="btn btn-primary align-self-start">{% trans "Submit request" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Pending approvals" %}</div>
+        <div class="card-body p-0 table-responsive">
+          <table class="table table-sm mb-0 rmc-data-table">
+            <thead>
+              <tr>
+                <th>{% trans "Target" %}</th>
+                <th>{% trans "Tier" %}</th>
+                <th>{% trans "Peer" %}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in pending_rows %}
+              <tr>
+                <td>{{ row.promo.target_user.get_username }}</td>
+                <td>{{ row.promo.requested_tier }}</td>
+                <td>{{ row.promo.peer_approver.get_username }}</td>
+                <td class="text-end">
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+{% if row.can_decide %}
+                  <form method="post" action="{% url 'super:operator_team_promotion_decide' row.promo.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="decision" value="approve">
+                    <button type="submit" class="btn btn-sm btn-success">{% trans "Approve" %}</button>
+                  </form>
+                  <form method="post" action="{% url 'super:operator_team_promotion_decide' row.promo.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="decision" value="reject">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Reject" %}</button>
+                  </form>
+                  {% else %}
+                  <span class="small text-muted">{% trans "Awaiting peer" %}</span>
+                  {% endif %}
+            </div>
+          </details></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-muted text-center py-3">{% trans "No pending requests." %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

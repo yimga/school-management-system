@@ -6,7 +6,7 @@
 
 {% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Webhook docs" %}</h1>
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-rmc-scroll-policy="paginate">
   <h4 class="mb-3">{% trans "Webhook documentation" %}</h4>
   <p class="text-muted">{% trans "Webhook testing guide for event types, payload schemas, endpoint subscriptions, retries, and secret rotation. Use sandbox endpoints before production." %}</p>
   <div class="card shadow-sm mb-4">
@@ -20,14 +20,19 @@
         <tbody>
           {% for sub in subscriptions %}
           <tr>
-            <td><code>{{ sub.url|truncatechars:60 }}</code></td>
+            <td>
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<code>{{ sub.url|truncatechars:60 }}</code></td>
             <td>{{ sub.event_types|join:", "|default:"all" }}</td>
             <td>{% if sub.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
             <td>{{ sub.updated_at|date:"Y-m-d H:i" }}</td>
             <td>
               <a href="{% url 'apicenter:webhook_subscription_edit' sub.pk %}" class="btn btn-outline-secondary btn-sm">{% trans "Edit" %}</a>
               <form method="post" action="{% url 'apicenter:webhook_subscription_delete' sub.pk %}" class="d-inline" onsubmit="return confirm('{% trans "Delete this subscription?" %}');">{% csrf_token %}<button type="submit" class="btn btn-outline-danger btn-sm">{% trans "Delete" %}</button></form>
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% empty %}
           <tr><td colspan="5"><div class="rmc-empty rmc-empty--row" role="status" aria-live="polite"><p class="rmc-empty__message">{% trans "No webhook subscriptions yet. Create one above." %}</p></div></td></tr>

@@ -85,6 +85,7 @@ from apps.api.offline_replay_views import (
 )
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.offline_device_api import OfflineTokenMintView
+from apps.api.iam_offline_api import OfflineIamIntentAPI, PermissionSnapshotAPI
 from apps.api.sync_bundle_api import SyncBundleUploadView
 from apps.portal.views_command_bar import api_command_bar_search
 from apps.portal.views_ai_product import (
@@ -658,6 +659,16 @@ urlpatterns = [
         "devices/offline-token/",
         OfflineTokenMintView.as_view(),
         name="devices-offline-token",
+    ),
+    path(
+        "offline/permission_snapshot/",
+        PermissionSnapshotAPI.as_view(),
+        name="offline-permission-snapshot",
+    ),
+    path(
+        "offline/iam_intent/",
+        OfflineIamIntentAPI.as_view(),
+        name="offline-iam-intent",
     ),
     path(
         "sync/bundle/upload/",

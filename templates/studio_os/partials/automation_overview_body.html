@@ -2,7 +2,7 @@
 {# v3.54 (2026-05-21, Agent 3): Automation cockpit overview. #}
 {# Summary tiles + simulation preview + dependency graph + workflow health. #}
 {# Every value reads defensively via |default so missing context never breaks render. #}
-<section class="rmc-automation-cockpit" data-page-archetype="operational-workbench" aria-labelledby="rmc-automation-cockpit-title">
+<section class="rmc-automation-cockpit" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" aria-labelledby="rmc-automation-cockpit-title">
   <header class="rmc-automation-cockpit__header">
     <div>
       <h2 id="rmc-automation-cockpit-title" class="rmc-automation-cockpit__title">{% trans "Workflow cockpit" %}</h2>

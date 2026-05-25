@@ -207,3 +207,10 @@ def rmc_os_shell_context(request):
     except Exception:  # noqa: BLE001
         shell = {**shell, "nav_job_clusters": ()}
     return {"rmc_os_shell": shell}
+
+
+def operational_nav_groups(request):
+    """Default steering path pills for /super/ operational workbenches."""
+    from apps.platform_runtime.super_operational_frames import DEFAULT_SUPER_NAV_GROUPS
+
+    return {"operational_nav_groups": DEFAULT_SUPER_NAV_GROUPS}

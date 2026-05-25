@@ -20,7 +20,7 @@
 
 {% block cp_content %}
   <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#command-center-main">{% trans "Skip to operational queues" %}</a>
-  <div id="command-center-main" class="container-fluid py-4 control-plane-shell" data-rmc-scroll-policy="paginate" tabindex="-1" data-page-archetype="operational-workbench" data-decision-engine="surface">
+  <div id="command-center-main" class="container-fluid py-2 control-plane-shell" data-rmc-scroll-policy="paginate" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% if operator_command_center_links %}
   <div class="card shadow-sm border-0 page-family-content-card mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
@@ -35,36 +35,21 @@
   </div>
   {% endif %}
 {% phase8_dashboard_declaration "schools/super_command_center.html" %}
-  <section class="cp-hero cp-hero-compact mb-4">
-    <div class="cp-hero-grid">
-      <div>
-        <div class="cp-eyebrow">{% trans "RunMyCampus Manager" %}</div>
-        <h1 class="cp-hero-title">{% trans "Operational queues" %}</h1>
-        <p class="cp-hero-copy">
-          {% trans "Drill into the work that blocks revenue, rollout speed, platform health, and operator trust." %}
-        </p>
-        <div class="cp-chip-row">
-          <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'healthy' }}">{% blocktrans with s=platform_health.overall_status|default:"healthy"|upper %}Platform {{ s }}{% endblocktrans %}</span>
-          <span class="cp-chip">{% blocktrans with n=command_center.support_backlog_48h_count %}Support backlog 48h+ {{ n }}{% endblocktrans %}</span>
-          <span class="cp-chip">{% blocktrans with n=command_center.provisioning_sla_breaches %}Provisioning breaches {{ n }}{% endblocktrans %}</span>
-          <span class="cp-chip">{% blocktrans with n=billing_watchlist|length %}Billing watchlist {{ n }}{% endblocktrans %}</span>
-        </div>
-      </div>
-      <div class="cp-hero-actions">
-        <div class="cp-action-stack">
-          <a href="{{ dashboard_url }}" class="btn btn-outline-light btn-sm js-return-to-origin" data-fallback="{{ dashboard_url }}">{% trans "Back to control plane" %}</a>
-          <div class="cp-action-row">
-            <a href="{{ support_dashboard_url }}" class="btn btn-outline-light btn-sm">{% trans "Support" %}</a>
-            <a href="{{ billing_dashboard_url }}" class="btn btn-outline-light btn-sm">{% trans "Billing" %}</a>
-            <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-light btn-sm">{% trans "Marketplace" %}</a>
-            <a href="{% url 'super:orchestration_workbench' %}" class="btn btn-outline-light btn-sm">{% trans "Orchestration" %}</a>
-            <a href="{{ usage_url }}" class="btn btn-outline-light btn-sm">{% trans "Usage" %}</a>
-            {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-light btn-sm">{% trans "Incidents" %}</a>{% endif %}
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="command_center" center_eyebrow=_("Platform operators") center_title=_("RunMyCampus Manager") center_purpose=_("Operational queues") primary_url=dashboard_url primary_label=_("Back to control plane") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+  <div class="cp-chip-row mb-3">
+    <span class="cp-chip cp-chip-{{ platform_health.overall_status|default:'healthy' }}">{% blocktrans with s=platform_health.overall_status|default:"healthy"|upper %}Platform {{ s }}{% endblocktrans %}</span>
+    <span class="cp-chip">{% blocktrans with n=command_center.support_backlog_48h_count %}Support backlog 48h+ {{ n }}{% endblocktrans %}</span>
+    <span class="cp-chip">{% blocktrans with n=command_center.provisioning_sla_breaches %}Provisioning breaches {{ n }}{% endblocktrans %}</span>
+    <span class="cp-chip">{% blocktrans with n=billing_watchlist|length %}Billing watchlist {{ n }}{% endblocktrans %}</span>
+  </div>
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <a href="{{ support_dashboard_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Support" %}</a>
+    <a href="{{ billing_dashboard_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Billing" %}</a>
+    <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-secondary btn-sm">{% trans "Marketplace" %}</a>
+    <a href="{% url 'super:orchestration_workbench' %}" class="btn btn-outline-secondary btn-sm">{% trans "Orchestration" %}</a>
+    <a href="{{ usage_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Usage" %}</a>
+    {% if platform_incidents_url %}<a href="{{ platform_incidents_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Incidents" %}</a>{% endif %}
+  </div>
 
   <div class="cp-overview-grid mb-4">
     <article class="cp-overview-card cp-overview-card-blue rmc-reveal">

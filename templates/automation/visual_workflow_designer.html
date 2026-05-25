@@ -2,7 +2,7 @@
 {% load i18n static %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block content %}
-<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-visual-workflow-canvas="1" data-rmc-os-center="automation_studio_canvas">
+<div class="container-fluid py-3" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-visual-workflow-canvas="1" data-rmc-os-center="automation_studio_canvas">
   {% trans "Automation Studio" as aw_eyebrow %}
   {% trans "Visual graph: trigger → condition → action. Validate before publish; simulate to dry-run without side effects." as aw_purpose %}
   {% include "components/rmc_os_page_header.html" with os_center_key="automation_studio_canvas" center_eyebrow=aw_eyebrow center_title=page_title center_purpose=aw_purpose %}

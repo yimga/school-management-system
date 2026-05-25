@@ -28,6 +28,8 @@ from apps.observability.tracing import trace_view
 from apps.platform_runtime.helpers import get_platform_defaults
 from apps.api.serializers import InvoiceSerializer, PaymentSerializer
 from apps.api.permissions import IsAdminUser
+from apps.accounts.drf_rebac import RebacPermission
+from apps.accounts.rebac import enforce_permission_token
 from apps.schools.models import School
 
 
@@ -56,11 +58,23 @@ class FinanceCursorPagination(CursorPagination):
     ordering = "-created_at"
 
 
-def _can_write_finance(user) -> bool:
+def _can_write_finance(user, school=None) -> bool:
     if not user or not getattr(user, "is_authenticated", False):
         return False
     if user.is_superuser or user.is_staff:
         return True
+    if school is not None:
+        return enforce_permission_token(user, "finance.manage", school=school)
+    return (getattr(user, "role", "") or "").upper() in FINANCE_WRITE_ROLES
+
+
+def _can_read_finance(user, school=None) -> bool:
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+    if school is not None:
+        return enforce_permission_token(user, "finance.view", school=school)
     return (getattr(user, "role", "") or "").upper() in FINANCE_WRITE_ROLES
 
 
@@ -123,6 +137,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     serializer_class = InvoiceSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = FinanceCursorPagination
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve", "summary"):
+            return [IsAuthenticated(), RebacPermission("finance.view")]
+        return [IsAuthenticated(), RebacPermission("finance.manage")]
     filterset_fields = ["status", "student", "issued_date", "due_date"]
     ordering_fields = ["issued_date", "due_date", "total_amount", "created_at"]
     ordering = ["-issued_date", "-id"]
@@ -153,6 +172,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         return base.filter(student_id__in=guardian_children)
 
     def list(self, request, *args, **kwargs):
+        school = _request_school(request)
+        if school and not _can_read_finance(request.user, school):
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
         """
         List invoices with advanced filtering
 
@@ -191,11 +215,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @trace_view("finance.invoice.create")
     def create(self, request, *args, **kwargs):
         """Create new invoice"""
-        if not _can_write_finance(request.user):
+        school = _request_school(request)
+        if not _can_write_finance(request.user, school):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
-        school = _request_school(request)
         if school is None:
             return Response(
                 {"error": "School context required"}, status=status.HTTP_400_BAD_REQUEST
@@ -232,7 +256,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def mark_paid(self, request, pk=None):
         """Mark invoice as fully paid"""
-        if not _can_write_finance(request.user):
+        school = _request_school(request)
+        if not _can_write_finance(request.user, school):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
@@ -364,6 +389,11 @@ class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = FinanceCursorPagination
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve"):
+            return [IsAuthenticated(), RebacPermission("finance.view")]
+        return [IsAuthenticated(), RebacPermission("finance.manage")]
     ordering_fields = ["created_at", "amount", "paid_at"]
     ordering = ["-paid_at"]
 
@@ -377,7 +407,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
             return base.none()
         base = base.filter(school=school)
 
-        if _can_write_finance(user):
+        if _can_write_finance(user, school):
             return base
 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
 
@@ -401,11 +431,11 @@ class PaymentViewSet(viewsets.ModelViewSet):
         Supports X-Idempotency-Key: same key within 24h returns the same response (offline replay dedup).
         Request Body: { "invoice": 1, "amount": 25000.00, "method": "MTN_MOMO", "reference": "REF123456", "paid_at": "..." }
         """
-        if not _can_write_finance(request.user):
+        school = _request_school(request)
+        if not _can_write_finance(request.user, school):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
-        school = _request_school(request)
         if school is None:
             return Response(
                 {"error": "School context required"}, status=status.HTTP_400_BAD_REQUEST
@@ -580,6 +610,10 @@ class FinancialAnalyticsAPI(APIView):
         if school is None:
             return Response(
                 {"error": "School context required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if not _can_read_finance(request.user, school):
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
         from_date = request.query_params.get("from_date")
         to_date = request.query_params.get("to_date")

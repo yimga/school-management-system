@@ -35,6 +35,17 @@ def _sync_superuser_flags(user_model, username):
     return False
 
 
+def _sync_platform_operator_profile(username: str) -> None:
+    if (username or "").strip().lower() != "admin":
+        return
+    from apps.platform_runtime.operator_identity import ensure_platform_operator_profile
+
+    User = get_user_model()
+    user = User.objects.filter(username=username).first()
+    if user:
+        ensure_platform_operator_profile(user)
+
+
 class Command(BaseCommand):
     help = (
         "Ensure at least one superuser exists. Creates one or promotes an existing user. "
@@ -97,6 +108,7 @@ class Command(BaseCommand):
                     existing_admin.role = SUPERADMIN_ROLE_VALUE
                 existing_admin.save()
                 _sync_superuser_flags(User, username)
+                _sync_platform_operator_profile(username)
                 self.stdout.write(
                     self.style.SUCCESS(
                         "Superuser '%s' password updated. Log in at /authentication/login/ or /admin/"
@@ -155,6 +167,7 @@ class Command(BaseCommand):
                 existing.role = SUPERADMIN_ROLE_VALUE
             existing.save()
             _sync_superuser_flags(User, username)
+            _sync_platform_operator_profile(username)
             self.stdout.write(
                 self.style.SUCCESS(
                     "Superuser '%s' updated. Log in at /authentication/login/ or /admin/"
@@ -173,6 +186,7 @@ class Command(BaseCommand):
             u.role = SUPERADMIN_ROLE_VALUE
             u.save(update_fields=["role"])
         _sync_superuser_flags(User, username)
+        _sync_platform_operator_profile(username)
         self.stdout.write(
             self.style.SUCCESS(
                 "Superuser '%s' created. You can log in at:\n"

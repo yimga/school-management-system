@@ -3,7 +3,7 @@
 {% block title %}Grade Approval{% if approval.subject_assignment %} · {{ approval.subject_assignment.subject.name }}{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="record-detail">
+<div class="container-fluid py-2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h1 class="mb-0">Grade Approval Request</h1>
@@ -76,7 +76,7 @@
     <strong>Submitted marks</strong>
   </div>
   <div class="table-responsive">
-    <table class="gradebook-table table-family" aria-label="Submitted marks for approval: student and score components">
+    <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Submitted marks for approval: student and score components">
       <thead>
         <tr>
           <th scope="col">Student</th>

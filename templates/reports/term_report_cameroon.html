@@ -1,3 +1,4 @@
+<div data-rmc-scroll-policy="paginate">
 {% load region_format report_style_tags %}
 <!doctype html>
 <html>
@@ -78,7 +79,8 @@
   </div>
 
   <div class="boxed" style="margin-top:8px;">
-    <table class="cam" aria-label="Cameroon term subject marks grid">
+    <!-- large-collection-allow: print-report-fixed-layout -->
+<table class="cam" aria-label="Cameroon term subject marks grid">
       <thead>
         <tr>
           <th scope="col" style="width:32%;">{% report_style_label report_style "subject_header" "Subject / Matière" %}</th>
@@ -168,3 +170,5 @@
   </div>
 </body>
 </html>
+
+</div>

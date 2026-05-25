@@ -1,3 +1,4 @@
+<div data-rmc-scroll-policy="paginate">
 {% load region_format report_style_tags %}
 <!doctype html>
 <html>
@@ -101,7 +102,8 @@
     </div>
   </div>
 
-  <table class="cameroon-mark-table table-family align-middle" aria-label="Cameroon term marks (modern layout)">
+  <!-- large-collection-allow: print-report-fixed-layout -->
+<table class="cameroon-mark-table table-family align-middle" aria-label="Cameroon term marks (modern layout)">
     <thead>
       <tr>
         <th scope="col">{% report_style_label report_style "subject_header" "Subject / Matiere" %}</th>
@@ -185,3 +187,5 @@
   <p class="watermark-note text-end">Powered by RunMyCampus</p>
 </body>
 </html>
+
+</div>

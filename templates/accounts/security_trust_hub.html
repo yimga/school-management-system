@@ -5,7 +5,7 @@
 
 {% block content %}
 {# trust-hub-doc-anchors: NORTH_STAR_TRUST_AND_OPS.md THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md (verify_phase9_security_trust_conformance) #}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
 {% phase8_dashboard_declaration "accounts/security_trust_hub.html" %}
   <h1 class="h4 mb-1">{% trans "Security & trust" %}</h1>
   <p class="text-muted small mb-4">{% blocktrans with s=school.name %}Posture and controls for your account and <strong>{{ s }}</strong>. Provider credentials and AI keys stay server-side only.{% endblocktrans %}</p>
@@ -66,6 +66,17 @@
     <summary class="small fw-semibold">{% trans "Expand school governance & platform cards" %}</summary>
     <div class="row g-3 rmc-reveal-stagger">
     <div class="col-12"><h2 class="h6 text-uppercase text-muted mt-2">{% trans "School governance" %}</h2></div>
+    <div class="col-md-6 col-lg-4 rmc-reveal">
+      <div class="card h-100 shadow-sm border-secondary">
+        <div class="card-body">
+          <h2 class="h6 card-title"><span class="bi bi-person-badge me-2" aria-hidden="true"></span>{% trans "Staff identity hub" %}</h2>
+          <p class="card-text small text-secondary">{% trans "School roster, invites, MFA posture, and offboarding." %}</p>
+          {% if urls.tenant_identity %}
+            <a href="{{ urls.tenant_identity }}" class="btn btn-outline-primary btn-sm">{% trans "Open roster" %}</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
     <div class="col-md-6 col-lg-4 rmc-reveal">
       <div class="card h-100 shadow-sm border-secondary">
         <div class="card-body">

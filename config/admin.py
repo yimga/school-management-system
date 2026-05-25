@@ -19,6 +19,7 @@ from django.template.response import TemplateResponse
 from django.urls import NoReverseMatch, path, reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 from unfold.sites import UnfoldAdminSite
 
 # §2.4: Typed tuple for admin context best-effort fallbacks (allowlist 0).
@@ -422,6 +423,41 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             context["admin_index_kpis"] = build_admin_index_kpi_strip(context)
         except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             context["admin_index_kpis"] = []
+        try:
+            from apps.siteconfig.admin_index_surface import (
+                build_admin_index_surface_context,
+            )
+
+            surface = build_admin_index_surface_context()
+            context["admin_index_surface"] = surface
+            school_total = surface.get("school_count")
+            if school_total is not None:
+                school_url = None
+                try:
+                    school_url = reverse("admin:schools_school_changelist")
+                except NoReverseMatch:
+                    school_url = None
+                school_kpi = {
+                    "id": "schools",
+                    "label": _("Schools"),
+                    "value": school_total,
+                }
+                if school_url:
+                    school_kpi["url"] = school_url
+                context["admin_index_kpis"] = [school_kpi] + list(
+                    context.get("admin_index_kpis") or []
+                )
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
+            from apps.siteconfig.admin_index_surface import empty_admin_index_surface
+
+            context["admin_index_surface"] = empty_admin_index_surface()
+        except Exception:
+            logging.getLogger(__name__).warning(
+                "admin index surface context failed", exc_info=True
+            )
+            from apps.siteconfig.admin_index_surface import empty_admin_index_surface
+
+            context["admin_index_surface"] = empty_admin_index_surface()
         if extra_context:
             context.update(extra_context)
         return TemplateResponse(request, self.index_template_name, context)
@@ -508,13 +544,21 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
         return True
 
     def has_permission(self, request):
-        # Align with control plane: platform operators (superuser or role SUPERADMIN) may use
-        # manager /admin/ backoffice (e.g. edit Users). Tenant staff without CP access stay out.
         if not self._is_platform_host(request) or not getattr(request.user, "is_active", False):
             return False
         from apps.schools.control_plane import user_has_control_plane_access
+        from apps.platform_runtime.operator_identity import (
+            PLATFORM_SCOPE_BREAK_GLASS_ADMIN,
+            user_has_platform_scope,
+        )
 
-        return bool(user_has_control_plane_access(request.user))
+        if not user_has_control_plane_access(request.user):
+            return False
+        if getattr(request.user, "is_superuser", False):
+            return True
+        return user_has_platform_scope(
+            request.user, PLATFORM_SCOPE_BREAK_GLASS_ADMIN
+        )
 
     def get_app_list(self, request, app_label=None):
         """AdminOpsShell: group and order apps by platform IA (Platform Configuration, Catalog Records, etc.)."""

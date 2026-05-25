@@ -3,7 +3,7 @@
 {% block title %}{% trans "Visitor log" %} — {{ school.name }}{% endblock %}
 {% block backend_title %}{% trans "Visitor check-in / check-out" %}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" data-rmc-scroll-policy="paginate">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <div class="card shadow-sm mb-4">
     <div class="card-body">
@@ -30,12 +30,16 @@
           <td>{{ v.host_contact|default:"—" }}</td>
           <td>{{ v.checked_in_at|date:"Y-m-d H:i" }}</td>
           <td>
-            <form method="post" class="d-inline">{% csrf_token %}
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+<form method="post" class="d-inline">{% csrf_token %}
               <input type="hidden" name="action" value="checkout">
               <input type="hidden" name="visit_id" value="{{ v.pk }}">
               <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Check out" %}</button>
             </form>
-          </td>
+            </div>
+          </details></td>
         </tr>
         {% empty %}<tr><td colspan="4">{% trans "No open visits." %}</td></tr>{% endfor %}
       </tbody>

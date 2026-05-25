@@ -66,7 +66,7 @@
         <span class="rmc-nas-chip-desc text-muted">{% trans "Open your main school workspace." %}</span>
       </a>
       {% if not strict %}
-      <a class="rmc-nas-chip" role="listitem" href="{% url 'portal:support_help_hub' %}" data-action="fallback-open" data-task="platform-next-action" data-task-step="help:next-action-fallback">
+      <a class="rmc-nas-chip" role="listitem" href="{% url 'feedback:help_center' %}?section=support" data-action="fallback-open" data-task="platform-next-action" data-task-step="help:next-action-fallback">
         <span class="rmc-nas-chip-title">{% trans "Help center" %}</span>
         <span class="rmc-nas-chip-desc text-muted">{% trans "Guides and answers when you are stuck." %}</span>
       </a>

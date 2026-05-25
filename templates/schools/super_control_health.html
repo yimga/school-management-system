@@ -17,9 +17,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "schools/super_control_health.html" %}
-  {% include "studio_os/components/page_header.html" with title=_("Control Plane Health") subtitle=_("Single entry for runbooks, SLOs, incidents, and school health. Use these links for operational visibility and response.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="control_health" center_eyebrow=_("Platform operators") center_title=_("Control Plane Health") center_purpose=_("Single entry for runbooks, SLOs, incidents, and school health. Use these links for operational visibility and response.") primary_url=dashboard_url primary_label=_("Back to Dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
     <div class="card-body p-0">
       <ul class="list-group list-group-flush" style="background: transparent;">

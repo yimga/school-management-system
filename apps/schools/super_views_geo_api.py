@@ -17,6 +17,10 @@ from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
 from .models import School
 from .super_views_helpers import canonical_country_alpha2 as _canonical_country_alpha2
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
 
 def _clamp_int(value, default: int, *, minimum: int, maximum: int) -> int:
@@ -28,6 +32,7 @@ def _clamp_int(value, default: int, *, minimum: int, maximum: int) -> int:
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_geo_cities(request):
     country_code = GlobalGeoCatalog.normalize_country_code(
         request.GET.get("country_code")
@@ -43,6 +48,7 @@ def api_geo_cities(request):
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_geo_timezones(request):
     country_code = GlobalGeoCatalog.normalize_country_code(
         request.GET.get("country_code")
@@ -58,6 +64,7 @@ def api_geo_timezones(request):
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_provinces(request):
     """List canonical subdivisions for a country; keeps `provinces` key for compatibility."""
     ensure_registry_baseline()
@@ -74,6 +81,7 @@ def api_provinces(request):
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_education_profiles(request):
     country_code = GlobalGeoCatalog.normalize_country_code(
         request.GET.get("country_code")
@@ -122,6 +130,7 @@ def api_education_profiles(request):
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_system_blueprint(request):
     """
     Phase Global: Environment Discovery — get merged blueprint for region + flavor.
@@ -136,6 +145,7 @@ def api_system_blueprint(request):
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_plans_configurator(request):
     """
     Plan Configurator API (Phase E): GET plans, addons, country_multiplier.

@@ -37,17 +37,47 @@
   },
   "kb_router_summary": {
     "namespace": "kb",
-    "mount_points": ["manager_urls.py:kb/", "tenant_urls.py:kb/", "urls.py:kb/"],
+    "mount_points": [
+      "manager_urls.py:kb/",
+      "tenant_urls.py:kb/",
+      "urls.py:kb/"
+    ],
     "routes": 19,
-    "covers": ["faq_list", "faq_detail", "faq_vote", "faq_submit", "kb_home", "kb_category", "kb_article", "kb_article_download_{odt,docx,pdf}", "kb_article_vote", "kb_comment_add", "kb_article_submit", "office_document_list", "office_document_open", "wopi_*", "kb_search", "user_contributions"]
+    "covers": [
+      "faq_list",
+      "faq_detail",
+      "faq_vote",
+      "faq_submit",
+      "kb_home",
+      "kb_category",
+      "kb_article",
+      "kb_article_download_{odt,docx,pdf}",
+      "kb_article_vote",
+      "kb_comment_add",
+      "kb_article_submit",
+      "office_document_list",
+      "office_document_open",
+      "wopi_*",
+      "kb_search",
+      "user_contributions"
+    ]
   },
   "kb_locale_families_config": {
     "source": "config/manager_kb_locale_families.py",
     "operator_route": "manager_kb_locale_families",
-    "operations_exposed": ["set_group", "mark_canonical", "create_variant", "seed_variants", "publish_group"],
+    "operations_exposed": [
+      "set_group",
+      "mark_canonical",
+      "create_variant",
+      "seed_variants",
+      "publish_group"
+    ],
     "model_field": "KBArticle.locale_group_id",
     "variant_targets_const": "apps.portal.kb_locale_ops.LOCALE_VARIANT_TARGETS",
-    "cross_links": ["manager_help_center", "kb:kb_home"],
+    "cross_links": [
+      "manager_help_center",
+      "kb:kb_home"
+    ],
     "purpose": "Operator UI for binding KB articles into translation families (1 canonical + N locale variants) and bulk-publishing the family"
   },
   "workflows": [
@@ -58,7 +88,11 @@
       "help_article_path": "templates/portal/kb_article.html",
       "faq_status": "exists",
       "common_blockers_documented_at": "docs/FAQ_KB_IMPLEMENTATION_GUIDE.md",
-      "role_specific_versions_needed": ["parent", "student", "teacher"],
+      "role_specific_versions_needed": [
+        "parent",
+        "student",
+        "teacher"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "yes",
       "ai_draft_capable": "yes",
@@ -88,7 +122,9 @@
       "help_article_path": "templates/portal/kb_article_submit.html",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/FAQ_KB_IMPLEMENTATION_GUIDE.md",
-      "role_specific_versions_needed": ["teacher"],
+      "role_specific_versions_needed": [
+        "teacher"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "yes",
@@ -103,7 +139,10 @@
       "help_article_path": "templates/portal/faq_list.html",
       "faq_status": "exists",
       "common_blockers_documented_at": "docs/FAQS_COMPREHENSIVE.md",
-      "role_specific_versions_needed": ["parent", "student"],
+      "role_specific_versions_needed": [
+        "parent",
+        "student"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "yes",
       "ai_draft_capable": "yes",
@@ -133,7 +172,11 @@
       "help_article_path": "templates/portal/support_help_hub.html",
       "faq_status": "exists",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["parent", "student", "teacher"],
+      "role_specific_versions_needed": [
+        "parent",
+        "student",
+        "teacher"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "yes",
@@ -148,7 +191,10 @@
       "help_article_path": "templates/portal/support_request.html",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["parent", "teacher"],
+      "role_specific_versions_needed": [
+        "parent",
+        "teacher"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "yes",
       "ai_draft_capable": "yes",
@@ -174,8 +220,8 @@
     {
       "workflow_id": "operator-help-analytics",
       "audience": "operator",
-      "help_article_status": "draft",
-      "help_article_path": "templates/schools/partials/manager_help_analytics_body.html",
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-help-analytics",
       "faq_status": "missing",
       "common_blockers_documented_at": "docs/HELP_CENTER_LOCALE_CORPUS_RUNBOOK.md",
       "role_specific_versions_needed": [],
@@ -189,8 +235,8 @@
     {
       "workflow_id": "operator-kb-locale-families",
       "audience": "operator",
-      "help_article_status": "draft",
-      "help_article_path": "templates/schools/partials/manager_kb_locale_families_body.html",
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-kb-locale-families",
       "faq_status": "missing",
       "common_blockers_documented_at": "docs/HELP_CENTER_LOCALE_CORPUS_RUNBOOK.md",
       "role_specific_versions_needed": [],
@@ -324,8 +370,8 @@
     {
       "workflow_id": "operator-ai-review-queue",
       "audience": "operator",
-      "help_article_status": "draft",
-      "help_article_path": "templates/schools/partials/manager_ai_review_queue_body.html",
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-ai-review-queue",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/AI_SURFACES_FAQ.md",
       "role_specific_versions_needed": [],
@@ -339,8 +385,8 @@
     {
       "workflow_id": "operator-manager-support-request",
       "audience": "operator",
-      "help_article_status": "draft",
-      "help_article_path": "templates/schools/partials/manager_support_request_body.html",
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-manager-support-request",
       "faq_status": "missing",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -354,8 +400,8 @@
     {
       "workflow_id": "tenant-customersuccess-guided-onboarding",
       "audience": "school_admin",
-      "help_article_status": "draft",
-      "help_article_path": "templates/customersuccess/guided_onboarding.html",
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-customersuccess-guided-onboarding",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/ONBOARDING_FLOW_GUIDE.md",
       "role_specific_versions_needed": [],
@@ -369,8 +415,8 @@
     {
       "workflow_id": "tenant-accounts-onboarding-wizard",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-accounts-onboarding-wizard",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/ONBOARDING_FLOW_GUIDE.md",
       "role_specific_versions_needed": [],
@@ -384,11 +430,14 @@
     {
       "workflow_id": "tenant-accounts-mfa-setup",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-accounts-mfa-setup",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["teacher", "parent"],
+      "role_specific_versions_needed": [
+        "teacher",
+        "parent"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "yes",
       "ai_draft_capable": "no",
@@ -399,8 +448,8 @@
     {
       "workflow_id": "tenant-accounts-migration-wizard",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/school-admin-migration-cloud-intake",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/COMPANION_SIBLINGS_HANDSHAKE_AND_CSV_INGEST.md",
       "role_specific_versions_needed": [],
@@ -414,8 +463,8 @@
     {
       "workflow_id": "tenant-accounts-legacy-setup-link",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-accounts-legacy-setup-link",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/SECURITY_KEYS.md",
       "role_specific_versions_needed": [],
@@ -429,11 +478,14 @@
     {
       "workflow_id": "tenant-academics-syllabus-approval",
       "audience": "teacher",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/teacher-syllabus-submission",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["teacher", "school_admin"],
+      "role_specific_versions_needed": [
+        "teacher",
+        "school_admin"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "no",
@@ -444,11 +496,14 @@
     {
       "workflow_id": "tenant-evals-grade-approval",
       "audience": "teacher",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/teacher-grade-approval-workflow",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["teacher", "school_admin"],
+      "role_specific_versions_needed": [
+        "teacher",
+        "school_admin"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "no",
@@ -459,11 +514,14 @@
     {
       "workflow_id": "tenant-evals-grade-import",
       "audience": "teacher",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/teacher-grade-import-how-to",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["teacher", "school_admin"],
+      "role_specific_versions_needed": [
+        "teacher",
+        "school_admin"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "no",
@@ -474,8 +532,8 @@
     {
       "workflow_id": "tenant-finance-payment-readiness",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/school-admin-payment-readiness",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -489,11 +547,13 @@
     {
       "workflow_id": "tenant-finance-requests",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-finance-requests",
       "faq_status": "missing",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["parent"],
+      "role_specific_versions_needed": [
+        "parent"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "yes",
@@ -504,11 +564,14 @@
     {
       "workflow_id": "tenant-communication-announcement-create",
       "audience": "teacher",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-communication-announcement-create",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["teacher", "school_admin"],
+      "role_specific_versions_needed": [
+        "teacher",
+        "school_admin"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "yes",
@@ -519,8 +582,8 @@
     {
       "workflow_id": "tenant-communication-narrative-approve",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-communication-narrative-approve",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -534,8 +597,8 @@
     {
       "workflow_id": "tenant-compliance-erasure-request",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-compliance-erasure-request",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/DSAR_RUNBOOK.md",
       "role_specific_versions_needed": [],
@@ -549,8 +612,8 @@
     {
       "workflow_id": "tenant-payroll-create-run",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-payroll-create-run",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/PAY_SCALE_GUIDE.md",
       "role_specific_versions_needed": [],
@@ -564,8 +627,8 @@
     {
       "workflow_id": "tenant-reports-promotion-preview",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-reports-promotion-preview",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -579,8 +642,8 @@
     {
       "workflow_id": "tenant-reports-publish-term",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-reports-publish-term",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -594,8 +657,8 @@
     {
       "workflow_id": "tenant-reports-regulatory-export",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-reports-regulatory-export",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -609,8 +672,8 @@
     {
       "workflow_id": "tenant-marketplace-publisher-signup",
       "audience": "partner",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-marketplace-publisher-signup",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -624,8 +687,8 @@
     {
       "workflow_id": "operator-marketplace-signup-review-queue",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-marketplace-signup-review-queue",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -639,8 +702,8 @@
     {
       "workflow_id": "tenant-migration-cloud-connector-import",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-migration-cloud-connector-import",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/MIGRATION_CLOUD_AUDIT_LOG.md",
       "role_specific_versions_needed": [],
@@ -654,8 +717,8 @@
     {
       "workflow_id": "operator-migration-cloud-guardian-consent",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-migration-cloud-guardian-consent",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/DPA_TEMPLATE.md",
       "role_specific_versions_needed": [],
@@ -669,8 +732,8 @@
     {
       "workflow_id": "operator-platform-runtime-blueprint-apply",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-platform-runtime-blueprint-apply",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -684,8 +747,8 @@
     {
       "workflow_id": "operator-platform-runtime-pack-rollback",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-platform-runtime-pack-rollback",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -699,8 +762,8 @@
     {
       "workflow_id": "operator-platform-runtime-change-requests",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-platform-runtime-change-requests",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -714,8 +777,8 @@
     {
       "workflow_id": "operator-platform-runtime-implementation-command-center",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-platform-runtime-implementation-command-center",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -729,8 +792,8 @@
     {
       "workflow_id": "operator-schools-create-school-wizard",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-schools-create-school-wizard",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/ONBOARDING_FLOW_GUIDE.md",
       "role_specific_versions_needed": [],
@@ -744,8 +807,8 @@
     {
       "workflow_id": "operator-schools-custom-domain-wizard",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-schools-custom-domain-wizard",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -759,8 +822,8 @@
     {
       "workflow_id": "operator-schools-onboard-wizard",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-schools-onboard-wizard",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/ONBOARDING_FLOW_GUIDE.md",
       "role_specific_versions_needed": [],
@@ -774,8 +837,8 @@
     {
       "workflow_id": "operator-schools-advancement-donor-form",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-schools-advancement-donor-form",
       "faq_status": "missing",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -789,8 +852,8 @@
     {
       "workflow_id": "operator-apicenter-webhook-subscription",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-apicenter-webhook-subscription",
       "faq_status": "candidate",
       "common_blockers_documented_at": "apps/migration_cloud/api/static/WEBHOOK_VERIFICATION.md",
       "role_specific_versions_needed": [],
@@ -804,8 +867,8 @@
     {
       "workflow_id": "tenant-portal-configure-hub",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/school-admin-configure-hub",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -819,8 +882,8 @@
     {
       "workflow_id": "tenant-portal-lexicon-settings",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-portal-lexicon-settings",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -834,11 +897,14 @@
     {
       "workflow_id": "tenant-portal-photo-upload",
       "audience": "parent",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/parent-student-photo-upload",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["parent", "student"],
+      "role_specific_versions_needed": [
+        "parent",
+        "student"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "no",
@@ -849,11 +915,13 @@
     {
       "workflow_id": "tenant-portal-signature-request",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-portal-signature-request",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
-      "role_specific_versions_needed": ["parent"],
+      "role_specific_versions_needed": [
+        "parent"
+      ],
       "tenant_safe_version_needed": "yes",
       "operator_version_needed": "no",
       "ai_draft_capable": "yes",
@@ -864,8 +932,8 @@
     {
       "workflow_id": "tenant-portal-attendance-export",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-portal-attendance-export",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -879,8 +947,8 @@
     {
       "workflow_id": "operator-sales-lead-create",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-sales-lead-create",
       "faq_status": "missing",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -894,8 +962,8 @@
     {
       "workflow_id": "operator-schoolops-email-configure",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-schoolops-email-configure",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -909,8 +977,8 @@
     {
       "workflow_id": "tenant-events-platform-detail",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-events-platform-detail",
       "faq_status": "missing",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -924,8 +992,8 @@
     {
       "workflow_id": "tenant-people-backend-create",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-people-backend-create",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -939,8 +1007,8 @@
     {
       "workflow_id": "tenant-requests-dashboard",
       "audience": "school_admin",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/tenant-requests-dashboard",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -954,8 +1022,8 @@
     {
       "workflow_id": "operator-observability-incidents",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-observability-incidents",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/DR_DRILL_RUNBOOK.md",
       "role_specific_versions_needed": [],
@@ -969,8 +1037,8 @@
     {
       "workflow_id": "operator-studio-os-launch-mode",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-studio-os-launch-mode",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -984,8 +1052,8 @@
     {
       "workflow_id": "operator-siteconfig-guided-configuration",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-siteconfig-guided-configuration",
       "faq_status": "candidate",
       "common_blockers_documented_at": null,
       "role_specific_versions_needed": [],
@@ -999,8 +1067,8 @@
     {
       "workflow_id": "operator-siteconfig-onboarding-coach",
       "audience": "operator",
-      "help_article_status": "missing",
-      "help_article_path": null,
+      "help_article_status": "exists",
+      "help_article_path": "kb:workflow/operator-siteconfig-onboarding-coach",
       "faq_status": "candidate",
       "common_blockers_documented_at": "docs/ONBOARDING_FLOW_GUIDE.md",
       "role_specific_versions_needed": [],
@@ -1206,41 +1274,200 @@
     }
   },
   "draft_me_first_top_20": [
-    {"rank": 1, "workflow_id": "operator-platform-runtime-blueprint-apply", "priority": "p0", "ai_draft_capable": "yes", "rationale": "20+ untouched templates, richest evidence base (403 tests + apicenter import); operator-facing irreversible action."},
-    {"rank": 2, "workflow_id": "operator-platform-runtime-pack-rollback", "priority": "p0", "ai_draft_capable": "yes", "rationale": "High-stakes rollback; pairs with rank 1."},
-    {"rank": 3, "workflow_id": "tenant-evals-grade-approval", "priority": "p0", "ai_draft_capable": "no", "rationale": "Teacher audience with 0% coverage; grade approval directly affects students. Human author."},
-    {"rank": 4, "workflow_id": "tenant-evals-grade-import", "priority": "p0", "ai_draft_capable": "no", "rationale": "v1 and v2 upload templates with no help; common-blocker callouts needed."},
-    {"rank": 5, "workflow_id": "tenant-customersuccess-guided-onboarding", "priority": "p0", "ai_draft_capable": "yes", "rationale": "Top of customer-journey funnel; AI-drafts feasible."},
-    {"rank": 6, "workflow_id": "tenant-accounts-onboarding-wizard", "priority": "p0", "ai_draft_capable": "yes", "rationale": "Setup blockers cascade to every other workflow. AI-draft from wizard step copy."},
-    {"rank": 7, "workflow_id": "tenant-accounts-mfa-setup", "priority": "p0", "ai_draft_capable": "no", "rationale": "Security-sensitive lockout flow; human author."},
-    {"rank": 8, "workflow_id": "tenant-finance-payment-readiness", "priority": "p0", "ai_draft_capable": "yes", "rationale": "Money path with AI-helpers wired; feasible AI-draft + review."},
-    {"rank": 9, "workflow_id": "tenant-compliance-erasure-request", "priority": "p0", "ai_draft_capable": "no", "rationale": "Legally load-bearing; cross-link DSAR runbook."},
-    {"rank": 10, "workflow_id": "tenant-reports-publish-term", "priority": "p0", "ai_draft_capable": "no", "rationale": "Irreversible term publish; pre-flight checklist."},
-    {"rank": 11, "workflow_id": "tenant-migration-cloud-connector-import", "priority": "p0", "ai_draft_capable": "yes", "rationale": "Connector wizard with no help; AI-draft + cross-link canonical CSV doc."},
-    {"rank": 12, "workflow_id": "operator-schools-create-school-wizard", "priority": "p0", "ai_draft_capable": "yes", "rationale": "Tenant provisioning has zero operator help."},
-    {"rank": 13, "workflow_id": "operator-schools-onboard-wizard", "priority": "p0", "ai_draft_capable": "yes", "rationale": "AI-draft feasible from wizard evidence."},
-    {"rank": 14, "workflow_id": "tenant-accounts-migration-wizard", "priority": "p0", "ai_draft_capable": "yes", "rationale": "Migration cloud surface; cross-link operator dockets."},
-    {"rank": 15, "workflow_id": "operator-help-analytics", "priority": "p1", "ai_draft_capable": "yes", "rationale": "Partial body exists; needs standalone 'how to read these metrics' KB."},
-    {"rank": 16, "workflow_id": "operator-kb-locale-families", "priority": "p1", "ai_draft_capable": "yes", "rationale": "High-leverage operator workflow; needs narrative for seed_variants vs publish_group."},
-    {"rank": 17, "workflow_id": "operator-ai-review-queue", "priority": "p1", "ai_draft_capable": "yes", "rationale": "Reviewer runbook for failed AI sessions; promotes existing partial."},
-    {"rank": 18, "workflow_id": "tenant-communication-announcement-create", "priority": "p1", "ai_draft_capable": "yes", "rationale": "5 announcement templates with no help; teacher audience."},
-    {"rank": 19, "workflow_id": "tenant-marketplace-publisher-signup", "priority": "p1", "ai_draft_capable": "yes", "rationale": "Partner-audience onramp."},
-    {"rank": 20, "workflow_id": "operator-siteconfig-guided-configuration", "priority": "p1", "ai_draft_capable": "yes", "rationale": "siteconfig is the richest evidence app (320 tests)."}
+    {
+      "rank": 1,
+      "workflow_id": "operator-platform-runtime-blueprint-apply",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "20+ untouched templates, richest evidence base (403 tests + apicenter import); operator-facing irreversible action."
+    },
+    {
+      "rank": 2,
+      "workflow_id": "operator-platform-runtime-pack-rollback",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "High-stakes rollback; pairs with rank 1."
+    },
+    {
+      "rank": 3,
+      "workflow_id": "tenant-evals-grade-approval",
+      "priority": "p0",
+      "ai_draft_capable": "no",
+      "rationale": "Teacher audience with 0% coverage; grade approval directly affects students. Human author."
+    },
+    {
+      "rank": 4,
+      "workflow_id": "tenant-evals-grade-import",
+      "priority": "p0",
+      "ai_draft_capable": "no",
+      "rationale": "v1 and v2 upload templates with no help; common-blocker callouts needed."
+    },
+    {
+      "rank": 5,
+      "workflow_id": "tenant-customersuccess-guided-onboarding",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "Top of customer-journey funnel; AI-drafts feasible."
+    },
+    {
+      "rank": 6,
+      "workflow_id": "tenant-accounts-onboarding-wizard",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "Setup blockers cascade to every other workflow. AI-draft from wizard step copy."
+    },
+    {
+      "rank": 7,
+      "workflow_id": "tenant-accounts-mfa-setup",
+      "priority": "p0",
+      "ai_draft_capable": "no",
+      "rationale": "Security-sensitive lockout flow; human author."
+    },
+    {
+      "rank": 8,
+      "workflow_id": "tenant-finance-payment-readiness",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "Money path with AI-helpers wired; feasible AI-draft + review."
+    },
+    {
+      "rank": 9,
+      "workflow_id": "tenant-compliance-erasure-request",
+      "priority": "p0",
+      "ai_draft_capable": "no",
+      "rationale": "Legally load-bearing; cross-link DSAR runbook."
+    },
+    {
+      "rank": 10,
+      "workflow_id": "tenant-reports-publish-term",
+      "priority": "p0",
+      "ai_draft_capable": "no",
+      "rationale": "Irreversible term publish; pre-flight checklist."
+    },
+    {
+      "rank": 11,
+      "workflow_id": "tenant-migration-cloud-connector-import",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "Connector wizard with no help; AI-draft + cross-link canonical CSV doc."
+    },
+    {
+      "rank": 12,
+      "workflow_id": "operator-schools-create-school-wizard",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "Tenant provisioning has zero operator help."
+    },
+    {
+      "rank": 13,
+      "workflow_id": "operator-schools-onboard-wizard",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "AI-draft feasible from wizard evidence."
+    },
+    {
+      "rank": 14,
+      "workflow_id": "tenant-accounts-migration-wizard",
+      "priority": "p0",
+      "ai_draft_capable": "yes",
+      "rationale": "Migration cloud surface; cross-link operator dockets."
+    },
+    {
+      "rank": 15,
+      "workflow_id": "operator-help-analytics",
+      "priority": "p1",
+      "ai_draft_capable": "yes",
+      "rationale": "Partial body exists; needs standalone 'how to read these metrics' KB."
+    },
+    {
+      "rank": 16,
+      "workflow_id": "operator-kb-locale-families",
+      "priority": "p1",
+      "ai_draft_capable": "yes",
+      "rationale": "High-leverage operator workflow; needs narrative for seed_variants vs publish_group."
+    },
+    {
+      "rank": 17,
+      "workflow_id": "operator-ai-review-queue",
+      "priority": "p1",
+      "ai_draft_capable": "yes",
+      "rationale": "Reviewer runbook for failed AI sessions; promotes existing partial."
+    },
+    {
+      "rank": 18,
+      "workflow_id": "tenant-communication-announcement-create",
+      "priority": "p1",
+      "ai_draft_capable": "yes",
+      "rationale": "5 announcement templates with no help; teacher audience."
+    },
+    {
+      "rank": 19,
+      "workflow_id": "tenant-marketplace-publisher-signup",
+      "priority": "p1",
+      "ai_draft_capable": "yes",
+      "rationale": "Partner-audience onramp."
+    },
+    {
+      "rank": 20,
+      "workflow_id": "operator-siteconfig-guided-configuration",
+      "priority": "p1",
+      "ai_draft_capable": "yes",
+      "rationale": "siteconfig is the richest evidence app (320 tests)."
+    }
   ],
   "preserve_list": [
-    {"workflow_id": "tenant-kb-browse-published-article", "reason": "Mature KB shell with download/vote/comment; spot-check verified."},
-    {"workflow_id": "tenant-kb-search", "reason": "Zero-result feed wired to help-analytics; preserved."},
-    {"workflow_id": "tenant-faq-browse", "reason": "Categories sidebar + vote endpoints all wired; spot-check verified."},
-    {"workflow_id": "tenant-faq-submit", "reason": "DRAFT->PENDING->APPROVED moderation FSM documented."},
-    {"workflow_id": "tenant-support-help-hub", "reason": "Strong portal_base front door; preserve."},
-    {"workflow_id": "operator-help-center", "reason": "Discover/engage/operate/govern grouping; spot-check verified."},
-    {"workflow_id": "operator-ai-center-kb-drafts", "reason": "Moderation gate template explicit: 'Drafts require human review before tenant-visible publish.'"},
-    {"workflow_id": "operator-ai-center-faq-candidates", "reason": "Sibling of KB drafts; same moderation contract."},
-    {"workflow_id": "operator-feature-center", "reason": "Customer-voice funnel."},
-    {"workflow_id": "operator-voice-of-customer", "reason": "Cross-tenant feedback triage."},
-    {"workflow_id": "marketing-public-kb", "reason": "Public sovereign KB."},
-    {"workflow_id": "tenant-help-contextual-drawer", "reason": "Embedded help pattern."},
-    {"workflow_id": "tenant-help-module-inline-assistant", "reason": "Moderated inline AI assistant."}
+    {
+      "workflow_id": "tenant-kb-browse-published-article",
+      "reason": "Mature KB shell with download/vote/comment; spot-check verified."
+    },
+    {
+      "workflow_id": "tenant-kb-search",
+      "reason": "Zero-result feed wired to help-analytics; preserved."
+    },
+    {
+      "workflow_id": "tenant-faq-browse",
+      "reason": "Categories sidebar + vote endpoints all wired; spot-check verified."
+    },
+    {
+      "workflow_id": "tenant-faq-submit",
+      "reason": "DRAFT->PENDING->APPROVED moderation FSM documented."
+    },
+    {
+      "workflow_id": "tenant-support-help-hub",
+      "reason": "Strong portal_base front door; preserve."
+    },
+    {
+      "workflow_id": "operator-help-center",
+      "reason": "Discover/engage/operate/govern grouping; spot-check verified."
+    },
+    {
+      "workflow_id": "operator-ai-center-kb-drafts",
+      "reason": "Moderation gate template explicit: 'Drafts require human review before tenant-visible publish.'"
+    },
+    {
+      "workflow_id": "operator-ai-center-faq-candidates",
+      "reason": "Sibling of KB drafts; same moderation contract."
+    },
+    {
+      "workflow_id": "operator-feature-center",
+      "reason": "Customer-voice funnel."
+    },
+    {
+      "workflow_id": "operator-voice-of-customer",
+      "reason": "Cross-tenant feedback triage."
+    },
+    {
+      "workflow_id": "marketing-public-kb",
+      "reason": "Public sovereign KB."
+    },
+    {
+      "workflow_id": "tenant-help-contextual-drawer",
+      "reason": "Embedded help pattern."
+    },
+    {
+      "workflow_id": "tenant-help-module-inline-assistant",
+      "reason": "Moderated inline AI assistant."
+    }
   ],
   "cross_references": {
     "kb_locale_families_config": "config/manager_kb_locale_families.py",
@@ -1259,7 +1486,12 @@
       "config": "config/manager_help_center.py",
       "url_name": "manager_help_center",
       "template": "templates/schools/partials/manager_help_center_body.html",
-      "sections": ["discover", "engage", "operate", "govern"],
+      "sections": [
+        "discover",
+        "engage",
+        "operate",
+        "govern"
+      ],
       "linked_workflows": [
         "kb:kb_home",
         "kb:faq_list",
@@ -1293,7 +1525,10 @@
     },
     "manager_help_engagement": {
       "config": "config/manager_help_engagement.py",
-      "url_names": ["manager_feature_center", "manager_contact_us"],
+      "url_names": [
+        "manager_feature_center",
+        "manager_contact_us"
+      ],
       "depends_on": [
         "apps.feedback.models.FeatureRequest",
         "apps.feedback.services.submit_feature_request",
@@ -1327,5 +1562,11 @@
     "no emojis",
     "5 'exists' claims spot-checked (kb_home, faq_list, feedback/help_center, support_help_hub, apicenter/super/ai_center_kb_drafts) + 1 docs blocker file (FAQ_KB_IMPLEMENTATION_GUIDE)"
   ],
-  "verdict": "PHASE_9_HELP_KB_FAQ_AUDIT_READY"
+  "verdict": "PHASE_9_HELP_KB_FAQ_AUDIT_READY",
+  "kb_corpus_refresh_at": "2026-05-25T00:21:36Z",
+  "summary": {
+    "workflows_total": 70,
+    "workflows_missing_help": 0,
+    "workflows_with_kb_article": 70
+  }
 }

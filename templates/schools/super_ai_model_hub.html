@@ -13,8 +13,8 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
-  {% include "studio_os/components/page_header.html" with title=_("AI Model Hub") subtitle=_("Per-region Ollama config and health. Single source: RegionalAIConfig + cache health.") action_url=dashboard_url action_text=_("Back to dashboard") %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="ai_model_hub" center_eyebrow=_("Platform operators") center_title=_("AI Model Hub") center_purpose=_("Per-region Ollama config and health. Single source: RegionalAIConfig + cache health.") primary_url=dashboard_url primary_label=_("Back to dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <p class="mb-2">
     {% if ai_gateway_console_url %}<a href="{{ ai_gateway_console_url }}" class="fw-semibold me-3">{% trans "AI gateway console" %}</a>{% endif %}
     {% if global_ai_version_url %}<a href="{{ global_ai_version_url }}">{% trans "Global AI version upgrade" %}</a>{% endif %}

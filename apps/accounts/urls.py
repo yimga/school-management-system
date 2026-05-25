@@ -61,6 +61,7 @@ from .views_certification import (
     certification_session_override,
 )
 from .views_legacy_setup import LegacySetupView
+from apps.schools.super_views_operator_team import operator_invite_accept
 from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
 from .views_passkey import (
     passkey_registration_options,
@@ -73,6 +74,9 @@ from .views_security import (
     api_security_activity,
     api_security_export_log,
     api_security_lockdown,
+    notification_corner_dismiss,
+    notification_corner_mark_read,
+    notification_corner_snooze,
     security_posture_review,
     sessions_page,
     sessions_revoke,
@@ -103,6 +107,15 @@ from apps.schools.views_advancement import (
 )
 from apps.accounts.views_tenant_observability import tenant_activity_log
 from apps.accounts.views_trust_hub import security_trust_hub, tenant_impersonation_audit
+from apps.accounts.views_tenant_identity import (
+    tenant_identity_detail,
+    tenant_identity_invite,
+    tenant_identity_offboard,
+    tenant_identity_regulator_grant,
+    tenant_identity_revoke_sessions,
+    tenant_identity_roster,
+    tenant_staff_invite_accept,
+)
 from apps.schoolops.views_tenant_ops import (
     ops_canteen,
     ops_clinic,
@@ -262,6 +275,36 @@ urlpatterns = [
         tenant_impersonation_audit,
         name="tenant_impersonation_audit",
     ),
+    path(
+        "backend/identity/",
+        tenant_identity_roster,
+        name="tenant_identity_roster",
+    ),
+    path(
+        "backend/identity/invite/",
+        tenant_identity_invite,
+        name="tenant_identity_invite",
+    ),
+    path(
+        "backend/identity/regulator-grant/",
+        tenant_identity_regulator_grant,
+        name="tenant_identity_regulator_grant",
+    ),
+    path(
+        "backend/identity/<int:user_id>/",
+        tenant_identity_detail,
+        name="tenant_identity_detail",
+    ),
+    path(
+        "backend/identity/<int:user_id>/offboard/",
+        tenant_identity_offboard,
+        name="tenant_identity_offboard",
+    ),
+    path(
+        "backend/identity/<int:user_id>/revoke-sessions/",
+        tenant_identity_revoke_sessions,
+        name="tenant_identity_revoke_sessions",
+    ),
     path("backend/ops/", ops_hub, name="ops_hub"),
     path("backend/ops/library/", ops_library, name="ops_library"),
     path("backend/ops/transport/", ops_transport, name="ops_transport"),
@@ -400,6 +443,16 @@ urlpatterns = [
         name="certification_session_override",
     ),
     path("claim-invite/", claim_invite, name="claim_invite"),
+    path(
+        "operator-invite/<uuid:token>/",
+        operator_invite_accept,
+        name="operator_invite_accept",
+    ),  # rbac-allow: anonymous operator invite acceptance
+    path(
+        "staff-invite/<uuid:token>/",
+        tenant_staff_invite_accept,
+        name="tenant_staff_invite_accept",
+    ),  # rbac-allow: anonymous tenant staff invite acceptance
     # v3.29 migration-cloud sunset job: one-time setup link landing page for
     # users emailed by accounts.sunset_stale_legacy_hashes. Token-validated
     # by Django's PasswordResetConfirmView parent; view additionally clears
@@ -442,6 +495,21 @@ urlpatterns = [
         "profile/security/review/",
         security_posture_review,
         name="security_posture_review",
+    ),
+    path(
+        "notifications/corner/snooze/",
+        notification_corner_snooze,
+        name="notification_corner_snooze",
+    ),
+    path(
+        "notifications/corner/dismiss/",
+        notification_corner_dismiss,
+        name="notification_corner_dismiss",
+    ),
+    path(
+        "notifications/corner/mark-read/",
+        notification_corner_mark_read,
+        name="notification_corner_mark_read",
     ),
     path(
         "profile/security/activity/",

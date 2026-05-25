@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "proven_in_repo": {
+    "template_definitions_present": "150+ premium templates registered via pack_contract.py + experience_template_registry.json",
+    "tenant_routes_present": [
+      "/school/studio/templates/" ,
+      "/school/studio/templates/<key>/",
+      "/school/studio/templates/<key>/preview/",
+      "/school/studio/templates/<key>/compare/",
+      "/school/studio/templates/<key>/apply/",
+      "/school/studio/templates/<key>/customize/",
+      "/school/studio/templates/<key>/rollback/"
+    ],
+    "operator_routes_present": [
+      "/configuration/experience-templates/"
+    ],
+    "tenant_safe_visibility": "operator-only templates hidden via _gate_operator_only() returning 404 (apps/brand_experience/views_template_marketplace.py)",
+    "apply_requires_csrf_post": true,
+    "rollback_requires_csrf_post": true,
+    "audit_event_recorded": "TemplateAuditEvent first-class model (apps/brand_experience/models_template.py)",
+    "preview_returns_200_in_tests": "apps/brand_experience/tests/test_template_marketplace_runtime.py (existing batch 1401)",
+    "tenant_boundary_tests": "apps/brand_experience/tests/test_template_tenant_boundary.py (existing)"
+  },
+  "honest_residuals": {
+    "live_browser_iframe_compare": "Playwright spec at tests/e2e/template-marketplace.spec.js — browser execution requires Lane 2 harness",
+    "tenant_studio_template_selection": "Setup Studio integration step shipped batch 1401",
+    "ai_recommender_live_smoke": "verify_template_ai_recommender_live_smoke.py passes FALLBACK; LIVE requires LiteLLM keys"
+  },
+  "verdict": "TEMPLATE MARKETPLACE RUNTIME PROVEN — REPO SCOPE complete; browser cross-tenant iframe proof pending Lane 2"
+}

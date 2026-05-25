@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "downgraded_or_clarified_claims": [
+    {
+      "where": "docs/generated/greatest_education_os_matrix.json overall.composite_pct=100",
+      "old_reading": "Composite 100 implies production / public / external ready",
+      "honest_reading": "Repo verifiers green; live / public / external blockers unproven. See geos_scoring_semantics_hardening.json for composite=0.0 honest projection.",
+      "scope_label": "REPO SCOPE"
+    },
+    {
+      "where": "PWA strategy documents",
+      "honest_reading": "PWA file artifacts present; install + offline + tenant cache isolation pending browser proof",
+      "scope_label": "PWA PROOF PARTIAL"
+    },
+    {
+      "where": "Native mobile (iOS / Android consumer apps)",
+      "honest_reading": "Not built. Capacitor/Tauri/WebView wrappers DEFERRED until ≥100 schools stable on PWA.",
+      "scope_label": "NATIVE DEFERRED"
+    },
+    {
+      "where": "PSP live settlement readiness",
+      "honest_reading": "Manual fallback rail registered; live PSP rails require credentials, settlement reconciliation, and counsel signoff",
+      "scope_label": "EXTERNAL VENDOR BLOCKED"
+    },
+    {
+      "where": "GraphQL production safety",
+      "honest_reading": "Narrow schema + introspection-off-by-default + IP throttle. graphene-django lacks native depth/cost limits; mitigated by schema narrowness.",
+      "scope_label": "REPO SCOPE READY — narrow schema gate"
+    },
+    {
+      "where": "Multi-corridor pilot ingestion",
+      "honest_reading": "Pilot slot infrastructure present; live pilot data ingestion pending field operators",
+      "scope_label": "INTERNAL PILOT SCOPE"
+    },
+    {
+      "where": "LiteLLM live keys / Render SHA parity",
+      "honest_reading": "Verifier harness present; live keys / live Render verification require external operator action",
+      "scope_label": "EXTERNAL VENDOR BLOCKED"
+    },
+    {
+      "where": "FACTS / Skyward write paths",
+      "honest_reading": "Counsel docket open; write paths remain honest-stub markers in repo",
+      "scope_label": "COUNSEL PENDING"
+    }
+  ],
+  "verdict": "All overclaim language localized. SOT verdicts moving forward must use scope labels: REPO SCOPE / INTERNAL PILOT SCOPE / PUBLIC LIVE PENDING / EXTERNAL VENDOR BLOCKED / PWA PROOF PARTIAL / NATIVE DEFERRED / COUNSEL PENDING."
+}

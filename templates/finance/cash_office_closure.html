@@ -11,7 +11,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Cash Office Closure</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 {% url 'finance:payments' as cash_closure_back_url %}
 {% include "studio_os/components/page_header.html" with title="Cash Office Closure" subtitle="Daily reconciliation between cash desk receipts and bank deposit." action_url=cash_closure_back_url action_text="Back to Payments" %}
 {% workflow_resolve "finance-cash-closure" as wf %}

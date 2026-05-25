@@ -1,7 +1,7 @@
 {% load static %}
 {% load i18n accounts_extras %}
 <link rel="stylesheet" href="{% static 'css/rmc-user-preferences.css' %}">
-<div class="container py-3 rmc-user-preferences" data-page-archetype="operational-workbench">
+<div class="container py-3 rmc-user-preferences" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% trans "Back to dashboard" as back_action %}
   {% trans "My settings" as prefs_eyebrow %}
   {% include "studio_os/components/page_header.html" with eyebrow=prefs_eyebrow title=page_title subtitle=page_subtitle action_url=action_url action_text=back_action %}

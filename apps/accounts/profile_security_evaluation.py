@@ -43,6 +43,10 @@ class ProfileSecurityEvaluation(TypedDict, total=False):
     security_posture_review_due: bool
     days_until_posture_review: int | None
     minimum_score_for_role: float
+    security_minimum_required: int
+    security_minimum_gap: int
+    meets_platform_minimum: bool
+    platform_baseline_minimum: int
 
 
 MFA_CAP = 40
@@ -167,6 +171,7 @@ def build_profile_security_input(
     """Serialize User + session hints into evaluator input."""
     expired = _password_expired(user, school=school)
     return {
+        "posture_review_due": is_security_posture_review_due(user, school),
         "mfa_enabled": _check_mfa(user),
         "email_verified": _email_verified(user),
         "has_email": _has_email(user),
@@ -354,6 +359,18 @@ def evaluate_profile_security(input_data: dict[str, Any]) -> ProfileSecurityEval
             }
         )
 
+    if input_data.get("posture_review_due"):
+        critical.append(
+            {
+                "threat": "Quarterly security review overdue",
+                "exploit_vector": (
+                    "Stale password/MFA/contact attestation increases account takeover risk"
+                ),
+                "remediation_step": "Complete the security posture review checklist",
+            }
+        )
+        security_score = max(0, security_score - 12)
+
     band = strength_band(security_score)
     return {
         "security_score": security_score,
@@ -402,6 +419,9 @@ def evaluate_user_profile_security(
     result["security_posture_review_due"] = is_security_posture_review_due(user, school)
     result["days_until_posture_review"] = days_until_security_posture_review(user, school)
     result["minimum_score_for_role"] = get_minimum_security_score_for_role(role, school)
+    from apps.accounts.platform_access_policy import evaluation_access_flags
+
+    result.update(evaluation_access_flags(result))
     return result
 
 

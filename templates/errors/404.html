@@ -18,7 +18,7 @@
         <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}"><i class="bi bi-life-preserver me-1"></i>{% trans "Contact support" %}</a>
       {% else %}
         <a class="btn btn-primary" href="{% url 'accounts:redirect' %}"><i class="bi bi-house me-1"></i>{% trans "Go to dashboard" %}</a>
-        <a class="btn btn-outline-secondary" href="{% url 'kb:kb_home' %}"><i class="bi bi-question-circle me-1"></i>{% trans "Open help center" %}</a>
+        <a class="btn btn-outline-secondary" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' %}{% else %}{% url 'feedback:help_center' %}{% endif %}"><i class="bi bi-question-circle me-1"></i>{% trans "Open help center" %}</a>
       {% endif %}
     </div>
   </div>

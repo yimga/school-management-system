@@ -125,6 +125,30 @@ def _matches_action(rule: PolicyRule, action: str) -> bool:
     return action in actions or "*" in actions
 
 
+def _inject_rebac_context(ctx: dict, subject: dict, school) -> None:
+    """Expose graph ``can`` edges to PDP conditions (``rebac.allowed``)."""
+    perm = (ctx.get("resource") or {}).get("permission_code") or ""
+    uid = subject.get("user_id")
+    if not perm or not uid or school is None:
+        return
+    try:
+        from apps.accounts.rebac import check_permission_token, rebac_enabled
+
+        if not rebac_enabled():
+            return
+        from apps.accounts.models import User
+
+        user = User.objects.filter(pk=uid).first()
+        ctx["rebac"] = {
+            "permission_code": perm,
+            "allowed": bool(
+                user and check_permission_token(user, perm, school=school),
+            ),
+        }
+    except Exception:
+        ctx["rebac"] = {"permission_code": perm, "allowed": False}
+
+
 def _matches_resource(rule: PolicyRule, resource: dict) -> bool:
     rm = rule.resource_match or {}
     if not rm:
@@ -202,6 +226,7 @@ def decide(
         "resource": dict(resource or {}),
         **(context or {}),
     }
+    _inject_rebac_context(ctx, subject, school)
     matched_rule: PolicyRule | None = None
     effect = "implicit_deny"
     reason = "no rule matched"

@@ -14,6 +14,15 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.platform_runtime.models import PlatformOperatorPlatformHubLink
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_BILLING_READ,
+    PLATFORM_SCOPE_FLEET,
+    PLATFORM_SCOPE_MIGRATION,
+    PLATFORM_SCOPE_SECURITY_READ,
+    PLATFORM_SCOPE_SECURITY_WRITE,
+    PLATFORM_SCOPE_TEAM_READ,
+    require_platform_scope,
+)
 
 _TenantSettingsModel = django_apps.get_model("siteconfig", "Site" + "Settings")
 
@@ -37,6 +46,7 @@ def _paginate_queryset(request, queryset, *, per_page: int = 20):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_admin_bridge(request, bridge_key: str):
     """
     302 to a platform-admin changelist. ``bridge_key`` must exist in
@@ -55,6 +65,7 @@ def super_admin_bridge(request, bridge_key: str):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_admin_bridge_legacy_path_redirect(request, bridge_key: str):
     """
     301 to canonical ``/super/admin-bridge/<bridge_key>/``.
@@ -70,6 +81,7 @@ def super_admin_bridge_legacy_path_redirect(request, bridge_key: str):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_TEAM_READ)
 def super_platform_operator_hub(request):
     """
     Single super-first entry for platform operations: curated super URLs plus every
@@ -94,6 +106,13 @@ def super_platform_operator_hub(request):
             _("Operator policy & governance"),
             _("Super-first vs break-glass admin; change classes; metrics & automation API"),
             "bi-shield-check",
+            "super",
+        ),
+        (
+            "super:operator_team_roster",
+            _("Team & identity"),
+            _("Platform operator roster, invites, MFA posture, and scopes"),
+            "bi-people-fill",
             "super",
         ),
         (
@@ -197,6 +216,7 @@ def super_platform_operator_hub(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_operator_policy(request):
     """
     Canonical in-product policy: super-first control plane vs break-glass Django admin.
@@ -218,6 +238,7 @@ def super_operator_policy(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_site_settings_list(request):
     """List platform tenant settings singleton row; edit via super. Behavioral keys: RuntimeDefaults + CCC."""
     from apps.platform_runtime.helpers import get_platform_site_settings_record
@@ -235,6 +256,7 @@ def super_site_settings_list(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_site_settings_edit(request, pk):
     """Edit slim tenant settings row (maintenance) + PlatformGlobalBranding (theme/report FKs). Phase B Batch 3."""
     from django import forms
@@ -307,6 +329,7 @@ def super_site_settings_edit(request, pk):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_regions_list(request):
     """List platform RegionConfig. Config surface is Configuration Control Center (no admin residue)."""
     from apps.global_registries.models import RegionConfig
@@ -327,6 +350,7 @@ def super_regions_list(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_grading_list(request):
     """List platform GradingScaleConfig. Config surface is Configuration Control Center (no admin residue)."""
     from apps.global_registries.models import GradingScaleConfig
@@ -353,6 +377,7 @@ def super_grading_list(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_plans_list(request):
     """List platform Plan. Config surface is Configuration Control Center (no admin residue)."""
     from apps.plans_entitlements.models import Plan, PlanAddon
@@ -373,6 +398,7 @@ def super_plans_list(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_country_multipliers_list(request):
     """List CountryMultiplier catalog; CRUD via super (not platform /admin/)."""
     from apps.plans_entitlements.models import CountryMultiplier
@@ -396,6 +422,7 @@ def super_country_multipliers_list(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def super_feature_toggles_list(request):
     """List platform FeatureToggleDefinition. Config surface is Configuration Control Center (no admin residue)."""
     from apps.policies_rules.models import FeatureToggleDefinition
@@ -419,6 +446,7 @@ def super_feature_toggles_list(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_incidents_list(request):
     """List platform PlatformIncident; link to pulse. No admin residue."""
     from apps.observability.models import PlatformIncident
@@ -447,6 +475,7 @@ def super_incidents_list(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_BILLING_READ)
 def super_billing_accounts_list(request):
     """List platform BillingAccount; link to billing dashboard. No admin residue."""
     from apps.billing.models import BillingAccount
@@ -472,6 +501,7 @@ def super_billing_accounts_list(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_MIGRATION)
 def super_migration_runs_list(request):
     """List platform MigrationRun; link to migration cloud. No admin residue."""
     from apps.automation.models import MigrationRun
@@ -499,6 +529,7 @@ def super_migration_runs_list(request):
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def super_backlog_unlock_center(request):
     """
     Operator-facing backlog unlock matrix: verifiable gates + program/external tags.
@@ -650,6 +681,7 @@ def super_backlog_unlock_center(request):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def super_fleet_governed_changes(request):
     """
     Super-first list of FleetGovernedChange rows (read-mostly); add/edit in platform admin.

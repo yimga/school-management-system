@@ -10,10 +10,10 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 control-plane-shell" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-2 control-plane-shell" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% load i18n %}
   {% phase8_dashboard_declaration "marketplace/incident_dashboard.html" %}
-  {% include "studio_os/components/page_header.html" with title=_("Marketplace incidents") subtitle=_("Central place for marketplace-related incidents. Use the support dashboard for full incident queue.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="incident_dashboard" center_eyebrow=_("Platform operators") center_title=_("Marketplace incidents") center_purpose=_("Central place for marketplace-related incidents. Use the support dashboard for full incident queue.") primary_url=dashboard_url primary_label=_("Back to Dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <div class="d-flex flex-wrap gap-2 mb-3">
     <a href="{{ support_url }}" class="btn btn-outline-secondary btn-sm">Support dashboard</a>
     <a href="{% url 'super:marketplace_installation_health' %}" class="btn btn-outline-secondary btn-sm">Installation health</a>

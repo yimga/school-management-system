@@ -14,7 +14,12 @@ from django.utils import timezone
 
 from .models import School, SchoolProvisioningEvent
 from .super_views_dashboard_helpers import parse_month_param, selected_system_names
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_AUDIT_EXPORT,
+    require_platform_scope,
+)
 
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def export_schools_csv(request):
     """Export schools list as CSV (powerhouse upgrade: export)."""
     latest_event_query = SchoolProvisioningEvent.objects.filter(
@@ -90,6 +95,7 @@ def export_schools_csv(request):
     resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
     resp["Content-Disposition"] = 'attachment; filename="schools.csv"'
     return resp
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def export_super_dashboard_pdf(request):
     """Export a one-page PDF summary: North Star, financial snapshot, operational snapshot (RUNMYCAMPUS_UI_IMPROVEMENTS)."""
     from io import BytesIO
@@ -258,6 +264,7 @@ def export_super_dashboard_pdf(request):
         'attachment; filename="runmycampus-mission-control-summary.pdf"'
     )
     return resp
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def export_revenue_csv(request):
     """Export revenue by country for selected month as CSV (powerhouse upgrade: export)."""
     from django.db.models import Sum

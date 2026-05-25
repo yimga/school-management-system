@@ -1,4 +1,4 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% comment %}
   Migration Cloud — single-bundle detail / wizard (Phase U6 + polish wave).
 
@@ -27,7 +27,7 @@
       data-mc-shell="{{ shell }}"
       data-mc-feedback-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_feedback' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_feedback' bundle_id=bundle.pk %}{% endif %}"
       data-mc-save-profile-url="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_save_profile' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_save_profile' bundle_id=bundle.pk %}{% endif %}"
-      data-mc-csrf="{{ csrf_token }}">
+      data-mc-csrf="{{ csrf_token }}" data-rmc-scroll-policy="paginate">
   {% if messages %}
   <div class="rmc-banner-stack" role="status">
     {% for m in messages %}

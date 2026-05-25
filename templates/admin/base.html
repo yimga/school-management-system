@@ -1,8 +1,8 @@
 {% extends 'unfold/layouts/skeleton.html' %}
 
-{% load admin_list i18n unfold admin_urls %}
+{% load admin_list i18n unfold admin_urls static %}
 {% block base %}
-    <div class="rmc-app-shell admin-cp-unified-page {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}"{% if is_manager_host %} data-rmc-admin-cp-unified="1" data-copilot="collapsed"{% endif %}>
+    <div class="rmc-app-shell admin-cp-unified-page {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}"{% if is_manager_host %} data-rmc-admin-cp-unified="1" data-rmc-backoffice-frame="v2" data-copilot="collapsed"{% endif %}>
 
         {# ---------- Grid row 1 — static header (viewport-pinned) ---------- #}
         {% comment %}v3.59.9 (2026-05-22): added data-rmc-control-plane-chrome="1" so
@@ -45,7 +45,7 @@
         {% endif %}{% endif %}
 
         {# ---------- Grid row 2, column 2 — the SINGLE scrollable canvas ---------- #}
-        <div class="rmc-app-shell__canvas" data-rmc-shell-canvas="django-admin">
+        <div class="rmc-app-shell__canvas" data-rmc-shell-canvas="django-admin" data-rmc-backoffice-scroll-root="canvas">
             <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
             <main id="cp-main-content" class="rmc-app-shell__canvas-body {% if is_manager_host %}cp-admin-canvas-main{% else %}bg-white dark:bg-base-900{% endif %}{% if not is_manager_host %} {% element_classes 'main' %}{% endif %}" role="main" data-shell-main="{% if is_manager_host %}platform-admin{% else %}django-admin{% endif %}" data-authenticated-surface="{% if is_manager_host %}manager-control-plane{% else %}django-admin{% endif %}" data-rmc-shell-main="django-admin" data-page-archetype="decision-console" data-shell-layout="admin-rmc-app-shell" data-rmc-admin-cp-unified="1">
 
@@ -58,6 +58,12 @@
                         </div>
                     </div>
                 {% endblock messages %}
+
+                {% if is_manager_host and request.user.is_authenticated %}
+                <div class="px-4">
+                    {% include "partials/shell_chrome_security_posture_banner.html" %}
+                </div>
+                {% endif %}
 
                 {% block admin_breadcrumbs %}
                 {% if not is_popup %}
@@ -86,7 +92,7 @@
                         {% include "admin/includes/admin_operator_steering_strip.html" %}
                     {% endif %}
                 {% endblock admin_operator_steering %}
-                <div class="cp-page-body cp-admin-page-body @container px-4 pb-4" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
+                <div class="cp-page-body cp-admin-page-body @container px-4 pb-4" data-rmc-cp-page-body="1" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required">
                 {% endif %}
 
                     <div id="content" class="{% if is_manager_host %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto {% block coltype %}colM{% endblock %}"{% if not is_manager_host %} data-page-archetype="decision-console" data-decision-console-scope="django-admin"{% endif %}>
@@ -154,6 +160,8 @@
         </footer>
         {% include "admin/manager_cp_offcanvas.html" %}
         {% include 'components/back_to_top.html' %}
+        <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
+        <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
         {% endif %}
 
     </div>

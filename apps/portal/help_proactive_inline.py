@@ -39,6 +39,10 @@ _INLINE_ASSISTANT_PREFIXES = (
     "/teacher/attendance",
     "/studio_os/",
     "/studio-os/",
+    "/super/migration/",
+    "/portal/configure/migration/",
+    "/migration/",
+    "/siteconfig/",
 )
 
 
@@ -60,15 +64,29 @@ def module_inline_assistant_for_request(request) -> dict[str, Any]:
             slug = prefix.strip("/").split("/")[0]
             if slug == "studio_os" or slug == "studio-os":
                 slug = "studio"
+            elif slug == "super" and path.startswith("/super/migration"):
+                slug = "migration"
+            elif slug == "portal" and "migration" in path:
+                slug = "migration"
+            elif slug == "siteconfig":
+                slug = "siteconfig"
             break
     if not slug:
         return {}
     path_ok = (
         "dashboard" in path
         or "compliance" in path
+        or "command_center" in path
+        or "console" in path
+        or path.endswith("/new/")
+        or path.endswith("/new")
         or any(path.startswith(p) or path.startswith(p + "/") for p in _INLINE_ASSISTANT_EXACT)
         or path.startswith("/studio_os")
         or path.startswith("/studio-os")
+        or path.startswith("/super/migration")
+        or path.startswith("/portal/configure/migration")
+        or path.startswith("/migration/")
+        or path.startswith("/siteconfig/")
     )
     if not path_ok:
         return {}

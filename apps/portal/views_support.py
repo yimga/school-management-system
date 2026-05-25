@@ -56,67 +56,17 @@ def _pick_support_owner() -> User | None:
 @login_required
 def support_help_hub(request):
     """
-    Unified tenant entry: KB/FAQ, platform support form, school contact, open requests,
-    and configured escalation (email/WhatsApp). Mirrors super queue via GlobalSupportTicket
-    rows for the current user only (no tenant-wide queue).
+    Legacy URL — canonical tenant help front door is feedback:help_center.
+    Preserves deep links; merges ticket context on the unified hub.
     """
-    school = getattr(request, "school", None)
-    support_contact = get_effective_support_contact_settings(
-        request=request, school=school
-    )
-    my_tickets: list = []
-    if school is not None:
-        try:
-            from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+    from django.http import HttpResponseRedirect
+    from django.urls import reverse
 
-            my_tickets = list(
-                GlobalSupportTicket.objects.filter(school=school, user=request.user)
-                .order_by("-created_at")[:25]
-            )
-        except SUPPORT_TICKET_SOFT_FAILURES:
-            my_tickets = []
-
-    contact_open_count = 0
-    try:
-        from apps.communication.models import ContactRequest
-
-        if school is not None:
-            open_statuses = (
-                ContactRequest.Status.OPEN,
-                ContactRequest.Status.TRIAGED,
-                ContactRequest.Status.ASSIGNED,
-                ContactRequest.Status.IN_PROGRESS,
-            )
-            contact_open_count = ContactRequest.objects.filter(
-                parent=request.user, school=school, status__in=open_statuses
-            ).count()
-    except SUPPORT_TICKET_SOFT_FAILURES:
-        contact_open_count = 0
-
-    role = (getattr(request.user, "role", "") or "").upper()
-    is_parent = role == "PARENT"
-    staff_contact_url = reverse("portal:staff_contact_request_list")
-    show_staff_inbox = bool(
-        getattr(request.user, "is_staff", False) or getattr(request.user, "is_superuser", False)
-    )
-
-    return render(
-        request,
-        "portal/support_help_hub.html",
-        {
-            "school": school,
-            "support_contact": support_contact,
-            "my_tickets": my_tickets,
-            "contact_open_count": contact_open_count,
-            "is_parent": is_parent,
-            "show_staff_inbox": show_staff_inbox,
-            "staff_contact_url": staff_contact_url,
-            "kb_home_url": reverse("kb:kb_home"),
-            "faq_url": reverse("kb:faq_list"),
-            "support_form_url": reverse("portal:support_request"),
-            "parent_contact_url": reverse("portal:parent_contact_school"),
-        },
-    )
+    target = reverse("feedback:help_center")
+    section = (request.GET.get("section") or "support").strip()
+    if section:
+        target = f"{target}?section={section}"
+    return HttpResponseRedirect(target)
 
 
 @login_required

@@ -38,6 +38,7 @@ from apps.people.models import (
 from apps.reports.models import TermPublishStatus
 from apps.academics.services import get_active_year_and_term
 from apps.accounts.decorators import permission_required
+from apps.schools.mixins import require_school
 from apps.observability.tracing import trace_view
 from apps.dashboard.context import build_dashboard_extras
 from apps.dashboard.recommendation_service import get_recommended_next_steps
@@ -59,6 +60,7 @@ from .forms import (
     UserPermissionForm,
     UserRoleForm,
 )
+from .iam_pdp_guards import rbac_dashboard_pdp
 from .models import AccessRole, Permission, User, TemporaryRoleGrant
 
 ACCOUNTS_SOFT_FAILURES = (
@@ -471,6 +473,21 @@ def user_profile(request):
     except (AttributeError, ImportError, TypeError, ValueError):
         context["can_show_pii"] = True
         context["pii_masked_dob"] = None
+
+    from apps.accounts.mfa_setup_flow import build_mfa_setup_context, handle_mfa_setup_post
+
+    profile_next = reverse("accounts:user_profile")
+    if request.method == "POST" and request.POST.get("mfa_inline") == "1":
+        outcome, mfa_ctx = handle_mfa_setup_post(request, next_url=profile_next)
+        if outcome == "redirect_profile":
+            return redirect(profile_next + "#profile-mfa-wizard")
+        if outcome == "redirect_mfa_setup":
+            return redirect("accounts:mfa_setup")
+        if outcome == "render" and mfa_ctx:
+            context.update(mfa_ctx)
+    else:
+        context.update(build_mfa_setup_context(request, next_url=profile_next))
+    context["show_mfa_inline_wizard"] = True
 
     from apps.accounts.operator_account_render import render_account_page
 
@@ -1274,17 +1291,33 @@ def _rbac_permissions_by_group(permissions_qs):
     return result
 
 
+@rbac_dashboard_pdp
 @login_required
+@require_school
 @permission_required("settings.manage")
 @user_passes_test(_is_admin_user)
 def rbac_dashboard(request):
-    roles_qs = AccessRole.objects.prefetch_related("permissions").order_by("code")
+    from apps.accounts.tenant_identity import user_has_school_membership
+
+    school = request.school
+
+    from apps.accounts.access_roles import roles_queryset_for_school, role_applies_to_school
+
+    roles_qs = roles_queryset_for_school(school).prefetch_related("permissions")
     permissions_qs = Permission.objects.order_by("code")
     initial_user_roles = {}
     if request.method == "GET" and request.GET.get("user"):
         try:
             u = User.objects.get(pk=request.GET.get("user"))
-            initial_user_roles = {"user": u, "roles": list(u.roles.all())}
+            if user_has_school_membership(u, school):
+                initial_user_roles = {
+                    "user": u,
+                    "roles": [
+                        r
+                        for r in u.roles.all()
+                        if role_applies_to_school(r, school)
+                    ],
+                }
         except (User.DoesNotExist, ValueError):
             pass
 
@@ -1292,9 +1325,9 @@ def rbac_dashboard(request):
     edit_role_form = None
     if request.method == "GET" and request.GET.get("edit_role"):
         try:
-            edit_role = AccessRole.objects.prefetch_related("permissions").get(
-                pk=request.GET.get("edit_role")
-            )
+            edit_role = roles_queryset_for_school(school).prefetch_related(
+                "permissions"
+            ).get(pk=request.GET.get("edit_role"))
             edit_role_form = EditRoleForm(role=edit_role)
             edit_role_id = edit_role.pk
         except (AccessRole.DoesNotExist, ValueError):
@@ -1303,17 +1336,20 @@ def rbac_dashboard(request):
     role_form = RoleForm(prefix="role")
     permission_form = PermissionForm(prefix="permission")
     user_role_form = UserRoleForm(
-        prefix="user_role", initial=initial_user_roles or None
+        prefix="user_role", initial=initial_user_roles or None, school=school
     )
-    user_permission_form = UserPermissionForm(prefix="user_permission")
-    temporary_grant_form = TemporaryRoleGrantForm(prefix="temp_grant")
+    user_permission_form = UserPermissionForm(prefix="user_permission", school=school)
+    temporary_grant_form = TemporaryRoleGrantForm(prefix="temp_grant", school=school)
 
     if request.method == "POST":
         form_type = request.POST.get("form_type")
         if form_type == "role":
             role_form = RoleForm(request.POST, prefix="role")
             if role_form.is_valid():
-                role_form.save()
+                role = role_form.save(commit=False)
+                role.school = school
+                role.save()
+                role_form.save_m2m()
                 messages.success(request, _("Role created successfully."))
                 return redirect("accounts:rbac")
         elif form_type == "permission":
@@ -1323,29 +1359,43 @@ def rbac_dashboard(request):
                 messages.success(request, _("Permission created successfully."))
                 return redirect("accounts:rbac")
         elif form_type == "user_roles":
-            user_role_form = UserRoleForm(request.POST, prefix="user_role")
+            user_role_form = UserRoleForm(request.POST, prefix="user_role", school=school)
             if user_role_form.is_valid():
                 user = user_role_form.cleaned_data["user"]
+                if not user_has_school_membership(user, school):
+                    messages.error(request, _("User is not a member of this school."))
+                    return redirect("accounts:rbac")
                 roles = user_role_form.cleaned_data["roles"]
+                for role in roles:
+                    if not role_applies_to_school(role, school):
+                        messages.error(
+                            request,
+                            _("Role %(code)s is not valid for this school.")
+                            % {"code": role.code},
+                        )
+                        return redirect("accounts:rbac")
                 user.roles.set(roles)
                 messages.success(request, f"Roles updated for {user.username}.")
                 return redirect("accounts:rbac")
             else:
                 try:
+                    role_ids = [int(pk) for pk in request.POST.getlist("user_role-roles")]
                     initial_user_roles = {
-                        "roles": [
-                            AccessRole.objects.get(pk=int(pk))
-                            for pk in request.POST.getlist("user_role-roles")
-                        ]
+                        "roles": list(
+                            roles_queryset_for_school(school).filter(pk__in=role_ids)
+                        )
                     }
                 except (ValueError, AccessRole.DoesNotExist):
                     initial_user_roles = {}
         elif form_type == "user_permissions":
             user_permission_form = UserPermissionForm(
-                request.POST, prefix="user_permission"
+                request.POST, prefix="user_permission", school=school
             )
             if user_permission_form.is_valid():
                 user = user_permission_form.cleaned_data["user"]
+                if not user_has_school_membership(user, school):
+                    messages.error(request, _("User is not a member of this school."))
+                    return redirect("accounts:rbac")
                 permissions = user_permission_form.cleaned_data["permissions"]
                 user.feature_permissions.set(permissions)
                 messages.success(request, f"Permissions updated for {user.username}.")
@@ -1354,7 +1404,8 @@ def rbac_dashboard(request):
             edit_role_form = EditRoleForm(request.POST)
             if edit_role_form.is_valid():
                 role = get_object_or_404(
-                    AccessRole, pk=edit_role_form.cleaned_data["role_id"]
+                    roles_queryset_for_school(school),
+                    pk=edit_role_form.cleaned_data["role_id"],
                 )
                 role.description = edit_role_form.cleaned_data["description"] or ""
                 role.permissions.set(edit_role_form.cleaned_data["permissions"])
@@ -1366,13 +1417,23 @@ def rbac_dashboard(request):
             ) or request.POST.get("role_id")
         elif form_type == "temporary_grant":
             temporary_grant_form = TemporaryRoleGrantForm(
-                request.POST, prefix="temp_grant"
+                request.POST, prefix="temp_grant", school=school
             )
             if temporary_grant_form.is_valid():
                 from datetime import datetime, time
 
                 user = temporary_grant_form.cleaned_data["user"]
+                if not user_has_school_membership(user, school):
+                    messages.error(request, _("User is not a member of this school."))
+                    return redirect("accounts:rbac")
                 role = temporary_grant_form.cleaned_data["role"]
+                if not role_applies_to_school(role, school):
+                    messages.error(
+                        request,
+                        _("Role %(code)s is not valid for this school.")
+                        % {"code": role.code},
+                    )
+                    return redirect("accounts:rbac")
                 expires_date = temporary_grant_form.cleaned_data["expires_at"]
                 valid_from_date = temporary_grant_form.cleaned_data.get("valid_from")
                 notes = (temporary_grant_form.cleaned_data.get("notes") or "").strip()[
@@ -1444,14 +1505,19 @@ def rbac_dashboard(request):
             except ValueError:
                 pass
 
+    from apps.accounts.tenant_identity import users_queryset_for_school
+
     now = timezone.now()
+    school_user_ids = users_queryset_for_school(school).values_list("pk", flat=True)
     active_temporary_grants = (
         TemporaryRoleGrant.objects.filter(
+            user_id__in=school_user_ids,
             expires_at__gt=now,
         )
         .filter(
             Q(valid_from__isnull=True) | Q(valid_from__lte=now),
         )
+        .filter(Q(role__school__isnull=True) | Q(role__school_id=school.pk))
         .select_related("user", "role", "created_by")
         .order_by("expires_at")[:50]
     )

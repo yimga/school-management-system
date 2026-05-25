@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block cp_title %}Voice of Customer{% endblock %}
 {% block cp_content %}
+<div data-rmc-scroll-policy="paginate">
 {% if feedback_schema_pending %}
 <div class="alert alert-warning mb-3" role="status">
   {% trans "Customer voice data is not available yet — run database migrations for the feedback app on this environment, then refresh." %}
@@ -84,13 +85,17 @@
               <td>{{ item.severity }}</td>
               <td>{{ item.status }}</td>
               <td>
-                <form method="post" action="{% url 'feedback:operator_feedback_action' item.pk %}" class="d-flex gap-1">
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'feedback:operator_feedback_action' item.pk %}" class="d-flex gap-1">
                   {% csrf_token %}
                   <input type="hidden" name="status" value="triaged">
                   <button class="btn btn-sm btn-outline-primary" type="submit">Triage</button>
                   <button class="btn btn-sm btn-outline-secondary" name="action" value="convert" type="submit">Convert</button>
                 </form>
-              </td>
+            </div>
+          </details></td>
             </tr>
           {% empty %}
             <tr><td colspan="9" class="text-muted">No feedback found.</td></tr>
@@ -108,5 +113,6 @@
       {% for row in by_role %}<div class="list-group-item d-flex justify-content-between"><span>{{ row.role|default:"unknown" }}</span><strong>{{ row.total }}</strong></div>{% empty %}<div class="list-group-item text-muted">No role sentiment yet.</div>{% endfor %}
     </div></div>
   </section>
+</div>
 </div>
 {% endblock %}

@@ -989,7 +989,22 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
                 "grade",
                 "offline_mark_entry",
             ) and action in ("CREATE", "UPDATE"):
-                if not bool(flags.get("enable_offline_grade_sync", True)):
+                from apps.accounts.rebac import enforce_permission_token
+
+                if school and not enforce_permission_token(
+                    request.user, "grade.submit", school=school
+                ):
+                    sync_item.status = "FAILED"
+                    sync_item.error_message = "rebac_permission_denied:grade.submit"
+                    sync_item.synced_at = timezone.now()
+                    sync_item.save(
+                        update_fields=["status", "error_message", "synced_at"]
+                    )
+                    result = {
+                        "status": sync_item.status,
+                        "error": sync_item.error_message,
+                    }
+                elif not bool(flags.get("enable_offline_grade_sync", True)):
                     sync_item.status = "FAILED"
                     sync_item.error_message = (
                         "Offline grade sync is disabled in Feature Control."
@@ -1008,7 +1023,22 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
                 "CREATE",
                 "UPDATE",
             ):
-                if not bool(flags.get("enable_offline_attendance_sync", True)):
+                from apps.accounts.rebac import enforce_permission_token
+
+                if school and not enforce_permission_token(
+                    request.user, "attendance.mark", school=school
+                ):
+                    sync_item.status = "FAILED"
+                    sync_item.error_message = "rebac_permission_denied:attendance.mark"
+                    sync_item.synced_at = timezone.now()
+                    sync_item.save(
+                        update_fields=["status", "error_message", "synced_at"]
+                    )
+                    result = {
+                        "status": sync_item.status,
+                        "error": sync_item.error_message,
+                    }
+                elif not bool(flags.get("enable_offline_attendance_sync", True)):
                     sync_item.status = "FAILED"
                     sync_item.error_message = (
                         "Offline attendance sync is disabled in Feature Control."
@@ -1028,7 +1058,23 @@ class OfflineSyncViewSet(viewsets.ModelViewSet):
                 "payment_queue",
                 "queued_payment",
             ) and action in ("CREATE", "UPDATE"):
-                result = self._process_offline_payment_sync(sync_item, request.user)
+                from apps.accounts.rebac import enforce_permission_token
+
+                if school and not enforce_permission_token(
+                    request.user, "finance.manage", school=school
+                ):
+                    sync_item.status = "FAILED"
+                    sync_item.error_message = "rebac_permission_denied:finance.manage"
+                    sync_item.synced_at = timezone.now()
+                    sync_item.save(
+                        update_fields=["status", "error_message", "synced_at"]
+                    )
+                    result = {
+                        "status": sync_item.status,
+                        "error": sync_item.error_message,
+                    }
+                else:
+                    result = self._process_offline_payment_sync(sync_item, request.user)
             else:
                 sync_item.status = "FAILED"
                 sync_item.error_message = (

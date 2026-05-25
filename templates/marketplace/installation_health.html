@@ -52,7 +52,11 @@
         <tbody>
           {% for inst in installations %}
           <tr>
-            <td><strong>{{ inst.app.name }}</strong> <span class="text-muted small">({{ inst.app.slug }})</span></td>
+            <td>
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<strong>{{ inst.app.name }}</strong> <span class="text-muted small">({{ inst.app.slug }})</span></td>
             <td>{{ inst.school.name }}</td>
             <td><span class="badge bg-{% if inst.install_phase == 'sandbox' %}warning{% else %}success{% endif %}">{{ inst.get_install_phase_display }}</span></td>
             <td>{{ inst.health_status|default:"—" }}</td>
@@ -63,7 +67,8 @@
                 <input type="hidden" name="installation_id" value="{{ inst.pk }}">
                 <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Refresh" %}</button>
               </form>
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% empty %}
           <tr>

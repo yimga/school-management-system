@@ -6,12 +6,12 @@
 
 {% block backend_page %}
   <div
-    class="container-fluid py-4"
-    data-page-archetype="operational-workbench"
+    class="container-fluid py-2"
+    data-page-archetype="operational-workbench" data-rmc-operational-workbench="1"
     data-shell-surface="grading-scale-bands"
     data-cp-evidence-surface="grading-scale-bands"
     data-rmc-grading-scale-bands="1"
-  >
+   data-rmc-scroll-policy="paginate">
     <div class="card shadow-sm mb-3">
       <div class="card-body">
         <h1 class="h5 mb-2">{% trans "Effective DB grading scale" %}</h1>
@@ -43,7 +43,8 @@
     <div class="card shadow-sm mb-3">
       <div class="card-header bg-light fw-semibold">{% trans "Bands" %}</div>
       <div class="card-body p-0 table-responsive">
-        <table class="table table-sm table-striped align-middle mb-0 table-family" aria-label="{% trans 'Grading scale bands' %}">
+        <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-sm table-striped align-middle mb-0 table-family" aria-label="{% trans 'Grading scale bands' %}">
           <thead>
             <tr>
               <th>{% trans "Order" %}</th>

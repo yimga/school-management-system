@@ -19,26 +19,32 @@
   </h2>
   <p class="cp-section__lede">{% trans "Sortable + filterable + bulk actions. Filters live on the rail. Pagination 25/page (page-fold standards)." %}</p>
 
-  <div class="cp-changelist cp-changelist--preview">
+  <div class="cp-changelist cp-changelist--preview" data-rmc-surface-preview-interactive="changelist">
     <aside class="cp-filters" aria-label="{% trans 'Filter rail preview' %}">
       <p class="cp-filters__title">{% trans "Filters" %}</p>
-      <div class="cp-filter-group">
+      <div class="cp-filter-group" data-cp-filter-group="status">
         <div class="cp-filter-group__name">{% trans "Status" %}</div>
-        <span class="cp-filter-pill" data-active>{% trans "All" %}</span>
-        <span class="cp-filter-pill">{% trans "Active" %}</span>
-        <span class="cp-filter-pill">{% trans "Pending" %}</span>
+        <button type="button" class="cp-filter-pill" data-active data-cp-filter-pill>{% trans "All" %}</button>
+        <button type="button" class="cp-filter-pill" data-cp-filter-pill>{% trans "Active" %}</button>
+        <button type="button" class="cp-filter-pill" data-cp-filter-pill>{% trans "Pending" %}</button>
       </div>
-      <div class="cp-filter-group">
+      <div class="cp-filter-group" data-cp-filter-group="plan">
         <div class="cp-filter-group__name">{% trans "Plan" %}</div>
-        <span class="cp-filter-pill">{% trans "Standard" %}</span>
-        <span class="cp-filter-pill">{% trans "Pro" %}</span>
-        <span class="cp-filter-pill">{% trans "Enterprise" %}</span>
+        <button type="button" class="cp-filter-pill" data-cp-filter-pill>{% trans "Standard" %}</button>
+        <button type="button" class="cp-filter-pill" data-cp-filter-pill>{% trans "Pro" %}</button>
+        <button type="button" class="cp-filter-pill" data-cp-filter-pill>{% trans "Enterprise" %}</button>
       </div>
     </aside>
 
     <div class="cp-table-wrap">
       <div class="cp-table-head">
-        <span class="cp-table-head__crumb">{% trans "Showing sample rows — open changelist for live data" %}</span>
+        <span class="cp-table-head__crumb">
+          {% if admin_index_surface.school_total %}
+            {% blocktrans with total=admin_index_surface.school_total %}Live registry — {{ total }} school{{ total|pluralize }}{% endblocktrans %}
+          {% else %}
+            {% trans "No schools yet — add one to populate this table" %}
+          {% endif %}
+        </span>
         <div class="cp-table-head__actions">
           <a class="cp-btn cp-btn--ghost" href="{% url 'admin:schools_school_changelist' %}">{% trans "Open changelist" %}</a>
           <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "Add school" %}</a>
@@ -53,18 +59,26 @@
           </tr>
         </thead>
         <tbody>
+          {% for row in admin_index_surface.school_rows %}
           <tr>
-            <td><a href="{% url 'admin:schools_school_changelist' %}">{% trans "Live schools registry" %}</a></td>
-            <td><code class="cp-mono">…</code></td>
-            <td><span class="cp-status" data-tone="success">{% trans "Active" %}</span></td>
+            <td>
+              {% if row.change_url %}<a href="{{ row.change_url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}
+            </td>
+            <td><code class="cp-mono">{{ row.slug }}</code></td>
+            <td><span class="cp-status" data-tone="{{ row.status_tone }}">{{ row.status_label }}</span></td>
           </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-muted">{% trans "No schools in registry yet." %}</td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
-      <div class="cp-pager">
-        <span>{% trans "1–25 of N" %}</span>
-        <div class="cp-pager__pages" aria-hidden="true">
-          <span class="cp-pager__pill" data-active>1</span>
-          <span class="cp-pager__pill">2</span>
+      <div class="cp-pager" data-cp-pager-preview>
+        <span>{{ admin_index_surface.changelist_pager_label|default:_("1–25 of N") }}</span>
+        <div class="cp-pager__pages" role="group" aria-label="{% trans 'Preview pagination' %}">
+          <button type="button" class="cp-pager__pill" data-active data-cp-pager-pill>1</button>
+          <button type="button" class="cp-pager__pill" data-cp-pager-pill>2</button>
         </div>
       </div>
     </div>
@@ -78,67 +92,153 @@
   </h2>
   <p class="cp-section__lede">{% trans "Tabbed fieldsets, dense field grid, inline help, audit sidecar." %}</p>
 
-  <div class="cp-form-frame">
+  <div class="cp-form-frame" data-rmc-surface-preview-interactive="changeform">
     <div class="cp-form">
       <div class="cp-form__header">
         <div>
+          {% if admin_index_surface.sample_school %}
+          <strong>{{ admin_index_surface.sample_school.name }}</strong>
+          <div class="cp-form__meta"><code class="cp-mono">slug: {{ admin_index_surface.sample_school.slug }}</code></div>
+          {% else %}
           <strong>{% trans "School record" %}</strong>
           <div class="cp-form__meta"><code class="cp-mono">{% trans "id · slug · created" %}</code></div>
+          {% endif %}
         </div>
         <div class="cp-form__header-actions">
           <a class="cp-btn" href="{% url 'admin:schools_school_changelist' %}">{% trans "Back to list" %}</a>
-          <span class="cp-btn cp-btn--primary">{% trans "Save changes" %}</span>
+          {% if admin_index_surface.sample_school.change_url %}
+          <a class="cp-btn cp-btn--primary" href="{{ admin_index_surface.sample_school.change_url }}">{% trans "Open live record" %}</a>
+          {% else %}
+          <button type="button" class="cp-btn cp-btn--primary" data-rmc-preview-save="1">{% trans "Save changes" %}</button>
+          {% endif %}
         </div>
       </div>
-      <nav class="cp-form__tabs" aria-label="{% trans 'Fieldset tabs preview' %}">
-        <span class="cp-form__tab" data-active>{% trans "Identity" %}</span>
-        <span class="cp-form__tab">{% trans "Brand & theme" %}</span>
-        <span class="cp-form__tab">{% trans "Plan & addons" %}</span>
-      </nav>
-      <div class="cp-fieldset">
-        <p class="cp-fieldset__title">{% trans "Identity" %}</p>
-        <div class="cp-field-grid">
-          <div class="cp-field">
-            <label class="cp-field__label">{% trans "Name" %}</label>
-            <input class="cp-field__input" type="text" value="{% trans 'Example academy' %}" readonly>
+      <div class="cp-form__preview-status visually-hidden" role="status" aria-live="polite" data-rmc-preview-status></div>
+      <div class="cp-form__tabs" role="tablist" aria-label="{% trans 'Fieldset tabs preview' %}">
+        <button type="button" class="cp-form__tab" role="tab" id="cp-preview-tab-identity" aria-controls="cp-preview-panel-identity" aria-selected="true" data-active data-cp-form-tab="identity">{% trans "Identity" %}</button>
+        <button type="button" class="cp-form__tab" role="tab" id="cp-preview-tab-brand" aria-controls="cp-preview-panel-brand" aria-selected="false" data-cp-form-tab="brand">{% trans "Brand & theme" %}</button>
+        <button type="button" class="cp-form__tab" role="tab" id="cp-preview-tab-plan" aria-controls="cp-preview-panel-plan" aria-selected="false" data-cp-form-tab="plan">{% trans "Plan & addons" %}</button>
+      </div>
+      <div class="cp-form__panels" data-cp-form-panels>
+        <div class="cp-fieldset" id="cp-preview-panel-identity" role="tabpanel" aria-labelledby="cp-preview-tab-identity" data-cp-form-panel="identity" data-active>
+          <p class="cp-fieldset__title">{% trans "Identity" %}</p>
+          <div class="cp-field-grid">
+            <div class="cp-field">
+              <label class="cp-field__label" for="cp-preview-name">{% trans "Name" %}</label>
+              <input class="cp-field__input" id="cp-preview-name" name="preview_name" type="text" value="{% if admin_index_surface.sample_school %}{{ admin_index_surface.sample_school.name }}{% else %}{% trans 'Example academy' %}{% endif %}" autocomplete="organization">
+            </div>
+            <div class="cp-field">
+              <label class="cp-field__label" for="cp-preview-slug">{% trans "Slug" %}</label>
+              <input class="cp-field__input" id="cp-preview-slug" name="preview_slug" type="text" value="{% if admin_index_surface.sample_school %}{{ admin_index_surface.sample_school.slug }}{% else %}example-academy{% endif %}" autocomplete="off" spellcheck="false">
+              <span class="cp-field__hint">{% trans "Cannot be changed after first migration." %}</span>
+            </div>
           </div>
-          <div class="cp-field">
-            <label class="cp-field__label">{% trans "Slug" %}</label>
-            <input class="cp-field__input" type="text" value="example-academy" readonly>
-            <span class="cp-field__hint">{% trans "Cannot be changed after first migration." %}</span>
+        </div>
+        <div class="cp-fieldset" id="cp-preview-panel-brand" role="tabpanel" aria-labelledby="cp-preview-tab-brand" data-cp-form-panel="brand" hidden>
+          <p class="cp-fieldset__title">{% trans "Brand & theme" %}</p>
+          <div class="cp-field-grid">
+            <div class="cp-field">
+              <label class="cp-field__label" for="cp-preview-primary-color">{% trans "Primary color" %}</label>
+              <input class="cp-field__input" id="cp-preview-primary-color" name="preview_primary_color" type="text" value="#1e6f3a" autocomplete="off">
+            </div>
+            <div class="cp-field">
+              <label class="cp-field__label" for="cp-preview-accent-color">{% trans "Accent color" %}</label>
+              <input class="cp-field__input" id="cp-preview-accent-color" name="preview_accent_color" type="text" value="#c19a26" autocomplete="off">
+            </div>
+            <div class="cp-field cp-field--wide">
+              <label class="cp-field__label" for="cp-preview-logo">{% trans "Logo path" %}</label>
+              <input class="cp-field__input" id="cp-preview-logo" name="preview_logo" type="text" value="tenants/example/brand/logo.png" autocomplete="off">
+              <span class="cp-field__hint">{% trans "PNG, JPEG, WebP, or SVG up to 2 MB." %}</span>
+            </div>
+          </div>
+        </div>
+        <div class="cp-fieldset" id="cp-preview-panel-plan" role="tabpanel" aria-labelledby="cp-preview-tab-plan" data-cp-form-panel="plan" hidden>
+          <p class="cp-fieldset__title">{% trans "Plan & addons" %}</p>
+          <div class="cp-field-grid">
+            <div class="cp-field">
+              <label class="cp-field__label" for="cp-preview-plan">{% trans "Plan" %}</label>
+              <input class="cp-field__input" id="cp-preview-plan" name="preview_plan" type="text" value="{% trans 'Pro · annual' %}">
+            </div>
+            <div class="cp-field">
+              <label class="cp-field__label" for="cp-preview-status">{% trans "Status" %}</label>
+              <input class="cp-field__input" id="cp-preview-status" name="preview_status" type="text" value="{% trans 'Active' %}">
+            </div>
+            <div class="cp-field cp-field--wide">
+              <label class="cp-field__label" for="cp-preview-addons">{% trans "Addons" %}</label>
+              <input class="cp-field__input" id="cp-preview-addons" name="preview_addons" type="text" value="meal-plan, transport, marketplace-extended">
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <aside class="cp-sidecar" aria-label="{% trans 'Audit sidecar preview' %}">
+    <aside class="cp-sidecar" aria-label="{% trans 'Change-form sidecar preview' %}">
       <div class="cp-sidecar__card">
         <p class="cp-sidecar__title">{% trans "Audit trail · last 24h" %}</p>
         <div class="cp-audit">
+          {% for row in admin_index_surface.audit_rows %}
+          <div class="cp-audit__row">
+            <span class="cp-audit__dot" data-tone="{{ row.tone }}"></span>
+            <div class="cp-audit__body">
+              <strong>{{ row.summary }}</strong>
+              <span>{{ row.meta }}</span>
+            </div>
+          </div>
+          {% empty %}
           <div class="cp-audit__row">
             <span class="cp-audit__dot"></span>
             <div class="cp-audit__body">
-              <strong>{% trans "Plan updated" %}</strong>
-              <span>{% trans "by operator · recently" %}</span>
+              <strong>{% trans "No recent admin edits" %}</strong>
+              <span>{% trans "School change history appears on live records" %}</span>
             </div>
           </div>
+          {% endfor %}
         </div>
       </div>
       <div class="cp-sidecar__card">
         <p class="cp-sidecar__title">{% trans "Related" %}</p>
         <div class="cp-sidecar__links">
+          {% for link in admin_index_surface.related_links %}
+          <a href="{{ link.url }}">
+            {% if link.count is not None %}{% blocktrans with label=link.label count=link.count %}{{ label }} ({{ count }}){% endblocktrans %}{% else %}{{ link.label }}{% endif %}
+          </a>
+          {% empty %}
           <a href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Site settings" %}</a>
           <a href="{% url 'super:dashboard' %}">{% trans "Control plane" %}</a>
+          {% endfor %}
         </div>
       </div>
-      <div class="cp-sidecar__card">
-        <p class="cp-sidecar__title">{% trans "Empty-state example" %}</p>
-        <div class="cp-empty">
-          <div class="cp-empty__icon" aria-hidden="true">∅</div>
-          <div class="cp-empty__title">{% trans "No NPS responses yet" %}</div>
-          <div class="cp-empty__hint">{% trans "Sparklines and trend deltas appear when parents submit surveys — no mock data on live changelists." %}</div>
+      {% with nps=admin_index_surface.nps_metric %}
+      <div class="cp-sidecar__card cp-sidecar__card--metric">
+        <p class="cp-sidecar__title">{{ nps.eyebrow|default:_("Parent NPS · rolling 30d") }}</p>
+        <div class="cp-nps-metric" data-tone="{{ nps.score_tone|default:'muted' }}">
+          <div class="cp-nps-metric__head">
+            <span class="cp-nps-metric__score" aria-label="{% trans 'Net promoter score' %}">{{ nps.score_display|default:"—" }}</span>
+            {% if nps.delta_text %}
+            <span class="cp-nps-metric__delta" data-tone="{{ nps.delta_tone }}">{{ nps.delta_text }}</span>
+            {% endif %}
+          </div>
+          {% if nps.sparkline %}
+          <div class="cp-nps-metric__spark" role="img" aria-label="{% trans 'Response volume last 7 days' %}">
+            {% for bar in nps.sparkline %}
+            <span class="cp-nps-metric__bar" style="height: {{ bar.height_pct }}%;" title="{{ bar.label }}: {{ bar.count }}"></span>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if nps.breakdown %}
+          <ul class="cp-nps-metric__breakdown">
+            {% for row in nps.breakdown %}
+            <li data-kind="{{ row.kind }}">
+              <span>{{ row.label }}</span>
+              <span class="cp-mono">{{ row.count }} · {{ row.pct }}</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          <p class="cp-nps-metric__caption">{{ nps.caption }}</p>
         </div>
       </div>
+      {% endwith %}
     </aside>
   </div>
 </section>

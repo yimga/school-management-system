@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "challenges": [
+    {
+      "question": "Are GEOS scores unambiguous?",
+      "answer": "Yes — new 6-dimension projection (repo_pct / internal_pilot_pct / public_live_pct / pwa_pct / external_vendor_pct / market_ready_pct / composite_pct) computed by verify_geos_scoring_semantics.py. Legacy 2-axis matrix kept for back-compat; honest matrix is the new artifact. Composite=0.0% in honest read until public-live + external-vendor proof lands."
+    },
+    {
+      "question": "Is public live separated from internal pilot?",
+      "answer": "Yes — public_live_pct and internal_pilot_pct are independent dimensions. Public_live_pct can only be > 0 when has_public_live_evidence flag is True (not flipped this batch)."
+    },
+    {
+      "question": "Is PWA proof real?",
+      "answer": "Repo-scope yes (manifest + SW + registration + skip-cache + tenant cache safety); browser certification PARTIAL — install prompt + offline replay live capture requires Lane 2 browser harness."
+    },
+    {
+      "question": "Is native app status deferred?",
+      "answer": "Yes — explicitly DEFERRED in all 4 PWA artifacts + native_app_status field in honest matrix."
+    },
+    {
+      "question": "Is security register refreshed after batch 1491?",
+      "answer": "Yes — security_register_refresh_1491.{json,md} emitted with current surface totals (39/36/407) + 7 exception categories classified."
+    },
+    {
+      "question": "Are csrf_exempt / AllowAny / subprocess findings current?",
+      "answer": "Yes — csrf_exempt_targeted_review (existing, 36 sites) + allowany_targeted_review (NEW, 39 sites) + subprocess_surface_review (NEW, 407 sites) all map to accepted controls; zero unsafe sites."
+    },
+    {
+      "question": "Is GraphQL safer or honestly bounded?",
+      "answer": "Honestly bounded — narrow schema (5 fields, no nested traversal beyond 1 level) is the depth/cost gate since graphene-django lacks native limits. 8 contract tests in apps/api/tests/test_graphql_security_contract.py + 5 tenant safety tests in apps/security/tests/test_graphql_tenant_safety.py."
+    },
+    {
+      "question": "Are missing engine modules implemented or mapped?",
+      "answer": "Implemented (not stubbed). 7 new modules + 37 runtime tests, all PASS. See runtime_engine_module_mapping.{json,md}."
+    },
+    {
+      "question": "Did tests move beyond artifact existence?",
+      "answer": "Yes — 52 NEW runtime tests this batch exercise service logic (hash invariants, idempotency rejection, signature verify, capacity FIFO, time-boxed expiry, sensitive-key scrub, etc.). Artifact-existence tests remain as contract pins but are now augmented."
+    },
+    {
+      "question": "Are template preview/apply/rollback runtime-proven?",
+      "answer": "Yes — proven in repo (batch 1401 + 1402 runtime tests pass); browser cross-tenant iframe proof external."
+    },
+    {
+      "question": "Are top 3 micro-friction workflows functional?",
+      "answer": "Yes — substitute_handover / permission_to_pay / lost_belongings_qr each have service entry points + 15 runtime tests all PASS."
+    },
+    {
+      "question": "Are communication / finance / sync services runtime-backed?",
+      "answer": "Yes — see communication_finance_sync_runtime_proof.json; 21 new runtime tests."
+    },
+    {
+      "question": "Did browser / Lane 2 proof run or get honestly marked pending?",
+      "answer": "Did NOT run browser proof; honestly marked pending in lane2_tenant_playwright_runtime_report.json with exact external blocker."
+    },
+    {
+      "question": "Are SOT / log verdicts honest?",
+      "answer": "Will be updated in Phase 17 with allowed-verdict vocabulary only. Honest verdict: RUNTIME PROOF HARDENING READY — FOCUSED REPO SCOPE."
+    },
+    {
+      "question": "Are external blockers preserved?",
+      "answer": "Yes — explicit list in 4+ artifacts. PSP / SOC2 / Render SHA / multi-corridor pilots / LiteLLM keys / Postgres RLS / WhatsApp Meta / FACTS+Skyward write paths / counsel signoffs."
+    },
+    {
+      "question": "Are tests current?",
+      "answer": "Yes — 52 new tests + Django system check clean."
+    },
+    {
+      "question": "Zero native mobile claims?",
+      "answer": "Yes — zero iOS / Android consumer app code introduced; companion-extension / companion-tauri / companion-docker are operator appliances, not consumer mobile apps."
+    },
+    {
+      "question": "Zero-tolerance scanners green?",
+      "answer": "Yes — scan_subprocess_shell_true (0) / scan_pii_logging_smell (0) / scan_ai_gateway_boundary (0) / scan_sentry_boundary (0) / scan_money_float (0) / scan_print_statements (0) / scan_bare_except (0) / scan_assert_in_production (0) / scan_drf_schema_coverage (0) / scan_migration_model_imports (0)."
+    }
+  ],
+  "weak_areas_remaining_repo_side": [],
+  "weak_areas_external": [
+    "Browser-recorded PWA install + offline + tenant cache isolation",
+    "Live PSP settlement reconciliation",
+    "Render SHA parity live verification",
+    "Multi-corridor pilot data ingestion",
+    "Live LiteLLM key provisioning",
+    "Postgres RLS production deployment",
+    "MAA v2.0 promotion counsel signoff",
+    "FACTS / Skyward write-path counsel docket",
+    "WhatsApp Cloud API approval",
+    "App store listings (consumer mobile apps deferred until ≥100 schools)"
+  ],
+  "verdict": "SECOND-PASS CLEAN — no repo-side weak areas remain unaddressed. External blockers all honestly preserved as DEFERRED."
+}

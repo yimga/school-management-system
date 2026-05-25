@@ -21,6 +21,7 @@ class OfflineActionType(models.TextChoices):
     NOTIFY_PARENT = "notify.parent", "Notify parent"
     NOTIFY_STAFF = "notify.staff", "Notify staff"
     PROVISIONAL_SIGNUP = "provision.signup", "Provisional signup"
+    IAM_REQUEST_ACCESS = "iam.request_access", "IAM request access (server-validated)"
 
 
 NOTIFY_PREFIX = "notify."

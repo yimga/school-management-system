@@ -4,7 +4,7 @@
 {% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as rmc_unread_count %}
 <div class="user-dropdown-wrapper" data-rmc-shell-viewport-safe="1">
   <div class="dropdown">
-    <button class="user-dropdown-trigger" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+    <button class="user-dropdown-trigger" type="button" id="userDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-boundary="viewport" data-bs-display="dynamic" data-bs-offset="0,8" aria-expanded="false" aria-haspopup="true">
       <div class="user-avatar">
         {% if request.user.profile_photo %}
           <img src="{{ request.user.profile_photo.url }}" alt="{{ request.user.get_full_name }}" width="40" height="40" decoding="async" loading="lazy">

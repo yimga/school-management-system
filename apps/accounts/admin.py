@@ -11,6 +11,7 @@ from .models import (
     Permission,
     UserPreference,
     TemporaryRoleGrant,
+    TenantStaffInvite,
     Delegation,
     DelegationActionLog,
     SecurityAuditLog,
@@ -82,8 +83,37 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
     guardian_of_display.short_description = "Also guardian of"
 
 
+class TenantScopedUserAdmin(UserAdmin):
+    """Tenant /admin/ User changelist limited to members of request.school."""
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        school = getattr(request, "school", None)
+        if school is None:
+            return qs.none()
+        from apps.accounts.tenant_identity import users_queryset_for_school
+
+        return qs.filter(
+            pk__in=users_queryset_for_school(school).values_list("pk", flat=True)
+        )
+
+
+class PlatformUserAdmin(UserAdmin):
+    """Break-glass manager admin: User changelist scoped to platform operators only."""
+
+    show_full_result_count = False
+
+    def get_queryset(self, request):
+        from apps.platform_runtime.operator_identity import queryset_platform_operators
+
+        base = super().get_queryset(request)
+        operator_ids = queryset_platform_operators().values_list("pk", flat=True)
+        return base.filter(pk__in=operator_ids)
+
+
 class RoleAdmin(ModelAdmin):
-    list_display = ("code", "name")
+    list_display = ("code", "name", "school")
+    list_filter = ("school",)
     search_fields = ("code", "name")
     filter_horizontal = ("permissions",)
 
@@ -106,6 +136,15 @@ class TemporaryRoleGrantAdmin(ModelAdmin):
     search_fields = ("user__username", "notes")
     raw_id_fields = ("user", "created_by")
     readonly_fields = ("created_at",)
+    date_hierarchy = "expires_at"
+
+
+class TenantStaffInviteAdmin(ModelAdmin):
+    list_display = ("email", "school", "role", "expires_at", "accepted_at", "created_at")
+    list_filter = ("role", "school")
+    search_fields = ("email", "school__name", "school__slug")
+    raw_id_fields = ("school", "invited_by")
+    readonly_fields = ("token", "created_at")
     date_hierarchy = "expires_at"
 
 
@@ -185,10 +224,11 @@ class GroupAdmin(ModelAdmin):
 
 
 # Users: tenant admin + platform backoffice (manager host) so operators can set role SUPERADMIN.
-register_both(User, UserAdmin)
+register_both(User, TenantScopedUserAdmin, platform_admin_class=PlatformUserAdmin)
 register_tenant_admin(AccessRole, RoleAdmin)
 register_tenant_admin(Permission, PermissionAdmin)
 register_tenant_admin(TemporaryRoleGrant, TemporaryRoleGrantAdmin)
+register_tenant_admin(TenantStaffInvite, TenantStaffInviteAdmin)
 register_tenant_admin(Group, GroupAdmin)
 register_tenant_admin(UserPreference, UserPreferenceAdmin)
 register_tenant_admin(Delegation, DelegationAdmin)
@@ -223,3 +263,48 @@ class UserPasskeyAdmin(ModelAdmin):
 
 register_tenant_admin(SecurityAuditLog, SecurityAuditLogAdmin)
 register_tenant_admin(UserPasskey, UserPasskeyAdmin)
+
+
+class RelationshipTupleAdmin(ModelAdmin):
+    list_display = (
+        "school",
+        "subject_type",
+        "subject_id",
+        "relation",
+        "object_type",
+        "object_id",
+        "source",
+        "updated_at",
+    )
+    list_filter = ("relation", "object_type", "source", "school")
+    search_fields = ("subject_id", "object_id", "source_key")
+    raw_id_fields = ("school",)
+    readonly_fields = (
+        "school",
+        "subject_type",
+        "subject_id",
+        "relation",
+        "object_type",
+        "object_id",
+        "source",
+        "source_key",
+        "created_at",
+        "updated_at",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+try:
+    from apps.accounts.models_rebac import RelationshipTuple
+
+    register_both(RelationshipTuple, RelationshipTupleAdmin)
+except ImportError:
+    pass

@@ -321,6 +321,7 @@ MIDDLEWARE = [
     "apps.schools.middleware_dashboard_topology.DashboardTopologyRBACMiddleware",
     "apps.accounts.middleware.ModuleAccessMiddleware",
     "apps.accounts.middleware.RequireMFAMiddleware",
+    "apps.schools.middleware_operator_mfa.OperatorMfaRequiredMiddleware",
     "apps.schools.middleware.TenantSuperAdminRequiredMiddleware",  # Restrict /super/ to SUPERADMIN
     "apps.schools.middleware.SuperAdminRateLimitMiddleware",  # 12.7: rate limit /super/ (120/min per user)
     "apps.schools.middleware_enterprise_security.EnterpriseSuperHttpAuditMiddleware",  # optional: ENTERPRISE_SUPER_HTTP_AUDIT=1
@@ -332,6 +333,7 @@ MIDDLEWARE += [
     "apps.compliance.middleware.ComplianceGuardMiddleware",  # Phase Compliance: region → feature_code RESTRICTED/DISABLED
     "django_otp.middleware.OTPMiddleware",
     "apps.accounts.middleware_security_posture.SecurityPostureReviewMiddleware",
+    "apps.accounts.middleware_minimum_security_strength.MinimumSecurityStrengthMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "apps.accounts.middleware.ManagerTenantPrimarySurfaceBlockMiddleware",  # manager: no /studio/hubs/* or /authentication/backend/*
     "apps.siteconfig.middleware.OperatorSiteconfigManagerShellMiddleware",  # operators: tenant siteconfig URLs → manager shell
@@ -456,6 +458,7 @@ TEMPLATES = [
                 "apps.platform_runtime.context_processors.ai_operating_layer_context",
                 "apps.platform_runtime.context_processors.system_actions_context",
                 "apps.platform_runtime.context_processors.offline_sync_bar_context",
+                "apps.platform_runtime.context_processors.operational_nav_groups",
                 # v3.62.5 Wave 2 local-first: emits `localization` dict
                 # (country_code, calendar, school_types, terminology,
                 # week_start, date_format, currency_code, is_rtl) into
@@ -944,6 +947,30 @@ IMPERSONATION_DEFAULT_READ_ONLY = (
     os.getenv("IMPERSONATION_DEFAULT_READ_ONLY", "1").strip().lower()
     in {"1", "true", "yes"}
 )
+# When true on manager host, operators must enroll MFA before /super/ or /admin/.
+OPERATOR_MFA_REQUIRED_ON_MANAGER = (
+    os.getenv("OPERATOR_MFA_REQUIRED_ON_MANAGER", "1").strip().lower()
+    in {"1", "true", "yes"}
+)
+# Tenant users: minimum security score (0–100) required to use the platform (all roles).
+SECURITY_PLATFORM_MINIMUM_SCORE = int(os.getenv("SECURITY_PLATFORM_MINIMUM_SCORE", "40"))
+# Stricter roles (ADMIN, finance, etc.) also require score >= 80 via security_health.
+SECURITY_ENFORCE_MINIMUM_STRENGTH = (
+    os.getenv("SECURITY_ENFORCE_MINIMUM_STRENGTH", "1").strip().lower() in {"1", "true", "yes"}
+)
+# ReBAC (batch 1507): Postgres tuples; RBAC dual-run until parity; snapshots read-only offline.
+RMC_REBAC_ENABLED = os.getenv("RMC_REBAC_ENABLED", "1").strip().lower() in {"1", "true", "yes"}
+RMC_REBAC_DUAL_RUN_LOG_MISMATCH = (
+    os.getenv("RMC_REBAC_DUAL_RUN_LOG_MISMATCH", "1").strip().lower() in {"1", "true", "yes"}
+)
+RMC_REBAC_ENFORCE_SENSITIVE = (
+    os.getenv("RMC_REBAC_ENFORCE_SENSITIVE", "0").strip().lower() in {"1", "true", "yes"}
+)
+RMC_IAM_SNAPSHOT_TTL_HOURS = int(os.getenv("RMC_IAM_SNAPSHOT_TTL_HOURS", "168"))
+RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS = int(
+    os.getenv("RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS", "12")
+)
+RMC_IAM_SNAPSHOT_SIGNING_KEY = os.getenv("RMC_IAM_SNAPSHOT_SIGNING_KEY", "").strip() or None
 # Log mutating /super/ requests to compliance AuditLog (see middleware_enterprise_security).
 ENTERPRISE_SUPER_HTTP_AUDIT = (
     os.getenv("ENTERPRISE_SUPER_HTTP_AUDIT", "0").strip().lower()
@@ -2771,8 +2798,9 @@ SUPPORT_AI_AUTO_TRIAGE_ON_CREATE = os.getenv(
     "SUPPORT_AI_AUTO_TRIAGE_ON_CREATE", "0"
 ).strip().lower() in ("1", "true", "yes")
 # Zero-result help search → auto KB draft when hit_count reaches threshold (HITL publish still required).
+_HELP_AUTO_DRAFT_DEFAULT = "1" if _IS_PRODUCTION_OR_STAGING else "0"
 HELP_ZERO_RESULT_AUTO_DRAFT_KB = os.getenv(
-    "HELP_ZERO_RESULT_AUTO_DRAFT_KB", "0"
+    "HELP_ZERO_RESULT_AUTO_DRAFT_KB", _HELP_AUTO_DRAFT_DEFAULT
 ).strip().lower() in ("1", "true", "yes")
 HELP_ZERO_RESULT_AUTO_DRAFT_HITS = int(
     os.getenv("HELP_ZERO_RESULT_AUTO_DRAFT_HITS", "5") or "5"

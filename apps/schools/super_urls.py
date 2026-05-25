@@ -17,6 +17,7 @@ from . import super_views_config
 from . import super_views_config_crud
 from . import super_views_enterprise_security
 from . import super_views_security_surface
+from . import super_views_operator_team
 from .super_views_founder_dashboard import super_founder_dashboard
 from .super_views_catalog import (
     super_blueprints_catalog,
@@ -481,6 +482,69 @@ urlpatterns = [
             super_views_enterprise_security.super_security_hub
         ),
         name="security_hub",
+    ),
+    path(
+        "team/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_roster
+        ),
+        name="operator_team_roster",
+    ),
+    path(
+        "team/invite/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_invite
+        ),
+        name="operator_team_invite",
+    ),
+    path(
+        "team/promote/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_promote
+        ),
+        name="operator_team_promote",
+    ),
+    path(
+        "team/promote/<int:promo_id>/decide/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_promotion_decide
+        ),
+        name="operator_team_promotion_decide",
+    ),
+    path(
+        "team/<int:user_id>/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_detail
+        ),
+        name="operator_team_detail",
+    ),
+    path(
+        "team/<int:user_id>/offboard/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_offboard
+        ),
+        name="operator_team_offboard",
+    ),
+    path(
+        "team/<int:user_id>/revoke-sessions/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_revoke_sessions
+        ),
+        name="operator_team_revoke_sessions",
+    ),
+    path(
+        "team/<int:user_id>/suspend/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_suspend
+        ),
+        name="operator_team_suspend",
+    ),
+    path(
+        "team/<int:user_id>/reactivate/",
+        require_super_access_with_host(
+            super_views_operator_team.super_operator_team_reactivate
+        ),
+        name="operator_team_reactivate",
     ),
     path(
         "security/command-center/",

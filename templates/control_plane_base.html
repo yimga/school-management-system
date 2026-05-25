@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="{% static 'css/rmc-premium-polish.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-surface-spacing-contract.css' %}">
 {# Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). #}
 <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
 {% comment %} Pass A: manager-specific polish (card surfaces, studio toolbar, rail, sidebar).
@@ -16,6 +17,10 @@
 <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
+{% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
+{% include "partials/rmc_security_posture_layout_styles.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-cp-v8-full-width.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-v8-layout-contract.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
 {% endblock %}
@@ -57,6 +62,11 @@
   <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
     {% include "partials/control_plane_primary_nav.html" %}
   </div>
+  {% if cockpit.pulse_metrics.cards %}
+  <div class="rmc-cp-canvas-pulse" data-rmc-cp-canvas-pulse="1">
+    {% include "partials/cockpit/_platform_pulse.html" %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
 
@@ -74,6 +84,7 @@
 <div class="container-fluid px-3 py-2 cp-layout d-flex flex-column" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
   <main id="cp-main-content" class="cp-main-col rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane" data-rmc-static-chrome="1">
     {% include "partials/shell_chrome_django_messages_control_plane.html" %}
+    {% include "partials/shell_chrome_security_posture_banner.html" %}
     {% include "partials/shell_chrome_impersonation_session_strip.html" %}
     {% if cp_show_operator_disclaimer %}
     <p class="text-secondary small mb-2" role="note">
@@ -139,4 +150,6 @@
   <button type="button" class="btn btn-warning btn-sm shadow" id="cpTourStartBtn" aria-label="{% trans 'Start page tour' %}">{% trans "Page tour" %}</button>
 </div>
 {% include 'components/contextual_feedback_widget.html' %}
+{% include 'components/toast_notifications.html' %}
+{% include "partials/rmc_notification_corner_boot.html" %}
 {% endblock %}

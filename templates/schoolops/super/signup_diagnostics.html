@@ -28,7 +28,7 @@
 {% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-signup-diag" id="main">
+<main class="rmc-page rmc-page--operator-signup-diag" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "Signup flow diagnostics" %}</h1>
     <p class="rmc-lede">
@@ -133,7 +133,7 @@
   <section class="rmc-card" aria-labelledby="signup-attempts-heading" style="margin-top:1rem;">
     <h2 id="signup-attempts-heading" class="rmc-h2">{% trans "Last 10 signup verification emails" %}</h2>
     {% if signup_attempts %}
-      <table class="rmc-signup-diag__table">
+      <table class="rmc-signup-diag__table table-sm table-sticky-head rmc-data-table">
         <thead>
           <tr>
             <th>{% trans "When (UTC)" %}</th>

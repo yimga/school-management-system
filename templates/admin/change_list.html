@@ -41,7 +41,7 @@
     {% if is_manager_host and not is_popup %}
         {% include "admin/includes/admin_changelist_header.html" %}
     {% endif %}
-    <div id="content-main" class="{% if is_manager_host %}cp-changelist-live{% endif %}" data-rmc-admin-changelist-live="1" x-data="{ filterOpen: false }">
+    <div id="content-main" class="{% if is_manager_host %}cp-changelist-live{% endif %}" data-rmc-admin-changelist-live="1" data-rmc-admin-table-contract="native-table-scroll" x-data="{ filterOpen: false }">
         {% include "unfold/helpers/popup_header.html" %}
 
         {% if cl.formset and cl.formset.errors %}

@@ -5,6 +5,7 @@
 {% block title %}{% trans "Disciplinary Incidents" %}{% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Disciplinary Incidents" %}</h1>
 {% include "widgets/dashboard_hero.html" with hero=hero %}
 
@@ -13,7 +14,7 @@
     <p class="text-muted small mb-3">When an incident is recorded with "Notify parent" checked, linked guardians receive a notification. Add or edit incidents via the Configuration Engine (Academics → Incidents) if you have access.</p>
     {% if incidents %}
     <div class="table-responsive">
-      <table class="table table-striped align-middle mb-0 table-family">
+      <table class="table table-striped align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table">
         <caption class="visually-hidden">{% trans "Disciplinary Incidents" %}</caption>
         <thead>
           <tr>
@@ -44,5 +45,6 @@
     <p class="text-muted mb-0">No incidents recorded yet.</p>
     {% endif %}
   </div>
+</div>
 </div>
 {% endblock %}

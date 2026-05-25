@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "service_worker_path": "static/js/service-worker.js",
+  "service_worker_version": "sms-v3.91.0-runtime-proof-hardening-2026-05-24",
+  "cache_buckets": {
+    "static_app_shell": "sw-cache-static-{version}",
+    "offline_fallback": "sw-cache-offline-{version}",
+    "asset_runtime": "sw-cache-runtime-{version}"
+  },
+  "indexeddb_databases": {
+    "rmc-offline-queue": {
+      "stores": ["request_queue", "attempted_replays", "checkpoint"],
+      "purpose": "Offline request queue replay on reconnect"
+    },
+    "rmc-portal-cache": {
+      "stores": ["docs", "user_prefs"],
+      "purpose": "Portal session-local doc cache"
+    }
+  },
+  "skip_cache_routes": [
+    "/admin/*",
+    "/api/v1/auth/*",
+    "/accounts/login/*",
+    "/accounts/logout/*",
+    "/accounts/mfa/*",
+    "/super/migration/audit/*"
+  ],
+  "tenant_cache_safety": {
+    "rule": "Cache keys scoped to tenant host + role; logout clears tenant caches; service worker refuses cross-tenant fetches",
+    "logout_purge": "implemented in rmc-service-worker-registration.js"
+  },
+  "stale_data_banner": {
+    "shown_when": "fetch_failed_returning_cached_response",
+    "copy_token": "pwa.stale_banner.text",
+    "dismissible": true
+  },
+  "honest_limitations": [
+    "Install-prompt success rate cannot be browser-proven from this batch",
+    "Offline write-queue replay live rate awaits Lane 2 browser harness"
+  ]
+}

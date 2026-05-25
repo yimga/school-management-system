@@ -1,0 +1,51 @@
+/**
+ * Manager /super/* full canvas width — v8 200x preview parity.
+ * v3.90.27 (2026-05-24)
+ */
+body.control-plane-shell .cp-layout,
+body.control-plane-shell #cp-main-content,
+body.control-plane-shell .rmc-app-shell__canvas-body,
+body.control-plane-shell .cp-page-body {
+  width: 100%;
+  max-width: none !important;
+}
+
+body.control-plane-shell #cp-main-content [class*="content-max-"],
+body.control-plane-shell .cp-page-body [class*="content-max-"],
+body.control-plane-shell .container-fluid[class*="content-max-"] {
+  max-inline-size: none !important;
+  width: 100% !important;
+  margin-inline: 0 !important;
+}
+
+body.control-plane-shell #cp-main-content > .container-fluid,
+body.control-plane-shell #cp-main-content > .container,
+body.control-plane-shell .cp-page-body > .container-fluid,
+body.control-plane-shell .cp-page-body > .container {
+  width: 100%;
+  max-width: none;
+  padding-inline: clamp(12px, 1.5vw, 24px);
+}
+
+body.control-plane-shell .cp-hero-copy {
+  max-width: none;
+}
+
+/* Platform pulse under primary nav — compact strip */
+body.control-plane-shell .rmc-cp-canvas-pulse {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 0.5rem clamp(12px, 1.5vw, 20px) 0.65rem;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface-canvas, var(--surface-bg));
+}
+
+body.control-plane-shell .rmc-cp-canvas-pulse .rmc-cockpit-pulse {
+  margin: 0;
+}
+
+body.control-plane-shell .rmc-cp-canvas-pulse .rmc-cockpit-pulse__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+}

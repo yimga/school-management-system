@@ -539,8 +539,8 @@
           </select>
           <div class="cp-toolbar-summary">{% blocktrans with total=schools|length %}<span id="cp-visible-school-count">{{ total }}</span> of {{ total }} schools visible{% endblocktrans %}</div>
         </div>
-        <div class="table-responsive cp-table-wrap">
-          <table class="table table-family table-hover mb-0 cp-table align-middle">
+        <div class="table-responsive cp-table-wrap cp-registry-table-wrap">
+          <table class="table table-family table-hover mb-0 cp-table cp-registry-table align-middle" data-density="condensed">
             <caption class="visually-hidden">{% trans "Search, triage, and drill into every school" %}</caption>
             <thead>
               <tr>
@@ -619,27 +619,39 @@
                   <div class="cp-cell-meta">{% blocktrans with s=school.student_count t=school.teacher_count m=school.member_count %}Students {{ s }} | Teachers {{ t }} | Members {{ m }}{% endblocktrans %}</div>
                   <div class="cp-cell-meta">{% blocktrans with d=school.updated_at|date:"Y-m-d H:i"|default:"-" %}Last update {{ d }}{% endblocktrans %}</div>
                 </td>
-                <td>
-                  <div class="cp-action-column">
-                    <form method="post" action="{% url 'super:switch_to_tenant' %}" class="d-inline-flex flex-column align-items-stretch gap-1">
-                      {% csrf_token %}
-                      <input type="hidden" name="school_id" value="{{ school.id }}">
-                      <input type="hidden" name="next" value="{% url 'accounts:backend_dashboard' %}">
-                      <label class="visually-hidden" for="imp-reason-{{ school.id }}">{% trans "Reason for impersonation" %}</label>
-                      <input type="text" id="imp-reason-{{ school.id }}" name="impersonation_reason" class="form-control form-control-sm" required minlength="3" maxlength="500" placeholder="{% trans 'Reason (required)' %}">
-                      <label class="visually-hidden" for="imp-ticket-{{ school.id }}">{% trans "Support ticket reference" %}</label>
-                      <input type="text" id="imp-ticket-{{ school.id }}" name="support_ticket_ref" class="form-control form-control-sm" maxlength="120" placeholder="{% trans 'Ticket # (optional)' %}">
-                      {% if school.impersonation_dual_control %}
-                      <label class="visually-hidden" for="imp-peer-{{ school.id }}">{% trans "Second approver (email)" %}</label>
-                      <input type="email" id="imp-peer-{{ school.id }}" name="peer_approver_email" class="form-control form-control-sm" required autocomplete="email" placeholder="{% trans 'Peer operator email (four-eyes)' %}">
-                      <p class="text-warning small mb-0">{% trans "Four-eyes: a second platform operator must be named; they must exist as superuser or SUPERADMIN." %}</p>
-                      {% endif %}
-                      <div class="form-check form-check-sm mb-0">
-                        <input class="form-check-input" type="checkbox" name="allow_writes" value="1" id="imp-write-{{ school.id }}">
-                        <label class="form-check-label small" for="imp-write-{{ school.id }}">{% trans "Allow write actions (default is read-only)" %}</label>
-                      </div>
-                      <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Open as school" %}</button>
-                    </form>
+                <td class="cp-registry-actions-cell">
+                  <div class="cp-registry-actions">
+                    <details class="cp-impersonation-disclosure">
+                      <summary class="btn btn-sm btn-outline-primary">{% trans "Open as school" %}</summary>
+                      <form method="post" action="{% url 'super:switch_to_tenant' %}" class="cp-impersonation-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="school_id" value="{{ school.id }}">
+                        <input type="hidden" name="next" value="{% url 'accounts:backend_dashboard' %}">
+                        <label class="visually-hidden" for="imp-reason-{{ school.id }}">{% trans "Reason for impersonation" %}</label>
+                        <input type="text" id="imp-reason-{{ school.id }}" name="impersonation_reason" class="form-control form-control-sm" required minlength="3" maxlength="500" placeholder="{% trans 'Reason (required)' %}">
+                        <label class="visually-hidden" for="imp-ticket-{{ school.id }}">{% trans "Support ticket reference" %}</label>
+                        <input type="text" id="imp-ticket-{{ school.id }}" name="support_ticket_ref" class="form-control form-control-sm" maxlength="120" placeholder="{% trans 'Ticket # (optional)' %}">
+                        {% if school.impersonation_dual_control %}
+                        <label class="visually-hidden" for="imp-peer-{{ school.id }}">{% trans "Second approver" %}</label>
+                        {% if peer_operators %}
+                        <select id="imp-peer-{{ school.id }}" name="peer_approver_id" class="form-select form-select-sm" required>
+                          <option value="">{% trans "Select peer operator" %}</option>
+                          {% for peer in peer_operators %}
+                          <option value="{{ peer.id }}">{{ peer.label }} ({{ peer.email }})</option>
+                          {% endfor %}
+                        </select>
+                        {% else %}
+                        <input type="email" id="imp-peer-{{ school.id }}" name="peer_approver_email" class="form-control form-control-sm" required autocomplete="email" placeholder="{% trans 'Peer operator email (four-eyes)' %}">
+                        {% endif %}
+                        <p class="text-warning small mb-0">{% trans "Four-eyes: a second platform operator must approve impersonation." %}</p>
+                        {% endif %}
+                        <div class="form-check form-check-sm mb-0">
+                          <input class="form-check-input" type="checkbox" name="allow_writes" value="1" id="imp-write-{{ school.id }}">
+                          <label class="form-check-label small" for="imp-write-{{ school.id }}">{% trans "Allow write actions (default is read-only)" %}</label>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">{% trans "Confirm open" %}</button>
+                      </form>
+                    </details>
                     {% if school.timeline_url %}<a href="{{ school.timeline_url }}" class="btn btn-sm btn-outline-info">{% trans "Timeline" %}</a>{% endif %}
                     {% if school.sync_repair_url %}<a href="{{ school.sync_repair_url }}" class="btn btn-sm btn-outline-warning">{% trans "Sync repair" %}</a>{% endif %}
                   </div>

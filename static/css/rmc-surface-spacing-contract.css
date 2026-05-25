@@ -1,0 +1,222 @@
+/**
+ * rmc-surface-spacing-contract.css — /super/, /admin/, tenant alignment.
+ * Loaded after vertical-density + operational-frame. Personality preserved;
+ * only padding, gap, and grid rhythm.
+ */
+
+/* --- Operational workbench: archetype OR explicit marker --- */
+:is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ) {
+  --rmc-ops-page-pad-y: 0.5rem;
+  --rmc-ops-section-gap: 1rem;
+}
+
+/* Control plane: nested container-fluid should not stack py-4 on base py-2 */
+body.control-plane-shell #cp-main-content
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  > .container-fluid[class*="py-"],
+body.control-plane-shell #cp-main-content
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ).container-fluid[class*="py-"] {
+  padding-top: var(--rmc-ops-page-pad-y, 0.5rem) !important;
+  padding-bottom: var(--rmc-ops-page-pad-y, 0.5rem) !important;
+}
+
+body.control-plane-shell #cp-main-content
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rmc-ops-section-gap, 1rem);
+}
+
+/* Tenant portal + backend: operational page roots */
+body.portal-body-with-layout
+  :is(#main-content, .portal-page-body, .rmc-app-shell__canvas-body)
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ).container-fluid[class*="py-"],
+body.backend-shell
+  :is(#main-content, .portal-page-body)
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ).container-fluid[class*="py-"] {
+  padding-top: var(--rmc-ops-page-pad-y, 0.5rem) !important;
+  padding-bottom: 0.75rem !important;
+}
+
+/* Normalize roomy py-4 on operational workbenches (not wizards / open density) */
+body.control-plane-shell
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ):not([data-rmc-density="open"])
+  .container-fluid.py-4,
+body.portal-body-with-layout
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ):not([data-rmc-density="open"])
+  .container-fluid.py-4,
+body.backend-shell
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ):not([data-rmc-density="open"])
+  .container-fluid.py-4 {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+body.control-plane-shell
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ):not([data-rmc-density="open"])
+  .container-fluid.py-3,
+body.portal-body-with-layout
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  ):not([data-rmc-density="open"])
+  .container-fluid.py-3 {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.65rem !important;
+}
+
+/* KPI / summary strips on tenant + CP operational pages */
+body.portal-body-with-layout
+  :is(#main-content, .portal-page-body, .rmc-app-shell__canvas-body)
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  .rmc-wcx-summary-strip,
+body.backend-shell
+  :is(#main-content, .portal-page-body)
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  .rmc-wcx-summary-strip {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+@media (min-width: 992px) {
+  body.portal-body-with-layout
+    :is(#main-content, .portal-page-body)
+    :is(
+      [data-rmc-operational-workbench="1"],
+      [data-page-archetype="operational-workbench"]
+    )
+    .rmc-wcx-summary-strip,
+  body.backend-shell
+    :is(#main-content, .portal-page-body)
+    :is(
+      [data-rmc-operational-workbench="1"],
+      [data-page-archetype="operational-workbench"]
+    )
+    .rmc-wcx-summary-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+body.portal-body-with-layout
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  .platform-readiness-strip,
+body.backend-shell
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  .platform-readiness-strip {
+  grid-template-columns: 1fr !important;
+  gap: 0.75rem;
+}
+
+/* Readiness / wcx grids inside workbench — prevent sliver columns */
+body.portal-body-with-layout
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  :is(.platform-readiness-strip, .rmc-wcx-summary-strip)
+  > *,
+body.control-plane-shell #cp-main-content
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  :is(.platform-readiness-strip.rmc-wcx-grid, .rmc-wcx-summary-strip)
+  > * {
+  min-width: 0;
+}
+
+/* Admin manager backoffice — align breadcrumb + canvas body */
+body.admin-manager-shell[data-rmc-admin-shell="1"] .cp-admin-page-body {
+  padding-top: 0.5rem !important;
+  padding-bottom: 1rem !important;
+}
+
+body.admin-manager-shell[data-rmc-admin-index-v200x="1"] .cp-steering,
+body.admin-manager-shell[data-rmc-admin-index-v200x="1"] .cp-kpi-strip {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Table toolbars: align btn-sm to frame pill height on workbenches */
+body.control-plane-shell #cp-main-content
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  .btn-sm,
+body.portal-body-with-layout
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  .btn-sm {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  border-radius: var(--radius-pill, 999px);
+}
+
+/* Page header + operational frame: no double top margin */
+body.portal-body-with-layout
+  :is(
+    [data-rmc-operational-workbench="1"],
+    [data-page-archetype="operational-workbench"]
+  )
+  [data-rmc-operational-center-frame="1"]
+  + :is(section, .row, nav, .alert),
+body.control-plane-shell #cp-main-content
+  [data-rmc-operational-center-frame="1"]
+  + :is(section, .row, nav, .alert, .rmc-ops-metrics-grid) {
+  margin-top: 0;
+}
+
+/* Migration cloud skeleton pages under /super/migration/ */
+body.control-plane-shell .rmc-app-shell__canvas-body .rmc-page > .container-fluid.py-4 {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}

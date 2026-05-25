@@ -86,6 +86,7 @@ KNOWN_AUTH_DECORATORS = {
     "finance_access_required",
     "evaluation_access_required",
     "mfa_required",
+    "require_platform_scope",
     # other custom gates
     "observability_auth_required",
     "webhook_security_required",
@@ -113,6 +114,7 @@ _AUTH_GATING_NAMES = {
     "student_detail_access_required",
     "object_permission_required",
     "mfa_required",
+    "require_platform_scope",
     "observability_auth_required",
     "webhook_security_required",
 }

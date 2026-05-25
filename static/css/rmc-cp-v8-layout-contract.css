@@ -1,0 +1,199 @@
+/**
+ * Manager /super/* — v8 200x preview layout contract (spacing, width, depth).
+ * Source: rmc-shell-preview-v8-200x.html (desktop reference).
+ * v3.90.30 (2026-05-24)
+ */
+
+/* ── Canvas width (edge-to-edge work area) ── */
+body.control-plane-shell .cp-layout,
+body.control-plane-shell #cp-main-content,
+body.control-plane-shell .rmc-app-shell__canvas-body,
+body.control-plane-shell .cp-page-body {
+  width: 100%;
+  max-width: none !important;
+  min-width: 0;
+}
+
+body.control-plane-shell #cp-main-content [class*="content-max-"],
+body.control-plane-shell .container-fluid[class*="content-max-"] {
+  max-inline-size: none !important;
+  width: 100% !important;
+  margin-inline: 0 !important;
+}
+
+/* ── Canvas body rhythm (preview: 20px 24px, gap 16px) ── */
+body.control-plane-shell .rmc-app-shell__canvas-body.cp-shell-content {
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body.control-plane-shell .cp-layout {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+}
+
+body.control-plane-shell #cp-main-content {
+  padding: 20px clamp(16px, 2vw, 24px) 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+body.control-plane-shell .cp-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+body.control-plane-shell .cp-page-body > .container-fluid,
+body.control-plane-shell .cp-page-body > .container,
+body.control-plane-shell #cp-main-content > .container-fluid {
+  width: 100%;
+  max-width: none;
+  padding-inline: 0;
+  padding-block: 0;
+  margin: 0;
+}
+
+/* ── Primary nav under live strip (preview: 6px 20px, centered pills) ── */
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 6px clamp(12px, 2vw, 20px);
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  border-bottom: none;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav::-webkit-scrollbar {
+  display: none;
+}
+
+body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav__pill {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* ── Platform pulse strip (under primary nav) ── */
+body.control-plane-shell .rmc-cp-canvas-pulse {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 10px clamp(16px, 2vw, 24px) 12px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface-canvas, var(--surface-bg));
+  overflow: hidden;
+}
+
+body.control-plane-shell .rmc-cp-canvas-pulse .rmc-cockpit-pulse {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+body.control-plane-shell .rmc-cp-canvas-pulse .rmc-cockpit-pulse__cards {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+
+@media (max-width: 1280px) {
+  body.control-plane-shell .rmc-cp-canvas-pulse .rmc-cockpit-pulse__cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  body.control-plane-shell .rmc-cp-canvas-pulse .rmc-cockpit-pulse__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+body.control-plane-shell .rmc-cockpit-pulse-card {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Operational frame + workbench (no bleed into chrome) ── */
+body.control-plane-shell .rmc-operational-center-frame,
+body.control-plane-shell .rmc-operational-center-frame__steering {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body.control-plane-shell [data-rmc-operational-workbench="1"] {
+  min-width: 0;
+  width: 100%;
+}
+
+body.control-plane-shell [data-rmc-operational-workbench="1"] .table-responsive,
+body.control-plane-shell [data-rmc-operational-workbench="1"] .rmc-data-table {
+  max-width: 100%;
+}
+
+/* ── Cards / tables containment ── */
+body.control-plane-shell .cp-page-body .card,
+body.control-plane-shell .cp-page-body .page-family-content-card,
+body.control-plane-shell .cp-page-body .rmc-data-table {
+  max-width: 100%;
+  min-width: 0;
+}
+
+body.control-plane-shell .cp-page-body .row {
+  margin-inline: 0;
+  max-width: 100%;
+}
+
+body.control-plane-shell .cp-page-body [class*="col-"] {
+  min-width: 0;
+}
+
+/* Prevent double horizontal bleed: nested container-fluid inside padded canvas */
+body.control-plane-shell #cp-main-content > .container-fluid.cp-layout > .container-fluid {
+  padding-inline: 0;
+  max-width: 100%;
+}
+
+body.control-plane-shell .rmc-operational-center-frame__workbench .card,
+body.control-plane-shell .rmc-operational-center-frame__workbench .page-family-content-card {
+  overflow: hidden;
+}
+
+body.control-plane-shell .rmc-operational-center-frame__workbench .table-responsive {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Page title row (preview cp-page-h1-row) ── */
+body.control-plane-shell .cp-page-header,
+body.control-plane-shell .cp-breadcrumb-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+body.control-plane-shell .cp-hero-copy {
+  max-width: none;
+}
+
+/* ── Leakage guard: sticky + overflow traps ── */
+body.control-plane-shell .rmc-app-shell__canvas,
+body.control-plane-shell .rmc-app-shell__canvas-body {
+  isolation: isolate;
+}
+
+body.control-plane-shell .cp-shell-content--with-public-footer {
+  padding-bottom: 0;
+}

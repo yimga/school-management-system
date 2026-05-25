@@ -116,6 +116,7 @@
     <link rel="stylesheet" href="{% static 'css/platform-premium-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
+    {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
     {% include "partials/rmc_platform_chrome_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
@@ -212,6 +213,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-topology-shell.css' %}">
+    {% include "partials/rmc_security_posture_layout_styles.html" %}
     {% block extrastyle %}{% endblock %}
 
     <!-- PWA Support — per-tenant manifest. v2.58 (2026-05-15) -->
@@ -498,9 +500,7 @@
             {% include "components/demo_guided_hints.html" %}
             {% endif %}
             {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
-            {% if request.user.is_authenticated %}
-            {% include "accounts/partials/_security_posture_banner.html" %}
-            {% endif %}
+            {% include "partials/shell_chrome_security_posture_banner.html" %}
 
             {% if request.user.is_authenticated and not tp_v3_tenant_shell %}
             {% block rmc_zero_click_strip %}
@@ -565,6 +565,7 @@
     </div>
 
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/portal-sidebar.js' %}"></script>
@@ -621,6 +622,7 @@
       "offlineProcessUrl": {% if OFFLINE_API_PROCESS_URL %}"{{ OFFLINE_API_PROCESS_URL|escapejs }}"{% else %}null{% endif %},
       "offlineConflictsUrl": {% if OFFLINE_CONFLICTS_URL %}"{{ OFFLINE_CONFLICTS_URL|escapejs }}"{% else %}null{% endif %},
       "offlineTokenMintUrl": {% if OFFLINE_TOKEN_MINT_URL %}"{{ OFFLINE_TOKEN_MINT_URL|escapejs }}"{% else %}null{% endif %},
+      "permissionSnapshotUrl": {% if OFFLINE_PERMISSION_SNAPSHOT_URL %}"{{ OFFLINE_PERMISSION_SNAPSHOT_URL|escapejs }}"{% else %}null{% endif %},
       "deltaEndpointUrl": "",
       "hubBaseUrl": "{% if OFFLINE_DELIVERY_CLIENT.hubBaseUrl %}{{ OFFLINE_DELIVERY_CLIENT.hubBaseUrl|escapejs }}{% else %}{{ SITE.backend_feature_flags.hub_base_url|default:""|escapejs }}{% endif %}",
       "maxQueueItems": {% if OFFLINE_DELIVERY_CLIENT.maxQueueItems %}{{ OFFLINE_DELIVERY_CLIENT.maxQueueItems }}{% else %}500{% endif %},
@@ -645,6 +647,7 @@
     <script src="{% static 'js/low-power.js' %}"></script>
     <script src="{% static 'js/offline-status-bar.js' %}"></script>
     <script src="{% static 'js/auto-pilot.js' %}"></script>
+    <script src="{% static 'js/rmc-iam-snapshot-cache.js' %}"></script>
     {% comment %} Offline foundational: bind SMSOfflineDB.getStudents() / teachers to
        the attendance roll-call form when the page loads offline. Only
        activates on pages that opt in via data-attendance-offline-hydrator. {% endcomment %}
@@ -731,6 +734,7 @@
     {% endif %}
     {# Phase 14: Toast + interaction guard (showToast + RMCInteractionGuard app-wide) #}
     {% include 'components/toast_notifications.html' %}
+    {% include "partials/rmc_notification_corner_boot.html" %}
     <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
     {% if request.user.is_authenticated %}
     <script src="{% static 'js/rmc-surface-overlay-guard.js' %}"></script>

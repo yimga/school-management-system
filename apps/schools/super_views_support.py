@@ -9,10 +9,19 @@ import io
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_AUDIT_EXPORT,
+    PLATFORM_SCOPE_TEAM_MANAGE,
+    PLATFORM_SCOPE_TEAM_READ,
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
+
 
 
 def _annotate_tickets_sla(tickets):
@@ -32,6 +41,17 @@ def _annotate_tickets_sla(tickets):
     return tickets
 
 
+def _paginate_support_tickets(request, qs, *, per_page: int = 25):
+    """Return (page_obj, annotated page rows, extra query without page=)."""
+    paginator = Paginator(qs, per_page)
+    page_obj = paginator.get_page(request.GET.get("page") or 1)
+    extra = request.GET.copy()
+    extra.pop("page", None)
+    tickets = _annotate_tickets_sla(list(page_obj.object_list))
+    return page_obj, tickets, extra.urlencode()
+
+
+@require_platform_scope(PLATFORM_SCOPE_TEAM_READ)
 def super_support_dashboard(request):
     """Global support ticket command center: list tickets with filters; HTMX refreshes queue."""
     from apps.platform_runtime.models import PlatformOperatorSupportDashboardLink
@@ -50,8 +70,8 @@ def super_support_dashboard(request):
         qs = qs.filter(status=status_filter)
     if priority_filter:
         qs = qs.filter(priority=priority_filter)
-    tickets = list(qs[:100])
-    tickets = _annotate_tickets_sla(tickets)
+    stats_tickets = _annotate_tickets_sla(list(qs[:100]))
+    page_obj, tickets, pagination_extra_query = _paginate_support_tickets(request, qs)
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     open_count = GlobalSupportTicket.objects.filter(
         status=GlobalSupportTicket.Status.OPEN
@@ -60,14 +80,14 @@ def super_support_dashboard(request):
     in_progress_count = GlobalSupportTicket.objects.filter(
         status=GlobalSupportTicket.Status.IN_PROGRESS
     ).count()
-    backlog_48h = sum(1 for t in tickets if t.age_hours >= 48)
-    backlog_7d = sum(1 for t in tickets if t.age_hours >= (24 * 7))
-    oldest_hours = max((t.age_hours for t in tickets), default=0.0)
+    backlog_48h = sum(1 for t in stats_tickets if t.age_hours >= 48)
+    backlog_7d = sum(1 for t in stats_tickets if t.age_hours >= (24 * 7))
+    oldest_hours = max((t.age_hours for t in stats_tickets), default=0.0)
     sla_breach_response = sum(
-        1 for t in tickets if getattr(t, "sla_response_breach", False)
+        1 for t in stats_tickets if getattr(t, "sla_response_breach", False)
     )
     sla_breach_resolution = sum(
-        1 for t in tickets if getattr(t, "sla_resolution_breach", False)
+        1 for t in stats_tickets if getattr(t, "sla_resolution_breach", False)
     )
 
     from django.urls import reverse as _reverse
@@ -156,6 +176,8 @@ def super_support_dashboard(request):
         "schools/super_support_dashboard.html",
         {
             "tickets": tickets,
+            "page_obj": page_obj,
+            "pagination_extra_query": pagination_extra_query,
             "request_user_id": getattr(request.user, "id", None),
             "open_count": open_count,
             "in_progress_count": in_progress_count,
@@ -174,6 +196,7 @@ def super_support_dashboard(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TEAM_READ)
 def support_queue_fragment(request):
     """HTMX fragment: ticket queue table (refresh every 60s). SLA breach from apps.siteconfig.support_sla."""
     from apps.siteconfig.models_feature_controls import GlobalSupportTicket
@@ -191,12 +214,14 @@ def support_queue_fragment(request):
         qs = qs.filter(status=status_filter)
     if priority_filter:
         qs = qs.filter(priority=priority_filter)
-    tickets = _annotate_tickets_sla(list(qs[:50]))
+    page_obj, tickets, pagination_extra_query = _paginate_support_tickets(request, qs)
     return render(
         request,
         "schools/super_support_queue_fragment.html",
         {
             "tickets": tickets,
+            "page_obj": page_obj,
+            "pagination_extra_query": pagination_extra_query,
             "request_user_id": getattr(request.user, "id", None),
             "sla_response_hours": SUPPORT_SLA_RESPONSE_HOURS,
             "sla_resolution_hours": SUPPORT_SLA_RESOLUTION_HOURS,
@@ -204,6 +229,7 @@ def support_queue_fragment(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TEAM_MANAGE)
 def support_assign_ticket(request):
     """POST: assign ticket to current user or unassign. Redirects to support dashboard or returns fragment for HTMX."""
     from apps.siteconfig.models_feature_controls import GlobalSupportTicket
@@ -256,12 +282,14 @@ def support_assign_ticket(request):
             qs = qs.filter(status=status_filter)
         if priority_filter:
             qs = qs.filter(priority=priority_filter)
-        tickets = _annotate_tickets_sla(list(qs[:50]))
+        page_obj, tickets, pagination_extra_query = _paginate_support_tickets(request, qs)
         return render(
             request,
             "schools/super_support_queue_fragment.html",
             {
                 "tickets": tickets,
+                "page_obj": page_obj,
+                "pagination_extra_query": pagination_extra_query,
                 "request_user_id": getattr(request.user, "id", None),
                 "sla_response_hours": SUPPORT_SLA_RESPONSE_HOURS,
                 "sla_resolution_hours": SUPPORT_SLA_RESOLUTION_HOURS,
@@ -270,6 +298,7 @@ def support_assign_ticket(request):
     return redirect("super:support_dashboard")
 
 
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def super_support_tickets_export_csv(request):
     """CSV export of global support tickets (same filters as dashboard)."""
     from apps.siteconfig.models_feature_controls import GlobalSupportTicket
@@ -325,6 +354,7 @@ def super_support_tickets_export_csv(request):
     return resp
 
 
+@require_platform_scope(PLATFORM_SCOPE_TEAM_READ)
 def super_support_ticket_detail(request, ticket_id):
     """
     Ticket drill-down: tenant context links, operator internal notes, status updates.
@@ -481,6 +511,7 @@ def super_support_ticket_detail(request, ticket_id):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_support_csat_dashboard(request):
     """Lightweight CSAT aggregates for global support tickets (control plane)."""
     from django.db.models import Avg, Count

@@ -1,0 +1,44 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Regulator access" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-2" data-page-archetype="task-form">
+  <nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb mb-0 small">
+      <li class="breadcrumb-item"><a href="{{ roster_url }}">{% trans "Staff identity" %}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% trans "Regulator grant" %}</li>
+    </ol>
+  </nav>
+
+  <div class="row justify-content-start">
+    <div class="col-lg-7">
+      <h1 class="h4 mb-2">{% trans "Time-boxed regulator access" %}</h1>
+      <p class="text-muted small mb-3">
+        {% blocktrans with body=gov_body_label %}Grant read-only inspection access for <strong>{{ body }}</strong> via the regulatory auditor role. The user must already be a school member.{% endblocktrans %}
+      </p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" class="vstack gap-3">
+            {% csrf_token %}
+            <div>
+              <label class="form-label" for="id_email">{% trans "Inspector email" %}</label>
+              <input type="email" class="form-control" id="id_email" name="email" required autocomplete="email">
+            </div>
+            <div>
+              <label class="form-label" for="id_days">{% trans "Duration (days)" %}</label>
+              <input type="number" class="form-control" id="id_days" name="days" min="1" max="30" value="7" required>
+              <div class="form-text">{% trans "Maximum 30 days. Access expires at end of the last day." %}</div>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="submit" class="btn btn-primary">{% trans "Grant access" %}</button>
+              <a class="btn btn-outline-secondary" href="{{ roster_url }}">{% trans "Cancel" %}</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

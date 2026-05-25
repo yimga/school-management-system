@@ -1,4 +1,4 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 <!-- v3.40.0 Agent 13 — DSAR runbook operator view. This template: * Renders the last 30 DSAR runs from var/dsar-runs/*.json. * Displays the current var/dsar-last-run.txt pointer. * Provides a POST form to record a new DSAR run. Privacy: notes content is rendered ONLY because the staff operator who submitted it is the same staff operator viewing it. The notes column is truncated server-side to 120 chars as defense-in-depth. The request_id is NEVER rendered — only its sha256[:12] prefix. -->

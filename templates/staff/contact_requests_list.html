@@ -4,6 +4,7 @@
 {% block title %}Contact Requests{% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate">
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div>
     <h1 class="mb-0">Contact Requests</h1>
@@ -35,7 +36,7 @@
 <div class="card">
   {% if requests %}
   <div class="table-responsive">
-    <table class="table table-striped mb-0 table-family align-middle">
+    <table class="table table-striped mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
       <caption class="visually-hidden">{% trans "Contact Requests" %}</caption>
       <thead>
         <tr>
@@ -67,6 +68,7 @@
   {% url 'requests:dashboard' as empty_action_url %}
   {% include "components/rmc_empty_state.html" with icon="bi-envelope" title="No contact requests found" message="When parents submit contact requests they will appear here. You can also check the Requests dashboard." primary_url=empty_action_url primary_label="Open Requests dashboard" %}
   {% endif %}
+</div>
 </div>
 {% endblock %}
 

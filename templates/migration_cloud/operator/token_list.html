@@ -1,10 +1,10 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — scoped API tokens" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-tokens" id="main">
+<main class="rmc-page rmc-page--operator-tokens" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
     <h1 class="rmc-h1">{% trans "Scoped API tokens" %}</h1>
@@ -27,7 +27,7 @@
   </form>
 
   {% if rows %}
-  <table class="rmc-data-table rmc-data-table--tokens">
+  <table class="rmc-data-table rmc-data-table--tokens table-sm table-sticky-head">
     <thead>
       <tr>
         <th>{% trans "ID" %}</th>
@@ -61,7 +61,10 @@
           {% endif %}
         </td>
         <td>
-          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_chain' token_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_token_chain' token_id=r.id %}{% endif %}">{% trans "Chain" %}</a>
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+<a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_chain' token_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_token_chain' token_id=r.id %}{% endif %}">{% trans "Chain" %}</a>
           <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_token_rotate' token_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_token_rotate' token_id=r.id %}{% endif %}" class="rmc-form--inline">
             {% csrf_token %}
             <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Rotate" %}</button>
@@ -70,11 +73,13 @@
             {% csrf_token %}
             <button class="rmc-btn rmc-btn--ghost rmc-btn--sm rmc-btn--danger" type="submit" aria-label="{% trans 'Revoke token' %}">{% trans "Revoke" %}</button>
           </form>
-        </td>
+            </div>
+          </details></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
   {% else %}
   <div class="rmc-empty">
     <h2 class="rmc-h2">{% trans "No tokens yet" %}</h2>

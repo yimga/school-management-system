@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Accept operator invite" %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h1 class="h4 mb-3">{% trans "Join the platform team" %}</h1>
+        <p class="text-muted small mb-4">
+          {% blocktrans with email=invite.email tier=invite.tier %}
+          You were invited as <strong>{{ email }}</strong> with tier <strong>{{ tier }}</strong>.
+          Create your account, then sign in on the manager host and enroll MFA.
+          {% endblocktrans %}
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label" for="username">{% trans "Username" %}</label>
+            <input type="text" class="form-control" id="username" name="username" required autocomplete="username">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="password">{% trans "Password" %}</label>
+            <input type="password" class="form-control" id="password" name="password" required minlength="8" autocomplete="new-password">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="password2">{% trans "Confirm password" %}</label>
+            <input type="password" class="form-control" id="password2" name="password2" required minlength="8" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary w-100">{% trans "Create account" %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

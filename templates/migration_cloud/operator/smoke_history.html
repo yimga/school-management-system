@@ -1,4 +1,4 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 <!-- v3.40.0 Agent 13 — smoke-run history operator view. Reads var/smoke-results/*.json (written by the tasks_smoke_archival shim) and renders: * A CSS-only sparkline of sections-passed (bar widths from view). * A filterable table of the last 30 archived runs. No JS chart lib; no remote-served font; pure HTML/CSS. -->
@@ -6,7 +6,7 @@
 {% block page_title %}{{ page_title|default:"Smoke run history" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-smoke-history" id="main">
+<main class="rmc-page rmc-page--operator-smoke-history" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_command_center' %}{% else %}{% url 'migration_cloud_super:migration_cloud_command_center' %}{% endif %}">{% trans "← Back to Command Center" %}</a>
     <h1 class="rmc-h1">{% trans "Migration Cloud smoke run history" %}</h1>
@@ -54,7 +54,7 @@
   <section class="rmc-card" aria-labelledby="recent-h2">
     <h2 id="recent-h2" class="rmc-h2">{% trans "Recent runs" %} <span class="rmc-meta">({{ rows_count }} / {{ max_runs_displayed }})</span></h2>
     {% if rows %}
-      <table class="rmc-table">
+      <table class="rmc-table table-sm table-sticky-head rmc-data-table">
         <thead>
           <tr>
             <th scope="col">{% trans "Archived at (UTC)" %}</th>

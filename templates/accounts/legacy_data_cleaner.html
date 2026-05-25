@@ -2,7 +2,7 @@
 {% load i18n %}
 {% block backend_title %}{% trans "Legacy data cleaner" %}{% endblock %}
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
   <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
     <a class="btn btn-outline-secondary btn-sm" href="{% url 'accounts:migration_run_list' %}">{% trans "Migration runs" %}</a>

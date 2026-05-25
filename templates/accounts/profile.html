@@ -6,11 +6,12 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/org-chart.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-account-surface.css' %}">
 {% endblock %}
 
 {% block content %}
   <div class="container py-4 profile-shell">
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:24px">
+    <div class="page-header rmc-account-page-header">
       <div>
         <div class="eyebrow">{% trans "Account" %}</div>
         <h1 style="font-size:var(--type-size-headline-l);font-weight:700;letter-spacing:var(--tracking-display);margin:2px 0 4px">{% trans "My profile" %}</h1>
@@ -39,7 +40,9 @@
     <div class="row g-3">
       <div class="col-lg-5">
         {% include "accounts/partials/_profile_security_gauge.html" %}
-        <div class="content-card" style="padding:20px 22px">
+        {% include "accounts/partials/_profile_security_hub.html" %}
+        {% if show_mfa_inline_wizard %}{% include "accounts/partials/_mfa_setup_wizard_inline.html" %}{% endif %}
+        <div class="content-card rmc-account-card-pad">
           <div class="d-flex align-items-center gap-3">
             <div class="avatar avatar-lg profile-avatar-wrap" style="overflow:hidden">
               {% if request.user.profile_photo %}
@@ -50,7 +53,7 @@
             </div>
             <div style="flex:1;min-width:0">
               <div style="font-weight:600;font-size:var(--type-size-body-l);letter-spacing:-0.01em;line-height:1.25">{{ request.user.get_full_name|default:request.user.username }}</div>
-              <div style="color:var(--admin-content-text-muted);font-size:var(--type-size-caption);margin-top:2px">{{ request.user.username }}{% if request.user.role %} · <span class="badge" data-tone="soft-primary" style="font-size:var(--type-size-micro);padding:1px 8px">{{ request.user.role|title }}</span>{% endif %}</div>
+              <div style="color:var(--admin-content-text-muted);font-size:var(--type-size-caption);margin-top:2px">{{ request.user.username }}{% if request.user.role %} · <span class="badge rmc-account-role-badge" data-tone="soft-primary">{{ request.user.role|title }}</span>{% endif %}</div>
             </div>
           </div>
           <hr>

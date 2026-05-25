@@ -60,11 +60,9 @@ def get_request_school(request):
 
 
 def is_operator(user) -> bool:
-    return bool(
-        getattr(user, "is_superuser", False)
-        or getattr(user, "is_staff", False)
-        or get_user_role(user) == "SUPERADMIN"
-    )
+    from apps.platform_runtime.operator_identity import user_is_platform_operator
+
+    return user_is_platform_operator(user)
 
 
 def visible_feedback_for_user(user, school=None):
@@ -187,7 +185,7 @@ def support_entry_points(request):
         "kb_home": "kb:kb_home",
         "faq_list": "kb:faq_list",
         "support_request": "portal:support_request",
-        "portal_help": "portal:support_help_hub",
+        "portal_help": "feedback:help_center",
         "parent_contact_school": "portal:parent_contact_school",
         "staff_contact_requests": "portal:staff_contact_request_list",
         "school_feedback": "feedback:school_feedback",

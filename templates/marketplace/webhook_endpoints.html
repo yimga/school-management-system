@@ -4,7 +4,7 @@
 {% block title %}{% trans "Webhook endpoints" %} — {{ app.name }}{% endblock %}
 
 {% block backend_page %}
-<div class="container py-4" data-page="marketplace-webhook-endpoints">
+<div class="container py-4" data-page="marketplace-webhook-endpoints" data-rmc-scroll-policy="paginate">
   <nav aria-label="breadcrumb" class="small mb-3">
     <ol class="breadcrumb mb-0">
       <li class="breadcrumb-item"><a href="{% url 'super:marketplace_publisher_dashboard' %}">{% trans "Publisher" %}</a></li>
@@ -45,7 +45,10 @@
         <td>{{ e.consecutive_failures }}</td>
         <td><small>{{ e.last_success_at|default:"—"|date:"Y-m-d H:i" }}</small></td>
         <td class="d-flex gap-1">
-          <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}">
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}">
             {% csrf_token %}<button name="action" value="toggle" class="btn btn-sm btn-outline-secondary">{% if e.is_active %}{% trans "Disable" %}{% else %}{% trans "Enable" %}{% endif %}</button>
           </form>
           <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}">
@@ -54,7 +57,8 @@
           <form method="post" action="{% url 'super:marketplace_webhook_endpoint_edit' app_slug=app.slug endpoint_id=e.pk %}" onsubmit="return confirm('{% trans "Delete this endpoint?" %}');">
             {% csrf_token %}<button name="action" value="delete" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</button>
           </form>
-        </td>
+                  </motion>
+                </details></td>
       </tr>
     {% endfor %}
     </tbody>

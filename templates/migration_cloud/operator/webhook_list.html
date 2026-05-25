@@ -1,10 +1,10 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — webhook subscriptions" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-webhooks" id="main">
+<main class="rmc-page rmc-page--operator-webhooks" id="main" data-rmc-scroll-policy="paginate">
   {% if header_migration_window_active %}
   <aside class="rmc-banner rmc-banner--info" role="status" aria-label="{% trans 'Webhook header migration' %}">
     <strong>{% trans "Header migration in progress" %}</strong> —
@@ -49,7 +49,7 @@
   </form>
 
   {% if rows %}
-  <table class="rmc-data-table rmc-data-table--webhooks">
+  <table class="rmc-data-table rmc-data-table--webhooks table-sm table-sticky-head">
     <thead>
       <tr>
         <th>{% trans "ID" %}</th>
@@ -79,7 +79,10 @@
         <td><code class="rmc-kbd">{{ r.preview|default:"—" }}</code></td>
         <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
         <td>
-          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}?subscription_id={{ r.id }}">{% trans "Deliveries" %}</a>
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+<a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}?subscription_id={{ r.id }}">{% trans "Deliveries" %}</a>
           <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_audit' sub_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_audit' sub_id=r.id %}{% endif %}">{% trans "Audit" %}</a>
           {% if r.active %}
           <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_deactivate' sub_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_deactivate' sub_id=r.id %}{% endif %}" class="rmc-form--inline">
@@ -87,11 +90,13 @@
             <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Deactivate" %}</button>
           </form>
           {% endif %}
-        </td>
+            </div>
+          </details></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+  {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
   {% else %}
   <div class="rmc-empty">
     <h2 class="rmc-h2">{% trans "No webhook subscriptions" %}</h2>

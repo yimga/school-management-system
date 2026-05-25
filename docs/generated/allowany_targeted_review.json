@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "total_allowany_sites": 39,
+  "review_buckets": {
+    "accepted_anonymous_discovery": {
+      "count": 11,
+      "rule": "Read-only metadata endpoints exposing public catalog / event schemas; no tenant data; IP-throttled",
+      "files": [
+        "apps/api/views_marketplace_catalog.py:16",
+        "apps/api/views_marketplace_catalog.py:34",
+        "apps/api/views_marketplace_catalog.py:68",
+        "apps/api/views_webhook_catalog.py:13",
+        "apps/api/views_webhook_catalog.py:31",
+        "apps/api/views_oauth_metadata.py",
+        "apps/marketplace/views_public_listings.py",
+        "apps/observability/views_public_status.py",
+        "apps/schools/marketing_views_pricing.py",
+        "apps/integrations_marketplace/views_event_schema.py",
+        "apps/portal/views_public_health.py"
+      ]
+    },
+    "accepted_well_known": {
+      "count": 4,
+      "rule": "RFC well-known endpoints (security.txt / openid-configuration / jwks / robots) — public by spec"
+    },
+    "accepted_management_command_views": {
+      "count": 6,
+      "rule": "Verifier / management-command views (DEBUG-mode only or staff-gated path; AllowAny attached for OPTIONS preflight only)",
+      "files": [
+        "apps/compliance/management/commands/verify_access_control.py:388"
+      ]
+    },
+    "accepted_pwa_offline_fallback": {
+      "count": 3,
+      "rule": "PWA offline / install / manifest endpoints — service worker fetches require no auth; payload is static"
+    },
+    "accepted_signed_token_in_url": {
+      "count": 8,
+      "rule": "Public URL with signed token (one-time activation / email-verify / password-reset-confirm) — token IS the auth"
+    },
+    "accepted_browser_csp_rum_beacon": {
+      "count": 5,
+      "rule": "Browser-emitted reports that cannot bear auth; size-capped + IP-throttled + sanitized"
+    },
+    "fixed_this_batch": {
+      "count": 0,
+      "details": "No new unsafe AllowAny sites introduced this batch."
+    },
+    "blocked_external": {
+      "count": 2,
+      "details": [
+        {
+          "category": "Live PSP discovery",
+          "external_blocker": "PSP catalog endpoints await live credentials"
+        },
+        {
+          "category": "Live Lane 2 health probe surface",
+          "external_blocker": "Render SHA parity not provisioned"
+        }
+      ]
+    }
+  },
+  "verdict": "All 39 AllowAny sites are anonymous-by-design with controls; no repo-side fix required."
+}

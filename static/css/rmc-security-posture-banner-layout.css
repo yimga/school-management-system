@@ -1,0 +1,97 @@
+/**
+ * Quarterly security posture inline banner — layout contract.
+ * v3.90.45 (2026-05-24)
+ *
+ * Fixes the canvas flex-grow void: legacy .cp-shell-content--with-public-footer
+ * forced .cp-layout to flex: 1 1 auto inside the scroll canvas, stretching empty
+ * space below a short alert. Banner stays content-sized and collapsible.
+ */
+
+/* ── Banner chrome (collapsible details) ── */
+.rmc-security-posture-banner.rmc-collapsable {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  border-color: color-mix(in oklab, var(--ds-warning, #f59e0b) 32%, var(--hairline));
+}
+
+.rmc-security-posture-banner--danger.rmc-collapsable {
+  border-color: color-mix(in oklab, var(--ds-danger, #ef4444) 32%, var(--hairline));
+}
+
+.rmc-security-posture-banner .rmc-collapsable__head {
+  color: var(--text-primary);
+}
+
+.rmc-security-posture-banner__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--token-space-md, 0.75rem);
+}
+
+.rmc-security-posture-banner__copy {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.rmc-security-posture-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+}
+
+/* Never reserve viewport height for the banner slot. */
+[data-rmc-security-posture-banner="1"] {
+  min-height: 0 !important;
+  max-height: none;
+}
+
+/* ── Canvas scroll: stop cp-layout / main from stretching to fill viewport ── */
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-body,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-body,
+body.admin-manager-shell .rmc-app-shell__canvas-body.cp-admin-canvas-main {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="canvas"]
+  .cp-shell-content--with-public-footer > .cp-layout,
+body.control-plane-shell[data-rmc-cp-scroll="canvas"]
+  .rmc-app-shell__canvas-body.cp-shell-content--with-public-footer > .cp-layout,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .cp-layout,
+body.admin-manager-shell .admin-cp-unified-page .cp-layout {
+  flex: 0 1 auto;
+  min-height: 0;
+  height: auto;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] #cp-main-content,
+body.admin-manager-shell #cp-main-content.cp-admin-canvas-main {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] .cp-page-body,
+body.admin-manager-shell .cp-page-body,
+body.admin-manager-shell .cp-admin-page-body {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+/* Portal / tenant shells using app-shell canvas (same trap). */
+body.portal-shell-body[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-body,
+body.backend-shell-body[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-body {
+  flex: 0 1 auto;
+}
+
+body.portal-shell-body[data-rmc-cp-scroll="canvas"] #main-content,
+body.backend-shell-body[data-rmc-cp-scroll="canvas"] #main-content {
+  flex: 0 1 auto;
+  min-height: 0;
+}

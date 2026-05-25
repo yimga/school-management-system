@@ -6,13 +6,13 @@
 {% block cp_title %}Sync Repair — {{ school.name }}{% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4" data-page-archetype="record-detail">
+<div class="container-fluid py-4" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate">
   {% include "studio_os/components/page_header.html" with title="Emergency Sync Repair" subtitle=school.name action_url=dashboard_url action_text="Back to Super Dashboard" %}
   <p class="text-muted small">School: <strong>{{ school.name }}</strong> ({{ school.id }})</p>
 
   {% if conflicts %}
   <div class="table-responsive">
-    <table class="table table-bordered">
+    <table class="table table-bordered table-sm table-sticky-head rmc-data-table">
       <caption class="visually-hidden">{% trans "Emergency Sync Repair" %}</caption>
       <thead>
         <tr>
@@ -35,7 +35,10 @@
           <td><pre class="small mb-0 p-2 bg-light rounded" style="max-width:280px; max-height:120px; overflow:auto;">{{ c.client_data|default:"{}" }}</pre></td>
           <td><pre class="small mb-0 p-2 bg-light rounded" style="max-width:280px; max-height:120px; overflow:auto;">{{ c.server_data|default:"{}" }}</pre></td>
           <td>
-            {% if c.status == 'PENDING' %}
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+{% if c.status == 'PENDING' %}
             <form method="post" action="{% url 'super:sync_repair' school_id=school.id %}" class="d-inline">
               {% csrf_token %}
               <input type="hidden" name="conflict_id" value="{{ c.id }}">
@@ -44,7 +47,8 @@
             {% else %}
             —
             {% endif %}
-          </td>
+            </div>
+          </details></td>
         </tr>
         {% endfor %}
       </tbody>

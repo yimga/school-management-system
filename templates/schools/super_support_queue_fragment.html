@@ -1,7 +1,8 @@
 {% load i18n %}
 {% load terminology_tags %}
 {% load region_format %}
-<table class="table table-hover table-sm mb-0 table-family align-middle">
+<div data-rmc-scroll-policy="paginate">
+<table class="table table-hover table-sm mb-0 table-family align-middle table-sticky-head">
   <caption class="visually-hidden">{% trans "Support ticket queue — school, subject, priority, status, SLA" %}</caption>
   <thead>
     <tr>
@@ -28,21 +29,26 @@
       <td>{{ t.age_hours|default:"-" }}</td>
       <td>{% if t.sla_response_breach %}<span class="badge bg-danger" title="{% trans 'Response SLA breach' %}">R</span>{% endif %}{% if t.sla_resolution_breach %}<span class="badge bg-danger" title="{% trans 'Resolution SLA breach' %}">Res</span>{% endif %}{% if not t.sla_response_breach and not t.sla_resolution_breach %}<span class="text-muted">—</span>{% endif %}</td>
       <td>
-        {% if t.assigned_to_id == request_user_id %}
-        <form method="post" action="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" class="d-inline" hx-post="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" hx-target="#support-queue" hx-swap="innerHTML">
-          {% csrf_token %}
-          <input type="hidden" name="ticket_id" value="{{ t.pk }}">
-          <input type="hidden" name="action" value="unassign">
-          <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Unassign" %}</button>
-        </form>
-        {% else %}
-        <form method="post" action="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" class="d-inline" hx-post="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" hx-target="#support-queue" hx-swap="innerHTML">
-          {% csrf_token %}
-          <input type="hidden" name="ticket_id" value="{{ t.pk }}">
-          <input type="hidden" name="action" value="assign_me">
-          <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Assign to me" %}</button>
-        </form>
-        {% endif %}
+        <details class="rmc-row-disclosure">
+          <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+          <div class="rmc-row-disclosure__body mt-1">
+            {% if t.assigned_to_id == request_user_id %}
+            <form method="post" action="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" class="d-inline" hx-post="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" hx-target="#support-queue" hx-swap="innerHTML">
+              {% csrf_token %}
+              <input type="hidden" name="ticket_id" value="{{ t.pk }}">
+              <input type="hidden" name="action" value="unassign">
+              <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "Unassign" %}</button>
+            </form>
+            {% else %}
+            <form method="post" action="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" class="d-inline" hx-post="{% url 'super:support_assign_ticket' %}?status={{ request.GET.status }}&priority={{ request.GET.priority }}" hx-target="#support-queue" hx-swap="innerHTML">
+              {% csrf_token %}
+              <input type="hidden" name="ticket_id" value="{{ t.pk }}">
+              <input type="hidden" name="action" value="assign_me">
+              <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Assign to me" %}</button>
+            </form>
+            {% endif %}
+          </div>
+        </details>
       </td>
     </tr>
     {% empty %}
@@ -50,3 +56,7 @@
     {% endfor %}
   </tbody>
 </table>
+{% if page_obj %}
+{% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
+{% endif %}
+</div>

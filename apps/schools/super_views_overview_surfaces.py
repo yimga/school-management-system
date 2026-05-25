@@ -18,9 +18,14 @@ from apps.registries.services import WEDGE_14_22_SECTOR_CODES
 
 from .control_plane_lifecycle import get_lifecycle_snapshot
 from .models import School
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_schools_list(request):
     """Phase 7: Paginated list of all schools; optional filters and link to tenant 360 / backoffice. Wedge 14–22: segment by primary_sector."""
     qs = School.objects.all().order_by("name")
@@ -113,6 +118,7 @@ def super_schools_list(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_analytics_overview(request):
     """Phase 13: Analytics and observability — tenant health, adoption, feature usage, workflow success."""
     operator_super_analytics_overview_links = list(

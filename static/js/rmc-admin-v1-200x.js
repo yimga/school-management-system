@@ -71,12 +71,105 @@
     });
   }
 
+  function initSurfacePreviewChangeform(root) {
+    var tabs = root.querySelectorAll("[data-cp-form-tab]");
+    var panels = root.querySelectorAll("[data-cp-form-panel]");
+    if (!tabs.length || !panels.length) return;
+
+    function activateTab(tab) {
+      var panelId = tab.getAttribute("data-cp-form-tab") || "";
+      tabs.forEach(function (t) {
+        t.removeAttribute("data-active");
+        t.setAttribute("aria-selected", "false");
+      });
+      tab.setAttribute("data-active", "");
+      tab.setAttribute("aria-selected", "true");
+      panels.forEach(function (panel) {
+        var match = panel.getAttribute("data-cp-form-panel") === panelId;
+        if (match) {
+          panel.removeAttribute("hidden");
+          panel.setAttribute("data-active", "");
+        } else {
+          panel.setAttribute("hidden", "");
+          panel.removeAttribute("data-active");
+        }
+      });
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        activateTab(tab);
+      });
+    });
+
+    var saveBtn = root.querySelector("[data-rmc-preview-save]");
+    var status = root.querySelector("[data-rmc-preview-status]");
+    if (saveBtn && status) {
+      saveBtn.addEventListener("click", function () {
+        status.classList.remove("visually-hidden");
+        status.textContent =
+          "Preview sandbox — edits are not persisted. Open a school from the changelist to save.";
+      });
+    }
+  }
+
+  function initSurfacePreviewChangelist(root) {
+    root.querySelectorAll("[data-cp-filter-group]").forEach(function (group) {
+      var pills = group.querySelectorAll("[data-cp-filter-pill]");
+      pills.forEach(function (pill) {
+        pill.addEventListener("click", function () {
+          pills.forEach(function (p) {
+            p.removeAttribute("data-active");
+          });
+          pill.setAttribute("data-active", "");
+        });
+      });
+    });
+
+    var pager = root.querySelector("[data-cp-pager-preview]");
+    if (!pager) return;
+    var pagePills = pager.querySelectorAll("[data-cp-pager-pill]");
+    pagePills.forEach(function (pill) {
+      pill.addEventListener("click", function () {
+        pagePills.forEach(function (p) {
+          p.removeAttribute("data-active");
+        });
+        pill.setAttribute("data-active", "");
+      });
+    });
+  }
+
+  function initSurfacePreviews() {
+    document
+      .querySelectorAll('[data-rmc-surface-preview-interactive="changeform"]')
+      .forEach(initSurfacePreviewChangeform);
+    document
+      .querySelectorAll('[data-rmc-surface-preview-interactive="changelist"]')
+      .forEach(initSurfacePreviewChangelist);
+  }
+
+  function initCatalogExpandLinks() {
+    document.querySelectorAll("[data-rmc-catalog-expand-details]").forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        var targetId = link.getAttribute("data-rmc-catalog-expand-details");
+        if (!targetId) return;
+        var details = document.getElementById(targetId);
+        if (!details || details.tagName !== "DETAILS") return;
+        event.preventDefault();
+        details.open = true;
+        details.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }
+
   function boot() {
     if (!document.body || !document.body.classList.contains("admin-manager-shell")) {
       return;
     }
     initCatalogTabs();
     initCatalogSearch();
+    initCatalogExpandLinks();
+    initSurfacePreviews();
   }
 
   if (document.readyState === "loading") {

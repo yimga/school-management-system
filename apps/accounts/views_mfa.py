@@ -9,29 +9,13 @@ from django.contrib import messages
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django_otp.plugins.otp_totp.models import TOTPDevice
-from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
+from django_otp.plugins.otp_static.models import StaticDevice
 from django_otp import user_has_device, login as otp_login
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import timedelta
-from io import BytesIO
-import qrcode
-import base64
-import secrets
 
-
-def _get_or_create_backup_device(user):
-    return StaticDevice.objects.get_or_create(user=user, name="backup")
-
-
-def _generate_backup_tokens(device, count=10):
-    device.token_set.all().delete()
-    tokens = []
-    for _ in range(count):
-        token = f"{secrets.randbelow(10**8):08d}"
-        StaticToken.objects.create(device=device, token=token)
-        tokens.append(token)
-    return tokens
+from apps.accounts.mfa_setup_flow import build_mfa_setup_context, handle_mfa_setup_post
 
 
 def _safe_next_url(request, candidate, fallback=""):
@@ -58,108 +42,21 @@ def mfa_setup(request):
     next_url = _safe_next_url(
         request, request.POST.get("next") or request.GET.get("next"), ""
     )
-    # Check if user already has MFA enabled (TOTP or passkey)
-    from .models import UserPasskey
-
-    has_mfa = (
-        user_has_device(request.user)
-        or UserPasskey.objects.filter(user=request.user).exists()
-    )
-
-    backup_tokens = []
-    if has_mfa:
-        backup_device, _ = _get_or_create_backup_device(request.user)
-        if backup_device.token_set.count() == 0:
-            backup_tokens = _generate_backup_tokens(backup_device, count=10)
-        else:
-            backup_tokens = [t.token for t in backup_device.token_set.all()]
-
     if request.method == "POST":
-        if "enable_mfa" in request.POST:
-            # Generate new TOTP device
-            device, created = TOTPDevice.objects.get_or_create(
-                user=request.user, name="default"
-            )
-            device.confirmed = False
-            device.save()
-
-            # Generate QR code
-            provisioning_uri = device.config_url
-            qr = qrcode.QRCode(version=1, box_size=10, border=5)
-            qr.add_data(provisioning_uri)
-            qr.make(fit=True)
-
-            img = qr.make_image(fill_color="black", back_color="white")
-            buffer = BytesIO()
-            img.save(buffer, format="PNG")
-            img_str = base64.b64encode(buffer.getvalue()).decode()
-
-            from .views_passkey import _webauthn_available
-
-            return render(
-                request,
-                "accounts/mfa_setup.html",
-                {
-                    "has_mfa": has_mfa,
-                    "qr_code": img_str,
-                    "secret_key": device.key,
-                    "device_id": device.id,
-                    "backup_tokens": backup_tokens,
-                    "next_url": next_url,
-                    "use_passkey": _webauthn_available(),
-                    "passkeys": [],
-                },
-            )
-
-        elif "verify_token" in request.POST:
-            token = request.POST.get("token", "").strip()
-            device_id = request.POST.get("device_id")
-
-            try:
-                device = TOTPDevice.objects.get(id=device_id, user=request.user)
-                if device.verify_token(token):
-                    device.confirmed = True
-                    device.save()
-                    request.session["mfa_verified"] = True
-                    messages.success(request, _("MFA has been successfully enabled!"))
-                    if next_url:
-                        return redirect(next_url)
-                    return redirect("accounts:mfa_setup")
-                else:
-                    messages.error(request, _("Invalid token. Please try again."))
-            except TOTPDevice.DoesNotExist:
-                messages.error(request, _("Device not found."))
-
-        elif "disable_mfa" in request.POST:
-            # Delete all TOTP devices for user
-            TOTPDevice.objects.filter(user=request.user).delete()
-            StaticDevice.objects.filter(user=request.user).delete()
-            messages.success(request, _("MFA has been disabled."))
+        outcome, ctx = handle_mfa_setup_post(request, next_url=next_url)
+        if outcome == "redirect_profile":
+            return redirect("accounts:user_profile")
+        if outcome == "redirect_next" and next_url:
+            return redirect(next_url)
+        if outcome == "redirect_mfa_setup":
             return redirect("accounts:mfa_setup")
-        elif "regen_backup" in request.POST:
-            backup_device, _ = _get_or_create_backup_device(request.user)
-            backup_tokens = _generate_backup_tokens(backup_device, count=10)
-            messages.success(request, _("Backup codes regenerated."))
+        if outcome == "render" and ctx:
+            return render(request, "accounts/mfa_setup.html", ctx)
 
-    from .views_passkey import _webauthn_available
-    from .models import UserPasskey
-
-    passkeys = list(
-        UserPasskey.objects.filter(user=request.user).values("id", "name", "created_at")
-    )
-    for p in passkeys:
-        if p.get("created_at"):
-            p["created_at"] = p["created_at"].strftime("%Y-%m-%d")
     return render(
         request,
         "accounts/mfa_setup.html",
-        {
-            "has_mfa": has_mfa,
-            "backup_tokens": backup_tokens,
-            "next_url": next_url,
-            "use_passkey": _webauthn_available(),
-            "passkeys": passkeys,
-        },
+        build_mfa_setup_context(request, next_url=next_url),
     )
 
 

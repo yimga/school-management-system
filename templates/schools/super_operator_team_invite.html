@@ -1,0 +1,50 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Invite operator" %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{{ dashboard_url }}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{{ roster_url }}">{% trans "Team" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Invite" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="task-form" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_team_invite" center_eyebrow=_("Platform operators") center_title=_("Invite platform operator") center_purpose=_("Send a time-limited link so a new operator can accept and join the control plane.") primary_url=roster_url primary_label=_("Back to roster") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+
+  <div class="row justify-content-start">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header">{% trans "Invite details" %}</div>
+        <div class="card-body">
+          <form method="post" class="vstack gap-3">
+            {% csrf_token %}
+            <div>
+              <label class="form-label" for="id_email">{% trans "Email" %}</label>
+              <input type="email" class="form-control" id="id_email" name="email" required autocomplete="email" placeholder="operator@example.com">
+              <div class="form-text">{% trans "The invite link is shown after creation; share it securely with the operator." %}</div>
+            </div>
+            <div>
+              <label class="form-label" for="id_tier">{% trans "Starting tier" %}</label>
+              <select class="form-select" id="id_tier" name="tier">
+                {% for value, label in tier_choices %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="submit" class="btn btn-primary">{% trans "Create invite link" %}</button>
+              <a class="btn btn-outline-secondary" href="{{ roster_url }}">{% trans "Cancel" %}</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

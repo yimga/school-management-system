@@ -56,7 +56,14 @@ def _school_from_request(request):
     return getattr(request, "school", None)
 
 
-def pdp_advisory(*, action: str, resource_kind: str):
+def _resource_from_request(request, resource_kind: str, kwargs, *, rebac_permission: str = ""):
+    resource = {"entity": resource_kind, "id": kwargs.get("pk") or ""}
+    if rebac_permission:
+        resource["permission_code"] = rebac_permission
+    return resource
+
+
+def pdp_advisory(*, action: str, resource_kind: str, rebac_permission: str = ""):
     """Run the PDP in advisory mode — log only, never block.
 
     Usage::
@@ -74,7 +81,12 @@ def pdp_advisory(*, action: str, resource_kind: str):
                     decide(
                         _subject_from_request(request),
                         action,
-                        {"entity": resource_kind, "id": kwargs.get("pk") or ""},
+                        _resource_from_request(
+                            request,
+                            resource_kind,
+                            kwargs,
+                            rebac_permission=rebac_permission,
+                        ),
                         school=_school_from_request(request),
                         log=True,
                     )
@@ -87,7 +99,7 @@ def pdp_advisory(*, action: str, resource_kind: str):
     return decorator
 
 
-def pdp_enforce(*, action: str, resource_kind: str):
+def pdp_enforce(*, action: str, resource_kind: str, rebac_permission: str = ""):
     """Same as ``pdp_advisory`` but blocks on deny when mode is ``"enforce"``.
 
     Falls back to advisory behavior when mode is ``"advisory"`` so flipping is
@@ -104,7 +116,12 @@ def pdp_enforce(*, action: str, resource_kind: str):
                 d = decide(
                     _subject_from_request(request),
                     action,
-                    {"entity": resource_kind, "id": kwargs.get("pk") or ""},
+                    _resource_from_request(
+                        request,
+                        resource_kind,
+                        kwargs,
+                        rebac_permission=rebac_permission,
+                    ),
                     school=_school_from_request(request),
                     log=True,
                 )

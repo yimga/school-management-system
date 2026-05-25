@@ -20,9 +20,16 @@ from apps.schools.tenant_offboarding import (
     schools_scheduled_for_purge,
 )
 from apps.schools.tenant_offboarding_policy import auto_purge_enabled, auto_purge_grace_days
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_AUDIT_EXPORT,
+    PLATFORM_SCOPE_FLEET,
+    PLATFORM_SCOPE_SECURITY_WRITE,
+    require_platform_scope,
+)
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def super_offboarding_queue(request):
     # Wave L6 (v3.61.6 — 2026-05-22): billing-clearance enrichment per row
     # so operators see outstanding-balance blockers before initiating purge.
@@ -83,6 +90,7 @@ def super_offboarding_queue(request):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def api_super_run_scheduled_purges(request):
     import json
 
@@ -104,6 +112,7 @@ def api_super_run_scheduled_purges(request):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def api_school_offboarding_schedule(request, school_id):
     import json
 
@@ -122,6 +131,7 @@ def api_school_offboarding_schedule(request, school_id):
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def api_school_offboarding_export_download(request, school_id):
     school = get_object_or_404(School, id=school_id)
     path = latest_export_zip_path(school)

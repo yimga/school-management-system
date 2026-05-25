@@ -4,7 +4,7 @@
 {% block backend_title %}Migration Wizard{% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-decision-engine="surface">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "accounts/migration_wizard.html" %}
   {% include "studio_os/components/page_header.html" with title=page_title subtitle=page_subtitle action_url=action_url action_text=action_text %}
 

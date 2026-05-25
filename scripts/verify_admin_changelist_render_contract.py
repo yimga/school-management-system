@@ -71,6 +71,8 @@ def _check_shell(html: str) -> list[str]:
         issues.append("surface_strip_on_changelist")
     if "data-rmc-admin-changelist-live" not in html and "cp-changelist-live" not in html:
         issues.append("missing_changelist_live_marker")
+    if 'data-rmc-admin-table-contract="native-table-scroll"' not in html:
+        issues.append("missing_native_table_scroll_contract")
     if "rmc-admin-changelist-pagehead" not in html:
         issues.append("missing_changelist_pagehead")
     if "cp-main-content" not in html and "admin-manager-shell" not in html:
@@ -81,6 +83,28 @@ def _check_shell(html: str) -> list[str]:
         issues.append("missing_page_help_hook")
     if "TemplateSyntaxError" in html or "Server Error (500)" in html:
         issues.append("template_or_server_error")
+    return issues
+
+
+def _check_static_table_css() -> list[str]:
+    css_path = ROOT / "static/css/rmc-admin-changelist-live.css"
+    if not css_path.is_file():
+        return ["missing_rmc_admin_changelist_live_css"]
+    css = css_path.read_text(encoding="utf-8")
+    issues: list[str] = []
+    required_tokens = (
+        "overflow-x: auto",
+        "display: table !important",
+        "display: table-header-group !important",
+        "display: table-row-group !important",
+        "display: table-row !important",
+        "display: table-cell !important",
+        "white-space: nowrap",
+        "text-overflow: ellipsis",
+    )
+    for token in required_tokens:
+        if token not in css:
+            issues.append(f"missing_css_token:{token}")
     return issues
 
 
@@ -101,6 +125,12 @@ def main() -> int:
 
     if not ROUTES_JSON.is_file():
         print(f"FAIL: missing {ROUTES_JSON}", file=sys.stderr)
+        return 1
+
+    css_issues = _check_static_table_css()
+    if css_issues:
+        for issue in css_issues:
+            print(f"FAIL: {issue}", file=sys.stderr)
         return 1
 
     data = json.loads(ROUTES_JSON.read_text(encoding="utf-8"))

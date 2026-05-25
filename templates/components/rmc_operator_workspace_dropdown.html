@@ -1,11 +1,16 @@
 {% load i18n %}
 {% if RMC_OPERATOR_SURFACE_IA and RMC_OPERATOR_SURFACE_SPINE %}
-<div class="dropdown rmc-operator-workspace-dropdown" data-rmc-operator-workspace-dropdown>
+<div class="dropdown rmc-operator-workspace-dropdown" data-rmc-operator-workspace-dropdown data-rmc-shell-viewport-safe="1">
   <button type="button"
           class="btn btn-sm btn-outline-light dropdown-toggle rmc-platform-header__chip d-inline-flex align-items-center gap-1"
           id="rmcWorkspaceDropdown"
           data-bs-toggle="dropdown"
+          data-bs-auto-close="outside"
+          data-bs-boundary="viewport"
+          data-bs-display="dynamic"
+          data-bs-offset="0,8"
           aria-expanded="false"
+          aria-haspopup="true"
           aria-label="{% trans 'Switch workspace' %}">
     <i class="bi bi-layers" aria-hidden="true"></i>
     <span class="d-none d-md-inline">{% trans "Workspace" %}</span>

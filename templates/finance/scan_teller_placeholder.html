@@ -6,7 +6,7 @@
 
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Scan Teller (OCR)</h1>
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 {% url 'finance:payments' as finance_payments_url %}
 {% include "studio_os/components/page_header.html" with title="Scan Teller" subtitle="Upload a teller or payment proof to extract amount/reference and find likely matches." action_url=finance_payments_url action_text="Back to Payments" %}
 

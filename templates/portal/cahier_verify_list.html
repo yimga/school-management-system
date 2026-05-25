@@ -20,9 +20,13 @@
             <td>{% if e.subject_assignment %}{{ e.subject_assignment.classroom.name }} – {{ e.subject_assignment.subject.name }}{% else %}—{% endif %}</td>
             <td>{{ e.title|truncatewords:6 }}</td>
             <td>
-              <form method="post" action="{% url 'portal:cahier_visa' e.pk %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-success">Visa</button></form>
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+<form method="post" action="{% url 'portal:cahier_visa' e.pk %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-success">Visa</button></form>
               <form method="post" action="{% url 'portal:cahier_request_revisions' e.pk %}" class="d-inline">{% csrf_token %}<button type="submit" class="btn btn-sm btn-warning">Request revisions</button></form>
-            </td>
+            </div>
+          </details></td>
           </tr>
           {% endfor %}
         </tbody>

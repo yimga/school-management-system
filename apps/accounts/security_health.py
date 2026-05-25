@@ -52,9 +52,10 @@ def _check_password_strength(user) -> bool:
     score = getattr(user, "password_strength_score", None)
     if score is not None:
         return int(score) >= 3
-    return (
-        True  # has a set password; frontend should run zxcvbn on change and store score
-    )
+    role = (getattr(user, "role", None) or "").upper()
+    if get_minimum_security_score_for_role(role, getattr(user, "school", None)) >= 80:
+        return False
+    return True
 
 
 def _check_mfa(user) -> bool:

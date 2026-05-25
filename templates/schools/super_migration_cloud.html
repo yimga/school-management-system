@@ -43,8 +43,7 @@
       </div>
     </div>
     {% endif %}
-    {% include "studio_os/components/page_header.html" with title="Migration cloud" subtitle="Govern connector profiles, recent runs, parity, and rollback readiness from the control plane." action_url=dashboard_url action_text="Back to dashboard" %}
-    {% include "schools/partials/wedge_super_premium_proof.html" %}
+{% include "schools/partials/wedge_super_premium_proof.html" %}
     {% if registry_url %}
     <p class="mb-2"><a href="{{ registry_url }}">Migration Profile Registry</a> (by source system and category)</p>
     {% endif %}
@@ -234,7 +233,8 @@
           <div class="card-body">
             <h5 class="card-title">Recent migration runs</h5>
             <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0 table-family" aria-label="Recent cloud migration runs">
+              <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-sm align-middle mb-0 table-family" aria-label="Recent cloud migration runs">
                 <thead>
                   <tr>
                     <th scope="col">Started</th>

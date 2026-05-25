@@ -51,13 +51,29 @@ def user_has_control_plane_access(user) -> bool:
       - Django superusers (``is_superuser=True``)
       - Users whose role is in CONTROL_PLANE_OPERATOR_ROLES (env-driven; see
         ``_operator_roles`` for the cascade).
+      - Users with an active ``PlatformOperatorProfile`` (invited/active tiers).
     """
     if not getattr(user, "is_authenticated", False):
         return False
     if getattr(user, "is_superuser", False):
         return True
     role = (getattr(user, "role", "") or "").upper()
-    return bool(role) and role in _operator_roles()
+    if bool(role) and role in _operator_roles():
+        return True
+    try:
+        from apps.platform_runtime.models_operator_identity import (
+            PlatformOperatorProfile,
+        )
+
+        profile = PlatformOperatorProfile.objects.filter(user_id=user.pk).first()
+        if profile and profile.status in (
+            PlatformOperatorProfile.Status.ACTIVE,
+            PlatformOperatorProfile.Status.INVITED,
+        ):
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def _user_has_super_access(user):

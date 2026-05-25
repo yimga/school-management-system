@@ -14,8 +14,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div id="super-security-hub-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-super-security-hub="1">
+<div id="super-security-hub-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface" data-rmc-super-security-hub="1">
   {% phase8_dashboard_declaration "schools/super_security_hub.html" %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="security_hub" center_eyebrow=_("Platform operators") center_title=_("Operations") center_purpose="" primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   <h1 class="h4 mb-3">{% trans "Security & enterprise audit" %}</h1>
   <p class="text-secondary small mb-4">
     {% trans "Enterprise security command center — live signals plus generated verifier JSON summaries (docs/generated). Live signals: security events, compliance export/permission trail, active sessions. Deep static scan:" %}
@@ -65,7 +66,8 @@
   <div class="card shadow-sm mb-3" data-rmc-impersonation-audit-strip="1">
     <div class="card-header">{% trans "Impersonation & proxy (platform operator)" %}</div>
     <div class="card-body p-0 table-responsive" style="max-height: 18rem; overflow-y: auto;">
-      <table class="table table-sm table-family mb-0 small">
+      <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-sm table-family mb-0 small">
         <caption class="visually-hidden">{% trans "Impersonation & proxy (platform operator)" %}</caption>
         <thead><tr><th>{% trans "When (UTC)" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Peer / approval" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Action" %}</th><th>{% trans "Reason" %}</th><th>{% trans "Read-only" %}</th></tr></thead>
         <tbody>
@@ -248,6 +250,7 @@
       <div class="card shadow-sm">
         <div class="card-header">{% trans "Export timeline (compliance log + integrity)" %}</div>
         <div class="card-body p-0 table-responsive" style="max-height: 22rem; overflow-y: auto;">
+          <!-- large-collection-allow: dashboard-widget-capped-list -->
           <table class="table table-sm table-family table-hover mb-0 small" data-rmc-export-timeline="1">
             <caption class="visually-hidden">{% trans "Export timeline (compliance log + integrity)" %}</caption>
             <thead><tr><th>{% trans "When" %}</th><th>{% trans "Tenant" %}</th><th>{% trans "Type" %}</th><th>{% trans "Summary" %}</th><th>{% trans "Actor" %}</th><th>{% trans "Status" %}</th><th>{% trans "Integrity" %}</th><th>{% trans "Verification" %}</th></tr></thead>

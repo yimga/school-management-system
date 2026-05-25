@@ -74,6 +74,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-sidebar-scroll.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-sidebar-backend-inspired.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-sidebar-polish.css' %}">
+  {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
   <link rel="stylesheet" href="{% static 'css/admin-surface-fixes.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
   <link rel="stylesheet" href="{% static 'css/platform-high-end.css' %}">
@@ -114,7 +115,9 @@
   <link rel="stylesheet" href="{% static 'css/rmc-admin-v1-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-changelist-live.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
+  {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
+  {% include "partials/rmc_security_posture_layout_styles.html" %}
   {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
   {% if is_manager_host %}
@@ -133,6 +136,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
   {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
   <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-surface-spacing-contract.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
   {# v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic + admin mirror cockpit (adoption wave). #}
   <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
@@ -489,6 +493,7 @@
   {# Phase 1: Bootstrap bundle required for offcanvas Context drawer (data-bs-toggle) — Unfold does not ship it. #}
   {% if is_manager_host %}
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
   {% endif %}
   <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
 {% endblock %}

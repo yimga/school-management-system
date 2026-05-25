@@ -351,7 +351,7 @@ def _collect_student_actions(user, school: Any) -> list[SystemAction]:
                 source="role_default",
             )
         )
-    sup = _safe_reverse("portal:support_help_hub")
+    sup = _safe_reverse("feedback:help_center")
     if sup:
         out.append(
             SystemAction(
@@ -432,7 +432,7 @@ def _fallback_minimum_actions(user, school: Any, bucket: str) -> list[SystemActi
                     source="fallback_minimum",
                 )
             )
-    help_u = _safe_reverse("portal:support_help_hub") or _safe_reverse(
+    help_u = _safe_reverse("feedback:help_center") or _safe_reverse(
         "portal:support_request"
     )
     if help_u and len(rows) < 3:

@@ -6,7 +6,7 @@
 
 {% block backend_page %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Automation outcomes" %}</h1>
-<div class="container-fluid py-4" data-page-archetype="operational-workbench" data-rmc-os-center="automation_studio_outcomes">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-os-center="automation_studio_outcomes" data-rmc-scroll-policy="paginate">
   {% include "components/rmc_os_page_header.html" with os_center_key="automation_studio_outcomes" center_eyebrow=_("Automation") center_title=page_title center_purpose=page_subtitle %}
   <div class="d-flex flex-wrap gap-2 mb-2">
     <a class="btn btn-sm btn-outline-secondary" href="{{ action_url }}" data-action="automation-back" data-task="automation_studio" data-task-step="automation:back">{{ action_text }}</a>
@@ -19,7 +19,8 @@
     <div class="card-body p-0">
       {% if recent_runs %}
       <div class="table-responsive">
-        <table class="table table-hover mb-0 table-family align-middle">
+        <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
           <caption class="visually-hidden">{% trans "Recent migration runs" %}</caption>
           <thead class="table-light">
             <tr>

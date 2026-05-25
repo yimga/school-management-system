@@ -13,14 +13,9 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-4 content-max-1200" data-page-archetype="operational-workbench">
-  <header class="mb-4 d-flex flex-wrap align-items-start justify-content-between gap-3">
-    <div class="min-w-0">
-      <p class="text-uppercase small mb-1">{% trans "Control plane" %}</p>
-      <h1 class="h2 mb-2">{% trans "Fleet governed changes" %}</h1>
-      <p class="mb-0">
-        {% blocktrans %}Draft → approval → apply spine (§2.1). Execution stays on existing rollout/staging UIs; use the apply path on each row, then update status in platform admin.{% endblocktrans %}
-      </p>
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="fleet_governed_changes" center_eyebrow=_("Platform operators") center_title=_("Fleet governed changes") center_purpose=_("Draft → approval → apply spine. Execution stays on existing rollout/staging UIs; use the apply path on each row, then update status in platform admin.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+
     </div>
     <div class="d-flex flex-wrap gap-2">
       {% if admin_bridge_url %}

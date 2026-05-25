@@ -1,10 +1,10 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 {% block page_title %}{{ page_title|default:"Webhook delivery log" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-delivery-log" id="main">
+<main class="rmc-page rmc-page--operator-delivery-log" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_list' %}{% else %}{% url 'migration_cloud_super:operator_webhook_list' %}{% endif %}">{% trans "← Back to subscriptions" %}</a>
     <h1 class="rmc-h1">{% trans "Webhook delivery log" %}</h1>
@@ -56,14 +56,18 @@
         </td>
         <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
         <td>
-          <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_audit' sub_id=r.subscription_id %}{% else %}{% url 'migration_cloud_super:operator_webhook_audit' sub_id=r.subscription_id %}{% endif %}">{% trans "Audit" %}</a>
+          <details class="rmc-row-disclosure">
+            <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+            <div class="rmc-row-disclosure__body mt-1">
+<a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_audit' sub_id=r.subscription_id %}{% else %}{% url 'migration_cloud_super:operator_webhook_audit' sub_id=r.subscription_id %}{% endif %}">{% trans "Audit" %}</a>
           {% if r.status != "delivered" %}
           <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_retry' delivery_id=r.id %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_retry' delivery_id=r.id %}{% endif %}" class="rmc-form--inline">
             {% csrf_token %}
             <button class="rmc-btn rmc-btn--ghost rmc-btn--sm" type="submit">{% trans "Retry" %}</button>
           </form>
           {% endif %}
-        </td>
+            </div>
+          </details></td>
       </tr>
       {% endfor %}
     </tbody>

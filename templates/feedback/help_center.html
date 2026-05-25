@@ -7,7 +7,7 @@
 {% block backend_page %}
 <link rel="stylesheet" href="{% static 'css/rmc-help-center-engage.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-help-unified-hub.css' %}">
-<div class="container-fluid py-4 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-page="help-center" data-rmc-page-help-context-label="{% trans 'Help for this page:' %}">
+<div class="container-fluid py-2 rmc-help-center rmc-help-center--v2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-page="help-center" data-rmc-page-help-context-label="{% trans 'Help for this page:' %}">
   <div class="d-flex align-items-center gap-3 mb-3">
     <div class="mkt-advisor-figure mkt-advisor-figure--muted mkt-advisor-figure--reveal d-none d-md-inline-flex" aria-hidden="true">
       {% include "marketing/components/_advisor_character.html" with pose="welcoming" size=140 accessible_label="" %}
@@ -18,6 +18,8 @@
   </div>
 
   {% include "feedback/partials/help_center_engage_strip.html" %}
+
+  {% include "feedback/partials/help_center_support_lane.html" %}
 
   {% include "partials/help_community_lane.html" %}
 
@@ -106,7 +108,7 @@
       <form method="get" action="{% url 'feedback:help_center' %}" class="row g-3 align-items-end">
         <div class="col-lg-8">
           <label class="form-label fw-semibold" for="help-center-q">{% trans "Search across help and feedback context" %}</label>
-          <input id="help-center-q" class="form-control form-control-lg" type="search" name="q" value="{{ help_resources.query }}" placeholder="{% trans 'Try payments, imports, gradebook, login, mobile...' %}" autocomplete="off" data-rmc-help-search-input>
+          <input id="help-center-q" class="form-control form-control-lg" type="search" name="q" value="{{ help_search_initial_q|default:help_resources.query }}" placeholder="{% trans 'Try payments, imports, gradebook, login, mobile...' %}" autocomplete="off" data-rmc-help-search-input>
         </div>
         <div class="col-lg-4 d-grid">
           <button class="btn btn-primary btn-lg" type="submit">{% trans "Find help" %}</button>

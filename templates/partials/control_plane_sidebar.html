@@ -1,6 +1,6 @@
 {% load i18n %}
-{# v3.90.16 — v8 200x preview sidebar grammar (details/summary groups, left-aligned items, pin on hover). #}
-<nav class="cp-sidebar-nav cp-sidebar-ultra cp-sidebar-platform-admin cp-sidebar-inner"
+{# v3.90.37 — unified complete sidebar (Start + Guided + CP + admin catalog). #}
+<nav class="cp-sidebar-nav cp-sidebar-ultra cp-sidebar-platform-admin cp-sidebar-inner cp-sidebar-nav--complete"
      id="{% firstof sidebar_nav_id 'cpSidebarNav' %}"
      aria-label="{% trans 'Control plane navigation' %}"
      data-sidebar-nav="true"
@@ -8,7 +8,9 @@
      data-rmc-os-nav="1"
      data-rmc-cp-sidebar-v8="1"
      data-rmc-os-role-cluster="{{ rmc_os_shell.role_cluster|default:'operator' }}"
-     {% if rmc_os_shell.nav_job_clusters %}data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
+     {% if rmc_os_shell.nav_job_clusters %}data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}
+     data-rmc-unified-sidebar="1"
+     data-rmc-complete-sidebar="1">
 
   <div class="cp-nav-recent d-none" id="cpNavRecentWrap" aria-hidden="true">
     <span class="cp-sidebar__section">{% trans "Recent" %}</span>
@@ -35,55 +37,5 @@
   </details>
   {% endif %}
 
-  {% for group in CONTROL_PLANE_NAV %}
-    {% if group.label %}
-    <details class="cp-sidebar__group"{% if group.expanded %} open{% endif %} data-rmc-cp-sidebar-group="{{ forloop.counter }}">
-      <summary class="cp-sidebar__section">{% trans group.label %}</summary>
-      {% for item in group.items %}
-        {% if item.id not in PINNED_CONTROL_PLANE_IDS %}
-        <a class="cp-sidebar__item{% if item.is_current %} cp-sidebar__item--current{% endif %}"
-           href="{{ item.url }}"
-           {% if item.is_current %}aria-current="page"{% endif %}
-           data-cp-primary-id="{{ item.id }}">
-          <span class="cp-sidebar__item-label">
-            <i class="bi {{ item.icon|default:'bi-circle' }} cp-nav-icon" aria-hidden="true"></i>
-            <span class="cp-nav-label">{% trans item.label %}</span>
-          </span>
-          <button type="button" class="cp-sidebar__pin cp-pin-btn{% if item.id in PINNED_CONTROL_PLANE_IDS %} cp-pin-pinned{% endif %}" data-cp-pin-id="{{ item.id }}" aria-label="{% if item.id in PINNED_CONTROL_PLANE_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}" title="{% if item.id in PINNED_CONTROL_PLANE_IDS %}{% trans 'Remove from Quick access' %}{% else %}{% trans 'Add to Quick access' %}{% endif %}">
-            <i class="bi bi-pin-angle{% if item.id in PINNED_CONTROL_PLANE_IDS %}-fill{% endif %}" aria-hidden="true"></i>
-          </button>
-        </a>
-        {% endif %}
-      {% endfor %}
-    </details>
-    {% else %}
-      {% for item in group.items %}
-      <a class="cp-sidebar__item{% if item.is_current %} cp-sidebar__item--current{% endif %}"
-         href="{{ item.url }}"
-         {% if item.is_current %}aria-current="page"{% endif %}
-         data-cp-primary-id="{{ item.id }}">
-        <span class="cp-sidebar__item-label">
-          <i class="bi {{ item.icon|default:'bi-circle' }} cp-nav-icon" aria-hidden="true"></i>
-          <span class="cp-nav-label">{% trans item.label %}</span>
-        </span>
-        <button type="button" class="cp-sidebar__pin cp-pin-btn" data-cp-pin-id="{{ item.id }}" aria-label="{% trans 'Add to Quick access' %}" title="{% trans 'Add to Quick access' %}">
-          <i class="bi bi-pin-angle" aria-hidden="true"></i>
-        </button>
-      </a>
-      {% endfor %}
-    {% endif %}
-  {% empty %}
-    <a class="cp-sidebar__item" href="{% url 'super:dashboard' %}">
-      <span class="cp-sidebar__item-label">
-        <i class="bi bi-speedometer2 cp-nav-icon" aria-hidden="true"></i>
-        <span>{% trans "Founder Command Center" %}</span>
-      </span>
-    </a>
-    <a class="cp-sidebar__item" href="{% url 'siteconfig:console_domains_hub' %}">
-      <span class="cp-sidebar__item-label">
-        <i class="bi bi-gear-wide-connected cp-nav-icon" aria-hidden="true"></i>
-        <span>{% trans "Config center" %}</span>
-      </span>
-    </a>
-  {% endfor %}
+  {% include "partials/manager_complete_sidebar_nav.html" %}
 </nav>

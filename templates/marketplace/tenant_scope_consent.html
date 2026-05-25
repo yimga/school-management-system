@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-3" data-rmc-mkt-scope-consent="1" data-page-archetype="governance-approval">
+<div class="container-fluid py-3" data-rmc-mkt-scope-consent="1" data-page-archetype="governance-approval" data-rmc-scroll-policy="paginate">
   <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
     <div>
       <h1 class="h4 mb-1">{% trans "App permissions & scope approval" %}</h1>
@@ -54,7 +54,11 @@
           {% for row in pending_grant_rows %}
           {% with g=row.grant %}
           <tr data-rmc-mkt-scope-row="pending">
-            <td><code>{{ g.scope.scope_code }}</code>{% if g.scope.sensitive %} <span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}</td>
+            <td>
+                <details class="rmc-row-disclosure">
+                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                  <div class="rmc-row-disclosure__body mt-1">
+<code>{{ g.scope.scope_code }}</code>{% if g.scope.sensitive %} <span class="badge text-bg-warning">{% trans "Sensitive" %}</span>{% endif %}</td>
             <td><span class="badge text-bg-secondary">{{ row.access_tier }}</span></td>
             <td>{{ g.installation.app.name }}</td>
             <td class="small text-muted">{% if g.scope.description %}{{ g.scope.description }}{% else %}—{% endif %}</td>
@@ -64,7 +68,8 @@
                 <input type="hidden" name="grant_id" value="{{ g.pk }}">
                 <button type="submit" class="btn btn-primary btn-sm" data-rmc-mkt-approve-scope="1">{% trans "Approve scope" %}</button>
               </form>
-            </td>
+                  </div>
+                </details></td>
           </tr>
           {% endwith %}
           {% endfor %}

@@ -14,6 +14,14 @@ from django.views.decorators.http import require_http_methods
 
 from .control_plane_lifecycle import apply_school_lifecycle_action
 from .models import School, SchoolProvisioningEvent
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_FLEET,
+    PLATFORM_SCOPE_PROVISION,
+    PLATFORM_SCOPE_SECURITY_READ,
+    PLATFORM_SCOPE_SECURITY_WRITE,
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
 
 def _clamp_int(value, default: int, *, minimum: int, maximum: int) -> int:
@@ -25,6 +33,7 @@ def _clamp_int(value, default: int, *, minimum: int, maximum: int) -> int:
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def api_school_timeline(request, school_id):
     school = get_object_or_404(School, id=school_id)
     limit = _clamp_int(request.GET.get("limit"), 80, minimum=1, maximum=500)
@@ -46,6 +55,7 @@ def api_school_timeline(request, school_id):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_PROVISION)
 def api_approve_school(request, school_id):
     """Phase H optional: Set school is_approved=True. Super Admin only."""
     from apps.compliance.models_audit import AuditLog
@@ -71,6 +81,7 @@ def api_approve_school(request, school_id):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_FLEET)
 def school_lifecycle_action(request, school_id):
     from apps.compliance.models_audit import AuditLog
     from apps.schools.control_plane import log_control_plane_action
@@ -129,6 +140,7 @@ def school_lifecycle_action(request, school_id):
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def api_school_policy_bundles(request, school_id):
     """List policy bundles for a school (for pack versioning rollback UI)."""
     from apps.policies.models import TenantBlueprint
@@ -162,6 +174,7 @@ def api_school_policy_bundles(request, school_id):
 
 
 @require_http_methods(["POST"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
 def api_school_policy_bundle_activate(request, school_id, bundle_id):
     """Set the active policy bundle for a school (rollback to previous version)."""
     from apps.policies.models import PolicyBundle

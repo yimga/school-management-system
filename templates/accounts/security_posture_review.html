@@ -3,6 +3,11 @@
 
 {% block title %}{% trans "Security posture review" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-account-surface.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container py-4" data-rmc-page="security-posture-review">
   <div class="page-header mb-3">
@@ -31,7 +36,7 @@
     </div>
   </div>
 
-  <form method="post" class="content-card" style="padding:1rem 1.25rem;">
+  <form method="post" class="content-card rmc-account-posture-pad">
     {% csrf_token %}
     {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
     <p class="small text-muted mb-3">{% trans "By confirming, you attest that you reviewed your security settings this quarter." %}</p>

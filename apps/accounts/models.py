@@ -61,15 +61,42 @@ class Permission(models.Model):
 
 
 class AccessRole(models.Model):
-    code = models.CharField(max_length=120, unique=True)
+    """
+    RBAC role catalog. ``school=NULL`` rows are platform-wide templates (legacy default).
+    ``school`` set scopes the role to one tenant catalog.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="access_roles",
+        help_text="Null = global template role; set = school-specific catalog entry.",
+    )
+    code = models.CharField(max_length=120)
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     permissions = models.ManyToManyField(Permission, blank=True, related_name="roles")
 
     class Meta:
-        ordering = ["code"]
+        ordering = ["school_id", "code"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["code"],
+                condition=models.Q(school__isnull=True),
+                name="uniq_accessrole_global_code",
+            ),
+            models.UniqueConstraint(
+                fields=["school", "code"],
+                condition=models.Q(school__isnull=False),
+                name="uniq_accessrole_school_code",
+            ),
+        ]
 
     def __str__(self) -> str:
+        if self.school_id:
+            return f"{self.code} ({self.school_id})"
         return f"{self.code} - {self.name}"
 
 
@@ -256,7 +283,7 @@ class User(AbstractUser):
         ),
     )
 
-    def has_feature_permission(self, code: str) -> bool:
+    def has_feature_permission(self, code: str, *, school=None) -> bool:
         if self.is_superuser:
             return True
         try:
@@ -271,15 +298,22 @@ class User(AbstractUser):
                 return False
             if self.feature_permissions.filter(code=code).exists():
                 return True
-            if self.roles.filter(permissions__code=code).exists():
+            roles_qs = self.roles.filter(permissions__code=code)
+            if school is not None:
+                roles_qs = roles_qs.filter(
+                    Q(school__isnull=True) | Q(school_id=school.pk)
+                )
+            if roles_qs.exists():
                 return True
             now = timezone.now()
-            if (
-                TemporaryRoleGrant.objects.filter(user=self, expires_at__gt=now)
-                .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
-                .filter(role__permissions__code=code)
-                .exists()
-            ):
+            grant_qs = TemporaryRoleGrant.objects.filter(
+                user=self, expires_at__gt=now
+            ).filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
+            if school is not None:
+                grant_qs = grant_qs.filter(
+                    Q(role__school__isnull=True) | Q(role__school_id=school.pk)
+                )
+            if grant_qs.filter(role__permissions__code=code).exists():
                 return True
             return False
         except (DatabaseError, TransactionManagementError):
@@ -524,6 +558,54 @@ class UserPasskey(models.Model):
         return f"{self.user_id} {self.name or self.credential_id[:16]}"
 
 
+import uuid
+
+
+class TenantStaffInvite(models.Model):
+    """School-scoped staff invite (tenant identity hub lifecycle)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="staff_invites",
+    )
+    email = models.EmailField()
+    role = models.CharField(max_length=32, default="TEACHER")
+    invited_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tenant_staff_invites_sent",
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    expires_at = models.DateTimeField()
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["school", "email"],
+                name="accounts_te_school__a1b2c3_idx",
+            ),
+            models.Index(fields=["token"], name="accounts_te_token_4d5e6f_idx"),
+        ]
+        verbose_name = "Tenant staff invite"
+        verbose_name_plural = "Tenant staff invites"
+
+    @property
+    def is_pending(self) -> bool:
+        if self.accepted_at:
+            return False
+        return self.expires_at >= timezone.now()
+
+    def __str__(self) -> str:
+        return f"{self.email} @ {self.school_id}"
+
+
 class FederationSsoHealth(models.Model):
     """
     Per ServiceIntegration (SAML/OIDC IdP): last successful login vs failures.
@@ -554,4 +636,8 @@ from apps.academics.models import RolloverProposal, RolloverProposalItem  # noqa
 from apps.accounts.models_offline_device import (  # noqa: E402,F401
     DeviceRegistration,
     OfflineCapabilityToken,
+)
+from apps.accounts.models_rebac import (  # noqa: E402,F401
+    OfflineAccessIntent,
+    RelationshipTuple,
 )

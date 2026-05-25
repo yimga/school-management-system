@@ -35,11 +35,15 @@
    the per-tab attribute on the rail itself. {% endcomment %}
 
 {% if cockpit.ai_copilot_rail.enabled %}
-{% url 'manager_help_center' as rmc_copilot_page_help_url %}
+{% if request.public_host_kind == 'manager' %}
+  {% url 'manager_help_center' as rmc_copilot_page_help_url %}
+{% else %}
+  {% url 'feedback:help_center' as rmc_copilot_page_help_url %}
+{% endif %}
 <aside class="rmc-app-shell__copilot"
        aria-label="{% trans 'AI copilot' %}"
        data-rmc-copilot-rail
-       data-rmc-copilot-active-tab="chat">
+       data-rmc-copilot-active-tab="chat"{% if rmc_copilot_page_help_url %} data-rmc-help-center-url="{{ rmc_copilot_page_help_url }}"{% endif %}>
   <div class="lx-copilot">
     {# Collapsed state — 44px vertical icon rail. Each icon routes to a tab. #}
     <div class="lx-copilot__collapsed">

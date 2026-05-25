@@ -84,7 +84,7 @@ class EditRoleForm(forms.Form):
 
 class UserRoleForm(forms.Form):
     user = forms.ModelChoiceField(
-        queryset=User.objects.all(),
+        queryset=User.objects.none(),
         required=True,
         empty_label="Select user",
     )
@@ -94,16 +94,22 @@ class UserRoleForm(forms.Form):
         widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, school=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["user"].widget.attrs.update({"class": "form-select"})
+        if school is not None:
+            from apps.accounts.tenant_identity import users_queryset_for_school
+            from apps.accounts.access_roles import roles_queryset_for_school
+
+            self.fields["user"].queryset = users_queryset_for_school(school)
+            self.fields["roles"].queryset = roles_queryset_for_school(school)
 
 
 class TemporaryRoleGrantForm(forms.Form):
     """Grant a role to a user with an expiry date (e.g. auditor for one month)."""
 
     user = forms.ModelChoiceField(
-        queryset=User.objects.all(),
+        queryset=User.objects.none(),
         required=True,
         empty_label="Select user",
         widget=forms.Select(attrs={"class": "form-select"}),
@@ -132,6 +138,15 @@ class TemporaryRoleGrantForm(forms.Form):
         ),
     )
 
+    def __init__(self, *args, school=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if school is not None:
+            from apps.accounts.tenant_identity import users_queryset_for_school
+            from apps.accounts.access_roles import roles_queryset_for_school
+
+            self.fields["user"].queryset = users_queryset_for_school(school)
+            self.fields["role"].queryset = roles_queryset_for_school(school)
+
     def clean_expires_at(self):
         value = self.cleaned_data.get("expires_at")
         if value and value < timezone.localdate():
@@ -140,16 +155,20 @@ class TemporaryRoleGrantForm(forms.Form):
 
 
 class UserPermissionForm(forms.Form):
-    user = forms.ModelChoiceField(queryset=User.objects.all())
+    user = forms.ModelChoiceField(queryset=User.objects.none())
     permissions = forms.ModelMultipleChoiceField(
         queryset=Permission.objects.all(),
         required=False,
         widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}),
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, school=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["user"].widget.attrs.update({"class": "form-select"})
+        if school is not None:
+            from apps.accounts.tenant_identity import users_queryset_for_school
+
+            self.fields["user"].queryset = users_queryset_for_school(school)
 
 
 class UserProfileEditForm(forms.ModelForm):

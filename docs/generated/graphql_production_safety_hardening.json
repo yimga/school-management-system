@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "view_path": "config/graphql_view.py",
+  "schema_path": "config/schema.py",
+  "url_route": "/graphql/",
+  "controls": {
+    "authentication": {
+      "default": "request.user.is_authenticated checked at resolver level (per-field)",
+      "anonymous_schema": "health + message only; mutation/admin scopes require auth",
+      "tests": [
+        "apps/api/tests/test_graphql_security_review.py",
+        "apps/api/tests/test_graphql_security_contract.py (NEW batch 1506)",
+        "apps/security/tests/test_graphql_tenant_safety.py (NEW batch 1506)"
+      ]
+    },
+    "introspection": {
+      "default_production": false,
+      "env_var": "GRAPHQL_INTROSPECTION_ENABLED",
+      "regex": "\\b__schema\\b|\\b__type\\b|IntrospectionQuery (case-insensitive)",
+      "status_when_blocked": 403
+    },
+    "rate_limit": {
+      "get": "60 / minute / IP",
+      "post": "120 / minute / IP",
+      "header_on_throttle": "Retry-After",
+      "status_when_throttled": 429
+    },
+    "content_type": {
+      "post_required": "application/json",
+      "status_when_invalid": 415
+    },
+    "input_validation": {
+      "json_body_must_be_object": true,
+      "query_required": true,
+      "variables_must_be_object": true,
+      "operation_name_string_or_null": true
+    },
+    "audit_log": {
+      "fields": ["operation_name_or_anonymous", "is_authenticated"],
+      "never_logs": ["query body", "variables", "user identifiers", "tenant identifiers"]
+    },
+    "tenant_safety": {
+      "per_resolver_scoping": true,
+      "cross_tenant_lookup_prevention": "Resolvers fetch via request.school where applicable; otherwise staff-only"
+    },
+    "query_depth_limit": {
+      "supported_by_lib": false,
+      "compensating_control": "Schema surface deliberately narrow (5 fields); no nested traversal beyond first-level"
+    },
+    "query_complexity_limit": {
+      "supported_by_lib": false,
+      "compensating_control": "Same as above"
+    }
+  },
+  "env_var_contract": {
+    "GRAPHQL_INTROSPECTION_ENABLED": "1|true|yes => enabled; 0|false|no => disabled; default DEBUG-driven"
+  },
+  "honest_limitations": [
+    "graphene-django does not ship native depth/cost limits; mitigated by deliberately narrow schema",
+    "Hardening doc cannot claim production-safe for arbitrary schema expansion without depth/cost gate"
+  ],
+  "verdict": "GRAPHQL PRODUCTION SAFETY HARDENED — REPO SCOPE. Future schema expansions must add depth + complexity guards before merge."
+}

@@ -658,7 +658,7 @@ class RequireMFAMiddleware:
             # apps/accounts/mfa_defaults.py.
             from apps.accounts.mfa_defaults import effective_required_roles
 
-            role = get_user_role(user)
+            role = get_user_role(user, getattr(request, "school", None))
             must_have_mfa = False
             if require_all_staff and user.is_staff:
                 must_have_mfa = True

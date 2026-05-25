@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-24T21:00:00+00:00",
+  "batch": 1506,
+  "branch": "main",
+  "service_worker_pre": "sms-v3.90.44-sidebar-disclosure-scroll-contract-2026-05-24",
+  "service_worker_post": "sms-v3.91.0-runtime-proof-hardening-2026-05-24",
+  "pending_changes_total": 474,
+  "pending_changes_modified": 384,
+  "pending_changes_untracked": 90,
+  "last_commit_pre": "d2898a6f Upgrade tenant portals and platform shell surfaces",
+  "geos_matrix_current": {
+    "repo_pct": 100.0,
+    "live_pct": 100.0,
+    "composite_pct": 100.0,
+    "verdict": "GEOS_99_MATRIX_PASS",
+    "honest_re_read_required": true,
+    "honest_re_read_reason": "Lane 2 external blockers unproven; live_pct cannot be 100 absent public/PSP/Render proof."
+  },
+  "security_state": {
+    "security_exception_register_generated_at": "2026-05-19T09:03:42",
+    "stale_relative_to_batches": [1485, 1486, 1487, 1488, 1489, 1490, 1491],
+    "security_surface_audit_generated_at": "2026-05-23T00:37:39",
+    "totals": {
+      "allow_any": 39,
+      "csrf_exempt": 36,
+      "subprocess": 407,
+      "needs_review": 287,
+      "unsafe": 13,
+      "violation": 12
+    }
+  },
+  "graphql_state": {
+    "view_path": "config/graphql_view.py",
+    "csrf_exempt": true,
+    "introspection_env": "GRAPHQL_INTROSPECTION_ENABLED",
+    "introspection_default_production": false,
+    "ip_rate_limit_enforced": true,
+    "content_type_enforced": true,
+    "logs_query_or_variables": false
+  },
+  "pwa_state": {
+    "manifest_platform_bytes": 1210,
+    "manifest_portal_bytes": 1033,
+    "service_worker_bytes": 131834,
+    "registration_bytes": 5820
+  },
+  "expected_runtime_modules": {
+    "apps/communication/channel_adapter.py": "created (facade over notification_service/channels)",
+    "apps/finance/payment_rail_adapter.py": "created (idempotent + signature contract; manual fallback)",
+    "apps/sync_engine/tenant_manifest_compiler.py": "created (deterministic + PII-scrub)",
+    "apps/global_registries/schema_mapping.py": "created (canonical registry + heuristic mapper)",
+    "apps/interop/transfer_envelope.py": "created (student/teacher; hashed tenant ids)",
+    "apps/observability/telemetry_buffer.py": "created (offline buffer; signed flush)",
+    "apps/migration_cloud/ai_auto_mapping.py": "created (credential rejection + human review gate)"
+  },
+  "micro_friction_workflows": {
+    "apps/schoolops/substitute_handover.py": "created (time-boxed; medical/IEP gated default)",
+    "apps/finance/permission_to_pay.py": "created (guardian threshold; routes payment_rail_adapter)",
+    "apps/schoolops/lost_belongings_qr.py": "created (anonymous custody loop; PII-redacted notes)"
+  },
+  "test_modules_added": [
+    "apps/communication/tests/test_channel_adapter_runtime.py",
+    "apps/finance/tests/test_payment_rail_adapter_runtime.py",
+    "apps/sync_engine/tests/test_tenant_manifest_compiler_runtime.py",
+    "apps/global_registries/tests/test_schema_mapping_runtime.py",
+    "apps/interop/tests/test_transfer_envelope_runtime.py",
+    "apps/observability/tests/test_telemetry_buffer_runtime.py",
+    "apps/migration_cloud/tests/test_ai_auto_mapping_runtime.py",
+    "apps/schoolops/tests/test_substitute_handover_runtime.py",
+    "apps/finance/tests/test_permission_to_pay_runtime.py",
+    "apps/schoolops/tests/test_lost_belongings_qr_runtime.py",
+    "apps/api/tests/test_graphql_security_contract.py",
+    "apps/security/tests/test_graphql_tenant_safety.py"
+  ],
+  "tests_runtime_pass_count": 52,
+  "tests_runtime_pass_seconds": 0.047,
+  "native_mobile_claims_introduced": 0,
+  "external_blockers_preserved": [
+    "PSP live settlement reconciliation",
+    "SOC2 PDF + counsel signoff",
+    "Render SHA parity live verification",
+    "Multi-corridor pilot ingestion",
+    "Live LiteLLM key provisioning",
+    "Postgres RLS production deployment",
+    "WhatsApp Meta provider"
+  ]
+}

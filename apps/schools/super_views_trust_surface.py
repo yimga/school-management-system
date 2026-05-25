@@ -18,7 +18,16 @@ from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_http_methods
 
+from apps.schools.control_plane import require_super_access_with_host
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_AUDIT_EXPORT,
+    PLATFORM_SCOPE_SECURITY_READ,
+    PLATFORM_SCOPE_TENANT_READ,
+    require_platform_scope,
+)
 
+
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_compliance_overview(request):
     """Phase 13: Control-plane compliance governance — policy pack, audit review, export risk."""
 
@@ -117,6 +126,7 @@ def super_compliance_overview(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_trust_center(request):
     """§10.5.4 Trust product: Security & Trust hub — Compliance, API Center, Sessions, Audit export (TRUST_PRODUCT_SURFACES.md)."""
     workflow_center_url = ""
@@ -192,12 +202,15 @@ def super_trust_center(request):
     )
 
 
+@require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_config_hub_redirect(request):
     """Legacy URL only. The single config surface is Configuration Control Center (siteconfig:console_domains_hub). No hub page; redirect."""
     return redirect("siteconfig:console_domains_hub", permanent=False)
 
 
 @require_http_methods(["GET"])
+@require_super_access_with_host
+@require_platform_scope(PLATFORM_SCOPE_AUDIT_EXPORT)
 def super_audit_export(request):
     """Export platform audit log (date range, CSV/JSON). Rate limit: one export per 60 seconds per user. TRUST_PRODUCT_SURFACES.md §3."""
     dashboard_url = reverse("super:dashboard")
@@ -311,6 +324,7 @@ def super_audit_export(request):
 
 
 @require_http_methods(["GET"])
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_platform_events(request):
     """
     Append-only platform events (pack apply, rollback, catalog) for ops and trust surface.

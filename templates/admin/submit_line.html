@@ -1,6 +1,6 @@
 {% load i18n admin_urls %}
 
-<div {% if not is_popup %}id="submit-row"{% endif %} class="relative lg:sticky lg:bottom-0 z-40">
+<div {% if not is_popup %}id="submit-row"{% endif %} class="relative lg:sticky lg:bottom-0 z-40" data-rmc-admin-submit-contract="sticky-safe-actions">
     {% if request.GET.next %}
     <input type="hidden" name="next" value="{{ request.GET.next }}" form="{{ opts.model_name }}_form">
     {% endif %}
@@ -95,4 +95,3 @@
         </div>
     </div>
 </div>
-

@@ -130,72 +130,19 @@ def build_manager_platform_admin_nav(request):
     """
     Context for manager ``/admin/*`` sidebar (not CONTROL_PLANE_NAV).
 
-    Returns quick cross-links to control plane + guided configuration surfaces;
-    model/app tree comes from ``available_apps`` on the admin site ``each_context``.
+    Start + Guided setup come from ``MANAGER_UNIFIED_SIDEBAR_GROUPS``; this helper
+    keeps ``quick_links`` / ``guided_links`` keys for legacy callers.
     """
-    urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
-    request_path = getattr(request, "path", "") or ""
-    quick_links: list[dict] = []
-    guided_links: list[dict] = []
-    for spec in (
-        {
-            "id": "admin_index",
-            "label": _("Backoffice home"),
-            "url_name": "admin:index",
-            "icon": "bi-grid-3x3-gap",
-        },
-        {
-            "id": "super_dashboard",
-            "label": _("Control plane"),
-            "url_name": "super:dashboard",
-            "icon": "bi-speedometer2",
-        },
-        {
-            "id": "super_platform_operator_hub",
-            "label": _("Platform operator hub"),
-            "url_name": "super:platform_operator_hub",
-            "icon": "bi-diagram-3",
-        },
-    ):
-        _append_manager_admin_nav_link(
-            quick_links, spec=spec, urlconf=urlconf, request_path=request_path
-        )
-    for spec in (
-        {
-            "id": "config_center",
-            "label": _("Config center"),
-            "url_name": "siteconfig:console_domains_hub",
-            "icon": "bi-gear-wide-connected",
-        },
-        {
-            "id": "configuration_center",
-            "label": _("Configuration engine"),
-            "url_name": "configuration:center",
-            "icon": "bi-sliders",
-        },
-        {
-            "id": "studio_shell",
-            "label": _("Studio"),
-            "url_name": "studio_os:shell",
-            "icon": "bi-palette",
-        },
-        {
-            "id": "feature_control",
-            "label": _("Feature control"),
-            "url_name": "siteconfig:feature_control_panel",
-            "icon": "bi-toggles",
-        },
-        {
-            "id": "theme_experience",
-            "label": _("Theme & experience"),
-            "url_name": "siteconfig:theme_colors",
-            "icon": "bi-brush",
-        },
-    ):
-        _append_manager_admin_nav_link(
-            guided_links, spec=spec, urlconf=urlconf, request_path=request_path
-        )
-    return {"quick_links": quick_links, "guided_links": guided_links}
+    from apps.schools.manager_nav_convergence import build_manager_unified_sidebar_groups
+
+    groups = build_manager_unified_sidebar_groups(request)
+    quick_links = list(groups[0]["items"]) if groups else []
+    guided_links = list(groups[1]["items"]) if len(groups) > 1 else []
+    return {
+        "quick_links": quick_links,
+        "guided_links": guided_links,
+        "groups": groups,
+    }
 
 
 def _primary_nav_is_current(request_path: str, item_id: str) -> bool:
@@ -1043,6 +990,12 @@ def build_control_plane_nav(request):
                 "icon": "bi-shield-check",
             },
             {
+                "id": "super_operator_team_roster",
+                "label": "Team & identity",
+                "url_name": "super:operator_team_roster",
+                "icon": "bi-people-fill",
+            },
+            {
                 "id": "super_backlog_unlock_center",
                 "label": "Backlog unlock center",
                 "url_name": "super:backlog_unlock_center",
@@ -1174,18 +1127,18 @@ def build_control_plane_nav(request):
             }
         )
     _advanced_resolved.extend(_platform_admin_bridge_nav_items_direct(urlconf=urlconf))
-    if getattr(request.user, "is_superuser", False):
-        admin_index = _safe_reverse("admin:index", urlconf=urlconf)
-        if admin_index:
-            _advanced_resolved.append(
-                {
-                    "id": "cp_platform_backoffice",
-                    "label": "Advanced Django admin",
-                    "url": admin_index,
-                    "icon": "bi-database",
-                }
+    if _advanced_resolved:
+        for row in _advanced_resolved:
+            row["is_current"] = cp_nav_item_is_current(
+                request_path, row.get("url", "")
             )
-    add_resolved_group("Advanced", _advanced_resolved)
+        groups.append(
+            {
+                "label": "Advanced",
+                "items": _advanced_resolved,
+                "expanded": True,
+            }
+        )
 
     return groups
 

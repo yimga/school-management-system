@@ -1,10 +1,10 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — MAA v2.0 promotion status" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--maa-v2-promotion" id="main">
+<main class="rmc-page rmc-page--maa-v2-promotion" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <h1 class="rmc-h1">{% trans "MAA v2.0 promotion status" %}</h1>
     <p class="rmc-lede">

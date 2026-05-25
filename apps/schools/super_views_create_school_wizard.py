@@ -5,6 +5,10 @@ Create School wizard (BR-12 split from super_views).
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_http_methods
 
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_PROVISION,
+    require_platform_scope,
+)
 from apps.registries.models import (
     EducationLevelRegistry,
     EducationSystemTypeRegistry,
@@ -45,6 +49,7 @@ _CREATE_SCHOOL_PACK_TO_COUNTRY = {
 
 
 @require_http_methods(["GET", "POST"])
+@require_platform_scope(PLATFORM_SCOPE_PROVISION)
 def create_school_wizard(request):
     """Multi-step wizard: Step 1 identity, Step 2 region, Step 3 branding. POST submits to API."""
     from apps.global_registries.models import RegionConfig, WeatherLocation

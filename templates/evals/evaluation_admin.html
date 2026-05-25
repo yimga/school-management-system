@@ -6,7 +6,7 @@
 {% block title %}{% trans "Evaluation Manager" %}{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
   <div class="d-flex align-items-center gap-2">
     <div>
@@ -194,7 +194,8 @@
     </div>
     {% if evals %}
     <div class="table-responsive" data-table-density-key="evaluation_admin">
-      <table class="gradebook-table table-family" aria-label="{% trans 'Evaluations: student, class, subject, evidence, and score components' %}">
+      <!-- large-collection-allow: dashboard-widget-capped-list -->
+ class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Evaluations: student, class, subject, evidence, and score components' %}">
         <thead>
           <tr>
             <th scope="col">{% trans_term "Student" key="student" %}</th>

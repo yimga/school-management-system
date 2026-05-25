@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-05-24T13:49:00.941449+00:00",
+  "generated_at": "2026-05-24T23:29:16.252804+00:00",
   "host": "manager.runmycampus.com",
   "full_crawl": true,
-  "route_count": 175,
+  "route_count": 176,
   "ok_count": 173,
   "redirect_escape_count": 2,
-  "failure_count": 0,
-  "pass": true,
+  "failure_count": 1,
+  "pass": false,
   "rows": [
     {
       "path": "/admin/accounts/user/",
@@ -521,9 +521,14 @@
     },
     {
       "path": "/admin/password_change/done/",
-      "status": "ok",
+      "status": "shell_fail",
       "http_status": 200,
-      "final_path": "/admin/password_change/done/"
+      "final_path": "/admin/password_change/done/",
+      "issues": [
+        "surface_strip_on_changelist",
+        "missing_changelist_live_marker",
+        "missing_changelist_pagehead"
+      ]
     },
     {
       "path": "/admin/platform_runtime/eventwebhookdelivery/",
@@ -1019,6 +1024,12 @@
       "final_path": "/admin/siteconfig/pendingnuance/"
     },
     {
+      "path": "/admin/siteconfig/platformpulsesnapshot/",
+      "status": "ok",
+      "http_status": 200,
+      "final_path": "/admin/siteconfig/platformpulsesnapshot/"
+    },
+    {
       "path": "/admin/siteconfig/productfeedback/",
       "status": "ok",
       "http_status": 200,
@@ -1073,5 +1084,7 @@
       "final_path": "/admin/siteconfig/workflowrunlog/"
     }
   ],
-  "failures": []
+  "failures": [
+    "/admin/password_change/done/: surface_strip_on_changelist, missing_changelist_live_marker, missing_changelist_pagehead"
+  ]
 }

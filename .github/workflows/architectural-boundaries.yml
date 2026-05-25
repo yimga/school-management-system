@@ -88,6 +88,8 @@ on:
       - "beta/school-management-system/scripts/check_marketing_assets_claimed_vs_present.py"
       - "beta/school-management-system/scripts/verify_theme_visibility_platform.py"
       - "beta/school-management-system/scripts/verify_manager_admin_cp_layout.py"
+      - "beta/school-management-system/scripts/audit_security_posture_banner_layout.py"
+      - "beta/school-management-system/scripts/audit_sidebar_disclosure_overflow.py"
       - "beta/school-management-system/scripts/scan_main_content_text_utilities.py"
       - "beta/school-management-system/var/security-audit-baseline-main-content-text-utilities.json"
       - "beta/school-management-system/static/css/theme-platform-contrast.css"
@@ -947,5 +949,7 @@ jobs:
           python scripts/verify_theme_visibility_platform.py
           python scripts/verify_sidebar_rail_contract.py
           python scripts/verify_manager_admin_cp_layout.py
+          python scripts/audit_security_posture_banner_layout.py
+          python scripts/audit_sidebar_disclosure_overflow.py
           python scripts/scan_main_content_text_utilities.py
           python scripts/run_sqlite_memory_tests.py apps.siteconfig.tests.test_theme_visibility_matrix --verbosity=1

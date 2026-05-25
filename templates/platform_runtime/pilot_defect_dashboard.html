@@ -3,7 +3,7 @@
 {% load terminology_tags %}
 {% block cp_title %}{% trans "Pilot defect closure" %}{% endblock %}
 {% block cp_content %}
-<div class="container-lg py-4" data-decision-engine="surface" data-rmc-pilot-defect-dashboard="{{ page_marker }}">
+<div class="container-lg py-4" data-decision-engine="surface" data-rmc-pilot-defect-dashboard="{{ page_marker }}" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "platform_runtime/pilot_defect_dashboard.html" %}
   <header class="mb-4">
     <h1 class="h3">{% trans "Defect closure loop" %}</h1>

@@ -50,7 +50,7 @@
       ]
     }
   },
-  "generated_at": "2026-05-24T18:14:19.183477+00:00",
+  "generated_at": "2026-05-25T03:07:55.729922+00:00",
   "high_impact_templates_total": 247,
   "inline_styles": {
     "count": 50,
@@ -328,9 +328,11 @@
   "schema_version": 2,
   "score_out_of_15": 15,
   "screen_headers_actions": {
-    "action_bar_violations": [],
+    "action_bar_violations": [
+      "templates/schools/billing_dashboard.html"
+    ],
     "header_violations": [],
-    "missing_action_bars": 0,
+    "missing_action_bars": 1,
     "missing_headers": 0,
     "rows": [
       {
@@ -346,7 +348,7 @@
         "path": "templates/schools/super_dashboard.html"
       },
       {
-        "action_bar": true,
+        "action_bar": false,
         "exists": true,
         "header": true,
         "path": "templates/schools/billing_dashboard.html"
@@ -936,9 +938,11 @@
       "template_paths": []
     },
     "page_header_action_bar_contract": {
-      "action_bar_violations": [],
+      "action_bar_violations": [
+        "templates/schools/billing_dashboard.html"
+      ],
       "header_violations": [],
-      "missing_action_bars": 0,
+      "missing_action_bars": 1,
       "missing_headers": 0,
       "rows": [
         {
@@ -954,7 +958,7 @@
           "path": "templates/schools/super_dashboard.html"
         },
         {
-          "action_bar": true,
+          "action_bar": false,
           "exists": true,
           "header": true,
           "path": "templates/schools/billing_dashboard.html"

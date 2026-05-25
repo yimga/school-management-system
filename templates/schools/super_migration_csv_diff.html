@@ -14,10 +14,10 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="operational-workbench">
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
   <div data-tour="cp-migration-intro">
-  <h1 class="h4">{% trans "Migration CSV diff (BR-04)" %}</h1>
-  <p class="text-secondary small">{% trans "Upload baseline + candidate CSV (same headers). Key column = first by default." %}</p>
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="migration_csv_diff" center_eyebrow=_("Platform operators") center_title=_("Migration CSV diff (BR-04)") center_purpose=_("Upload baseline + candidate CSV (same headers). Key column = first by default.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
+
   </div>
   <form method="post" enctype="multipart/form-data" class="mb-4" data-tour="cp-migration-form">
     {% csrf_token %}

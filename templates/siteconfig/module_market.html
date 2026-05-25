@@ -6,13 +6,13 @@
 {% block backend_title %}{% trans_term "Modules" key="module" plural=True %}{% endblock %}
 
 {% block backend_page %}
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4" data-rmc-scroll-policy="paginate">
     <div class="card shadow-sm">
       <div class="card-body">
         <h1 class="h4 mb-3">{% trans "Module market" %}</h1>
         <p class="text-muted">{% trans "Enable or disable modules for your school. Changes apply immediately." %}</p>
         <div class="table-responsive">
-          <table class="table table-hover table-family align-middle">
+          <table class="table table-hover table-family align-middle table-sm table-sticky-head rmc-data-table">
             <caption class="visually-hidden">{% trans "Module market" %}</caption>
             <thead>
               <tr>
@@ -37,6 +37,9 @@
                     {% endif %}
                   </td>
                   <td>
+                    <details class="rmc-row-disclosure">
+                      <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
+                      <div class="rmc-row-disclosure__body mt-1">
                     {% if mod.code in active_codes %}
                     <form method="post" action="" class="d-inline">
                       {% csrf_token %}
@@ -66,6 +69,8 @@
                       <button type="submit" class="btn btn-sm btn-primary">{% trans "Activate" %}</button>
                     </form>
                     {% endif %}
+                      </div>
+                    </details>
                   </td>
                 </tr>
               {% empty %}

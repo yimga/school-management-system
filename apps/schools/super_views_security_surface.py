@@ -13,6 +13,11 @@ from django.conf import settings
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
+from apps.platform_runtime.operator_identity import (
+    PLATFORM_SCOPE_SECURITY_READ,
+    require_platform_scope,
+)
+
 
 
 def _repo_root() -> Path:
@@ -68,6 +73,7 @@ def _review_rows(payload: dict, *, limit: int = 120) -> list[dict]:
 
 
 @require_GET
+@require_platform_scope(PLATFORM_SCOPE_SECURITY_READ)
 def super_security_surface_dashboard(request):
     """Super-admin: governance summary + first review rows from generated JSON."""
     payload = _load_security_audit()
