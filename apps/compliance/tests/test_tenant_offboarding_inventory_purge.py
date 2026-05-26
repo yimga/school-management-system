@@ -36,6 +36,34 @@ class ResilientSchoolDeleteTests(TestCase):
         self.assertTrue(School.objects.filter(pk=self.school.pk).exists())
 
     @patch(
+        "apps.compliance.tenant_offboarding_inventory.model_table_exists",
+        return_value=True,
+    )
+    @patch("apps.compliance.tenant_offboarding_inventory.iter_school_foreign_key_targets")
+    def test_purge_dependencies_continues_after_per_model_db_error(
+        self, mock_iter, _exists
+    ):
+        model_ok = MagicMock()
+        model_ok._meta.label_lower = "siteconfig.sitesettings"
+        model_ok._meta.db_table = "siteconfig_sitesettings"
+        model_ok._default_manager.filter.return_value.delete.return_value = (1, {})
+
+        model_bad = MagicMock()
+        model_bad._meta.label_lower = "portal.hostedofficedocument"
+        model_bad._meta.db_table = "portal_hostedofficedocument"
+        model_bad._default_manager.filter.return_value.delete.side_effect = (
+            ProgrammingError('relation "portal_hostedofficedocument" does not exist')
+        )
+
+        mock_iter.return_value = [
+            (model_bad, "school"),
+            (model_ok, "school"),
+        ]
+        deleted = purge_public_school_dependencies(self.school)
+        self.assertEqual(deleted.get("siteconfig.sitesettings"), 1)
+        model_ok._default_manager.filter.assert_called()
+
+    @patch(
         "apps.compliance.tenant_offboarding_inventory.purge_public_school_dependencies",
         return_value={},
     )

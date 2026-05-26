@@ -10,7 +10,7 @@ from typing import Any
 
 from django.apps import apps as django_apps
 from django.conf import settings
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import ForeignKey
 from django.db.utils import DatabaseError, ProgrammingError
 
@@ -69,7 +69,16 @@ def purge_public_school_dependencies(school) -> dict[str, int]:
     school_pk = school.pk
     for model, field_name in iter_school_foreign_key_targets():
         label = model._meta.label_lower
-        if not model_table_exists(model):
+        try:
+            table_present = model_table_exists(model)
+        except (ProgrammingError, DatabaseError) as exc:
+            logger.warning(
+                "tenant_offboarding purge skip %s (table probe failed): %s",
+                label,
+                exc,
+            )
+            continue
+        if not table_present:
             logger.info(
                 "tenant_offboarding purge skip %s (table %s missing)",
                 label,
@@ -77,9 +86,12 @@ def purge_public_school_dependencies(school) -> dict[str, int]:
             )
             continue
         try:
-            _deleted, detail = model._default_manager.filter(
-                **{field_name: school_pk}
-            ).delete()
+            # Per-model savepoint: PostgreSQL aborts the whole transaction on any
+            # error unless we roll back to a savepoint before continuing.
+            with transaction.atomic():
+                _deleted, detail = model._default_manager.filter(
+                    **{field_name: school_pk}
+                ).delete()
         except (ProgrammingError, DatabaseError) as exc:
             logger.warning(
                 "tenant_offboarding purge skip %s after DB error: %s",
@@ -116,17 +128,19 @@ def delete_school_record_resilient(school) -> None:
 
     qs = school_model._default_manager.filter(pk=school_pk)
     try:
-        deleted, _detail = qs.delete()
-        if deleted:
-            return
-    except ProgrammingError as exc:
+        with transaction.atomic():
+            deleted, _detail = qs.delete()
+            if deleted:
+                return
+    except (ProgrammingError, DatabaseError) as exc:
         logger.warning(
             "tenant_offboarding school.delete collector failed slug=%s: %s; raw delete fallback",
             school_slug,
             exc,
         )
 
-    qs._raw_delete(using=qs.db)
+    with transaction.atomic():
+        qs._raw_delete(using=qs.db)
 
 
 def build_inventory(school) -> dict[str, int]:

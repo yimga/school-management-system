@@ -13,6 +13,7 @@ from typing import Any
 
 from django.conf import settings
 from django.db import transaction
+from django.db.utils import DatabaseError, ProgrammingError
 
 from apps.compliance.tenant_offboarding_inventory import (
     build_inventory,
@@ -704,7 +705,17 @@ def apply_purge(
     row_total = preview.row_total
 
     with transaction.atomic():
-        schema_dropped = drop_tenant_schema_for_school(school)
+        try:
+            with transaction.atomic():
+                schema_dropped = drop_tenant_schema_for_school(school)
+        except (ProgrammingError, DatabaseError):
+            logger.warning(
+                "tenant_offboarding schema drop failed slug=%s; continuing purge",
+                school_slug,
+                exc_info=True,
+            )
+            schema_dropped = None
+        # Provisioning events require school_id FK — log before School row delete.
         SchoolProvisioningEvent.log_event(
             school=school,
             event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_PURGE_COMPLETED,
@@ -714,6 +725,7 @@ def apply_purge(
                 "manifest_path": manifest_path,
                 "schema_dropped": schema_dropped,
                 "purge_source": purge_source,
+                "school_id": school_id,
             },
             created_by=actor,
         )
@@ -723,7 +735,7 @@ def apply_purge(
                 event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_AUTO_PURGE_EXECUTED,
                 status=SchoolProvisioningEvent.Status.SUCCESS,
                 message="Scheduled auto-purge executed",
-                payload={"manifest_path": manifest_path},
+                payload={"manifest_path": manifest_path, "school_id": school_id},
                 created_by=actor,
             )
         logger.warning(
