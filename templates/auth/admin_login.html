@@ -11,7 +11,10 @@
   <link rel="stylesheet" href="{% static 'css/manager-login.css' %}">
 {% endblock %}
 
+{% block cp_scroll_mode %}document{% endblock %}
+{% block rmc_app_shell_attrs %} data-rmc-auth-landing="1"{% endblock %}
 {% block cp_shell_footer %}{% endblock %}
+{% block cp_shell_sidebar %}{% endblock %}
 
 {% block cp_shell_page %}
 <main class="admin-login-landing cp-surface cp-ultra-login" id="cp-main-content" role="main" aria-label="{% trans 'Configuration Engine sign-in' %}">

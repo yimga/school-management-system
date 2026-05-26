@@ -19,9 +19,15 @@ body {
   align-items: center;
   width: 100%;
   max-width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: min(100vh, 100%);
+  min-height: min(100dvh, 100%);
   padding: 0;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] #cp-main-content.manager-login-landing,
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] #cp-main-content.admin-login-landing {
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 /* Direct child of .cp-shell-content (not .cp-layout); must span the viewport width. */

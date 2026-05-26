@@ -6,7 +6,7 @@
 
 /* ----- Force sidebar LEFT of dashboard (never on top); single scroll in main ----- */
 /* Manager /admin/* uses .admin-cp-unified-page (column chrome + cp-layout); do not apply tenant row/sidebar sizing. */
-#page:not(.admin-cp-unified-page) {
+#page:not(.admin-cp-unified-page):not(:has(.admin-cp-unified-page)) {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
@@ -14,16 +14,16 @@
   max-height: 100vh !important;
   overflow: hidden !important;
 }
-#page:not(.admin-cp-unified-page) .admin-sidebar-column,
-#page:not(.admin-cp-unified-page) > div:first-child {
+#page:not(.admin-cp-unified-page):not(:has(.admin-cp-unified-page)) .admin-sidebar-column,
+#page:not(.admin-cp-unified-page):not(:has(.admin-cp-unified-page)) > div:first-child {
   flex: 0 0 288px !important;
   width: 288px !important;
   max-width: 288px !important;
   min-width: 288px !important;
 }
 @media (max-width: 1279px) {
-  #page:not(.admin-cp-unified-page) .admin-sidebar-column,
-  #page:not(.admin-cp-unified-page) > div:first-child {
+  #page:not(.admin-cp-unified-page):not(:has(.admin-cp-unified-page)) .admin-sidebar-column,
+  #page:not(.admin-cp-unified-page):not(:has(.admin-cp-unified-page)) > div:first-child {
     flex: 0 0 0 !important;
     width: 0 !important;
     min-width: 0 !important;

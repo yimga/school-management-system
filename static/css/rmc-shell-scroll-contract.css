@@ -1,0 +1,105 @@
+/**
+ * rmc-shell-scroll-contract.css — scroll root repair (v3.96.2)
+ * ---------------------------------------------------------------
+ * Loads AFTER rmc-isomorphic-grid-sweep.css. Restores vertical scroll when
+ * viewport-locked shells or legacy #page traps block the canvas/document.
+ */
+
+/* ── Canvas mode: single scroll surface is .rmc-app-shell__canvas ── */
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell {
+  min-height: 0;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas,
+body.admin-manager-shell .admin-cp-unified-page.rmc-app-shell .rmc-app-shell__canvas {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-body,
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-body,
+body.admin-manager-shell .rmc-app-shell__canvas-body.cp-admin-canvas-main,
+body.admin-manager-shell #cp-main-content.cp-admin-canvas-main {
+  overflow: visible !important;
+  max-height: none !important;
+  min-height: 0;
+}
+
+/* ── Document mode: natural page height (auth landings, portal bridge) ── */
+html:not([data-rmc-shell="off"]) body.control-plane-shell[data-rmc-cp-scroll="document"],
+html:not([data-rmc-shell="off"]) body.admin-manager-shell[data-rmc-cp-scroll="document"] {
+  max-height: none !important;
+  min-height: var(--rmc-iso-viewport-h-fallback, 100vh);
+  min-height: var(--rmc-iso-viewport-h, 100dvh);
+  height: auto !important;
+  overflow-x: clip;
+  overflow-y: auto !important;
+}
+
+html:not([data-rmc-shell="off"]) body[data-rmc-cp-scroll="document"] .rmc-app-shell {
+  height: auto !important;
+  max-height: none !important;
+  min-height: var(--rmc-iso-viewport-h-fallback, 100vh);
+  min-height: var(--rmc-iso-viewport-h, 100dvh);
+}
+
+html:not([data-rmc-shell="off"]) body[data-rmc-cp-scroll="document"] .rmc-app-shell__canvas {
+  overflow: visible !important;
+  min-height: auto;
+  max-height: none;
+}
+
+html:not([data-rmc-shell="off"]) body[data-rmc-cp-scroll="document"] .rmc-app-shell__canvas-body,
+html:not([data-rmc-shell="off"]) body[data-rmc-cp-scroll="document"] #cp-main-content.cp-ultra-login,
+html:not([data-rmc-shell="off"]) body[data-rmc-cp-scroll="document"] #cp-main-content.manager-login-landing,
+html:not([data-rmc-shell="off"]) body[data-rmc-cp-scroll="document"] #cp-main-content.admin-login-landing {
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+/* ── Auth landings: full-width column, no empty sidebar/copilot squeeze ── */
+body.control-plane-shell[data-rmc-auth-landing="1"] .rmc-app-shell,
+body.control-plane-shell .rmc-app-shell[data-rmc-auth-landing="1"] {
+  grid-template-columns: 1fr !important;
+}
+
+body.control-plane-shell[data-rmc-auth-landing="1"] .rmc-app-shell__sidebar,
+body.control-plane-shell .rmc-app-shell[data-rmc-auth-landing="1"] .rmc-app-shell__sidebar,
+body.control-plane-shell[data-rmc-auth-landing="1"] .rmc-app-shell__copilot,
+body.control-plane-shell .rmc-app-shell[data-rmc-auth-landing="1"] .rmc-app-shell__copilot {
+  display: none !important;
+}
+
+body.control-plane-shell[data-rmc-auth-landing="1"] .rmc-app-shell__header:empty,
+body.control-plane-shell .rmc-app-shell[data-rmc-auth-landing="1"] .rmc-app-shell__header:empty {
+  display: none;
+}
+
+body.control-plane-shell[data-rmc-auth-landing="1"] .rmc-app-shell__canvas,
+body.control-plane-shell .rmc-app-shell[data-rmc-auth-landing="1"] .rmc-app-shell__canvas {
+  grid-column: 1 / -1;
+}
+
+/* ── Legacy Unfold #page trap must not win over .rmc-app-shell admin chrome ── */
+#page:has(.admin-cp-unified-page),
+#page:has(> .admin-cp-unified-page) {
+  display: block !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+#page:has(.admin-cp-unified-page) > #main {
+  overflow: visible !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+}

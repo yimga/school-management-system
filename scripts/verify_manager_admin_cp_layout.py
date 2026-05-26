@@ -19,6 +19,7 @@ CSS_FILES = (
     "static/css/admin-base-site-shell.css",
     "static/css/admin-cp-parity.css",
     "static/css/rmc-sidebar-rail-contract.css",
+    "static/css/rmc-shell-scroll-contract.css",
 )
 
 # Tenant-only row layout must not apply to unified manager admin page.
@@ -27,7 +28,7 @@ ROW_LAYOUT_OK = re.compile(
     re.DOTALL,
 )
 FIRST_CHILD_TRAP = re.compile(
-    r"#page:not\(\.admin-cp-unified-page\)\s*>\s*div:first-child",
+    r"#page:not\(\.admin-cp-unified-page\)(?::not\(:has\(\.admin-cp-unified-page\)\))?\s*>\s*div:first-child",
 )
 UNIFIED_COLUMN = re.compile(
     r"\.admin-cp-unified-page\s*\{[^}]*flex-direction:\s*column",
@@ -43,6 +44,22 @@ DOCUMENT_MAIN_CONTRACT = re.compile(
 )
 CANVAS_SCROLL_CONTRACT = re.compile(
     r"body\.admin-manager-shell\[data-rmc-cp-scroll=\"canvas\"\].*\.rmc-app-shell__canvas\s*\{[^}]*overflow-y:\s*auto",
+    re.DOTALL,
+)
+SCROLL_CONTRACT_FILE = re.compile(
+    r"rmc-shell-scroll-contract\.css",
+    re.DOTALL,
+)
+AUTH_DOCUMENT_SCROLL = re.compile(
+    r'data-rmc-cp-scroll="\{% block cp_scroll_mode %\}canvas\{% endblock %\}"',
+    re.DOTALL,
+)
+AUTH_LANDING_ATTR = re.compile(
+    r'data-rmc-auth-landing="1"',
+    re.DOTALL,
+)
+PAGE_HAS_GUARD = re.compile(
+    r"#page:not\(\.admin-cp-unified-page\):not\(:has\(\.admin-cp-unified-page\)\)",
     re.DOTALL,
 )
 CP_PAGE_BODY_CONTRACT = re.compile(
@@ -84,6 +101,16 @@ def check_css() -> list[str]:
                 errors.append(
                     f"{rel}: missing canvas-scroll .rmc-app-shell__canvas overflow-y:auto contract"
                 )
+        if rel.endswith("rmc-shell-scroll-contract.css"):
+            if "overflow-y: auto !important" not in text:
+                errors.append(f"{rel}: missing canvas overflow-y:auto repair")
+            if "#page:has(.admin-cp-unified-page)" not in text:
+                errors.append(f"{rel}: missing #page:has(.admin-cp-unified-page) unwind")
+        if rel.endswith("admin-sidebar-scroll.css"):
+            if not PAGE_HAS_GUARD.search(text):
+                errors.append(
+                    f"{rel}: missing :has(.admin-cp-unified-page) guard on legacy #page trap"
+                )
     admin_base = (REPO_ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
     if "admin-cp-unified-page" not in admin_base:
         errors.append("templates/admin/base.html missing admin-cp-unified-page class")
@@ -102,6 +129,21 @@ def check_css() -> list[str]:
         )
     if "rmc-app-shell.css" not in base_site:
         errors.append("templates/admin/base_site.html must load rmc-app-shell.css on manager host")
+    chrome_styles = (REPO_ROOT / "templates/partials/rmc_platform_chrome_styles.html").read_text(
+        encoding="utf-8"
+    )
+    if "rmc-shell-scroll-contract.css" not in chrome_styles:
+        errors.append(
+            "templates/partials/rmc_platform_chrome_styles.html must load rmc-shell-scroll-contract.css"
+        )
+    admin_login = (REPO_ROOT / "templates/auth/admin_login.html").read_text(encoding="utf-8")
+    if '{% block cp_scroll_mode %}document{% endblock %}' not in admin_login:
+        errors.append("templates/auth/admin_login.html must set cp_scroll_mode=document")
+    if 'data-rmc-auth-landing="1"' not in admin_login:
+        errors.append("templates/auth/admin_login.html must mark data-rmc-auth-landing=1")
+    cp_sk = (REPO_ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")
+    if '{% block cp_scroll_mode %}canvas{% endblock %}' not in cp_sk:
+        errors.append("templates/control_plane_skeleton.html must expose cp_scroll_mode block")
     if "legacyPage.classList.add('admin-cp-unified-page')" not in base_site:
         errors.append(
             "templates/admin/base_site.html must tag legacy #page with admin-cp-unified-page"
