@@ -56,7 +56,13 @@
     <div class="card">
       <div class="card-body">
         <h5 class="mb-3">Close cashier day</h5>
-        <form method="post" id="cash-office-closure-form" data-draft-key="cash_office_closure_{{ closure_profile_id }}" data-draft-max-age-hours="48" data-draft-pending-label="Unsynced cash closure">
+        <form method="post" id="cash-office-closure-form"
+              data-draft-key="cash_office_closure_{{ closure_profile_id }}" data-draft-max-age-hours="48"
+              data-draft-pending-label="Unsynced cash closure"
+              data-rmc-offline-form="field_capture"
+              data-offline-action-type="notes_report"
+              data-rmc-offline-workflow="finance_cash_closure"
+              data-rmc-offline-hint="Cash closure figures stay on this device until you reconnect and sync.">
           {% csrf_token %}
           <div class="row g-3">
             <div class="col-md-6">

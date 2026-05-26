@@ -18,6 +18,13 @@ from datetime import timedelta
 from apps.accounts.mfa_setup_flow import build_mfa_setup_context, handle_mfa_setup_post
 
 
+def _mfa_template(request, name: str) -> str:
+    if getattr(request, "public_host_kind", None) == "manager":
+        stem, suffix = name.rsplit(".", 1)
+        return f"{stem}_manager.{suffix}"
+    return name
+
+
 def _safe_next_url(request, candidate, fallback=""):
     if not candidate:
         return fallback
@@ -51,11 +58,11 @@ def mfa_setup(request):
         if outcome == "redirect_mfa_setup":
             return redirect("accounts:mfa_setup")
         if outcome == "render" and ctx:
-            return render(request, "accounts/mfa_setup.html", ctx)
+            return render(request, _mfa_template(request, "accounts/mfa_setup.html"), ctx)
 
     return render(
         request,
-        "accounts/mfa_setup.html",
+        _mfa_template(request, "accounts/mfa_setup.html"),
         build_mfa_setup_context(request, next_url=next_url),
     )
 
@@ -147,7 +154,7 @@ def mfa_verify(request):
     has_passkey = UserPasskey.objects.filter(user=request.user).exists()
     return render(
         request,
-        "accounts/mfa_verify.html",
+        _mfa_template(request, "accounts/mfa_verify.html"),
         {
             "next_url": next_url,
             "use_passkey": _webauthn_available() and has_passkey,

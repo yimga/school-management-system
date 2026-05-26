@@ -1,0 +1,16 @@
+{% extends "backend_base_manager.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Verify your sign-in" %}{% endblock %}
+{% block backend_title %}{% trans "Verify your sign-in" %}{% endblock %}
+{% block cp_title %}{% trans "Verify your sign-in" %}{% endblock %}
+{% block cp_page_archetype %}security-workbench{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-account-surface.css' %}">
+{% endblock %}
+
+{% block backend_main %}
+{% include "accounts/partials/mfa_verify_page_body.html" %}
+{% endblock %}

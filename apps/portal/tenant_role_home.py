@@ -133,10 +133,14 @@ def _unread_messages_count(request: HttpRequest) -> int:
     user = getattr(request, "user", None)
     if user is None or not getattr(user, "is_authenticated", False):
         return 0
+    school = getattr(request, "school", None)
+    if school is None:
+        return 0
     try:
         from apps.communication.models import Message
 
         return Message.objects.filter(
+            school=school,
             recipient=user,
             is_read=False,
             is_archived=False,

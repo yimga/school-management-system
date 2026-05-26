@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 def _get_school(request):
-    return getattr(request, "school", None)
+    try:
+        from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+        return resolve_request_school(request)
+    except ImportError:
+        return getattr(request, "school", None)
 
 
 @login_required

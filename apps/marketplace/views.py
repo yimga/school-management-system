@@ -200,10 +200,15 @@ def governance_console(request):
     )
     catalog_counts = get_platform_catalog_counts()
     listings_page = Paginator(listings, 15).get_page(request.GET.get("page") or 1)
-    from apps.platform_runtime.operational_center_nav import marketplace_governance_frame_context
+    from apps.platform_runtime.operational_center_nav import (
+        enrich_operational_frame_context,
+        marketplace_governance_frame_context,
+    )
 
     context = {
-        **marketplace_governance_frame_context(),
+        **enrich_operational_frame_context(
+            request, marketplace_governance_frame_context()
+        ),
         "metrics": metrics,
         "listings": list(listings_page.object_list),
         "page_obj": listings_page,
@@ -480,7 +485,10 @@ def blueprint_marketplace(request):
         "packs_total": packs_qs.count(),
         "showing": len(packs),
     }
-    from apps.platform_runtime.operational_center_nav import blueprint_marketplace_frame_context
+    from apps.platform_runtime.operational_center_nav import (
+        blueprint_marketplace_frame_context,
+        enrich_operational_frame_context,
+    )
 
     return render(
         request,
@@ -496,7 +504,9 @@ def blueprint_marketplace(request):
             "school_bundles": school_bundles,
             "preview": preview,
             "catalog_counts": catalog_counts,
-            **blueprint_marketplace_frame_context(),
+            **enrich_operational_frame_context(
+                request, blueprint_marketplace_frame_context()
+            ),
         },
     )
 
@@ -664,47 +674,16 @@ def app_catalog(request):
     browse_q.pop("page", None)
     pagination_extra_query = browse_q.urlencode()
 
-    # region agent log
-    try:
-        from django.template import TemplateDoesNotExist, TemplateSyntaxError
-        from django.template.loader import get_template
-
-        get_template("marketplace/app_catalog.html")
-        _mkt_tpl_ok = True
-        _mkt_tpl_err = ""
-    except (TemplateDoesNotExist, TemplateSyntaxError) as exc:
-        _mkt_tpl_ok = False
-        _mkt_tpl_err = type(exc).__name__
-    try:
-        from pathlib import Path as _Path
-        import json as _json
-        import time as _time
-
-        _log = _Path(__file__).resolve().parents[2] / "debug-22cfee.log"
-        _log.open("a", encoding="utf-8").write(
-            _json.dumps(
-                {
-                    "sessionId": "22cfee",
-                    "hypothesisId": "H-A",
-                    "location": "marketplace.views.app_catalog",
-                    "message": "template_compile_precheck",
-                    "data": {"ok": _mkt_tpl_ok, "error": _mkt_tpl_err},
-                    "timestamp": int(_time.time() * 1000),
-                }
-            )
-            + "\n"
-        )
-    except OSError:
-        pass
-    # endregion
-
-    from apps.platform_runtime.operational_center_nav import app_catalog_frame_context
+    from apps.platform_runtime.operational_center_nav import (
+        app_catalog_frame_context,
+        enrich_operational_frame_context,
+    )
 
     return render(
         request,
         "marketplace/app_catalog.html",
         {
-            **app_catalog_frame_context(),
+            **enrich_operational_frame_context(request, app_catalog_frame_context()),
             "listings": listings_page,
             "page_obj": page_obj,
             "search_query": search_query,
@@ -751,6 +730,11 @@ def compatibility_matrix(request):
             }
         )
     rows_page = Paginator(rows, 20).get_page(request.GET.get("page") or 1)
+    from apps.platform_runtime.operational_center_nav import (
+        compatibility_matrix_frame_context,
+        enrich_operational_frame_context,
+    )
+
     return render(
         request,
         "marketplace/compatibility_matrix.html",
@@ -758,6 +742,9 @@ def compatibility_matrix(request):
             "rows": list(rows_page.object_list),
             "page_obj": rows_page,
             "pagination_extra_query": "",
+            **enrich_operational_frame_context(
+                request, compatibility_matrix_frame_context()
+            ),
         },
     )
 
@@ -780,13 +767,18 @@ def sandbox_inspector(request):
     installations_page = Paginator(installations_qs, 20).get_page(
         request.GET.get("page") or 1
     )
-    from apps.platform_runtime.operational_center_nav import sandbox_inspector_frame_context
+    from apps.platform_runtime.operational_center_nav import (
+        enrich_operational_frame_context,
+        sandbox_inspector_frame_context,
+    )
 
     return render(
         request,
         "marketplace/sandbox_inspector.html",
         {
-            **sandbox_inspector_frame_context(),
+            **enrich_operational_frame_context(
+                request, sandbox_inspector_frame_context()
+            ),
             "installations": list(installations_page.object_list),
             "page_obj": installations_page,
             "pagination_extra_query": "",
@@ -812,7 +804,10 @@ def installation_health(request):
     installations_page = Paginator(installations_qs, 20).get_page(
         request.GET.get("page") or 1
     )
-    from apps.platform_runtime.operational_center_nav import installation_health_frame_context
+    from apps.platform_runtime.operational_center_nav import (
+        enrich_operational_frame_context,
+        installation_health_frame_context,
+    )
 
     return render(
         request,
@@ -822,7 +817,9 @@ def installation_health(request):
             "page_obj": installations_page,
             "pagination_extra_query": "",
             "dashboard_url": dashboard_url,
-            **installation_health_frame_context(),
+            **enrich_operational_frame_context(
+                request, installation_health_frame_context()
+            ),
         },
     )
 
@@ -859,6 +856,11 @@ def marketplace_incident_dashboard(request):
         .select_related("school", "app", "actor")
         .order_by("-created_at")[:50]
     )
+    from apps.platform_runtime.operational_center_nav import (
+        enrich_operational_frame_context,
+        marketplace_incident_frame_context,
+    )
+
     return render(
         request,
         "marketplace/incident_dashboard.html",
@@ -866,6 +868,9 @@ def marketplace_incident_dashboard(request):
             "support_url": support_url,
             "dashboard_url": dashboard_url,
             "recent_events": recent_events,
+            **enrich_operational_frame_context(
+                request, marketplace_incident_frame_context()
+            ),
         },
     )
 
@@ -937,8 +942,20 @@ def package_rollout(request):
     except ProgrammingError:
         # Table packages_installedpackage may not exist yet (migrations not run or wrong schema).
         sandbox_packages = []
+    from apps.platform_runtime.operational_center_nav import (
+        enrich_operational_frame_context,
+        package_rollout_frame_context,
+    )
+
     return render(
-        request, "marketplace/package_rollout.html", {"packages": sandbox_packages}
+        request,
+        "marketplace/package_rollout.html",
+        {
+            "packages": sandbox_packages,
+            **enrich_operational_frame_context(
+                request, package_rollout_frame_context()
+            ),
+        },
     )
 
 

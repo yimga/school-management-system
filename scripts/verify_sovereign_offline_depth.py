@@ -58,10 +58,19 @@ def main() -> int:
             text = path.read_text(encoding="utf-8", errors="replace")
             if 'data-rmc-offline-form="' in text:
                 form_hits += 1
-    if form_hits < 14:
-        findings.append(f"expected >=14 templates with data-rmc-offline-form (found {form_hits})")
+    if form_hits < 20:
+        findings.append(f"expected >=20 templates with data-rmc-offline-form (found {form_hits})")
 
     portal = _text("templates/portal_base.html")
+    forms = _text("static/js/rmc-offline-portal-forms.js")
+
+    if 'data-rmc-offline-form="field_capture"' not in _text("templates/schoolops/substitute_handover_form.html"):
+        findings.append("schoolops substitute_handover missing field_capture")
+    if "wireFieldCapture" not in forms:
+        findings.append("rmc-offline-portal-forms missing wireFieldCapture")
+    if "deltaEndpointUrl" not in portal or "hydrateEndpoints" not in portal:
+        findings.append("portal_base missing deltaEndpointUrl or hydrateEndpoints")
+
     for needle in (
         "form-draft-save.js",
         "rmc-offline-auth-vault.js",
@@ -71,7 +80,6 @@ def main() -> int:
         if needle not in portal:
             findings.append(f"portal_base missing {needle}")
 
-    forms = _text("static/js/rmc-offline-portal-forms.js")
     if 'support_ticket' not in forms:
         findings.append("rmc-offline-portal-forms missing support_ticket wiring")
 

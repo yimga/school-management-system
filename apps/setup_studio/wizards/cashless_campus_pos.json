@@ -1,0 +1,85 @@
+{
+  "wizard_key": "cashless_campus_pos",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.cashless_campus_pos.label",
+  "description_token": "wizards.cashless_campus_pos.description",
+  "icon_class": "rmc-icon-pos",
+  "estimated_minutes": 8,
+  "gates": {
+    "permission_codename": "schoolops.change_meal_plan"
+  },
+  "ai": {
+    "smart_defaults": true
+  },
+  "steps": [
+    {
+      "key": "terminal_registration",
+      "input_type": "key_value_pairs",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pos_terminals"
+      }
+    },
+    {
+      "key": "credential_mapping",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_pos_credential_methods",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "country_code"
+        ],
+        "prompt_template_key": "prompt.pos.suggest_terminal_layout"
+      },
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pos_credentials"
+      }
+    },
+    {
+      "key": "daily_guardrails",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "parent_default_daily_limit_decimal",
+          "type": "decimal",
+          "required": true
+        },
+        {
+          "name": "top_up_minimum",
+          "type": "decimal",
+          "required": true
+        },
+        {
+          "name": "top_up_maximum",
+          "type": "decimal",
+          "required": true
+        },
+        {
+          "name": "low_balance_threshold",
+          "type": "decimal",
+          "required": true
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pos_guardrails"
+      }
+    },
+    {
+      "key": "allergen_dietary_rules",
+      "input_type": "boolean",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pos_allergens"
+      }
+    }
+  ]
+}

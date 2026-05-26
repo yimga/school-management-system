@@ -6,7 +6,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
 
-from apps.accounts.permissions import tenant_operator_hub_eligible
+from apps.lifecycle.tenant_school_resolve import (
+    can_access_tenant_lifecycle,
+    resolve_request_school,
+)
 from apps.schools.control_plane import user_has_control_plane_access
 from apps.schools.models import School
 
@@ -28,8 +31,8 @@ def tenant_lifecycle_dashboard(request):
             ctx,
         )
 
-    school = getattr(request, "school", None)
-    if tenant_operator_hub_eligible(request.user) and school is not None:
+    school = resolve_request_school(request)
+    if school is not None and can_access_tenant_lifecycle(request, school):
         ctx = build_lifecycle_dashboard_context([school], viewer_scope="tenant")
         return render(
             request,

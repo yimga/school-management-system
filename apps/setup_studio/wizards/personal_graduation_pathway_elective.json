@@ -1,0 +1,63 @@
+{
+  "wizard_key": "personal_graduation_pathway_elective",
+  "version": 1,
+  "audience": [
+    "student",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.personal_graduation_pathway_elective.label",
+  "description_token": "wizards.personal_graduation_pathway_elective.description",
+  "icon_class": "rmc-icon-graduate",
+  "estimated_minutes": 10,
+  "gates": {
+    "permission_codename": "academics.add_studentelective"
+  },
+  "ai": {
+    "smart_defaults": true
+  },
+  "steps": [
+    {
+      "key": "target_objective",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_post_secondary_objectives",
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pathway_objective"
+      }
+    },
+    {
+      "key": "credit_metric_audit",
+      "input_type": "boolean",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pathway_audit"
+      }
+    },
+    {
+      "key": "dynamic_class_matcher",
+      "input_type": "multi_choice",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "country_code"
+        ],
+        "prompt_template_key": "prompt.pathway.suggest_courses"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pathway_matcher"
+      }
+    },
+    {
+      "key": "pathway_lock",
+      "input_type": "boolean",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pathway_lock"
+      }
+    }
+  ]
+}

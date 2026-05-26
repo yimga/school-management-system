@@ -1,0 +1,54 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Building your school" %}{% endblock %}
+{% block content %}
+<div class="container py-3 rmc-iso-wizard-shell" style="max-width: 48rem;"
+     data-rmc-isomorphic-wizard="1"
+     data-shell-surface="tenant-provisioning"
+     data-rmc-provisioning-status="1">
+  <header class="mb-4">
+    <h1 class="h3 mb-1">{% trans "Building your school" %}</h1>
+    <p class="text-muted small mb-0">
+      {% trans "Path:" %} <span class="badge text-bg-secondary">{{ launch_rail.creation_path_label }}</span>
+      · {% trans "Status:" %} <span class="badge text-bg-primary">{{ unified.label }}</span>
+    </p>
+  </header>
+
+  {% if unified.provisioning_in_flight %}
+  <div class="alert alert-info" role="status" aria-live="polite" data-rmc-provisioning-poll="1"
+       data-rmc-provisioning-api="{{ api_status_url }}">
+    {% trans "Provisioning is in progress. This page refreshes automatically." %}
+  </div>
+  {% elif unified.state == "activating" or unified.state == "live" %}
+  <div class="alert alert-success" role="status">
+    {% trans "Your school workspace is ready. Continue with the fast path or full launch rail." %}
+  </div>
+  {% endif %}
+
+  <div class="progress mb-4" style="height: 0.5rem;" aria-hidden="true">
+    <div class="progress-bar" role="progressbar"
+         style="width: {{ launch_rail.fast_path_percent|default:0 }}%;"
+         aria-valuenow="{{ launch_rail.fast_path_percent|default:0 }}"
+         aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
+  <p class="small text-muted">{% blocktrans with pct=launch_rail.fast_path_percent|default:0 %}Fast path {{ pct }}% complete{% endblocktrans %}</p>
+
+  <h2 class="h6 text-uppercase text-muted">{% trans "Provisioning timeline" %}</h2>
+  <ul class="list-group list-group-flush border rounded mb-4" data-rmc-provisioning-timeline="1">
+    {% for ev in provisioning_timeline %}
+    <li class="list-group-item small d-flex justify-content-between gap-2">
+      <span><code>{{ ev.event_type }}</code> — {{ ev.message|default:"" }}</span>
+      <span class="text-muted">{{ ev.status }}</span>
+    </li>
+    {% empty %}
+    <li class="list-group-item small text-muted">{% trans "Waiting for first provisioning event…" %}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-primary" href="{{ fast_path_url }}">{% trans "Continue fast path" %}</a>
+    <a class="btn btn-outline-secondary" href="{{ studio_url }}">{% trans "Open School Studio" %}</a>
+  </div>
+</div>
+<script src="{% static 'js/rmc-tenant-provisioning-status.js' %}" defer></script>
+{% endblock %}

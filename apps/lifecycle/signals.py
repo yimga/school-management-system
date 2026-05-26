@@ -66,6 +66,8 @@ def school_post_save_record_lifecycle(sender, instance, created, **kwargs):
 
 
 _PROVISIONING_EVENT_STAGE_MAP = {
+    "QUEUED": "ONBOARDING_STARTED",
+    "STARTED": "ONBOARDING_STARTED",
     "OFFBOARDING_SELF_SERVICE_REQUESTED": "OFFBOARDING_REQUESTED",
     "OFFBOARDING_EXPORT": "OFFBOARDING_EXPORTED",
     "OFFBOARDING_AUTO_PURGE_SCHEDULED": "OFFBOARDING_GRACE",
@@ -95,6 +97,29 @@ def provisioning_event_post_save_mirror(sender, instance, created, **kwargs):
                     note=f"Mirrored from {event_type}",
                     payload={"source": "schools.SchoolProvisioningEvent", "event_type": event_type},
                 )
+                try:
+                    from apps.lifecycle.unified_lifecycle import (
+                        STATE_LIVE,
+                        STATE_PROVISIONING,
+                        record_unified_transition,
+                    )
+
+                    if event_type in ("QUEUED", "STARTED"):
+                        record_unified_transition(
+                            school,
+                            STATE_PROVISIONING,
+                            note=f"provision_{event_type.lower()}",
+                            payload={"source": "schools.SchoolProvisioningEvent"},
+                        )
+                    elif event_type == "COMPLETED":
+                        record_unified_transition(
+                            school,
+                            STATE_LIVE,
+                            note="provision_completed",
+                            payload={"source": "schools.SchoolProvisioningEvent"},
+                        )
+                except (ImportError, ValueError, TypeError, OSError):
+                    pass
         # Wave L6: also mirror offboarding events into the
         # MigrationCloudAuditEvent hash-chained audit log. Idempotent
         # short-circuit when event_type isn't an offboarding type.

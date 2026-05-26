@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% block rmc_operator_surface_strip %}{% endblock %}
 {% load static phase8_tags i18n %}
 
 {% block cp_title %}{% trans "Sandbox inspector" %}{% endblock %}
@@ -11,10 +12,10 @@
 
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
-<div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1">
+<div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-decision-engine="surface" data-rmc-scroll-policy="paginate" data-rmc-operational-workbench="1" data-rmc-marketplace-workbench="1">
   {% phase8_dashboard_declaration "marketplace/sandbox_inspector.html" %}
   {% url 'super:marketplace_governance' as governance_url %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="sandbox_inspector" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#sandbox-list" primary_label=_("View sandboxes") secondary_url=governance_url secondary_label=_("Governance") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="sandbox_inspector" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#sandbox-list" primary_label=_("View sandboxes") secondary_url=governance_url secondary_label=_("Governance") tertiary_url=tertiary_url tertiary_label=tertiary_label tertiary_icon=tertiary_icon %}
 
   <nav class="rmc-section-nav rmc-section-nav--inline mb-2" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
     <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>

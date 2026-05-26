@@ -137,6 +137,7 @@ def super_operator_team_detail(request, user_id: int):
     try:
         from apps.siteconfig.models import ImpersonationLog
 
+        # tenant-isolation-allow: platform-operator-impersonation-audit-cross-tenant-by-design
         impersonation_rows = list(
             ImpersonationLog.objects.filter(actor_id=user.pk)
             .select_related("peer_actor", "school")

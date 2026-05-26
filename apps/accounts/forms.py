@@ -88,6 +88,7 @@ class UserRoleForm(forms.Form):
         required=True,
         empty_label="Select user",
     )
+    # tenant-isolation-allow: class-level-queryset-overridden-in-form-init-via-roles-queryset-for-school
     roles = forms.ModelMultipleChoiceField(
         queryset=AccessRole.objects.all(),
         required=False,
@@ -114,6 +115,7 @@ class TemporaryRoleGrantForm(forms.Form):
         empty_label="Select user",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
+    # tenant-isolation-allow: class-level-queryset-overridden-in-form-init-via-roles-queryset-for-school
     role = forms.ModelChoiceField(
         queryset=AccessRole.objects.all(),
         required=True,

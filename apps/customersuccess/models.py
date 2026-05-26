@@ -308,3 +308,66 @@ class AutoTicketRule(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_trigger_display()})"
+
+
+# ---------- v3.94.0 Helpcenter knowledge source — first-class model ----------
+
+
+class HelpcenterSource(models.Model):
+    """First-class promotion of the v3.93.3 ``school.settings["customersuccess"]["helpcenter_sources"]`` ledger.
+
+    Recorded by the Unified Wizard Framework's ``ai_helpcenter_knowledge_injection``
+    wizard via ``apps.customersuccess.services.register_helpcenter_source``. Each
+    row represents one registered help knowledge source — either an uploaded
+    file (PDF / DOCX / TXT) or a URL pointing at an external article.
+    """
+
+    class Kind(models.TextChoices):
+        FILE = "FILE", "File upload"
+        URL = "URL", "Web URL"
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="helpcenter_sources",
+    )
+    kind = models.CharField(max_length=8, choices=Kind.choices, db_index=True)
+    # Storage for either form — exactly one of file_name / url is populated.
+    file_name = models.CharField(max_length=255, blank=True, default="")
+    file_size = models.IntegerField(null=True, blank=True)
+    url = models.URLField(max_length=2048, blank=True, default="")
+    registered_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    registered_by_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="helpcenter_sources_registered",
+    )
+
+    class Meta:
+        ordering = ["-registered_at"]
+        verbose_name = "Helpcenter source"
+        verbose_name_plural = "Helpcenter sources"
+        indexes = [
+            models.Index(fields=["school", "kind"]),
+            models.Index(fields=["school", "-registered_at"]),
+        ]
+        constraints = [
+            # Prevent duplicate registrations of the same URL or filename per school.
+            models.UniqueConstraint(
+                fields=["school", "url"],
+                name="uniq_helpcenter_source_per_school_url",
+                condition=models.Q(kind="URL"),
+            ),
+            models.UniqueConstraint(
+                fields=["school", "file_name"],
+                name="uniq_helpcenter_source_per_school_file",
+                condition=models.Q(kind="FILE"),
+            ),
+        ]
+
+    def __str__(self):
+        if self.kind == self.Kind.URL:
+            return f"URL: {self.url[:60]} ({self.school.name})"
+        return f"File: {self.file_name} ({self.school.name})"

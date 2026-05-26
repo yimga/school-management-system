@@ -114,7 +114,6 @@
     // CSS / JS fixes never reach users even after we bump CACHE_VERSION.
     navigator.serviceWorker.register(swUrl, { updateViaCache: 'none' })
       .then(function (registration) {
-        try { console.log('Service Worker registered successfully:', registration.scope); } catch (_e) {}
         pushConfigToWorker(registration);
 
         // Aggressively check for an update on every page load. Cheap (one
@@ -141,7 +140,7 @@
         });
       })
       .catch(function (error) {
-        try { console.log('Service Worker registration failed:', error); } catch (_e) {}
+        try { console.warn('Service Worker registration failed:', error); } catch (_e) {}
       });
   });
 })();

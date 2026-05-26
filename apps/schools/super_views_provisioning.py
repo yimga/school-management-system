@@ -397,6 +397,15 @@ def api_create_school(request):
     try:
         with transaction.atomic():
             school = School.objects.create(**create_kw)
+            try:
+                from apps.lifecycle.unified_lifecycle import (
+                    CREATION_PATH_OPERATOR,
+                    set_creation_path,
+                )
+
+                set_creation_path(school, CREATION_PATH_OPERATOR, save=False)
+            except (ImportError, ValueError, TypeError, OSError):
+                pass
             ensure_brand_profile_colors(
                 school=school,
                 primary_color=primary_color,

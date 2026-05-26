@@ -1,0 +1,81 @@
+{
+  "wizard_key": "omnichannel_communication_routing",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.omnichannel_communication_routing.label",
+  "description_token": "wizards.omnichannel_communication_routing.description",
+  "icon_class": "rmc-icon-broadcast",
+  "estimated_minutes": 10,
+  "gates": {
+    "permission_codename": "communication.change_routing"
+  },
+  "ai": {
+    "smart_defaults": true,
+    "translate_mesh": true
+  },
+  "steps": [
+    {
+      "key": "event_definition",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_event_triggers",
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_comms_event"
+      }
+    },
+    {
+      "key": "gateway_prioritization",
+      "input_type": "ranked_list",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_comm_channels",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_comms_gateway"
+      }
+    },
+    {
+      "key": "asynchronous_guard_rules",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "quiet_hours_start",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "quiet_hours_end",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "max_messages_per_recipient_per_day",
+          "type": "number",
+          "required": false
+        },
+        {
+          "name": "defer_until_business_hours",
+          "type": "boolean",
+          "required": false
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_comms_guards"
+      }
+    },
+    {
+      "key": "ai_translation_mapping",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_supported_locales",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_comms_translation"
+      }
+    }
+  ]
+}

@@ -505,7 +505,20 @@ def build_operator_surface_ia_context(request) -> dict[str, Any]:
 
     spine = build_operator_surface_spine(request)
     paired = build_paired_surface_links(request)
-    strip_visible = _operator_surface_strip_visible(request) and bool(spine)
+    mkt_workbench_suppresses_strip = False
+    try:
+        from apps.platform_runtime.operational_center_nav import (
+            marketplace_operational_frame_suppresses_paired_strip,
+        )
+
+        if marketplace_operational_frame_suppresses_paired_strip(request):
+            paired = []
+            mkt_workbench_suppresses_strip = True
+    except ImportError:
+        pass
+    strip_visible = (
+        _operator_surface_strip_visible(request) and bool(spine) and not mkt_workbench_suppresses_strip
+    )
     on_manager_admin = (
         _is_manager_operator_host(request)
         and _detect_operator_surface(request) == "admin"

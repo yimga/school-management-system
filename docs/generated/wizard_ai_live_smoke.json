@@ -1,0 +1,16 @@
+{
+  "confidence_keys": [],
+  "external_pending": true,
+  "external_pending_reason": "LITELLM_BASE_URL or LITELLM_API_KEY env var not set, or RMC_DEPLOYMENT_PROFILE not configured for online AI. See docs/AI_DEPLOYMENT_POSTURE.md.",
+  "latency_ms": 4,
+  "posture": {
+    "LITELLM_API_KEY": "***",
+    "LITELLM_BASE_URL": "",
+    "RMC_DEPLOYMENT_PROFILE": "online"
+  },
+  "prompt_key": "prompt.whitelabel.suggest_palette",
+  "source": "rules",
+  "suggestions_count": 4,
+  "used_fallback": true,
+  "verdict": "WIZARD_AI_FALLBACK_PASS"
+}

@@ -748,6 +748,7 @@ def scim_groups(request: HttpRequest):
     code_base = f"SCIM_{sid}_{slug}"[:118]
     code = code_base
     suffix = 0
+    # tenant-isolation-allow: scim-code-prefix-includes-school-pk-collision-checked-against-platform-wide-template-rows
     while AccessRole.objects.filter(code=code).exists():
         suffix += 1
         code = f"{code_base}_{suffix}"[:120]
@@ -776,7 +777,10 @@ def scim_group_detail(request: HttpRequest, group_id: str):
     if err:
         return err
     _log_scim_request(request, resource="groups")
-    role = AccessRole.objects.filter(pk=group_id).first()
+    # tenant-isolation-allow: scim-group-lookup-scoped-to-authorized-school-or-platform-wide-template
+    role = AccessRole.objects.filter(pk=group_id).filter(
+        Q(school=school) | Q(school__isnull=True)
+    ).first()
     if not role:
         return _scim_error("Group not found", status=404)
 

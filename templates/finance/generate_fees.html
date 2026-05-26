@@ -32,7 +32,13 @@
       {% comment %} Pass 8 Wave 2: was a full-width submit + no Cancel; added a Cancel link to
          match the platform action-bar grammar (Cancel-left + Primary-right) and
          wrapped in form_actions-style div for visual consistency. {% endcomment %}
-      <form method="post" id="generate-fees-form" data-draft-key="generate_fees_{{ request.user.id }}" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced fee generation' %}">
+      <form method="post" id="generate-fees-form"
+            data-draft-key="generate_fees_{{ request.user.id }}" data-draft-max-age-hours="24"
+            data-draft-pending-label="{% trans 'Unsynced fee generation' %}"
+            data-rmc-offline-form="field_capture"
+            data-offline-action-type="notes_report"
+            data-rmc-offline-workflow="finance_generate_fees"
+            data-rmc-offline-hint="{% trans 'Fee generation choices stay on this device until you reconnect and sync.' %}">
         {% csrf_token %}
         <div class="row g-2 align-items-end">
           <div class="col-md-12">

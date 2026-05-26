@@ -33,14 +33,29 @@ def _parse_json(request) -> dict:
 
 
 def _require_school_admin(request):
-    school = getattr(request, "school", None)
-    if school is None:
-        return None, JsonResponse({"ok": False, "error": "No school context"}, status=403)
-    if not has_school_permission(request.user, school, "admin"):
-        return None, HttpResponseForbidden(
-            "School administrator permission required for offboarding."
+    try:
+        from apps.lifecycle.tenant_school_resolve import (
+            can_access_tenant_lifecycle,
+            resolve_request_school,
         )
-    return school, None
+
+        school = resolve_request_school(request)
+        if school is None:
+            return None, JsonResponse({"ok": False, "error": "No school context"}, status=403)
+        if not can_access_tenant_lifecycle(request, school):
+            return None, HttpResponseForbidden(
+                "School administrator permission required for offboarding."
+            )
+        return school, None
+    except ImportError:
+        school = getattr(request, "school", None)
+        if school is None:
+            return None, JsonResponse({"ok": False, "error": "No school context"}, status=403)
+        if not has_school_permission(request.user, school, "admin"):
+            return None, HttpResponseForbidden(
+                "School administrator permission required for offboarding."
+            )
+        return school, None
 
 
 @login_required

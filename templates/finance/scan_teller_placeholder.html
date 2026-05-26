@@ -28,7 +28,12 @@
           {% endif %}
         </div>
         {% endif %}
-        <form method="post" enctype="multipart/form-data" id="scan-teller-form" data-draft-key="finance_scan_teller_{{ request.user.id }}" data-draft-max-age-hours="24">
+        <form method="post" enctype="multipart/form-data" id="scan-teller-form"
+              data-draft-key="finance_scan_teller_{{ request.user.id }}" data-draft-max-age-hours="24"
+              data-rmc-offline-form="field_capture"
+              data-offline-action-type="notes_report"
+              data-rmc-offline-workflow="finance_scan_teller"
+              data-rmc-offline-hint="Scan metadata stays on this device until you reconnect; attach receipt image when online.">
           {% csrf_token %}
           <div class="mb-3">
             <label class="form-label">Receipt / teller file</label>

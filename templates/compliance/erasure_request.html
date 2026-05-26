@@ -25,7 +25,10 @@
       <div class="card-body">
         <h1 class="h4 mb-3">{% trans "Right to Erasure" %}</h1>
         <p class="text-muted">{% blocktrans with t=student_sg_lc %}Submit a request to erase a {{ t }}'s personal data (GDPR Art. 17). An administrator will process the request.{% endblocktrans %}</p>
-        <form method="post" action="" id="compliance-erasure-form" data-draft-key="compliance_erasure_{{ school.id }}" data-draft-max-age-hours="72" data-draft-pending-label="{% trans 'Unsynced erasure request' %}">
+        <form method="post" action="" id="compliance-erasure-form" data-draft-key="compliance_erasure_{{ school.id }}" data-draft-max-age-hours="72" data-draft-pending-label="{% trans 'Unsynced erasure request' %}"
+              data-rmc-offline-form="field_capture"
+              data-rmc-offline-workflow="compliance_erasure_request"
+              data-offline-hint="{% trans 'Erasure request details stay on this device until you reconnect and sync.' %}">
           {% csrf_token %}
           <div class="mb-3">
             <label class="form-label" for="student_id">{% blocktrans with t=student_sg %}{{ t }} ID{% endblocktrans %}</label>

@@ -36,7 +36,10 @@
 <div class="card shadow-sm mb-4">
   <div class="card-body">
     <h5 class="mb-3">Action</h5>
-    <form method="post" class="row g-3" id="request-action-form" data-draft-key="request_action_{{ req.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced decision">
+    <form method="post" class="row g-3" id="request-action-form" data-draft-key="request_action_{{ req.id }}" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced decision"
+          data-rmc-offline-form="field_capture"
+          data-rmc-offline-workflow="requests_decision"
+          data-offline-hint="{% trans 'Decision notes stay on this device until you reconnect and sync.' %}">
       {% csrf_token %}
       <div class="col-12">
         <label class="form-label small">Decision notes / clarification reason</label>

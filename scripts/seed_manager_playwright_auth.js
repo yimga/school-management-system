@@ -23,7 +23,11 @@ async function main() {
   fs.mkdirSync(path.dirname(AUTH_STATE_PATH), { recursive: true });
   const browser = await chromium.launch({
     channel: 'chromium',
-    args: [`--host-resolver-rules=${hostRules}`],
+    args: [
+      `--host-resolver-rules=${hostRules}`,
+      '--proxy-server=direct://',
+      '--proxy-bypass-list=*',
+    ],
   });
   const context = await browser.newContext({
     baseURL,

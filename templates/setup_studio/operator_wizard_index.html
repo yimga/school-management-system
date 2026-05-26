@@ -1,0 +1,31 @@
+{% extends "control_plane_skeleton.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Setup Wizards" %}{% endblock %}
+
+{% block extra_head %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="rmc-wizard-shell rmc-wizard-shell--operator">
+  <header class="rmc-wizard-pane__head">
+    <h1 class="rmc-wizard-pane__title">{% trans "Operator setup wizards" %}</h1>
+    <p class="rmc-wizard-pane__subtitle">{% trans "Step-by-step configuration flows for the platform and its tenants." %}</p>
+  </header>
+
+  {% if wizards %}
+    <div style="display:grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+      {% for w in wizards %}
+        <a class="rmc-wizard-card" href="{% url 'setup_studio:operator_wizard' wizard_key=w.wizard_key %}">
+          <h3 class="rmc-wizard-card__title">{{ w.label_token }}</h3>
+          <p class="rmc-wizard-card__meta">{{ w.estimated_minutes }} {% trans "min" %} · {{ w.steps|length }} {% trans "steps" %}</p>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="rmc-wizard-empty">{% trans "No wizards available yet." %}</p>
+  {% endif %}
+</main>
+{% endblock %}

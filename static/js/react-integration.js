@@ -35,8 +35,6 @@ function initReactQuery() {
       },
     },
   });
-
-  console.log('React Query initialized');
 }
 
 // Auto-initialize when DOM is ready

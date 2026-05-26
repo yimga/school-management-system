@@ -1,0 +1,10 @@
+{% load i18n %}
+<div class="rmc-wizard-field">
+  <label class="rmc-wizard-field__label">{{ step_label }}</label>
+  {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
+  <div data-rmc-wizard-map style="min-height:320px; background: var(--surface-bg); border: 1px solid var(--hairline); border-radius: var(--radius-md, 8px); display:flex; align-items:center; justify-content:center;">
+    <p class="rmc-wizard-empty">{% trans "Map view loads here. Tap to add a vertex." %}</p>
+  </div>
+  <input type="hidden" name="value" value="{{ prior_answer.value|default:'' }}" data-rmc-wizard-map-input>
+  {% if errors.value %}<p class="rmc-wizard-field__error">{{ errors.value }}</p>{% endif %}
+</div>

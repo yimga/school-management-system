@@ -10,7 +10,8 @@
      data-rmc-os-role-cluster="{{ rmc_os_shell.role_cluster|default:'operator' }}"
      {% if rmc_os_shell.nav_job_clusters %}data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}
      data-rmc-unified-sidebar="1"
-     data-rmc-complete-sidebar="1">
+     data-rmc-complete-sidebar="1"
+     data-rmc-sidebar-luxury="10x">
 
   <div class="cp-nav-recent d-none" id="cpNavRecentWrap" aria-hidden="true">
     <span class="cp-sidebar__section">{% trans "Recent" %}</span>

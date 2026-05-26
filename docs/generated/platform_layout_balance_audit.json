@@ -1,7 +1,7 @@
 {
   "status": "pass",
   "summary": {
-    "checks": 1420,
+    "checks": 1427,
     "failures": 0,
     "warnings": 0
   },
@@ -46,13 +46,13 @@
       "name": "templates/parent/dashboard.html contains data-rmc-balanced-layout=\"tenant-dashboard-rail\"",
       "status": "pass",
       "file": "templates/parent/dashboard.html",
-      "line": 401
+      "line": 399
     },
     {
       "name": "templates/parent/dashboard.html contains data-dashboard-column=\"rail\"",
       "status": "pass",
       "file": "templates/parent/dashboard.html",
-      "line": 600
+      "line": 598
     },
     {
       "name": "templates/parent/dashboard.html has no stray control characters",
@@ -82,13 +82,13 @@
       "name": "templates/schools/partials/manager_help_center_body.html contains data-rmc-balanced-layout=\"operator-form-rail\"",
       "status": "pass",
       "file": "templates/schools/partials/manager_help_center_body.html",
-      "line": 65
+      "line": 67
     },
     {
       "name": "templates/schools/partials/manager_help_center_body.html contains data-dashboard-column=\"rail\"",
       "status": "pass",
       "file": "templates/schools/partials/manager_help_center_body.html",
-      "line": 113
+      "line": 115
     },
     {
       "name": "templates/schools/partials/manager_help_center_body.html has no stray control characters",
@@ -349,9 +349,21 @@
       "count": 0
     },
     {
+      "name": "templates/accounts/mfa_setup_manager.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/accounts/mfa_setup_manager.html",
+      "count": 0
+    },
+    {
       "name": "templates/accounts/mfa_verify.html has no stray control characters",
       "status": "pass",
       "file": "templates/accounts/mfa_verify.html",
+      "count": 0
+    },
+    {
+      "name": "templates/accounts/mfa_verify_manager.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/accounts/mfa_verify_manager.html",
       "count": 0
     },
     {
@@ -418,6 +430,18 @@
       "name": "templates/accounts/partials/_security_posture_banner.html has no stray control characters",
       "status": "pass",
       "file": "templates/accounts/partials/_security_posture_banner.html",
+      "count": 0
+    },
+    {
+      "name": "templates/accounts/partials/mfa_setup_page_body.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/accounts/partials/mfa_setup_page_body.html",
+      "count": 0
+    },
+    {
+      "name": "templates/accounts/partials/mfa_verify_page_body.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/accounts/partials/mfa_verify_page_body.html",
       "count": 0
     },
     {
@@ -1864,6 +1888,12 @@
       "name": "templates/components/rmc_empty_state.html has no stray control characters",
       "status": "pass",
       "file": "templates/components/rmc_empty_state.html",
+      "count": 0
+    },
+    {
+      "name": "templates/components/rmc_iso_empty_panel.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/components/rmc_iso_empty_panel.html",
       "count": 0
     },
     {
@@ -4453,6 +4483,12 @@
       "count": 0
     },
     {
+      "name": "templates/partials/cp_sidebar_operator_identity.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/cp_sidebar_operator_identity.html",
+      "count": 0
+    },
+    {
       "name": "templates/partials/dataviz/_heatmap.html has no stray control characters",
       "status": "pass",
       "file": "templates/partials/dataviz/_heatmap.html",
@@ -4630,6 +4666,12 @@
       "name": "templates/partials/rmc_interaction_shell_scripts.html has no stray control characters",
       "status": "pass",
       "file": "templates/partials/rmc_interaction_shell_scripts.html",
+      "count": 0
+    },
+    {
+      "name": "templates/partials/rmc_isomorphic_grid_boot.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/rmc_isomorphic_grid_boot.html",
       "count": 0
     },
     {

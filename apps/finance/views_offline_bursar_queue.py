@@ -60,6 +60,11 @@ def offline_payment_intent_queue(request: HttpRequest):
 @staff_member_required(login_url=settings.LOGIN_URL)
 @require_POST
 def offline_payment_intent_approve(request: HttpRequest, intent_id: int):
+    from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+    blocked = block_if_wind_down_commerce(request)
+    if blocked is not None:
+        return blocked
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
@@ -90,6 +95,11 @@ def offline_payment_intent_approve(request: HttpRequest, intent_id: int):
 @require_POST
 def offline_payment_intent_bulk_approve(request: HttpRequest):
     """Approve up to 50 queued intents per POST (SFDP 1445)."""
+    from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+    blocked = block_if_wind_down_commerce(request)
+    if blocked is not None:
+        return blocked
     profile = _active_profile(request)
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")

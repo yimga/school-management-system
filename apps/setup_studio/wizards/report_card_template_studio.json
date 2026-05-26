@@ -1,0 +1,47 @@
+{
+  "wizard_key": "report_card_template_studio",
+  "version": 1,
+  "audience": ["tenant_admin"],
+  "label_token": "wizards.report_card_template_studio.label",
+  "description_token": "wizards.report_card_template_studio.description",
+  "icon_class": "rmc-icon-document-stamped",
+  "estimated_minutes": 10,
+  "ai": {"smart_defaults": true},
+  "steps": [
+    {
+      "key": "template_anchor",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_report_card_templates",
+      "validation": {"required": true},
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_report_card_template"}
+    },
+    {
+      "key": "grade_columns",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_report_card_columns",
+      "validation": {"required": true},
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_report_card_columns"}
+    },
+    {
+      "key": "attendance_block",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "show_attendance_summary", "type": "boolean", "required": true},
+        {"name": "attendance_threshold_warning_pct", "type": "decimal", "required": true, "validation": {"decimal_min": "0.00", "decimal_max": "100.00"}},
+        {"name": "show_punctuality_score", "type": "boolean", "required": true}
+      ],
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_report_card_attendance"}
+    },
+    {
+      "key": "signature_and_seal",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "principal_signature_required", "type": "boolean", "required": true},
+        {"name": "class_teacher_signature_required", "type": "boolean", "required": true},
+        {"name": "parent_signature_required", "type": "boolean", "required": true},
+        {"name": "school_seal_image", "type": "file", "required": false, "validation": {"allowed_extensions": ["png", "svg"], "max_file_bytes": 524288}}
+      ],
+      "persistence": {"target": "custom", "writer": "apps.setup_studio.wizard_resolvers::write_report_card_signature"}
+    }
+  ]
+}

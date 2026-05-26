@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console workflow_guidance_tags %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% if request.public_host_kind == 'manager' %} data-rmc-isomorphic-template="operator-control-plane"{% else %} data-rmc-isomorphic-template="tenant-admin-hub"{% endif %}{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -115,6 +115,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-layout-professional.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-premium-content.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-sidebar-luxury-10x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
     {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
     {% include "partials/rmc_platform_chrome_styles.html" %}
@@ -169,6 +170,8 @@
     <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-sidebar-luxury-10x.css' %}">
     {% if SHOW_MANAGER_CORPORATE_FOOTER %}
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
@@ -541,6 +544,9 @@
 
             <div class="portal-page-body{% if tp_v3_tenant_shell %} tp-canvas-body{% endif %}" data-rmc-portal-page-body="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
             {% include "components/_workflow_auto_chrome.html" %}
+            {% if wind_down_mode %}
+            {% include "partials/rmc_wind_down_banner.html" %}
+            {% endif %}
             {% block content %}{% endblock %}
 
             {% comment %} v3.55.2 (2026-05-21): tenant community + newsletter bands.
@@ -626,12 +632,17 @@
       "offlineConflictsUrl": {% if OFFLINE_CONFLICTS_URL %}"{{ OFFLINE_CONFLICTS_URL|escapejs }}"{% else %}null{% endif %},
       "offlineTokenMintUrl": {% if OFFLINE_TOKEN_MINT_URL %}"{{ OFFLINE_TOKEN_MINT_URL|escapejs }}"{% else %}null{% endif %},
       "permissionSnapshotUrl": {% if OFFLINE_PERMISSION_SNAPSHOT_URL %}"{{ OFFLINE_PERMISSION_SNAPSHOT_URL|escapejs }}"{% else %}null{% endif %},
-      "deltaEndpointUrl": "",
+      "deltaEndpointUrl": {% if OFFLINE_DELTA_URL %}"{{ OFFLINE_DELTA_URL|escapejs }}"{% else %}"/api/offline/delta/"{% endif %},
+      "hydrateEndpoints": [
+        {"url": "/api/entities/students/", "store": "students", "normalizer": "student"},
+        {"url": "/api/attendance/", "store": "attendance", "normalizer": "attendance"},
+        {"url": "/api/entities/classrooms/", "store": "classrooms", "normalizer": "classroom"}
+      ],
       "hubBaseUrl": "{% if OFFLINE_DELIVERY_CLIENT.hubBaseUrl %}{{ OFFLINE_DELIVERY_CLIENT.hubBaseUrl|escapejs }}{% else %}{{ SITE.backend_feature_flags.hub_base_url|default:""|escapejs }}{% endif %}",
       "maxQueueItems": {% if OFFLINE_DELIVERY_CLIENT.maxQueueItems %}{{ OFFLINE_DELIVERY_CLIENT.maxQueueItems }}{% else %}500{% endif %},
       "meshEnabled": {% if OFFLINE_DELIVERY_CLIENT.meshEnabled %}true{% else %}false{% endif %},
       "deploymentProfile": "{{ RMC_DEPLOYMENT_PROFILE|default:"online"|escapejs }}",
-      "aiNeedsNetwork": true,
+      "aiNeedsNetwork": {% if RMC_AI_NEEDS_NETWORK %}true{% else %}false{% endif %},
       "prefetchAtHour": {% if SITE.backend_feature_flags.prefetch_at_hour != None %}{{ SITE.backend_feature_flags.prefetch_at_hour }}{% else %}null{% endif %},
       "parentPortalShell": {% if "/portal/parent" in request.path or "/parent/dashboard" in request.path %}true{% else %}false{% endif %}
     }</script>
@@ -718,6 +729,7 @@
       {% include "partials/rmc_platform_chrome_scripts.html" %}
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
       <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+      {% include "partials/rmc_isomorphic_grid_boot.html" %}
       {# Phase K (2026-05-12): density toggle for .rmc-data-table tables. #}
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
       {# Phase N (2026-05-12): deterministic avatar gradients. #}

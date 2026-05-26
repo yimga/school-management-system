@@ -531,8 +531,8 @@ def _apply_payment_receipt(school_id, user_id: int, payload: dict[str, Any]) -> 
     return {"ok": True, "intent_id": intent.id}
 
 
-def _apply_notes_report(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
-    """Persist narrative captured offline into ``StudentNote`` (idempotent per client_offline_id)."""
+def _persist_student_note(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+    """Create or dedupe a ``StudentNote`` row (no workflow dispatch)."""
     from django.contrib.auth import get_user_model
 
     from apps.people.models import StudentNote, StudentProfile
@@ -594,6 +594,17 @@ def _apply_notes_report(school_id, user_id: int, payload: dict[str, Any]) -> dic
         "chars": len(body),
         "notes_report_capture": True,
     }
+
+
+def _apply_notes_report(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
+    """Persist narrative captured offline into ``StudentNote`` (idempotent per client_offline_id)."""
+    from apps.platform_runtime.offline_workflow_apply import try_apply_field_capture_workflow
+
+    workflow_result = try_apply_field_capture_workflow(school_id, user_id, payload)
+    if workflow_result is not None:
+        return workflow_result
+
+    return _persist_student_note(school_id, user_id, payload)
 
 
 def _decimal_score_equal(left, right) -> bool:
@@ -661,6 +672,7 @@ def _apply_grading(school_id, user_id: int, payload: dict[str, Any]) -> dict[str
     from apps.evals.models import Evaluation
     from apps.sync_engine.conflict_resolver import ResolutionStrategy, resolve_one
 
+    # tenant-isolation-allow: subject-assignment-classroom-school-id-pre-verified-against-school-id-at-line-668
     server_eval = Evaluation.objects.filter(
         student_id=payload["student_id"],
         subject_assignment_id=payload["subject_assignment_id"],

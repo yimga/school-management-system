@@ -31,17 +31,15 @@ def _exists(rel: str) -> bool:
 
 
 def _run(cmd: list[str], timeout: int = 300) -> tuple[int, str]:
-    kwargs = {
-        "cwd": str(ROOT),
-        "capture_output": True,
-        "encoding": "utf-8",
-        "errors": "replace",
-        "timeout": timeout,
-    }
-    if sys.platform == "win32":
-        proc = subprocess.run(subprocess.list2cmdline(cmd), **kwargs, shell=True)
-    else:
-        proc = subprocess.run(cmd, **kwargs, shell=False)
+    proc = subprocess.run(
+        cmd,
+        cwd=str(ROOT),
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
+        shell=False,
+    )
     out = ((proc.stdout or "") + (proc.stderr or "")).strip()
     return proc.returncode, out[-800:]
 

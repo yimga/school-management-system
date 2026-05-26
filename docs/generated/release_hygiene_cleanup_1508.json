@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "batch": 1508,
+  "batch_renumber_trail": {
+    "original_attempt": 1507,
+    "collision_with": "parallel session - 'Postgres ReBAC + offline IAM snapshot' at SOT line 3",
+    "final_batch_id": 1508
+  },
+  "service_worker": "sms-v3.91.2-release-hygiene-cleanup-2026-05-25",
+  "generated_at": "2026-05-25T11:30:00+00:00",
+  "purpose": "P0 release hygiene + scanner cleanup wave responding to the brutal no-mercy audit (2026-05-25). Closes the audit's P0 punch list: archive-time evidence stripping + canonical proof registry + 3 security scanner hygiene fixes.",
+  "audit_trigger": {
+    "source": "external no-mercy zip audit, 2026-05-25",
+    "verdict_pre_batch": "RUNTIME PROOF HARDENING READY — FOCUSED REPO SCOPE / RELEASE SOURCE HYGIENE PARTIAL",
+    "p0_findings_addressed": [
+      "Source archive bloated with ~3 GB evidence sludge (visual-qa, click-repro logs, joblib candidates, pre_deploy_gate_run raw log)",
+      "shell=True in 3 verifier scripts (Windows compat scaffolding, no real need)",
+      "Bare except at scripts/test_api_integration.py:310",
+      "Production console.log statements in 4 RMC static JS files",
+      "No canonical pointer registry for proof artifacts (developers risk reading stale proofs as current truth)"
+    ]
+  },
+  "what_this_batch_did": [
+    "Extended .gitattributes with 20 new export-ignore directives stripping evidence sludge from `git archive` output",
+    "Extended .gitignore with artifacts-evidence/ + var/evidence/click-repro/ + var/*.joblib + var/help-* / feedback-* / all-hc-* etc.",
+    "Added scripts/build_clean_source_archive.py: stdlib-only tarball builder that enforces the deny rules at archive time + re-verifies the produced tarball before declaring success",
+    "Created docs/generated/proof_artifact_registry.json: 27-entry canonical pointer set with status (canonical / superseded / archive_only), supersedes/superseded_by chains, runtime_backed / browser_backed / live_backed / external_backed flags",
+    "Patched scripts/verify_analytics_viz_full_completion.py, verify_analytics_viz_gear_up.py, verify_analytics_viz_prompt_completion.py: dropped Windows-only shell=True branch in _run() helpers; list-form subprocess.run works fine cross-platform without shell",
+    "Patched scripts/test_api_integration.py:310: bare `except:` → `except Exception as exc:` with informative print",
+    "Removed 3 dev-init console.log calls (dashboard-layout.js, react-integration.js, color-palette-studio.js) and 1 SW-registration success log (rmc-service-worker-registration.js); kept the SW failure path as console.warn since SW failure is genuine ops signal"
+  ],
+  "scope_limits": {
+    "files_not_moved": "Auto-mode classifier blocked the mass mv of pre-existing artifact subdirectories (visual-qa, apple-class, theme-experience-dual-plane, manager-surface-parity, click-repro 2.1 GB log, etc.). The sludge remains in the worktree; the .gitattributes export-ignore + build_clean_source_archive.py guard ensure it is stripped at release-archive build time. Operator may run the documented `mv` set manually to physically relocate the sludge.",
+    "verifier_dependent_artifacts_preserved": "docs/generated/pre_deploy_gate_run.txt (37 MB) and docs/generated/route_surface_audit.json (7.2 MB) are NOT moved because verify_pre_deploy_gate_record.py and verify_phases_3_11_gates.py read them in place. Both are regenerated on every audit run and tracked in the proof_artifact_registry as `regenerated` batch.",
+    "load_bearing_baselines_preserved": "var/security-audit-baseline-*.json files (50+) are NOT moved — they are actively consumed by 10+ scanners (audit_unbounded_collection_surfaces, scan_flex_collapse_risk, scan_pwa_install_prompt_coverage, etc.). var/evidence/geos-99/ remains because run_lane2_operator_playbook.py + sync_geos_evidence_to_register.py reference paths under it.",
+    "var_evidence_click_repro_preserved": "The 2.1 GB var/evidence/click-repro/runserver-8000.err.log is a pure leftover test-runserver dump (no scanner reads it). Moved into the deny list — archive build will strip it. Physical removal from worktree deferred to operator."
+  },
+  "scanner_changes": {
+    "shell_true_baseline": {
+      "before": "0 (scan_subprocess_shell_true.py only scans apps/+services/, not scripts/, so the 3 verifier-script sites were not in the official count)",
+      "after": "0 (still 0 — the 3 fixes are belt-and-suspenders for the audit even though the scanner did not flag them)"
+    },
+    "bare_except_baseline": {
+      "before": "0 (same scope limitation — the scripts/test_api_integration.py site was outside apps/+services/)",
+      "after": "0"
+    },
+    "console_log_audit": {
+      "before": "4 RMC-authored production console.log calls (htmx.min.js excluded — vendored)",
+      "after": "0 RMC-authored. console.warn retained on SW registration failure path because that is a genuine ops signal."
+    }
+  },
+  "self_tests_executed": {
+    "build_clean_source_archive_check": "exit 0; worktree files=61419 included=49774 banned-present=11645 (banned will be stripped at archive build time)",
+    "ast_parse_3_verifier_scripts": "OK 3/3 (verify_analytics_viz_full_completion, gear_up, prompt_completion)",
+    "ast_parse_test_api_integration": "OK",
+    "node_function_parse_4_static_js": "OK 4/4 (dashboard-layout, react-integration, color-palette-studio, rmc-service-worker-registration)",
+    "verify_service_worker_version_check_monotonic": "monotonic OK (baseline v3.90.20 → v3.91.0)"
+  },
+  "files_touched_summary": {
+    "gitattributes": ".gitattributes",
+    "gitignore": ".gitignore",
+    "new_scripts": ["scripts/build_clean_source_archive.py"],
+    "patched_scripts": [
+      "scripts/verify_analytics_viz_full_completion.py",
+      "scripts/verify_analytics_viz_gear_up.py",
+      "scripts/verify_analytics_viz_prompt_completion.py",
+      "scripts/test_api_integration.py"
+    ],
+    "patched_static_js": [
+      "static/js/dashboard-layout.js",
+      "static/js/react-integration.js",
+      "static/js/color-palette-studio.js",
+      "static/js/rmc-service-worker-registration.js",
+      "static/js/service-worker.js"
+    ],
+    "new_docs_generated": [
+      "docs/generated/proof_artifact_registry.json",
+      "docs/generated/release_hygiene_cleanup_1507.json",
+      "docs/generated/release_hygiene_cleanup_1507.md"
+    ]
+  },
+  "audit_p1_deferred": [
+    "Runtime/browser proof depth: promote batch 1506 contract tests to Django route/permission/audit/tenant-boundary tests — deferred to separate batch (significant scope)",
+    "Micro-friction workflow UI completion: wire substitute_handover + permission_to_pay + lost_belongings_qr to routes + forms + templates + audit — deferred",
+    "PWA browser proof end-to-end: tests/e2e/pwa-offline.spec.js exists but Lane 2 browser certification is external — deferred",
+    "Migration squash plan: documented for apps with >50 migrations — NOT executed (must wait for stable production cutover tag)",
+    "Mass mv of pre-existing artifact sludge: blocked by auto-mode classifier; operator can run manually"
+  ],
+  "verdict": "RELEASE HYGIENE P0 COMPLETE — archive guard + canonical proof registry + scanner cleanup all shipped. Worktree still contains the historical sludge (operator-managed move pending) but `git archive` and build_clean_source_archive.py both strip it at release-build time."
+}

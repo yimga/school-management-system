@@ -146,6 +146,10 @@ MANDATORY_SCHOOL_STUDIO_INNER = (
     "/school/studio/migration/",
     "/school/studio/help/",
     "/school/studio/launch/",
+    "/school/studio/provisioning/",
+    "/school/studio/fast-path/",
+    "/school/studio/offboarding/",
+    "/siteconfig/onboarding/",
 )
 
 

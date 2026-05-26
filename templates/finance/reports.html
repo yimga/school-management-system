@@ -191,7 +191,10 @@
     <div class="card h-100">
       <div class="card-body">
         <h5 class="mb-3">{% trans "Request a custom report" %}</h5>
-        <form method="post" action="{% url 'finance:report_request' %}" id="finance-report-request-form" data-draft-key="finance_report_request_{{ request.user.id }}" data-draft-max-age-hours="48">
+        <form method="post" action="{% url 'finance:report_request' %}" id="finance-report-request-form" data-draft-key="finance_report_request_{{ request.user.id }}" data-draft-max-age-hours="48"
+              data-rmc-offline-form="field_capture"
+              data-rmc-offline-workflow="finance_report_request"
+              data-offline-hint="{% trans 'Report request details stay on this device until you reconnect and sync.' %}">
           {% csrf_token %}
           <div class="mb-3">
             <label class="form-label">{% trans "Report type" %}</label>

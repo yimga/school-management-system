@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-26T18:26:10.170614+00:00",
+  "batch_id": 1511,
+  "verdict": "WORKFORCE_MONEY_PLANE_PHASE_AUDIT_PASS",
+  "finding_count": 0,
+  "phases": {
+    "A_finance_offline_apply": {
+      "ok": true,
+      "checks": 10
+    },
+    "B_payroll_offline_capture": {
+      "ok": true,
+      "checks": 8
+    },
+    "C_global_disbursement": {
+      "ok": true,
+      "checks": 5
+    },
+    "D_workforce_hub": {
+      "ok": true,
+      "checks": 4
+    }
+  },
+  "rows": [
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/finance/offline_workflow_handlers.py",
+      "ok": true,
+      "proof": "apps\\finance\\offline_workflow_handlers.py"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/finance/models_offline_capture.py",
+      "ok": true,
+      "proof": "apps\\finance\\models_offline_capture.py"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/finance/migrations/0065_workforce_offline_capture_1511.py",
+      "ok": true,
+      "proof": "apps\\finance\\migrations\\0065_workforce_offline_capture_1511.py"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/platform_runtime/offline_workflow_apply.py:apply_finance_workflow",
+      "ok": true,
+      "proof": "apply_finance_workflow"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/finance/offline_workflow_handlers.py:finance_cash_closure",
+      "ok": true,
+      "proof": "finance_cash_closure"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/finance/offline_workflow_handlers.py:finance_suspense_claim",
+      "ok": true,
+      "proof": "finance_suspense_claim"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/finance/offline_workflow_handlers.py:finance_split_allocation",
+      "ok": true,
+      "proof": "finance_split_allocation"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/finance/offline_workflow_handlers.py:finance_report_request",
+      "ok": true,
+      "proof": "finance_report_request"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "apps/finance/offline_workflow_handlers.py:FinanceOfflineCaptureRecord",
+      "ok": true,
+      "proof": "FinanceOfflineCaptureRecord"
+    },
+    {
+      "phase": "A_finance_offline_apply",
+      "check": "templates/finance/cash_office_closure.html:data-rmc-offline-workflow",
+      "ok": true,
+      "proof": "templates/finance/cash_office_closure.html contains data-rmc-offline-workflow"
+    },
+    {
+      "phase": "B_payroll_offline_capture",
+      "check": "apps/payroll/offline_workflow_handlers.py",
+      "ok": true,
+      "proof": "apps\\payroll\\offline_workflow_handlers.py"
+    },
+    {
+      "phase": "B_payroll_offline_capture",
+      "check": "apps/payroll/models_offline_capture.py",
+      "ok": true,
+      "proof": "apps\\payroll\\models_offline_capture.py"
+    },
+    {
+      "phase": "B_payroll_offline_capture",
+      "check": "apps/payroll/migrations/0007_workforce_offline_capture_1511.py",
+      "ok": true,
+      "proof": "apps\\payroll\\migrations\\0007_workforce_offline_capture_1511.py"
+    },
+    {
+      "phase": "B_payroll_offline_capture",
+      "check": "apps/platform_runtime/offline_workflow_apply.py:apply_payroll_workflow",
+      "ok": true,
+      "proof": "apply_payroll_workflow"
+    },
+    {
+      "phase": "B_payroll_offline_capture",
+      "check": "apps/payroll/offline_workflow_handlers.py:payroll_create_run",
+      "ok": true,
+      "proof": "payroll_create_run"
+    },
+    {
+      "phase": "B_payroll_offline_capture",
+      "check": "apps/payroll/offline_workflow_handlers.py:payroll_leave_request",
+      "ok": true,
+      "proof": "payroll_leave_request"
+    },
+    {
+      "phase": "B_payroll_offline_capture",
+      "check": "templates/payroll/create_run.html:payroll_create_run",
+      "ok": true,
+      "proof": "templates/payroll/create_run.html contains payroll_create_run"
+    },
+    {
+      "phase": "B_payroll_offline_capture",
+      "check": "templates/payroll/employee_leave.html:payroll_leave_request",
+      "ok": true,
+      "proof": "templates/payroll/employee_leave.html contains payroll_leave_request"
+    },
+    {
+      "phase": "C_global_disbursement",
+      "check": "apps/payroll/disbursement_export.py",
+      "ok": true,
+      "proof": "apps\\payroll\\disbursement_export.py"
+    },
+    {
+      "phase": "C_global_disbursement",
+      "check": "apps/payroll/disbursement_export.py:build_disbursement_csv",
+      "ok": true,
+      "proof": "build_disbursement_csv"
+    },
+    {
+      "phase": "C_global_disbursement",
+      "check": "apps/payroll/views.py:export_disbursement",
+      "ok": true,
+      "proof": "export_disbursement"
+    },
+    {
+      "phase": "C_global_disbursement",
+      "check": "apps/payroll/urls.py:export_disbursement",
+      "ok": true,
+      "proof": "export_disbursement"
+    },
+    {
+      "phase": "C_global_disbursement",
+      "check": "templates/payroll/run_detail.html:export_disbursement",
+      "ok": true,
+      "proof": "templates/payroll/run_detail.html contains export_disbursement"
+    },
+    {
+      "phase": "D_workforce_hub",
+      "check": "apps/finance/views_workforce_hub.py",
+      "ok": true,
+      "proof": "apps\\finance\\views_workforce_hub.py"
+    },
+    {
+      "phase": "D_workforce_hub",
+      "check": "templates/finance/workforce_command_center.html",
+      "ok": true,
+      "proof": "templates\\finance\\workforce_command_center.html"
+    },
+    {
+      "phase": "D_workforce_hub",
+      "check": "apps/finance/urls.py:workforce_command_center",
+      "ok": true,
+      "proof": "workforce_command_center"
+    },
+    {
+      "phase": "D_workforce_hub",
+      "check": "templates/finance/dashboard.html:workforce_command_center",
+      "ok": true,
+      "proof": "workforce_command_center"
+    }
+  ]
+}

@@ -507,6 +507,15 @@ def signup_school(request: HttpRequest):
         if sector:
             create_kwargs["primary_sector"] = sector[:64]
     school = School.objects.create(**create_kwargs)
+    try:
+        from apps.lifecycle.unified_lifecycle import (
+            CREATION_PATH_SELF_SERVE,
+            set_creation_path,
+        )
+
+        set_creation_path(school, CREATION_PATH_SELF_SERVE)
+    except (ImportError, ValueError, TypeError, OSError):
+        pass
     from datetime import timedelta
 
     expires_at = timezone.now() + timedelta(days=2)
@@ -965,6 +974,20 @@ def onboarding_wizard(request: HttpRequest):
 
 
 @require_GET
+def _redirect_verified_admin_to_tenant_surface(request: HttpRequest, school, url_name: str):
+    """After verify on the public host, send the admin to the tenant subdomain."""
+    from apps.schools.tenant_url import build_tenant_backend_url
+
+    try:
+        path = reverse(url_name, urlconf="config.tenant_urls")
+    except NoReverseMatch:
+        try:
+            path = reverse(url_name)
+        except NoReverseMatch:
+            return None
+    return redirect(build_tenant_backend_url(request, school, path=path))
+
+
 def verify_signup(request: HttpRequest):
     """
     GET ?token=xxx: look up SignupVerification, if valid set school.is_active=True,
@@ -1059,6 +1082,12 @@ def verify_signup(request: HttpRequest):
             admin_user = None
 
     if admin_user is not None and admin_user.is_active:
+        try:
+            from apps.lifecycle.tenant_school_resolve import bind_lifecycle_school_session
+
+            bind_lifecycle_school_session(request, school)
+        except ImportError:
+            pass
         # v3.17 (2026-05-17): if the new admin asked to migrate from another
         # platform during onboarding, route them to the handoff page before
         # the dashboard so they land in Migration Cloud with their vendor +
@@ -1071,11 +1100,31 @@ def verify_signup(request: HttpRequest):
                 return redirect(reverse("onboard_migration_handoff"))
             except NoReverseMatch:
                 pass  # fall through to dashboard
-        for url_name in ("studio_os:launch", "accounts:backend_dashboard"):
-            try:
-                return redirect(reverse(url_name))
-            except NoReverseMatch:
-                continue
+        try:
+            from apps.lifecycle.unified_lifecycle import (
+                STATE_PROVISIONING,
+                record_unified_transition,
+            )
+
+            record_unified_transition(
+                school,
+                STATE_PROVISIONING,
+                actor=admin_user,
+                note="signup_verified",
+            )
+        except (ImportError, ValueError, TypeError, OSError):
+            pass
+        for url_name in (
+            "tenant_provisioning_status",
+            "school_studio",
+            "studio_os:launch",
+            "accounts:backend_dashboard",
+        ):
+            target = _redirect_verified_admin_to_tenant_surface(
+                request, school, url_name
+            )
+            if target is not None:
+                return target
         return redirect("/")
 
     login_url = (settings.LOGIN_URL or "/authentication/login/").lstrip("/")
@@ -1155,6 +1204,15 @@ def api_trial_school(request: HttpRequest):
         timezone=getattr(settings, "DEFAULT_SCHOOL_TIMEZONE", None)
         or get_platform_defaults(use_db=False)["timezone"],
     )
+    try:
+        from apps.lifecycle.unified_lifecycle import (
+            CREATION_PATH_SELF_SERVE,
+            set_creation_path,
+        )
+
+        set_creation_path(school, CREATION_PATH_SELF_SERVE)
+    except (ImportError, ValueError, TypeError, OSError):
+        pass
     if default_region:
         school.settings = school.settings or {}
         school.settings["country_code"] = country_code
@@ -1269,31 +1327,13 @@ def brand_import_api(request: HttpRequest):
 
 
 def _school_for_authenticated_admin(request: HttpRequest):
-    """Locate the school whose signup just completed for the current user.
+    """Locate the school for a post-signup admin (public host or tenant host)."""
+    try:
+        from apps.lifecycle.tenant_school_resolve import resolve_request_school
 
-    Order of resolution:
-      1. ``request.school`` (multi-tenant middleware sets this when present).
-      2. A School whose creator/admin matches request.user (covers self-service
-         signup before tenant DNS is configured — common on day 0).
-      3. The user's owned schools, most-recent first.
-    Returns None if no plausible match exists.
-    """
-    school = getattr(request, "school", None)
-    if school is not None:
-        return school
-    user = getattr(request, "user", None)
-    if not getattr(user, "is_authenticated", False):
-        return None
-    # Match by signup verification email — the magic-link recipient is the
-    # admin we just activated. SignupVerification stores email + school FK.
-    # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-    sv = (
-        SignupVerification.objects.filter(email__iexact=user.email)
-        .select_related("school")
-        .order_by("-created_at")
-        .first()
-    )
-    return sv.school if sv else None
+        return resolve_request_school(request)
+    except ImportError:
+        return getattr(request, "school", None)
 
 
 @require_GET

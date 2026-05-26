@@ -130,6 +130,17 @@ from apps.schoolops.views_tenant_ops import (
     ops_facilities,
     ops_pos,
 )
+from apps.schoolops.views_substitute_handover import substitute_handover_create
+from apps.schoolops.views_lost_belongings import (
+    lost_belongings_mint,
+    lost_belongings_lookup,
+    lost_belongings_recover,
+)
+from apps.finance.views_permission_to_pay import (
+    permission_to_pay_open,
+    permission_to_pay_approve,
+    permission_to_pay_authorize,
+)
 
 try:
     from apps.people.views_backend import (
@@ -317,6 +328,41 @@ urlpatterns = [
         "backend/ops/substitutes/",
         ops_substitutes,
         name="ops_substitutes",
+    ),
+    path(
+        "backend/ops/substitutes/handover/",
+        substitute_handover_create,
+        name="substitute_handover_create",
+    ),
+    path(
+        "backend/finance/permission-to-pay/",
+        permission_to_pay_open,
+        name="permission_to_pay_open",
+    ),
+    path(
+        "backend/finance/permission-to-pay/approve/",
+        permission_to_pay_approve,
+        name="permission_to_pay_approve",
+    ),
+    path(
+        "backend/finance/permission-to-pay/authorize/",
+        permission_to_pay_authorize,
+        name="permission_to_pay_authorize",
+    ),
+    path(
+        "backend/ops/lost-belongings/mint/",
+        lost_belongings_mint,
+        name="lost_belongings_mint",
+    ),
+    path(
+        "backend/ops/lost-belongings/recover/",
+        lost_belongings_recover,
+        name="lost_belongings_recover",
+    ),
+    path(
+        "lost-found/",
+        lost_belongings_lookup,
+        name="lost_belongings_lookup",
     ),
     path(
         "backend/ops/visitors/",

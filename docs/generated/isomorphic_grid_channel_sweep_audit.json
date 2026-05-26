@@ -1,0 +1,23 @@
+{
+  "channels": [
+    "operator_dashboard",
+    "tenant_portal",
+    "signup_studio",
+    "forms_factory",
+    "data_tables",
+    "navigation_menus",
+    "billing_ledger_views",
+    "academic_gradebooks",
+    "pwa_shell"
+  ],
+  "finding_count": 0,
+  "findings": [],
+  "checks": {
+    "inline_scroll_traps": 0,
+    "data_table_channels": 0,
+    "required_partials": 0,
+    "micro_spacing_utilities": 0
+  },
+  "generated_at": "2026-05-26T02:27:18Z",
+  "remediation_status": "PASS"
+}

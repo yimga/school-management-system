@@ -1592,3 +1592,99 @@ def convert_quote_to_subscription(quote_id: int):
         return False, str(exc)
 
     return True, "Quote converted to subscription."
+
+
+# ---------------------------------------------------------------------------
+# Alternative Payment Methods (APMs) — wizard-driven enablement
+# ---------------------------------------------------------------------------
+
+
+def enable_apm(school, apm_key: str) -> bool:
+    """Mark an Alternative Payment Method as enabled for ``school``.
+
+    Persists into ``BillingAccount.metadata["enabled_apms"]`` (list, deduped,
+    stable order). Returns ``True`` on a state change, ``False`` if already
+    enabled or no-op (missing school / blank key).
+
+    Idempotent. Safe to call repeatedly from wizard re-runs.
+    """
+    if school is None or not apm_key:
+        return False
+    apm_key = str(apm_key).strip()
+    if not apm_key:
+        return False
+
+    account, _ = BillingAccount.objects.get_or_create(
+        school=school,
+        defaults={"status": _resolve_account_status(school)},
+    )
+    metadata = account.metadata or {}
+    if not isinstance(metadata, dict):
+        metadata = {}
+    enabled = list(metadata.get("enabled_apms") or [])
+    if apm_key in enabled:
+        return False
+    enabled.append(apm_key)
+    metadata["enabled_apms"] = enabled
+    account.metadata = metadata
+    account.save(update_fields=["metadata", "updated_at"])
+    logger.info("billing.enable_apm: school_id=%s apm_key=%s", school.pk, apm_key)
+    return True
+
+
+def set_payment_settings(
+    school,
+    *,
+    settlement_country: str | None = None,
+    settlement_currency: str | None = None,
+    settlement_bank_account_alias: str | None = None,
+) -> bool:
+    """Persist settlement-corridor settings into ``BillingAccount`` + metadata.
+
+    ``currency_code`` lands on the column (3-char ISO); the rest go into
+    metadata. Idempotent: returns ``True`` only on actual state change.
+    """
+    if school is None:
+        return False
+    account, _ = BillingAccount.objects.get_or_create(
+        school=school,
+        defaults={"status": _resolve_account_status(school)},
+    )
+    currency_changed = False
+    metadata_changed = False
+    if settlement_currency:
+        cc = str(settlement_currency).strip().upper()
+        if len(cc) == 3 and cc != account.currency_code:
+            account.currency_code = cc
+            currency_changed = True
+
+    metadata = account.metadata or {}
+    if not isinstance(metadata, dict):
+        metadata = {}
+    settlement = dict(metadata.get("settlement") or {})
+    for key, value in (
+        ("country", settlement_country),
+        ("bank_account_alias", settlement_bank_account_alias),
+    ):
+        if value:
+            value = str(value).strip()
+            if value and settlement.get(key) != value:
+                settlement[key] = value
+                metadata_changed = True
+    if metadata_changed:
+        metadata["settlement"] = settlement
+        account.metadata = metadata
+
+    if not (currency_changed or metadata_changed):
+        return False
+    update_fields = ["updated_at"]
+    if currency_changed:
+        update_fields.insert(0, "currency_code")
+    if metadata_changed:
+        update_fields.insert(0, "metadata")
+    account.save(update_fields=update_fields)
+    logger.info(
+        "billing.set_payment_settings: school_id=%s currency=%s country=%s",
+        school.pk, settlement_currency, settlement_country,
+    )
+    return True

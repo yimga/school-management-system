@@ -1,0 +1,16 @@
+{% load i18n %}
+<div class="rmc-wizard-field">
+  <label class="rmc-wizard-field__label" for="rmc-wizard-input-value">{{ step_label }}</label>
+  {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
+  <input type="text"
+         id="rmc-wizard-input-value"
+         name="value"
+         value="{{ prior_answer.value|default:'' }}"
+         placeholder="portal.school.example"
+         autocapitalize="off"
+         autocomplete="off"
+         spellcheck="false"
+         pattern="^([a-z0-9-]+\.)+[a-z]{2,}$"
+         {% if step.validation.required %}required{% endif %}>
+  {% if errors.value %}<p class="rmc-wizard-field__error">{{ errors.value }}</p>{% endif %}
+</div>

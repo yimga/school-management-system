@@ -1,0 +1,134 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Permission to pay" %}{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+  <h1 class="h4">{% trans "Permission to pay" %}</h1>
+  <p class="text-muted">
+    {% trans "Bundles event permission and payment authorisation into a single workflow. Amounts at or above the per-tenant threshold require guardian approval before payment can be authorised." %}
+  </p>
+
+  {% if error %}
+  <div class="alert alert-danger" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "1. Open request" %}</h2>
+          <form method="post" novalidate
+                data-draft-key="permission_to_pay_open_{{ request.user.id }}"
+                data-draft-max-age-hours="48"
+                data-rmc-offline-form="field_capture"
+                data-rmc-offline-workflow="finance_permission_to_pay_open"
+                data-offline-hint="{% trans 'Permission-to-pay request stays on this device until you reconnect and sync.' %}">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+              <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+              {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">{% trans "Open request" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      {% if in_flight %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "In-flight request" %}</h2>
+          <dl class="row mb-0">
+            <dt class="col-sm-5">{% trans "Request ID" %}</dt>
+            <dd class="col-sm-7"><code>{{ in_flight.request_id }}</code></dd>
+            <dt class="col-sm-5">{% trans "Tenant (hashed)" %}</dt>
+            <dd class="col-sm-7"><code>{{ in_flight.tenant_id_hash }}</code></dd>
+            <dt class="col-sm-5">{% trans "Student (hashed)" %}</dt>
+            <dd class="col-sm-7"><code>{{ in_flight.student_id_hash }}</code></dd>
+            <dt class="col-sm-5">{% trans "Event" %}</dt>
+            <dd class="col-sm-7">{{ in_flight.event_code }}</dd>
+            <dt class="col-sm-5">{% trans "Amount" %}</dt>
+            <dd class="col-sm-7">{{ in_flight.amount }} {{ in_flight.currency }}</dd>
+            <dt class="col-sm-5">{% trans "State" %}</dt>
+            <dd class="col-sm-7"><span class="badge bg-info">{{ in_flight.state }}</span></dd>
+            <dt class="col-sm-5">{% trans "Guardian approval" %}</dt>
+            <dd class="col-sm-7">
+              {% if in_flight.guardian_approval %}
+              <code>{{ in_flight.guardian_approval.guardian_id }}</code>
+              ({{ in_flight.guardian_approval.method }})
+              {% elif in_flight.requires_guardian_approval %}
+              <span class="badge bg-warning text-dark">{% trans "Required, not yet recorded" %}</span>
+              {% else %}
+              <span class="badge bg-secondary">{% trans "Not required" %}</span>
+              {% endif %}
+            </dd>
+            {% if in_flight.payment_result %}
+            <dt class="col-sm-5">{% trans "Payment" %}</dt>
+            <dd class="col-sm-7">
+              {% if in_flight.payment_result.success %}
+              <span class="badge bg-success">{% trans "Paid" %}</span>
+              {% else %}
+              <span class="badge bg-danger">{% trans "Failed" %}</span>
+              {% endif %}
+              via <code>{{ in_flight.payment_result.rail_id }}</code>
+              — ref <code>{{ in_flight.payment_result.reference }}</code>
+            </dd>
+            {% endif %}
+          </dl>
+        </div>
+      </div>
+
+      {% if in_flight.requires_guardian_approval and not in_flight.guardian_approval %}
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "2. Record guardian approval" %}</h2>
+          <form method="post" action="{% url 'accounts:permission_to_pay_approve' %}" novalidate
+                data-draft-key="permission_to_pay_approve_{{ in_flight.request_id }}"
+                data-draft-max-age-hours="48"
+                data-rmc-offline-form="field_capture"
+                data-rmc-offline-workflow="finance_permission_to_pay_approve"
+                data-offline-hint="{% trans 'Guardian approval stays on this device until you reconnect and sync.' %}">
+            {% csrf_token %}
+            {% for field in approval_form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+              <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-secondary">{% trans "Record approval" %}</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if in_flight.state == "ready_to_pay" %}
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "3. Authorize payment" %}</h2>
+          <form method="post" action="{% url 'accounts:permission_to_pay_authorize' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">{% trans "Authorize payment" %}</button>
+          </form>
+          <p class="text-muted small mt-2 mb-0">
+            {% trans "Routes through the payment-rail registry. Falls back to manual settlement when no live rail is configured." %}
+          </p>
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

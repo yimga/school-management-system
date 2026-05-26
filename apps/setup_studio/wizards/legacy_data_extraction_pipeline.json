@@ -1,0 +1,81 @@
+{
+  "wizard_key": "legacy_data_extraction_pipeline",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.legacy_data_extraction_pipeline.label",
+  "description_token": "wizards.legacy_data_extraction_pipeline.description",
+  "icon_class": "rmc-icon-import",
+  "estimated_minutes": 20,
+  "gates": {
+    "permission_codename": "migration_cloud.change_bundle"
+  },
+  "ai": {
+    "smart_defaults": true
+  },
+  "steps": [
+    {
+      "key": "legacy_upload",
+      "input_type": "file_upload",
+      "validation": {
+        "required": true,
+        "allowed_extensions": [
+          "csv",
+          "xlsx",
+          "zip"
+        ],
+        "max_file_bytes": 104857600
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_migration_upload"
+      }
+    },
+    {
+      "key": "field_vector_mapping",
+      "input_type": "csv_mapping",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_canonical_csv_fields",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "country_code",
+          "school_type"
+        ],
+        "prompt_template_key": "prompt.migration.classify_csv_columns"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_migration_mapping"
+      }
+    },
+    {
+      "key": "inline_error_cleanup",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "confirm_known_errors",
+          "type": "boolean",
+          "required": false
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_migration_cleanup"
+      }
+    },
+    {
+      "key": "identity_core_seeding",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_seeding_modes",
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_migration_seeding"
+      }
+    }
+  ]
+}

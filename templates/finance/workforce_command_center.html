@@ -1,0 +1,75 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Workforce & money" %}{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap align-items-center justify-content-between mb-3" data-rmc-page-fold-nav="required">
+  <div>
+    <h1 class="mb-0">{% trans "Workforce & money" %}</h1>
+    <p class="text-muted mb-0">{{ page_subtitle }}</p>
+  </div>
+  <a class="btn btn-outline-secondary btn-sm" href="{{ links.finance_dashboard }}">{% trans "Finance home" %}</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card h-100 rmc-metric-card">
+      <div class="card-body">
+        <div class="text-muted small">{% trans "Offline bursar queue" %}</div>
+        <div class="fs-3 fw-semibold">{{ offline_intent_count }}</div>
+        <a href="{{ links.offline_queue }}" class="btn btn-sm btn-outline-primary mt-2">{% trans "Review queue" %}</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 rmc-metric-card">
+      <div class="card-body">
+        <div class="text-muted small">{% trans "Finance offline pending" %}</div>
+        <div class="fs-3 fw-semibold">{{ finance_pending_count }}</div>
+        <div class="small text-muted">{% trans "Fee batch / OCR captures awaiting online apply" %}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100 rmc-metric-card">
+      <div class="card-body">
+        <div class="text-muted small">{% trans "Payroll offline pending" %}</div>
+        <div class="fs-3 fw-semibold">{{ payroll_pending_count }}</div>
+        <a href="{{ links.payroll_dashboard }}" class="btn btn-sm btn-outline-primary mt-2">{% trans "Payroll" %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">{% trans "HR & payroll" %}</div>
+      <div class="card-body">
+        <ul class="list-unstyled mb-0">
+          <li class="mb-2">{% blocktrans count counter=leave_pending_count %}<strong>{{ counter }}</strong> payroll leave request pending{% plural %}<strong>{{ counter }}</strong> payroll leave requests pending{% endblocktrans %}</li>
+          <li class="mb-2">{% blocktrans count counter=teacher_leave_pending_count %}<strong>{{ counter }}</strong> teacher leave request pending{% plural %}<strong>{{ counter }}</strong> teacher leave requests pending{% endblocktrans %}</li>
+          <li class="mb-2">{% if latest_payroll_run %}{% trans "Latest payroll run" %}: {{ latest_payroll_run.period_start }} → {{ latest_payroll_run.period_end }} ({{ latest_payroll_run.get_status_display }}){% else %}{% trans "No payroll runs yet." %}{% endif %}</li>
+        </ul>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <a class="btn btn-sm btn-primary" href="{{ links.payroll_dashboard }}">{% trans "Payroll dashboard" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ links.identity_roster }}">{% trans "Staff identity" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">{% trans "Finance & global send" %}</div>
+      <div class="card-body">
+        <p class="mb-2">{% blocktrans count counter=finance_access_alerts %}<strong>{{ counter }}</strong> unread finance access alert{% plural %}<strong>{{ counter }}</strong> unread finance access alerts{% endblocktrans %}</p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-sm btn-primary" href="{{ links.payment_command }}">{% trans "Payment command center" %}</a>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ links.finance_dashboard }}">{% trans "Finance dashboard" %}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

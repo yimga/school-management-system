@@ -104,6 +104,7 @@ def _apply_role_template(sender, instance, created, **kwargs):
     codes = ROLE_TEMPLATES.get(instance.role)
     if not codes:
         return
+    # tenant-isolation-allow: seed-lookup-of-platform-wide-template-roles-by-code-school-is-null
     roles = AccessRole.objects.filter(code__in=codes)
     if not roles.exists():
         # Role templates may be evaluated before access roles are seeded in isolated setup flows.

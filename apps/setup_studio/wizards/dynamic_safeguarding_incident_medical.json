@@ -1,0 +1,71 @@
+{
+  "wizard_key": "dynamic_safeguarding_incident_medical",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.dynamic_safeguarding_incident_medical.label",
+  "description_token": "wizards.dynamic_safeguarding_incident_medical.description",
+  "icon_class": "rmc-icon-shield",
+  "estimated_minutes": 12,
+  "gates": {
+    "permission_codename": "compliance.change_safeguarding"
+  },
+  "ai": {
+    "branch_rationale": true
+  },
+  "steps": [
+    {
+      "key": "incident_categorization",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_incident_categories",
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_safeguarding_categories"
+      }
+    },
+    {
+      "key": "legal_protocol_routing",
+      "input_type": "rich_select",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "country_code",
+          "state_code"
+        ],
+        "prompt_template_key": "prompt.safeguarding.suggest_routing"
+      },
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_safeguarding_routing"
+      }
+    },
+    {
+      "key": "encrypted_stakeholder_pipeline",
+      "input_type": "ranked_list",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_safeguarding_stakeholders"
+      }
+    },
+    {
+      "key": "immutable_audit_anchor",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_audit_anchors",
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_safeguarding_anchor"
+      }
+    }
+  ]
+}

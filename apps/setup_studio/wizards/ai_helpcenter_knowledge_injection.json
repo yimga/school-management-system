@@ -1,0 +1,73 @@
+{
+  "wizard_key": "ai_helpcenter_knowledge_injection",
+  "version": 1,
+  "audience": [
+    "tenant_admin"
+  ],
+  "label_token": "wizards.ai_helpcenter_knowledge_injection.label",
+  "description_token": "wizards.ai_helpcenter_knowledge_injection.description",
+  "icon_class": "rmc-icon-book-open",
+  "estimated_minutes": 10,
+  "gates": {
+    "permission_codename": "customersuccess.change_helpcenter"
+  },
+  "ai": {
+    "smart_defaults": true
+  },
+  "steps": [
+    {
+      "key": "source_scraping",
+      "input_type": "file_upload",
+      "validation": {
+        "required": true,
+        "allowed_extensions": [
+          "pdf",
+          "docx",
+          "md",
+          "txt"
+        ],
+        "max_file_bytes": 26214400
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_helpcenter_sources"
+      }
+    },
+    {
+      "key": "context_tagging",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_helpcenter_audience_tags",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "school_type"
+        ],
+        "prompt_template_key": "prompt.helpcenter.tag_policy_section"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_helpcenter_tagging"
+      }
+    },
+    {
+      "key": "fallback_redirection_matrix",
+      "input_type": "key_value_pairs",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_helpcenter_fallbacks"
+      }
+    },
+    {
+      "key": "core_validation_test",
+      "input_type": "long_text",
+      "validation": {
+        "required": true,
+        "max_length": 4000
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_helpcenter_validation"
+      }
+    }
+  ]
+}

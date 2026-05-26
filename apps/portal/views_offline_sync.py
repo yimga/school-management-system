@@ -322,18 +322,13 @@ def api_offline_enqueue(request: HttpRequest) -> JsonResponse:
 
     action_type = normalize_action_type(str(data.get("action_type") or ""))
     legacy = {c for c, _ in OfflineAction.ActionType.choices}
-    if action_type not in OfflineActionType.values and action_type not in legacy:
-        return JsonResponse({"ok": False, "error": "invalid_action_type"}, status=400)
-
-    stored_type = SODP_TO_LEGACY.get(action_type, action_type)
-    if stored_type not in legacy:
-        return JsonResponse({"ok": False, "error": "invalid_action_type"}, status=400)
 
     payload = data.get("payload")
     if payload is not None and not isinstance(payload, dict):
         return JsonResponse({"ok": False, "error": "payload_must_be_object"}, status=400)
+    payload_dict = payload if isinstance(payload, dict) else {}
 
-    validation_errors = validate_offline_payload(action_type, payload if isinstance(payload, dict) else {})
+    validation_errors = validate_offline_payload(action_type, payload_dict)
     if validation_errors:
         return JsonResponse(
             {"ok": False, "error": "invalid_payload", "details": validation_errors},
@@ -341,12 +336,58 @@ def api_offline_enqueue(request: HttpRequest) -> JsonResponse:
         )
 
     idem = str(data.get("idempotency_key") or "")[:128]
+
+    if action_type == OfflineActionType.IAM_REQUEST_ACCESS:
+        from apps.accounts.models_rebac import OfflineAccessIntent
+        from apps.accounts.rebac_intents import apply_offline_access_intent, enqueue_request_access
+
+        if idem:
+            existing = OfflineAccessIntent.objects.filter(
+                school=school,
+                user=request.user,
+                idempotency_key=idem,
+            ).first()
+            if existing:
+                return JsonResponse(
+                    {
+                        "ok": True,
+                        "intent_id": existing.pk,
+                        "status": existing.status,
+                        "applied_via": "iam_intent",
+                    },
+                )
+        intent = enqueue_request_access(
+            user=request.user,
+            school=school,
+            permission_code=str(payload_dict.get("permission_code") or ""),
+            reason=str(payload_dict.get("reason") or ""),
+            idempotency_key=idem,
+        )
+        applied, note = apply_offline_access_intent(intent)
+        return JsonResponse(
+            {
+                "ok": True,
+                "intent_id": intent.pk,
+                "applied": applied,
+                "status": intent.status,
+                "server_note": note,
+                "applied_via": "iam_intent",
+            },
+        )
+
+    if action_type not in OfflineActionType.values and action_type not in legacy:
+        return JsonResponse({"ok": False, "error": "invalid_action_type"}, status=400)
+
+    stored_type = SODP_TO_LEGACY.get(action_type, action_type)
+    if stored_type not in legacy:
+        return JsonResponse({"ok": False, "error": "invalid_action_type"}, status=400)
+
     try:
         row = enqueue_offline_action(
             user_id=request.user.pk,
             school_id=school.pk,
             action_type=stored_type,
-            payload=payload if isinstance(payload, dict) else {},
+            payload=payload_dict,
             idempotency_key=idem,
         )
     except Exception as exc:

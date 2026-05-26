@@ -1,0 +1,110 @@
+{
+  "wizard_key": "parent_onboarding",
+  "version": 1,
+  "audience": [
+    "parent"
+  ],
+  "label_token": "wizards.parent_onboarding.label",
+  "description_token": "wizards.parent_onboarding.description",
+  "icon_class": "rmc-icon-family",
+  "estimated_minutes": 6,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "profile_basics",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "full_name",
+          "type": "text",
+          "required": true,
+          "validation": {
+            "max_length": 200
+          }
+        },
+        {
+          "name": "preferred_language",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_supported_locales"
+        },
+        {
+          "name": "preferred_communication_channel",
+          "type": "select",
+          "required": true
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_parent_profile"
+      }
+    },
+    {
+      "key": "linked_children",
+      "input_type": "multi_choice",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_parent_children"
+      }
+    },
+    {
+      "key": "communication_preferences",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "quiet_hours_start",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "quiet_hours_end",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "max_messages_per_day",
+          "type": "number",
+          "required": false
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_parent_preferences"
+      }
+    },
+    {
+      "key": "payment_method_preview",
+      "input_type": "boolean",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_parent_payment_preview"
+      }
+    },
+    {
+      "key": "consent_signatures",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "privacy_policy",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "data_residency_acknowledgment",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "terms_of_service",
+          "type": "boolean",
+          "required": true
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_parent_consent"
+      }
+    }
+  ]
+}

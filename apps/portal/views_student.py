@@ -156,27 +156,38 @@ def student_learning_home(request: HttpRequest):
 @role_required(User.Role.STUDENT)
 def student_workflow_center(request: HttpRequest):
     """Student workflow center: one simple path for daily learning tasks."""
+    _school = getattr(request, "school", None)
     profile = None
     try:
-        profile = (
-            StudentProfile.objects.filter(user=request.user, is_active=True)
-            .select_related("classroom")
-            .first()
-        )
+        if _school is not None:
+            profile = (
+                StudentProfile.objects.filter(
+                    school=_school, user=request.user, is_active=True
+                )
+                .select_related("classroom")
+                .first()
+            )
     except (AttributeError, DatabaseError, TypeError, ValueError):
         profile = None
 
     unread = 0
     try:
-        unread = Message.objects.filter(recipient=request.user, is_read=False).count()
+        if _school is not None:
+            unread = Message.objects.filter(
+                school=_school, recipient=request.user, is_read=False
+            ).count()
     except (AttributeError, DatabaseError, TypeError, ValueError):
         unread = 0
 
     try:
-        resource_count = PortalFeatureItem.objects.filter(
-            feature=PortalFeatureItem.Feature.SYLLABUS,
-            is_active=True,
-        ).count()
+        if _school is not None:
+            resource_count = PortalFeatureItem.objects.filter(
+                school=_school,
+                feature=PortalFeatureItem.Feature.SYLLABUS,
+                is_active=True,
+            ).count()
+        else:
+            resource_count = 0
     except (AttributeError, DatabaseError, TypeError, ValueError):
         resource_count = 0
 

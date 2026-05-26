@@ -2,6 +2,7 @@
 {% load i18n static %}
 
 {% block title %}{% trans "Verify your sign-in" %}{% endblock %}
+{% block page_archetype %}security-workbench{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -9,66 +10,5 @@
 {% endblock %}
 
 {% block content %}
-<section class="auth-shell" aria-labelledby="mfa-title">
-  <div class="auth-card">
-
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show mb-3" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans 'Close' %}"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-
-    <div style="width:48px;height:48px;border-radius:14px;background:color-mix(in oklab, var(--ds-warning) 14%, transparent);color:var(--ds-warning);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;" aria-hidden="true">
-      <i class="bi bi-shield-lock" style="font-size:var(--type-size-body-l)"></i>
-    </div>
-    <h1 id="mfa-title">{% trans "Verify it's you." %}</h1>
-    <p class="auth-sub">{% trans "Your account is protected with multi-factor authentication. Enter the 6-digit code from your authenticator app to continue. Backup codes also work." %}</p>
-
-    {% if use_passkey %}
-    <button type="button" id="btn-use-passkey" class="btn btn-outline-primary w-100 mb-3"><i class="bi bi-fingerprint me-1"></i>{% trans "Use a passkey instead" %}</button>
-    <div id="passkey-verify-msg" class="mt-1 mb-3 small" style="color:var(--admin-content-text-muted)"></div>
-    <div style="display:flex;align-items:center;gap:10px;color:var(--admin-content-text-muted);font-size:var(--type-size-eyebrow);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin:18px 0">
-      <span style="flex:1;height:1px;background:var(--admin-content-border)"></span>
-      <span>{% trans "or" %}</span>
-      <span style="flex:1;height:1px;background:var(--admin-content-border)"></span>
-    </div>
-    {% endif %}
-
-    <form method="post">
-      {% csrf_token %}
-      {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
-      <div class="mb-3">
-        <label for="token" class="form-label">{% trans "Authentication code" %}</label>
-        <input type="text" name="token" id="token" class="form-control form-control-lg text-center rmc-account-verify-token" inputmode="numeric" placeholder="000000" maxlength="6" pattern="\d{6}" required autocomplete="off" autofocus>
-      </div>
-
-      <div class="form-check mb-4">
-        <input class="form-check-input" type="checkbox" id="remember_device" name="remember_device" value="1">
-        <label class="form-check-label" for="remember_device">{% trans "Trust this device for 14 days" %}</label>
-      </div>
-
-      <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check2-circle me-1"></i>{% trans "Verify & continue" %}</button>
-    </form>
-
-    <p style="text-align:center;color:var(--admin-content-text-muted);font-size:var(--type-size-caption);margin:18px 0 0"><i class="bi bi-phone me-1"></i>{% trans "Open your authenticator app to get the code." %}</p>
-
-    <div style="border-top:1px solid var(--admin-content-border);margin-top:18px;padding-top:14px;text-align:center">
-      <a href="{% url 'accounts:login' %}" class="btn btn-link" style="color:var(--admin-content-text-muted);text-decoration:none;font-size:var(--type-size-caption)"><i class="bi bi-box-arrow-left me-1"></i>{% trans "Sign out" %}</a>
-    </div>
-
-    <p class="rmc-account-verify-divider" style="font-size:var(--type-size-eyebrow);color:var(--admin-content-text-muted);margin:14px 0 0"><i class="bi bi-info-circle me-1"></i>{% trans "Lost access to your authenticator? Contact IT support for assistance." %}</p>
-  </div>
-</section>
-
-{% if use_passkey %}
-<script type="application/json" id="page-data-accounts__mfa_verify-1">{
-  "url_accounts_passkey_authentication_options": "{% url "accounts:passkey_authentication_options" %}",
-  "url_accounts_passkey_authentication_verify": "{% url "accounts:passkey_authentication_verify" %}",
-  "url_accounts_redirect": "{% url "accounts:redirect" %}",
-  "var_next_url_escapejs": "{{ next_url|escapejs|escapejs }}"
-}</script><script src="{% static 'js/_pages/accounts__mfa_verify-1.js' %}"></script>
-{% endif %}
+{% include "accounts/partials/mfa_verify_page_body.html" %}
 {% endblock %}

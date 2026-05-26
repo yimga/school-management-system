@@ -1,0 +1,178 @@
+{
+  "wizard_key": "cross_platform_whitelabel_branding",
+  "version": 1,
+  "audience": ["operator", "tenant_admin"],
+  "label_token": "wizards.cross_platform_whitelabel_branding.label",
+  "description_token": "wizards.cross_platform_whitelabel_branding.description",
+  "icon_class": "rmc-icon-brush",
+  "estimated_minutes": 8,
+  "gates": {},
+  "ai": {
+    "smart_defaults": true,
+    "branch_rationale": false,
+    "translate_mesh": false
+  },
+  "steps": [
+    {
+      "key": "brand_asset_injection",
+      "label_token": "wizards.cross_platform_whitelabel_branding.step.brand_asset_injection.label",
+      "description_token": "wizards.cross_platform_whitelabel_branding.step.brand_asset_injection.description",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "logo_file",
+          "label_token": "wizards.whitelabel.field.logo_file.label",
+          "type": "file",
+          "required": true,
+          "validation": {
+            "allowed_extensions": ["png", "svg", "webp"],
+            "max_file_bytes": 2097152
+          }
+        },
+        {
+          "name": "favicon_file",
+          "label_token": "wizards.whitelabel.field.favicon_file.label",
+          "type": "file",
+          "required": true,
+          "validation": {
+            "allowed_extensions": ["png", "svg", "ico"],
+            "max_file_bytes": 102400
+          }
+        },
+        {
+          "name": "social_share_image_file",
+          "label_token": "wizards.whitelabel.field.social_share_image_file.label",
+          "type": "file",
+          "required": false,
+          "validation": {
+            "allowed_extensions": ["png", "jpg", "jpeg"],
+            "max_file_bytes": 3145728
+          }
+        },
+        {
+          "name": "alt_text",
+          "label_token": "wizards.whitelabel.field.alt_text.label",
+          "type": "text",
+          "required": true,
+          "validation": {"max_length": 120}
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_brand_assets"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "typography_style_scaling",
+      "label_token": "wizards.cross_platform_whitelabel_branding.step.typography_style_scaling.label",
+      "description_token": "wizards.cross_platform_whitelabel_branding.step.typography_style_scaling.description",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "palette_key",
+          "label_token": "wizards.whitelabel.field.palette_key.label",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_heritage_palettes"
+        },
+        {
+          "name": "primary_color_hex",
+          "label_token": "wizards.whitelabel.field.primary_color_hex.label",
+          "type": "color",
+          "required": true,
+          "validation": {"color_hex": true}
+        },
+        {
+          "name": "secondary_color_hex",
+          "label_token": "wizards.whitelabel.field.secondary_color_hex.label",
+          "type": "color",
+          "required": true,
+          "validation": {"color_hex": true}
+        },
+        {
+          "name": "type_scale_anchor",
+          "label_token": "wizards.whitelabel.field.type_scale_anchor.label",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_type_scale_anchors"
+        }
+      ],
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": ["country_code", "school_type", "primary_language"],
+        "max_tokens": 600,
+        "prompt_template_key": "prompt.whitelabel.suggest_palette"
+      },
+      "persistence": {
+        "target": "runtime_defaults",
+        "writer": "apps.setup_studio.wizard_resolvers::write_typography_palette"
+      },
+      "estimated_seconds": 120
+    },
+    {
+      "key": "custom_domain_mapping",
+      "label_token": "wizards.cross_platform_whitelabel_branding.step.custom_domain_mapping.label",
+      "description_token": "wizards.cross_platform_whitelabel_branding.step.custom_domain_mapping.description",
+      "input_type": "domain_input",
+      "validation": {
+        "required": true,
+        "pattern": "^([a-z0-9-]+\\.)+[a-z]{2,}$",
+        "max_length": 253
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_custom_domain"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "progressive_app_generator",
+      "label_token": "wizards.cross_platform_whitelabel_branding.step.progressive_app_generator.label",
+      "description_token": "wizards.cross_platform_whitelabel_branding.step.progressive_app_generator.description",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "app_short_name",
+          "label_token": "wizards.whitelabel.field.app_short_name.label",
+          "type": "text",
+          "required": true,
+          "validation": {"max_length": 12}
+        },
+        {
+          "name": "app_long_name",
+          "label_token": "wizards.whitelabel.field.app_long_name.label",
+          "type": "text",
+          "required": true,
+          "validation": {"max_length": 45}
+        },
+        {
+          "name": "splash_background_color",
+          "label_token": "wizards.whitelabel.field.splash_background_color.label",
+          "type": "color",
+          "required": true,
+          "validation": {"color_hex": true}
+        },
+        {
+          "name": "splash_text_color",
+          "label_token": "wizards.whitelabel.field.splash_text_color.label",
+          "type": "color",
+          "required": true,
+          "validation": {"color_hex": true}
+        },
+        {
+          "name": "theme_color",
+          "label_token": "wizards.whitelabel.field.theme_color.label",
+          "type": "color",
+          "required": true,
+          "validation": {"color_hex": true}
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_pwa_manifest"
+      },
+      "estimated_seconds": 120
+    }
+  ]
+}

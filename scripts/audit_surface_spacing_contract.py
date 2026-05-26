@@ -15,6 +15,8 @@ TEMPLATES = ROOT / "templates"
 ARCHETYPE = 'data-page-archetype="operational-workbench"'
 WORKBENCH = 'data-rmc-operational-workbench="1"'
 FRAME = "rmc_operational_center_frame.html"
+STRIP_SUPPRESS_BLOCK = "block rmc_operator_surface_strip"
+MARKETPLACE_WORKBENCH_MARKER = 'data-rmc-marketplace-workbench="1"'
 HERO = "world_class_page_hero.html"
 FRAME_CSS = "rmc-operational-center-frame.css"
 SPACING_CSS = "rmc-surface-spacing-contract.css"
@@ -123,6 +125,34 @@ def scan() -> list[dict[str, str]]:
                             "severity": "medium",
                         }
                     )
+
+        if (
+            rel.startswith("templates/marketplace/")
+            and not rel.startswith("templates/marketplace/tenant_")
+            and FRAME in text
+            and WORKBENCH in text
+        ):
+            if STRIP_SUPPRESS_BLOCK not in text:
+                findings.append(
+                    {
+                        "file": rel,
+                        "surface": surface,
+                        "issue": "marketplace_ops_frame_missing_strip_suppress",
+                        "severity": "high",
+                    }
+                )
+            if "tertiary_url" not in text and rel not in (
+                "templates/marketplace/tenant_app_catalog.html",
+                "templates/marketplace/tenant_installed_apps.html",
+            ):
+                findings.append(
+                    {
+                        "file": rel,
+                        "surface": surface,
+                        "issue": "marketplace_ops_frame_missing_admin_bridge",
+                        "severity": "medium",
+                    }
+                )
 
         if surface == "super" and ARCHETYPE in text:
             if FRAME not in text and HERO not in text and rel not in ALLOW_LANDING:

@@ -3035,3 +3035,4 @@ class OfflinePaymentIntent(models.Model):
 
 # v2.57 — register the dual-auth model under the finance app so Django auto-discovers it.
 from .models_dual_auth import BankAccountChangeRequest  # noqa: E402,F401
+from .models_offline_capture import FinanceOfflineCaptureRecord  # noqa: E402,F401

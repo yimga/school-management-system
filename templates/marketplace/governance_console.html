@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% block rmc_operator_surface_strip %}{% endblock %}
 {% load static %}
 {% load i18n %}
 {% load region_format %}
@@ -21,11 +22,12 @@
   data-ux-qa-marker="marketplace-governance"
   data-rmc-scroll-policy="paginate"
   data-rmc-operational-workbench="1"
+  data-rmc-marketplace-workbench="1"
 >
 {% phase8_dashboard_declaration "marketplace/governance_console.html" %}
 
   {% url 'super:app_catalog' as app_catalog_url %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="marketplace_governance" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#gov-queues" primary_label=_("Review queues") secondary_url=app_catalog_url secondary_label=_("App catalog") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="marketplace_governance" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#gov-queues" primary_label=_("Review queues") secondary_url=app_catalog_url secondary_label=_("App catalog") tertiary_url=tertiary_url tertiary_label=tertiary_label tertiary_icon=tertiary_icon %}
 
   <nav class="rmc-section-nav rmc-section-nav--inline mb-2" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
     <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>

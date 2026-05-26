@@ -212,6 +212,7 @@ class SignupAndVerifyMigrationRoutingTests(TestCase):
         )
         self.assertEqual(resp.status_code, 302)
         self.assertNotEqual(resp.url, reverse("onboard_migration_handoff"))
+        self.assertIn("/school/studio/provisioning/", resp.url)
 
 
 class OnboardMigrationHandoffTests(TestCase):

@@ -1,4 +1,4 @@
-{% extends "portal_base.html" %}
+{% extends "backend_base.html" %}
 {% load i18n static %}
 
 {% block title %}My Profile - {{ SITE.site_name|default:"Portal" }}{% endblock %}
@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{% static 'css/rmc-account-surface.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block backend_page %}
   <div class="container py-4 profile-shell rmc-account-shell rmc-account-shell--tenant" data-rmc-balanced-profile="1" data-rmc-section-nav="off">
     <div class="page-header rmc-account-page-header">
       <div>

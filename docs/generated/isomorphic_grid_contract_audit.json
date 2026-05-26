@@ -1,0 +1,17 @@
+{
+  "finding_count": 0,
+  "findings": [],
+  "checks": {
+    "css_bundle": 0,
+    "js_bundle": 0,
+    "platform_wiring": 0,
+    "app_shell_composition": 0
+  },
+  "preview_north_stars": [
+    "docs/generated/preview_app_shell_manager_v8_200x.html",
+    "docs/generated/preview_app_shell_admin_v1_200x.html",
+    "docs/generated/preview_app_shell_tenant_portal_v3_100x.html"
+  ],
+  "generated_at": "2026-05-26T02:27:20Z",
+  "remediation_status": "PASS"
+}

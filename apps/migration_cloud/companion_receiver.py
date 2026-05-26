@@ -1095,3 +1095,84 @@ class CompanionKeypairRotateView(LoginRequiredMixin, View):
             )
 
         return JsonResponse({"ok": True, **result}, status=201)
+
+
+# ---------------------------------------------------------------------------
+# Setup-Studio wizard shim: register operator intent to migrate from a legacy SIS
+# ---------------------------------------------------------------------------
+#
+# The Unified Wizard Framework's ``legacy_data_extraction_pipeline`` wizard
+# collects setup-time intent: vendor + sample CSV / mapping / cleanup flags.
+# This is NOT the full Companion handshake (no MAA signing, no sealed-box
+# ciphertext upload — those flow through the dedicated ``CompanionUploadView``
+# above). The wizard shim records a lightweight ledger entry on
+# ``school.settings["migration_cloud"]["wizard_uploads"]`` so operators can
+# audit which migration intents were declared during setup.
+
+
+def register_upload(*, school, payload=None, actor_user_id=None) -> bool:
+    """Record a setup-time legacy-data upload intent in the tenant ledger.
+
+    NOT a substitute for the full Companion handshake (``CompanionUploadView``
+    + sealed-box ciphertext). For setup-studio wizard answers only.
+
+    Returns ``True`` on state change, ``False`` on no-op.
+    """
+    if school is None or not payload:
+        return False
+    if getattr(school, "pk", None) is None:
+        return False
+
+    entry = _coerce_wizard_upload_entry(payload)
+    if not entry:
+        return False
+
+    from datetime import datetime, timezone
+    entry["registered_at_iso"] = datetime.now(tz=timezone.utc).isoformat()
+    if actor_user_id:
+        entry["actor_user_id"] = actor_user_id
+
+    settings = getattr(school, "settings", None) or {}
+    if not isinstance(settings, dict):
+        settings = {}
+    mc_bucket = settings.get("migration_cloud") or {}
+    if not isinstance(mc_bucket, dict):
+        mc_bucket = {}
+    ledger = list(mc_bucket.get("wizard_uploads") or [])
+
+    if any(_same_upload(existing, entry) for existing in ledger):
+        return False
+
+    ledger.append(entry)
+    if len(ledger) > 50:
+        ledger = ledger[-50:]
+    mc_bucket["wizard_uploads"] = ledger
+    settings["migration_cloud"] = mc_bucket
+
+    try:
+        school.settings = settings
+        school.save(update_fields=["settings"])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("register_upload (wizard shim): save failed: %s", exc)
+        return False
+    return True
+
+
+def _coerce_wizard_upload_entry(payload):
+    """Normalize wizard payload to a small ledger entry."""
+    value = payload.get("value")
+    if isinstance(value, dict) and ("file_name" in value or "file_size" in value):
+        return {"file_name": value.get("file_name"), "file_size": value.get("file_size")}
+    if hasattr(value, "name") and hasattr(value, "size") and not isinstance(value, str):
+        return {"file_name": getattr(value, "name", None), "file_size": getattr(value, "size", None)}
+    if isinstance(value, str) and value.strip():
+        return {"value": value.strip()}
+    return None
+
+
+def _same_upload(a: dict, b: dict) -> bool:
+    if a.get("file_name") and a.get("file_name") == b.get("file_name"):
+        return True
+    if a.get("value") and a.get("value") == b.get("value"):
+        return True
+    return False

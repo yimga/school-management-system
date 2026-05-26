@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-25T15:47:07.465938+00:00",
+  "generated_at": "2026-05-26T02:26:33.692404+00:00",
   "finding_count": 60,
   "summary": {
     "by_surface": {
@@ -144,7 +144,7 @@
     {
       "path": "templates/accounts/profile.html",
       "surface": "tenant",
-      "extends": "portal_base.html",
+      "extends": "backend_base.html",
       "fold_required": false,
       "section_nav_off": true,
       "section_nav_auto": false,

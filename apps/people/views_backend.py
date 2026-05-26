@@ -102,6 +102,11 @@ def _application_form_draft_initial(request):
 def backend_student_create(request):
     """Create student via user-friendly backend UI. Section 26.5: draft save/load."""
     if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
         form = StudentCreateForm(request.POST, request.FILES)
         if form.is_valid():
             try:
@@ -112,7 +117,9 @@ def backend_student_create(request):
                     student.save()
 
                     # Clear draft on successful create (26.5)
-                    school = getattr(request, "school", None)
+                    from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+                    school = resolve_request_school(request)
                     if school:
                         FormDraft.objects.filter(
                             school=school,
@@ -252,6 +259,11 @@ def backend_student_create(request):
 def backend_teacher_create(request):
     """Create teacher via user-friendly backend UI"""
     if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
         form = TeacherCreateForm(request.POST, request.FILES)
         if form.is_valid():
             try:
@@ -391,6 +403,11 @@ def backend_classroom_list(request):
 def backend_classroom_create(request):
     """Create classroom via user-friendly backend UI"""
     if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
         form = ClassroomCreateForm(request.POST)
         if form.is_valid():
             try:
@@ -780,11 +797,18 @@ def backend_teacher_list(request):
 @permission_required("people.add_applicant", raise_exception=True)
 def backend_applicant_create(request):
     """Add applicant/lead via backend UI. Section 26.5: Save draft / Resume draft via FormDraft (application_form)."""
-    school = getattr(request, "school", None)
+    from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+    school = resolve_request_school(request)
     if not school:
         messages.warning(request, "No school context.")
         return redirect(reverse("accounts:backend_dashboard"))
     if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
         form = ApplicantCreateForm(request.POST)
         if form.is_valid():
             try:

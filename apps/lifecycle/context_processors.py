@@ -35,9 +35,15 @@ def lifecycle_readiness(request):
         readiness = compute_unified_score(school)
         if readiness is None:
             return {}
+        from .unified_lifecycle import resolve_unified_lifecycle
+        from .wind_down import is_wind_down_mode
+
+        unified = resolve_unified_lifecycle(school)
         return {
             "lifecycle_readiness": readiness.to_dict(),
             "lifecycle_concierge_enabled": needs_concierge(school),
+            "unified_lifecycle": unified,
+            "wind_down_mode": is_wind_down_mode(school),
         }
     except Exception as exc:  # noqa: BLE001
         logger.warning(
@@ -48,6 +54,14 @@ def lifecycle_readiness(request):
 
 
 def _resolve_school(request):
+    try:
+        from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+        school = resolve_request_school(request)
+        if school is not None and hasattr(school, "id"):
+            return school
+    except ImportError:
+        pass
     school = (
         getattr(request, "school", None)
         or getattr(request, "tenant_school", None)

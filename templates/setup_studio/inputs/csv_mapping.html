@@ -1,0 +1,17 @@
+{% load i18n %}
+<fieldset class="rmc-wizard-field">
+  <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
+  {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
+  {% for source_col in resolved_options %}
+    <div class="rmc-wizard-csv-pair">
+      <span><strong>{{ source_col.value }}</strong></span>
+      <span aria-hidden="true">→</span>
+      <select name="mapping_{{ forloop.counter0 }}">
+        <option value="">{% trans "— not mapped —" %}</option>
+        {% for tgt in source_col.metadata.targets %}
+          <option value="{{ tgt.value }}">{{ tgt.label_token|default:tgt.value }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  {% endfor %}
+</fieldset>

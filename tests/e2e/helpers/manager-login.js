@@ -43,11 +43,12 @@ async function loginManager(page, opts = {}) {
   const currentUrl = page.url() ? new URL(page.url()) : null;
   if (!currentUrl || !/\/authentication\/login\/?$/i.test(currentUrl.pathname)) {
     await page.goto(loginUrl, {
-      waitUntil: 'commit',
+      waitUntil: 'domcontentloaded',
       timeout: 60000,
     });
   }
   await page.keyboard.press('Escape').catch(() => {});
+  await page.locator('input[name="username"]').waitFor({ state: 'visible', timeout: 60000 });
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Page.stopLoading').catch(() => {});
 

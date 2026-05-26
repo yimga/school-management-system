@@ -1,0 +1,16 @@
+{% load i18n %}
+<fieldset class="rmc-wizard-field">
+  <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
+  {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
+  {% for option in resolved_options %}
+    <label class="rmc-wizard-option-card{% if option.value == prior_answer.value %} rmc-wizard-option-card--selected{% endif %}">
+      <input type="radio" name="value" value="{{ option.value }}"
+             {% if option.value == prior_answer.value or option.value == ai_suggested_value %}checked{% endif %}
+             {% if step.validation.required %}required{% endif %}>
+      <span>{{ option.label_token|default:option.value }}</span>
+    </label>
+  {% empty %}
+    <p class="rmc-wizard-empty">{% trans "No options available." %}</p>
+  {% endfor %}
+  {% if errors.value %}<p class="rmc-wizard-field__error">{{ errors.value }}</p>{% endif %}
+</fieldset>

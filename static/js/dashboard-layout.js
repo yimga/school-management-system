@@ -693,7 +693,6 @@
         
         if (sortables.length > 0) {
           layoutRoot.classList.add('drag-mode');
-          console.log(`Drag-and-drop enabled for ${sortables.length} column(s)`);
         } else {
           console.warn('No sortable instances created. Check that widgets have [data-widget-id] attributes.');
         }

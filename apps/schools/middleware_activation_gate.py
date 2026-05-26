@@ -32,7 +32,16 @@ class ActivationGateMiddleware:
             return None
         if not getattr(request.user, "is_authenticated", False):
             return None
-        school = getattr(request, "school", None)
+        try:
+            from apps.lifecycle.tenant_school_resolve import resolve_request_school
+            from apps.lifecycle.wind_down import is_wind_down_mode
+
+            school = resolve_request_school(request)
+            if school is not None and is_wind_down_mode(school):
+                return None
+        except ImportError:
+            school = getattr(request, "school", None)
+
         if school is None or not school_activation_gate_pending(school):
             return None
 
@@ -63,6 +72,9 @@ class ActivationGateMiddleware:
             "/static/",
             "/media/",
             "/activation/",
+            "/school/studio/",
+            "/siteconfig/onboarding",
+            "/onboard/",
             "/health",
             "/healthz/",
             "/ready/",

@@ -1,0 +1,65 @@
+{
+  "wizard_key": "dynamic_multi_campus_scheduling",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.dynamic_multi_campus_scheduling.label",
+  "description_token": "wizards.dynamic_multi_campus_scheduling.description",
+  "icon_class": "rmc-icon-calendar-grid",
+  "estimated_minutes": 18,
+  "gates": {
+    "permission_codename": "orchestration.change_schedule",
+    "prerequisite_wizard": "polymorphic_grading_curricula"
+  },
+  "ai": {
+    "smart_defaults": true,
+    "branch_rationale": true
+  },
+  "steps": [
+    {
+      "key": "resource_constraints",
+      "input_type": "key_value_pairs",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_scheduling_resources"
+      }
+    },
+    {
+      "key": "curricula_pathways",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_curriculum_tracks",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_scheduling_pathways"
+      }
+    },
+    {
+      "key": "ai_conflict_solver",
+      "input_type": "boolean",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "school_type"
+        ],
+        "prompt_template_key": "prompt.scheduling.solve_conflicts"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_scheduling_solver"
+      }
+    },
+    {
+      "key": "unified_rollout",
+      "input_type": "single_choice",
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_scheduling_rollout"
+      }
+    }
+  ]
+}

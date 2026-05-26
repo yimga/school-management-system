@@ -15,7 +15,10 @@
   <div class="card">
     <div class="card-body">
       <p class="text-muted small mb-3">Academic year: {{ active_year.name }}. Allocation lines must sum to the total amount.</p>
-      <form method="post" action="" id="split-allocation-form" data-draft-key="split_allocation" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced payments">
+      <form method="post" action="" id="split-allocation-form" data-draft-key="split_allocation" data-draft-max-age-hours="24" data-draft-pending-label="Unsynced payments"
+            data-rmc-offline-form="field_capture"
+            data-rmc-offline-workflow="finance_split_allocation"
+            data-offline-hint="{% trans 'Payment split lines stay on this device until you reconnect and sync.' %}">
         {% csrf_token %}
         {% if form.non_field_errors %}
           <div class="alert alert-danger">{{ form.non_field_errors }}</div>

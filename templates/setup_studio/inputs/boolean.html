@@ -1,0 +1,12 @@
+{% load i18n %}
+<div class="rmc-wizard-field">
+  <label class="rmc-wizard-option-card" for="rmc-wizard-input-value">
+    <input type="checkbox" id="rmc-wizard-input-value" name="value" value="1"
+           {% if prior_answer.value %}checked{% endif %}>
+    <span>
+      <strong>{{ step_label }}</strong>
+      {% if step_description %}<br><span class="rmc-wizard-field__helper">{{ step_description }}</span>{% endif %}
+    </span>
+  </label>
+  {% if errors.value %}<p class="rmc-wizard-field__error">{{ errors.value }}</p>{% endif %}
+</div>

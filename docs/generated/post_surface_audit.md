@@ -1,10 +1,10 @@
 # POST / mutation surface audit
 
-**Generated:** 2026-05-25T03:07:44.607073+00:00
+**Generated:** 2026-05-26T10:24:06.057407+00:00
 
 ## Summary
 
-- product POST handlers: 338
+- product POST handlers: 346
 - product needs_review: 124
 - csrf_exempt (apps): 76
 - allow_any hints: 10

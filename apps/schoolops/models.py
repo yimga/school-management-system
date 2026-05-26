@@ -783,8 +783,16 @@ from apps.schoolops.models_email_delivery import (  # noqa: E402  re-export at m
     EmailDeliveryEvent,
     EmailDeliveryEventReadOnlyError,
 )
+from apps.schoolops.models_micro_friction import (  # noqa: E402
+    LostBelongingsCustodyEventRecord,
+    LostBelongingsTagRecord,
+    SubstituteHandoverPacketRecord,
+)
 
 __all__ = [
     "EmailDeliveryEvent",
     "EmailDeliveryEventReadOnlyError",
+    "LostBelongingsCustodyEventRecord",
+    "LostBelongingsTagRecord",
+    "SubstituteHandoverPacketRecord",
 ]

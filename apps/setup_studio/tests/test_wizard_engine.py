@@ -1,0 +1,256 @@
+"""Unit tests for wizard_engine — registry, branching, validation."""
+
+import json
+import tempfile
+from pathlib import Path
+
+from django.test import SimpleTestCase
+
+from apps.setup_studio import wizard_engine
+
+
+_VALID_WIZARD = {
+    "wizard_key": "test_wizard",
+    "version": 1,
+    "audience": ["tenant_admin"],
+    "label_token": "wizards.test_wizard.label",
+    "description_token": "wizards.test_wizard.description",
+    "icon_class": "rmc-icon-test",
+    "estimated_minutes": 5,
+    "ai": {"smart_defaults": False},
+    "steps": [
+        {
+            "key": "step_one",
+            "label_token": "wizards.test_wizard.step.step_one.label",
+            "input_type": "single_choice",
+            "validation": {"required": True},
+        },
+        {
+            "key": "step_two",
+            "label_token": "wizards.test_wizard.step.step_two.label",
+            "input_type": "text",
+            "validation": {"required": True, "max_length": 50},
+        },
+    ],
+}
+
+
+class RegistryLoadTests(SimpleTestCase):
+    def test_load_valid_wizard(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "test_wizard.json"
+            path.write_text(json.dumps(_VALID_WIZARD), encoding="utf-8")
+            registry = wizard_engine.load_wizard_registry(Path(tmp))
+            self.assertIn("test_wizard", registry)
+            wizard = registry["test_wizard"]
+            self.assertEqual(len(wizard.steps), 2)
+            self.assertEqual(wizard.audience, ("tenant_admin",))
+
+    def test_skip_underscore_prefixed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "_draft.json"
+            path.write_text(json.dumps(_VALID_WIZARD), encoding="utf-8")
+            registry = wizard_engine.load_wizard_registry(Path(tmp))
+            self.assertNotIn("test_wizard", registry)
+
+    def test_skip_feature_flag_disabled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            disabled = dict(_VALID_WIZARD)
+            disabled["feature_flag_disabled"] = True
+            path = Path(tmp) / "test_wizard.json"
+            path.write_text(json.dumps(disabled), encoding="utf-8")
+            registry = wizard_engine.load_wizard_registry(Path(tmp))
+            self.assertNotIn("test_wizard", registry)
+
+    def test_invalid_json_skipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "broken.json"
+            path.write_text("{ not valid json", encoding="utf-8")
+            # Should not raise
+            registry = wizard_engine.load_wizard_registry(Path(tmp))
+            self.assertEqual(registry, {})
+
+
+class SchemaTests(SimpleTestCase):
+    def test_missing_wizard_key_skipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = dict(_VALID_WIZARD)
+            del bad["wizard_key"]
+            path = Path(tmp) / "missing_key.json"
+            path.write_text(json.dumps(bad), encoding="utf-8")
+            registry = wizard_engine.load_wizard_registry(Path(tmp))
+            self.assertEqual(registry, {})
+
+    def test_empty_audience_skipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = dict(_VALID_WIZARD)
+            bad["audience"] = []
+            path = Path(tmp) / "empty_audience.json"
+            path.write_text(json.dumps(bad), encoding="utf-8")
+            registry = wizard_engine.load_wizard_registry(Path(tmp))
+            self.assertEqual(registry, {})
+
+    def test_branches_and_resolver_both_skipped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = dict(_VALID_WIZARD)
+            bad["steps"] = [
+                {
+                    "key": "step_one",
+                    "label_token": "...",
+                    "input_type": "single_choice",
+                    "branches": {"a": "step_two"},
+                    "next_step_resolver": "apps.foo::bar",
+                },
+                {"key": "step_two", "label_token": "...", "input_type": "text"},
+            ]
+            path = Path(tmp) / "conflict.json"
+            path.write_text(json.dumps(bad), encoding="utf-8")
+            registry = wizard_engine.load_wizard_registry(Path(tmp))
+            self.assertEqual(registry, {})
+
+
+class AudienceFilterTests(SimpleTestCase):
+    def test_list_for_audience(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "tenant_wiz.json").write_text(
+                json.dumps({**_VALID_WIZARD, "wizard_key": "tenant_wiz", "audience": ["tenant_admin"]}),
+                encoding="utf-8",
+            )
+            (Path(tmp) / "operator_wiz.json").write_text(
+                json.dumps({**_VALID_WIZARD, "wizard_key": "operator_wiz", "audience": ["operator"]}),
+                encoding="utf-8",
+            )
+            (Path(tmp) / "both_wiz.json").write_text(
+                json.dumps({**_VALID_WIZARD, "wizard_key": "both_wiz", "audience": ["operator", "tenant_admin"]}),
+                encoding="utf-8",
+            )
+            wizard_engine.load_wizard_registry(Path(tmp))
+            tenant = wizard_engine.list_wizards_for_audience("tenant_admin")
+            keys = {w.wizard_key for w in tenant}
+            self.assertIn("tenant_wiz", keys)
+            self.assertIn("both_wiz", keys)
+            self.assertNotIn("operator_wiz", keys)
+
+
+class BranchingTests(SimpleTestCase):
+    def setUp(self):
+        self.wizard = wizard_engine._parse_wizard({
+            "wizard_key": "branching_test",
+            "version": 1,
+            "audience": ["operator"],
+            "steps": [
+                {
+                    "key": "first",
+                    "input_type": "single_choice",
+                    "branches": {"BR|IN": "second_a", "default": "second_b"},
+                },
+                {"key": "second_a", "input_type": "text"},
+                {"key": "second_b", "input_type": "text"},
+            ],
+        }, Path("/tmp/branching_test.json"))
+
+    def test_branch_match(self):
+        next_step = wizard_engine.resolve_next_step(
+            self.wizard,
+            current_step=self.wizard.steps[0],
+            current_answer={"value": "BR"},
+        )
+        self.assertEqual(next_step.key, "second_a")
+
+    def test_branch_default(self):
+        next_step = wizard_engine.resolve_next_step(
+            self.wizard,
+            current_step=self.wizard.steps[0],
+            current_answer={"value": "US"},
+        )
+        self.assertEqual(next_step.key, "second_b")
+
+    def test_branch_pipe_alternative(self):
+        next_step = wizard_engine.resolve_next_step(
+            self.wizard,
+            current_step=self.wizard.steps[0],
+            current_answer={"value": "IN"},
+        )
+        self.assertEqual(next_step.key, "second_a")
+
+    def test_branch_end(self):
+        wizard = wizard_engine._parse_wizard({
+            "wizard_key": "end_test",
+            "version": 1,
+            "audience": ["operator"],
+            "steps": [
+                {"key": "one", "input_type": "single_choice", "branches": {"default": "__end__"}},
+            ],
+        }, Path("/tmp/end_test.json"))
+        next_step = wizard_engine.resolve_next_step(
+            wizard,
+            current_step=wizard.steps[0],
+            current_answer={"value": "x"},
+        )
+        self.assertIsNone(next_step)
+
+
+class SequentialAdvanceTests(SimpleTestCase):
+    def test_advances_to_next(self):
+        wizard = wizard_engine._parse_wizard(_VALID_WIZARD, Path("/tmp/seq.json"))
+        next_step = wizard_engine.resolve_next_step(
+            wizard,
+            current_step=wizard.steps[0],
+            current_answer={"value": "x"},
+        )
+        self.assertEqual(next_step.key, "step_two")
+
+    def test_final_step_returns_none(self):
+        wizard = wizard_engine._parse_wizard(_VALID_WIZARD, Path("/tmp/seq.json"))
+        next_step = wizard_engine.resolve_next_step(
+            wizard,
+            current_step=wizard.steps[-1],
+            current_answer={"value": "x"},
+        )
+        self.assertIsNone(next_step)
+
+
+class ValidationTests(SimpleTestCase):
+    def test_simple_required_fail(self):
+        wizard = wizard_engine._parse_wizard(_VALID_WIZARD, Path("/tmp/v.json"))
+        step = wizard.steps[0]
+        is_valid, errors = wizard_engine.validate_step_answer(step, {"value": None})
+        self.assertFalse(is_valid)
+        self.assertIn("value", errors)
+
+    def test_simple_pass(self):
+        wizard = wizard_engine._parse_wizard(_VALID_WIZARD, Path("/tmp/v.json"))
+        step = wizard.steps[0]
+        is_valid, errors = wizard_engine.validate_step_answer(step, {"value": "x"})
+        self.assertTrue(is_valid)
+        self.assertEqual(errors, {})
+
+    def test_structured_form_validation(self):
+        wizard = wizard_engine._parse_wizard({
+            "wizard_key": "sf",
+            "version": 1,
+            "audience": ["operator"],
+            "steps": [
+                {
+                    "key": "form",
+                    "input_type": "structured_form",
+                    "fields": [
+                        {"name": "name", "type": "text", "required": True, "validation": {"max_length": 5}},
+                    ],
+                },
+            ],
+        }, Path("/tmp/sf.json"))
+        step = wizard.steps[0]
+        ok, errs = wizard_engine.validate_step_answer(step, {"name": ""})
+        self.assertFalse(ok)
+        self.assertIn("name", errs)
+        ok, errs = wizard_engine.validate_step_answer(step, {"name": "abcdefg"})
+        self.assertFalse(ok)
+        ok, errs = wizard_engine.validate_step_answer(step, {"name": "abc"})
+        self.assertTrue(ok)
+
+
+class GetWizardTests(SimpleTestCase):
+    def test_not_found_raises(self):
+        with self.assertRaises(wizard_engine.WizardNotFound):
+            wizard_engine.get_wizard("non_existent_wizard_xyz")

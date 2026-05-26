@@ -347,3 +347,13 @@ def get_guided_onboarding_steps(school):
         }
     )
     return steps
+
+
+# ---------------------------------------------------------------------------
+# Helpcenter knowledge source registration — Unified Wizard Framework shim
+# ---------------------------------------------------------------------------
+
+# Re-export from helpcenter_services so callers can do
+# ``apps.customersuccess.services.register_helpcenter_source``
+# (the dotted path the wizard writer references).
+from apps.customersuccess.helpcenter_services import register_helpcenter_source  # noqa: E402,F401

@@ -23,3 +23,34 @@ tmp/screenshots/ export-ignore
 *.sqlite3-journal export-ignore
 __pycache__/ export-ignore
 
+# Release hygiene cleanup (batch 1507, 2026-05-25) — evidence sludge that must
+# NEVER ship inside a release-source archive. Working tree may still hold these
+# while the runtime references them; the export-ignore directives strip them
+# at `git archive` time and the build_clean_source_archive.py guard re-checks
+# the resulting tarball.
+artifacts/visual-qa/ export-ignore
+artifacts/apple-class/ export-ignore
+artifacts/theme-experience-dual-plane/ export-ignore
+artifacts/manager-surface-parity/ export-ignore
+artifacts/live_browser_ux_certification/ export-ignore
+artifacts/marketing-snapshots/ export-ignore
+artifacts/preview-shell-lane2/ export-ignore
+artifacts/tenant-portal-lane2/ export-ignore
+artifacts/admin-platform-proof/ export-ignore
+artifacts/runtime/ export-ignore
+artifacts/security/ export-ignore
+artifacts/*.png export-ignore
+artifacts/*.pid export-ignore
+artifacts-evidence/ export-ignore
+var/evidence/click-repro/ export-ignore
+var/*.txt export-ignore
+var/*.joblib export-ignore
+var/at_risk/ export-ignore
+var/help-* export-ignore
+var/feedback-* export-ignore
+var/single-staff-* export-ignore
+var/last-test-* export-ignore
+var/verify-interaction-* export-ignore
+var/audit-1310-* export-ignore
+var/all-hc-* export-ignore
+

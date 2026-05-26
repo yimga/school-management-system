@@ -1,0 +1,48 @@
+{
+  "wizard_key": "library_inventory_management",
+  "version": 1,
+  "audience": ["tenant_admin"],
+  "label_token": "wizards.library_inventory_management.label",
+  "description_token": "wizards.library_inventory_management.description",
+  "icon_class": "rmc-icon-book",
+  "estimated_minutes": 10,
+  "ai": {"smart_defaults": true},
+  "steps": [
+    {
+      "key": "catalog_seed",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "default_loan_period_days", "type": "number", "required": true, "validation": {"integer_min": 1, "integer_max": 365}},
+        {"name": "max_concurrent_loans_per_student", "type": "number", "required": true, "validation": {"integer_min": 1, "integer_max": 50}},
+        {"name": "renewals_allowed", "type": "number", "required": true, "validation": {"integer_min": 0, "integer_max": 10}},
+        {"name": "import_initial_catalog_csv", "type": "file", "required": false, "validation": {"allowed_extensions": ["csv"], "max_file_bytes": 5242880}}
+      ],
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_library_catalog"}
+    },
+    {
+      "key": "fine_policy",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "fine_per_day_overdue_decimal", "type": "decimal", "required": true, "validation": {"decimal_min": "0.00", "decimal_max": "100.00"}},
+        {"name": "grace_period_days", "type": "number", "required": true, "validation": {"integer_min": 0, "integer_max": 30}},
+        {"name": "max_fine_per_book_decimal", "type": "decimal", "required": true, "validation": {"decimal_min": "0.00", "decimal_max": "10000.00"}},
+        {"name": "suspend_after_unpaid_fine_days", "type": "number", "required": true, "validation": {"integer_min": 0, "integer_max": 365}}
+      ],
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_library_fines"}
+    },
+    {
+      "key": "categories_genres",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_library_categories",
+      "validation": {"required": true},
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_library_categories"}
+    },
+    {
+      "key": "barcode_scheme",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_barcode_schemes",
+      "validation": {"required": true},
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_library_barcode_scheme"}
+    }
+  ]
+}

@@ -215,6 +215,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @trace_view("finance.invoice.create")
     def create(self, request, *args, **kwargs):
         """Create new invoice"""
+        from apps.lifecycle.wind_down_guards import wind_down_drf_block
+
+        blocked = wind_down_drf_block(request)
+        if blocked is not None:
+            return blocked
         school = _request_school(request)
         if not _can_write_finance(request.user, school):
             return Response(
@@ -256,6 +261,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def mark_paid(self, request, pk=None):
         """Mark invoice as fully paid"""
+        from apps.lifecycle.wind_down_guards import wind_down_drf_block
+
+        blocked = wind_down_drf_block(request)
+        if blocked is not None:
+            return blocked
         school = _request_school(request)
         if not _can_write_finance(request.user, school):
             return Response(
@@ -431,6 +441,11 @@ class PaymentViewSet(viewsets.ModelViewSet):
         Supports X-Idempotency-Key: same key within 24h returns the same response (offline replay dedup).
         Request Body: { "invoice": 1, "amount": 25000.00, "method": "MTN_MOMO", "reference": "REF123456", "paid_at": "..." }
         """
+        from apps.lifecycle.wind_down_guards import wind_down_drf_block
+
+        blocked = wind_down_drf_block(request)
+        if blocked is not None:
+            return blocked
         school = _request_school(request)
         if not _can_write_finance(request.user, school):
             return Response(

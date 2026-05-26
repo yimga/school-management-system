@@ -28,6 +28,7 @@ from .views_reports import finance_reports, submit_report_request
 from .views_payment_setup import payment_readiness_setup
 from .views_payment_readiness_dashboard import payment_readiness_dashboard
 from .views_global_payment_command_center import global_payment_command_center
+from .views_workforce_hub import workforce_command_center
 from .views_offline_bursar_queue import (
     offline_payment_intent_approve,
     offline_payment_intent_bulk_approve,
@@ -53,6 +54,11 @@ urlpatterns = [
         "payment-command-center/",
         global_payment_command_center,
         name="global_payment_command_center",
+    ),
+    path(
+        "workforce/",
+        workforce_command_center,
+        name="workforce_command_center",
     ),
     path(
         "offline-intents/queue/",

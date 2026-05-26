@@ -209,9 +209,15 @@ def super_tenant_360(request, school_id):
             trace = getattr(debug, "compilation_trace", []) or []
             warnings = getattr(debug, "warnings", []) or []
 
+    from apps.lifecycle.unified_lifecycle import (
+        build_offboarding_checklist,
+        resolve_unified_lifecycle,
+    )
     from apps.schools.tenant_offboarding import get_offboarding_snapshot
 
     offboarding = get_offboarding_snapshot(school)
+    offboarding_checklist = build_offboarding_checklist(school)
+    unified_lifecycle = resolve_unified_lifecycle(school)
     return render(
         request,
         "schools/super_tenant_360.html",
@@ -225,6 +231,8 @@ def super_tenant_360(request, school_id):
             "runtime_warnings": warnings,
             "dashboard_url": reverse("super:dashboard"),
             "offboarding": offboarding,
+            "offboarding_checklist": offboarding_checklist,
+            "unified_lifecycle": unified_lifecycle,
             "api_offboarding_url": reverse(
                 "super:api_school_offboarding", args=[school.id]
             ),

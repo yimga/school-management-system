@@ -13,7 +13,9 @@
   <div class="badge bg-warning text-dark">{% trans "Unread" %} {{ unread_count }}</div>
 </div>
 
-<form method="post" id="finance-requests-inbox-form" data-draft-key="finance_requests_inbox_{{ request.user.id }}" data-draft-max-age-hours="24">
+<form method="post" id="finance-requests-inbox-form" data-draft-key="finance_requests_inbox_{{ request.user.id }}" data-draft-max-age-hours="24"
+      data-rmc-offline-form="field_capture"
+      data-rmc-offline-workflow="finance_requests_inbox">
   {% csrf_token %}
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
     <div class="btn-group" role="group" aria-label="{% trans 'Finance inbox view' %}">

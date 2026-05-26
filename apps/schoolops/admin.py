@@ -15,9 +15,12 @@ from .models import (
     InventoryItem,
     LibraryItem,
     LibraryLoan,
+    LostBelongingsCustodyEventRecord,
+    LostBelongingsTagRecord,
     MealPlanBalance,
     Route,
     Stop,
+    SubstituteHandoverPacketRecord,
     TransportAssignment,
 )
 
@@ -240,3 +243,43 @@ class MealPlanBalanceAdmin(admin.ModelAdmin):
         return obj.is_low
     is_low_display.boolean = True
     is_low_display.short_description = "Low?"
+
+
+@admin.register(SubstituteHandoverPacketRecord, site=tenant_admin_site)
+class SubstituteHandoverPacketRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "packet_id",
+        "school",
+        "valid_until",
+        "medical_iep_gated",
+        "source",
+        "created_at",
+    )
+    list_filter = ("source", "medical_iep_gated", "school")
+    search_fields = ("packet_id", "teacher_id_hash", "substitute_id_hash")
+    readonly_fields = (
+        "packet_id",
+        "teacher_id_hash",
+        "substitute_id_hash",
+        "audit_event_id",
+        "created_at",
+    )
+    raw_id_fields = ("school", "created_by")
+
+
+@admin.register(LostBelongingsTagRecord, site=tenant_admin_site)
+class LostBelongingsTagRecordAdmin(admin.ModelAdmin):
+    list_display = ("short_code", "label_hint", "school", "status", "created_at")
+    list_filter = ("status", "school")
+    search_fields = ("short_code", "label_hint", "asset_id")
+    readonly_fields = ("tenant_id_hash", "created_at", "recovered_at")
+    raw_id_fields = ("school", "created_by")
+
+
+@admin.register(LostBelongingsCustodyEventRecord, site=tenant_admin_site)
+class LostBelongingsCustodyEventRecordAdmin(admin.ModelAdmin):
+    list_display = ("event_id", "tag", "actor_kind", "school", "occurred_at")
+    list_filter = ("actor_kind", "school")
+    search_fields = ("event_id", "notes_redacted")
+    readonly_fields = ("event_id", "staff_id_hash", "occurred_at", "created_at")
+    raw_id_fields = ("school", "tag")

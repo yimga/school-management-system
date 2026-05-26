@@ -161,6 +161,11 @@ def claim_suspense_payment(request: HttpRequest, suspense_id: int):
     Expects JSON in `allocations`, e.g.:
       [{"invoice_id": 12, "amount": "10000"}, {"invoice_id": 13, "amount": "5000"}]
     """
+    from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+    blocked = block_if_wind_down_commerce(request)
+    if blocked is not None:
+        return blocked
     suspense = get_object_or_404(SuspensePayment, pk=suspense_id)
     raw_allocations = request.POST.get("allocations", "").strip()
     notes = request.POST.get("notes", "").strip()

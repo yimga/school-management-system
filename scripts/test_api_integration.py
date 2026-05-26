@@ -307,8 +307,8 @@ class APITestSuite:
         # Clean up previous test data
         try:
             User.objects.filter(username__endswith="_test").delete()
-        except:
-            pass
+        except Exception as exc:
+            print(f"[test_api_integration] test-user cleanup skipped: {exc}")
 
         # Setup
         self.setup_test_users()

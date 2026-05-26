@@ -16,7 +16,7 @@
     {% elif item.icon %}
       <i class="bi {{ item.icon }}" aria-hidden="true"></i>
     {% endif %}
-    <span>{% trans item.label %}</span>
+    <span class="rmc-text-container">{% trans item.label %}</span>
   </a>
   {% endfor %}
   {% include "partials/rmc_security_posture_nav_button.html" %}

@@ -23,7 +23,12 @@
           {% comment %} Pass 8 Wave 3: migrated to components/form_field. Custom 3-button footer
              (Cancel + Save draft + Submit) kept inline since form_actions only handles
              1 primary + 1 secondary — Save draft is conditionally rendered. {% endcomment %}
-          <form method="post" novalidate id="backend-applicant-create-form">
+          <form method="post" novalidate id="backend-applicant-create-form"
+                data-draft-key="backend_applicant_create_{{ request.user.id }}"
+                data-draft-max-age-hours="48"
+                data-rmc-offline-form="field_capture"
+                data-rmc-offline-workflow="people_applicant_create"
+                data-offline-hint="{% trans 'Applicant details stay on this device until you reconnect and sync.' %}">
             {% csrf_token %}
             <div class="row">
               <div class="col-md-6">{% include "components/form_field.html" with field=form.first_name %}</div>

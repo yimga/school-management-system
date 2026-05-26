@@ -1,0 +1,89 @@
+{
+  "wizard_key": "polymorphic_grading_curricula",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.polymorphic_grading_curricula.label",
+  "description_token": "wizards.polymorphic_grading_curricula.description",
+  "icon_class": "rmc-icon-chart-rising",
+  "estimated_minutes": 10,
+  "gates": {
+    "permission_codename": "academics.change_curriculum"
+  },
+  "ai": {
+    "smart_defaults": true,
+    "branch_rationale": true
+  },
+  "steps": [
+    {
+      "key": "track_selection",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_curriculum_tracks",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "country_code",
+          "state_code",
+          "school_type"
+        ],
+        "prompt_template_key": "prompt.grading.suggest_track"
+      },
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_grading_track"
+      }
+    },
+    {
+      "key": "assessment_metrics",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "grading_scale",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_grading_scales"
+        },
+        {
+          "name": "pass_threshold",
+          "type": "decimal",
+          "required": true
+        },
+        {
+          "name": "rubric_levels",
+          "type": "number",
+          "required": false
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_grading_metrics"
+      }
+    },
+    {
+      "key": "course_schema_association",
+      "input_type": "csv_mapping",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_canonical_csv_fields",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_grading_subject_mapping"
+      }
+    },
+    {
+      "key": "transcript_factory",
+      "input_type": "rich_select",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_transcript_templates",
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_grading_transcript"
+      }
+    }
+  ]
+}

@@ -27,6 +27,12 @@ from apps.portal.views_ai_copilot import (
 )
 from apps.portal.views_configure import portal_configure_hub
 from apps.siteconfig.views_school_help_ai import school_help_ai
+from apps.lifecycle.views_tenant_lifecycle import (
+    api_tenant_launch_rail,
+    api_tenant_provisioning_status,
+    tenant_launch_fast_path,
+    tenant_provisioning_status,
+)
 from apps.siteconfig.views_tenant_studio_hub import (
     school_studio_hub,
     school_studio_redirect_help,
@@ -285,6 +291,26 @@ urlpatterns = [
     path("school/security/", school_surface_redirect, {"surface": "security"}, name="school_security"),
     path("school/help/ai/", school_help_ai, name="school_help_ai"),
     path("school/studio/", school_studio_hub, name="school_studio"),
+    path(
+        "school/studio/provisioning/",
+        tenant_provisioning_status,
+        name="tenant_provisioning_status",
+    ),
+    path(
+        "school/studio/fast-path/",
+        tenant_launch_fast_path,
+        name="tenant_launch_fast_path",
+    ),
+    path(
+        "api/school/lifecycle/provisioning/",
+        api_tenant_provisioning_status,
+        name="api_tenant_provisioning_status",
+    ),
+    path(
+        "api/school/lifecycle/launch-rail/",
+        api_tenant_launch_rail,
+        name="api_tenant_launch_rail",
+    ),
     path("school/studio/setup/", school_studio_redirect_setup, name="school_studio_setup"),
     path("school/studio/readiness/", school_studio_hub, name="school_studio_readiness"),
     path("school/studio/migration/", school_studio_redirect_migration, name="school_studio_migration"),

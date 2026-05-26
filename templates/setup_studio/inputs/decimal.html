@@ -1,0 +1,13 @@
+{% load i18n %}
+<div class="rmc-wizard-field">
+  <label class="rmc-wizard-field__label" for="rmc-wizard-input-value">{{ step_label }}</label>
+  {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
+  <input type="text"
+         id="rmc-wizard-input-value"
+         name="value"
+         value="{{ prior_answer.value|default:'' }}"
+         inputmode="decimal"
+         pattern="-?[0-9]+(\.[0-9]+)?"
+         {% if step.validation.required %}required{% endif %}>
+  {% if errors.value %}<p class="rmc-wizard-field__error">{{ errors.value }}</p>{% endif %}
+</div>

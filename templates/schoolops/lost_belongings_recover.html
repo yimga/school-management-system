@@ -1,0 +1,54 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Record recovery" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Record lost-belongings recovery" %}{% endblock %}
+{% block backend_page %}
+<div class="container-fluid py-2">
+  {% if error %}
+  <div class="alert alert-danger" role="alert">{{ error }}</div>
+  {% endif %}
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate
+                data-rmc-offline-form="field_capture"
+                data-offline-action-type="notes_report"
+                data-rmc-offline-workflow="lost_belongings_recover"
+                data-rmc-offline-hint="{% trans 'Recovery details stay on this device until you reconnect and sync.' %}">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+              {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">{% trans "Record recovery" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% if event %}
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "Recovery logged" %}</h2>
+          <dl class="row mb-0">
+            <dt class="col-sm-4">{% trans "Event ID" %}</dt>
+            <dd class="col-sm-8"><code>{{ event.event_id }}</code></dd>
+            <dt class="col-sm-4">{% trans "Actor kind" %}</dt>
+            <dd class="col-sm-8">{{ event.actor_kind }}</dd>
+            <dt class="col-sm-4">{% trans "Parent notified" %}</dt>
+            <dd class="col-sm-8">{% if event.parent_notified %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</dd>
+            <dt class="col-sm-4">{% trans "Notes (redacted)" %}</dt>
+            <dd class="col-sm-8">{{ event.notes_redacted|default:"—" }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

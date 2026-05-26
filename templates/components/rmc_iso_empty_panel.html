@@ -1,0 +1,25 @@
+{% load i18n %}
+{% comment %}
+  Isomorphic grid empty panel — fills zero-record panels without awkward gaps.
+  Usage:
+    {% include "components/rmc_iso_empty_panel.html" with
+       iso_empty_title=_("No records logged yet")
+       iso_empty_message=_("Click here to initialize your first entry.")
+       iso_empty_action_url=create_url
+       iso_empty_action_label=_("Initialize first entry")
+       iso_empty_icon="bi-journal-plus" %}
+{% endcomment %}
+<div class="rmc-iso-panel-empty" role="status" aria-live="polite"{% if iso_empty_id %} id="{{ iso_empty_id }}"{% endif %}>
+  {% if iso_empty_icon %}
+  <div class="rmc-iso-panel-empty__icon" aria-hidden="true"><i class="bi {{ iso_empty_icon }}"></i></div>
+  {% endif %}
+  {% if iso_empty_title %}
+  <h3 class="rmc-iso-panel-empty__title">{{ iso_empty_title }}</h3>
+  {% endif %}
+  {% if iso_empty_message %}
+  <p class="rmc-iso-panel-empty__message">{{ iso_empty_message }}</p>
+  {% endif %}
+  {% if iso_empty_action_url and iso_empty_action_label %}
+  <a href="{{ iso_empty_action_url }}" class="btn btn-primary btn-sm">{{ iso_empty_action_label }}</a>
+  {% endif %}
+</div>

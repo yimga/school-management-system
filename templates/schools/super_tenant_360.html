@@ -102,6 +102,22 @@
     <div class="card-header bg-danger-subtle text-danger-emphasis">{% trans "Offboarding & data custody" %}</div>
     <div class="card-body">
       <p class="small text-secondary mb-3">{% trans "Remove a tenant safely: restrict access, export a portability pack, optional legal hold, then permanent delete with typed confirmation. Platform audit logs are retained; cold backups and orphan user accounts may remain until separate cleanup." %} <a href="{{ offboarding_queue_url }}" class="link-light">{% trans "Offboarding queue" %}</a></p>
+      {% if unified_lifecycle %}
+      <p class="small mb-2">{% trans "Lifecycle" %}: <span class="badge text-bg-secondary">{{ unified_lifecycle.label }}</span></p>
+      {% endif %}
+      {% if offboarding_checklist %}
+      <ol class="list-group list-group-numbered mb-3" data-rmc-offboarding-checklist="1">
+        {% for step in offboarding_checklist %}
+        <li class="list-group-item d-flex justify-content-between align-items-center gap-2 {% if step.done %}list-group-item-success{% endif %}">
+          <div class="small">
+            <span class="fw-medium">{{ step.label }}</span>
+            {% if step.detail %}<div class="text-secondary">{{ step.detail }}</div>{% endif %}
+          </div>
+          {% if step.done %}<span class="badge text-bg-success">{% trans "Done" %}</span>{% else %}<span class="badge text-bg-secondary">{% trans "Pending" %}</span>{% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      {% endif %}
       <dl class="row small mb-3">
         <dt class="col-sm-3">{% trans "Schema" %}</dt><dd class="col-sm-9"><code>{{ offboarding.schema_name|default:"—" }}</code></dd>
         <dt class="col-sm-3">{% trans "Row total" %}</dt><dd class="col-sm-9">{{ offboarding.row_total|default:0 }}</dd>

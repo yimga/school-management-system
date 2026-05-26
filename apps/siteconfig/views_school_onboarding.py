@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
@@ -17,7 +17,7 @@ from apps.siteconfig.control_plane_render import (
 )
 from django.views.decorators.http import require_POST
 
-from apps.accounts.permissions import tenant_operator_hub_eligible
+from apps.lifecycle.tenant_school_resolve import require_tenant_lifecycle_school
 from apps.platform_runtime.customer_health import (
     calculate_school_health,
     get_school_health_recommendations,
@@ -38,9 +38,9 @@ def _reverse_tenant_onboarding() -> str:
 
 @login_required
 def school_activation_onboarding(request: HttpRequest) -> HttpResponse:
-    school = getattr(request, "school", None)
-    if school is None or not tenant_operator_hub_eligible(request.user):
-        return HttpResponseForbidden("Tenant school configuration access required.")
+    school, denied = require_tenant_lifecycle_school(request)
+    if denied is not None:
+        return denied
     progress: dict = {}
     health: dict = {}
     recommendations: list = []
@@ -84,21 +84,9 @@ def onboarding_step_detail(
     request: HttpRequest, step_key: str
 ) -> HttpResponse:
     """Single activation step: deep link, open action, optional mark-done."""
-    school = getattr(request, "school", None)
-    if school is None or not tenant_operator_hub_eligible(request.user):
-        return HttpResponseForbidden("Tenant school configuration access required.")
-    if school is None:
-        return render(
-            request,
-            "siteconfig/onboarding.html",
-            {
-                "school": None,
-                "onboarding": {},
-                "health": {},
-                "health_recommendations": [],
-                "misconfiguration_flags": [],
-            },
-        )
+    school, denied = require_tenant_lifecycle_school(request)
+    if denied is not None:
+        return denied
     steps = get_onboarding_steps(school, user=request.user)
     step_row = next((r for r in steps if r.get("key") == step_key), None)
     if step_row is None:
@@ -128,12 +116,9 @@ def onboarding_step_detail(
 @login_required
 @require_POST
 def onboarding_step_mark_complete(request: HttpRequest) -> HttpResponse:
-    school = getattr(request, "school", None)
-    if school is None or not tenant_operator_hub_eligible(request.user):
-        return HttpResponseForbidden("Tenant school configuration access required.")
-    if school is None:
-        messages.error(request, _("No tenant school on this request."))
-        return HttpResponseRedirect(_reverse_tenant_onboarding())
+    school, denied = require_tenant_lifecycle_school(request)
+    if denied is not None:
+        return denied
     step_key = (request.POST.get("step_key") or "").strip()
     if not step_key:
         messages.error(request, _("Missing step."))

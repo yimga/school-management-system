@@ -1,0 +1,78 @@
+{
+  "wizard_key": "institutional_performance_board_reporting",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.institutional_performance_board_reporting.label",
+  "description_token": "wizards.institutional_performance_board_reporting.description",
+  "icon_class": "rmc-icon-chart-board",
+  "estimated_minutes": 8,
+  "gates": {
+    "permission_codename": "reports.change_executive_report"
+  },
+  "ai": {
+    "smart_defaults": true
+  },
+  "steps": [
+    {
+      "key": "metric_kpi_assembly",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_executive_kpis",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "school_type",
+          "country_code"
+        ],
+        "prompt_template_key": "prompt.analytics.suggest_kpis"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_analytics_kpis"
+      }
+    },
+    {
+      "key": "cross_campus_aggregation",
+      "input_type": "single_choice",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_analytics_aggregation"
+      }
+    },
+    {
+      "key": "predictive_trend_projection",
+      "input_type": "boolean",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_analytics_predictions"
+      }
+    },
+    {
+      "key": "visual_report_compilation",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "report_template",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "delivery_format",
+          "type": "select",
+          "required": false
+        },
+        {
+          "name": "recipients",
+          "type": "textarea",
+          "required": false
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_analytics_report"
+      }
+    }
+  ]
+}

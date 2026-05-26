@@ -458,9 +458,11 @@ def school_configuration_center(request):
 
 @login_required
 def tenant_import_setup(request):
-    school = getattr(request, "school", None)
-    if school is None or not tenant_operator_hub_eligible(request.user):
-        return HttpResponseForbidden("Tenant school import setup access required.")
+    from apps.lifecycle.tenant_school_resolve import require_tenant_lifecycle_school
+
+    school, denied = require_tenant_lifecycle_school(request)
+    if denied is not None:
+        return denied
     import_cards = [
         {
             "key": "students",

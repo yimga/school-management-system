@@ -1040,7 +1040,8 @@ def site_settings(request):
     ctx["RMC_DEPLOYMENT_PROFILE"] = (
         getattr(dj_settings, "RMC_DEPLOYMENT_PROFILE", None) or "online"
     ).strip().lower()
-    ctx["RMC_AI_NEEDS_NETWORK"] = True
+    # Edge/hub: school ops + rules KB work without cloud AI; copilot needs hub Ollama only.
+    ctx["RMC_AI_NEEDS_NETWORK"] = ctx["RMC_DEPLOYMENT_PROFILE"] not in ("edge",)
     flags_ctx = _resolve_backend_feature_flags(request, site)
     school_for_offline_cfg = getattr(request, "school", None)
     if school_for_offline_cfg is not None:
@@ -1063,6 +1064,7 @@ def site_settings(request):
     ctx["OFFLINE_API_PROCESS_URL"] = None
     ctx["OFFLINE_TOKEN_MINT_URL"] = None
     ctx["OFFLINE_PERMISSION_SNAPSHOT_URL"] = None
+    ctx["OFFLINE_DELTA_URL"] = None
     if ctx.get("SHOW_OFFLINE_STATUS_BAR") and user and getattr(
         user, "is_authenticated", False
     ):
@@ -1075,8 +1077,33 @@ def site_settings(request):
             ctx["OFFLINE_PERMISSION_SNAPSHOT_URL"] = reverse(
                 "api:offline-permission-snapshot",
             )
+            ctx["OFFLINE_DELTA_URL"] = reverse("api:offline-delta")
         except NoReverseMatch:
             pass
+    ctx["FINANCE_GLOCAL"] = {}
+    if school_for_offline_cfg is not None:
+        path = (getattr(request, "path", "") or "").lower()
+        app_name = ""
+        match = getattr(request, "resolver_match", None)
+        if match is not None:
+            app_name = (getattr(match, "app_name", "") or "").lower()
+        on_finance = app_name == "finance" or "/finance/" in path
+        if on_finance:
+            try:
+                from apps.siteconfig.country_localization_service import resolve_for_request
+
+                pack = resolve_for_request(request) or {}
+                ctx["FINANCE_GLOCAL"] = {
+                    "country_code": pack.get("country_code") or "",
+                    "language_code": pack.get("language_code") or "",
+                    "currency_code": pack.get("currency_code")
+                    or pack.get("default_currency")
+                    or "",
+                    "terminology": pack.get("terminology") or {},
+                    "calendar_system": pack.get("calendar_system") or {},
+                }
+            except (AttributeError, ImportError, RuntimeError, TypeError, ValueError):
+                ctx["FINANCE_GLOCAL"] = {}
     # Super Admin / Schools: global toggle to show or hide /super/ and Schools link.
     ctx["SUPER_ADMIN_UI_ENABLED"] = bool(flags_ctx.get("enable_super_admin_ui", True))
     portal_items = ctx["PORTAL_SIDEBAR_ITEMS"]

@@ -1,0 +1,36 @@
+{% load i18n wizard_extras %}
+<fieldset class="rmc-wizard-field">
+  <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
+  {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
+  {% for field in step.fields %}
+    <div class="rmc-wizard-field">
+      <label class="rmc-wizard-field__label" for="rmc-wizard-input-{{ field.name }}">{{ field.label_token|default:field.name }}</label>
+      {% if field.type == "textarea" %}
+        <textarea id="rmc-wizard-input-{{ field.name }}" name="{{ field.name }}" rows="4"
+                  {% if field.required %}required{% endif %}>{{ prior_answer|dict_get:field.name|default:'' }}</textarea>
+      {% elif field.type == "select" %}
+        <select id="rmc-wizard-input-{{ field.name }}" name="{{ field.name }}"
+                {% if field.required %}required{% endif %}>
+          {% for opt in field.choices %}
+            <option value="{{ opt.value }}">{{ opt.label_token|default:opt.value }}</option>
+          {% endfor %}
+        </select>
+      {% elif field.type == "color" %}
+        <input type="color" id="rmc-wizard-input-{{ field.name }}" name="{{ field.name }}"
+               value="{{ prior_answer|dict_get:field.name|default:'#4F46E5' }}">
+      {% elif field.type == "file" %}
+        <input type="file" id="rmc-wizard-input-{{ field.name }}" name="{{ field.name }}"
+               {% if field.required %}required{% endif %}>
+      {% elif field.type == "boolean" %}
+        <input type="checkbox" id="rmc-wizard-input-{{ field.name }}" name="{{ field.name }}" value="1">
+      {% else %}
+        <input type="{{ field.type|default:'text' }}"
+               id="rmc-wizard-input-{{ field.name }}"
+               name="{{ field.name }}"
+               value="{{ prior_answer|dict_get:field.name|default:'' }}"
+               {% if field.required %}required{% endif %}>
+      {% endif %}
+      {% if errors|dict_get:field.name %}<p class="rmc-wizard-field__error">{{ errors|dict_get:field.name }}</p>{% endif %}
+    </div>
+  {% endfor %}
+</fieldset>

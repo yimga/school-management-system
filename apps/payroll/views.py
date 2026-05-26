@@ -9,8 +9,9 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.db import models
-from django.http import HttpRequest, HttpResponseForbidden
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_GET
 from django.db.models import Count
 from django.utils import timezone
 
@@ -225,6 +226,33 @@ def dashboard(request: HttpRequest):
             "phase7_de": phase7_de,
         },
     )
+
+
+@staff_member_required(login_url=settings.LOGIN_URL)
+@require_GET
+def export_disbursement(request: HttpRequest, run_id: int):
+    """CSV bank disbursement file for an approved/processed payroll run."""
+    run = get_object_or_404(PayrollRun, id=run_id)
+    if run.status not in (
+        PayrollRun.Status.APPROVED,
+        PayrollRun.Status.PROCESSED,
+        PayrollRun.Status.REVIEWED,
+        PayrollRun.Status.PAID,
+    ):
+        messages.error(
+            request,
+            "Export is available after the run is processed or approved.",
+        )
+        return redirect("payroll:run_detail", run_id=run.id)
+
+    from .disbursement_export import build_disbursement_csv, disbursement_filename
+
+    csv_text = build_disbursement_csv(run)
+    response = HttpResponse(csv_text, content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = (
+        f'attachment; filename="{disbursement_filename(run)}"'
+    )
+    return response
 
 
 @staff_member_required(login_url=settings.LOGIN_URL)

@@ -277,6 +277,13 @@ def generate_fees(request: HttpRequest):
     if not profile:
         return HttpResponseForbidden("No compliance profile configured.")
 
+    if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
+
     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
     plans = FeePlan.objects.filter(is_active=True).select_related(
         "academic_year", "classroom", "specialty"
@@ -318,6 +325,11 @@ def generate_fees(request: HttpRequest):
 @require_POST
 def notify_guardians_new_invoices(request: HttpRequest):
     """Send new-invoice notifications to guardians for the last bulk-generated invoices."""
+    from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+    blocked = block_if_wind_down_commerce(request)
+    if blocked is not None:
+        return blocked
     invoice_ids = (
         request.session.pop(SESSION_KEY_LAST_GENERATED_INVOICE_IDS, None) or []
     )
@@ -550,6 +562,11 @@ def upload_payment_receipt(request: HttpRequest, invoice_id: int):
     Allow parents/guardians to upload payment receipts for cash/bank payments.
     Receipts are automatically verified and payments applied if verification passes.
     """
+    from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+    blocked = block_if_wind_down_commerce(request)
+    if blocked is not None:
+        return blocked
     from decimal import InvalidOperation
 
     from apps.accounts.permissions import can_view_invoice

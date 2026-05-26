@@ -15,7 +15,8 @@
       data-rmc-aesthetic="{% if PUBLIC_BRAND_MODE %}marketing{% else %}v2{% endif %}"
       data-admin-theme="{% if TENANT_FORCE_LIGHT_THEME %}light{% elif SITE.theme_brightness == 'dark' %}dark{% else %}light{% endif %}"
       data-simple-mode="{% if simple_mode %}true{% else %}false{% endif %}"
-      data-surface="{% if request and request.path|slice:':14' == '/setup-studio/' or request and request.path|slice:':9' == '/onboard/' or request and request.path|slice:':8' == '/onboard' %}onboarding{% elif PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+      data-surface="{% if request and request.path|slice:':14' == '/setup-studio/' or request and request.path|slice:':9' == '/onboard/' or request and request.path|slice:':8' == '/onboard' %}onboarding{% elif PUBLIC_BRAND_MODE %}marketing{% else %}tenant{% endif %}"
+      {% if request.resolver_match.url_name == 'signup_school' or request and '/onboard' in request.path or request and request.path|slice:':14' == '/setup-studio/' %}data-rmc-isomorphic-template="onboarding-wizard"{% elif not PUBLIC_BRAND_MODE %}data-rmc-isomorphic-template="tenant-admin-hub"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -360,6 +361,7 @@
     {% include "partials/rmc_tour_bootstrap.html" %}
     {% include "partials/rmc_platform_chrome_scripts.html" %}
     <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+    {% include "partials/rmc_isomorphic_grid_boot.html" %}
     {% include 'components/back_to_top.html' %}
     {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
     {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}

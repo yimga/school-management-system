@@ -1,0 +1,102 @@
+{
+  "wizard_key": "local_first_fintech_tax_matrix",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.local_first_fintech_tax_matrix.label",
+  "description_token": "wizards.local_first_fintech_tax_matrix.description",
+  "icon_class": "rmc-icon-finance",
+  "estimated_minutes": 15,
+  "gates": {
+    "permission_codename": "billing.change_paymentsettings",
+    "prerequisite_wizard": "multi_campus_local_sovereignty"
+  },
+  "ai": {
+    "smart_defaults": true,
+    "branch_rationale": true
+  },
+  "steps": [
+    {
+      "key": "settlement_destination",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "settlement_country",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_countries"
+        },
+        {
+          "name": "settlement_currency",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_settlement_currencies"
+        },
+        {
+          "name": "settlement_bank_account_alias",
+          "type": "text",
+          "required": false,
+          "validation": {
+            "max_length": 80
+          }
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_fintech_settlement"
+      }
+    },
+    {
+      "key": "apm_integration",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_apms",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "country_code",
+          "school_size_band"
+        ],
+        "prompt_template_key": "prompt.fintech.suggest_apm"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_fintech_apm"
+      }
+    },
+    {
+      "key": "split_ledger_allocation",
+      "input_type": "key_value_pairs",
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "school_type",
+          "country_code"
+        ],
+        "prompt_template_key": "prompt.fintech.suggest_split_allocation"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_fintech_split"
+      }
+    },
+    {
+      "key": "e_invoicing_handshake",
+      "input_type": "file_upload",
+      "validation": {
+        "allowed_extensions": [
+          "pfx",
+          "cer",
+          "key",
+          "p12"
+        ],
+        "max_file_bytes": 524288
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_fintech_einvoicing"
+      }
+    }
+  ]
+}

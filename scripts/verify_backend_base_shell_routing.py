@@ -69,6 +69,9 @@ def check_manager_renders() -> list[str]:
     with override_settings(
         ROOT_URLCONF="config.manager_urls",
         ALLOWED_HOSTS=["*", mgr_host],
+        SECURE_SSL_REDIRECT=False,
+        SESSION_COOKIE_SECURE=False,
+        CSRF_COOKIE_SECURE=False,
     ):
         return _manager_render_probe(mgr_host)
 

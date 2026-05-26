@@ -29,8 +29,13 @@ NAME_PATTERN = re.compile(r"(plan|roadmap|remediation|master)", flags=re.IGNOREC
 # landing alongside this batch. Runtime Proof Hardening (batch 1504) added zero new
 # plan/roadmap/master docs — all its artifacts are under docs/generated/ which the existence
 # walker still scans but the name-pattern filter excludes.
-MAX_MATCHING_DOCS_TOTAL = 162
-MAX_MATCHING_DOCS_ROOT = 119
+# Batch 1509 (Audit P1 Closure 2026-05-26) added 1 plan doc: MIGRATION_SQUASH_PLAN_2026_05_26.md.
+# (The PWA Lane 2 operator runbook does not match the name pattern.) Baseline 162 -> 163.
+# No-mercy completion validation (2026-05-26) accepts +1 from parallel session: docs/plans/UNIFIED_WIZARD_FRAMEWORK_PLAN.md
+# (planned-only artifact for the 3-phase wizard framework rollout). Baseline 163 -> 164. Root cap 120 unchanged
+# (the new plan lives under docs/plans/, not docs root).
+MAX_MATCHING_DOCS_TOTAL = 164
+MAX_MATCHING_DOCS_ROOT = 120
 
 # Detect accidental editor overwrites (paste / stub) — stable substrings from canonical files.
 _SOT_TITLE_SNIPPET = "# RunMyCampus — single execution source of truth"

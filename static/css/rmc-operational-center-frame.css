@@ -823,3 +823,31 @@ body.marketing-surface .rmc-ops-nav-detail {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* Workbench action row — compact tertiary admin bridge beside browse/governance */
+body.control-plane-shell #cp-main-content .rmc-ops-frame__actions.cp-hero__actions--toolbar {
+  margin-top: 0.5rem;
+  gap: 6px 8px;
+  row-gap: 6px;
+}
+
+body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .cp-btn {
+  font-size: 12px;
+  padding: 6px 12px;
+  min-height: 28px;
+}
+
+body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .rmc-ops-frame__admin-bridge {
+  max-width: 100%;
+}
+
+body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .rmc-ops-frame__admin-bridge .bi {
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+
+/* Marketplace workbenches: no duplicate operator surface strip under canvas chrome */
+body.control-plane-shell [data-rmc-marketplace-workbench="1"] + .rmc-operator-workspace-nav,
+body.control-plane-shell [data-rmc-marketplace-workbench="1"] ~ nav[data-rmc-operator-surface-strip] {
+  display: none !important;
+}

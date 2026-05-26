@@ -555,6 +555,31 @@ def installation_health_frame_context() -> dict[str, Any]:
     }
 
 
+def marketplace_incident_frame_context() -> dict[str, Any]:
+    return {
+        "page_provides_own_h1": True,
+        "center_eyebrow": "Platform operators",
+        "center_title": "Marketplace incidents",
+        "center_purpose": (
+            "Central place for marketplace-related incidents. Use the support dashboard "
+            "for the full incident queue."
+        ),
+        "status_badge_text": "Operational",
+        "operational_nav_groups": MARKETPLACE_GOVERNANCE_NAV_GROUPS,
+    }
+
+
+def package_rollout_frame_context() -> dict[str, Any]:
+    return {
+        "page_provides_own_h1": True,
+        "center_eyebrow": "Platform operators",
+        "center_title": "Package rollout",
+        "center_purpose": "Staged package rollout across tenant installations.",
+        "status_badge_text": "Operational",
+        "operational_nav_groups": BLUEPRINT_MARKETPLACE_NAV_GROUPS,
+    }
+
+
 def tenant_import_setup_frame_context() -> dict[str, Any]:
     return {
         "center_eyebrow": "School administrators",
@@ -617,6 +642,73 @@ def money_center_frame_context() -> dict[str, Any]:
         "status_badge_text": "Payment readiness visible",
         "operational_nav_groups": MONEY_CENTER_NAV_GROUPS,
     }
+
+
+# Super marketplace workbenches: admin bridge lives in operational frame actions, not strip.
+MARKETPLACE_OPERATIONAL_FRAME_URL_NAMES = frozenset(
+    {
+        "app_catalog",
+        "marketplace_governance",
+        "blueprint_marketplace",
+        "marketplace_compatibility",
+        "marketplace_installation_health",
+        "marketplace_sandbox_inspector",
+        "marketplace_incident_dashboard",
+        "package_rollout",
+    }
+)
+
+
+def marketplace_operational_frame_suppresses_paired_strip(request) -> bool:
+    """True when paired admin CTA is inlined on the operational center frame."""
+    match = getattr(request, "resolver_match", None)
+    if not match or getattr(match, "app_name", "") != "super":
+        return False
+    return (getattr(match, "url_name", "") or "") in MARKETPLACE_OPERATIONAL_FRAME_URL_NAMES
+
+
+def operational_admin_bridge_link(request) -> dict[str, str] | None:
+    """Platform admin bridge URL for the current super marketplace workbench."""
+    try:
+        from django.utils.translation import gettext as _
+
+        from apps.schools.super_admin_paired_surfaces import (
+            _safe_reverse,
+            resolve_bridge_key_for_super_view,
+        )
+    except ImportError:
+        return None
+
+    match = getattr(request, "resolver_match", None)
+    if not match or getattr(match, "app_name", "") != "super":
+        return None
+    url_name = getattr(match, "url_name", "") or ""
+    bridge_key = resolve_bridge_key_for_super_view(
+        url_name, getattr(request, "path", None)
+    )
+    if not bridge_key:
+        return None
+    admin_url = _safe_reverse("super:admin_bridge", kwargs={"bridge_key": bridge_key})
+    if not admin_url:
+        return None
+    return {
+        "url": admin_url,
+        "label": str(_("Open platform admin")),
+        "icon": "bi-box-arrow-in-right",
+    }
+
+
+def enrich_operational_frame_context(
+    request, frame_ctx: dict[str, Any]
+) -> dict[str, Any]:
+    """Merge tertiary platform-admin CTA into operational frame template context."""
+    out = dict(frame_ctx)
+    link = operational_admin_bridge_link(request)
+    if link:
+        out["tertiary_url"] = link["url"]
+        out["tertiary_label"] = link["label"]
+        out["tertiary_icon"] = link.get("icon", "bi-box-arrow-in-right")
+    return out
 
 
 def pricing_packages_frame_context(*, live_psp_caveat: str = "") -> dict[str, Any]:

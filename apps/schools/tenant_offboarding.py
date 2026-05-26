@@ -235,6 +235,9 @@ def get_offboarding_snapshot(school) -> dict[str, Any]:
     for ev in events:
         created = ev.get("created_at")
         ev["created_at"] = created.isoformat() if created else ""
+    wind_down_mode = bool(off.get("wind_down_mode")) or str(
+        off.get("self_service_status") or ""
+    ).strip() in ("closure_requested", "scheduled", "wind_down")
     return {
         "school_id": str(school.id),
         "school_slug": school.slug,
@@ -249,6 +252,7 @@ def get_offboarding_snapshot(school) -> dict[str, Any]:
         "provisioning_timeline": events,
         "legal_hold_active": hold_active,
         "legal_hold_until": hold_until,
+        "wind_down_mode": wind_down_mode,
         "offboarding": off,
         "last_activity": (
             school.last_activity.isoformat()
@@ -300,7 +304,12 @@ def request_self_service_closure(school, *, actor, acknowledge: bool = False) ->
             "auto_purge": auto_purge_enabled(),
         },
     )
-    run_wind_down_deactivate(school, actor=actor)
+    try:
+        from apps.lifecycle.wind_down import apply_wind_down_mode
+
+        apply_wind_down_mode(school, actor=actor, note="self_service_closure")
+    except ImportError:
+        run_wind_down_deactivate(school, actor=actor)
     SchoolProvisioningEvent.log_event(
         school=school,
         event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_SELF_SERVICE_REQUESTED,
@@ -353,6 +362,27 @@ def cancel_self_service_closure(school, *, actor) -> dict[str, Any]:
             "self_service_cancelled_at": datetime.now(tz=timezone.utc).isoformat(),
         },
     )
+    try:
+        from apps.lifecycle.wind_down import clear_wind_down_mode
+
+        clear_wind_down_mode(school, actor=actor)
+    except ImportError:
+        pass
+    if not getattr(school, "is_active", True):
+        school.is_active = True
+        school.save(update_fields=["is_active", "updated_at"])
+    try:
+        from apps.lifecycle.unified_lifecycle import STATE_LIVE, record_unified_transition
+
+        record_unified_transition(
+            school,
+            STATE_LIVE,
+            actor=actor,
+            note="self_service_closure_cancelled",
+            payload={"source": "tenant_offboarding.cancel"},
+        )
+    except (ImportError, ValueError, TypeError, OSError):
+        pass
     SchoolProvisioningEvent.log_event(
         school=school,
         event_type=SchoolProvisioningEvent.EventType.OFFBOARDING_SELF_SERVICE_CANCELLED,

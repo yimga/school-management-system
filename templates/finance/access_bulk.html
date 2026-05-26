@@ -13,7 +13,10 @@
   <a class="btn btn-sm btn-outline-secondary btn-back-secondary" href="{% url 'finance:invoices' %}"><i class="bi bi-arrow-left me-1"></i>Back to Invoices</a>
 </div>
 
-<form method="post" class="card mb-3" id="finance-access-bulk-form" data-draft-key="finance_access_bulk_{{ request.user.id }}" data-draft-max-age-hours="24">
+<form method="post" class="card mb-3" id="finance-access-bulk-form" data-draft-key="finance_access_bulk_{{ request.user.id }}" data-draft-max-age-hours="24"
+      data-rmc-offline-form="field_capture"
+      data-rmc-offline-workflow="finance_access_bulk"
+      data-offline-hint="{% trans 'Bulk access selections stay on this device until you reconnect and sync.' %}">
   {% csrf_token %}
   <div class="card-body">
     <div class="row g-3 align-items-end">

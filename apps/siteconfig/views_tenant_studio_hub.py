@@ -18,12 +18,20 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 from django.views import View
 
-from apps.accounts.permissions import tenant_operator_hub_eligible
+from apps.lifecycle.tenant_school_resolve import (
+    can_access_tenant_lifecycle,
+    lifecycle_access_denied_response,
+    require_tenant_lifecycle_school,
+    resolve_request_school,
+)
 from apps.platform_runtime.customer_health import (
     calculate_school_health,
     get_school_health_recommendations,
 )
 from apps.platform_runtime.onboarding import get_school_onboarding_progress
+from apps.lifecycle.launch_rail import build_launch_rail_payload
+from apps.lifecycle.unified_lifecycle import resolve_unified_lifecycle
+from apps.lifecycle.wind_down import is_wind_down_mode
 from apps.platform_runtime.tenant_onboarding_operator_direction import launch_lanes_for_template
 from apps.siteconfig.tenant_studio_day1 import Day1MagicService
 from apps.siteconfig.tenant_studio_hub_context import build_studio_ai_context
@@ -57,9 +65,9 @@ def _siteconfig_reverse(name: str) -> str:
 
 @login_required
 def school_studio_hub(request: HttpRequest) -> HttpResponse:
-    school = getattr(request, "school", None)
-    if school is None or not tenant_operator_hub_eligible(request.user):
-        return HttpResponseForbidden("Tenant school studio requires an operator on this school.")
+    school = resolve_request_school(request)
+    if school is None or not can_access_tenant_lifecycle(request, school):
+        return lifecycle_access_denied_response(request)
 
     # Day-1 Magic gate: first-time visitors with no palette locked are
     # redirected into the 3-act sequence. Operators can opt out via
@@ -82,6 +90,10 @@ def school_studio_hub(request: HttpRequest) -> HttpResponse:
         blockers.append(_("School health is %(status)s — review recommended steps.") % {"status": status})
 
     launch_ready = int(progress.get("percent") or 0) >= 80 and status not in ("setup_needed",)
+    unified = resolve_unified_lifecycle(school)
+    launch_rail = build_launch_rail_payload(school, user=request.user)
+    if launch_rail.get("launch_ready"):
+        launch_ready = True
     ai_ctx = build_studio_ai_context(
         request,
         school=school,
@@ -98,6 +110,9 @@ def school_studio_hub(request: HttpRequest) -> HttpResponse:
             "health": health,
             "health_recommendations": recommendations,
             "launch_lanes": launch_lanes_for_template(),
+            "launch_rail": launch_rail,
+            "unified_lifecycle": unified,
+            "wind_down_mode": is_wind_down_mode(school),
             "launch_blockers": blockers,
             "launch_ready": launch_ready,
             "readiness_score": health.get("score"),
@@ -118,6 +133,8 @@ def _studio_hub_link_urls() -> dict[str, str]:
     """Pre-resolve tenant URLs so templates never call {% url %} against root urlconf."""
     specs = (
         ("onboarding", "siteconfig:onboarding"),
+        ("provisioning", "tenant_provisioning_status"),
+        ("fast_path", "tenant_launch_fast_path"),
         ("studio_os", "studio_os:shell"),
         ("school_help_ai", "school_help_ai"),
         ("help_center", "feedback:help_center"),
@@ -153,12 +170,7 @@ def school_studio_redirect_launch(request: HttpRequest) -> HttpResponse:
 
 def _require_tenant_operator(request: HttpRequest):
     """Return ``(school, None)`` when allowed, ``(None, HttpResponseForbidden)`` otherwise."""
-    school = getattr(request, "school", None)
-    if school is None or not tenant_operator_hub_eligible(request.user):
-        return None, HttpResponseForbidden(
-            "Tenant studio day-1 sequence requires an operator on this school."
-        )
-    return school, None
+    return require_tenant_lifecycle_school(request)
 
 
 class TenantStudioDay1Act1View(LoginRequiredMixin, View):

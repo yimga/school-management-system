@@ -37,7 +37,12 @@ def _primary_action_url(
 @require_http_methods(["GET"])
 def activation_first_action(request: HttpRequest):
     """Explain the gate and link to operational surfaces."""
-    school = getattr(request, "school", None)
+    try:
+        from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+        school = resolve_request_school(request)
+    except ImportError:
+        school = getattr(request, "school", None)
     if school is None:
         return redirect("home")
 

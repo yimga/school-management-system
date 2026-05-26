@@ -381,7 +381,7 @@
 <!-- Dynamic TOC from article headings -->
 <script src="{% static 'js/_pages/portal__kb_article.js' %}"></script>
 <!-- Mermaid.js: render diagrams from code blocks with class language-mermaid -->
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" crossorigin="anonymous"></script> <!-- sri-allow: mermaid-pinned-v10-jsdelivr -->
+{% include "partials/rmc_mermaid_self_host.html" %}
 <script src="{% static 'js/_pages/portal__kb_article-2.js' %}"></script>
 </div>
 {% endblock %}

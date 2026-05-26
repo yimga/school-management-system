@@ -1,4 +1,5 @@
 {% extends "control_plane_base.html" %}
+{% block rmc_operator_surface_strip %}{% endblock %}
 {% load static %}
 {% load region_format phase8_tags %}
 
@@ -8,44 +9,42 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2 control-plane-shell" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
+<div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-marketplace-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% load i18n %}
   {% phase8_dashboard_declaration "marketplace/incident_dashboard.html" %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="incident_dashboard" center_eyebrow=_("Platform operators") center_title=_("Marketplace incidents") center_purpose=_("Central place for marketplace-related incidents. Use the support dashboard for full incident queue.") primary_url=dashboard_url primary_label=_("Back to Dashboard") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <a href="{{ support_url }}" class="btn btn-outline-secondary btn-sm">Support dashboard</a>
-    <a href="{% url 'super:marketplace_installation_health' %}" class="btn btn-outline-secondary btn-sm">Installation health</a>
-  </div>
+  {% url 'super:marketplace_installation_health' as health_url %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="incident_dashboard" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=support_url primary_label=_("Support dashboard") secondary_url=health_url secondary_label=_("Installation health") tertiary_url=tertiary_url tertiary_label=tertiary_label tertiary_icon=tertiary_icon %}
 
   <section class="cp-panel mb-4">
     <div class="cp-panel-header">
       <span class="cp-panel-eyebrow">Phase 11</span>
-      <h1 class="cp-panel-title">Incident console</h1>
+      <h1 class="cp-panel-title">{% trans "Incident console" %}</h1>
     </div>
     <div class="p-4">
-      <p class="mb-3">Marketplace app failures, kill-switch events, and compatibility issues can be tracked in the support queue and health views.</p>
-      <a href="{{ support_url }}" class="btn btn-primary">Open support dashboard</a>
+      <p class="mb-3">{% trans "Marketplace app failures, kill-switch events, and compatibility issues can be tracked in the support queue and health views." %}</p>
+      <a href="{{ support_url }}" class="btn btn-primary">{% trans "Open support dashboard" %}</a>
     </div>
   </section>
 
   <section class="cp-panel rmc-reveal">
     <div class="cp-panel-header">
-      <span class="cp-panel-eyebrow">Audit trail</span>
-      <h2 class="cp-panel-title">Recent marketplace events</h2>
+      <span class="cp-panel-eyebrow">{% trans "Audit trail" %}</span>
+      <h2 class="cp-panel-title">{% trans "Recent marketplace events" %}</h2>
     </div>
     <div class="table-responsive">
       <table class="table table-sm table-hover mb-0 table-family align-middle">
         <caption class="visually-hidden">{% trans "Recent marketplace events" %}</caption>
         <thead>
           <tr>
-            <th>Time</th>
-            <th>Action</th>
-            <th>App</th>
-            <th>School</th>
-            <th>Actor</th>
+            <th>{% trans "Time" %}</th>
+            <th>{% trans "Action" %}</th>
+            <th>{% trans "App" %}</th>
+            <th>{% trans "School" %}</th>
+            <th>{% trans "Actor" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -61,7 +60,6 @@
           <tr>
             <td colspan="5" class="p-0">
               <div class="py-3 px-2">
-                {% load i18n %}
                 {% include "components/dashboard_empty_state.html" with icon="bi-journal-text" title=_("No recent marketplace audit events.") message=_("Audit events will appear when installs or reviews occur.") %}
               </div>
             </td>

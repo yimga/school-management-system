@@ -1,0 +1,61 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Mint lost-belongings tag" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Mint lost-belongings tag" %}{% endblock %}
+{% block backend_page %}
+<div class="container-fluid py-2">
+  <p class="text-muted mb-3">
+    {% trans "Generate a tenant-scoped QR tag for an asset. Anonymous finders later use the short code; no student PII is ever exposed by the loop." %}
+  </p>
+
+  {% if error %}
+  <div class="alert alert-danger" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="post" novalidate
+                data-rmc-offline-form="field_capture"
+                data-offline-action-type="notes_report"
+                data-rmc-offline-workflow="lost_belongings_mint"
+                data-rmc-offline-hint="{% trans 'Tag details stay on this device until you reconnect and sync.' %}">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+              {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>{% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">{% trans "Mint tag" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {% if tag %}
+    <div class="col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "Tag minted" %}</h2>
+          <dl class="row mb-0">
+            <dt class="col-sm-4">{% trans "Short code" %}</dt>
+            <dd class="col-sm-8"><code>{{ tag.short_code }}</code></dd>
+            <dt class="col-sm-4">{% trans "Tenant (hashed)" %}</dt>
+            <dd class="col-sm-8"><code>{{ tag.tenant_id_hash }}</code></dd>
+            <dt class="col-sm-4">{% trans "Label hint" %}</dt>
+            <dd class="col-sm-8">{{ tag.label_hint }}</dd>
+          </dl>
+          <p class="text-muted small mt-3 mb-0">
+            {% trans "Print the short code as a QR sticker. Anonymous finders enter it on the public lookup page." %}
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

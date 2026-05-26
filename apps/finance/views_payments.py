@@ -224,6 +224,11 @@ def cash_office_closure(request: HttpRequest):
     )
 
     if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
         if form.is_valid():
             closure, _created = CashOfficeClosure.objects.get_or_create(
                 profile=profile,
@@ -327,6 +332,13 @@ def split_allocation(request: HttpRequest):
         guardian_queryset=guardians,
     )
 
+    if request.method == "POST":
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
+
     if request.method == "POST" and form.is_valid():
         student = form.cleaned_data["student"]
         total_amount = form.cleaned_data["total_amount"]
@@ -428,6 +440,11 @@ def scan_teller_placeholder(request: HttpRequest):
     )
 
     if request.method == "POST" and form.is_valid():
+        from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce
+
+        blocked = block_if_wind_down_commerce(request)
+        if blocked is not None:
+            return blocked
         if verification_method != "pattern" and not ocr_runtime_status.get(
             "ready", False
         ):

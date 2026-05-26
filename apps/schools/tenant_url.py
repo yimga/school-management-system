@@ -153,7 +153,10 @@ def tenant_absolute_url(request, viewname, *args, school=None, path=None, **kwar
     When request.school (or passed school) is set, produces a full URL on the correct
     subdomain/custom domain so emails and redirects stay tenant-scoped.
     """
-    path = reverse(viewname, args=args, kwargs=kwargs)
+    try:
+        path = reverse(viewname, args=args, kwargs=kwargs, urlconf="config.tenant_urls")
+    except Exception:
+        path = reverse(viewname, args=args, kwargs=kwargs)
     s = school or getattr(request, "school", None)
     if s:
         return build_tenant_backend_url(request, s, path=path)

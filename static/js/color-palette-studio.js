@@ -677,8 +677,6 @@
       state.selectedPreset = '';
       setActivePresetUI();
     });
-
-    console.log('Color Palette Studio initialized');
   }
 
   if (document.readyState === 'loading') {

@@ -111,6 +111,11 @@ def validate_offline_payload(action_type: str, payload: dict[str, Any]) -> list[
         if not str(payload.get("message") or payload.get("body") or "").strip():
             errors.append("support.ticket requires message")
 
+    if at == OfflineActionType.IAM_REQUEST_ACCESS:
+        code = str(payload.get("permission_code") or "").strip()
+        if not code:
+            errors.append("iam.request_access requires permission_code")
+
     return errors
 
 

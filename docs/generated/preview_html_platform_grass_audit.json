@@ -14,10 +14,11 @@
     "operational_frame_suppress": 0
   },
   "sub_gates": {
-    "verify_platform_layout_compact.py": "  authenticated_shells: 5/5 load compact CSS",
-    "verify_all_preview_shell_html_implementation.py": "DEBUG 2026-05-25 09:46:26,755 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.008) COMMIT; args=None; alias=default",
+    "audit_canvas_chrome_void.py": "CANVAS_CHROME_VOID_PASS",
+    "audit_security_posture_banner_layout.py": "SECURITY_POSTURE_BANNER_LAYOUT_PASS",
+    "verify_all_preview_shell_html_implementation.py": "DEBUG 2026-05-25 22:28:09,044 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.010) COMMIT; args=None; alias=default",
     "verify_platform_shell_preview_parity.py": "PLATFORM_SHELL_PREVIEW_PARITY_PASS"
   },
-  "generated_at": "2026-05-25T13:46:28Z",
+  "generated_at": "2026-05-26T02:28:11Z",
   "remediation_status": "PASS"
 }

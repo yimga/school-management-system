@@ -1,0 +1,94 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Substitute handover" %} — {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Substitute handover" %}{% endblock %}
+{% block backend_page %}
+<div class="container-fluid py-2">
+  <p class="text-muted mb-3">
+    {% trans "Generate a redacted, time-boxed handover packet for a covering teacher. Identifiers are hashed before any audit row; medical / IEP detail stays gated unless explicitly authorised." %}
+  </p>
+
+  {% if error %}
+  <div class="alert alert-danger" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "New handover" %}</h2>
+          <form method="post" novalidate
+                data-rmc-offline-form="field_capture"
+                data-offline-action-type="notes_report"
+                data-rmc-offline-workflow="substitute_handover"
+                data-rmc-offline-hint="{% trans 'Handover details stay on this device until you reconnect and sync.' %}">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}
+              <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+              {% if field.errors %}
+              <div class="invalid-feedback d-block">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">{% trans "Build packet" %}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    {% if packet %}
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h6 mb-3">{% trans "Generated packet" %}</h2>
+          <dl class="row mb-0">
+            <dt class="col-sm-5">{% trans "Packet ID" %}</dt>
+            <dd class="col-sm-7"><code>{{ packet.packet_id }}</code></dd>
+            <dt class="col-sm-5">{% trans "Tenant (hashed)" %}</dt>
+            <dd class="col-sm-7"><code>{{ packet.tenant_id_hash }}</code></dd>
+            <dt class="col-sm-5">{% trans "Teacher (hashed)" %}</dt>
+            <dd class="col-sm-7"><code>{{ packet.teacher_id_hash }}</code></dd>
+            <dt class="col-sm-5">{% trans "Substitute (hashed)" %}</dt>
+            <dd class="col-sm-7"><code>{{ packet.substitute_id_hash }}</code></dd>
+            <dt class="col-sm-5">{% trans "Valid from" %}</dt>
+            <dd class="col-sm-7">{{ packet.valid_from|date:"Y-m-d H:i T" }}</dd>
+            <dt class="col-sm-5">{% trans "Valid until" %}</dt>
+            <dd class="col-sm-7">{{ packet.valid_until|date:"Y-m-d H:i T" }}</dd>
+            <dt class="col-sm-5">{% trans "Medical / IEP" %}</dt>
+            <dd class="col-sm-7">
+              {% if packet.medical_iep_gated %}
+              <span class="badge bg-secondary">{% trans "Gated (not exposed)" %}</span>
+              {% else %}
+              <span class="badge bg-warning text-dark">{% trans "Exposed by admin" %}</span>
+              {% endif %}
+            </dd>
+            <dt class="col-sm-5">{% trans "Audit event" %}</dt>
+            <dd class="col-sm-7"><code>{{ packet.audit_event_id }}</code></dd>
+          </dl>
+
+          {% if packet.lesson_outline %}
+          <hr>
+          <h3 class="h6 mb-2">{% trans "Lesson outline" %}</h3>
+          <ul class="list-unstyled mb-0">
+            {% for row in packet.lesson_outline %}
+            <li class="mb-2">
+              <strong>{{ row.period|default:"—" }}.</strong> {{ row.topic|default:"" }}
+              {% if row.materials %}
+              <span class="text-muted">({{ row.materials|join:", " }})</span>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

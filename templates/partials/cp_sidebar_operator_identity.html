@@ -1,0 +1,30 @@
+{% load i18n %}
+{% comment %}
+  Operator identity strip — admin v1 200x preview parity (manager /admin/ only).
+  PII-safe: uses actor_display when present; never renders raw email.
+{% endcomment %}
+{% if request.user.is_authenticated %}
+<div class="cp-sidebar__identity" data-rmc-sidebar-identity="1">
+  <div class="cp-sidebar__user">
+    <div class="cp-sidebar__avatar" aria-hidden="true">
+      {% if actor_display and actor_display.initials %}
+        {{ actor_display.initials }}
+      {% elif request.user.first_name %}
+        {{ request.user.first_name|slice:":1"|upper }}{{ request.user.last_name|slice:":1"|upper }}
+      {% else %}
+        {{ request.user.username|slice:":2"|upper }}
+      {% endif %}
+    </div>
+    <div class="cp-sidebar__user-meta">
+      <strong>{% if actor_display and actor_display.label %}{{ actor_display.label }}{% else %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}</strong>
+      <span>{% if actor_display and actor_display.role_label %}{{ actor_display.role_label }}{% else %}{% trans "Platform operator" %}{% endif %}</span>
+      <a href="{% url 'accounts:user_profile' %}">{% trans "Profile & security" %} ↗</a>
+    </div>
+  </div>
+  {% if request.public_host_kind == 'manager' %}
+  <div class="cp-sidebar__scope" role="status">
+    <span>{{ cockpit.workspace_context.scope_label|default:_("All tenants · Global") }}</span>
+  </div>
+  {% endif %}
+</div>
+{% endif %}

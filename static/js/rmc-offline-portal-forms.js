@@ -225,6 +225,59 @@
     });
   }
 
+  function serializeFormFields(form) {
+    var payload = {};
+    var inputs = form.querySelectorAll('input, select, textarea');
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i];
+      var name = el.name;
+      if (!name || name === 'csrfmiddlewaretoken') continue;
+      if (el.type === 'checkbox') {
+        payload[name] = el.checked;
+      } else if (el.type === 'radio') {
+        if (el.checked) payload[name] = el.value;
+      } else if (el.value !== '') {
+        payload[name] = el.value;
+      }
+    }
+    return payload;
+  }
+
+  /**
+   * Schoolops / finance / people POST forms that are not yet REST APIs:
+   * queue a notes_report row with JSON body for staff replay on sync.
+   */
+  function wireFieldCapture(form) {
+    form.addEventListener('submit', function (ev) {
+      if (navigator.onLine || !enabled()) return;
+      ev.preventDefault();
+      var workflow = (form.getAttribute('data-rmc-offline-workflow') || 'field_capture').trim();
+      var fields = serializeFormFields(form);
+      if (!Object.keys(fields).length) {
+        toast('Nothing to save offline — fill the form first.', 'warning');
+        return;
+      }
+      var body = JSON.stringify({
+        workflow: workflow,
+        fields: fields,
+        captured_at: new Date().toISOString(),
+        page_path: global.location && global.location.pathname ? global.location.pathname : '',
+      });
+      var title = workflow.replace(/[_-]+/g, ' ').slice(0, 200);
+      var idem = workflow + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+      window.rmcOfflineEnqueue({
+        action_type: 'notes_report',
+        payload: {
+          body: body,
+          title: title,
+          kind: 'note',
+        },
+        idempotency_key: idem.slice(0, 128),
+      });
+      toast('Saved on this device — open Offline sync when you reconnect.', 'success');
+    });
+  }
+
   function wireSupportTicket(form) {
     form.addEventListener('submit', function (ev) {
       if (navigator.onLine || !enabled()) return;
@@ -258,5 +311,6 @@
     document.querySelectorAll('form[data-rmc-offline-form="payment_receipt"]').forEach(wirePaymentReceipt);
     document.querySelectorAll('form[data-rmc-offline-form="notes_report"]').forEach(wireNotesReport);
     document.querySelectorAll('form[data-rmc-offline-form="support_ticket"]').forEach(wireSupportTicket);
+    document.querySelectorAll('form[data-rmc-offline-form="field_capture"]').forEach(wireFieldCapture);
   });
 })();

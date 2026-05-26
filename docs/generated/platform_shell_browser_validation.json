@@ -1,0 +1,206 @@
+{
+  "generatedAt": "2026-05-26T03:07:40.255Z",
+  "host": "manager.localtest.me",
+  "port": "8046",
+  "routes": [
+    {
+      "route": "/authentication/mfa/setup/",
+      "status": 200,
+      "ok": true,
+      "noUnexpectedRedirect": true,
+      "markerPresent": true,
+      "title": "Multi-factor authentication",
+      "href": "http://manager.localtest.me:8046/authentication/mfa/setup/",
+      "bodyText": "Skip to main content\nRUN\nMY\nCAMPUS\nMANAGER\nOperator command surface\nSearch schools and incidents\nCtrl K\n0 operators online No operators online\nStudio\nConfig\nWorkspace\nPL\n1\nplatform_shell_validation\n55\nSuper Administrator\nLIVE\n🆕 2 new schools provisioned · 24h 🆕 2 new schools provisioned · 24h\nStart\nGuided setup\nPlatform Overview\nStudio OS\nTenants\nCurriculum & region\nRuntime & Governance\nBlueprints & Policies\nWorkflows & Dashboards\nMarketplace\nMigration & Integrations\nObservability & Billing\nSupport & Success\nTrust & Compliance\nOperator tools\nTenant config defaults\nMetadata & audit\nVoice of customer & proof\nAdvanced\n Platform Studio · Reports \n  Integrations registry (admin) \n  Marketplace apps (admin) \n  Installed packages (admin) \n  Experience packs (admin) \n  Runtime defaults (admin) \n  Phase B domain snapshots (admin) \n  Fleet governed changes (admin) \n  AI model registry (admin) \n  Global brand registry (admin) \n  Platform global branding (admin) \n  Users (admin) \nBackoffice · Platform Configuration\nBackoffice · Catalog Records\nBackoffice · Integrations & Providers\nBackoffice · Marketplace Records\nBackoffice · Migration Records\nBackoffice · Maintenance & Repair\nBackoffice · A",
+      "bodyScrollWidth": 1440,
+      "viewportWidth": 1440,
+      "bodyScrollHeight": 4324,
+      "viewportHeight": 1000,
+      "mainWidth": 1440,
+      "mainHeight": 4323.875,
+      "contentBoxes": [
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell",
+          "width": 1440,
+          "height": 4323.875
+        },
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell__canvas",
+          "width": 1440,
+          "height": 1672.375
+        },
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell__canvas-body cp-shell-content cp-shell-content--with-public-footer",
+          "width": 1440,
+          "height": 1160.59375
+        },
+        {
+          "tag": "MAIN",
+          "cls": "cp-main-col rmc-shell-main",
+          "width": 1408,
+          "height": 1144.59375
+        },
+        {
+          "tag": "SECTION",
+          "cls": "rmc-account-auth-shell",
+          "width": 1408,
+          "height": 997
+        }
+      ],
+      "managerShell": true,
+      "controlPlaneSkeleton": true,
+      "portalResizeHandleCount": 0,
+      "managerPortalBridge": false,
+      "horizontalOverflow": false,
+      "verticalTextCandidates": []
+    },
+    {
+      "route": "/authentication/profile/#profile-security-strength",
+      "status": 200,
+      "ok": true,
+      "noUnexpectedRedirect": true,
+      "markerPresent": true,
+      "title": "My profile — RunMyCampus Manager",
+      "href": "http://manager.localtest.me:8046/authentication/profile/#profile-security-strength",
+      "bodyText": "Skip to main content\nRUN\nMY\nCAMPUS\nMANAGER\nOperator command surface\nSearch schools and incidents\nCtrl K\n0 operators online No operators online\nStudio\nConfig\nWorkspace\nPL\n1\nplatform_shell_validation\n55\nSuper Administrator\nLIVE\n🆕 2 new schools provisioned · 24h 🆕 2 new schools provisioned · 24h\nStart\nGuided setup\nPlatform Overview\nStudio OS\nTenants\nCurriculum & region\nRuntime & Governance\nBlueprints & Policies\nWorkflows & Dashboards\nMarketplace\nMigration & Integrations\nObservability & Billing\nSupport & Success\nTrust & Compliance\nOperator tools\nTenant config defaults\nMetadata & audit\nVoice of customer & proof\nAdvanced\n Platform Studio · Reports \n  Integrations registry (admin) \n  Marketplace apps (admin) \n  Installed packages (admin) \n  Experience packs (admin) \n  Runtime defaults (admin) \n  Phase B domain snapshots (admin) \n  Fleet governed changes (admin) \n  AI model registry (admin) \n  Global brand registry (admin) \n  Platform global branding (admin) \n  Users (admin) \nBackoffice · Platform Configuration\nBackoffice · Catalog Records\nBackoffice · Integrations & Providers\nBackoffice · Marketplace Records\nBackoffice · Migration Records\nBackoffice · Maintenance & Repair\nBackoffice · A",
+      "bodyScrollWidth": 1440,
+      "viewportWidth": 1440,
+      "bodyScrollHeight": 2616,
+      "viewportHeight": 1000,
+      "mainWidth": 1440,
+      "mainHeight": 2611.53125,
+      "contentBoxes": [
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell",
+          "width": 1440,
+          "height": 2611.53125
+        },
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell__canvas",
+          "width": 1440,
+          "height": 757.03125
+        },
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell__canvas-body cp-shell-content cp-shell-content--with-public-footer",
+          "width": 1440,
+          "height": 245.25
+        },
+        {
+          "tag": "MAIN",
+          "cls": "cp-main-col rmc-shell-main",
+          "width": 1408,
+          "height": 229.25
+        }
+      ],
+      "managerShell": true,
+      "controlPlaneSkeleton": true,
+      "portalResizeHandleCount": 0,
+      "managerPortalBridge": false,
+      "horizontalOverflow": false,
+      "verticalTextCandidates": []
+    },
+    {
+      "route": "/super/",
+      "status": 200,
+      "ok": true,
+      "noUnexpectedRedirect": true,
+      "markerPresent": true,
+      "title": "Control Plane",
+      "href": "http://manager.localtest.me:8046/super/",
+      "bodyText": "Skip to main content\nRUN\nMY\nCAMPUS\nMANAGER\nOperator command surface\nSearch schools and incidents\nCtrl K\n0 operators online No operators online\nStudio\nConfig\nWorkspace\n12\nPL\n1\nplatform_shell_validation\n55\nSuper Administrator\nLIVE\n🆕 2 new schools provisioned · 24h 🆕 2 new schools provisioned · 24h\nStart\n Platform backoffice \n  Control plane \n  Help center \n  Config center \nGuided setup\nPlatform Overview\n Dashboard \n  Command Center \n  AI gateway console \n  AI Center \nStudio OS\nTenants\nCurriculum & region\nRuntime & Governance\nBlueprints & Policies\nWorkflows & Dashboards\nMarketplace\nMigration & Integrations\nObservability & Billing\nSupport & Success\nTrust & Compliance\nOperator tools\nTenant config defaults\nMetadata & audit\nVoice of customer & proof\nAdvanced\n Platform Studio · Reports \n  Integrations registry (admin) \n  Marketplace apps (admin) \n  Installed packages (admin) \n  Experience packs (admin) \n  Runtime defaults (admin) \n  Phase B domain snapshots (admin) \n  Fleet governed changes (admin) \n  AI model registry (admin) \n  Global brand registry (admin) \n  Platform global branding (admin) \n  Users (admin) \nBackoffice · Platform Configuration\nBackoffice · Catalog Records\nBackoffice ",
+      "bodyScrollWidth": 1440,
+      "viewportWidth": 1440,
+      "bodyScrollHeight": 9164,
+      "viewportHeight": 1000,
+      "mainWidth": 1440,
+      "mainHeight": 9163.859375,
+      "contentBoxes": [
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell",
+          "width": 1440,
+          "height": 9163.859375
+        },
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell__canvas",
+          "width": 1440,
+          "height": 6456.359375
+        },
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell__canvas-body cp-shell-content cp-shell-content--with-public-footer",
+          "width": 1440,
+          "height": 5944.578125
+        },
+        {
+          "tag": "MAIN",
+          "cls": "cp-main-col rmc-shell-main",
+          "width": 1408,
+          "height": 5928.578125
+        }
+      ],
+      "managerShell": true,
+      "controlPlaneSkeleton": true,
+      "portalResizeHandleCount": 0,
+      "managerPortalBridge": false,
+      "horizontalOverflow": false,
+      "verticalTextCandidates": []
+    },
+    {
+      "route": "/admin/accounts/user/",
+      "status": 200,
+      "ok": true,
+      "noUnexpectedRedirect": true,
+      "markerPresent": true,
+      "title": "RunMyCampus Admin",
+      "href": "http://manager.localtest.me:8046/admin/accounts/user/",
+      "bodyText": "RUNMYCAMPUS BACKOFFICE /admin/ · Operator command surface\nSearch models and records\nCtrl K\nStudio\nConfig\nPL\n1\nplatform_shell_validation\n55\nSuper Administrator\n🏛\nBackoffice\n⚙\nConfig center\n⌘\nStudio\n↗\nControl plane\n📚\nCatalog\n🔐\nAccess\n🩺\nHealth\nSecurity\n55\nLIVE\n🆕 2 new schools provisioned · 24h 🆕 2 new schools provisioned · 24h\nPL\nplatform_shell_validation Platform operator Profile & security ↗\nAll tenants · Global\nStart\nGuided setup\nPlatform Overview\nStudio OS\nTenants\nCurriculum & region\nRuntime & Governance\nBlueprints & Policies\nWorkflows & Dashboards\nMarketplace\nMigration & Integrations\nObservability & Billing\nSupport & Success\nTrust & Compliance\nOperator tools\nTenant config defaults\nMetadata & audit\nVoice of customer & proof\nAdvanced\n Platform Studio · Reports \n  Integrations registry (admin) \n  Marketplace apps (admin) \n  Installed packages (admin) \n  Experience packs (admin) \n  Runtime defaults (admin) \n  Phase B domain snapshots (admin) \n  Fleet governed changes (admin) \n  AI model registry (admin) \n  Global brand registry (admin) \n  Platform global branding (admin) \n  Users (admin) \nBackoffice · Platform Configuration\nBackoffice · Catalog Records\nBackoffice · Integrations",
+      "bodyScrollWidth": 1440,
+      "viewportWidth": 1440,
+      "bodyScrollHeight": 19735,
+      "viewportHeight": 1000,
+      "mainWidth": 1440,
+      "mainHeight": 19735.40625,
+      "contentBoxes": [
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell admin-cp-unified-page ",
+          "width": 1440,
+          "height": 19735.40625
+        },
+        {
+          "tag": "DIV",
+          "cls": "rmc-app-shell__canvas",
+          "width": 1440,
+          "height": 17182.84375
+        },
+        {
+          "tag": "MAIN",
+          "cls": "rmc-app-shell__canvas-body cp-admin-canvas-main",
+          "width": 1440,
+          "height": 17182.84375
+        },
+        {
+          "tag": "DIV",
+          "cls": "w-100 max-w-none mx-auto ",
+          "width": 1392,
+          "height": 16705
+        }
+      ],
+      "managerShell": false,
+      "controlPlaneSkeleton": false,
+      "portalResizeHandleCount": 0,
+      "managerPortalBridge": false,
+      "horizontalOverflow": false,
+      "verticalTextCandidates": []
+    }
+  ],
+  "ok": true
+}

@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-26T18:24:59.451846+00:00",
+  "batch_ids": [
+    1508,
+    1509,
+    1510
+  ],
+  "verdict": "LOCAL_FIRST_COMPLETION_AUDIT_PASS",
+  "finding_count": 0,
+  "rows": [
+    {
+      "check_id": "verify_local_first_completion",
+      "ok": true,
+      "proof": "verify_local_first_completion: LOCAL_FIRST_COMPLETION_PASS"
+    },
+    {
+      "check_id": "verify_local_first_surface_wiring",
+      "ok": true,
+      "proof": "verify_local_first_surface_wiring: LOCAL_FIRST_SURFACE_WIRING_PASS templates=16"
+    },
+    {
+      "check_id": "verify_offline_workflow_apply",
+      "ok": true,
+      "proof": "verify_offline_workflow_apply: OFFLINE_WORKFLOW_APPLY_PASS"
+    },
+    {
+      "check_id": "verify_workforce_money_plane_completion",
+      "ok": true,
+      "proof": "verify_workforce_money_plane_completion: WORKFORCE_MONEY_PLANE_COMPLETE"
+    },
+    {
+      "check_id": "verify_cdn_self_host_burndown",
+      "ok": true,
+      "proof": "verify_cdn_self_host_burndown: CDN_SELF_HOST_BURNDOWN_PASS"
+    },
+    {
+      "check_id": "verify_sovereign_offline_depth",
+      "ok": true,
+      "proof": "verify_sovereign_offline_depth: SOVEREIGN_OFFLINE_DEPTH_PASS"
+    },
+    {
+      "check_id": "verify_sovereign_offline_foundation",
+      "ok": true,
+      "proof": "verify_sovereign_offline_foundation: SOVEREIGN_OFFLINE_FOUNDATION_PASS"
+    },
+    {
+      "check_id": "migration-0018-micro-friction",
+      "ok": true,
+      "proof": "apps\\schoolops\\migrations\\0018_micro_friction_persistence.py"
+    },
+    {
+      "check_id": "models-micro-friction",
+      "ok": true,
+      "proof": "SubstituteHandover + LostBelongings records"
+    },
+    {
+      "check_id": "sw-cache-version-shape-monotonic",
+      "ok": true,
+      "proof": "verify_service_worker_version --check-monotonic ok; CACHE_VERSION=sms-v3.94.1-workforce-money-plane-offline-apply-2026-05-26"
+    },
+    {
+      "check_id": "templates-no-burndown-cdn-scripts",
+      "ok": true,
+      "proof": "hits=0"
+    },
+    {
+      "check_id": "finance-post-offline-parity",
+      "ok": true,
+      "proof": "draft_post_gaps=0 total_post_without_offline=6"
+    }
+  ],
+  "finance_post_scan": [
+    {
+      "template": "templates/finance/invoice_detail.html",
+      "has_draft_key": false,
+      "severity": "info",
+      "note": "POST form without field_capture or typed offline handler"
+    },
+    {
+      "template": "templates/finance/invoices.html",
+      "has_draft_key": false,
+      "severity": "info",
+      "note": "POST form without field_capture or typed offline handler"
+    },
+    {
+      "template": "templates/finance/invoices.html",
+      "has_draft_key": false,
+      "severity": "info",
+      "note": "POST form without field_capture or typed offline handler"
+    },
+    {
+      "template": "templates/finance/offline_payment_intent_queue.html",
+      "has_draft_key": false,
+      "severity": "info",
+      "note": "POST form without field_capture or typed offline handler"
+    },
+    {
+      "template": "templates/finance/offline_payment_intent_queue.html",
+      "has_draft_key": false,
+      "severity": "info",
+      "note": "POST form without field_capture or typed offline handler"
+    },
+    {
+      "template": "templates/finance/permission_to_pay.html",
+      "has_draft_key": false,
+      "severity": "info",
+      "note": "POST form without field_capture or typed offline handler"
+    }
+  ],
+  "cdn_template_hits": [],
+  "honest_deferred": [
+    "Lane 2 PWA install matrix on real devices \u2014 operator-run (docs/PWA_LANE2_OPERATOR_RUNBOOK_2026_05_26.md)",
+    "Live PSP payment authorize while offline \u2014 queues intent/receipt only",
+    "Google Fonts on some shells \u2014 allowed; not in CDN burndown scope",
+    "GET filter forms (invoices/payments/trial_balance/reports period) \u2014 draft persistence only; no enqueue"
+  ]
+}

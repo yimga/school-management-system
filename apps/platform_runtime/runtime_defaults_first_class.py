@@ -271,3 +271,70 @@ def collect_first_class_values_from_site_settings(
                 v = None
         out[k] = v
     return out
+
+
+# ---------------------------------------------------------------------------
+# Per-tenant runtime-defaults override shim — Unified Wizard Framework
+# ---------------------------------------------------------------------------
+#
+# ``RuntimeDefaults`` is a global singleton (no ``school`` FK). Per-tenant
+# overrides layer in via ``school.settings`` and are merged on top of the
+# singleton inside ``get_effective_site_settings``. This shim is the canonical
+# write path for setup-studio wizard answers that target a RuntimeDefaults
+# field — instead of mutating the singleton (which would clobber every tenant),
+# it lands the override in ``school.settings["runtime_defaults"][<field>]``.
+
+# Wizard-driven brand/typography keys are not on the singleton today; they
+# are persisted only via per-tenant overrides + read by the effective-settings
+# merger. Add new keys here when wizards start writing them.
+_WIZARD_RUNTIME_DEFAULT_KEYS: frozenset[str] = frozenset({
+    "brand_palette_key",
+    "brand_primary_color",
+    "brand_secondary_color",
+    "brand_type_scale_anchor",
+})
+
+
+def set_runtime_default(*, school, field: str, value):
+    """Persist a per-tenant runtime-default override into ``school.settings``.
+
+    ``field`` must be a recognized key: either present on the ``RuntimeDefaults``
+    singleton (``RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES``) or an explicit
+    wizard-driven key (``_WIZARD_RUNTIME_DEFAULT_KEYS``). Unknown keys log a
+    warning and no-op.
+
+    Returns ``True`` on state change, ``False`` on no-op.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    if school is None or not field:
+        return False
+    if getattr(school, "pk", None) is None:
+        return False
+    if (
+        field not in RUNTIME_DEFAULTS_FIRST_CLASS_FIELD_NAMES
+        and field not in _WIZARD_RUNTIME_DEFAULT_KEYS
+    ):
+        logger.warning("set_runtime_default: unknown field %r (no whitelist match)", field)
+        return False
+
+    settings = getattr(school, "settings", None) or {}
+    if not isinstance(settings, dict):
+        settings = {}
+    rd_bucket = settings.get("runtime_defaults") or {}
+    if not isinstance(rd_bucket, dict):
+        rd_bucket = {}
+
+    if rd_bucket.get(field) == value:
+        return False
+    rd_bucket[field] = value
+    settings["runtime_defaults"] = rd_bucket
+
+    try:
+        school.settings = settings
+        school.save(update_fields=["settings"])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("set_runtime_default: save failed: %s", exc)
+        return False
+    return True

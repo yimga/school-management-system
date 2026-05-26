@@ -110,7 +110,11 @@
 // v3.84.9: Page-help dedupe — suppress floating drawer / portal topbar / assist-dock relocation when copilot rail owns help.
 // v3.90.28: Copilot rail ? — help center href fallback (anchor + data-rmc-help-center-url) when cmdk JSON absent.
 // v3.90.32: Help center 10x — page-aware inbound, KB auto-gen hub cards, 38 /super/ templates → control_plane_base sidebar unify.
-const CACHE_VERSION = "sms-v3.90.62-cp-200x-landing-inline-heatmap-grid-fix-2026-05-25";
+// v3.91.0: Release hygiene cleanup (batch 1508 — initial bump, superseded by parallel session's v3.91.1 marketplace-ops-admin-bridge in the same minute window).
+// v3.91.2: Release hygiene cleanup (batch 1508) — .gitattributes export-ignore + build_clean_source_archive.py guard + proof_artifact_registry + scanner cleanup (shell=True / bare except / console.log). Bumped past parallel session's v3.91.1 to land my slug.
+// v3.92.0: Audit P1 closure (batch 1509) — depth tests for 7 batch-1506 services + micro-friction UI wiring (substitute_handover, permission_to_pay, lost_belongings_qr) + PWA Lane 2 spec hardening + operator runbook + migration squash plan.
+// v3.94.0: Wizard feature growth (19→23) + LIVE AI mock test + HelpcenterSource first-class promotion (model + migration 0002 + backfill command). Aggressive 2-pass validation completed before any feature work.
+const CACHE_VERSION = "sms-v3.94.1-workforce-money-plane-offline-apply-2026-05-26";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -215,6 +219,7 @@ const STATIC_ASSETS = [
   "/static/js/rmc-support-deflection.js",
   "/static/js/rmc-kb-ai-assistant.js",
   "/static/js/rmc-operator-help-center.js",
+  "/static/js/rmc-tenant-provisioning-status.js",
   "/static/css/rmc-help-center-engage.css",
   "/static/css/rmc-kb-operator.css",
   "/static/images/logo.png",

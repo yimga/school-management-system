@@ -10,12 +10,19 @@ This document describes how to extend offline support to **every component, modu
 
 | Area | Offline support | Mechanism |
 |------|-----------------|-----------|
-| **Attendance** | Yes | Service worker queues `POST/PUT/PATCH/DELETE` to `/api/attendance/`; replay on Background Sync or "Sync now". |
-| **Grades / mark entry (portal)** | Yes | `form-draft-save.js`: draft + pending submissions in localStorage; "Submit draft now" / "Sync now" when online. |
-| **Reachability** | Yes | When `online` fires, the app checks `/health/` before showing "Syncing…"; "Sync now" also checks reachability and shows "Server unreachable" if the server is not reachable. |
-| **All other modules** | No | Finance, entity CRUD, requests, compliance, reports, etc. use normal fetch/form POST; no queue when offline. |
+| **Attendance** | Yes | Service worker queues `/api/attendance/`; roll-call forms use `data-rmc-offline-form="attendance"` + `rmc-offline-portal-forms.js`. |
+| **Grades / mark entry** | Yes | SW `/api/grades/`, `/api/evals/`; portal forms `grading` + `form-draft-save.js`. |
+| **Payments / receipts** | Yes | `payment_receipt` on invoice detail; SW `/api/finance/`; `OfflinePaymentIntent` bursar queue. |
+| **Notes / forums / bulk capture** | Yes | `notes_report` typed forms + server `_apply_notes_report`. |
+| **Support / parent contact** | Yes | `support_ticket` → `GlobalSupportTicket` on sync. |
+| **Schoolops / finance / payroll POST forms** | Yes | `data-rmc-offline-form="field_capture"` queues JSON; on sync, `offline_workflow_apply` runs **schoolops** (handover, lost-belongings), **finance** workflows (cash closure, suspense claim, access bulk/request, report request, split allocation, permission-to-pay, etc. via `FinanceOfflineCaptureRecord`), and **payroll** (`payroll_create_run`, `payroll_leave_request` via `PayrollOfflineCaptureRecord`). Batch jobs (generate fees, OCR scan teller) queue as `PENDING_REVIEW` until online. |
+| **Entity / requests REST writes** | Partial | SW queues `/api/entity/`, `/api/entities/`, `/api/requests/` when toggles on; conflict UX varies by API. |
+| **Read mirror (rosters)** | Partial | `offline-db.js` (Dexie) + `sync-manager.js` hydrate on load/sync; roll-call uses `data-attendance-offline-hydrator`. |
+| **Delta sync** | Yes | `POST /api/offline/delta/` wired via `SMS_OFFLINE_CONFIG.deltaEndpointUrl`. |
+| **IAM offline** | Yes | Signed snapshot + `POST /api/offline/iam_intent/` (not `OfflineAction` enqueue). |
+| **Reachability** | Yes | `/health/` or tenant `reachability_url`; hub retry via `hubBaseUrl` on hybrid/edge. |
 
-Offline mode is **not** limited to grades/marks only in design—attendance is fully queued in the service worker—but only **attendance** and **grade/mark forms** (via form-draft-save) are currently wired. Everything else requires a live connection.
+Typed portal forms and the service worker cover **field-critical writes**. Handover packets and lost-belongings tags are **persisted on sync** (batch 1510); anonymous finder lookup resolves `short_code` from the database. Live payment-rail authorize still requires connectivity.
 
 ---
 

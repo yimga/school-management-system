@@ -956,6 +956,37 @@ body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .p
   min-height: auto !important;
   max-height: none !important;
 }
+
+@media (min-width: 992px) {
+  body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .portal-layout-row {
+    display: grid;
+    grid-template-columns: clamp(16rem, 18vw, 20rem) minmax(0, 1fr);
+    gap: clamp(0.85rem, 1.4vw, 1.25rem);
+    align-items: start;
+  }
+
+  body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .cp-sidebar-col,
+  body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .portal-main-col {
+    width: auto !important;
+    max-width: none !important;
+    flex: none !important;
+    min-width: 0 !important;
+  }
+
+  body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-resize-handle {
+    display: none !important;
+  }
+
+  body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .page-wrap {
+    min-width: 0;
+  }
+}
+
+body.control-plane-shell.manager-portal-bridge .portal-main-col .breadcrumb,
+body.control-plane-shell.manager-portal-bridge .portal-main-col [data-shell-chrome-breadcrumb-row] {
+  min-width: 0;
+  overflow-wrap: normal;
+}
 /* Inner wrappers must not force main to grow; allow main to be the scroll container */
 #cp-main-content > .container-fluid,
 #cp-main-content > .control-plane-shell,

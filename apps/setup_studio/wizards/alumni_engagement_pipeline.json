@@ -1,0 +1,47 @@
+{
+  "wizard_key": "alumni_engagement_pipeline",
+  "version": 1,
+  "audience": ["tenant_admin"],
+  "label_token": "wizards.alumni_engagement_pipeline.label",
+  "description_token": "wizards.alumni_engagement_pipeline.description",
+  "icon_class": "rmc-icon-graduation-cap",
+  "estimated_minutes": 8,
+  "ai": {"smart_defaults": true},
+  "steps": [
+    {
+      "key": "graduation_capture",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "auto_promote_to_alumni_on_graduation", "type": "boolean", "required": true},
+        {"name": "send_welcome_to_alumni_message", "type": "boolean", "required": true},
+        {"name": "request_post_secondary_destination", "type": "boolean", "required": true},
+        {"name": "capture_career_intent", "type": "boolean", "required": true}
+      ],
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_alumni_graduation_capture"}
+    },
+    {
+      "key": "contact_preferences",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_alumni_contact_channels",
+      "validation": {"required": true},
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_alumni_contact_preferences"}
+    },
+    {
+      "key": "engagement_programs",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_alumni_programs",
+      "validation": {"required": true},
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_alumni_programs"}
+    },
+    {
+      "key": "donation_pipeline",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "donation_portal_enabled", "type": "boolean", "required": true},
+        {"name": "suggested_donation_amounts_decimal_list", "type": "text", "required": false, "validation": {"max_length": 120}},
+        {"name": "tax_deduction_receipt_template", "type": "select", "required": false}
+      ],
+      "persistence": {"target": "site_settings", "writer": "apps.setup_studio.wizard_resolvers::write_alumni_donation_pipeline"}
+    }
+  ]
+}

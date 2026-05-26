@@ -1,0 +1,20 @@
+{% extends "backend_base_manager.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Multi-factor authentication" %}{% endblock %}
+{% block backend_title %}{% trans "Multi-factor authentication" %}{% endblock %}
+{% block cp_title %}{% trans "Multi-factor authentication" %}{% endblock %}
+{% block cp_page_archetype %}security-workbench{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-account-surface.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+{% include "partials/breadcrumbs.html" %}
+{% endblock %}
+
+{% block backend_main %}
+{% include "accounts/partials/mfa_setup_page_body.html" %}
+{% endblock %}

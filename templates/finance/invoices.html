@@ -27,8 +27,11 @@
     </div>
   </div>
   {% if can_request_finance_access %}
-  <form method="post" action="{{ finance_request_url }}">
+  <form method="post" action="{{ finance_request_url }}"
+        data-rmc-offline-form="field_capture"
+        data-rmc-offline-workflow="finance_access_request">
     {% csrf_token %}
+    <input type="hidden" name="intent" value="request_finance_access">
     <button type="submit" class="btn btn-sm btn-primary">{% trans "Request finance access" %}</button>
   </form>
   {% endif %}
@@ -38,8 +41,11 @@
   <i class="bi bi-shield-check"></i>
   <div>{{ finance_access_summary }}</div>
   {% if can_request_finance_access %}
-  <form method="post" action="{{ finance_request_url }}" class="ms-auto">
+  <form method="post" action="{{ finance_request_url }}" class="ms-auto"
+        data-rmc-offline-form="field_capture"
+        data-rmc-offline-workflow="finance_access_request">
     {% csrf_token %}
+    <input type="hidden" name="intent" value="request_broader_finance_access">
     <button type="submit" class="btn btn-sm btn-outline-primary">{% trans "Request broader access" %}</button>
   </form>
   {% endif %}
@@ -103,9 +109,9 @@
         <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">{% trans "Export PDF" %}</a>
       </div>
     </div>
-    <div class="table-responsive" data-table-density-key="finance_invoices" data-tour="finance-table">
+    <div class="table-responsive rmc-data-table-wrapper" data-table-density-key="finance_invoices" data-tour="finance-table">
       {% if invoices %}
-      <table class="table table-sm align-middle table-sticky-head table-zebra table-family" aria-label="{% trans 'Invoices list: reference, type, status, due date, student, total, balance, and actions' %}">
+      <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="{% trans 'Invoices list: reference, type, status, due date, student, total, balance, and actions' %}">
         <thead class="table-light">
           <tr>
             <th scope="col">{% trans "Reference" %}</th>

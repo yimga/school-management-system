@@ -94,6 +94,7 @@ def _connect():
             return
         from apps.schools.models import SchoolMembership
 
+        # tenant-isolation-allow: signal-handler-iterates-all-user-memberships-by-design-to-sync-per-school-role-state
         for m in SchoolMembership.objects.filter(user=instance).select_related("school"):
             try:
                 sync_user_roles_for_school(instance, school=m.school)
@@ -110,6 +111,7 @@ def _connect():
             return
         from apps.schools.models import SchoolMembership
 
+        # tenant-isolation-allow: signal-handler-iterates-all-user-memberships-by-design-to-sync-per-school-role-state
         for m in SchoolMembership.objects.filter(user=instance).select_related("school"):
             try:
                 sync_user_roles_for_school(instance, school=m.school)
@@ -134,6 +136,7 @@ def _connect():
             else:
                 from apps.schools.models import SchoolMembership
 
+                # tenant-isolation-allow: signal-handler-iterates-all-user-memberships-by-design-to-sync-per-school-role-state
                 for m in SchoolMembership.objects.filter(user=user).select_related(
                     "school",
                 ):

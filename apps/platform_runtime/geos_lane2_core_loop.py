@@ -55,6 +55,7 @@ def execute_core_loop(school_slug: str, *, seed_if_missing: bool = True) -> dict
             except Exception:
                 pass
 
+    # tenant-isolation-allow: fallback-branch-scoped-via-classroom-school-fk-join-when-direct-school-null
     student = (
         StudentProfile.objects.filter(school=school)
         .select_related("classroom")
@@ -113,6 +114,7 @@ def execute_core_loop(school_slug: str, *, seed_if_missing: bool = True) -> dict
         date=date.today(),
         defaults={"status": Attendance.Status.PRESENT},
     )
+    # tenant-isolation-allow: scoped-via-student-fk-which-is-already-school-filtered-above-line-58
     marks_count = Evaluation.objects.filter(student=student).count()
     marks_ok = marks_count > 0
 

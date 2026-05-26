@@ -1,0 +1,19 @@
+{% load i18n %}
+<fieldset class="rmc-wizard-field">
+  <legend class="rmc-wizard-field__label">{{ step_label }}</legend>
+  {% if step_description %}<p class="rmc-wizard-field__helper">{{ step_description }}</p>{% endif %}
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-2);">
+    <label>
+      <span class="rmc-wizard-field__helper">{% trans "Days" %}</span>
+      <input type="number" name="days" min="0" value="{{ prior_answer.days|default:0 }}">
+    </label>
+    <label>
+      <span class="rmc-wizard-field__helper">{% trans "Hours" %}</span>
+      <input type="number" name="hours" min="0" max="23" value="{{ prior_answer.hours|default:0 }}">
+    </label>
+    <label>
+      <span class="rmc-wizard-field__helper">{% trans "Minutes" %}</span>
+      <input type="number" name="minutes" min="0" max="59" value="{{ prior_answer.minutes|default:0 }}">
+    </label>
+  </div>
+</fieldset>

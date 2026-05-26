@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static workflow_guidance_tags %}
+{% load i18n static workflow_guidance_tags %}
 
 {% block title %}Create Payroll Run{% endblock %}
 
@@ -24,7 +24,12 @@
   {% endwith %}
 {% endif %}
 
-<form method="post" class="card">
+<form method="post" class="card"
+      data-rmc-offline-form="field_capture"
+      data-rmc-offline-workflow="payroll_create_run"
+      data-draft-key="payroll_create_run_{{ request.user.id }}"
+      data-draft-max-age-hours="168"
+      data-rmc-offline-hint="{% trans 'Payroll period dates are saved on this device until you reconnect and sync.' %}">
   {% csrf_token %}
   <div class="card-body">
     <div class="row g-3">

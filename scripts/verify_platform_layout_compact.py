@@ -128,6 +128,9 @@ def main() -> int:
         ("verify_page_fold_standards.py", []),
         ("verify_interaction_integrity_completion.py", []),
         ("scan_operator_shell_dead_hrefs.py", ["--strict"]),
+        ("audit_isomorphic_grid_channel_sweep.py", ["--write"]),
+        ("audit_isomorphic_grid_sweep.py", ["--write"]),
+        ("audit_isomorphic_grid_contract.py", ["--write"]),
         ("audit_preview_html_platform_grass.py", ["--write"]),
         ("verify_all_preview_shell_html_implementation.py", []),
         ("verify_platform_shell_preview_parity.py", []),
@@ -153,6 +156,9 @@ def main() -> int:
     print("  page_fold_standards: PASS")
     print("  interaction_integrity: PASS")
     print("  operator_dead_hrefs (strict): PASS")
+    print("  isomorphic_grid_channel_sweep: PASS")
+    print("  isomorphic_grid_sweep: PASS")
+    print("  isomorphic_grid_contract: PASS")
     print("  preview_html_platform_grass: PASS (3 canonical HTML north stars)")
     print("  all_preview_shell_html_implementation: PASS")
     print("  platform_shell_preview_parity: PASS")

@@ -491,6 +491,9 @@ urlpatterns = [
     path(
         "studio/", include(("apps.studio_os.urls", "studio_os"), namespace="studio_os")
     ),
+    # Unified Wizard Framework (operator + tenant surfaces share one engine).
+    # Routes: /super/wizards/..., /school/studio/wizards/..., /api/wizards/...
+    path("", include(("apps.setup_studio.urls", "setup_studio"), namespace="setup_studio")),
     path(
         "configuration/",
         include(

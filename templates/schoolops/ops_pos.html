@@ -9,7 +9,13 @@
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <h1 class="h6">{% trans "Record sale line" %}</h1>
-      <form method="post" class="row g-2 align-items-end" id="ops-pos-sale-form" data-draft-key="pos_sale_line_{{ school.id }}" data-draft-max-age-hours="24" data-draft-pending-label="{% trans 'Unsynced sale line' %}">{% csrf_token %}
+      <form method="post" class="row g-2 align-items-end" id="ops-pos-sale-form"
+            data-draft-key="pos_sale_line_{{ school.id }}" data-draft-max-age-hours="24"
+            data-draft-pending-label="{% trans 'Unsynced sale line' %}"
+            data-rmc-offline-form="field_capture"
+            data-offline-action-type="notes_report"
+            data-rmc-offline-workflow="ops_pos_sale"
+            data-rmc-offline-hint="{% trans 'Sale line stays on this device until you reconnect and sync.' %}">{% csrf_token %}
         {% if inventory_enabled and inventory_items %}
         <div class="col-md-4"><label class="form-label small">{% trans "Inventory item (optional)" %}</label>
           <select class="form-select" name="inventory_item_id" id="pos-inventory-pick">

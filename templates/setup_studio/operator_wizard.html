@@ -1,0 +1,51 @@
+{% extends "control_plane_skeleton.html" %}
+{% load static i18n %}
+
+{% block title %}{{ wizard_label }} · {% trans "Setup Studio" %}{% endblock %}
+
+{% block extra_head %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="rmc-wizard-shell rmc-wizard-shell--operator" data-rmc-wizard-shell="operator">
+  {% include "setup_studio/partials/wizard_state_restore_banner.html" %}
+
+  {% include "setup_studio/partials/wizard_stepper.html" %}
+
+  <div class="rmc-wizard-grid">
+    <article class="rmc-wizard-pane" aria-labelledby="rmc-wizard-pane-title">
+      <header class="rmc-wizard-pane__head">
+        <h2 class="rmc-wizard-pane__title" id="rmc-wizard-pane-title">{{ step_label }}</h2>
+        {% if step_description %}
+          <p class="rmc-wizard-pane__subtitle">{{ step_description }}</p>
+        {% endif %}
+      </header>
+
+      {% if ai_rationale %}
+        {% include "setup_studio/partials/wizard_ai_rationale.html" %}
+      {% endif %}
+
+      <form method="post" class="rmc-wizard-pane__body"
+            action="{{ form_action_url }}"
+            enctype="multipart/form-data"
+            data-rmc-wizard-form
+            data-rmc-wizard-key="{{ wizard.wizard_key }}"
+            data-rmc-wizard-step-key="{{ step.key }}"
+            data-rmc-wizard-school-id="{{ school_id }}">
+        {% csrf_token %}
+        {% include "setup_studio/partials/wizard_step_body.html" %}
+        {% include "setup_studio/partials/wizard_nav.html" %}
+      </form>
+    </article>
+
+    {% include "setup_studio/partials/wizard_help_rail.html" %}
+  </div>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+  {{ block.super }}
+  <script src="{% static 'js/rmc-wizard-state-cache.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endblock %}

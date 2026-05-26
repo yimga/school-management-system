@@ -297,6 +297,15 @@ class RapidCreateView(View):
             primary_language=language_code[:16] if language_code else "",
             settings=school_settings,
         )
+        try:
+            from apps.lifecycle.unified_lifecycle import (
+                CREATION_PATH_OPERATOR,
+                set_creation_path,
+            )
+
+            set_creation_path(school, CREATION_PATH_OPERATOR)
+        except (ImportError, ValueError, TypeError, OSError):
+            pass
         record_stage(
             school,
             "REQUESTED",
@@ -315,7 +324,32 @@ class RapidCreateView(View):
         # sees the MigrationBundle on the redirect target.
         if vendor:
             ensure_draft_migration_bundle(school)
-        return redirect(reverse("super:lifecycle_timeline", args=[school.id]))
+        try:
+            from apps.lifecycle.unified_lifecycle import (
+                STATE_PROVISIONING,
+                record_unified_transition,
+            )
+            from apps.schools.tasks import dispatch_provision_school
+
+            contact = getattr(request.user, "email", None) or ""
+            dispatch_provision_school(str(school.id), contact_email=contact)
+            record_unified_transition(
+                school,
+                STATE_PROVISIONING,
+                actor=request.user,
+                note="rapid_create",
+            )
+        except (ImportError, ValueError, TypeError, OSError):
+            pass
+        try:
+            from apps.lifecycle.tenant_school_resolve import bind_lifecycle_school_session
+
+            bind_lifecycle_school_session(request, school)
+        except ImportError:
+            pass
+        from apps.lifecycle.wind_down_guards import redirect_after_operator_school_create
+
+        return redirect_after_operator_school_create(request, school)
 
 
 def _country_choices() -> list[tuple[str, str]]:

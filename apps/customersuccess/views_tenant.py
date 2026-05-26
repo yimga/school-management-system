@@ -956,7 +956,12 @@ def guided_onboarding_view(request):
         from django.urls import reverse
 
         return redirect(reverse("studio_os:launch"))
-    school = getattr(request, "school", None)
+    try:
+        from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+        school = resolve_request_school(request)
+    except ImportError:
+        school = getattr(request, "school", None)
     if not school:
         return render(
             request,

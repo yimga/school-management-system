@@ -24,6 +24,7 @@ def _rev(url_name: str, *args) -> str | None:
 def _compute_nps_window(*, since, until) -> dict[str, Any]:
     from apps.feedback.models import SurveyResponse
 
+    # tenant-isolation-allow: operator-platform-wide-nps-aggregation-cross-tenant-by-design
     qs = SurveyResponse.objects.filter(
         survey_type=SurveyResponse.SurveyType.NPS,
         created_at__gte=since,
@@ -125,6 +126,7 @@ def build_admin_preview_nps_metric() -> dict[str, Any]:
                     hour=23, minute=59, second=59, microsecond=999999
                 )
                 day_start = day_end.replace(hour=0, minute=0, second=0, microsecond=0)
+                # tenant-isolation-allow: operator-platform-wide-nps-sparkline-cross-tenant-by-design
                 count = SurveyResponse.objects.filter(
                     survey_type=SurveyResponse.SurveyType.NPS,
                     created_at__gte=day_start,

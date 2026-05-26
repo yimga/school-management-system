@@ -1,0 +1,103 @@
+{
+  "wizard_key": "multi_campus_local_sovereignty",
+  "version": 1,
+  "audience": [
+    "operator"
+  ],
+  "label_token": "wizards.multi_campus_local_sovereignty.label",
+  "description_token": "wizards.multi_campus_local_sovereignty.description",
+  "icon_class": "rmc-icon-globe",
+  "estimated_minutes": 12,
+  "gates": {
+    "permission_codename": "tenancy.change_school_residency"
+  },
+  "ai": {
+    "smart_defaults": true,
+    "branch_rationale": true,
+    "natural_language_intake": true
+  },
+  "steps": [
+    {
+      "key": "jurisdiction_mapping",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "country_code",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_countries"
+        },
+        {
+          "name": "state_code",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "data_residency_region",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_data_residency_regions"
+        }
+      ],
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "primary_language",
+          "accept_language_header"
+        ],
+        "prompt_template_key": "prompt.sovereignty.suggest_jurisdiction"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_sovereignty_jurisdiction"
+      }
+    },
+    {
+      "key": "dynamic_core_routing",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_routing_profiles",
+      "validation": {
+        "required": true
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_sovereignty_routing"
+      }
+    },
+    {
+      "key": "cultural_vocabulary_injection",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "vocabulary_pack_key",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_vocabulary_packs"
+        }
+      ],
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "country_code",
+          "state_code",
+          "primary_language",
+          "school_type"
+        ],
+        "prompt_template_key": "prompt.sovereignty.suggest_vocabulary_pack"
+      },
+      "persistence": {
+        "target": "site_settings",
+        "writer": "apps.setup_studio.wizard_resolvers::write_sovereignty_vocabulary"
+      }
+    },
+    {
+      "key": "statutory_alignment",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers::list_statutory_schemas",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_sovereignty_statutory"
+      }
+    }
+  ]
+}

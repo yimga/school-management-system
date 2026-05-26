@@ -2758,9 +2758,12 @@ def backend_dashboard(request):
     try:
         from apps.requests.models import AccessRequest
 
-        pending_access_requests = AccessRequest.objects.filter(
-            status=AccessRequest.Status.PENDING
-        ).count()
+        _school_for_count = getattr(request, "school", None)
+        if _school_for_count is not None:
+            pending_access_requests = AccessRequest.objects.filter(
+                school=_school_for_count,
+                status=AccessRequest.Status.PENDING,
+            ).count()
     except ACCOUNTS_SOFT_FAILURES:
         pending_access_requests = 0
 

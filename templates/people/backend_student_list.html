@@ -65,8 +65,8 @@
             <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&amp;{% endif %}format=csv">{% trans "Export CSV" %}</a>
           </div>
           {% if students %}
-          <div class="table-responsive">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family" aria-label="Students">
+          <div class="table-responsive rmc-data-table-wrapper">
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Students">
               <thead>
                 <tr>
                   <th scope="col">Name</th>

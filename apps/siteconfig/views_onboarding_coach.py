@@ -67,11 +67,14 @@ def api_onboarding_coach(request):
     Staff + tenant context: JSON with coach message, quick_actions, health_score.
     Optional AI_GATEWAY SETUP_RECOMMEND enriches coach_message when enabled.
     """
-    if not getattr(request.user, "is_staff", False):
+    from apps.lifecycle.tenant_school_resolve import (
+        can_access_tenant_lifecycle,
+        resolve_request_school,
+    )
+
+    school = resolve_request_school(request)
+    if school is None or not can_access_tenant_lifecycle(request, school):
         return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
-    school = getattr(request, "school", None)
-    if not school:
-        return JsonResponse({"ok": False, "error": "no_school"}, status=400)
 
     try:
         from apps.setup_studio.services import get_setup_studio_payload

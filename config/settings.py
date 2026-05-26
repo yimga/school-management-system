@@ -1441,6 +1441,19 @@ except ImportError:  # pragma: no cover - celery is in requirements.txt
 # Celery Beat schedule for periodic tasks
 # Optional tasks (requests reminder, deadline reminder) respect Site Settings: 0 = no-op
 CELERY_BEAT_SCHEDULE = {
+    # Unified Wizard Framework — refresh SetupProgress.recommendations for every active school.
+    # Runs Mondays 04:00 UTC. Handler is apps.setup_studio.wizard_ai.refresh_setup_recommendations,
+    # invoked via a thin task wrapper that walks active schools (rate-limited per the v3.39.0
+    # audit chain pattern). No-ops on schools with no active wizards.
+    "setup-studio-recommendations-refresh": {
+        "task": "setup_studio.refresh_setup_recommendations_for_active_schools",
+        # Mondays 04:00 UTC. Lazy-guarded crontab — falls through to 1h interval if Celery missing.
+        "schedule": (
+            _celery_crontab(hour=4, minute=0, day_of_week="mon")
+            if _celery_crontab is not None else 3600.0
+        ),
+        "options": {"expires": 3600},
+    },
     # Move 2 — orchestration runner: drain pending runs every minute.
     "orchestration-process-due-runs": {
         "task": "orchestration.process_due_runs",

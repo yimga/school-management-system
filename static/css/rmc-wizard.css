@@ -1,0 +1,447 @@
+/* rmc-wizard.css — Unified Wizard Framework class grammar.
+ *
+ * Every class uses semantic tokens (var(--surface-*), var(--text-*), var(--hairline)).
+ * 100dvh-locked, RTL-safe (logical properties), reduced-motion-safe.
+ * scan_off_token_colors baseline 0 must hold.
+ * scan_undefined_css_classes baseline 0 must hold.
+ *
+ * Class inventory:
+ *   .rmc-wizard-shell                — outer 100dvh container
+ *   .rmc-wizard-shell--operator      — dark-shell variant (control_plane)
+ *   .rmc-wizard-shell--tenant        — light-shell variant (portal)
+ *   .rmc-wizard-grid                 — 3-col desktop / 1-col mobile
+ *   .rmc-wizard-stepper              — top progress chrome
+ *   .rmc-wizard-stepper__item        — single step pill
+ *   .rmc-wizard-stepper__item--done  — completed
+ *   .rmc-wizard-stepper__item--active
+ *   .rmc-wizard-stepper__bar         — connector line
+ *   .rmc-wizard-pane                 — center column
+ *   .rmc-wizard-pane__head           — header (title + subtitle)
+ *   .rmc-wizard-pane__title          — H2
+ *   .rmc-wizard-pane__subtitle       — secondary line
+ *   .rmc-wizard-pane__body           — form region
+ *   .rmc-wizard-pane__rationale      — AI rationale banner (collapsible)
+ *   .rmc-wizard-pane__rationale-toggle
+ *   .rmc-wizard-nav                  — bottom button row
+ *   .rmc-wizard-nav__back            — secondary
+ *   .rmc-wizard-nav__save-draft      — tertiary
+ *   .rmc-wizard-nav__next            — primary
+ *   .rmc-wizard-help-rail            — right copilot rail (desktop only)
+ *   .rmc-wizard-restore-banner       — "you have unsaved changes" banner
+ *   .rmc-wizard-empty                — empty-state for index pages
+ *   .rmc-wizard-card                 — index card
+ *   .rmc-wizard-card__title
+ *   .rmc-wizard-card__meta
+ *   .rmc-wizard-field                — single field container
+ *   .rmc-wizard-field__label
+ *   .rmc-wizard-field__helper
+ *   .rmc-wizard-field__error
+ *   .rmc-wizard-option-card          — radio/checkbox card option
+ *   .rmc-wizard-option-card--selected
+ *   .rmc-wizard-rank-row             — ranked_list row
+ *   .rmc-wizard-kv-row               — key_value_pairs row
+ *   .rmc-wizard-csv-pair             — csv_mapping pair
+ */
+
+/* ---------- outer shell ---------- */
+
+.rmc-wizard-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  padding-inline: clamp(var(--space-3), 4vw, var(--space-6));
+  padding-block: clamp(var(--space-3), 3vh, var(--space-5));
+}
+
+.rmc-wizard-shell--operator {
+  /* control_plane is dark — semantic tokens flip via [data-theme=dark] cascade */
+  background: var(--surface-bg);
+}
+
+.rmc-wizard-shell--tenant {
+  background: var(--surface-bg);
+}
+
+.rmc-wizard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+@media (min-width: 1024px) {
+  .rmc-wizard-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+    align-items: start;
+  }
+}
+
+/* ---------- stepper ---------- */
+
+.rmc-wizard-stepper {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--hairline);
+}
+
+.rmc-wizard-stepper__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-inline: var(--space-2);
+  padding-block: var(--space-1);
+  border-radius: 999px;
+  font-size: var(--type-size-sm);
+  color: var(--text-secondary);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  white-space: nowrap;
+}
+
+.rmc-wizard-stepper__item--done {
+  color: var(--text-on-emerald, var(--text-primary));
+  background: color-mix(in srgb, var(--surface-elevated) 70%, transparent);
+  border-color: var(--hairline);
+}
+
+.rmc-wizard-stepper__item--active {
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  border-color: var(--text-primary);
+  font-weight: 600;
+}
+
+.rmc-wizard-stepper__bar {
+  flex: 1 1 0%;
+  height: 2px;
+  background: var(--hairline);
+  min-width: 8px;
+  max-width: 48px;
+}
+
+@media (max-width: 767px) {
+  .rmc-wizard-stepper {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+  .rmc-wizard-stepper__item {
+    font-size: var(--type-size-xs);
+    padding-inline: var(--space-1-5, 0.375rem);
+  }
+}
+
+/* ---------- pane ---------- */
+
+.rmc-wizard-pane {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  padding: clamp(var(--space-4), 3vw, var(--space-6));
+  box-shadow: var(--elev-1);
+}
+
+.rmc-wizard-pane__head {
+  margin-block-end: var(--space-4);
+}
+
+.rmc-wizard-pane__title {
+  font-size: var(--type-size-h2, 1.5rem);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-block: 0;
+  color: var(--text-primary);
+}
+
+.rmc-wizard-pane__subtitle {
+  margin-block: var(--space-1) 0;
+  color: var(--text-secondary);
+  font-size: var(--type-size-sm);
+}
+
+.rmc-wizard-pane__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.rmc-wizard-pane__rationale {
+  margin-block-end: var(--space-3);
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--surface-elevated) 90%, var(--text-primary) 5%);
+  border-inline-start: 3px solid var(--text-secondary);
+  border-radius: var(--radius-md, 8px);
+  font-size: var(--type-size-sm);
+  color: var(--text-secondary);
+}
+
+.rmc-wizard-pane__rationale-toggle {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--text-primary);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* ---------- nav ---------- */
+
+.rmc-wizard-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-start: var(--space-5);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--hairline);
+}
+
+.rmc-wizard-nav__back,
+.rmc-wizard-nav__save-draft,
+.rmc-wizard-nav__next {
+  font: inherit;
+  padding-inline: var(--space-3);
+  padding-block: var(--space-2);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.rmc-wizard-nav__next {
+  background: var(--text-primary);
+  color: var(--surface-bg);
+  border-color: var(--text-primary);
+  font-weight: 600;
+}
+
+.rmc-wizard-nav__next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rmc-wizard-nav__save-draft {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-secondary);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rmc-wizard-nav__next,
+  .rmc-wizard-nav__back,
+  .rmc-wizard-nav__save-draft {
+    transition: background var(--motion-quick, 120ms) var(--ease-standard, ease-out);
+  }
+}
+
+/* ---------- help rail ---------- */
+
+.rmc-wizard-help-rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .rmc-wizard-help-rail {
+    display: block;
+    background: var(--surface-elevated);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--space-4);
+    position: sticky;
+    top: var(--space-3);
+  }
+}
+
+/* ---------- restore banner ---------- */
+
+.rmc-wizard-restore-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: color-mix(in srgb, var(--surface-elevated) 85%, var(--text-secondary) 10%);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 8px);
+  margin-block-end: var(--space-3);
+  font-size: var(--type-size-sm);
+}
+
+/* ---------- index page ---------- */
+
+.rmc-wizard-empty {
+  text-align: center;
+  padding-block: var(--space-6);
+  color: var(--text-secondary);
+}
+
+.rmc-wizard-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 12px);
+  text-decoration: none;
+  color: inherit;
+  min-height: 140px;
+}
+
+.rmc-wizard-card__title {
+  font-size: var(--type-size-h3, 1.125rem);
+  font-weight: 600;
+  margin: 0;
+}
+
+.rmc-wizard-card__meta {
+  color: var(--text-secondary);
+  font-size: var(--type-size-sm);
+}
+
+/* ---------- fields ---------- */
+
+.rmc-wizard-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.rmc-wizard-field__label {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: var(--type-size-sm);
+}
+
+.rmc-wizard-field__helper {
+  color: var(--text-secondary);
+  font-size: var(--type-size-xs);
+}
+
+.rmc-wizard-field__error {
+  /* warning text uses semantic warning token where defined; otherwise hairline-aware. */
+  color: var(--text-warning, var(--text-primary));
+  font-size: var(--type-size-xs);
+  margin-block-start: var(--space-1);
+}
+
+.rmc-wizard-field input[type="text"],
+.rmc-wizard-field input[type="number"],
+.rmc-wizard-field input[type="email"],
+.rmc-wizard-field input[type="url"],
+.rmc-wizard-field input[type="tel"],
+.rmc-wizard-field input[type="date"],
+.rmc-wizard-field input[type="time"],
+.rmc-wizard-field input[type="datetime-local"],
+.rmc-wizard-field input[type="color"],
+.rmc-wizard-field select,
+.rmc-wizard-field textarea {
+  font: inherit;
+  padding: var(--space-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-bg);
+  color: var(--text-primary);
+  min-height: 44px;
+  width: 100%;
+}
+
+.rmc-wizard-field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* ---------- option cards (single/multi choice) ---------- */
+
+.rmc-wizard-option-card {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-bg);
+  cursor: pointer;
+  min-height: 56px;
+  align-items: center;
+}
+
+.rmc-wizard-option-card input {
+  margin: 0;
+}
+
+.rmc-wizard-option-card--selected {
+  border-color: var(--text-primary);
+  background: color-mix(in srgb, var(--surface-bg) 90%, var(--text-primary) 5%);
+}
+
+/* ---------- ranked list ---------- */
+
+.rmc-wizard-rank-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--surface-bg);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 8px);
+  cursor: grab;
+}
+
+.rmc-wizard-rank-row:active {
+  cursor: grabbing;
+}
+
+/* ---------- key-value rows ---------- */
+
+.rmc-wizard-kv-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+@media (max-width: 767px) {
+  .rmc-wizard-kv-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- csv mapping ---------- */
+
+.rmc-wizard-csv-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-bg);
+}
+
+@media (max-width: 767px) {
+  .rmc-wizard-csv-pair {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- WCAG focus ring on interactive elements ---------- */
+
+.rmc-wizard-nav__back:focus-visible,
+.rmc-wizard-nav__save-draft:focus-visible,
+.rmc-wizard-nav__next:focus-visible,
+.rmc-wizard-option-card:focus-within,
+.rmc-wizard-rank-row:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}

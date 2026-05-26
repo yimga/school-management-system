@@ -1,0 +1,121 @@
+{
+  "wizard_key": "human_capital_shift_substitute_market",
+  "version": 1,
+  "audience": [
+    "operator",
+    "tenant_admin"
+  ],
+  "label_token": "wizards.human_capital_shift_substitute_market.label",
+  "description_token": "wizards.human_capital_shift_substitute_market.description",
+  "icon_class": "rmc-icon-users-shift",
+  "estimated_minutes": 14,
+  "gates": {
+    "permission_codename": "payroll.change_laborprofile",
+    "prerequisite_wizard": "multi_campus_local_sovereignty"
+  },
+  "ai": {
+    "smart_defaults": true
+  },
+  "steps": [
+    {
+      "key": "labor_contract_profile",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "max_weekly_hours",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "overtime_threshold_hours",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "overtime_multiplier",
+          "type": "decimal",
+          "required": true
+        },
+        {
+          "name": "standard_paid_leave_days",
+          "type": "number",
+          "required": false
+        },
+        {
+          "name": "sick_leave_days",
+          "type": "number",
+          "required": false
+        }
+      ],
+      "ai_recommend": {
+        "enabled": true,
+        "context_keys": [
+          "country_code"
+        ],
+        "prompt_template_key": "prompt.hr.suggest_labor_contract"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_hr_contract"
+      }
+    },
+    {
+      "key": "regional_tax_blueprinting",
+      "input_type": "boolean",
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_hr_tax"
+      }
+    },
+    {
+      "key": "absence_logic_toggles",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "emergency_absence_cutoff_time",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "auto_broadcast_to_subs",
+          "type": "boolean",
+          "required": false
+        },
+        {
+          "name": "require_principal_approval",
+          "type": "boolean",
+          "required": false
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_hr_absence"
+      }
+    },
+    {
+      "key": "substitute_match_automation",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "broadcast_channels",
+          "type": "text",
+          "required": false
+        },
+        {
+          "name": "accept_window_minutes",
+          "type": "number",
+          "required": false
+        },
+        {
+          "name": "max_invites_per_event",
+          "type": "number",
+          "required": false
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers::write_hr_substitute"
+      }
+    }
+  ]
+}

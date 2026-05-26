@@ -449,3 +449,6 @@ class PayslipLine(models.Model):
 
     def __str__(self) -> str:
         return f"{self.payslip} {self.description}"
+
+
+from .models_offline_capture import PayrollOfflineCaptureRecord  # noqa: E402,F401

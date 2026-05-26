@@ -1,27 +1,23 @@
 {% extends "control_plane_base.html" %}
 {% load static i18n phase8_tags %}
 
+{% block rmc_operator_surface_strip %}{% endblock %}
+
 {% block cp_title %}{% trans "Package rollout" %}{% endblock %}
 
 {% block cp_workspace_header %}{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-cp-compact-surface.css' %}">
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2 control-plane-shell" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
+<div class="container-fluid py-2 control-plane-shell rmc-cp-compact" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-marketplace-workbench="1" data-rmc-static-chrome="1" data-decision-engine="surface">
   {% phase8_dashboard_declaration "marketplace/package_rollout.html" %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="package_rollout" center_eyebrow=_("Platform operators") center_title=_("Package rollout") center_purpose=_("Staged package rollout across tenant installations.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
-
-      </div>
-      <div class="cp-hero-actions">
-        <a href="{% url 'super:dashboard' %}" class="btn btn-outline-light btn-sm">{% trans "Back to Dashboard" %}</a>
-        <a href="{% url 'super:marketplace_sandbox_inspector' %}" class="btn btn-outline-light btn-sm">{% trans "App sandbox" %}</a>
-        <a href="{% url 'super:app_catalog' %}" class="btn btn-outline-light btn-sm">{% trans "App catalog" %}</a>
-      </div>
-    </div>
-  </section>
+  {% url 'super:marketplace_sandbox_inspector' as sandbox_url %}
+  {% url 'super:app_catalog' as catalog_url %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="package_rollout" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url=sandbox_url primary_label=_("App sandbox") secondary_url=catalog_url secondary_label=_("App catalog") tertiary_url=tertiary_url tertiary_label=tertiary_label tertiary_icon=tertiary_icon %}
 
   {% if messages %}
   <div class="mb-3">

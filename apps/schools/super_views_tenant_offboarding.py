@@ -91,7 +91,14 @@ def api_school_offboarding_export(request, school_id):
 def api_school_offboarding_deactivate(request, school_id):
     school = get_object_or_404(School, id=school_id)
     try:
-        outcome = run_wind_down_deactivate(school, actor=request.user)
+        from apps.lifecycle.wind_down import apply_wind_down_mode
+
+        wind = apply_wind_down_mode(
+            school,
+            actor=request.user,
+            note="operator_deactivate",
+        )
+        outcome = wind.get("deactivate") if isinstance(wind.get("deactivate"), dict) else {}
     except ValueError as exc:
         return _json_error(str(exc))
 
@@ -107,7 +114,7 @@ def api_school_offboarding_deactivate(request, school_id):
         new_values=outcome.get("new_values"),
         changed_fields=outcome.get("changed_fields"),
     )
-    return JsonResponse({"ok": True, **outcome})
+    return JsonResponse({"ok": True, "wind_down_mode": True, **outcome})
 
 
 @require_http_methods(["POST"])

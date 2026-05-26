@@ -107,6 +107,36 @@ When `TENANT_PURGE_REQUIRE_DUAL_APPROVAL=1`:
 - Operator scheduled purge → platform ops
 - Purge completed / scheduled batch summary → platform ops
 
+## Unified lifecycle (onboarding + offboarding)
+
+Canonical phases: `draft` → `provisioning` → `activating` → `live` → `wind_down` → `closed` → `purged`
+
+| Path | Creation marker | First landing after verify/create |
+|------|-----------------|-----------------------------------|
+| Self-serve signup | `settings.lifecycle.creation_path=self_serve` | `/school/studio/provisioning/` |
+| Operator rapid / API create | `settings.lifecycle.creation_path=operator` | School Studio + lifecycle timeline |
+
+Tenant surfaces: `/school/studio/` (launch rail + fast path), `/school/studio/fast-path/`, `/school/studio/provisioning/`.  
+Operator offboarding checklist: Tenant 360 `#offboarding` (`data-rmc-offboarding-checklist`).
+
+```bash
+python scripts/verify_tenant_lifecycle_unified.py
+```
+
+### Wind-down commerce guard
+
+While `wind_down_mode` or scheduled self-service closure is active, these write paths return **403**:
+
+- `finance:generate_fees` (POST)
+- `finance` split allocation (POST)
+- `people` backend student create (POST)
+- DRF `InvoiceViewSet.create` / `PaymentViewSet.create`
+
+Operator rapid create (`/super/schools/rapid/`) dispatches provisioning and surfaces tenant URLs:
+
+- `/school/studio/provisioning/` on the school subdomain
+- `/school/studio/` (launch rail)
+
 ## Verification
 
 ```bash

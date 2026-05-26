@@ -300,7 +300,9 @@
       }
       var hintEl = form.querySelector('.sms-offline-form-hint');
       if (!hintEl) {
-        var hintText = form.getAttribute('data-offline-hint') || 'Your changes are saved locally and will sync when you\'re back online.';
+        var hintText = form.getAttribute('data-offline-hint')
+          || form.getAttribute('data-rmc-offline-hint')
+          || 'Your changes are saved locally and will sync when you\'re back online.';
         hintEl = document.createElement('p');
         hintEl.className = 'sms-offline-form-hint text-muted small mt-2 mb-0';
         hintEl.setAttribute('aria-live', 'polite');
