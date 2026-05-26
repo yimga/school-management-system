@@ -1,0 +1,95 @@
+{% extends "control_plane_base.html" %}
+
+{% block title %}{{ page_title }} · MAT Hub · RunMyCampus{% endblock %}
+
+{% block control_plane_body %}
+<header class="mat-edit-header">
+  <nav class="mat-edit-breadcrumb">
+    <a href="{% url 'super:mat_group_hub_dashboard' %}">MAT Hub</a>
+    <span>›</span>
+    <strong>{{ page_title }}</strong>
+  </nav>
+  <h1>{{ page_title }}</h1>
+  {% if is_new %}
+    <p class="mat-edit-subtitle">
+      Add a new MAT group, district, or school network.
+    </p>
+  {% else %}
+    <p class="mat-edit-subtitle">
+      Editing <code>{{ group_id }}</code>.
+      Tick "delete" to remove this group from the registry.
+    </p>
+  {% endif %}
+</header>
+
+{% if messages %}
+  <ul class="mat-edit-messages" role="status" aria-live="polite">
+    {% for m in messages %}
+      <li class="mat-edit-message mat-edit-message--{{ m.tags }}">{{ m }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<form method="post" class="mat-edit-form" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <ul class="mat-edit-errors" role="alert">
+      {% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+
+  <fieldset class="mat-edit-fieldset">
+    <legend>Group</legend>
+    <div class="mat-edit-row">
+      <label for="{{ form.group_id.id_for_label }}">Group ID</label>
+      {{ form.group_id }}
+      {% if form.group_id.help_text %}<small>{{ form.group_id.help_text }}</small>{% endif %}
+      {% for e in form.group_id.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="mat-edit-row">
+      <label for="{{ form.display_name.id_for_label }}">Display name</label>
+      {{ form.display_name }}
+      {% for e in form.display_name.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="mat-edit-row">
+      <label for="{{ form.operator_email.id_for_label }}">Operator email</label>
+      {{ form.operator_email }}
+      {% for e in form.operator_email.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="mat-edit-row">
+      <label for="{{ form.region.id_for_label }}">Region</label>
+      {{ form.region }}
+      {% for e in form.region.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset class="mat-edit-fieldset">
+    <legend>Members</legend>
+    <div class="mat-edit-row">
+      <label for="{{ form.members.id_for_label }}">Members (one per line)</label>
+      {{ form.members }}
+      {% if form.members.help_text %}<small>{{ form.members.help_text }}</small>{% endif %}
+      {% for e in form.members.errors %}<p class="mat-edit-error">{{ e }}</p>{% endfor %}
+    </div>
+  </fieldset>
+
+  {% if not is_new %}
+    <fieldset class="mat-edit-fieldset mat-edit-fieldset--danger">
+      <legend>Danger zone</legend>
+      <div class="mat-edit-row mat-edit-row--check">
+        {{ form.delete }}
+        <label for="{{ form.delete.id_for_label }}">{{ form.delete.label }}</label>
+      </div>
+    </fieldset>
+  {% endif %}
+
+  <footer class="mat-edit-actions">
+    <button type="submit" class="mat-edit-button mat-edit-button--primary">
+      {% if is_new %}Add group{% else %}Save changes{% endif %}
+    </button>
+    <a href="{% url 'super:mat_group_hub_dashboard' %}"
+       class="mat-edit-button mat-edit-button--ghost">Cancel</a>
+  </footer>
+</form>
+{% endblock %}

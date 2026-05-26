@@ -16,6 +16,7 @@ from django.db import transaction
 
 from apps.compliance.tenant_offboarding_inventory import (
     build_inventory,
+    delete_school_record_resilient,
     drop_tenant_schema_for_school,
     write_archive_manifest,
 )
@@ -731,7 +732,7 @@ def apply_purge(
             school.pk,
             row_total,
         )
-        school.delete()
+        delete_school_record_resilient(school)
 
     receipt_extra = {
         "purge_receipt": True,

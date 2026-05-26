@@ -251,6 +251,8 @@ INSTALLED_APPS = [
     "apps.orchestration.apps.OrchestrationConfig",  # Phase 10 — 4.1 long-running process support
     "apps.platform_runtime.apps.PlatformRuntimeConfig",  # Phase 10 — 1.2 runtime defaults (state-safe migration)
     "apps.lifecycle.apps.LifecycleConfig",  # 360 school lifecycle spine (Wave L1+)
+    "apps.admissions.apps.AdmissionsConfig",  # Wave R-B (v3.96.0) — admission application kernel
+    "apps.safeguarding.apps.SafeguardingConfig",  # Wave R-D (v3.96.0) — KCSIE 2026 concern kernel
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",

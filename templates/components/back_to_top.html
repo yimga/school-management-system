@@ -1,8 +1,48 @@
 {% load static %}
 {% load i18n %}
-<button type="button" id="back-to-top-btn" class="back-to-top-btn" aria-label="{% trans 'Back to top' %}" title="{% trans 'Back to top' %}" hidden>
-  <span class="back-to-top-icon" aria-hidden="true">↑</span>
+<svg width="0" height="0" aria-hidden="true" focusable="false" class="rmc-back-to-top-defs">
+  <defs>
+    <linearGradient id="rmc-back-to-top-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" class="rmc-back-to-top-gradient-stop rmc-back-to-top-gradient-stop--primary" />
+      <stop offset="100%" class="rmc-back-to-top-gradient-stop rmc-back-to-top-gradient-stop--accent" />
+    </linearGradient>
+  </defs>
+</svg>
+<button
+  type="button"
+  id="back-to-top-btn"
+  class="back-to-top-btn rmc-back-to-top"
+  aria-label="{% trans 'Back to top' %}"
+  title="{% trans 'Back to top' %}"
+  aria-hidden="true"
+  aria-keyshortcuts="Home"
+  data-rmc-back-to-top
+  hidden
+>
+  <span class="rmc-back-to-top__chip" aria-hidden="true">
+    <span class="rmc-back-to-top__ring">
+      <svg class="rmc-back-to-top__svg" viewBox="0 0 44 44" focusable="false" aria-hidden="true">
+        <circle class="rmc-back-to-top__track" cx="22" cy="22" r="19" pathLength="1"></circle>
+        <circle
+          class="rmc-back-to-top__progress"
+          cx="22"
+          cy="22"
+          r="19"
+          pathLength="1"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        ></circle>
+      </svg>
+    </span>
+    <span class="rmc-back-to-top__icon">
+      <i class="bi bi-arrow-up-short" aria-hidden="true"></i>
+    </span>
+    <span class="rmc-back-to-top__percent" data-rmc-back-to-top-percent>0</span>
+  </span>
+  <span class="rmc-back-to-top__caption">{% trans "Back to top" %}</span>
+  <span class="rmc-back-to-top__label">{% trans "Back to top" %}</span>
 </button>
 
-<script src="{% static 'js/rmc-scroll-container.js' %}"></script>
 <script src="{% static 'js/_pages/components__back_to_top.js' %}"></script>

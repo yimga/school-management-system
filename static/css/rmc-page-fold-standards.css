@@ -76,11 +76,4 @@ html[data-rmc-exceeds-4-folds="1"]::before {
   opacity: 0.85;
 }
 
-/* Back-to-top: ensure visible above manager footer */
-html[data-rmc-exceeds-2-folds="1"] .back-to-top-btn {
-  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
-}
-
-html[data-surface="control-plane"] body.cp-shell-has-operator-footer .back-to-top-btn {
-  bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
-}
+/* Back-to-top placement: rmc-back-to-top.css */

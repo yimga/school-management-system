@@ -276,6 +276,14 @@ urlpatterns = [
     path("", home, name="marketing_home"),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("offline/", offline_page, name="offline"),
+    # Wave P-C (v3.95.1): Embedded checkout endpoint for parent fee payments.
+    path(
+        "billing/embedded-checkout/",
+        __import__("django.urls", fromlist=["include"]).include(
+            ("apps.billing.urls_embedded_checkout", "billing_embedded_checkout"),
+            namespace="billing_embedded_checkout",
+        ),
+    ),
     path("sw-asset-manifest.json", service_worker_asset_manifest, name="sw_asset_manifest"),
     # v2.58 (2026-05-15) — per-tenant PWA manifest endpoints. Replaces the
     # static manifest.json / manifest-portal.json files so name / theme_color /

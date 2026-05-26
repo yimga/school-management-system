@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import asdict
 
+from django.db.utils import DatabaseError, ProgrammingError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
@@ -28,6 +30,8 @@ from apps.schools.tenant_offboarding import (
     run_wind_down_export,
     set_legal_hold,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _parse_json_body(request) -> dict:
@@ -194,6 +198,37 @@ def api_school_offboarding_purge(request, school_id):
         )
     except ValueError as exc:
         return _json_error(str(exc), code="purge_blocked")
+    except ProgrammingError as exc:
+        logger.exception(
+            "tenant_offboarding purge schema error school_id=%s",
+            school_id,
+        )
+        return _json_error(
+            "Purge failed: database schema is out of date "
+            f"({exc}). Run pending migrations on the manager database, then retry.",
+            status=500,
+            code="purge_schema_error",
+        )
+    except DatabaseError as exc:
+        logger.exception(
+            "tenant_offboarding purge database error school_id=%s",
+            school_id,
+        )
+        return _json_error(
+            f"Purge failed: database error ({exc}).",
+            status=500,
+            code="purge_database_error",
+        )
+    except Exception as exc:
+        logger.exception(
+            "tenant_offboarding purge failed school_id=%s",
+            school_id,
+        )
+        return _json_error(
+            f"Purge failed: {exc}",
+            status=500,
+            code="purge_failed",
+        )
 
     log_control_plane_action(
         request,

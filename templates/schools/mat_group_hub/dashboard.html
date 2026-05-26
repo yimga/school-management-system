@@ -1,0 +1,59 @@
+{% extends "control_plane_base.html" %}
+
+{% block title %}MAT Group Hub · RunMyCampus{% endblock %}
+
+{% block control_plane_body %}
+<header class="mat-hub-header">
+  <h1>MAT Group Hub</h1>
+  <p class="mat-hub-subtitle">
+    Cross-tenant rollup across all Multi-Academy Trusts, districts, and
+    school groups. {{ groups_count }} group{{ groups_count|pluralize }} configured.
+  </p>
+  <p class="mat-hub-actions">
+    <a href="{% url 'super:mat_group_hub_create' %}" class="mat-hub-action-button">
+      + Add MAT group
+    </a>
+  </p>
+</header>
+
+{% if not snapshots %}
+  <section class="mat-hub-empty">
+    <p>No MAT groups configured.</p>
+    <p class="mat-hub-empty-hint">
+      Add groups via operator SiteSettings <code>cockpit_payload["mat_groups"]</code>.
+      See <a href="/docs/MAT_GROUP_HUB.md">docs/MAT_GROUP_HUB.md</a>.
+    </p>
+  </section>
+{% else %}
+  <section class="mat-hub-grid" role="list">
+    {% for entry in snapshots %}
+      <article class="mat-hub-card" role="listitem">
+        <header class="mat-hub-card__header">
+          <h2 class="mat-hub-card__title">{{ entry.group.display_name }}</h2>
+          <span class="mat-hub-card__region">{{ entry.group.region|default:"—" }}</span>
+        </header>
+        <dl class="mat-hub-kpis">
+          <div><dt>Schools</dt><dd>{{ entry.snapshot.member_count }}</dd></div>
+          <div><dt>Students</dt><dd>{{ entry.snapshot.total_students }}</dd></div>
+          <div><dt>Staff</dt><dd>{{ entry.snapshot.total_staff }}</dd></div>
+          <div><dt>Admissions Pipeline</dt><dd>{{ entry.snapshot.admissions_pipeline_count }}</dd></div>
+          <div><dt>Attendance %</dt><dd>{{ entry.snapshot.attendance_rate_pct }}%</dd></div>
+          <div><dt>Pass Rate %</dt><dd>{{ entry.snapshot.pass_rate_pct }}%</dd></div>
+        </dl>
+        {% if entry.snapshot.failed_members %}
+          <p class="mat-hub-card__warn">
+            ⚠ {{ entry.snapshot.failed_members|length }} member{{ entry.snapshot.failed_members|length|pluralize }} failed
+            metric collection.
+          </p>
+        {% endif %}
+        <footer class="mat-hub-card__footer">
+          <a href="{% url 'super:mat_group_hub_detail' group_id=entry.group.group_id %}"
+             class="mat-hub-card__link">View detail →</a>
+          <a href="{% url 'super:mat_group_hub_edit' group_id=entry.group.group_id %}"
+             class="mat-hub-card__link mat-hub-card__link--secondary">Edit</a>
+        </footer>
+      </article>
+    {% endfor %}
+  </section>
+{% endif %}
+{% endblock %}

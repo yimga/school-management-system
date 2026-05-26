@@ -693,43 +693,7 @@
   /* bottom/right/z-index: rmc-shell-fab-stack.css */
 }
 
-/* --- from templates/components/back_to_top.html --- */
-.back-to-top-btn {
-    position: fixed;
-    /* bottom/right/z-index: rmc-shell-fab-stack.css */
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-    border: 1px solid var(--hairline);
-    border-radius: 50%;
-    background: var(--portal-bg, var(--color-base-0));
-    color: var(--portal-text, var(--color-base-900));
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: var(--type-size-body-l);
-    line-height: 1;
-    transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
-  }
-  .back-to-top-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-  .back-to-top-btn[hidden] {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-  /* Admin / dark contexts */
-  [data-theme="dark"] .back-to-top-btn,
-  .portal-backend-dark .back-to-top-btn {
-    background: var(--admin-content-surface, var(--color-base-700));
-    color: var(--admin-content-text, var(--color-base-100));
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  }
+/* --- back_to_top.html: canonical styles in rmc-back-to-top.css --- */
 
 /* --- from templates/components/backend_datetime_weather.html --- */
 .backend-dtw {

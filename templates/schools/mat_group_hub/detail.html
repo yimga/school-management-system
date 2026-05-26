@@ -1,0 +1,83 @@
+{% extends "control_plane_base.html" %}
+
+{% block title %}{{ group.display_name }} · MAT Detail · RunMyCampus{% endblock %}
+
+{% block control_plane_body %}
+<header class="mat-detail-header">
+  <nav class="mat-detail-breadcrumb">
+    <a href="{% url 'super:mat_group_hub_dashboard' %}">MAT Hub</a>
+    <span>›</span>
+    <strong>{{ group.display_name }}</strong>
+  </nav>
+  <h1>{{ group.display_name }}</h1>
+  <dl class="mat-detail-meta">
+    <div><dt>Group ID</dt><dd>{{ group.group_id }}</dd></div>
+    <div><dt>Region</dt><dd>{{ group.region|default:"—" }}</dd></div>
+    <div><dt>Operator</dt><dd>{{ group.operator_email|default:"—" }}</dd></div>
+  </dl>
+</header>
+
+<section class="mat-detail-totals">
+  <h2>Group totals</h2>
+  <dl class="mat-detail-kpis">
+    <div><dt>Schools</dt><dd>{{ snapshot.member_count }}</dd></div>
+    <div><dt>Students</dt><dd>{{ snapshot.total_students }}</dd></div>
+    <div><dt>Staff</dt><dd>{{ snapshot.total_staff }}</dd></div>
+    <div><dt>Admissions pipeline</dt><dd>{{ snapshot.admissions_pipeline_count }}</dd></div>
+    <div><dt>Avg. attendance</dt><dd>{{ snapshot.attendance_rate_pct }}%</dd></div>
+    <div><dt>Avg. pass rate</dt><dd>{{ snapshot.pass_rate_pct }}%</dd></div>
+  </dl>
+</section>
+
+<section class="mat-detail-members">
+  <h2>Per-member breakdown</h2>
+  <table class="mat-detail-table">
+    <thead>
+      <tr>
+        <th>School</th>
+        <th>Region</th>
+        <th>Students</th>
+        <th>Staff</th>
+        <th>Attendance %</th>
+        <th>Pass %</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in snapshot.per_member %}
+        <tr {% if m.error %}class="mat-detail-row--error"{% endif %}>
+          <td>{{ m.display_name }} <small class="mat-detail-slug">({{ m.tenant_slug }})</small></td>
+          <td>{{ m.region|default:"—" }}</td>
+          <td>{{ m.students }}</td>
+          <td>{{ m.staff }}</td>
+          <td>{{ m.attendance_rate_pct }}%</td>
+          <td>{{ m.pass_rate_pct }}%</td>
+          <td>
+            {% if m.error %}
+              <span class="mat-detail-status mat-detail-status--err">FAIL</span>
+            {% else %}
+              <span class="mat-detail-status mat-detail-status--ok">OK</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if snapshot.failed_members %}
+  <section class="mat-detail-failures">
+    <h3>Failed members</h3>
+    <p>The following members couldn't be polled in this rollup. The dashboard
+       degrades gracefully — partial data is better than no data.</p>
+    <ul>
+      {% for s in snapshot.failed_members %}<li>{{ s }}</li>{% endfor %}
+    </ul>
+  </section>
+{% endif %}
+
+<footer class="mat-detail-footer">
+  <a href="{% url 'super:mat_group_hub_api' group_id=group.group_id %}"
+     class="mat-detail-api-link">JSON ·  /api endpoint →</a>
+</footer>
+{% endblock %}

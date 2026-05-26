@@ -4,10 +4,17 @@ URL patterns for communication app.
 
 from django.urls import path
 from . import views_groups, views_announcements, views_narrative
+from . import views_whatsapp_webhook
 
 app_name = "communication"
 
 urlpatterns = [
+    # Wave H (v3.95.0): WhatsApp Parent OS — Meta Business webhook.
+    path(
+        "whatsapp/webhook/",
+        views_whatsapp_webhook.whatsapp_webhook,
+        name="whatsapp_webhook",
+    ),
     # Groups/Threads
     path("groups/", views_groups.group_list, name="group_list"),
     path("groups/create/", views_groups.group_create, name="group_create"),

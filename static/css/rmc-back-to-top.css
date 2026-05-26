@@ -1,0 +1,367 @@
+/**
+ * RunMyCampus back-to-top — premium floating control on every shell.
+ * Always fixed above assist dock; never buried in dock secondary menu.
+ */
+
+:root {
+  --rmc-back-to-top-size: 3.25rem;
+  --rmc-back-to-top-edge-bottom: max(1.15rem, env(safe-area-inset-bottom, 0px));
+  --rmc-back-to-top-edge-right: max(1.15rem, env(safe-area-inset-right, 0px));
+  --rmc-back-to-top-z: 10475;
+  --rmc-back-to-top-dock-lift: 0px;
+}
+
+html[data-surface="control-plane"],
+html[data-surface="tenant"] body.portal-body-with-layout {
+  --rmc-back-to-top-edge-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+body[data-rmc-assist-dock="mounted"] {
+  --rmc-back-to-top-dock-lift: calc(
+    var(--rmc-assist-btn-size, 48px) + 10px + var(--rmc-assist-gap, 10px) + 0.35rem
+  );
+}
+
+.rmc-back-to-top-gradient-stop--primary {
+  stop-color: var(--school-primary, #4f46e5);
+}
+
+.rmc-back-to-top-gradient-stop--accent {
+  stop-color: var(--school-accent, #10b981);
+}
+
+.back-to-top-btn.rmc-back-to-top {
+  --rmc-back-to-top-progress: 0;
+  --rmc-back-to-top-primary: var(--school-primary, #4f46e5);
+  --rmc-back-to-top-accent: var(--school-accent, #10b981);
+  position: fixed;
+  bottom: calc(var(--rmc-back-to-top-edge-bottom) + var(--rmc-back-to-top-dock-lift));
+  right: var(--rmc-back-to-top-edge-right);
+  z-index: var(--rmc-back-to-top-z);
+  min-width: var(--rmc-back-to-top-size);
+  height: var(--rmc-back-to-top-size);
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(
+    in oklab,
+    var(--surface-elevated, var(--portal-bg, var(--color-base-0))) 90%,
+    transparent
+  );
+  color: var(--text-primary, var(--portal-text, var(--color-base-900)));
+  box-shadow:
+    var(--elev-2, 0 8px 24px rgba(15, 23, 42, 0.14)),
+    inset 0 1px 0 color-mix(in oklab, var(--text-on-brand, #fff) 16%, transparent);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-backdrop-filter: blur(calc(var(--material-blur, 12px) + 2px));
+          backdrop-filter: blur(calc(var(--material-blur, 12px) + 2px));
+  transition:
+    width var(--motion-normal, 220ms ease),
+    min-width var(--motion-normal, 220ms ease),
+    padding var(--motion-normal, 220ms ease),
+    transform var(--motion-normal, 220ms ease),
+    box-shadow var(--motion-normal, 220ms ease),
+    opacity var(--motion-fast, 150ms ease),
+    visibility var(--motion-fast, 150ms ease),
+    bottom var(--motion-normal, 220ms ease);
+}
+
+.back-to-top-btn.rmc-back-to-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--rmc-back-to-top-primary) 62%, transparent),
+    color-mix(in oklab, var(--rmc-back-to-top-accent) 48%, transparent)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.rmc-back-to-top__chip {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--rmc-back-to-top-size);
+  height: var(--rmc-back-to-top-size);
+  flex: 0 0 auto;
+}
+
+.rmc-back-to-top__ring {
+  position: absolute;
+  inset: -3px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.rmc-back-to-top__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.rmc-back-to-top__track {
+  fill: none;
+  stroke: color-mix(in oklab, var(--hairline, rgba(15, 23, 42, 0.12)) 75%, transparent);
+  stroke-width: 2.5;
+}
+
+.rmc-back-to-top__progress {
+  fill: none;
+  stroke: url(#rmc-back-to-top-gradient);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--rmc-back-to-top-progress, 0));
+  filter: drop-shadow(
+    0 0 6px color-mix(in oklab, var(--rmc-back-to-top-primary) 35%, transparent)
+  );
+  transition: stroke-dashoffset var(--motion-fast, 150ms ease);
+}
+
+.rmc-back-to-top__icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  margin-top: -0.35rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklab, var(--rmc-back-to-top-primary) 22%, transparent),
+    color-mix(in oklab, var(--rmc-back-to-top-accent) 16%, transparent)
+  );
+  color: var(--rmc-back-to-top-primary);
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform var(--motion-normal, 220ms ease);
+}
+
+.rmc-back-to-top__percent {
+  position: absolute;
+  bottom: 0.42rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-family: var(--font-mono, ui-monospace, "JetBrains Mono", monospace);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: color-mix(in oklab, var(--text-primary, #0f172a) 82%, var(--rmc-back-to-top-primary) 18%);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.rmc-back-to-top__percent::after {
+  content: "%";
+  font-size: 0.48rem;
+  opacity: 0.72;
+}
+
+.rmc-back-to-top__caption {
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  padding-right: 0;
+  transition:
+    max-width var(--motion-normal, 220ms ease),
+    opacity var(--motion-fast, 150ms ease),
+    padding var(--motion-normal, 220ms ease);
+}
+
+.rmc-back-to-top__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.back-to-top-btn.rmc-back-to-top:hover,
+.back-to-top-btn.rmc-back-to-top:focus-visible {
+  transform: translateY(-4px);
+  box-shadow:
+    var(--elev-3, 0 18px 48px rgba(15, 23, 42, 0.18)),
+    0 0 0 1px color-mix(in oklab, var(--rmc-back-to-top-primary) 18%, transparent);
+}
+
+.back-to-top-btn.rmc-back-to-top:hover .rmc-back-to-top__icon,
+.back-to-top-btn.rmc-back-to-top:focus-visible .rmc-back-to-top__icon {
+  transform: translateY(-2px);
+}
+
+.back-to-top-btn.rmc-back-to-top:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--rmc-back-to-top-primary) 72%, transparent);
+  outline-offset: 3px;
+}
+
+.back-to-top-btn.rmc-back-to-top[hidden] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0.85rem) scale(0.9);
+}
+
+.back-to-top-btn.rmc-back-to-top.rmc-back-to-top--visible:not([hidden]) {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  animation: rmc-back-to-top-enter var(--motion-spring, 420ms cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+.back-to-top-btn.rmc-back-to-top.rmc-back-to-top--launching .rmc-back-to-top__icon {
+  animation: rmc-back-to-top-launch 520ms var(--motion-decel, 260ms ease);
+}
+
+.back-to-top-btn.rmc-back-to-top:active .rmc-back-to-top__icon {
+  transform: translateY(0) scale(0.92);
+}
+
+@keyframes rmc-back-to-top-enter {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rmc-back-to-top-launch {
+  0% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@media (hover: hover) and (min-width: 768px) {
+  .back-to-top-btn.rmc-back-to-top:hover,
+  .back-to-top-btn.rmc-back-to-top:focus-visible {
+    padding-inline-end: 0.95rem;
+  }
+
+  .back-to-top-btn.rmc-back-to-top:hover .rmc-back-to-top__caption,
+  .back-to-top-btn.rmc-back-to-top:focus-visible .rmc-back-to-top__caption {
+    max-width: 8rem;
+    opacity: 1;
+    padding-right: 0.15rem;
+  }
+
+  .back-to-top-btn.rmc-back-to-top:hover .rmc-back-to-top__percent,
+  .back-to-top-btn.rmc-back-to-top:focus-visible .rmc-back-to-top__percent {
+    opacity: 0;
+  }
+}
+
+/* Marketing editorial surface */
+html[data-surface="marketing"] .back-to-top-btn.rmc-back-to-top {
+  background: color-mix(in oklab, var(--mkt-cream, #faf7f2) 94%, transparent);
+  color: var(--mkt-ink, var(--text-primary, #1c1917));
+  box-shadow:
+    0 12px 32px color-mix(in oklab, var(--mkt-primary, #1e3a5f) 14%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+html[data-surface="marketing"] .rmc-back-to-top-gradient-stop--primary {
+  stop-color: var(--mkt-primary, #1e3a5f);
+}
+
+html[data-surface="marketing"] .rmc-back-to-top-gradient-stop--accent {
+  stop-color: var(--mkt-accent, #c9a227);
+}
+
+html[data-surface="marketing"] .rmc-back-to-top__icon {
+  color: var(--mkt-primary, #1e3a5f);
+}
+
+/* Dark / admin contexts */
+[data-theme="dark"] .back-to-top-btn.rmc-back-to-top,
+.portal-backend-dark .back-to-top-btn.rmc-back-to-top {
+  background: color-mix(
+    in oklab,
+    var(--admin-content-surface, var(--surface-elevated, #1a2234)) 92%,
+    transparent
+  );
+  color: var(--admin-content-text, var(--text-primary, #f1f5f9));
+}
+
+[data-theme="dark"] .rmc-back-to-top__percent,
+.portal-backend-dark .rmc-back-to-top__percent {
+  color: color-mix(in oklab, var(--text-primary, #f8fafc) 88%, var(--rmc-back-to-top-accent) 12%);
+}
+
+/* Control plane operator footer clearance */
+html[data-surface="control-plane"] body.cp-shell-has-operator-footer .back-to-top-btn.rmc-back-to-top {
+  bottom: calc(6.35rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
+}
+
+html[data-rmc-exceeds-2-folds="1"] .back-to-top-btn.rmc-back-to-top {
+  bottom: calc(1.15rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
+}
+
+html[data-surface="control-plane"][data-rmc-exceeds-2-folds="1"]
+  body.cp-shell-has-operator-footer
+  .back-to-top-btn.rmc-back-to-top {
+  bottom: calc(6.35rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top-btn.rmc-back-to-top,
+  .back-to-top-btn.rmc-back-to-top .rmc-back-to-top__icon,
+  .back-to-top-btn.rmc-back-to-top .rmc-back-to-top__progress,
+  .back-to-top-btn.rmc-back-to-top .rmc-back-to-top__caption {
+    transition: none;
+    animation: none !important;
+  }
+
+  .back-to-top-btn.rmc-back-to-top[hidden] {
+    transform: none;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --rmc-back-to-top-size: 3rem;
+  }
+
+  .rmc-back-to-top__percent {
+    font-size: 0.54rem;
+  }
+}

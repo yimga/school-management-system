@@ -20,7 +20,6 @@ body[data-rmc-assist-dock="mounted"] .voc-widget {
 }
 
 body[data-rmc-assist-dock="mounted"] .rmc-page-help-fab,
-body[data-rmc-assist-dock="mounted"] .back-to-top-btn,
 body[data-rmc-assist-dock="mounted"] .portal-chathead,
 body[data-rmc-assist-dock="mounted"] .cp-context-drawer-toggle {
   position: static !important;
@@ -220,13 +219,6 @@ body.control-plane-shell:has(.rmc-kb-operator) .rmc-assist-dock__secondary:not(:
   text-decoration: none;
 }
 
-.rmc-assist-dock__btn--top {
-  font-size: 1rem;
-}
-
-.rmc-assist-dock__btn--top[hidden] {
-  display: none !important;
-}
 
 .rmc-assist-dock--expanded .rmc-assist-dock__btn--expand i {
   transform: rotate(0deg);

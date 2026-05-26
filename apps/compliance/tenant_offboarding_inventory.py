@@ -10,25 +10,123 @@ from typing import Any
 
 from django.apps import apps as django_apps
 from django.conf import settings
+from django.db import connection
+from django.db.models import ForeignKey
+from django.db.utils import DatabaseError, ProgrammingError
 
 logger = logging.getLogger(__name__)
 
 
+def _school_model():
+    return django_apps.get_model("schools", "School")
+
+
+def iter_school_foreign_key_targets():
+    """Yield ``(model, fk_field_name)`` for every public-schema FK pointing at School."""
+    school_model = _school_model()
+    for model in django_apps.get_models():
+        if model._meta.proxy or not model._meta.managed:
+            continue
+        for field in model._meta.get_fields():
+            if not isinstance(field, ForeignKey):
+                continue
+            if field.related_model is not school_model:
+                continue
+            yield model, field.name
+
+
 def tenant_scoped_models() -> list:
     """Return Django models that have a ``school`` FK to ``schools.School``."""
+    seen: set[str] = set()
     out = []
-    for model in django_apps.get_models():
-        try:
-            field = model._meta.get_field("school")
-        except Exception:
+    for model, _name in iter_school_foreign_key_targets():
+        label = model._meta.label_lower
+        if label in seen:
             continue
-        rel_target = getattr(field, "related_model", None)
-        if rel_target is None:
-            continue
-        if rel_target._meta.label_lower != "schools.school":
-            continue
+        seen.add(label)
         out.append(model)
     return out
+
+
+def model_table_exists(model) -> bool:
+    """True when the model's DB table is present (skips unmigrated optional apps)."""
+    if connection.vendor != "postgresql":
+        return True
+    from apps.schools.repositories.health_repository import check_table_exists
+
+    table = model._meta.db_table
+    return bool(check_table_exists(table) or check_table_exists(f"public.{table}"))
+
+
+def purge_public_school_dependencies(school) -> dict[str, int]:
+    """
+    Delete rows in public schema that reference ``school`` before removing the School row.
+
+    Skips models whose tables were never migrated (e.g. portal.HostedOfficeDocument on
+  production when migration 0028 is pending) so purge does not 500 on ``school.delete()``.
+    """
+    deleted: dict[str, int] = {}
+    school_pk = school.pk
+    for model, field_name in iter_school_foreign_key_targets():
+        label = model._meta.label_lower
+        if not model_table_exists(model):
+            logger.info(
+                "tenant_offboarding purge skip %s (table %s missing)",
+                label,
+                model._meta.db_table,
+            )
+            continue
+        try:
+            _deleted, detail = model._default_manager.filter(
+                **{field_name: school_pk}
+            ).delete()
+        except (ProgrammingError, DatabaseError) as exc:
+            logger.warning(
+                "tenant_offboarding purge skip %s after DB error: %s",
+                label,
+                exc,
+            )
+            continue
+        except Exception as exc:
+            logger.warning(
+                "tenant_offboarding purge skip %s: %s",
+                label,
+                exc,
+            )
+            continue
+        if _deleted:
+            deleted[label] = int(_deleted)
+            if detail:
+                for child_label, count in detail.items():
+                    if child_label == label:
+                        continue
+                    deleted[child_label] = deleted.get(child_label, 0) + int(count)
+    return deleted
+
+
+def delete_school_record_resilient(school) -> None:
+    """
+    Remove the School row without Django's collector touching unmigrated related tables.
+    """
+    school_model = _school_model()
+    school_pk = school.pk
+    school_slug = getattr(school, "slug", "")
+
+    purge_public_school_dependencies(school)
+
+    qs = school_model._default_manager.filter(pk=school_pk)
+    try:
+        deleted, _detail = qs.delete()
+        if deleted:
+            return
+    except ProgrammingError as exc:
+        logger.warning(
+            "tenant_offboarding school.delete collector failed slug=%s: %s; raw delete fallback",
+            school_slug,
+            exc,
+        )
+
+    qs._raw_delete(using=qs.db)
 
 
 def build_inventory(school) -> dict[str, int]:

@@ -12,6 +12,7 @@ from apps.customersuccess import views_super as cs_views
 from apps.orchestration import views as orchestration_views
 from . import super_views
 from . import super_views_beyond_reach
+from . import views_mat_group_hub
 from .control_plane import require_super_access_with_host
 from . import super_views_config
 from . import super_views_config_crud
@@ -74,6 +75,33 @@ from .views_signup_diagnostics import SignupDiagnosticsView
 app_name = "super"
 
 urlpatterns = [
+    # Wave P-A (v3.95.1): MAT Group Hub operator dashboard.
+    path(
+        "mat-hub/",
+        views_mat_group_hub.mat_group_hub_dashboard,
+        name="mat_group_hub_dashboard",
+    ),
+    # Wave Q5 (v3.95.2): MAT Group Hub registry-editor form.
+    path(
+        "mat-hub/edit/",
+        views_mat_group_hub.mat_group_hub_edit,
+        name="mat_group_hub_create",
+    ),
+    path(
+        "mat-hub/<str:group_id>/edit/",
+        views_mat_group_hub.mat_group_hub_edit,
+        name="mat_group_hub_edit",
+    ),
+    path(
+        "mat-hub/<str:group_id>/",
+        views_mat_group_hub.mat_group_hub_detail,
+        name="mat_group_hub_detail",
+    ),
+    path(
+        "mat-hub/<str:group_id>/api/",
+        views_mat_group_hub.mat_group_hub_api,
+        name="mat_group_hub_api",
+    ),
     path(
         "",
         require_super_access_with_host(super_views.super_dashboard_v2),

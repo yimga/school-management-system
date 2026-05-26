@@ -296,6 +296,17 @@ def default_backend_feature_flags():
         "enable_api_center": False,
         "announcement_allow_submit_for_approval": False,
         "announcement_submit_for_approval_roles": default_announcement_submit_for_approval_roles(),
+        # Wave H (v3.95.0 — 2026-05-26): WhatsApp Parent OS — two-way
+        # conversational parent interface on top of existing
+        # WhatsAppIntegration. OFF by default; tenants opt in once they have a
+        # verified Meta Business number + webhook installed.
+        "whatsapp_parent_os_enabled": False,
+        "whatsapp_parent_os_intent_allowlist": [
+            "fee_balance", "absence_report", "report_card", "homework",
+            "menu", "help", "human", "stop",
+        ],
+        "whatsapp_parent_os_locale_default": "en",
+        "whatsapp_parent_os_rate_limit_per_hour": 30,
     }
 
 

@@ -117,9 +117,9 @@
     }
 
     if (backBtn) {
-      backBtn.classList.add("rmc-assist-dock__btn", "rmc-assist-dock__btn--top");
+      backBtn.classList.add("rmc-back-to-top--floating");
       backBtn.setAttribute("aria-label", L.backToTop || "Back to top");
-      slot(backBtn, "rmc-assist-dock__slot--top");
+      document.body.setAttribute("data-rmc-back-to-top-floating", "1");
     }
 
     if (chat) {
@@ -275,6 +275,10 @@
     }
 
     if (window.__rmcVocReinit) window.__rmcVocReinit();
+    document.dispatchEvent(new CustomEvent("rmc-assist-dock-mounted"));
+    if (window.RMCBackToTop && window.RMCBackToTop.refresh) {
+      window.RMCBackToTop.refresh();
+    }
   }
 
   function init() {
