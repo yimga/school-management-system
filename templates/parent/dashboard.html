@@ -1,8 +1,9 @@
 {% extends "portal_base.html" %}
 {% load admin_health evals_extras static region_format i18n phase8_tags %}
-{% load terminology_tags workflow_guidance_tags %}
+{% load terminology_tags workflow_guidance_tags glocal_tags %}
 {% block title %}{% trans "Family Home" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-parent{% if parent_simplified %} parent-dashboard-simplified{% endif %}{% endblock %}
+{% block body_scroll_policy %}canvas{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -16,11 +17,23 @@
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
+<link rel="stylesheet" href="{% static 'css/rmc-tenant-workspace-canvas.css' %}">
 
 {% endblock %}
 
 {% block content %}
 {% include "partials/tenant/hero_greeting.html" %}
+{% if show_pwa_install_cta %}
+<section class="alert alert-light border shadow-sm mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2" role="region" aria-label="{% trans 'Install app' %}" data-rmc-pwa-install-cta="1">
+  <div>
+    <strong><i class="bi bi-phone me-1" aria-hidden="true"></i>{% trans "Install on your phone" %}</strong>
+    <span class="d-block small text-muted">{% trans "Add RunMyCampus to your home screen for faster fee payments and alerts." %}</span>
+  </div>
+  <button type="button" class="btn btn-sm btn-primary" id="rmc-pwa-install-btn" hidden>{% trans "Install app" %}</button>
+  <span class="small text-muted" id="rmc-pwa-install-hint">{% trans "Use your browser menu → Install app when available." %}</span>
+</section>
+<script src="{% static 'js/rmc-pwa-install-cta.js' %}" defer></script>
+{% endif %}
 {% workflow_resolve "parent-portal-pay-invoice" as wf %}
 {% if wf %}
   {% with next_action=wf|workflow_next_action_payload:request %}

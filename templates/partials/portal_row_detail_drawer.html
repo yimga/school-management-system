@@ -1,0 +1,12 @@
+{% load i18n %}
+{# Tenant portal row detail drawer (batch 1537 closeout) — gradebook + attendance. #}
+<div class="offcanvas offcanvas-end rmc-portal-row-detail-drawer" tabindex="-1" id="rmcPortalRowDetailDrawer" aria-labelledby="rmcPortalRowDetailDrawerLabel" data-rmc-portal-row-drawer="1">
+  <div class="offcanvas-header border-bottom">
+    <h2 class="offcanvas-title h5 mb-0" id="rmcPortalRowDetailDrawerLabel">{% trans "Student detail" %}</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#rmcPortalRowDetailDrawer" aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div class="offcanvas-body">
+    <p class="text-muted small mb-3" id="rmcPortalRowDetailSubtitle"></p>
+    <dl class="rmc-kv-list mb-0" id="rmcPortalRowDetailBody"></dl>
+  </div>
+</div>

@@ -1,0 +1,37 @@
+{% load i18n marketing_media %}
+<section
+  id="mkt-clinical-ledger"
+  class="mkt-ve-section mkt-ve-section--clinical"
+  data-mkt-personality="clinical"
+  data-mkt-scroll-policy="paginate"
+  aria-labelledby="mkt-clinical-headline"
+>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-ve-section__header">
+      <p class="mkt-edt-eyebrow">{% trans "Clinical ledger" %}</p>
+      <h2 id="mkt-clinical-headline" class="mkt-ve-section__title">
+        {% trans "Fees that reconcile like a ledger, not a spreadsheet." %}
+      </h2>
+      <p class="mkt-ve-section__lead">
+        {% trans "Split tuition, transport, and activity lines — illustrative amounts for your currency." %}
+        {% if geo.currency_symbol %}{{ geo.currency_symbol }}{% endif %}
+      </p>
+    </header>
+    <div class="mkt-ve-split" data-mkt-split-ledger>
+      <div class="mkt-ve-split__viz">
+        {% marketing_viz "split_ledger_viz" %}
+      </div>
+      <div class="mkt-ve-split__controls">
+        <label class="mkt-ve-split__slider-label">
+          <span>{% trans "Tuition vs activity split (illustrative)" %}</span>
+          <input type="range" min="10" max="90" value="65" data-mkt-split-slider aria-valuemin="10" aria-valuemax="90" aria-valuenow="65">
+        </label>
+        <ul class="mkt-ve-apm-strip" aria-label="{% trans 'Illustrative payment methods' %}">
+          {% for icon in geo.apm_icons %}
+          <li class="mkt-ve-apm-strip__item" data-apm="{{ icon.id }}">{{ icon.label }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

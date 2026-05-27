@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n region_format terminology_tags %}
+{% load i18n static region_format terminology_tags glocal_tags %}
 {% term "parent" capitalize=True as w_parent_sg %}
 {% block title %}{% trans "My wallet" %}{% endblock %}
 {% block content %}
@@ -32,16 +32,20 @@
     <div class="card-header">{% trans "Recent transactions" %}</div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
           <caption class="visually-hidden">{% trans "Recent transactions" %}</caption>
           <thead class="table-light"><tr><th>{% trans "Date" %}</th><th>{% trans "Type" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Balance after" %}</th></tr></thead>
           <tbody>
             {% for tx in transactions %}
-            <tr>
-              <td>{{ tx.created_at|format_date }} {{ tx.created_at|time:"H:i" }}</td>
-              <td>{{ tx.get_kind_display }}</td>
-              <td>{{ tx.amount|format_currency }}</td>
-              <td>{{ tx.balance_after|format_currency|default:"—" }}</td>
+            <tr data-rmc-row-detail="1"
+                tabindex="0"
+                data-rmc-row-title="{{ tx.get_kind_display }}"
+                data-rmc-row-subtitle="{{ tx.created_at|format_date }}"
+                data-rmc-row-meta='{"{% trans "Amount" %}":"{{ tx.amount|format_currency|escapejs }}","{% trans "Balance after" %}":"{{ tx.balance_after|format_currency|default:"—"|escapejs }}"}'>
+              <td data-label="{% trans 'Date' %}">{{ tx.created_at|format_date }} {{ tx.created_at|time:"H:i" }}</td>
+              <td data-label="{% trans 'Type' %}">{{ tx.get_kind_display }}</td>
+              <td data-label="{% trans 'Amount' %}">{{ tx.amount|format_currency }}</td>
+              <td data-label="{% trans 'Balance after' %}">{{ tx.balance_after|format_currency|default:"—" }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -52,4 +56,7 @@
   {% endif %}
   <a href="{% url 'portal:parent_finance' %}" class="btn btn-outline-secondary mt-3">{% trans "Back to Finance" %}</a>
 </div>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

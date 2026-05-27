@@ -1,0 +1,68 @@
+{
+  "label": "Migration",
+  "seo_title": "Migration | RunMyCampus \u2014 Move off your old system, safely",
+  "seo_description": "Import, map, validate, and switch from legacy SIS and spreadsheets. Field mapping, dry-runs, validation tools.",
+  "headline": "Migration",
+  "subheadline": "Switch from legacy systems without chaos.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Imports & connectors",
+      "body": "Bring in students, staff, and historical data from spreadsheets or legacy SIS."
+    },
+    {
+      "title": "Field mapping",
+      "body": "Map source fields to RunMyCampus with guided setup."
+    },
+    {
+      "title": "Validation & dry-runs",
+      "body": "Validate data and run dry-runs before go-live."
+    },
+    {
+      "title": "Migration runs",
+      "body": "Track migration portfolio and rollback readiness."
+    }
+  ],
+  "extras": {
+    "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    "data_viz_path": "images/marketing/platform-diagram-marketing.svg",
+    "premium_platform_layout": true,
+    "problem_section": {
+      "title": "Built for institutional operators",
+      "body": "RunMyCampus ships one platform core with regional defaults, governed extensions, and audit-friendly operations."
+    },
+    "workflow_steps": [
+      "Discover capability",
+      "Configure tenant",
+      "Pilot with one campus",
+      "Expand network-wide",
+      "Measure outcomes"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "School leadership",
+        "bullets": [
+          "Clear ownership per workflow",
+          "Evidence for board reporting"
+        ]
+      },
+      {
+        "role": "Operations teams",
+        "bullets": [
+          "Fewer shadow spreadsheets",
+          "Repeatable rollout playbooks"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Platform hub",
+        "path": "/platform/"
+      },
+      {
+        "label": "Book a demo",
+        "path": "/demo/"
+      }
+    ]
+  }
+}

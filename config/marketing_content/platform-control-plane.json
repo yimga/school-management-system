@@ -1,0 +1,72 @@
+{
+  "label": "Multi-school view",
+  "seo_title": "Multi-school view | RunMyCampus \u2014 Govern many schools from one place",
+  "seo_description": "Govern one school or one thousand from one command center. Tenant management, policies, health monitoring, usage.",
+  "headline": "Multi-school view",
+  "subheadline": "Govern one school or one thousand from one command center.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Tenant governance",
+      "body": "Manage schools, districts, and networks with central oversight and campus autonomy."
+    },
+    {
+      "title": "Policies & blueprints",
+      "body": "Apply policy bundles, blueprint packs, workflow and dashboard packs across tenants."
+    },
+    {
+      "title": "Health & usage",
+      "body": "Monitor tenant health, usage, and compliance from one dashboard."
+    },
+    {
+      "title": "Marketplace controls",
+      "body": "Control which apps and integrations are available per tenant or network."
+    },
+    {
+      "title": "Migration portfolio",
+      "body": "Track migration runs and rollouts across your schools."
+    }
+  ],
+  "extras": {
+    "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    "data_viz_path": "images/marketing/platform-diagram-marketing.svg",
+    "premium_platform_layout": true,
+    "problem_section": {
+      "title": "Built for institutional operators",
+      "body": "RunMyCampus ships one platform core with regional defaults, governed extensions, and audit-friendly operations."
+    },
+    "workflow_steps": [
+      "Discover capability",
+      "Configure tenant",
+      "Pilot with one campus",
+      "Expand network-wide",
+      "Measure outcomes"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "School leadership",
+        "bullets": [
+          "Clear ownership per workflow",
+          "Evidence for board reporting"
+        ]
+      },
+      {
+        "role": "Operations teams",
+        "bullets": [
+          "Fewer shadow spreadsheets",
+          "Repeatable rollout playbooks"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Platform hub",
+        "path": "/platform/"
+      },
+      {
+        "label": "Book a demo",
+        "path": "/demo/"
+      }
+    ]
+  }
+}

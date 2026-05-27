@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n tenant_hook terminology_tags %}
+{% load i18n tenant_hook terminology_tags glocal_tags static %}
 {% block title %}My Marks{% endblock %}
 
 {% block content %}
@@ -81,12 +81,12 @@
 
 <div class="card card-grammar" data-rmc-page="teacher-gradebook">
   <div class="card-body table-responsive">
-    <table class="table table-sm table-striped align-middle table-family table-sticky-head gradebook-table">
+    <table class="table table-sm table-striped align-middle table-family table-sticky-head gradebook-table rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "My Marks" %}</caption>
       <thead class="gradebook-thead-sticky">
         <tr>
           <th scope="col">Updated</th>
-          <th scope="col">Student</th>
+          <th scope="col">{% trans "Student" %}</th>
           <th scope="col">Subject</th>
           <th scope="col">Class</th>
           <th scope="col">Specialty</th>
@@ -105,7 +105,11 @@
       <tbody>
         {% for row in mark_rows %}
           {% with e=row.evaluation %}
-          <tr>
+          <tr data-rmc-row-detail="1"
+              tabindex="0"
+              data-rmc-row-title="{{ e.student.last_name }}, {{ e.student.first_name }}"
+              data-rmc-row-subtitle="{{ e.student.student_code }}"
+              data-rmc-row-meta='{"{% trans "Subject" %}":"{{ e.subject_assignment.subject.name|escapejs }}","{% trans "Class" %}":"{{ e.subject_assignment.classroom.name|escapejs }}","{% term_label %}":"{{ e.term.get_name_display|escapejs }}"}'>
             <td>{{ e.updated_at }}</td>
             <td>{{ e.student.last_name }} {{ e.student.first_name }} ({{ e.student.student_code }})</td>
             <td>{{ e.subject_assignment.subject.name }}</td>
@@ -146,5 +150,8 @@
     {% endif %}
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
 

@@ -1,5 +1,165 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Glocal practical closeout batch 1540 (2026-05-27)
+
+**A. Scope:** §D repo work — adoption tranche (drawer/glocal/canvas), Lane 2 evidence refresh, practical orchestrator, i18n for new strings.
+
+**B. Shipped:** `verify_glocal_adoption_tranche.py` (11 drawer sites + row-detail row assertion); tranche 2 on `pay_history` / `leave` / `wallet` / `cahier_list`; parent `finance` invoice rows wired; `refresh_residency_lane2_evidence.py`; `verify_glocal_practical_closeout.py`; RTL spec locale via `django_language` cookie; kernel `delegate-adoption-tranche`; SW `sms-v3.99.4-glocal-adoption-tranche-2026-05-27`.
+
+**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS**; **GLOCAL_PRACTICAL_CLOSEOUT_PASS**; **GLOCAL_ZERO_HARDCODE_KERNEL_PASS**; residency `residency_latest.json` refreshed.
+
+**D. SOT:** §11.4 batch **1540** **DONE**. **E. Residual:** live Postgres region; live teacher RTL Playwright (server must stay up); CEZGP `--include-optional` on release only.
+
+## Slice — VISUAL-ENGINE marketing residuals batch 1539 (2026-05-27)
+
+**A. Scope:** Distinct per-bucket loops, CI without ffmpeg, production Playwright, platform/regional closeout.
+
+**B. Shipped:** `marketing_loop_ffmpeg.py` per-bucket profiles; `ensure_marketing_loops.py`; `verify_marketing_loop_buckets_distinct.py`; `verify_marketing_loops_hero_derived.py`; `marketing-visual-engine-production.yml` + CI visual-engine step; `preflight_marketing_production_url.py`; platform/regional verifiers; mena ffmpeg profile fix.
+
+**C. Proof:** **MARKETING_GLOCAL_VISUAL_ENGINE_PASS**; 7 distinct loop fingerprints; **verify_marketing_frontend_completion** OK.
+
+**D. SOT:** §11.4 batch **1539** **DONE**. **E. Residual:** `git add static/marketing/video/loops/` + manifest; run production workflow after deploy.
+
+## Slice — marketing regional geo + Playwright strict-mode (2026-05-27)
+
+**A. Scope:** Close Playwright `/ng/` flake and wire legacy/canonical regional routes into country resolution.
+
+**B. Shipped:** `tests/e2e/marketing-visual-engine.spec.js` uses `#mkt-edt-root[data-mkt-edition]` + asserts `body[data-rmc-country="NG"]`; `_country_from_marketing_regional_route` in `country_localization_service.py`; `test_legacy_ng_shortcut_sets_country_on_body`.
+
+**C. Proof:** Playwright **5/5** (`MARKETING_BASE_URL=http://runmycampus.com:8000`); Django regional test green; curl `/ng/` → `data-rmc-country="NG"`.
+
+**D. SOT:** Amends batch **1538** (no new batch).
+
+## Slice — VISUAL-ENGINE marketing open-items batch 1538 (2026-05-27)
+
+**A. Scope:** Close all open marketing glocal/visual-engine items (loops, CSS bundles, frontend completion, Playwright).
+
+**B. Shipped:** `compress_marketing_loops_from_hero.py`; deferred shell CSS; fees interactive split-ledger; bundle rebuild + budget bump; Playwright spec hardened.
+
+**C. Proof:** `verify_marketing_frontend_completion.py` OK; Playwright 5/5; **MARKETING_GLOCAL_VISUAL_ENGINE_PASS**.
+
+**D. SOT:** §11.4 batch **1538** **DONE**.
+
+## Slice — Glocal Zero-Hardcode Program closeout (SOT 1537) (2026-05-27)
+
+**A. Scope:** Close honest residuals: tenant queryset drift, i18n catalog, real Chart.js vendor, teacher row-detail drawer, Lane 2 residency evidence scaffold.
+
+**B. Shipped:** 8 tenant-isolation fixes/markers; `manage.py sync_i18n_catalog --compile`; `scripts/fetch_vendor_chart_js.py` + Chart.js 4.4.1 UMD; `portal_row_detail_drawer` + JS on `marks_entry` / `roll_call_student`; `var/evidence/geos-99/compliance/residency_2026-05-27.json`; kernel regression delegates promoted to required.
+
+**C. Proof:** **GLOCAL_ZERO_HARDCODE_KERNEL_PASS** (all delegates); **verify_glocal_closeout_completion** OK; **LOCAL_FIRST_COMPLETION_PASS**; **verify_i18n_catalog_fresh** OK; `scan_tenant_queryset_safety --compare` 0 new.
+
+**D. SOT:** §11.4 batch **1537** closeout **DONE**. **E. Residual:** live second Postgres region (operator Lane 2); Playwright 390px RTL optional.
+
+## Slice — Glocal Zero-Hardcode Program batches 1529–1535 (SOT 1537) (2026-05-27)
+
+**A. Scope:** Django-native glocal/local-first/zero-input program per plan: master kernel gate, signup data_region, IAM vocabulary, offline envelope honesty, viewport canvas + 5-col scan, QR attendance pilot, multi-region router scaffold.
+
+**B. Shipped:** `verify_glocal_zero_hardcode_kernel.py`; `data_residency_onboarding.py`; `glocal_vocabulary.py` / `glocal_tags`; `event_envelope.py`; `qr_attendance.py`; `dynamic_db_routing.py` / `middleware_regional_db.py`; verifiers 1530–1535; teacher canvas scroll; roll-call QR sweep; CEZGP `glocal_kernel` step.
+
+**C. Proof:** **GLOCAL_ZERO_HARDCODE_KERNEL_PASS**; **DATA_RESIDENCY_ONBOARDING_PASS**; **ISOMORPHIC_IAM_VOCABULARY_PASS**; **OFFLINE_EVENT_ENVELOPE_PASS**; **ISOMORPHIC_WORKSPACE_VIEWPORT_PASS**; **ZERO_INPUT_ATTENDANCE_PILOT_PASS**; **MULTI_REGION_ROUTER_SCAFFOLD_PASS**; Django tests on qr/envelope/routing/onboarding/kernel contracts.
+
+**D. SOT:** §11.4 batch **1537** **DONE**. **E. Residual:** closed in closeout slice above except live regional Postgres.
+
+## Slice — RUNMYCAMPUS-GLOCAL marketing E2E closeout batch 1531 (2026-05-27)
+
+**A. Scope:** Close open E2E items: top-10 regional routes, all platform page visual strips, Playwright smoke, coverage verifiers.
+
+**B. Shipped:** Legacy regional shortcuts (11 countries); canonical `marketing_region` on dev urlconf; `marketing_platform_visual_strip` tag; 14 platform templates auto-wired; `verify_marketing_regional_routes.py`, `verify_marketing_platform_pages_visual_coverage.py`, Playwright `marketing-visual-engine.spec.js`.
+
+**C. Proof:** **MARKETING_GLOCAL_VISUAL_ENGINE_PASS**; 14 Django tests (visual + regional + compliance + routes).
+
+**D. SOT:** §11.4 batch **1531** **DONE**. **Superseded:** batch **1538** (loops, Playwright, frontend completion).
+
+## Slice — RUNMYCAMPUS-GLOCAL + VISUAL-ENGINE-10X batch 1530 (2026-05-27)
+
+**A. Scope:** End-to-end marketing glocal + visual engine: geo context, four homepage personalities, regional loops, sandbox API, Tier-A platform viz, CI gates.
+
+**B. Shipped:** `marketing_media_matrix.py`, templatetags, section partials, `marketing-visual-engine.css` + interactives, `generate_marketing_minimal_loops.py` / `ingest_marketing_loop.py`, `verify_marketing_glocal_visual_engine.py`, admissions/security/pricing wiring, expanded `MARKETING_REGION_PROFILES`.
+
+**C. Proof:** **MARKETING_GLOCAL_VISUAL_ENGINE_PASS**; 11 Django tests (visual_engine + regional_assets + glocal_compliance).
+
+**D. SOT:** §11.4 batch **1530** **DONE**. **Residual:** replace minimal loops with branded AI assets ≤800KB; full marketing frontend completion orchestrator + Playwright.
+
+## Slice — CEZGP optional gates promoted batch 1529 (2026-05-27)
+
+**A. Scope:** Implement all CEZGP plan optionals (preview shell, interaction integrity, phase3 nav, phase H subset, parent mobile-first, platform inventory).
+
+**B. Shipped:** Promoted orchestrator steps; `verify_parent_mobile_first.py`, `verify_customer_experience_phase_h_subset.py`; plan closeout extended; `generate_platform_inventory.py --write`; `--full` flag on zero-gap.
+
+**C. Proof:** **CUSTOMER_EXPERIENCE_ZERO_GAP_PASS** (default, all required); **CUSTOMER_EXPERIENCE_PLAN_CLOSEOUT_PASS**.
+
+**D. SOT:** §11.4 batch **1529** **DONE**. **Residual:** `verify_phases_3_11_gates` on `--full` only.
+
+## Slice — CEZGP plan v2 closeout batch 1528 (2026-05-27)
+
+**A. Scope:** Align Cursor CEZGP plan file with shipped SOT 1514–1527; close phase-8 plan hooks; remove dead legacy UI.
+
+**B. Shipped:** `verify_customer_experience_plan_closeout.py`; baseline email-delivery smoke; deleted orphan `feedback_roadmap.html`; plan todos → completed; orchestrator `plan_closeout` step.
+
+**C. Proof:** **CUSTOMER_EXPERIENCE_PLAN_CLOSEOUT_PASS**; **CUSTOMER_EXPERIENCE_ZERO_GAP_PASS**.
+
+**D. SOT:** §11.4 batch **1528** **DONE**.
+
+## Slice — CEZGP deploy gates batch 1527 (2026-05-27)
+
+**A. Scope:** Close batch 1524 residual (Ruff F401/F841 blocking deploy parity); make CEZGP orchestrator finish in-repo without 15+ min phases bundle on every run.
+
+**B. Shipped:** Ruff `--fix` across `apps/`; `verify_predeploy_core_gates.py`; zero-gap required `predeploy_core` step; `--include-optional` for `verify_phases_3_11_gates.py`.
+
+**C. Proof:** **PREDEPLOY_CORE_GATES_PASS**; **CUSTOMER_EXPERIENCE_ZERO_GAP_PASS** (audit JSON refreshed); matrix **partial_count=0**.
+
+**D. SOT:** §11.4 batch **1527** **DONE**. **Residual:** full phases_3_11 `check_no_hardcoding`; six external matrix rows; operator `--include-optional` on release only.
+
+## Slice — CEZGP Lane 1 closeout batch 1526 (2026-05-27)
+
+**A. Scope:** Complete remaining make-it-easy / CEZGP Lane 1 items: admission+DSL banners, teacher decision surface, parent overdue smart links, verifier wiring.
+
+**B. Shipped:** `operator_queue_signals.py`, `operator_queue_smart_links_banner.html`, `build_teacher_dashboard_phase7_de`, parent finance overdue strip, zero-gap + ease-layer smart-links steps.
+
+**C. Proof:** **CUSTOMER_EXPERIENCE_ZERO_GAP_PASS** (`docs/generated/customer_experience_zero_gap_audit.json`); **SMART_LINKS_SURFACE_PASS**; **PREDEPLOY_CORE_GATES_PASS**; 47 targeted tests OK; dead-href scan **0**.
+
+**D. SOT:** §11.4 batch **1526** **DONE**. **Residual:** Lane 2 external proof unchanged.
+
+## Slice — Make-it-easy dead-end closeout batch 1525 (2026-05-27)
+
+**A. Scope:** End-to-end Wave T — every common dead-end offers a next action; parents see pay-all in the global action strip when balance is open.
+
+**B. Shipped:** `smart_links_kernel.py` (403/403_staff/503/offline + parent finance URLs); error templates 500/403/503/offline wired; `action_engine._collect_parent_actions` family-billing pay-all; `verify_smart_links_surface.py`.
+
+**C. Proof:** **SMART_LINKS_SURFACE_PASS**; `test_smart_links_kernel` + `test_action_engine` OK; SW `sms-v3.99.0-smart-links-dead-end-closeout-2026-05-27`.
+
+**D. SOT:** §11.4 batch **1525** **DONE**. **Residual:** admission/DSL registry states await workflow UI banners.
+
+## Slice — CEZGP repo hygiene batch 1524 (2026-05-22)
+
+**A. Scope:** Close deploy blockers adjacent to CEZGP without repo-wide Ruff burndown.
+
+**B. Shipped:** `git rm tmp_aifail.txt` + `.gitignore`; `docker-compose.ollama.yml` on root allowlist; migration leaves for `PlatformStatusIncident` + `AutoTicketRule.FEEDBACK_CRITICAL`; onboarding `billing_estimate` step; print-scan docstring fix.
+
+**C. Proof:** `check_root_clutter` PASS; `makemigrations --check` no changes; `CUSTOMER_EXPERIENCE_ZERO_GAP_PASS`; `scan_operator_shell_dead_hrefs --strict` **0**.
+
+**D. SOT:** §11.4 batch **1524** **DONE**. **Residual:** superseded by batch **1527** (Ruff burndown + predeploy core).
+
+## Slice — CEZGP Lane 2 partial closeout batch 1523 (2026-05-22)
+
+**A. Scope:** Burn down six CEZGP matrix partial rows (P2, P7c, P8b, P10, B6, PILLAR_AMAZON) without claiming external blockers.
+
+**B. Shipped:** Parent password reset URLs + login/settings CTAs; `guardian_student_links` portal chrome; GDPR export-only page; billing estimate + pricing crosswalk; ProductFeedback migration command; marketplace operator frame attrs; matrix `--strict-zero-partials`; orchestrator lane2 step; Playwright parent reset probe.
+
+**C. Proof:** **CUSTOMER_EXPERIENCE_LANE2_PARTIAL_CLOSEOUT_PASS**; matrix **partial_count=0**; **CUSTOMER_EXPERIENCE_ZERO_GAP_PASS**; **PARENT_IDENTITY_UX_PASS**.
+
+**D. SOT:** §11.4 batch **1523** **DONE**. **Residual:** external matrix rows unchanged; operator `--apply` for legacy feedback migration; production Playwright with live SMTP.
+
+## Slice — CEZGP program batches 1514–1522 (4-agent parallel + moderator validation, 2026-05-27)
+
+**A. Scope:** Customer Experience Zero-Gap Program — parent pay-all, tenant CSV onboarding, identity/status/feedback, ease layer, global-local, zero-gap audit.
+
+**B. Shipped (by track):** **Agent 1** pay-all + identity + regional pay-all confirm; **Agent 2** CSV guided onboarding + launch SLA verifiers; **Agent 3** real public status + feedback notifications; **Agent 4** Cmd+K + workflows + zero-gap orchestrator; **Moderator** baseline matrix, 404 help-hub link, SOT/log.
+
+**C. Proof:** All phase verifiers PASS; `audit_customer_experience_research_matrix.py --strict` → **missing_count=0**; `verify_customer_experience_zero_gap.py` → **CUSTOMER_EXPERIENCE_ZERO_GAP_PASS**; `verify_help_center_tiers.py` PASS; `scan_operator_shell_dead_hrefs --strict` **0**.
+
+**D. SOT:** §11.4 batches **1514–1522** **DONE (Lane 1)**. **Honest residual (Lane 2):** live PSP settlement, production parent Playwright, native app stores; 6 matrix rows **external** + 6 **partial** (P10, P8b, pillars) — not repo blockers.
+
 ## Slice — Lifecycle nav + always-on back-to-top batch 1513 (2026-05-26)
 
 **A. Scope:** Close visibility gap for tenant lifecycle/offboarding tools; platform-wide back-to-top; Lane 2 Render env defaults; post-deploy smoke bundle.

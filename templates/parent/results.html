@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static i18n region_format %}
+{% load static i18n region_format glocal_tags %}
 {% load terminology_tags %}
 {# Refactor: workflow (grouped downloads), semantics (dl/section/aria), consistency (spacing, borders), fix messaging→contact_school, responsive actions. See docs/REFACTOR_PARENT_RESULTS_CHANGES.md #}
 {% block title %}{% trans "Results" %} — {{ student.student_code }}{% endblock %}
@@ -164,7 +164,7 @@
         <h2 id="results-table-heading" class="visually-hidden">{% blocktrans with t=res_subject_pl %}{{ t }} results{% endblocktrans %}</h2>
         <div class="table-responsive">
           <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-sm table-striped align-middle table-mobile-cards mb-0 table-family" aria-label="{% trans 'Term results: subject, coefficient, sequence and exam scores, average, and status' %}">
+<table class="table table-sm table-striped align-middle table-mobile-cards mb-0 table-family rmc-data-table" aria-label="{% trans 'Term results: subject, coefficient, sequence and exam scores, average, and status' %}" data-rmc-row-detail-table="1">
             <thead class="table-light">
               <tr>
                 <th scope="col">{% trans_term "Subject" key="subject" %}</th>
@@ -180,7 +180,11 @@
             </thead>
             <tbody>
               {% for r in rows %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ r.subject }}"
+                    data-rmc-row-subtitle="{% if r.avg is not None %}{{ r.avg }}{% else %}{% trans 'Pending' %}{% endif %}"
+                    data-rmc-row-meta='{"{% trans "Coef" %}":"{{ r.coef }}","{% trans "Status" %}":"{% if r.avg is None %}{% trans "Pending" %}{% elif r.avg >= 10 %}{% trans "Pass" %}{% else %}{% trans "Needs work" %}{% endif %}"}'>
                   <td data-label="{% term 'subject' capitalize=True %}">{{ r.subject }}</td>
                   <td data-label="{% trans 'Coef' %}">{{ r.coef }}</td>
                   <td data-label="Seq1">{{ r.seq1|default_if_none:"" }}</td>
@@ -216,4 +220,7 @@
     </section>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

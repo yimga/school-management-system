@@ -1,0 +1,18 @@
+.rmc-portal-row-detail-drawer .rmc-kv-list dt {
+  font-size: var(--type-size-xs, 0.75rem);
+  color: var(--text-secondary, inherit);
+  margin-bottom: 0.15rem;
+}
+
+.rmc-portal-row-detail-drawer .rmc-kv-list dd {
+  margin-bottom: var(--space-3, 0.75rem);
+  font-weight: 500;
+}
+
+tr[data-rmc-row-detail="1"] {
+  cursor: pointer;
+}
+
+tr[data-rmc-row-detail="1"]:hover {
+  background: var(--surface-overlay, rgba(0, 0, 0, 0.04));
+}

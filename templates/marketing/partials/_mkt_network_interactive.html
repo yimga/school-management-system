@@ -1,0 +1,16 @@
+{% load i18n marketing_media %}
+<div class="mkt-ve-network mkt-ve-network--platform" data-mkt-network-state>
+  <div class="mkt-ve-network__viz">
+    {% marketing_viz "transit_viz" %}
+  </div>
+  <div class="mkt-ve-network__toggle" role="group" aria-label="{% trans 'Network state' %}">
+    <button type="button" class="mkt-ve-network__btn is-active" data-mkt-network="online" aria-pressed="true">{% trans "Online" %}</button>
+    <button type="button" class="mkt-ve-network__btn" data-mkt-network="offline" aria-pressed="false">{% trans "Offline" %}</button>
+  </div>
+  <p
+    class="mkt-ve-network__status"
+    data-mkt-network-status
+    data-online-label="{% trans 'Simulated · 3 devices in sync' %}"
+    data-offline-label="{% trans 'Simulated · 3 events queued for sync' %}"
+  >{% trans "Simulated · 3 devices in sync" %}</p>
+</div>

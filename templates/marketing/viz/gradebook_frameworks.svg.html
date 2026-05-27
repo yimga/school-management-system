@@ -1,0 +1,19 @@
+{% load i18n %}<svg class="mkt-viz mkt-viz--gradebook" viewBox="0 0 400 220" role="img" aria-labelledby="mkt-viz-grade-title" xmlns="http://www.w3.org/2000/svg">
+  <title id="mkt-viz-grade-title">{% trans "Illustrative gradebook frameworks" %}</title>
+  <rect width="400" height="220" fill="var(--mkt-surface-elevated, #f8fafc)" rx="8"/>
+  <g font-family="system-ui" font-size="11" fill="var(--mkt-ink, #0f172a)">
+    <text x="24" y="40">{% trans "Simulated · IB / Cambridge / Local" %}</text>
+    <g data-mkt-framework-column="ib" class="mkt-viz-gradebook__col">
+      <rect x="24" y="56" width="100" height="120" fill="#dbeafe" rx="4"/>
+      <text x="74" y="120" text-anchor="middle">IB</text>
+    </g>
+    <g data-mkt-framework-column="caie" class="mkt-viz-gradebook__col">
+      <rect x="140" y="56" width="100" height="120" fill="#fce7f3" rx="4"/>
+      <text x="190" y="120" text-anchor="middle">CAIE</text>
+    </g>
+    <g data-mkt-framework-column="local" class="mkt-viz-gradebook__col">
+      <rect x="256" y="56" width="120" height="120" fill="#d1fae5" rx="4"/>
+      <text x="316" y="120" text-anchor="middle">{% trans "Local" %}</text>
+    </g>
+  </g>
+</svg>

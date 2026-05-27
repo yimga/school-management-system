@@ -247,8 +247,9 @@
         {% csrf_token %}
         <input type="hidden" name="subject_assignment_id" value="{{ sa.id }}">
 
+        <!-- table-column-budget-allow: gradebook-assessment-seven-column-set -->
         <!-- large-collection-allow: marks-entry-inline-grid -->
-        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Marks entry by student" data-tour="gradebook-grid">
+        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Marks entry by student" data-tour="gradebook-grid" data-rmc-row-detail-table="1">
           <thead>
             <tr>
               <th scope="col">Student</th>
@@ -263,7 +264,12 @@
           <tbody>
             {% for s in students %}
               {% with e=existing|get_item:s.id %}
-              <tr class="{% if e|evaluation_incomplete:required_fields %}table-warning{% endif %}">
+              <tr class="{% if e|evaluation_incomplete:required_fields %}table-warning{% endif %}"
+                  data-rmc-row-detail="1"
+                  tabindex="0"
+                  data-rmc-row-title="{{ s.last_name }}, {{ s.first_name }}"
+                  data-rmc-row-subtitle="{{ s.student_code }}"
+                  data-rmc-row-meta='{"{% trans "Code" %}":"{{ s.student_code|escapejs }}","{% trans "Class" %}":"{{ sa.classroom.name|default:""|escapejs }}"}'>
                 <td>
                   <span class="student-cell">
                     <span class="av" aria-hidden="true">{{ s.first_name|slice:":1"|upper }}{{ s.last_name|slice:":1"|upper }}</span>
@@ -297,6 +303,9 @@
 {% endif %}
 {% include "components/was_this_helpful.html" with feedback_id="teacher-marks-entry" %}
 <script src="{% static 'js/_pages/teacher__marks_entry.js' %}"></script>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 </div>
 {% endblock %}
 

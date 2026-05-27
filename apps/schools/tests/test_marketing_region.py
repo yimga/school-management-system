@@ -79,3 +79,9 @@ class MarketingRegionHttpTests(TestCase):
         resp = client.get("/en/ng/", HTTP_HOST="runmycampus.com")
         self.assertEqual(resp.status_code, 200)
         self.assertIn(b"data-mkt-region-affordance", resp.content)
+
+    def test_legacy_ng_shortcut_sets_country_on_body(self):
+        client = Client()
+        resp = client.get("/ng/", HTTP_HOST="runmycampus.com")
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn(b'data-rmc-country="NG"', resp.content)

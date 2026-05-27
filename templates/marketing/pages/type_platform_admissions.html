@@ -1,5 +1,5 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
@@ -47,6 +47,8 @@
   </header>
 
   <div class="mkt-edt-container">
+    {% include "marketing/components/_platform_visual_engine_strip.html" with viz_key="split_ledger_viz" %}
+    {% include "marketing/components/_platform_loop_hero.html" %}
     {% include "marketing/components/_lane_admissions_steps.html" %}
   </div>
 

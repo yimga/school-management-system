@@ -1,12 +1,14 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-fees-payments.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-gear2-lanes.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
 {% endblock %}
+{% block extrajs %}{{ block.super }}<script src="{% static 'marketing/js/mkt-split-ledger.js' %}" defer></script>{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-fees-payments mkt-platform-theme--platform-fees-payments{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-fees-page" data-mkt-platform-fees-payments="1" data-mkt-archetype="finance-control-room">
@@ -40,12 +42,19 @@
       </div>
       {% endif %}
     </div>
-    <div class="mkt-fees-hero-visual" aria-hidden="true">
-      <img src="{% static 'images/marketing/platform-fees-payments-dashboard.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
+    <div class="mkt-fees-hero-visual mkt-fees-hero-visual--interactive" aria-label="{% trans 'Illustrative fee split' %}">
+      {% include "marketing/partials/_mkt_split_ledger_compact.html" %}
     </div>
   </header>
 
   <div class="mkt-edt-container">
+    <div data-mkt-split-ledger>
+      {% include "marketing/components/_platform_visual_engine_strip.html" with viz_key="split_ledger_viz" show_apm_strip=True %}
+      <label class="mkt-ve-split__slider-label">
+        <span>{% trans "Tuition vs activity split (illustrative)" %}</span>
+        <input type="range" min="10" max="90" value="65" data-mkt-split-slider aria-valuemin="10" aria-valuemax="90" aria-valuenow="65">
+      </label>
+    </div>
     {% include "marketing/components/_lane_finance_ledger.html" %}
   </div>
 

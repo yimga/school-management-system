@@ -1,0 +1,76 @@
+{
+  "label": "Daily operations",
+  "seo_title": "Daily operations | RunMyCampus \u2014 One platform for the whole school",
+  "seo_description": "Run every part of school operations in one platform: admissions, academics, attendance, finance, communication, workflows, reports, Student 360.",
+  "headline": "Daily operations",
+  "subheadline": "Run every part of school operations in one platform.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Admissions to graduation",
+      "body": "From enquiry to completion in one configurable flow."
+    },
+    {
+      "title": "Academics & attendance",
+      "body": "Syllabi, grades, report cards, attendance, and interventions."
+    },
+    {
+      "title": "Finance & billing",
+      "body": "Fees, payments, and financial reporting without spreadsheets."
+    },
+    {
+      "title": "Communication & portals",
+      "body": "Parent, teacher, and student portals with messaging and announcements."
+    },
+    {
+      "title": "Workflows & automation",
+      "body": "Configurable approval chains and automated triggers."
+    },
+    {
+      "title": "Student 360",
+      "body": "One view per student: profile, attendance, grades, interventions."
+    }
+  ],
+  "extras": {
+    "diagram_path": "images/marketing/platform-diagram-marketing.svg",
+    "data_viz_path": "images/marketing/platform-diagram-marketing.svg",
+    "premium_platform_layout": true,
+    "problem_section": {
+      "title": "Built for institutional operators",
+      "body": "RunMyCampus ships one platform core with regional defaults, governed extensions, and audit-friendly operations."
+    },
+    "workflow_steps": [
+      "Discover capability",
+      "Configure tenant",
+      "Pilot with one campus",
+      "Expand network-wide",
+      "Measure outcomes"
+    ],
+    "benefits_by_role": [
+      {
+        "role": "School leadership",
+        "bullets": [
+          "Clear ownership per workflow",
+          "Evidence for board reporting"
+        ]
+      },
+      {
+        "role": "Operations teams",
+        "bullets": [
+          "Fewer shadow spreadsheets",
+          "Repeatable rollout playbooks"
+        ]
+      }
+    ],
+    "related_platform_links": [
+      {
+        "label": "Platform hub",
+        "path": "/platform/"
+      },
+      {
+        "label": "Book a demo",
+        "path": "/demo/"
+      }
+    ]
+  }
+}

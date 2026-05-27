@@ -43,8 +43,8 @@
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
-  {# v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer. #}
-  <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
+  {# v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer (deferred). #}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="css/design-tokens-personality.css" %}
   {% include "partials/rmc_platform_chrome_styles.html" %}
   {% if request.user.is_authenticated %}{% include "partials/rmc_security_posture_layout_styles.html" %}{% endif %}
   <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
@@ -53,8 +53,8 @@
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-enhanced.min.css" %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-page-personality.css" %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-personality-viz.css" %}
-  {# v3.62.10 Wave 9 local-first: marketing band that greets visitors in their country's voice. #}
-  <link rel="stylesheet" href="{% static 'marketing/css/rmc-mkt-local-first-band.css' %}">
+  {# v3.62.10 Wave 9 local-first: marketing band (deferred — keeps blocking stylesheet count ≤5). #}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/rmc-mkt-local-first-band.css" %}
   {% block extrastyle %}{% endblock %}
 </head>
 {# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}

@@ -2,6 +2,7 @@
 {% load static %}
 {% load i18n %}
 {% load terminology_tags %}
+{% load evals_extras %}
 {% term "student" as rc_student_sg %}
 {% blocktrans asvar rc_title with t=rc_student_sg %}Take {{ t }} attendance{% endblocktrans %}
 {% block title %}{{ rc_title }}{% endblock %}
@@ -37,6 +38,31 @@
         </div>
       </form>
       {% if classroom and students_with_status %}
+        <div class="card border-success mb-3" id="qr-attendance-sweep" data-rmc-qr-attendance="1">
+          <div class="card-body">
+            <h6 class="mb-2">{% trans "Card / QR sweep" %}</h6>
+            <p class="small text-muted mb-2">{% trans "Paste scanned tokens (one per line). Students are marked present without ticking each row." %}</p>
+            <form method="post" action="{% url 'portal:take_student_attendance' %}"
+                  data-rmc-offline-form="attendance"
+                  data-offline-action-type="attendance"
+                  data-rmc-attendance-scope="qr_sweep">
+              {% csrf_token %}
+              <input type="hidden" name="date" value="{{ date_value }}">
+              <input type="hidden" name="classroom" value="{{ classroom.id }}">
+              <input type="hidden" name="qr_sweep" value="1">
+              <textarea name="qr_tokens" class="form-control font-monospace small mb-2" rows="4" placeholder="RMC-ATT-…"></textarea>
+              <button type="submit" class="btn btn-success btn-sm">{% trans "Apply card sweep" %}</button>
+            </form>
+            <details class="mt-2 small">
+              <summary>{% trans "Printable student tokens" %}</summary>
+              <ul class="list-unstyled mb-0 mt-1">
+                {% for row in students_with_status %}
+                  <li><span class="badge text-bg-light border">{% trans "Verified via card sweep" %}</span> {{ row.student.last_name }}, {{ row.student.first_name }} — <code>{{ qr_tokens_by_student|get_item:row.student.id }}</code></li>
+                {% endfor %}
+              </ul>
+            </details>
+          </div>
+        </div>
         <form method="post" action="{% url 'portal:take_student_attendance' %}"
               data-rmc-offline-form="attendance"
               data-offline-action-type="attendance"
@@ -60,7 +86,7 @@
                data-attendance-scope="student"
                data-attendance-classroom-id="{{ classroom.id }}"
                data-attendance-status-choices='{{ status_choices_json|default:"[]" }}'>
-            <table class="table table-sm align-middle table-family">
+            <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
               <caption class="visually-hidden">{{ classroom.name }} – {{ date_value }}</caption>
               <thead class="table-light">
                 <tr>
@@ -70,7 +96,11 @@
               </thead>
               <tbody>
                 {% for row in students_with_status %}
-                  <tr>
+                  <tr data-rmc-row-detail="1"
+                      tabindex="0"
+                      data-rmc-row-title="{{ row.student.last_name }}, {{ row.student.first_name }}"
+                      data-rmc-row-subtitle="{{ date_value }}"
+                      data-rmc-row-meta='{"{% trans "Status" %}":"{{ row.status|escapejs }}","{% trans "Class" %}":"{{ classroom.name|escapejs }}"}'>
                     <td>{{ row.student.last_name }}, {{ row.student.first_name }}</td>
                     <td>
                       <select name="status_{{ row.student.id }}" class="form-select form-select-sm status-select min-touch-target" style="min-height:2.75rem;" aria-label="{% trans 'Attendance status' %} {{ row.student.last_name }}, {{ row.student.first_name }}">
@@ -98,4 +128,7 @@
   <script src="{% static 'js/form-draft-save.js' %}"></script>
   {# FormDraftSave.init is called by the page script after the library loads. #}
   <script src="{% static 'js/_pages/portal__roll_call_student.js' %}"></script>
+  {% include "partials/portal_row_detail_drawer.html" %}
+  <link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+  <script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

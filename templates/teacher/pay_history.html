@@ -1,9 +1,10 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static glocal_tags %}
 
 {% block title %}Pay History{% endblock %}
 
 {% block content %}
+<div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Pay History</h1>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
 
@@ -89,7 +90,7 @@
       <h5 class="mb-3">Records</h5>
       {% if pay_records %}
         <div class="table-responsive">
-          <table class="table align-middle mb-0 table-family" aria-label="Teacher pay history records">
+          <table class="table align-middle mb-0 table-family rmc-data-table" aria-label="{% trans 'Teacher pay history records' %}" data-rmc-row-detail-table="1">
             <thead class="table-light">
               <tr>
                 <th scope="col">Date</th>
@@ -101,12 +102,16 @@
             </thead>
             <tbody>
               {% for r in pay_records %}
-                <tr>
-                  <td>{{ r.effective_date }}</td>
-                  <td>{{ r.get_record_type_display }}</td>
-                  <td class="text-end">{{ r.amount }}</td>
-                  <td>{{ r.description|default:"-" }}</td>
-                  <td>{{ r.created_by|default:"-" }}</td>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ r.get_record_type_display }}"
+                    data-rmc-row-subtitle="{{ r.effective_date }}"
+                    data-rmc-row-meta='{"{% trans "Amount" %}":"{{ r.amount|escapejs }}","{% trans "Description" %}":"{{ r.description|default:"—"|escapejs }}"}'>
+                  <td data-label="{% trans 'Date' %}">{{ r.effective_date }}</td>
+                  <td data-label="{% trans 'Type' %}">{{ r.get_record_type_display }}</td>
+                  <td class="text-end" data-label="{% trans 'Amount' %}">{{ r.amount }}</td>
+                  <td data-label="{% trans 'Description' %}">{{ r.description|default:"-" }}</td>
+                  <td data-label="{% trans 'Recorded by' %}">{{ r.created_by|default:"-" }}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -122,4 +127,8 @@
       {% endif %}
     </div>
   </div>
+</div>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

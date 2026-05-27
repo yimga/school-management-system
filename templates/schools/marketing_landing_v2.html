@@ -1,6 +1,6 @@
 {% extends "schools/marketing_base.html" %}
 {% load static i18n %}
-{% load terminology_tags %}
+{% load terminology_tags marketing_media %}
 
 {% block title %}RunMyCampus · Education operating system for modern schools{% endblock %}
 
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-edge-layout.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-page-personality.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-media-viz.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
   {% include "partials/rmc_analytics_viz_assets.html" %}
 {% endblock %}
 {% block extrajs %}
@@ -20,6 +21,11 @@
   <script src="{% static 'marketing/js/mkt-video-portal.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-day-role-toggle.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-globe-tooltips.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-split-ledger.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-network-state.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-gradebook-morph.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-sandbox-wizard.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-walkthrough-play.js' %}" defer></script>
   {% include "partials/rmc_analytics_viz_bundle.html" %}
 {% endblock %}
 
@@ -62,6 +68,9 @@
             {% trans "See it live" %}
           </a>
           <button type="button" class="mkt-edt-cta mkt-edt-cta--ghost rmc-tactile-48" data-tour-trigger="marketing_home">{% trans "Platform overview" %}</button>
+          <a href="#mkt-sovereign-kernel" class="mkt-edt-cta mkt-edt-cta--ghost rmc-tactile-48" data-cta="sandbox-preview" data-mkt-tactile>
+            {% trans "Configure your school" %}
+          </a>
         </div>
 
         <p class="mkt-edt-illustrative-pill mkt-edt-hero__illustrative rmc-reveal">{% trans "Illustrative rollout ranges — not a guarantee for your school" %}</p>
@@ -90,6 +99,13 @@
       </div>
     </div>
   </section>
+
+  {% include "marketing/partials/sections/_sovereign_kernel.html" %}
+  {% include "marketing/partials/sections/_clinical_ledger.html" %}
+  {% include "marketing/partials/sections/_rugged_engine.html" %}
+  {% include "marketing/partials/sections/_fluid_classroom.html" %}
+
+  <hr class="mkt-edt-rule">
 
   {% include "marketing/components/_day_role_story.html" %}
 
@@ -184,7 +200,7 @@
         {% include "marketing/components/_video_portal.html" with portal_id="mkt-walkthrough-portal" portal_label=_("Animated product preview") show_video_source=False poster_src="marketing/img/hero-home-poster.svg" %}
       </div>
 
-      <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-walkthrough__poster mkt-edt-walkthrough__poster--secondary" aria-label="{% trans 'Open the product walkthrough' %}" data-mkt-tactile data-cta="product-tour" data-page="home-walkthrough">
+      <div class="mkt-edt-walkthrough__poster mkt-edt-walkthrough__poster--secondary">
         <figure class="mkt-edt-walkthrough__stage" aria-hidden="true">
           {% comment %} The inlined SVG reel is the canonical visual walkthrough
              until real footage exists. {% endcomment %}
@@ -192,6 +208,14 @@
             {% include "schools/_v2/_decoration_walkthrough_reel.svg.html" %}
           </div>
           <div class="mkt-edt-walkthrough__overlay">
+            <button
+              type="button"
+              class="mkt-edt-walkthrough__play"
+              data-mkt-walkthrough-play
+              aria-label="{% trans 'Play animated product preview' %}"
+            >
+              {% trans "Play preview" %}
+            </button>
             <div class="mkt-edt-walkthrough__chip">
               <span class="mkt-edt-walkthrough__dot" aria-hidden="true"></span>
               <span>{% trans "Animated product walkthrough" %}</span>
@@ -201,14 +225,28 @@
         <div class="mkt-edt-walkthrough__caption">
           <span class="mkt-edt-walkthrough__chapter">{% trans "5 scenes · 0:60 total" %}</span>
           <span class="mkt-edt-walkthrough__chapter-title">{% trans "Morning bell → stand-up → lunch → dismissal → close" %}</span>
-          <span class="mkt-edt-walkthrough__tour-link">{% trans "Full product tour" %} →</span>
+          <a href="{% url 'marketing_resources_product_tour' %}" class="mkt-edt-walkthrough__tour-link" data-cta="product-tour" data-page="home-walkthrough">
+            {% trans "Full product tour" %} →
+          </a>
         </div>
-      </a>
+      </div>
 
       <ul class="mkt-edt-walkthrough__index" aria-label="{% trans 'Walkthrough chapters' %}">
-        <li><strong>02</strong> · {% trans "Migration weeks (4 min)" %}</li>
-        <li><strong>03</strong> · {% trans "Multi-school view (3 min)" %}</li>
-        <li><strong>04</strong> · {% trans "Marketplace + APIs (2 min)" %}        </li>
+        <li>
+          <button type="button" class="mkt-edt-walkthrough__index-btn" data-mkt-walkthrough-play data-mkt-walkthrough-chapter="02">
+            <strong>02</strong> · {% trans "Migration weeks (4 min)" %}
+          </button>
+        </li>
+        <li>
+          <button type="button" class="mkt-edt-walkthrough__index-btn" data-mkt-walkthrough-play data-mkt-walkthrough-chapter="03">
+            <strong>03</strong> · {% trans "Multi-school view (3 min)" %}
+          </button>
+        </li>
+        <li>
+          <button type="button" class="mkt-edt-walkthrough__index-btn" data-mkt-walkthrough-play data-mkt-walkthrough-chapter="04">
+            <strong>04</strong> · {% trans "Marketplace + APIs (2 min)" %}
+          </button>
+        </li>
       </ul>
       {% include "marketing/components/_proof_quote.html" %}
     </div>

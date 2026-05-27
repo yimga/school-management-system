@@ -1,0 +1,88 @@
+{
+  "version": "2026-05-27",
+  "generated_at": "2026-05-27",
+  "max_loop_bytes": 838860,
+  "loop_buckets": [
+    "sovereign_default",
+    "sovereign_us",
+    "sovereign_eu",
+    "sovereign_mena",
+    "sovereign_ssa",
+    "sovereign_apac",
+    "sovereign_latam"
+  ],
+  "loops": {
+    "sovereign_default": {
+      "mp4": "marketing/video/loops/sovereign_default.mp4",
+      "webm": "marketing/video/loops/sovereign_default.webm",
+      "poster": "marketing/img/posters/sovereign_default.svg",
+      "provenance": "hero-derived-regional:sovereign_default:ss=0:t=6:2026-05-27"
+    },
+    "sovereign_us": {
+      "mp4": "marketing/video/loops/sovereign_us.mp4",
+      "webm": "marketing/video/loops/sovereign_us.webm",
+      "poster": "marketing/img/posters/sovereign_us.svg",
+      "provenance": "hero-derived-regional:sovereign_us:ss=0.6:t=5.5:2026-05-27"
+    },
+    "sovereign_eu": {
+      "mp4": "marketing/video/loops/sovereign_eu.mp4",
+      "webm": "marketing/video/loops/sovereign_eu.webm",
+      "poster": "marketing/img/posters/sovereign_eu.svg",
+      "provenance": "hero-derived-regional:sovereign_eu:ss=1.0:t=5.8:2026-05-27"
+    },
+    "sovereign_mena": {
+      "mp4": "marketing/video/loops/sovereign_mena.mp4",
+      "webm": "marketing/video/loops/sovereign_mena.webm",
+      "poster": "marketing/img/posters/sovereign_mena.svg",
+      "provenance": "hero-derived-regional:sovereign_mena:ss=1.4:t=5.6:2026-05-27"
+    },
+    "sovereign_ssa": {
+      "mp4": "marketing/video/loops/sovereign_ssa.mp4",
+      "webm": "marketing/video/loops/sovereign_ssa.webm",
+      "poster": "marketing/img/posters/sovereign_ssa.svg",
+      "provenance": "hero-derived-regional:sovereign_ssa:ss=0.4:t=6.2:2026-05-27"
+    },
+    "sovereign_apac": {
+      "mp4": "marketing/video/loops/sovereign_apac.mp4",
+      "webm": "marketing/video/loops/sovereign_apac.webm",
+      "poster": "marketing/img/posters/sovereign_apac.svg",
+      "provenance": "hero-derived-regional:sovereign_apac:ss=1.8:t=5.4:2026-05-27"
+    },
+    "sovereign_latam": {
+      "mp4": "marketing/video/loops/sovereign_latam.mp4",
+      "webm": "marketing/video/loops/sovereign_latam.webm",
+      "poster": "marketing/img/posters/sovereign_latam.svg",
+      "provenance": "hero-derived-regional:sovereign_latam:ss=2.2:t=5.5:2026-05-27"
+    }
+  },
+  "viz_keys": [
+    "split_ledger_viz",
+    "transit_viz",
+    "gradebook_viz"
+  ],
+  "page_requirements": {
+    "home": [
+      "sovereign_hero_loop_mp4",
+      "split_ledger_viz",
+      "transit_viz",
+      "gradebook_viz"
+    ],
+    "platform-fees-payments": [
+      "split_ledger_viz"
+    ],
+    "platform-offline-first": [
+      "transit_viz",
+      "sovereign_hero_loop_mp4"
+    ],
+    "platform-grading-report-cards": [
+      "gradebook_viz"
+    ]
+  },
+  "homepage_sections": [
+    "sovereign_kernel",
+    "clinical_ledger",
+    "rugged_engine",
+    "fluid_classroom"
+  ],
+  "loops_generated_at": "2026-05-27"
+}

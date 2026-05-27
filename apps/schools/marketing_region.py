@@ -46,18 +46,63 @@ MARKETING_REGION_PROFILES: dict[str, dict[str, str]] = {
         "legacy_path": "",
         "region_label": "United States",
     },
+    "SA": {
+        "default_language": "en",
+        "legacy_path": "",
+        "region_label": "Saudi Arabia",
+    },
+    "AE": {
+        "default_language": "en",
+        "legacy_path": "",
+        "region_label": "United Arab Emirates",
+    },
+    "IN": {
+        "default_language": "en",
+        "legacy_path": "",
+        "region_label": "India",
+    },
+    "BR": {
+        "default_language": "en",
+        "legacy_path": "",
+        "region_label": "Brazil",
+    },
+    "ID": {
+        "default_language": "en",
+        "legacy_path": "",
+        "region_label": "Indonesia",
+    },
 }
 
 # Country codes surfaced in the header picker (order = display).
+# Legacy two-letter shortcuts on runmycampus.com (in addition to /<lang>/<cc>/).
+MARKETING_LEGACY_REGIONAL_SHORTCUTS: tuple[tuple[str, str, str, str], ...] = (
+    ("us", "US", "en", "marketing_us"),
+    ("sa", "SA", "en", "marketing_sa"),
+    ("ae", "AE", "en", "marketing_ae"),
+    ("in", "IN", "en", "marketing_in"),
+    ("br", "BR", "en", "marketing_br"),
+    ("id", "ID", "en", "marketing_id"),
+    ("ke", "KE", "en", "marketing_ke"),
+    ("cm", "CM", "fr", "marketing_cm"),
+    ("ca", "CA", "en", "marketing_ca"),
+    ("ng", "NG", "en", "marketing_ng"),
+    ("gb", "GB", "en", "marketing_gb"),
+)
+
 MARKETING_REGION_PICKER_CODES: tuple[str, ...] = (
-    "CM",
-    "CA",
-    "NG",
-    "GB",
-    "GH",
-    "KE",
-    "ZA",
     "US",
+    "GB",
+    "CA",
+    "SA",
+    "AE",
+    "NG",
+    "KE",
+    "IN",
+    "BR",
+    "ID",
+    "CM",
+    "GH",
+    "ZA",
 )
 
 # Extra regulatory cards beyond the base FERPA/COPPA/GDPR grid.

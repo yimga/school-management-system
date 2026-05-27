@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static i18n region_format %}
+{% load static i18n region_format workflow_guidance_tags smart_link_tags glocal_tags %}
 {% load terminology_tags %}
 
 {% block title %}{% trans "Finances" %}{% endblock %}
@@ -28,6 +28,55 @@
     {% endif %}
   </div>
   {% include "widgets/dashboard_hero.html" with hero=hero %}
+  {% load workflow_tags %}
+  {% with wf=workflow_registry %}
+  {% with next_action=wf|workflow_next_action_payload:request %}
+    {% if next_action %}{% include "components/workflow_next_action.html" %}{% endif %}
+  {% endwith %}
+  {% endwith %}
+
+  {% if pay_all_url and balance > 0 and finance_access_granted %}
+  <section class="rmc-card border-0 shadow-sm mb-3 p-3" aria-label="{% trans 'Family billing' %}" data-rmc-pay-all-hero="1">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <h2 class="h6 mb-1">{% trans "Pay all open balances" %}</h2>
+        {% if family_summary %}
+        <p class="small text-muted mb-0">
+          {% trans "Family total due" %}: <strong>{{ family_summary.family_total_open_balance }}</strong>
+          {% if family_summary.has_overdue %}
+          · <span class="text-danger">{% trans "Includes overdue" %}</span>
+          {% endif %}
+        </p>
+        {% endif %}
+      </div>
+      <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a class="btn btn-primary" href="{{ pay_all_url }}">{% trans "Pay all" %}</a>
+        {% if parent_wallet %}
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_wallet' %}">{% trans "Wallet" %}: {{ parent_wallet.balance }}</a>
+        {% else %}
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'portal:parent_wallet' %}">{% trans "Wallet" %}</a>
+        {% endif %}
+      </div>
+    </div>
+    {% if family_summary and family_summary.child_rows %}
+    <ul class="list-unstyled small mt-2 mb-0">
+      {% for row in family_summary.child_rows %}
+      {% if row.open_invoice_count %}
+      <li>{{ row.student.display_name }} — {{ row.total_balance_open }} ({{ row.open_invoice_count }} {% trans "open" %})</li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if family_summary and family_summary.has_overdue and finance_access_granted %}
+  <section class="rmc-card border border-danger-subtle shadow-sm mb-3 p-3" aria-label="{% trans 'Overdue balances' %}" data-rmc-parent-finance-overdue="1">
+    <h2 class="h6 text-danger mb-2">{% trans "Overdue balances need attention" %}</h2>
+    <p class="small text-muted mb-2">{% trans "Pay the family total or review each invoice below — overdue items may block transcripts or services." %}</p>
+    {% render_smart_links state="invoice.overdue" persona="parent" %}
+  </section>
+  {% endif %}
 
   {% if finance_access_required and not finance_access_granted %}
   <div class="alert alert-warning d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3" role="alert">
@@ -39,7 +88,9 @@
       </div>
     </div>
     {% if can_request_finance_access %}
-    <form method="post" action="{{ finance_request_url }}" class="ms-md-auto" id="parent-finance-access-request-form" dir="auto">
+    <form method="post" action="{{ finance_request_url }}" class="ms-md-auto" id="parent-finance-access-request-form" dir="auto"
+          data-rmc-offline-form="field_capture" data-offline-action-type="finance_access_request"
+          data-draft-key="parent_finance_access_request" data-draft-max-age-hours="24">
       {% csrf_token %}
       <button type="submit" class="btn btn-sm btn-primary">{% trans "Request finance access" %}</button>
     </form>
@@ -170,7 +221,7 @@
       </div>
       {% if invoice_rows %}
         <div class="table-responsive">
-          <table class="table align-middle table-mobile-cards table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Your invoices: reference, student, due date, status, total, balance, and actions' %}">
+          <table class="table align-middle table-mobile-cards table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Your invoices: reference, student, due date, status, total, balance, and actions' %}" data-rmc-row-detail-table="1">
             <thead class="table-light">
             <tr>
               <th scope="col">{% trans "Reference" %}</th>
@@ -188,7 +239,11 @@
             <tbody>
               {% for row in invoice_rows %}
                 {% with invoice=row.invoice link=row.payment_link %}
-              <tr>
+              <tr data-rmc-row-detail="1"
+                  tabindex="0"
+                  data-rmc-row-title="{{ invoice.reference|default:invoice.id }}"
+                  data-rmc-row-subtitle="{{ invoice.student|default:'-' }}"
+                  data-rmc-row-meta='{"{% trans "Due" %}":"{{ invoice.due_date|format_date|default:"—"|escapejs }}","{% trans "Status" %}":"{{ invoice.get_status_display|escapejs }}","{% trans "Balance" %}":"{{ invoice.balance_amount|format_currency|escapejs }}"}'>
                 <td data-label="{% trans 'Reference' %}">{{ invoice.reference|default:invoice.id }}</td>
                 <td data-label="{% trans 'Payment code' %}"><code class="small">{{ invoice.payment_code|default:"—" }}</code></td>
                 <td data-label="{% term 'student' capitalize=True %}">{{ invoice.student|default:"-" }}</td>
@@ -267,4 +322,7 @@
 {% if finance_access_granted %}
 <script src="{% static 'js/_pages/parent__finance.js' %}"></script>
 {% endif %}
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

@@ -37,6 +37,8 @@ jobs:
         run: python scripts/build_marketing_css_bundles.py
       - name: Marketing completion checklist + bundles + shell
         run: |
+          python scripts/ensure_marketing_loops.py
+          python scripts/verify_marketing_glocal_visual_engine.py
           python scripts/generate_marketing_frontend_defect_log.py --write
           python scripts/verify_marketing_seo_shell.py
           python scripts/verify_marketing_frontend_completion.py
@@ -114,3 +116,8 @@ jobs:
           npx playwright test tests/e2e/marketing-impact-responsive.spec.js
           npx playwright test tests/e2e/marketing-gear2-a11y.spec.js
           npx playwright test tests/e2e/marketing-pricing-i18n.spec.js
+      - name: VISUAL-ENGINE smoke (runmycampus.com host, local server)
+        env:
+          MARKETING_BASE_URL: "http://runmycampus.com:8000"
+          PLAYWRIGHT_HOST_RULES: "MAP runmycampus.com 127.0.0.1"
+        run: npx playwright test tests/e2e/marketing-visual-engine.spec.js

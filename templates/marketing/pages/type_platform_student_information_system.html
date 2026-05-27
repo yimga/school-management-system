@@ -1,9 +1,11 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-gear2-lanes.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-sis{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-archetype" data-mkt-archetype="student-information-system">
+  {% marketing_platform_visual_strip %}
+
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Student information · academics lane") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-archetype__hero" %}
   <div class="mkt-edt-container mkt-v3-archetype__ctas">
     <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>

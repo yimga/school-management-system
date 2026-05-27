@@ -8,6 +8,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 HERO_MP4 = REPO / "static" / "marketing" / "video" / "hero-home.mp4"
+ENSURE_LOOPS = REPO / "scripts" / "ensure_marketing_loops.py"
 FONT_400 = (
     REPO
     / "static"
@@ -33,6 +34,8 @@ def main() -> int:
     if not FONT_400.is_file():
         print("setup_marketing_ci_assets: fetching Source Serif 4…")
         _run(FETCH_FONTS)
+    print("setup_marketing_ci_assets: ensuring regional loops…")
+    _run(ENSURE_LOOPS)
     print("setup_marketing_ci_assets: OK")
     return 0
 

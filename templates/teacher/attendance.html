@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
-{% load terminology_tags %}
+{% load i18n static %}
+{% load terminology_tags glocal_tags %}
 
 {% block title %}Attendance{% endblock %}
 
@@ -48,7 +48,7 @@
           <h5 class="mb-2">History</h5>
           {% if logs %}
             <div class="table-responsive">
-              <table class="table table-family align-middle mb-0 table-mobile-cards" id="history">
+              <table class="table table-family align-middle mb-0 table-mobile-cards rmc-data-table" id="history" data-rmc-row-detail-table="1">
                 <caption class="visually-hidden">{% trans "History" %}</caption>
                 <thead class="table-light">
                   <tr>
@@ -61,7 +61,11 @@
                 </thead>
                 <tbody>
                   {% for log in logs %}
-                    <tr>
+                    <tr data-rmc-row-detail="1"
+                        tabindex="0"
+                        data-rmc-row-title="{{ log.date }}"
+                        data-rmc-row-subtitle="{{ log.get_status_display }}"
+                        data-rmc-row-meta='{"{% trans "Check-in" %}":"{{ log.check_in|default:"—"|escapejs }}","{% trans "Check-out" %}":"{{ log.check_out|default:"—"|escapejs }}"}'>
                       <td data-label="Date">{{ log.date }}</td>
                       <td data-label="Status">{{ log.get_status_display }}</td>
                       <td data-label="Check-in">{{ log.check_in|default:"-" }}</td>
@@ -85,4 +89,7 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

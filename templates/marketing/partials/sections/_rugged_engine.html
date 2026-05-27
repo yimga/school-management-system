@@ -1,0 +1,38 @@
+{% load i18n marketing_media %}
+<section
+  id="mkt-rugged-engine"
+  class="mkt-ve-section mkt-ve-section--rugged"
+  data-mkt-personality="rugged"
+  aria-labelledby="mkt-rugged-headline"
+>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-ve-section__header">
+      <p class="mkt-edt-eyebrow">{% trans "Rugged engine" %}</p>
+      <h2 id="mkt-rugged-headline" class="mkt-ve-section__title">
+        {% if marketing_show_phone_ban_section %}
+        {% trans "Campus tracking without phones in pockets." %}
+        {% else %}
+        {% trans "Offline-first when the link drops." %}
+        {% endif %}
+      </h2>
+      <p class="mkt-ve-section__lead">
+        {% trans "Simulated sync queue — attendance and fees still reconcile when connectivity returns." %}
+      </p>
+    </header>
+    <div class="mkt-ve-network" data-mkt-network-state>
+      <div class="mkt-ve-network__viz">
+        {% marketing_viz "transit_viz" %}
+      </div>
+      <div class="mkt-ve-network__toggle" role="group" aria-label="{% trans 'Network state' %}">
+        <button type="button" class="mkt-ve-network__btn is-active" data-mkt-network="online">{% trans "Online" %}</button>
+        <button type="button" class="mkt-ve-network__btn" data-mkt-network="offline">{% trans "Offline" %}</button>
+      </div>
+      <p
+        class="mkt-ve-network__status"
+        data-mkt-network-status
+        data-online-label="{% trans 'Simulated · 3 devices in sync' %}"
+        data-offline-label="{% trans 'Simulated · 3 events queued for sync' %}"
+      >{% trans "Simulated · 3 devices in sync" %}</p>
+    </div>
+  </div>
+</section>

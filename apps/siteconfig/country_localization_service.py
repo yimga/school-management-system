@@ -751,6 +751,20 @@ def _country_from_session(request) -> str:
         return ""
 
 
+def _country_from_marketing_regional_route(request) -> str:
+    """Legacy /ng/ and canonical /en/ng/ pass country_code in URL kwargs."""
+    match = getattr(request, "resolver_match", None)
+    if match is None:
+        return ""
+    cc = normalize_country_code(match.kwargs.get("country_code") or "")
+    if not cc:
+        return ""
+    fn = getattr(match.func, "__name__", "")
+    if fn == "regional_marketing_landing":
+        return cc
+    return ""
+
+
 def _country_from_cookie(request) -> str:
     try:
         return normalize_country_code(request.COOKIES.get("rmc_country") or "")
@@ -793,15 +807,17 @@ def resolve_country_for_request(request) -> str:
     Wave 10 (v3.62.10) order:
       1. request.school.country_code            — multi-tenant context
       2. request.session["onboarding_country_code"] — public signup flow
-      3. request.COOKIES["rmc_country"]         — long-lived UX preference
-      4. GeoIP backend                          — opt-in (Cloudflare /
+      3. marketing regional route kwargs        — /ng/, /en/us/, etc.
+      4. request.COOKIES["rmc_country"]         — long-lived UX preference
+      5. GeoIP backend                          — opt-in (Cloudflare /
                                                    X-Country-Code / MaxMind)
-      5. Accept-Language header tail            — fallback browser hint
-      6. ""                                     — falls through to generic
+      6. Accept-Language header tail            — fallback browser hint
+      7. ""                                     — falls through to generic
     """
     for resolver in (
         _country_from_school,
         _country_from_session,
+        _country_from_marketing_regional_route,
         _country_from_cookie,
         _country_from_geoip,         # Wave 10
         _country_from_accept_language,

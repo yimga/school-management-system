@@ -1,5 +1,5 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
@@ -45,6 +45,7 @@
     </div>
   </header>
 
+  {% include "marketing/components/_platform_visual_engine_strip.html" with viz_key="transit_viz" %}
   {% include "marketing/components/_local_first_global_next.html" with compact=True %}
 
   <section class="mkt-security-section rmc-reveal" aria-labelledby="mkt-security-visual-heading">

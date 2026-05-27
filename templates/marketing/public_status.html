@@ -20,6 +20,13 @@
     </p>
   </header>
 
+  {% if enrollment_peak_mode and enrollment_peak_banner %}
+  <div class="alert alert-warning rmc-reveal mb-4" role="status" data-rmc-enrollment-peak-banner="1">
+    <strong>{% trans "Enrollment peak mode" %}</strong>
+    <span class="d-block mt-1">{{ enrollment_peak_banner }}</span>
+  </div>
+  {% endif %}
+
   <section class="rmc-os-grid-3 rmc-reveal" aria-labelledby="status-components-title">
     <h2 id="status-components-title" class="visually-hidden">{% trans "Component health" %}</h2>
     {% for component in status_payload.components %}

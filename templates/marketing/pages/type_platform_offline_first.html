@@ -1,6 +1,7 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
+{% load i18n static marketing_media %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">{% endblock %}
+{% block extrajs %}{{ block.super }}<script src="{% static 'marketing/js/mkt-network-state.js' %}" defer></script>{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-offline-first mkt-platform-theme--platform-offline-first{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-archetype" data-mkt-archetype="offline-first">
@@ -13,6 +14,7 @@
       <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform overview →" %}</a>
     </div>
   </header>
+  {% include "marketing/components/_platform_visual_engine_strip.html" with viz_key="transit_viz" interactive="network" %}
   {% include "marketing/components/_platform_archetype_visual.html" with visual_static="images/marketing/platform-offline-sync-console.svg" visual_alt=_("Diagram: offline capture, sync queue, conflict review, and reconnection flow") %}
   {% include "marketing/components/_dashboard_frame.html" with frame_title="Sync queue" dashboard_partial="schools/_v2/_artifact_leader_overview.svg.html" %}
   <section class="mkt-edt-container mkt-v3-archetype__wins">

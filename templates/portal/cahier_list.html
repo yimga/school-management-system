@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}Cahier de Texte{% endblock %}
 {% block content %}
 <div data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
@@ -45,16 +45,20 @@
     <h5 class="card-title">My entries</h5>
     {% if entries %}
     <div class="table-responsive">
-      <table class="table table-sm table-family align-middle rmc-data-table">
+      <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
         <caption class="visually-hidden">{% trans "My entries" %}</caption>
         <thead><tr><th>Date</th><th>Class / Subject</th><th>Title</th><th>Status</th></tr></thead>
         <tbody>
           {% for e in entries %}
-          <tr>
-            <td>{{ e.entry_date }}</td>
-            <td>{% if e.subject_assignment %}{{ e.subject_assignment.classroom.name }} – {{ e.subject_assignment.subject.name }}{% else %}—{% endif %}</td>
-            <td>{{ e.title|truncatewords:8 }}</td>
-            <td><span class="badge bg-secondary">{{ e.get_status_display }}</span></td>
+          <tr data-rmc-row-detail="1"
+              tabindex="0"
+              data-rmc-row-title="{{ e.title|truncatewords:8 }}"
+              data-rmc-row-subtitle="{{ e.entry_date }}"
+              data-rmc-row-meta='{"{% trans "Status" %}":"{{ e.get_status_display|escapejs }}"}'>
+            <td data-label="{% trans 'Date' %}">{{ e.entry_date }}</td>
+            <td data-label="{% trans 'Class / Subject' %}">{% if e.subject_assignment %}{{ e.subject_assignment.classroom.name }} – {{ e.subject_assignment.subject.name }}{% else %}—{% endif %}</td>
+            <td data-label="{% trans 'Title' %}">{{ e.title|truncatewords:8 }}</td>
+            <td data-label="{% trans 'Status' %}"><span class="badge bg-secondary">{{ e.get_status_display }}</span></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -69,4 +73,7 @@
   </div>
 </div>
 </div>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

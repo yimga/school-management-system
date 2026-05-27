@@ -47,6 +47,22 @@ REQUIRED_FILES = (
     "apps/schools/marketing_geo.py",
     "tests/e2e/marketing-gear2-a11y.spec.js",
     "tests/e2e/marketing-pricing-i18n.spec.js",
+    "docs/generated/marketing_media_manifest.json",
+    "static/marketing/css/marketing-visual-engine.css",
+    "apps/schools/templatetags/marketing_media.py",
+    "apps/schools/marketing_media_matrix.py",
+    "apps/schools/marketing_geo_context.py",
+    "scripts/verify_marketing_media_manifest.py",
+    "scripts/verify_marketing_loop_assets.py",
+    "scripts/verify_marketing_no_video_iframes.py",
+    "scripts/verify_marketing_visual_engine_sections.py",
+    "scripts/verify_marketing_glocal_visual_engine.py",
+    "scripts/verify_marketing_platform_visual_wiring.py",
+    "scripts/compress_marketing_loops_from_hero.py",
+    "scripts/verify_marketing_regional_routes.py",
+    "scripts/verify_marketing_platform_pages_visual_coverage.py",
+    "scripts/verify_marketing_loops_hero_derived.py",
+    "scripts/verify_marketing_platform_routed_dedicated.py",
 )
 
 SUBPROCESS_GATES = (
@@ -57,6 +73,17 @@ SUBPROCESS_GATES = (
     "scripts/verify_marketing_impact_layer.py",
     "scripts/verify_marketing_sweep2.py",
     "scripts/verify_marketing_gear2_completion.py",
+    "scripts/verify_marketing_media_manifest.py",
+    "scripts/verify_marketing_loop_assets.py",
+    "scripts/verify_marketing_no_video_iframes.py",
+    "scripts/verify_marketing_visual_engine_sections.py",
+    "scripts/verify_marketing_glocal_visual_engine.py",
+    "scripts/verify_marketing_platform_visual_wiring.py",
+    "scripts/compress_marketing_loops_from_hero.py",
+    "scripts/verify_marketing_regional_routes.py",
+    "scripts/verify_marketing_platform_pages_visual_coverage.py",
+    "scripts/verify_marketing_loops_hero_derived.py",
+    "scripts/verify_marketing_platform_routed_dedicated.py",
 )
 
 

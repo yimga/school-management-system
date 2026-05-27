@@ -1,5 +1,5 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
@@ -43,6 +43,7 @@
       <img src="{% static 'images/marketing/platform-analytics-leadership.svg' %}" alt="" width="920" height="340" loading="eager" decoding="async" class="img-fluid">
     </div>
   </header>
+  {% marketing_platform_visual_strip %}
 
   <section class="mkt-analytics-section rmc-reveal" aria-labelledby="mkt-analytics-visual-heading">
     <h2 id="mkt-analytics-visual-heading">{% trans "Leadership dashboards built on live operations" %}</h2>

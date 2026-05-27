@@ -1,5 +1,5 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% load terminology_tags %}
 {% block extrastyle %}
 {{ block.super }}
@@ -43,6 +43,7 @@
       <img src="{% static 'images/marketing/platform-parent-mobile-portal.svg' %}" alt="" width="520" height="420" loading="eager" decoding="async" class="img-fluid">
     </div>
   </header>
+  {% marketing_platform_visual_strip %}
 
   <section class="mkt-parent-section rmc-reveal" aria-labelledby="mkt-parent-visual-heading">
     <h2 id="mkt-parent-visual-heading">{% trans "What families see on their phones" %}</h2>

@@ -1,0 +1,144 @@
+{
+  "generated_at": "2026-05-27T22:10:43.507143+00:00",
+  "verdict": "GLOCAL_ZERO_HARDCODE_KERNEL_PASS",
+  "finding_count": 0,
+  "checks": [
+    {
+      "id": "CP1-data-residency-module",
+      "status": "PASS",
+      "detail": "data_residency kernel present"
+    },
+    {
+      "id": "CP1-school-data-region-field",
+      "status": "PASS",
+      "detail": "School.data_region on model"
+    },
+    {
+      "id": "CP1-sovereignty-wizard",
+      "status": "PASS",
+      "detail": "setup_studio sovereignty writers"
+    },
+    {
+      "id": "CP1-verify-data-residency-cmd",
+      "status": "PASS",
+      "detail": "verify_data_residency management command"
+    },
+    {
+      "id": "CP1-residency-readiness",
+      "status": "PASS",
+      "detail": "residency_readiness assess_readiness"
+    },
+    {
+      "id": "CP1-onboarding-verifier",
+      "status": "PASS",
+      "detail": "data residency onboarding script"
+    },
+    {
+      "id": "CP2-permission-manifest",
+      "status": "PASS",
+      "detail": "colon token manifest + CRDT rejected"
+    },
+    {
+      "id": "CP2-rebac-token-check",
+      "status": "PASS",
+      "detail": "rebac.check_permission_token export"
+    },
+    {
+      "id": "CP2-iam-localization",
+      "status": "PASS",
+      "detail": "iam_localization localized_role_label"
+    },
+    {
+      "id": "CP3-conflict-resolver",
+      "status": "PASS",
+      "detail": "sync_engine conflict_resolver"
+    },
+    {
+      "id": "CP3-offline-queue",
+      "status": "PASS",
+      "detail": "platform_runtime offline_queue facade"
+    },
+    {
+      "id": "CP3-service-worker",
+      "status": "PASS",
+      "detail": "service worker offline queue registration"
+    },
+    {
+      "id": "CP4-isomorphic-css",
+      "status": "PASS",
+      "detail": "rmc-isomorphic-grid-sweep on platform chrome"
+    },
+    {
+      "id": "CP4-shells-lexicon",
+      "status": "PASS",
+      "detail": "portal + CP shells load regional UI"
+    },
+    {
+      "id": "delegate-onboarding",
+      "status": "PASS",
+      "detail": "verify_data_residency_onboarding.py",
+      "proof_tail": "verify_data_residency_onboarding: DATA_RESIDENCY_ONBOARDING_PASS"
+    },
+    {
+      "id": "delegate-offline-envelope",
+      "status": "PASS",
+      "detail": "verify_offline_event_envelope.py",
+      "proof_tail": "verify_offline_event_envelope: OFFLINE_EVENT_ENVELOPE_PASS"
+    },
+    {
+      "id": "delegate-iam-vocab",
+      "status": "PASS",
+      "detail": "verify_isomorphic_iam_vocabulary.py",
+      "proof_tail": "verify_isomorphic_iam_vocabulary: ISOMORPHIC_IAM_VOCABULARY_PASS"
+    },
+    {
+      "id": "delegate-viewport",
+      "status": "PASS",
+      "detail": "verify_isomorphic_workspace_viewport.py",
+      "proof_tail": "verify_isomorphic_workspace_viewport: ISOMORPHIC_WORKSPACE_VIEWPORT_PASS"
+    },
+    {
+      "id": "delegate-qr-attendance",
+      "status": "PASS",
+      "detail": "verify_zero_input_attendance_pilot.py",
+      "proof_tail": "verify_zero_input_attendance_pilot: ZERO_INPUT_ATTENDANCE_PILOT_PASS"
+    },
+    {
+      "id": "delegate-multi-region",
+      "status": "PASS",
+      "detail": "verify_multi_region_router_scaffold.py",
+      "proof_tail": "O 2026-05-27 18:08:31,793 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+    },
+    {
+      "id": "delegate-grid-sweep",
+      "status": "PASS",
+      "detail": "audit_isomorphic_grid_channel_sweep.py",
+      "proof_tail": "ISOMORPHIC_GRID_CHANNEL_SWEEP_PASS\n  channels: 9 families audited\n  inline scroll traps: 0 unmarked\n  data-table channels: rmc-data-table + wrapper wired"
+    },
+    {
+      "id": "delegate-out-of-scope-honesty",
+      "status": "PASS",
+      "detail": "verify_glocal_out_of_scope_honesty.py",
+      "proof_tail": "verify_glocal_out_of_scope_honesty: GLOCAL_OUT_OF_SCOPE_HONESTY_PASS"
+    },
+    {
+      "id": "delegate-adoption-tranche",
+      "status": "PASS",
+      "detail": "verify_glocal_adoption_tranche.py",
+      "proof_tail": "verify_glocal_adoption_tranche: GLOCAL_ADOPTION_TRANCHE_PASS"
+    },
+    {
+      "id": "delegate-glocal-closeout",
+      "status": "PASS",
+      "detail": "verify_glocal_closeout_completion.py",
+      "proof_tail": "O 2026-05-27 18:08:47,298 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+    },
+    {
+      "id": "delegate-local-first",
+      "status": "PASS",
+      "detail": "verify_local_first_completion.py",
+      "proof_tail": "verify_local_first_completion: LOCAL_FIRST_COMPLETION_PASS"
+    }
+  ],
+  "failures": []
+}

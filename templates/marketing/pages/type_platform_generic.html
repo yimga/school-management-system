@@ -1,11 +1,12 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-platform-theme--{{ page.slug|default:'platform'|slugify }}{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-archetype">
   {% include "marketing/components/_personality_hero.html" with eyebrow=page.label headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-archetype__hero" %}
   {% include "marketing/components/_personality_viz_panel.html" %}
+  {% marketing_platform_visual_strip %}
   <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
     <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta" data-cta="demo">{% trans "Book a demo" %}</a>
     <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform hub →" %}</a>

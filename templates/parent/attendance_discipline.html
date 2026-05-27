@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n static %}
+{% load i18n static glocal_tags %}
 {% load terminology_tags %}
 
 {% block title %}{% trans "Attendance & Discipline" %}{% endblock %}
@@ -23,12 +23,16 @@
     <div class="card-body">
       {% if absences %}
         <div class="table-responsive">
-          <table class="table table-sm table-family align-middle">
+          <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
             <caption class="visually-hidden">{% trans "Absences & tardies" %}</caption>
             <thead><tr><th scope="col">{% trans "Date" %}</th><th scope="col">{% trans_term "Student" key="student" %}</th><th scope="col">{% trans "Status" %}</th><th scope="col">{% trans "Remarks" %}</th></tr></thead>
             <tbody>
               {% for a in absences %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ a.student.get_full_name|default:a.student }}"
+                    data-rmc-row-subtitle="{{ a.date|date }}"
+                    data-rmc-row-meta='{"{% trans "Status" %}":"{{ a.get_status_display|escapejs }}"}'>
                   <td>{{ a.date|date }}</td>
                   <td>{{ a.student.get_full_name|default:a.student }}</td>
                   <td>{{ a.get_status_display }}</td>
@@ -80,6 +84,9 @@
     </div>
   </div>
   </div>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
 
 {% block extrajs %}

@@ -1,0 +1,22 @@
+/**
+ * Tenant workspace canvas scroll (batch 1533) — role-home dashboards.
+ */
+body.portal-body-with-layout[data-rmc-cp-scroll="canvas"] {
+  overflow: hidden;
+  max-height: var(--rmc-iso-viewport-h, 100dvh);
+}
+
+body.portal-body-with-layout[data-rmc-cp-scroll="canvas"] .portal-layout-wrap,
+body.portal-body-with-layout[data-rmc-cp-scroll="canvas"] .portal-layout-row {
+  min-height: 0;
+  max-height: 100%;
+}
+
+body.portal-body-with-layout[data-rmc-cp-scroll="canvas"] .portal-main-col,
+body.portal-body-with-layout[data-rmc-cp-scroll="canvas"] #main-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+  max-height: calc(var(--rmc-iso-viewport-h, 100dvh) - var(--rmc-portal-header-offset, 0px));
+}

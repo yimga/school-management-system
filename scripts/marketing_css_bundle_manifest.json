@@ -17,6 +17,7 @@
     "static/marketing/css/marketing-impact.css",
     "static/marketing/css/marketing-page-personality.css",
     "static/marketing/css/marketing-media-viz.css",
+    "static/marketing/css/marketing-visual-engine.css",
     "static/marketing/css/marketing-edge-layout.css",
     "static/marketing/css/marketing-gear2-lanes.css",
     "static/marketing/css/marketing-shell.css",
@@ -42,7 +43,7 @@
   ],
   "size_budget_bytes": {
     "critical_max": 45000,
-    "enhanced_max": 290000,
+    "enhanced_max": 350000,
     "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (284KB as of 2026-05-21 after batch 1372 off-token-allow / theme-locked-allow CI markers preserved through minify). Deferred load via media=print onload."
   }
 }

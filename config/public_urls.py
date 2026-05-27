@@ -92,6 +92,8 @@ from apps.siteconfig.views_manifest_icon import (
     icon_maskable as _manifest_icon_maskable,
 )
 from apps.schools.marketing_views_v2 import marketing_landing_v2
+from apps.schools.marketing_region import MARKETING_LEGACY_REGIONAL_SHORTCUTS
+from apps.schools.views_marketing_api import marketing_sandbox_validate
 from apps.marketplace.urls_developer_platform import (
     public_urlpatterns as marketplace_dev_public_urlpatterns,
 )
@@ -1124,36 +1126,26 @@ urlpatterns = [
     path(
         "solutions/<str:topic_slug>/", topical_marketing_landing, name="marketing_topic"
     ),
-    path(
-        "cm/",
-        regional_marketing_landing,
-        {"country_code": "CM", "language_code": "fr"},
-        name="marketing_cm",
-    ),
-    path(
-        "ca/",
-        regional_marketing_landing,
-        {"country_code": "CA", "language_code": "en"},
-        name="marketing_ca",
-    ),
-    path(
-        "ng/",
-        regional_marketing_landing,
-        {"country_code": "NG", "language_code": "en"},
-        name="marketing_ng",
-    ),
-    path(
-        "gb/",
-        regional_marketing_landing,
-        {"country_code": "GB", "language_code": "en"},
-        name="marketing_gb",
-    ),
+    *[
+        path(
+            f"{prefix}/",
+            regional_marketing_landing,
+            {"country_code": country, "language_code": lang},
+            name=url_name,
+        )
+        for prefix, country, lang, url_name in MARKETING_LEGACY_REGIONAL_SHORTCUTS
+    ],
     path("onboard/", onboarding_wizard, name="onboard_wizard"),
     path("onboard/migrate/", onboard_migration_handoff, name="onboard_migration_handoff"),
     path("onboard/migrate/start/", onboard_migration_start, name="onboard_migration_start"),
     path("signup/", signup_school, name="signup_school"),
     path("verify-signup/", verify_signup, name="verify_signup"),
     path("verify/<str:token>/", verify_student_id, name="verify_student_id"),
+    path(
+        "marketing/api/sandbox-validate/",
+        marketing_sandbox_validate,
+        name="marketing_sandbox_validate",
+    ),
     path("api/tour-steps/public/", tour_steps_public_api, name="tour_steps_public_api"),
     path("api/trial/", api_trial_school, name="api_trial_school"),
     path("api/brand-import/", brand_import_api, name="api_brand_import"),

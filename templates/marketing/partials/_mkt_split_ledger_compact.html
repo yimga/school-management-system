@@ -1,0 +1,10 @@
+{% load i18n marketing_media %}
+<div class="mkt-ve-split mkt-ve-split--compact" data-mkt-split-ledger>
+  <div class="mkt-ve-split__viz">
+    {% marketing_viz "split_ledger_viz" %}
+  </div>
+  <label class="mkt-ve-split__slider-label">
+    <span>{% trans "Tuition vs activity split (illustrative)" %}</span>
+    <input type="range" min="10" max="90" value="65" data-mkt-split-slider aria-valuemin="10" aria-valuemax="90" aria-valuenow="65">
+  </label>
+</div>

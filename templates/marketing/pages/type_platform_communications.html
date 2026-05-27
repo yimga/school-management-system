@@ -1,5 +1,5 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-communications{% endblock %}
 {% block marketing_page_inner %}
@@ -13,6 +13,7 @@
       <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform overview →" %}</a>
     </div>
   </header>
+  {% marketing_platform_visual_strip %}
   {% include "marketing/components/_platform_archetype_visual.html" with visual_static="images/marketing/platform-communications-orchestration.svg" visual_alt=_("Diagram: message orchestration with audience targeting, composer, and delivery status") %}
   {% include "marketing/components/_dashboard_frame.html" with frame_title="Parent inbox" dashboard_partial="schools/_v2/_artifact_parent_phone_compact.svg.html" %}
   <section class="mkt-edt-container mkt-v3-archetype__wins">

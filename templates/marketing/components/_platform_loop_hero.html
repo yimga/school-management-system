@@ -1,0 +1,17 @@
+{% load i18n marketing_media %}
+<div class="mkt-ve-platform-loop" data-mkt-platform-loop>
+  <video
+    class="mkt-ve-loop mkt-ve-loop--platform"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="metadata"
+    poster="{% marketing_asset 'sovereign_hero_poster' %}"
+    aria-label="{% trans 'Illustrative product loop' %}"
+  >
+    <source src="{% marketing_asset 'sovereign_hero_loop_webm' %}" type="video/webm">
+    <source src="{% marketing_asset 'sovereign_hero_loop_mp4' %}" type="video/mp4">
+  </video>
+  <p class="mkt-edt-illustrative-pill">{% trans "Simulated campus · not a live tenant" %}</p>
+</div>

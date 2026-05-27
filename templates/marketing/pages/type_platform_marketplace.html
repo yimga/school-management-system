@@ -1,5 +1,5 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-platform-theme--marketplace{% endblock %}
 {% block marketing_page_inner %}
@@ -13,6 +13,7 @@
       <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform hub →" %}</a>
     </div>
   </header>
+  {% marketing_platform_visual_strip %}
   {% if page.segments %}
   <section class="mkt-edt-container mkt-v3-archetype__wins rmc-reveal">
     <div class="mkt-v3-segment-grid">

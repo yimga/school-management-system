@@ -1,0 +1,9 @@
+{% load i18n %}<svg class="mkt-viz mkt-viz--transit" viewBox="0 0 400 220" role="img" aria-labelledby="mkt-viz-transit-title" xmlns="http://www.w3.org/2000/svg">
+  <title id="mkt-viz-transit-title">{% trans "Illustrative offline sync beacon" %}</title>
+  <rect width="400" height="220" fill="var(--mkt-surface-elevated, #0f172a)" rx="8"/>
+  <g data-mkt-sync-beacon>
+    <circle cx="200" cy="110" r="48" fill="none" stroke="var(--mkt-accent, #38bdf8)" stroke-width="3" opacity="0.9"/>
+    <circle cx="200" cy="110" r="8" fill="var(--mkt-success, #34d399)"/>
+  </g>
+  <text data-mkt-queue-label x="200" y="180" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="system-ui">{% trans "Simulated queue · 3 devices synced" %}</text>
+</svg>

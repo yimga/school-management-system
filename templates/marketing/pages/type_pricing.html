@@ -1,5 +1,5 @@
 {% extends "schools/marketing_page_layout.html" %}
-{% load i18n static %}
+{% load i18n static marketing_media %}
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-pages.css' %}">{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-pricing{% endblock %}
 {% block extrajs %}{{ block.super }}<script src="{% static 'marketing/js/pricing-currency.js' %}" defer></script>{% endblock %}
@@ -9,6 +9,7 @@
   {% include "marketing/components/_personality_viz_panel.html" %}
   {% include "marketing/components/_local_first_global_next.html" with compact=True %}
   <div class="mkt-edt-container">
+    {% include "marketing/components/_platform_visual_engine_strip.html" with viz_key="split_ledger_viz" show_apm_strip=True %}
     {% include "marketing/components/_currency_switcher.html" %}
   </div>
 
