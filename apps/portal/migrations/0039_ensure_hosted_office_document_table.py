@@ -1,27 +1,37 @@
-"""Repair public table drift when 0028 is recorded but portal_hostedofficedocument is absent."""
+"""Repair table drift when 0028 is recorded but portal_hostedofficedocument is absent.
+
+Must introspect the active schema (public or tenant), not public only — otherwise
+tenant migrate_schemas attempts CREATE on an existing portal_hostedofficedocument.
+"""
 
 from django.db import migrations
 
 
-def _table_names(schema_editor):
+def _schema_name(connection):
+    return getattr(connection, "schema_name", None) or "public"
+
+
+def _table_exists(schema_editor, schema_name, table_name):
     connection = schema_editor.connection
     if connection.vendor == "postgresql":
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT tablename
-                FROM pg_catalog.pg_tables
-                WHERE schemaname = 'public'
-                """
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = %s AND table_name = %s
+                """,
+                [schema_name, table_name],
             )
-            return {row[0] for row in cursor.fetchall()}
-    return set(connection.introspection.table_names())
+            return cursor.fetchone() is not None
+    return table_name in set(connection.introspection.table_names())
 
 
 def ensure_hosted_office_document_table(apps, schema_editor):
     model = apps.get_model("portal", "HostedOfficeDocument")
     table = model._meta.db_table
-    if table in _table_names(schema_editor):
+    schema = _schema_name(schema_editor.connection)
+    if _table_exists(schema_editor, schema, table):
         return
     schema_editor.create_model(model)
 
