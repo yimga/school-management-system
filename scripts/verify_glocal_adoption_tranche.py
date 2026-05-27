@@ -21,6 +21,9 @@ DRAWER_TARGETS: tuple[tuple[str, str], ...] = (
     ("templates/teacher/leave.html", "teacher_leave"),
     ("templates/parent/wallet.html", "parent_wallet"),
     ("templates/portal/cahier_list.html", "cahier_list"),
+    ("templates/portal/office_document_list.html", "office_document_list"),
+    ("templates/portal/partials/document_library_manage_inner.html", "document_library"),
+    ("templates/portal/user_contributions.html", "user_contributions"),
 )
 
 IAM_TARGETS: tuple[str, ...] = (

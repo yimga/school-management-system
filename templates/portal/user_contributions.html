@@ -88,7 +88,7 @@
                     <!-- FAQ Contributions Tab -->
                     <div class="tab-pane fade show active" id="faqs">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
+                            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1">
                               <caption class="visually-hidden">{% trans "My Contributions - Knowledge Base" %}</caption>
                                 <thead class="table-light">
                                     <tr>
@@ -102,8 +102,12 @@
                                 </thead>
                                 <tbody>
                                     {% for faq in user_faqs %}
-                                    <tr>
-                                        <td>
+                                    <tr data-rmc-row-detail="1"
+                                        tabindex="0"
+                                        data-rmc-row-title="{{ faq.question|truncatewords:8 }}"
+                                        data-rmc-row-subtitle="{{ faq.get_status_display }}"
+                                        data-rmc-row-meta='{"{% trans "Views" %}":"{{ faq.views }}","{% trans "Helpful" %}":"{{ faq.helpful_count }}"}'>
+                                        <td data-label="{% trans 'Question' %}">
                                             <strong>{{ faq.question|truncatewords:8 }}</strong>
                                         </td>
                                         <td>
@@ -157,7 +161,7 @@
                     <!-- Article Contributions Tab -->
                     <div class="tab-pane fade" id="articles">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
+                            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1">
                               <caption class="visually-hidden">{% trans "My Contributions - Knowledge Base" %}</caption>
                                 <thead class="table-light">
                                     <tr>
@@ -171,7 +175,11 @@
                                 </thead>
                                 <tbody>
                                     {% for article in user_articles %}
-                                    <tr>
+                                    <tr data-rmc-row-detail="1"
+                                        tabindex="0"
+                                        data-rmc-row-title="{{ article.title|truncatewords:8 }}"
+                                        data-rmc-row-subtitle="{{ article.get_status_display }}"
+                                        data-rmc-row-meta='{"{% trans "Views" %}":"{{ article.views }}","{% trans "Read time" %}":"{{ article.read_time_minutes }} min"}'>
                                         <td>
                                             <strong>{{ article.title|truncatewords:10 }}</strong>
                                         </td>
@@ -317,4 +325,7 @@
     </div>
 </div>
 
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

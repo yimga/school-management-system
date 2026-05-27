@@ -129,7 +129,7 @@
       {% if documents %}
         <div class="table-responsive ds-table-wrap">
           <!-- large-collection-allow: document-library-row-actions -->
-          <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Document library' %}">
+          <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'Document library' %}" data-rmc-row-detail-table="1">
             <thead>
               <tr>
                 <th scope="col">{% trans "Title" %}</th>
@@ -146,8 +146,12 @@
             </thead>
             <tbody>
               {% for doc in documents %}
-                <tr>
-                  <td>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ doc.title }}"
+                    data-rmc-row-subtitle="{{ doc.get_document_type_display }}"
+                    data-rmc-row-meta='{"{% trans "Lifecycle" %}":"{{ doc.get_lifecycle_state_display|default:doc.lifecycle_state|escapejs }}","{% trans "Status" %}":"{{ doc.get_status_display|escapejs }}"}'>
+                  <td data-label="{% trans 'Title' %}">
                     <div class="fw-semibold">{{ doc.title }}</div>
                     {% if doc.description %}
                       <div class="text-muted small">{{ doc.description|truncatewords:10 }}</div>
@@ -275,3 +279,6 @@
 <script type="application/json" id="page-data-portal__partials__document_library_manage_inner-1">{
   "url_portal_document_delete": "{% url 'portal:document_delete' 999999 %}"
 }</script><script src="{% static 'js/_pages/portal__partials__document_library_manage_inner-1.js' %}"></script>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>

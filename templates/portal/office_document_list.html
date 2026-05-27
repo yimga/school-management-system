@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}Office Documents{% endblock %}
 {% block content %}
 <div class="container py-4" data-page-archetype="task-list" data-rmc-scroll-policy="paginate">
@@ -7,16 +7,20 @@
   {% if not collabora_enabled %}
   <div class="alert alert-warning">Collabora is not configured. Set <code>COLLABORA_BASE_URL</code>.</div>
   {% endif %}
-  <table class="table table-sm table-family align-middle rmc-data-table">
+  <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
     <caption class="visually-hidden">{% trans "Office Documents" %}</caption>
     <thead><tr><th>Title</th><th>Audience</th><th>Updated</th><th></th></tr></thead>
     <tbody>
       {% for doc in documents %}
-      <tr>
-        <td>{{ doc.title }}</td>
-        <td>{{ doc.help_audience }}</td>
-        <td>{{ doc.updated_at }}</td>
-        <td><a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">Open</a></td>
+      <tr data-rmc-row-detail="1"
+          tabindex="0"
+          data-rmc-row-title="{{ doc.title }}"
+          data-rmc-row-subtitle="{{ doc.help_audience }}"
+          data-rmc-row-meta='{"{% trans "Updated" %}":"{{ doc.updated_at|escapejs }}"}'>
+        <td data-label="{% trans 'Title' %}">{{ doc.title }}</td>
+        <td data-label="{% trans 'Audience' %}">{{ doc.help_audience }}</td>
+        <td data-label="{% trans 'Updated' %}">{{ doc.updated_at }}</td>
+        <td data-label="{% trans 'Actions' %}"><a class="btn btn-sm btn-primary" href="{% url 'kb:office_document_open' doc.id %}">{% trans "Open" %}</a></td>
       </tr>
       {% empty %}
       <tr><td colspan="4">{% include "components/tp_empty.html" with tp_empty_title=_("No documents") tp_empty_hint=_("Office documents will appear here when published.") %}</td></tr>
@@ -24,4 +28,7 @@
     </tbody>
   </table>
 </div>
+{% include "partials/portal_row_detail_drawer.html" %}
+<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
+<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
