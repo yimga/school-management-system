@@ -45,4 +45,6 @@
   <span class="rmc-back-to-top__label">{% trans "Back to top" %}</span>
 </button>
 
+{# Scroll-container SOT must load before back-to-top (canvas vs document scroll). #}
+<script src="{% static 'js/rmc-scroll-container.js' %}"></script>
 <script src="{% static 'js/_pages/components__back_to_top.js' %}"></script>

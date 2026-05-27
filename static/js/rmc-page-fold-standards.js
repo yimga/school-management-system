@@ -44,6 +44,9 @@
     } else {
       html.removeAttribute("data-rmc-exceeds-4-folds");
     }
+    if (window.RMCBackToTop && window.RMCBackToTop.refresh) {
+      window.RMCBackToTop.refresh();
+    }
   }
 
   function buildTaskPager(ariaLabel, totalPages, renderPage) {

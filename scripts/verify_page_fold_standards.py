@@ -158,11 +158,24 @@ def main() -> int:
     )
 
     back_js = _read("static/js/_pages/components__back_to_top.js")
+    back_tpl = _read("templates/components/back_to_top.html")
     add(
         "back_to_top_two_fold_threshold",
         "Back-to-top uses 2-fold scroll threshold",
-        "fold * 2" in back_js or "scrollThreshold = fold * 2" in back_js,
+        (
+            "THRESHOLD_FOLDS = 2" in back_js
+            or "fold * 2" in back_js
+            or "foldHeight() * THRESHOLD_FOLDS" in back_js
+        ),
         "components__back_to_top.js",
+    )
+    add(
+        "back_to_top_scroll_container_first",
+        "Back-to-top loads scroll-container before init",
+        "rmc-scroll-container.js" in back_tpl
+        and back_tpl.find("rmc-scroll-container.js")
+        < back_tpl.find("components__back_to_top.js"),
+        "components/back_to_top.html",
     )
 
     failed = [r for r in rows if r.status == "FAIL"]

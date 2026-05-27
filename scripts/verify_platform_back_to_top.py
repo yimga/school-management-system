@@ -16,6 +16,7 @@ SHELLS = (
     "templates/base.html",
     "templates/marketing/base_marketing.html",
     "templates/admin/base.html",
+    "templates/admin/base_site.html",
 )
 
 

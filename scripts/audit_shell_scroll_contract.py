@@ -107,8 +107,20 @@ def audit_templates() -> list[str]:
     btt_js = _read("static/js/_pages/components__back_to_top.js")
     if "ensureBodyMounted" not in btt_js:
         failures.append("components__back_to_top.js: missing ensureBodyMounted()")
-    if "data-rmc-cp-scroll=\"canvas\"" not in btt_js and "canvas" not in btt_js:
-        failures.append("components__back_to_top.js: missing canvas scroll threshold branch")
+    if "THRESHOLD_FOLDS" not in btt_js:
+        failures.append("components__back_to_top.js: missing THRESHOLD_FOLDS")
+    if "RMCBackToTop" not in btt_js:
+        failures.append("components__back_to_top.js: missing RMCBackToTop export")
+
+    btt_tpl = _read("templates/components/back_to_top.html")
+    if "rmc-scroll-container.js" not in btt_tpl:
+        failures.append("back_to_top.html: must load rmc-scroll-container.js first")
+    if "data-rmc-back-to-top-percent" not in btt_tpl:
+        failures.append("back_to_top.html: missing scroll progress percent chip")
+
+    fold_js = _read("static/js/rmc-page-fold-standards.js")
+    if "RMCBackToTop" not in fold_js:
+        failures.append("rmc-page-fold-standards.js: must refresh RMCBackToTop after fold measure")
 
     return failures
 
