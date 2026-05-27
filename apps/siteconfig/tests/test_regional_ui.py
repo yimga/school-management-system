@@ -59,6 +59,18 @@ class RegionalUiHelpersTests(TestCase):
         )
         self.assertEqual(ctx["rmc_text_direction"], "ltr")
 
+    def test_active_translation_overrides_region_default_for_rtl(self):
+        translation.activate("ar")
+        try:
+            ctx = augment_region_shell_context(
+                {"is_rtl": False, "default_language": "en"},
+                RequestFactory().get("/"),
+            )
+            self.assertEqual(ctx["rmc_locale"], "ar")
+            self.assertEqual(ctx["rmc_text_direction"], "rtl")
+        finally:
+            translation.deactivate()
+
 
 @override_settings(ALLOWED_HOSTS=list(_ALLOWED))
 class RegionalUiShellMarkerTests(TestCase):

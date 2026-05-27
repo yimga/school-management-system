@@ -64,8 +64,11 @@ def augment_region_shell_context(region_ctx: dict, request) -> dict[str, Any]:
     """Merge ``rmc_*`` keys for templates from existing ``region_settings`` output."""
     from django.utils import translation
 
-    loc = region_ctx.get("default_language") or translation.get_language() or "en"
-    loc = _normalize_locale(loc)
+    active = translation.get_language()
+    if active:
+        loc = _normalize_locale(active)
+    else:
+        loc = _normalize_locale(region_ctx.get("default_language") or "en")
 
     policy_rtl = bool(region_ctx.get("is_rtl"))
     rtl_locale = is_rtl_locale(loc)

@@ -5,16 +5,30 @@
  */
 
 const TENANT_SLUG = (process.env.TENANT_SLUG || 'gilead-school').replace(/^\/+|\/+$/g, '');
-const TENANT_PORT = process.env.VISUAL_QA_PORT || '8012';
-const TENANT_ROUTING = (process.env.TENANT_ROUTING || 'host').toLowerCase();
+const TENANT_PORT = process.env.VISUAL_QA_PORT || '8000';
 const TENANT_HOST =
   process.env.VISUAL_QA_TENANT_HOST || `${TENANT_SLUG}.runmycampus.com`;
 const TENANT_ORIGIN = (
-  process.env.TENANT_BASE_URL ||
-  (TENANT_ROUTING === 'path'
-    ? `http://127.0.0.1:${TENANT_PORT}`
-    : `http://${TENANT_HOST}:${TENANT_PORT}`)
+  process.env.TENANT_BASE_URL || `http://127.0.0.1:${TENANT_PORT}`
 ).replace(/\/$/, '');
+
+function _inferTenantRouting() {
+  const explicit = (process.env.TENANT_ROUTING || '').trim().toLowerCase();
+  if (explicit === 'path' || explicit === 'host') {
+    return explicit;
+  }
+  try {
+    const host = new URL(TENANT_ORIGIN).hostname;
+    if (host === '127.0.0.1' || host === 'localhost') {
+      return 'path';
+    }
+  } catch {
+    // fall through
+  }
+  return 'host';
+}
+
+const TENANT_ROUTING = _inferTenantRouting();
 
 function tenantPrefix() {
   const raw = (process.env.TENANT_PREFIX || `/t/${TENANT_SLUG}`).trim();
@@ -36,23 +50,68 @@ function tenantUrl(path) {
 /**
  * @param {import('@playwright/test').Page} page
  */
-async function ensureTenantOrigin(page) {
-  if (TENANT_ROUTING === 'host') {
-    return;
+function _isRunmycampusMarketingHost(hostname) {
+  return (
+    hostname === 'runmycampus.com' ||
+    hostname.endsWith('.runmycampus.com')
+  );
+}
+
+function _pathWithTenantPrefix(pathname) {
+  const prefix = tenantPrefix();
+  let path = pathname || '/';
+  if (path.startsWith(prefix)) {
+    return path;
   }
+  const stripped = path.replace(/^\/t\/[^/]+/, '') || '/';
+  const suffix = stripped.startsWith('/') ? stripped : `/${stripped}`;
+  return `${prefix}${suffix}`;
+}
+
+async function ensureTenantOrigin(page) {
   let current;
   try {
     current = new URL(page.url());
   } catch {
     return;
   }
-  if (current.hostname === '127.0.0.1' || current.hostname === 'localhost') {
+  const targetOrigin = new URL(TENANT_ORIGIN);
+  const sameOrigin =
+    current.hostname === targetOrigin.hostname &&
+    (current.port || '80') === (targetOrigin.port || '80');
+  if (sameOrigin && TENANT_ROUTING !== 'path') {
     return;
   }
+  if (
+    sameOrigin &&
+    TENANT_ROUTING === 'path' &&
+    current.pathname.startsWith(tenantPrefix())
+  ) {
+    return;
+  }
+  const tenantSubdomain = `${TENANT_SLUG}.runmycampus.com`;
+  if (
+    current.hostname === tenantSubdomain &&
+    (current.port || '80') === (targetOrigin.port || '80')
+  ) {
+    return;
+  }
+  const escapedHost =
+    TENANT_ROUTING === 'path' ||
+    current.hostname === 'runmycampus.com' ||
+    (current.hostname.endsWith('.runmycampus.com') &&
+      (current.port || '80') !== (targetOrigin.port || '80'));
+  if (!escapedHost) {
+    return;
+  }
+  const path = TENANT_ROUTING === 'path' ? _pathWithTenantPrefix(current.pathname) : current.pathname;
   const target = new URL(
-    current.pathname + current.search + current.hash,
-    `${TENANT_ORIGIN}/`
+    path + current.search + current.hash,
+    `${TENANT_ORIGIN}/`,
   );
+  if (target.toString() === page.url()) {
+    return;
+  }
   await page.goto(target.toString(), {
     waitUntil: 'domcontentloaded',
     timeout: 60000,

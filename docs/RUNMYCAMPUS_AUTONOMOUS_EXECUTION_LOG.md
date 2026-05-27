@@ -1,10 +1,30 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Glocal staff mega-lists + conflict cards batch 1542 (2026-05-27)
+
+**A. Scope:** Backend/staff mega-lists, offline sync conflict cards, RTL shell + Playwright spec hardening.
+
+**B. Shipped:** Drawer on `backend_student_list`, `tenant_identity_roster`, `finance/invoices`, `global_payment_command_center`, `offline_payment_intent_queue`; card drawer on `offline_sync_conflicts.html`; JS card binding + CSS hover; `language_context` emits `rmc_text_direction` for `?language=ar`; Playwright POST persist + `dashboardUrl` fix; SW `sms-v3.99.6-glocal-adoption-staff-2026-05-27`.
+
+**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS** (26 tables + 1 card); **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_SCAFFOLD_PASS**.
+
+**D. SOT:** §11.4 batch **1542** **DONE (repo-scope)**. **E. Residual:** live Playwright pass needs stable Django + `gilead-school` + `teacher1` + `SECURITY_ENFORCE_MINIMUM_STRENGTH=0`.
+
+## Slice — Glocal broad template adoption batch 1541 (2026-05-27)
+
+**A. Scope:** Broaden glocal adoption — row-detail drawer on 21 teacher/parent/portal data tables.
+
+**B. Shipped:** `portal_row_detail_drawer_bundle.html`; wired `roll_call_teacher`, `offline_sync_queue`, `cahier_verify_list`, `signature_requests_manage`, `at_risk_labeling/queue`, `lexicon_settings`, `teacher/timetable`; expanded `verify_glocal_adoption_tranche.py` (21 surfaces).
+
+**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS** (21 drawer surfaces).
+
+**D. SOT:** §11.4 batch **1541** **DONE**. **E. Residual:** staff/backend list pages; live RTL Playwright.
+
 ## Slice — Glocal practical closeout batch 1540 (2026-05-27)
 
 **A. Scope:** §D repo work — adoption tranche (drawer/glocal/canvas), Lane 2 evidence refresh, practical orchestrator, i18n for new strings.
 
-**B. Shipped:** `verify_glocal_adoption_tranche.py` (11 drawer sites + row-detail row assertion); tranche 2 on `pay_history` / `leave` / `wallet` / `cahier_list`; parent `finance` invoice rows wired; `refresh_residency_lane2_evidence.py`; `verify_glocal_practical_closeout.py`; RTL spec locale via `django_language` cookie; kernel `delegate-adoption-tranche`; SW `sms-v3.99.4-glocal-adoption-tranche-2026-05-27`.
+**B. Shipped:** `verify_glocal_adoption_tranche.py` (14 drawer sites + row-detail row assertion); tranches 1–2 on teacher/parent hot paths + tranche 3 on `office_document_list` / `document_library_manage_inner` / `user_contributions`; parent `finance` invoice rows wired; `refresh_residency_lane2_evidence.py`; `verify_glocal_practical_closeout.py`; RTL spec locale via `django_language` cookie; kernel `delegate-adoption-tranche`; SW `sms-v3.99.4-glocal-adoption-tranche-2026-05-27`. Commits: `1a3cd727` (marketing+glocal tranche 1–2), `76f5564a` (portal tranche 3).
 
 **C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS**; **GLOCAL_PRACTICAL_CLOSEOUT_PASS**; **GLOCAL_ZERO_HARDCODE_KERNEL_PASS**; residency `residency_latest.json` refreshed.
 

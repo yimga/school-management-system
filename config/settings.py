@@ -291,6 +291,7 @@ MIDDLEWARE = [
     "apps.schools.middleware.RlsResetOnExceptionMiddleware",  # RESET app.current_school_id on response or exception
     "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
     "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
+    "apps.platform_runtime.middleware_regional_db.RegionalDatabaseMiddleware",  # Glocal 1535: thread-local shard when ENABLE_MULTI_REGION
     # v2.79: bind request.school into the email-backend thread-local so any
     # send_mail() inside this request picks up the tenant's Anymail provider
     # via PerTenantEmailBackend. Without this, per-tenant mail is only
@@ -426,8 +427,8 @@ TEMPLATES = [
                 "apps.siteconfig.platform_palette.platform_palette_processor",  # `platform_palette` for server-rendered swatch/preview defaults
                 "apps.siteconfig.breadcrumb_context.breadcrumbs_context",
                 "apps.siteconfig.breadcrumb_context.page_metadata_context",
-                "apps.siteconfig.context_processors.region_settings",
                 "apps.siteconfig.context_processors.language_context",
+                "apps.siteconfig.context_processors.region_settings",
                 "apps.siteconfig.context_processors.lexicon_context",  # Wave A — G1 tenant terminology overrides
                 "apps.siteconfig.context_processors.analytics_viz_context",
                 "apps.siteconfig.page_personality.personality_context_processor",  # v3.59.x Wave 11 Agent U — per-page-personality accent slug
@@ -448,6 +449,7 @@ TEMPLATES = [
                 "apps.portal.context_processors.support_deflection_urls",  # KB deflection on all ticket forms
                 "apps.portal.context_processors.help_contextual",  # Proactive help nudges + contextual drawer
                 "apps.portal.context_processors.help_ai_governance",  # Parent/student AI panel policy
+                "apps.portal.context_processors.parent_identity_ux",  # Parent simplified default + school switcher
                 "apps.lifecycle.context_processors.lifecycle_readiness",  # 360 unified score + concierge gate (Wave L3)
                 "apps.feedback.context_processors.support_links",  # Host-aware help / feature / contact URLs
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
@@ -474,6 +476,7 @@ TEMPLATES = [
                 # marketing surface reads as written for the visitor's
                 # country first, with the global frame as secondary context.
                 "apps.schools.marketing_local_context.marketing_local_context",
+                "apps.schools.marketing_media_context.marketing_media_context",
             ]
         },
     }
