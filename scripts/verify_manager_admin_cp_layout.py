@@ -106,6 +106,15 @@ def check_css() -> list[str]:
                 errors.append(f"{rel}: missing canvas overflow-y:auto repair")
             if "#page:has(.admin-cp-unified-page)" not in text:
                 errors.append(f"{rel}: missing #page:has(.admin-cp-unified-page) unwind")
+        if rel.endswith("rmc-canvas-chrome-compact.css"):
+            compact = text
+            if re.search(
+                r"body\.admin-manager-shell\s+\.rmc-app-shell__canvas\s*\{[^}]*height:\s*auto",
+                compact,
+            ):
+                errors.append(
+                    f"{rel}: must not set height:auto on .rmc-app-shell__canvas (breaks canvas scroll)"
+                )
         if rel.endswith("admin-sidebar-scroll.css"):
             if not PAGE_HAS_GUARD.search(text):
                 errors.append(

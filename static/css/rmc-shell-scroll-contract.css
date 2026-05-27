@@ -17,8 +17,17 @@ body.admin-manager-shell .admin-cp-unified-page.rmc-app-shell .rmc-app-shell__ca
   overflow-y: auto !important;
   overflow-x: hidden !important;
   min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page.rmc-app-shell,
+body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
 }
 
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-body,

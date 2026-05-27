@@ -18,17 +18,23 @@
   overflow: hidden !important;
 }
 
-/* ── Canvas / main: content-height only (all scroll modes) ── */
+/* ── Canvas / main: content-height only (inner flow; NOT the scroll viewport) ── */
 body.control-plane-shell .rmc-app-shell__canvas-body,
-body.control-plane-shell .rmc-app-shell__canvas,
 body.admin-manager-shell .rmc-app-shell__canvas-body,
-body.admin-manager-shell .rmc-app-shell__canvas,
 body.portal-body-with-layout .rmc-app-shell__canvas-body,
 body.backend-shell .rmc-app-shell__canvas-body {
   flex: 0 1 auto !important;
   min-height: 0 !important;
   height: auto !important;
   align-content: flex-start;
+}
+
+/* Document-scroll shells only — canvas may grow with the page. */
+body.control-plane-shell[data-rmc-cp-scroll="document"] .rmc-app-shell__canvas,
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .rmc-app-shell__canvas {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
 }
 
 body.control-plane-shell .cp-layout,
@@ -108,9 +114,15 @@ body.control-plane-shell .breadcrumb {
 }
 
 /* ── Admin manager backoffice: pills stay under chrome, not viewport floor ── */
-body.admin-manager-shell .admin-cp-unified-page {
+body.admin-manager-shell[data-rmc-cp-scroll="document"] .admin-cp-unified-page {
   min-height: 0 !important;
   height: auto !important;
+}
+
+body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page.rmc-app-shell {
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: 100% !important;
 }
 
 body.admin-manager-shell .admin-cp-unified-page .cp-layout,

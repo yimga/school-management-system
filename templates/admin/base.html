@@ -159,10 +159,12 @@
           {% include "partials/rmc_operator_footer_compact.html" %}
         </footer>
         {% include "admin/manager_cp_offcanvas.html" %}
-        {% include 'components/back_to_top.html' %}
-        <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
-        <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
         {% endif %}
 
     </div>
+    {% if is_manager_host %}
+    {% include 'components/back_to_top.html' %}
+    <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
+    <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+    {% endif %}
 {% endblock %}

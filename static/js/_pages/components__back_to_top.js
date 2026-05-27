@@ -5,6 +5,8 @@
   "use strict";
 
   var THRESHOLD_FOLDS = 2;
+  var THRESHOLD_FOLDS_CANVAS = 1;
+  var MIN_PX_CANVAS = 280;
   var state = {
     btn: null,
     progressCircle: null,
@@ -20,6 +22,11 @@
   }
 
   function scrollThreshold() {
+    var body = document.body;
+    var mode = body && body.getAttribute("data-rmc-cp-scroll");
+    if (mode === "canvas") {
+      return Math.max(MIN_PX_CANVAS, foldHeight() * THRESHOLD_FOLDS_CANVAS);
+    }
     return foldHeight() * THRESHOLD_FOLDS;
   }
 
@@ -165,10 +172,18 @@
     });
   }
 
+  function ensureBodyMounted(btn) {
+    if (!btn || btn.parentElement === document.body) return;
+    if (btn.closest(".rmc-app-shell")) {
+      document.body.appendChild(btn);
+    }
+  }
+
   function mount() {
     var btn = document.getElementById("back-to-top-btn");
     if (!btn || btn.getAttribute("data-rmc-mounted") === "1") return false;
 
+    ensureBodyMounted(btn);
     state.btn = btn;
     state.progressCircle = btn.querySelector(".rmc-back-to-top__progress");
     state.percentEl = btn.querySelector("[data-rmc-back-to-top-percent]");

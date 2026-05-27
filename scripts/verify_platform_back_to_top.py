@@ -30,6 +30,15 @@ def main() -> int:
         if "back_to_top.html" not in text:
             failures.append(f"no back-to-top: {rel}")
 
+    admin_base = ROOT / "templates/admin/base.html"
+    if admin_base.is_file():
+        admin_text = admin_base.read_text(encoding="utf-8", errors="replace")
+        marker = "</div>\n    {% if is_manager_host %}\n    {% include 'components/back_to_top.html' %}"
+        if marker not in admin_text.replace("\r\n", "\n"):
+            failures.append(
+                "admin/base.html must mount back-to-top outside .rmc-app-shell (fixed positioning)"
+            )
+
     fold_css = ROOT / "templates/partials/rmc_platform_chrome_styles.html"
     if fold_css.is_file():
         chrome = fold_css.read_text(encoding="utf-8")

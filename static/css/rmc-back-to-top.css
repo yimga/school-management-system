@@ -336,6 +336,25 @@ html[data-rmc-exceeds-2-folds="1"] .back-to-top-btn.rmc-back-to-top {
   bottom: calc(1.15rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
 }
 
+/* Manager /admin/: clear copilot rail + notebook footer */
+body.admin-manager-shell .back-to-top-btn.rmc-back-to-top {
+  right: calc(
+    var(--rmc-back-to-top-edge-right) + var(--rmc-app-shell-copilot-w, 44px) + 0.35rem
+  );
+  z-index: calc(var(--rmc-back-to-top-z) + 5);
+}
+
+body.admin-manager-shell .rmc-app-shell[data-copilot="expanded"] ~ .back-to-top-btn.rmc-back-to-top,
+body.admin-manager-shell:has(.rmc-app-shell[data-copilot="expanded"]) .back-to-top-btn.rmc-back-to-top {
+  right: calc(
+    var(--rmc-back-to-top-edge-right) + var(--rmc-app-shell-copilot-w, 360px) + 0.35rem
+  );
+}
+
+body.admin-manager-shell:has(.rmc-footer-notebook-anchor) .back-to-top-btn.rmc-back-to-top {
+  bottom: calc(5.5rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
+}
+
 html[data-surface="control-plane"][data-rmc-exceeds-2-folds="1"]
   body.cp-shell-has-operator-footer
   .back-to-top-btn.rmc-back-to-top {
