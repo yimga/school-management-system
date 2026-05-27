@@ -1,6 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
-{% load static terminology_tags %}
+{% load i18n glocal_tags static terminology_tags %}
 {% comment %}Wave 12 (v3.62.16): "Guardians" / "Parent" / "students" all read as
    tenant-localized lexicon terms.{% endcomment %}
 {% term "guardian" plural=True capitalize=True as guardian_pl %}
@@ -55,19 +54,23 @@
         <div class="card-body">
           {% if guardians %}
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Guardians">
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Guardians" data-rmc-row-detail-table="1">
               <thead>
                 <tr>
                   <th scope="col">Guardian</th>
                   <th scope="col">Email</th>
-                  <th scope="col">Student</th>
+                  <th scope="col">{% term "student" capitalize=True %}</th>
                   <th scope="col">Classroom</th>
                   <th scope="col">Finance access</th>
                 </tr>
               </thead>
               <tbody>
                 {% for g in guardians %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}"
+                    data-rmc-row-subtitle="{{ g.student.get_full_name|default:g.student.admission_number }}"
+                    data-rmc-row-meta='{"{% trans "Classroom" %}":"{{ g.student.classroom.name|default:"—"|escapejs }}","{% trans "Finance access" %}":"{% if g.can_view_finance %}yes{% else %}no{% endif %}"}'>
                   <td>{{ g.guardian_user.get_full_name|default:g.guardian_user.username }}</td>
                   <td>{{ g.guardian_user.email|default:"-" }}</td>
                   <td>{{ g.student.get_full_name|default:g.student.admission_number }}</td>
@@ -89,4 +92,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

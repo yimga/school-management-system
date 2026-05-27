@@ -1,6 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
-{% load terminology_tags %}
+{% load i18n glocal_tags terminology_tags %}
 {% comment %}Wave 12 (v3.62.16 — 2026-05-23): full lexicon adoption — both title and
    include + back-link use {% term %} so "Classrooms" / "students" read as
    the tenant's term (e.g. "Salles de classe" / "élèves" in FR;
@@ -58,7 +57,7 @@
         <div class="card-body">
           {% if classrooms %}
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="{% trans 'Classrooms' %}">
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="{% trans 'Classrooms' %}" data-rmc-row-detail-table="1">
               <thead>
                 <tr>
                   <th scope="col">{% trans "Name" %}</th>
@@ -71,7 +70,11 @@
               </thead>
               <tbody>
                 {% for c in classrooms %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ c.name }}"
+                    data-rmc-row-subtitle="{{ c.code|default:'—' }}"
+                    data-rmc-row-meta='{"{% trans "Academic year" %}":"{{ c.academic_year.name|default:"—"|escapejs }}","{% trans "Department" %}":"{{ c.department.name|default:"—"|escapejs }}"}'>
                   <td><a href="{% url 'accounts:backend_classroom_detail' c.pk %}">{{ c.name }}</a></td>
                   <td>{{ c.code|default:"—" }}</td>
                   <td>{{ c.academic_year.name|default:"—" }}</td>
@@ -108,4 +111,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

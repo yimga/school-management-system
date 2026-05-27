@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% load static region_format i18n terminology_tags %}
 {% comment %}Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption.
    "Teachers" reads as the tenant's term (e.g. "Enseignants" in FR,
@@ -44,7 +44,7 @@
         <div class="card-body">
           {% if teachers %}
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Teachers">
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Teachers" data-rmc-row-detail-table="1">
               <thead>
                 <tr>
                   <th scope="col">Staff ID</th>
@@ -56,7 +56,11 @@
               </thead>
               <tbody>
                 {% for teacher in teachers %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ teacher.user.get_full_name|default:teacher.user.username }}"
+                    data-rmc-row-subtitle="{{ teacher.staff_id|default:'—' }}"
+                    data-rmc-row-meta='{"{% trans "Department" %}":"{{ teacher.department.name|default:"—"|escapejs }}","{% trans "Email" %}":"{{ teacher.user.email|default:"—"|escapejs }}"}'>
                   <td>{{ teacher.staff_id|default:"-" }}</td>
                   <td>{{ teacher.user.get_full_name|default:teacher.user.username }}</td>
                   <td>{{ teacher.user.email|default:"-" }}</td>
@@ -81,4 +85,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

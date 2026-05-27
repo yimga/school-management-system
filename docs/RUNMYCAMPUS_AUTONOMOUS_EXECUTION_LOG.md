@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Glocal people roster tranche 4 batch 1543 (2026-05-27)
+
+**A. Scope:** Wire row-detail drawer on remaining `people/` backend lists (guardian, teacher, applicant, classroom).
+
+**B. Shipped:** `portal_row_detail_drawer_bundle` + clickable rows on four templates; verifier expanded to 30 drawer tables.
+
+**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS** (30 + 1 card); **GLOCAL_PRACTICAL_CLOSEOUT_PASS**.
+
+**D. SOT:** §11.4 batch **1543** **DONE**.
+
 ## Slice — Glocal staff mega-lists + conflict cards batch 1542 (2026-05-27)
 
 **A. Scope:** Backend/staff mega-lists, offline sync conflict cards, RTL shell + Playwright spec hardening.

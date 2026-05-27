@@ -1,7 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
-{% load region_format %}
-{% load rmc_explain_tags terminology_tags %}
+{% load i18n glocal_tags region_format rmc_explain_tags terminology_tags %}
 {% comment %}Wave 12 (v3.62.16): "Applicants" stays English (not a tenant-customizable
    lexicon key) but the back-link uses the localized student term.{% endcomment %}
 {% term "student" plural=True as student_pl_lc %}
@@ -44,7 +42,7 @@
         <div class="card-body">
           {% if applicants %}
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="{% trans 'Applicants' %}">
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="{% trans 'Applicants' %}" data-rmc-row-detail-table="1">
               <thead>
                 <tr>
                   <th scope="col">{% trans "Name" %}</th>
@@ -56,7 +54,11 @@
               </thead>
               <tbody>
                 {% for a in applicants %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ a.first_name }} {{ a.last_name }}"
+                    data-rmc-row-subtitle="{{ a.get_stage_display|default:a.stage }}"
+                    data-rmc-row-meta='{"{% trans "Email" %}":"{{ a.email|default:"—"|escapejs }}","{% trans "Lead source" %}":"{{ a.lead_source|default:"—"|escapejs }}"}'>
                   <td>{{ a.last_name }}, {{ a.first_name }}</td>
                   <td>{{ a.email|default:"-" }}</td>
                   <td><span class="badge bg-secondary">{{ a.get_stage_display|default:a.stage }}</span></td>
@@ -90,4 +92,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

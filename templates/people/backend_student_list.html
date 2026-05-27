@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n static region_format tenant_hook terminology_tags %}
+{% load i18n static region_format tenant_hook terminology_tags glocal_tags %}
 {# Backend UI: distinct from /admin; uses portal backend light theme. #}
 {% comment %}Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption. "Students" reads as
    the tenant's term for student (e.g. "Élèves" in FR, "Alumnos" in ES,
@@ -65,8 +65,9 @@
             <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&amp;{% endif %}format=csv">{% trans "Export CSV" %}</a>
           </div>
           {% if students %}
+          <!-- table-column-budget-allow: roster-admin-seven-column-set -->
           <div class="table-responsive rmc-data-table-wrapper">
-            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Students">
+            <table class="table table-hover align-middle table-zebra table-sticky-head table-family rmc-data-table" aria-label="Students" data-rmc-row-detail-table="1">
               <thead>
                 <tr>
                   <th scope="col">Name</th>
@@ -80,7 +81,11 @@
               </thead>
               <tbody>
                 {% for student in students %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ student.first_name }} {{ student.last_name }}"
+                    data-rmc-row-subtitle="{{ student.admission_number|default:'—' }}"
+                    data-rmc-row-meta='{"{% trans "Classroom" %}":"{{ student.classroom.name|default:"—"|escapejs }}","{% trans "Status" %}":"{{ student.get_status_display|default:student.status|escapejs }}"}'>
                   <td>
                     <div class="d-flex align-items-center">
                       <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2">
@@ -134,4 +139,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}
