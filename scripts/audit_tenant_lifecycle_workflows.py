@@ -15,6 +15,7 @@ REQUIRED = (
     ("apps/lifecycle/views_tenant_lifecycle.py", "tenant_lifecycle_command_center"),
     ("apps/lifecycle/views_tenant_lifecycle.py", "api_tenant_lifecycle_hub"),
     ("templates/siteconfig/tenant_lifecycle_command_center.html", "data-rmc-section-anchor"),
+    ("templates/siteconfig/tenant_lifecycle_command_center.html", "rmc_section_nav_curated"),
     ("templates/siteconfig/tenant_studio_hub.html", "data-rmc-tenant-studio-lifecycle-hub"),
     ("config/tenant_urls.py", "tenant_lifecycle_command_center"),
     ("config/tenant_urls.py", "api_tenant_lifecycle_hub"),

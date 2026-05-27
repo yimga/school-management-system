@@ -40,6 +40,7 @@ REGISTRATION_TRACK: tuple[dict[str, Any], ...] = (
         "key": "email_verify",
         "label": _("Email verification"),
         "description": _("Admin verifies inbox before tenant activates."),
+        "url_name": "tenant_provisioning_status",
         "state": "signup_verified",
     },
     {
@@ -104,6 +105,7 @@ TENANT_OFFBOARDING_TRACK: tuple[dict[str, Any], ...] = (
         "key": "self_request",
         "label": _("Closure requested"),
         "description": _("School admin requested account closure."),
+        "url_name": "tenant_offboarding",
         "settings_key": "self_service_status",
         "expect_values": ("closure_requested", "scheduled"),
     },

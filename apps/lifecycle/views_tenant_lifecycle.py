@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET
 
 from apps.lifecycle.enrollment_workflow_matrix import build_lifecycle_workflow_hub_payload
@@ -143,12 +144,19 @@ def tenant_lifecycle_command_center(request: HttpRequest) -> HttpResponse:
         return lifecycle_access_denied_response(request)
 
     hub = build_lifecycle_workflow_hub_payload(school, user=request.user)
+    section_nav_items = [
+        {"id": "section-registration", "label": _("Registration")},
+        {"id": "section-enrollment", "label": _("Enrollment")},
+        {"id": "section-onboarding", "label": _("Onboarding")},
+        {"id": "section-offboarding", "label": _("Offboarding")},
+    ]
     return render(
         request,
         "siteconfig/tenant_lifecycle_command_center.html",
         {
             "school": school,
             "hub": hub,
+            "section_nav_items": section_nav_items,
             "unified": hub.get("unified") or {},
             "launch_rail": hub.get("launch_rail") or {},
             "registration": hub.get("registration") or {},

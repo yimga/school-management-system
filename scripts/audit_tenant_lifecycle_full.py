@@ -68,8 +68,15 @@ def main() -> int:
             print(f"  - {msg}")
         return 1
 
+    code, out = _run("scripts/audit_tenant_lifecycle_aggressive.py")
+    if code != 0:
+        print("TENANT_LIFECYCLE_FULL_AUDIT_FAIL")
+        print(out[:800])
+        return 1
+
     print("TENANT_LIFECYCLE_FULL_AUDIT_PASS")
     print(f"  verifiers: {len(SCRIPTS)}  wiring checks: {len(SIGNUP_WIRING)}")
+    print("  aggressive: TENANT_LIFECYCLE_AGGRESSIVE_AUDIT_PASS")
     return 0
 
 
