@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Tenant lifecycle completion batch 1512 (2026-05-26)
+
+**A. Scope:** Close lifecycle hub + offboarding queue + scroll batch; workflow-state enrollment; guardian invites; purge when auto-purge disabled; Lane 2 checklist.
+
+**B. Shipped:** `enrollment_workflow_matrix` state keys; `verify_tenant_lifecycle_completion.py`; `TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md`; queue `force_operator`; docs cross-links.
+
+**C. Proof:** **TENANT_LIFECYCLE_COMPLETION_PASS**; **TENANT_LIFECYCLE_FULL_AUDIT_PASS**; lifecycle + offboarding tests green.
+
+**D. SOT:** §11.4 batch **1512** **DONE**. Lane 2: operator SMTP/enrollment evidence only.
+
 ## Slice — Workforce money plane batch 1511 (2026-05-26)
 
 **A. Scope:** HR + payroll + finance local-first server apply, payroll global bank disbursement export, unified operator hub.

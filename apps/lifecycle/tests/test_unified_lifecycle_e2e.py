@@ -124,7 +124,7 @@ class UnifiedLifecycleE2ETests(TestCase):
         reg = build_registration_track(school)
         enr = build_enrollment_track(school)
         self.assertGreaterEqual(reg["total"], 4)
-        self.assertGreaterEqual(enr["total"], 5)
+        self.assertGreaterEqual(enr["total"], 7)
         self.assertIn("steps", reg)
         self.assertIn("percent", enr)
 

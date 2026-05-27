@@ -18,6 +18,7 @@ REGISTRATION_TRACK: tuple[dict[str, Any], ...] = (
         "description": _("Country, calendar, language, and sector on public signup."),
         "url_name": "",
         "external": "marketing_signup",
+        "state": "signup_profile",
     },
     {
         "key": "signup_plan",
@@ -25,6 +26,7 @@ REGISTRATION_TRACK: tuple[dict[str, Any], ...] = (
         "description": _("Trial plan, palette, and subdomain reservation."),
         "url_name": "",
         "external": "marketing_signup",
+        "state": "signup_plan",
     },
     {
         "key": "signup_migration",
@@ -32,12 +34,13 @@ REGISTRATION_TRACK: tuple[dict[str, Any], ...] = (
         "description": _("Prior SIS vendor and data domains to import."),
         "url_name": "",
         "external": "marketing_signup",
+        "state": "signup_migration",
     },
     {
         "key": "email_verify",
         "label": _("Email verification"),
         "description": _("Admin verifies inbox before tenant activates."),
-        "settings_key": "signup_verified",
+        "state": "signup_verified",
     },
     {
         "key": "provision",
@@ -51,14 +54,16 @@ ENROLLMENT_TRACK: tuple[dict[str, Any], ...] = (
     {
         "key": "admissions_pipeline",
         "label": _("Admissions pipeline"),
-        "description": _("Capture enquiries and move applicants through stages."),
+        "description": _("At least one applicant past the lead stage."),
         "url_name": "accounts:backend_applicant_list",
+        "state": "admissions_active",
     },
     {
         "key": "applicant_convert",
         "label": _("Applicant → student"),
-        "description": _("Convert accepted applicants to enrolled students."),
+        "description": _("Accepted or enrolled applicant linked to a student profile."),
         "url_name": "accounts:backend_applicant_create",
+        "state": "applicant_enrolled",
     },
     {
         "key": "student_roster",
@@ -67,10 +72,18 @@ ENROLLMENT_TRACK: tuple[dict[str, Any], ...] = (
         "url_name": "accounts:backend_student_list",
     },
     {
-        "key": "guardian_access",
-        "label": _("Guardian accounts"),
-        "description": _("Parents linked with portal access."),
+        "key": "guardian_invites",
+        "label": _("Guardian invites"),
+        "description": _("Issue and claim parent portal invites."),
         "url_name": "accounts:backend_guardian_list",
+        "state": "guardian_invite_claimed",
+    },
+    {
+        "key": "guardian_access",
+        "label": _("Guardian portal access"),
+        "description": _("Guardians linked to students with active portal users."),
+        "url_name": "accounts:backend_guardian_list",
+        "state": "guardian_portal_active",
     },
     {
         "key": "class_structure",
@@ -107,6 +120,12 @@ TENANT_OFFBOARDING_TRACK: tuple[dict[str, Any], ...] = (
         "settings_key": "wind_down_mode",
     },
     {
+        "key": "purge_scheduled",
+        "label": _("Purge scheduled"),
+        "description": _("Operator or self-service scheduled purge date on file."),
+        "state": "purge_scheduled",
+    },
+    {
         "key": "cancel_closure",
         "label": _("Cancel closure"),
         "description": _("Reactivate before purge date."),
@@ -135,6 +154,14 @@ def _marketing_signup_url() -> str:
         return "/signup/"
 
 
+def _public_onboarding(school) -> dict:
+    raw = getattr(school, "settings", None) or {}
+    if not isinstance(raw, dict):
+        return {}
+    block = raw.get("rmc_public_onboarding")
+    return block if isinstance(block, dict) else {}
+
+
 def _settings_flag(school, key: str) -> bool:
     raw = getattr(school, "settings", None) or {}
     if not isinstance(raw, dict):
@@ -157,6 +184,36 @@ def _settings_flag(school, key: str) -> bool:
 
 def _registration_done(school, step: dict[str, Any]) -> bool:
     key = step["key"]
+    state = step.get("state")
+    if state == "signup_profile":
+        onboarding = _public_onboarding(school)
+        return bool(
+            (getattr(school, "country_code", None) or "").strip()
+            or onboarding.get("country_code")
+            or onboarding.get("school_type")
+        )
+    if state == "signup_plan":
+        onboarding = _public_onboarding(school)
+        return bool(
+            onboarding.get("plan_slug")
+            or onboarding.get("template_slug")
+            or (getattr(school, "slug", None) and school.is_active)
+        )
+    if state == "signup_migration":
+        onboarding = _public_onboarding(school)
+        mig = onboarding.get("migration") if isinstance(onboarding.get("migration"), dict) else {}
+        return bool(mig.get("vendor_slug")) or bool(onboarding.get("skip_migration"))
+    if state == "signup_verified":
+        try:
+            from apps.schools.models import SignupVerification
+
+            if SignupVerification.objects.filter(
+                school=school, verified_at__isnull=False
+            ).exists():
+                return True
+        except (ImportError, OSError, RuntimeError, TypeError, ValueError):
+            pass
+        return bool(getattr(school, "is_active", False)) or _settings_flag(school, "signup_verified")
     if key == "provision":
         from apps.lifecycle.unified_lifecycle import (
             SchoolProvisioningEvent_completed,
@@ -177,31 +234,51 @@ def _registration_done(school, step: dict[str, Any]) -> bool:
 
 
 def _enrollment_done(school, step: dict[str, Any]) -> bool:
-    key = step["key"]
+    state = step.get("state") or step.get("key")
     try:
-        if key == "admissions_pipeline":
+        if state == "admissions_active":
             from apps.people.models import Applicant
 
-            return Applicant.objects.filter(school=school).exists()
-        if key == "applicant_convert":
+            return Applicant.objects.filter(school=school).exclude(
+                stage=Applicant.Stage.LEAD
+            ).exists()
+        if state == "applicant_enrolled":
             from apps.people.models import Applicant, StudentProfile
 
-            if not Applicant.objects.filter(school=school).exists():
-                return False
+            if Applicant.objects.filter(
+                school=school, stage=Applicant.Stage.ENROLLED
+            ).exists():
+                return True
             return StudentProfile.objects.filter(school=school).exists()
-        if key == "student_roster":
+        if state == "student_roster" or step.get("key") == "student_roster":
             from apps.people.models import StudentProfile
 
             return StudentProfile.objects.filter(school=school).exists()
-        if key == "guardian_access":
+        if state == "guardian_invite_claimed":
+            from apps.people.models import StudentGuardian, StudentProfile
+            from apps.portal.models import PendingGuardianInvite
+
+            student_ids = StudentProfile.objects.filter(school=school).values_list(
+                "id", flat=True
+            )
+            if PendingGuardianInvite.objects.filter(
+                student_id__in=student_ids, claimed_at__isnull=False
+            ).exists():
+                return True
+            return StudentGuardian.objects.filter(
+                student__school=school, guardian_user__isnull=False
+            ).exists()
+        if state == "guardian_portal_active":
             from apps.people.models import StudentGuardian
 
-            return StudentGuardian.objects.filter(student__school=school).exists()
-        if key == "class_structure":
+            return StudentGuardian.objects.filter(
+                student__school=school, guardian_user__isnull=False, guardian_user__is_active=True
+            ).exists()
+        if step.get("key") == "class_structure":
             from apps.academics.models import Classroom
 
             return Classroom.objects.filter(school=school).exists()
-        if key == "fee_readiness":
+        if step.get("key") == "fee_readiness":
             from apps.finance.models import Invoice
 
             return Invoice.objects.filter(school=school).exists()
@@ -211,6 +288,9 @@ def _enrollment_done(school, step: dict[str, Any]) -> bool:
 
 
 def _offboarding_tenant_done(school, step: dict[str, Any]) -> bool:
+    if step.get("state") == "purge_scheduled":
+        off = (getattr(school, "settings", None) or {}).get("offboarding") or {}
+        return bool((off.get("scheduled_purge_at") or "").strip()) if isinstance(off, dict) else False
     if step.get("settings_key") == "self_service_status":
         off = (getattr(school, "settings", None) or {}).get("offboarding") or {}
         if not isinstance(off, dict):

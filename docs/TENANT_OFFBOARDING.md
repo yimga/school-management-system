@@ -137,9 +137,33 @@ Operator rapid create (`/super/schools/rapid/`) dispatches provisioning and surf
 - `/school/studio/provisioning/` on the school subdomain
 - `/school/studio/` (launch rail)
 
+## Lifecycle command center (tenant)
+
+Unified checklist for registration, enrollment, onboarding, and offboarding:
+
+- **URL:** `/school/studio/lifecycle/` on the school tenant host
+- **API:** `GET /api/school/lifecycle/hub/`
+- **Gate:** `python scripts/verify_tenant_lifecycle_completion.py`
+
+School Studio links **Open lifecycle command center** from the hub landing.
+
+## Offboarding queue (auto-purge disabled by default)
+
+`/super/offboarding/` lists schools with self-service or operator-scheduled purge.
+
+When **`TENANT_AUTO_PURGE_ENABLED=0`** (default):
+
+- Scheduled dates are stored; schools show **Due** when the date is on or before today.
+- Nightly Celery does **not** delete tenants.
+- Operators use **Dry-run scheduled purges** or **Apply due purges (operator)** with confirm phrase `purge-due-tenants`.
+
+See [TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md](TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md) for Render signup/email/enrollment proof steps.
+
 ## Verification
 
 ```bash
+python scripts/verify_tenant_lifecycle_completion.py
+python scripts/audit_tenant_lifecycle_full.py
 python scripts/verify_tenant_offboarding_surface.py
 python scripts/run_sqlite_memory_tests.py \
   apps.schools.tests.test_tenant_offboarding_api \
