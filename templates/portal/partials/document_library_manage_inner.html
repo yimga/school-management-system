@@ -1,4 +1,4 @@
-{% load static %}
+{% load static glocal_tags %}
 {% load i18n region_format %}
 {# Shared body: full portal page, embed=1 iframe, or Studio Output native (no iframe). #}
 <div class="container-fluid py-2 py-lg-4 doc-library-page{% if studio_output_native %} studio-output-native-documents{% endif %}" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1"{% if studio_output_native %} data-studio-output-native="documents"{% endif %} data-rmc-scroll-policy="paginate">

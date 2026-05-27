@@ -16,7 +16,7 @@
   enforces "extends must be the first tag" — a leading {% comment %} block
   is a tag, so the page 500'd on every load. Confirmed by audit.
 {% endcomment %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block page_title %}{{ page_title }}{% endblock %}
 
@@ -153,7 +153,7 @@
 
   <section id="artifacts" class="rmc-card rmc-reveal">
     <h2 class="rmc-h2">{% trans "Artifacts" %}</h2>
-    <table class="rmc-data-table">
+    <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead>
         <tr>
           <th>{% trans "Path" %}</th>
@@ -186,7 +186,7 @@
         <span class="rmc-muted">({{ bundle.discovery_summary.source.method|default:"—" }})</span>
       </p>
       {% if per_artifact_domain %}
-      <table class="rmc-data-table">
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <thead><tr><th>{% trans "Artifact" %}</th><th>{% trans "Domain" %}</th><th>{% trans "Method" %}</th></tr></thead>
         <tbody>
           {% for path, info in per_artifact_domain.items %}
@@ -221,7 +221,7 @@
           {{ path }}
           <span class="rmc-muted">({{ mappings|length }} {% trans "columns" %})</span>
         </summary>
-        <table class="rmc-data-table rmc-mapping__table">
+        <table class="rmc-data-table rmc-mapping__table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <thead>
             <tr>
               <th>{% trans "Source column" %}</th>
@@ -293,7 +293,7 @@
         <strong>{% trans "Overall parity:" %}</strong>
         {{ reconciliation.overall_parity_pct }}%
       </p>
-      <table class="rmc-data-table">
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <thead>
           <tr>
             <th>{% trans "Domain" %}</th>

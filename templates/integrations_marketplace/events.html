@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block title %}{% trans "Webhook events" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -36,7 +36,7 @@
 
   {% if events %}
     <div class="table-responsive">
-      <table class="table rmc-data-table align-middle">
+      <table class="table rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <thead>
           <tr>
             <th scope="col">{% trans "When" %}</th>

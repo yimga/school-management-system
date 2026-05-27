@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n static region_format %}
+{% load i18n static region_format glocal_tags terminology_tags %}
 {% block title %}Grade Approvals{% endblock %}
 
 {% block content %}
@@ -28,11 +28,11 @@
 
 {% if requests %}
   <div class="table-responsive">
-    <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="Grade approval requests: subject, teacher, status, and actions">
+    <table class="table table-hover align-middle table-family table-sm table-sticky-head rmc-data-table" aria-label="Grade approval requests: subject, teacher, status, and actions" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead class="table-light">
         <tr>
           <th scope="col">Subject</th>
-          <th scope="col">Teacher</th>
+          <th scope="col">{% trans_term "Teacher" key="teacher" %}</th>
           <th scope="col">Status</th>
           <th scope="col">Rows</th>
           <th scope="col">Requested</th>

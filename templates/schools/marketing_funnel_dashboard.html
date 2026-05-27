@@ -1,5 +1,5 @@
 {% extends "marketing/base_marketing.html" %}
-{% load i18n static phase8_tags %}
+{% load i18n static phase8_tags glocal_tags %}
 {% block title %}{% trans "Marketing funnel dashboard" %} | RunMyCampus{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
@@ -196,7 +196,7 @@
     <p class="text-muted small">{% trans "Breakdown by utm_source / utm_medium. Use ?utm_source=...&utm_medium=... on landing and signup URLs to attribute traffic." %}</p>
     <div class="table-responsive">
       <!-- large-collection-allow: dashboard-widget-capped-list -->
-      <table class="table table-bordered table-sm table-sticky-head rmc-data-table">
+      <table class="table table-bordered table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "By channel (last 30 days)" %}</caption>
         <thead>
           <tr>

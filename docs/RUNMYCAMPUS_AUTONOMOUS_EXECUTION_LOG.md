@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Glocal adoption finish-all batch 1544 (2026-05-27)
+
+**A. Scope:** Close every remaining operational `rmc-data-table` with row-detail drawer (staff, operator `super_*`, migration cloud, marketing/base shells).
+
+**B. Shipped:** Global drawer bundle on `base.html` + `marketing/base_marketing.html`; auto row-detail JS + `apply_glocal_row_detail_auto.py` (70 templates); verifier table-only discovery (95 tables); IAM lexicon on evals/staff headers; shell extend markers for wizard/base/marketing.
+
+**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS** (95 + 1 card); **GLOCAL_PRACTICAL_CLOSEOUT_PASS**.
+
+**D. SOT:** §11.4 batch **1544** **DONE**. **SW:** `sms-v3.99.7-glocal-adoption-finish-all-2026-05-27`.
+
 ## Slice — Glocal people roster tranche 4 batch 1543 (2026-05-27)
 
 **A. Scope:** Wire row-detail drawer on remaining `people/` backend lists (guardian, teacher, applicant, classroom).

@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block cp_title %}{% trans "Provisioning jobs" %}{% endblock %}
 
@@ -51,7 +51,7 @@
     <div class="col-12 col-lg-6">
       <h2 class="h6">{% trans "Recent provisioning events" %}</h2>
       <div class="table-responsive">
-        <table class="table table-sm rmc-data-table">
+        <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <thead><tr>
             <th>{% trans "When" %}</th>
             <th>{% trans "School" %}</th>
@@ -75,7 +75,7 @@
     <div class="col-12 col-lg-6">
       <h2 class="h6">{% trans "Recent lifecycle transitions" %}</h2>
       <div class="table-responsive">
-        <table class="table table-sm rmc-data-table">
+        <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <thead><tr>
             <th>{% trans "When" %}</th>
             <th>{% trans "School" %}</th>

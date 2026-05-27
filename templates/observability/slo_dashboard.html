@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% load terminology_tags %}
 {% load region_format phase8_tags %}
 
@@ -63,7 +63,7 @@
   <div class="card shadow-sm border-0">
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table">
+        <table class="table table-hover align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <caption class="visually-hidden">{% trans "Active schools" %}</caption>
           <thead class="table-light">
             <tr>

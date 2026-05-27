@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block title %}{% trans "Automation outcomes" %}{% endblock %}
 {% block backend_title %}{% trans "Automation outcomes" %}{% endblock %}
@@ -20,7 +20,7 @@
       {% if recent_runs %}
       <div class="table-responsive">
         <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
+<table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <caption class="visually-hidden">{% trans "Recent migration runs" %}</caption>
           <thead class="table-light">
             <tr>

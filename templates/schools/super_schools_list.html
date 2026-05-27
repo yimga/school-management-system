@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n control_console %}
+{% load i18n control_console glocal_tags %}
 {% load terminology_tags %}
 
 {% block cp_title %}{% trans_term "Schools" key="school" plural=True %}{% endblock %}
@@ -90,7 +90,7 @@
   </form>
   {% if page.object_list %}
   <div class="table-responsive">
-    <table class="table table-family table-hover rmc-data-table">
+    <table class="table table-family table-hover rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <caption class="visually-hidden">{% trans_term "Schools" key="school" plural=True %}</caption>
       <thead>
         <tr>

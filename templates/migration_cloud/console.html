@@ -18,7 +18,7 @@
   enforces "extends must be the first tag" — a leading {% comment %} block
   is a tag, so the page 500'd on every load. Confirmed by audit.
 {% endcomment %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% load terminology_tags %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud" }}{% endblock %}
@@ -54,7 +54,7 @@
 
   {% if bundles %}
   <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="rmc-data-table rmc-data-table--migrations">
+<table class="rmc-data-table rmc-data-table--migrations" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
     <thead>
       <tr>
         <th>{% trans "Label" %}</th>

@@ -1,6 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% block rmc_operator_surface_strip %}{% endblock %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% load static %}
 
 {% block cp_title %}{% trans "Compatibility matrix" %}{% endblock %}
@@ -45,7 +45,7 @@
       <h2 class="cp-panel-title">{% trans "App × compatibility" %}</h2>
     </div>
     <div class="table-responsive rmc-cp-compact__table-wrap">
-      <table class="table table-sm table-hover mb-0 table-family rmc-data-table align-middle">
+      <table class="table table-sm table-hover mb-0 table-family rmc-data-table align-middle" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "App × compatibility" %}</caption>
         <thead>
           <tr>

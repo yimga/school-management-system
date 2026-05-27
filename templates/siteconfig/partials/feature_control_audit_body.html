@@ -1,4 +1,4 @@
-{% load i18n static region_format %}
+{% load i18n static region_format glocal_tags %}
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate">
   <div class="card shadow-sm border-0">
     <div class="card-header bg-light border-bottom py-3 d-flex justify-content-between align-items-center">
@@ -11,7 +11,7 @@
     <div class="card-body p-0">
       {% if entries %}
       <div class="table-responsive">
-        <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
+        <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <caption class="visually-hidden">{% trans "Feature Control Audit Log" %}</caption>
           <thead class="table-light">
             <tr>

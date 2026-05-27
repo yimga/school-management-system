@@ -1,6 +1,6 @@
 {% extends "portal_base.html" %}
 {% block rmc_workspace_os_header %}{% endblock %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block title %}{% trans "Offline sync queue" %} — {{ block.super }}{% endblock %}
 
@@ -118,7 +118,7 @@
 
   <h1 class="h6 text-primary mt-4">{% trans "Queued" %}</h1>
   <div class="table-responsive rounded border border-secondary-subtle mb-4">
-    <table class="table table-sm table-striped mb-0 align-middle table-family">
+    <table class="table table-sm table-striped mb-0 align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "Queued" %}</caption>
       <thead>
         <tr>
@@ -133,7 +133,12 @@
       </thead>
       <tbody>
         {% for row in queued_actions %}
-        <tr data-rmc-offline-row="{{ row.pk }}">
+        <tr data-rmc-offline-row="{{ row.pk }}"
+            data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ row.get_action_type_display }}"
+            data-rmc-row-subtitle="{{ row.get_status_display }}"
+            data-rmc-row-meta='{"{% trans "Retries" %}":"{{ row.retry_count }}"}'>
           <td class="text-nowrap small">{{ row.created_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
@@ -155,7 +160,7 @@
 
   <h2 class="h6 text-secondary">{% trans "Syncing" %}</h2>
   <div class="table-responsive rounded border border-secondary-subtle mb-4">
-    <table class="table table-sm table-striped mb-0 align-middle table-family">
+    <table class="table table-sm table-striped mb-0 align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "Syncing" %}</caption>
       <thead>
         <tr>
@@ -169,7 +174,12 @@
       </thead>
       <tbody>
         {% for row in syncing_actions %}
-        <tr data-rmc-offline-row="{{ row.pk }}">
+        <tr data-rmc-offline-row="{{ row.pk }}"
+            data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ row.get_action_type_display }}"
+            data-rmc-row-subtitle="{{ row.get_status_display }}"
+            data-rmc-row-meta='{"{% trans "Retries" %}":"{{ row.retry_count }}"}'>
           <td class="text-nowrap small">{{ row.updated_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
@@ -186,7 +196,7 @@
 
   <h2 class="h6 text-danger">{% trans "Failed" %}</h2>
   <div class="table-responsive rounded border border-danger-subtle mb-4">
-    <table class="table table-sm table-striped mb-0 align-middle table-family">
+    <table class="table table-sm table-striped mb-0 align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "Failed" %}</caption>
       <thead>
         <tr>
@@ -201,7 +211,12 @@
       </thead>
       <tbody>
         {% for row in failed_actions %}
-        <tr data-rmc-offline-row="{{ row.pk }}">
+        <tr data-rmc-offline-row="{{ row.pk }}"
+            data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ row.get_action_type_display }}"
+            data-rmc-row-subtitle="{{ row.get_status_display }}"
+            data-rmc-row-meta='{"{% trans "Retries" %}":"{{ row.retry_count }}"}'>
           <td class="text-nowrap small">{{ row.created_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
@@ -219,7 +234,7 @@
 
   <h2 class="h6 text-warning">{% trans "Conflicts" %}</h2>
   <div class="table-responsive rounded border border-warning-subtle mb-4">
-    <table class="table table-sm table-striped mb-0 align-middle table-family">
+    <table class="table table-sm table-striped mb-0 align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "Conflicts" %}</caption>
       <thead>
         <tr>
@@ -234,7 +249,12 @@
       </thead>
       <tbody>
         {% for row in conflict_actions %}
-        <tr data-rmc-offline-row="{{ row.pk }}">
+        <tr data-rmc-offline-row="{{ row.pk }}"
+            data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ row.get_action_type_display }}"
+            data-rmc-row-subtitle="{{ row.get_status_display }}"
+            data-rmc-row-meta='{"{% trans "Retries" %}":"{{ row.retry_count }}"}'>
           <td class="text-nowrap small">{{ row.updated_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
@@ -256,7 +276,7 @@
 
   <h2 class="h6 text-success">{% trans "Recently synced" %}</h2>
   <div class="table-responsive rounded border border-success-subtle mb-4">
-    <table class="table table-sm table-striped mb-0 align-middle table-family">
+    <table class="table table-sm table-striped mb-0 align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "Recently synced" %}</caption>
       <thead>
         <tr>
@@ -269,7 +289,12 @@
       </thead>
       <tbody>
         {% for row in synced_actions %}
-        <tr data-rmc-offline-row="{{ row.pk }}">
+        <tr data-rmc-offline-row="{{ row.pk }}"
+            data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ row.get_action_type_display }}"
+            data-rmc-row-subtitle="{{ row.get_status_display }}"
+            data-rmc-row-meta='{"{% trans "Retries" %}":"{{ row.retry_count }}"}'>
           <td class="text-nowrap small">{{ row.updated_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
@@ -285,7 +310,7 @@
 
   <h2 class="h6 text-body-secondary">{% trans "All activity (latest 200)" %}</h2>
   <div class="table-responsive rounded border border-secondary-subtle">
-    <table class="table table-sm table-striped mb-0 align-middle table-family">
+    <table class="table table-sm table-striped mb-0 align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
       <caption class="visually-hidden">{% trans "All activity (latest 200)" %}</caption>
       <thead>
         <tr>
@@ -300,7 +325,12 @@
       </thead>
       <tbody>
         {% for row in offline_actions %}
-        <tr data-rmc-offline-row="{{ row.pk }}">
+        <tr data-rmc-offline-row="{{ row.pk }}"
+            data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ row.get_action_type_display }}"
+            data-rmc-row-subtitle="{{ row.get_status_display }}"
+            data-rmc-row-meta='{"{% trans "Retries" %}":"{{ row.retry_count }}"}'>
           <td class="text-nowrap small">{{ row.created_at }}</td>
           {% if operator_offline_scope %}<td class="small">{{ row.user.get_username }}</td>{% endif %}
           <td><span class="badge bg-secondary-subtle">{{ row.get_action_type_display }}</span></td>
@@ -328,4 +358,5 @@
     </table>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

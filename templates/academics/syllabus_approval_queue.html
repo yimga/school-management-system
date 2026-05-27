@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n static %}
+{% load i18n static glocal_tags %}
 {% load region_format %}
 
 {% block title %}Syllabus approval queue – {{ SITE.site_name|default:"Portal" }}{% endblock %}
@@ -18,7 +18,7 @@
       <div class="card shadow-sm">
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
+            <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
               <caption class="visually-hidden">{% trans "Syllabus approval queue" %}</caption>
               <thead>
                 <tr>

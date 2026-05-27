@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block page_title %}{{ page_title|default:"Migration Cloud — vendor write authorization status" }}{% endblock %}
 
@@ -46,7 +46,7 @@
 
   <section class="rmc-card rmc-card--vendor-write-table" aria-labelledby="vendor-write-table-heading">
     <h2 id="vendor-write-table-heading" class="rmc-h2">{% trans "Per-vendor status" %}</h2>
-    <table class="rmc-data-table rmc-data-table--vendor-write-status">
+    <table class="rmc-data-table rmc-data-table--vendor-write-status" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead>
         <tr>
           <th>{% trans "Vendor" %}</th>

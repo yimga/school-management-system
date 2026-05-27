@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block cp_title %}{% trans "Bulk school create" %}{% endblock %}
 
@@ -43,7 +43,7 @@
     {% blocktrans with v=valid_count i=invalid_count %}<strong>{{ v }}</strong> valid · <strong>{{ i }}</strong> invalid out of {{ valid_count|add:invalid_count }} parsed rows.{% endblocktrans %}
   </div>
   <div class="table-responsive mb-3">
-    <table class="table table-sm rmc-data-table">
+    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead><tr>
         <th>{% trans "Line" %}</th>
         <th>{% trans "Name" %}</th>
@@ -85,7 +85,7 @@
     {% blocktrans with c=created_count f=failed_count %}<strong>{{ c }}</strong> created · <strong>{{ f }}</strong> failed.{% endblocktrans %}
   </div>
   <div class="table-responsive">
-    <table class="table table-sm rmc-data-table">
+    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead><tr>
         <th>{% trans "Line" %}</th>
         <th>{% trans "Slug" %}</th>

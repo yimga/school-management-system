@@ -1,6 +1,6 @@
 {% extends "control_plane_base.html" %}
 {% block rmc_operator_surface_strip %}{% endblock %}
-{% load static %}
+{% load static glocal_tags %}
 {% load i18n %}
 {% load region_format %}
 {% load phase8_tags %}
@@ -23,6 +23,8 @@
   data-rmc-scroll-policy="paginate"
   data-rmc-operational-workbench="1"
   data-rmc-marketplace-workbench="1"
+  data-rmc-marketplace-operator-frame="1"
+  id="marketplace-operator-frame"
 >
 {% phase8_dashboard_declaration "marketplace/governance_console.html" %}
 
@@ -159,7 +161,7 @@
       </div>
     </div>
     <div class="table-responsive rmc-cp-compact__table-wrap">
-      <table class="table table-sm align-middle table-family rmc-data-table">
+      <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Listings and installability" %}</caption>
         <thead>
           <tr>

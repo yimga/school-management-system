@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static i18n %}
+{% load static i18n glocal_tags %}
 {% load region_format %}
 
 {% block cp_title %}School Health Monitor{% endblock %}
@@ -32,7 +32,7 @@
       <div class="card-body p-0">
         {% if tenants %}
         <div class="table-responsive table-density-comfortable">
-          <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
+          <table class="table table-hover mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
             <caption class="visually-hidden">{% trans "School Health Monitor" %}</caption>
             <thead class="table-light">
               <tr>

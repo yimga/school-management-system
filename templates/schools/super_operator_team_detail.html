@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block cp_title %}{{ operator_user.get_username }}{% endblock %}
 
@@ -102,7 +102,7 @@
   <div class="card shadow-sm mb-3">
     <div class="card-header">{% trans "Active sessions (sample)" %}</div>
     <div class="card-body p-0 table-responsive">
-      <table class="table table-sm mb-0 rmc-data-table">
+      <table class="table table-sm mb-0 rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <thead><tr><th>{% trans "Session" %}</th><th>{% trans "Expires" %}</th></tr></thead>
         <tbody>
           {% for s in sessions %}

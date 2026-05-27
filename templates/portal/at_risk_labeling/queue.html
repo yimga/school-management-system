@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% load terminology_tags %}
 {% block title %}At-risk outcome labeling{% endblock %}
 {% block content %}
@@ -28,7 +28,7 @@
 <div class="card">
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-sm align-middle mb-0">
+      <table class="table table-sm align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
         <thead class="table-light">
           <tr>
             <th scope="col">{% trans_term "Student" key="student" %}</th>
@@ -41,7 +41,11 @@
         </thead>
         <tbody>
           {% for student, risk, label in rows %}
-            <tr>
+            <tr data-rmc-row-detail="1"
+                tabindex="0"
+                data-rmc-row-title="{% if student.user %}{{ student.user.last_name }}, {{ student.user.first_name }}{% else %}Student #{{ student.pk }}{% endif %}"
+                data-rmc-row-subtitle="{% if risk %}{{ risk.band }}{% else %}—{% endif %}"
+                data-rmc-row-meta='{"{% trans "Risk score" %}":"{% if risk %}{{ risk.score|floatformat:1 }}{% else %}—{% endif %}"}'>
               <td>
                 {% if student.user %}
                   {{ student.user.last_name|default:'' }}, {{ student.user.first_name|default:'' }}
@@ -102,6 +106,7 @@
   Re-saving overwrites the previous label.
   When ready, export labeled training data via
   <code>python manage.py export_at_risk_training_data --out var/at_risk_train.csv</code>
-  then retrain with <code>python manage.py train_at_risk_baseline --csv var/at_risk_train.csv --clear-cache</code>.
+  then retrain with   <code>python manage.py train_at_risk_baseline --csv var/at_risk_train.csv --clear-cache</code>.
 </p>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

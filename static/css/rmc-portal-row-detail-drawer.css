@@ -16,3 +16,11 @@ tr[data-rmc-row-detail="1"] {
 tr[data-rmc-row-detail="1"]:hover {
   background: var(--surface-overlay, rgba(0, 0, 0, 0.04));
 }
+
+[data-rmc-row-detail-cards="1"] [data-rmc-row-detail="1"] {
+  cursor: pointer;
+}
+
+[data-rmc-row-detail-cards="1"] [data-rmc-row-detail="1"]:hover {
+  box-shadow: var(--elev-1, 0 1px 3px rgba(0, 0, 0, 0.12));
+}

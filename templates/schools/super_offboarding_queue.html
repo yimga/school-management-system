@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static %}
+{% load i18n static glocal_tags %}
 
 {% block cp_title %}{% trans "Offboarding queue" %}{% endblock %}
 
@@ -40,7 +40,7 @@
   </ul>
   {% endif %}
   <div class="table-responsive">
-    <table class="table table-sm rmc-data-table">
+    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead>
         <tr>
           <th>{% trans "School" %}</th>

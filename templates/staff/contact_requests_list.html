@@ -1,5 +1,7 @@
 {% extends "portal_base.html" %}
-{% load i18n region_format %}
+{% load i18n region_format glocal_tags terminology_tags %}
+{% term "parent" capitalize=True as parent_th %}
+{% term "student" capitalize=True as student_th %}
 
 {% block title %}Contact Requests{% endblock %}
 
@@ -36,13 +38,13 @@
 <div class="card">
   {% if requests %}
   <div class="table-responsive">
-    <table class="table table-striped mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table">
+    <table class="table table-striped mb-0 table-family align-middle table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <caption class="visually-hidden">{% trans "Contact Requests" %}</caption>
       <thead>
         <tr>
           <th>Submitted</th>
-          <th>Parent</th>
-          <th>Student</th>
+          <th>{{ parent_th }}</th>
+          <th>{{ student_th }}</th>
           <th>Subject</th>
           <th>Status</th>
           <th>Assigned</th>

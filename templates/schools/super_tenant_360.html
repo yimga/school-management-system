@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static %}
+{% load i18n static glocal_tags %}
 {% load region_format %}
 {% load phase8_tags %}
 
@@ -263,7 +263,7 @@
           <button type="button" class="btn btn-sm btn-danger" data-rmc-purge-apply disabled>{% trans "Permanent delete tenant" %}</button>
         </div>
         <div data-rmc-inventory-table data-rmc-scroll-policy="paginate" class="d-none">
-          <table class="table table-sm rmc-data-table mb-0">
+          <table class="table table-sm rmc-data-table mb-0" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
             <caption class="visually-hidden">{% trans "Purge inventory" %}</caption>
             <thead><tr><th>{% trans "Model" %}</th><th>{% trans "Rows" %}</th></tr></thead>
             <tbody data-rmc-inventory-body></tbody>

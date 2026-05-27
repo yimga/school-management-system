@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block title %}{% trans "Offline payment review queue" %}{% endblock %}
 
@@ -25,12 +25,12 @@
 
   <div class="card shadow-sm">
     <div class="table-responsive">
-      <table class="table table-hover rmc-data-table mb-0">
+      <table class="table table-hover rmc-data-table mb-0" data-rmc-row-detail-table="1">
         <thead>
           <tr>
             <th><span class="visually-hidden">{% trans "Select" %}</span></th>
             <th>{% trans "Invoice" %}</th>
-            <th>{% trans "Student" %}</th>
+            <th>{% trans_term "Student" key="student" %}</th>
             <th>{% trans "Amount" %}</th>
             <th>{% trans "Method" %}</th>
             <th>{% trans "Reference" %}</th>
@@ -40,12 +40,13 @@
         </thead>
         <tbody>
           {% for intent in page_obj %}
-          <tr>
+          <tr data-rmc-row-detail="1"
+              tabindex="0"
+              data-rmc-row-title="{{ intent.invoice.reference|default:intent.invoice_id }}"
+              data-rmc-row-subtitle="{{ intent.amount }}"
+              data-rmc-row-meta='{"{% trans "Method" %}":"{{ intent.payment_method|escapejs }}","{% trans "Reference" %}":"{{ intent.transaction_reference|default:"—"|escapejs }}"}'>
             <td>
-                <details class="rmc-row-disclosure">
-                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
-                  <div class="rmc-row-disclosure__body mt-1">
-<input type="checkbox" name="intent_ids" value="{{ intent.pk }}" class="form-check-input" aria-label="{% trans 'Select intent' %}">
+              <input type="checkbox" name="intent_ids" value="{{ intent.pk }}" class="form-check-input" aria-label="{% trans 'Select intent' %}">
             </td>
             <td>{{ intent.invoice.reference|default:intent.invoice_id }}</td>
             <td>{{ intent.invoice.student|default:"—" }}</td>
@@ -58,8 +59,7 @@
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-primary">{% trans "Approve" %}</button>
               </form>
-                  </div>
-                </details></td>
+            </td>
           </tr>
           {% empty %}
           <tr>
@@ -79,4 +79,5 @@
   </form>
   {% endif %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

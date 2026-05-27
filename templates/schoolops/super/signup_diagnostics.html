@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block page_title %}{{ page_title|default:"Signup flow diagnostics" }}{% endblock %}
 
@@ -133,7 +133,7 @@
   <section class="rmc-card" aria-labelledby="signup-attempts-heading" style="margin-top:1rem;">
     <h2 id="signup-attempts-heading" class="rmc-h2">{% trans "Last 10 signup verification emails" %}</h2>
     {% if signup_attempts %}
-      <table class="rmc-signup-diag__table table-sm table-sticky-head rmc-data-table">
+      <table class="rmc-signup-diag__table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <thead>
           <tr>
             <th>{% trans "When (UTC)" %}</th>

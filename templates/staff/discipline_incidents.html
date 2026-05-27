@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% load region_format %}
 
 {% block title %}{% trans "Disciplinary Incidents" %}{% endblock %}
@@ -14,7 +14,7 @@
     <p class="text-muted small mb-3">When an incident is recorded with "Notify parent" checked, linked guardians receive a notification. Add or edit incidents via the Configuration Engine (Academics → Incidents) if you have access.</p>
     {% if incidents %}
     <div class="table-responsive">
-      <table class="table table-striped align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table">
+      <table class="table table-striped align-middle mb-0 table-family table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Disciplinary Incidents" %}</caption>
         <thead>
           <tr>

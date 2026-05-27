@@ -3,7 +3,7 @@
 {% load terminology_tags %}
 {% load rmc_explain_tags %}
 {% load region_format %}
-{% load static phase8_tags %}
+{% load static phase8_tags glocal_tags %}
 {% term "parent" capitalize=True as inv_parent_sg %}
 
 {% block title %}{% trans_term "Invoices" key="invoice" plural=True %}{% endblock %}
@@ -109,9 +109,10 @@
         <a class="btn btn-outline-secondary btn-sm" href="?{% if pagination_extra_query %}{{ pagination_extra_query }}&{% endif %}export=pdf">{% trans "Export PDF" %}</a>
       </div>
     </div>
+    <!-- table-column-budget-allow: finance-invoice-ledger-eleven-column-set -->
     <div class="table-responsive rmc-data-table-wrapper" data-table-density-key="finance_invoices" data-tour="finance-table">
       {% if invoices %}
-      <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="{% trans 'Invoices list: reference, type, status, due date, student, total, balance, and actions' %}">
+      <table class="table table-sm align-middle table-sticky-head table-zebra table-family rmc-data-table" aria-label="{% trans 'Invoices list: reference, type, status, due date, student, total, balance, and actions' %}" data-rmc-row-detail-table="1">
         <thead class="table-light">
           <tr>
             <th scope="col">{% trans "Reference" %}</th>
@@ -131,12 +132,13 @@
         </thead>
         <tbody>
           {% for inv in invoices %}
-            <tr>
+            <tr data-rmc-row-detail="1"
+                tabindex="0"
+                data-rmc-row-title="{{ inv.reference|default:inv.id }}"
+                data-rmc-row-subtitle="{{ inv.get_status_display }}"
+                data-rmc-row-meta='{"{% trans "Balance" %}":"{{ inv.balance_amount|format_currency|escapejs }}","{% trans "Due" %}":"{{ inv.due_date|format_date|default:"-"|escapejs }}"}'>
               <td>
-                <details class="rmc-row-disclosure">
-                  <summary class="btn btn-sm btn-outline-secondary">{% trans "Actions" %}</summary>
-                  <div class="rmc-row-disclosure__body mt-1">
-<a href="{% url 'finance:invoice_detail' inv.id %}">
+                <a href="{% url 'finance:invoice_detail' inv.id %}">
                   {{ inv.reference|default:inv.id }}
                 </a>
               </td>
@@ -212,8 +214,7 @@
                   </form>
                   {% endif %}
                 </div>
-                  </div>
-                </details></td>
+              </td>
             </tr>
           {% endfor %}
         </tbody>
@@ -261,6 +262,7 @@
 </div>
 <script src="{% static 'js/_pages/finance__invoices.js' %}"></script>
 {% include "components/was_this_helpful.html" with feedback_id="finance-invoices" %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 </div>
 {% endblock %}
 

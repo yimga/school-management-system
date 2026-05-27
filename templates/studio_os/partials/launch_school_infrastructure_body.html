@@ -1,4 +1,4 @@
-{% load static %}
+{% load static glocal_tags %}
 {% load i18n %}
 {% comment %}
   v3.54.0 (2026-05-21): Next-realm Launch — School infrastructure cockpit.
@@ -79,6 +79,7 @@
       <button type="button" class="btn btn-sm btn-outline-primary" id="studio-infra-preview-btn">
         <i class="bi bi-eye me-1" aria-hidden="true"></i>{% trans "Preview & validate" %}
       </button>
+      <span class="badge bg-secondary-subtle text-secondary border" title="{% trans 'Responses come from a read-only preview endpoint, not live apply.' %}">{% trans "Preview API" %}</span>
       <span class="small text-muted" id="studio-infra-status" role="status" aria-live="polite"></span>
     </div>
   </section>
@@ -96,7 +97,7 @@
       <span>{% trans "Diff / readiness" %}</span>
     </h4>
     <div class="rmc-launch-table-scroll mb-2">
-      <table class="table table-sm table-family rmc-data-table mb-0" id="studio-infra-diff" data-rmc-scroll-policy="paginate">
+      <table class="table table-sm table-family rmc-data-table mb-0" id="studio-infra-diff" data-rmc-scroll-policy="paginate" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Diff / readiness" %}</caption>
         <thead><tr><th scope="col">{% trans "Aspect" %}</th><th scope="col">{% trans "Before" %}</th><th scope="col">{% trans "After" %}</th></tr></thead>
         <tbody></tbody>

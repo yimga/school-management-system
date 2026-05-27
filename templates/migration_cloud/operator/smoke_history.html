@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 <!-- v3.40.0 Agent 13 — smoke-run history operator view. Reads var/smoke-results/*.json (written by the tasks_smoke_archival shim) and renders: * A CSS-only sparkline of sections-passed (bar widths from view). * A filterable table of the last 30 archived runs. No JS chart lib; no remote-served font; pure HTML/CSS. -->
 
@@ -54,7 +54,7 @@
   <section class="rmc-card" aria-labelledby="recent-h2">
     <h2 id="recent-h2" class="rmc-h2">{% trans "Recent runs" %} <span class="rmc-meta">({{ rows_count }} / {{ max_runs_displayed }})</span></h2>
     {% if rows %}
-      <table class="rmc-table table-sm table-sticky-head rmc-data-table">
+      <table class="rmc-table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <thead>
           <tr>
             <th scope="col">{% trans "Archived at (UTC)" %}</th>

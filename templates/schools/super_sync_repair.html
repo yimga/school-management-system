@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static %}
+{% load static glocal_tags %}
 {% load region_format %}
 {% load i18n %}
 
@@ -12,7 +12,7 @@
 
   {% if conflicts %}
   <div class="table-responsive">
-    <table class="table table-bordered table-sm table-sticky-head rmc-data-table">
+    <table class="table table-bordered table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <caption class="visually-hidden">{% trans "Emergency Sync Repair" %}</caption>
       <thead>
         <tr>

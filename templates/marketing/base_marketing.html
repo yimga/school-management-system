@@ -105,6 +105,8 @@
   {% include 'components/toast_notifications.html' %}
   {% if request.user.is_authenticated %}{% include "partials/shell_chrome_security_posture_banner.html" %}{% endif %}
   <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
+  <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
+  {% include "partials/portal_row_detail_drawer_bundle.html" %}
   <script src="{% static 'marketing/js/mkt-proof-interactions.js' %}" defer></script>
   {% include 'marketing/partials/marketing_analytics.html' %}
   {% include 'components/rum_beacon.html' %}

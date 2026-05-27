@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load evals_extras static region_format i18n terminology_tags %}
+{% load evals_extras static region_format i18n terminology_tags glocal_tags %}
 {% block title %}Enter Marks{% endblock %}
 
 {% block content %}
@@ -138,7 +138,7 @@
             <thead>
               <tr>
                 <th scope="col">Code</th>
-                <th scope="col">Student</th>
+                <th scope="col">{% trans "Student" %}</th>
                 <th scope="col">Scores (editable)</th>
                 <th scope="col">Confidence</th>
                 <th scope="col">Extracted line</th>
@@ -252,7 +252,7 @@
         <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Marks entry by student" data-tour="gradebook-grid" data-rmc-row-detail-table="1">
           <thead>
             <tr>
-              <th scope="col">Student</th>
+              <th scope="col">{% trans "Student" %}</th>
               <th scope="col" class="num" style="width:110px;">Sequence 1</th>
               <th scope="col" class="num" style="width:110px;">Sequence 2</th>
               <th scope="col" class="num" style="width:110px;">Exam</th>

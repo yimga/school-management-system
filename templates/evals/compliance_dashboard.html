@@ -1,5 +1,5 @@
 {% extends 'backend_base.html' %}
-{% load static i18n phase8_tags %}
+{% load static i18n phase8_tags glocal_tags %}
 {% load terminology_tags %}
 
 {% block title %}Grading Compliance Dashboard{% endblock %}
@@ -80,12 +80,12 @@
                     <h5 class="mb-0">Teacher Submission Status</h5>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped mb-0 table-sm table-sticky-head rmc-data-table">
+                    <table class="table table-hover table-striped mb-0 table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
                       {% term "teacher" capitalize=True as teacher_sg_cap %}
                       <caption class="visually-hidden">{% blocktrans with t=teacher_sg_cap %}{{ t }} Submission Status{% endblocktrans %}</caption>
                         <thead class="bg-light">
                             <tr>
-                                <th>Teacher</th>
+                                <th>{% trans_term "Teacher" key="teacher" %}</th>
                                 <th>Code</th>
                                 <th>Classroom</th>
                                 <th>Completion Rate</th>

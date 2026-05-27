@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block title %}My Timetable{% endblock %}
 
@@ -26,7 +26,7 @@
       >
         <h5 class="card-title mb-3">Weekly schedule</h5>
         <div class="table-responsive">
-          <table class="table table-bordered align-middle mb-0">
+          <table class="table table-bordered align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
             <caption class="visually-hidden">{% trans "Weekly schedule" %}</caption>
             <thead class="table-light">
               <tr>
@@ -40,7 +40,11 @@
             <tbody>
               {% for day, day_entries in by_day_ordered %}
                 {% for entry in day_entries %}
-                  <tr>
+                  <tr data-rmc-row-detail="1"
+                      tabindex="0"
+                      data-rmc-row-title="{{ entry.subject.name }}"
+                      data-rmc-row-subtitle="{{ entry.classroom.name }}"
+                      data-rmc-row-meta='{"{% trans "Day" %}":"{{ day|escapejs }}","{% trans "Room" %}":"{{ entry.room.name|escapejs }}"}'>
                     {% if forloop.first %}
                       <td rowspan="{{ day_entries|length }}" class="align-middle fw-semibold">{{ day }}</td>
                     {% endif %}
@@ -57,4 +61,5 @@
       </div>
     </div>
   {% endif %}
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

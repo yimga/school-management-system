@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static region_format i18n %}
+{% load static region_format i18n glocal_tags %}
 
 {% block title %}Signature Requests Management{% endblock %}
 
@@ -115,12 +115,12 @@
              (.table-family .table-sticky-head .table-zebra). Right-aligned the
              three date columns for column-type consistency with finance/invoices. {% endcomment %}
           <!-- large-collection-allow: dashboard-widget-capped-list -->
-<table class="table table-family table-sticky-head table-zebra table-hover align-middle" aria-label="Signature requests: form, student, parent, status, dates, and actions">
+<table class="table table-family table-sticky-head table-zebra table-hover align-middle rmc-data-table" aria-label="Signature requests: form, student, parent, status, dates, and actions" data-rmc-row-detail-table="1">
             <thead class="table-light">
               <tr>
-                <th scope="col">Form</th>
-                <th scope="col">Student</th>
-                <th scope="col">Parent</th>
+                <th scope="col">{% trans "Form" %}</th>
+                <th scope="col">{% trans_term "Student" key="student" %}</th>
+                <th scope="col">{% trans_term "Parent" key="parent" %}</th>
                 <th scope="col">Status</th>
                 <th scope="col" class="text-end">Created</th>
                 <th scope="col" class="text-end">Expires</th>
@@ -130,7 +130,11 @@
             </thead>
             <tbody>
               {% for req in requests %}
-                <tr>
+                <tr data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ req.form_document.title }}"
+                    data-rmc-row-subtitle="{{ req.get_status_display }}"
+                    data-rmc-row-meta='{"{% trans "Student" %}":"{% if req.student %}{{ req.student.get_full_name|escapejs }}{% else %}—{% endif %}"}'>
                   <td>
                     <div class="fw-semibold">{{ req.form_document.title }}</div>
                     <div class="text-muted small">{{ req.form_document.get_document_type_display }}</div>
@@ -212,4 +216,5 @@
     </div>
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

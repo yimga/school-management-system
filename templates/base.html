@@ -345,6 +345,8 @@
     {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. #}
     <script src="{% static 'js/_pages/rmc-data-viz.js' %}" defer></script>
     <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
+    <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
+    {% include "partials/portal_row_detail_drawer_bundle.html" %}
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>

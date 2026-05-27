@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static i18n %}
+{% load static i18n glocal_tags %}
 
 {% block title %}{% trans "Terminology" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -49,7 +49,7 @@
         </header>
         <div class="table-responsive">
           <!-- large-collection-allow: lexicon-inline-edit-grid -->
-<table class="table rmc-data-table mb-0">
+<table class="table rmc-data-table mb-0" data-rmc-row-detail-table="1">
             <thead>
               <tr>
                 <th scope="col" style="width: 22%;">{% trans "Key" %}</th>
@@ -61,7 +61,12 @@
             <tbody>
               {% for row in rows %}
                 <tr data-rmc-lexicon-row="{{ row.key }}"
-                    data-search-text="{{ row.key }} {{ row.default_singular|lower }} {{ row.default_plural|lower }} {{ row.description|lower }}">
+                    data-search-text="{{ row.key }} {{ row.default_singular|lower }} {{ row.default_plural|lower }} {{ row.description|lower }}"
+                    data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ row.key }}"
+                    data-rmc-row-subtitle="{{ row.resolved_singular }}"
+                    data-rmc-row-meta='{"{% trans "Plural" %}":"{{ row.resolved_plural|escapejs }}"}'>
                   <td>
                     <div class="fw-semibold">{{ row.key }}</div>
                     <div class="text-muted small">{{ row.description }}</div>
@@ -125,4 +130,5 @@
 </div>
 
 <script src="{% static 'js/_pages/portal__configure__lexicon_settings.js' %}"></script>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

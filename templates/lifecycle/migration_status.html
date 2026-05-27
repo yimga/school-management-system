@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block title %}{% trans "Migration status" %}{% endblock %}
 
@@ -28,7 +28,7 @@
   <h2 class="h6 mb-2">{% trans "Recent bundles" %}</h2>
   {% if snapshot.bundles %}
   <div class="table-responsive">
-    <table class="table table-sm rmc-data-table">
+    <table class="table table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead><tr>
         <th>{% trans "Label" %}</th>
         <th>{% trans "Status" %}</th>

@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block title %}Report Library · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 
@@ -110,7 +110,7 @@
   {% if reports %}
     <div class="table-responsive">
       <!-- large-collection-allow: catalog-link-row-actions -->
-<table class="table table-striped align-middle table-family table-sm table-sticky-head rmc-data-table">
+<table class="table table-striped align-middle table-family table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Dependencies" %}</caption>
         <thead>
           <tr>

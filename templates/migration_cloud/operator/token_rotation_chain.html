@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block page_title %}{{ page_title|default:"Token rotation chain" }}{% endblock %}
 
@@ -16,7 +16,7 @@
   </header>
 
   {% if rows %}
-  <table class="rmc-data-table rmc-data-table--token-chain">
+  <table class="rmc-data-table rmc-data-table--token-chain" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
     <thead>
       <tr>
         <th>{% trans "Step" %}</th>

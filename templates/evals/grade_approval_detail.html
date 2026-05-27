@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load region_format %}
+{% load region_format glocal_tags terminology_tags %}
 {% block title %}Grade Approval{% if approval.subject_assignment %} · {{ approval.subject_assignment.subject.name }}{% endif %}{% endblock %}
 
 {% block content %}
@@ -76,10 +76,10 @@
     <strong>Submitted marks</strong>
   </div>
   <div class="table-responsive">
-    <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Submitted marks for approval: student and score components">
+    <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="Submitted marks for approval: student and score components" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead>
         <tr>
-          <th scope="col">Student</th>
+          <th scope="col">{% trans_term "Student" key="student" %}</th>
           <th scope="col" class="num">Seq1</th>
           <th scope="col" class="num">Seq2</th>
           <th scope="col" class="num">Exam</th>

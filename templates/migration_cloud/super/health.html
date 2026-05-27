@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 <!-- v3.38.0 Agent 4 — Migration Cloud operator health dashboard. Six panels in a 3-col grid for incident response: 1. Webhook deliveries (last 24h, by status) 2. MAA signs (last 7d, by version) 3. Companion uploads (last 24h, count + bytes per HASHED tenant) 4. Active Companion keypairs (per HASHED tenant) 5. Pending legacy hash sunsets (single count) 6. Zero-tolerance scanner baselines (8 rows) Hard contract: this template NEVER renders raw tenant slugs (only the 12-hex sha256 prefix the view computed), and NEVER renders signature bytes / MAA body / private key material. Auto-refreshes every 60s via meta refresh so an operator can keep it open. -->
 
@@ -32,7 +32,7 @@
       {% if webhooks.load_error %}
         <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
       {% elif webhooks.by_status %}
-        <table class="rmc-data-table rmc-data-table--mc-health">
+        <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <thead>
             <tr>
               <th>{% trans "Status" %}</th>
@@ -63,7 +63,7 @@
       {% if maa_signs.load_error %}
         <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
       {% elif maa_signs.by_version %}
-        <table class="rmc-data-table rmc-data-table--mc-health">
+        <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <thead>
             <tr>
               <th>{% trans "Version" %}</th>
@@ -97,7 +97,7 @@
       {% if uploads.load_error %}
         <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
       {% elif uploads.by_tenant %}
-        <table class="rmc-data-table rmc-data-table--mc-health">
+        <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <thead>
             <tr>
               <th>{% trans "Tenant (hash)" %}</th>
@@ -130,7 +130,7 @@
       {% if keypairs.load_error %}
         <p class="rmc-empty">{% trans "Model not loadable in this environment." %}</p>
       {% elif keypairs.by_tenant %}
-        <table class="rmc-data-table rmc-data-table--mc-health">
+        <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <thead>
             <tr>
               <th>{% trans "Tenant (hash)" %}</th>
@@ -170,7 +170,7 @@
     <!-- ── Panel 6 — Zero-tolerance scanner baselines ────────────────── -->
     <section class="rmc-card rmc-card--mc-health" aria-labelledby="health-scanners-heading">
       <h2 id="health-scanners-heading" class="rmc-h2">{% trans "Zero-tolerance scanner status" %}</h2>
-      <table class="rmc-data-table rmc-data-table--mc-health">
+      <table class="rmc-data-table rmc-data-table--mc-health" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <thead>
           <tr>
             <th>{% trans "Scanner" %}</th>

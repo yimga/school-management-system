@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static %}
 {% load i18n %}
-{% load terminology_tags %}
+{% load terminology_tags glocal_tags %}
 {% term "teacher" as rct_teacher_sg_lc %}
 {% term "teacher" capitalize=True as rct_teacher_sg %}
 {% blocktrans asvar rct_title with t=rct_teacher_sg_lc %}Take {{ t }} attendance{% endblocktrans %}
@@ -42,7 +42,7 @@
                data-attendance-offline-hydrator="1"
                data-attendance-scope="teacher"
                data-attendance-status-choices='{{ status_choices_json|default:"[]" }}'>
-            <table class="table table-sm align-middle table-family">
+            <table class="table table-sm align-middle table-family rmc-data-table" data-rmc-row-detail-table="1">
               <caption class="visually-hidden">Teachers – {{ date_value }}</caption>
               <thead class="table-light">
                 <tr>
@@ -52,7 +52,11 @@
               </thead>
               <tbody>
                 {% for row in teachers_with_status %}
-                  <tr>
+                  <tr data-rmc-row-detail="1"
+                      tabindex="0"
+                      data-rmc-row-title="{{ row.teacher.user.get_full_name|default:row.teacher.user.username }}"
+                      data-rmc-row-subtitle="{{ date_value }}"
+                      data-rmc-row-meta='{"{% trans "Status" %}":"{{ row.status|escapejs }}"}'>
                     <td>{{ row.teacher.user.get_full_name|default:row.teacher.user.username }}</td>
                     <td>
                       <select name="status_{{ row.teacher.id }}" class="form-select form-select-sm status-select min-touch-target" style="min-height:2.75rem;" aria-label="{% trans 'Attendance status' %} {{ row.teacher.user.get_full_name|default:row.teacher.user.username }}">
@@ -78,4 +82,5 @@
   <script src="{% static 'js/form-draft-save.js' %}"></script>
   {# FormDraftSave.init is called by the page script after the library loads. #}
   <script src="{% static 'js/_pages/portal__roll_call_teacher.js' %}"></script>
+  {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

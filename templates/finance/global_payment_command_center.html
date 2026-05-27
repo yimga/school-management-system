@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% block title %}{% trans "Global payment command center" %}{% endblock %}
 {% block content %}
 <div class="container py-4" data-rmc-scroll-policy="paginate">
@@ -22,7 +22,7 @@
     </div>
   </form>
   <div class="table-responsive mb-4">
-    <table class="table table-sm table-family">
+    <table class="table table-sm table-family rmc-data-table" data-rmc-row-detail-table="1">
       <thead>
         <tr>
           <th>{% trans "Country" %}</th>
@@ -34,7 +34,11 @@
       </thead>
       <tbody>
         {% for row in country_rows %}
-        <tr>
+        <tr data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ row.country_code }} — {{ row.label }}"
+            data-rmc-row-subtitle="{{ row.primary_rail }}"
+            data-rmc-row-meta='{"{% trans "Currency" %}":"{{ row.currency_display|default:row.currency|escapejs }}","{% trans "Risk" %}":"{{ row.risk_tier|escapejs }}"}'>
           <td><strong>{{ row.country_code }}</strong> — {{ row.label }}</td>
           <td class="small">{{ row.currency_display|default:row.currency }}</td>
           <td>{{ row.primary_rail }}</td>
@@ -49,4 +53,5 @@
   </div>
   <a class="btn btn-outline-secondary btn-sm" href="{% url 'finance:payment_readiness_dashboard' %}">{% trans "Tenant readiness" %}</a>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static %}
 {% load i18n %}
-{% load terminology_tags %}
+{% load terminology_tags glocal_tags %}
 {% load evals_extras %}
 {% term "student" as rc_student_sg %}
 {% blocktrans asvar rc_title with t=rc_student_sg %}Take {{ t }} attendance{% endblocktrans %}

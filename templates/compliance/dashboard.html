@@ -1,5 +1,5 @@
 {% extends "backend_base.html" %}
-{% load i18n static region_format phase8_tags %}
+{% load i18n static region_format phase8_tags glocal_tags %}
 
 {% block title %}{% trans "Compliance Dashboard" %}{% endblock %}
 
@@ -128,7 +128,7 @@
     <div class="section-two-col">
         <div class="section">
             <h2>{% trans "Model Changes (Last 7 Days)" %}</h2>
-            <table class="data-table table-sm table-sticky-head rmc-data-table">
+            <table class="data-table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
               <caption class="visually-hidden">{% trans "Model Changes (Last 7 Days)" %}</caption>
                 <thead>
                     <tr>
@@ -173,7 +173,7 @@
     <!-- Recent Audit Logs -->
     <div class="section">
         <h2>{% trans "Recent Audit Activity" %}</h2>
-        <table class="data-table table-sm table-sticky-head rmc-data-table">
+        <table class="data-table table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <caption class="visually-hidden">{% trans "Recent Audit Activity" %}</caption>
             <thead>
                 <tr>

@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load static i18n region_format phase8_tags %}
+{% load static i18n region_format phase8_tags glocal_tags %}
 {% load terminology_tags %}
 
 {% block cp_title %}{% trans "Control Plane" %}{% endblock %}
@@ -572,7 +572,7 @@
           </div>
         </form>
         <div class="table-responsive cp-table-wrap cp-registry-table-wrap">
-          <table class="table table-family table-hover mb-0 cp-table cp-registry-table align-middle rmc-data-table" data-density="condensed">
+          <table class="table table-family table-hover mb-0 cp-table cp-registry-table align-middle rmc-data-table" data-density="condensed" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
             <caption class="visually-hidden">{% trans "Search, triage, and drill into every school" %}</caption>
             <thead>
               <tr>
@@ -723,6 +723,8 @@
           {% endfor %}
         </div>
       </section>
+
+      {% include "schools/partials/data_residency_readiness_panel.html" %}
 
       <section class="cp-panel mb-4 rmc-reveal" id="cp-readiness">
         <div class="cp-panel-header">

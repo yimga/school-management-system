@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block title %}{% trans "Staff identity" %} — {{ block.super }}{% endblock %}
 
@@ -30,7 +30,7 @@
 
   <div class="card shadow-sm border-0">
     <div class="card-body p-0 table-responsive">
-      <table class="table table-hover mb-0 align-middle rmc-data-table">
+      <table class="table table-hover mb-0 align-middle rmc-data-table" data-rmc-row-detail-table="1">
         <caption class="visually-hidden">{% trans "School staff roster" %}</caption>
         <thead class="table-light">
           <tr>
@@ -42,7 +42,11 @@
         </thead>
         <tbody>
           {% for row in rows %}
-          <tr>
+          <tr data-rmc-row-detail="1"
+              tabindex="0"
+              data-rmc-row-title="{{ row.user.get_username }}"
+              data-rmc-row-subtitle="{{ row.effective_role }}"
+              data-rmc-row-meta='{"{% trans "MFA" %}":"{% if row.mfa_ok %}{% trans "Enrolled" %}{% else %}{% trans "Not enrolled" %}{% endif %}"}'>
             <td>
               <strong>{{ row.user.get_username }}</strong>
               {% if row.user.email %}<div class="small text-muted">{{ row.user.email }}</div>{% endif %}
@@ -70,4 +74,5 @@
   </div>
   {% include "components/pagination.html" %}
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

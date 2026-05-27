@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block cp_title %}{% trans "Policy Bundles" %}{% endblock %}
 
@@ -28,7 +28,7 @@
   </div>
   <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
-      <table class="table table-family table-hover mb-0 table-sm table-sticky-head rmc-data-table">
+      <table class="table table-family table-hover mb-0 table-sm table-sticky-head rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Policy Bundles" %}</caption>
         <thead>
           <tr>

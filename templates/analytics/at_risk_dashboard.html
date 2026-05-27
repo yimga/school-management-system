@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% load terminology_tags %}
 {% load region_format phase8_tags %}
 {% block title %}At-Risk Dashboard{% endblock %}
@@ -12,7 +12,7 @@
   <div class="card shadow-sm mb-3">
     <div class="card-body">
       <div class="table-responsive">
-        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'At-risk students by score and band' %}">
+        <table class="gradebook-table table-family table-sm table-sticky-head rmc-data-table" aria-label="{% trans 'At-risk students by score and band' %}" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
           <caption class="visually-hidden">{% trans "At-Risk Dashboard" %}</caption>
           <thead>
             <tr>

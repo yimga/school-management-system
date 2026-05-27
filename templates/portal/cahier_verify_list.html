@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% block title %}Cahier de Texte – Verification{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">Cahier de Texte – Verification</h1>
@@ -9,12 +9,16 @@
     <h5 class="card-title">Submitted entries</h5>
     {% if entries %}
     <div class="table-responsive">
-      <table class="table table-sm table-family align-middle">
+      <table class="table table-sm table-family align-middle rmc-data-table" data-rmc-row-detail-table="1">
         <caption class="visually-hidden">{% trans "Submitted entries" %}</caption>
-        <thead><tr><th>Date</th><th>Teacher</th><th>Class / Subject</th><th>Title</th><th>Actions</th></tr></thead>
+        <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Teacher" %}</th><th>{% trans "Class / Subject" %}</th><th>{% trans "Title" %}</th><th>{% trans "Actions" %}</th></tr></thead>
         <tbody>
           {% for e in entries %}
-          <tr>
+          <tr data-rmc-row-detail="1"
+              tabindex="0"
+              data-rmc-row-title="{{ e.title|truncatewords:6 }}"
+              data-rmc-row-subtitle="{{ e.entry_date }}"
+              data-rmc-row-meta='{"{% trans "Teacher" %}":"{{ e.teacher.user.get_full_name|default:e.teacher.user.username|escapejs }}"}'>
             <td>{{ e.entry_date }}</td>
             <td>{{ e.teacher.user.get_full_name|default:e.teacher.user.username }}</td>
             <td>{% if e.subject_assignment %}{{ e.subject_assignment.classroom.name }} – {{ e.subject_assignment.subject.name }}{% else %}—{% endif %}</td>
@@ -37,4 +41,5 @@
     {% endif %}
   </div>
 </div>
+{% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

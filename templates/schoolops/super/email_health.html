@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 
 {% block page_title %}{{ page_title|default:"Email delivery health" }}{% endblock %}
 
@@ -147,7 +147,7 @@
       </div>
     </dl>
     {% if bounce_panel.window_30d.by_kind %}
-    <table class="rmc-data-table rmc-data-table--email-bounce-kinds">
+    <table class="rmc-data-table rmc-data-table--email-bounce-kinds" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <caption class="rmc-muted">{% trans "Bounce kinds (last 30 days)" %}</caption>
       <thead>
         <tr>
@@ -172,7 +172,7 @@
   <section class="rmc-card" aria-labelledby="failures-heading">
     <h2 id="failures-heading" class="rmc-h2">{% trans "Recent failures (top 5)" %}</h2>
     {% if failures %}
-    <table class="rmc-data-table rmc-data-table--email-failures">
+    <table class="rmc-data-table rmc-data-table--email-failures" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead>
         <tr>
           <th scope="col">{% trans "Time" %}</th>

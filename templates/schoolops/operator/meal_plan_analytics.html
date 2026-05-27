@@ -1,5 +1,5 @@
 {% extends "control_plane_base.html" %}
-{% load i18n static %}
+{% load i18n static glocal_tags %}
 
 {% block page_title %}{{ page_title|default:"Meal plan low-balance analytics" }}{% endblock %}
 
@@ -49,7 +49,7 @@
   <section class="rmc-card" aria-labelledby="top-tenants-heading">
     <h2 id="top-tenants-heading" class="rmc-h2">{% trans "Top tenants by notification volume" %}</h2>
     {% if top_tenants %}
-    <table class="rmc-data-table rmc-data-table--top-tenants">
+    <table class="rmc-data-table rmc-data-table--top-tenants" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead>
         <tr>
           <th>{% trans "Tenant" %}</th>
@@ -74,7 +74,7 @@
 
   <section class="rmc-card" aria-labelledby="per-locale-heading">
     <h2 id="per-locale-heading" class="rmc-h2">{% trans "Per-locale breakdown" %}</h2>
-    <table class="rmc-data-table rmc-data-table--per-locale">
+    <table class="rmc-data-table rmc-data-table--per-locale" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead>
         <tr>
           <th>{% trans "Locale" %}</th>
@@ -95,7 +95,7 @@
   <section class="rmc-card" aria-labelledby="rolling-window-heading">
     <h2 id="rolling-window-heading" class="rmc-h2">{% trans "Rolling 30-day per-tenant volume (all tenants)" %}</h2>
     {% if per_tenant_window %}
-    <table class="rmc-data-table rmc-data-table--rolling">
+    <table class="rmc-data-table rmc-data-table--rolling" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
       <thead>
         <tr>
           <th>{% trans "Tenant" %}</th>
