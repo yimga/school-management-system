@@ -10,6 +10,7 @@ from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_GET
 
+from apps.lifecycle.enrollment_workflow_matrix import build_lifecycle_workflow_hub_payload
 from apps.lifecycle.launch_rail import build_launch_rail_payload
 from apps.lifecycle.tenant_school_resolve import (
     can_access_tenant_lifecycle,
@@ -132,3 +133,40 @@ def api_tenant_launch_rail(request: HttpRequest) -> JsonResponse:
         return JsonResponse({"ok": False}, status=403)
     rail = build_launch_rail_payload(school, user=request.user)
     return JsonResponse({"ok": True, "launch_rail": rail})
+
+
+@login_required
+def tenant_lifecycle_command_center(request: HttpRequest) -> HttpResponse:
+    """Unified registration, enrollment, onboarding, and offboarding command center."""
+    school = resolve_request_school(request)
+    if school is None or not can_access_tenant_lifecycle(request, school):
+        return lifecycle_access_denied_response(request)
+
+    hub = build_lifecycle_workflow_hub_payload(school, user=request.user)
+    return render(
+        request,
+        "siteconfig/tenant_lifecycle_command_center.html",
+        {
+            "school": school,
+            "hub": hub,
+            "unified": hub.get("unified") or {},
+            "launch_rail": hub.get("launch_rail") or {},
+            "registration": hub.get("registration") or {},
+            "enrollment": hub.get("enrollment") or {},
+            "tenant_offboarding": hub.get("tenant_offboarding") or {},
+            "studio_url": _tenant_reverse("school_studio"),
+            "provisioning_url": _tenant_reverse("tenant_provisioning_status"),
+            "fast_path_url": _tenant_reverse("tenant_launch_fast_path"),
+            "offboarding_url": _tenant_reverse("tenant_offboarding"),
+        },
+    )
+
+
+@login_required
+@require_GET
+def api_tenant_lifecycle_hub(request: HttpRequest) -> JsonResponse:
+    school = resolve_request_school(request)
+    if school is None or not can_access_tenant_lifecycle(request, school):
+        return JsonResponse({"ok": False, "error": "no_school"}, status=403)
+    hub = build_lifecycle_workflow_hub_payload(school, user=request.user)
+    return JsonResponse({"ok": True, "hub": hub})

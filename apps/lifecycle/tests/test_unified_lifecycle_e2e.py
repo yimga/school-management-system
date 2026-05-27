@@ -3,6 +3,11 @@
 from django.test import TestCase
 from django.utils import timezone
 
+from apps.lifecycle.enrollment_workflow_matrix import (
+    build_enrollment_track,
+    build_lifecycle_workflow_hub_payload,
+    build_registration_track,
+)
 from apps.lifecycle.launch_rail import build_launch_rail_payload, FAST_PATH_STEPS
 from apps.lifecycle.unified_lifecycle import (
     ALL_UNIFIED_STATES,
@@ -108,3 +113,31 @@ class UnifiedLifecycleE2ETests(TestCase):
     def test_validate_transition_graph(self):
         self.assertTrue(validate_unified_transition(STATE_DRAFT, STATE_PROVISIONING))
         self.assertFalse(validate_unified_transition(STATE_PURGED, STATE_LIVE))
+
+    def test_registration_and_enrollment_tracks(self):
+        school = School.objects.create(
+            name="Enroll",
+            slug="enroll-school",
+            subdomain="enroll-school",
+            is_active=True,
+        )
+        reg = build_registration_track(school)
+        enr = build_enrollment_track(school)
+        self.assertGreaterEqual(reg["total"], 4)
+        self.assertGreaterEqual(enr["total"], 5)
+        self.assertIn("steps", reg)
+        self.assertIn("percent", enr)
+
+    def test_lifecycle_workflow_hub_payload(self):
+        school = School.objects.create(
+            name="Hub",
+            slug="hub-school",
+            subdomain="hub-school",
+            is_active=True,
+        )
+        hub = build_lifecycle_workflow_hub_payload(school)
+        self.assertIn("registration", hub)
+        self.assertIn("enrollment", hub)
+        self.assertIn("launch_rail", hub)
+        self.assertIn("operator_offboarding", hub)
+        self.assertIn("summary", hub)

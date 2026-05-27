@@ -20,12 +20,18 @@ class Command(BaseCommand):
             default=10,
             help="Max schools to process per run",
         )
+        parser.add_argument(
+            "--force-operator",
+            action="store_true",
+            help="Apply purges even when TENANT_AUTO_PURGE_ENABLED=0 (operator shell)",
+        )
 
     def handle(self, *args, **opts):
         result = run_scheduled_purges(
             actor=None,
             dry_run=bool(opts.get("dry_run")),
             limit=int(opts.get("limit") or 10),
+            force_operator=bool(opts.get("force_operator")),
         )
         if not result.get("ok"):
             self.stdout.write(self.style.WARNING(str(result)))

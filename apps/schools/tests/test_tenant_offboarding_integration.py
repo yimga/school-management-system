@@ -101,6 +101,26 @@ class TenantOffboardingIntegrationTests(TestCase):
         body = json.loads(response.content)
         self.assertTrue(body.get("ok"))
 
+    @override_settings(TENANT_AUTO_PURGE_ENABLED=False)
+    def test_run_scheduled_purges_api_force_operator_confirm(self):
+        request = self._manager_request(
+            "post",
+            "/super/api/offboarding/run-scheduled/",
+            json.dumps(
+                {
+                    "dry_run": False,
+                    "force_operator": True,
+                    "confirm": "purge-due-tenants",
+                    "limit": 1,
+                }
+            ).encode(),
+        )
+        response = api_super_run_scheduled_purges(request)
+        self.assertEqual(response.status_code, 200)
+        body = json.loads(response.content)
+        self.assertTrue(body.get("ok"))
+        self.assertTrue(body.get("force_operator"))
+
     @patch("apps.schools.tenant_offboarding.drop_tenant_schema_for_school", return_value=None)
     def test_scheduled_purge_management_command_dry_run(self, _mock):
         settings = dict(self.school.settings or {})

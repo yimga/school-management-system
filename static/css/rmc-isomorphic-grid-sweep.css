@@ -32,6 +32,25 @@ html:not([data-rmc-shell="off"]) body {
   max-height: var(--rmc-iso-viewport-h);
 }
 
+/* Document-scroll shells (portal, marketing, tenant base) — never clip page height */
+html:not([data-rmc-shell="off"]) body[data-rmc-cp-scroll="document"],
+html:not([data-rmc-shell="off"]) body.portal-body-with-layout[data-rmc-cp-scroll="document"],
+html:not([data-rmc-shell="off"]) body.base-document-shell[data-rmc-cp-scroll="document"],
+html:not([data-rmc-shell="off"]) body.marketing-surface[data-rmc-cp-scroll="document"] {
+  max-height: none !important;
+  height: auto !important;
+  overflow-x: clip;
+  overflow-y: auto !important;
+}
+
+html:not([data-rmc-shell="off"]) body[data-rmc-cp-scroll="document"] .rmc-app-shell,
+html:not([data-rmc-shell="off"]) body.portal-body-with-layout .rmc-app-shell {
+  height: auto !important;
+  max-height: none !important;
+  min-height: var(--rmc-iso-viewport-h-fallback);
+  min-height: var(--rmc-iso-viewport-h);
+}
+
 html:not([data-rmc-shell="off"]) .rmc-app-shell {
   height: var(--rmc-iso-viewport-h-fallback);
   height: var(--rmc-iso-viewport-h);

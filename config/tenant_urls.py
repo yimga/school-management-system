@@ -29,8 +29,10 @@ from apps.portal.views_configure import portal_configure_hub
 from apps.siteconfig.views_school_help_ai import school_help_ai
 from apps.lifecycle.views_tenant_lifecycle import (
     api_tenant_launch_rail,
+    api_tenant_lifecycle_hub,
     api_tenant_provisioning_status,
     tenant_launch_fast_path,
+    tenant_lifecycle_command_center,
     tenant_provisioning_status,
 )
 from apps.siteconfig.views_tenant_studio_hub import (
@@ -302,6 +304,11 @@ urlpatterns = [
         name="tenant_launch_fast_path",
     ),
     path(
+        "school/studio/lifecycle/",
+        tenant_lifecycle_command_center,
+        name="tenant_lifecycle_command_center",
+    ),
+    path(
         "api/school/lifecycle/provisioning/",
         api_tenant_provisioning_status,
         name="api_tenant_provisioning_status",
@@ -310,6 +317,11 @@ urlpatterns = [
         "api/school/lifecycle/launch-rail/",
         api_tenant_launch_rail,
         name="api_tenant_launch_rail",
+    ),
+    path(
+        "api/school/lifecycle/hub/",
+        api_tenant_lifecycle_hub,
+        name="api_tenant_lifecycle_hub",
     ),
     path("school/studio/setup/", school_studio_redirect_setup, name="school_studio_setup"),
     path("school/studio/readiness/", school_studio_hub, name="school_studio_readiness"),

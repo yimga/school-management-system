@@ -135,6 +135,7 @@ def _studio_hub_link_urls() -> dict[str, str]:
         ("onboarding", "siteconfig:onboarding"),
         ("provisioning", "tenant_provisioning_status"),
         ("fast_path", "tenant_launch_fast_path"),
+        ("lifecycle", "tenant_lifecycle_command_center"),
         ("studio_os", "studio_os:shell"),
         ("school_help_ai", "school_help_ai"),
         ("help_center", "feedback:help_center"),

@@ -418,23 +418,39 @@ def record_export_path_for_school(school, export_zip_path: str) -> None:
     )
 
 
+def _school_scheduled_purge_due(
+    school: School,
+    *,
+    on_or_before: date,
+    off: dict | None = None,
+) -> bool:
+    """True when purge date is due and school is in an offboarding-scheduled state."""
+    block = off if off is not None else _offboarding_settings(school)
+    raw = (block.get("scheduled_purge_at") or "").strip()
+    if not raw:
+        return False
+    try:
+        purge_day = date.fromisoformat(raw[:10])
+    except ValueError:
+        return False
+    if purge_day > on_or_before:
+        return False
+    status = (block.get("self_service_status") or "").strip().lower()
+    if status in ("scheduled", "operator_scheduled"):
+        return True
+    if block.get("wind_down_mode") and status not in ("cancelled", "none", ""):
+        return True
+    if status in ("closure_requested", "requested") and purge_day <= on_or_before:
+        return True
+    return False
+
+
 def schools_scheduled_for_purge(*, on_or_before: date | None = None) -> list[School]:
     """Schools with ``scheduled_purge_at`` on or before ``on_or_before`` (default today)."""
     on_or_before = on_or_before or date.today()
     due: list[School] = []
     for school in School.objects.all().only("id", "slug", "settings", "is_active"):
-        off = _offboarding_settings(school)
-        raw = (off.get("scheduled_purge_at") or "").strip()
-        if not raw:
-            continue
-        try:
-            purge_day = date.fromisoformat(raw[:10])
-        except ValueError:
-            continue
-        if purge_day <= on_or_before and off.get("self_service_status") in (
-            "scheduled",
-            "operator_scheduled",
-        ):
+        if _school_scheduled_purge_due(school, on_or_before=on_or_before):
             due.append(school)
     return due
 
@@ -444,9 +460,15 @@ def run_scheduled_purges(
     actor=None,
     dry_run: bool = False,
     limit: int = 10,
+    force_operator: bool = False,
 ) -> dict[str, Any]:
-    if not auto_purge_enabled() and not dry_run:
-        return {"ok": False, "reason": "auto_purge_disabled", "processed": []}
+    if not auto_purge_enabled() and not dry_run and not force_operator:
+        return {
+            "ok": False,
+            "reason": "auto_purge_disabled",
+            "hint": "Set TENANT_AUTO_PURGE_ENABLED=1 for nightly Celery, or run with force_operator=1 from the offboarding queue.",
+            "processed": [],
+        }
     processed: list[dict[str, Any]] = []
     for school in schools_scheduled_for_purge()[: max(1, limit)]:
         preview = dry_run_purge(school, confirm_slug=school.slug)
@@ -464,12 +486,13 @@ def run_scheduled_purges(
             entry["skipped"] = True
             processed.append(entry)
             continue
+        purge_source = "operator_forced" if force_operator else "auto"
         receipt = apply_purge(
             school,
             actor=actor,
             confirm_slug=school.slug,
             dry_run=False,
-            purge_source="auto",
+            purge_source=purge_source,
         )
         entry["purged"] = True
         entry["manifest_path"] = receipt.manifest_path
@@ -482,7 +505,13 @@ def run_scheduled_purges(
         notify_scheduled_purge_batch(processed=processed, dry_run=dry_run)
     except Exception:
         logger.warning("tenant_offboarding notify batch failed", exc_info=True)
-    return {"ok": True, "dry_run": dry_run, "processed": processed}
+    return {
+        "ok": True,
+        "dry_run": dry_run,
+        "force_operator": force_operator,
+        "auto_purge_enabled": auto_purge_enabled(),
+        "processed": processed,
+    }
 
 
 def operator_schedule_purge(school, *, purge_at: str, actor) -> dict[str, Any]:

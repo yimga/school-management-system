@@ -112,3 +112,17 @@ body.control-plane-shell .rmc-app-shell[data-rmc-auth-landing="1"] .rmc-app-shel
   min-height: 0 !important;
   height: auto !important;
 }
+
+/* Portal / tenant document mode — body owns scroll (pairs with isomorphic-grid-sweep) */
+html:not([data-rmc-shell="off"]) body.portal-body-with-layout[data-rmc-cp-scroll="document"],
+html:not([data-rmc-shell="off"]) body.base-document-shell[data-rmc-cp-scroll="document"] {
+  overflow-y: auto !important;
+  max-height: none !important;
+}
+
+html:not([data-rmc-shell="off"]) body.portal-body-with-layout[data-rmc-cp-scroll="document"] .rmc-app-shell__canvas,
+html:not([data-rmc-shell="off"]) body.base-document-shell[data-rmc-cp-scroll="document"] .rmc-app-shell__canvas {
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}

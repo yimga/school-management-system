@@ -1,10 +1,11 @@
-// Offboarding queue — scheduled purge dry-run (control plane)
+// Offboarding queue — scheduled purge dry-run + operator apply (control plane)
 (function () {
   'use strict';
 
-  var btn = document.querySelector('[data-rmc-run-scheduled-dry-run]');
+  var dryBtn = document.querySelector('[data-rmc-run-scheduled-dry-run]');
+  var applyBtn = document.querySelector('[data-rmc-run-scheduled-apply]');
   var out = document.querySelector('[data-rmc-scheduled-purge-result]');
-  if (!btn || !out) return;
+  if (!out) return;
 
   var dataEl = document.getElementById('page-data-super_offboarding_queue-1');
   var cfg = {};
@@ -35,11 +36,12 @@
     return ' Session may have expired — sign in again on manager.runmycampus.com.';
   }
 
-  btn.addEventListener('click', function () {
+  function runScheduled(opts) {
+    var btn = opts.button;
     btn.disabled = true;
     out.classList.remove('d-none');
-    out.textContent = 'Running dry-run…';
-    fetch(cfg.api_run_scheduled, {
+    out.textContent = opts.label + '…';
+    return fetch(cfg.api_run_scheduled, {
       method: 'POST',
       credentials: 'same-origin',
       headers: {
@@ -47,7 +49,7 @@
         'X-CSRFToken': csrfToken(),
         Accept: 'application/json',
       },
-      body: JSON.stringify({ dry_run: true, limit: 10 }),
+      body: JSON.stringify(opts.body),
     })
       .then(function (res) {
         return res.text().then(function (text) {
@@ -63,7 +65,8 @@
           }
           if (!res.ok) {
             var err =
-              (payload && (payload.error || payload.detail)) || res.statusText;
+              (payload && (payload.error || payload.detail || payload.hint)) ||
+              res.statusText;
             if (htmlLoginHint(text)) err += htmlLoginHint(text);
             throw new Error(err);
           }
@@ -72,6 +75,13 @@
       })
       .then(function (payload) {
         out.textContent = JSON.stringify(payload, null, 2);
+        if (payload && payload.processed && payload.processed.some(function (e) {
+          return e.purged;
+        })) {
+          window.setTimeout(function () {
+            window.location.reload();
+          }, 1500);
+        }
       })
       .catch(function (err) {
         out.textContent = String(err && err.message ? err.message : err);
@@ -79,5 +89,48 @@
       .finally(function () {
         btn.disabled = false;
       });
-  });
+  }
+
+  if (dryBtn) {
+    dryBtn.addEventListener('click', function () {
+      runScheduled({
+        button: dryBtn,
+        label: 'Running dry-run',
+        body: { dry_run: true, limit: 10 },
+      });
+    });
+  }
+
+  if (applyBtn) {
+    applyBtn.addEventListener('click', function () {
+      var msg =
+        'Apply purge for all schools due today? This permanently deletes tenant data.';
+      if (!cfg.auto_purge_enabled) {
+        msg +=
+          ' Auto-purge is DISABLED — this is a one-time operator run (type purge-due-tenants to confirm).';
+      }
+      if (!window.confirm(msg)) return;
+      var confirmText = 'purge-due-tenants';
+      if (!cfg.auto_purge_enabled) {
+        var typed = window.prompt(
+          'Type purge-due-tenants to confirm permanent delete:'
+        );
+        if (typed !== confirmText) {
+          out.classList.remove('d-none');
+          out.textContent = 'Cancelled — confirmation phrase did not match.';
+          return;
+        }
+      }
+      runScheduled({
+        button: applyBtn,
+        label: 'Applying due purges',
+        body: {
+          dry_run: false,
+          limit: 10,
+          force_operator: true,
+          confirm: confirmText,
+        },
+      });
+    });
+  }
 })();

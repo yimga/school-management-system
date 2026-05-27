@@ -93,6 +93,10 @@ REQUIRED = (
     ("apps/people/views_backend.py", "block_if_wind_down_commerce"),
     ("scripts/generate_portal_tenant_sweep_routes.py", "/school/studio/provisioning/"),
     ("scripts/generate_portal_tenant_sweep_routes.py", "/school/studio/fast-path/"),
+    ("apps/lifecycle/enrollment_workflow_matrix.py", "build_lifecycle_workflow_hub_payload"),
+    ("apps/lifecycle/views_tenant_lifecycle.py", "tenant_lifecycle_command_center"),
+    ("templates/siteconfig/tenant_lifecycle_command_center.html", "data-shell-surface=\"tenant-lifecycle-command-center\""),
+    ("config/tenant_urls.py", "school/studio/lifecycle/"),
 
 )
 

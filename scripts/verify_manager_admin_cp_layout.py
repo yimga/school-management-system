@@ -107,14 +107,18 @@ def check_css() -> list[str]:
             if "#page:has(.admin-cp-unified-page)" not in text:
                 errors.append(f"{rel}: missing #page:has(.admin-cp-unified-page) unwind")
         if rel.endswith("rmc-canvas-chrome-compact.css"):
-            compact = text
-            if re.search(
-                r"body\.admin-manager-shell\s+\.rmc-app-shell__canvas\s*\{[^}]*height:\s*auto",
-                compact,
-            ):
-                errors.append(
-                    f"{rel}: must not set height:auto on .rmc-app-shell__canvas (breaks canvas scroll)"
-                )
+            for selector, body in re.findall(r"([^{}]+)\{([^}]*)\}", text, re.DOTALL):
+                sel = " ".join(selector.split())
+                if (
+                    ".rmc-app-shell__canvas" in sel
+                    and "canvas-body" not in sel
+                    and "document" not in sel
+                    and re.search(r"height:\s*auto", body, re.I)
+                ):
+                    errors.append(
+                        f"{rel}: must not set height:auto on .rmc-app-shell__canvas (breaks canvas scroll)"
+                    )
+                    break
         if rel.endswith("admin-sidebar-scroll.css"):
             if not PAGE_HAS_GUARD.search(text):
                 errors.append(

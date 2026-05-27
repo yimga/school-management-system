@@ -6,17 +6,39 @@
 {% block cp_content %}
 <div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-page-archetype="decision-console">
   <h1 class="h5">{% trans "Offboarding queue" %}</h1>
-  <p class="small text-secondary">{% trans "Schools with self-service or operator-scheduled purge. Auto-purge" %}: {% if auto_purge_enabled %}{% trans "enabled" %} ({{ grace_days }} {% trans "day grace" %}){% else %}{% trans "disabled" %}{% endif %}. {% trans "Due today" %}: <strong>{{ due_count }}</strong>.</p>
+  <p class="small text-secondary mb-2">
+    {% trans "Schools with self-service or operator-scheduled purge." %}
+    {% trans "Self-service offboarding" %}:
+    {% if self_service_enabled %}{% trans "enabled" %}{% else %}{% trans "disabled" %}{% endif %}.
+    {% trans "Auto-purge (nightly Celery)" %}:
+    {% if auto_purge_enabled %}{% trans "enabled" %} ({{ grace_days }} {% trans "day grace" %}){% else %}<strong>{% trans "disabled" %}</strong>{% endif %}.
+    {% trans "Due today" %}: <strong>{{ due_count }}</strong>.
+  </p>
+  {% if not auto_purge_enabled %}
+  <div class="alert alert-info py-2 small mb-3" role="status" data-rmc-auto-purge-disabled-banner="1">
+    <strong>{% trans "Auto-purge is off." %}</strong>
+    {% trans "Scheduled purge dates are stored and schools appear in this queue, but nothing deletes automatically until you enable TENANT_AUTO_PURGE_ENABLED=1 on the platform or run due purges manually below (operator confirmation required)." %}
+  </div>
+  {% endif %}
   {% if billing_outstanding_count %}
   <div class="alert alert-warning py-2 small mb-3" role="status">
     <strong>{% trans "Billing alert:" %}</strong>
-    {% blocktrans count counter=billing_outstanding_count %}{{ counter }} school has an outstanding billing balance — purge requires dual-approval.{% plural %}{{ counter }} schools have outstanding billing balances — purge requires dual-approval.{% endblocktrans %}
+    {% blocktrans count counter=billing_outstanding_count %}{{ counter }} school has an outstanding billing balance — purge may require dual-approval.{% plural %}{{ counter }} schools have outstanding billing balances — purge may require dual-approval.{% endblocktrans %}
   </div>
   {% endif %}
-  <div class="mb-3 d-flex gap-2">
+  <div class="mb-3 d-flex flex-wrap gap-2">
     <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-run-scheduled-dry-run>{% trans "Dry-run scheduled purges" %}</button>
+    <button type="button" class="btn btn-sm btn-danger" data-rmc-run-scheduled-apply>{% trans "Apply due purges (operator)" %}</button>
     <a href="{% url 'super:dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Dashboard" %}</a>
   </div>
+  {% if due_schools %}
+  <p class="small text-muted">{% trans "Due for purge today" %}:</p>
+  <ul class="small mb-3">
+    {% for s in due_schools %}
+    <li><code>{{ s.slug }}</code> — {{ s.name }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
   <div class="table-responsive">
     <table class="table table-sm rmc-data-table">
       <thead>
@@ -24,6 +46,7 @@
           <th>{% trans "School" %}</th>
           <th>{% trans "Status" %}</th>
           <th>{% trans "Scheduled purge" %}</th>
+          <th>{% trans "Due" %}</th>
           <th>{% trans "Rows" %}</th>
           <th>{% trans "Hold" %}</th>
           <th>{% trans "Billing" %}</th>
@@ -36,6 +59,7 @@
           <td>{{ row.school.name }} <code class="small">{{ row.school.slug }}</code></td>
           <td>{{ row.status }}</td>
           <td>{{ row.scheduled_purge_at|default:"—" }}</td>
+          <td>{% if row.purge_due %}<span class="badge text-bg-danger">{% trans "Due" %}</span>{% else %}—{% endif %}</td>
           <td>{{ row.row_total }}</td>
           <td>{% if row.legal_hold %}{% trans "Yes" %}{% else %}—{% endif %}</td>
           <td>
@@ -46,7 +70,7 @@
           <td><a href="{{ row.tenant_360_url }}" class="btn btn-sm btn-outline-danger">{% trans "Offboarding" %}</a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="text-secondary">{% trans "No schools in offboarding queue." %}</td></tr>
+        <tr><td colspan="8" class="text-secondary">{% trans "No schools in offboarding queue." %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -55,7 +79,8 @@
   <pre class="small bg-dark text-light p-2 d-none" data-rmc-scheduled-purge-result></pre>
 </div>
 <script type="application/json" id="page-data-super_offboarding_queue-1" nonce="{{ csp_nonce }}">{
-  "api_run_scheduled": "{% url 'super:api_run_scheduled_purges' %}"
+  "api_run_scheduled": "{% url 'super:api_run_scheduled_purges' %}",
+  "auto_purge_enabled": {% if auto_purge_enabled %}true{% else %}false{% endif %}
 }</script>
 <script src="{% static 'js/_pages/schools__super_offboarding_queue-1.js' %}"></script>
 {% endblock %}

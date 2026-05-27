@@ -1,0 +1,124 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "Lifecycle command center" %}{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
+{% endblock %}
+{% block content %}
+<div class="container py-3" style="max-width: 62rem;"
+     data-page-archetype="operator-report"
+     data-shell-surface="tenant-lifecycle-command-center"
+     data-rmc-page-fold-nav="required"
+     data-rmc-scroll-policy="paginate">
+  <header class="mb-4">
+    <nav aria-label="{% trans 'Breadcrumb' %}" class="small text-muted mb-2">
+      <a href="{{ studio_url }}">{% trans "School Studio" %}</a>
+      <span aria-hidden="true"> / </span>
+      <span>{% trans "Lifecycle" %}</span>
+    </nav>
+    <h1 class="h3 mb-1">{% trans "Lifecycle command center" %}</h1>
+    <p class="text-muted small mb-0">
+      {% trans "Registration, enrollment, onboarding, and offboarding in one place." %}
+      <span class="badge text-bg-secondary ms-1">{{ unified.label }}</span>
+    </p>
+  </header>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="border rounded-3 p-3 h-100 bg-body-secondary text-center">
+        <div class="text-uppercase text-muted small">{% trans "Registration" %}</div>
+        <div class="fs-4 fw-semibold">{{ registration.percent }}%</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="border rounded-3 p-3 h-100 bg-body-secondary text-center">
+        <div class="text-uppercase text-muted small">{% trans "Enrollment" %}</div>
+        <div class="fs-4 fw-semibold">{{ enrollment.percent }}%</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="border rounded-3 p-3 h-100 bg-body-secondary text-center">
+        <div class="text-uppercase text-muted small">{% trans "Onboarding" %}</div>
+        <div class="fs-4 fw-semibold">{{ launch_rail.onboarding_percent }}%</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="border rounded-3 p-3 h-100 bg-body-secondary text-center">
+        <div class="text-uppercase text-muted small">{% trans "Offboarding" %}</div>
+        <div class="fs-4 fw-semibold">{{ tenant_offboarding.percent }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <section class="mb-4" id="section-registration" data-rmc-section-anchor>
+    <h2 class="h5">{% trans "School registration" %}</h2>
+    <p class="small text-muted">{% trans "How this tenant was created and activated." %}</p>
+    <ol class="list-group list-group-numbered">
+      {% for step in registration.steps %}
+      <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 {% if step.done %}list-group-item-success{% endif %}">
+        <div>
+          <span class="fw-medium">{{ step.label }}</span>
+          <div class="small text-muted">{{ step.description }}</div>
+        </div>
+        {% if step.done %}<span class="badge text-bg-success">{% trans "Done" %}</span>
+        {% elif step.url %}<a class="btn btn-sm btn-outline-primary" href="{{ step.url }}">{% trans "Open" %}</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="mb-4" id="section-enrollment" data-rmc-section-anchor>
+    <h2 class="h5">{% trans "Student enrollment" %}</h2>
+    <p class="small text-muted">{% trans "Admissions through fees for enrolled learners." %}</p>
+    <ol class="list-group list-group-numbered">
+      {% for step in enrollment.steps %}
+      <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 {% if step.done %}list-group-item-success{% endif %}">
+        <div>
+          <span class="fw-medium">{{ step.label }}</span>
+          <div class="small text-muted">{{ step.description }}</div>
+        </div>
+        {% if step.done %}<span class="badge text-bg-success">{% trans "Done" %}</span>
+        {% elif step.url %}<a class="btn btn-sm btn-outline-primary" href="{{ step.url }}">{% trans "Open" %}</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="mb-4" id="section-onboarding" data-rmc-section-anchor>
+    <h2 class="h5">{% trans "Onboarding & launch" %}</h2>
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      {% if provisioning_url %}<a class="btn btn-sm btn-outline-secondary" href="{{ provisioning_url }}">{% trans "Provisioning" %}</a>{% endif %}
+      {% if fast_path_url %}<a class="btn btn-sm btn-outline-primary" href="{{ fast_path_url }}">{% trans "Fast path" %}</a>{% endif %}
+    </div>
+    <ol class="list-group list-group-numbered mb-3">
+      {% for step in launch_rail.fast_path %}
+      <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 {% if step.done %}list-group-item-success{% endif %}">
+        <span>{{ step.label }}</span>
+        {% if step.done %}<span class="badge text-bg-success">{% trans "Done" %}</span>
+        {% elif step.url %}<a class="btn btn-sm btn-outline-primary" href="{{ step.url }}">{% trans "Open" %}</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <section class="mb-4" id="section-offboarding" data-rmc-section-anchor>
+    <h2 class="h5 text-danger">{% trans "Offboarding & closure" %}</h2>
+    {% if offboarding_url %}
+    <a class="btn btn-sm btn-outline-danger mb-2" href="{{ offboarding_url }}">{% trans "Close account workspace" %}</a>
+    {% endif %}
+    <ol class="list-group list-group-numbered">
+      {% for step in tenant_offboarding.steps %}
+      <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2 {% if step.done %}list-group-item-success{% endif %}">
+        <div>
+          <span class="fw-medium">{{ step.label }}</span>
+          <div class="small text-muted">{{ step.description }}</div>
+        </div>
+        {% if step.done %}<span class="badge text-bg-success">{% trans "Done" %}</span>
+        {% elif step.url %}<a class="btn btn-sm btn-outline-danger" href="{{ step.url }}">{% trans "Open" %}</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+  </section>
+</div>
+{% endblock %}

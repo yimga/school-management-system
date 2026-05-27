@@ -19,7 +19,11 @@ from apps.schools.tenant_offboarding import (
     run_scheduled_purges,
     schools_scheduled_for_purge,
 )
-from apps.schools.tenant_offboarding_policy import auto_purge_enabled, auto_purge_grace_days
+from apps.schools.tenant_offboarding_policy import (
+    auto_purge_enabled,
+    auto_purge_grace_days,
+    self_service_enabled,
+)
 from apps.platform_runtime.operator_identity import (
     PLATFORM_SCOPE_AUDIT_EXPORT,
     PLATFORM_SCOPE_FLEET,
@@ -73,6 +77,9 @@ def super_offboarding_queue(request):
             }
         )
     due_today = schools_scheduled_for_purge(on_or_before=date.today())
+    due_slugs = {s.slug for s in due_today}
+    for row in rows:
+        row["purge_due"] = row["school"].slug in due_slugs
     page_obj = paginate_for_request(request, rows, per_page=25)
     return render(
         request,
@@ -82,9 +89,11 @@ def super_offboarding_queue(request):
             "page_obj": page_obj,
             "due_count": len(due_today),
             "auto_purge_enabled": auto_purge_enabled(),
+            "self_service_enabled": self_service_enabled(),
             "grace_days": auto_purge_grace_days(),
             "dashboard_url": reverse("super:dashboard"),
             "billing_outstanding_count": not_cleared_count,
+            "due_schools": due_today[:25],
         },
     )
 
@@ -103,10 +112,25 @@ def api_super_run_scheduled_purges(request):
     dry_run = body.get("dry_run", True)
     if isinstance(dry_run, str):
         dry_run = dry_run.lower() in ("1", "true", "yes")
+    force_operator = body.get("force_operator", False)
+    if isinstance(force_operator, str):
+        force_operator = force_operator.lower() in ("1", "true", "yes")
+    if force_operator and not dry_run:
+        confirm = str(body.get("confirm") or "").strip().lower()
+        if confirm != "purge-due-tenants":
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error": "confirm_required",
+                    "detail": 'POST with confirm="purge-due-tenants" to apply when auto-purge is disabled.',
+                },
+                status=400,
+            )
     result = run_scheduled_purges(
         actor=request.user,
         dry_run=bool(dry_run),
         limit=int(body.get("limit") or 10),
+        force_operator=bool(force_operator),
     )
     return JsonResponse(result)
 

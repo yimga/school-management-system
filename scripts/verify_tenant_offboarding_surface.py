@@ -38,6 +38,13 @@ def main() -> int:
     queue_tpl = _text("templates/schools/super_offboarding_queue.html")
     if "Offboarding queue" not in queue_tpl:
         findings.append("super_offboarding_queue template missing")
+    if "data-rmc-auto-purge-disabled-banner" not in queue_tpl:
+        findings.append("super_offboarding_queue missing auto-purge disabled banner")
+    if "data-rmc-run-scheduled-apply" not in queue_tpl:
+        findings.append("super_offboarding_queue missing operator apply purge control")
+    queue_js = _text("static/js/_pages/schools__super_offboarding_queue-1.js")
+    if "force_operator" not in queue_js:
+        findings.append("super_offboarding_queue JS missing force_operator apply path")
 
     admin_tpl = _text("templates/admin/schools/school/delete_guided.html")
     if "offboarding workflow" not in admin_tpl:

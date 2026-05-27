@@ -209,6 +209,10 @@ def super_tenant_360(request, school_id):
             trace = getattr(debug, "compilation_trace", []) or []
             warnings = getattr(debug, "warnings", []) or []
 
+    from apps.lifecycle.enrollment_workflow_matrix import (
+        build_enrollment_track,
+        build_registration_track,
+    )
     from apps.lifecycle.unified_lifecycle import (
         build_offboarding_checklist,
         resolve_unified_lifecycle,
@@ -218,6 +222,8 @@ def super_tenant_360(request, school_id):
     offboarding = get_offboarding_snapshot(school)
     offboarding_checklist = build_offboarding_checklist(school)
     unified_lifecycle = resolve_unified_lifecycle(school)
+    lifecycle_registration = build_registration_track(school)
+    lifecycle_enrollment = build_enrollment_track(school)
     return render(
         request,
         "schools/super_tenant_360.html",
@@ -233,6 +239,8 @@ def super_tenant_360(request, school_id):
             "offboarding": offboarding,
             "offboarding_checklist": offboarding_checklist,
             "unified_lifecycle": unified_lifecycle,
+            "lifecycle_registration": lifecycle_registration,
+            "lifecycle_enrollment": lifecycle_enrollment,
             "api_offboarding_url": reverse(
                 "super:api_school_offboarding", args=[school.id]
             ),

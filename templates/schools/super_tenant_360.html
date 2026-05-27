@@ -46,6 +46,12 @@
         <div class="card-header">{% trans "Lifecycle & policy" %}</div>
         <div class="card-body">
           <p class="mb-1"><strong>{% trans "Lifecycle" %}:</strong> {{ lifecycle.state_label|default:"Unknown" }}</p>
+          {% if unified_lifecycle %}
+          <p class="mb-1"><strong>{% trans "Unified state" %}:</strong> <span class="badge text-bg-secondary">{{ unified_lifecycle.label }}</span></p>
+          {% endif %}
+          {% if lifecycle_registration %}
+          <p class="mb-2 small text-secondary">{% trans "Registration" %}: {{ lifecycle_registration.percent }}% · {% trans "Enrollment" %}: {{ lifecycle_enrollment.percent }}%</p>
+          {% endif %}
           <p class="mb-1"><strong>{% trans "Subscription" %}:</strong> {{ lifecycle.subscription_status|default:"-" }}</p>
           <p class="mb-1"><strong>{% trans "Billing account" %}:</strong> {{ lifecycle.billing_account_status|default:"-" }}</p>
           <p class="mb-1"><strong>{% trans "Billing type" %}:</strong> {{ lifecycle.billing_type|default:"-" }}</p>
@@ -98,6 +104,35 @@
       </div>
     </div>
   </div>
+  {% if lifecycle_registration or lifecycle_enrollment %}
+  <div class="card shadow-sm border-secondary mb-3" data-rmc-lifecycle-workflow-hub="1">
+    <div class="card-header">{% trans "Registration & enrollment" %}</div>
+    <div class="card-body row g-3">
+      <div class="col-md-6">
+        <h3 class="h6">{% trans "Registration" %} ({{ lifecycle_registration.percent }}%)</h3>
+        <ol class="list-group list-group-numbered list-group-flush">
+          {% for step in lifecycle_registration.steps %}
+          <li class="list-group-item d-flex justify-content-between align-items-center gap-2 py-2 {% if step.done %}list-group-item-success{% endif %}">
+            <span class="small">{{ step.label }}</span>
+            {% if step.done %}<span class="badge text-bg-success">{% trans "Done" %}</span>{% else %}<span class="badge text-bg-secondary">{% trans "Pending" %}</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+      <div class="col-md-6">
+        <h3 class="h6">{% trans "Enrollment" %} ({{ lifecycle_enrollment.percent }}%)</h3>
+        <ol class="list-group list-group-numbered list-group-flush">
+          {% for step in lifecycle_enrollment.steps %}
+          <li class="list-group-item d-flex justify-content-between align-items-center gap-2 py-2 {% if step.done %}list-group-item-success{% endif %}">
+            <span class="small">{{ step.label }}</span>
+            {% if step.done %}<span class="badge text-bg-success">{% trans "Done" %}</span>{% else %}<span class="badge text-bg-secondary">{% trans "Pending" %}</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <div id="offboarding" class="card shadow-sm border-danger mb-3 rmc-danger-zone" data-rmc-offboarding-panel data-rmc-scroll-policy="paginate">
     <div class="card-header bg-danger-subtle text-danger-emphasis">{% trans "Offboarding & data custody" %}</div>
     <div class="card-body">

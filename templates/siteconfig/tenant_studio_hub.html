@@ -53,6 +53,15 @@
     </div>
   {% endif %}
 
+  {% if studio_link_urls.lifecycle %}
+  <div class="mb-3">
+    <a class="btn btn-outline-primary btn-sm" href="{{ studio_link_urls.lifecycle }}" data-rmc-tenant-studio-lifecycle-hub="1">
+      {% trans "Open lifecycle command center" %}
+    </a>
+    <span class="small text-muted ms-2">{% trans "Registration, enrollment, onboarding, offboarding" %}</span>
+  </div>
+  {% endif %}
+
   <div class="row g-3 mb-4" data-rmc-tenant-studio-readiness="1">
     <div class="col-md-4">
       <div class="border rounded-3 p-3 h-100 bg-body-secondary">
