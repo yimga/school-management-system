@@ -14,7 +14,18 @@ LANE1_SCRIPTS = (
     "scripts/verify_tenant_lifecycle_unified.py",
 )
 
-LANE2_EVIDENCE = ROOT / "docs" / "TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md"
+LANE2_CHECKLIST = ROOT / "docs" / "TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md"
+LANE2_RENDER_ENV_SOT = ROOT / "docs" / "TENANT_OFFBOARDING.md"
+
+LANE2_OFFBOARDING_MARKERS = (
+    "Render (Lane 2)",
+    "TENANT_AUTO_PURGE_ENABLED",
+    "/super/email/health/",
+    "/super/signup/diagnostics/",
+    "async_send=True",
+    "DEFAULT_FROM_EMAIL",
+    "EMAIL_BACKEND",
+)
 
 
 def _run(script: str) -> tuple[int, str]:
@@ -49,8 +60,20 @@ def main() -> int:
         if needle not in matrix:
             failures.append(f"enrollment_workflow_matrix missing state `{needle}`")
 
-    if not LANE2_EVIDENCE.is_file():
+    if not LANE2_CHECKLIST.is_file():
         failures.append("missing docs/TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md")
+
+    if not LANE2_RENDER_ENV_SOT.is_file():
+        failures.append("missing docs/TENANT_OFFBOARDING.md (Lane 2 Render env SOT)")
+    else:
+        offboarding_doc = LANE2_RENDER_ENV_SOT.read_text(
+            encoding="utf-8", errors="replace"
+        )
+        for needle in LANE2_OFFBOARDING_MARKERS:
+            if needle not in offboarding_doc:
+                failures.append(
+                    f"TENANT_OFFBOARDING.md missing Lane 2 marker `{needle}`"
+                )
 
     if failures:
         print("TENANT_LIFECYCLE_COMPLETION_FAIL")
@@ -60,7 +83,8 @@ def main() -> int:
 
     print("TENANT_LIFECYCLE_COMPLETION_PASS")
     print("  Lane 1: full audit + unified lifecycle wiring")
-    print(f"  Lane 2: operator checklist at {LANE2_EVIDENCE.name}")
+    print(f"  Lane 2: checklist {LANE2_CHECKLIST.name}")
+    print(f"  Lane 2: Render env SOT {LANE2_RENDER_ENV_SOT.name} (operator proof on deploy)")
     return 0
 
 

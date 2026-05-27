@@ -33,6 +33,73 @@ School admins **cannot** immediate purge — only platform operators or the auto
 | `TENANT_OFFBOARDING_NOTIFY_TENANT_ADMINS` | `1` | Email school ADMIN members on self-service closure |
 | `TENANT_OFFBOARDING_PLATFORM_EMAILS` | — | Comma-separated ops inbox (falls back to `OPERATOR_ALERT_EMAIL` / `ADMINS`) |
 
+## Render (Lane 2) — deploy, email, purge
+
+Repo gates prove **Lane 1** wiring. **Lane 2** is operator proof on Render after deploy (hard-refresh manager + tenant hosts for the service-worker bump). Step-by-step URLs and evidence filenames: [TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md](TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md). DNS/SPF/DKIM detail: [EMAIL_DELIVERABILITY.md](EMAIL_DELIVERABILITY.md).
+
+### Render environment checklist
+
+Set these on the **web** service (and **worker** when Celery beat/tasks run purges or bulk mail). Values are examples — use your provider’s real secrets.
+
+#### A. Signup verification email (live SMTP / Anymail)
+
+Signup calls `send_transactional(..., async_send=True)` in `apps/schools/signup_views.py`. The HTTP response returns immediately; a **daemon thread** runs SMTP retries and writes an `EmailDeliveryEvent` row. **Celery is not required** for signup mail, but misconfigured `EMAIL_*` still yields `ok=False` in the audit log.
+
+| Render env var | Required | Notes |
+|----------------|----------|--------|
+| `EMAIL_BACKEND` | **Yes** | Must **not** be `django.core.mail.backends.console.EmailBackend` in production. Use Anymail (recommended) or `django.core.mail.backends.smtp.EmailBackend`. |
+| `DEFAULT_FROM_EMAIL` | **Yes** | Verified sender, e.g. `noreply@runmycampus.com` — must match SPF/DKIM on the sending domain. |
+| `SERVER_EMAIL` | Recommended | Bounce/admin errors; often same as `DEFAULT_FROM_EMAIL`. |
+| **Anymail (pick one provider)** | If using Anymail | Set `EMAIL_BACKEND` to the matching backend, e.g. `anymail.backends.mailgun.EmailBackend`, plus provider API keys via `ANYMAIL` JSON or provider-specific env vars documented in [integrations/COMMUNICATION_PROVIDERS_CONNECTION_GUIDE.md](integrations/COMMUNICATION_PROVIDERS_CONNECTION_GUIDE.md). |
+| `ANYMAIL_MAILGUN_API_KEY` | Mailgun | When `EMAIL_BACKEND=anymail.backends.mailgun.EmailBackend`. |
+| `ANYMAIL_SENDGRID_API_KEY` | SendGrid | When `EMAIL_BACKEND=anymail.backends.sendgrid.EmailBackend`. |
+| `ANYMAIL_POSTMARK_SERVER_TOKEN` | Postmark | When `EMAIL_BACKEND=anymail.backends.postmark.EmailBackend`. |
+| **SMTP relay (alternative)** | If not Anymail | `EMAIL_HOST`, `EMAIL_PORT` (587), `EMAIL_USE_TLS=True`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`. |
+| `EMAIL_TIMEOUT` | Optional | Per-attempt socket timeout (default `10`). |
+| `SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS` | Optional | Sync callers only (default `8`); signup uses async path. |
+| `SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP` | Optional | Per-tenant rate cap (default `200`/hr). |
+
+**Lane 2 proof (signup email):**
+
+1. Deploy `main` → confirm `collectstatic` finished.
+2. Open **Email delivery** — `https://manager.runmycampus.com/super/email/health/` — panel **Resolved SMTP config** must show a production backend (not “Django console (dev)”). Use **Run SMTP probe** → expect success.
+3. Open **Signup diagnostics** — `https://manager.runmycampus.com/super/signup/diagnostics/` — outbound reachability + last signup attempts.
+4. Submit a real `/signup/` on production → within ~2 minutes, **Email delivery** stats should show a transactional row moving to **`ok=True`** (or a clear `error_kind` if DNS/credentials are wrong).
+5. Open the verification link → `/verify-signup/?token=…` → school `is_active=True` → tenant `/school/studio/provisioning/` progresses.
+
+Until steps 2–5 pass on Render, **Lane 2 signup email is not complete** — repo tests only mock `send_transactional`.
+
+#### B. Offboarding + scheduled purge (operator default)
+
+| Render env var | Required | Notes |
+|----------------|----------|--------|
+| `TENANT_AUTO_PURGE_ENABLED` | **Yes (set explicitly)** | **`0`** (default) — nightly Celery **does not** delete tenants; use `/super/offboarding/` dry-run + **Apply due purges (operator)** with confirm `purge-due-tenants`. Set **`1`** only after export + legal review. |
+| `TENANT_AUTO_PURGE_GRACE_DAYS` | When auto on | Default `30` — days after self-service closure before purge eligibility. |
+| `TENANT_SELF_SERVICE_OFFBOARDING_ENABLED` | Recommended | `1` — tenant `/school/studio/offboarding/`. |
+| `TENANT_OFFBOARDING_EMAIL_ENABLED` | Recommended | `1` — closure/purge notification emails (same SMTP/Anymail stack as § A). |
+| `TENANT_OFFBOARDING_NOTIFY_TENANT_ADMINS` | Optional | `1` — email school admins on self-service request. |
+| `TENANT_OFFBOARDING_PLATFORM_EMAILS` | Recommended | Comma-separated ops inbox for purge summaries. |
+| `TENANT_PURGE_REQUIRE_DUAL_APPROVAL` | Optional | `0` unless counsel requires two-operator purge. |
+| `TENANT_OFFBOARDING_S3_CLEANUP_ENABLED` | Optional | `1` when `AWS_STORAGE_BUCKET_NAME` is set. |
+| `AWS_STORAGE_BUCKET_NAME` | When S3 cleanup on | Media bucket for `tenants/<slug>/` key deletion on purge. |
+
+**Lane 2 proof (offboarding queue):**
+
+1. `/super/offboarding/` — banner **Auto-purge: disabled** when `TENANT_AUTO_PURGE_ENABLED=0`.
+2. Tenant requests closure → school appears with **Due** when `scheduled_purge_at` ≤ today.
+3. **Dry-run scheduled purges** → JSON summary; file as `offboarding-queue-dry-run.json`.
+4. **Apply due purges (operator)** + `purge-due-tenants` only after export sign-off.
+
+#### C. Celery / Redis (auto-purge + bulk mail only)
+
+| Render env var | Required | Notes |
+|----------------|----------|--------|
+| `CELERY_BROKER_URL` | When beat/tasks | Redis URL; required for `schools.run_scheduled_tenant_purges` when `TENANT_AUTO_PURGE_ENABLED=1`. |
+| `CELERY_RESULT_BACKEND` | Recommended | Usually same Redis. |
+| `CELERY_BEAT_ENABLED` | Optional | `1` on beat worker; schedule includes purge task only when auto-purge is on. |
+
+Signup verification email does **not** depend on Celery; offboarding **nightly** auto-purge does.
+
 ## APIs
 
 ### Control plane (`/super/api/...`)
@@ -157,7 +224,7 @@ When **`TENANT_AUTO_PURGE_ENABLED=0`** (default):
 - Nightly Celery does **not** delete tenants.
 - Operators use **Dry-run scheduled purges** or **Apply due purges (operator)** with confirm phrase `purge-due-tenants`.
 
-See [TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md](TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md) for Render signup/email/enrollment proof steps.
+Lane 2 env vars and proof dashboards: **§ Render (Lane 2)** above. URL checklist: [TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md](TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md).
 
 ## Verification
 
