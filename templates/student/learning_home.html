@@ -22,6 +22,7 @@
 <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="student">
   {# v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. #}
   {% include "partials/cockpit/_year_progress.html" %}
+  {% include "partials/cockpit/_collapsable_section.html" with title=_("Calendar & weather") key="student__calendar_weather" include_partial="partials/cockpit/_calendar_weather.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="student__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="student__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Upcoming events") key="student__upcoming_events_strip" include_partial="partials/cockpit/_upcoming_events_strip.html" chrome="section" %}

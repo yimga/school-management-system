@@ -19,14 +19,49 @@
     95: "bi-cloud-lightning", 96: "bi-cloud-lightning", 99: "bi-cloud-lightning"
   };
 
+  function readTimezone(attr, fallback) {
+    var value = String((root && root.getAttribute(attr)) || fallback || "UTC").trim();
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: value });
+      return value;
+    } catch (e) {
+      return "UTC";
+    }
+  }
+
+  function formatInZone(date, timeZone, options) {
+    var locale = document.documentElement.lang || navigator.language || "en-US";
+    return new Intl.DateTimeFormat(locale, Object.assign({ timeZone: timeZone }, options)).format(date);
+  }
+
   function updateDateTime() {
     var now = new Date();
-    var locale = document.documentElement.lang || navigator.language || "en-US";
+    var localTz = readTimezone("data-local-timezone", "UTC");
+    var globalTz = readTimezone("data-global-timezone", "UTC");
     if (monthYearEl) {
-      monthYearEl.textContent = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(now);
+      monthYearEl.textContent = formatInZone(now, localTz, { month: "long", year: "numeric" });
     }
     if (timeEl) {
-      timeEl.textContent = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", hour12: true }).format(now);
+      timeEl.textContent = formatInZone(now, localTz, {
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+      });
+    }
+    var globalLine = document.getElementById("backendDtwGlobalTime");
+    if (globalLine) {
+      if (localTz === globalTz) {
+        globalLine.textContent = "";
+        globalLine.hidden = true;
+      } else {
+        globalLine.hidden = false;
+        globalLine.textContent = formatInZone(now, globalTz, {
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZoneName: "short"
+        });
+      }
     }
   }
 

@@ -145,6 +145,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-mirror.css' %}">
   <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
   {% endif %}
   <!-- §8.0.11 platform-wide: responsive and fluid layout on every page -->
   <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
@@ -155,6 +156,9 @@
   {# v3.53.0 (2026-05-21): signature motion + command bar styles. #}
   <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
+  {% if not is_manager_host %}
+  <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
+  {% endif %}
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
   {# Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). #}
@@ -200,6 +204,7 @@
             document.body.classList.add('control-plane-shell', 'admin-manager-shell', 'cp-surface');
             /* v3.58.5: /admin/ now uses .rmc-app-shell canvas scroll (single scrollable surface). */
             document.body.setAttribute('data-rmc-cp-scroll', 'canvas');
+            document.body.setAttribute('data-rmc-back-to-top-policy', 'always');
             document.body.setAttribute('data-rmc-page-help', '1');
             document.body.setAttribute('data-rmc-admin-cp-unified', '1');
             document.body.setAttribute('data-rmc-notebook-footer-dock', '1');

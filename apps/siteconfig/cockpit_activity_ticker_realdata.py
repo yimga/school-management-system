@@ -56,11 +56,12 @@ from django.utils.translation import gettext_lazy as _
 logger = logging.getLogger(__name__)
 
 CACHE_TTL_SECONDS = 30  # Shorter than panels (60s) — ticker should feel live.
-CACHE_PREFIX = "rmc:cockpit:activity_ticker"
+CACHE_PREFIX = "rmc:cockpit:activity_ticker:v2"
 
 # Hard cap on cards emitted per resolver pass — protects the partial from
 # emitting a 200-event scroll on a busy day.
-MAX_CARDS_TOTAL = 8
+MAX_CARDS_TOTAL = 16
+MAX_AUDIT_EVENT_CARDS = 6
 
 
 # ============================================================
@@ -72,6 +73,59 @@ def _hash_prefix(value: str, length: int = 8) -> str:
     if not value:
         return ""
     return hashlib.sha256(value.encode("utf-8", errors="replace")).hexdigest()[:length]
+
+
+def merge_activity_ticker_card_lists(
+    *card_lists: list[dict[str, Any]] | None,
+    max_total: int = MAX_CARDS_TOTAL,
+) -> list[dict[str, Any]]:
+    """Combine ticker card lists without duplicates; preserve first-seen order."""
+    seen: set[tuple[str, str]] = set()
+    merged: list[dict[str, Any]] = []
+    for card_list in card_lists:
+        for card in card_list or []:
+            if not isinstance(card, dict):
+                continue
+            text = str(card.get("text") or "").strip()
+            if not text:
+                continue
+            key = (text, str(card.get("timestamp") or ""))
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(card)
+            if len(merged) >= max_total:
+                return merged
+    return merged
+
+
+def merge_activity_ticker_sections(
+    cockpit: dict[str, Any],
+    ticker_real: dict[str, Any],
+) -> dict[str, Any]:
+    """Merge resolver output onto existing ticker sections without wiping demo cards."""
+    for section_key, overlay in ticker_real.items():
+        if not isinstance(overlay, dict):
+            continue
+        base_section = dict(cockpit.get(section_key) or {})
+        overlay_cards = overlay.get("cards")
+        if isinstance(overlay_cards, list) and overlay_cards:
+            base_cards = base_section.get("cards")
+            if not isinstance(base_cards, list):
+                base_cards = []
+            base_section["cards"] = merge_activity_ticker_card_lists(
+                base_cards,
+                overlay_cards,
+            )
+            for field, value in overlay.items():
+                if field != "cards":
+                    base_section[field] = value
+            if base_section.get("enabled") is not False:
+                base_section["enabled"] = True
+        else:
+            base_section = {**base_section, **overlay}
+        cockpit[section_key] = base_section
+    return cockpit
 
 
 def _relative_ts(iso_value: Any) -> str:
@@ -119,7 +173,7 @@ def _source_migration_audit_events() -> list[dict[str, Any]]:
                 created_at_iso__gte=cutoff_iso,
             ).order_by("-created_at_iso").values(
                 "event_type", "created_at_iso",
-            )[:4]
+            )[:MAX_AUDIT_EVENT_CARDS]
         )
         cards = []
         for r in rows:
@@ -149,12 +203,19 @@ _AUDIT_ICONS = {
 _AUDIT_TEXTS = {
     "companion.upload": "Companion upload received",
     "maa.sign": "Migration agreement signed",
+    "maa.sign_attempt_draft": "Draft MAA signature blocked",
     "key.rotate": "Encryption key rotated",
     "webhook.subscription.created": "Webhook subscription created",
     "webhook.subscription.deleted": "Webhook subscription removed",
     "webhook.delivery.replay": "Webhook delivery replayed",
     "token.mint": "Migration token minted",
     "token.revoke": "Migration token revoked",
+    "legacy_hash.decrypt": "Legacy hash upgraded on login",
+    "lifecycle.offboarding.export": "Tenant offboarding export generated",
+    "lifecycle.offboarding.deactivated": "School deactivated (offboarding)",
+    "lifecycle.offboarding.purge_requested": "Offboarding purge requested",
+    "lifecycle.offboarding.purge_completed": "Offboarding purge completed",
+    "audit.retention_purge_applied": "Audit retention purge applied",
 }
 
 
@@ -232,6 +293,120 @@ def _source_email_delivery_events() -> list[dict[str, Any]]:
         return []
 
 
+def _source_schools_pending_approval() -> list[dict[str, Any]]:
+    """Schools awaiting operator approval — aggregate only."""
+    try:
+        from apps.schools.models import School
+
+        cutoff = timezone.now() - timedelta(hours=24)
+        ts_field = (
+            "created_at"
+            if hasattr(School, "created_at")
+            else "date_joined"
+            if hasattr(School, "date_joined")
+            else None
+        )
+        # tenant-isolation-allow: platform-activity-ticker-cross-tenant-aggregate-by-design
+        qs = School.objects.filter(is_approved=False)
+        if ts_field:
+            qs = qs.filter(**{f"{ts_field}__gte": cutoff})
+        pending = qs.count()
+        if pending == 0:
+            return []
+        return [{
+            "icon": "⏳",
+            "severity": "warn",
+            "text": f"{pending} school{'s' if pending != 1 else ''} pending approval",
+            "timestamp": _("24h"),
+        }]
+    except Exception:
+        logger.warning("ticker: pending approval source failed", exc_info=True)
+        return []
+
+
+def _source_webhook_delivery_failures() -> list[dict[str, Any]]:
+    """Failed or exhausted webhook deliveries in the last 24h."""
+    try:
+        from apps.migration_cloud.models import MigrationCloudWebhookDelivery
+    except Exception:
+        return []
+    try:
+        cutoff = timezone.now() - timedelta(hours=24)
+        # tenant-isolation-allow: platform-activity-ticker-cross-tenant-aggregate-by-design
+        failed = MigrationCloudWebhookDelivery.objects.filter(
+            created_at__gte=cutoff,
+            status__in=("failed", "exhausted"),
+        ).count()
+        if failed == 0:
+            return []
+        return [{
+            "icon": "🔗",
+            "severity": "danger",
+            "text": f"{failed} webhook deliver{'y' if failed == 1 else 'ies'} need attention",
+            "timestamp": _("24h"),
+        }]
+    except Exception:
+        logger.warning("ticker: webhook failure source failed", exc_info=True)
+        return []
+
+
+def _source_migration_run_failures() -> list[dict[str, Any]]:
+    """Failed migration runs in the last 24h (platform pulse incident proxy)."""
+    try:
+        from apps.automation.models import MigrationRun
+    except Exception:
+        return []
+    try:
+        cutoff = timezone.now() - timedelta(hours=24)
+        ts_field = "started_at" if hasattr(MigrationRun, "started_at") else "created_at"
+        if not hasattr(MigrationRun, ts_field):
+            return []
+        # tenant-isolation-allow: platform-activity-ticker-cross-tenant-aggregate-by-design
+        failed = MigrationRun.objects.filter(
+            **{f"{ts_field}__gte": cutoff},
+            status=MigrationRun.Status.FAILED,
+        ).count()
+        if failed == 0:
+            return []
+        return [{
+            "icon": "⚠",
+            "severity": "danger",
+            "text": f"{failed} migration run{'s' if failed != 1 else ''} failed today",
+            "timestamp": _("24h"),
+        }]
+    except Exception:
+        logger.warning("ticker: migration run failure source failed", exc_info=True)
+        return []
+
+
+def _source_offboarding_activity() -> list[dict[str, Any]]:
+    """Recent lifecycle offboarding audit events (distinct from generic audit cap)."""
+    try:
+        from apps.migration_cloud.models_audit import MigrationCloudAuditEvent
+
+        cutoff_iso = (timezone.now() - timedelta(hours=48)).isoformat()
+        # tenant-isolation-allow: platform-activity-ticker-cross-tenant-aggregate-by-design
+        rows = list(
+            MigrationCloudAuditEvent.objects.filter(
+                created_at_iso__gte=cutoff_iso,
+                event_type__startswith="lifecycle.offboarding.",
+            ).order_by("-created_at_iso").values("event_type", "created_at_iso")[:3]
+        )
+        cards = []
+        for row in rows:
+            etype = row.get("event_type") or ""
+            cards.append({
+                "icon": "🏁",
+                "severity": "warn",
+                "text": _text_for_audit(etype),
+                "timestamp": _relative_ts(row.get("created_at_iso")),
+            })
+        return cards
+    except Exception:
+        logger.warning("ticker: offboarding activity source failed", exc_info=True)
+        return []
+
+
 def _source_tenant_subscription_changes() -> list[dict[str, Any]]:
     """Count of new tenant subscriptions started in the last 24h."""
     try:
@@ -271,14 +446,17 @@ def resolve_manager_ticker_cards() -> list[dict[str, Any]]:
     if cached is not None:
         return cached
 
-    cards: list[dict[str, Any]] = []
-    cards.extend(_source_migration_audit_events())
-    cards.extend(_source_school_provisioning())
-    cards.extend(_source_email_delivery_events())
-    cards.extend(_source_tenant_subscription_changes())
-
-    # Truncate to the hard cap so the scrolling track never explodes.
-    cards = cards[:MAX_CARDS_TOTAL]
+    cards = merge_activity_ticker_card_lists(
+        _source_migration_audit_events(),
+        _source_offboarding_activity(),
+        _source_school_provisioning(),
+        _source_schools_pending_approval(),
+        _source_email_delivery_events(),
+        _source_tenant_subscription_changes(),
+        _source_webhook_delivery_failures(),
+        _source_migration_run_failures(),
+        max_total=MAX_CARDS_TOTAL,
+    )
 
     try:
         cache.set(cache_key, cards, CACHE_TTL_SECONDS)
@@ -335,6 +513,56 @@ def _source_tenant_attendance_milestones(request: Any) -> list[dict[str, Any]]:
         return []
 
 
+def _source_tenant_new_enrollments(request: Any) -> list[dict[str, Any]]:
+    """New student profiles in the last 24h — count only."""
+    try:
+        from apps.people.models import StudentProfile
+    except Exception:
+        return []
+    try:
+        cutoff = timezone.now() - timedelta(hours=24)
+        ts_field = "created_at" if hasattr(StudentProfile, "created_at") else None
+        if ts_field is None:
+            return []
+        count = StudentProfile.objects.filter(**{f"{ts_field}__gte": cutoff}).count()
+        if count == 0:
+            return []
+        return [{
+            "icon": "🎓",
+            "severity": "success",
+            "text": f"{count} new enrollment{'s' if count != 1 else ''} today",
+            "timestamp": _("24h"),
+        }]
+    except Exception:
+        logger.warning("ticker: tenant enrollment source failed", exc_info=True)
+        return []
+
+
+def _source_tenant_communication_activity(request: Any) -> list[dict[str, Any]]:
+    """Recent outbound messages — aggregate count only."""
+    try:
+        from apps.communication.models import Message
+    except Exception:
+        return []
+    try:
+        cutoff = timezone.now() - timedelta(hours=24)
+        ts_field = "created_at" if hasattr(Message, "created_at") else "sent_at"
+        if not hasattr(Message, ts_field):
+            return []
+        count = Message.objects.filter(**{f"{ts_field}__gte": cutoff}).count()
+        if count == 0:
+            return []
+        return [{
+            "icon": "💬",
+            "severity": "info",
+            "text": f"{count} message{'s' if count != 1 else ''} sent today",
+            "timestamp": _("24h"),
+        }]
+    except Exception:
+        logger.warning("ticker: tenant communication source failed", exc_info=True)
+        return []
+
+
 def _source_tenant_fee_receipts(request: Any) -> list[dict[str, Any]]:
     """Aggregate fee receipts in the last 24h. NEVER surfaces parent name or amount."""
     try:
@@ -380,11 +608,13 @@ def resolve_tenant_ticker_cards(request: Any) -> list[dict[str, Any]]:
     if cached is not None:
         return cached
 
-    cards: list[dict[str, Any]] = []
-    cards.extend(_source_tenant_attendance_milestones(request))
-    cards.extend(_source_tenant_fee_receipts(request))
-
-    cards = cards[:MAX_CARDS_TOTAL]
+    cards = merge_activity_ticker_card_lists(
+        _source_tenant_attendance_milestones(request),
+        _source_tenant_fee_receipts(request),
+        _source_tenant_new_enrollments(request),
+        _source_tenant_communication_activity(request),
+        max_total=MAX_CARDS_TOTAL,
+    )
 
     try:
         cache.set(cache_key, cards, CACHE_TTL_SECONDS)
@@ -445,8 +675,11 @@ def invalidate_activity_ticker_cache(request: Any | None = None) -> None:
 
 
 __all__ = [
+    "merge_activity_ticker_card_lists",
+    "merge_activity_ticker_sections",
     "resolve_activity_ticker_cards",
     "resolve_manager_ticker_cards",
     "resolve_tenant_ticker_cards",
     "invalidate_activity_ticker_cache",
+    "MAX_CARDS_TOTAL",
 ]

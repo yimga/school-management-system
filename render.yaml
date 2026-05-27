@@ -82,6 +82,19 @@ services:
       - key: DEFAULT_FROM_EMAIL
         value: "noreply@runmycampus.com"
       # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: Brevo SMTP key (see docs/RENDER_EMAIL_SETUP.md).
+      # Tenant lifecycle / offboarding (Lane 2) — explicit defaults; see docs/TENANT_OFFBOARDING.md
+      - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
+        value: "1"
+      - key: TENANT_AUTO_PURGE_ENABLED
+        value: "0"
+      - key: TENANT_AUTO_PURGE_GRACE_DAYS
+        value: "30"
+      - key: TENANT_OFFBOARDING_EMAIL_ENABLED
+        value: "1"
+      - key: TENANT_OFFBOARDING_NOTIFY_TENANT_ADMINS
+        value: "1"
+      - key: TENANT_OFFBOARDING_S3_CLEANUP_ENABLED
+        value: "1"
 
   - type: worker
     name: school-management-system-worker
@@ -127,6 +140,18 @@ services:
         value: "True"
       - key: DEFAULT_FROM_EMAIL
         value: "noreply@runmycampus.com"
+      - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
+        value: "1"
+      - key: TENANT_AUTO_PURGE_ENABLED
+        value: "0"
+      - key: TENANT_AUTO_PURGE_GRACE_DAYS
+        value: "30"
+      - key: TENANT_OFFBOARDING_EMAIL_ENABLED
+        value: "1"
+      - key: TENANT_OFFBOARDING_NOTIFY_TENANT_ADMINS
+        value: "1"
+      - key: TENANT_OFFBOARDING_S3_CLEANUP_ENABLED
+        value: "1"
   - type: worker
     name: school-management-system-beat
     env: python
@@ -160,6 +185,10 @@ services:
           type: redis
           name: school-management-redis
           property: connectionString
+      - key: TENANT_AUTO_PURGE_ENABLED
+        value: "0"
+      - key: TENANT_AUTO_PURGE_GRACE_DAYS
+        value: "30"
   - type: redis
     name: school-management-redis
     plan: free

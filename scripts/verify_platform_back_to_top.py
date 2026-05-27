@@ -19,6 +19,17 @@ SHELLS = (
     "templates/admin/base_site.html",
 )
 
+ALWAYS_POLICY_SHELLS = (
+    "templates/portal_base.html",
+    "templates/control_plane_skeleton.html",
+    "templates/base.html",
+)
+
+ADMIN_ALWAYS_POLICY_MARKERS = (
+    'data-rmc-back-to-top-policy", "always"',
+    "data-rmc-back-to-top-policy', 'always'",
+)
+
 
 def main() -> int:
     failures: list[str] = []
@@ -30,6 +41,23 @@ def main() -> int:
         text = path.read_text(encoding="utf-8", errors="replace")
         if "back_to_top.html" not in text:
             failures.append(f"no back-to-top: {rel}")
+
+    for rel in ALWAYS_POLICY_SHELLS:
+        path = ROOT / rel
+        if not path.is_file():
+            failures.append(f"missing always-policy shell: {rel}")
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if 'data-rmc-back-to-top-policy="always"' not in text:
+            failures.append(f"missing data-rmc-back-to-top-policy=always: {rel}")
+
+    admin_site = ROOT / "templates/admin/base_site.html"
+    if admin_site.is_file():
+        site_text = admin_site.read_text(encoding="utf-8", errors="replace")
+        if not any(marker in site_text for marker in ADMIN_ALWAYS_POLICY_MARKERS):
+            failures.append(
+                "admin/base_site.html: manager shell must set data-rmc-back-to-top-policy=always"
+            )
 
     admin_base = ROOT / "templates/admin/base.html"
     if admin_base.is_file():
@@ -56,6 +84,8 @@ def main() -> int:
         failures.append("back-to-top JS missing idempotent mount guard")
     if "RMCBackToTop" not in js_text:
         failures.append("back-to-top JS missing RMCBackToTop export")
+    if "alwaysVisiblePolicy" not in js_text:
+        failures.append("back-to-top JS missing alwaysVisiblePolicy helper")
 
     assist = ROOT / "static/js/rmc-assist-dock.js"
     if assist.is_file():

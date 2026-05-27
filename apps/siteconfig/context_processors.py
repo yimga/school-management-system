@@ -537,7 +537,7 @@ def site_settings(request):
             feature_flags.get("show_header_context_datetime", True)
         ),
         "SHOW_HEADER_CONTEXT_WEATHER": bool(
-            feature_flags.get("show_header_context_weather", False)
+            feature_flags.get("show_header_context_weather", True)
         ),
         "SHOW_HEADER_CONTEXT_QUOTE": bool(
             feature_flags.get("show_header_context_quote", True)
@@ -556,6 +556,13 @@ def site_settings(request):
         ).lower(),
         "HEADER_WEATHER_LABEL": feature_flags.get(
             "header_weather_label", weather_defaults["header_weather_label"]
+        ),
+        "HEADER_WEATHER_TIMEZONE": str(
+            feature_flags.get(
+                "header_weather_timezone",
+                weather_defaults["header_weather_timezone"],
+            )
+            or "UTC"
         ),
         "SITE_BRANDED_DOMAIN": getattr(site, "branded_domain", "") or "",
         "SITE_SECONDARY_FONT": getattr(site, "secondary_font", "") or "",

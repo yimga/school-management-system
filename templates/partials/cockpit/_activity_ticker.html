@@ -116,7 +116,7 @@
    Uses the dedicated `tenant_activity_ticker` namespace so operator-platform
    data CANNOT leak. Adds the `--tenant` modifier class for softer styling
    against the indigo+cream tenant chrome. {% endcomment %}
-{% if cockpit.tenant_activity_ticker.cards and cockpit.tenant_activity_ticker.enabled %}
+{% if cockpit.tenant_activity_ticker.cards and cockpit.tenant_activity_ticker.enabled|default_if_none:True %}
 {% with seconds=cockpit.tenant_activity_ticker.scroll_seconds|default:40 badge_label=cockpit.tenant_activity_ticker.live_badge_label|default:_("LIVE") %}
 <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
 <div class="rmc-cockpit-ticker cp-activity-ticker rmc-cockpit-ticker--tenant" role="region" aria-label="{% trans 'Live school activity' %}"

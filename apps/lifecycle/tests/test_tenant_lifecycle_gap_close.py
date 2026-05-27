@@ -277,6 +277,19 @@ class LifecycleShellRenderTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"data-rmc-launch-fast-path", response.content)
 
+    def test_lifecycle_command_center_renders_hub_and_playbook(self):
+        from apps.lifecycle.views_tenant_lifecycle import tenant_lifecycle_command_center
+
+        request = self.factory.get("/school/studio/lifecycle/")
+        request.user = self.user
+        request.school = self.school
+        response = tenant_lifecycle_command_center(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"tenant-lifecycle-command-center", response.content)
+        self.assertIn(b"data-rmc-workflow-playbook", response.content)
+        self.assertIn(b"section-registration", response.content)
+        self.assertIn(b"section-offboarding", response.content)
+
 
 class ApplicantWindDownTests(TestCase):
     def setUp(self):

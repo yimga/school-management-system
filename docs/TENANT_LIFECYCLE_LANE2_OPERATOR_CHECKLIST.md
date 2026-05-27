@@ -3,14 +3,19 @@
 Repo gates (run after deploy):
 
 ```bash
-python scripts/verify_tenant_lifecycle_completion.py
-python scripts/audit_tenant_lifecycle_full.py
+python scripts/verify_lifecycle_post_deploy_smoke.py
 ```
+
+Bundled gates: back-to-top, scroll contract, lifecycle completion/full/aggressive, `render.yaml` Lane 2 env defaults.
 
 ## 1. Deploy + cache
 
 1. Deploy `main` to Render (includes SW bump — hard-refresh manager + tenant hosts).
 2. Confirm `collectstatic` completed without blocking errors.
+3. **Navigation smoke:** sidebar **Tenants** → Offboarding queue, Rapid create, Provisioning jobs; tenant Studio spine → Lifecycle / Offboarding / Provisioning.
+4. **Back-to-top:** on any long manager or tenant page, confirm floating control bottom-right (dim at top, full after scroll).
+
+`render.yaml` now ships explicit `TENANT_*` defaults on web + worker + beat (`TENANT_AUTO_PURGE_ENABLED=0` until legal signoff). Override secrets in the Render Dashboard only when policy changes.
 
 ## 2. Signup → verification email (live)
 

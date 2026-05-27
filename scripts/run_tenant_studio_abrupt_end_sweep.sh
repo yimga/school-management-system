@@ -15,7 +15,7 @@ fi
 
 export SWEEP_INCLUDE_TENANT=1
 export SWEEP_TIER=tenant
-export SWEEP_TENANT_PATHS="/t/demo-school/school/studio/,/school/studio/"
+export SWEEP_TENANT_PATHS="/t/demo-school/school/studio/,/school/studio/,/school/studio/lifecycle/,/school/studio/offboarding/,/school/studio/provisioning/"
 export TENANT_SWEEP_MAX="${TENANT_SWEEP_MAX:-200}"
 
 PORT="${VISUAL_QA_PORT:-8012}"
@@ -29,7 +29,12 @@ START_SERVER="${START_SERVER:-1}"
 
 mkdir -p "$ARTIFACT_DIR"
 
+TENANT_SLUG="${TENANT_SWEEP_SLUG:-demo-school}"
+export TENANT_SWEEP_SLUG="${TENANT_SLUG}"
+
 "${PYTHON_CMD}" manage.py migrate --noinput
+"${PYTHON_CMD}" manage.py ensure_demo_environment --school-slug="${TENANT_SLUG}" 2>/dev/null || true
+"${PYTHON_CMD}" manage.py seed_render_users 2>/dev/null || true
 "${PYTHON_CMD}" scripts/generate_portal_tenant_sweep_routes.py --write
 
 SERVER_PID=""

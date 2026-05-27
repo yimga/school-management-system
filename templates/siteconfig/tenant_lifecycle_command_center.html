@@ -123,5 +123,15 @@
       {% endfor %}
     </ol>
   </section>
+
+  {% if onboarding_playbook_api_url %}
+  <section class="mb-4" id="section-lifecycle-playbook" data-rmc-section-anchor data-rmc-lifecycle-command-center-playbook>
+    <h2 class="h5">{% trans "Lifecycle playbook" %}</h2>
+    {% include "partials/workflow_playbook_assistant.html" with playbook_mode="onboarding" playbook_api_url=onboarding_playbook_api_url playbook_title="Onboarding playbook" playbook_hint="Ask about registration, launch rail, and go-live order." %}
+    {% if offboarding_playbook_api_url %}
+    {% include "partials/workflow_playbook_assistant.html" with playbook_mode="offboarding" playbook_api_url=offboarding_playbook_api_url playbook_title="Offboarding playbook" playbook_hint="Ask about export order, grace period, and cancellation." %}
+    {% endif %}
+  </section>
+  {% endif %}
 </div>
 {% endblock %}

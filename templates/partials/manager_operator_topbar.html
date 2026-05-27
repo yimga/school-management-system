@@ -36,6 +36,11 @@
             <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" aria-label="{% trans 'Search results' %}"></div>
           </div>
         </div>
+          {% if request.user.is_authenticated and SHOW_HEADER_CONTEXT_STRIP %}
+          <div class="rmc-platform-header__context d-none d-lg-flex align-items-center" data-rmc-header-context-compact="1">
+            {% include "components/header_weather_widget.html" with SHOW_HEADER_CONTEXT_QUOTE=False %}
+          </div>
+          {% endif %}
         <div class="rmc-platform-header__actions" id="cpNavbarActions">
           {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
           {% include "partials/cockpit/_operator_presence.html" %}

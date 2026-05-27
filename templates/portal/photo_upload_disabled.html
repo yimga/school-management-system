@@ -1,9 +1,12 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n smart_link_tags %}
 {% block title %}{% trans "Feature unavailable" %}{% endblock %}
 {% block content %}
 <div class="container py-5 text-center">
-  <h1>{% trans "Photo upload from another device is unavailable" %}</h1>
-  <p class="text-muted">{% trans "Your school has disabled this feature. Please upload a photo on this device or ask the school to enable it." %}</p>
+  <h1 class="h3 mb-3">{% trans "Photo upload from another device is unavailable" %}</h1>
+  <p class="text-muted mb-4">{% trans "Your school has disabled remote photo upload. You can still upload on this device, or ask the school to enable it." %}</p>
+  <div class="d-flex justify-content-center">
+    {% render_smart_links state="photo.feature_disabled" %}
+  </div>
 </div>
 {% endblock %}

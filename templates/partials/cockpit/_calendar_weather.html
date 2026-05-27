@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n static %}
 {% comment %}
 School calendar + weather overlay — v3.57.0 (2026-05-21)
 
@@ -7,9 +7,18 @@ in a tight pair. Weather data is operator-published / future cron-fed.
 {% endcomment %}
 {% if cockpit.calendar_weather.enabled and cockpit.calendar_weather.days %}
 {% with cw=cockpit.calendar_weather %}
-<section class="tp-cal-weather" aria-label="{{ cw.title }}" data-rmc-tp-cal-weather data-rmc-cockpit-section="calendar_weather">
+<section class="tp-cal-weather" aria-label="{{ cw.title }}" data-rmc-tp-cal-weather data-rmc-cockpit-section="calendar_weather"
+         data-local-timezone="{{ cw.local_timezone|default:HEADER_WEATHER_TIMEZONE|default:'UTC' }}"
+         data-global-timezone="UTC">
   <header class="tp-cal-weather__head">
-    <h3 class="tp-cal-weather__title">{{ cw.title|default:_("Week ahead") }}</h3>
+    <div class="tp-cal-weather__head-main">
+      <h3 class="tp-cal-weather__title">{{ cw.title|default:_("Week ahead") }}</h3>
+      <p class="tp-cal-weather__now" data-rmc-cal-weather-now aria-live="polite">
+        {% if cw.now_date_display %}<span class="tp-cal-weather__now-date">{{ cw.now_date_display }}</span>{% endif %}
+        {% if cw.now_time_display %}<span class="tp-cal-weather__now-time">{{ cw.now_time_display }}</span>{% endif %}
+        {% if cw.global_time_display %}<span class="tp-cal-weather__now-global text-muted">· {{ cw.global_time_display }}</span>{% endif %}
+      </p>
+    </div>
   </header>
   <ol class="tp-cal-weather__strip" role="list">
     {% for d in cw.days %}
@@ -23,5 +32,6 @@ in a tight pair. Weather data is operator-published / future cron-fed.
     {% endfor %}
   </ol>
 </section>
+<script src="{% static 'js/rmc-calendar-weather-clock.js' %}" defer></script>
 {% endwith %}
 {% endif %}

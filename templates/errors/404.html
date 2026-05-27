@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n smart_link_tags %}
 
 {% block title %}{% trans "Page not found" %}{% endblock %}
 
@@ -11,14 +11,13 @@
     </div>
     <div class="error-code-display" aria-hidden="true">404</div>
     <h1 id="error-title" class="error-title">{% trans "That page isn't here." %}</h1>
-    <p class="error-message">{% trans "The link may be old, scoped to a different host, or missing required context. Try one of the stable entry points below." %}</p>
+    <p class="error-message">{% trans "The link may be old, scoped to a different host, or missing required context. Try one of the actions below." %}</p>
     <div class="error-actions">
       {% if PUBLIC_BRAND_MODE %}
         <a class="btn btn-primary" href="{% url 'marketing_landing' %}"><i class="bi bi-house me-1"></i>{% trans "Go to homepage" %}</a>
         <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}"><i class="bi bi-life-preserver me-1"></i>{% trans "Contact support" %}</a>
       {% else %}
-        <a class="btn btn-primary" href="{% url 'accounts:redirect' %}"><i class="bi bi-house me-1"></i>{% trans "Go to dashboard" %}</a>
-        <a class="btn btn-outline-secondary" href="{% if request.public_host_kind == 'manager' %}{% url 'manager_help_center' %}{% else %}{% url 'feedback:help_center' %}{% endif %}"><i class="bi bi-question-circle me-1"></i>{% trans "Open help center" %}</a>
+        {% render_smart_links state="error.404" %}
       {% endif %}
     </div>
   </div>

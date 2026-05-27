@@ -1,26 +1,34 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n smart_link_tags %}
 {% block title %}{% trans "Account on hold" %}{% endblock %}
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h1 class="h3 mb-4">{% trans "Account on hold" %}</h1>
-      <p class="text-muted">
+    <div class="col-md-7">
+      <h1 class="h3 mb-3">{% trans "Account on hold" %}</h1>
+      <p class="text-muted mb-4">
         {% if frozen_reason == "STORAGE" %}
-          {% trans "This school account has been paused due to storage limits. Please upgrade or free up space to continue." %}
+          {% trans "This school account has been paused due to storage limits. The fastest fix is to free up space or upgrade the plan." %}
         {% elif frozen_reason == "BILLING" %}
-          {% trans "This school account has been paused for billing reasons. Please update payment or contact support." %}
+          {% trans "This school account has been paused for billing reasons. Update the payment method to restore access immediately." %}
         {% else %}
-          {% trans "This school account is temporarily on hold. Please contact your administrator or support." %}
+          {% trans "This school account is temporarily on hold. The quickest path is to contact support — we'll resolve it together." %}
         {% endif %}
       </p>
-      <p>
-        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary">{% trans "Sign out" %}</a>
-        {% if request.user.is_staff or request.user.is_superuser %}
-          <a href="/super/" class="btn btn-outline-primary ms-2">{% trans "Super Admin" %}</a>
-        {% endif %}
-      </p>
+
+      {% if frozen_reason == "STORAGE" %}
+        {% render_smart_links state="frozen.storage" persona="tenant_admin" %}
+      {% elif frozen_reason == "BILLING" %}
+        {% render_smart_links state="frozen.billing" persona="tenant_admin" %}
+      {% else %}
+        {% render_smart_links state="frozen.other" persona="tenant_admin" %}
+      {% endif %}
+
+      {% if request.user.is_staff or request.user.is_superuser %}
+        <hr class="my-4">
+        <p class="small text-muted">{% trans "Operator override:" %}</p>
+        <a href="/super/" class="btn btn-outline-primary btn-sm">{% trans "Super Admin" %}</a>
+      {% endif %}
     </div>
   </div>
 </div>

@@ -13,11 +13,14 @@
   data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'0' }}"
   data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'0' }}"
   data-weather-unit="{{ HEADER_WEATHER_TEMPERATURE_UNIT|default:'celsius' }}"
+  data-local-timezone="{{ HEADER_WEATHER_TIMEZONE|default:'UTC' }}"
+  data-global-timezone="UTC"
 >
   {% if show_datetime %}
   <span class="header-context-segment header-context-segment--datetime">
     <i class="header-context-icon bi bi-calendar3" aria-hidden="true"></i>
     <span class="header-context-value" data-header-datetime>--</span>
+    <span class="header-context-value header-context-value--global text-muted small" data-header-datetime-global hidden></span>
   </span>
   {% endif %}
 

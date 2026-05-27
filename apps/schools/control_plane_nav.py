@@ -696,6 +696,18 @@ def build_control_plane_nav(request):
                 "icon": "bi-door-open",
             },
             {
+                "id": "super_schools_rapid_create",
+                "label": "Rapid create",
+                "url_name": "super:schools_rapid_create",
+                "icon": "bi-lightning-charge",
+            },
+            {
+                "id": "super_provisioning_jobs",
+                "label": "Provisioning jobs",
+                "url_name": "super:provisioning_jobs",
+                "icon": "bi-hourglass-split",
+            },
+            {
                 "id": "super_provision",
                 "label": "Setup Studio",
                 "url_name": "super:create_school_wizard",

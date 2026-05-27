@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Lifecycle nav + always-on back-to-top batch 1513 (2026-05-26)
+
+**A. Scope:** Close visibility gap for tenant lifecycle/offboarding tools; platform-wide back-to-top; Lane 2 Render env defaults; post-deploy smoke bundle.
+
+**B. Shipped:** `data-rmc-back-to-top-policy=always` on portal/CP/base + manager admin shell; lower scroll thresholds + idle state; CP sidebar Rapid create + Provisioning jobs; tenant Studio spine Lifecycle/Offboarding/Provisioning; command palette entries; `render.yaml` `TENANT_*` defaults; `verify_lifecycle_post_deploy_smoke.py` + `verify_lifecycle_lane2_render_env.py`; tenant studio sweep paths include lifecycle/offboarding.
+
+**C. Proof:** **LIFECYCLE_POST_DEPLOY_SMOKE_PASS**; **PLATFORM_BACK_TO_TOP_PASS**; **TENANT_LIFECYCLE_AGGRESSIVE_AUDIT_PASS**.
+
+**D. SOT:** §11.4 batch **1513** **DONE**. Lane 2: operator SMTP/enrollment evidence on Render after deploy.
+
 ## Slice — Tenant lifecycle completion batch 1512 (2026-05-26)
 
 **A. Scope:** Close lifecycle hub + offboarding queue + scroll batch; workflow-state enrollment; guardian invites; purge when auto-purge disabled; Lane 2 checklist.

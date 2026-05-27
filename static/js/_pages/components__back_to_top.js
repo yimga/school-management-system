@@ -4,9 +4,9 @@
 (function () {
   "use strict";
 
-  var THRESHOLD_FOLDS = 2;
-  var THRESHOLD_FOLDS_CANVAS = 1;
-  var MIN_PX_CANVAS = 280;
+  var THRESHOLD_FOLDS = 1;
+  var THRESHOLD_FOLDS_CANVAS = 0.35;
+  var MIN_PX_CANVAS = 120;
   var state = {
     btn: null,
     progressCircle: null,
@@ -19,6 +19,16 @@
     return window.RMC && window.RMC.getFoldHeight
       ? window.RMC.getFoldHeight()
       : Math.max(window.innerHeight || 0, 320);
+  }
+
+  function alwaysVisiblePolicy() {
+    var body = document.body;
+    if (!body) return false;
+    if (body.getAttribute("data-rmc-back-to-top-policy") === "always") {
+      return true;
+    }
+    var root = document.documentElement;
+    return root && root.getAttribute("data-rmc-back-to-top-policy") === "always";
   }
 
   function scrollThreshold() {
@@ -116,20 +126,27 @@
 
     var container = getScrollContainer();
     var top = getScrollTop(container);
-    var visible = top >= scrollThreshold();
+    var scrolled = top >= scrollThreshold();
     var progress = scrollProgress(container);
+    var alwaysOn = alwaysVisiblePolicy();
 
     renderProgress(progress);
 
-    if (visible) {
+    if (alwaysOn || scrolled) {
       state.btn.removeAttribute("hidden");
       state.btn.setAttribute("aria-hidden", "false");
       state.btn.classList.add("rmc-back-to-top--visible");
+      if (alwaysOn && !scrolled) {
+        state.btn.classList.add("rmc-back-to-top--idle");
+      } else {
+        state.btn.classList.remove("rmc-back-to-top--idle");
+      }
       document.documentElement.setAttribute("data-rmc-back-to-top-armed", "1");
     } else {
       state.btn.setAttribute("hidden", "");
       state.btn.setAttribute("aria-hidden", "true");
       state.btn.classList.remove("rmc-back-to-top--visible");
+      state.btn.classList.remove("rmc-back-to-top--idle");
       document.documentElement.removeAttribute("data-rmc-back-to-top-armed");
     }
   }

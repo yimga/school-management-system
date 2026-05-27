@@ -142,6 +142,8 @@ class TenantOffboardingIntegrationTests(TestCase):
         tenants = next(g for g in groups if g.get("label") == "Tenants")
         ids = [item["id"] for item in tenants.get("items") or []]
         self.assertIn("super_offboarding_queue", ids)
+        self.assertIn("super_schools_rapid_create", ids)
+        self.assertIn("super_provisioning_jobs", ids)
 
     def test_studio_hub_link_urls_include_offboarding(self):
         from apps.siteconfig.views_tenant_studio_hub import _studio_hub_link_urls

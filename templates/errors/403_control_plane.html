@@ -1,5 +1,5 @@
 {% extends "control_plane_skeleton.html" %}
-{% load static i18n %}
+{% load static i18n smart_link_tags %}
 
 {% block title %}{% trans "Access denied" %} – RunMyCampus Manager{% endblock %}
 
@@ -14,9 +14,9 @@
         <a class="btn btn-primary" href="{% url 'super:dashboard' %}"><i class="bi bi-speedometer2 me-1"></i>{% trans "Control Plane" %}</a>
       </div>
     {% else %}
-      <p class="error-message">{% trans "You don't have permission to access this page. If you think you should, contact a platform operator." %}</p>
+      <p class="error-message">{% trans "You don't have permission to access this page. Request operator access below, or head back to Manager." %}</p>
       <div class="error-actions">
-        <a class="btn btn-primary" href="{% url 'super:dashboard' %}"><i class="bi bi-house me-1"></i>{% trans "Back to Manager" %}</a>
+        {% render_smart_links state="error.403_control_plane" persona="operator" %}
       </div>
     {% endif %}
   </div>

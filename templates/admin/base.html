@@ -45,7 +45,7 @@
         {% endif %}{% endif %}
 
         {# ---------- Grid row 2, column 2 — the SINGLE scrollable canvas ---------- #}
-        <div class="rmc-app-shell__canvas" data-rmc-shell-canvas="django-admin" data-rmc-backoffice-scroll-root="canvas">
+        <div class="rmc-app-shell__canvas" data-rmc-shell-canvas="django-admin" data-rmc-backoffice-scroll-root="main">
             <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
             <main id="cp-main-content" class="rmc-app-shell__canvas-body {% if is_manager_host %}cp-admin-canvas-main{% else %}bg-white dark:bg-base-900{% endif %}{% if not is_manager_host %} {% element_classes 'main' %}{% endif %}" role="main" data-shell-main="{% if is_manager_host %}platform-admin{% else %}django-admin{% endif %}" data-authenticated-surface="{% if is_manager_host %}manager-control-plane{% else %}django-admin{% endif %}" data-rmc-shell-main="django-admin" data-page-archetype="decision-console" data-shell-layout="admin-rmc-app-shell" data-rmc-admin-cp-unified="1">
 

@@ -20,6 +20,7 @@ SHELL_TEMPLATES = (
 REQUIRED_CSS = (
     "static/css/rmc-shell-scroll-contract.css",
     "static/css/rmc-isomorphic-grid-sweep.css",
+    "static/css/rmc-backoffice-scroll-10x.css",
 )
 
 RULE_BLOCK = re.compile(r"([^{}]+)\{([^}]*)\}", re.DOTALL)
@@ -68,6 +69,16 @@ def audit_css() -> list[str]:
     if "#page:has(.admin-cp-unified-page)" not in contract:
         failures.append("rmc-shell-scroll-contract.css: missing #page admin unwind")
 
+    backoffice = _read("static/css/rmc-backoffice-scroll-10x.css")
+    for token in (
+        'body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__canvas-body',
+        'body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .admin-cp-unified-page #cp-main-content.cp-admin-canvas-main',
+        "overflow-y: scroll !important",
+        "scrollbar-gutter: stable",
+    ):
+        if token not in backoffice:
+            failures.append(f"rmc-backoffice-scroll-10x.css: missing {token}")
+
     return failures
 
 
@@ -111,6 +122,8 @@ def audit_templates() -> list[str]:
         failures.append("components__back_to_top.js: missing THRESHOLD_FOLDS")
     if "RMCBackToTop" not in btt_js:
         failures.append("components__back_to_top.js: missing RMCBackToTop export")
+    if "alwaysVisiblePolicy" not in btt_js:
+        failures.append("components__back_to_top.js: missing alwaysVisiblePolicy helper")
 
     btt_tpl = _read("templates/components/back_to_top.html")
     if "rmc-scroll-container.js" not in btt_tpl:

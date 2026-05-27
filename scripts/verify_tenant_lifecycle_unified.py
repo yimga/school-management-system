@@ -97,6 +97,15 @@ REQUIRED = (
     ("apps/lifecycle/views_tenant_lifecycle.py", "tenant_lifecycle_command_center"),
     ("templates/siteconfig/tenant_lifecycle_command_center.html", "data-shell-surface=\"tenant-lifecycle-command-center\""),
     ("config/tenant_urls.py", "school/studio/lifecycle/"),
+    ("apps/lifecycle/views_tenant_lifecycle.py", "onboarding_playbook_api_url"),
+    (
+        "templates/siteconfig/tenant_lifecycle_command_center.html",
+        "workflow_playbook_assistant.html",
+    ),
+    (
+        "templates/siteconfig/tenant_lifecycle_command_center.html",
+        "section-lifecycle-playbook",
+    ),
 
 )
 

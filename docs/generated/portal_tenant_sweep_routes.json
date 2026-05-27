@@ -32,6 +32,13 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/school/studio/lifecycle/",
+      "inner": "/school/studio/lifecycle/",
+      "name": "tenant_lifecycle_command_center",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/school/studio/migration/",
       "inner": "/school/studio/migration/",
       "name": "school_studio_migration",
@@ -1393,13 +1400,6 @@
       "path": "/t/demo-school/portal/parent/performance/",
       "inner": "/portal/parent/performance/",
       "name": "parent_performance",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/results/",
-      "inner": "/portal/parent/results/",
-      "name": "parent_child_results",
       "slug": "demo-school",
       "sweep": true
     }

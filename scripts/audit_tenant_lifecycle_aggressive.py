@@ -30,6 +30,10 @@ TEMPLATE_MARKERS = (
         "rmc_section_nav_curated",
     ),
     (
+        "templates/siteconfig/tenant_lifecycle_command_center.html",
+        "section-lifecycle-playbook",
+    ),
+    (
         "templates/siteconfig/tenant_studio_hub.html",
         "data-rmc-tenant-studio-lifecycle-hub",
     ),

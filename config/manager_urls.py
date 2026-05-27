@@ -417,6 +417,20 @@ def _manager_search_static_catalog(urlconf=None):
             "meta": ["Control plane", "Tenants", "Offboarding"],
         },
         {
+            "title": "Rapid create school",
+            "description": "Operator fast-path tenant provisioning with local-first defaults.",
+            "url": url("super:schools_rapid_create"),
+            "type": "class",
+            "meta": ["Control plane", "Tenants", "Onboarding"],
+        },
+        {
+            "title": "Provisioning jobs",
+            "description": "Live provisioning queue, failures, and retry posture.",
+            "url": url("super:provisioning_jobs"),
+            "type": "class",
+            "meta": ["Control plane", "Tenants", "Provisioning"],
+        },
+        {
             "title": "Analytics overview",
             "description": "Fleet analytics, observability entry points, and chart reference patterns.",
             "url": url("super:analytics_overview"),

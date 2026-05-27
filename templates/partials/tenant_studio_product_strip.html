@@ -8,6 +8,9 @@
   <a href="{% url 'studio_os:automation' %}">{% trans "Automation" %}</a>
   <a href="{% url 'studio_os:launch' %}">{% trans "Launch" %}</a>
   <a href="{% url 'studio_os:control' %}">{% trans "Control" %}</a>
+  <a href="{% url 'tenant_lifecycle_command_center' %}">{% trans "Lifecycle" %}</a>
+  <a href="{% url 'tenant_offboarding' %}">{% trans "Offboarding" %}</a>
+  <a href="{% url 'tenant_provisioning_status' %}">{% trans "Provisioning" %}</a>
   <a href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
   {% if request.user.is_superuser %}
   <a href="{% url 'admin:index' %}">{% trans "Platform admin" %}</a>

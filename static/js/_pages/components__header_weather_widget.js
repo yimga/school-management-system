@@ -26,22 +26,61 @@
     "Progress is built one step at a time."
   ];
 
+  function readTimezone(strip, attr) {
+    var value = (strip && strip.getAttribute(attr)) || "";
+    value = String(value).trim();
+    if (!value) return "UTC";
+    try {
+      new Intl.DateTimeFormat("en-US", { timeZone: value });
+      return value;
+    } catch (e) {
+      return "UTC";
+    }
+  }
+
+  function formatInZone(date, timeZone, options) {
+    var locale = document.documentElement.lang || navigator.language || "en-US";
+    return new Intl.DateTimeFormat(locale, Object.assign({ timeZone: timeZone }, options)).format(date);
+  }
+
+  function isCompact(strip) {
+    return strip.getAttribute("data-rmc-header-context-compact") === "1"
+      || Boolean(strip.closest("[data-rmc-header-context-compact='1']"));
+  }
+
   function updateDateTime() {
     var now = new Date();
-    var locale = document.documentElement.lang || navigator.language || "en-US";
-    var dateText = new Intl.DateTimeFormat(locale, {
-      weekday: "short",
-      month: "short",
-      day: "numeric"
-    }).format(now);
-    var timeText = new Intl.DateTimeFormat(locale, {
-      hour: "2-digit",
-      minute: "2-digit"
-    }).format(now);
-    var combined = dateText + " | " + timeText;
     strips.forEach(function (strip) {
-      var target = strip.querySelector("[data-header-datetime]");
-      if (target) target.textContent = combined;
+      var localTz = readTimezone(strip, "data-local-timezone");
+      var globalTz = readTimezone(strip, "data-global-timezone");
+      var localTarget = strip.querySelector("[data-header-datetime]");
+      var globalTarget = strip.querySelector("[data-header-datetime-global]");
+      var compact = isCompact(strip);
+      if (localTarget) {
+        var localDate = formatInZone(now, localTz, {
+          weekday: "short",
+          month: "short",
+          day: "numeric"
+        });
+        var timeOptions = compact
+          ? { hour: "2-digit", minute: "2-digit" }
+          : { hour: "2-digit", minute: "2-digit", second: "2-digit" };
+        var localTime = formatInZone(now, localTz, timeOptions);
+        localTarget.textContent = localDate + " | " + localTime;
+      }
+      if (globalTarget) {
+        if (localTz === globalTz) {
+          globalTarget.hidden = true;
+          globalTarget.textContent = "";
+        } else {
+          globalTarget.hidden = false;
+          globalTarget.textContent = formatInZone(now, globalTz, {
+            hour: "2-digit",
+            minute: "2-digit",
+            timeZoneName: "short"
+          });
+        }
+      }
     });
   }
 
@@ -103,6 +142,7 @@
         var unitSymbol = unit === "fahrenheit" ? "F" : "C";
         var degreeSymbol = "\u00B0";
         var descText = String(weather.description || "Weather");
+        var label = String(data.label || "").trim();
         strips.forEach(function (strip) {
           var icon = strip.querySelector("[data-header-weather-icon]");
           var tempNode = strip.querySelector("[data-header-weather-temp]");
@@ -112,7 +152,7 @@
             icon.className = "header-context-icon bi " + iconClass;
           }
           if (tempNode) tempNode.textContent = String(temp) + degreeSymbol + unitSymbol;
-          if (desc) desc.textContent = descText;
+          if (desc) desc.textContent = label ? label + " · " + descText : descText;
         });
       })
       .catch(function () {
@@ -124,7 +164,7 @@
   updateQuote();
   updateWeather();
 
-  window.setInterval(updateDateTime, 60000);
+  window.setInterval(updateDateTime, 1000);
   window.setInterval(updateQuote, 15 * 60 * 1000);
   window.setInterval(updateWeather, 15 * 60 * 1000);
 })();

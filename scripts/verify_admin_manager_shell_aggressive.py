@@ -102,8 +102,8 @@ def main() -> int:
         errors.append("admin/base.html: workspace_context must not ship in manager sidebar")
     if 'data-rmc-backoffice-frame="v2"' not in admin_base:
         errors.append("admin/base.html: missing backoffice frame v2 marker")
-    if 'data-rmc-backoffice-scroll-root="canvas"' not in admin_base:
-        errors.append("admin/base.html: missing backoffice canvas scroll-root marker")
+    if 'data-rmc-backoffice-scroll-root="main"' not in admin_base:
+        errors.append("admin/base.html: missing backoffice main scroll-root marker")
     if 'data-rmc-backoffice-page-body="1"' not in admin_base:
         errors.append("admin/base.html: missing backoffice page body marker")
     if admin_base.find("cp-live-strip") < 0 or admin_base.find("cp-nav-row") < 0:

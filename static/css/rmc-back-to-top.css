@@ -240,6 +240,18 @@ body[data-rmc-assist-dock="mounted"] {
   animation: rmc-back-to-top-enter var(--motion-spring, 420ms cubic-bezier(0.34, 1.56, 0.64, 1));
 }
 
+.back-to-top-btn.rmc-back-to-top.rmc-back-to-top--idle:not([hidden]) {
+  opacity: 0.62;
+  transform: translateY(0) scale(0.94);
+  box-shadow: var(--elev-1, 0 4px 12px rgba(15, 23, 42, 0.1));
+}
+
+.back-to-top-btn.rmc-back-to-top.rmc-back-to-top--idle:not([hidden]):hover,
+.back-to-top-btn.rmc-back-to-top.rmc-back-to-top--idle:not([hidden]):focus-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 .back-to-top-btn.rmc-back-to-top.rmc-back-to-top--launching .rmc-back-to-top__icon {
   animation: rmc-back-to-top-launch 520ms var(--motion-decel, 260ms ease);
 }

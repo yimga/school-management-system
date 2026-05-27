@@ -150,6 +150,13 @@ def tenant_lifecycle_command_center(request: HttpRequest) -> HttpResponse:
         {"id": "section-onboarding", "label": _("Onboarding")},
         {"id": "section-offboarding", "label": _("Offboarding")},
     ]
+    onboarding_playbook_api_url = ""
+    offboarding_playbook_api_url = ""
+    try:
+        onboarding_playbook_api_url = reverse("api:ai-onboarding-playbook")
+        offboarding_playbook_api_url = reverse("api:ai-offboarding-playbook")
+    except NoReverseMatch:
+        pass
     return render(
         request,
         "siteconfig/tenant_lifecycle_command_center.html",
@@ -166,6 +173,8 @@ def tenant_lifecycle_command_center(request: HttpRequest) -> HttpResponse:
             "provisioning_url": _tenant_reverse("tenant_provisioning_status"),
             "fast_path_url": _tenant_reverse("tenant_launch_fast_path"),
             "offboarding_url": _tenant_reverse("tenant_offboarding"),
+            "onboarding_playbook_api_url": onboarding_playbook_api_url,
+            "offboarding_playbook_api_url": offboarding_playbook_api_url,
         },
     )
 

@@ -701,12 +701,17 @@ def cockpit_context(request) -> dict[str, Any]:
         )
         if _atk_realdata_ok:
             try:
-                from .cockpit_activity_ticker_realdata import resolve_activity_ticker_cards
+                from .cockpit_activity_ticker_realdata import (
+                    merge_activity_ticker_sections,
+                    resolve_activity_ticker_cards,
+                )
                 ticker_real = resolve_activity_ticker_cards(request)
             except Exception:
                 ticker_real = {}
             if ticker_real:
-                manager_cockpit = _deep_merge(manager_cockpit, ticker_real)
+                manager_cockpit = merge_activity_ticker_sections(
+                    manager_cockpit, ticker_real
+                )
 
         # Overlay operator-saved cockpit_payload LAST so per-site overrides
         # (including section.enabled = False) win over both defaults and demo.
@@ -737,6 +742,20 @@ def cockpit_context(request) -> dict[str, Any]:
         ):
             atk_section["enabled"] = False
             manager_cockpit["activity_ticker"] = atk_section
+        elif atk_section.get("cards") and atk_section.get("enabled") is not False:
+            atk_section["enabled"] = True
+            manager_cockpit["activity_ticker"] = atk_section
+
+        try:
+            from .cockpit_calendar_weather_runtime import resolve_calendar_weather_runtime
+
+            cw_runtime = resolve_calendar_weather_runtime(request)
+            manager_cockpit["calendar_weather"] = _deep_merge(
+                cw_runtime,
+                manager_cockpit.get("calendar_weather") or {},
+            )
+        except Exception:
+            pass
 
         rmc_page_help_on_copilot_rail = bool(
             (manager_cockpit.get("ai_copilot_rail") or {}).get("enabled")
@@ -804,12 +823,15 @@ def cockpit_context(request) -> dict[str, Any]:
     )
     if _atk_realdata_ok:
         try:
-            from .cockpit_activity_ticker_realdata import resolve_activity_ticker_cards
+            from .cockpit_activity_ticker_realdata import (
+                merge_activity_ticker_sections,
+                resolve_activity_ticker_cards,
+            )
             ticker_real = resolve_activity_ticker_cards(request)
         except Exception:
             ticker_real = {}
         if ticker_real:
-            tenant_cockpit = _deep_merge(tenant_cockpit, ticker_real)
+            tenant_cockpit = merge_activity_ticker_sections(tenant_cockpit, ticker_real)
 
     # Overlay operator-saved cockpit_payload LAST so per-site overrides win.
     payload = _resolve_cockpit_payload(request)
@@ -829,8 +851,22 @@ def cockpit_context(request) -> dict[str, Any]:
     elif "enabled_on_tenant" in atk_section:
         # Explicit False persisted — honor it (defeats the helper default).
         tat_section["enabled"] = False
+    elif tat_section.get("cards") and atk_section.get("enabled_on_tenant") is not False:
+        # Auto-enable when live cards exist unless operator explicitly opted out.
+        tat_section["enabled"] = True
     if tat_section:
         tenant_cockpit["tenant_activity_ticker"] = tat_section
+
+    try:
+        from .cockpit_calendar_weather_runtime import resolve_calendar_weather_runtime
+
+        cw_runtime = resolve_calendar_weather_runtime(request)
+        tenant_cockpit["calendar_weather"] = _deep_merge(
+            cw_runtime,
+            tenant_cockpit.get("calendar_weather") or {},
+        )
+    except Exception:
+        pass
 
     try:
         from apps.portal.tenant_cockpit_enrichment import enrich_tenant_cockpit_for_request

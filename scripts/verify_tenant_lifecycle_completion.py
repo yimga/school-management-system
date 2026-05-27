@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LANE1_SCRIPTS = (
     "scripts/audit_tenant_lifecycle_full.py",
     "scripts/verify_tenant_lifecycle_unified.py",
+    "scripts/verify_tenant_lifecycle_10x.py",
 )
 
 LANE2_CHECKLIST = ROOT / "docs" / "TENANT_LIFECYCLE_LANE2_OPERATOR_CHECKLIST.md"

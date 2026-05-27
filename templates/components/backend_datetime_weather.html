@@ -12,10 +12,13 @@
   data-weather-lon="{{ HEADER_WEATHER_LONGITUDE|default:'0' }}"
   data-weather-unit="{{ HEADER_WEATHER_TEMPERATURE_UNIT|default:'celsius' }}"
   data-weather-label="{{ HEADER_WEATHER_LABEL|default:'Weather' }}"
+  data-local-timezone="{{ HEADER_WEATHER_TIMEZONE|default:'UTC' }}"
+  data-global-timezone="UTC"
   aria-label="Local date, time, and weather"
 >
   <div class="backend-dtw__line backend-dtw__month-year" id="backendDtwMonthYear">--</div>
   <div class="backend-dtw__line backend-dtw__time" id="backendDtwTime">--:--</div>
+  <div class="backend-dtw__line backend-dtw__global-time text-muted small" id="backendDtwGlobalTime" hidden></div>
   <div class="backend-dtw__line backend-dtw__weather">
     <i class="bi bi-cloud-sun backend-dtw__weather-icon" id="backendDtwWeatherIcon" aria-hidden="true"></i>
     <span class="backend-dtw__temp" id="backendDtwTemp">--&deg;</span>
