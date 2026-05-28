@@ -9,6 +9,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 
 GATES = (
+    "scripts/verify_marketing_intent_viewport.py",
+    "scripts/verify_lane2_external_honesty.py",
     "scripts/ensure_marketing_loops.py",
     "scripts/verify_marketing_media_manifest.py",
     "scripts/verify_marketing_loop_assets.py",

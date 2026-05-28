@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-28T00:00:00Z",
+  "classification": "BLOCKED_EXTERNAL_AND_LANE2",
+  "honesty_note": "Repo-complete stubs and evidence scaffolds are not the same as §11.4 DONE or §12 category-defining scores.",
+  "batches": {
+    "1170": {
+      "title": "Stripe live PSP + Connect",
+      "repo_status": "REPO-COMPLETE",
+      "lane2_status": "BLOCKED_EXTERNAL",
+      "evidence_on_disk": "var/evidence/geos-99/psp/stripe/lane2_batch1170_preflight_2026-05-28.json",
+      "blockers": [
+        "Supervised live platform charge + refund (phase1 JSON)",
+        "Stripe Connect pilot evidence (phase2 JSON)",
+        "Payments Integration with live keys on pilot tenant"
+      ]
+    },
+    "1171": {
+      "title": "WAfrica + global PSP corridors",
+      "lane2_status": "BLOCKED_EXTERNAL",
+      "blockers": ["Per-corridor supervised settlement evidence", "Merchant KYC per PSP"]
+    },
+    "1172": {
+      "title": "First pilot schools",
+      "lane2_status": "BLOCKED_EXTERNAL",
+      "blockers": ["Real school tenant onboarding", "Signed pilot agreement"]
+    },
+    "1173": {
+      "title": "Staging deploy smoke",
+      "lane2_status": "BLOCKED_EXTERNAL",
+      "blockers": ["Hosted staging environment", "STAGING_PROFILE secrets on Render"]
+    },
+    "1174": {
+      "title": "Live payment reconciliation",
+      "lane2_status": "BLOCKED_EXTERNAL",
+      "blockers": ["Live charge evidence", "Settlement artifact from PSP"]
+    },
+    "1175": {
+      "title": "Pilot UX defect closure",
+      "repo_status": "PARTIAL_REPO_INTAKE",
+      "lane2_status": "NOT_STARTED_EXTERNAL",
+      "evidence_on_disk": "var/evidence/geos-99/pilot/gilead-school/intake_ready_2026-05-28.json",
+      "blockers": [
+        "Real school slot-2 feedback",
+        "Pilot-blocking defects filed in PilotDefect dashboard",
+        "Scorecard slot 2 population"
+      ]
+    },
+    "1199": {
+      "title": "Render / custom-domain SHA parity",
+      "repo_status": "PARTIAL_REPO_LOCAL",
+      "lane2_status": "BLOCKED_EXTERNAL",
+      "evidence_on_disk": "var/evidence/geos-99/render/sha_parity_2026-05-28.json",
+      "blockers": [
+        "Deploy repo HEAD to production",
+        "RENDER_PARITY_BASE_URL + MANAGER_PARITY_BASE_URL probe returns matching commit_sha"
+      ]
+    }
+  },
+  "cross_cutting": [
+    {
+      "id": "soc2_pci",
+      "status": "BLOCKED_EXTERNAL",
+      "note": "Auditor engagement and attestation on file — not repo-only"
+    },
+    {
+      "id": "native_app_stores",
+      "status": "BLOCKED_EXTERNAL",
+      "note": "PWA-first; Capacitor/Tauri app store publish deferred per GEOS matrix"
+    },
+    {
+      "id": "human_translation_vendor",
+      "status": "BLOCKED_EXTERNAL",
+      "note": "Glocal pressure-test externals — not machine-catalog alone"
+    },
+    {
+      "id": "live_fx_api",
+      "status": "BLOCKED_EXTERNAL",
+      "note": "Production FX feed for settlement display"
+    },
+    {
+      "id": "hundred_school_pilot_claim",
+      "status": "BLOCKED_EXTERNAL",
+      "note": "Market-ready claims gated on real tenants + evidence"
+    },
+    {
+      "id": "sot_scoring_95",
+      "status": "BLOCKED_EXTERNAL",
+      "note": "Do not claim 9.5/10 or category-defining until §12 gates pass"
+    }
+  ],
+  "roadmap_honesty": {
+    "docs/ROADMAPS_IMPLEMENTATION_STATUS.md": "API stub rows are code_presence only — see greatest_education_os_matrix.json for buyer truth",
+    "authoritative_execution": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md section 11.4"
+  }
+}

@@ -141,10 +141,16 @@ def apm_icons_for_country(country_code: str) -> list[dict[str, str]]:
 def marketing_copy_token(country_code: str, token: str, marketing_local: dict[str, Any] | None) -> str:
     """Resolve marketing copy tokens for {% marketing_copy %}."""
     ml = marketing_local or {}
+    operational = {
+        "US": "Ambient campus tracking — cardstock QR and passive tap counters (illustrative).",
+        "SA": "آليات التتبع المحيطي الذكي بدون استخدام هواتف الطلاب",
+        "BR": "Rastreamento de campus sem celular no bolso — QR e totens (ilustrativo).",
+    }
     mapping = {
         "txt_hero_headline": ml.get("headline_lead") or "Built for schools worldwide",
         "txt_platform_title": "RunMyCampus",
         "txt_governing_body": ml.get("regulatory_line") or "Education authority",
+        "txt_operational_claim": operational.get(cc, operational["US"]),
         "txt_student_label": "Students",
         "txt_hero_subheadline": ml.get("hero_subline") or "",
     }

@@ -70,3 +70,9 @@ def marketing_copy(context, token: str) -> str:
     geo = context.get("geo") or {}
     cc = geo.get("country_code") or ml.get("country_code") or "US"
     return marketing_copy_token(cc, token, ml)
+
+
+@register.simple_tag(takes_context=True)
+def text_token(context, key: str) -> str:
+    """Alias for marketing_copy (RUNMYCAMPUS-SURGICAL-REFIT prompt compatibility)."""
+    return marketing_copy(context, key)

@@ -1,6 +1,7 @@
 {% load static i18n %}
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE|default:'en' }}"{% if LANGUAGE_BIDI or is_rtl %} dir="rtl"{% endif %}
+<html lang="{% if geo.locale %}{{ geo.locale }}{% else %}{{ request.LANGUAGE_CODE|default:'en' }}{% endif %}"
+      dir="{% if geo.direction %}{{ geo.direction }}{% elif LANGUAGE_BIDI or is_rtl %}rtl{% else %}ltr{% endif %}"
       data-surface="marketing"
       data-rmc-premium-shell="marketing"
       data-rmc-page-purpose="public-story"

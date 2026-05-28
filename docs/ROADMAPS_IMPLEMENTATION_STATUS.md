@@ -1,11 +1,23 @@
 # All roadmaps in docs — implementation status
 
 > **Honesty gate (GEOS-99 / §13):** Stub `GET /api/roadmap/*` endpoints are **code presence only** — not product-complete features. Authoritative platform maturity = [`docs/generated/greatest_education_os_matrix.json`](generated/greatest_education_os_matrix.json) (after batch 1390) and SOT §13. Do not cite this doc for “100% implemented” buyer claims when rows are **Stub**.
+>
+> **CEZGP batch 1522 (2026-05-22):** Studio Launch **school infrastructure** preview consumes `studio_os:school_infrastructure_preview_api` — UI shows an explicit **Preview API** badge (read-only JSON; not live apply). Roadmap `GET /api/roadmap/*` stubs remain `code_presence_stub` in API responses; operator surfaces must not imply production-ready features without matrix row **Implemented**.
 
 **Purpose:** Single consolidated view of every roadmap document in the `docs` folder and the implementation status of each item.  
 **Sources:** Scan of docs + docs/architecture; cross-check with codebase, ROADMAP_DUE_TODAY.md, ROADMAP_COMPLETION.md, DOCS_ROADMAP_AUDIT_IMPLEMENTED_VS_NOT.md.
 
 **Legend:** **Implemented** = code/UX in place; **Partial** = some code or doc, not full spec; **Stub** = API or status endpoint only (code presence for roadmap closure); **Not** = not implemented.
+
+**§11.4 execution truth (2026-05-28):** Rows in this document marked **Implemented** for `GET /api/roadmap/*` and similar stubs describe **code presence**, not Lane 2 product completion. Authoritative buyer/operator truth:
+
+| Source | Use for |
+|--------|---------|
+| [`docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md`](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) §11.4 | Batch DONE / PARTIAL / NOT STARTED |
+| [`docs/generated/lane2_external_blockers.json`](generated/lane2_external_blockers.json) | BLOCKED_EXTERNAL + Lane 2 (1170–1175, 1199, SOC2, app stores) |
+| [`docs/generated/greatest_education_os_matrix.json`](generated/greatest_education_os_matrix.json) | GEOS maturity — do not claim 9.5/10 until §12 gates pass |
+
+**Batch 1175** remains **NOT STARTED (external pilot)** — repo intake scaffold only (`verify_pilot_defect_intake.py`, `PILOT_DEFECT_TRIAGE_RUNBOOK.md`). Do not equate with “pilot complete.”
 
 ---
 

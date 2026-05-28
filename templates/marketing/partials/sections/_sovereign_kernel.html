@@ -1,9 +1,9 @@
 {% load i18n static marketing_media %}{# get_static_prefix for loop bucket swap #}
 <section
   id="mkt-sovereign-kernel"
-  class="mkt-ve-section mkt-ve-section--sovereign"
+  class="mkt-ve-section mkt-ve-section--sovereign mkt-ve-section--viewport-lock"
   data-mkt-personality="sovereign"
-  data-mkt-scroll-policy="discovery"
+  data-mkt-scroll-policy="viewport-lock"
   aria-labelledby="mkt-sovereign-headline"
 >
   <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
@@ -18,17 +18,27 @@
     </header>
     <div class="mkt-ve-section__grid">
       <div class="mkt-ve-section__media">
+        <picture class="mkt-ve-loop mkt-ve-loop--poster-first">
+          <img
+            src="{% marketing_asset 'sovereign_hero_poster' %}"
+            alt="{% trans 'Illustrative campus operations' %}"
+            loading="eager"
+            decoding="async"
+            class="mkt-ve-loop__poster"
+          >
+        </picture>
         <video
-          class="mkt-ve-loop"
+          class="mkt-ve-loop mkt-ve-loop--enhance"
           data-mkt-regional-loop
           data-mkt-loop-prefix="{% get_static_prefix %}marketing/video/loops/"
           autoplay
           muted
           loop
           playsinline
-          preload="metadata"
+          preload="none"
           poster="{% marketing_asset 'sovereign_hero_poster' %}"
           aria-label="{% trans 'Illustrative campus operations loop' %}"
+          hidden
         >
           <source src="{% marketing_asset 'sovereign_hero_loop_webm' %}" type="video/webm">
           <source src="{% marketing_asset 'sovereign_hero_loop_mp4' %}" type="video/mp4">
@@ -36,7 +46,7 @@
         <p class="mkt-edt-illustrative-pill">{% trans "Simulated campus · not a live tenant" %}</p>
       </div>
       <div class="mkt-ve-wizard" data-mkt-sandbox-wizard>
-        <h3 class="mkt-ve-wizard__title">{% trans "Configure your school (illustrative)" %}</h3>
+        <h3 class="mkt-ve-wizard__title mkt-edos-text-shield">{% marketing_copy "txt_governing_body" %}</h3>
         <form class="mkt-ve-wizard__form" data-mkt-sandbox-form novalidate>
           {% csrf_token %}
           <label class="mkt-ve-wizard__field">

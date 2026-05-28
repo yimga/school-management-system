@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Marketing intent viewport + Lane 2 honesty batch 1547 (2026-05-28)
+
+**A. Scope:** Complete user ask without false DONE on 1175 / BLOCKED_EXTERNAL; RUNMYCAMPUS-SURGICAL-REFIT on existing marketing stack (no duplicate glocal_kernel app).
+
+**B. Shipped:** Viewport-lock on 3 personality sections; geo `lang`/`dir` on marketing shell; `text_token` tag; lane2_external_blockers.json; ROADMAPS honesty table; poster-first sovereign media.
+
+**C. Proof:** **MARKETING_INTENT_VIEWPORT_PASS**; **LANE2_EXTERNAL_HONESTY_PASS**; `apps.schools.tests.test_marketing_intent_viewport`.
+
+**D. SOT:** batch **1547** **DONE (repo-scope)**; **1175** stays **NOT STARTED external**. **SW:** `sms-v3.99.10-marketing-intent-viewport-2026-05-28`.
+
 ## Slice — Lane 2 residuals on disk + RTL path fix batch 1546 (2026-05-28)
 
 **A. Scope:** Close four “what’s next” lanes honestly: RTL live Playwright path, batch **1170** evidence on disk, batch **1199** repo-local SHA parity artifact, batch **1175** pilot intake scaffold.

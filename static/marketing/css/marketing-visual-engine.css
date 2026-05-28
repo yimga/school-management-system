@@ -4,10 +4,31 @@
  */
 .mkt-ve-section {
   min-height: 100dvh;
+  max-height: 100dvh;
   padding: calc(var(--mkt-space-8, 64px) * 1) 0;
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+.mkt-ve-section--viewport-lock {
+  scroll-snap-align: start;
+  scroll-margin-top: 0;
+}
+
+.mkt-edos-text-shield {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+html[dir="rtl"] .mkt-ve-section__grid,
+html[dir="rtl"] .mkt-ve-split {
+  direction: rtl;
 }
 
 .mkt-ve-section--sovereign {
@@ -61,6 +82,28 @@
   border-radius: var(--mkt-radius-lg, 12px);
   object-fit: cover;
   background: var(--mkt-surface-elevated, #1e293b);
+}
+
+.mkt-ve-loop__poster {
+  width: 100%;
+  height: auto;
+  max-height: min(56dvh, 480px);
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.mkt-ve-loop--enhance[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mkt-ve-loop--poster-first:has(+ .mkt-ve-loop--enhance:not([hidden])) {
+    display: none;
+  }
+
+  .mkt-ve-loop--enhance:not([hidden]) {
+    display: block;
+  }
 }
 
 .mkt-ve-wizard {
