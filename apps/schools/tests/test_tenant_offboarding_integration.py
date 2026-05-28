@@ -11,9 +11,12 @@ from django.core.management import call_command
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
-from apps.schools.models import School
-from apps.schools.super_views_offboarding_queue import api_super_run_scheduled_purges
-from apps.schools.super_views_offboarding_queue import api_school_offboarding_schedule
+from apps.schools.models import School, SchoolProvisioningEvent
+from apps.schools.super_views_offboarding_queue import (
+    api_school_offboarding_schedule,
+    api_super_run_scheduled_purges,
+    super_offboarding_queue,
+)
 from apps.siteconfig.models import RegionConfig
 
 User = get_user_model()
@@ -133,6 +136,45 @@ class TenantOffboardingIntegrationTests(TestCase):
         out = StringIO()
         call_command("tenant_offboarding_run_scheduled_purges", "--dry-run", stdout=out)
         self.assertTrue(School.objects.filter(pk=self.school.pk).exists())
+
+    @override_settings(ROOT_URLCONF="config.manager_urls")
+    def test_offboarding_queue_surfaces_recent_provisioning_failures(self):
+        """v4.00.3 audit: the queue dashboard must render a panel for any
+        SchoolProvisioningEvent.FAILED row from the last 7 days so the
+        operator-visible health signal exists outside the per-tenant 360.
+
+        v4.00.2 started recording these (verify_signup dispatch failures +
+        data-residency failures); this test locks the dashboard signal."""
+        SchoolProvisioningEvent.log_event(
+            school=self.school,
+            event_type=SchoolProvisioningEvent.EventType.FAILED,
+            status=SchoolProvisioningEvent.Status.ERROR,
+            message="Provisioning dispatch failed after signup verification",
+            payload={
+                "phase": "dispatch",
+                "error_type": "OSError",
+                "error": "broker unreachable",
+            },
+        )
+        request = self._manager_request("get", "/super/offboarding/")
+        response = super_offboarding_queue(request)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode("utf-8")
+        self.assertIn("Provisioning failures", body)
+        self.assertIn(self.school.slug, body)
+        self.assertIn("dispatch", body)
+        self.assertIn("OSError", body)
+
+    @override_settings(ROOT_URLCONF="config.manager_urls")
+    def test_offboarding_queue_omits_panel_when_no_recent_failures(self):
+        request = self._manager_request("get", "/super/offboarding/")
+        response = super_offboarding_queue(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(
+            "Provisioning failures",
+            response.content.decode("utf-8"),
+            "panel should be hidden when there are no recent FAILED events",
+        )
 
     def test_control_plane_nav_includes_offboarding_queue(self):
         from apps.schools.control_plane_nav import build_control_plane_nav

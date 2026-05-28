@@ -205,6 +205,51 @@ def _country_from_accept_language(request) -> str:
     return ""
 
 
+def _assign_data_residency_or_record_failure(school) -> bool:
+    """Assign regulatory data region or record a FAILED audit event.
+
+    v4.00.3 audit (2026-05-28): the prior bare ``except Exception: pass``
+    around the data-residency call masked any assignment failure — the
+    school stayed ``data_region=None`` with no log, no event, no operator
+    signal. For a platform with GDPR / cross-border data-sovereignty
+    obligations this is load-bearing: a silently-misassigned school can
+    end up storing data in the wrong region. Returns True on success,
+    False when the failure was recorded.
+    """
+    try:
+        from apps.schools.data_residency_onboarding import (
+            apply_data_residency_for_new_school,
+        )
+
+        apply_data_residency_for_new_school(school, source="public_signup")
+        school.save(update_fields=["data_region", "settings"])
+        return True
+    except (ImportError, AttributeError, ValueError, TypeError, OSError) as exc:
+        logger.warning(
+            "signup data_residency assignment failed school_id=%s err=%s",
+            school.id,
+            type(exc).__name__,
+            exc_info=True,
+        )
+        try:
+            from apps.schools.models import SchoolProvisioningEvent
+
+            SchoolProvisioningEvent.log_event(
+                school=school,
+                event_type=SchoolProvisioningEvent.EventType.FAILED,
+                status=SchoolProvisioningEvent.Status.WARNING,
+                message="Data residency assignment failed during signup",
+                payload={
+                    "phase": "data_residency",
+                    "error_type": type(exc).__name__,
+                    "error": str(exc)[:500],
+                },
+            )
+        except (ImportError, AttributeError, TypeError, ValueError, OSError):
+            pass
+        return False
+
+
 @require_http_methods(["GET", "POST"])
 def signup_school(request: HttpRequest):
     """
@@ -508,13 +553,7 @@ def signup_school(request: HttpRequest):
         if sector:
             create_kwargs["primary_sector"] = sector[:64]
     school = School.objects.create(**create_kwargs)
-    try:
-        from apps.schools.data_residency_onboarding import apply_data_residency_for_new_school
-
-        apply_data_residency_for_new_school(school, source="public_signup")
-        school.save(update_fields=["data_region", "settings"])
-    except Exception:
-        pass
+    _assign_data_residency_or_record_failure(school)
     try:
         from apps.lifecycle.unified_lifecycle import (
             CREATION_PATH_SELF_SERVE,
@@ -522,8 +561,15 @@ def signup_school(request: HttpRequest):
         )
 
         set_creation_path(school, CREATION_PATH_SELF_SERVE)
-    except (ImportError, ValueError, TypeError, OSError):
-        pass
+    except (ImportError, ValueError, TypeError, OSError) as exc:
+        # Lifecycle filter metadata only — non-blocking; log so operators
+        # can still find the regression if it happens.
+        logger.debug(
+            "signup set_creation_path failed school_id=%s err=%s",
+            school.id,
+            type(exc).__name__,
+            exc_info=True,
+        )
     from datetime import timedelta
 
     expires_at = timezone.now() + timedelta(days=2)
@@ -536,8 +582,14 @@ def signup_school(request: HttpRequest):
         from apps.schools.funnel_events import record_marketing_funnel_event
 
         record_marketing_funnel_event("signup", request)
-    except (ImportError, AttributeError, TypeError, ValueError):
-        pass
+    except (ImportError, AttributeError, TypeError, ValueError) as exc:
+        # Marketing funnel attribution only — non-blocking; log so a
+        # missing-attribution regression is diagnosable.
+        logger.warning(
+            "signup record_marketing_funnel_event failed err=%s",
+            type(exc).__name__,
+            exc_info=True,
+        )
 
     for key in (
         "onboarding_correlation_id",
@@ -586,8 +638,19 @@ def signup_school(request: HttpRequest):
             priority="transactional",
             async_send=True,
         )
-    except (OSError, ConnectionError, ValueError, TypeError):
-        pass
+    except (OSError, ConnectionError, ValueError, TypeError) as exc:
+        # send_transactional async-dispatches the actual SMTP attempt on a
+        # daemon thread and writes an EmailDeliveryEvent on completion, so
+        # any exception here is a synchronous-side fault: misconfigured
+        # backend, malformed envelope, missing settings. The async path
+        # has its own audit; surface the sync fault explicitly so
+        # operators can spot the regression in the request log.
+        logger.warning(
+            "signup send_transactional sync raise err=%s school_id=%s",
+            type(exc).__name__,
+            school.id,
+            exc_info=True,
+        )
 
     t1 = time.monotonic()
     request_latency_ms = int((t1 - t0) * 1000)

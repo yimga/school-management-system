@@ -26,6 +26,22 @@
     {% blocktrans count counter=billing_outstanding_count %}{{ counter }} school has an outstanding billing balance — purge may require dual-approval.{% plural %}{{ counter }} schools have outstanding billing balances — purge may require dual-approval.{% endblocktrans %}
   </div>
   {% endif %}
+  {% if provisioning_failure_count %}
+  <div class="alert alert-danger py-2 small mb-3" role="status" data-rmc-provisioning-failures-banner="1">
+    <strong>{% trans "Provisioning failures (last 7 days):" %}</strong>
+    {% blocktrans count counter=provisioning_failure_count %}{{ counter }} tenant has a recent provisioning failure.{% plural %}{{ counter }} tenants have recent provisioning failures.{% endblocktrans %}
+    <ul class="mb-0 mt-1">
+      {% for row in provisioning_failure_rows %}
+      <li>
+        <a href="{{ row.tenant_360_url }}"><code>{{ row.school.slug }}</code></a>
+        — {{ row.school.name }}
+        <span class="text-muted">[{{ row.phase }} / {{ row.error_type }}]</span>
+        {% if row.message %}<span class="text-muted">{{ row.message }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
   <div class="mb-3 d-flex flex-wrap gap-2">
     <button type="button" class="btn btn-sm btn-outline-warning" data-rmc-run-scheduled-dry-run>{% trans "Dry-run scheduled purges" %}</button>
     <button type="button" class="btn btn-sm btn-danger" data-rmc-run-scheduled-apply>{% trans "Apply due purges (operator)" %}</button>

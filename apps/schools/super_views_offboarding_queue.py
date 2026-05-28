@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 
 from apps.schools.control_plane_pagination import paginate_for_request
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods
 
-from apps.schools.models import School
+from apps.schools.models import School, SchoolProvisioningEvent
 from apps.schools.tenant_offboarding import (
     get_offboarding_snapshot,
     latest_export_zip_path,
@@ -80,6 +81,41 @@ def super_offboarding_queue(request):
     due_slugs = {s.slug for s in due_today}
     for row in rows:
         row["purge_due"] = row["school"].slug in due_slugs
+
+    # v4.00.3 audit: surface SchoolProvisioningEvent.FAILED rows from the
+    # last 7 days as a dashboard signal. The v4.00.2 wave started
+    # recording these (verify_signup dispatch failures + data-residency
+    # failures); without surfacing them on the offboarding queue, the
+    # only path to seeing them is opening each tenant 360 individually.
+    cutoff = timezone.now() - timedelta(days=7)
+    recent_failed_qs = (
+        SchoolProvisioningEvent.objects.filter(  # tenant-isolation-allow: operator-super-offboarding-failed-events-cross-tenant
+            event_type=SchoolProvisioningEvent.EventType.FAILED,
+            created_at__gte=cutoff,
+        )
+        .select_related("school")
+        .order_by("-created_at")
+    )
+    seen: set = set()
+    provisioning_failure_rows: list[dict] = []
+    for ev in recent_failed_qs[:200]:
+        if ev.school_id in seen:
+            continue
+        seen.add(ev.school_id)
+        provisioning_failure_rows.append(
+            {
+                "school": ev.school,
+                "phase": (ev.payload or {}).get("phase") or "—",
+                "error_type": (ev.payload or {}).get("error_type") or "—",
+                "message": ev.message or "",
+                "created_at": ev.created_at,
+                "tenant_360_url": reverse("super:tenant_360", args=[ev.school_id])
+                + "#timeline",
+            }
+        )
+        if len(provisioning_failure_rows) >= 25:
+            break
+
     page_obj = paginate_for_request(request, rows, per_page=25)
     return render(
         request,
@@ -94,6 +130,8 @@ def super_offboarding_queue(request):
             "dashboard_url": reverse("super:dashboard"),
             "billing_outstanding_count": not_cleared_count,
             "due_schools": due_today[:25],
+            "provisioning_failure_count": len(seen),
+            "provisioning_failure_rows": provisioning_failure_rows,
         },
     )
 
