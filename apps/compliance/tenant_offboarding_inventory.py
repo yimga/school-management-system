@@ -48,14 +48,47 @@ def tenant_scoped_models() -> list:
     return out
 
 
-def model_table_exists(model) -> bool:
-    """True when the model's DB table is present (skips unmigrated optional apps)."""
+def model_table_exists(model, *, table_set: set[str] | None = None) -> bool:
+    """True when the model's DB table is present (skips unmigrated optional apps).
+
+    Pass ``table_set`` to avoid re-running ``information_schema.tables`` per model —
+    the cached set form is required inside ``purge_public_school_dependencies`` because
+    repeated cursor opens under django-tenants trip ``SET search_path`` on a connection
+    that may hold unfetched results from prior savepoints.
+
+    When ``table_set`` is provided, it is the authoritative source regardless of DB
+    vendor (so callers passing an empty set legitimately mean "no tables present").
+    The vendor short-circuit only applies on the un-cached fallback path.
+    """
+    table = model._meta.db_table
+    if table_set is not None:
+        return table in table_set or f"public.{table}" in table_set
     if connection.vendor != "postgresql":
         return True
     from apps.schools.repositories.health_repository import check_table_exists
 
-    table = model._meta.db_table
     return bool(check_table_exists(table) or check_table_exists(f"public.{table}"))
+
+
+def _snapshot_public_table_set() -> set[str] | None:
+    """One-shot snapshot of ``information_schema.tables`` for the purge loop.
+
+    Returning ``None`` means "skip the table-presence check entirely" — preferable
+    to looping over per-model introspection cursors, each of which forces
+    django-tenants to issue ``SET search_path`` and can collide with unfetched
+    results from a prior savepoint rollback.
+    """
+    if connection.vendor != "postgresql":
+        return None
+    try:
+        return set(connection.introspection.table_names())
+    except Exception as exc:
+        logger.warning(
+            "tenant_offboarding could not enumerate public-schema tables (%s); "
+            "proceeding without table-existence check",
+            exc,
+        )
+        return None
 
 
 def purge_public_school_dependencies(school) -> dict[str, int]:
@@ -63,22 +96,19 @@ def purge_public_school_dependencies(school) -> dict[str, int]:
     Delete rows in public schema that reference ``school`` before removing the School row.
 
     Skips models whose tables were never migrated (e.g. portal.HostedOfficeDocument on
-  production when migration 0028 is pending) so purge does not 500 on ``school.delete()``.
+    production when migration 0028 is pending) so purge does not 500 on ``school.delete()``.
     """
     deleted: dict[str, int] = {}
     school_pk = school.pk
+    # Snapshot table set ONCE — 100+ FK models * 2 lookups each was firing
+    # ~200 introspection cursors per purge, each of which makes django-tenants
+    # issue SET search_path. Combined with savepoint rollbacks that leave
+    # psycopg3 holding unfetched results, this collides with
+    # "another command is already in progress". See render log 2026-05-28.
+    table_set = _snapshot_public_table_set()
     for model, field_name in iter_school_foreign_key_targets():
         label = model._meta.label_lower
-        try:
-            table_present = model_table_exists(model)
-        except (ProgrammingError, DatabaseError) as exc:
-            logger.warning(
-                "tenant_offboarding purge skip %s (table probe failed): %s",
-                label,
-                exc,
-            )
-            continue
-        if not table_present:
+        if table_set is not None and not model_table_exists(model, table_set=table_set):
             logger.info(
                 "tenant_offboarding purge skip %s (table %s missing)",
                 label,
@@ -92,17 +122,16 @@ def purge_public_school_dependencies(school) -> dict[str, int]:
                 _deleted, detail = model._default_manager.filter(
                     **{field_name: school_pk}
                 ).delete()
-        except (ProgrammingError, DatabaseError) as exc:
-            logger.warning(
-                "tenant_offboarding purge skip %s after DB error: %s",
-                label,
-                exc,
-            )
-            continue
         except Exception as exc:
+            # Catch broadly: psycopg.OperationalError ("another command is already
+            # in progress") is NOT a subclass of django.db.utils.DatabaseError, so
+            # the prior narrow catch let it escape. The `with transaction.atomic()`
+            # savepoint above is rolled back automatically on exception, leaving the
+            # connection in a clean state for the next iteration.
             logger.warning(
-                "tenant_offboarding purge skip %s: %s",
+                "tenant_offboarding purge skip %s after DB error (%s): %s",
                 label,
+                type(exc).__name__,
                 exc,
             )
             continue
