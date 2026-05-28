@@ -409,18 +409,20 @@ urlpatterns = [
     ),
     # v4.00.2 audit: mirror ``activation_first_action`` from config.tenant_urls
     # so ConversionLockMiddleware / ActivationGateMiddleware can resolve the
-    # name regardless of which URLconf is active on the responding host. The
-    # view itself is tenant-scoped — manager-host requests will never reach it
-    # in practice — but having ``reverse("activation_first_action")`` work
-    # under config.urls eliminates the silent NoReverseMatch that made the
-    # middleware inert against any request that loaded the manager URLconf
-    # first.
+    # name regardless of which URLconf is active on the responding host. Path
+    # + url-name come from the activation_views SOT module.
     path(
-        "activation/first-action/",
+        __import__(
+            "apps.schools.activation_views",
+            fromlist=["ACTIVATION_FIRST_ACTION_PATH"],
+        ).ACTIVATION_FIRST_ACTION_PATH.lstrip("/"),
         __import__(
             "apps.schools.activation_views", fromlist=["activation_first_action"]
         ).activation_first_action,
-        name="activation_first_action",
+        name=__import__(
+            "apps.schools.activation_views",
+            fromlist=["ACTIVATION_FIRST_ACTION_URL_NAME"],
+        ).ACTIVATION_FIRST_ACTION_URL_NAME,
     ),
     # Health and metrics
     path("healthz/", obs_views.healthz, name="healthz"),

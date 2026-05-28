@@ -32,6 +32,13 @@ class ActivationGateMiddleware:
             return None
         if not getattr(request.user, "is_authenticated", False):
             return None
+        # Manager (control-plane) host is for super-admin operations, not
+        # tenant activation; suppressing here also breaks the / ↔ /activation/
+        # cycle that occurs when an operator with cross-tenant membership
+        # browses manager pages. The activation flow is enforced on the
+        # tenant host where ``request.school`` is bound.
+        if (getattr(request, "public_host_kind", None) or "").lower() == "manager":
+            return None
         try:
             from apps.lifecycle.tenant_school_resolve import resolve_request_school
             from apps.lifecycle.wind_down import is_wind_down_mode
@@ -52,26 +59,28 @@ class ActivationGateMiddleware:
         if self._path_exempt(path):
             return None
 
-        # v4.00.2 audit (2026-05-28): ``activation_first_action`` is only
-        # registered in ``config.tenant_urls`` — the manager URLconf
-        # (``config.urls``) does not include it. When the URL resolver
-        # cache is stale (e.g. ``@override_settings(ROOT_URLCONF=...)`` in
-        # tests, or a worker that loaded the resolver before a request
-        # context switched URLconfs), ``reverse(...)`` raises
-        # NoReverseMatch and the prior bare ``except: return None`` made
-        # the entire gate silently inert. Fall back to the literal path
-        # so the gate works regardless of URLconf state.
-        _ACTIVATION_FIRST_ACTION_PATH = "/activation/first-action/"
+        # v4.00.2 audit — ``activation_first_action`` is registered in both
+        # ``config.urls`` and ``config.tenant_urls``; the literal-path
+        # fallback below is a defensive backstop for any edge case where
+        # ``reverse(...)`` still fails (worker loaded URL resolver
+        # pre-deploy, override_settings(ROOT_URLCONF=...) in tests). The
+        # path + url-name come from the activation_views SOT so changing
+        # the URL there propagates everywhere.
+        from apps.schools.activation_views import (
+            ACTIVATION_FIRST_ACTION_PATH,
+            ACTIVATION_FIRST_ACTION_URL_NAME,
+        )
+
         try:
-            target = reverse("activation_first_action").lower()
+            target = reverse(ACTIVATION_FIRST_ACTION_URL_NAME).lower()
         except Exception:
-            target = _ACTIVATION_FIRST_ACTION_PATH
+            target = ACTIVATION_FIRST_ACTION_PATH
         if path.rstrip("/") == target.rstrip("/"):
             return None
         try:
-            url = reverse("activation_first_action")
+            url = reverse(ACTIVATION_FIRST_ACTION_URL_NAME)
         except Exception:
-            url = _ACTIVATION_FIRST_ACTION_PATH
+            url = ACTIVATION_FIRST_ACTION_PATH
         if request.META.get("QUERY_STRING"):
             url = f"{url}?{request.META['QUERY_STRING']}"
         return HttpResponseRedirect(url)

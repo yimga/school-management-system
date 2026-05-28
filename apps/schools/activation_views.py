@@ -15,6 +15,17 @@ from django.views.decorators.http import require_http_methods
 from apps.accounts.models import User
 
 
+# v4.00.2 audit — canonical SOT for the activation landing path. Both
+# ``config/urls.py`` and ``config/tenant_urls.py`` register this exact path
+# under name ``activation_first_action``; the activation gate and
+# conversion lock middleware import it as a literal fallback for any
+# request where ``reverse("activation_first_action")`` can't resolve
+# (worker loaded URL resolver pre-deploy, override_settings(ROOT_URLCONF=...)
+# in tests, etc.). Change here propagates to every reference site.
+ACTIVATION_FIRST_ACTION_PATH = "/activation/first-action/"
+ACTIVATION_FIRST_ACTION_URL_NAME = "activation_first_action"
+
+
 def _primary_action_url(
     request: HttpRequest, portal_take_url: str, marks_url: str, backend_url: str
 ) -> str:
@@ -44,7 +55,24 @@ def activation_first_action(request: HttpRequest):
     except ImportError:
         school = getattr(request, "school", None)
     if school is None:
-        return redirect("home")
+        # When no tenant context can be resolved (manager host, superuser with
+        # no membership, etc.) we render the page with neutral links rather
+        # than redirecting to "home" — the activation/conversion gates would
+        # bounce "/" right back here and produce a redirect cycle.
+        return render(
+            request,
+            "schools/activation_first_action.html",
+            {
+                "backend_url": "/",
+                "portal_take_url": "/",
+                "marks_url": "/",
+                "primary_action_url": "/",
+                "school_name": "",
+                "activation_single_action": getattr(
+                    settings, "CONVERSION_SINGLE_ACTION_ENFORCED", False
+                ),
+            },
+        )
 
     backend_url = "/"
     portal_take_url = "/"

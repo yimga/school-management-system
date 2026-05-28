@@ -51,7 +51,11 @@ from apps.schools.views_tenant_self_offboarding import (
     tenant_offboarding_page,
 )
 from config.admin import tenant_admin_site
-from apps.schools.activation_views import activation_first_action
+from apps.schools.activation_views import (
+    ACTIVATION_FIRST_ACTION_PATH,
+    ACTIVATION_FIRST_ACTION_URL_NAME,
+    activation_first_action,
+)
 from apps.schools.demo_conversion_views import (
     demo_flow_attendance,
     demo_flow_attendance_complete,
@@ -230,9 +234,9 @@ urlpatterns = [
     # action-registry endpoint. # rbac-allow: command-bar-server-filters-actions-per-user-and-tenant
     path("api/command-bar/actions/", CommandBarActionsView.as_view(), name="command_bar_actions"),
     path(
-        "activation/first-action/",
+        ACTIVATION_FIRST_ACTION_PATH.lstrip("/"),
         activation_first_action,
-        name="activation_first_action",
+        name=ACTIVATION_FIRST_ACTION_URL_NAME,
     ),
     path("demo/flow/", demo_flow_index, name="demo_flow_index"),
     path("demo/flow/attendance/", demo_flow_attendance, name="demo_flow_attendance"),

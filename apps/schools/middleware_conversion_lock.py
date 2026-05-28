@@ -26,6 +26,13 @@ class ConversionLockMiddleware:
         user = getattr(request, "user", None)
         if not user or not getattr(user, "is_authenticated", False):
             return None
+        # Manager (control-plane) host is for super-admin operations, not
+        # tenant activation; the activation flow is enforced on the tenant
+        # host where ``request.school`` is bound. Without this short-circuit
+        # an operator with cross-tenant membership browsing manager pages
+        # can hit / ↔ /activation/first-action/ redirect loops.
+        if (getattr(request, "public_host_kind", None) or "").lower() == "manager":
+            return None
         # v4.00.2 audit (2026-05-28): the prior bare ``getattr(request,
         # "school", None)`` bailed when no earlier middleware had attached
         # ``request.school`` (e.g. test environments using
@@ -59,10 +66,17 @@ class ConversionLockMiddleware:
         extra = getattr(settings, "CONVERSION_LOCK_ALLOWED_PREFIXES", ()) or ()
         if path_matches_conversion_allowlist(path, extra):
             return None
+        # v4.00.2 audit — single SOT for the path + url-name (see
+        # apps.schools.activation_views).
+        from apps.schools.activation_views import (
+            ACTIVATION_FIRST_ACTION_PATH,
+            ACTIVATION_FIRST_ACTION_URL_NAME,
+        )
+
         try:
-            url = reverse("activation_first_action")
+            url = reverse(ACTIVATION_FIRST_ACTION_URL_NAME)
         except Exception:
-            url = "/activation/first-action/"
+            url = ACTIVATION_FIRST_ACTION_PATH
         if request.META.get("QUERY_STRING"):
             url = f"{url}?{request.META['QUERY_STRING']}"
         return HttpResponseRedirect(url)

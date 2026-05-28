@@ -32,6 +32,23 @@ except ImportError:  # pragma: no cover - kombu is installed in production/test 
 User = get_user_model()
 
 
+# v4.00.2 audit — provisioning event_type constants for sites that need to
+# filter the timeline. SchoolProvisioningEvent.event_type is a free-form
+# CharField (choices=EventType.choices is form-level only, not a DB
+# constraint); the canonical EventType TextChoices in apps.schools.models
+# covers the provisioning state machine. The constants below cover the
+# tail-end provisioning events recorded via _record_school_event using
+# string event_types — keep them in sync with the actual emit sites in
+# _do_provision and _provision_dns_record below.
+EVENT_DNS_RECORD_SKIPPED = "DNS_RECORD_SKIPPED"
+EVENT_DNS_RECORD_FAILED = "DNS_RECORD_FAILED"
+EVENT_DNS_RECORD_CREATED = "DNS_RECORD_CREATED"
+EVENT_DNS_REACHABLE = "DNS_REACHABLE"
+EVENT_DNS_NOT_REACHABLE = "DNS_NOT_REACHABLE"
+EVENT_WELCOME_EMAIL_SENT = "WELCOME_EMAIL_SENT"
+EVENT_WELCOME_EMAIL_FAILED = "WELCOME_EMAIL_FAILED"
+
+
 def _use_django_tenants():
     return bool(getattr(settings, "USE_DJANGO_TENANTS", False))
 
@@ -165,7 +182,7 @@ def _provision_dns_record(school):
         # Self-hosted / manual DNS; nothing to do but record the skip for audit.
         _record_school_event(
             school,
-            event_type="DNS_RECORD_SKIPPED",
+            event_type=EVENT_DNS_RECORD_SKIPPED,
             status="INFO",
             message="DNS automation disabled (DNS_PROVIDER unset).",
             payload={"fqdn": fqdn},
@@ -174,7 +191,7 @@ def _provision_dns_record(school):
     if not target:
         _record_school_event(
             school,
-            event_type="DNS_RECORD_FAILED",
+            event_type=EVENT_DNS_RECORD_FAILED,
             status="WARNING",
             message="DNS_CNAME_TARGET not configured.",
             payload={"fqdn": fqdn, "provider": provider.name},
@@ -185,7 +202,7 @@ def _provision_dns_record(school):
     if result.ok:
         _record_school_event(
             school,
-            event_type="DNS_RECORD_CREATED",
+            event_type=EVENT_DNS_RECORD_CREATED,
             status="SUCCESS",
             message=f"{provider.name} record created for {fqdn}.",
             payload={
@@ -198,7 +215,7 @@ def _provision_dns_record(school):
     else:
         _record_school_event(
             school,
-            event_type="DNS_RECORD_FAILED",
+            event_type=EVENT_DNS_RECORD_FAILED,
             status="ERROR",
             message=f"{provider.name} record creation failed for {fqdn}.",
             payload={
@@ -214,7 +231,7 @@ def _provision_dns_record(school):
     reachable = hostname_resolves(fqdn, timeout=4.0)
     _record_school_event(
         school,
-        event_type="DNS_REACHABLE" if reachable else "DNS_NOT_REACHABLE",
+        event_type=EVENT_DNS_REACHABLE if reachable else EVENT_DNS_NOT_REACHABLE,
         status="SUCCESS" if reachable else "WARNING",
         message=(
             f"{fqdn} resolves."
@@ -983,11 +1000,9 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
 
     # Phase Welcome: send in-process so the same worker/env that finished
     # provisioning holds SMTP credentials (avoids a second queued task with no EMAIL_*).
-    # v4.00.2 audit (2026-05-28): record WELCOME_EMAIL_{SENT,FAILED}
-    # events so the tenant timeline + offboarding queue surface delivery
-    # status. Uses string event-types (same pattern as DNS_* events
-    # above) — no migration needed because CharField.choices is only
-    # form-level validation in Django.
+    # v4.00.2 audit: record WELCOME_EMAIL_{SENT,FAILED} events via the
+    # module-level constants above so callers can filter the timeline
+    # without re-typing the string literals.
     if (contact_email or "").strip():
         from apps.schools.welcome_email import send_welcome_email
 
@@ -997,7 +1012,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         )
         _record_school_event(
             school,
-            event_type="WELCOME_EMAIL_SENT" if sent else "WELCOME_EMAIL_FAILED",
+            event_type=EVENT_WELCOME_EMAIL_SENT if sent else EVENT_WELCOME_EMAIL_FAILED,
             status="SUCCESS" if sent else "WARNING",
             message=(
                 "Welcome email sent."

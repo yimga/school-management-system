@@ -133,9 +133,14 @@ class WelcomeEmailEventAuditTests(TestCase):
             recipient_domain = (
                 contact_email.split("@", 1)[-1] if "@" in contact_email else ""
             )
+            from apps.schools.tasks import (
+                EVENT_WELCOME_EMAIL_FAILED,
+                EVENT_WELCOME_EMAIL_SENT,
+            )
+
             _record_school_event(
                 self.school,
-                event_type="WELCOME_EMAIL_SENT" if sent else "WELCOME_EMAIL_FAILED",
+                event_type=EVENT_WELCOME_EMAIL_SENT if sent else EVENT_WELCOME_EMAIL_FAILED,
                 status="SUCCESS" if sent else "WARNING",
                 message=(
                     "Welcome email sent."
@@ -146,9 +151,13 @@ class WelcomeEmailEventAuditTests(TestCase):
             )
 
     def test_welcome_email_sent_event_recorded_on_success(self):
+        # Demonstrates the canonical filter pattern using the importable
+        # constants — callers should NOT re-type the string literals.
+        from apps.schools.tasks import EVENT_WELCOME_EMAIL_SENT
+
         self._drive_welcome_email_branch(send_succeeds=True)
         ev = SchoolProvisioningEvent.objects.filter(
-            school=self.school, event_type="WELCOME_EMAIL_SENT"
+            school=self.school, event_type=EVENT_WELCOME_EMAIL_SENT
         ).first()
         self.assertIsNotNone(ev)
         self.assertEqual(ev.status, "SUCCESS")
@@ -156,9 +165,11 @@ class WelcomeEmailEventAuditTests(TestCase):
         self.assertNotIn("@", ev.payload.get("recipient_domain", ""))
 
     def test_welcome_email_failed_event_recorded_on_failure(self):
+        from apps.schools.tasks import EVENT_WELCOME_EMAIL_FAILED
+
         self._drive_welcome_email_branch(send_succeeds=False)
         ev = SchoolProvisioningEvent.objects.filter(
-            school=self.school, event_type="WELCOME_EMAIL_FAILED"
+            school=self.school, event_type=EVENT_WELCOME_EMAIL_FAILED
         ).first()
         self.assertIsNotNone(ev)
         self.assertEqual(ev.status, "WARNING")
