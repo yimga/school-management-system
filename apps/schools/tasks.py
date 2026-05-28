@@ -983,10 +983,29 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
 
     # Phase Welcome: send in-process so the same worker/env that finished
     # provisioning holds SMTP credentials (avoids a second queued task with no EMAIL_*).
+    # v4.00.2 audit (2026-05-28): record WELCOME_EMAIL_{SENT,FAILED}
+    # events so the tenant timeline + offboarding queue surface delivery
+    # status. Uses string event-types (same pattern as DNS_* events
+    # above) — no migration needed because CharField.choices is only
+    # form-level validation in Django.
     if (contact_email or "").strip():
         from apps.schools.welcome_email import send_welcome_email
 
         sent = send_welcome_email(str(school.id), contact_email)
+        recipient_domain = (
+            contact_email.split("@", 1)[-1] if "@" in contact_email else ""
+        )
+        _record_school_event(
+            school,
+            event_type="WELCOME_EMAIL_SENT" if sent else "WELCOME_EMAIL_FAILED",
+            status="SUCCESS" if sent else "WARNING",
+            message=(
+                "Welcome email sent."
+                if sent
+                else "Welcome email not sent (check EMAIL_*); provisioning still completed."
+            ),
+            payload={"recipient_domain": recipient_domain},
+        )
         if not sent:
             logger.warning(
                 "Welcome email not sent for school %s (check EMAIL_* on Celery worker)",

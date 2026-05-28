@@ -1065,14 +1065,38 @@ def verify_signup(request: HttpRequest):
     # this view and is preserved as a last resort — but on Render +
     # other PaaS deployments where Celery + Redis broker are wired up,
     # the verify-link click will now return in well under a second.
+    # v4.00.2 audit (2026-05-28): the previous bare ``pass`` silently
+    # swallowed any provisioning dispatch failure, leaving the user logged
+    # in with a half-provisioned school AND no welcome email — operators
+    # had no signal anything went wrong. Log + record a provisioning event
+    # so the offboarding queue / timeline surfaces the failure. The user
+    # is still logged in (auth on success was already proven by email
+    # verification), but the timeline now reflects reality.
     try:
         from apps.schools.tasks import dispatch_provision_school
 
         dispatch_provision_school(
             str(school.id), contact_email=verification.email,
         )
-    except (ImportError, AttributeError, TypeError, ValueError, OSError):
-        pass
+    except (ImportError, AttributeError, TypeError, ValueError, OSError) as exc:
+        logger.warning(
+            "signup verify dispatch_provision_school failed school_id=%s err=%s",
+            school.id,
+            type(exc).__name__,
+            exc_info=True,
+        )
+        try:
+            from apps.schools.models import SchoolProvisioningEvent
+
+            SchoolProvisioningEvent.log_event(
+                school=school,
+                event_type=SchoolProvisioningEvent.EventType.FAILED,
+                status=SchoolProvisioningEvent.Status.ERROR,
+                message="Provisioning dispatch failed after signup verification",
+                payload={"error_type": type(exc).__name__, "error": str(exc)[:500]},
+            )
+        except (ImportError, AttributeError, TypeError, ValueError, OSError):
+            pass
 
     # Pass 7: magic-link login — verifying the email proves ownership, so log the
     # newly-provisioned admin in directly instead of bouncing through a password
