@@ -478,6 +478,16 @@ def backend_student_list(request):
     if status_filter:
         qs = qs.filter(status=status_filter)
 
+    ids_raw = request.GET.get("ids", "").strip()
+    if ids_raw:
+        id_list = []
+        for part in ids_raw.split(","):
+            part = part.strip()
+            if part.isdigit():
+                id_list.append(int(part))
+        if id_list:
+            qs = qs.filter(pk__in=id_list[:200])
+
     # 26.5: Export as CSV when format=csv
     if request.GET.get("format") == "csv":
         response = HttpResponse(content_type="text/csv; charset=utf-8")
@@ -563,8 +573,54 @@ def backend_student_list(request):
             "page_size_options": [20, 50, 100],
             "show_page_size": True,
             "can_see_private_tags": can_see_private_tags,
+            # v4.00.13: 5-col status breakdown via rmc-five-col primitive
+            "student_status_breakdown": _build_student_status_breakdown(request),
         },
     )
+
+
+def _build_student_status_breakdown(request) -> list[dict]:
+    """v4.00.13 — 5-col status breakdown for the students list.
+
+    Stacked top-of-page strip: Active / Withdrawn / Transferred / Graduated / Suspended
+    (or whatever Status values the model exposes). Each cell links to the
+    filtered list. Defensive on missing school / model.
+    """
+    try:
+        school = getattr(request, "school", None)
+        if school is None or getattr(school, "pk", None) is None:
+            return []
+        try:
+            statuses = list(StudentProfile.Status.choices)
+        except Exception:  # noqa: BLE001
+            return []
+        # Cap to 5 cells for the primitive — primary statuses first.
+        priority = ["ACTIVE", "WITHDRAWN", "TRANSFERRED", "GRADUATED", "SUSPENDED", "ALUMNI"]
+        ordered: list[tuple[str, str]] = []
+        seen: set[str] = set()
+        for p in priority:
+            for code, label in statuses:
+                if code == p and code not in seen:
+                    ordered.append((code, str(label)))
+                    seen.add(code)
+                    break
+        for code, label in statuses:
+            if code not in seen:
+                ordered.append((code, str(label)))
+                seen.add(code)
+        ordered = ordered[:5]
+        out: list[dict] = []
+        for code, label in ordered:
+            count = StudentProfile.objects.filter(school=school, status=code).count()  # tenant-isolation-allow: scoped-via-school-filter-student-status-breakdown
+            variant = "success" if code in ("ACTIVE", "GRADUATED") else (
+                "warning" if code == "SUSPENDED" else (
+                    "muted" if code in ("WITHDRAWN", "ALUMNI") else "actionable"
+                )
+            )
+            out.append({"code": code, "label": label, "count": int(count), "pill_variant": variant, "actionable": code == "ACTIVE"})
+        return out
+    except Exception:  # noqa: BLE001
+        return []
 
 
 def _student_360_link_urls(request, student, record):
@@ -859,6 +915,38 @@ def backend_applicant_create(request):
 
 @login_required
 @permission_required("people.view_studentprofile", raise_exception=True)
+def _build_applicant_stage_breakdown(request) -> list[dict]:
+    """v4.00.13 — per-stage applicant count for the rmc-five-col primitive header.
+
+    Returns the 5 actionable stages first (APPLIED, UNDER_REVIEW, ACCEPTED, LEAD, REJECTED)
+    with {code, label, count, actionable, pill_variant}. Defensive on missing school/model.
+    """
+    try:
+        from apps.admissions.queue_depth import stage_to_pill_variant
+
+        school = getattr(request, "school", None)
+        if school is None or getattr(school, "pk", None) is None:
+            return []
+        codes = [
+            ("APPLIED",      "Applied",      True),
+            ("UNDER_REVIEW", "Under review", True),
+            ("ACCEPTED",     "Accepted",     True),
+            ("LEAD",         "Lead",         False),
+            ("REJECTED",     "Rejected",     False),
+        ]
+        out = []
+        for code, label, actionable in codes:
+            count = Applicant.objects.filter(school=school, stage=code).count()  # tenant-isolation-allow: scoped-via-school-filter-applicant-breakdown
+            out.append({
+                "code": code, "label": label, "count": int(count),
+                "actionable": actionable,
+                "pill_variant": stage_to_pill_variant(code),
+            })
+        return out
+    except Exception:  # noqa: BLE001 — best-effort; missing breakdown just hides the strip
+        return []
+
+
 def backend_applicant_list(request):
     """List applicants (admissions funnel) with search, filter by stage, export CSV (26.5 / applications list)."""
     school = getattr(request, "school", None)
@@ -948,6 +1036,8 @@ def backend_applicant_list(request):
             "search": search,
             "selected_stage": stage or "",
             "stages": Applicant.Stage.choices,
+            # v4.00.12: 5-column stage breakdown for the .rmc-five-col primitive at top of list page.
+            "stage_breakdown": _build_applicant_stage_breakdown(request),
             "pagination_extra_query": _pagination_extra_query(request),
             "page_size": per_page,
             "page_size_options": [20, 50, 100],

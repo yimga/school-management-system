@@ -5,7 +5,7 @@
 
 :root {
   --rmc-back-to-top-size: 3.25rem;
-  --rmc-back-to-top-edge-bottom: max(1.15rem, env(safe-area-inset-bottom, 0px));
+  --rmc-back-to-top-edge-bottom: max(0.45rem, env(safe-area-inset-bottom, 0px));
   --rmc-back-to-top-edge-right: max(1.15rem, env(safe-area-inset-right, 0px));
   --rmc-back-to-top-z: 10475;
   --rmc-back-to-top-dock-lift: 0px;
@@ -71,6 +71,9 @@ body[data-rmc-assist-dock="mounted"] {
     opacity var(--motion-fast, 150ms ease),
     visibility var(--motion-fast, 150ms ease),
     bottom var(--motion-normal, 220ms ease);
+  touch-action: none;
+  -webkit-user-select: none;
+          user-select: none;
 }
 
 .back-to-top-btn.rmc-back-to-top::before {
@@ -258,6 +261,13 @@ body[data-rmc-assist-dock="mounted"] {
 
 .back-to-top-btn.rmc-back-to-top:active .rmc-back-to-top__icon {
   transform: translateY(0) scale(0.92);
+}
+
+.back-to-top-btn.rmc-back-to-top.rmc-back-to-top--dragging {
+  transition: none;
+  cursor: grabbing;
+  opacity: 1;
+  transform: none;
 }
 
 @keyframes rmc-back-to-top-enter {

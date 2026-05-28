@@ -1,0 +1,83 @@
+{
+  "wizard_key": "parent_payment_setup",
+  "version": 1,
+  "audience": ["parent"],
+  "label_token": "wizards.parent_payment_setup.label",
+  "description_token": "wizards.parent_payment_setup.description",
+  "icon_class": "rmc-icon-credit-card",
+  "estimated_minutes": 4,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "payment_method",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers_domain::list_parent_payment_method_choices",
+      "validation": {"required": true},
+      "branches": {
+        "card": "card_details",
+        "bank_transfer": "bank_details",
+        "mobile_money": "mobile_money_details",
+        "cash_at_school": "confirm",
+        "default": "confirm"
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_parent_payment_setup_step"
+      },
+      "estimated_seconds": 30
+    },
+    {
+      "key": "card_details",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "cardholder_name", "type": "text", "required": true, "validation": {"max_length": 120}},
+        {"name": "billing_postcode", "type": "text", "required": false, "validation": {"max_length": 20}}
+      ],
+      "branches": {"default": "confirm"},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_parent_payment_setup_step"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "bank_details",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "bank_name", "type": "text", "required": true, "validation": {"max_length": 120}},
+        {"name": "account_holder_name", "type": "text", "required": true, "validation": {"max_length": 120}}
+      ],
+      "branches": {"default": "confirm"},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_parent_payment_setup_step"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "mobile_money_details",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "provider", "type": "select", "required": true},
+        {"name": "phone", "type": "text", "required": true, "validation": {"max_length": 32}}
+      ],
+      "branches": {"default": "confirm"},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_parent_payment_setup_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "confirm",
+      "input_type": "boolean",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_parent_payment_setup_step"
+      },
+      "estimated_seconds": 30
+    }
+  ]
+}

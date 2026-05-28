@@ -3,6 +3,9 @@
 
 {% block title %}{{ wizard_label }} · {% trans "Setup Studio" %}{% endblock %}
 
+{# v4.00.13: opt-in viewport-lock (matches tenant_wizard.html). #}
+{% block body_extra_class %}rmc-wizard-shell-viewport-locked{% endblock %}
+
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">

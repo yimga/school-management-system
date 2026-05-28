@@ -1,0 +1,37 @@
+# Cloudflare Workers config for the RunMyCampus edge layer (v4.00.0).
+# Deploy: `npx wrangler@latest deploy` from this directory.
+#
+# Two routes are served from one Worker for operational simplicity:
+#   1. /edge/runtime/*  -> SWR cache for slow-changing tenant config payloads
+#                          (school calendar, grading matrix, RuntimeDefaults).
+#   2. /edge/llm/*      -> Authenticated passthrough to the central LiteLLM
+#                          proxy, with viewport injection and key rotation.
+#
+# The Worker NEVER stores customer PII; KV holds only edge-cached JSON keyed
+# by Surrogate-Key. LITELLM_API_KEY lives in Worker secrets (encrypted at rest).
+#
+# Honest deferral: Cloudflare account provisioning + DNS routing is owned by
+# ops. The code is ready; binding the route is one `wrangler deploy` away.
+
+name = "rmc-edge"
+main = "src/worker.js"
+compatibility_date = "2026-05-28"
+workers_dev = false
+
+[vars]
+LITELLM_UPSTREAM = "https://api.runmycampus.com/portal/ai/litellm-proxy"
+RUNTIME_UPSTREAM = "https://api.runmycampus.com"
+SWR_STALE_SECONDS = "15"
+SWR_REVALIDATE_SECONDS = "300"
+
+# kv_namespaces, routes, and secrets bound at deploy time:
+#   wrangler kv:namespace create rmc_edge_swr
+#   wrangler secret put LITELLM_API_KEY
+#   wrangler secret put EDGE_HMAC_SIGNING_KEY   # for Surrogate-Key purge auth
+
+[[kv_namespaces]]
+binding = "SWR_KV"
+id = "REPLACE_AT_DEPLOY"
+
+[observability]
+enabled = true

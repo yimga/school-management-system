@@ -25,6 +25,7 @@ from .views import (
 )
 from .views_drilldown import evaluation_drilldown
 from .views_import_enhanced import grade_import_job_detail
+from .views_bulk_grade_entry import BulkGradeEntryView
 
 urlpatterns = [
     # Pass 9.E: per-evaluation drill-down with GradeAudit trail.
@@ -33,6 +34,8 @@ urlpatterns = [
     path("teacher/workflow/", teacher_workflow_center, name="teacher_workflow"),
     path("teacher/marks/entry/", teacher_marks_entry, name="teacher_marks_entry"),
     path("teacher/marks/", teacher_marks_list, name="teacher_marks_list"),
+    # v4.00.14: bulk grade-entry workbench on the rmc-bulk-actions primitive.
+    path("teacher/marks/bulk/", BulkGradeEntryView.as_view(), name="bulk_grade_entry"),
     # Staff/leadership dashboards
     path("rankings/class/", class_ranking_view, name="class_ranking"),
     path("rankings/school/", school_ranking_view, name="school_ranking"),

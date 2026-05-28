@@ -18,3 +18,11 @@ try:
         websocket_urlpatterns = []
 except ImportError:
     websocket_urlpatterns = []
+
+# v4.00.0: WAL outbox stream WebSocket — independent of the legacy consumers
+# so Channels routing works even when those are unavailable in this build.
+try:
+    from apps.wal_stream.routing import websocket_urlpatterns as _wal_routes
+    websocket_urlpatterns = list(websocket_urlpatterns) + list(_wal_routes)
+except ImportError:
+    pass

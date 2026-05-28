@@ -1,0 +1,46 @@
+{% load i18n %}
+{% comment %}
+  v4.00.12 — Admissions Queue Depth tile.
+
+  Context inputs (set by the host view; falls back to empty when absent):
+    admissions_queue_rows: list[{stage, label, count, actionable, drill_url}]
+  Self-gates on `cockpit.admissions_queue.enabled` (operator can hide
+  per-tenant via SiteSettings.cockpit_payload).
+{% endcomment %}
+{% if cockpit.admissions_queue.enabled|default:True %}
+<section class="lx-card lx-admissions-queue" aria-label="{% trans 'Admissions queue depth' %}" data-rmc-cockpit-section="admissions_queue">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.admissions_queue.eyebrow|default:_("Admissions") }}</div>
+      <h3 class="lx-card__title">{{ cockpit.admissions_queue.title|default:_("Queue depth") }}</h3>
+    </div>
+    {% if cockpit.admissions_queue.meta_text %}
+      <div class="lx-card__meta">{{ cockpit.admissions_queue.meta_text }}</div>
+    {% endif %}
+  </div>
+  {% if admissions_queue_rows %}
+    <ul class="list-unstyled mb-0">
+      {% for row in admissions_queue_rows %}
+        {% if row.stage == "__TOTAL_ACTIONABLE__" %}
+          <li class="d-flex justify-content-between py-2 mt-2 border-top">
+            <strong>{% trans "Awaiting review" %}</strong>
+            <a class="rmc-status-pill rmc-status-pill--actionable font-monospace" href="{{ row.drill_url }}">{{ row.count }}</a>
+          </li>
+        {% else %}
+          <li class="d-flex justify-content-between border-bottom py-2 gap-2 align-items-center">
+            <span>{{ row.label }}</span>
+            <span class="d-flex gap-2 align-items-center">
+              {% if row.stale_count %}
+                <a class="rmc-admissions-stale-chip rmc-status-pill rmc-status-pill--warning" href="{{ row.stale_drill_url }}" aria-label="{% blocktrans with label=row.label count=row.stale_count %}{{ count }} stale applicants in stage {{ label }}{% endblocktrans %}">{{ row.stale_count }} {% trans "stale" %}</a>
+              {% endif %}
+              <a class="rmc-status-pill rmc-status-pill--{{ row.pill_variant|default:'actionable' }} font-monospace" href="{{ row.drill_url }}" aria-label="{% blocktrans with label=row.label count=row.count %}{{ count }} applicants in stage {{ label }}{% endblocktrans %}">{{ row.count }}</a>
+            </span>
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted mb-0">{% trans "No applicants yet." %}</p>
+  {% endif %}
+</section>
+{% endif %}

@@ -47443,3 +47443,516 @@ msgstr "e.g. Example Academy"
 
 msgid "Install with trust, not guesswork."
 msgstr "Install with trust, not guesswork."
+
+msgid "Admin portal"
+msgstr "Admin portal"
+
+msgid "Backend - operations and workflows"
+msgstr "Backend - operations and workflows"
+
+msgid "Open date, time, and weather panel"
+msgstr "Open date, time, and weather panel"
+
+msgid "Search, time & controls"
+msgstr "Search, time & controls"
+
+msgid "Stay focused and keep building."
+msgstr "Stay focused and keep building."
+
+msgid "Weather"
+msgstr "Weather"
+
+msgid "Back to top | Right-click to reset position"
+msgstr "Back to top | Right-click to reset position"
+
+msgid "Admission number"
+msgstr "Admission number"
+
+msgid "Ask about selection"
+msgstr "Ask about selection"
+
+msgid "Bulk actions"
+msgstr "Bulk actions"
+
+msgid ""
+"Click a row for detail, quick actions, and copilot context — or open the ◉ "
+"Lens tab in the copilot rail."
+msgstr ""
+"Click a row for detail, quick actions, and copilot context — or open the ◉ "
+"Lens tab in the copilot rail."
+
+msgid "Context lens"
+msgstr "Context lens"
+
+msgid "Context lens — selection & compare"
+msgstr "Context lens — selection & compare"
+
+msgid "Copilot views"
+msgstr "Copilot views"
+
+msgid "Lens"
+msgstr "Lens"
+
+msgid "No students"
+msgstr "No students"
+
+msgid "Open detail"
+msgstr "Open detail"
+
+msgid "Pin to compare"
+msgstr "Pin to compare"
+
+msgid "Pinned rows"
+msgstr "Pinned rows"
+
+msgid "Playbook prompts"
+msgstr "Playbook prompts"
+
+msgid ""
+"Row clicks and bulk selections sync here. Open the ✦ copilot when AI chat is"
+" enabled on this host."
+msgstr ""
+"Row clicks and bulk selections sync here. Open the ✦ copilot when AI chat is"
+" enabled on this host."
+
+msgid "Select a row to mirror context here."
+msgstr "Select a row to mirror context here."
+
+msgid "{{ counter }} student{% plural %}{{ counter }} students"
+msgstr "{{ counter }} student{% plural %}{{ counter }} students"
+
+msgid "Ask copilot"
+msgstr "Ask copilot"
+
+msgid ""
+"Click a row for detail, use checkboxes for bulk actions, or open the ◉ Lens "
+"tab in the copilot rail."
+msgstr ""
+"Click a row for detail, use checkboxes for bulk actions, or open the ◉ Lens "
+"tab in the copilot rail."
+
+msgid "Copy slugs"
+msgstr "Copy slugs"
+
+msgid "Export selected CSV"
+msgstr "Export selected CSV"
+
+msgid "Select all operators on this page"
+msgstr "Select all operators on this page"
+
+msgid "Select all schools on this page"
+msgstr "Select all schools on this page"
+
+msgid "Select all students on this page"
+msgstr "Select all students on this page"
+
+msgid "Select {{ u }}"
+msgstr "Select {{ u }}"
+
+msgid "Activate {count} selected school(s)?"
+msgstr "Activate {count} selected school(s)?"
+
+msgid "Begin offboarding"
+msgstr "Begin offboarding"
+
+msgid "Confirm"
+msgstr "Confirm"
+
+msgid "Confirm bulk action"
+msgstr "Confirm bulk action"
+
+msgid "Deactivate {count} selected school(s)?"
+msgstr "Deactivate {count} selected school(s)?"
+
+msgid "Dual approve (1st)"
+msgstr "Dual approve (1st)"
+
+msgid "Dual approve (2nd)"
+msgstr "Dual approve (2nd)"
+
+msgid "Export ZIP"
+msgstr "Export ZIP"
+
+msgid "Freeze {count} selected school(s)? Tenants enter read-only mode."
+msgstr "Freeze {count} selected school(s)? Tenants enter read-only mode."
+
+msgid "Mark alumni"
+msgstr "Mark alumni"
+
+msgid "Mark probation"
+msgstr "Mark probation"
+
+msgid "Mark returning"
+msgstr "Mark returning"
+
+msgid "Offboard operators"
+msgstr "Offboard operators"
+
+msgid "Offboard {count} operator(s)? Cannot be undone from this screen."
+msgstr "Offboard {count} operator(s)? Cannot be undone from this screen."
+
+msgid "Preview purge inventory for {count} school(s) (no data deleted)."
+msgstr "Preview purge inventory for {count} school(s) (no data deleted)."
+
+msgid "Purge dry-run"
+msgstr "Purge dry-run"
+
+msgid "Reactivate {count} operator(s)?"
+msgstr "Reactivate {count} operator(s)?"
+
+msgid "Record first dual-control approval for {count} school(s)."
+msgstr "Record first dual-control approval for {count} school(s)."
+
+msgid ""
+"Record second dual-control approval for {count} school(s). You must differ "
+"from the first approver."
+msgstr ""
+"Record second dual-control approval for {count} school(s). You must differ "
+"from the first approver."
+
+msgid "Revoke active sessions for {count} operator(s)?"
+msgstr "Revoke active sessions for {count} operator(s)?"
+
+msgid "Revoke sessions"
+msgstr "Revoke sessions"
+
+msgid ""
+"Run full portability export for {count} school(s)? This may take several "
+"minutes."
+msgstr ""
+"Run full portability export for {count} school(s)? This may take several "
+"minutes."
+
+msgid "Set tier to Security for {count} operator(s)?"
+msgstr "Set tier to Security for {count} operator(s)?"
+
+msgid "Set tier to Support for {count} operator(s)?"
+msgstr "Set tier to Support for {count} operator(s)?"
+
+msgid "Set {count} student(s) to Alumni?"
+msgstr "Set {count} student(s) to Alumni?"
+
+msgid "Set {count} student(s) to Probation?"
+msgstr "Set {count} student(s) to Probation?"
+
+msgid "Set {count} student(s) to Returning?"
+msgstr "Set {count} student(s) to Returning?"
+
+msgid "Suspend {count} operator(s) and revoke sessions?"
+msgstr "Suspend {count} operator(s) and revoke sessions?"
+
+msgid "Tier: Security"
+msgstr "Tier: Security"
+
+msgid "Tier: Support"
+msgstr "Tier: Support"
+
+msgid "Unfreeze {count} selected school(s)?"
+msgstr "Unfreeze {count} selected school(s)?"
+
+msgid ""
+"Wind down and schedule purge for {count} school(s). This is destructive."
+msgstr ""
+"Wind down and schedule purge for {count} school(s). This is destructive."
+
+msgid "Audit word cloud"
+msgstr "Audit word cloud"
+
+msgid "Built-in widgets"
+msgstr "Built-in widgets"
+
+msgid "Capacity planning"
+msgstr "Capacity planning"
+
+msgid "Cockpit sections"
+msgstr "Cockpit sections"
+
+msgid ""
+"Currently {{ save_count }} default selection saved.{% plural %}Currently {{ "
+"save_count }} default selections saved."
+msgstr ""
+"Currently {{ save_count }} default selection saved.{% plural %}Currently {{ "
+"save_count }} default selections saved."
+
+msgid "Dashboard defaults"
+msgstr "Dashboard defaults"
+
+msgid "Defaults saved."
+msgstr "Defaults saved."
+
+msgid "No CTA configured. Set cockpit.signup_form.cta_url via SiteSettings."
+msgstr "No CTA configured. Set cockpit.signup_form.cta_url via SiteSettings."
+
+msgid ""
+"No audit terms configured. Set cockpit.audit_wordcloud.terms via "
+"SiteSettings to populate this card."
+msgstr ""
+"No audit terms configured. Set cockpit.audit_wordcloud.terms via "
+"SiteSettings to populate this card."
+
+msgid ""
+"No capacity lanes configured. Set cockpit.capacity_planning.lanes via "
+"SiteSettings to populate this card."
+msgstr ""
+"No capacity lanes configured. Set cockpit.capacity_planning.lanes via "
+"SiteSettings to populate this card."
+
+msgid ""
+"No clocks configured. Set cockpit.regional_clocks.clocks via SiteSettings to"
+" populate this card."
+msgstr ""
+"No clocks configured. Set cockpit.regional_clocks.clocks via SiteSettings to"
+" populate this card."
+
+msgid "No cockpit sections are admissible for this page's host scope."
+msgstr "No cockpit sections are admissible for this page's host scope."
+
+msgid ""
+"No onboarding stages configured. Set cockpit.onboarding_pipeline.stages via "
+"SiteSettings to populate this card."
+msgstr ""
+"No onboarding stages configured. Set cockpit.onboarding_pipeline.stages via "
+"SiteSettings to populate this card."
+
+msgid "No widgets are defined for this page in the DashboardWidget catalog."
+msgstr "No widgets are defined for this page in the DashboardWidget catalog."
+
+msgid "Onboarding pipeline"
+msgstr "Onboarding pipeline"
+
+msgid "Pages"
+msgstr "Pages"
+
+msgid ""
+"Per (role, page) operator-curated defaults that new users inherit on first "
+"dashboard load. Built-in widgets and cockpit sections selected here are pre-"
+"included even if a user has no personal layout."
+msgstr ""
+"Per (role, page) operator-curated defaults that new users inherit on first "
+"dashboard load. Built-in widgets and cockpit sections selected here are pre-"
+"included even if a user has no personal layout."
+
+msgid "Regional clocks"
+msgstr "Regional clocks"
+
+msgid "Site footer"
+msgstr "Site footer"
+
+msgid "Stalled"
+msgstr "Stalled"
+
+msgid ""
+"Tick cockpit sections to promote onto this role+page dashboard by default. "
+"Each section's content is still controlled by its own "
+"SiteSettings.cockpit_payload block."
+msgstr ""
+"Tick cockpit sections to promote onto this role+page dashboard by default. "
+"Each section's content is still controlled by its own "
+"SiteSettings.cockpit_payload block."
+
+msgid ""
+"Tick widgets that should be pre-included on first dashboard load for this "
+"role + page."
+msgstr ""
+"Tick widgets that should be pre-included on first dashboard load for this "
+"role + page."
+
+msgid ""
+"Apply a curated set of cockpit sections to a role/page default layout in one"
+" POST."
+msgstr ""
+"Apply a curated set of cockpit sections to a role/page default layout in one"
+" POST."
+
+msgid "Biggest drop-off"
+msgstr "Biggest drop-off"
+
+msgid "Cockpit promote presets"
+msgstr "Cockpit promote presets"
+
+msgid "No SetupProgress data yet."
+msgstr "No SetupProgress data yet."
+
+msgid "No layout data yet."
+msgstr "No layout data yet."
+
+msgid "P50 sec"
+msgstr "P50 sec"
+
+msgid "P95 sec"
+msgstr "P95 sec"
+
+msgid ""
+"Per-wizard completion rates, drop-off points, and widget placement heatmap. "
+"Read-only — derived from SetupProgress + DashboardLayout."
+msgstr ""
+"Per-wizard completion rates, drop-off points, and widget placement heatmap. "
+"Read-only — derived from SetupProgress + DashboardLayout."
+
+msgid "Placed"
+msgstr "Placed"
+
+msgid "Promoted"
+msgstr "Promoted"
+
+msgid "Widget heatmap"
+msgstr "Widget heatmap"
+
+msgid "Widget id"
+msgstr "Widget id"
+
+msgid "Wizard"
+msgstr "Wizard"
+
+msgid "Wizard activation"
+msgstr "Wizard activation"
+
+msgid "Wizard stats"
+msgstr "Wizard stats"
+
+msgid "Admissions queue depth"
+msgstr "Admissions queue depth"
+
+msgid "Awaiting review"
+msgstr "Awaiting review"
+
+msgid "Find a wizard"
+msgstr "Find a wizard"
+
+msgid "No applicants yet."
+msgstr "No applicants yet."
+
+msgid "Pick up where you left off."
+msgstr "Pick up where you left off."
+
+msgid "Search wizards"
+msgstr "Search wizards"
+
+msgid "Suggested next steps:"
+msgstr "Suggested next steps:"
+
+msgid "Try: gradebook, attendance, payment, password…"
+msgstr "Try: gradebook, attendance, payment, password…"
+
+msgid "Wizards in progress"
+msgstr "Wizards in progress"
+
+msgid ""
+"You have {{ counter }} wizard in progress.{% plural %}You have {{ counter }}"
+" wizards in progress."
+msgstr ""
+"You have {{ counter }} wizard in progress.{% plural %}You have {{ counter }}"
+" wizards in progress."
+
+msgid "at"
+msgstr "at"
+
+msgid "steps done"
+msgstr "steps done"
+
+msgid "{{ count }} applicants in stage {{ label }}"
+msgstr "{{ count }} applicants in stage {{ label }}"
+
+msgid "{{ wizard_key }} complete."
+msgstr "{{ wizard_key }} complete."
+
+msgid "Applicants by stage"
+msgstr "Applicants by stage"
+
+msgid "Enrollment forecast"
+msgstr "Enrollment forecast"
+
+msgid "Not enough enrollment history to project yet."
+msgstr "Not enough enrollment history to project yet."
+
+msgid "Students by status"
+msgstr "Students by status"
+
+msgid "stale"
+msgstr "stale"
+
+msgid "{{ count }} stale applicants in stage {{ label }}"
+msgstr "{{ count }} stale applicants in stage {{ label }}"
+
+msgid "Add subject (CODE:value)"
+msgstr "Add subject (CODE:value)"
+
+msgid "Auto-build"
+msgstr "Auto-build"
+
+msgid "Auto-build timetable"
+msgstr "Auto-build timetable"
+
+msgid "Build timetable"
+msgstr "Build timetable"
+
+msgid "CA marks input"
+msgstr "CA marks input"
+
+msgid "Continuous assessment marks"
+msgstr "Continuous assessment marks"
+
+msgid "Issues"
+msgstr "Issues"
+
+msgid "Manifest JSON"
+msgstr "Manifest JSON"
+
+msgid "Monetization manifest inspector"
+msgstr "Monetization manifest inspector"
+
+msgid ""
+"Paste a JSON problem definition (lessons + teachers + rooms + slots) and let"
+" the CSP backtracking solver propose an assignment."
+msgstr ""
+"Paste a JSON problem definition (lessons + teachers + rooms + slots) and let"
+" the CSP backtracking solver propose an assignment."
+
+msgid ""
+"Paste a partner monetization sub-manifest. The inspector runs the same "
+"validator chained into the partner manifest validator."
+msgstr ""
+"Paste a partner monetization sub-manifest. The inspector runs the same "
+"validator chained into the partner manifest validator."
+
+msgid "Per-subject CA breakdown"
+msgstr "Per-subject CA breakdown"
+
+msgid "Pricing model"
+msgstr "Pricing model"
+
+msgid "Pricing models"
+msgstr "Pricing models"
+
+msgid "Problem definition (JSON)"
+msgstr "Problem definition (JSON)"
+
+msgid "Reference: approved values"
+msgstr "Reference: approved values"
+
+msgid ""
+"Required fields per shape: lesson_id, class_id, subject, teacher_id on each "
+"lesson; resource_id + display_name on each teacher/room; slot_id + "
+"day_of_week + start_minutes + end_minutes on each slot."
+msgstr ""
+"Required fields per shape: lesson_id, class_id, subject, teacher_id on each "
+"lesson; resource_id + display_name on each teacher/room; slot_id + "
+"day_of_week + start_minutes + end_minutes on each slot."
+
+msgid "Save CA marks"
+msgstr "Save CA marks"
+
+msgid "Settlement provider"
+msgstr "Settlement provider"
+
+msgid "Settlement providers"
+msgstr "Settlement providers"
+
+msgid "Single aggregate value used by the board export."
+msgstr "Single aggregate value used by the board export."
+
+msgid "Total CA mark"
+msgstr "Total CA mark"
+
+msgid "Validation result"
+msgstr "Validation result"

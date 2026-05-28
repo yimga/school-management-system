@@ -578,6 +578,11 @@ class CertificationCandidate(models.Model):
     )
     validated_at = models.DateTimeField(null=True, blank=True)
     ca_uploaded_at = models.DateTimeField(null=True, blank=True)
+    # v4.00.13: per-candidate continuous-assessment marks. Shape:
+    #   {"total": <number>, "subjects": {"<code>": <number>, ...}}
+    # Read by the export_certification_pack command; written by the
+    # CAMarksInputView at /school/studio/certification/ca-marks/.
+    continuous_assessment = models.JSONField(default=dict, blank=True)
     notes = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

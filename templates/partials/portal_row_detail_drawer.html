@@ -5,8 +5,9 @@
     <h2 class="offcanvas-title h5 mb-0" id="rmcPortalRowDetailDrawerLabel">{% trans "Student detail" %}</h2>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#rmcPortalRowDetailDrawer" aria-label="{% trans 'Close' %}"></button>
   </div>
-  <div class="offcanvas-body">
-    <p class="text-muted small mb-3" id="rmcPortalRowDetailSubtitle"></p>
-    <dl class="rmc-kv-list mb-0" id="rmcPortalRowDetailBody"></dl>
+  <div class="offcanvas-body d-flex flex-column gap-3">
+    <p class="text-muted small mb-0" id="rmcPortalRowDetailSubtitle"></p>
+    <dl class="rmc-kv-list mb-0 flex-grow-1" id="rmcPortalRowDetailBody"></dl>
+    <div class="rmc-portal-row-detail-drawer__actions d-flex flex-wrap gap-2 border-top pt-3" id="rmcPortalRowDetailActions" data-rmc-portal-row-detail-actions hidden></div>
   </div>
 </div>

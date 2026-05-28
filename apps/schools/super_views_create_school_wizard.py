@@ -51,9 +51,20 @@ _CREATE_SCHOOL_PACK_TO_COUNTRY = {
 @require_http_methods(["GET", "POST"])
 @require_platform_scope(PLATFORM_SCOPE_PROVISION)
 def create_school_wizard(request):
-    """Multi-step wizard: Step 1 identity, Step 2 region, Step 3 branding. POST submits to API."""
+    """Multi-step wizard: Step 1 identity, Step 2 region, Step 3 branding. POST submits to API.
+
+    v3.99.24: routes to the Unified Wizard Engine by default (JSON SOT at
+    ``apps/setup_studio/wizards/super_create_school.json``). Pass ``?legacy=1``
+    or set ``RMC_WIZARD_ENGINE_OVERRIDES={"create_school": False}`` to render
+    the legacy template (kept as the rollback path during the bake-in window).
+    """
     from apps.global_registries.models import RegionConfig, WeatherLocation
     from apps.siteconfig.models import default_header_weather_config
+    from apps.setup_studio.legacy_view_bridge import engine_redirect_response
+
+    engine_resp = engine_redirect_response(request, "create_school")
+    if engine_resp is not None:
+        return engine_resp
 
     if request.method == "POST":
         # Wizard form submitted via JS to api_create_school; this is fallback or redirect

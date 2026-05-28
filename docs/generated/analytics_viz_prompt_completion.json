@@ -2,7 +2,7 @@
   "verdict": "ANALYTICS_VIZ_PROMPT_PASS",
   "pass_count": 18,
   "fail_count": 0,
-  "generated_at": "2026-05-19T10:36:54.699539+00:00",
+  "generated_at": "2026-05-28T19:17:18.749730+00:00",
   "rows": [
     {
       "phase": "1",
@@ -74,7 +74,7 @@
       "phase": "5",
       "check_id": "vitest",
       "status": "PASS",
-      "proof": "em\\node_modules\\react-dom\\cjs\\react-dom.development.js:25789:22) {\n  componentStack: '\\n' +\n    '    at PlatformPulseLineChart (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\components\\\\shared\\\\analytics\\\\PlatformPulseLineChart.tsx:11:3)\\n' +\n    '    at VizErrorBoundary (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\apps\\\\dashboard\\\\ErrorBoundary.tsx:6:1)\\n' +\n    '    at div\\n' +\n    '    at div\\n' +\n    '    at div\\n' +\n    '    at TenantOverview (C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\src\\\\apps\\\\dashboard\\\\TenantOverview.tsx:20:3)'\n}"
+      "proof": "ocs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\\u001b[39mnode_modules\\\u001b[4mreact-dom\u001b[24m\\cjs\\react-dom.development.js:25889:20\u001b[90m)\u001b[39m\n    at performConcurrentWorkOnRoot \u001b[90m(C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\\u001b[39mnode_modules\\\u001b[4mreact-dom\u001b[24m\\cjs\\react-dom.development.js:25789:22\u001b[90m)\u001b[39m \n    at BrokenChild (C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\src\\components\\support\\support.test.tsx:10:9)\n    at div\n    at SupportErrorBoundary (C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\src\\components\\support\\SupportErrorBoundary.tsx:6:1)"
     },
     {
       "phase": "platform",

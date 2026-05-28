@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %} v3.99.25 (2026-05-28): Honest stub for the signup_form
+   cockpit section so promote-to-dashboard renders cleanly.
+
+   Configurable via cockpit.signup_form:
+     .enabled
+     .eyebrow / .title / .description
+     .cta_label / .cta_url
+{% endcomment %}
+{% if cockpit.signup_form.enabled %}
+<section class="lx-card lx-signup" aria-label="{% trans 'Signup' %}" data-rmc-cockpit-section="signup_form">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.signup_form.eyebrow|default:_("Join") }}</div>
+      <h3 class="lx-card__title">{{ cockpit.signup_form.title|default:_("Sign up to RunMyCampus") }}</h3>
+    </div>
+  </div>
+  {% if cockpit.signup_form.description %}<p class="text-muted small mb-3">{{ cockpit.signup_form.description }}</p>{% endif %}
+  {% if cockpit.signup_form.cta_url %}
+    <a href="{{ cockpit.signup_form.cta_url }}" class="btn btn-primary btn-sm">
+      <i class="bi bi-arrow-right me-1" aria-hidden="true"></i>{{ cockpit.signup_form.cta_label|default:_("Get started") }}
+    </a>
+  {% else %}
+    <p class="text-muted small mb-0">{% trans "No CTA configured. Set cockpit.signup_form.cta_url via SiteSettings." %}</p>
+  {% endif %}
+</section>
+{% endif %}

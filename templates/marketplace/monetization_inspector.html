@@ -1,0 +1,54 @@
+{% extends "control_plane_skeleton.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Monetization manifest inspector" %}{% endblock %}
+
+{% block content %}
+<main class="container py-3" data-page-archetype="task-workbench">
+  <header class="mb-3">
+    <h1 class="h4 mb-1">{% trans "Monetization manifest inspector" %}</h1>
+    <p class="text-muted mb-0">{% trans "Paste a partner monetization sub-manifest. The inspector runs the same validator chained into the partner manifest validator." %}</p>
+  </header>
+
+  <form method="post" class="card card-body mb-3">
+    {% csrf_token %}
+    <label for="mf-input" class="form-label">{% trans "Manifest JSON" %}</label>
+    <textarea id="mf-input" name="manifest" class="form-control font-monospace" rows="12">{{ submitted|default:example }}</textarea>
+    <div class="d-flex gap-2 mt-2">
+      <button type="submit" class="btn btn-primary">{% trans "Validate" %}</button>
+      <button type="reset" class="btn btn-outline-secondary">{% trans "Reset" %}</button>
+    </div>
+  </form>
+
+  {% if validation %}
+    <section class="card card-body mb-3" aria-live="polite">
+      <h2 class="h5 mb-2">{% trans "Validation result" %}</h2>
+      {% if validation.ok %}
+        <p class="text-success"><strong>{% trans "OK" %}</strong> &mdash; manifest passes all checks.</p>
+      {% else %}
+        <p class="text-warning"><strong>{% trans "Issues" %}</strong> &mdash; {{ validation.findings|length }} finding{{ validation.findings|length|pluralize }}.</p>
+        <ul>
+          {% for f in validation.findings %}
+            <li><code>{{ f }}</code></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      <dl class="row mb-0">
+        <dt class="col-sm-3">{% trans "Pricing model" %}</dt>
+        <dd class="col-sm-9 font-monospace">{{ validation.pricing_model|default:"—" }}</dd>
+        <dt class="col-sm-3">{% trans "Settlement provider" %}</dt>
+        <dd class="col-sm-9 font-monospace">{{ validation.settlement_provider|default:"—" }}</dd>
+        <dt class="col-sm-3">{% trans "Revenue share" %}</dt>
+        <dd class="col-sm-9 font-monospace">{{ validation.rev_share_pct }}%</dd>
+      </dl>
+    </section>
+  {% endif %}
+
+  <section class="card card-body small">
+    <h2 class="h6 mb-2">{% trans "Reference: approved values" %}</h2>
+    <p class="mb-1"><strong>{% trans "Pricing models" %}:</strong> <code>{{ pricing_models|join:", " }}</code></p>
+    <p class="mb-1"><strong>{% trans "Settlement providers" %}:</strong> <code>{{ settlement_providers|join:", " }}</code></p>
+    <p class="mb-0"><strong>{% trans "Currencies" %}:</strong> <code>{{ allowed_currencies|join:", " }}</code></p>
+  </section>
+</main>
+{% endblock %}

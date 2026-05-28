@@ -25,11 +25,31 @@ from apps.social_media.api_views import (
 )
 # v3.62.2 (2026-05-22) — country-adaptive signup form (Wave 1 local-first).
 from apps.siteconfig.views_country_localization import country_localization_pack
+# v4.00.0 — canonical runtime endpoints fronted by the Cloudflare Worker.
+from apps.api.runtime_endpoints import (
+    feature_flags_runtime,
+    grading_matrix_runtime,
+    runtime_defaults_snapshot,
+    school_calendar_runtime,
+    site_settings_snapshot,
+)
 
 app_name = "api_v1"
 
+from apps.sync_engine.views_crdt import CRDTOpsApplyView
+from apps.platform_runtime.views_operator_tenant_inspect import OperatorTenantInspectView
+
+
 urlpatterns = [
     path("manifest.json", api_v1_manifest, name="manifest"),
+    # v4.00.13: CRDT ops merge endpoint (per-tenant LWW/ORSet/GCounter state).
+    path("crdt/apply/", CRDTOpsApplyView.as_view(), name="crdt-apply"),
+    # v4.00.0 zero-latency runtime endpoints (SWR-cached at the edge).
+    path("runtime/calendar", school_calendar_runtime, name="runtime-calendar"),
+    path("runtime/grading-matrix", grading_matrix_runtime, name="runtime-grading-matrix"),
+    path("runtime/defaults", runtime_defaults_snapshot, name="runtime-defaults"),
+    path("runtime/site-settings", site_settings_snapshot, name="runtime-site-settings"),
+    path("runtime/feature-flags", feature_flags_runtime, name="runtime-feature-flags"),
     # Pass 12: public webhook event-type catalog backed by apps.events.catalog.
     path(
         "webhooks/event-types/",
@@ -213,6 +233,12 @@ urlpatterns = [
         "super/tenant-health",
         views_v1.SuperTenantHealthView.as_view(),
         name="super-tenant-health",
+    ),
+    # v4.00.14: JIT-gated operator tenant inspector (compose JIT + GDPR + mask).
+    path(
+        "super/tenant-inspect/<int:school_id>/",
+        OperatorTenantInspectView.as_view(),
+        name="super-tenant-inspect",
     ),
     path(
         "super/schools",

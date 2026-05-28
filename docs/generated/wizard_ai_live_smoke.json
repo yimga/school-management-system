@@ -2,7 +2,7 @@
   "confidence_keys": [],
   "external_pending": true,
   "external_pending_reason": "LITELLM_BASE_URL or LITELLM_API_KEY env var not set, or RMC_DEPLOYMENT_PROFILE not configured for online AI. See docs/AI_DEPLOYMENT_POSTURE.md.",
-  "latency_ms": 4,
+  "latency_ms": 1,
   "posture": {
     "LITELLM_API_KEY": "***",
     "LITELLM_BASE_URL": "",

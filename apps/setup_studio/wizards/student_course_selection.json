@@ -1,0 +1,66 @@
+{
+  "wizard_key": "student_course_selection",
+  "version": 1,
+  "audience": ["student"],
+  "label_token": "wizards.student_course_selection.label",
+  "description_token": "wizards.student_course_selection.description",
+  "icon_class": "rmc-icon-book",
+  "estimated_minutes": 5,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "academic_year",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers_domain::list_academic_year_choices",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_student_course_selection_step"
+      },
+      "estimated_seconds": 30
+    },
+    {
+      "key": "required_courses",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers_domain::list_required_course_choices",
+      "validation": {"required": false},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_student_course_selection_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "electives",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers_domain::list_elective_course_choices",
+      "validation": {"required": false},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_student_course_selection_step"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "preferences_ranked",
+      "input_type": "ranked_list",
+      "validation": {"required": false},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_student_course_selection_step"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "confirm",
+      "input_type": "boolean",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_student_course_selection_step"
+      },
+      "estimated_seconds": 30
+    }
+  ]
+}

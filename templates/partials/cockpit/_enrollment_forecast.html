@@ -1,0 +1,41 @@
+{% load i18n %}
+{% comment %}
+  v4.00.13 — Enrollment Forecast cockpit tile.
+
+  Context inputs (set by host view via _compute_backend_dashboard_extras):
+    enrollment_forecast_rows: list[{term, projected, lower_bound, upper_bound, basis_years, growth_rate_used}]
+  Self-gates on `cockpit.enrollment_forecast.enabled` (default True).
+{% endcomment %}
+{% if cockpit.enrollment_forecast.enabled|default:True %}
+<section class="lx-card rmc-enrollment-forecast" aria-label="{% trans 'Enrollment forecast' %}" data-rmc-cockpit-section="enrollment_forecast">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.enrollment_forecast.eyebrow|default:_("Enrollment") }}</div>
+      <h3 class="lx-card__title">{{ cockpit.enrollment_forecast.title|default:_("Forecast") }}</h3>
+    </div>
+    {% if cockpit.enrollment_forecast.meta_text %}
+      <div class="lx-card__meta">{{ cockpit.enrollment_forecast.meta_text }}</div>
+    {% endif %}
+  </div>
+  {% if enrollment_forecast_rows %}
+    <ul class="list-unstyled mb-0">
+      {% for row in enrollment_forecast_rows %}
+        <li class="rmc-enrollment-forecast__row d-flex justify-content-between border-bottom py-2 align-items-center">
+          <span><strong>{{ row.term }}</strong><span class="text-muted small ms-2">{{ row.growth_rate_used }}/term · basis {{ row.basis_years }}y</span></span>
+          <span class="rmc-enrollment-forecast__band font-monospace small">
+            {% if row.lower_bound != row.upper_bound %}
+              <span class="text-muted">{{ row.lower_bound }}</span> &middot;
+            {% endif %}
+            <strong>{{ row.projected }}</strong>
+            {% if row.lower_bound != row.upper_bound %}
+              &middot; <span class="text-muted">{{ row.upper_bound }}</span>
+            {% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted mb-0">{% trans "Not enough enrollment history to project yet." %}</p>
+  {% endif %}
+</section>
+{% endif %}

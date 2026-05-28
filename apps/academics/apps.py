@@ -8,3 +8,9 @@ class AcademicsConfig(AppConfig):
 
     def ready(self):
         import apps.academics.signals  # noqa: F401
+        # v4.00.13: wire adaptive kernel post-save signal on Evaluation rows.
+        try:
+            from apps.academics.signals_adaptive import connect_adaptive_signals
+            connect_adaptive_signals()
+        except Exception:  # noqa: BLE001 — never block app boot
+            pass

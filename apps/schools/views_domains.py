@@ -156,7 +156,17 @@ def api_domains_verify(request, school_domain_id):
 @require_GET
 @login_required
 def custom_domain_wizard(request):
-    """Custom Domain Wizard page (tenant settings)."""
+    """Custom Domain Wizard page (tenant settings).
+
+    v3.99.24: routes to the Unified Wizard Engine when the override is
+    enabled (default). ``?legacy=1`` opts out; legacy template kept as
+    rollback path during bake-in.
+    """
+    from apps.setup_studio.legacy_view_bridge import engine_redirect_response
+
+    engine_resp = engine_redirect_response(request, "custom_domain")
+    if engine_resp is not None:
+        return engine_resp
     if not _require_school_admin(request):
         from django.shortcuts import redirect
 

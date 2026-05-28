@@ -1,0 +1,30 @@
+{% comment %}
+v3.99.24: Promoted cockpit widgets rendered inside a dashboard.
+
+Context required:
+  - promoted_cockpit_widgets: list of {id, name, partial_path} from
+    apps.siteconfig.cockpit_widget_bridge.resolve_promoted_cockpit_partials.
+  - dashboard_layout_root (optional): the parent [data-dashboard-column] key
+    to mark these widgets with.
+
+Each rendered widget gets `data-widget-id="<cockpit-id>"` so the existing
+dashboard-layout.js (drag/drop, hide/show, undo) treats them uniformly
+with built-in DashboardWidget cards.
+
+PII / tenant-bleed safety: the included partials are the same ones
+rendered on landing pages — they already short-circuit when their
+cockpit_payload section is disabled. No new data path.
+{% endcomment %}
+{% if promoted_cockpit_widgets %}
+<div class="promoted-cockpit-widgets" data-rmc-promoted-cockpit="1">
+  {% for w in promoted_cockpit_widgets %}
+    <div class="dash-widget rmc-reveal mb-3" data-widget-id="{{ w.id }}" data-widget-source="cockpit" aria-label="{{ w.name }}">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          {% include w.partial_path %}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}

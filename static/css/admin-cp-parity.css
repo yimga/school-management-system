@@ -930,6 +930,10 @@ body.admin-manager-shell.change-form #submit-row[data-rmc-admin-submit-contract=
   min-height: 2.35rem;
   border-radius: var(--radius-md, 10px);
   white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 body.admin-manager-shell.change-form #submit-row[data-rmc-admin-submit-contract="sticky-safe-actions"] button[name="_save"] {

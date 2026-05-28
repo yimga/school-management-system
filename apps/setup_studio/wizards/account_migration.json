@@ -1,0 +1,69 @@
+{
+  "wizard_key": "account_migration",
+  "version": 1,
+  "audience": ["tenant_admin", "operator"],
+  "label_token": "wizards.account_migration.label",
+  "description_token": "wizards.account_migration.description",
+  "icon_class": "rmc-icon-arrow-up-right",
+  "estimated_minutes": 10,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "select_source",
+      "input_type": "single_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers_operator::list_migration_source_choices",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_account_migration_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "select_scope",
+      "input_type": "multi_choice",
+      "options_resolver": null,
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_account_migration_step"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "upload_or_handshake",
+      "input_type": "file_upload",
+      "validation": {
+        "required": false,
+        "allowed_extensions": ["csv", "xlsx", "json", "zip"],
+        "max_file_bytes": 524288000
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_account_migration_step"
+      },
+      "estimated_seconds": 180
+    },
+    {
+      "key": "review_mapping",
+      "input_type": "csv_mapping",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_account_migration_step"
+      },
+      "estimated_seconds": 240
+    },
+    {
+      "key": "kick_off",
+      "input_type": "boolean",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_account_migration_step"
+      },
+      "estimated_seconds": 30
+    }
+  ]
+}

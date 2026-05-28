@@ -20,6 +20,7 @@ changed their mind). Reverting from ENROLLED is NOT allowed.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
@@ -156,9 +157,9 @@ def get_application_payload(extra_data: dict[str, Any] | None) -> dict[str, Any]
         return {"documents": {}, "history": [], "metadata": {}}
     payload = extra_data.get("application") or {}
     return {
-        "documents": dict(payload.get("documents") or {}),
-        "history": list(payload.get("history") or []),
-        "metadata": dict(payload.get("metadata") or {}),
+        "documents": copy.deepcopy(payload.get("documents") or {}),
+        "history": copy.deepcopy(payload.get("history") or []),
+        "metadata": copy.deepcopy(payload.get("metadata") or {}),
     }
 
 

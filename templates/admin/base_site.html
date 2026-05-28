@@ -45,6 +45,8 @@
   <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
   <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
+  {# v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). #}
+  <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   {% if is_manager_host %}
   {% comment %} v3.59.x: grid + single canvas scroll contract (pairs with data-rmc-cp-scroll=canvas).
@@ -56,6 +58,8 @@
      BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+  {# v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. #}
+  <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
   {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
   <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">

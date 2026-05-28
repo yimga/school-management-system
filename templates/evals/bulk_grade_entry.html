@@ -1,0 +1,145 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Bulk grade entry" %}{% endblock %}
+
+{% block content %}
+<main class="container py-3" data-page-archetype="task-workbench">
+  <header class="mb-3">
+    <h1 class="h4 mb-1">{% trans "Bulk grade entry" %}</h1>
+    <p class="text-muted mb-0">{% trans "Pick a subject + term, select students, then apply a score across all selected rows." %}</p>
+  </header>
+
+  <form method="get" class="card card-body mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label for="bge-subject" class="form-label">{% trans "Subject assignment" %}</label>
+        <input id="bge-subject" name="subject_assignment" type="number" inputmode="numeric"
+               class="form-control" value="{{ subject_assignment.pk|default_if_none:'' }}"
+               placeholder="{% trans 'subject assignment id' %}">
+      </div>
+      <div class="col-md-5">
+        <label for="bge-term" class="form-label">{% trans "Term" %}</label>
+        <input id="bge-term" name="term" type="number" inputmode="numeric"
+               class="form-control" value="{{ term.pk|default_if_none:'' }}"
+               placeholder="{% trans 'term id' %}">
+      </div>
+      <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-outline-primary">{% trans "Load roster" %}</button>
+      </div>
+    </div>
+  </form>
+
+  {% if subject_assignment and term %}
+    <section class="card card-body mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label for="bge-field" class="form-label">{% trans "Score field" %}</label>
+          <select id="bge-field" class="form-select">
+            {% for f in allowed_fields %}
+              <option value="{{ f }}">{{ f }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="bge-value" class="form-label">
+            {% trans "Value" %} <span class="text-muted">({% trans "0" %}–{{ max_score }})</span>
+          </label>
+          <input id="bge-value" type="text" inputmode="decimal" class="form-control" placeholder="0.00">
+        </div>
+        <div class="col-md-4 d-grid">
+          <div class="form-text">
+            {% blocktrans count counter=rows|length %}{{ counter }} row in the roster{% plural %}{{ counter }} rows in the roster{% endblocktrans %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="table-responsive">
+      <table id="bge-table" data-rmc-bulk-table class="table align-middle">
+        <thead>
+          <tr>
+            <th style="width:2rem"><input type="checkbox" data-rmc-bulk-select-all aria-label="{% trans 'Select all' %}"></th>
+            <th>{% trans "Student" %}</th>
+            <th class="text-end">{% trans "Seq 1" %}</th>
+            <th class="text-end">{% trans "Seq 2" %}</th>
+            <th class="text-end">{% trans "Exam" %}</th>
+            <th class="text-end">{% trans "Mock" %}</th>
+            <th class="text-end">{% trans "Practical" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td><input type="checkbox" data-rmc-bulk-checkbox value="{{ row.id }}" aria-label="{{ row.student_display }}"></td>
+              <td>{{ row.student_display }}</td>
+              <td class="text-end font-monospace">{{ row.seq1_score|default_if_none:"—" }}</td>
+              <td class="text-end font-monospace">{{ row.seq2_score|default_if_none:"—" }}</td>
+              <td class="text-end font-monospace">{{ row.exam_score|default_if_none:"—" }}</td>
+              <td class="text-end font-monospace">{{ row.mock_score|default_if_none:"—" }}</td>
+              <td class="text-end font-monospace">{{ row.practical_score|default_if_none:"—" }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-center text-muted">{% trans "No evaluations match the chosen subject + term." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% include "components/_bulk_actions_toolbar.html" with bulk_table_id="bge-table" bulk_actions=bulk_actions %}
+
+    <p id="bge-status" class="text-muted small mt-2" aria-live="polite"></p>
+  {% else %}
+    <p class="text-muted">{% trans "Choose a subject assignment and term, then load the roster to begin." %}</p>
+  {% endif %}
+</main>
+
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var table = document.getElementById('bge-table');
+  if (!table) { return; }
+  table.addEventListener('rmc:bulk-action', function (ev) {
+    var detail = ev.detail || {};
+    var action = detail.action;
+    var ids = detail.ids || [];
+    if (ids.length === 0) { return; }
+    var field = (document.getElementById('bge-field') || {}).value || 'seq1_score';
+    var rawValue = (document.getElementById('bge-value') || {}).value || '';
+    var status = document.getElementById('bge-status');
+    if (status) { status.textContent = ''; }
+    if (action === 'apply_value' && rawValue === '') {
+      if (status) { status.textContent = '{% trans "Enter a value before applying." %}'; }
+      return;
+    }
+    var payload = {
+      evaluation_ids: ids,
+      field: field,
+      value: action === 'clear' ? null : rawValue,
+      action: action,
+    };
+    var poster = (window.rmcBulkActions && window.rmcBulkActions.postWithCsrf) || null;
+    var promise = poster
+      ? poster(window.location.pathname, payload)
+      : fetch(window.location.pathname, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+    promise.then(function (resp) {
+      return resp.json().then(function (body) { return { ok: resp.ok, body: body }; });
+    }).then(function (result) {
+      if (!result.ok) {
+        if (status) {
+          status.textContent = (result.body && result.body.error) || '{% trans "Bulk update failed." %}';
+        }
+        return;
+      }
+      if (status) {
+        status.textContent = (result.body.applied || 0) + ' {% trans "row(s) updated. Reload to see the latest values." %}';
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

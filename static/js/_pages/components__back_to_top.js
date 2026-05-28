@@ -13,7 +13,10 @@
     percentEl: null,
     ticking: false,
     bound: false,
+    drag: null,
+    suppressClickUntil: 0,
   };
+  var STORAGE_KEY = "rmc.back_to_top.position.v1";
 
   function foldHeight() {
     return window.RMC && window.RMC.getFoldHeight
@@ -87,6 +90,146 @@
     window.setTimeout(function () {
       if (state.btn) state.btn.classList.remove("rmc-back-to-top--launching");
     }, 520);
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function savePosition(right, bottom) {
+    try {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          right: Math.round(right),
+          bottom: Math.round(bottom),
+        })
+      );
+    } catch (e) {
+      /* no-op: storage unavailable */
+    }
+  }
+
+  function clearSavedPosition() {
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      /* no-op: storage unavailable */
+    }
+  }
+
+  function loadPosition() {
+    try {
+      var raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return null;
+      if (typeof parsed.right !== "number" || typeof parsed.bottom !== "number") {
+        return null;
+      }
+      return { right: parsed.right, bottom: parsed.bottom };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function applyPosition(right, bottom) {
+    if (!state.btn) return;
+    state.btn.style.right = Math.round(right) + "px";
+    state.btn.style.bottom = Math.round(bottom) + "px";
+  }
+
+  function applySavedPosition() {
+    if (!state.btn) return;
+    var saved = loadPosition();
+    if (!saved) return;
+    var rect = state.btn.getBoundingClientRect();
+    var width = Math.max(rect.width, 40);
+    var height = Math.max(rect.height, 40);
+    var maxRight = Math.max(window.innerWidth - width - 4, 4);
+    var maxBottom = Math.max(window.innerHeight - height - 4, 4);
+    applyPosition(clamp(saved.right, 4, maxRight), clamp(saved.bottom, 4, maxBottom));
+  }
+
+  function resetPosition(event) {
+    if (!state.btn) return;
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    clearSavedPosition();
+    state.btn.style.removeProperty("right");
+    state.btn.style.removeProperty("bottom");
+    state.suppressClickUntil = Date.now() + 260;
+    scheduleUpdate();
+  }
+
+  function startDrag(event) {
+    if (!state.btn || event.button !== 0) return;
+    var rect = state.btn.getBoundingClientRect();
+    state.drag = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startLeft: rect.left,
+      startTop: rect.top,
+      moved: false,
+    };
+    state.btn.classList.add("rmc-back-to-top--dragging");
+    try {
+      state.btn.setPointerCapture(event.pointerId);
+    } catch (e) {
+      /* no-op: unsupported environment */
+    }
+  }
+
+  function moveDrag(event) {
+    if (!state.btn || !state.drag) return;
+    if (event.pointerId !== state.drag.pointerId) return;
+    var dx = event.clientX - state.drag.startX;
+    var dy = event.clientY - state.drag.startY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      state.drag.moved = true;
+    }
+    var rect = state.btn.getBoundingClientRect();
+    var width = Math.max(rect.width, 40);
+    var height = Math.max(rect.height, 40);
+    var nextLeft = clamp(state.drag.startLeft + dx, 4, window.innerWidth - width - 4);
+    var nextTop = clamp(state.drag.startTop + dy, 4, window.innerHeight - height - 4);
+    var nextRight = window.innerWidth - (nextLeft + width);
+    var nextBottom = window.innerHeight - (nextTop + height);
+    applyPosition(nextRight, nextBottom);
+  }
+
+  function endDrag(event) {
+    if (!state.btn || !state.drag) return;
+    if (event.pointerId !== state.drag.pointerId) return;
+    var dragState = state.drag;
+    state.drag = null;
+    state.btn.classList.remove("rmc-back-to-top--dragging");
+    try {
+      if (state.btn.hasPointerCapture && state.btn.hasPointerCapture(event.pointerId)) {
+        state.btn.releasePointerCapture(event.pointerId);
+      }
+    } catch (e) {
+      /* no-op: unsupported environment */
+    }
+    if (dragState.moved) {
+      var rect = state.btn.getBoundingClientRect();
+      var right = window.innerWidth - (rect.left + rect.width);
+      var bottom = window.innerHeight - (rect.top + rect.height);
+      savePosition(right, bottom);
+      state.suppressClickUntil = Date.now() + 280;
+    }
+  }
+
+  function handleClick(event) {
+    if (Date.now() < state.suppressClickUntil) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    scrollToTop();
   }
 
   function syncGradientStops() {
@@ -167,7 +310,13 @@
     }
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
     window.addEventListener("resize", scheduleUpdate, { passive: true });
-    state.btn.addEventListener("click", scrollToTop);
+    window.addEventListener("resize", applySavedPosition, { passive: true });
+    state.btn.addEventListener("click", handleClick);
+    state.btn.addEventListener("contextmenu", resetPosition);
+    state.btn.addEventListener("pointerdown", startDrag);
+    state.btn.addEventListener("pointermove", moveDrag);
+    state.btn.addEventListener("pointerup", endDrag);
+    state.btn.addEventListener("pointercancel", endDrag);
 
     document.addEventListener("rmc-assist-dock-mounted", scheduleUpdate);
     document.body.addEventListener("htmx:afterSettle", scheduleUpdate);
@@ -207,6 +356,7 @@
     btn.setAttribute("data-rmc-mounted", "1");
 
     syncGradientStops();
+    applySavedPosition();
     bindListeners();
     scheduleUpdate();
     return true;

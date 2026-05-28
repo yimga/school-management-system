@@ -383,7 +383,7 @@
     const dragToggle = document.getElementById('toggleLayoutDrag') || document.getElementById('toggleCustomize');
     let sortables = [];
 
-    function showToast(message, tone, withRetry) {
+    function showToast(message, tone, withRetry, undoFn) {
       const container = document.getElementById('dashboard-layout-toast');
       if (!container) return;
       const toast = document.createElement('div');
@@ -399,9 +399,16 @@
         btn.textContent = 'Retry';
         btn.addEventListener('click', () => { toast.remove(); saveLayout(); });
         toast.appendChild(btn);
+      } else if (typeof undoFn === 'function') {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-sm btn-outline-dark';
+        btn.textContent = 'Undo';
+        btn.setAttribute('aria-label', 'Undo last layout change');
+        btn.addEventListener('click', () => { toast.remove(); undoFn(); });
+        toast.appendChild(btn);
       }
       container.appendChild(toast);
-      setTimeout(() => toast.remove(), withRetry ? 8000 : 2500);
+      setTimeout(() => toast.remove(), withRetry ? 8000 : (undoFn ? 5500 : 2500));
     }
 
     function moveWidgetInColumn(col, el, delta, doSave) {
@@ -410,14 +417,46 @@
       if (idx < 0) return;
       const newIdx = Math.max(0, Math.min(widgets.length - 1, idx + delta));
       if (newIdx === idx) return;
+      preDragSnapshot = snapshotDom();
       if (delta < 0) col.insertBefore(el, widgets[newIdx]);
       else col.insertBefore(el, widgets[newIdx].nextSibling);
-      if (doSave) saveLayout();
+      if (doSave) saveLayout({ undoable: true });
     }
 
     let hiddenWidgetIds = [];
     let pinnedWidgets = [];
-    const saveLayout = () => {
+    let preDragSnapshot = null;
+
+    const snapshotDom = () => {
+      const snap = [];
+      columns.forEach((col) => {
+        const key = col.dataset.dashboardColumnKey || col.dataset.dashboardColumn || 'main';
+        const ids = Array.from(col.querySelectorAll('[data-widget-id]')).map((el) => el.dataset.widgetId);
+        snap.push({ column: key, ids: ids });
+      });
+      return snap;
+    };
+
+    const restoreSnapshot = (snap) => {
+      if (!snap) return;
+      const byId = {};
+      columns.forEach((col) => {
+        col.querySelectorAll('[data-widget-id]').forEach((el) => { byId[el.dataset.widgetId] = el; });
+      });
+      snap.forEach((colSnap) => {
+        const targetCol = document.querySelector(`[data-dashboard-column-key="${colSnap.column}"]`)
+          || document.querySelector(`[data-dashboard-column="${colSnap.column}"]`);
+        if (!targetCol) return;
+        colSnap.ids.forEach((id) => {
+          const el = byId[id];
+          if (el) targetCol.appendChild(el);
+        });
+      });
+    };
+
+    const saveLayout = (opts) => {
+      const offerUndo = !!(opts && opts.undoable && preDragSnapshot);
+      const undoTarget = offerUndo ? preDragSnapshot.slice() : null;
       const itemsPayload = collectLayout(columns);
       const widgetMeta = collectWidgetMeta(columns);
       fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
@@ -443,8 +482,19 @@
           });
         })
         .then((r) => {
-          if (r && r.ok) showToast('Layout saved');
-          else showToast('Could not save layout.', 'error', true);
+          if (r && r.ok) {
+            if (offerUndo) {
+              showToast('Layout saved', null, false, () => {
+                restoreSnapshot(undoTarget);
+                preDragSnapshot = null;
+                saveLayout();
+              });
+            } else {
+              showToast('Layout saved');
+            }
+          } else {
+            showToast('Could not save layout.', 'error', true);
+          }
         })
         .catch(() => showToast('Could not save layout.', 'error', true));
     };
@@ -484,63 +534,213 @@
         modalEl.classList.add('show');
         modalEl.style.display = 'block';
       }
+      function closeModal() {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+        } else {
+          modalEl.classList.remove('show');
+          modalEl.style.display = 'none';
+        }
+      }
+      function formatLabel(id) {
+        return (id || '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      }
+      function escapeHtml(s) { return (s || '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+      function widgetRowHtml(name, desc, dataAttr, dataValue, actionLabel, badge) {
+        return `
+          <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+            <div class="me-2">
+              <strong>${escapeHtml(name)}</strong>
+              ${badge ? `<span class="badge bg-light text-dark ms-2">${escapeHtml(badge)}</span>` : ''}
+              ${desc ? `<div class="small text-muted">${escapeHtml(desc).substring(0, 120)}</div>` : ''}
+            </div>
+            <button type="button" class="btn btn-sm btn-primary gallery-add-btn" ${dataAttr}="${(dataValue || '').replace(/"/g, '&quot;')}">
+              ${escapeHtml(actionLabel)}
+            </button>
+          </div>
+        `;
+      }
       fetch(`/api/dashboard/available-widgets/?page=${page}`, { credentials: 'include' })
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
           const widgets = (data && data.widgets) || [];
+          const cockpitWidgets = (data && data.cockpit_widgets) || [];
+          const marketplaceWidgets = (data && data.marketplace_widgets) || [];
           const widgetById = {};
           widgets.forEach((w) => { if (w.id) widgetById[w.id] = w; });
+          // Discover all widget IDs already in the DOM (visible OR hidden)
+          const placedIds = new Set();
+          columns.forEach((col) => {
+            col.querySelectorAll('[data-widget-id]').forEach((el) => {
+              const wid = el.dataset.widgetId;
+              if (wid) placedIds.add(wid);
+            });
+          });
           const hidden = hiddenWidgetIds.filter((id) => id);
-          if (hidden.length === 0) {
-            listEl.innerHTML = '<p class="text-muted small mb-0">No hidden widgets. Hide a widget from the settings menu on any card to restore it here.</p>';
+          // Discoverable = catalog widgets that are NOT currently in the DOM at all.
+          const discoverable = widgets.filter((w) => w.id && !placedIds.has(w.id));
+
+          let html = '';
+          // Section 1: Hidden widgets (restorable)
+          if (hidden.length > 0) {
+            html += '<h6 class="text-muted text-uppercase small fw-semibold mt-1 mb-2">Hidden — restore</h6><div class="list-group list-group-flush mb-3">';
+            hidden.forEach((wid) => {
+              const w = widgetById[wid];
+              const name = (w && w.name) || formatLabel(wid);
+              const desc = (w && w.description) || '';
+              html += widgetRowHtml(name, desc, 'data-restore-widget-id', wid, 'Restore');
+            });
+            html += '</div>';
+          }
+          // Section 2: Discoverable (never placed) built-in widgets
+          if (discoverable.length > 0) {
+            html += '<h6 class="text-muted text-uppercase small fw-semibold mt-1 mb-2">Available — add new</h6><div class="list-group list-group-flush mb-3">';
+            discoverable.forEach((w) => {
+              html += widgetRowHtml(w.name || formatLabel(w.id), w.description || '', 'data-add-widget-id', w.id, 'Add to dashboard');
+            });
+            html += '</div>';
+          }
+          // Section 3: Cockpit-section catalog — promote-to-dashboard action live as of v3.99.24
+          if (cockpitWidgets.length > 0) {
+            html += '<h6 class="text-muted text-uppercase small fw-semibold mt-1 mb-2">Cockpit sections — promote to dashboard</h6><div class="list-group list-group-flush mb-1">';
+            cockpitWidgets.forEach((cw) => {
+              const badge = cw.cockpit_host_scope || '';
+              const placed = placedIds.has(cw.id);
+              const label = placed ? 'Already on dashboard' : 'Promote';
+              html += `
+                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                  <div class="me-2">
+                    <strong>${escapeHtml(cw.name || cw.id)}</strong>
+                    ${badge ? `<span class="badge bg-light text-dark ms-2">${escapeHtml(badge)}</span>` : ''}
+                    ${cw.description ? `<div class="small text-muted">${escapeHtml(cw.description).substring(0, 120)}</div>` : ''}
+                  </div>
+                  <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-cockpit-configure-id="${(cw.id || '').replace(/"/g, '&quot;')}" title="Open cockpit configure page for this section">
+                      <i class="bi bi-gear" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" data-cockpit-promote-id="${(cw.id || '').replace(/"/g, '&quot;')}" ${placed ? 'disabled' : ''}>
+                      ${escapeHtml(label)}
+                    </button>
+                  </div>
+                </div>
+              `;
+            });
+            html += '</div>';
+          }
+          // Section 4: Marketplace-installed widgets (v4.00.5)
+          if (marketplaceWidgets.length > 0) {
+            html += '<h6 class="text-muted text-uppercase small fw-semibold mt-1 mb-2">Marketplace apps</h6><div class="list-group list-group-flush mb-1">';
+            marketplaceWidgets.forEach((mw) => {
+              const badge = mw.app_slug || 'app';
+              html += `
+                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                  <div class="me-2">
+                    <strong>${escapeHtml(mw.name || mw.id)}</strong>
+                    <span class="badge bg-light text-dark ms-2">${escapeHtml(badge)}</span>
+                    ${mw.description ? `<div class="small text-muted">${escapeHtml(mw.description).substring(0, 120)}</div>` : ''}
+                  </div>
+                  <span class="small text-muted">${placedIds.has(mw.id) ? 'Active' : 'Installed'}</span>
+                </div>
+              `;
+            });
+            html += '</div><p class="small text-muted mb-0 mt-2"><i class="bi bi-shop me-1" aria-hidden="true"></i>Marketplace widgets render via the app\'s own surface. Install / remove from the marketplace.</p>';
+          }
+          if (!html) {
+            listEl.innerHTML = '<p class="text-muted small mb-0">No more widgets available. Hide a widget from the ⋮ menu on any card to restore it here later.</p>';
             return;
           }
-          function formatLabel(id) {
-            return (id || '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-          }
-          let html = '<div class="list-group list-group-flush">';
-          hidden.forEach((wid) => {
-            const w = widgetById[wid];
-            const name = (w && w.name) ? w.name.replace(/</g, '&lt;') : formatLabel(wid);
-            const desc = (w && w.description) ? (w.description.replace(/</g, '&lt;') || '').substring(0, 80) : '';
-            html += `
-              <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                <div>
-                  <strong>${name}</strong>
-                  ${desc ? `<div class="small text-muted">${desc}</div>` : ''}
-                </div>
-                <button type="button" class="btn btn-sm btn-primary add-widget-restore" data-widget-id="${(wid || '').replace(/"/g, '&quot;')}">
-                  Add
-                </button>
-              </div>
-            `;
-          });
-          html += '</div>';
           listEl.innerHTML = html;
-          listEl.querySelectorAll('.add-widget-restore').forEach((btn) => {
+
+          // Restore hidden widgets
+          listEl.querySelectorAll('[data-restore-widget-id]').forEach((btn) => {
             btn.addEventListener('click', function () {
-              const wid = this.getAttribute('data-widget-id');
+              const wid = this.getAttribute('data-restore-widget-id');
               if (!wid) return;
               const idx = hiddenWidgetIds.indexOf(wid);
               if (idx >= 0) {
                 hiddenWidgetIds.splice(idx, 1);
                 columns.forEach((col) => {
                   const el = col.querySelector(`[data-widget-id="${wid}"]`);
-                  if (el) {
-                    el.classList.remove('dash-widget-hidden');
-                    el.style.display = '';
-                  }
+                  if (el) { el.classList.remove('dash-widget-hidden'); el.style.display = ''; }
                 });
-                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                  const modal = bootstrap.Modal.getInstance(modalEl);
-                  if (modal) modal.hide();
-                } else {
-                  modalEl.classList.remove('show');
-                  modalEl.style.display = 'none';
-                }
+                closeModal();
                 saveLayout();
-                showToast('Widget added');
+                showToast('Widget restored');
               }
+            });
+          });
+
+          // Add discoverable widget: persist intent via __settings__.requested_widget_ids,
+          // surface a hint that a page refresh will materialize the widget (server-side
+          // dashboard-template renderer reads requested_widget_ids on next render).
+          listEl.querySelectorAll('[data-add-widget-id]').forEach((btn) => {
+            btn.addEventListener('click', function () {
+              const wid = this.getAttribute('data-add-widget-id');
+              if (!wid) return;
+              fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((current) => {
+                  const layout = (current && current.layout) || {};
+                  const settings = Object.assign({}, layout.__settings__ || {});
+                  const requested = Array.isArray(settings.requested_widget_ids) ? settings.requested_widget_ids.slice() : [];
+                  if (requested.indexOf(wid) < 0) requested.push(wid);
+                  settings.requested_widget_ids = requested;
+                  const payload = { items: (layout.items || []), __settings__: settings };
+                  return fetch(`/api/dashboard/layout/${page}/`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                    body: JSON.stringify({ layout: payload }),
+                  });
+                })
+                .then((r) => {
+                  closeModal();
+                  if (r && r.ok) showToast('Widget queued — refresh to view.');
+                  else showToast('Could not queue widget.', 'error', true);
+                })
+                .catch(() => showToast('Could not queue widget.', 'error', true));
+            });
+          });
+
+          // Configure cockpit section: open the cockpit configure page filtered to that section
+          listEl.querySelectorAll('[data-cockpit-configure-id]').forEach((btn) => {
+            btn.addEventListener('click', function () {
+              const cid = this.getAttribute('data-cockpit-configure-id') || '';
+              const sectionId = cid.replace(/^cockpit-[^-]+-/, '');
+              closeModal();
+              window.location.href = `/siteconfig/super/configure/cockpit/?section=${encodeURIComponent(sectionId)}`;
+            });
+          });
+
+          // Promote cockpit section to live on this dashboard. Writes to
+          // __settings__.promoted_cockpit_ids via the existing layout API.
+          listEl.querySelectorAll('[data-cockpit-promote-id]').forEach((btn) => {
+            btn.addEventListener('click', function () {
+              const wid = this.getAttribute('data-cockpit-promote-id');
+              if (!wid) return;
+              fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((current) => {
+                  const layout = (current && current.layout) || {};
+                  const settings = Object.assign({}, layout.__settings__ || {});
+                  const promoted = Array.isArray(settings.promoted_cockpit_ids) ? settings.promoted_cockpit_ids.slice() : [];
+                  if (promoted.indexOf(wid) < 0) promoted.push(wid);
+                  settings.promoted_cockpit_ids = promoted;
+                  const payload = { items: (layout.items || []), __settings__: settings };
+                  return fetch(`/api/dashboard/layout/${page}/`, {
+                    method: 'PUT',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+                    body: JSON.stringify({ layout: payload }),
+                  });
+                })
+                .then((r) => {
+                  closeModal();
+                  if (r && r.ok) showToast('Cockpit section promoted — refresh to view.');
+                  else showToast('Could not promote cockpit section.', 'error', true);
+                })
+                .catch(() => showToast('Could not promote cockpit section.', 'error', true));
             });
           });
         })
@@ -681,8 +881,11 @@
               ghostClass: 'sortable-ghost',
               chosenClass: 'sortable-chosen',
               dragClass: 'sortable-drag',
+              onStart: () => {
+                preDragSnapshot = snapshotDom();
+              },
               onEnd: () => {
-                saveLayout();
+                saveLayout({ undoable: true });
               },
             });
             sortables.push(sortable);
@@ -715,6 +918,80 @@
       const customDragEnabled = layoutRoot.dataset.customDragEnabled !== "false";
       const customizeBtnRef = document.getElementById('btnCustomizeLayout');
 
+      function applyColumnLabels(active) {
+        const isMulti = columns.length > 1;
+        columns.forEach((col) => {
+          let label = col.querySelector(':scope > .dashboard-column-label');
+          if (active && isMulti) {
+            if (!label) {
+              label = document.createElement('div');
+              label.className = 'dashboard-column-label small text-uppercase text-muted fw-semibold mb-2';
+              label.setAttribute('aria-hidden', 'true');
+              const rawKey = col.dataset.dashboardColumn || col.dataset.dashboardColumnKey || 'main';
+              const baseKey = rawKey.split('#')[0];
+              const human = baseKey === 'main' ? 'Main' : baseKey === 'sidebar' ? 'Sidebar' : baseKey === 'bottom' ? 'Bottom' : baseKey.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+              label.textContent = human;
+              col.insertBefore(label, col.firstChild);
+            }
+          } else if (label) {
+            label.remove();
+          }
+        });
+      }
+
+      function buildMobileListFallback(active) {
+        const root = document.getElementById('dashboard-mobile-reorder-list');
+        if (!root) return;
+        if (!active) { root.innerHTML = ''; root.classList.add('d-none'); return; }
+        root.innerHTML = '';
+        root.classList.remove('d-none');
+        const heading = document.createElement('div');
+        heading.className = 'small text-muted mb-2';
+        heading.textContent = 'Tap the up / down arrows to reorder widgets. Layout saves automatically.';
+        root.appendChild(heading);
+        const list = document.createElement('ol');
+        list.className = 'list-group list-group-numbered mb-0';
+        const allWidgets = [];
+        columns.forEach((col) => {
+          Array.from(col.querySelectorAll('[data-widget-id]')).forEach((el) => {
+            if (el.classList.contains('dash-widget-hidden') || el.style.display === 'none') return;
+            allWidgets.push({ el: el, col: col });
+          });
+        });
+        allWidgets.forEach((entry, idx) => {
+          const wid = entry.el.dataset.widgetId;
+          const meta = widgetMetaById[wid] || {};
+          const name = meta.name || (wid || '').replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+          const li = document.createElement('li');
+          li.className = 'list-group-item d-flex justify-content-between align-items-center';
+          li.dataset.mobileReorderWidgetId = wid;
+          const span = document.createElement('span');
+          span.textContent = name;
+          li.appendChild(span);
+          const group = document.createElement('div');
+          group.className = 'btn-group btn-group-sm';
+          const up = document.createElement('button');
+          up.type = 'button';
+          up.className = 'btn btn-outline-secondary';
+          up.setAttribute('aria-label', 'Move ' + name + ' up');
+          up.innerHTML = '<i class="bi bi-chevron-up" aria-hidden="true"></i>';
+          up.disabled = (idx === 0);
+          up.addEventListener('click', () => { moveWidgetInColumn(entry.col, entry.el, -1, true); buildMobileListFallback(true); });
+          const down = document.createElement('button');
+          down.type = 'button';
+          down.className = 'btn btn-outline-secondary';
+          down.setAttribute('aria-label', 'Move ' + name + ' down');
+          down.innerHTML = '<i class="bi bi-chevron-down" aria-hidden="true"></i>';
+          down.disabled = (idx === allWidgets.length - 1);
+          down.addEventListener('click', () => { moveWidgetInColumn(entry.col, entry.el, 1, true); buildMobileListFallback(true); });
+          group.appendChild(up);
+          group.appendChild(down);
+          li.appendChild(group);
+          list.appendChild(li);
+        });
+        root.appendChild(list);
+      }
+
       function setEditMode(active) {
         const instructions = document.getElementById('dashboard-customize-instructions');
         const btn = document.getElementById('btnCustomizeLayout');
@@ -739,6 +1016,9 @@
           }
         }
         if (dragToggle) dragToggle.checked = !!active;
+        applyColumnLabels(!!active);
+        buildMobileListFallback(!!active);
+        if (layoutRoot) layoutRoot.classList.toggle('dashboard-edit-mode-active', !!active);
         if (active) enableDrag(); else disableDrag();
       }
       setEditModeFn = setEditMode;

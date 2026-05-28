@@ -56,7 +56,4 @@
   {% endif %}
   <a href="{% url 'portal:parent_finance' %}" class="btn btn-outline-secondary mt-3">{% trans "Back to Finance" %}</a>
 </div>
-{% include "partials/portal_row_detail_drawer.html" %}
-<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
-<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

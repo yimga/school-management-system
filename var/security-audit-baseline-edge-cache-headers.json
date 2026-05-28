@@ -1,0 +1,9 @@
+{
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-05-28T20:24:47+00:00",
+  "rule": "every view that serves /api/v1/runtime/ MUST call services.edge_cache.stamp_response or set Surrogate-Key",
+  "scan_dirs": [
+    "apps"
+  ]
+}

@@ -13,6 +13,7 @@
     {% include "partials/rmc_theme_meta.html" %}
     {% include "partials/rmc_social_meta.html" %}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
+    {% include "partials/rmc_viewport_engine.html" %}
     <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
     <script src="{% static 'js/rmc-friction.js' %}" defer></script>
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
@@ -35,6 +36,10 @@
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
     <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
+    {# v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). #}
+    <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
+    {# v4.00.14: CRDT client library exposing window.rmcCRDT for offline ops. #}
+    <script src="{% static 'js/rmc-crdt-client.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     {# Critical-read KB route signatures: /kb/article/ /kb/search /kb/category/ path === "/kb" kb-article kb-search kb-category kb-home kb-hub #}
     <script src="{% static 'js/kb-route-signature.js' %}"></script>
@@ -56,6 +61,8 @@
        BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    {# v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
@@ -120,6 +127,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-sidebar-rail-contract.css' %}">
     {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
     {% include "partials/rmc_platform_chrome_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
@@ -327,26 +335,8 @@
           </a>
         {% endif %}
 
-        <div class="tp-actions topbar-actions d-flex align-items-center gap-3 ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, weather & controls' %}">
+        <div class="tp-actions topbar-actions d-flex align-items-center gap-3 ms-auto" id="preview-header-actions" data-preview-label="{% trans 'Search, time & controls' %}">
           {% if request.user.is_authenticated %}
-            {% if SHOW_OFFLINE_STATUS_BAR or SHOW_HEADER_CONTEXT_STRIP or SHOW_ROLE_SWITCHER %}
-            <div class="topbar-context-row topbar-weather">
-              {% if SHOW_OFFLINE_STATUS_BAR %}
-              {% include 'components/offline_status_bar.html' %}
-              {% endif %}
-              {% if SHOW_HEADER_CONTEXT_STRIP or SHOW_ROLE_SWITCHER %}
-              <div class="topbar-context-strip d-flex align-items-center gap-2 flex-wrap">
-                {% if SHOW_HEADER_CONTEXT_STRIP %}
-                {% include 'components/header_weather_widget.html' %}
-                {% endif %}
-                {% if SHOW_ROLE_SWITCHER and EFFECTIVE_PORTAL_ROLE %}
-                <span class="badge bg-light text-dark opacity-90 small" aria-label="{% trans 'Current portal view' %}">{% trans 'Viewing as' %}: {{ EFFECTIVE_PORTAL_ROLE }}</span>
-                {% endif %}
-              </div>
-              {% endif %}
-            </div>
-            {% endif %}
-
             {% if SHOW_HEADER_SEARCH %}
             <!-- Global Search Bar (Ctrl+K) - searches students, teachers, invoices, etc. -->
             <div class="topbar-search search-bar-wrapper header-search-container">
@@ -365,6 +355,15 @@
             {% endif %}
 
             <div class="topbar-controls d-flex align-items-center gap-2">
+              {% if SHOW_OFFLINE_STATUS_BAR %}
+              {% include 'components/offline_status_bar.html' %}
+              {% endif %}
+              {% if SHOW_HEADER_CONTEXT_STRIP %}
+              {% include 'components/header_weather_widget.html' %}
+              {% endif %}
+              {% if SHOW_ROLE_SWITCHER and EFFECTIVE_PORTAL_ROLE %}
+              <span class="badge bg-light text-dark opacity-90 small" aria-label="{% trans 'Current portal view' %}">{% trans 'Viewing as' %}: {{ EFFECTIVE_PORTAL_ROLE }}</span>
+              {% endif %}
               {% if not PRIMARY_CONTROL_PLANE_NAV %}
               {% include "partials/rmc_security_posture_nav_button.html" %}
               {% endif %}
@@ -745,6 +744,11 @@
       <script src="{% static 'js/rmc-acx-drawer-toggle.js' %}" defer></script>
       {# Phase W (2026-05-12): subtle haptic feedback for success/warning/error. #}
       <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
+      <script src="{% static 'js/rmc-copilot-context-lens.js' %}" defer></script>
+      <script src="{% static 'js/rmc-list-bulk-select.js' %}" defer></script>
+    {% endif %}
+    {% if request.user.is_authenticated and request.public_host_kind != 'manager' %}
+    {% include "partials/copilot_context_lens_sheet.html" %}
     {% endif %}
 
     {% if not request.user.is_authenticated %}
@@ -782,6 +786,8 @@
       {% include "partials/cockpit/_ai_copilot_rail.html" %}
     </div>
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
+    <script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
+    <script src="{% static 'js/rmc-copilot-context-lens.js' %}" defer></script>
     {% endif %}
     {% if proactive_help_nudge and not tp_v3_tenant_shell %}
     {% include "partials/help_proactive_nudge.html" %}

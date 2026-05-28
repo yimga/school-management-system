@@ -236,7 +236,17 @@ def migration_wizard(request):
     """
     One-click data migration: upload CSV → optional field mapping → preview → run.
     Backed by existing bulk-preview/bulk-commit (students) and evals apply_import (grades).
+
+    v3.99.24: routes to the Unified Wizard Engine (JSON SOT
+    ``apps/setup_studio/wizards/account_migration.json``) by default.
+    Pass ``?legacy=1`` to render the legacy session-driven flow.
     """
+    from apps.setup_studio.legacy_view_bridge import engine_redirect_response
+
+    engine_resp = engine_redirect_response(request, "account_migration")
+    if engine_resp is not None:
+        return engine_resp
+
     session_key = "migration_wizard"
     wizard_data = request.session.get(session_key) or {}
 

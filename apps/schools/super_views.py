@@ -18,6 +18,7 @@ from .super_views_school_api import (
     api_school_timeline,
     school_lifecycle_action,
 )
+from .super_views_bulk import api_bulk_operators, api_bulk_schools
 from .super_views_offboarding_queue import (
     api_school_offboarding_export_download,
     api_school_offboarding_schedule,
@@ -102,6 +103,8 @@ __all__ = (
     "ai_model_hub",
     "super_ai_gateway_console",
     "api_approve_school",
+    "api_bulk_operators",
+    "api_bulk_schools",
     "api_create_school",
     "api_super_dashboard_layout",
     "billing_dashboard",

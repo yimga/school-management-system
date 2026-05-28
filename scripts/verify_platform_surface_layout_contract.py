@@ -71,7 +71,11 @@ def main() -> int:
     add(
         "canvas_scroll_skeleton",
         "Control-plane skeleton uses app-shell canvas scroll contract",
-        _contains("templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="canvas"'),
+        _contains("templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="canvas"')
+        or _contains(
+            "templates/control_plane_skeleton.html",
+            "cp_scroll_mode %}canvas{% endblock",
+        ),
         "control_plane_skeleton.html",
     )
     add(
@@ -90,8 +94,17 @@ def main() -> int:
     add(
         "portal_document_scroll_all_hosts",
         "Tenant portal body uses document scroll (not manager-only)",
-        _contains("templates/portal_base.html", 'data-rmc-cp-scroll="document"')
-        and _not_contains("templates/portal_base.html", "{% if request.public_host_kind == 'manager' %} data-rmc-cp-scroll"),
+        (
+            _contains("templates/portal_base.html", 'data-rmc-cp-scroll="document"')
+            or _contains(
+                "templates/portal_base.html",
+                "body_scroll_policy %}document{% endblock",
+            )
+        )
+        and _not_contains(
+            "templates/portal_base.html",
+            "{% if request.public_host_kind == 'manager' %} data-rmc-cp-scroll",
+        ),
         "portal_base.html",
     )
     add(

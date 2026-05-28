@@ -24,3 +24,8 @@ tr[data-rmc-row-detail="1"]:hover {
 [data-rmc-row-detail-cards="1"] [data-rmc-row-detail="1"]:hover {
   box-shadow: var(--elev-1, 0 1px 3px rgba(0, 0, 0, 0.12));
 }
+
+.rmc-portal-row-detail-drawer__actions:empty,
+.rmc-portal-row-detail-drawer__actions[hidden] {
+  display: none !important;
+}

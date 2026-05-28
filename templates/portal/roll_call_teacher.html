@@ -82,5 +82,7 @@
   <script src="{% static 'js/form-draft-save.js' %}"></script>
   {# FormDraftSave.init is called by the page script after the library loads. #}
   <script src="{% static 'js/_pages/portal__roll_call_teacher.js' %}"></script>
+  {# v4.00.8: progressive WAL enhancement now also covers teacher attendance. #}
+  <script src="{% static 'js/_pages/rmc-attendance-wal-enhance.js' %}" defer></script>
   {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

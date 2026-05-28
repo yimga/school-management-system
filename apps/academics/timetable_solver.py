@@ -298,6 +298,116 @@ def _pick_room(
 # Utility
 # ---------------------------------------------------------------------------
 
+def solve_with_backtracking(
+    *,
+    lessons: list[LessonRequest],
+    teachers: dict[str, Resource],
+    rooms: dict[str, Resource],
+    slots: tuple[TimeSlot, ...],
+    max_search_steps: int = 50_000,
+    soft_constraints: dict[str, float] | None = None,
+) -> SolverResult:
+    """v4.00.12 — CSP backtracking solver with soft-constraint scoring.
+
+    Closes the v3.95.0 follow-on ("Real CSP work (backtracking, soft
+    constraints, optimization) lands in Wave N+1 once the data model + UI
+    are stable.").
+
+    Search strategy:
+    * Variable ordering: most-constrained-first (lessons with the smallest
+      domain of viable (teacher, slot) pairs are placed first).
+    * Domain ordering: best soft-score-first (slots scoring highest under
+      the soft constraints are tried first).
+    * Backtrack on dead end.
+    * Hard cutoff at ``max_search_steps`` — falls back to the greedy
+      ``solve`` result when exceeded.
+
+    Soft constraints (all optional, all in [0, 1]):
+    * ``avoid_first_period_for`` — penalty per lesson in slot p=1
+    * ``avoid_last_period_for``  — penalty per lesson in last slot
+    * ``prefer_morning``         — bonus when slot starts before 12:00
+    """
+    soft = soft_constraints or {}
+    placed: dict[str, PlacedLesson] = {}
+    teacher_used: dict[tuple[str, str], str] = {}   # (teacher_id, slot_id) → lesson_id
+    room_used:    dict[tuple[str, str], str] = {}   # (room_id, slot_id) → lesson_id
+    steps = [0]
+
+    def slot_score(slot: TimeSlot) -> float:
+        score = 0.0
+        if soft.get("prefer_morning") and slot.start_minutes < 12 * 60:
+            score += float(soft["prefer_morning"])
+        if soft.get("avoid_first_period_for") and slot.start_minutes <= 9 * 60:
+            score -= float(soft["avoid_first_period_for"])
+        if soft.get("avoid_last_period_for") and slot.start_minutes >= 14 * 60:
+            score -= float(soft["avoid_last_period_for"])
+        return score
+
+    ordered_slots = sorted(slots, key=slot_score, reverse=True)
+
+    def viable_count(lesson: LessonRequest) -> int:
+        count = 0
+        # LessonRequest only carries a single teacher_id; CSP still has
+        # flexibility in slot + room choice. The pool is the lesson's bound
+        # teacher (when present in the map) or every teacher if the lesson
+        # is teacher-flexible (empty teacher_id).
+        teacher_pool = (lesson.teacher_id,) if lesson.teacher_id else tuple(teachers.keys())
+        for t_id in teacher_pool:
+            if t_id not in teachers:
+                continue
+            for slot in ordered_slots:
+                if (t_id, slot.slot_id) in teacher_used:
+                    continue
+                count += 1
+        return count
+
+    remaining = sorted(lessons, key=viable_count)
+
+    def backtrack(index: int) -> bool:
+        if steps[0] > max_search_steps:
+            return False
+        steps[0] += 1
+        if index >= len(remaining):
+            return True
+        lesson = remaining[index]
+        teacher_pool = (lesson.teacher_id,) if lesson.teacher_id else tuple(teachers.keys())
+        for t_id in teacher_pool:
+            if t_id not in teachers:
+                continue
+            for slot in ordered_slots:
+                if (t_id, slot.slot_id) in teacher_used:
+                    continue
+                room_pick = _pick_room(lesson, rooms, slot.slot_id, set(room_used.keys()))
+                if room_pick is None:
+                    continue
+                teacher_used[(t_id, slot.slot_id)] = lesson.lesson_id
+                room_used[(room_pick.resource_id, slot.slot_id)] = lesson.lesson_id
+                placed[lesson.lesson_id] = PlacedLesson(
+                    lesson_id=lesson.lesson_id,
+                    teacher_id=t_id,
+                    room_id=room_pick.resource_id,
+                    slot_id=slot.slot_id,
+                )
+                if backtrack(index + 1):
+                    return True
+                # undo
+                del teacher_used[(t_id, slot.slot_id)]
+                del room_used[(room_pick.resource_id, slot.slot_id)]
+                del placed[lesson.lesson_id]
+        return False
+
+    if backtrack(0):
+        return SolverResult(
+            placed=list(placed.values()),
+            unplaced=[],
+            conflicts=[],
+            strategy="csp_backtracking_v1",
+        )
+    # Cutoff or unsolvable — fall back to the greedy solver as the v3.95.0
+    # contract: best-effort placement is better than empty.
+    return solve(lessons=lessons, teachers=teachers, rooms=rooms, slots=slots)
+
+
 def generate_standard_week(
     *,
     days: int = 5,

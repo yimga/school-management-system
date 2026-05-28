@@ -42118,3 +42118,477 @@ msgstr ""
 
 msgid "e.g. Example Academy"
 msgstr ""
+
+msgid "Admin portal"
+msgstr ""
+
+msgid "Backend - operations and workflows"
+msgstr ""
+
+msgid "Install with trust, not guesswork."
+msgstr ""
+
+msgid "Open date, time, and weather panel"
+msgstr ""
+
+msgid "Search, time & controls"
+msgstr ""
+
+msgid "Stay focused and keep building."
+msgstr ""
+
+msgid "Weather"
+msgstr ""
+
+msgid "Back to top | Right-click to reset position"
+msgstr ""
+
+msgid "Admission number"
+msgstr ""
+
+msgid "Ask about selection"
+msgstr ""
+
+msgid "Bulk actions"
+msgstr ""
+
+msgid ""
+"Click a row for detail, quick actions, and copilot context — or open the ◉ "
+"Lens tab in the copilot rail."
+msgstr ""
+
+msgid "Context lens"
+msgstr ""
+
+msgid "Context lens — selection & compare"
+msgstr ""
+
+msgid "Copilot views"
+msgstr ""
+
+msgid "Lens"
+msgstr ""
+
+msgid "No students"
+msgstr ""
+
+msgid "Open detail"
+msgstr ""
+
+msgid "Pin to compare"
+msgstr ""
+
+msgid "Pinned rows"
+msgstr ""
+
+msgid "Playbook prompts"
+msgstr ""
+
+msgid ""
+"Row clicks and bulk selections sync here. Open the ✦ copilot when AI chat is"
+" enabled on this host."
+msgstr ""
+
+msgid "Select a row to mirror context here."
+msgstr ""
+
+msgid "{{ counter }} student{% plural %}{{ counter }} students"
+msgstr ""
+
+msgid "Ask copilot"
+msgstr ""
+
+msgid ""
+"Click a row for detail, use checkboxes for bulk actions, or open the ◉ Lens "
+"tab in the copilot rail."
+msgstr ""
+
+msgid "Copy slugs"
+msgstr ""
+
+msgid "Export selected CSV"
+msgstr ""
+
+msgid "Select all operators on this page"
+msgstr ""
+
+msgid "Select all schools on this page"
+msgstr ""
+
+msgid "Select all students on this page"
+msgstr ""
+
+msgid "Select {{ u }}"
+msgstr ""
+
+msgid "Activate {count} selected school(s)?"
+msgstr ""
+
+msgid "Begin offboarding"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+msgid "Confirm bulk action"
+msgstr ""
+
+msgid "Deactivate {count} selected school(s)?"
+msgstr ""
+
+msgid "Dual approve (1st)"
+msgstr ""
+
+msgid "Dual approve (2nd)"
+msgstr ""
+
+msgid "Export ZIP"
+msgstr ""
+
+msgid "Freeze {count} selected school(s)? Tenants enter read-only mode."
+msgstr ""
+
+msgid "Mark alumni"
+msgstr ""
+
+msgid "Mark probation"
+msgstr ""
+
+msgid "Mark returning"
+msgstr ""
+
+msgid "Offboard operators"
+msgstr ""
+
+msgid "Offboard {count} operator(s)? Cannot be undone from this screen."
+msgstr ""
+
+msgid "Preview purge inventory for {count} school(s) (no data deleted)."
+msgstr ""
+
+msgid "Purge dry-run"
+msgstr ""
+
+msgid "Reactivate {count} operator(s)?"
+msgstr ""
+
+msgid "Record first dual-control approval for {count} school(s)."
+msgstr ""
+
+msgid ""
+"Record second dual-control approval for {count} school(s). You must differ "
+"from the first approver."
+msgstr ""
+
+msgid "Revoke active sessions for {count} operator(s)?"
+msgstr ""
+
+msgid "Revoke sessions"
+msgstr ""
+
+msgid ""
+"Run full portability export for {count} school(s)? This may take several "
+"minutes."
+msgstr ""
+
+msgid "Set tier to Security for {count} operator(s)?"
+msgstr ""
+
+msgid "Set tier to Support for {count} operator(s)?"
+msgstr ""
+
+msgid "Set {count} student(s) to Alumni?"
+msgstr ""
+
+msgid "Set {count} student(s) to Probation?"
+msgstr ""
+
+msgid "Set {count} student(s) to Returning?"
+msgstr ""
+
+msgid "Suspend {count} operator(s) and revoke sessions?"
+msgstr ""
+
+msgid "Tier: Security"
+msgstr ""
+
+msgid "Tier: Support"
+msgstr ""
+
+msgid "Unfreeze {count} selected school(s)?"
+msgstr ""
+
+msgid ""
+"Wind down and schedule purge for {count} school(s). This is destructive."
+msgstr ""
+
+msgid "Audit word cloud"
+msgstr ""
+
+msgid "Built-in widgets"
+msgstr ""
+
+msgid "Capacity planning"
+msgstr ""
+
+msgid "Cockpit sections"
+msgstr ""
+
+msgid ""
+"Currently {{ save_count }} default selection saved.{% plural %}Currently {{ "
+"save_count }} default selections saved."
+msgstr ""
+
+msgid "Dashboard defaults"
+msgstr ""
+
+msgid "Defaults saved."
+msgstr ""
+
+msgid "No CTA configured. Set cockpit.signup_form.cta_url via SiteSettings."
+msgstr ""
+
+msgid ""
+"No audit terms configured. Set cockpit.audit_wordcloud.terms via "
+"SiteSettings to populate this card."
+msgstr ""
+
+msgid ""
+"No capacity lanes configured. Set cockpit.capacity_planning.lanes via "
+"SiteSettings to populate this card."
+msgstr ""
+
+msgid ""
+"No clocks configured. Set cockpit.regional_clocks.clocks via SiteSettings to"
+" populate this card."
+msgstr ""
+
+msgid "No cockpit sections are admissible for this page's host scope."
+msgstr ""
+
+msgid ""
+"No onboarding stages configured. Set cockpit.onboarding_pipeline.stages via "
+"SiteSettings to populate this card."
+msgstr ""
+
+msgid "No widgets are defined for this page in the DashboardWidget catalog."
+msgstr ""
+
+msgid "Onboarding pipeline"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid ""
+"Per (role, page) operator-curated defaults that new users inherit on first "
+"dashboard load. Built-in widgets and cockpit sections selected here are pre-"
+"included even if a user has no personal layout."
+msgstr ""
+
+msgid "Regional clocks"
+msgstr ""
+
+msgid "Site footer"
+msgstr ""
+
+msgid "Stalled"
+msgstr ""
+
+msgid ""
+"Tick cockpit sections to promote onto this role+page dashboard by default. "
+"Each section's content is still controlled by its own "
+"SiteSettings.cockpit_payload block."
+msgstr ""
+
+msgid ""
+"Tick widgets that should be pre-included on first dashboard load for this "
+"role + page."
+msgstr ""
+
+msgid ""
+"Apply a curated set of cockpit sections to a role/page default layout in one"
+" POST."
+msgstr ""
+
+msgid "Biggest drop-off"
+msgstr ""
+
+msgid "Cockpit promote presets"
+msgstr ""
+
+msgid "No SetupProgress data yet."
+msgstr ""
+
+msgid "No layout data yet."
+msgstr ""
+
+msgid "P50 sec"
+msgstr ""
+
+msgid "P95 sec"
+msgstr ""
+
+msgid ""
+"Per-wizard completion rates, drop-off points, and widget placement heatmap. "
+"Read-only — derived from SetupProgress + DashboardLayout."
+msgstr ""
+
+msgid "Placed"
+msgstr ""
+
+msgid "Promoted"
+msgstr ""
+
+msgid "Widget heatmap"
+msgstr ""
+
+msgid "Widget id"
+msgstr ""
+
+msgid "Wizard"
+msgstr ""
+
+msgid "Wizard activation"
+msgstr ""
+
+msgid "Wizard stats"
+msgstr ""
+
+msgid "Admissions queue depth"
+msgstr ""
+
+msgid "Awaiting review"
+msgstr ""
+
+msgid "Find a wizard"
+msgstr ""
+
+msgid "No applicants yet."
+msgstr ""
+
+msgid "Pick up where you left off."
+msgstr ""
+
+msgid "Search wizards"
+msgstr ""
+
+msgid "Suggested next steps:"
+msgstr ""
+
+msgid "Try: gradebook, attendance, payment, password…"
+msgstr ""
+
+msgid "Wizards in progress"
+msgstr ""
+
+msgid ""
+"You have {{ counter }} wizard in progress.{% plural %}You have {{ counter }}"
+" wizards in progress."
+msgstr ""
+
+msgid "at"
+msgstr ""
+
+msgid "steps done"
+msgstr ""
+
+msgid "{{ count }} applicants in stage {{ label }}"
+msgstr ""
+
+msgid "{{ wizard_key }} complete."
+msgstr ""
+
+msgid "Applicants by stage"
+msgstr ""
+
+msgid "Enrollment forecast"
+msgstr ""
+
+msgid "Not enough enrollment history to project yet."
+msgstr ""
+
+msgid "Students by status"
+msgstr ""
+
+msgid "stale"
+msgstr ""
+
+msgid "{{ count }} stale applicants in stage {{ label }}"
+msgstr ""
+
+msgid "Add subject (CODE:value)"
+msgstr ""
+
+msgid "Auto-build"
+msgstr ""
+
+msgid "Auto-build timetable"
+msgstr ""
+
+msgid "Build timetable"
+msgstr ""
+
+msgid "CA marks input"
+msgstr ""
+
+msgid "Continuous assessment marks"
+msgstr ""
+
+msgid "Issues"
+msgstr ""
+
+msgid "Manifest JSON"
+msgstr ""
+
+msgid "Monetization manifest inspector"
+msgstr ""
+
+msgid ""
+"Paste a JSON problem definition (lessons + teachers + rooms + slots) and let"
+" the CSP backtracking solver propose an assignment."
+msgstr ""
+
+msgid ""
+"Paste a partner monetization sub-manifest. The inspector runs the same "
+"validator chained into the partner manifest validator."
+msgstr ""
+
+msgid "Per-subject CA breakdown"
+msgstr ""
+
+msgid "Pricing model"
+msgstr ""
+
+msgid "Pricing models"
+msgstr ""
+
+msgid "Problem definition (JSON)"
+msgstr ""
+
+msgid "Reference: approved values"
+msgstr ""
+
+msgid ""
+"Required fields per shape: lesson_id, class_id, subject, teacher_id on each "
+"lesson; resource_id + display_name on each teacher/room; slot_id + "
+"day_of_week + start_minutes + end_minutes on each slot."
+msgstr ""
+
+msgid "Save CA marks"
+msgstr ""
+
+msgid "Settlement provider"
+msgstr ""
+
+msgid "Settlement providers"
+msgstr ""
+
+msgid "Single aggregate value used by the board export."
+msgstr ""
+
+msgid "Total CA mark"
+msgstr ""
+
+msgid "Validation result"
+msgstr ""

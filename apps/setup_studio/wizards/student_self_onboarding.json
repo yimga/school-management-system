@@ -1,0 +1,107 @@
+{
+  "wizard_key": "student_self_onboarding",
+  "version": 1,
+  "audience": ["student"],
+  "label_token": "wizards.student_self_onboarding.label",
+  "description_token": "wizards.student_self_onboarding.description",
+  "icon_class": "rmc-icon-mortarboard",
+  "estimated_minutes": 4,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "identity",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "first_name",
+          "type": "text",
+          "required": true,
+          "validation": {"max_length": 100}
+        },
+        {
+          "name": "last_name",
+          "type": "text",
+          "required": true,
+          "validation": {"max_length": 100}
+        },
+        {
+          "name": "preferred_name",
+          "type": "text",
+          "required": false,
+          "validation": {"max_length": 100}
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "required": true,
+          "validation": {"email_shape": true, "max_length": 254}
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_student_self_onboarding_step"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "academic_context",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "admission_number",
+          "type": "text",
+          "required": false,
+          "validation": {"max_length": 64}
+        },
+        {
+          "name": "current_grade",
+          "type": "text",
+          "required": false,
+          "validation": {"max_length": 32}
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_student_self_onboarding_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "preferences",
+      "input_type": "structured_form",
+      "fields": [
+        {
+          "name": "preferred_language",
+          "type": "select",
+          "required": true,
+          "choices_resolver": "apps.setup_studio.wizard_resolvers::list_supported_locales"
+        },
+        {
+          "name": "default_dashboard_view",
+          "type": "select",
+          "required": false
+        }
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_student_self_onboarding_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "profile_photo",
+      "input_type": "image_upload",
+      "validation": {
+        "required": false,
+        "allowed_extensions": ["jpg", "jpeg", "png", "webp"],
+        "max_file_bytes": 8388608
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_student_self_onboarding_step"
+      },
+      "estimated_seconds": 60
+    }
+  ]
+}

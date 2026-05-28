@@ -52,6 +52,10 @@
               title="{% trans 'Open AI copilot' %}"
               aria-label="{% trans 'Open AI copilot' %}">✦</button>
       <button class="lx-copilot__rail-icon" type="button"
+              data-rmc-copilot-tab="lens"
+              title="{% trans 'Context lens — selection & compare' %}"
+              aria-label="{% trans 'Context lens' %}">◉</button>
+      <button class="lx-copilot__rail-icon" type="button"
               data-rmc-copilot-tab="actions"
               title="{% trans 'Suggested actions' %}"
               aria-label="{% trans 'Suggested actions' %}">⚡</button>
@@ -101,9 +105,22 @@
       {# Tab strip — flips with [data-rmc-copilot-active-tab] on the rail. #}
       <nav class="lx-copilot__tabs" role="tablist" aria-label="{% trans 'Copilot sections' %}">
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="chat"  role="tab">{% trans 'Chat' %}</button>
+        <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="lens" role="tab">{% trans 'Lens' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="actions" role="tab">{% trans 'Actions' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="threads" role="tab">{% trans 'Threads' %}</button>
       </nav>
+
+      <p class="lx-copilot__selection small text-secondary mb-0 px-3" data-rmc-copilot-rail-selection aria-live="polite"></p>
+
+      <div class="lx-copilot__insights-wrap px-3 pb-2" data-rmc-copilot-rail-insights-block>
+        <div class="lx-copilot__insights-head d-flex align-items-center justify-content-between gap-2 mb-1">
+          <span class="small text-uppercase text-secondary">{% trans "Pulse" %}</span>
+          <span class="lx-copilot__insights-source small text-secondary" data-rmc-copilot-rail-insights-source aria-hidden="true"></span>
+        </div>
+        <ul class="lx-copilot__insights-list list-unstyled mb-0" data-rmc-copilot-rail-insights-list aria-live="polite">
+          <li class="lx-copilot__insight lx-copilot__insight--skeleton"><span class="lx-copilot__insight-line"></span></li>
+        </ul>
+      </div>
 
       <div class="lx-copilot__page-help-wrap">
         <a class="lx-copilot__page-help" href="{{ rmc_copilot_page_help_url }}" data-rmc-page-help
@@ -138,6 +155,11 @@
         {% endif %}
       </div>
 
+      {# Context Lens — mirrors the active table row + compare pins + playbooks. #}
+      <div class="lx-copilot__pane lx-copilot__pane--lens" data-rmc-copilot-pane="lens">
+        {% include "partials/copilot_lens_root_inner.html" %}
+      </div>
+
       {% comment %} Actions pane — surfaces the quick-actions list that rmc-copilot-rail.js
          (services bridge) hydrates from /studio/copilot/rail/context/. {% endcomment %}
       <div class="lx-copilot__pane" data-rmc-copilot-pane="actions">
@@ -164,5 +186,11 @@
       </div>
     </div>
   </div>
+  {% url 'studio_os:copilot_rail_context' as copilot_rail_context_url %}
+  {% url 'studio_os:copilot_rail_insights' as copilot_rail_insights_url %}
+  <span hidden data-rmc-copilot-rail-endpoints
+        data-context-url="{{ copilot_rail_context_url }}"
+        data-insights-url="{{ copilot_rail_insights_url }}"
+        data-current-mode="operator"></span>
 </aside>
 {% endif %}

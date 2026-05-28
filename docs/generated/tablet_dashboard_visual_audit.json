@@ -1,0 +1,25 @@
+{
+  "generated_at": "2026-05-28T13:04:27.159200+00:00",
+  "tenant_host": "gilead-school.runmycampus.com",
+  "tenant_base": "http://gilead-school.runmycampus.com:8000",
+  "steps": [
+    {
+      "step": "playwright_tablet_spec",
+      "ok": false,
+      "exit_code": 1
+    },
+    {
+      "step": "abrupt_end_portrait",
+      "viewport": "768x1024",
+      "ok": true,
+      "exit_code": 0
+    },
+    {
+      "step": "abrupt_end_landscape",
+      "viewport": "1024x768",
+      "ok": true,
+      "exit_code": 0
+    }
+  ],
+  "pass": false
+}

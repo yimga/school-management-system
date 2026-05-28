@@ -242,6 +242,14 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         ]
         ctx["page_title"] = _("Cockpit configuration")
         ctx["cockpit_configure_url"] = self.request.path
+        # v3.99.25: accept ?section=<section_id> from the dashboard gallery's
+        # cockpit-configure deep-link. The template uses this to scroll/focus
+        # the matching fieldset; no-op when missing or unknown.
+        requested_section = (self.request.GET.get("section") or "").strip().lower()
+        if requested_section and requested_section.replace("_", "").replace("-", "").isalnum():
+            ctx["focus_section"] = requested_section
+        else:
+            ctx["focus_section"] = ""
         return ctx
 
     # ------------------------------------------------------------------

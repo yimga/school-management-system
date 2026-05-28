@@ -106,6 +106,25 @@ def validate_partner_template_manifest(manifest: dict[str, Any]) -> ValidationRe
     if publisher_verified_at and "T" not in publisher_verified_at:
         findings.append("publisher_verified_at must be ISO-8601 timestamp")
 
+    # v4.00.12: wire the monetization sub-manifest validator. When the partner
+    # manifest carries a top-level ``monetization`` object, validate it through
+    # the dedicated kernel and merge findings. ``RMC_TEMPLATE_MONETIZATION_ENABLED``
+    # remains the platform-level gate; this just guarantees that bad shapes
+    # never sneak through as "valid" partner manifests.
+    monetization_payload = manifest.get("monetization")
+    if monetization_payload is not None:
+        try:
+            from apps.marketplace.template_monetization_manifest import (
+                validate_monetization_manifest,
+            )
+
+            mz_result = validate_monetization_manifest(monetization_payload)
+            if not mz_result.ok:
+                for f in mz_result.findings:
+                    findings.append(f"monetization: {f}")
+        except Exception as exc:  # noqa: BLE001 — surface as a normal finding, never crash
+            findings.append(f"monetization: validator unavailable ({exc})")
+
     return ValidationResult(
         ok=len(findings) == 0,
         findings=tuple(findings),

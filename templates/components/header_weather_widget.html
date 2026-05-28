@@ -1,13 +1,10 @@
-{% load static %}
-{% comment %} Operational chrome strip (datetime + weather + motivational quote) — only shows for
-   authenticated users. The /find/, /access/, login, and marketing surfaces would otherwise
-   leak this teacher/admin-context strip into anonymous public views. {% endcomment %}
+{% load static i18n %}
+{% comment %} Compact temporal dock: balanced header footprint with a tap-to-expand detail panel. {% endcomment %}
 {% with show_strip=SHOW_HEADER_CONTEXT_STRIP|default:True show_datetime=SHOW_HEADER_CONTEXT_DATETIME|default:True show_weather=SHOW_HEADER_CONTEXT_WEATHER|default:True show_quote=SHOW_HEADER_CONTEXT_QUOTE|default:True %}
 {% if request.user.is_authenticated and show_strip %}
 {% if show_datetime or show_weather or show_quote %}
-
 <div
-  class="header-context-strip"
+  class="header-context-dock dropdown"
   data-header-context
   data-weather-endpoint="{% url 'api_weather_context' %}"
   data-weather-lat="{{ HEADER_WEATHER_LATITUDE|default:'0' }}"
@@ -16,30 +13,47 @@
   data-local-timezone="{{ HEADER_WEATHER_TIMEZONE|default:'UTC' }}"
   data-global-timezone="UTC"
 >
-  {% if show_datetime %}
-  <span class="header-context-segment header-context-segment--datetime">
-    <i class="header-context-icon bi bi-calendar3" aria-hidden="true"></i>
-    <span class="header-context-value" data-header-datetime>--</span>
-    <span class="header-context-value header-context-value--global text-muted small" data-header-datetime-global hidden></span>
-  </span>
-  {% endif %}
-
-  {% if show_weather %}
-  <span class="header-context-segment header-context-segment--weather">
-    <i class="header-context-icon bi bi-cloud" data-header-weather-icon aria-hidden="true"></i>
-    <span class="header-context-value" data-header-weather-temp>--</span>
-    <span class="header-context-value" data-header-weather-desc>{% if HEADER_WEATHER_LABEL %}{{ HEADER_WEATHER_LABEL }}{% else %}Weather{% endif %}</span>
-  </span>
-  {% endif %}
-
-  {% if show_quote %}
-  <span class="header-context-segment header-context-segment--quote">
-    <i class="header-context-icon bi bi-lightbulb" aria-hidden="true"></i>
-    <span class="header-context-value" data-header-quote>Stay focused and keep building.</span>
-  </span>
-  {% endif %}
+  <button
+    class="btn btn-outline-light btn-sm header-context-dock__trigger dropdown-toggle"
+    type="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+    aria-label="{% trans 'Open date, time, and weather panel' %}"
+  >
+    <i class="bi bi-clock-history header-context-dock__clock" aria-hidden="true"></i>
+    <span class="header-context-dock__time" data-header-datetime-compact>--</span>
+    {% if show_weather %}
+    <span class="header-context-dock__weather">
+      <i class="header-context-icon bi bi-cloud" data-header-weather-icon aria-hidden="true"></i>
+      <span data-header-weather-temp>--</span>
+    </span>
+    {% endif %}
+  </button>
+  <div class="dropdown-menu dropdown-menu-end header-context-dock__menu">
+    {% if show_datetime %}
+    <div class="header-context-dock__row">
+      <span class="header-context-dock__label">{% trans "Local" %}</span>
+      <strong class="header-context-dock__value" data-header-datetime>--</strong>
+    </div>
+    <div class="header-context-dock__row">
+      <span class="header-context-dock__label">{% trans "UTC" %}</span>
+      <span class="header-context-dock__value text-muted small" data-header-datetime-global hidden></span>
+    </div>
+    {% endif %}
+    {% if show_weather %}
+    <div class="header-context-dock__row">
+      <span class="header-context-dock__label">{% trans "Weather" %}</span>
+      <span class="header-context-dock__value" data-header-weather-desc>{% if HEADER_WEATHER_LABEL %}{{ HEADER_WEATHER_LABEL }}{% else %}{% trans "Weather" %}{% endif %}</span>
+    </div>
+    {% endif %}
+    {% if show_quote %}
+    <div class="header-context-dock__row header-context-dock__row--quote">
+      <span class="header-context-dock__label">{% trans "Focus" %}</span>
+      <em class="header-context-dock__value" data-header-quote>{% trans "Stay focused and keep building." %}</em>
+    </div>
+    {% endif %}
+  </div>
 </div>
-
 <script src="{% static 'js/_pages/components__header_weather_widget.js' %}"></script>
 {% endif %}
 {% endif %}

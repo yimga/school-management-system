@@ -136,10 +136,14 @@ from .views_ai_draft import (
 from .views_education_pack import education_pack_parent, education_pack_teacher
 from .views_partner_docs import partner_documentation_assistant
 from .views_runmycampus_guide import runmycampus_guide
+# v4.00.9: streaming AI gateway view for the rmcStreamMount progressive client.
+from .views_ai_stream import ai_stream_view
 
 app_name = "portal"
 
 urlpatterns = [
+    # v4.00.9: streaming AI gateway — SSE chunks for rmcStreamMount.
+    path("ai/stream/", ai_stream_view, name="ai_stream"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

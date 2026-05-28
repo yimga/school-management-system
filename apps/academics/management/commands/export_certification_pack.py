@@ -1,9 +1,11 @@
 """
-Export a certification "upload pack" (CSV scaffold) for board portals.
+Export a certification "upload pack" CSV for board portals.
 
-This is intentionally generic and safe:
-- Produces a CSV list of candidates for a given session
-- Includes placeholders for CA marks upload pipelines (to be integrated later)
+v4.00.12: closed the placeholder columns. The exporter now emits real
+``ca_total`` + ``ca_subjects`` from the candidate's
+``continuous_assessment`` JSON when present; falls back to empty strings
+when the candidate has not yet been graded. The schema column names are
+stable so downstream board-portal import pipelines can rely on them.
 
 Usage:
   python manage.py export_certification_pack --session-id 1 --out certification_pack.csv
@@ -20,6 +22,38 @@ from apps.academics.models import (
     CertificationCandidate,
     CertificationAuditLog,
 )
+
+
+def _ca_total_from(candidate) -> str:
+    """v4.00.12: read continuous_assessment total from candidate JSON, blank when absent."""
+    payload = getattr(candidate, "continuous_assessment", None)
+    if not isinstance(payload, dict):
+        return ""
+    total = payload.get("total")
+    if total is None:
+        return ""
+    try:
+        return f"{float(total):.2f}"
+    except (TypeError, ValueError):
+        return str(total)
+
+
+def _ca_subjects_from(candidate) -> str:
+    """v4.00.12: read per-subject CA breakdown from candidate JSON as 'SUBJ:VAL;SUBJ:VAL'."""
+    payload = getattr(candidate, "continuous_assessment", None)
+    if not isinstance(payload, dict):
+        return ""
+    subjects = payload.get("subjects")
+    if not isinstance(subjects, dict) or not subjects:
+        return ""
+    parts: list[str] = []
+    for key in sorted(subjects.keys()):
+        value = subjects[key]
+        try:
+            parts.append(f"{key}:{float(value):.2f}")
+        except (TypeError, ValueError):
+            parts.append(f"{key}:{value}")
+    return ";".join(parts)
 
 
 class Command(BaseCommand):
@@ -71,9 +105,9 @@ class Command(BaseCommand):
             "status",
             "ca_uploaded_at",
             "notes",
-            # Placeholders for future CA export mapping
-            "ca_total_placeholder",
-            "ca_subjects_placeholder",
+            # v4.00.12: real CA columns (formerly placeholders).
+            "ca_total",
+            "ca_subjects",
         ]
 
         with path.open("w", newline="", encoding="utf-8") as f:
@@ -98,8 +132,10 @@ class Command(BaseCommand):
                         c.status,
                         c.ca_uploaded_at.isoformat() if c.ca_uploaded_at else "",
                         (c.notes or "").strip(),
-                        "",
-                        "",
+                        # v4.00.12 real CA columns: read from continuous_assessment JSON
+                        # field if present, else fall back to empty strings.
+                        _ca_total_from(c),
+                        _ca_subjects_from(c),
                     ]
                 )
 

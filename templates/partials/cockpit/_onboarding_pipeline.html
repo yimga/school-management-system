@@ -1,0 +1,35 @@
+{% load i18n %}
+{% comment %} v3.99.25 (2026-05-28): Honest stub for the onboarding_pipeline
+   cockpit section so promote-to-dashboard renders cleanly.
+
+   Configurable via cockpit.onboarding_pipeline:
+     .enabled
+     .eyebrow / .title / .meta_text
+     .stages   list — [{name, count, stalled}]
+{% endcomment %}
+{% if cockpit.onboarding_pipeline.enabled %}
+<section class="lx-card lx-onboarding" aria-label="{% trans 'Onboarding pipeline' %}" data-rmc-cockpit-section="onboarding_pipeline">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.onboarding_pipeline.eyebrow|default:_("Onboarding · funnel") }}</div>
+      <h3 class="lx-card__title">{{ cockpit.onboarding_pipeline.title|default:_("Onboarding pipeline") }}</h3>
+    </div>
+    {% if cockpit.onboarding_pipeline.meta_text %}<div class="lx-card__meta">{{ cockpit.onboarding_pipeline.meta_text }}</div>{% endif %}
+  </div>
+  {% if cockpit.onboarding_pipeline.stages %}
+    <ol class="list-group list-group-numbered mb-0">
+      {% for stage in cockpit.onboarding_pipeline.stages %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>
+            <strong>{{ stage.name }}</strong>
+            {% if stage.stalled %}<span class="badge bg-warning text-dark ms-1">{% trans "Stalled" %}</span>{% endif %}
+          </span>
+          <span class="font-monospace">{{ stage.count|default:0 }}</span>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="text-muted small mb-0">{% trans "No onboarding stages configured. Set cockpit.onboarding_pipeline.stages via SiteSettings to populate this card." %}</p>
+  {% endif %}
+</section>
+{% endif %}

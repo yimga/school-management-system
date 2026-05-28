@@ -166,6 +166,7 @@ try:
         backend_applicant_create,
         alumni_list,
     )
+    from apps.people.views_backend_bulk import backend_student_bulk_status
 
     BACKEND_PEOPLE_AVAILABLE = True
 except ImportError:
@@ -634,6 +635,13 @@ urlpatterns = [
     path("saml/metadata/<int:integration_id>/", saml_metadata, name="saml_metadata"),  # rbac-allow: SAML metadata XML must be publicly fetchable
     # Backend UI for People Management
     path("backend/students/", backend_student_list, name="backend_student_list")
+    if BACKEND_PEOPLE_AVAILABLE
+    else None,
+    path(
+        "backend/students/bulk/status/",
+        backend_student_bulk_status,
+        name="backend_student_bulk_status",
+    )
     if BACKEND_PEOPLE_AVAILABLE
     else None,
     path("backend/alumni/", alumni_list, name="backend_alumni_list")

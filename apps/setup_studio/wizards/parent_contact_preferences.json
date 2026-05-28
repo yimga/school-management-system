@@ -1,0 +1,49 @@
+{
+  "wizard_key": "parent_contact_preferences",
+  "version": 1,
+  "audience": ["parent"],
+  "label_token": "wizards.parent_contact_preferences.label",
+  "description_token": "wizards.parent_contact_preferences.description",
+  "icon_class": "rmc-icon-bell",
+  "estimated_minutes": 3,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "channels",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers_domain::list_communication_channel_choices",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_parent_contact_preferences_step"
+      },
+      "estimated_seconds": 45
+    },
+    {
+      "key": "quiet_hours",
+      "input_type": "structured_form",
+      "fields": [
+        {"name": "quiet_hours_start", "type": "text", "required": false, "validation": {"pattern": "^[0-9]{2}:[0-9]{2}$"}},
+        {"name": "quiet_hours_end",   "type": "text", "required": false, "validation": {"pattern": "^[0-9]{2}:[0-9]{2}$"}},
+        {"name": "respect_weekends", "type": "boolean", "required": false}
+      ],
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_parent_contact_preferences_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "topic_opt_ins",
+      "input_type": "multi_choice",
+      "options_resolver": "apps.setup_studio.wizard_resolvers_domain::list_parent_topic_choices",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_domain::write_parent_contact_preferences_step"
+      },
+      "estimated_seconds": 60
+    }
+  ]
+}

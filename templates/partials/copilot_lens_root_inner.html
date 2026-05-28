@@ -1,0 +1,18 @@
+{% load i18n %}
+{# Shared Context Lens DOM — mounted in manager rail + tenant sheet + floating copilot. #}
+<div class="rmc-copilot-lens-root" data-rmc-copilot-lens-root="1">
+  <p class="lx-copilot__lens-eyebrow small text-uppercase text-secondary mb-1" data-rmc-copilot-lens-eyebrow>{% trans "Context lens" %}</p>
+  <p class="lx-copilot__lens-empty small text-muted mb-2" data-rmc-copilot-lens-empty>{% trans "Select a row to mirror context here." %}</p>
+  <div class="lx-copilot__lens-card mb-2">
+    <div class="lx-copilot__lens-title fw-semibold" data-rmc-copilot-lens-title></div>
+    <div class="lx-copilot__lens-sub small text-muted" data-rmc-copilot-lens-subtitle></div>
+    <div class="lx-copilot__lens-meta mt-2" data-rmc-copilot-lens-meta></div>
+    <div class="d-flex flex-wrap gap-2 mt-2" data-rmc-copilot-lens-actions></div>
+  </div>
+  <div class="d-flex flex-wrap gap-2 mb-2">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-rmc-copilot-lens-pin>{% trans "Pin to compare" %}</button>
+    <button type="button" class="btn btn-sm btn-primary" data-rmc-copilot-lens-ask>{% trans "Ask about selection" %}</button>
+  </div>
+  <ul class="lx-copilot__lens-pins list-unstyled small mb-3" data-rmc-copilot-lens-pins aria-label="{% trans 'Pinned rows' %}"></ul>
+  <div class="lx-copilot__lens-chips d-flex flex-column gap-1" data-rmc-copilot-lens-chips role="group" aria-label="{% trans 'Playbook prompts' %}"></div>
+</div>

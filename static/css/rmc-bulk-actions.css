@@ -1,0 +1,120 @@
+/* v4.00.12 — Platform-wide list-page bulk actions + status pill grammar.
+   Both primitives are intentionally framework-agnostic — pure CSS, semantic
+   tokens only. Pages opt in by adding the `data-rmc-bulk-table` attribute
+   to a <table> + including the toolbar partial.
+*/
+
+/* --- Status pill grammar ------------------------------------------------- */
+.rmc-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 1.5rem;
+  padding: 0.125rem 0.6rem;
+  border-radius: 9999px;
+  font-size: var(--type-size-1);
+  font-weight: var(--font-weight-semibold, 600);
+  text-decoration: none;
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  transition: background var(--motion-fast, 120ms) var(--ease-out, ease-out),
+              border-color var(--motion-fast, 120ms) var(--ease-out, ease-out);
+}
+.rmc-status-pill:hover,
+.rmc-status-pill:focus-visible {
+  background: var(--surface-elevated);
+  border-color: var(--text-link, currentColor);
+}
+.rmc-status-pill--actionable {
+  background: var(--surface-canvas);
+  color: var(--text-link, var(--brand-primary));
+  border-color: var(--text-link, var(--brand-primary));
+}
+.rmc-status-pill--muted {
+  color: var(--text-secondary);
+  background: var(--surface-canvas);
+}
+.rmc-status-pill--success {
+  color: var(--text-success, var(--brand-accent));
+  border-color: var(--text-success, var(--brand-accent));
+}
+.rmc-status-pill--warning {
+  color: var(--text-warning, #b45309);
+  border-color: var(--text-warning, #b45309);
+}
+.rmc-status-pill--danger {
+  color: var(--text-danger, #b91c1c);
+  border-color: var(--text-danger, #b91c1c);
+}
+
+/* --- Bulk-actions toolbar ------------------------------------------------ */
+.rmc-bulk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 8px);
+  margin-bottom: var(--space-2);
+  font-size: var(--type-size-2);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--motion-fast, 120ms) var(--ease-out, ease-out),
+              transform var(--motion-fast, 120ms) var(--ease-out, ease-out);
+}
+.rmc-bulk-toolbar[data-rmc-bulk-active="1"] {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+.rmc-bulk-toolbar__count {
+  font-weight: var(--font-weight-bold, 700);
+  color: var(--text-link, var(--brand-primary));
+}
+.rmc-bulk-toolbar__sep {
+  height: 1.25rem;
+  width: 1px;
+  background: var(--hairline);
+}
+.rmc-bulk-toolbar__actions {
+  display: flex;
+  gap: var(--space-1);
+}
+.rmc-bulk-toolbar__action {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm, 4px);
+  font-size: var(--type-size-1);
+  cursor: pointer;
+}
+.rmc-bulk-toolbar__action:hover,
+.rmc-bulk-toolbar__action:focus-visible {
+  background: var(--surface-elevated);
+}
+.rmc-bulk-toolbar__action--danger {
+  color: var(--text-danger, #b91c1c);
+  border-color: var(--text-danger, #b91c1c);
+}
+.rmc-bulk-toolbar__clear {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--type-size-1);
+  text-decoration: underline;
+}
+
+[data-rmc-bulk-table] [data-rmc-bulk-checkbox] {
+  width: 1rem;
+  height: 1rem;
+}
+[data-rmc-bulk-table] tr[data-rmc-bulk-selected="1"] {
+  background: var(--surface-elevated);
+}

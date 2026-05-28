@@ -103,6 +103,10 @@
   background: var(--surface-elevated);
   border: 1px solid var(--hairline);
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rmc-wizard-stepper__item--done {

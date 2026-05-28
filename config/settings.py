@@ -204,6 +204,7 @@ INSTALLED_APPS = [
     "apps.accounts.apps.AccountsConfig",
     "apps.customers",
     "apps.tenancy.apps.TenancyConfig",
+    "apps.wal_stream.apps.WalStreamConfig",  # v4.00.0: WS WAL outbox + Redis Streams sink (no models)
     "apps.policies.apps.PoliciesConfig",
     "apps.events.apps.EventsConfig",
     "apps.marketplace.apps.MarketplaceConfig",
@@ -278,6 +279,7 @@ MIDDLEWARE = [
     # after CORS so preflights aren't impacted, before everything that could
     # mutate the response.
     "apps.api.middleware_idempotency.IdempotencyKeyMiddleware",
+    "apps.api.middleware_edge_fallback.EdgeSWRFallbackMiddleware",  # v4.00.0: Django-side SWR for /api/v1/runtime/* when no CDN is in front
     "config.middleware.BlockScannerPathsMiddleware",  # 404 for .git, terraform, wp-config, etc.
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "apps.accounts.middleware.ManagerCookieIsolationMiddleware",  # Manager host gets separate session/csrf cookie names
@@ -291,6 +293,7 @@ MIDDLEWARE = [
     "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
     "apps.schools.middleware.RlsResetOnExceptionMiddleware",  # RESET app.current_school_id on response or exception
     "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
+    "apps.tenancy.middleware_rls_jwt.RLSJWTBindingMiddleware",  # v4.00.0: bind app.current_school_id from signed JWT (RLS mode only; no-op under SCHEMA)
     "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
     "apps.platform_runtime.middleware_regional_db.RegionalDatabaseMiddleware",  # Glocal 1535: thread-local shard when ENABLE_MULTI_REGION
     # v2.79: bind request.school into the email-backend thread-local so any
@@ -1425,6 +1428,15 @@ if REDIS_URL and not RUNNING_TESTS:
     SESSION_CACHE_ALIAS = "default"
 if RUNNING_TESTS:
     SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_PINNING_ENABLED = os.getenv(
+    "SESSION_PINNING_ENABLED", "1"
+).strip().lower() in ("1", "true", "yes", "on")
+
+# Playwright / local E2E: keep sessions in sqlite so export + runserver share state.
+if os.getenv("RMC_FORCE_DB_SESSIONS", "").strip().lower() in ("1", "true", "yes"):
+    SESSION_ENGINE = "django.contrib.sessions.backends.db"
+    # Test client exports empty UA; Playwright/curl send a real UA — disable pin flush.
+    SESSION_PINNING_ENABLED = False
 
 # --- Celery (background tasks; broker uses REDIS_URL when set) ---
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL") or REDIS_URL or ""
@@ -1454,6 +1466,16 @@ except ImportError:  # pragma: no cover - celery is in requirements.txt
 # Celery Beat schedule for periodic tasks
 # Optional tasks (requests reminder, deadline reminder) respect Site Settings: 0 = no-op
 CELERY_BEAT_SCHEDULE = {
+    # v4.00.0: WAL stream drainer beat. Worker code is in apps.wal_stream.tasks.
+    # Periodic fan-out lives in a tiny dispatch task that walks the active tenant
+    # set and queues drain_tenant_stream per tenant_hash. Defaults every 30s when
+    # Celery beat resolves; short intervals are intentional — attendance flushes
+    # must clear before the operator opens the next class period.
+    "wal-stream-drain-fanout": {
+        "task": "wal_stream.drain_fanout",
+        "schedule": 30.0,
+        "options": {"expires": 60},
+    },
     # Unified Wizard Framework — refresh SetupProgress.recommendations for every active school.
     # Runs Mondays 04:00 UTC. Handler is apps.setup_studio.wizard_ai.refresh_setup_recommendations,
     # invoked via a thin task wrapper that walks active schools (rate-limited per the v3.39.0
@@ -1465,6 +1487,17 @@ CELERY_BEAT_SCHEDULE = {
             _celery_crontab(hour=4, minute=0, day_of_week="mon")
             if _celery_crontab is not None else 3600.0
         ),
+        "options": {"expires": 3600},
+    },
+    # v4.00.14 — auto-prune incomplete wizard state older than 30 days from
+    # SetupProgress.step_state. Sundays 03:00 UTC (off-peak across timezones).
+    "setup-studio-prune-stale-resumable-wizards": {
+        "task": "setup_studio.prune_stale_resumable_wizards",
+        "schedule": (
+            _celery_crontab(hour=3, minute=0, day_of_week="sun")
+            if _celery_crontab is not None else 604800.0
+        ),
+        "kwargs": {"older_than_days": 30},
         "options": {"expires": 3600},
     },
     # Move 2 — orchestration runner: drain pending runs every minute.
@@ -2890,6 +2923,31 @@ OLLAMA_PULL_TIMEOUT_SECONDS = max(60, min(_pull_to, 86400))
 # --- Application Version ---
 APP_VERSION = "3.2.1"  # System version for dashboard footer
 
+# --- v4.00.0 Zero-latency mandate envelope settings -------------------------
+# All are env-overridable, all optional. Documented in docs/EDGE_TOPOLOGY.md
+# and docs/WAL_STREAM.md.
+#
+# RLS-JWT signing key (HS256). Production MUST set the env var. Dev environments
+# fall back to a SECRET_KEY-derived material via the middleware itself, so the
+# middleware never raises when this is unset — it just silently no-ops bind.
+RMC_RLS_JWT_SIGNING_KEY = os.getenv("RMC_RLS_JWT_SIGNING_KEY", "").strip()
+# RLS-JWT signing backend selector. Honored by services.rls_jwt_signing.
+# Values: "local-env-key" (default) | "aws-kms" | "azure-keyvault" |
+# "hashicorp-vault" | "gcp-kms". HSM backends raise NotImplementedError
+# until configured; this prevents accidental downgrade to local-key in prod.
+RMC_RLS_JWT_SIGNING_BACKEND = os.getenv("RMC_RLS_JWT_SIGNING_BACKEND", "local-env-key").strip()
+# Edge Worker integration. When unset, services.edge_cache.purge_surrogate_keys
+# silently no-ops (the edge SWR window expires anyway).
+RMC_EDGE_FALLBACK_ENABLED = os.getenv("RMC_EDGE_FALLBACK_ENABLED", "").strip()
+RMC_EDGE_PURGE_URL = os.getenv("RMC_EDGE_PURGE_URL", "").strip()
+RMC_EDGE_PURGE_HMAC_KEY = os.getenv("RMC_EDGE_PURGE_HMAC_KEY", "").strip()
+try:
+    RMC_EDGE_PURGE_TIMEOUT = float(os.getenv("RMC_EDGE_PURGE_TIMEOUT", "2.0"))
+except ValueError:
+    RMC_EDGE_PURGE_TIMEOUT = 2.0
+# WAL stream Kafka mirror. Empty => Redis Streams only (load-bearing default).
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "").strip()
+
 # --- Phase I: Schema-per-tenant (django-tenants) — DEFAULT for PostgreSQL ---
 # Two modes (mutually exclusive):
 #   - USE_DJANGO_TENANTS=1 (PostgreSQL): TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware
@@ -2967,6 +3025,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django_celery_beat",
         "apps.customers",
         "apps.tenancy",
+        "apps.wal_stream.apps.WalStreamConfig",  # v4.00.0: WS WAL outbox; public schema, no models
         "apps.policies",
         "apps.events",
         "apps.marketplace",
@@ -3014,6 +3073,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.schools.middleware_session_school_bind.SessionSchoolBindingMiddleware",
         "apps.schools.middleware.TenantSchoolNotFoundMiddleware",
         "apps.tenancy.middleware.TenantContextMiddleware",  # Attach request.tenant_ctx (TenantContext)
+        "apps.tenancy.middleware_rls_jwt.RLSJWTBindingMiddleware",  # v4.00.0: bind app.current_school_id from signed JWT (RLS mode only; no-op under SCHEMA)
         "apps.platform_runtime.middleware.TenantRuntimeMiddleware",  # Attach request.tenant_runtime (TenantRuntime)
         "django.middleware.security.SecurityMiddleware",
         "config.middleware.BlockScannerPathsMiddleware",

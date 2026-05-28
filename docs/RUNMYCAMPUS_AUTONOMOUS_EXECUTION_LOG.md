@@ -1,5 +1,97 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Audit follow-on closures batch 1560 (2026-05-28)
+
+**A. Scope:** Full-platform audit on top of v3.99.20 surfaces 6 real findings + 1 cross-tenant data leak; close them all with the smallest possible surgical changes; preserve every architectural boundary; bump SW monotonic.
+
+**B. Shipped:** (1) Fixed admissions `get_application_payload` shallow→deep copy in `apps/admissions/application_kernel.py` (caught by `PayloadShapeTests::test_existing_payload_not_mutated`). (2) Added host-aware help bridge in `templates/errors/404.html` (`request.public_host_kind == 'manager'` branches between `manager_help_center` vs `feedback:help_center`). (3) Deleted orphan `templates/admin/includes/operator_path_banner.html` (no live includes, replaced by steering strip wave-prior). (4) **Closed cross-tenant data leak in `apps/people/bulk_student_actions.py::bulk_set_student_status`** — now requires `school` kwarg + filters StudentProfile by school; view `apps/people/views_backend_bulk.py::backend_student_bulk_status` passes `getattr(request, "school", None)` through. Tests extended 2→4 with `test_school_required` + `test_other_tenant_student_ids_silently_ignored`. `scan_tenant_queryset_safety --compare` → "no new unscoped queries vs baseline". (5) Relaxed stale `v3.64.x` SW family regex in `scripts/verify_template_marketplace_plan_compliance.py` to semver `>= 3.64.0` (108/108 PASS). (6) Reconciled CLAUDE.md `scan_role_strings` baseline 372→384 (drift-detector growth across waves R/S/T/U/1553/1556-1559). (7) Added `shell=sys.platform=="win32"` to `scripts/verify_analytics_viz_full_completion.py` so Windows can resolve `npm.cmd`. (8) Stabilized i18n catalog at 12,513 unique msgids via `sync_i18n_catalog --compile` (polib backend — no msgfmt required, sidestepping local gettext gap). Bumped service worker cache version to `sms-v3.99.21-audit-followon-closures-2026-05-28`.
+
+**C. Gates:** verify_predeploy_core_gates, verify_customer_experience_zero_gap (matrix_missing_count=0), verify_customer_experience_plan_closeout, verify_glocal_closeout_completion, verify_glocal_zero_hardcode_kernel, verify_admin_steering_strip_contract, verify_admin_super_help_nav_bridge, verify_analytics_viz_full_completion, verify_template_marketplace_plan_compliance (108/108), check_documented_baselines (no doc-vs-JSON drift), verify_smart_links_surface, verify_i18n_catalog_fresh, verify_service_worker_version (monotonic OK), verify_dom_performance_budgets — **14/14 PASS**. Scanners: scan_tenant_queryset_safety + scan_tenant_isolation_marker_quality + scan_ai_gateway_boundary + scan_sentry_boundary + scan_migration_model_imports + scan_pii_logging_smell + scan_subprocess_shell_true + scan_money_float — all clean.
+
+**D. Tests:** All 4 `apps/people/tests/test_bulk_student_actions.py` tests pass (4/4 in 0.218s) via `manage.py test --keepdb` after clearing an orphan `.django_test_dbs/default.sqlite3-journal` (left from a prior killed pytest process; `conftest._sqlite_keepdb_needs_fresh_start()` was abandoning the cached DB on its presence, sending every run through the slow column-rebuild migration path that the Windows SQLite backend hangs on). School fixture sets `subdomain=f"{prefix}-{uuid8}"` to satisfy the model's unique constraint. **Honest residual:** none — every finding closed and validated in-tree.
+
+**E. Lesson durably captured:** When pytest test setup hangs in `django.db.backends.sqlite3.schema.remove_field` on Windows, look for orphan `*-journal` / `*-wal` / `*-shm` files in `.django_test_dbs/`. They poison `conftest._sqlite_keepdb_needs_fresh_start()` and force a full migration replay on every run — which on a 56-app project with several historical `RemoveField` ops takes minutes per test invocation. Removing only the orphan side-files (NOT the underlying `.sqlite3` cache file) restores the keepdb fast path.
+
+## Slice — Bulk confirm Playwright + apply_purge guard batch 1559 (2026-05-28)
+
+**A. Scope:** Close batch 1558 optional residual — Playwright E2E for manager bulk `<dialog>` confirm; mechanical guard that permanent purge never ships on multi-select schools list.
+
+**B. Shipped:** `manager-bulk-confirm-dialog.spec.js` + `run_manager_bulk_confirm_e2e.sh`; `verify_bulk_school_actions_no_apply_purge.py`; `test_apply_purge_not_allowed_on_bulk_list`; npm `test:e2e:manager:bulk-confirm` + `verify:bulk-no-apply-purge`.
+
+**C. Proof:** verifier PASS; Django bulk tests green; Playwright spec green when manager server + `visualqa_admin` seeded.
+
+**D. SOT:** batch **1559** **DONE (repo-scope)**. **E. Residual:** none for bulk confirm E2E; `apply_purge` intentionally Tenant 360 / queue only.
+
+## Slice — Bulk offboarding + operator team batch 1558 (2026-05-28)
+
+**A. Scope:** Close batch 1557 residuals — operator team bulk status/tier + heavy offboarding from schools list; validate full bulk stack for production.
+
+**B. Shipped:** Extended `bulk_operator_actions` (export, purge_dry_run, dual approvals); `bulk_operator_team_actions` + `api_bulk_operators`; roster + schools list bulk POST actions; `reloadDelay` for long exports. **SW:** `sms-v3.99.19-bulk-offboarding-team-roster-2026-05-28`.
+
+**C. Proof:** 13 Django bulk tests OK; interaction integrity + dead hrefs + table budget + layout contract + SW monotonic PASS.
+
+**D. SOT:** batch **1558** **DONE (repo-scope)**. **E. Residual:** live purge apply stays Tenant 360 only; Playwright bulk confirm E2E optional.
+
+## Slice — Bulk POST mutations + confirm UX batch 1557 (2026-05-28)
+
+**A. Scope:** Close batch 1556 honest residual — server-side bulk school lifecycle/offboarding and student status changes with confirmation UX.
+
+**B. Shipped:** `bulk_operator_actions.py`, `super_views_bulk.py`, `super:api_bulk_schools`; `bulk_student_actions.py`, `views_backend_bulk.py`, `accounts:backend_student_bulk_status`; `rmc_bulk_confirm_modal.html` + `rmc-list-bulk-select.js` POST/phrase confirm; wired actions on `super_schools_list` + `backend_student_list`. **SW:** `sms-v3.99.18-bulk-mutations-post-confirm-2026-05-28`.
+
+**C. Proof:** 6 Django tests OK; plan 8-gate loop PASS.
+
+**D. SOT:** batch **1557** **DONE (repo-scope)**. **E. Residual:** operator team roster bulk role/status POST; live Playwright bulk confirm flows optional.
+
+## Slice — Tenant lens + bulk multi-select batch 1556 (2026-05-28)
+
+**A. Scope:** Close batch 1555 honest residuals — tenant floating copilot Lens + bulk select-many actions on operator/tenant rosters.
+
+**B. Shipped:** Refactored `rmc-copilot-context-lens.js` for multi-mount (manager rail, `ai_copilot` Lens tab, tenant offcanvas sheet); `copilot_lens_root_inner.html`, `copilot_context_lens_sheet.html`; `rmc-list-bulk-select.js` + toolbar partial on schools/team/student lists; `backend_student_list` `ids` CSV filter; portal/control-plane script+css wiring. **SW:** `sms-v3.99.17-tenant-lens-bulk-select-grammar-2026-05-28`.
+
+**C. Proof:** Plan 8-gate loop PASS; `scan_table_column_budget` 0; `PLATFORM_SURFACE_LAYOUT_PASS`; SW monotonic OK.
+
+**D. SOT:** batch **1556** **DONE (repo-scope)**. **E. Residual:** superseded by batch **1557** (bulk POST mutations).
+
+## Slice — Copilot context lens + operator list grammar batch 1555 (2026-05-28)
+
+**A. Scope:** User follow-up to shell exhaustion plan — close layout-contract gap, operator/tenant list less-click, creative copilot sidebar leverage.
+
+**B. Shipped:** `static/js/rmc-copilot-context-lens.js` + Lens tab/insights/endpoints in `partials/cockpit/_ai_copilot_rail.html`; row-detail actions + `rmc:row-detail-open` in `rmc-portal-row-detail-drawer.js`; 5-column schools roster + team roster row metadata; 12 template drawer dedupes; chrome loader immediate promote; `verify_platform_surface_layout_contract.py` block-aware scroll checks. **SW:** `sms-v3.99.16-copilot-context-lens-row-grammar-2026-05-28`.
+
+**C. Proof:** **PLATFORM_SURFACE_LAYOUT_PASS**; plan 8-gate loop all PASS; `scan_operator_shell_dead_hrefs --strict` 0.
+
+**D. SOT:** batch **1555** **DONE (repo-scope)**. **E. Residual:** tenant copilot Lens mount on non-manager shells; bulk-select actions.
+
+## Slice — Tablet dashboard rail/card balance batch 1554 (2026-05-28)
+
+**A. Scope:** User follow-up — focused tablet breakpoint sweep on dashboard rails/cards (backend command rail, tenant v2 hero/KPI grids, parent balanced rail).
+
+**B. Shipped:** `backend-dashboard-v2-contract.css` tablet rail 2-up + main-grid single-column ≤1024px; `backend-dashboard-v2.css` action/chip 2-up ≤1200px, role-home stack ≤1100px; `rmc-tenant-dashboard-v2.css` hero/KPI tablet rules; `rmc-platform-inner-pages.css` tenant-dashboard-rail 992–1200 stack + sidebar 2-up. **SW:** `sms-v3.99.15-tablet-dashboard-rail-balance-2026-05-28`.
+
+**C. Proof:** **PLATFORM_LAYOUT_BALANCE_PASS**; horizontal-overflow-risk **0**; page-fold **26/26**; SW monotonic OK.
+
+**D. SOT:** batch **1554** **DONE (repo-scope)**. **E. Residual:** closed — Playwright tablet proof shipped (see slice below).
+
+## Slice — Tablet Playwright proof + backend_dashboard fix (2026-05-28)
+
+**A. Scope:** Close batch 1554 honest residual — live 768/1024 proof on tenant backend + parent dashboards.
+
+**B. Shipped:** `tests/e2e/tablet-dashboard-visual.spec.js`; `scripts/verify_tablet_dashboard_visual_completion.py` (`_prepare_tablet_qa_users`, `--spawn-server`, `TABLET_QA_*` env); abrupt-end viewport env on `verify_platform_abrupt_end_sweep.mjs`; `apps/accounts/views.py` — drop shadowing `from apps.accounts.models import User` inside `backend_dashboard` (fixed UnboundLocalError 500).
+
+**C. Gates:** `python scripts/verify_tablet_dashboard_visual_completion.py --spawn-server` (port **8022** spawn) → **TABLET_DASHBOARD_VISUAL_PASS**; artifact `docs/generated/tablet_dashboard_visual_audit.json` (playwright + abrupt_end portrait/landscape ok).
+
+**D. SOT:** batch **1554** proof line updated (residual removed). **E. Residual:** none for tablet CSS/Playwright slice; use `npm run verify:tablet-dashboard` with Django + `gilead-school` host (or `--spawn-server` when login probe fails).
+
+## Slice — Operator/Tenant shell exhaustion plan batch 1553 (2026-05-28)
+
+**A. Scope:** Execute the attached Operator/Tenant Shell Exhaustion Plan end-to-end without editing the plan file; close the `/authentication/backend/` hard blocker first, then run the strict 8-gate loop to green.
+
+**B. Shipped:** Fixed backend dashboard 500 by removing local `User` import shadowing in `apps/accounts/views.py`; introduced shared deferred chrome-style hydration (`static/js/rmc-chrome-style-loader.js`) and split blocking vs deferred chrome assets in `templates/partials/rmc_platform_chrome_styles.html`; standardized row-detail drawer usage on tenant document views (`templates/portal/office_document_list.html`, `templates/portal/partials/document_library_manage_inner.html`) by switching to `portal_row_detail_drawer_bundle`; normalized residual hardcoded tenant-admin bridge labels in `templates/components/admin_nav_bridge.html`; bumped service worker cache version to `sms-v3.99.14-shell-exhaustion-plan-2026-05-28`.
+
+**C. Proof:** Single uninterrupted required loop PASS — `verify_dom_performance_budgets.py`, `verify_sovereign_layout_token_matrix.py`, `verify_interaction_integrity_completion.py`, `verify_page_fold_standards.py`, `scan_operator_shell_dead_hrefs.py --strict`, `scan_table_column_budget.py`, `audit_route_surface.py`, `verify_marketing_lane2_internal_audit.py`.
+
+**D. SOT:** batch **1553** **DONE (repo-scope)**. **E. Residual:** no new repo-contained blockers discovered in the plan-scoped gate loop.
+
 ## Slice — CEZGP all-optionals + Playwright host-rules batch 1552 (2026-05-28)
 
 **A. Scope:** User request — complete all CEZGP optionals end-to-end; fix parent Playwright; audit plan.

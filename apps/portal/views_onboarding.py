@@ -31,7 +31,17 @@ def teacher_onboarding_wizard(request: HttpRequest):
 
     Uses session to persist form data between steps.
     Allows unauthenticated users to register.
+
+    v4.00.5: routes to the Unified Wizard Engine (JSON SOT
+    ``apps/setup_studio/wizards/teacher_self_onboarding.json``) by default.
+    ``?legacy=1`` opts out and renders the session-driven flow.
     """
+    from apps.setup_studio.legacy_view_bridge import engine_redirect_response
+
+    engine_resp = engine_redirect_response(request, "teacher_onboarding")
+    if engine_resp is not None:
+        return engine_resp
+
     # If user is authenticated and already has a teacher profile, redirect
     if request.user.is_authenticated and hasattr(request.user, "teacher_profile"):
         messages.info(
@@ -173,7 +183,17 @@ def student_onboarding_wizard(request: HttpRequest):
     4. Payment & Referral (payment method, referral code)
 
     Uses session to persist form data between steps. Save draft / Resume draft via FormDraft (26.5).
+
+    v4.00.5: routes to the Unified Wizard Engine (JSON SOT
+    ``apps/setup_studio/wizards/student_self_onboarding.json``) by default.
+    ``?legacy=1`` opts out and renders the session-driven flow.
     """
+    from apps.setup_studio.legacy_view_bridge import engine_redirect_response
+
+    engine_resp = engine_redirect_response(request, "student_onboarding")
+    if engine_resp is not None:
+        return engine_resp
+
     site = get_effective_site_settings(request=request)
     session_key = "student_onboarding_wizard_data"
     wizard_data = request.session.get(session_key, {})

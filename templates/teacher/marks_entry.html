@@ -303,9 +303,8 @@
 {% endif %}
 {% include "components/was_this_helpful.html" with feedback_id="teacher-marks-entry" %}
 <script src="{% static 'js/_pages/teacher__marks_entry.js' %}"></script>
-{% include "partials/portal_row_detail_drawer.html" %}
-<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
-<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
+{# v4.00.10: progressive WAL enhancement for bulk gradebook. No-op when window.rmcWAL is absent. #}
+<script src="{% static 'js/_pages/rmc-gradebook-wal-enhance.js' %}" defer></script>
 </div>
 {% endblock %}
 

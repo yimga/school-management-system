@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-28T02:06:52.251023+00:00",
+  "generated_at": "2026-05-28T19:13:54.698794+00:00",
   "verdict": "SUPPORT_PIPELINE_PASS",
   "pass_count": 14,
   "fail_count": 0,
@@ -74,7 +74,7 @@
       "id": "6",
       "label": "Vitest support pipeline green",
       "status": "PASS",
-      "proof": "h High/beta/school-management-system\n\n \u00e2\u0153\u201c tests/support-ai-engine.test.tsx (3 tests) 7ms\n \u00e2\u0153\u201c tests/support-pipeline-integrity.test.tsx (4 tests) 46ms\n \u00e2\u0153\u201c src/components/support/support.test.tsx (2 tests) 95ms\n\n Test Files  3 passed (3)\n      Tests  9 passed (9)\n   Start at  22:06:44\n   Duration  3.00s (transform 269ms, setup 1.10s, collect 376ms, tests 148ms, environment 4.70s, prepare 766ms)\n\n"
+      "proof": "\u201c\u001b[39m src/components/support/support.test.tsx \u001b[2m(\u001b[22m\u001b[2m2 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[90m 118\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[32m3 passed\u001b[39m\u001b[22m\u001b[90m (3)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[32m9 passed\u001b[39m\u001b[22m\u001b[90m (9)\u001b[39m\n\u001b[2m   Start at \u001b[22m 15:13:46\n\u001b[2m   Duration \u001b[22m 2.72s\u001b[2m (transform 180ms, setup 793ms, collect 305ms, tests 174ms, environment 4.26s, prepare 902ms)\u001b[22m\n\n"
     },
     {
       "id": "7",
@@ -86,7 +86,7 @@
       "id": "8",
       "label": "Django support pipeline unit tests green",
       "status": "PASS",
-      "proof": "ebhook_query) ... ok\ntest_troubleshooting_from_error_token (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_troubleshooting_from_error_token) ... ok\ntest_ui_help_from_navigation_phrase (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_ui_help_from_navigation_phrase) ... ok\ntest_active_locale_read_for_sse_meta (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_active_locale_read_for_sse_meta) ... ok\ntest_meta_frame_includes_language_on_escalation_path (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_meta_frame_includes_language_on_escalation_path) ... ok\ntest_search_returns_list (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_search_returns_list) ... ok\ntest_staff_visibility_skips_operator_only_paths (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_staff_visibility_skips_operator_only_paths) ... ok\ntest_sliding_window_overlap (apps.portal.tests.test_support_ingest.SupportIngestChunkTests.test_sliding_window_overlap) ... ok\n\n----------------------------------------------------------------------\nRan 26 tests in 1.456s\n\nOK"
+      "proof": "ebhook_query) ... ok\ntest_troubleshooting_from_error_token (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_troubleshooting_from_error_token) ... ok\ntest_ui_help_from_navigation_phrase (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_ui_help_from_navigation_phrase) ... ok\ntest_active_locale_read_for_sse_meta (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_active_locale_read_for_sse_meta) ... ok\ntest_meta_frame_includes_language_on_escalation_path (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_meta_frame_includes_language_on_escalation_path) ... ok\ntest_search_returns_list (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_search_returns_list) ... ok\ntest_staff_visibility_skips_operator_only_paths (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_staff_visibility_skips_operator_only_paths) ... ok\ntest_sliding_window_overlap (apps.portal.tests.test_support_ingest.SupportIngestChunkTests.test_sliding_window_overlap) ... ok\n\n----------------------------------------------------------------------\nRan 26 tests in 1.093s\n\nOK"
     }
   ]
 }

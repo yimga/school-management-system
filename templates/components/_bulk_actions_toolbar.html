@@ -1,0 +1,44 @@
+{% load i18n %}
+{% comment %}
+  v4.00.12 — Reusable bulk-actions toolbar.
+
+  Required inputs:
+    bulk_table_id     — id of the <table data-rmc-bulk-table id="...">
+    bulk_actions      — list[{slug, label, variant}]   variant in {"default","danger"}
+
+  How to use on a list page:
+
+    <table id="people-list" data-rmc-bulk-table>
+      <thead><tr>
+        <th><input type="checkbox" data-rmc-bulk-select-all></th> ...
+      </tr></thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td><input type="checkbox" data-rmc-bulk-checkbox value="{{ row.id }}"></td> ...
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include "components/_bulk_actions_toolbar.html" with bulk_table_id="people-list" bulk_actions=actions %}
+
+  Listen for the bulk action in JS:
+
+    document.getElementById('people-list').addEventListener('rmc:bulk-action', function(ev){
+      const {action, ids} = ev.detail;
+      fetch('/people/bulk/' + action + '/', {method:'POST', ...});
+    });
+{% endcomment %}
+<aside class="rmc-bulk-toolbar" data-rmc-bulk-toolbar-for="{{ bulk_table_id }}" role="region" aria-label="{% trans 'Bulk actions' %}">
+  <span><strong data-rmc-bulk-count>0</strong> {% trans "selected" %}</span>
+  <span class="rmc-bulk-toolbar__sep" aria-hidden="true"></span>
+  <div class="rmc-bulk-toolbar__actions">
+    {% for action in bulk_actions %}
+      <button type="button"
+              class="rmc-bulk-toolbar__action{% if action.variant == 'danger' %} rmc-bulk-toolbar__action--danger{% endif %}"
+              data-rmc-bulk-action="{{ action.slug }}"
+              aria-label="{{ action.label }}">{{ action.label }}</button>
+    {% endfor %}
+  </div>
+  <button type="button" class="rmc-bulk-toolbar__clear" data-rmc-bulk-clear>{% trans "Clear" %}</button>
+</aside>

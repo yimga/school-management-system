@@ -538,6 +538,10 @@ a.cp-queue-card-header:hover {
 
 .cp-registry-actions .btn {
   white-space: nowrap;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cp-impersonation-disclosure {

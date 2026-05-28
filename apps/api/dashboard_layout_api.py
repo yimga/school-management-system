@@ -360,7 +360,47 @@ class AvailableWidgetsAPI(APIView):
             | models.Q(allowed_roles__contains=[role])
         )
         widgets = DashboardWidgetSerializer(widgets_qs, many=True).data
-        return Response({"page": page, "widgets": widgets})
+        # v3.99.23: include cockpit catalog so the gallery can surface
+        # cockpit sections alongside built-in dashboard widgets.
+        cockpit_widgets: list[dict] = []
+        try:
+            from apps.siteconfig.cockpit_widget_bridge import list_cockpit_widget_catalog
+
+            cockpit_widgets = list_cockpit_widget_catalog(page=page)
+        except Exception:  # noqa: BLE001 — bridge is optional, never breaks the API
+            cockpit_widgets = []
+        # v4.00.5: marketplace-installed widgets surfaced in the gallery alongside
+        # built-in + cockpit catalogs. Isolation contract preserved (separate list
+        # so the gallery can group/style them distinctly).
+        marketplace_widgets: list[dict] = []
+        try:
+            school = getattr(request, "school", None)
+            if school is not None:
+                from apps.marketplace.services import get_installed_widgets
+
+                for item in (get_installed_widgets(school) or []):
+                    if not isinstance(item, dict):
+                        continue
+                    widget_id = item.get("widget_id") or item.get("id")
+                    if not widget_id:
+                        continue
+                    if item.get("page") and item.get("page") != page:
+                        continue
+                    marketplace_widgets.append({
+                        "id": str(widget_id),
+                        "name": item.get("name") or str(widget_id),
+                        "description": item.get("description") or "",
+                        "app_slug": item.get("app_slug", ""),
+                        "source": "marketplace",
+                    })
+        except Exception:  # noqa: BLE001 — marketplace is optional, never breaks the API
+            marketplace_widgets = []
+        return Response({
+            "page": page,
+            "widgets": widgets,
+            "cockpit_widgets": cockpit_widgets,
+            "marketplace_widgets": marketplace_widgets,
+        })
 
 
 @extend_schema_view(

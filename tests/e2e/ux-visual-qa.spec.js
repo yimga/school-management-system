@@ -61,6 +61,18 @@ const VIEWPORTS = [
     hasTouch: false,
   },
   {
+    name: 'tablet-portrait',
+    viewport: { width: 768, height: 1024 },
+    isMobile: true,
+    hasTouch: true,
+  },
+  {
+    name: 'tablet-landscape',
+    viewport: { width: 1024, height: 768 },
+    isMobile: false,
+    hasTouch: false,
+  },
+  {
     name: 'mobile',
     viewport: { width: 390, height: 844 },
     isMobile: true,

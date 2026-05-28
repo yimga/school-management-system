@@ -1,0 +1,34 @@
+{% load i18n %}
+{% comment %} v3.99.25 (2026-05-28): Honest stub for the capacity_planning
+   cockpit section so promote-to-dashboard renders cleanly.
+
+   Configurable via cockpit.capacity_planning (SiteSettings → context processor):
+     .enabled
+     .eyebrow
+     .title
+     .meta_text
+     .lanes       list — [{name, used, capacity, unit, projection}]
+{% endcomment %}
+{% if cockpit.capacity_planning.enabled %}
+<section class="lx-card lx-capacity" aria-label="{% trans 'Capacity planning' %}" data-rmc-cockpit-section="capacity_planning">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.capacity_planning.eyebrow|default:_("Capacity · forward 90d") }}</div>
+      <h3 class="lx-card__title">{{ cockpit.capacity_planning.title|default:_("Capacity planning") }}</h3>
+    </div>
+    {% if cockpit.capacity_planning.meta_text %}<div class="lx-card__meta">{{ cockpit.capacity_planning.meta_text }}</div>{% endif %}
+  </div>
+  {% if cockpit.capacity_planning.lanes %}
+    <ul class="list-unstyled mb-0">
+      {% for lane in cockpit.capacity_planning.lanes %}
+        <li class="d-flex justify-content-between border-bottom py-2">
+          <span><strong>{{ lane.name }}</strong>{% if lane.projection %} · <span class="text-muted small">{{ lane.projection }}</span>{% endif %}</span>
+          <span class="font-monospace small">{{ lane.used|default:"—" }} / {{ lane.capacity|default:"—" }} {{ lane.unit|default:"" }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted small mb-0">{% trans "No capacity lanes configured. Set cockpit.capacity_planning.lanes via SiteSettings to populate this card." %}</p>
+  {% endif %}
+</section>
+{% endif %}

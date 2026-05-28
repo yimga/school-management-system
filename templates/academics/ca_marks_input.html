@@ -1,0 +1,51 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "CA marks input" %}{% endblock %}
+
+{% block content %}
+<main class="container py-3" data-page-archetype="task-form">
+  <header class="mb-3">
+    <h1 class="h4 mb-1">{% trans "Continuous assessment marks" %}</h1>
+    <p class="text-muted mb-0">
+      {{ candidate.student }} &middot; {{ candidate.session }}
+    </p>
+  </header>
+
+  <form method="post" class="card card-body" autocomplete="off">
+    {% csrf_token %}
+
+    <div class="mb-3">
+      <label for="ca-total" class="form-label">{% trans "Total CA mark" %}</label>
+      <input type="number" step="0.01" id="ca-total" name="total" class="form-control" value="{{ ca_total|default_if_none:'' }}" aria-describedby="ca-total-help">
+      <small id="ca-total-help" class="text-muted">{% trans "Single aggregate value used by the board export." %}</small>
+    </div>
+
+    <fieldset class="mb-3">
+      <legend class="h6">{% trans "Per-subject CA breakdown" %}</legend>
+      <div class="row g-2">
+        {% for code, value in ca_subjects.items %}
+          <div class="col-sm-6 col-md-4">
+            <label class="form-label small font-monospace" for="subject-{{ code }}">{{ code }}</label>
+            <input type="number" step="0.01" id="subject-{{ code }}" name="subject_{{ code }}" class="form-control form-control-sm" value="{{ value }}">
+          </div>
+        {% endfor %}
+        {% for slot in "0123" %}
+          <div class="col-sm-6 col-md-4">
+            <label class="form-label small text-muted" for="subject-new-{{ slot }}">{% trans "Add subject (CODE:value)" %}</label>
+            <div class="d-flex gap-1">
+              <input type="text" placeholder="MATH" id="subject-new-code-{{ slot }}" class="form-control form-control-sm" style="max-width:90px" oninput="document.getElementById('subject-new-{{ slot }}').name='subject_'+this.value.toUpperCase();">
+              <input type="number" step="0.01" id="subject-new-{{ slot }}" name="" class="form-control form-control-sm" placeholder="0.00">
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <div class="d-flex justify-content-end gap-2">
+      <a href="{% url 'accounts:backend_dashboard' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+      <button type="submit" class="btn btn-primary">{% trans "Save CA marks" %}</button>
+    </div>
+  </form>
+</main>
+{% endblock %}

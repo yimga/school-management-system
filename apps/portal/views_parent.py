@@ -1365,7 +1365,17 @@ def link_child_wizard(request: HttpRequest):
     Multi-step wizard for linking a child (mobile-friendly, progressive disclosure).
     Steps: 1) Identify child (admission number + relationship); 2) Contact & permissions; 3) Optional details.
     Uses session to persist form data between steps.
+
+    v3.99.24: routes to the Unified Wizard Engine (JSON SOT
+    ``apps/setup_studio/wizards/parent_link_child.json``) by default.
+    ``?legacy=1`` opts out and renders the session-driven flow.
     """
+    from apps.setup_studio.legacy_view_bridge import engine_redirect_response
+
+    engine_resp = engine_redirect_response(request, "parent_link_child")
+    if engine_resp is not None:
+        return engine_resp
+
     site = get_effective_site_settings(request=request)
     session_key = "link_child_wizard_data"
     wizard_data = request.session.get(session_key, {})

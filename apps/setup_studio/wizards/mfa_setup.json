@@ -1,0 +1,79 @@
+{
+  "wizard_key": "mfa_setup",
+  "version": 1,
+  "audience": ["tenant_admin", "operator", "teacher", "parent", "student", "staff"],
+  "label_token": "wizards.mfa_setup.label",
+  "description_token": "wizards.mfa_setup.description",
+  "icon_class": "rmc-icon-shield-lock",
+  "estimated_minutes": 4,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "choose_channel",
+      "input_type": "single_choice",
+      "options_resolver": null,
+      "branches": {
+        "totp": "scan_qr",
+        "sms": "sms_verify",
+        "passkey": "passkey_register",
+        "default": "scan_qr"
+      },
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_mfa_setup_step"
+      },
+      "estimated_seconds": 30
+    },
+    {
+      "key": "scan_qr",
+      "input_type": "text",
+      "validation": {
+        "required": true,
+        "pattern": "^[0-9]{6}$"
+      },
+      "branches": {"default": "save_recovery_codes"},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_mfa_setup_step"
+      },
+      "estimated_seconds": 90
+    },
+    {
+      "key": "sms_verify",
+      "input_type": "text",
+      "validation": {
+        "required": true,
+        "pattern": "^[0-9]{6}$"
+      },
+      "branches": {"default": "save_recovery_codes"},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_mfa_setup_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "passkey_register",
+      "input_type": "boolean",
+      "branches": {"default": "save_recovery_codes"},
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_mfa_setup_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "save_recovery_codes",
+      "input_type": "boolean",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_mfa_setup_step"
+      },
+      "estimated_seconds": 60
+    }
+  ]
+}

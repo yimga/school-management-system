@@ -1,5 +1,9 @@
 from django.urls import path
+
+from django.views.generic import TemplateView
+
 from . import views_syllabus, views_workflow
+from .views_timetable_solver import TimetableBuildView
 
 app_name = "academics"
 
@@ -8,6 +12,23 @@ urlpatterns = [
         "workflow/<str:workflow_key>/",
         views_workflow.WorkflowWizardView.as_view(),
         name="workflow_wizard",
+    ),
+    # v4.00.13: timetable build (UI + POST endpoint).
+    path(
+        "timetable/build/",
+        TimetableBuildView.as_view(),
+        name="timetable_build",
+    ),
+    path(
+        "timetable/build/ui/",
+        TemplateView.as_view(template_name="portal/timetable_build.html"),
+        name="timetable_build_ui",
+    ),
+    # v4.00.13: CA-mark input UI for certification candidates.
+    path(
+        "certification/ca-marks/<int:candidate_id>/",
+        __import__("apps.academics.views_ca_marks", fromlist=["CAMarksInputView"]).CAMarksInputView.as_view(),
+        name="ca_marks_input",
     ),
     path(
         "teacher/syllabi/",

@@ -637,7 +637,9 @@ urlpatterns = [
     ),
     # Super Admin (multi-tenant provisioning)
     path("super/", include(("apps.schools.super_urls", "super"), namespace="super")),
-    # Migration Cloud — operator console (Phase U6 scaffold).
+    # Migration Cloud — operator console (Phase U6 LIVE as of v3.38+: audit dashboard,
+    # health view, webhook subscriptions admin, MAA v2.0 promotion dashboard).
+    # v4.00.12 closeout: comment updated to reflect shipped state.
     path(
         "super/migration/",
         include(("apps.migration_cloud.urls", "migration_cloud_super"), namespace="migration_cloud_super"),

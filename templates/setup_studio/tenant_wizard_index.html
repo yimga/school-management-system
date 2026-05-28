@@ -6,6 +6,7 @@
 {% block extra_head %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-wizard-index.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,12 +16,51 @@
     <p class="rmc-wizard-pane__subtitle">{% trans "Step-by-step flows to get your school running." %}</p>
   </header>
 
+  {% if just_completed_wizard_key %}
+    <section class="rmc-wizard-completion-banner rmc-reveal" role="status" aria-live="polite">
+      <div class="rmc-wizard-completion-banner__head">
+        <span class="rmc-wizard-completion-banner__icon" aria-hidden="true">&#x2713;</span>
+        <h2 class="rmc-wizard-completion-banner__title">{% blocktrans with wizard_key=just_completed_wizard_key %}{{ wizard_key }} complete.{% endblocktrans %}</h2>
+      </div>
+      {% if next_step_suggestions %}
+        <p class="rmc-wizard-completion-banner__hint">{% trans "Suggested next steps:" %}</p>
+        <div class="rmc-wizard-completion-banner__next">
+          {% for s in next_step_suggestions %}
+            <a class="rmc-wizard-next-card" href="{% url 'setup_studio:tenant_wizard' wizard_key=s.target_wizard_key %}">
+              <span class="rmc-wizard-next-card__key">{{ s.resolved_label|default:s.target_wizard_key }}</span>
+              {% if s.label_token %}<span class="rmc-wizard-next-card__reason">{{ s.label_token }}</span>{% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  {% include "partials/_resumable_wizards_banner.html" with banner_variant="full" %}
+
+  <section class="rmc-wizard-search" aria-label="{% trans 'Search wizards' %}">
+    <label class="rmc-wizard-search__label" for="rmc-wizard-search-input">{% trans "Find a wizard" %}</label>
+    <input
+      id="rmc-wizard-search-input"
+      class="rmc-wizard-search__input"
+      type="search"
+      autocomplete="off"
+      placeholder="{% trans 'Try: gradebook, attendance, payment, password…' %}"
+      data-rmc-wizard-search-endpoint="{% url 'setup_studio:wizard_search_api' %}"
+      data-rmc-wizard-search-audience="{{ wizard_search_audience|default:user_audience|default:'' }}"
+      aria-controls="rmc-wizard-search-results"
+      aria-describedby="rmc-wizard-search-status"
+    >
+    <p id="rmc-wizard-search-status" class="rmc-wizard-search__status" role="status" aria-live="polite"></p>
+    <ul id="rmc-wizard-search-results" class="rmc-wizard-search__results" role="list" hidden></ul>
+  </section>
+
   {% if wizards %}
-    <div style="display:grid; gap: var(--space-3); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+    <div class="rmc-wizard-grid">
       {% for w in wizards %}
         <a class="rmc-wizard-card" href="{% url 'setup_studio:tenant_wizard' wizard_key=w.wizard_key %}">
           <h3 class="rmc-wizard-card__title">{{ w.label_token }}</h3>
-          <p class="rmc-wizard-card__meta">{{ w.estimated_minutes }} {% trans "min" %} · {{ w.steps|length }} {% trans "steps" %}</p>
+          <p class="rmc-wizard-card__meta">{{ w.estimated_minutes }} {% trans "min" %} &middot; {{ w.steps|length }} {% trans "steps" %}</p>
         </a>
       {% endfor %}
     </div>
@@ -28,4 +68,5 @@
     <p class="rmc-wizard-empty">{% trans "No wizards are configured yet." %}</p>
   {% endif %}
 </main>
+<script src="{% static 'js/_pages/rmc-wizard-search.js' %}" defer nonce="{{ csp_nonce }}"></script>
 {% endblock %}

@@ -17,7 +17,7 @@
 {% block cp_content %}
 {% operator_console_strip %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-schools-list-main">{% trans "Skip to schools list" %}</a>
-<div id="super-schools-list-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+<div id="super-schools-list-main" class="container-fluid py-2" tabindex="-1" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-copilot-page-lens="operator-schools-roster" data-rmc-copilot-lens-count="{{ page.paginator.count|default:0 }}">
   {% if operator_super_schools_list_links %}
   <div class="card shadow-sm border-0 page-family-content-card mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
@@ -89,40 +89,50 @@
     </div>
   </form>
   {% if page.object_list %}
+  {% url 'super:api_bulk_schools' as bulk_schools_api_url %}
+  {% include "partials/rmc_list_bulk_toolbar.html" with bulk_bar_id="super-schools" %}
   <div class="table-responsive">
-    <table class="table table-family table-hover rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <!-- table-column-budget-allow: operator-schools-bulk-checkbox-six-column-lens -->
+    <table class="table table-family table-hover rmc-data-table" data-rmc-row-detail-table="1" data-rmc-list-bulk="1" data-rmc-bulk-bar-id="super-schools" data-rmc-bulk-actions='[{"id":"ask","label":"{% trans "Ask copilot"|escapejs %}","kind":"copilot","variant":"primary"},{"id":"copy-slugs","label":"{% trans "Copy slugs"|escapejs %}","kind":"clipboard-slugs"},{"id":"freeze","label":"{% trans "Freeze"|escapejs %}","kind":"post","variant":"danger","url":"{{ bulk_schools_api_url|escapejs }}","action":"freeze","payload":{"reason":"STORAGE"},"confirm":"{% trans "Freeze {count} selected school(s)? Tenants enter read-only mode."|escapejs %}"},{"id":"unfreeze","label":"{% trans "Unfreeze"|escapejs %}","kind":"post","url":"{{ bulk_schools_api_url|escapejs }}","action":"unfreeze","confirm":"{% trans "Unfreeze {count} selected school(s)?"|escapejs %}"},{"id":"activate","label":"{% trans "Activate"|escapejs %}","kind":"post","url":"{{ bulk_schools_api_url|escapejs }}","action":"activate","confirm":"{% trans "Activate {count} selected school(s)?"|escapejs %}"},{"id":"deactivate","label":"{% trans "Deactivate"|escapejs %}","kind":"post","variant":"danger","url":"{{ bulk_schools_api_url|escapejs }}","action":"deactivate","confirm":"{% trans "Deactivate {count} selected school(s)?"|escapejs %}"},{"id":"begin-offboarding","label":"{% trans "Begin offboarding"|escapejs %}","kind":"post","variant":"danger","url":"{{ bulk_schools_api_url|escapejs }}","action":"begin_offboarding","confirmPhrase":"BEGIN OFFBOARDING","confirmTitle":"{% trans "Begin offboarding"|escapejs %}","confirm":"{% trans "Wind down and schedule purge for {count} school(s). This is destructive."|escapejs %}"},{"id":"export","label":"{% trans "Export ZIP"|escapejs %}","kind":"post","url":"{{ bulk_schools_api_url|escapejs }}","action":"export","confirmPhrase":"EXPORT TENANTS","confirmTitle":"{% trans "Portability export"|escapejs %}","confirm":"{% trans "Run full portability export for {count} school(s)? This may take several minutes."|escapejs %}","reloadDelay":2500},{"id":"purge-dry-run","label":"{% trans "Purge dry-run"|escapejs %}","kind":"post","url":"{{ bulk_schools_api_url|escapejs }}","action":"purge_dry_run","confirmPhrase":"DRY RUN PURGE","confirm":"{% trans "Preview purge inventory for {count} school(s) (no data deleted)."|escapejs %}"},{"id":"dual-primary","label":"{% trans "Dual approve (1st)"|escapejs %}","kind":"post","url":"{{ bulk_schools_api_url|escapejs }}","action":"dual_approve_primary","confirmPhrase":"RECORD PRIMARY APPROVAL","confirm":"{% trans "Record first dual-control approval for {count} school(s)."|escapejs %}"},{"id":"dual-second","label":"{% trans "Dual approve (2nd)"|escapejs %}","kind":"post","url":"{{ bulk_schools_api_url|escapejs }}","action":"dual_approve_second","confirmPhrase":"RECORD SECOND APPROVAL","confirm":"{% trans "Record second dual-control approval for {count} school(s). You must differ from the first approver."|escapejs %}"}]' aria-describedby="super-schools-lens-hint">
       <caption class="visually-hidden">{% trans_term "Schools" key="school" plural=True %}</caption>
       <thead>
         <tr>
-          <th>{% trans "Name" %}</th>
-          <th>{% trans "Slug" %}</th>
-          <th>{% trans "Sector" %}</th>
-          <th>{% trans "Subdomain" %}</th>
-          <th>{% trans "Country" %}</th>
-          <th>{% trans "Active" %}</th>
-          <th>{% trans "Offboarding" %}</th>
-          <th></th>
+          <th scope="col" class="rmc-list-bulk-th"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-select-all aria-label="{% trans 'Select all schools on this page' %}"></th>
+          <th scope="col">{% trans "School" %}</th>
+          <th scope="col">{% trans "Sector" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Country" %}</th>
+          <th scope="col" class="text-end"><span class="visually-hidden">{% trans "Open detail" %}</span>›</th>
         </tr>
       </thead>
       <tbody>
         {% for school in page.object_list %}
-        <tr>
-          <td>{{ school.name }}</td>
-          <td><code>{{ school.slug }}</code></td>
-          <td>{{ school.primary_sector|default:"—" }}</td>
-          <td>{{ school.subdomain|default:"—" }}</td>
-          <td>{{ school.country_code|default:"—" }}</td>
-          <td>{% if school.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
-          <td><span class="badge text-bg-secondary">{{ school.offboarding_chip|default:"—" }}</span></td>
+        {% url 'super:tenant_360' school.id as school_360_url %}
+        <tr data-rmc-row-detail="1"
+            tabindex="0"
+            data-rmc-row-title="{{ school.name|escape }}"
+            data-rmc-row-subtitle="{{ school.slug|escape }}"
+            data-rmc-row-meta='{"{% trans "Subdomain" %}":"{{ school.subdomain|default:"—"|escapejs }}","{% trans "Lifecycle" %}":"{{ school.offboarding_chip|default:"—"|escapejs }}","{% trans "Active" %}":"{% if school.is_active %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}"}'
+            data-rmc-row-actions='[{"label":"{% trans "Tenant 360"|escapejs %}","href":"{{ school_360_url|escapejs }}","variant":"primary"},{"label":"{% trans "Offboarding"|escapejs %}","href":"{{ school_360_url|escapejs }}#offboarding"},{"label":"{% trans "Offboarding queue"|escapejs %}","href":"{{ offboarding_queue_url|escapejs }}"}]'
+            data-rmc-bulk-href="{{ school_360_url }}">
+          <td class="rmc-list-bulk-td"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-row value="{{ school.id }}" data-rmc-bulk-label="{{ school.name|escape }}" data-rmc-bulk-slug="{{ school.slug|escape }}" aria-label="{% blocktrans with name=school.name %}Select {{ name }}{% endblocktrans %}"></td>
           <td>
-            <a href="{% url 'super:tenant_360' school.id %}" class="btn btn-sm btn-outline-primary">{% trans "360" %}</a>
-            <a href="{% url 'super:tenant_360' school.id %}#offboarding" class="btn btn-sm btn-outline-danger">{% trans "Offboarding" %}</a>
+            <span class="fw-semibold">{{ school.name }}</span>
+            <div class="small text-muted"><code>{{ school.slug }}</code></div>
           </td>
+          <td>{{ school.primary_sector|default:"—" }}</td>
+          <td>
+            <span class="badge {% if school.is_active %}text-bg-success{% else %}text-bg-secondary{% endif %}">{% if school.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
+            <span class="badge text-bg-secondary ms-1">{{ school.offboarding_chip|default:"—" }}</span>
+          </td>
+          <td>{{ school.country_code|default:"—" }}</td>
+          <td class="text-end text-muted" aria-hidden="true">›</td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  <p id="super-schools-lens-hint" class="small text-muted mb-0">{% trans "Click a row for detail, use checkboxes for bulk actions, or open the ◉ Lens tab in the copilot rail." %}</p>
   {% comment %} v3.57.x adoption-wave: layered rmc-pagination* classes
      alongside Bootstrap markup — see components/pagination.html. {% endcomment %}
   <nav aria-label="{% trans 'Schools pagination' %}" class="mt-2 rmc-pagination" data-rmc-component="pagination">

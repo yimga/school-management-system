@@ -139,6 +139,9 @@
   text-transform: uppercase;
   color: var(--text-tertiary);
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rmc-section-nav--inline .rmc-surface-subnav {
@@ -182,6 +185,10 @@ body.admin-manager-shell .cp-admin-v1-index .cp-steering {
   border: 0;
   background: transparent;
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rmc-surface-subnav .rmc-section-nav__link:hover {

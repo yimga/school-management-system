@@ -1679,11 +1679,16 @@ class ComplianceExportSchoolView(View):
 
 
 # ---------------------------------------------------------------------------
-# Plan XVII: Enrollment forecasting stub
-# GET /api/v1/enrollment/forecast  -> projected enrollment (stub)
+# Plan XVII: Enrollment forecasting
+# GET /api/v1/enrollment/forecast  -> projected enrollment over next 1–3 terms
+#
+# v4.00.12: closes the stub. Computes a real forecast from historical
+# enrollment via YoY growth-rate averaging (defensive: returns a flat
+# projection when no historical data exists). Includes a confidence
+# band derived from variance in the historical growth series.
 # ---------------------------------------------------------------------------
 class EnrollmentForecastView(View):
-    """GET /api/v1/enrollment/forecast - Projected enrollment by term/class (stub)."""
+    """GET /api/v1/enrollment/forecast - Projected enrollment by term (real model)."""
 
     def get(self, request):
         if not _backend_flag_enabled("enable_enrollment_forecast_api", request=request):
@@ -1695,12 +1700,22 @@ class EnrollmentForecastView(View):
             return err
         from apps.people.models import StudentProfile
 
-        current = StudentProfile.objects.filter(school=school, is_active=True).count()
+        current = StudentProfile.objects.filter(school=school, is_active=True).count()  # tenant-isolation-allow: scoped-via-school-filter-enrollment-forecast
+        try:
+            from apps.api.enrollment_forecast import build_forecast
+
+            forecasts = build_forecast(school=school, current_count=current, horizon_terms=3)
+        except Exception as exc:  # noqa: BLE001 — never break the API
+            forecasts = []
+            forecast_error = str(exc)
+        else:
+            forecast_error = None
         return JsonResponse(
             {
                 "current_enrollment": current,
-                "forecasts": [],
-                "message": "Forecast model can be wired to historical enrollment and term start dates.",
+                "forecasts": forecasts,
+                "model": "yoy_growth_avg_v1",
+                "error": forecast_error,
             }
         )
 

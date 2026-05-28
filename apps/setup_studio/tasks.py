@@ -68,3 +68,66 @@ def refresh_setup_recommendations_for_active_schools() -> dict[str, Any]:
             logger.warning("refresh_setup_recommendations failed for school %s: %s", getattr(school, "pk", None), exc)
             errors += 1
     return {"processed": processed, "errors": errors}
+
+
+@shared_task(name="setup_studio.prune_stale_resumable_wizards")
+def prune_stale_resumable_wizards(older_than_days: int = 30) -> dict[str, Any]:
+    """v4.00.14 — auto-prune stale incomplete wizards from SetupProgress.step_state.
+
+    Walks every active school's SetupProgress row, runs
+    ``prune_stale_resumable_entries`` on the ``wizards`` namespace, and persists
+    when entries were removed. Bounded by ``_MAX_SCHOOLS_PER_BEAT``; remaining
+    schools picked up the following run.
+
+    Returns ``{processed, pruned_keys_total, errors}``.
+    """
+    try:
+        from apps.schools.models import School  # type: ignore
+        from apps.setup_studio.models import SetupProgress
+        from apps.setup_studio.wizard_extras import prune_stale_resumable_entries
+    except ImportError as exc:
+        logger.warning("prune_stale_resumable_wizards: import failed: %s", exc)
+        return {"processed": 0, "pruned_keys_total": 0, "errors": 0}
+
+    processed = 0
+    pruned_total = 0
+    errors = 0
+    # tenant-isolation-allow: cross-tenant-batch-cron-prunes-stale-wizard-state-by-design
+    qs = School.objects.all()
+    if hasattr(School, "live_objects"):
+        try:
+            qs = School.live_objects.all()
+        except Exception:  # noqa: BLE001
+            pass
+    for school in qs[:_MAX_SCHOOLS_PER_BEAT]:
+        try:
+            # tenant-isolation-allow: scoped-via-school-fk-setup-progress-prune-beat
+            progress = SetupProgress.objects.filter(school=school).first()
+            if progress is None:
+                continue
+            state = progress.step_state if isinstance(progress.step_state, dict) else {}
+            wizards_ns = state.get("wizards") if isinstance(state.get("wizards"), dict) else {}
+            if not wizards_ns:
+                processed += 1
+                continue
+            pruned_ns, removed = prune_stale_resumable_entries(
+                wizards_namespace=wizards_ns,
+                older_than_days=int(older_than_days),
+            )
+            if removed:
+                state["wizards"] = pruned_ns
+                progress.step_state = state
+                progress.save(update_fields=["step_state", "updated_at"])
+                pruned_total += len(removed)
+                logger.info(
+                    "prune_stale_resumable_wizards: school=%s pruned=%d",
+                    getattr(school, "pk", None), len(removed),
+                )
+            processed += 1
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "prune_stale_resumable_wizards failed for school %s: %s",
+                getattr(school, "pk", None), exc,
+            )
+            errors += 1
+    return {"processed": processed, "pruned_keys_total": pruned_total, "errors": errors}

@@ -14,6 +14,12 @@ import os
 import tempfile
 import unittest
 from datetime import timedelta
+
+try:
+    import ortools.sat.python.cp_model  # noqa: F401
+    _HAS_ORTOOLS = True
+except ImportError:
+    _HAS_ORTOOLS = False
 from io import StringIO
 
 from django.core.management import call_command
@@ -370,13 +376,7 @@ class ShouldRetrainAtRiskCommandTests(TestCase):
         self.assertEqual(ctx.exception.code, 11)
 
 
-@unittest.skipUnless(
-    __import__("importlib.util", fromlist=["util"]).util.find_spec(
-        "ortools.sat.python.cp_model"
-    )
-    is not None,
-    "ortools not installed",
-)
+@unittest.skipUnless(_HAS_ORTOOLS, "ortools not installed")
 class SchedulingSolverConstraintsSmokeTests(TestCase):
     """Smoke test that the expanded CP-SAT model parses and solves a tiny instance."""
 

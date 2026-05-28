@@ -1,0 +1,31 @@
+{% load i18n %}
+{% comment %} v3.99.25 (2026-05-28): Honest stub for the regional_clocks
+   cockpit section so promote-to-dashboard renders cleanly.
+
+   Configurable via cockpit.regional_clocks:
+     .enabled
+     .eyebrow / .title
+     .clocks      list — [{label, timezone, accent}]
+{% endcomment %}
+{% if cockpit.regional_clocks.enabled %}
+<section class="lx-card lx-clocks" aria-label="{% trans 'Regional clocks' %}" data-rmc-cockpit-section="regional_clocks">
+  <div class="lx-card__head">
+    <div>
+      <div class="lx-card__eyebrow">{{ cockpit.regional_clocks.eyebrow|default:_("Region · timezones") }}</div>
+      <h3 class="lx-card__title">{{ cockpit.regional_clocks.title|default:_("Regional clocks") }}</h3>
+    </div>
+  </div>
+  {% if cockpit.regional_clocks.clocks %}
+    <div class="d-flex flex-wrap gap-3">
+      {% for c in cockpit.regional_clocks.clocks %}
+        <div class="text-center" data-rmc-clock-tz="{{ c.timezone|default:'UTC' }}">
+          <div class="text-muted small">{{ c.label|default:c.timezone }}</div>
+          <div class="font-monospace lx-clocks__time" aria-live="off">—</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted small mb-0">{% trans "No clocks configured. Set cockpit.regional_clocks.clocks via SiteSettings to populate this card." %}</p>
+  {% endif %}
+</section>
+{% endif %}

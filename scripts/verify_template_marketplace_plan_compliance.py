@@ -307,16 +307,23 @@ def main() -> int:
     checks.append(("13.1 SOT contains batch 1400 entry", "batch 1400 (Local-First Global Template Marketplace" in sot, ""))
     checks.append(("13.2 SOT contains batch 1401 entry", "batch 1401 (Template Marketplace Waves B+C+D+E closeout" in sot, ""))
 
-    # §16 — Cleanliness. Service worker must be on a v3.64.x template-marketplace
-    # CACHE_VERSION (the wave's monotonic family — covers waves B/C/D/E closeout,
-    # semantic-runtime closeout, and the 150-template/50-profile scale-up).
+    # §16 — Cleanliness. Service worker must be at or past the v3.64.0 template-marketplace
+    # wave (where the marketplace shipped). SW is monotonic, so any version >= 3.64.0 covers
+    # the deployed marketplace surface; the slug only had to match while v3.64.x was active.
     sw = (repo / "static" / "js" / "service-worker.js").read_text(encoding="utf-8", errors="ignore")
     import re as _re_sw
-    sw_match = _re_sw.search(r'CACHE_VERSION\s*=\s*"sms-v3\.64\.\d+-template-marketplace[^"]+"', sw)
+    sw_ver_match = _re_sw.search(r'CACHE_VERSION\s*=\s*"sms-v(\d+)\.(\d+)\.\d+', sw)
+    if sw_ver_match:
+        major, minor = int(sw_ver_match.group(1)), int(sw_ver_match.group(2))
+        sw_ok = (major, minor) >= (3, 64)
+        sw_detail = sw_ver_match.group(0) + (" (>=3.64)" if sw_ok else " (<3.64 — predates marketplace wave)")
+    else:
+        sw_ok = False
+        sw_detail = "SW CACHE_VERSION not parseable"
     checks.append((
-        "16.1 SW on v3.64.x template-marketplace family",
-        bool(sw_match),
-        sw_match.group(0) if sw_match else "no v3.64.x template-marketplace SW",
+        "16.1 SW at or past v3.64.0 (template-marketplace wave)",
+        sw_ok,
+        sw_detail,
     ))
 
     # §11.5 closeout — Semantic runtime gate (fold + tenant views + setup-studio + audit).

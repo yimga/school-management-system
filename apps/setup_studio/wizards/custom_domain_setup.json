@@ -1,0 +1,47 @@
+{
+  "wizard_key": "custom_domain_setup",
+  "version": 1,
+  "audience": ["tenant_admin", "operator"],
+  "label_token": "wizards.custom_domain_setup.label",
+  "description_token": "wizards.custom_domain_setup.description",
+  "icon_class": "rmc-icon-globe",
+  "estimated_minutes": 5,
+  "gates": {},
+  "ai": {},
+  "steps": [
+    {
+      "key": "domain_entry",
+      "input_type": "domain_input",
+      "validation": {
+        "required": true,
+        "domain_format": true,
+        "max_length": 253
+      },
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_custom_domain_step"
+      },
+      "estimated_seconds": 60
+    },
+    {
+      "key": "dns_instructions",
+      "input_type": "boolean",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_custom_domain_step"
+      },
+      "estimated_seconds": 120
+    },
+    {
+      "key": "verify",
+      "input_type": "boolean",
+      "validation": {"required": true},
+      "persistence": {
+        "target": "custom",
+        "writer": "apps.setup_studio.wizard_resolvers_operator::write_custom_domain_step"
+      },
+      "estimated_seconds": 90
+    }
+  ]
+}

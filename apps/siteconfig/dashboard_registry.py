@@ -93,9 +93,21 @@ def get_tenant_dashboard_registry(
         register_usage("dashboard", consumer, "invoice", "amount")
     except OPTIONAL_DASHBOARD_ERRORS:
         pass
+
+    # v3.99.23: surface cockpit-section catalog as additional widget options
+    # so the dashboard add-widget palette can also promote cockpit cards.
+    cockpit_widgets: list[dict] = []
+    try:
+        from .cockpit_widget_bridge import list_cockpit_widget_catalog
+
+        cockpit_widgets = list_cockpit_widget_catalog(page=page)
+    except OPTIONAL_DASHBOARD_ERRORS:
+        pass
+
     return {
         "widgets": widgets,
         "installed_app_widgets": installed,
+        "cockpit_widgets": cockpit_widgets,
         "metadata": metadata,
         "role": role,
         "page": page,

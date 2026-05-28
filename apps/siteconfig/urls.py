@@ -157,6 +157,7 @@ from .views_tenant_studio_hub import (
     TenantStudioDay1ResetView,
 )
 from .views_cockpit_admin import CockpitConfigureView, MarketingVoiceConfigureView
+from .views_dashboard_defaults_admin import DashboardDefaultsAdminView
 from .views_cockpit_previews import CockpitPreviewIndexView, CockpitPreviewServeView
 from .views_cockpit_health import CockpitHealthView
 from .views_theme_personality import ThemePersonalityConfigView
@@ -660,6 +661,15 @@ urlpatterns = [
         "super/configure/theme-personality/",
         ThemePersonalityConfigView.as_view(),
         name="theme_personality_configure",
+    ),
+    # v3.99.24 (2026-05-28): per-(role, page) dashboard defaults admin —
+    # operator-curated requested_widget_ids + promoted_cockpit_ids that new
+    # users inherit on first dashboard load.
+    # # rbac-allow: super-staff-dashboard-defaults-admin
+    path(
+        "super/configure/dashboard-defaults/",
+        DashboardDefaultsAdminView.as_view(),
+        name="dashboard_defaults_admin",
     ),
     # v3.57.2 (2026-05-21): operator design-preview index + raw HTML serve
     # routes. Surfaces docs/generated/preview_app_shell_*.html behind staff

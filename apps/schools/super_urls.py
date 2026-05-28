@@ -242,6 +242,16 @@ urlpatterns = [
         name="api_school_lifecycle",
     ),
     path(
+        "api/bulk/schools/",
+        require_super_access_with_host(super_views.api_bulk_schools),
+        name="api_bulk_schools",
+    ),
+    path(
+        "api/bulk/operators/",
+        require_super_access_with_host(super_views.api_bulk_operators),
+        name="api_bulk_operators",
+    ),
+    path(
         "api/schools/<uuid:school_id>/policy-bundles/",
         require_super_access_with_host(super_views.api_school_policy_bundles),
         name="api_school_policy_bundles",

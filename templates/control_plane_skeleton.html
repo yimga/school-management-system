@@ -14,6 +14,7 @@
        System; theme-preference-bootstrap.js overrides this SSR default at runtime. {% endcomment %}
     {% include "partials/rmc_social_meta.html" %}
     <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
+    {% include "partials/rmc_viewport_engine.html" %}
     <script src="{% static 'js/rmc-lexicon.js' %}" defer></script>
     <script src="{% static 'js/rmc-friction.js' %}" defer></script>
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
@@ -32,6 +33,8 @@
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
     <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
+    {# v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). #}
+    <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
     <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
@@ -54,6 +57,8 @@
     {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    {# v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
     {# v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). #}
@@ -148,6 +153,7 @@
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </head>
   <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-back-to-top-policy="always" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1" data-rmc-notebook-footer-dock="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
@@ -247,6 +253,10 @@
     <script src="{% static 'js/_pages/rmc-app-shell.js' %}" defer></script>
     {# v3.55.0+ (2026-05-21): AI Copilot rail expand/collapse + Cmd/Ctrl+K focus. #}
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
+    {# v3.99.15: Copilot services bridge + contextual lens (list row sync). #}
+    <script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
+    <script src="{% static 'js/rmc-copilot-context-lens.js' %}" defer></script>
+    <script src="{% static 'js/rmc-list-bulk-select.js' %}" defer></script>
     {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. #}
     <script src="{% static 'js/_pages/rmc-data-viz.js' %}" defer></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>

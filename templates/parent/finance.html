@@ -322,7 +322,4 @@
 {% if finance_access_granted %}
 <script src="{% static 'js/_pages/parent__finance.js' %}"></script>
 {% endif %}
-{% include "partials/portal_row_detail_drawer.html" %}
-<link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
-<script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

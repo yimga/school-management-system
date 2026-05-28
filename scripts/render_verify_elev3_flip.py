@@ -238,6 +238,42 @@ CONSUMERS: list[dict[str, str]] = [
             "Glass card glow + heavier shadow are the v8 preview parity goal."
         ),
     },
+    {
+        "slug": "rmc-back-to-top",
+        "label": "rmc-back-to-top: floating back-to-top FAB",
+        "path": "static/css/rmc-back-to-top.css",
+        "line": "218",
+        "verdict": "safe-to-flip",
+        "rationale": (
+            "Floating FAB above page chrome with ring stack; opted into top "
+            "tier with literal fallback. Heavier shadow reinforces the lift "
+            "against scrolled content."
+        ),
+    },
+    {
+        "slug": "rmc-notification-corner",
+        "label": "rmc-notification-corner: corner toast/notification surface",
+        "path": "static/css/rmc-notification-corner.css",
+        "line": "31",
+        "verdict": "safe-to-flip",
+        "rationale": (
+            "Corner toast surface above page chrome with material blur; "
+            "var(--elev-3) with literal fallback. Bump matches the popover-"
+            "over-page calibration shared with other floating widgets."
+        ),
+    },
+    {
+        "slug": "rmc-viewport-engine",
+        "label": "rmc-viewport-engine: viewport-pinned floating affordance",
+        "path": "static/css/rmc-viewport-engine.css",
+        "line": "46",
+        "verdict": "safe-to-flip",
+        "rationale": (
+            "Viewport-engine floating affordance at z-index 950; explicit "
+            "opt-in to top-tier lift with two-layer literal fallback. "
+            "Bump aligns with the back-to-top + assist-dock cohort."
+        ),
+    },
 ]
 
 # Theme redefines (informational — these BLOCK the canonical flip from reaching

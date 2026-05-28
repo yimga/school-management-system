@@ -31,6 +31,8 @@ backend-shell dashboard-page-backend
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
 {# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
+{# v4.00.12: shared resumable-wizards banner styles (also used by tenant_wizard_index). #}
+<link rel="stylesheet" href="{% static 'css/rmc-wizard-index.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <!-- Include navigation bridge styles -->
 <script src="{% static 'js/_pages/accounts__backend_dashboard.js' %}"></script>
@@ -90,7 +92,6 @@ backend-shell dashboard-page-backend
        ONLY on the backend (school-admin) landing dashboard. Each partial self-gates on
        cockpit.<section>.enabled. {% endcomment %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="backend__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}
-    {% include "partials/cockpit/_collapsable_section.html" with title=_("Calendar & weather") key="backend__calendar_weather" include_partial="partials/cockpit/_calendar_weather.html" chrome="section" %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="backend__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="backend__realtime_presence" default_state="collapsed" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}
   </div>
@@ -187,6 +188,7 @@ backend-shell dashboard-page-backend
   </div>
 
   <div class="backend-v2-shell" data-dashboard-intent="{{ dashboard_intent|default:'operational' }}" data-tour="dashboard-main">
+    {% include "partials/_resumable_wizards_banner.html" with banner_variant="compact" %}
     {% if backend_intent_emphasize_setup %}
     <div class="alert alert-info py-2 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2" role="region" aria-label="{% trans 'Setup focus' %}">
       <span>{% trans "Focus: Setup — Complete your school setup for the best experience." %}</span>
@@ -998,6 +1000,8 @@ backend-shell dashboard-page-backend
     </aside>
     {% endif %}
   </div>
+  {# v3.99.24: promoted cockpit widgets land here (data-widget-id ensures drag/hide/undo apply) #}
+  {% include "partials/cockpit/_promoted_dashboard_widgets.html" %}
   </details>
   {{ command_palette|json_script:"backend-command-palette-data" }}
   <div id="backendCommandPalette" class="backend-cmd-palette" aria-hidden="true">

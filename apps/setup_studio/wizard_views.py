@@ -61,6 +61,30 @@ def _resolve_school(request: HttpRequest) -> Any:
     return None
 
 
+def _resolve_resumable_wizards_for_request(request: HttpRequest) -> list[Any]:
+    """v4.00.12: best-effort list of wizards the current tenant has started-not-completed in last 7 days.
+
+    Returns [] on any failure — banner / hint UIs degrade silently rather
+    than breaking the wizard index page.
+    """
+    try:
+        school = _resolve_school(request)
+        if school is None:
+            return []
+        from apps.setup_studio.models import SetupProgress  # local import — avoids circular at app load
+        from apps.setup_studio.wizard_extras import list_resumable_wizards
+
+        progress = SetupProgress.objects.filter(school=school).first()
+        if progress is None:
+            return []
+        step_state = progress.step_state or {}
+        wizards_namespace = step_state.get("wizards") if isinstance(step_state, dict) else None
+        return list_resumable_wizards(wizards_namespace=wizards_namespace, within_days=7)
+    except Exception as exc:  # noqa: BLE001 — best-effort surfacing; never breaks the page
+        logger.debug("resumable wizards lookup failed: %s", exc)
+        return []
+
+
 def _build_context(
     *,
     request: HttpRequest,
@@ -292,10 +316,22 @@ class TenantWizardIndexView(LoginRequiredMixin, View):
     """# rbac-allow: tenant-admin-wizard-index-via-role-registry"""
 
     def get(self, request: HttpRequest) -> HttpResponse:
-        if not _user_is_tenant_admin(request):
+        # v4.00.5: audience-aware index — non-admin tenant users (parent/teacher/student/staff)
+        # see the wizards targeted at their audience, not a deny redirect.
+        user_audience = _user_audience(request)
+        if user_audience is None:
             return redirect("/")
-        wizards = wizard_engine.list_wizards_for_audience("tenant_admin")
-        return render(request, "setup_studio/tenant_wizard_index.html", {"wizards": wizards})
+        if _user_is_tenant_admin(request):
+            wizards = wizard_engine.list_wizards_for_audience("tenant_admin")
+        else:
+            wizards = wizard_engine.list_wizards_for_audience(user_audience)
+        resumable = _resolve_resumable_wizards_for_request(request)
+        return render(request, "setup_studio/tenant_wizard_index.html", {
+            "wizards": wizards,
+            "resumable_wizards": resumable,
+            "user_audience": user_audience,
+            "wizard_search_audience": user_audience if not _user_is_tenant_admin(request) else "tenant_admin",
+        })
 
 
 class TenantWizardView(LoginRequiredMixin, View):
@@ -321,17 +357,67 @@ class TenantWizardView(LoginRequiredMixin, View):
             step = wizard.first_step()
         return wizard, step, school
 
+    def _preview_render(self, request: HttpRequest, wizard: wizard_engine.WizardDefinition, step_key: str | None) -> HttpResponse:
+        """v4.00.8 #8: read-only preview — render without touching SetupProgress."""
+        try:
+            step = wizard.step_by_key(step_key) if step_key else wizard.first_step()
+        except wizard_engine.StepNotFound:
+            step = wizard.first_step()
+        context = _build_context(
+            request=request, wizard=wizard, step=step,
+            audience=self.audience, school=None,
+            state={"answers": {}, "completed": [], "started_at": "", "preview": True},
+        )
+        context["preview_mode"] = True
+        return render(request, self.template, context)
+
     def get(self, request: HttpRequest, wizard_key: str, step_key: str | None = None) -> HttpResponse:
-        if not _user_is_tenant_admin(request):
+        # v4.00.5: dispatch on audience match, not just tenant_admin — so
+        # parent/teacher/student/staff wizards reach their target users.
+        try:
+            wizard_for_audience_check = wizard_engine.get_wizard(wizard_key)
+        except wizard_engine.WizardNotFound:
+            return redirect("setup_studio:tenant_wizard_index")
+        if not _user_can_run_wizard(request, wizard_for_audience_check):
             return redirect("/")
+        # v4.00.8 #8: preview mode — ?preview=1 renders the wizard against the
+        # registry without touching SetupProgress at all. Lets operators QA new
+        # JSON definitions without polluting analytics. Staff-only — non-staff
+        # users get redirected back to the live flow.
+        if request.GET.get("preview") == "1" and getattr(request.user, "is_staff", False):
+            return self._preview_render(request, wizard_for_audience_check, step_key)
         wizard, step, school = self._resolve(request, wizard_key, step_key)
         if wizard is None or school is None:
             return redirect("setup_studio:tenant_wizard_index")
         state = wizard_state_resolver.get_wizard_state(school, wizard.wizard_key)
         if state.get("completed_at"):
+            user_audience = _user_audience(request) or "tenant_admin"
+            # v4.00.8 #1: surface next-step suggestions
+            try:
+                from apps.setup_studio.wizard_next_steps import get_suggestions
+
+                next_suggestions_raw = get_suggestions(wizard.wizard_key, audience=user_audience)
+                # v4.00.13: enrich each suggestion with a resolved friendly label
+                # so the template doesn't have to render raw `wizards.next.*` slugs.
+                from apps.setup_studio.wizard_extras import resolve_wizard_label
+
+                next_suggestions = []
+                for s in next_suggestions_raw:
+                    next_suggestions.append({
+                        "target_wizard_key": s.target_wizard_key,
+                        "label_token": s.label_token,
+                        "resolved_label": resolve_wizard_label(s.target_wizard_key),
+                        "priority": s.priority,
+                    })
+            except Exception:  # noqa: BLE001
+                next_suggestions = []
             return render(request, "setup_studio/tenant_wizard_index.html", {
-                "wizards": wizard_engine.list_wizards_for_audience("tenant_admin"),
+                "wizards": wizard_engine.list_wizards_for_audience(user_audience),
                 "just_completed_wizard_key": wizard.wizard_key,
+                "next_step_suggestions": next_suggestions,
+                "resumable_wizards": _resolve_resumable_wizards_for_request(request),
+                "user_audience": user_audience,
+                "wizard_search_audience": user_audience,
             })
         wizard_telemetry.emit_step_viewed(wizard.wizard_key, step.key, self.audience)
         context = _build_context(
@@ -341,7 +427,11 @@ class TenantWizardView(LoginRequiredMixin, View):
         return render(request, self.template, context)
 
     def post(self, request: HttpRequest, wizard_key: str, step_key: str) -> HttpResponse:
-        if not _user_is_tenant_admin(request):
+        try:
+            wizard_for_audience_check = wizard_engine.get_wizard(wizard_key)
+        except wizard_engine.WizardNotFound:
+            return redirect("setup_studio:tenant_wizard_index")
+        if not _user_can_run_wizard(request, wizard_for_audience_check):
             return redirect("/")
         wizard, step, school = self._resolve(request, wizard_key, step_key)
         if wizard is None or school is None:
@@ -439,3 +529,62 @@ def _user_is_tenant_admin(request: HttpRequest) -> bool:
     # Fallback: rely on Django staff_member_required style — non-staff tenant users with .school must be admins.
     user_role = getattr(user, "role", None) or getattr(user, "user_role", None)
     return user_role in ("tenant_admin", "admin", "proprietor", "principal", "school_admin")
+
+
+_ROLE_TO_AUDIENCE = {
+    "admin":           "tenant_admin",
+    "tenant_admin":    "tenant_admin",
+    "principal":       "tenant_admin",
+    "proprietor":      "tenant_admin",
+    "school_admin":    "tenant_admin",
+    "leadership":      "tenant_admin",
+    "it_admin":        "tenant_admin",
+    "teacher":         "teacher",
+    "dept_lead":       "teacher",
+    "hod":             "teacher",
+    "parent":          "parent",
+    "student":         "student",
+    "staff":           "staff",
+    "finance_staff":   "staff",
+    "academics_staff": "staff",
+    "comms_staff":     "staff",
+}
+
+
+def _user_audience(request: HttpRequest) -> str | None:
+    """Return the wizard audience slug for the request's user, or None.
+
+    Used by TenantWizardView to allow parent/teacher/student/staff users
+    onto wizards whose audience array includes their resolved audience.
+    Staff always resolve to ``operator`` so staff_member_required style
+    routes work — but their role-derived audience overrides when set.
+    """
+    user = getattr(request, "user", None)
+    if user is None or not user.is_authenticated:
+        return None
+    if getattr(user, "is_staff", False):
+        return "operator"
+    for attr in ("user_role", "role", "primary_role"):
+        role = getattr(user, attr, None)
+        if role:
+            audience = _ROLE_TO_AUDIENCE.get(str(role).lower())
+            if audience:
+                return audience
+    return None
+
+
+def _user_can_run_wizard(request: HttpRequest, wizard: wizard_engine.WizardDefinition) -> bool:
+    """Permit when the user's resolved audience appears in the wizard's audience array.
+
+    Tenant admins and staff can always reach tenant_admin wizards via the
+    legacy ``_user_is_tenant_admin`` path. The new path adds audience-matching
+    so a teacher reaches teacher wizards, a parent reaches parent wizards, etc.
+    """
+    if _user_is_tenant_admin(request):
+        # Tenant admin / staff can run tenant_admin wizards; gate other audiences below
+        if "tenant_admin" in wizard.audience or "operator" in wizard.audience:
+            return True
+    user_audience = _user_audience(request)
+    if user_audience is None:
+        return False
+    return user_audience in wizard.audience

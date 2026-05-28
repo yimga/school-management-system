@@ -14,6 +14,22 @@
       {% include "studio_os/components/page_header.html" with title=_("Applicants") subtitle=_("Admissions funnel: leads and applications.") action_url=add_url action_text=_("Add applicant") %}
       <p class="mb-3"><a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% blocktrans with t=student_pl_lc %}Back to {{ t }}{% endblocktrans %}</a></p>
 
+      {# v4.00.12 — 5-column stage breakdown using rmc-five-col primitive. #}
+      {% if stage_breakdown %}
+      <section class="rmc-five-col mb-3" aria-label="{% trans 'Applicants by stage' %}">
+        <div class="rmc-five-col__head" role="row">
+          {% for cell in stage_breakdown %}<div class="rmc-five-col__cell" role="columnheader">{{ cell.label }}</div>{% endfor %}
+        </div>
+        <div class="rmc-five-col__row" role="row">
+          {% for cell in stage_breakdown %}
+            <div class="rmc-five-col__cell" role="cell">
+              <a class="rmc-status-pill rmc-status-pill--{{ cell.pill_variant|default:'actionable' }}" href="?stage={{ cell.code }}">{{ cell.count }}</a>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+
       <form method="get" class="card card-body bg-light mb-3 page-family-filter-row" role="search" data-tour="admissions-search">
         <div class="row g-2 align-items-end">
           <div class="col-md-4">
@@ -61,7 +77,12 @@
                     data-rmc-row-meta='{"{% trans "Email" %}":"{{ a.email|default:"—"|escapejs }}","{% trans "Lead source" %}":"{{ a.lead_source|default:"—"|escapejs }}"}'>
                   <td>{{ a.last_name }}, {{ a.first_name }}</td>
                   <td>{{ a.email|default:"-" }}</td>
-                  <td><span class="badge bg-secondary">{{ a.get_stage_display|default:a.stage }}</span></td>
+                  <td>
+                    {% comment %}v4.00.13: semantic stage->pill variant matching stage_to_pill_variant() in admissions.queue_depth.{% endcomment %}
+                    {% if a.stage == "ACCEPTED" or a.stage == "ENROLLED" %}{% with pill_class="rmc-status-pill--success" %}
+                      <a class="rmc-status-pill {{ pill_class }}" href="?stage={{ a.stage }}">{{ a.get_stage_display|default:a.stage }}</a>
+                    {% endwith %}{% elif a.stage == "UNDER_REVIEW" %}<a class="rmc-status-pill rmc-status-pill--warning" href="?stage={{ a.stage }}">{{ a.get_stage_display|default:a.stage }}</a>{% elif a.stage == "REJECTED" or a.stage == "LEAD" %}<a class="rmc-status-pill rmc-status-pill--muted" href="?stage={{ a.stage }}">{{ a.get_stage_display|default:a.stage }}</a>{% else %}<a class="rmc-status-pill rmc-status-pill--actionable" href="?stage={{ a.stage }}">{{ a.get_stage_display|default:a.stage }}</a>{% endif %}
+                  </td>
                   <td>{{ a.lead_source|default:"-" }}</td>
                   <td>{{ a.created_at|date:"M j, Y H:i"|default:"-" }}</td>
                 </tr>

@@ -420,6 +420,57 @@ body[data-dashboard-page="backend"] .backend-v2-main-grid > [data-widget-id="bac
   }
 }
 
+/* Tablet (stacked workspace): 2-up rail + full-width row-3 list panels */
+@media (min-width: 761px) and (max-width: 1200px) {
+  body[data-dashboard-page="backend"] .backend-v2-rail {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--dash-gap);
+    align-items: start;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail > .card {
+    margin-bottom: 0 !important;
+    height: 100%;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail > .card[data-widget-id="backend-planner"] {
+    grid-column: 1 / -1;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-recent-activity"],
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id="backend-top-performing"] {
+    grid-column: 1 / span 2;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid .backend-v2-panel-head {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail-card .backend-quick-link {
+    min-width: 0;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-rail-card .backend-quick-link span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Mid-tablet with portal sidebar: single-column main grid before phone stack */
+@media (min-width: 761px) and (max-width: 1024px) {
+  body[data-dashboard-page="backend"] .backend-v2-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+  }
+
+  body[data-dashboard-page="backend"] .backend-v2-main-grid:not(.backend-v2-main-grid--fluid) > [data-widget-id] {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+}
+
 /* Mobile stack */
 @media (max-width: 760px) {
   body[data-dashboard-page="backend"] .backend-v2-main-grid {

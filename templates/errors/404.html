@@ -18,7 +18,11 @@
         <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}"><i class="bi bi-life-preserver me-1"></i>{% trans "Contact support" %}</a>
       {% else %}
         {% render_smart_links state="error.404" %}
-        <a class="btn btn-outline-secondary" href="{% url 'manager_help_center' %}"><i class="bi bi-question-circle me-1"></i>{% trans "Help hub" %}</a>
+        {% if request.public_host_kind == 'manager' %}
+          <a class="btn btn-outline-secondary" href="{% url 'manager_help_center' %}"><i class="bi bi-question-circle me-1"></i>{% trans "Help hub" %}</a>
+        {% else %}
+          <a class="btn btn-outline-secondary" href="{% url 'feedback:help_center' %}"><i class="bi bi-question-circle me-1"></i>{% trans "Help center" %}</a>
+        {% endif %}
       {% endif %}
     </div>
   </div>

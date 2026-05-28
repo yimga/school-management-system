@@ -81,6 +81,25 @@
   .rmc-viewport-lock__content { padding: 16px; }
 }
 
+/* v4.00.12 — opt-in shell adoption hook.
+   Pages set `<body class="rmc-wizard-shell-viewport-locked">` (or any other
+   `*-viewport-locked` class) to compose the locked viewport on top of
+   whichever shell extends portal_base / control_plane_skeleton. The hook
+   activates a soft form (no grid rewrite) — body becomes a 100dvh layout
+   where overflow only flows on the page's primary <main>. Cheap, reversible,
+   pages can drop the class to revert. */
+body[class*="-viewport-locked"] {
+  min-height: 100dvh;
+  min-height: 100lvh;
+  display: flex;
+  flex-direction: column;
+}
+body[class*="-viewport-locked"] main {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* --- 2. 5-column max table ---------------------------------------------- */
 
 .rmc-five-col {

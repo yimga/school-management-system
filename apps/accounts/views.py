@@ -2748,7 +2748,7 @@ def backend_dashboard(request):
         context["rmc_school_health_nudges"] = []
         context["rmc_ai_system_health_insight"] = None
         context["rmc_ai_system_onboarding_insight"] = None
-    from apps.accounts.models import User
+    # Use module-level User import; a function-local import shadowed User and broke action_perms.
     from apps.portal.tenant_role_home import (
         build_tp_hero_context,
         role_home_show_legacy,
@@ -2780,7 +2780,95 @@ def backend_dashboard(request):
 
     context.update(build_operator_queue_smart_link_context(request))
     context["backend_show_legacy_dashboard"] = role_home_show_legacy(request)
+
+    # v3.99.24: surface promoted cockpit widgets + requested-new-widget ids
+    # from the user's saved layout. Both are written by dashboard-layout.js
+    # via the layout API; the template includes them at the end of the grid.
+    try:
+        from apps.siteconfig.dashboard_views import get_layout_for_page
+        from apps.siteconfig.cockpit_widget_bridge import resolve_promoted_cockpit_partials
+
+        layout_obj = get_layout_for_page(request.user, "backend")
+        layout_data = (layout_obj.layout if layout_obj else {}) or {}
+        layout_settings = layout_data.get("__settings__") or {}
+        promoted_ids = list(layout_settings.get("promoted_cockpit_ids") or [])
+        context["promoted_cockpit_widgets"] = resolve_promoted_cockpit_partials(promoted_ids)
+        context["requested_widget_ids"] = list(layout_settings.get("requested_widget_ids") or [])
+    except Exception:  # noqa: BLE001 — layout resolution is best-effort, never breaks dashboard
+        context.setdefault("promoted_cockpit_widgets", [])
+        context.setdefault("requested_widget_ids", [])
+
+    # v4.00.13: cache the 3 extra cockpit helpers for 60s per (user, school).
+    # backend_dashboard was running 3 extra DB queries (queue depth, resumable
+    # wizards, enrollment forecast) every render — combined into one cached
+    # bundle so steady-state renders do 0 extra queries.
+    _school_for_extras = getattr(request, "school", None) or getattr(request, "tenant", None) \
+        or getattr(getattr(request, "user", None), "school", None)
+    _user_pk = getattr(getattr(request, "user", None), "pk", None) or "anon"
+    _school_pk = getattr(_school_for_extras, "pk", None) or "noschool"
+    _extras_cache_key = f"backend_dashboard_extras:user={_user_pk}:school={_school_pk}"
+
+    try:
+        from django.core.cache import cache
+        _extras = cache.get(_extras_cache_key)
+    except Exception:  # noqa: BLE001
+        _extras = None
+        cache = None  # type: ignore[assignment]
+
+    if _extras is None:
+        _extras = _compute_backend_dashboard_extras(request, _school_for_extras)
+        try:
+            if cache is not None:
+                cache.set(_extras_cache_key, _extras, 60)
+        except Exception:  # noqa: BLE001
+            pass
+
+    context["admissions_queue_rows"] = _extras.get("admissions_queue_rows", [])
+    context["resumable_wizards"] = _extras.get("resumable_wizards", [])
+    context["enrollment_forecast_rows"] = _extras.get("enrollment_forecast_rows", [])
+
     return render(request, "accounts/backend_dashboard.html", context)
+
+
+def _compute_backend_dashboard_extras(request, school):
+    """v4.00.13 — gather 3 cockpit extras (queue depth + resumable + forecast) in one call.
+
+    Pure-Python aggregator. Returns a dict-of-lists; callers cache the result.
+    Each lookup is wrapped so any single failure doesn't break the bundle.
+    """
+    out = {"admissions_queue_rows": [], "resumable_wizards": [], "enrollment_forecast_rows": []}
+    try:
+        from apps.admissions.queue_depth import compute_admissions_queue_depth
+
+        out["admissions_queue_rows"] = compute_admissions_queue_depth(school)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from apps.setup_studio.models import SetupProgress  # local — avoids cold-import cost
+        from apps.setup_studio.wizard_extras import list_resumable_wizards
+
+        if school is not None and getattr(school, "pk", None) is not None:
+            progress = SetupProgress.objects.filter(school=school).first()  # tenant-isolation-allow: scoped-via-school-filter-setup-progress
+            if progress is not None:
+                step_state = progress.step_state or {}
+                wizards_namespace = step_state.get("wizards") if isinstance(step_state, dict) else None
+                out["resumable_wizards"] = list_resumable_wizards(
+                    wizards_namespace=wizards_namespace, within_days=7,
+                )
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from apps.api.enrollment_forecast import build_forecast
+        from apps.people.models import StudentProfile
+
+        if school is not None and getattr(school, "pk", None) is not None:
+            current = StudentProfile.objects.filter(school=school, is_active=True).count()  # tenant-isolation-allow: scoped-via-school-filter-enrollment-forecast-tile
+            out["enrollment_forecast_rows"] = build_forecast(
+                school=school, current_count=current, horizon_terms=3,
+            )
+    except Exception:  # noqa: BLE001
+        pass
+    return out
 
 
 BACKEND_STATUS_FRAGMENT_CACHE_KEY = "backend_dashboard_status_fragment"

@@ -340,3 +340,28 @@ html[data-theme="light"] .dash-widget-row select {
 #dashboard-customize-instructions.d-none {
   display: none !important;
 }
+
+/* v3.99.15: column labels in edit mode (makeover plan §7.3) */
+.dashboard-column-label {
+  letter-spacing: 0.06em;
+  padding: 0.35rem 0.6rem;
+  border: 1px dashed var(--hairline, rgba(0, 0, 0, 0.12));
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-elevated, rgba(0, 0, 0, 0.02));
+  color: var(--text-secondary, #555);
+}
+
+/* v3.99.15: edit-mode envelope highlight (subtle ring on root) */
+#dashboard-layout.dashboard-edit-mode-active {
+  outline: 1px dashed var(--hairline, rgba(0, 0, 0, 0.18));
+  outline-offset: 6px;
+  border-radius: var(--radius-md, 10px);
+}
+
+/* v3.99.15: mobile list-reorder fallback (makeover plan §7.4) */
+#dashboard-mobile-reorder-list .list-group-item {
+  padding: 0.55rem 0.75rem;
+}
+#dashboard-mobile-reorder-list .list-group-item .btn-group .btn {
+  padding: 0.2rem 0.5rem;
+}

@@ -81,7 +81,7 @@ body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav::-webkit-
 
 body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav__pill {
   flex: 0 0 auto;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: intentional-horizontal-pill-scroller */
 }
 
 /* ── Platform pulse strip (under primary nav) ── */

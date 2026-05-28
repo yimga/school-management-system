@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-05-22T18:44:16+00:00",
-  "consumer_count": 16,
+  "generated_at": "2026-05-28T20:37:45+00:00",
+  "consumer_count": 19,
   "redefine_count": 6,
   "consumers": [
     {
       "path": "static/css/admin-200x-shell-overlay.css",
-      "line": 441,
+      "line": 455,
       "text": "box-shadow: var(--elev-3, 0 18px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08)); /* off-token-allow: dark-chrome-admin-elev */"
     },
     {
       "path": "static/css/admin-200x-shell-overlay.css",
-      "line": 559,
+      "line": 573,
       "text": "box-shadow: var(--elev-3, 0 18px 48px rgba(15,23,42,0.18), 0 4px 12px rgba(15,23,42,0.08)); /* off-token-allow: dark-chrome-admin-elev */"
     },
     {
@@ -20,23 +20,28 @@
     },
     {
       "path": "static/css/portal-ui-components.css",
-      "line": 2578,
+      "line": 2536,
       "text": "box-shadow: var(--elev-3, 0 12px 32px rgba(26, 22, 18,0.18));"
     },
     {
       "path": "static/css/portal-ui-components.css",
-      "line": 2996,
+      "line": 2954,
       "text": "box-shadow: var(--elev-3, 0 10px 40px rgba(0, 0, 0, 0.15));"
     },
     {
       "path": "static/css/rmc-assist-dock.css",
-      "line": 129,
+      "line": 134,
       "text": "box-shadow: var(--elev-3, 0 12px 32px rgba(0, 0, 0, 0.35));"
     },
     {
       "path": "static/css/rmc-assist-dock.css",
-      "line": 239,
+      "line": 237,
       "text": "box-shadow: var(--elev-3, 0 22px 55px rgba(0, 0, 0, 0.38));"
+    },
+    {
+      "path": "static/css/rmc-back-to-top.css",
+      "line": 218,
+      "text": "var(--elev-3, 0 18px 48px rgba(15, 23, 42, 0.18)),"
     },
     {
       "path": "static/css/rmc-command-bar.css",
@@ -59,14 +64,24 @@
       "text": ".rmc-form-savebar[data-dirty=\"1\"] { box-shadow: var(--elev-3); }"
     },
     {
+      "path": "static/css/rmc-notification-corner.css",
+      "line": 31,
+      "text": "box-shadow: var(--elev-3, 0 12px 32px rgba(15, 23, 42, 0.18));"
+    },
+    {
       "path": "static/css/rmc-tenant-dashboard-v2.css",
-      "line": 421,
+      "line": 459,
       "text": "box-shadow: var(--elev-3, 0 8px 28px rgba(15, 23, 42, 0.18)); /* off-token-allow: shadow-color-on-gradient-surface */"
     },
     {
       "path": "static/css/rmc-tour.css",
       "line": 41,
       "text": "box-shadow: var(--elev-3, 0 12px 40px rgba(0, 0, 0, 0.22));"
+    },
+    {
+      "path": "static/css/rmc-viewport-engine.css",
+      "line": 46,
+      "text": "box-shadow: var(--elev-3, 0 18px 48px rgba(15, 23, 42, 0.18), 0 4px 12px rgba(15, 23, 42, 0.08));"
     },
     {
       "path": "static/css/tenant-studio-day1.css",

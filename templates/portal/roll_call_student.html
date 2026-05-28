@@ -128,7 +128,6 @@
   <script src="{% static 'js/form-draft-save.js' %}"></script>
   {# FormDraftSave.init is called by the page script after the library loads. #}
   <script src="{% static 'js/_pages/portal__roll_call_student.js' %}"></script>
-  {% include "partials/portal_row_detail_drawer.html" %}
-  <link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
-  <script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>
+  {# v4.00.7: progressive WAL enhancement. No-op when window.rmcWAL is absent. #}
+  <script src="{% static 'js/_pages/rmc-attendance-wal-enhance.js' %}" defer></script>
 {% endblock %}

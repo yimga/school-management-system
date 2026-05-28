@@ -1637,102 +1637,96 @@ html[data-bs-theme="dark"] .dashboard-empty-message {
 }
 
 /* --- from templates/components/header_weather_widget.html --- */
-.header-context-strip {
-    width: 100%;
+.header-context-dock {
     min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 0;
-    min-height: 40px;
-    padding: 4px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.3); /* off-token-allow: white-overlay */
-    background: rgba(255, 255, 255, 0.14); /* off-token-allow: white-overlay */
-    color: var(--header-brand-fg, rgba(255, 255, 255, 0.95));
-    overflow: hidden;
+    flex: 0 0 auto;
   }
 
-  .header-context-segment {
-    min-width: 0;
+  .header-context-dock__trigger {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 8px;
+    gap: 0.45rem;
+    min-height: 34px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.3); /* off-token-allow: white-overlay */
+    background: rgba(255, 255, 255, 0.12); /* off-token-allow: white-overlay */
+    color: var(--header-brand-fg, rgba(255, 255, 255, 0.95));
     font-size: var(--type-size-eyebrow);
     line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    padding: 0.28rem 0.58rem;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: bounded-header-chip */
   }
 
-  .header-context-segment + .header-context-segment {
-    border-left: 1px solid rgba(255, 255, 255, 0.28);
+  .header-context-dock__trigger::after {
+    margin-left: 0.15rem;
   }
 
-  .header-context-segment--datetime {
-    font-weight: 600;
-    flex: 0 0 auto;
-  }
-
-  .header-context-segment--weather {
-    flex: 0 0 auto;
-  }
-
-  .header-context-segment--quote {
-    flex: 1 1 52%;
-    min-width: 220px;
-    font-style: italic;
-    opacity: 0.9;
-  }
-
+  .header-context-dock__clock,
   .header-context-icon {
-    line-height: 1;
     font-size: var(--type-size-eyebrow);
-    opacity: 0.95;
+    line-height: 1;
     flex: 0 0 auto;
   }
 
-  .header-context-value {
+  .header-context-dock__time {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+
+  .header-context-dock__weather {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .header-context-dock__menu {
+    min-width: 16.5rem;
+    max-width: min(22rem, calc(100vw - 1rem));
+    padding: 0.55rem;
+    border-radius: var(--radius-lg, 12px);
+    border: 1px solid var(--hairline, rgba(15, 23, 42, 0.1));
+    box-shadow: var(--elev-2, 0 10px 22px rgba(15, 23, 42, 0.16));
+    background: var(--surface-popover, var(--surface-elevated, #fff));
+  }
+
+  .header-context-dock__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    padding: 0.35rem 0.2rem;
+  }
+
+  .header-context-dock__row + .header-context-dock__row {
+    border-top: 1px solid var(--hairline, rgba(15, 23, 42, 0.08));
+  }
+
+  .header-context-dock__row--quote {
+    align-items: flex-start;
+  }
+
+  .header-context-dock__label {
+    color: var(--text-secondary, inherit);
+    font-size: var(--type-size-eyebrow);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: short-label */
+  }
+
+  .header-context-dock__value {
     min-width: 0;
+    text-align: right;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap; /* horizontal-overflow-risk-allow: bounded-data-values */
+    color: var(--text-primary, inherit);
   }
 
-  @media (max-width: 1399px) {
-    .header-context-segment {
-      font-size: var(--type-size-eyebrow);
-      padding: 0 6px;
-    }
-    .header-context-segment--quote {
-      min-width: 170px;
-    }
-  }
-
-  @media (max-width: 1279px) {
-    .header-context-segment {
-      font-size: var(--type-size-eyebrow);
-      padding: 0 6px;
-    }
-    .header-context-segment--quote {
-      display: none;
-    }
-  }
-
-  @media (max-width: 991px) {
-    .header-context-strip {
-      border-radius: 10px;
-    }
-  }
-
-  @media (max-width: 767px) {
-    .header-context-strip {
-      min-height: 30px;
-      padding: 1px 8px;
-    }
-    .header-context-segment {
-      font-size: var(--type-size-eyebrow);
-      padding: 0 6px;
-    }
+  .header-context-dock__row--quote .header-context-dock__value {
+    white-space: normal;
+    text-align: left;
   }
 
 /* --- from templates/components/keyboard_shortcuts.html --- */

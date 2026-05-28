@@ -140,6 +140,21 @@ def _normalize_dashboard_settings(settings: dict) -> dict:
                     {"widget_id": str(p["widget_id"]), "pages": [str(x) for x in pages]}
                 )
 
+    # v3.99.24: requested_widget_ids + promoted_cockpit_ids — both string-id lists
+    # written by the dashboard add-widget gallery for server-side renderer pickup.
+    requested = settings.get("requested_widget_ids") or []
+    if not isinstance(requested, list):
+        requested = []
+    requested_widget_ids = [str(x).strip() for x in requested if str(x).strip()]
+
+    promoted = settings.get("promoted_cockpit_ids") or []
+    if not isinstance(promoted, list):
+        promoted = []
+    # Constrain to the cockpit-id shape ``cockpit-<module>-<section>`` to avoid letting
+    # arbitrary ids leak into the layout settings (defense in depth — the partial
+    # resolver also drops unknowns).
+    promoted_cockpit_ids = [str(x).strip() for x in promoted if str(x).strip().startswith("cockpit-")]
+
     return {
         "show_sidebar": bool(settings.get("show_sidebar")),
         "sidebar_items": sidebar_items,
@@ -148,6 +163,8 @@ def _normalize_dashboard_settings(settings: dict) -> dict:
         "widget_meta": settings.get("widget_meta") or {},
         "hidden_widget_ids": hidden_widget_ids,
         "pinned_widgets": pinned_widgets,
+        "requested_widget_ids": requested_widget_ids,
+        "promoted_cockpit_ids": promoted_cockpit_ids,
     }
 
 

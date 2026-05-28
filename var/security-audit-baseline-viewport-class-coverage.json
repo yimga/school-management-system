@@ -1,0 +1,10 @@
+{
+  "finding_count": 0,
+  "findings": [],
+  "generated_at": "2026-05-28T20:26:25+00:00",
+  "required_include": "partials/rmc_viewport_engine.html",
+  "rule": "every top-level shell must include partials/rmc_viewport_engine.html so the three-engine viewport classifier runs before first paint",
+  "scan_dirs": [
+    "templates"
+  ]
+}

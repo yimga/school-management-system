@@ -14,6 +14,7 @@
  *   SWEEP_PATHS=comma-separated path prefixes (manager routes; tenant uses SWEEP_TENANT_PATHS)
  *   SWEEP_TENANT_PATHS=comma prefixes for tenant JSON routes only (if unset, all tenant routes)
  *   SWEEP_GOTO_RETRIES=3  SWEEP_GOTO_MS=90000
+ *   SWEEP_VIEWPORT_WIDTH=768  SWEEP_VIEWPORT_HEIGHT=1024 (tablet proof; default 1400x900)
  *
  * Git Bash: export MSYS_NO_PATHCONV=1 when passing SWEEP_* URL lists, or rely on
  * built-in undo for `C:/Program Files/Git/...` and `T:/...` → `/t/...` munging.
@@ -52,6 +53,10 @@ const TENANT_ROUTES_JSON = path.join(
 
 const GOTO_RETRIES = Math.max(1, parseInt(process.env.SWEEP_GOTO_RETRIES || '3', 10));
 const GOTO_TIMEOUT = parseInt(process.env.SWEEP_GOTO_MS || '90000', 10);
+const SWEEP_VIEWPORT = {
+  width: Math.max(320, parseInt(process.env.SWEEP_VIEWPORT_WIDTH || '1400', 10)),
+  height: Math.max(480, parseInt(process.env.SWEEP_VIEWPORT_HEIGHT || '900', 10)),
+};
 
 /** Git Bash / MSYS maps `/foo/` to `C:/Program Files/Git/foo/` and `/t/...` to `T:/...`. */
 function normalizeSweepPathList(raw) {
@@ -363,8 +368,10 @@ async function loginTenant(page) {
     ? '/authentication/login/'
     : `/t/${TENANT_SLUG}/authentication/login/`;
   await gotoWithRetries(page, loginUrl);
-  await page.locator('input[name="username"]').fill('admin');
-  await page.locator('input[name="password"]').fill('Sch00l_1234');
+  const tenantUser = process.env.TENANT_SWEEP_USERNAME || 'admin';
+  const tenantPassword = process.env.TENANT_SWEEP_PASSWORD || 'Sch00l_1234';
+  await page.locator('input[name="username"]').fill(tenantUser);
+  await page.locator('input[name="password"]').fill(tenantPassword);
   await page.getByRole('button', { name: /log in/i }).click();
   await page.waitForURL(
     (u) => !/\/authentication\/login\/?$/i.test(u.pathname),
@@ -385,15 +392,17 @@ async function main() {
   let skipped = 0;
 
   // --- Manager / admin surfaces ---
+  const managerSurfaces = SURFACES.filter((x) => x.surface === 'manager');
+  if (managerSurfaces.length) {
   const mgrCtx = await browser.newContext({
     baseURL: BASE,
-    viewport: { width: 1400, height: 900 },
+    viewport: SWEEP_VIEWPORT,
     storageState: fs.existsSync(AUTH) ? AUTH : undefined,
   });
   const mgrPage = await mgrCtx.newPage();
   if (!fs.existsSync(AUTH)) await loginManager(mgrPage);
 
-  for (const s of SURFACES.filter((x) => x.surface === 'manager')) {
+  for (const s of managerSurfaces) {
     try {
       const resp = await gotoWithRetries(mgrPage, s.url);
       if (resp && resp.status() >= 400) {
@@ -457,6 +466,7 @@ async function main() {
     }
   }
   await mgrCtx.close();
+  }
 
   // --- Tenant surfaces (separate host + inner paths when USE_TENANT_SUBDOMAIN=1) ---
   const tenHostRules =
@@ -468,7 +478,7 @@ async function main() {
   });
   const tenCtx = await tenBrowser.newContext({
     baseURL: TENANT_BASE,
-    viewport: { width: 1400, height: 900 },
+    viewport: SWEEP_VIEWPORT,
   });
   const tenPage = await tenCtx.newPage();
   try {

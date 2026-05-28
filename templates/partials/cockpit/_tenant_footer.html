@@ -1,0 +1,32 @@
+{% load i18n %}
+{% comment %} v3.99.25 (2026-05-28): Honest stub for the tenant_footer
+   cockpit section so promote-to-dashboard renders cleanly.
+
+   Configurable via cockpit.tenant_footer:
+     .enabled
+     .school_name / .tagline
+     .links     list — [{label, url, icon}]
+     .copyright_text
+{% endcomment %}
+{% if cockpit.tenant_footer.enabled %}
+<footer class="lx-card lx-tenant-footer" aria-label="{% trans 'Site footer' %}" data-rmc-cockpit-section="tenant_footer">
+  <div class="lx-card__head">
+    <div>
+      {% if cockpit.tenant_footer.school_name %}<h3 class="lx-card__title">{{ cockpit.tenant_footer.school_name }}</h3>{% endif %}
+      {% if cockpit.tenant_footer.tagline %}<div class="lx-card__eyebrow">{{ cockpit.tenant_footer.tagline }}</div>{% endif %}
+    </div>
+  </div>
+  {% if cockpit.tenant_footer.links %}
+    <ul class="list-inline mb-2">
+      {% for link in cockpit.tenant_footer.links %}
+        <li class="list-inline-item">
+          <a href="{{ link.url }}" class="small">
+            {% if link.icon %}<i class="bi bi-{{ link.icon }} me-1" aria-hidden="true"></i>{% endif %}{{ link.label }}
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% if cockpit.tenant_footer.copyright_text %}<div class="small text-muted">{{ cockpit.tenant_footer.copyright_text }}</div>{% endif %}
+</footer>
+{% endif %}

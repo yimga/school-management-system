@@ -1,0 +1,110 @@
+.rmc-list-bulk-bar {
+  position: sticky;
+  top: var(--rmc-bulk-bar-top, 0);
+  z-index: var(--z-sticky-subnav, 20);
+  margin-bottom: var(--space-3, 0.75rem);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.12));
+  background: color-mix(in srgb, var(--surface-elevated, #fff) 92%, var(--color-primary-500, #4f46e5) 8%);
+  box-shadow: var(--elev-1, 0 1px 3px rgba(0, 0, 0, 0.08));
+}
+
+.rmc-list-bulk-bar[hidden] {
+  display: none !important;
+}
+
+.rmc-list-bulk-bar__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.rmc-list-bulk-bar__count {
+  font-size: var(--type-size-sm, 0.875rem);
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+  margin-right: auto;
+}
+
+.rmc-list-bulk-check {
+  inline-size: 1rem;
+  block-size: 1rem;
+  cursor: pointer;
+}
+
+th.rmc-list-bulk-th,
+td.rmc-list-bulk-td {
+  width: 2.5rem;
+  vertical-align: middle;
+}
+
+tr[data-rmc-bulk-selected="1"] {
+  outline: 2px solid color-mix(in srgb, var(--color-primary-500, #4f46e5) 55%, transparent);
+  outline-offset: -2px;
+}
+
+.ai-copilot-views {
+  display: flex;
+  gap: var(--space-1, 0.25rem);
+  padding: var(--space-2, 0.5rem) var(--space-3, 0.75rem) 0;
+  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+}
+
+.ai-copilot-view {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.ai-copilot-view.is-active {
+  color: var(--text-primary, #fff);
+  border-bottom-color: var(--color-primary-500, #4f46e5);
+}
+
+.ai-copilot-view-panel[hidden] {
+  display: none !important;
+}
+
+.ai-copilot-lens-wrap {
+  max-height: min(42vh, 320px);
+  overflow-y: auto;
+}
+
+.rmc-bulk-confirm-dialog {
+  border: none;
+  padding: 0;
+  max-width: min(440px, calc(100vw - 2rem));
+  background: transparent;
+}
+
+.rmc-bulk-confirm-dialog::backdrop {
+  background: color-mix(in srgb, var(--surface-overlay, #000) 45%, transparent);
+}
+
+.rmc-bulk-confirm-dialog[open] .confirm-dialog {
+  margin: 0;
+}
+
+.rmc-bulk-confirm-dialog form {
+  margin: 0;
+}
+
+.rmc-copilot-context-lens-sheet .lx-copilot__lens-chip {
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.12));
+  background: var(--surface-canvas, #f8fafc);
+  color: var(--text-primary, inherit);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}

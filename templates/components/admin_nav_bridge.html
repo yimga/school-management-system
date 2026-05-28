@@ -29,14 +29,14 @@
                 {% endif %}
             </div>
             <div>
-                <div class="admin-nav-bridge__title">{% if is_manager_host %}{% trans "RunMyCampus Manager" %}{% else %}Admin Portal{% endif %}</div>
+                <div class="admin-nav-bridge__title">{% if is_manager_host %}{% trans "RunMyCampus Manager" %}{% else %}{% trans "Admin portal" %}{% endif %}</div>
                 <div class="admin-nav-bridge__location">
                     {% if is_manager_host %}
                         RunMyCampus Manager — {% trans "System &amp; data" %}
                     {% elif request.resolver_match and request.resolver_match.url_name == 'admin:index' or '/admin/' in request.path %}
                         {% trans "Platform Backoffice" %}
                     {% else %}
-                        Backend - Operations &amp; Workflows
+                        {% trans "Backend - operations and workflows" %}
                     {% endif %}
                 </div>
             </div>

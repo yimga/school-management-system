@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+<div class="container-fluid py-2" data-rmc-scroll-policy="paginate" data-rmc-page-fold-nav="required" data-rmc-section-nav="off" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-copilot-page-lens="operator-team-roster">
   {% if can_manage %}
   {% include "components/rmc_operational_center_frame.html" with os_center_key="operator_team_roster" center_eyebrow=_("Platform operators") center_title=_("Team & identity") center_purpose=_("Roster, MFA posture, tiers, and platform scopes — separate from tenant school staff.") primary_url=invite_url primary_label=_("Invite operator") status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
   {% else %}
@@ -27,21 +27,33 @@
   </div>
 
   <div class="card shadow-sm border-0 page-family-content-card">
-    <div class="card-body p-0 table-responsive">
-      <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+    <div class="card-body p-0">
+      {% if can_manage %}{% url 'super:api_bulk_operators' as bulk_operators_api_url %}{% endif %}
+      {% include "partials/rmc_list_bulk_toolbar.html" with bulk_bar_id="operator-team" %}
+      <div class="table-responsive">
+      <!-- table-column-budget-allow: operator-team-bulk-checkbox-six-column -->
+      <table class="table table-hover mb-0 table-family align-middle rmc-data-table" data-rmc-row-detail-table="1" data-rmc-list-bulk="1" data-rmc-bulk-bar-id="operator-team" data-rmc-bulk-actions='[{"id":"ask","label":"{% trans "Ask copilot"|escapejs %}","kind":"copilot","variant":"primary"}{% if can_manage %},{"id":"suspend","label":"{% trans "Suspend"|escapejs %}","kind":"post","variant":"danger","url":"{{ bulk_operators_api_url|escapejs }}","action":"suspend","confirm":"{% trans "Suspend {count} operator(s) and revoke sessions?"|escapejs %}"},{"id":"reactivate","label":"{% trans "Reactivate"|escapejs %}","kind":"post","url":"{{ bulk_operators_api_url|escapejs }}","action":"reactivate","confirm":"{% trans "Reactivate {count} operator(s)?"|escapejs %}"},{"id":"revoke-sessions","label":"{% trans "Revoke sessions"|escapejs %}","kind":"post","url":"{{ bulk_operators_api_url|escapejs }}","action":"revoke_sessions","confirm":"{% trans "Revoke active sessions for {count} operator(s)?"|escapejs %}"},{"id":"tier-support","label":"{% trans "Tier: Support"|escapejs %}","kind":"post","url":"{{ bulk_operators_api_url|escapejs }}","action":"set_tier","payload":{"tier":"support"},"confirmPhrase":"SET OPERATOR TIER","confirm":"{% trans "Set tier to Support for {count} operator(s)?"|escapejs %}"},{"id":"tier-security","label":"{% trans "Tier: Security"|escapejs %}","kind":"post","url":"{{ bulk_operators_api_url|escapejs }}","action":"set_tier","payload":{"tier":"security"},"confirmPhrase":"SET OPERATOR TIER","confirm":"{% trans "Set tier to Security for {count} operator(s)?"|escapejs %}"},{"id":"offboard","label":"{% trans "Offboard"|escapejs %}","kind":"post","variant":"danger","url":"{{ bulk_operators_api_url|escapejs }}","action":"offboard","confirmPhrase":"OFFBOARD OPERATORS","confirmTitle":"{% trans "Offboard operators"|escapejs %}","confirm":"{% trans "Offboard {count} operator(s)? Cannot be undone from this screen."|escapejs %}"}{% endif %}]'>
         <caption class="visually-hidden">{% trans "Platform operator roster" %}</caption>
         <thead class="table-light">
           <tr>
-            <th>{% trans "User" %}</th>
-            <th>{% trans "Tier" %}</th>
-            <th>{% trans "Status" %}</th>
-            <th>{% trans "MFA" %}</th>
-            <th></th>
+            <th scope="col" class="rmc-list-bulk-th"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-select-all aria-label="{% trans 'Select all operators on this page' %}"></th>
+            <th scope="col">{% trans "Operator" %}</th>
+            <th scope="col">{% trans "Tier" %}</th>
+            <th scope="col">{% trans "Status" %}</th>
+            <th scope="col">{% trans "MFA" %}</th>
+            <th scope="col" class="text-end"><span class="visually-hidden">{% trans "Open detail" %}</span>›</th>
           </tr>
         </thead>
         <tbody>
           {% for row in rows %}
-          <tr>
+          <tr data-rmc-row-detail="1"
+              tabindex="0"
+              data-rmc-row-title="{{ row.user.get_username|escape }}"
+              data-rmc-row-subtitle="{% if row.user.email %}{{ row.user.email|escape }}{% else %}—{% endif %}"
+              data-rmc-row-meta='{"{% trans "Tier" %}":"{{ row.tier_label|default:row.tier|escapejs }}","{% trans "Status" %}":"{{ row.status|escapejs }}","{% trans "MFA" %}":"{% if row.mfa_ok %}{% trans "Enrolled" %}{% else %}{% trans "Required" %}{% endif %}"}'
+              data-rmc-row-actions='[{"label":"{% trans "Details"|escapejs %}","href":"{{ row.detail_url|escapejs }}","variant":"primary"}]'
+              data-rmc-bulk-href="{{ row.detail_url }}">
+            <td class="rmc-list-bulk-td"><input type="checkbox" class="rmc-bulk-check" data-rmc-bulk-row value="{{ row.user.id }}" data-rmc-bulk-label="{{ row.user.get_username|escape }}" aria-label="{% blocktrans with u=row.user.get_username %}Select {{ u }}{% endblocktrans %}"></td>
             <td>
               <strong>{{ row.user.get_username }}</strong>
               {% if row.is_canonical_admin %}
@@ -58,9 +70,7 @@
               <span class="badge text-bg-warning">{% trans "Required" %}</span>
               {% endif %}
             </td>
-            <td class="text-end">
-              <a class="btn btn-sm btn-outline-secondary" href="{{ row.detail_url }}">{% trans "Details" %}</a>
-            </td>
+            <td class="text-end text-muted" aria-hidden="true">›</td>
           </tr>
           {% empty %}
           <tr>
@@ -69,6 +79,7 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
   {% include "components/pagination.html" %}

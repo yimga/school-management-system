@@ -26,6 +26,11 @@ from apps.setup_studio.wizard_views import (
     WizardAIRecommendView,
     WizardStateResetView,
 )
+from apps.setup_studio.views_activation_dashboard import (
+    BulkPromoteCockpitPresetAPIView,
+    WizardActivationDashboardView,
+    WizardSearchAPIView,
+)
 
 app_name = "setup_studio"
 
@@ -49,4 +54,12 @@ urlpatterns = [
 
     # AJAX
     path("api/wizards/ai/recommend/", WizardAIRecommendView.as_view(), name="wizard_ai_recommend"),
+
+    # v4.00.8: 10x improvements
+    # Activation dashboard (staff-only)
+    path("super/wizards/activation-dashboard/", WizardActivationDashboardView.as_view(), name="wizard_activation_dashboard"),
+    # Search API (authenticated)
+    path("api/wizards/search/", WizardSearchAPIView.as_view(), name="wizard_search_api"),
+    # Bulk-promote cockpit preset (staff-only)
+    path("api/wizards/cockpit-preset/", BulkPromoteCockpitPresetAPIView.as_view(), name="wizard_cockpit_preset_apply"),
 ]

@@ -14,6 +14,9 @@ OUT = ROOT / "docs" / "generated" / "analytics_viz_full_completion.json"
 
 
 def _run(cmd: list[str], timeout: int = 600) -> tuple[int, str]:
+    # On Windows, native commands shipped as .cmd/.bat (e.g. npm.cmd) can't be
+    # resolved by CreateProcess without shell=True. Keep shell=False on POSIX.
+    use_shell = sys.platform == "win32"
     proc = subprocess.run(
         cmd,
         cwd=str(ROOT),
@@ -21,7 +24,7 @@ def _run(cmd: list[str], timeout: int = 600) -> tuple[int, str]:
         encoding="utf-8",
         errors="replace",
         timeout=timeout,
-        shell=False,
+        shell=use_shell,
     )
     out = ((proc.stdout or "") + (proc.stderr or "")).strip()
     return proc.returncode, out[-1200:]

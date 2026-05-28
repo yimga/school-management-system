@@ -369,6 +369,10 @@ body.control-plane-shell #cp-main-content .cp-steering__path,
   color: var(--text-primary, var(--rmc-wcx-ink));
 
   white-space: nowrap;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
   transform: none;
 

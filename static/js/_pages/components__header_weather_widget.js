@@ -54,19 +54,23 @@
       var localTz = readTimezone(strip, "data-local-timezone");
       var globalTz = readTimezone(strip, "data-global-timezone");
       var localTarget = strip.querySelector("[data-header-datetime]");
+      var compactTarget = strip.querySelector("[data-header-datetime-compact]");
       var globalTarget = strip.querySelector("[data-header-datetime-global]");
       var compact = isCompact(strip);
+      var localDate = formatInZone(now, localTz, {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      });
+      var timeOptions = compact
+        ? { hour: "2-digit", minute: "2-digit" }
+        : { hour: "2-digit", minute: "2-digit", second: "2-digit" };
+      var localTime = formatInZone(now, localTz, timeOptions);
       if (localTarget) {
-        var localDate = formatInZone(now, localTz, {
-          weekday: "short",
-          month: "short",
-          day: "numeric"
-        });
-        var timeOptions = compact
-          ? { hour: "2-digit", minute: "2-digit" }
-          : { hour: "2-digit", minute: "2-digit", second: "2-digit" };
-        var localTime = formatInZone(now, localTz, timeOptions);
         localTarget.textContent = localDate + " | " + localTime;
+      }
+      if (compactTarget) {
+        compactTarget.textContent = localTime;
       }
       if (globalTarget) {
         if (localTz === globalTz) {

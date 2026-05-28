@@ -308,6 +308,44 @@
 @media (max-width: 1100px) {
   .tp-grid-2 { grid-template-columns: 1fr; }
 }
+
+/* Tablet: hero + KPI/quick tiles breathe without crowding */
+@media (max-width: 1100px) and (min-width: 601px) {
+  .tp-hero-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .tp-greeting-block {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .tp-hero-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .tp-page-h1 {
+    font-size: clamp(1.35rem, 1.1rem + 1.2vw, 1.65rem);
+  }
+}
+
+@media (max-width: 900px) and (min-width: 601px) {
+  .tp-snapshot__cards {
+    gap: var(--space-3, 10px);
+  }
+
+  .tp-quick-tile {
+    padding: 14px 12px;
+  }
+
+  .tp-activity,
+  .tp-spotlight {
+    padding: 18px 16px;
+  }
+}
 .tp-grid-stack {
   display: flex;
   flex-direction: column;

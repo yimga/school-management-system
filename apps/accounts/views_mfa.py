@@ -45,7 +45,21 @@ def mfa_setup(request):
     """
     Allow user to set up MFA (Time-based One-Time Password).
     Generates QR code for authenticator apps (Google Authenticator, Authy, etc.)
+
+    v4.00.12: Route through the Unified Wizard Engine via legacy_view_bridge.
+    The engine carries the canonical JSON definition (apps/setup_studio/wizards/mfa_setup.json)
+    + multi-audience support. Operators can opt out per-user via ``?legacy=1`` or per-deploy
+    via ``RMC_WIZARD_ENGINE_OVERRIDES = {"mfa_setup": False}``.
     """
+    try:
+        from apps.setup_studio.legacy_view_bridge import engine_redirect_response
+
+        resp = engine_redirect_response(request, "mfa_setup")
+        if resp is not None:
+            return resp
+    except Exception:  # noqa: BLE001 — engine bridge is best-effort; legacy path remains safe
+        pass
+
     next_url = _safe_next_url(
         request, request.POST.get("next") or request.GET.get("next"), ""
     )

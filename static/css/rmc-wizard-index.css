@@ -1,0 +1,232 @@
+/* v4.00.12 — tenant wizard index polish: completion banner, search box, resumable banner, card grid.
+   All colors route through semantic tokens (--surface-*, --text-*, --brand-*) so tenant brand wins.
+*/
+
+.rmc-wizard-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  margin-top: var(--space-4);
+}
+
+/* Completion banner — shown after a wizard finishes */
+.rmc-wizard-completion-banner {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+  box-shadow: var(--elev-1);
+}
+.rmc-wizard-completion-banner__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.rmc-wizard-completion-banner__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--brand-accent, var(--text-link));
+  color: var(--surface-bg);
+  font-weight: var(--font-weight-bold, 700);
+}
+.rmc-wizard-completion-banner__title {
+  font-size: var(--type-size-3);
+  color: var(--text-primary);
+  margin: 0;
+}
+.rmc-wizard-completion-banner__hint {
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-2) 0;
+}
+.rmc-wizard-completion-banner__next {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.rmc-wizard-next-card {
+  display: inline-flex;
+  flex-direction: column;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: background var(--motion-fast) var(--ease-out, ease-out), transform var(--motion-fast) var(--ease-out, ease-out);
+}
+.rmc-wizard-next-card:hover,
+.rmc-wizard-next-card:focus-visible {
+  background: var(--surface-elevated);
+  transform: translateY(-1px);
+}
+.rmc-wizard-next-card__key {
+  font-weight: var(--font-weight-semibold, 600);
+  font-size: var(--type-size-2);
+}
+.rmc-wizard-next-card__reason {
+  font-size: var(--type-size-1);
+  color: var(--text-secondary);
+}
+
+/* Resumable wizards banner */
+.rmc-resumable-wizards {
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+}
+.rmc-resumable-wizards--compact {
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.rmc-resumable-wizards__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.rmc-resumable-wizards__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.5rem;
+  border-radius: 9999px;
+  background: var(--text-link, var(--brand-primary));
+  color: var(--surface-bg);
+  font-weight: var(--font-weight-bold, 700);
+  font-size: var(--type-size-1);
+}
+.rmc-resumable-wizards__title {
+  font-size: var(--type-size-2);
+  color: var(--text-primary);
+}
+.rmc-resumable-wizards__hint {
+  color: var(--text-secondary);
+  font-size: var(--type-size-1);
+}
+.rmc-resumable-wizards__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.rmc-resumable-wizards__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+.rmc-resumable-wizards__link:hover,
+.rmc-resumable-wizards__link:focus-visible {
+  background: var(--surface-elevated);
+}
+.rmc-resumable-wizards__wizard-key {
+  font-weight: var(--font-weight-semibold, 600);
+}
+.rmc-resumable-wizards__step code {
+  font-size: var(--type-size-1);
+  color: var(--text-secondary);
+}
+.rmc-resumable-wizards__progress {
+  font-size: var(--type-size-1);
+  color: var(--text-secondary);
+}
+
+/* Search box */
+.rmc-wizard-search {
+  margin-bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.rmc-wizard-search__label {
+  font-size: var(--type-size-1);
+  color: var(--text-secondary);
+}
+.rmc-wizard-search__input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--type-size-2);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+.rmc-wizard-search__input:focus-visible {
+  outline: 2px solid var(--text-link, var(--brand-primary));
+  outline-offset: 2px;
+}
+.rmc-wizard-search__status {
+  font-size: var(--type-size-1);
+  color: var(--text-secondary);
+  margin: 0;
+  min-height: 1.25em;
+}
+.rmc-wizard-search__results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.rmc-wizard-search__result {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+.rmc-wizard-search__result:hover,
+.rmc-wizard-search__result:focus-visible {
+  background: var(--surface-elevated);
+}
+.rmc-wizard-search__result-title {
+  font-weight: var(--font-weight-semibold, 600);
+  display: block;
+}
+.rmc-wizard-search__result-meta {
+  font-size: var(--type-size-1);
+  color: var(--text-secondary);
+}
+
+/* v4.00.13: recent-search chips below the input */
+.rmc-wizard-search__recents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-1) 0;
+}
+.rmc-wizard-search__recent-chip {
+  appearance: none;
+  background: var(--surface-canvas);
+  border: 1px solid var(--hairline);
+  color: var(--text-secondary);
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: var(--type-size-1);
+  cursor: pointer;
+}
+.rmc-wizard-search__recent-chip:hover,
+.rmc-wizard-search__recent-chip:focus-visible {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}

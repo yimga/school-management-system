@@ -50,6 +50,12 @@
       </div>
     </div>
 
+    <nav class="ai-copilot-views" role="tablist" aria-label="{% trans 'Copilot views' %}">
+      <button type="button" class="ai-copilot-view is-active" data-ai-copilot-view="chat" role="tab" aria-selected="true">{% trans "Chat" %}</button>
+      <button type="button" class="ai-copilot-view" data-ai-copilot-view="lens" role="tab" aria-selected="false">{% trans "Lens" %} ◉</button>
+    </nav>
+
+    <div class="ai-copilot-view-panel" data-ai-copilot-view-panel="chat">
     <div class="ai-copilot-body" id="aiCopilotBody">
       <!-- Welcome Message -->
       <div class="ai-message">
@@ -82,6 +88,13 @@
             {% endif %}
           </ul>
         </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="ai-copilot-view-panel" data-ai-copilot-view-panel="lens" hidden>
+      <div class="ai-copilot-lens-wrap p-2">
+        {% include "partials/copilot_lens_root_inner.html" %}
       </div>
     </div>
 

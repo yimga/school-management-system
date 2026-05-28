@@ -1253,6 +1253,36 @@ def build_portal_sidebar_items(request, site):
                     "badge": None,
                 }
             )
+        # v4.00.12: DSL safeguarding inbox sidebar entry. The kernel
+        # (apps/safeguarding/dsl_notify.py) shipped at v3.97.0; this is the
+        # missing sidebar wiring. Badge = urgent-unacknowledged count for the
+        # current school, computed once per render (cheap dict read). Visible
+        # only when the inbox has entries — keeps the rail uncluttered for
+        # schools without active concerns.
+        _safeguarding_school = getattr(request, "school", None)
+        if _safeguarding_school is not None:
+            try:
+                from apps.safeguarding.dsl_notify import count_urgent_unacknowledged
+
+                _settings_dict = getattr(_safeguarding_school, "settings", None) or {}
+                _sg_bucket = (
+                    _settings_dict.get("safeguarding") if isinstance(_settings_dict, dict) else None
+                ) or {}
+                _inbox = _sg_bucket.get("dsl_inbox") if isinstance(_sg_bucket, dict) else None
+                if isinstance(_inbox, list) and _inbox:
+                    _badge_count = count_urgent_unacknowledged(_inbox)
+                    items.append(
+                        {
+                            "id": "safeguarding_inbox",
+                            "label": "Safeguarding",
+                            "url": "/school/studio/workflow-center/safeguarding/",
+                            "icon": "bi-shield-exclamation",
+                            "section": "Admin Panel",
+                            "badge": _badge_count if _badge_count > 0 else None,
+                        }
+                    )
+            except Exception:  # noqa: BLE001 — sidebar must never break on dsl_notify import errors
+                pass
         _school = getattr(request, "school", None)
         if _school:
             workflow_hub_url = _safe_reverse("studio_os:automation")

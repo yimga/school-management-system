@@ -1,17 +1,26 @@
 {
   "summary": {
-    "templates_scanned": 1483,
-    "pages_with_findings": 25,
-    "finding_total": 25,
+    "templates_scanned": 1503,
+    "pages_with_findings": 28,
+    "finding_total": 28,
     "by_finding": {
       "missing_h1": 11,
-      "inline_script_count": 9,
+      "inline_script_count": 10,
       "marketing_form_missing_honeypot": 2,
       "multiple_h1": 2,
+      "missing_main_landmark": 2,
       "form_missing_csrf_token": 1
     }
   },
   "rows": [
+    {
+      "path": "templates\\academics\\ca_marks_input.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
+    },
     {
       "path": "templates\\academics\\syllabus_approval_queue.html",
       "is_partial": false,
@@ -930,14 +939,6 @@
     },
     {
       "path": "templates\\admin\\includes\\model_count_badge.html",
-      "is_partial": true,
-      "is_marketing": false,
-      "extends_base": false,
-      "findings": [],
-      "inline_style_count": 0
-    },
-    {
-      "path": "templates\\admin\\includes\\operator_path_banner.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -1888,6 +1889,14 @@
     },
     {
       "path": "templates\\components\\_bell_clock_mark.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\components\\_bulk_actions_toolbar.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -4831,6 +4840,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketplace\\monetization_inspector.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketplace\\package_rollout.html",
       "is_partial": false,
       "is_marketing": false,
@@ -5673,6 +5690,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\_resumable_wizards_banner.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\ai_nutrition_label.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5729,6 +5754,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cockpit\\_admissions_queue.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\cockpit\\_ai_copilot_rail.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5769,6 +5802,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cockpit\\_audit_wordcloud.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
       "path": "templates\\partials\\cockpit\\_breadcrumb.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5778,6 +5819,14 @@
     },
     {
       "path": "templates\\partials\\cockpit\\_calendar_weather.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\cockpit\\_capacity_planning.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -5810,6 +5859,14 @@
     },
     {
       "path": "templates\\partials\\cockpit\\_deploy_pipeline.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\cockpit\\_enrollment_forecast.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -5881,6 +5938,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cockpit\\_onboarding_pipeline.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\cockpit\\_operator_notebook.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5913,6 +5978,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cockpit\\_promoted_dashboard_widgets.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\cockpit\\_pulse_drill_sheet.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5930,6 +6003,14 @@
     },
     {
       "path": "templates\\partials\\cockpit\\_realtime_presence.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\cockpit\\_regional_clocks.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -5961,6 +6042,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cockpit\\_signup_form.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\cockpit\\_slo_clocks.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5978,6 +6067,14 @@
     },
     {
       "path": "templates\\partials\\cockpit\\_teacher_spotlight_card.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\cockpit\\_tenant_footer.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6090,6 +6187,22 @@
     },
     {
       "path": "templates\\partials\\control_plane_sidebar_studio_focus.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\copilot_context_lens_sheet.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\copilot_lens_root_inner.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6353,6 +6466,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_bulk_confirm_modal.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_chart_js_self_host.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6434,6 +6555,14 @@
     },
     {
       "path": "templates\\partials\\rmc_lexicon_meta.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_list_bulk_toolbar.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6612,6 +6741,14 @@
     },
     {
       "path": "templates\\partials\\rmc_tour_i18n.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_viewport_engine.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -7925,6 +8062,16 @@
       "extends_base": true,
       "findings": [],
       "inline_style_count": 1
+    },
+    {
+      "path": "templates\\portal\\timetable_build.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "inline_script_count:1"
+      ],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\portal\\unified_calendar.html",
@@ -9801,6 +9948,16 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\setup_studio\\super_activation_dashboard.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "missing_main_landmark"
+      ],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\setup_studio\\tenant_wizard.html",
       "is_partial": false,
       "is_marketing": false,
@@ -9816,7 +9973,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 1
+      "inline_style_count": 0
     },
     {
       "path": "templates\\siteconfig\\academic_years_setup_evidence.html",
@@ -10673,6 +10830,16 @@
       "extends_base": true,
       "findings": [
         "inline_script_count:1"
+      ],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\siteconfig\\super_dashboard_defaults_admin.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "missing_main_landmark"
       ],
       "inline_style_count": 0
     },

@@ -8,8 +8,16 @@
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
 {% endblock %}
 
+{% comment %} v4.00.12: opt-in viewport-lock adoption for the wizard shell.
+   The .rmc-viewport-lock primitive (rmc-zero-click-protocol.css) gives focused-task
+   flows a 100dvh grid where only the .rmc-viewport-lock__content scrolls. Wizards
+   benefit from this since the stepper + nav must stay pinned. Pages already use
+   {% block body_extra_class %} from portal_base to add body classes — we opt in here.
+{% endcomment %}
+{% block body_extra_class %}rmc-wizard-shell-viewport-locked{% endblock %}
+
 {% block content %}
-<main class="rmc-wizard-shell rmc-wizard-shell--tenant" data-rmc-wizard-shell="tenant">
+<main class="rmc-wizard-shell rmc-wizard-shell--tenant" data-rmc-wizard-shell="tenant" data-rmc-viewport-lock="opt-in">
   {% include "setup_studio/partials/wizard_state_restore_banner.html" %}
 
   {% include "setup_studio/partials/wizard_stepper.html" %}
