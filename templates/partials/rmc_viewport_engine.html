@@ -1,13 +1,15 @@
 {% load static %}
-{# Viewport engine wiring (v4.00.0). Include from every shell <head> so the
-   classifier runs before first paint. The CSS bundle is referenced unconditionally
-   — the cost is one cache-warm round-trip; the upside is the three-engine
-   structural strategy actually binds on first render.
+{% comment %}
+Viewport engine wiring (v4.00.0). Include from every shell <head> so the
+classifier runs before first paint. The CSS bundle is referenced unconditionally
+— the cost is one cache-warm round-trip; the upside is the three-engine
+structural strategy actually binds on first render.
 
-   v4.00.4: Companion runtime modules — WAL outbox stream + streaming-mount
-   parser — are loaded `defer` here too. They auto-init via window.rmcWAL /
-   window.rmcStreamMount on DOMContentLoaded; cost is negligible (under 6 KB
-   minified each) and ensures the architecture binds on every shell uniformly. #}
+v4.00.4: Companion runtime modules — WAL outbox stream + streaming-mount
+parser — are loaded `defer` here too. They auto-init via window.rmcWAL /
+window.rmcStreamMount on DOMContentLoaded; cost is negligible (under 6 KB
+minified each) and ensures the architecture binds on every shell uniformly.
+{% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-viewport-engine.css' %}">
 <script src="{% static 'js/rmc-viewport-engine.js' %}"></script>
 <script src="{% static 'js/rmc-wal-stream.js' %}" defer></script>

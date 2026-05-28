@@ -3,7 +3,6 @@
 {% load terminology_tags glocal_tags %}
 {% block title %}{% trans "My Teaching Day" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-teacher{% endblock %}
-{% block body_scroll_policy %}canvas{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -55,7 +54,6 @@
      cockpit.<section>.enabled. {% endcomment %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Realtime presence") key="teacher__realtime_presence" include_partial="partials/cockpit/_realtime_presence.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Attendance heatmap") key="teacher__attendance_heatmap" include_partial="partials/cockpit/_attendance_heatmap.html" chrome="section" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Calendar & weather") key="teacher__calendar_weather" include_partial="partials/cockpit/_calendar_weather.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Lesson of the day") key="teacher__lesson_of_day" include_partial="partials/cockpit/_lesson_of_day.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Gradebook trend") key="teacher__gradebook_trend" include_partial="partials/cockpit/_gradebook_trend.html" chrome="section" %}
 </div>

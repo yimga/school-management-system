@@ -126,3 +126,23 @@ html:not([data-rmc-shell="off"]) body.base-document-shell[data-rmc-cp-scroll="do
   height: auto !important;
   max-height: none !important;
 }
+
+/* ── Platform-wide scroll backstop (v4.00.15) ──
+   Unless a page explicitly opts into canvas scroll mode, the document MUST
+   be able to scroll vertically. This catches any unscoped `overflow: hidden`
+   that snuck onto html/body from an upstream rule. Excludes:
+     - canvas mode (where the canvas pane owns Y scroll by design)
+     - `data-rmc-shell="off"` escape hatch
+     - print-iframe surfaces (marked with .rmc-print-surface)
+*/
+html:not([data-rmc-shell="off"]):not([data-rmc-cp-scroll="canvas"]),
+body:not([data-rmc-cp-scroll="canvas"]):not(.rmc-print-surface) {
+  overflow-y: auto;
+}
+
+html:not([data-rmc-shell="off"]):not([data-rmc-cp-scroll="canvas"]) body:not([data-rmc-cp-scroll="canvas"]):not(.rmc-print-surface) {
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: auto;
+  max-height: none;
+}

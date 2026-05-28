@@ -3,7 +3,6 @@
 {% load terminology_tags workflow_guidance_tags glocal_tags %}
 {% block title %}{% trans "Family Home" %}{% endblock %}
 {% block body_extra_class %}dashboard-page-parent{% if parent_simplified %} parent-dashboard-simplified{% endif %}{% endblock %}
-{% block body_scroll_policy %}canvas{% endblock %}
 
 {% block extrastyle %}
 {{ block.super }}
@@ -64,7 +63,6 @@
      sibling_compare keeps opt_in=False privacy gate — no sibling data without parent
      consent. Other parent-portal pages keep their own personality. {% endcomment %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Parent / teacher thread") key="parent__parent_teacher_thread" include_partial="partials/cockpit/_parent_teacher_thread.html" chrome="section" %}
-  {% include "partials/cockpit/_collapsable_section.html" with title=_("Calendar & weather") key="parent__calendar_weather" include_partial="partials/cockpit/_calendar_weather.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Financial timeline") key="parent__financial_timeline" include_partial="partials/cockpit/_financial_timeline.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Life event timeline") key="parent__life_event_timeline" include_partial="partials/cockpit/_life_event_timeline.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Sibling compare") key="parent__sibling_compare" default_state="collapsed" include_partial="partials/cockpit/_sibling_compare.html" chrome="section" %}

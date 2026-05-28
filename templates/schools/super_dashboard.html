@@ -40,11 +40,6 @@
    collapsible wrappers. Persisted collapse state was leaving closed <details> shells
    that read as empty ruled bands on /super/ while cockpit health still reported
    would_render=true. {% endcomment %}
-<div class="rmc-dashboard-cal-weather-slot" data-rmc-dashboard-cal-weather="1">
-{% if cockpit.calendar_weather.enabled and cockpit.calendar_weather.days %}
-{% include "partials/cockpit/_collapsable_section.html" with title=_("Calendar & weather") key="super__calendar_weather" include_partial="partials/cockpit/_calendar_weather.html" chrome="section" %}
-{% endif %}
-</div>
 <div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-section-nav="off">
 {% if cockpit.live_world_map.enabled %}
 {% include "partials/cockpit/_live_world_map.html" %}

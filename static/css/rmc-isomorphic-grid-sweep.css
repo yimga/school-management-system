@@ -79,7 +79,7 @@ body.base-document-shell[data-rmc-cp-scroll="document"] {
 /* ── 2. Scroll isolation — canvas owns Y scroll ── */
 html:not([data-rmc-shell="off"]) body.control-plane-shell[data-rmc-cp-scroll="canvas"],
 html:not([data-rmc-shell="off"]) body.portal-body-with-layout[data-rmc-cp-scroll="canvas"],
-html:not([data-rmc-shell="off"]) body.admin-manager-shell {
+html:not([data-rmc-shell="off"]) body.admin-manager-shell[data-rmc-cp-scroll="canvas"] {
   overflow: hidden;
 }
 
