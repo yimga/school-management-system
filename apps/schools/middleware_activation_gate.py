@@ -52,19 +52,29 @@ class ActivationGateMiddleware:
         if self._path_exempt(path):
             return None
 
+        # v4.00.2 audit (2026-05-28): ``activation_first_action`` is only
+        # registered in ``config.tenant_urls`` — the manager URLconf
+        # (``config.urls``) does not include it. When the URL resolver
+        # cache is stale (e.g. ``@override_settings(ROOT_URLCONF=...)`` in
+        # tests, or a worker that loaded the resolver before a request
+        # context switched URLconfs), ``reverse(...)`` raises
+        # NoReverseMatch and the prior bare ``except: return None`` made
+        # the entire gate silently inert. Fall back to the literal path
+        # so the gate works regardless of URLconf state.
+        _ACTIVATION_FIRST_ACTION_PATH = "/activation/first-action/"
         try:
             target = reverse("activation_first_action").lower()
         except Exception:
-            return None
+            target = _ACTIVATION_FIRST_ACTION_PATH
         if path.rstrip("/") == target.rstrip("/"):
             return None
         try:
             url = reverse("activation_first_action")
-            if request.META.get("QUERY_STRING"):
-                url = f"{url}?{request.META['QUERY_STRING']}"
-            return HttpResponseRedirect(url)
         except Exception:
-            return None
+            url = _ACTIVATION_FIRST_ACTION_PATH
+        if request.META.get("QUERY_STRING"):
+            url = f"{url}?{request.META['QUERY_STRING']}"
+        return HttpResponseRedirect(url)
 
     def _path_exempt(self, path: str) -> bool:
         prefixes = (

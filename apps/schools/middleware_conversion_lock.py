@@ -26,7 +26,20 @@ class ConversionLockMiddleware:
         user = getattr(request, "user", None)
         if not user or not getattr(user, "is_authenticated", False):
             return None
-        school = getattr(request, "school", None)
+        # v4.00.2 audit (2026-05-28): the prior bare ``getattr(request,
+        # "school", None)`` bailed when no earlier middleware had attached
+        # ``request.school`` (e.g. test environments using
+        # ``ROOT_URLCONF="config.tenant_urls"`` without the tenant
+        # resolution middleware wired in). Fall back to the canonical
+        # ``resolve_request_school`` (request.school → session → signup
+        # verification → primary membership) — same resolution chain
+        # ActivationGateMiddleware uses.
+        try:
+            from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+            school = resolve_request_school(request)
+        except ImportError:
+            school = getattr(request, "school", None)
         if school is None:
             return None
         if request.session.get("impersonation"):
