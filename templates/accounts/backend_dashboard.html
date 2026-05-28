@@ -1,6 +1,6 @@
 {% extends "backend_base.html" %}
 {% load admin_health i18n static region_format phase8_tags %}
-{% load terminology_tags %}
+{% load terminology_tags glocal_tags %}
 
 {% block backend_title %}{% trans "School Command Center" %}{% endblock %}
 {% block body_extra_class %}
@@ -66,6 +66,7 @@ backend-shell dashboard-page-backend
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 
   {% include "partials/tenant/hero_greeting.html" %}
+  {% include "partials/operator_queue_smart_links_banner.html" %}
 
   {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 

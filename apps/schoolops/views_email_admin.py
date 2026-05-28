@@ -37,10 +37,10 @@ logger = logging.getLogger(__name__)
 def _load_existing_payload() -> dict:
     """Return the current ``SiteSettings.email_delivery`` dict (or {})."""
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
 
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
-        row = SiteSettings.objects.first()
+        row = get_platform_site_settings_record(create=False)
         if row is None:
             return {}
         return getattr(row, "email_delivery", None) or {}
@@ -55,13 +55,12 @@ def _load_existing_payload() -> dict:
 def _persist_payload(new_payload: dict) -> bool:
     """Save the new ``SiteSettings.email_delivery`` JSON. Returns True on success."""
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
 
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
-        row = SiteSettings.objects.first()
+        row = get_platform_site_settings_record(create=True)
         if row is None:
-            # Singleton not yet created — bootstrap an empty one.
-            row = SiteSettings.objects.create()
+            return False
         row.email_delivery = new_payload
         row.save(update_fields=["email_delivery"])
         return True

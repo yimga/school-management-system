@@ -28,15 +28,18 @@ def workforce_command_center(request: HttpRequest):
     school = getattr(request, "school", None)
     school_id = school.pk if school is not None else None
 
-    finance_pending = FinanceOfflineCaptureRecord.objects.filter(
-        status=FinanceOfflineCaptureRecord.Status.PENDING_REVIEW,
-    )
-    payroll_pending = PayrollOfflineCaptureRecord.objects.filter(
-        status=PayrollOfflineCaptureRecord.Status.PENDING_REVIEW,
-    )
     if school_id:
-        finance_pending = finance_pending.filter(school_id=school_id)
-        payroll_pending = payroll_pending.filter(school_id=school_id)
+        finance_pending = FinanceOfflineCaptureRecord.objects.filter(
+            school_id=school_id,
+            status=FinanceOfflineCaptureRecord.Status.PENDING_REVIEW,
+        )
+        payroll_pending = PayrollOfflineCaptureRecord.objects.filter(
+            school_id=school_id,
+            status=PayrollOfflineCaptureRecord.Status.PENDING_REVIEW,
+        )
+    else:
+        finance_pending = FinanceOfflineCaptureRecord.objects.none()
+        payroll_pending = PayrollOfflineCaptureRecord.objects.none()
 
     offline_intents = OfflinePaymentIntent.objects.filter(
         status=OfflinePaymentIntent.Status.QUEUED_REVIEW,

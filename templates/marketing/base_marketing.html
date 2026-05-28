@@ -44,6 +44,7 @@
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="css/accessibility.css" %}
   {# v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer (deferred). #}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="css/design-tokens-personality.css" %}
   {% include "partials/rmc_platform_chrome_styles.html" %}

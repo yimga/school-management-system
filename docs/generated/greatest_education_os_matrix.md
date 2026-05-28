@@ -1,6 +1,6 @@
 # Greatest Education OS matrix
 
-Generated: 2026-05-26T10:20:25.381203+00:00
+Generated: 2026-05-28T02:02:00.976407+00:00
 
 **Verdict:** GEOS_99_MATRIX_PASS
 
@@ -14,6 +14,7 @@ Generated: 2026-05-26T10:20:25.381203+00:00
 | LocalGlobal — i18n / RTL / corridor | 100.0 | 100.0 | 100.0 |
 | Amazon — ops excellence / DR / observability | 100.0 | 100.0 | 100.0 |
 | DailyOps — provision / academic loop / email | 100.0 | 100.0 | 100.0 |
+| Customer experience — CEZGP ease + friction | 100.0 | 0.0 | 60.0 |
 
 Repo target ≥ 99% per pillar. Composite = 0.6×repo + 0.4×live.
 Live axis uses curated register entry ids per pillar + pilot slot 1 gate.

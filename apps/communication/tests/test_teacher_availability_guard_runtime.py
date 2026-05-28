@@ -15,7 +15,6 @@ from apps.communication.channel_adapter import (
     ChannelAddress,
     ChannelMessage,
     DeliveryResult,
-    register_log_only_defaults,
     registry,
     send_message,
 )

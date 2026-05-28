@@ -40,6 +40,7 @@ from apps.schools.marketing_views import (
     institution_marketing_page,
     marketing_funnel_dashboard,
     marketing_intent_homepage,
+    marketing_personality_page,
     marketing_landing,
     marketing_verb_hub,
     marketplace_marketing_page,
@@ -114,6 +115,11 @@ urlpatterns = [
     path("", home, name="marketing_home"),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("storefront/", marketing_intent_homepage, name="marketing_intent_homepage"),
+    path(
+        "experience/<slug:personality_slug>/",
+        marketing_personality_page,
+        name="marketing_personality_page",
+    ),
     path("offline/", offline_page, name="offline"),
     # PWA manifest endpoints (mirrored from config/urls.py so templates that emit
     # `{% url 'pwa_manifest_platform' %}` work under the public urlconf when

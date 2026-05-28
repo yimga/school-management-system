@@ -402,6 +402,29 @@ def take_student_attendance(request: HttpRequest):
                     classroom=classroom_obj, date=att_date
                 ).select_related("student"):
                     existing[a.student_id] = a.status
+    if request.method == "POST" and request.POST.get("qr_sweep") and classroom_obj:
+        from apps.academics.qr_attendance import apply_qr_sweep
+
+        school = getattr(request, "school", None) or getattr(request.user, "school", None)
+        school_id = getattr(school, "pk", None)
+        if not school_id:
+            messages.error(request, "School context required for card sweep.")
+        else:
+            sweep = apply_qr_sweep(
+                classroom_id=classroom_obj.id,
+                date_value=att_date,
+                tokens_text=request.POST.get("qr_tokens") or "",
+                school_id=school_id,
+            )
+            messages.success(
+                request,
+                f"Card sweep saved: {sweep.created + sweep.updated} students "
+                f"({sweep.student_count} matched, {len(sweep.errors)} skipped).",
+            )
+        return redirect(
+            f"{reverse('portal:take_student_attendance')}?date={att_date.isoformat()}&classroom={classroom_obj.id}"
+        )
+
     if request.method == "POST" and classroom_obj and students:
         for s in students:
             status = (
@@ -429,6 +452,19 @@ def take_student_attendance(request: HttpRequest):
         "subtitle": "Select date and class, then mark present/absent/late.",
         "actions": [],
     }
+    qr_tokens_by_student = {}
+    school = getattr(request, "school", None) or getattr(request.user, "school", None)
+    if school and students_with_status:
+        from apps.academics.qr_attendance import mint_student_attendance_token
+
+        for row in students_with_status:
+            s = row["student"]
+            qr_tokens_by_student[s.id] = mint_student_attendance_token(
+                school_id=school.pk,
+                student_id=s.id,
+                student_code=s.student_code or "",
+            )
+
     return render(
         request,
         "portal/roll_call_student.html",
@@ -441,6 +477,7 @@ def take_student_attendance(request: HttpRequest):
             "students_with_status": students_with_status,
             "status_choices": status_choices,
             "Attendance": Attendance,
+            "qr_tokens_by_student": qr_tokens_by_student,
         },
     )
 

@@ -21,7 +21,6 @@ from django.views.decorators.http import require_GET
 
 from .country_localization_service import (
     get_default_language,
-    get_languages,
     normalize_country_code,
     resolve_country_pack,
     resolve_language_pack,

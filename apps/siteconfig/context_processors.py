@@ -1157,7 +1157,18 @@ def region_settings(request):
     """
     from types import SimpleNamespace
     from django.conf import settings
+    from django.utils import translation
     from apps.siteconfig.currency import get_currency_symbol
+    from apps.siteconfig.translations import SUPPORTED_LANGUAGES
+
+    if "language" in request.GET:
+        requested = (request.GET.get("language") or "").strip()
+        if requested in SUPPORTED_LANGUAGES:
+            translation.activate(requested)
+    elif "django_language" in request.COOKIES:
+        cookie_lang = request.COOKIES.get("django_language")
+        if cookie_lang in SUPPORTED_LANGUAGES:
+            translation.activate(cookie_lang)
 
     school = _request_school(request)
     grading_scale = None
@@ -1274,11 +1285,22 @@ def region_settings(request):
 
         base_ctx.update(augment_region_shell_context(base_ctx, request))
     except OPTIONAL_CONTEXT_ERRORS:
-        base_ctx.setdefault("rmc_locale", effective_language or "en")
-        base_ctx.setdefault("rmc_text_direction", "rtl" if is_rtl else "ltr")
+        from apps.siteconfig.regional_ui import is_rtl_locale as _is_rtl_locale
+
+        active = translation.get_language()
+        loc = (
+            str(active).replace("_", "-")
+            if active
+            else str(effective_language or "en").replace("_", "-")
+        )
+        direction = (
+            "rtl" if is_rtl or _is_rtl_locale(loc) else "ltr"
+        )
+        base_ctx.setdefault("rmc_locale", loc)
+        base_ctx.setdefault("rmc_text_direction", direction)
         base_ctx.setdefault(
             "rmc_regional_ui",
-            {"locale": base_ctx["rmc_locale"], "direction": base_ctx["rmc_text_direction"]},
+            {"locale": loc, "direction": direction},
         )
     return base_ctx
 
@@ -1298,10 +1320,11 @@ def language_context(request):
             current_language = requested_language
             translation.activate(requested_language)
     elif "django_language" in request.COOKIES:
-        # Load from cookie
+        # Load from cookie (activate so region_settings augment sees RTL/LTR)
         cookie_language = request.COOKIES.get("django_language")
         if cookie_language in SUPPORTED_LANGUAGES:
             current_language = cookie_language
+            translation.activate(cookie_language)
     else:
         # Prefer persisted user language, then region-based default
         _user = getattr(request, "user", None)
@@ -1360,12 +1383,19 @@ def language_context(request):
     available_languages = [(code, name) for code, name in SUPPORTED_LANGUAGES.items()]
     current_language_name = SUPPORTED_LANGUAGES.get(current_language, "English")
 
+    from apps.siteconfig.regional_ui import is_rtl_locale as _is_rtl_locale
+
+    rmc_locale = str(current_language or "en").replace("_", "-")
+    rmc_text_direction = "rtl" if _is_rtl_locale(rmc_locale) else "ltr"
+
     return {
         "current_language": current_language,
         "current_language_name": current_language_name,
         "available_languages": available_languages,
         "supported_languages": SUPPORTED_LANGUAGES,
         "translate": lambda text: TranslationManager.get_text(text, current_language),
+        "rmc_locale": rmc_locale,
+        "rmc_text_direction": rmc_text_direction,
     }
 
 
@@ -1537,7 +1567,7 @@ def lexicon_context(request):
         if country_terms:
             try:
                 operator_overrides = set((_lp(school) or {}).keys())
-            except Exception:  # noqa: BLE001
+            except OPTIONAL_CONTEXT_ERRORS:
                 operator_overrides = set()
             for key, val in country_terms.items():
                 if not val or key in operator_overrides:

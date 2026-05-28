@@ -1,0 +1,68 @@
+{% extends "portal_base.html" %}
+{% load static i18n region_format %}
+
+{% block title %}{% trans "Pay all balances" %}{% endblock %}
+
+{% block content %}
+<h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Pay all balances" %}</h1>
+<div class="report-card-print-wrapper" data-page-archetype="task-form" data-task="parent_payment" data-task-step="finance:pay-all-confirm" data-rmc-scroll-policy="paginate">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'portal:parent_finance' %}"><i class="bi bi-arrow-left me-1"></i>{% trans "Back to finances" %}</a>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h2 class="h5 mb-2">{% trans "Pay all open balances" %}</h2>
+      <p class="text-muted mb-3">
+        {% blocktrans with amount=amount_due %}You are paying <strong>{{ amount }}</strong> across {{ split.lines|length }} invoice(s).{% endblocktrans %}
+      </p>
+
+      {% if regional_payment_profile %}
+      <div class="alert alert-light border mb-3" role="note" data-rmc-regional-payment-hint="1">
+        <div class="fw-semibold small mb-1">{% trans "Regional payment guidance" %}</div>
+        <p class="small mb-1">
+          {% blocktrans with rail=regional_payment_profile.primary_rail|default:"" backup=regional_payment_profile.backup_rail|default:"" %}
+          Preferred rail: <strong>{{ rail }}</strong>{% if backup %} · Backup: {{ backup }}{% endif %}
+          {% endblocktrans %}
+        </p>
+        {% if regional_payment_profile.provider_notes %}
+        <p class="small text-muted mb-0">{{ regional_payment_profile.provider_notes }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <ul class="list-unstyled small mb-3">
+        {% for line in split.lines %}
+        <li class="d-flex justify-content-between py-1 border-bottom">
+          <span>{% trans "Invoice" %} #{{ line.invoice_id }}</span>
+          <span>{{ line.allocated_amount|format_currency }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <form method="post" class="d-flex flex-wrap gap-2 align-items-center"
+            data-rmc-offline-form="parent-pay-all"
+            data-offline-action-type="parent_pay_all_intent"
+            data-draft-key="parent_pay_all_confirm"
+            data-draft-max-age-hours="24"
+            data-draft-pending-label="{% trans 'Unsynced pay-all request' %}">
+        {% csrf_token %}
+        {% if can_pay_with_wallet %}
+        <button type="submit" name="payment_method" value="wallet" class="btn btn-primary">
+          <i class="bi bi-wallet2 me-1"></i>{% trans "Pay from wallet" %}
+        </button>
+        {% endif %}
+        <button type="submit" name="payment_method" value="psp" class="btn {% if can_pay_with_wallet %}btn-outline-primary{% else %}btn-primary{% endif %}">
+          <i class="bi bi-credit-card me-1"></i>{% trans "Pay online" %}
+        </button>
+      </form>
+      {% if wallet and not can_pay_with_wallet %}
+      <p class="small text-muted mt-2 mb-0">
+        {% blocktrans with bal=wallet_balance %}Wallet balance {{ bal }} is below the family total. Top up your wallet or pay online.{% endblocktrans %}
+        <a href="{% url 'portal:parent_wallet' %}">{% trans "Open wallet" %}</a>
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

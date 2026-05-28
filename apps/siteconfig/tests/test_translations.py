@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 
 from apps.siteconfig.translations import TranslationManager, SUPPORTED_LANGUAGES
 from apps.siteconfig.models import RegionConfig
-from apps.siteconfig.context_processors import language_context
+from apps.siteconfig.context_processors import language_context, region_settings
 
 User = get_user_model()
 
@@ -135,6 +135,14 @@ class LanguageContextTestCase(TestCase):
 
         self.assertEqual(context["current_language"], "fr")
         self.assertEqual(context["current_language_name"], SUPPORTED_LANGUAGES["fr"])
+        self.assertEqual(context["rmc_text_direction"], "ltr")
+
+    def test_language_context_ar_query_sets_rtl_shell(self):
+        request = self.factory.get("/?language=ar")
+        request.user = self.user
+        context = language_context(request)
+        self.assertEqual(context["current_language"], "ar")
+        self.assertEqual(context["rmc_text_direction"], "rtl")
 
     def test_language_context_from_cookie(self):
         """Test language selection via cookie."""
@@ -145,6 +153,36 @@ class LanguageContextTestCase(TestCase):
         context = language_context(request)
 
         self.assertEqual(context["current_language"], "sw")
+
+    def test_language_context_ar_cookie_sets_rtl_shell(self):
+        request = self.factory.get("/")
+        request.user = self.user
+        request.COOKIES["django_language"] = "ar"
+        context = language_context(request)
+        self.assertEqual(context["current_language"], "ar")
+        self.assertEqual(context["rmc_text_direction"], "rtl")
+
+    def test_region_settings_query_param_ar_sets_rtl(self):
+        request = self.factory.get("/portal/teacher/?language=ar")
+        request.user = self.user
+        ctx = region_settings(request)
+        self.assertEqual(ctx["rmc_text_direction"], "rtl")
+        self.assertEqual(ctx["rmc_locale"], "ar")
+
+    def test_region_settings_ar_cookie_sets_rtl(self):
+        request = self.factory.get("/")
+        request.user = self.user
+        request.COOKIES["django_language"] = "ar"
+        ctx = region_settings(request)
+        self.assertEqual(ctx["rmc_text_direction"], "rtl")
+
+    def test_merged_language_and_region_context_ar_is_rtl(self):
+        """language_context runs after region_settings; merged shell must stay RTL."""
+        request = self.factory.get("/portal/teacher/?language=ar")
+        request.user = self.user
+        merged = {**region_settings(request), **language_context(request)}
+        self.assertEqual(merged["rmc_text_direction"], "rtl")
+        self.assertEqual(merged["rmc_locale"], "ar")
 
     def test_language_context_query_overrides_cookie(self):
         """Test that query parameter overrides cookie."""

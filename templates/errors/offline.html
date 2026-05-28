@@ -1,4 +1,4 @@
-{% load static i18n %}<!doctype html>
+{% load static i18n smart_link_tags %}<!doctype html>
 {% comment %}
 Standalone — must render when CSS/JS bundles aren't reachable. All styles inline.
 Self-contained Apple-tier polish: branded gradient hairline, layered elevation,
@@ -26,8 +26,7 @@ refined typography, indigo CTA.
         <li>{% trans "Return to a stable entry point if you arrived from an old link." %}</li>
       </ul>
       <div class="actions">
-        <button type="button" onclick="window.location.reload()">{% trans "Retry connection" %}</button>
-        <a class="btn" href="/">{% trans "Home" %}</a>
+        {% render_smart_links state="error.offline" %}
         <span id="netState" class="status">{% trans "Checking network status…" %}</span>
       </div>
     </div>

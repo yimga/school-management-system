@@ -14,6 +14,8 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from apps.platform_runtime.layout_personality_matrix import resolve_personality_os
+
 # Route / URL families for inventory and conformance (not Django url names).
 ROUTE_FAMILIES: tuple[str, ...] = (
     "admin",
@@ -90,6 +92,7 @@ class ShellContract:
     host_kind: str
     nav_family: str
     main_region: str
+    personality_os: str
 
 
 def _route_family_from_path(path: str) -> str:
@@ -182,12 +185,14 @@ def resolve_shell_contract(request) -> dict[str, Any]:
         host_kind = "school"
     route_family = _route_family_from_path(path)
     layout_token, nav_family, main_region = _layout_and_nav(path, host_kind, route_family)
+    personality_os = resolve_personality_os(route_family)
     c = ShellContract(
         route_family=route_family,
         layout_token=layout_token,
         host_kind=host_kind,
         nav_family=nav_family,
         main_region=main_region,
+        personality_os=personality_os,
     )
     wrap, surface = _portal_authenticated_markers(host_kind)
     return {
@@ -196,6 +201,7 @@ def resolve_shell_contract(request) -> dict[str, Any]:
         "host_kind": c.host_kind,
         "nav_family": c.nav_family,
         "main_region": c.main_region,
+        "personality_os": c.personality_os,
         "contract": c,
         # Manager / control-plane chrome (product label; keep single source for 1008+ sweeps).
         # Title + subtitle split so the brand-mark lockup can show

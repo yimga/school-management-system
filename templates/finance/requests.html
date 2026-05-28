@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load i18n %}
+{% load i18n glocal_tags %}
 {% load region_format %}
 {% load static %}
 {% block title %}{% trans "Finance Access Requests" %}{% endblock %}
@@ -38,7 +38,7 @@
     <div class="card-body">
       {% if notifications %}
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0 table-family">
+          <table class="table table-hover align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
             <caption class="visually-hidden">{% trans "Finance Access Requests" %}</caption>
             <thead>
               <tr>
@@ -51,7 +51,12 @@
             </thead>
             <tbody>
               {% for notif in notifications %}
-                <tr class="{% if not notif.is_read %}table-warning{% endif %}">
+                <tr class="{% if not notif.is_read %}table-warning{% endif %}"
+                    data-rmc-row-detail="1"
+                    tabindex="0"
+                    data-rmc-row-title="{{ notif.title|escapejs }}"
+                    data-rmc-row-subtitle="{% if notif.is_read %}{% trans 'Read' %}{% else %}{% trans 'Unread' %}{% endif %}"
+                    data-rmc-row-meta='{"{% trans "Received" %}":"{{ notif.created_at|format_date|escapejs }} {{ notif.created_at|time:"H:i" }}"}'>
                   <th scope="row">{{ forloop.counter }}</th>
                   <td>
                     <strong>{{ notif.title }}</strong>
@@ -103,7 +108,7 @@
         <span class="badge bg-info text-dark">{{ finance_request_audits|length }} records</span>
       </div>
       <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle mb-0 table-family">
+        <table class="table table-sm table-hover align-middle mb-0 table-family rmc-data-table" data-rmc-row-detail-table="1">
           <caption class="visually-hidden">{% trans "Finance request audit trail" %}</caption>
           <thead>
             <tr>
@@ -116,7 +121,11 @@
           </thead>
           <tbody>
             {% for audit in finance_request_audits %}
-              <tr>
+              <tr data-rmc-row-detail="1"
+                  tabindex="0"
+                  data-rmc-row-title="{{ audit.action|escapejs }}"
+                  data-rmc-row-subtitle="{% if audit.user %}{{ audit.user.get_full_name|default:audit.user.username|escapejs }}{% else %}{% trans 'System' %}{% endif %}"
+                  data-rmc-row-meta='{"{% trans "Notification" %}":"{{ audit.notification.title|escapejs }}"}'>
                 <td class="text-uppercase small">{{ audit.action }}</td>
                 <td>
                   {% if audit.user %}

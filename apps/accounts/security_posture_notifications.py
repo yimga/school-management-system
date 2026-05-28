@@ -6,7 +6,6 @@ import logging
 from typing import Any
 
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from apps.accounts.profile_security_evaluation import is_security_posture_review_due

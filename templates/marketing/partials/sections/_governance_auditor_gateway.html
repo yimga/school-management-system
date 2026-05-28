@@ -1,0 +1,39 @@
+{% load i18n marketing_media %}
+<section
+  id="mkt-governance-auditor"
+  class="mkt-ve-section mkt-ve-section--governance mkt-ve-section--viewport-lock"
+  data-mkt-personality="governance"
+  data-mkt-scroll-policy="viewport-lock"
+  aria-labelledby="mkt-governance-headline"
+>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-ve-section__header">
+      <p class="mkt-edt-eyebrow">{% trans "Governance & ministry" %}</p>
+      <h2 id="mkt-governance-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+        {% marketing_copy "txt_compliance_headline" %}
+      </h2>
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_compliance_lead" %}
+      </p>
+    </header>
+    <div class="mkt-ve-governance" data-mkt-auditor-gateway>
+      <div class="mkt-ve-governance__panel">
+        <h3 class="mkt-ve-governance__panel-title mkt-edos-text-shield">{% trans "Inspector magic link (illustrative)" %}</h3>
+        <ul class="mkt-ve-governance__meta">
+          <li><span>{% trans "Scope" %}</span> <strong>{% trans "Read-only · 72 hours" %}</strong></li>
+          <li><span>{% trans "PII mask" %}</span> <strong>{% trans "Student names hashed" %}</strong></li>
+          <li><span>{% trans "Region" %}</span> <strong class="mkt-edos-text-shield">{{ geo.country_code }} · {{ geo.currency }}</strong></li>
+        </ul>
+        <p class="mkt-ve-governance__stamp mkt-edos-text-shield">{% trans "Audit signature streams to immutable vault (simulated)." %}</p>
+      </div>
+      <div class="mkt-ve-governance__map" aria-hidden="true">
+        <div class="mkt-ve-governance__map-grid">
+          {% for i in "123456" %}
+          <span class="mkt-ve-governance__tile" data-residency="{{ geo.country_code }}"></span>
+          {% endfor %}
+        </div>
+        <p class="mkt-edt-illustrative-pill">{% trans "Data residency map — illustrative only" %}</p>
+      </div>
+    </div>
+  </div>
+</section>

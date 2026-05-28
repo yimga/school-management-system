@@ -11,13 +11,11 @@ raw JSON via Django admin. This form gives them a friendly UI:
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from .mat_group_hub import MATGroup, parse_mat_registry
 
 
 _MEMBERS_PLACEHOLDER = (

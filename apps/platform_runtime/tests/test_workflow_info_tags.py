@@ -8,10 +8,9 @@ from __future__ import annotations
 
 import pathlib
 
-from django.template import Context, Template, TemplateSyntaxError
+from django.template import Context, Template
 from django.test import SimpleTestCase
 
-from apps.platform_runtime import workflow_registry as wf
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
 COMPONENTS_DIR = REPO_ROOT / "templates" / "components"

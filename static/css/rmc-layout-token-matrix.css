@@ -1,0 +1,101 @@
+/**
+ * Layout Token Interpreter Matrix — personality bands + table/drawer contracts.
+ * Composes on rmc-isomorphic-grid-sweep.css (no brand palette changes).
+ */
+
+html[data-rmc-personality-os="sovereign"] {
+  --rmc-personality-accent: var(--accent-platform-indigo, #4f46e5);
+  --rmc-personality-surface: var(--surface-canvas-elevated, #0f172a);
+}
+
+html[data-rmc-personality-os="clinical"] {
+  --rmc-personality-accent: var(--accent-finance-gold, #059669);
+  --rmc-personality-surface: var(--surface-canvas, #f8fafc);
+}
+
+html[data-rmc-personality-os="fluid"] {
+  --rmc-personality-accent: var(--accent-academics-violet, #7c3aed);
+  --rmc-personality-surface: var(--surface-canvas, #faf8f5);
+}
+
+html[data-rmc-personality-os="tactical"] {
+  --rmc-personality-accent: var(--accent-ops-cyan, #22c55e);
+  --rmc-personality-surface: var(--surface-canvas-elevated, #111827);
+}
+
+/* 8px spacing grid utilities */
+.rmc-space-8 { gap: 8px; }
+.rmc-space-16 { gap: 16px; }
+.rmc-space-24 { gap: 24px; }
+.rmc-space-32 { gap: 32px; }
+
+.rmc-text-shield,
+[data-rmc-text-shield] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+/* 5-column master table cap — columns 6+ hidden; detail in drawer */
+.rmc-data-table--matrix-max5 {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.rmc-data-table--matrix-max5 :is(th, td):nth-child(n + 6) {
+  display: none;
+}
+
+/* Detail drawer — viewport height */
+.rmc-portal-row-detail-drawer,
+[data-rmc-detail-drawer] {
+  max-height: var(--rmc-iso-viewport-h, 100dvh);
+}
+
+.rmc-portal-row-detail-drawer .offcanvas-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Wizard viewport lock */
+.rmc-wizard-viewport {
+  display: flex;
+  flex-direction: column;
+  max-height: var(--rmc-iso-viewport-h, 100dvh);
+  min-height: 0;
+  padding: 16px;
+  gap: 16px;
+}
+
+.rmc-wizard-viewport__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rmc-wizard-viewport__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .rmc-wizard-viewport__actions .btn {
+    flex: 1 1 100%;
+  }
+}
+
+/* Empty state footprint (links to setup wizard) */
+[data-rmc-panel-sweep-empty] .rmc-empty-state-card,
+.rmc-empty-state-card[data-rmc-setup-wizard-link] {
+  min-height: 120px;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px dashed var(--hairline, #e5e7eb);
+  display: grid;
+  gap: 8px;
+  place-content: center;
+  text-align: center;
+}

@@ -1,11 +1,11 @@
 {
   "summary": {
-    "templates_scanned": 1395,
-    "pages_with_findings": 18,
-    "finding_total": 18,
+    "templates_scanned": 1483,
+    "pages_with_findings": 25,
+    "finding_total": 25,
     "by_finding": {
-      "inline_script_count": 8,
-      "missing_h1": 5,
+      "missing_h1": 11,
+      "inline_script_count": 9,
       "marketing_form_missing_honeypot": 2,
       "multiple_h1": 2,
       "form_missing_csrf_token": 1
@@ -202,7 +202,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 2
+      "inline_style_count": 1
     },
     {
       "path": "templates\\accounts\\district_interop_packet.html",
@@ -322,7 +322,15 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 28
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\mfa_setup_manager.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\accounts\\mfa_verify.html",
@@ -330,7 +338,15 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 10
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\mfa_verify_manager.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\accounts\\migration_legacy_view.html",
@@ -414,6 +430,24 @@
     },
     {
       "path": "templates\\accounts\\partials\\_security_posture_banner.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\partials\\mfa_setup_page_body.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [
+        "inline_script_count:1"
+      ],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\accounts\\partials\\mfa_verify_page_body.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -896,6 +930,14 @@
     },
     {
       "path": "templates\\admin\\includes\\model_count_badge.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\admin\\includes\\operator_path_banner.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -1722,7 +1764,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 2
+      "inline_style_count": 1
     },
     {
       "path": "templates\\communication\\group_list.html",
@@ -2141,6 +2183,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\components\\guardian_student_links.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\components\\guided_recovery_state.html",
       "is_partial": true,
       "is_marketing": false,
@@ -2357,6 +2407,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\components\\rmc_iso_empty_panel.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\components\\rmc_metric_ticker.html",
       "is_partial": true,
       "is_marketing": false,
@@ -2414,6 +2472,14 @@
     },
     {
       "path": "templates\\components\\rmc_os_status_strip.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\components\\rmc_setup_wizard_viewport.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -2662,6 +2728,14 @@
     },
     {
       "path": "templates\\customersuccess\\support_copilot.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\customersuccess\\tenant_billing_estimate.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
@@ -3277,6 +3351,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\finance\\permission_to_pay.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\finance\\receipt.html",
       "is_partial": false,
       "is_marketing": false,
@@ -3326,6 +3408,14 @@
     },
     {
       "path": "templates\\finance\\trial_balance.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\finance\\workforce_command_center.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
@@ -3485,6 +3575,14 @@
       "inline_style_count": 1
     },
     {
+      "path": "templates\\lifecycle\\tenant_gdpr_data_export.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\lifecycle\\timeline.html",
       "is_partial": false,
       "is_marketing": false,
@@ -3509,6 +3607,16 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\academics.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\base_marketing.html",
       "is_partial": false,
       "is_marketing": true,
@@ -3522,6 +3630,16 @@
       "is_marketing": true,
       "extends_base": true,
       "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\compliance.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
       "inline_style_count": 0
     },
     {
@@ -3719,6 +3837,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\components\\_marketing_viz_include.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\components\\_migration_timeline.html",
       "is_partial": true,
       "is_marketing": true,
@@ -3760,6 +3886,22 @@
     },
     {
       "path": "templates\\marketing\\components\\_platform_archetype_visual.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\components\\_platform_loop_hero.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\components\\_platform_visual_engine_strip.html",
       "is_partial": true,
       "is_marketing": true,
       "extends_base": false,
@@ -3815,6 +3957,16 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\edge_mesh.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\find_campus.html",
       "is_partial": false,
       "is_marketing": true,
@@ -3829,6 +3981,16 @@
       "extends_base": true,
       "findings": [
         "marketing_form_missing_honeypot"
+      ],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\homepage.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
       ],
       "inline_style_count": 0
     },
@@ -4243,6 +4405,38 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\partials\\_mkt_gradebook_interactive.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\_mkt_network_interactive.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\_mkt_split_ledger_compact.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\_personality_page_nav.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\partials\\case_study_cards_honest.html",
       "is_partial": true,
       "is_marketing": true,
@@ -4403,6 +4597,54 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\partials\\sections\\_clinical_ledger.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_entitlement_calculator.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_fluid_classroom.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_governance_auditor_gateway.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_rugged_engine.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\partials\\sections\\_sovereign_kernel.html",
+      "is_partial": true,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\partials\\security_packet_country_annex.html",
       "is_partial": true,
       "is_marketing": true,
@@ -4451,6 +4693,16 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\marketing\\pricing.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\marketing\\pricing_packages.html",
       "is_partial": false,
       "is_marketing": true,
@@ -4481,6 +4733,30 @@
       "extends_base": true,
       "findings": [],
       "inline_style_count": 2
+    },
+    {
+      "path": "templates\\marketing\\viz\\gradebook_frameworks.svg.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\viz\\split_ledger.svg.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\marketing\\viz\\transit_beacon.svg.html",
+      "is_partial": false,
+      "is_marketing": true,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\marketplace\\_local_first_catalog.html",
@@ -5333,6 +5609,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\parent\\finance_pay_all_confirm.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\parent\\link_child.html",
       "is_partial": false,
       "is_marketing": false,
@@ -5363,6 +5647,14 @@
       "extends_base": true,
       "findings": [],
       "inline_style_count": 2
+    },
+    {
+      "path": "templates\\parent\\settings_security.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\parent\\wallet.html",
@@ -5821,6 +6113,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\cp_sidebar_operator_identity.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\dataviz\\_heatmap.html",
       "is_partial": true,
       "is_marketing": false,
@@ -5851,6 +6151,14 @@
       "extends_base": false,
       "findings": [],
       "inline_style_count": 1
+    },
+    {
+      "path": "templates\\partials\\finance_glocal_strip.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\partials\\help_community_lane.html",
@@ -5973,6 +6281,30 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\operator_queue_smart_links_banner.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\portal_row_detail_drawer.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\portal_row_detail_drawer_bundle.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\portal_sidebar.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6021,6 +6353,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_chart_js_self_host.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_command_bar.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6045,6 +6385,22 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_dropzone_self_host.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_htmx_self_host.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_info_tag.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6061,6 +6417,14 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_isomorphic_grid_boot.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_launch_splash.html",
       "is_partial": true,
       "is_marketing": false,
@@ -6070,6 +6434,14 @@
     },
     {
       "path": "templates\\partials\\rmc_lexicon_meta.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_mermaid_self_host.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -6125,6 +6497,14 @@
       "extends_base": false,
       "findings": [],
       "inline_style_count": 7
+    },
+    {
+      "path": "templates\\partials\\rmc_redoc_self_host.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
     },
     {
       "path": "templates\\partials\\rmc_section_nav_curated.html",
@@ -6239,7 +6619,23 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\partials\\rmc_wind_down_banner.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\partials\\rmc_zero_click_command_strip.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\partials\\rmc_zxcvbn_self_host.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -7811,6 +8207,30 @@
       "inline_style_count": 27
     },
     {
+      "path": "templates\\schoolops\\lost_belongings_lookup.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schoolops\\lost_belongings_mint.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schoolops\\lost_belongings_recover.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\schoolops\\operator\\meal_plan_analytics.html",
       "is_partial": false,
       "is_marketing": false,
@@ -7900,6 +8320,14 @@
     },
     {
       "path": "templates\\schoolops\\ops_visitor_log.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schoolops\\substitute_handover_form.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,
@@ -8269,6 +8697,30 @@
       "inline_style_count": 0
     },
     {
+      "path": "templates\\schools\\mat_group_hub\\dashboard.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schools\\mat_group_hub\\detail.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schools\\mat_group_hub\\edit.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
       "path": "templates\\schools\\onboard_migration_handoff.html",
       "is_partial": false,
       "is_marketing": false,
@@ -8294,6 +8746,14 @@
     },
     {
       "path": "templates\\schools\\partials\\beachhead_operator_checklist.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\schools\\partials\\data_residency_readiness_panel.html",
       "is_partial": true,
       "is_marketing": false,
       "extends_base": false,
@@ -8842,7 +9302,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 3
+      "inline_style_count": 2
     },
     {
       "path": "templates\\schools\\super_operator_team_invite.html",
@@ -8986,7 +9446,7 @@
       "is_marketing": false,
       "extends_base": true,
       "findings": [],
-      "inline_style_count": 17
+      "inline_style_count": 9
     },
     {
       "path": "templates\\schools\\super_security_surface_dashboard.html",
@@ -9123,6 +9583,240 @@
       "extends_base": true,
       "findings": [],
       "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\boolean.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\color_picker.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\csv_mapping.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\datetime.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\decimal.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\domain_input.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\draw_on_map.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\duration.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\file_upload.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\image_upload.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\key_value_pairs.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\long_text.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\multi_choice.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\number.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\ranked_list.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 2
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\rich_select.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\single_choice.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\structured_form.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\inputs\\text.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\operator_wizard.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\operator_wizard_index.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
+      "path": "templates\\setup_studio\\partials\\wizard_ai_rationale.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
+      "path": "templates\\setup_studio\\partials\\wizard_help_rail.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 3
+    },
+    {
+      "path": "templates\\setup_studio\\partials\\wizard_nav.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
+      "path": "templates\\setup_studio\\partials\\wizard_state_restore_banner.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\partials\\wizard_step_body.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\partials\\wizard_stepper.html",
+      "is_partial": true,
+      "is_marketing": false,
+      "extends_base": false,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\tenant_wizard.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [
+        "missing_h1"
+      ],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\setup_studio\\tenant_wizard_index.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
     },
     {
       "path": "templates\\siteconfig\\academic_years_setup_evidence.html",
@@ -9289,14 +9983,6 @@
       "is_partial": false,
       "is_marketing": false,
       "extends_base": false,
-      "findings": [],
-      "inline_style_count": 0
-    },
-    {
-      "path": "templates\\siteconfig\\feedback_roadmap.html",
-      "is_partial": false,
-      "is_marketing": false,
-      "extends_base": true,
       "findings": [],
       "inline_style_count": 0
     },
@@ -10023,6 +10709,30 @@
       "inline_style_count": 1
     },
     {
+      "path": "templates\\siteconfig\\tenant_launch_fast_path.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
+      "path": "templates\\siteconfig\\tenant_lifecycle_command_center.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 1
+    },
+    {
+      "path": "templates\\siteconfig\\tenant_provisioning_status.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 3
+    },
+    {
       "path": "templates\\siteconfig\\tenant_report_schedules_evidence.html",
       "is_partial": false,
       "is_marketing": false,
@@ -10128,6 +10838,14 @@
     },
     {
       "path": "templates\\siteconfig\\zero_ticket_hub.html",
+      "is_partial": false,
+      "is_marketing": false,
+      "extends_base": true,
+      "findings": [],
+      "inline_style_count": 0
+    },
+    {
+      "path": "templates\\siteconfig\\zero_ticket_shell.html",
       "is_partial": false,
       "is_marketing": false,
       "extends_base": true,

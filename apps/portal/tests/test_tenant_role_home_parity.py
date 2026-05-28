@@ -94,7 +94,7 @@ class TenantExperienceCommandTests(SimpleTestCase):
         req.user.email = "teacher@example.com"
         req.user.get_full_name.return_value = "Teacher One"
         req.school.country_code = "CM"
-        req.school.name = "Gilead Tech High"
+        req.school.name = "Example Academy"
         req.school.primary_color = "#14532d"
         req.site_settings.active_academic_year_name = "2026"
 
@@ -160,7 +160,7 @@ class TenantExperienceCommandTests(SimpleTestCase):
         req.user.email = "parent@example.com"
         req.user.get_full_name.return_value = "Parent One"
         req.school.country_code = "CM"
-        req.school.name = "Gilead Tech High"
+        req.school.name = "Example Academy"
         req.school.primary_color = "#14532d"
         req.site_settings.active_academic_year_name = "2026"
 

@@ -71,7 +71,7 @@ def user_has_control_plane_access(user) -> bool:
             PlatformOperatorProfile.Status.INVITED,
         ):
             return True
-    except Exception:
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         pass
     return False
 

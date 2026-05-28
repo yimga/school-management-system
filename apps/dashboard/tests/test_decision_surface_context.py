@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 from apps.dashboard.decision_surface_context import (
     build_backend_dashboard_phase7_de,
     build_role_home_declaration,
+    build_teacher_dashboard_phase7_de,
 )
 
 
@@ -89,3 +90,14 @@ class DecisionSurfaceContextTests(SimpleTestCase):
     def test_build_role_home_declaration_defaults(self):
         decl = build_role_home_declaration({})
         self.assertEqual(decl["dashboard_type"], "operational")
+
+    def test_build_teacher_phase7_maps_live_kpis(self):
+        d = build_teacher_dashboard_phase7_de(
+            pending_evaluations=3,
+            completion_pct=72,
+            attendance_pct=88,
+        )
+        self.assertEqual(d["headline_label"], "Marks pending")
+        self.assertEqual(d["headline_value"], 3)
+        self.assertTrue(any(m["label"] == "Grading complete" for m in d["metrics"]))
+        self.assertTrue(any(m["label"] == "Attendance" for m in d["metrics"]))

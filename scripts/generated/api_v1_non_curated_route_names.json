@@ -2,7 +2,7 @@
   "version": 1,
   "source": "apps.api.api_v1_manifest.MANIFEST_CURATED_API_V1_URL_NAMES",
   "curated_url_name_count": 38,
-  "snapshot_name_count": 68,
+  "snapshot_name_count": 69,
   "non_curated": [
     "billing-quote-accept",
     "finance-disputes-create",
@@ -11,6 +11,7 @@
     "finance-generate-batch",
     "intervention-action-center-detail",
     "intervention-generate-roadmap",
+    "localization-country-pack",
     "manifest",
     "marketplace-apps",
     "marketplace-scopes",

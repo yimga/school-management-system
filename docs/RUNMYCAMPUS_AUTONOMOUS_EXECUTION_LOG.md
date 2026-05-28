@@ -1,5 +1,55 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — CEZGP all-optionals + Playwright host-rules batch 1552 (2026-05-28)
+
+**A. Scope:** User request — complete all CEZGP optionals end-to-end; fix parent Playwright; audit plan.
+
+**B. Shipped:** Split Playwright projects (marketing apex vs tenant wildcard host-rules); parent E2E subdomain + reset `goto`; playwright subset tenant auto-pick; gilead residue neutralized; Migration Cloud docs AllowAny allowlisted; platform inventory regen.
+
+**C. Proof:** **CUSTOMER_EXPERIENCE_ZERO_GAP_PASS** (`--write --full`); **CUSTOMER_EXPERIENCE_PLAYWRIGHT_SUBSET_PASS** (5 marketing + parent); **verify_phases_3_11_gates.py** all non-DB gates passed.
+
+**D. SOT:** batch **1552** **DONE (repo-scope)**. **E. Residual:** production marketing Playwright + `demo-school` seed on fresh DBs; six matrix **external** rows.
+
+## Slice — SOVEREIGN layout token matrix batch 1551 (2026-05-27)
+
+**A. Scope:** User SOVEREIGN-MULTI-PERSONALITY prompt — isomorphic layout token interpreter on existing Django shells (not full template-tree rewrite).
+
+**B. Shipped:** `personality_os` on shell contract; regional `text_token` tag; wizard viewport component; layout-token-matrix CSS; sovereign verifier orchestrating isomorphic + marketing gates.
+
+**C. Proof:** **SOVEREIGN_LAYOUT_TOKEN_MATRIX_PASS**; layout + shell contract tests green.
+
+**D. SOT:** batch **1551** **DONE (repo-scope)**. **SW:** `sms-v3.99.13-sovereign-layout-token-matrix-2026-05-27`.
+
+## Slice — Marketing + Lane 2 internal audit closure batch 1550 (2026-05-27)
+
+**A. Scope:** User request — audit all work in thread; close internal gaps; leave externals honest.
+
+**B. Shipped:** `verify_marketing_lane2_internal_audit.py`; HTTP tests on `/storefront/` + `/experience/*/`; CSS bundle rebuild; SW baseline v3.99.12; ROADMAPS 1546–1549 table.
+
+**C. Proof:** **MARKETING_LANE2_INTERNAL_AUDIT_PASS**; personality + intent tests green.
+
+**D. SOT:** batch **1550** **DONE (repo-scope)**. Externals: 1170 live charge, 1199 hosted SHA, 1175 pilot feedback — **BLOCKED_EXTERNAL**.
+
+## Slice — Glocal 1540–1546 audit closeout (2026-05-28)
+
+**A. Scope:** Full audit of Glocal adoption batches **1540–1546** + kernel gates; reconcile stale SOT residuals; i18n catalog sync for marketing strings (1547–1549).
+
+**B. Shipped:** SOT rows **1540/1542/1544/1546** residuals aligned; `sync_i18n_catalog --compile` (+34 msgids × 20 locales); `verify_glocal_closeout_completion.py` + `verify_glocal_zero_hardcode_kernel.py` subprocess gates use `USE_FILE_LOGGING=0` (Windows log-lock); `verify_backend_base_shell_routing.py` same.
+
+**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS (96 tables, 1 card)**; **GLOCAL_PRACTICAL_CLOSEOUT_PASS (live+spawn)**; **GLOCAL_OUT_OF_SCOPE_HONESTY_PASS**; **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_PASS (live+spawn)**; **LANE2_RESIDUALS_ON_DISK_PASS**; **LANE2_EXTERNAL_HONESTY_PASS**; **PILOT_DEFECT_INTAKE_SCAFFOLD_PASS**; **Glocal closeout gate: OK**; **GLOCAL_ZERO_HARDCODE_KERNEL_PASS**.
+
+**D. SOT:** batches **1540–1546** repo scope **DONE**; **1175** **PARTIAL (repo intake)**; external register unchanged (second Postgres, BLE/OCR, CRDT). **E. Residual:** operator Lane 2 only (Stripe `verified_live`, Render hosted SHA, pilot schools).
+
+## Slice — MULTI-PERSONALITY-GRID viewport pages batch 1549 (2026-05-27)
+
+**A. Scope:** User MULTI-PERSONALITY-GRID audit — five distinct marketing personalities without duplicating backend; server-rendered geo copy + viewport containment.
+
+**B. Shipped:** `marketing_personality_registry.py`; four dedicated templates + upgraded `_fluid_classroom` / `_rugged_engine`; `_governance_auditor_gateway` + `_entitlement_calculator`; `marketing-personality-pages.css`; `/experience/<slug>/` routes.
+
+**C. Proof:** **MARKETING_PERSONALITY_PAGES_PASS**; **MARKETING_INTENT_VIEWPORT_PASS**; **6/6** personality tests + **15/15** intent viewport suite.
+
+**D. SOT:** batch **1549** **DONE (repo-scope)**. **SW:** `sms-v3.99.12-marketing-personality-pages-2026-05-27`.
+
 ## Slice — Marketing isomorphic geo + homepage batch 1548 (2026-05-28)
 
 **A. Scope:** Complete RUNMYCAMPUS-SURGICAL-REFIT on existing stack (middleware, registry, homepage.html, /storefront/).
@@ -26,19 +76,19 @@
 
 **B. Shipped:** `write_geos_lane2_residual_evidence.py`, `verify_lane2_residuals_on_disk.py`, `verify_pilot_defect_intake.py`, `PILOT_DEFECT_TRIAGE_RUNBOOK.md`; evidence under `var/evidence/geos-99/{psp/stripe,render,pilot/gilead-school}/`; Playwright `tenantUrl` for setlang persist; metadata health gate rejects `missing_credentials` for faux `verified_live`.
 
-**C. Proof:** **LANE2_RESIDUALS_ON_DISK_PASS**; **PILOT_DEFECT_INTAKE_SCAFFOLD_PASS**; **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_SCAFFOLD_PASS**.
+**C. Proof:** **LANE2_RESIDUALS_ON_DISK_PASS**; **PILOT_DEFECT_INTAKE_SCAFFOLD_PASS**; **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_PASS (live+spawn)** (finalized in batch **1545**).
 
-**D. SOT:** §11.4 batch **1546** **DONE (repo-scope)**; **1175** → **PARTIAL (repo intake)**. **E. Residual:** Stripe phase1 `verified_live` charge JSON; Render hosted SHA probe; slot-2 pilot school; live RTL `--run --spawn-server`.
+**D. SOT:** §11.4 batch **1546** **DONE (repo-scope)**; **1175** → **PARTIAL (repo intake)**. **E. Residual:** Stripe phase1 `verified_live` charge JSON; Render hosted SHA probe; slot-2 pilot school.
 
 ## Slice — Glocal finance requests + RTL CI spawn batch 1545 (2026-05-27)
 
-**A. Scope:** `finance/requests.html` audit/inbox tables; Playwright `--spawn-server`; `region_settings` GET language for RTL shell.
+**A. Scope:** `finance/requests.html` audit/inbox tables; Playwright `--spawn-server`; RTL shell + live Lane 2 proof.
 
-**B. Shipped:** Drawer on finance requests (2 tables); `verify_teacher_dashboard_rtl_playwright.py` spawn on port 8011; practical closeout `--live-playwright` uses spawn; `region_settings` activates query/cookie language before augment; Playwright `serviceWorkers: 'block'`.
+**B. Shipped:** Drawer on finance requests (2 tables); `verify_teacher_dashboard_rtl_playwright.py` spawn on port 8011 (`/healthz/` probe, host-tenant URL, `USE_FILE_LOGGING=0`); `language_context` ordered after `region_settings`; `localization.is_rtl` from active locale; Playwright host routing + optional setlang POST; `playwright-a11y-extended.yml` teacher step (15m).
 
-**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS (96 tables)**; **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_SCAFFOLD_PASS**.
+**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS (96 tables)**; **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_PASS (live+spawn)** (`verify_teacher_dashboard_rtl_playwright.py --run --spawn-server`).
 
-**D. SOT:** §11.4 batch **1545** **DONE (repo-scope)**. **E. Residual:** live Playwright pass after Django cold start (~90s).
+**D. SOT:** §11.4 batch **1545** **DONE**. **E. Residual:** none for batch 1545 repo scope.
 
 ## Slice — Glocal adoption finish-all batch 1544 (2026-05-27)
 

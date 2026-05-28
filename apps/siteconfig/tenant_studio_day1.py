@@ -804,16 +804,16 @@ def _mirror_to_site_settings(school: Any, chosen: PaletteVariation) -> None:
     — never crosses the school FK.
     """
     try:
-        from apps.siteconfig.models import SiteSettings  # type: ignore[import-not-found]
+        from apps.platform_runtime.helpers import update_school_site_settings_record
     except Exception:
         return
 
     payload_updates: dict[str, Any] = {}
     primary = chosen.stops.get("primary")
     accent = chosen.stops.get("primary_soft") or chosen.stops.get("primary_strong")
-    if primary and hasattr(SiteSettings, "primary_color"):
+    if primary:
         payload_updates["primary_color"] = primary
-    if accent and hasattr(SiteSettings, "accent_color"):
+    if accent:
         payload_updates["accent_color"] = accent
 
     if not payload_updates:
@@ -821,10 +821,7 @@ def _mirror_to_site_settings(school: Any, chosen: PaletteVariation) -> None:
 
     try:
         # tenant-isolation-allow: day1-palette-mirror-scoped-to-single-school-fk
-        SiteSettings.objects.update_or_create(  # type: ignore[attr-defined]
-            school=school,
-            defaults=payload_updates,
-        )
+        update_school_site_settings_record(school, payload_updates)
     except Exception:
         logger.warning(
             "day1: SiteSettings mirror failed tenant=%s — palette landed on School.branding_metadata only",

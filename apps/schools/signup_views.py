@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login as auth_login
 from django.core.exceptions import ValidationError
+from django.db import DatabaseError
 from django.core.mail import send_mail  # noqa: F401 — retained for legacy callsites
 # v3.57.x Wave 8 Agent C — route signup verification email through the
 # canonical reliability-hardened sender (retries + EmailDeliveryEvent
@@ -91,7 +92,7 @@ def _signup_countries() -> list[dict[str, str]]:
                 }
             )
         return out
-    except Exception:
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         return []
 from apps.schools.models import School, SignupVerification
 from apps.schools.onboarding_vendors import (
@@ -199,7 +200,7 @@ def _country_from_accept_language(request) -> str:
             tail = primary.split("-")[-1].strip().upper()[:2]
             if len(tail) == 2 and tail.isalpha():
                 return tail
-    except Exception:  # noqa: BLE001
+    except (AttributeError, IndexError, TypeError, ValueError):
         pass
     return ""
 
@@ -293,7 +294,7 @@ def signup_school(request: HttpRequest):
                 # waiting on a JS round-trip.
                 "country_pack": country_pack,
                 # Wave 14 (v3.62.19) — India per-state mini-picker. Always
-                # shipped (template gates on country_code == 'IN'); zero cost
+                # shipped; the template gates it from the resolved country pack with zero cost
                 # to non-IN visitors. List is sorted alphabetically by state
                 # name; each entry carries the calendar_code that auto-fills
                 # the calendar radio when the operator picks their state.
@@ -508,6 +509,13 @@ def signup_school(request: HttpRequest):
             create_kwargs["primary_sector"] = sector[:64]
     school = School.objects.create(**create_kwargs)
     try:
+        from apps.schools.data_residency_onboarding import apply_data_residency_for_new_school
+
+        apply_data_residency_for_new_school(school, source="public_signup")
+        school.save(update_fields=["data_region", "settings"])
+    except Exception:
+        pass
+    try:
         from apps.lifecycle.unified_lifecycle import (
             CREATION_PATH_SELF_SERVE,
             set_creation_path,
@@ -703,7 +711,7 @@ def _get_blueprint_packs_for_onboarding(country_code: str):
         return []
     try:
         qs = list(BlueprintPack.objects.filter(is_active=True).order_by("category", "name")[:60])
-    except Exception:
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         return []
     cc = (country_code or "").strip().upper()
     primary, global_packs, rest = [], [], []

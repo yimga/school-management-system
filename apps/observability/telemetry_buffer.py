@@ -17,7 +17,7 @@ import json
 import logging
 import threading
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Iterable
 
 

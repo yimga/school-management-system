@@ -8,14 +8,12 @@ stubbed `WhatsAppIntegration.verify_webhook` / `.send_message`.
 from __future__ import annotations
 
 import json
-import time
 from unittest.mock import patch
 
 from django.test import RequestFactory, SimpleTestCase
 
 from apps.communication.whatsapp_parent_os import (
     InboundMessage,
-    OutboundIntent,
     RoutingConfig,
     classify_intent_keyword,
     known_intents,

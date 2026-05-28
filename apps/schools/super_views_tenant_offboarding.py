@@ -15,7 +15,6 @@ from apps.compliance.models_audit import AuditLog
 from apps.schools.control_plane import log_control_plane_action
 from apps.schools.models import School
 from apps.platform_runtime.operator_identity import (
-    PLATFORM_SCOPE_AUDIT_EXPORT,
     PLATFORM_SCOPE_FLEET,
     PLATFORM_SCOPE_SECURITY_WRITE,
     require_platform_scope,
@@ -26,7 +25,6 @@ from apps.schools.tenant_offboarding import (
     get_offboarding_snapshot,
     record_dual_approval,
     record_primary_dual_approval,
-    run_wind_down_deactivate,
     run_wind_down_export,
     set_legal_hold,
 )

@@ -22,6 +22,14 @@ def _get_tenant_db_alias() -> Optional[str]:
     Uses Client.db_alias, or School.dedicated_db_alias / School.regional_cluster.
     """
     try:
+        from apps.platform_runtime.dynamic_db_routing import effective_db_alias
+
+        override = effective_db_alias()
+        if override:
+            return override
+    except OPTIONAL_DB_ROUTER_ERRORS:
+        pass
+    try:
         from django.db import connection
 
         tenant = getattr(connection, "tenant", None)

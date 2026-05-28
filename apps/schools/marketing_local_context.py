@@ -1452,9 +1452,9 @@ def _load_tenant_marketing_voice(request) -> dict[str, Any]:
         school = getattr(request, "school", None)
         if school is None:
             return {}
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
         # tenant-isolation-allow: site-settings-singleton-per-tenant-schema-isolated-by-host
-        settings_row = SiteSettings.objects.first()
+        settings_row = get_platform_site_settings_record(create=False)
         if settings_row is None:
             return {}
         payload = getattr(settings_row, "cockpit_payload", None) or {}
@@ -1486,9 +1486,9 @@ def _load_tenant_page_marketing_voice(request, tenant_mv: dict[str, Any]) -> dic
         school = getattr(request, "school", None)
         if school is None:
             return {}
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
         # tenant-isolation-allow: site-settings-singleton-per-tenant-schema-isolated-by-host
-        settings_row = SiteSettings.objects.first()
+        settings_row = get_platform_site_settings_record(create=False)
         if settings_row is None:
             return {}
         payload = getattr(settings_row, "cockpit_payload", None) or {}

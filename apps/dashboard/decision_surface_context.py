@@ -141,6 +141,108 @@ def build_backend_dashboard_phase7_de(
     }
 
 
+def build_teacher_dashboard_phase7_de(
+    *,
+    pending_evaluations: int = 0,
+    completion_pct: int = 0,
+    attendance_pct: int | None = None,
+    teacher_fast_workflows: list[dict[str, Any]] | None = None,
+) -> Dict[str, Any]:
+    """Decision surface for teacher role-home (marks + attendance at a glance)."""
+    from django.urls import reverse
+
+    def _rev(name: str, fallback: str = "#") -> str:
+        try:
+            return reverse(name)
+        except Exception:  # noqa: BLE001
+            return fallback
+
+    kpi_strip: List[Dict[str, Any]] = [
+        {
+            "label": "Marks pending",
+            "value": pending_evaluations,
+            "meta": "evaluations due",
+            "status": "danger" if pending_evaluations else "ok",
+        },
+        {
+            "label": "Grading complete",
+            "value": f"{completion_pct}%",
+            "meta": "this term",
+            "status": "ok" if completion_pct >= 75 else "warn",
+        },
+    ]
+    if attendance_pct is not None:
+        kpi_strip.append(
+            {
+                "label": "Attendance",
+                "value": f"{attendance_pct}%",
+                "meta": "class average",
+                "status": "ok" if attendance_pct >= 85 else "warn",
+            }
+        )
+
+    urgent: List[Dict[str, Any]] = []
+    if pending_evaluations > 0:
+        urgent.append(
+            {
+                "title": f"{pending_evaluations} mark entries pending",
+                "url": _rev("evals:teacher_marks_entry"),
+                "hint": "Enter scores while context is fresh.",
+            }
+        )
+    else:
+        urgent.append(
+            {
+                "title": "Marks queue clear",
+                "url": None,
+                "hint": "No pending evaluations in the current snapshot.",
+            }
+        )
+
+    next_actions: List[Dict[str, Any]] = []
+    for row in teacher_fast_workflows or []:
+        if not isinstance(row, dict):
+            continue
+        lab = str(row.get("label", "") or "").strip()
+        url = str(row.get("url", "") or "").strip()
+        if lab and url:
+            next_actions.append({"label": lab, "url": url})
+        if len(next_actions) >= 4:
+            break
+    if not next_actions:
+        next_actions.append(
+            {
+                "label": "Enter marks",
+                "url": _rev("evals:teacher_marks_entry"),
+            }
+        )
+
+    role_home = {
+        "eyebrow": "Teacher home",
+        "purpose": "Teaching day at a glance",
+        "dashboard_type": "role-home",
+        "jtbd": "Complete marks and attendance with minimal navigation.",
+        "main_question": "What needs my attention in class today?",
+        "main_action": "Enter marks",
+    }
+    return build_backend_dashboard_phase7_de(
+        role_home=role_home,
+        kpi_strip_cards=kpi_strip,
+        dashboard_priority_queue=urgent,
+        dashboard_next_best_actions=next_actions,
+        role_home_primary_action=next_actions[0] if next_actions else None,
+        role_home_supporting_actions=next_actions[1:4],
+        dashboard_recent_activity=[
+            {
+                "title": "Teaching workspace ready",
+                "actor": "System",
+                "action": "prepared your dashboard",
+                "time_ago": "just now",
+            }
+        ],
+    )
+
+
 def build_role_home_declaration(role_home: Dict[str, Any]) -> Dict[str, Any]:
     """Structured 5-second test + audit fields (Phase 8 mandatory declaration)."""
     return {

@@ -524,7 +524,14 @@ def _source_tenant_new_enrollments(request: Any) -> list[dict[str, Any]]:
         ts_field = "created_at" if hasattr(StudentProfile, "created_at") else None
         if ts_field is None:
             return []
-        count = StudentProfile.objects.filter(**{f"{ts_field}__gte": cutoff}).count()
+        school = getattr(request, "school", None)
+        school_id = getattr(school, "pk", None) if school is not None else None
+        if not school_id:
+            return []
+        count = StudentProfile.objects.filter(
+            school_id=school_id,
+            **{f"{ts_field}__gte": cutoff},
+        ).count()
         if count == 0:
             return []
         return [{
@@ -549,7 +556,14 @@ def _source_tenant_communication_activity(request: Any) -> list[dict[str, Any]]:
         ts_field = "created_at" if hasattr(Message, "created_at") else "sent_at"
         if not hasattr(Message, ts_field):
             return []
-        count = Message.objects.filter(**{f"{ts_field}__gte": cutoff}).count()
+        school = getattr(request, "school", None)
+        school_id = getattr(school, "pk", None) if school is not None else None
+        if not school_id:
+            return []
+        count = Message.objects.filter(
+            school_id=school_id,
+            **{f"{ts_field}__gte": cutoff},
+        ).count()
         if count == 0:
             return []
         return [{

@@ -173,6 +173,13 @@ def help_contextual(request):
     }
 
 
+def parent_identity_ux(request):
+    """Parent simplified-default + multi-school switcher + student links (CEZGP 1517/1523)."""
+    from apps.portal.parent_identity import parent_identity_portal_context
+
+    return parent_identity_portal_context(request)
+
+
 def help_ai_governance(request):
     """Parent/student AI policy flags for templates (batch GEOS-AI)."""
     from apps.portal.help_governance import (

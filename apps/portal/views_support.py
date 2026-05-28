@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError, transaction
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from apps.accounts.models import User
 from apps.communication.models import Message
 
-from apps.platform_runtime.helpers import get_effective_support_contact_settings
 
 from .forms_support import SupportRequestForm
 

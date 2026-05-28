@@ -12,7 +12,6 @@ from django.utils import timezone
 
 from apps.accounts.security_health import (
     get_minimum_security_score_for_role,
-    _check_identity_verified,
     _check_mfa,
     _check_passkeys,
     _check_password_strength,

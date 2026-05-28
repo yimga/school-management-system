@@ -6,6 +6,7 @@ from . import views_forums
 from .views import (
     badge_verify,
     parent_dashboard,
+    parent_settings_security,
     parent_set_active_child,
     parent_workflow_center,
     parent_medal_case,
@@ -48,7 +49,13 @@ from .views import (
     preview_student_syllabus,
     preview_communication_test,
 )
-from .views_parent_finance import parent_finance, parent_wallet, parent_feed
+from .parent_finance_health import parent_finance_health
+from .views_parent_finance import (
+    parent_feed,
+    parent_finance,
+    parent_finance_pay_all,
+    parent_wallet,
+)
 from .views_attendance_export import (
     student_attendance_export,
     student_attendance_export_csv,
@@ -170,7 +177,22 @@ urlpatterns = [
     path("parent/claim-invite/", claim_invite, name="claim_invite"),
     path("parent/claim-invite/<str:token>/", claim_invite, name="claim_invite_token"),
     path("parent/finance/", parent_finance, name="parent_finance"),
+    path(
+        "parent/finance/health/",
+        parent_finance_health,
+        name="parent_finance_health",
+    ),
+    path(
+        "parent/finance/pay-all/",
+        parent_finance_pay_all,
+        name="parent_finance_pay_all",
+    ),
     path("parent/wallet/", parent_wallet, name="parent_wallet"),
+    path(
+        "parent/settings/security/",
+        parent_settings_security,
+        name="parent_settings_security",
+    ),
     path("parent/feed/", parent_feed, name="parent_feed"),
     path("teacher/feed/", teacher_feed, name="teacher_feed"),
     path("parent/contact-school/", parent_contact_school, name="parent_contact_school"),

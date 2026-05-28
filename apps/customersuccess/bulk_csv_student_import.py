@@ -283,32 +283,52 @@ def apply_bulk_csv(
     return runner(school_id=school_id, rows=list(validated.rows))
 
 
+def _student_code_for_import(*, school_id: int, external_id: str) -> str:
+    """Map CSV external_id to a tenant-scoped student_code (global unique constraint)."""
+    prefix = f"S{school_id}-"
+    return f"{prefix}{external_id}"[:50]
+
+
 def _default_db_runner(*, school_id: int, rows: list[CSVStudentRow]) -> BulkImportApplyResult:
     from apps.people.models import StudentProfile  # type: ignore
 
     result = BulkImportApplyResult()
+    codes = [_student_code_for_import(school_id=school_id, external_id=r.external_id) for r in rows]
     # tenant-isolation-allow: bulk-csv-existing-set-confined-to-school-tenant
     existing = set(
-        StudentProfile.objects
-        .filter(school_id=school_id, external_id__in=[r.external_id for r in rows])
-        .values_list("external_id", flat=True)
+        StudentProfile.objects.filter(school_id=school_id, student_code__in=codes).values_list(
+            "student_code", flat=True
+        )
     )
-    for row in rows:
-        if row.external_id in existing:
+    for row, student_code in zip(rows, codes, strict=True):
+        if student_code in existing:
             result.skipped += 1
             continue
+        custom_attributes: dict[str, str] = {}
+        if row.middle_name:
+            custom_attributes["middle_name"] = row.middle_name
+        if row.email:
+            custom_attributes["email"] = row.email
+        if row.grade_level:
+            custom_attributes["grade_level"] = row.grade_level
+        if row.guardian_email:
+            custom_attributes["guardian_email"] = row.guardian_email
+        if row.guardian_name:
+            custom_attributes["guardian_name"] = row.guardian_name
+        if row.guardian_phone:
+            custom_attributes["guardian_phone"] = row.guardian_phone
         try:
             StudentProfile.objects.create(
                 school_id=school_id,
-                external_id=row.external_id,
+                student_code=student_code,
                 first_name=row.first_name,
                 last_name=row.last_name,
-                middle_name=row.middle_name,
                 date_of_birth=row.date_of_birth,
-                email=row.email,
-                grade_level=row.grade_level,
+                is_active=True,
+                custom_attributes=custom_attributes,
             )
             result.created += 1
+            existing.add(student_code)
         except Exception as exc:  # noqa: BLE001 — re-surfaced to caller
             result.errors.append(
                 {"external_id": row.external_id, "reason": str(exc)[:240]},

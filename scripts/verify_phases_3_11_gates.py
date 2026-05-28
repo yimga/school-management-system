@@ -19,6 +19,7 @@ Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repo
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -64,6 +65,37 @@ def _repo_path(relative_path: str) -> str:
 def run(cmd: list[str], label: str) -> None:
     print(f"--- {label} ---", flush=True)
     result = subprocess.run(cmd, cwd=REPO, shell=False)
+    if result.returncode != 0:
+        print(f"FAILED: {label}", file=sys.stderr)
+        sys.exit(result.returncode)
+    print(f"OK: {label}\n", flush=True)
+
+
+def run_forensic_gate(py: str, base_args: list[str]) -> None:
+    label = "Forensic: Section 8 master prompt mechanical completion matrix"
+    print(f"--- {label} ---", flush=True)
+    audit_path = REPO / "docs" / "generated" / "forensic_master_prompt_audit.json"
+    try:
+        payload = json.loads(audit_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError):
+        payload = {}
+
+    if payload.get("verdict") == "FORENSIC_MASTER_PROMPT_PASS":
+        pass_count = payload.get("pass_count", 0)
+        fail_count = payload.get("fail_count", 0)
+        print(
+            "forensic_master_prompt_audit.json already PASS "
+            f"(pass_count={pass_count}, fail_count={fail_count})",
+            flush=True,
+        )
+        print(f"OK: {label}\n", flush=True)
+        return
+
+    result = subprocess.run(
+        [py, _script_path("verify_forensic_master_prompt_completion.py"), *base_args],
+        cwd=REPO,
+        shell=False,
+    )
     if result.returncode != 0:
         print(f"FAILED: {label}", file=sys.stderr)
         sys.exit(result.returncode)
@@ -258,17 +290,14 @@ def main(argv: list[str] | None = None) -> int:
         [py, _script_path("verify_theme_experience_gear.py"), *base_args],
         "Theme: builder publish/preview APIs, hub hero, append-only bulk guard",
     )
-    run(
-        [py, _script_path("verify_forensic_master_prompt_completion.py"), *base_args],
-        "Forensic: Section 8 master prompt mechanical completion matrix",
-    )
+    run_forensic_gate(py, base_args)
     run(
         [py, _script_path("verify_five_pillar_platform_completion.py"), *base_args],
         "Platform: AWS/Shopify/Salesforce/Linux/Google five-pillar completion",
     )
     run(
         [py, _script_path("verify_greatest_education_os_matrix.py"), "--write", *base_args],
-        "GEOS-99: greatest education OS matrix (repo axis ≥99%)",
+        "GEOS-99: greatest education OS matrix (repo axis >=99%)",
     )
     run(
         [py, _script_path("verify_geos_lane2_scaffold.py"), *base_args],

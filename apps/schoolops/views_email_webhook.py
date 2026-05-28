@@ -85,10 +85,10 @@ def _load_webhook_secrets() -> dict:
     secret configured" and reject signature verification accordingly.
     """
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
 
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
-        row = SiteSettings.objects.first()
+        row = get_platform_site_settings_record(create=False)
         if row is None:
             return {}
         payload = getattr(row, "email_delivery", None) or {}

@@ -77,10 +77,10 @@
     <div class="rmc-cockpit__rail-section-title">{% trans "Quick actions" %}</div>
     <ul class="rmc-copilot-rail__actions-list" data-rmc-copilot-rail-actions-list="1">
       {% comment %} Server-rendered fallback action — always available so the rail isn't empty.
-         v3.54.0 (2026-05-21): converted from <a href="#"> to <button type="button">.
+         v3.54.0 (2026-05-21): converted from a dummy anchor to a button.
          The trigger is consumed by data-rmc-cmdk-trigger / data-rmc-cockpit-action
          JS handlers (attribute-based, not element-type), so this swap is safe and
-         removes the only NEW dummy href="#" anchor in studio_os templates. {% endcomment %}
+         removes the only NEW dummy hash anchor in studio_os templates. {% endcomment %}
       <li>
         <button type="button" class="rmc-cockpit__rail-action" data-rmc-cockpit-action="open-command-bar" data-rmc-cmdk-trigger="1">
           <span aria-hidden="true">⌘K</span>

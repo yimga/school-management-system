@@ -28,7 +28,7 @@ class PilotRow:
     """Stable kebab-case key. Map to tenant subdomain when live."""
 
     label: str
-    """Short display name (e.g., 'Gilead Tech High', 'Mountain Bay Academy')."""
+    """Short display name (e.g., 'Example Academy', 'Mountain Bay Academy')."""
 
     stage: str = "prospect"
     """`prospect` | `mou` | `provisioning` | `live` | `paid` | `paused` | `lost`."""
@@ -61,8 +61,8 @@ class PilotRow:
 
 PILOT_REGISTER: tuple[PilotRow, ...] = (
     PilotRow(
-        pilot_slug="gilead-tech-high",
-        label="Gilead Tech High (first-school staging)",
+        pilot_slug="first-school-staging",
+        label="Example Academy (first-school staging)",
         stage="live",
         region="africa",
         institution_type="k12",

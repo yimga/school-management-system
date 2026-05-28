@@ -29,16 +29,15 @@ DEFAULT_KB_SYNONYMS: dict[str, list[str]] = {
 def _merged_synonyms() -> dict[str, list[str]]:
     merged = {k: list(v) for k, v in DEFAULT_KB_SYNONYMS.items()}
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_flags_for_school
 
-        settings = SiteSettings.get_solo()
-        raw = (settings.get_backend_feature_flags() or {}).get("kb_search_synonyms")
+        raw = (get_effective_flags_for_school() or {}).get("kb_search_synonyms")
         if isinstance(raw, dict):
             for key, vals in raw.items():
                 if not key or not isinstance(vals, list):
                     continue
                 merged[str(key).lower()] = [str(v).lower() for v in vals if v]
-    except Exception:
+    except (AttributeError, ImportError, LookupError, TypeError, ValueError):
         pass
     return merged
 

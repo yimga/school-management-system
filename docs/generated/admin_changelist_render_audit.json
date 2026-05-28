@@ -1,1090 +1,301 @@
 {
-  "generated_at": "2026-05-24T23:29:16.252804+00:00",
+  "generated_at": "2026-05-27T14:34:40.110127+00:00",
   "host": "manager.runmycampus.com",
-  "full_crawl": true,
-  "route_count": 176,
-  "ok_count": 173,
-  "redirect_escape_count": 2,
-  "failure_count": 1,
-  "pass": false,
+  "full_crawl": false,
+  "route_count": 24,
+  "ok_count": 24,
+  "redirect_escape_count": 0,
+  "failure_count": 0,
+  "pass": true,
   "rows": [
     {
       "path": "/admin/accounts/user/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/accounts/user/"
+      "final_path": "/admin/accounts/user/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/accounts/user/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/apicenter/developerapplication/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/apicenter/developerapplication/"
+      "final_path": "/admin/apicenter/developerapplication/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/apicenter/developerapplication/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/apicenter/marketplaceextensionsubmission/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/apicenter/marketplaceextensionsubmission/"
+      "final_path": "/admin/apicenter/marketplaceextensionsubmission/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/apicenter/marketplaceextensionsubmission/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/apicenter/oauthauthorizationcode/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/apicenter/oauthauthorizationcode/"
+      "final_path": "/admin/apicenter/oauthauthorizationcode/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/apicenter/oauthauthorizationcode/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/apicenter/oauthtokenpair/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/apicenter/oauthtokenpair/"
+      "final_path": "/admin/apicenter/oauthtokenpair/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/apicenter/oauthtokenpair/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/automation/automationapprovalqueue/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/automation/automationapprovalqueue/"
+      "final_path": "/admin/automation/automationapprovalqueue/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/automation/automationapprovalqueue/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/automation/automationexecutionlog/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/automation/automationexecutionlog/"
+      "final_path": "/admin/automation/automationexecutionlog/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/automation/automationexecutionlog/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/automation/migrationplaybook/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/automation/migrationplaybook/"
+      "final_path": "/admin/automation/migrationplaybook/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/automation/migrationplaybook/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/automation/migrationprofile/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/automation/migrationprofile/"
+      "final_path": "/admin/automation/migrationprofile/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/automation/migrationprofile/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/automation/migrationquarantinerecord/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/automation/migrationquarantinerecord/"
+      "final_path": "/admin/automation/migrationquarantinerecord/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/automation/migrationquarantinerecord/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/automation/migrationrun/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/automation/migrationrun/"
+      "final_path": "/admin/automation/migrationrun/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/automation/migrationrun/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/billingaccount/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/billingaccount/"
+      "final_path": "/admin/billing/billingaccount/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/billingaccount/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/billingprocessorsyncevent/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/billingprocessorsyncevent/"
+      "final_path": "/admin/billing/billingprocessorsyncevent/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/billingprocessorsyncevent/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/entitlement/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/entitlement/"
+      "final_path": "/admin/billing/entitlement/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/entitlement/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/platformbillingprocessorconfig/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/platformbillingprocessorconfig/"
+      "final_path": "/admin/billing/platformbillingprocessorconfig/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/platformbillingprocessorconfig/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/platformledgerentry/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/platformledgerentry/"
+      "final_path": "/admin/billing/platformledgerentry/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/platformledgerentry/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/quote/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/quote/"
+      "final_path": "/admin/billing/quote/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/quote/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/revenuesharepayout/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/revenuesharepayout/"
+      "final_path": "/admin/billing/revenuesharepayout/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/revenuesharepayout/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/stripeplanprice/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/stripeplanprice/"
+      "final_path": "/admin/billing/stripeplanprice/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/stripeplanprice/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/tenantsubscription/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/tenantsubscription/"
+      "final_path": "/admin/billing/tenantsubscription/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/tenantsubscription/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/billing/usagemeter/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/billing/usagemeter/"
+      "final_path": "/admin/billing/usagemeter/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/billing/usagemeter/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/brand_experience/brandprofile/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/brand_experience/brandprofile/"
+      "final_path": "/admin/brand_experience/brandprofile/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/brand_experience/brandprofile/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/brand_experience/brandsettings/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/brand_experience/brandsettings/"
+      "final_path": "/admin/brand_experience/brandsettings/",
+      "redirect_chain": [
+        {
+          "path": "https://manager.runmycampus.com/admin/brand_experience/brandsettings/",
+          "status": 301
+        }
+      ]
     },
     {
       "path": "/admin/brand_experience/designtemplate/",
       "status": "ok",
       "http_status": 200,
-      "final_path": "/admin/brand_experience/designtemplate/"
-    },
-    {
-      "path": "/admin/brand_experience/globalbrandregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/brand_experience/globalbrandregistry/"
-    },
-    {
-      "path": "/admin/brand_experience/platformglobalbranding/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/brand_experience/platformglobalbranding/"
-    },
-    {
-      "path": "/admin/brand_experience/themepack/",
-      "status": "redirect_escape",
-      "http_status": 200,
-      "final_path": "/studio/experience/",
+      "final_path": "/admin/brand_experience/designtemplate/",
       "redirect_chain": [
         {
-          "path": "/studio/experience/",
-          "status": 302
+          "path": "https://manager.runmycampus.com/admin/brand_experience/designtemplate/",
+          "status": 301
         }
-      ],
-      "detail": "intentional product redirect outside /admin/"
-    },
-    {
-      "path": "/admin/compliance/auditlog/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/compliance/auditlog/"
-    },
-    {
-      "path": "/admin/global_registries/educationsystemprofile/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/global_registries/educationsystemprofile/"
-    },
-    {
-      "path": "/admin/global_registries/province/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/global_registries/province/"
-    },
-    {
-      "path": "/admin/global_registries/systemfeature/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/global_registries/systemfeature/"
-    },
-    {
-      "path": "/admin/global_registries/tenantsystem/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/global_registries/tenantsystem/"
-    },
-    {
-      "path": "/admin/global_registries/weatherlocation/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/global_registries/weatherlocation/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/appauditlog/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/appauditlog/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/appbillingledger/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/appbillingledger/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/appinstallation/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/appinstallation/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/appscope/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/appscope/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/appversioncompat/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/appversioncompat/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/capabilityregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/capabilityregistry/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/integration/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/integration/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/marketplaceapp/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/marketplaceapp/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/marketplacelisting/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/marketplacelisting/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/marketplacereview/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/marketplacereview/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/publisherorganization/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/publisherorganization/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/scopegrant/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/scopegrant/"
-    },
-    {
-      "path": "/admin/integrations_marketplace/serviceintegration/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/integrations_marketplace/serviceintegration/"
-    },
-    {
-      "path": "/admin/marketplace/appauditlog/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/appauditlog/"
-    },
-    {
-      "path": "/admin/marketplace/appbillingledger/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/appbillingledger/"
-    },
-    {
-      "path": "/admin/marketplace/appinstallation/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/appinstallation/"
-    },
-    {
-      "path": "/admin/marketplace/apppermissionscope/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/apppermissionscope/"
-    },
-    {
-      "path": "/admin/marketplace/apprating/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/apprating/"
-    },
-    {
-      "path": "/admin/marketplace/appscope/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/appscope/"
-    },
-    {
-      "path": "/admin/marketplace/appversion/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/appversion/"
-    },
-    {
-      "path": "/admin/marketplace/appversioncompat/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/appversioncompat/"
-    },
-    {
-      "path": "/admin/marketplace/capabilityregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/capabilityregistry/"
-    },
-    {
-      "path": "/admin/marketplace/marketplaceapp/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/marketplaceapp/"
-    },
-    {
-      "path": "/admin/marketplace/marketplacelisting/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/marketplacelisting/"
-    },
-    {
-      "path": "/admin/marketplace/marketplacereview/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/marketplacereview/"
-    },
-    {
-      "path": "/admin/marketplace/publisherorganization/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/publisherorganization/"
-    },
-    {
-      "path": "/admin/marketplace/publishersignuprequest/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/publishersignuprequest/"
-    },
-    {
-      "path": "/admin/marketplace/scopegrant/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/scopegrant/"
-    },
-    {
-      "path": "/admin/marketplace/webhookdelivery/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/webhookdelivery/"
-    },
-    {
-      "path": "/admin/marketplace/webhookendpoint/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/marketplace/webhookendpoint/"
-    },
-    {
-      "path": "/admin/metadata/configmutationauditlog/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/metadata/configmutationauditlog/"
-    },
-    {
-      "path": "/admin/metadata/dynamicfielddefinition/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/metadata/dynamicfielddefinition/"
-    },
-    {
-      "path": "/admin/metadata/dynamicfieldvalue/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/metadata/dynamicfieldvalue/"
-    },
-    {
-      "path": "/admin/metadata/entitycatalogentry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/metadata/entitycatalogentry/"
-    },
-    {
-      "path": "/admin/migration_cloud/migrationartifact/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/migration_cloud/migrationartifact/"
-    },
-    {
-      "path": "/admin/migration_cloud/migrationasset/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/migration_cloud/migrationasset/"
-    },
-    {
-      "path": "/admin/migration_cloud/migrationbundle/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/migration_cloud/migrationbundle/"
-    },
-    {
-      "path": "/admin/migration_cloud/migrationconflict/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/migration_cloud/migrationconflict/"
-    },
-    {
-      "path": "/admin/migration_cloud/migrationidmapping/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/migration_cloud/migrationidmapping/"
-    },
-    {
-      "path": "/admin/migration_cloud/migrationprogressevent/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/migration_cloud/migrationprogressevent/"
-    },
-    {
-      "path": "/admin/observability/anomalydetection/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/observability/anomalydetection/"
-    },
-    {
-      "path": "/admin/observability/frictionevent/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/observability/frictionevent/"
-    },
-    {
-      "path": "/admin/observability/healthcheckalert/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/observability/healthcheckalert/"
-    },
-    {
-      "path": "/admin/observability/performancetrace/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/observability/performancetrace/"
-    },
-    {
-      "path": "/admin/observability/platformincident/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/observability/platformincident/"
-    },
-    {
-      "path": "/admin/observability/systemhealthmetric/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/observability/systemhealthmetric/"
-    },
-    {
-      "path": "/admin/packages/documentpack/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/packages/documentpack/"
-    },
-    {
-      "path": "/admin/packages/experiencepack/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/packages/experiencepack/"
-    },
-    {
-      "path": "/admin/packages/installedpackage/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/packages/installedpackage/"
-    },
-    {
-      "path": "/admin/packages/packagechangelog/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/packages/packagechangelog/"
-    },
-    {
-      "path": "/admin/packages/packageversion/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/packages/packageversion/"
-    },
-    {
-      "path": "/admin/password_change/done/",
-      "status": "shell_fail",
-      "http_status": 200,
-      "final_path": "/admin/password_change/done/",
-      "issues": [
-        "surface_strip_on_changelist",
-        "missing_changelist_live_marker",
-        "missing_changelist_pagehead"
       ]
-    },
-    {
-      "path": "/admin/platform_runtime/eventwebhookdelivery/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/eventwebhookdelivery/"
-    },
-    {
-      "path": "/admin/platform_runtime/eventwebhooksubscription/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/eventwebhooksubscription/"
-    },
-    {
-      "path": "/admin/platform_runtime/fleetgovernedchange/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/fleetgovernedchange/"
-    },
-    {
-      "path": "/admin/platform_runtime/pilotdefect/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/pilotdefect/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformeventlog/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformeventlog/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformintegrationwebhookevent/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformintegrationwebhookevent/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorcommandcenterlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorcommandcenterlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatormigrationcloudlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatormigrationcloudlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatororchestrationworkbenchlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatororchestrationworkbenchlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorphaseblink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorphaseblink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorplatformhublink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorplatformhublink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorplaybooklink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorplaybooklink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorsuperanalyticsoverviewlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorsuperanalyticsoverviewlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorsuperdashboardlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorsuperdashboardlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorsuperschoolslistlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorsuperschoolslistlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorsupportdashboardlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorsupportdashboardlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatortenanthealthlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatortenanthealthlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatortruthhublink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatortruthhublink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformoperatorworkflowsimulatorlink/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformoperatorworkflowsimulatorlink/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformphasebdomainsnapshot/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformphasebdomainsnapshot/"
-    },
-    {
-      "path": "/admin/platform_runtime/platformreportplatformskudefault/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/platformreportplatformskudefault/"
-    },
-    {
-      "path": "/admin/platform_runtime/runtimedefaults/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/platform_runtime/runtimedefaults/"
-    },
-    {
-      "path": "/admin/policies/blueprintcompatibilityrule/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/policies/blueprintcompatibilityrule/"
-    },
-    {
-      "path": "/admin/policies/countryprofile/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/policies/countryprofile/"
-    },
-    {
-      "path": "/admin/policies/policycompatibilityrule/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/policies/policycompatibilityrule/"
-    },
-    {
-      "path": "/admin/registries/academicterminologyregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/academicterminologyregistry/"
-    },
-    {
-      "path": "/admin/registries/calendarsystemregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/calendarsystemregistry/"
-    },
-    {
-      "path": "/admin/registries/countryregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/countryregistry/"
-    },
-    {
-      "path": "/admin/registries/currencyregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/currencyregistry/"
-    },
-    {
-      "path": "/admin/registries/documenttyperegistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/documenttyperegistry/"
-    },
-    {
-      "path": "/admin/registries/educationlevelregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/educationlevelregistry/"
-    },
-    {
-      "path": "/admin/registries/educationsystemtyperegistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/educationsystemtyperegistry/"
-    },
-    {
-      "path": "/admin/registries/feecategoryregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/feecategoryregistry/"
-    },
-    {
-      "path": "/admin/registries/gradescaleregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/gradescaleregistry/"
-    },
-    {
-      "path": "/admin/registries/institutiontyperegistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/institutiontyperegistry/"
-    },
-    {
-      "path": "/admin/registries/localeregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/localeregistry/"
-    },
-    {
-      "path": "/admin/registries/subdivisionregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/subdivisionregistry/"
-    },
-    {
-      "path": "/admin/registries/timezoneregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/registries/timezoneregistry/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/blueprintcompatibilityrule/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/blueprintcompatibilityrule/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/blueprintpack/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/blueprintpack/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/dashboardlayout/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/dashboardlayout/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/dashboardpack/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/dashboardpack/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/dashboardpackassignment/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/dashboardpackassignment/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/dashboardtemplate/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/dashboardtemplate/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/dashboardwidget/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/dashboardwidget/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/formdraft/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/formdraft/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/superadmindashboardpreference/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/superadmindashboardpreference/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/tenantblueprint/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/tenantblueprint/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/workflowpack/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/workflowpack/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/workflowpackassignment/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/workflowpackassignment/"
-    },
-    {
-      "path": "/admin/runtime_blueprints/workflowtemplate/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/runtime_blueprints/workflowtemplate/"
-    },
-    {
-      "path": "/admin/sales/lead/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/sales/lead/"
-    },
-    {
-      "path": "/admin/sales/pipelinestage/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/sales/pipelinestage/"
-    },
-    {
-      "path": "/admin/schools/school/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/schools/school/"
-    },
-    {
-      "path": "/admin/schools/schoolmembership/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/schools/schoolmembership/"
-    },
-    {
-      "path": "/admin/schools/schoolprovisioningevent/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/schools/schoolprovisioningevent/"
-    },
-    {
-      "path": "/admin/schools/tenantapiusage/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/schools/tenantapiusage/"
-    },
-    {
-      "path": "/admin/schools/tenantquotalimit/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/schools/tenantquotalimit/"
-    },
-    {
-      "path": "/admin/siteconfig/aiembeddingstore/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/aiembeddingstore/"
-    },
-    {
-      "path": "/admin/siteconfig/aigatewaymetric/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/aigatewaymetric/"
-    },
-    {
-      "path": "/admin/siteconfig/aimodelregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/aimodelregistry/"
-    },
-    {
-      "path": "/admin/siteconfig/aipromptregistry/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/aipromptregistry/"
-    },
-    {
-      "path": "/admin/siteconfig/billingwaiverauditlog/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/billingwaiverauditlog/"
-    },
-    {
-      "path": "/admin/siteconfig/blogpost/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/blogpost/"
-    },
-    {
-      "path": "/admin/siteconfig/breakglassoverride/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/breakglassoverride/"
-    },
-    {
-      "path": "/admin/siteconfig/broadcastcampaign/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/broadcastcampaign/"
-    },
-    {
-      "path": "/admin/siteconfig/customfeatureticket/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/customfeatureticket/"
-    },
-    {
-      "path": "/admin/siteconfig/customizer/",
-      "status": "redirect_escape",
-      "http_status": 200,
-      "final_path": "/siteconfig/theme-colors/",
-      "redirect_chain": [
-        {
-          "path": "/siteconfig/theme-colors/?standalone=1",
-          "status": 302
-        }
-      ],
-      "detail": "intentional product redirect outside /admin/"
-    },
-    {
-      "path": "/admin/siteconfig/customnuance/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/customnuance/"
-    },
-    {
-      "path": "/admin/siteconfig/featurecontrolaudit/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/featurecontrolaudit/"
-    },
-    {
-      "path": "/admin/siteconfig/featurefragment/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/featurefragment/"
-    },
-    {
-      "path": "/admin/siteconfig/featuretogglestate/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/featuretogglestate/"
-    },
-    {
-      "path": "/admin/siteconfig/featureusageevent/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/featureusageevent/"
-    },
-    {
-      "path": "/admin/siteconfig/globalsupportticket/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/globalsupportticket/"
-    },
-    {
-      "path": "/admin/siteconfig/globalsupportticketreply/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/globalsupportticketreply/"
-    },
-    {
-      "path": "/admin/siteconfig/globalsupportticketwebhookendpoint/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/globalsupportticketwebhookendpoint/"
-    },
-    {
-      "path": "/admin/siteconfig/globalsyllabus/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/globalsyllabus/"
-    },
-    {
-      "path": "/admin/siteconfig/learningpassport/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/learningpassport/"
-    },
-    {
-      "path": "/admin/siteconfig/marketingcontent/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/marketingcontent/"
-    },
-    {
-      "path": "/admin/siteconfig/officialreporttemplate/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/officialreporttemplate/"
-    },
-    {
-      "path": "/admin/siteconfig/pendingnuance/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/pendingnuance/"
-    },
-    {
-      "path": "/admin/siteconfig/platformpulsesnapshot/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/platformpulsesnapshot/"
-    },
-    {
-      "path": "/admin/siteconfig/productfeedback/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/productfeedback/"
-    },
-    {
-      "path": "/admin/siteconfig/regionalaiconfig/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/regionalaiconfig/"
-    },
-    {
-      "path": "/admin/siteconfig/reportcardstyle/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/reportcardstyle/"
-    },
-    {
-      "path": "/admin/siteconfig/reporttemplate/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/reporttemplate/"
-    },
-    {
-      "path": "/admin/siteconfig/revenuesnapshot/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/revenuesnapshot/"
-    },
-    {
-      "path": "/admin/siteconfig/syncconflict/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/syncconflict/"
-    },
-    {
-      "path": "/admin/siteconfig/tourstep/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/tourstep/"
-    },
-    {
-      "path": "/admin/siteconfig/waiverrequest/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/waiverrequest/"
-    },
-    {
-      "path": "/admin/siteconfig/workflowrunlog/",
-      "status": "ok",
-      "http_status": 200,
-      "final_path": "/admin/siteconfig/workflowrunlog/"
     }
   ],
-  "failures": [
-    "/admin/password_change/done/: surface_strip_on_changelist, missing_changelist_live_marker, missing_changelist_pagehead"
-  ]
+  "failures": []
 }

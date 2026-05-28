@@ -2774,6 +2774,11 @@ def backend_dashboard(request):
             pending_access_requests=pending_access_requests,
         )
     )
+    from apps.platform_runtime.operator_queue_signals import (
+        build_operator_queue_smart_link_context,
+    )
+
+    context.update(build_operator_queue_smart_link_context(request))
     context["backend_show_legacy_dashboard"] = role_home_show_legacy(request)
     return render(request, "accounts/backend_dashboard.html", context)
 

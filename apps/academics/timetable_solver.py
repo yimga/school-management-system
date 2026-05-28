@@ -17,7 +17,7 @@ Wave N+1 once the data model + UI are stable.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 
 # ---------------------------------------------------------------------------

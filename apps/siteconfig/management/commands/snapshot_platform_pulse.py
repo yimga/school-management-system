@@ -14,7 +14,7 @@ Posture: aggregate counts only — never tenant slugs or PII.
 from __future__ import annotations
 
 import logging
-from datetime import date as date_cls, datetime
+from datetime import datetime
 from typing import Any
 
 from django.core.management.base import BaseCommand, CommandError

@@ -49,7 +49,7 @@
                Verified by scripts/verify_phase3_navigation_command_conformance.py.{% endcomment %}
             <label class="visually-hidden" for="cpSearchInputAdmin">{% trans "Search admin" %}</label>
             <input type="search" id="cpSearchInputAdmin" class="admin-nav-bridge__search form-control form-control-sm" placeholder="{% trans 'Search…' %}" autocomplete="off" aria-label="{% trans 'Search admin' %}">
-            <button type="button" class="admin-nav-bridge__shortcuts-btn" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
+            <button type="button" class="admin-nav-bridge__shortcuts-btn" id="cpShowShortcutsHelpAdmin" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
                 <span aria-hidden="true">⌘?</span>
             </button>
             {% if is_manager_host %}

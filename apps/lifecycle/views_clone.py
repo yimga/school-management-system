@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator

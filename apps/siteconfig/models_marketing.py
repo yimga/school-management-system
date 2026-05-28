@@ -9,6 +9,10 @@ class ProductFeedback(models.Model):
     Part 4.4: Public-schema feedback/feature requests for roadmap visibility.
     Tag by region and module; status (Planned / In Development / Released); optional upvotes.
     Link from roadmap or feedback form; simple admin for super-admin.
+
+    Legacy (batch 1519): new product voice lives in ``apps.feedback`` (FeatureRequest /
+    ReleaseNote). ``siteconfig.views.feedback_roadmap`` redirects to
+    ``feedback:product_feedback``; keep this table for historical admin rows only.
     """
 
     class Status(models.TextChoices):

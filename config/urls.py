@@ -44,6 +44,7 @@ from apps.schools.competitive_marketing_views import (
     marketing_story_page,
     marketing_trust_dedicated,
 )
+from apps.schools.marketing_region import MARKETING_LEGACY_REGIONAL_SHORTCUTS
 from apps.schools.marketing_views import (
     marketing_landing,
     regional_marketing_landing,
@@ -69,6 +70,8 @@ from apps.schools.marketing_views import (
     submit_contact_request,
     submit_demo_request,
     submit_security_packet_request,
+    marketing_intent_homepage,
+    marketing_personality_page,
 )
 from apps.schools.signup_views import (
     signup_school,
@@ -275,6 +278,12 @@ urlpatterns = [
     path("", home, name="home"),
     path("", home, name="marketing_home"),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
+    path("storefront/", marketing_intent_homepage, name="marketing_intent_homepage"),
+    path(
+        "experience/<slug:personality_slug>/",
+        marketing_personality_page,
+        name="marketing_personality_page",
+    ),
     path("offline/", offline_page, name="offline"),
     # Wave P-C (v3.95.1): Embedded checkout endpoint for parent fee payments.
     path(
@@ -1547,23 +1556,19 @@ urlpatterns = [
     path(
         "solutions/<str:topic_slug>/", topical_marketing_landing, name="marketing_topic"
     ),
+    *[
+        path(
+            f"{prefix}/",
+            regional_marketing_landing,
+            {"country_code": country, "language_code": lang},
+            name=url_name,
+        )
+        for prefix, country, lang, url_name in MARKETING_LEGACY_REGIONAL_SHORTCUTS
+    ],
     path(
-        "cm/", regional_marketing_landing, {"country_code": "CM"}, name="marketing_cm"
-    ),
-    path(
-        "ca/", regional_marketing_landing, {"country_code": "CA"}, name="marketing_ca"
-    ),
-    path(
-        "ng/",
+        "<str:language_code>/<str:country_code>/",
         regional_marketing_landing,
-        {"country_code": "NG", "language_code": "en"},
-        name="marketing_ng",
-    ),
-    path(
-        "gb/",
-        regional_marketing_landing,
-        {"country_code": "GB", "language_code": "en"},
-        name="marketing_gb",
+        name="marketing_region",
     ),
     path(
         "setup-studio/", onboarding_wizard, name="setup_studio"

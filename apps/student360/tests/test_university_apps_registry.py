@@ -5,7 +5,6 @@ from __future__ import annotations
 from django.test import SimpleTestCase
 
 from apps.student360.university_apps_registry import (
-    CompletenessReport,
     DocumentRequirement,
     FieldRequirement,
     UniversityPathway,

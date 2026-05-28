@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from datetime import date
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.customersuccess.bulk_csv_student_import import (
     BulkImportApplyResult,
     apply_bulk_csv,
     parse_and_validate_csv,
 )
+from apps.people.models import StudentProfile
 
 
 _GOOD_CSV = (
@@ -125,6 +126,27 @@ class RowValidationTests(SimpleTestCase):
         )
         out = parse_and_validate_csv(text)
         self.assertEqual(len(out.rows), 2)
+
+
+class DefaultDbRunnerTests(TestCase):
+    databases = {"default"}
+
+    def test_default_runner_creates_student_profile(self):
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Import School",
+            slug="import-school",
+            subdomain="import-school",
+            is_active=True,
+        )
+        validated = parse_and_validate_csv(_GOOD_CSV)
+        out = apply_bulk_csv(school_id=school.pk, validated=validated)
+        self.assertEqual(out.created, 2)
+        self.assertEqual(
+            StudentProfile.objects.filter(school=school, is_active=True).count(),
+            2,
+        )
 
 
 class ApplyBulkCSVTests(SimpleTestCase):

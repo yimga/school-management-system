@@ -61,6 +61,7 @@ from .views_parent import (
     parent_dashboard,  # noqa: F401
     link_child,  # noqa: F401
     link_child_wizard,  # noqa: F401
+    parent_settings_security,  # noqa: F401
     _whatsapp_invite_link,  # noqa: F401
     _parent_workflow_link,  # noqa: F401
 )

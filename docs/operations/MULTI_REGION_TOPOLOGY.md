@@ -14,6 +14,16 @@
 
 RunMyCampus is **production-ready in single-region mode**. Multi-region is an **ops expansion**, not a repo blocker.
 
+## Signup and regulatory region (batch 1530 — honest)
+
+Marketing / tenant signup **does not** auto-provision a new AWS account or Postgres cluster per school. The in-repo contract is:
+
+1. **Derive** — `derive_default_region(country_code)` from [`apps/schools/data_residency.py`](../apps/schools/data_residency.py).
+2. **Persist** — set `School.data_region` and `School.settings["data_residency"]` via [`apps/schools/data_residency_settings.py`](../apps/schools/data_residency_settings.py) at school create.
+3. **Provision** — operator maps `School.regional_cluster` or `School.dedicated_db_alias` to a pre-registered `DATABASES` alias when a sovereign SKU requires a physical shard (see checklist below).
+
+Gate: `scripts/verify_data_residency_onboarding.py` → **DATA_RESIDENCY_ONBOARDING_PASS**.
+
 ## Failover (honest)
 
 1. **RTO/RPO targets** — See `docs/operations/SLA.md` and `GET /api/roadmap/rpo-rto/` contract.
@@ -28,6 +38,9 @@ RunMyCampus is **production-ready in single-region mode**. Multi-region is an **
 3. Run `python manage.py verify_data_residency --strict` on pilot slugs.
 4. Enable `ENABLE_MULTI_REGION=1` only after connectivity and backup drills pass.
 5. Record evidence in `var/evidence/geos-99/compliance/residency_<date>.json`.
+6. **Lane 2 UI proof (optional):** with Django running and a provisioned tenant,
+   `npm run test:e2e:teacher:rtl-mobile` (390px, `ar` locale, teacher dashboard canvas scroll, no horizontal bleed).
+   Repo gate: `python scripts/verify_teacher_dashboard_rtl_playwright.py` (scaffold); add `--run` when server is up.
 
 ## Related docs
 

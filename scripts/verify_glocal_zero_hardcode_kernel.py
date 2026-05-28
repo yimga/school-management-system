@@ -32,12 +32,15 @@ def check(name: str, desc: str):
 
 def _run_script(script: str, extra: list[str] | None = None, *, timeout: int = 600) -> tuple[bool, str]:
     argv = [sys.executable, str(REPO / "scripts" / script), *(extra or [])]
+    gate_env = os.environ.copy()
+    gate_env.setdefault("USE_FILE_LOGGING", "0")
     proc = subprocess.run(
         argv,
         cwd=REPO,
         capture_output=True,
         text=True,
         timeout=timeout,
+        env=gate_env,
     )
     tail = ((proc.stdout or "") + (proc.stderr or "")).strip()[-600:]
     return proc.returncode == 0, tail

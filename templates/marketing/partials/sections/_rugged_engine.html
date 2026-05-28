@@ -10,26 +10,33 @@
     <header class="mkt-ve-section__header">
       <p class="mkt-edt-eyebrow">{% trans "Rugged engine" %}</p>
       <h2 id="mkt-rugged-headline" class="mkt-ve-section__title mkt-edos-text-shield">
-        {% marketing_copy "txt_operational_claim" %}
+        {% marketing_copy "txt_edge_headline" %}
       </h2>
-      <p class="mkt-ve-section__lead">
-        {% trans "Simulated sync queue — attendance and fees still reconcile when connectivity returns." %}
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_edge_lead" %}
       </p>
     </header>
-    <div class="mkt-ve-network" data-mkt-network-state>
-      <div class="mkt-ve-network__viz">
+    <div class="mkt-ve-network" data-mkt-network-state data-mkt-drop-simulator>
+      <div class="mkt-ve-network__viz" data-mkt-network-viz>
         {% marketing_viz "transit_viz" %}
       </div>
-      <div class="mkt-ve-network__toggle" role="group" aria-label="{% trans 'Network state' %}">
-        <button type="button" class="mkt-ve-network__btn is-active" data-mkt-network="online">{% trans "Online" %}</button>
-        <button type="button" class="mkt-ve-network__btn" data-mkt-network="offline">{% trans "Offline" %}</button>
+      <div class="mkt-ve-network__toggle" role="group" aria-label="{% trans 'Network drop simulator' %}">
+        <button type="button" class="mkt-ve-network__btn is-active" data-mkt-network="fiber" aria-pressed="true">{% trans "Fiber / 5G" %}</button>
+        <button type="button" class="mkt-ve-network__btn" data-mkt-network="degraded" aria-pressed="false">{% trans "Degraded" %}</button>
+        <button type="button" class="mkt-ve-network__btn" data-mkt-network="offline" aria-pressed="false">{% trans "Offline" %}</button>
+        <button type="button" class="mkt-ve-network__btn" data-mkt-network="blackout" aria-pressed="false">{% trans "Blackout" %}</button>
       </div>
       <p
-        class="mkt-ve-network__status"
+        class="mkt-ve-network__status mkt-edos-text-shield"
         data-mkt-network-status
-        data-online-label="{% trans 'Simulated · 3 devices in sync' %}"
-        data-offline-label="{% trans 'Simulated · 3 events queued for sync' %}"
-      >{% trans "Simulated · 3 devices in sync" %}</p>
+        data-fiber-label="{% trans 'Simulated · fiber sync · QR + RFID ready' %}"
+        data-degraded-label="{% trans 'Simulated · intermittent · queued attendance' %}"
+        data-offline-label="{% trans 'Simulated · offline · cardstock QR sweeps' %}"
+        data-blackout-label="{% trans 'Simulated · total blackout · passive RFID taps only' %}"
+      >{% trans "Simulated · fiber sync · QR + RFID ready" %}</p>
+      <p class="mkt-ve-network__fragment mkt-edos-text-shield" data-mkt-network-fragment hidden>
+        {% trans "Heavy charts collapse to text fragments on narrow viewports." %}
+      </p>
     </div>
   </div>
 </section>

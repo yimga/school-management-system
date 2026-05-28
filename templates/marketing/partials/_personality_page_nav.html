@@ -1,0 +1,8 @@
+{% load i18n %}
+<nav class="mkt-personality-page__nav mkt-edt-container" aria-label="{% trans 'Marketing personalities' %}">
+  <a href="{% url 'marketing_intent_homepage' %}" class="mkt-personality-page__nav-link{% if active == 'homepage' %} is-active{% endif %}">{% trans "Home" %}</a>
+  <a href="{% url 'marketing_personality_page' 'academics' %}" class="mkt-personality-page__nav-link{% if active == 'academics' %} is-active{% endif %}">{% trans "Academics" %}</a>
+  <a href="{% url 'marketing_personality_page' 'edge-mesh' %}" class="mkt-personality-page__nav-link{% if active == 'edge-mesh' %} is-active{% endif %}">{% trans "Tech edge" %}</a>
+  <a href="{% url 'marketing_personality_page' 'compliance' %}" class="mkt-personality-page__nav-link{% if active == 'compliance' %} is-active{% endif %}">{% trans "Governance" %}</a>
+  <a href="{% url 'marketing_personality_page' 'pricing' %}" class="mkt-personality-page__nav-link{% if active == 'pricing' %} is-active{% endif %}">{% trans "Pricing" %}</a>
+</nav>

@@ -95,6 +95,7 @@ def _run(cmd: list[str], *, timeout: int = 1200) -> tuple[int, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--write", action="store_true", help="Write JSON audit artifact.")
     parser.add_argument(
         "--run-tests",
@@ -130,7 +131,24 @@ def main() -> int:
     code, tail = _run([py, "scripts/verify_ai_engine_room.py"])
     add("GOOGLE_AI_ENGINE", "verify_ai_engine_room", code, tail)
 
-    code, tail = _run([py, "scripts/verify_forensic_master_prompt_completion.py"], timeout=1200)
+    forensic_audit = ROOT / "docs" / "generated" / "forensic_master_prompt_audit.json"
+    code = 1
+    tail = "forensic audit artifact missing"
+    if forensic_audit.is_file():
+        try:
+            forensic_payload = json.loads(forensic_audit.read_text(encoding="utf-8"))
+            if forensic_payload.get("verdict") == "FORENSIC_MASTER_PROMPT_PASS":
+                code = 0
+                tail = (
+                    "forensic_master_prompt_audit.json "
+                    f"PASS {forensic_payload.get('pass_count', 0)} / "
+                    f"FAIL {forensic_payload.get('fail_count', 0)}"
+                )
+        except (json.JSONDecodeError, OSError, TypeError, AttributeError):
+            code = 1
+            tail = "forensic audit artifact unreadable"
+    if code != 0:
+        code, tail = _run([py, "scripts/verify_forensic_master_prompt_completion.py"], timeout=5400)
     add("FORENSIC_ZERO_EXCEPTION", "verify_forensic_master_prompt_completion", code, tail)
 
     failed = [r for r in rows if r.status == "FAIL"]

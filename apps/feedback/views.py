@@ -33,6 +33,17 @@ from .services import (
 )
 
 
+def _feedback_submitted_message(*, ticket=None, escalated: bool = False) -> str:
+    if ticket is not None:
+        return (
+            f"Feedback submitted and routed to support. "
+            f"Reference ticket #{ticket.pk}."
+        )
+    if escalated:
+        return "Feedback submitted and routed to the support queue."
+    return "Feedback submitted."
+
+
 PARENT_CATEGORIES = [
     ("general", "Portal usability"),
     ("billing", "Payment/receipt issue"),
@@ -110,15 +121,15 @@ def school_feedback_center(request):
                     ticket = create_support_ticket_from_feedback(
                         feedback, request=request, actor=request.user
                     )
-                    if ticket is not None:
-                        messages.success(
-                            request,
-                            "Feedback submitted and routed to the support queue.",
-                        )
-                    else:
-                        messages.success(request, "Feedback submitted.")
+                    messages.success(
+                        request,
+                        _feedback_submitted_message(
+                            ticket=ticket,
+                            escalated=True,
+                        ),
+                    )
                 else:
-                    messages.success(request, "Feedback submitted.")
+                    messages.success(request, _feedback_submitted_message())
                 return redirect("feedback:school_feedback")
     else:
         form = FeatureRequestForm()
@@ -163,9 +174,15 @@ def role_feedback_center(request, role):
             cleaned = dict(form.cleaned_data)
             escalate = cleaned.pop("escalate_to_support", False)
             feedback = submit_feedback(school=school, user=request.user, **cleaned)
+            ticket = None
             if should_escalate_to_support(feedback.category, feedback.severity, explicit=escalate):
-                create_support_ticket_from_feedback(feedback, request=request, actor=request.user)
-            messages.success(request, "Feedback submitted.")
+                ticket = create_support_ticket_from_feedback(
+                    feedback, request=request, actor=request.user
+                )
+            messages.success(
+                request,
+                _feedback_submitted_message(ticket=ticket, escalated=ticket is not None),
+            )
             return redirect(f"feedback:{role}_feedback")
     else:
         privacy = FeedbackSubmission.PrivacyLevel.SCHOOL_PRIVATE
@@ -391,11 +408,22 @@ def contextual_feedback(request):
         source_channel=FeedbackSubmission.SourceChannel.CONTEXTUAL,
         source_url=request.META.get("HTTP_REFERER", ""),
     )
+    ticket = None
     if should_escalate_to_support(feedback.category, feedback.severity):
-        create_support_ticket_from_feedback(feedback, request=request, actor=request.user)
+        ticket = create_support_ticket_from_feedback(
+            feedback, request=request, actor=request.user
+        )
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse({"ok": True, "id": feedback.pk})
-    messages.success(request, "Feedback captured.")
+        payload = {"ok": True, "id": feedback.pk}
+        if ticket is not None:
+            payload["support_ticket_id"] = str(ticket.pk)
+        return JsonResponse(payload)
+    messages.success(
+        request,
+        _feedback_submitted_message(ticket=ticket, escalated=ticket is not None)
+        if ticket
+        else "Feedback captured.",
+    )
     return redirect(request.POST.get("next") or request.META.get("HTTP_REFERER", "/"))
 
 

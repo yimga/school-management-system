@@ -21,7 +21,7 @@ from typing import Any
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -378,7 +378,6 @@ class WizardAIRecommendView(LoginRequiredMixin, View):
             return JsonResponse({"error": "invalid_json"}, status=400)
         wizard_key = body.get("wizard_key")
         step_key = body.get("step_key")
-        prior_answers = body.get("prior_answers") or {}
         if not (isinstance(wizard_key, str) and isinstance(step_key, str)):
             return JsonResponse({"error": "invalid_payload"}, status=400)
         try:

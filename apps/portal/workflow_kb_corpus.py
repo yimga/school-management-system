@@ -268,9 +268,7 @@ WORKFLOW_KB_CORPUS: tuple[dict[str, Any], ...] = (
 
 from apps.portal.workflow_kb_corpus_audit import build_audit_workflow_kb_corpus
 from apps.portal.workflow_kb_corpus_editorial import (
-    EDITORIAL_BY_WORKFLOW_ID,
     EDITORIAL_WORKFLOW_KB_CORPUS,
-    HIGH_STAKES_WORKFLOW_IDS,
 )
 
 WORKFLOW_ID_SLUG_MAP: dict[str, str] = {

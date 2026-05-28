@@ -144,9 +144,10 @@ def load_registry_from_operator_settings() -> tuple[MATGroup, ...]:
     """Pull the registry from the operator-side ``SiteSettings``. Returns ()
     when unavailable or unconfigured. Fail-open."""
     try:
-        from apps.siteconfig.models import SiteSettings  # type: ignore
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
+
         # The operator/control-plane SiteSettings is the *singleton* (school=None).
-        ss = SiteSettings.objects.filter(school__isnull=True).first()
+        ss = get_platform_site_settings_record(create=False)
     except Exception:  # noqa: BLE001
         return ()
     if ss is None:

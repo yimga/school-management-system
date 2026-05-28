@@ -1,28 +1,30 @@
 {% load i18n marketing_media %}
 <section
   id="mkt-fluid-classroom"
-  class="mkt-ve-section mkt-ve-section--fluid"
+  class="mkt-ve-section mkt-ve-section--fluid mkt-ve-section--viewport-lock"
   data-mkt-personality="fluid"
+  data-mkt-scroll-policy="viewport-lock"
   aria-labelledby="mkt-fluid-headline"
 >
   <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
     <header class="mkt-ve-section__header">
       <p class="mkt-edt-eyebrow">{% trans "Fluid classroom" %}</p>
-      <h2 id="mkt-fluid-headline" class="mkt-ve-section__title">
-        {% trans "Gradebooks that morph to your framework." %}
+      <h2 id="mkt-fluid-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+        {% marketing_copy "txt_academics_headline" %}
       </h2>
-      <p class="mkt-ve-section__lead">
-        {% trans "Switch illustrative frameworks — IB, Cambridge, or local scales — without re-entering history." %}
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_academics_lead" %}
       </p>
     </header>
     <div class="mkt-ve-gradebook" data-mkt-gradebook-morph>
-      <div class="mkt-ve-gradebook__viz" data-mkt-gradebook-viz>
+      <div class="mkt-ve-gradebook__viz mkt-ve-gradebook__viz--max5" data-mkt-gradebook-viz>
         {% marketing_viz "gradebook_viz" %}
       </div>
-      <div class="mkt-ve-gradebook__tabs" role="tablist">
-        <button type="button" role="tab" class="is-active" data-mkt-framework="ib" aria-selected="true">IB</button>
-        <button type="button" role="tab" data-mkt-framework="caie">CAIE</button>
-        <button type="button" role="tab" data-mkt-framework="local">{% trans "Local" %}</button>
+      <div class="mkt-ve-gradebook__tabs" role="tablist" aria-label="{% trans 'Grading framework' %}">
+        <button type="button" role="tab" class="is-active" data-mkt-framework="us" aria-selected="true">{% trans "US letters" %}</button>
+        <button type="button" role="tab" data-mkt-framework="ib" aria-selected="false">IB</button>
+        <button type="button" role="tab" data-mkt-framework="caie" aria-selected="false">CAIE</button>
+        <button type="button" role="tab" data-mkt-framework="local" aria-selected="false">{% trans "Local" %}</button>
       </div>
     </div>
   </div>

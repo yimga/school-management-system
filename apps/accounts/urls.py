@@ -1,6 +1,14 @@
 from django.shortcuts import redirect
 from django.urls import path, reverse, reverse_lazy
-from django.contrib.auth.views import PasswordChangeDoneView
+from django.contrib.auth.views import (
+    PasswordChangeDoneView,
+    PasswordResetCompleteView,
+    PasswordResetConfirmView,
+    PasswordResetDoneView,
+    PasswordResetView,
+)
+
+from .password_reset import PortalPasswordResetForm
 
 from .views import (
     auth_root_redirect,
@@ -488,6 +496,40 @@ urlpatterns = [
         "certification/session/<int:session_id>/override/",
         certification_session_override,
         name="certification_session_override",
+    ),
+    path(
+        "password_reset/",
+        PasswordResetView.as_view(
+            form_class=PortalPasswordResetForm,
+            template_name="registration/password_reset_form.html",
+            email_template_name="emails/password_reset.txt",
+            html_email_template_name="emails/password_reset.html",
+            subject_template_name="registration/password_reset_subject.txt",
+            success_url=reverse_lazy("accounts:password_reset_done"),
+        ),
+        name="password_reset",
+    ),  # rbac-allow: anonymous password recovery
+    path(
+        "password_reset/done/",
+        PasswordResetDoneView.as_view(
+            template_name="registration/password_reset_done.html",
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "reset/<uidb64>/<token>/",
+        PasswordResetConfirmView.as_view(
+            template_name="registration/password_reset_confirm.html",
+            success_url=reverse_lazy("accounts:password_reset_complete"),
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "reset/done/",
+        PasswordResetCompleteView.as_view(
+            template_name="registration/password_reset_complete.html",
+        ),
+        name="password_reset_complete",
     ),
     path("claim-invite/", claim_invite, name="claim_invite"),
     path(

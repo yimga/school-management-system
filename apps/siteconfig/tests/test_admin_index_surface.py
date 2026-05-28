@@ -1,9 +1,7 @@
 """Admin index surface preview context — live NPS metric and school rows."""
 
-from datetime import timedelta
 
 from django.test import TestCase
-from django.utils import timezone
 
 from apps.feedback.models import SurveyResponse
 from apps.siteconfig.admin_index_surface import (
@@ -22,7 +20,6 @@ class AdminIndexSurfaceTests(TestCase):
         self.assertEqual(nps["response_count"], 0)
 
     def test_nps_metric_with_responses(self):
-        now = timezone.now()
         for score in (10, 9, 8, 4, 10):
             SurveyResponse.objects.create(
                 survey_type=SurveyResponse.SurveyType.NPS,

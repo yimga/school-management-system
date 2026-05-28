@@ -10,7 +10,6 @@ from apps.academics.lesson_homework_kernel import (
     ARCHIVED,
     CLOSED,
     DRAFT,
-    DUE,
     PUBLISHED,
     InvalidLifecycleTransition,
     LessonPlanBlock,

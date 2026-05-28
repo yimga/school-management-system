@@ -50,11 +50,11 @@
       ]
     }
   },
-  "generated_at": "2026-05-26T10:24:13.208626+00:00",
-  "high_impact_templates_total": 249,
+  "generated_at": "2026-05-28T02:08:05.040312+00:00",
+  "high_impact_templates_total": 250,
   "inline_styles": {
-    "count": 52,
-    "needs_review_count": 52,
+    "count": 53,
+    "needs_review_count": 53,
     "needs_review_paths": [
       "templates/accounts/backend_dashboard.html",
       "templates/marketplace/tenant_app_catalog.html",
@@ -100,6 +100,7 @@
       "templates/siteconfig/sync_center.html",
       "templates/siteconfig/template_gallery.html",
       "templates/siteconfig/tenant_launch_fast_path.html",
+      "templates/siteconfig/tenant_lifecycle_command_center.html",
       "templates/siteconfig/tenant_provisioning_status.html",
       "templates/siteconfig/tenant_studio_hub.html",
       "templates/studio_os/components/card.html",
@@ -115,8 +116,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 117,
-    "needs_review_count": 117,
+    "count": 118,
+    "needs_review_count": 118,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -196,6 +197,7 @@
       "templates/siteconfig/sync_center.html",
       "templates/siteconfig/template_gallery.html",
       "templates/siteconfig/tenant_launch_fast_path.html",
+      "templates/siteconfig/tenant_lifecycle_command_center.html",
       "templates/siteconfig/tenant_provisioning_status.html",
       "templates/siteconfig/tenant_self_offboarding.html",
       "templates/siteconfig/tenant_studio_hub.html",
@@ -818,8 +820,8 @@
       ]
     },
     "inline_style_cleanup": {
-      "count": 52,
-      "needs_review_count": 52,
+      "count": 53,
+      "needs_review_count": 53,
       "needs_review_paths": [
         "templates/accounts/backend_dashboard.html",
         "templates/marketplace/tenant_app_catalog.html",
@@ -865,6 +867,7 @@
         "templates/siteconfig/sync_center.html",
         "templates/siteconfig/template_gallery.html",
         "templates/siteconfig/tenant_launch_fast_path.html",
+        "templates/siteconfig/tenant_lifecycle_command_center.html",
         "templates/siteconfig/tenant_provisioning_status.html",
         "templates/siteconfig/tenant_studio_hub.html",
         "templates/studio_os/components/card.html",

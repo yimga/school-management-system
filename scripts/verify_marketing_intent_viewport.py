@@ -13,7 +13,12 @@ BASE = REPO / "templates/marketing/base_marketing.html"
 
 def main() -> int:
     findings: list[str] = []
-    for name in ("_sovereign_kernel.html", "_clinical_ledger.html", "_rugged_engine.html"):
+    for name in (
+        "_sovereign_kernel.html",
+        "_clinical_ledger.html",
+        "_rugged_engine.html",
+        "_fluid_classroom.html",
+    ):
         path = SECTIONS / name
         if not path.is_file():
             findings.append(f"missing {path.relative_to(REPO)}")

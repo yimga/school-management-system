@@ -8,7 +8,6 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase, override_settings
-from django.urls import reverse
 from django.utils import timezone
 
 from apps.schools.models import School, SignupVerification
@@ -114,7 +113,6 @@ class TenantLifecycleFullTests(TestCase):
         off = (self.school.settings or {}).get("offboarding") or {}
         self.assertEqual(off.get("self_service_status"), "scheduled")
         self.assertTrue(off.get("scheduled_purge_at"))
-        past = off["scheduled_purge_at"][:10]
         settings = dict(self.school.settings or {})
         settings["offboarding"] = dict(off)
         settings["offboarding"]["scheduled_purge_at"] = "2000-01-01"

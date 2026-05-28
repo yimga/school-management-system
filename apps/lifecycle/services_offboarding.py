@@ -26,7 +26,6 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
-from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 

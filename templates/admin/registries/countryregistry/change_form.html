@@ -25,6 +25,11 @@ before clicking Save.
     <div class="rmc-mv-preview-sticky">
       <h2 class="rmc-mv-preview__title">{% trans "Live preview" %}</h2>
       <p class="rmc-mv-preview__hint">{% trans "Updates as you type. This is how the marketing band will render on the public surface for visitors from this country." %}</p>
+      <p class="rmc-mv-preview__hint">
+        <a href="{% url 'siteconfig:region_validation' %}" class="text-primary-600 hover:underline">{% trans "Open region validation" %}</a>
+        &middot;
+        <a href="{% url 'siteconfig:console_domains_hub' %}" class="text-primary-600 hover:underline">{% trans "Configuration hub" %}</a>
+      </p>
 
       <div class="rmc-mv-preview-band" data-rmc-mv-preview-band>
         <div class="rmc-mv-preview-band__row">

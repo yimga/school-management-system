@@ -1,0 +1,31 @@
+{% load i18n %}
+<section class="rmc-card rmc-reveal mb-3" id="data-residency-readiness" data-rmc-scroll-policy="paginate" aria-labelledby="data-residency-readiness-heading">
+  <div class="rmc-card__header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <div>
+      <p class="rmc-eyebrow mb-1">{% trans "Data sovereignty" %}</p>
+      <h2 class="h6 mb-0" id="data-residency-readiness-heading">{% trans "Regional residency readiness" %}</h2>
+    </div>
+    <span class="badge {% if data_residency_readiness.ready %}text-bg-success{% else %}text-bg-warning{% endif %}">
+      {% if data_residency_readiness.ready %}{% trans "Ready" %}{% else %}{% trans "Action needed" %}{% endif %}
+    </span>
+  </div>
+  <div class="rmc-card__body">
+    <p class="small text-secondary mb-2">
+      {% blocktrans with n=data_residency_readiness.schools_total %}Active schools scanned: {{ n }}{% endblocktrans %}
+      · {% blocktrans with c=data_residency_readiness.issue_count %}Open issues: {{ c }}{% endblocktrans %}
+    </p>
+  {% if data_residency_readiness.missing_replicas %}
+    <p class="small mb-1"><strong>{% trans "Missing replica aliases" %}</strong></p>
+    <ul class="small mb-2">
+      {% for region in data_residency_readiness.missing_replicas %}
+        <li><code>{{ region }}</code></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+    <p class="small mb-0">
+      {% trans "Run" %} <code>python manage.py verify_data_residency --strict</code>
+      {% trans "and" %} <code>python manage.py verify_residency_readiness</code>
+      {% trans "before enabling DATA_RESIDENCY_ENFORCE." %}
+    </p>
+  </div>
+</section>

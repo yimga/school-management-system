@@ -27,7 +27,7 @@ WIZARD_STEPS = [
                 _("What is the slug for?"),
                 _(
                     "It becomes part of tenant URLs and must stay lowercase with hyphens "
-                    "only (e.g. gilead-tech). If you leave subdomain empty, we reuse the slug."
+                    "only (e.g. example-academy). If you leave subdomain empty, we reuse the slug."
                 ),
             ),
             _qa(
@@ -142,7 +142,7 @@ FIELD_TAGS: dict[str, dict[str, str]] = {
     "subdomain": {
         "title": _("Subdomain"),
         "body": _(
-            "The hostname prefix before your platform domain (e.g. gilead-tech). "
+            "The hostname prefix before your platform domain (e.g. example-academy). "
             "Leave blank to match the slug."
         ),
     },

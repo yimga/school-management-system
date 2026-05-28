@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Iterable
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q, QuerySet

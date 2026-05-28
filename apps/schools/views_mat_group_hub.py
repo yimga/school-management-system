@@ -124,10 +124,10 @@ def mat_group_hub_detail(request: HttpRequest, group_id: str) -> HttpResponse:
 def _get_operator_site_settings():
     """Pull the operator-side SiteSettings singleton (school=None)."""
     try:
-        from apps.siteconfig.models import SiteSettings  # type: ignore
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
     except Exception:  # noqa: BLE001
         return None
-    return SiteSettings.objects.filter(school__isnull=True).first()
+    return get_platform_site_settings_record(create=False)
 
 
 @staff_member_required

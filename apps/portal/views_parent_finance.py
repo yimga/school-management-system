@@ -6,9 +6,11 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.core.exceptions import ImproperlyConfigured
+from django.db import transaction
 from django.db.models import Sum
 from django.http import HttpRequest
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -16,8 +18,14 @@ logger = logging.getLogger(__name__)
 
 from apps.accounts.decorators import parent_portal_required, role_required
 from apps.accounts.models import User
-from apps.finance.models import Invoice, ReferralReward
-from apps.finance.services import generate_payment_link
+from apps.finance.family_billing_aggregator import (
+    aggregate_family_balance,
+    propose_payment_split,
+)
+from apps.finance.models import Invoice, ParentWallet, ReferralReward
+from apps.finance.payment_notification_intent import dispatch_payment_received_intent
+from apps.finance.regional_payment_profiles import get_normalized_regional_profile
+from apps.finance.services import generate_payment_link, pay_invoice_with_wallet
 from apps.people.models import StudentGuardian
 from apps.platform_runtime.helpers import get_effective_flags
 
@@ -25,16 +33,10 @@ from .services import guardian_student_links, guardian_students
 from .tenant_pagination import paginate_for_request, pagination_extra_query
 
 
-@parent_portal_required
-@role_required(User.Role.PARENT)
-def parent_finance(request: HttpRequest):
+def _parent_finance_access_context(request: HttpRequest):
+    """Shared finance gate for parent_finance and pay-all."""
     all_links = guardian_student_links(request.user)
     finance_links = guardian_student_links(request.user, finance_only=True)
-
-    if not all_links.exists():
-        messages.info(request, "Link a student first to view finance details.")
-        return redirect("portal:link_child")
-
     flags = get_effective_flags(request)
     require_finance_opt_in = bool(flags.get("require_guardian_finance_opt_in"))
     finance_link_count = finance_links.count()
@@ -43,16 +45,45 @@ def parent_finance(request: HttpRequest):
     can_request_finance_access = (
         require_finance_opt_in and guardian_link_count > finance_link_count
     )
-    finance_request_url = reverse("finance:finance_request_access")
     links = (
         finance_links
         if (finance_access_granted or not require_finance_opt_in)
         else all_links
     )
+    blocked = require_finance_opt_in and not finance_access_granted
+    return {
+        "all_links": all_links,
+        "finance_links": finance_links,
+        "links": links,
+        "require_finance_opt_in": require_finance_opt_in,
+        "finance_access_granted": finance_access_granted,
+        "can_request_finance_access": can_request_finance_access,
+        "guardian_link_count": guardian_link_count,
+        "finance_link_count": finance_link_count,
+        "finance_blocked": blocked,
+        "finance_request_url": reverse("finance:finance_request_access"),
+    }
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_finance(request: HttpRequest):
+    access = _parent_finance_access_context(request)
+    if not access["all_links"].exists():
+        messages.info(request, "Link a student first to view finance details.")
+        return redirect("portal:link_child")
+
+    require_finance_opt_in = access["require_finance_opt_in"]
+    finance_access_granted = access["finance_access_granted"]
+    can_request_finance_access = access["can_request_finance_access"]
+    finance_request_url = access["finance_request_url"]
+    links = access["links"]
+    guardian_link_count = access["guardian_link_count"]
+    finance_link_count = access["finance_link_count"]
 
     status_param = ""
     order_param = "-issued_date"
-    if require_finance_opt_in and not finance_access_granted:
+    if access["finance_blocked"]:
         students = []
         invoices_qs = Invoice.objects.none()
         aggregates = {"total_due": Decimal("0.00"), "balance": Decimal("0.00")}
@@ -158,6 +189,19 @@ def parent_finance(request: HttpRequest):
         for method, count in payment_method_counts.most_common()
     ]
 
+    family_summary = None
+    wallet = None
+    pay_all_url = None
+    if not access["finance_blocked"] and balance > Decimal("0.00"):
+        family_summary = aggregate_family_balance(guardian_user_id=request.user.pk)
+        school = getattr(request, "school", None)
+        if school:
+            wallet = ParentWallet.objects.filter(school=school, user=request.user).first()
+        try:
+            pay_all_url = reverse("portal:parent_finance_pay_all")
+        except NoReverseMatch:
+            pay_all_url = None
+
     return render(
         request,
         "parent/finance.html",
@@ -193,6 +237,125 @@ def parent_finance(request: HttpRequest):
             "selected_order": order_param,
             "page_obj": page_obj,
             "pagination_extra_query": pagination_extra_query(request),
+            "family_summary": family_summary,
+            "parent_wallet": wallet,
+            "pay_all_url": pay_all_url,
+        },
+    )
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+@require_http_methods(["GET", "POST"])
+def parent_finance_pay_all(request: HttpRequest):
+    """Pay all open family balances (wallet first, else PSP on highest-priority invoice)."""
+    access = _parent_finance_access_context(request)
+    if not access["all_links"].exists():
+        messages.info(request, "Link a student first to view finance details.")
+        return redirect("portal:link_child")
+    if access["finance_blocked"]:
+        messages.warning(request, _("Finance access is required before you can pay."))
+        return redirect("portal:parent_finance")
+
+    school = getattr(request, "school", None)
+    if not school:
+        messages.info(request, _("Select a school to continue."))
+        return redirect("portal:parent_dashboard")
+
+    family_summary = aggregate_family_balance(guardian_user_id=request.user.pk)
+    if not family_summary.has_open_balance:
+        messages.info(request, _("No open balances to pay."))
+        return redirect("portal:parent_finance")
+    if family_summary.currency_mismatch:
+        messages.error(
+            request,
+            _("Invoices use different currencies. Pay each invoice individually."),
+        )
+        return redirect("portal:parent_finance")
+
+    amount_due = family_summary.family_total_open_balance
+    split = propose_payment_split(
+        guardian_user_id=request.user.pk,
+        payment_amount=amount_due,
+    )
+    if split.blocked_reasons:
+        messages.error(request, _("Unable to allocate payment: %(reason)s") % {"reason": split.blocked_reasons[0]})
+        return redirect("portal:parent_finance")
+
+    wallet = ParentWallet.objects.filter(school=school, user=request.user).first()
+    wallet_balance = wallet.balance if wallet else Decimal("0.00")
+
+    if request.method == "POST":
+        method = (request.POST.get("payment_method") or "psp").strip().lower()
+        if method == "wallet":
+            if not wallet or wallet_balance < amount_due:
+                messages.error(request, _("Wallet balance is insufficient for pay-all."))
+                return redirect("portal:parent_finance_pay_all")
+            paid_count = 0
+            with transaction.atomic():
+                for line in split.lines:
+                    invoice = get_object_or_404(
+                        Invoice,
+                        pk=line.invoice_id,
+                        student__school=school,
+                    )
+                    payment, _wallet = pay_invoice_with_wallet(
+                        school,
+                        request.user,
+                        invoice,
+                        amount=line.allocated_amount,
+                    )
+                    dispatch_payment_received_intent(school=school, payment=payment)
+                    paid_count += 1
+            messages.success(
+                request,
+                _("Paid %(count)s invoice(s) from your wallet.") % {"count": paid_count},
+            )
+            return redirect("portal:parent_finance")
+
+        first_line = split.lines[0] if split.lines else None
+        if not first_line:
+            messages.error(request, _("No invoices to pay."))
+            return redirect("portal:parent_finance")
+        invoice = get_object_or_404(
+            Invoice,
+            pk=first_line.invoice_id,
+            student__school=school,
+        )
+        link = generate_payment_link(invoice)
+        if not link or not link.get("url"):
+            messages.error(
+                request,
+                _("Online payment is not configured. Contact the school office."),
+            )
+            return redirect("portal:parent_finance")
+        remaining = max(len(split.lines) - 1, 0)
+        if remaining:
+            messages.info(
+                request,
+                _("After this payment, %(n)s more open invoice(s) remain on your account.")
+                % {"n": remaining},
+            )
+        return redirect(link["url"])
+
+    country_code = (
+        getattr(school, "country_code", None)
+        or getattr(getattr(school, "compliance_profile", None), "country_code", None)
+        or ""
+    )
+    regional_payment_profile = get_normalized_regional_profile(country_code)
+
+    return render(
+        request,
+        "parent/finance_pay_all_confirm.html",
+        {
+            "family_summary": family_summary,
+            "split": split,
+            "amount_due": amount_due,
+            "wallet": wallet,
+            "wallet_balance": wallet_balance,
+            "can_pay_with_wallet": wallet is not None and wallet_balance >= amount_due,
+            "regional_payment_profile": regional_payment_profile,
         },
     )
 

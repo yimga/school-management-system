@@ -1,0 +1,283 @@
+{
+  "generated_at": "2026-05-28T02:08:06.224406+00:00",
+  "row_count": 39,
+  "missing_count": 0,
+  "partial_count": 0,
+  "external_count": 6,
+  "implemented_count": 33,
+  "rows": [
+    {
+      "id": "P1",
+      "pain": "Tenant CSV import in guided onboarding",
+      "status": "implemented",
+      "phase": "1516",
+      "evidence": ""
+    },
+    {
+      "id": "P1b",
+      "pain": "Guardian bulk invite after students",
+      "status": "implemented",
+      "phase": "1516",
+      "evidence": ""
+    },
+    {
+      "id": "P1c",
+      "pain": "Post-import fee generation step",
+      "status": "implemented",
+      "phase": "1516",
+      "evidence": ""
+    },
+    {
+      "id": "P1d",
+      "pain": "Migration Cloud CSV path link",
+      "status": "external",
+      "phase": "1516",
+      "evidence": ""
+    },
+    {
+      "id": "P2",
+      "pain": "Parent login/session UX",
+      "status": "implemented",
+      "phase": "1517",
+      "evidence": ""
+    },
+    {
+      "id": "P2b",
+      "pain": "Passkey CTA for parents",
+      "status": "implemented",
+      "phase": "1517",
+      "evidence": ""
+    },
+    {
+      "id": "P2c",
+      "pain": "Multi-school guardian switch",
+      "status": "implemented",
+      "phase": "1517",
+      "evidence": ""
+    },
+    {
+      "id": "P2d",
+      "pain": "link_child / claim_invite in Cmd+K",
+      "status": "implemented",
+      "phase": "1520",
+      "evidence": ""
+    },
+    {
+      "id": "P3",
+      "pain": "Click depth / Cmd+K",
+      "status": "implemented",
+      "phase": "1520",
+      "evidence": ""
+    },
+    {
+      "id": "P3b",
+      "pain": "Parent simplified default home",
+      "status": "implemented",
+      "phase": "1517",
+      "evidence": ""
+    },
+    {
+      "id": "P4",
+      "pain": "Parent pay-all checkout",
+      "status": "implemented",
+      "phase": "1515",
+      "evidence": ""
+    },
+    {
+      "id": "P4b",
+      "pain": "Wallet on finance hero",
+      "status": "implemented",
+      "phase": "1515",
+      "evidence": ""
+    },
+    {
+      "id": "P4c",
+      "pain": "Payment receipt email",
+      "status": "implemented",
+      "phase": "1515",
+      "evidence": ""
+    },
+    {
+      "id": "P5",
+      "pain": "Real public status probes",
+      "status": "implemented",
+      "phase": "1518",
+      "evidence": ""
+    },
+    {
+      "id": "P5b",
+      "pain": "Enrollment peak banner",
+      "status": "implemented",
+      "phase": "1518",
+      "evidence": ""
+    },
+    {
+      "id": "P6",
+      "pain": "Parent offline pay intent",
+      "status": "implemented",
+      "phase": "1520",
+      "evidence": ""
+    },
+    {
+      "id": "P6b",
+      "pain": "Regional rails on pay-all",
+      "status": "implemented",
+      "phase": "1521",
+      "evidence": ""
+    },
+    {
+      "id": "P7",
+      "pain": "Feedback submission notifications",
+      "status": "implemented",
+      "phase": "1519",
+      "evidence": ""
+    },
+    {
+      "id": "P7b",
+      "pain": "Feedback \u2192 GlobalSupportTicket bridge UI",
+      "status": "implemented",
+      "phase": "1519",
+      "evidence": ""
+    },
+    {
+      "id": "P7c",
+      "pain": "ProductFeedback legacy migration",
+      "status": "implemented",
+      "phase": "1519",
+      "evidence": ""
+    },
+    {
+      "id": "P8",
+      "pain": "Trust surfaces honest",
+      "status": "implemented",
+      "phase": "1518",
+      "evidence": ""
+    },
+    {
+      "id": "P8b",
+      "pain": "Tenant GDPR export entry",
+      "status": "implemented",
+      "phase": "1516",
+      "evidence": ""
+    },
+    {
+      "id": "P9",
+      "pain": "Integration health on status",
+      "status": "implemented",
+      "phase": "1518",
+      "evidence": ""
+    },
+    {
+      "id": "P10",
+      "pain": "Pricing clarity crosswalk",
+      "status": "implemented",
+      "phase": "1522",
+      "evidence": ""
+    },
+    {
+      "id": "B1",
+      "pain": "Tenant isolation scanners",
+      "status": "implemented",
+      "phase": "",
+      "evidence": "scan_tenant_queryset_safety baseline 0"
+    },
+    {
+      "id": "B2",
+      "pain": "Tenant launch SLA",
+      "status": "implemented",
+      "phase": "1516",
+      "evidence": ""
+    },
+    {
+      "id": "B3",
+      "pain": "Reliability status",
+      "status": "implemented",
+      "phase": "1518",
+      "evidence": ""
+    },
+    {
+      "id": "B4",
+      "pain": "Roadmap stub honesty",
+      "status": "implemented",
+      "phase": "1522",
+      "evidence": ""
+    },
+    {
+      "id": "B5",
+      "pain": "Help deflection tiers",
+      "status": "implemented",
+      "phase": "",
+      "evidence": "verify_help_center_tiers.py"
+    },
+    {
+      "id": "B6",
+      "pain": "Tenant billing estimate",
+      "status": "implemented",
+      "phase": "1521",
+      "evidence": ""
+    },
+    {
+      "id": "PILLAR_AWS",
+      "pain": "Infra status probes",
+      "status": "implemented",
+      "phase": "1518",
+      "evidence": ""
+    },
+    {
+      "id": "PILLAR_AMAZON",
+      "pain": "Marketplace operator frame",
+      "status": "implemented",
+      "phase": "1522",
+      "evidence": ""
+    },
+    {
+      "id": "PILLAR_SALESFORCE",
+      "pain": "Parent contact workflow",
+      "status": "implemented",
+      "phase": "1520",
+      "evidence": ""
+    },
+    {
+      "id": "PILLAR_SHOPIFY",
+      "pain": "Fee commerce pay-all",
+      "status": "implemented",
+      "phase": "1515",
+      "evidence": ""
+    },
+    {
+      "id": "GEOS_MARKET_READY",
+      "pain": "market_ready evidence",
+      "status": "external",
+      "phase": "",
+      "evidence": ""
+    },
+    {
+      "id": "GEOS_NATIVE_APP",
+      "pain": "Native app stores",
+      "status": "external",
+      "phase": "",
+      "evidence": ""
+    },
+    {
+      "id": "SOC2_PDF",
+      "pain": "SOC2 auditor PDF",
+      "status": "external",
+      "phase": "",
+      "evidence": ""
+    },
+    {
+      "id": "LIVE_PSP",
+      "pain": "Live PSP settlement",
+      "status": "external",
+      "phase": "",
+      "evidence": ""
+    },
+    {
+      "id": "LITELLM_OS",
+      "pain": "LiteLLM omnipresent OS",
+      "status": "external",
+      "phase": "",
+      "evidence": ""
+    }
+  ]
+}

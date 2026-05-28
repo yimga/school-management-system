@@ -54,7 +54,7 @@
               <i class="bi bi-shield{% if mfa_enrolled %}-check{% endif %}" aria-hidden="true"></i>
             </a>
             {% endif %}
-            <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
+            <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" id="cpShowShortcutsHelp" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
               <i class="bi bi-command" aria-hidden="true"></i>
             </button>
             <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-xl-inline-flex" title="{% trans 'Studio workspace' %}">

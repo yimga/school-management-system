@@ -4,6 +4,8 @@ AI help governance — tenant feature flag + retention helpers (batch 1345).
 
 from __future__ import annotations
 
+_HELP_FLAG_ERRORS = (AttributeError, ImportError, LookupError, TypeError, ValueError)
+
 
 def ai_help_enabled_for_request(request) -> bool:
     """7-layer cascade: SiteSettings backend_feature_flags.enable_ai_help_assistant."""
@@ -15,11 +17,11 @@ def ai_help_enabled_for_request(request) -> bool:
                 flags = settings.get("backend_feature_flags") or {}
                 if "enable_ai_help_assistant" in flags:
                     return bool(flags.get("enable_ai_help_assistant"))
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_flags
 
-        flags = SiteSettings.get_solo().get_backend_feature_flags()
+        flags = get_effective_flags(request)
         return bool(flags.get("enable_ai_help_assistant", True))
-    except Exception:
+    except _HELP_FLAG_ERRORS:
         return True
 
 
@@ -64,10 +66,10 @@ def parent_student_help_surface_policy() -> dict[str, bool]:
 
 def help_telemetry_retention_days() -> int:
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_flags_for_school
 
-        flags = SiteSettings.get_solo().get_backend_feature_flags()
+        flags = get_effective_flags_for_school()
         raw = flags.get("help_telemetry_retention_days", 365)
         return max(30, int(raw))
-    except Exception:
+    except _HELP_FLAG_ERRORS:
         return 365

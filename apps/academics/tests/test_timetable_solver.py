@@ -8,7 +8,6 @@ from apps.academics.timetable_solver import (
     LessonRequest,
     PlacedLesson,
     Resource,
-    SolverResult,
     TimeSlot,
     detect_conflicts,
     generate_standard_week,

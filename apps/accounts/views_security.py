@@ -15,6 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.sessions.models import Session
 from django.core.exceptions import SuspiciousOperation
 from django.core.signing import BadSignature
+from django.db import DatabaseError
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
@@ -326,7 +327,7 @@ def security_posture_review(request):
                 title=POSTURE_NOTIFICATION_TITLE,
                 is_read=False,
             ).update(is_read=True)
-        except Exception:  # noqa: BLE001
+        except (DatabaseError, ImportError, AttributeError, TypeError):
             pass
         log_security_event(
             user,
@@ -394,7 +395,7 @@ def notification_corner_dismiss(request):
         else:
             qs = qs.filter(title=POSTURE_NOTIFICATION_TITLE)
         qs.update(is_read=True)
-    except Exception:  # noqa: BLE001
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         pass
     return JsonResponse({"ok": True})
 
@@ -418,6 +419,6 @@ def notification_corner_mark_read(request):
         else:
             qs = qs.filter(title=POSTURE_NOTIFICATION_TITLE)
         qs.update(is_read=True)
-    except Exception:  # noqa: BLE001
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         pass
     return JsonResponse({"ok": True})

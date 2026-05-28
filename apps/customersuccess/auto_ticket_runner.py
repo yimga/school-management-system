@@ -72,6 +72,40 @@ def _evaluate_rule_health_below(rule, *, now) -> int:
     return fired
 
 
+def evaluate_feedback_critical_rules(feedback) -> int:
+    """Signal-driven: active FEEDBACK_CRITICAL rules for a new high/critical submission."""
+
+    try:
+        from apps.customersuccess.models import AutoTicketRule
+        from apps.feedback.models import FeedbackSubmission
+    except ImportError:
+        return 0
+    if feedback.severity not in (
+        FeedbackSubmission.Severity.CRITICAL,
+        FeedbackSubmission.Severity.HIGH,
+    ):
+        return 0
+    if "auto_ticket" in (feedback.tags or []):
+        return 0
+    fired = 0
+    for rule in AutoTicketRule.objects.filter(
+        is_active=True,
+        trigger=AutoTicketRule.Trigger.FEEDBACK_CRITICAL,
+    ):
+        ok = _open_ticket(
+            school=feedback.school,
+            title=f"Feedback {feedback.severity}: {(feedback.title or '')[:80]}",
+            body=(
+                f"Auto-ticket rule {rule.name!r} fired on feedback id={feedback.pk} "
+                f"category={feedback.category} severity={feedback.severity}."
+            ),
+            source="auto_ticket_feedback_critical",
+        )
+        if ok:
+            fired += 1
+    return fired
+
+
 def _evaluate_rule_risk_alert_red(rule, *, now) -> int:
     try:
         from apps.customersuccess.models import TenantRiskAlert

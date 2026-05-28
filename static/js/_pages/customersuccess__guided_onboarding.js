@@ -106,4 +106,110 @@
       }).catch(function() { showResult(resultEl, null, 'Service unavailable'); });
     });
   }
+
+  var csvForm = document.getElementById('rmc-csv-import-form');
+  var csvFile = document.getElementById('rmc-csv-file');
+  var csvStatus = document.getElementById('rmc-csv-import-status');
+  var csvDryRunBtn = document.getElementById('rmc-csv-dry-run');
+  var csvApplyBtn = document.getElementById('rmc-csv-apply');
+  var csvPreviewTable = document.getElementById('rmc-csv-preview-table');
+  var csvPreviewBody = document.getElementById('rmc-csv-preview-body');
+  var csvErrorsTable = document.getElementById('rmc-csv-errors-table');
+  var csvErrorsBody = document.getElementById('rmc-csv-errors-body');
+  var lastCsvValid = false;
+
+  function setCsvStatus(text, isError) {
+    if (!csvStatus) return;
+    csvStatus.textContent = text || '';
+    csvStatus.classList.toggle('text-danger', !!isError);
+  }
+
+  function renderCsvPreview(payload) {
+    if (!csvPreviewBody || !csvErrorsBody) return;
+    csvPreviewBody.innerHTML = '';
+    csvErrorsBody.innerHTML = '';
+    var rows = (payload && payload.rows) || [];
+    var errors = (payload && payload.errors) || [];
+    rows.forEach(function(row) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + row.lineno + '</td><td>' + row.external_id + '</td><td>'
+        + row.first_name + ' ' + row.last_name + '</td><td>' + (row.grade_level || '') + '</td><td>'
+        + (row.email || '') + '</td>';
+      csvPreviewBody.appendChild(tr);
+    });
+    errors.forEach(function(err) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + err.lineno + '</td><td>' + err.field + '</td><td>' + err.reason + '</td>';
+      csvErrorsBody.appendChild(tr);
+    });
+    if (csvPreviewTable) csvPreviewTable.classList.toggle('d-none', rows.length === 0);
+    if (csvErrorsTable) csvErrorsTable.classList.toggle('d-none', errors.length === 0);
+  }
+
+  function postCsv(url) {
+    if (!csvForm || !csvFile || !url) return Promise.reject();
+    if (!csvFile.files || !csvFile.files.length) {
+      setCsvStatus('Choose a CSV file first.', true);
+      return Promise.reject();
+    }
+    var body = new FormData(csvForm);
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCsrf() },
+      body: body,
+      credentials: 'same-origin'
+    }).then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  if (csvDryRunBtn) {
+    csvDryRunBtn.addEventListener('click', function() {
+      var url = csvDryRunBtn.getAttribute('data-url');
+      lastCsvValid = false;
+      if (csvApplyBtn) csvApplyBtn.disabled = true;
+      setCsvStatus('Validating…');
+      postCsv(url).then(function(res) {
+        var d = res.data || {};
+        renderCsvPreview(d);
+        if (!res.ok || !d.ok) {
+          setCsvStatus(d.error || 'Validation failed.', true);
+          return;
+        }
+        lastCsvValid = !!d.is_valid;
+        if (csvApplyBtn) csvApplyBtn.disabled = !lastCsvValid;
+        var dup = (d.duplicate_external_ids || []).length;
+        var msg = lastCsvValid
+          ? ('Ready: ' + (d.rows || []).length + ' row(s).')
+          : ('Fix ' + (d.errors || []).length + ' issue(s) before apply.');
+        if (dup) msg += ' ' + dup + ' duplicate external_id(s).';
+        setCsvStatus(msg, !lastCsvValid);
+      }).catch(function() { setCsvStatus('Dry run failed.', true); });
+    });
+  }
+
+  if (csvApplyBtn) {
+    csvApplyBtn.addEventListener('click', function() {
+      if (!lastCsvValid) {
+        setCsvStatus('Run a successful dry run before applying.', true);
+        return;
+      }
+      var url = csvApplyBtn.getAttribute('data-url');
+      setCsvStatus('Importing…');
+      postCsv(url).then(function(res) {
+        var d = res.data || {};
+        if (!res.ok || !d.ok) {
+          setCsvStatus(d.error || 'Import failed.', true);
+          if (d.validation) renderCsvPreview(d.validation);
+          return;
+        }
+        setCsvStatus('Imported ' + (d.created || 0) + ' student(s); skipped ' + (d.skipped || 0) + '.', false);
+        if (csvApplyBtn) csvApplyBtn.disabled = true;
+        lastCsvValid = false;
+      }).catch(function() { setCsvStatus('Apply failed.', true); });
+    });
+  }
+
+  if (window.location.hash === '#student-csv-import' || /step=student_csv_import/.test(window.location.search)) {
+    var anchor = document.getElementById('student-csv-import');
+    if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 })();

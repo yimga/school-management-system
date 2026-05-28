@@ -244,6 +244,10 @@ html[dir="rtl"] .mkt-ve-split {
   --mkt-accent: var(--accent-academics-violet, #7c3aed);
 }
 
+.mkt-ve-section[data-mkt-personality="governance"] {
+  --mkt-accent: var(--accent-compliance-slate, #475569);
+}
+
 .mkt-ve-section[data-mkt-personality] .mkt-ve-section__title,
 .mkt-ve-section[data-mkt-personality] .mkt-edt-eyebrow {
   color: inherit;

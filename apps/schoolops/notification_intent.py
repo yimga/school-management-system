@@ -58,7 +58,6 @@ def render_notification_intent(
 ) -> tuple[str, str, Optional[str]]:
     """Return (subject, text_body, html_body)."""
     ctx = context or {}
-    locale_code = (locale or "en").strip().lower()[:8] or "en"
     if template_key == "low_meal_balance":
         student = ctx.get("student_name") or "your student"
         subject = "Meal plan balance notice"

@@ -290,12 +290,15 @@ def main() -> int:
         ("scripts/scan_tenant_queryset_safety.py", ["--compare"]),
         ("scripts/scan_tenant_isolation_marker_quality.py", ["--compare"]),
     ]
+    gate_env = os.environ.copy()
+    gate_env.setdefault("USE_FILE_LOGGING", "0")
     for script, extra in scripts:
         r = subprocess.run(
             [sys.executable, str(REPO / script), *extra],
             cwd=REPO,
             capture_output=True,
             text=True,
+            env=gate_env,
         )
         if r.returncode != 0:
             failures.append(f"{script}: exit {r.returncode}")

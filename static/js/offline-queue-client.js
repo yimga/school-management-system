@@ -11,6 +11,35 @@
     return window.SMS_OFFLINE_CONFIG || {};
   }
 
+  /** Canonical offline event_envelope (batch 1532 — queued sync, not CRDT). */
+  function buildOfflineEnvelope(opts) {
+    var o = opts || {};
+    return {
+      entity: o.entity || '',
+      entity_id: String(o.entity_id || ''),
+      op: o.op || 'upsert',
+      attribute_key: o.attribute_key || '',
+      attribute_value: o.attribute_value,
+      deterministic_timestamp: o.deterministic_timestamp || new Date().toISOString(),
+      client_id: o.client_id || '',
+    };
+  }
+
+  function mergeEnvelopePayload(actionType, payload) {
+    if (!payload || payload.entity) return payload;
+    var at = actionType || payload.action_type || '';
+    if (at === 'attendance.mark' || at === 'attendance') {
+      return buildOfflineEnvelope({
+        entity: 'attendance_record',
+        entity_id: String(payload.classroom_id || '') + ':' + String(payload.date || ''),
+        attribute_key: 'status',
+        attribute_value: payload,
+        client_id: payload.idempotency_key || payload.client_offline_id || '',
+      });
+    }
+    return payload;
+  }
+
   function getCookie(name) {
     var cookies = document.cookie ? document.cookie.split(';') : [];
     for (var i = 0; i < cookies.length; i++) {
@@ -208,9 +237,10 @@
           remaining.push(entry);
           return;
         }
+        var rawPayload = p.payload !== undefined ? p.payload : p;
         return postJson(enqueueUrl, {
           action_type: actionType,
-          payload: p.payload !== undefined ? p.payload : p,
+          payload: mergeEnvelopePayload(actionType, rawPayload),
           idempotency_key: p.idempotency_key || p.client_offline_id || entry.id || '',
         }).then(function (res) {
           if (res.ok && res.json && res.json.ok) synced += 1;
@@ -243,9 +273,10 @@
           var p = entry.payload || {};
           var actionType = entry.action_type || p.action_type || p.type;
           if (!actionType) return;
+          var idbPayload = typeof p.payload === 'object' ? p.payload : p;
           return postJson(enqueueUrl, {
             action_type: actionType,
-            payload: typeof p.payload === 'object' ? p.payload : p,
+            payload: mergeEnvelopePayload(actionType, idbPayload),
             idempotency_key: p.idempotency_key || p.client_offline_id || String(entry.id || ''),
           }).then(function (res) {
             if (res.ok && res.json && res.json.ok) {

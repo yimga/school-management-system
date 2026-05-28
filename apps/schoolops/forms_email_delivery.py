@@ -103,7 +103,7 @@ class EmailDeliveryForm(forms.Form):
         required=False,
         max_length=_FROM_NAME_MAX,
         label="Default From: name",
-        help_text='e.g. "Gilead Tech High". Rendered as "Name <addr>".',
+        help_text='e.g. "Example Academy". Rendered as "Name <addr>".',
     )
     default_reply_to = forms.EmailField(
         required=False,

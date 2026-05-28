@@ -240,6 +240,138 @@
         "site_settings_refs_apps_py_excl_migrations": 65,
         "site_settings_refs_apps_py_excl_migrations_tests": 30
       }
+    },
+    {
+      "recorded_at": "2026-05-27T20:32:15.452636+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 11,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2672,
+        "site_settings_refs_apps_py_excl_migrations": 223,
+        "site_settings_refs_apps_py_excl_migrations_tests": 177
+      }
+    },
+    {
+      "recorded_at": "2026-05-27T21:54:25.340907+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 11,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2673,
+        "site_settings_refs_apps_py_excl_migrations": 223,
+        "site_settings_refs_apps_py_excl_migrations_tests": 177
+      }
+    },
+    {
+      "recorded_at": "2026-05-27T23:06:34.846611+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 11,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2763,
+        "site_settings_refs_apps_py_excl_migrations": 223,
+        "site_settings_refs_apps_py_excl_migrations_tests": 177
+      }
+    },
+    {
+      "recorded_at": "2026-05-27T23:19:53.453061+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 11,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2771,
+        "site_settings_refs_apps_py_excl_migrations": 223,
+        "site_settings_refs_apps_py_excl_migrations_tests": 177
+      }
+    },
+    {
+      "recorded_at": "2026-05-27T23:31:19.046316+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 11,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2771,
+        "site_settings_refs_apps_py_excl_migrations": 217,
+        "site_settings_refs_apps_py_excl_migrations_tests": 171
+      }
+    },
+    {
+      "recorded_at": "2026-05-27T23:38:20.587780+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 11,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2776,
+        "site_settings_refs_apps_py_excl_migrations": 217,
+        "site_settings_refs_apps_py_excl_migrations_tests": 171
+      }
+    },
+    {
+      "recorded_at": "2026-05-27T23:52:43.916586+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 11,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2780,
+        "site_settings_refs_apps_py_excl_migrations": 213,
+        "site_settings_refs_apps_py_excl_migrations_tests": 167
+      }
+    },
+    {
+      "recorded_at": "2026-05-28T00:00:18.787356+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 11,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2780,
+        "site_settings_refs_apps_py_excl_migrations": 186,
+        "site_settings_refs_apps_py_excl_migrations_tests": 140
+      }
+    },
+    {
+      "recorded_at": "2026-05-28T00:10:10.818321+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2780,
+        "site_settings_refs_apps_py_excl_migrations": 186,
+        "site_settings_refs_apps_py_excl_migrations_tests": 140
+      }
+    },
+    {
+      "recorded_at": "2026-05-28T00:14:05.848722+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2781,
+        "site_settings_refs_apps_py_excl_migrations": 186,
+        "site_settings_refs_apps_py_excl_migrations_tests": 140
+      }
+    },
+    {
+      "recorded_at": "2026-05-28T02:00:39.348861+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2797,
+        "site_settings_refs_apps_py_excl_migrations": 186,
+        "site_settings_refs_apps_py_excl_migrations_tests": 140
+      }
     }
   ]
 }

@@ -1,14 +1,14 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load static i18n %}
 
 {% block title %}{{ wizard_label }} · {% trans "Setup Studio" %}{% endblock %}
 
-{% block extra_head %}
+{% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block cp_content %}
 <main class="rmc-wizard-shell rmc-wizard-shell--operator" data-rmc-wizard-shell="operator">
   {% include "setup_studio/partials/wizard_state_restore_banner.html" %}
 
@@ -45,7 +45,7 @@
 </main>
 {% endblock %}
 
-{% block extra_scripts %}
+{% block cp_shell_after %}
   {{ block.super }}
   <script src="{% static 'js/rmc-wizard-state-cache.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

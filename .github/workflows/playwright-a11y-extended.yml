@@ -4,6 +4,7 @@ name: Playwright a11y extended (RTL + 400% zoom)
 # batch 1258:
 #   * tests/e2e/marketing-rtl.spec.js     — ar locale dir=rtl, no overflow
 #   * tests/e2e/zoom-400-matrix.spec.js   — WCAG 1.4.10 reflow at 320×256
+#   * tests/e2e/teacher-dashboard-rtl-mobile.spec.js — teacher role-home @390px (batch 1545)
 #
 # Mirrors the boot pattern from .github/workflows/marketing-visual-truth.yml:
 # spin up a Django runserver on a known port + host, then point Playwright
@@ -81,6 +82,7 @@ jobs:
         run: |
           python manage.py migrate --noinput
           python manage.py ensure_superuser --password A11yPass123! --no-input || true
+          python manage.py seed_demo || true
           # Ensure ar locale .mo files are compiled so RTL switch returns ar HTML.
           python manage.py sync_i18n_catalog --compile || true
 
@@ -88,7 +90,7 @@ jobs:
         run: |
           # The marketing surface's URL conf is host-scoped; add a hosts entry
           # so the Playwright HTTP client can hit `runmycampus.com` locally.
-          sudo bash -c "echo '127.0.0.1 runmycampus.com' >> /etc/hosts"
+          sudo bash -c "echo '127.0.0.1 runmycampus.com demo-school.runmycampus.com' >> /etc/hosts"
 
       - name: Start Django runserver
         run: |
@@ -110,6 +112,18 @@ jobs:
         run: |
           npx playwright test tests/e2e/zoom-400-matrix.spec.js \
             --reporter=list
+
+      - name: Teacher dashboard RTL mobile (batch 1545)
+        timeout-minutes: 15
+        env:
+          SECURITY_ENFORCE_MINIMUM_STRENGTH: "0"
+          TENANT_SLUG: demo-school
+          TENANT_ROUTING: host
+          TENANT_BASE_URL: http://demo-school.runmycampus.com:8011
+          VISUAL_QA_PORT: "8011"
+          E2E_USERNAME: teacher
+          E2E_PASSWORD: Test1234
+        run: python scripts/verify_teacher_dashboard_rtl_playwright.py --run
 
       - name: Upload Playwright artifacts
         if: always()

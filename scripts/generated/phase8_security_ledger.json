@@ -22,6 +22,17 @@
       "rate_limiting": "implemented",
       "verdict": "keep"
     },
+    "apps/migration_cloud/api/docs.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "public_openapi_schema_and_redoc_only",
+      "data_exposure": "openapi_contract_metadata_no_secrets",
+      "expected_count": 3,
+      "last_reviewed": "2026-05-27",
+      "notes": "Spectacular schema + Redoc mounts are public-readable; authenticated tokens still required for API calls.",
+      "owner": "migration_cloud_public_api_docs",
+      "rate_limiting": "not_applicable_static_schema",
+      "verdict": "keep"
+    },
     "apps/schools/api_views.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "public_host_resolved_read_only",
@@ -134,6 +145,28 @@
       "replay_protection": "provider_signature_timestamp_manual_review_required",
       "verdict": "keep"
     },
+    "apps/billing/views_embedded_checkout.py": {
+      "audit_logging": "checkout_session_dispatcher_manual_review_required",
+      "auth_model": "tenant_host_match_and_checkout_payload_validation",
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "notes": "Anonymous parent checkout session endpoint accepts JSON from tenant marketing or parent portal without a browser CSRF token; tenant id is cross-checked against request.school when present and payload is schema-validated before PSP dispatch.",
+      "owner": "billing",
+      "rate_limiting": "tenant_scope_middleware",
+      "replay_protection": "cryptographically_random_session_id",
+      "verdict": "keep_with_hardening"
+    },
+    "apps/communication/views_whatsapp_webhook.py": {
+      "audit_logging": "pii_minimized_structured_logs",
+      "auth_model": "meta_whatsapp_signature_or_verify_token",
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "notes": "Meta WhatsApp webhook must accept provider GET/POST callbacks without browser CSRF; GET verification and POST delivery are guarded by integration verification, tenant feature flag gating, and hashed-phone logging.",
+      "owner": "parent_communications",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "provider_signature_and_message_id_manual_review_required",
+      "verdict": "keep_with_hardening"
+    },
     "apps/finance/views_payments.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "payment_webhook_signature",
@@ -165,6 +198,17 @@
       "owner": "migration_cloud",
       "rate_limiting": "manual_review_required",
       "replay_protection": "client_idempotency_key",
+      "verdict": "keep_with_hardening"
+    },
+    "apps/migration_cloud/views_guardian_consent.py": {
+      "audit_logging": "guardian_consent_decision_rows_and_pii_minimized_logs",
+      "auth_model": "unguessable_url_token",
+      "expected_count": 3,
+      "last_reviewed": "2026-05-27",
+      "notes": "Anonymous guardian consent accept/decline/revoke POSTs use a 256-bit URL token as the credential; responses are uniform for probe resistance, cache-disabled, clickjack-protected, and decision state prevents replay.",
+      "owner": "migration_cloud",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "single_use_token_decision_state",
       "verdict": "keep_with_hardening"
     },
     "apps/observability/views_friction.py": {
@@ -211,6 +255,17 @@
       "replay_protection": "shared_secret_hmac_token",
       "verdict": "keep_with_hardening"
     },
+    "apps/schoolops/views_email_webhook.py": {
+      "audit_logging": "pii_minimized_structured_logs",
+      "auth_model": "provider_webhook_signature",
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "notes": "Email provider bounce webhook must accept external POSTs without browser CSRF; provider-specific HMAC/signature checks run before JSON parsing, request bodies are capped, and recipient addresses are hashed before logging.",
+      "owner": "schoolops_email_delivery",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "provider_signature_and_body_cap",
+      "verdict": "keep_with_hardening"
+    },
     "apps/schools/section8_views.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "external_tool_callback",
@@ -245,12 +300,77 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-05-18T21:17:23.172094+00:00",
+  "generated_at": "2026-05-28T00:31:06.690387+00:00",
   "raw_sql": {
+    "apps/accounts/legacy_hashes/key_rotation.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "reason": "Operational key-rotation helper builds a field update for selected encrypted columns only; tenant-wide operation is explicitly audited and limited to ops key rotation."
+    },
+    "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py": {
+      "expected_count": 3,
+      "last_reviewed": "2026-05-27",
+      "reason": "Staff-run pgvector migration command performs extension/vector DDL and bounded batch backfill that has no ORM equivalent."
+    },
+    "apps/analytics/management/commands/rebuild_pgvector_index.py": {
+      "expected_count": 5,
+      "last_reviewed": "2026-05-27",
+      "reason": "Staff-run pgvector maintenance command checks catalog state and rebuilds IVFFLAT index/VACUUM ANALYZE with controlled constants."
+    },
+    "apps/analytics/management/commands/verify_ai_ml_readiness.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "reason": "Read-only PostgreSQL extension readiness probe for pgvector; operator verification command only."
+    },
+    "apps/analytics/management/commands/verify_pgvector_index.py": {
+      "expected_count": 6,
+      "last_reviewed": "2026-05-27",
+      "reason": "Read-only pgvector readiness and index diagnostics use pg_catalog, EXPLAIN, and row-count probes unavailable through ORM."
+    },
+    "apps/analytics/semantic_search.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "reason": "Vector similarity query uses pgvector distance operator with parameterized query and bounded result limit."
+    },
+    "apps/migration_cloud/intake/access_intake.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "reason": "Offline Microsoft Access intake reads a selected table through the pyodbc cursor API after source-file validation; not Django database SQL."
+    },
+    "apps/migration_cloud/intake/sql_dump_intake.py": {
+      "expected_count": 3,
+      "last_reviewed": "2026-05-27",
+      "reason": "Offline SQLite dump intake enumerates local import tables and materializes CSV payloads using quoted identifiers; not Django production SQL."
+    },
+    "apps/migration_cloud/management/commands/purge_audit_events_pre_approved.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "reason": "Pre-approved migration-cloud purge command deletes by tenant hash and cutoff inside an atomic block with explicit operator approval flow."
+    },
+    "apps/migration_cloud/management/commands/verify_audit_chain.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-05-27",
+      "reason": "Audit-chain repair path rewrites hash linkage for a verified event row during operator verification; append-only exception is explicit and logged."
+    },
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
       "last_reviewed": "2026-04-24",
       "reason": "Section 2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only."
+    },
+    "apps/people/schema_repair.py": {
+      "expected_count": 3,
+      "last_reviewed": "2026-05-27",
+      "reason": "Schema repair DDL/backfill adds and enforces one timestamp column using quoted identifiers during controlled startup repair."
+    },
+    "apps/portal/kb_pgvector.py": {
+      "expected_count": 2,
+      "last_reviewed": "2026-05-27",
+      "reason": "Knowledge-base pgvector adapter uses read-only schema introspection plus parameterized vector similarity search with school filter."
+    },
+    "apps/portal/management/commands/migrate_kb_embeddings_to_pgvector.py": {
+      "expected_count": 6,
+      "last_reviewed": "2026-05-27",
+      "reason": "Staff-run portal KB pgvector migration performs extension/vector DDL, batch backfill, index creation, and dimension detection."
     },
     "apps/schools/repositories/health_repository.py": {
       "expected_count": 3,
@@ -266,6 +386,11 @@
       "expected_count": 1,
       "last_reviewed": "2026-04-24",
       "reason": "Section 2.4 RLS verification: single SELECT on pg_class and pg_namespace for verify_tenant_rls."
+    },
+    "apps/schools/rls_readiness.py": {
+      "expected_count": 3,
+      "last_reviewed": "2026-05-27",
+      "reason": "RLS readiness preflight verifies PostgreSQL GUC support and pg_policies catalog state; read-only except SET/RESET session variable."
     },
     "apps/siteconfig/repositories/database_recovery_repository.py": {
       "expected_count": 1,
@@ -285,8 +410,8 @@
     "raw_sql_allowlist": "scripts/allowlists/raw_sql_allowlist.json"
   },
   "summary": {
-    "allow_any_files": 3,
-    "csrf_exempt_files": 19,
-    "raw_sql_files": 6
+    "allow_any_files": 4,
+    "csrf_exempt_files": 23,
+    "raw_sql_files": 20
   }
 }

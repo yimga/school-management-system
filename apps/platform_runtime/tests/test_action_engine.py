@@ -6,6 +6,7 @@ from django.test import TestCase, override_settings
 
 from apps.accounts.models import User
 from apps.platform_runtime.action_engine import (
+    _collect_parent_actions,
     get_actions_for_user,
     get_control_plane_actions,
     infer_primary_audience,
@@ -36,6 +37,24 @@ class ActionEngineTests(TestCase):
             role=User.Role.PARENT,
         )
         self.assertEqual(infer_primary_audience(user), "parent")
+
+    def test_collect_parent_actions_includes_finance_hub(self):
+        school = School.objects.create(
+            name="AE Parent",
+            slug="ae-parent",
+            subdomain="ae-parent",
+            is_active=True,
+        )
+        user = User.objects.create_user(
+            username="ae_parent_fin",
+            password="x",
+            role=User.Role.PARENT,
+        )
+        actions = _collect_parent_actions(user, school)
+        titles = " ".join(a.title.lower() for a in actions)
+        self.assertIn("family home", titles)
+        self.assertIn("fees", titles)
+        self.assertTrue(all(a.action_url for a in actions))
 
     def test_teacher_actions_are_bounded_and_serializable(self):
         school = School.objects.create(

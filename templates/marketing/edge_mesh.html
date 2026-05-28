@@ -1,0 +1,24 @@
+{% extends "marketing/base_marketing.html" %}
+{% load static i18n marketing_media %}
+
+{% block title %}RunMyCampus · {% marketing_copy "txt_edge_headline" %}{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-pages.css' %}">
+{% endblock %}
+
+{% block extrajs %}
+  {{ block.super }}
+  <script src="{% static 'marketing/js/mkt-network-state.js' %}" defer></script>
+{% endblock %}
+
+{% block marketing_main_extra_classes %}mkt-personality-page mkt-personality-page--rugged px-0 py-0{% endblock %}
+
+{% block content %}
+<article class="mkt-personality-page__viewport" data-mkt-personality-page="edge-mesh" data-rmc-scroll-policy="viewport-lock">
+  {% include "marketing/partials/sections/_rugged_engine.html" %}
+</article>
+{% include "marketing/partials/_personality_page_nav.html" with active="edge-mesh" %}
+{% endblock %}

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,14 @@ def dispatch_payment_received_intent(
 
     if school is None or payment is None:
         return {"dispatched": 0, "reason": "missing_context"}
+
+    try:
+        from apps.policies.resolvers import is_within_quiet_hours
+
+        if is_within_quiet_hours(school):
+            return {"dispatched": 0, "reason": "quiet_hours", "deferred": True}
+    except Exception:
+        logger.debug("quiet_hours check skipped for payment receipt", exc_info=True)
 
     amount = getattr(payment, "amount", None) or Decimal("0")
     currency = str(getattr(payment, "currency_code", None) or "USD")[:3]

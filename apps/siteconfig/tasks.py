@@ -7,6 +7,8 @@ from smtplib import SMTPException
 from urllib.error import URLError
 
 from celery import shared_task
+from django.core.management.base import CommandError
+from django.db import DatabaseError
 
 _SITECONFIG_SUPPORT_WEBHOOK_RETRY_ERRORS = (
     OSError,
@@ -35,6 +37,16 @@ _SITECONFIG_TASK_OLLAMA_ERRORS = (
     ValueError,
     AttributeError,
     TypeError,
+)
+_SITECONFIG_TASK_COMMAND_ERRORS = (
+    CommandError,
+    DatabaseError,
+    OSError,
+    ConnectionError,
+    TimeoutError,
+    RuntimeError,
+    TypeError,
+    ValueError,
 )
 
 
@@ -423,7 +435,7 @@ def ingest_policy_documents_all_tenants() -> dict:
                 stderr=err,
             )
             processed += 1
-        except Exception as exc:  # noqa: BLE001 - beat must not crash on one bad tenant
+        except _SITECONFIG_TASK_COMMAND_ERRORS as exc:
             errors += 1
             log_exception_with_context(
                 "ingest_policy_documents_all_tenants: school batch failed",
@@ -439,7 +451,7 @@ def snapshot_platform_pulse_daily():
     from django.core.management import call_command
     try:
         call_command("snapshot_platform_pulse")
-    except Exception as exc:  # noqa: BLE001 — beat must never crash
+    except _SITECONFIG_TASK_COMMAND_ERRORS as exc:
         log_exception_with_context(
             "snapshot_platform_pulse_daily: capture failed",
             extra={"error": str(exc)[:200]},

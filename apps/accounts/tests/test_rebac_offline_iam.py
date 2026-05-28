@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
-from django.utils import timezone
 
 from apps.accounts.iam_snapshot import (
     build_permission_snapshot,

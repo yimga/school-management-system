@@ -1,5 +1,5 @@
 {
-  "manifest_last_reviewed": "2026-03-29",
+  "manifest_last_reviewed": "2026-05-27",
   "files": {
     "apps/schools/api_views.py": {
       "expected_count": 2,
@@ -33,6 +33,17 @@
       "audit_logging": "manual_review_required",
       "notes": "Webhook event type catalog intentionally exposes cacheable public integration metadata without tenant webhook subscriptions, secrets, or deliveries.",
       "last_reviewed": "2026-05-14"
+    },
+    "apps/migration_cloud/api/docs.py": {
+      "expected_count": 3,
+      "owner": "migration_cloud_public_api_docs",
+      "verdict": "keep",
+      "auth_model": "public_openapi_schema_and_redoc_only",
+      "data_exposure": "openapi_contract_metadata_no_secrets",
+      "rate_limiting": "not_applicable_static_schema",
+      "audit_logging": "manual_review_required",
+      "notes": "Spectacular schema + Redoc mounts are public-readable; authenticated tokens still required for API calls.",
+      "last_reviewed": "2026-05-27"
     }
   }
 }

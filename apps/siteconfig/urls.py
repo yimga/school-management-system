@@ -63,8 +63,11 @@ from .views_school_automation import (
 from apps.marketplace.views import sandbox_embed as marketplace_sandbox_embed
 from apps.customersuccess.views_tenant import (
     execute_launch_view,
+    guided_onboarding_csv_apply,
+    guided_onboarding_csv_dry_run,
     guided_onboarding_view,
     support_copilot_view,
+    tenant_billing_estimate_view,
 )
 from .views_onboarding_coach import api_onboarding_coach
 from .dashboard_views import (
@@ -559,12 +562,27 @@ urlpatterns = [
     path("support-copilot/", support_copilot_view, name="support_copilot"),
     path("guided-onboarding/", guided_onboarding_view, name="guided_onboarding"),
     path(
+        "guided-onboarding/csv/dry-run/",
+        guided_onboarding_csv_dry_run,
+        name="guided_onboarding_csv_dry_run",
+    ),
+    path(
+        "guided-onboarding/csv/apply/",
+        guided_onboarding_csv_apply,
+        name="guided_onboarding_csv_apply",
+    ),
+    path(
         "api/onboarding-coach/",
         api_onboarding_coach,
         name="api_onboarding_coach",
     ),
     path(
         "guided-onboarding/execute-launch/", execute_launch_view, name="execute_launch"
+    ),
+    path(
+        "guided-onboarding/billing-estimate/",
+        tenant_billing_estimate_view,
+        name="tenant_billing_estimate",
     ),
     path("api/tour-steps/", tour_steps_api, name="tour_steps_api"),
     # rbac-allow: anonymous onboarding tour steps for marketing/login shells

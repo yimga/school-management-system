@@ -218,7 +218,6 @@ def tenant_template_rollback(request: HttpRequest, key: str) -> HttpResponse:
         record_template_event,
     )
     from apps.packages.engine import rollback as rollback_package
-    from apps.packages.models import InstalledPackage
 
     assignment = (
         TemplateAssignment.objects.filter(

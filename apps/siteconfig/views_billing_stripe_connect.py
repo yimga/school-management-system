@@ -24,6 +24,7 @@ from apps.schools.stripe_connect_settings import (
     set_stripe_connect_payload,
     tenant_stripe_connect_allowed,
 )
+from apps.platform_runtime.helpers import get_platform_site_settings_record
 
 
 def _billing_stripe_connect_url(request, view_name: str = "siteconfig:billing_stripe_connect") -> str:
@@ -50,9 +51,7 @@ def billing_stripe_connect(request):
     processor_ready = bool(cfg and stripe_secret_key(cfg))
     connect_cfg = platform_connect_config(cfg) if cfg else {"enabled": False}
 
-    from apps.siteconfig.models import SiteSettings
-
-    site_row = SiteSettings.objects.first()
+    site_row = get_platform_site_settings_record(create=False)
     allow_tenant = tenant_stripe_connect_allowed(site_row)
 
     payload = get_stripe_connect_payload(school)
@@ -88,9 +87,7 @@ def billing_stripe_connect_start(request):
         messages.warning(request, "No active school context.")
         return redirect(reverse("siteconfig:billing_plan_readonly"))
 
-    from apps.siteconfig.models import SiteSettings
-
-    if not tenant_stripe_connect_allowed(SiteSettings.objects.first()):
+    if not tenant_stripe_connect_allowed(get_platform_site_settings_record(create=False)):
         messages.error(request, "Platform operator has disabled tenant Stripe Connect onboarding.")
         return redirect(reverse("siteconfig:billing_stripe_connect"))
 

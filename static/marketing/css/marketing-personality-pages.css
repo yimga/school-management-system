@@ -1,0 +1,149 @@
+/**
+ * Dedicated marketing personality viewport pages (MULTI-PERSONALITY-GRID).
+ * Uses marketing tokens — no forked hex literals.
+ */
+
+.mkt-personality-page__viewport {
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.mkt-personality-page--fluid {
+  --mkt-personality-accent: var(--mkt-edt-accent, #4f46e5);
+  background: var(--mkt-edt-canvas, #faf8f5);
+}
+
+.mkt-personality-page--rugged {
+  background: var(--mkt-rugged-bg, #111827);
+  color: var(--mkt-rugged-fg, #e5e7eb);
+}
+
+.mkt-personality-page--governance {
+  background: var(--mkt-governance-bg, #f1f5f9);
+  color: var(--mkt-governance-fg, #0f172a);
+}
+
+.mkt-personality-page--clinical {
+  background: var(--mkt-edt-surface, #ffffff);
+}
+
+.mkt-personality-page__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 24px 32px;
+  border-top: 1px solid var(--mkt-edt-rule, #e5e0d8);
+}
+
+.mkt-personality-page__nav-link {
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--mkt-edt-ink-muted, #57534e);
+  border: 1px solid transparent;
+}
+
+.mkt-personality-page__nav-link.is-active,
+.mkt-personality-page__nav-link:hover {
+  border-color: var(--mkt-edt-rule);
+  color: var(--mkt-edt-ink, #1c1917);
+}
+
+.mkt-ve-gradebook__viz--max5 {
+  max-width: min(100%, 960px);
+  overflow: hidden;
+}
+
+.mkt-ve-section--governance .mkt-ve-governance {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+
+.mkt-ve-governance__panel {
+  padding: 24px;
+  border: 1px solid var(--mkt-edt-rule);
+  border-radius: 8px;
+  background: var(--mkt-edt-surface, #fff);
+}
+
+.mkt-ve-governance__meta {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+  display: grid;
+  gap: 8px;
+}
+
+.mkt-ve-governance__meta span {
+  display: block;
+  font-size: var(--type-size-xs, 0.75rem);
+  color: var(--mkt-edt-ink-muted);
+}
+
+.mkt-ve-governance__map-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.mkt-ve-governance__tile {
+  min-height: 48px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--mkt-edt-accent) 12%, var(--mkt-governance-bg, #f1f5f9));
+  border: 1px solid var(--mkt-edt-rule);
+}
+
+.mkt-ve-entitlement__toggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.mkt-ve-entitlement__toggles button {
+  min-height: 48px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--mkt-edt-rule);
+  background: var(--mkt-edt-surface);
+  cursor: pointer;
+}
+
+.mkt-ve-entitlement__toggles button.is-active {
+  border-color: var(--mkt-edt-accent-emerald, #059669);
+  background: color-mix(in srgb, #059669 8%, var(--mkt-edt-surface));
+}
+
+.mkt-ve-entitlement__result {
+  display: block;
+  font-size: var(--type-size-lg, 1.125rem);
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.mkt-ve-network.is-blackout .mkt-ve-network__viz {
+  display: none;
+}
+
+.mkt-ve-network.is-degraded .mkt-ve-network__viz,
+.mkt-ve-network.is-blackout .mkt-ve-network__viz {
+  opacity: 0.35;
+}
+
+.mkt-personality-page__procurement {
+  padding: 0 24px 24px;
+  font-size: var(--type-size-sm, 0.875rem);
+}
+
+@media (max-width: 640px) {
+  .mkt-ve-network__toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}

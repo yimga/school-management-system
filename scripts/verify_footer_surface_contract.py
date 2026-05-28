@@ -87,6 +87,7 @@ def _non_marketing_template_paths() -> list[Path]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--write", action="store_true")
     args = parser.parse_args()
     rows: list[Row] = []

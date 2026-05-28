@@ -18,7 +18,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date as date_type
-from datetime import timedelta
 from typing import Any
 
 

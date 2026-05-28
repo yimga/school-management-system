@@ -6,7 +6,6 @@ from __future__ import annotations
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext as _
 

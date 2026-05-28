@@ -1,0 +1,19 @@
+{% extends "marketing/base_marketing.html" %}
+{% load static i18n marketing_media %}
+
+{% block title %}RunMyCampus · {% marketing_copy "txt_compliance_headline" %}{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-pages.css' %}">
+{% endblock %}
+
+{% block marketing_main_extra_classes %}mkt-personality-page mkt-personality-page--governance px-0 py-0{% endblock %}
+
+{% block content %}
+<article class="mkt-personality-page__viewport" data-mkt-personality-page="compliance" data-rmc-scroll-policy="viewport-lock">
+  {% include "marketing/partials/sections/_governance_auditor_gateway.html" %}
+</article>
+{% include "marketing/partials/_personality_page_nav.html" with active="compliance" %}
+{% endblock %}

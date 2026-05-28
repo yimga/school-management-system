@@ -273,6 +273,7 @@ def default_backend_feature_flags():
         "allowed_roles_entity_console": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
         "allowed_roles_entity_import": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
         "allowed_roles_api_schema": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
+        "parent_simplified_default_home": True,
         "require_guardian_finance_opt_in": True,
         "allow_finance_access_requests": True,
         "notify_parent_on_absence": True,

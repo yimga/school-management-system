@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n smart_link_tags %}
 
 {% block title %}{% trans "Service temporarily unavailable" %}{% endblock %}
 
@@ -16,11 +16,9 @@
       {% endif %}
     </p>
     <div class="error-actions">
-      <button class="btn btn-primary" type="button" onclick="window.location.reload()"><i class="bi bi-arrow-clockwise me-1"></i>{% trans "Try again" %}</button>
+      {% render_smart_links state="error.503" %}
       {% if PUBLIC_BRAND_MODE %}
         <a class="btn btn-outline-secondary" href="{% url 'public_support_hub' %}"><i class="bi bi-life-preserver me-1"></i>{% trans "Contact support" %}</a>
-      {% else %}
-        <a class="btn btn-outline-secondary" href="{% url 'accounts:redirect' %}"><i class="bi bi-house me-1"></i>{% trans "Go to dashboard" %}</a>
       {% endif %}
     </div>
   </div>

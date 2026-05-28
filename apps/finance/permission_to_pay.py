@@ -12,9 +12,8 @@ from __future__ import annotations
 import hashlib
 import logging
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
 
 from apps.finance.payment_rail_adapter import (
     PaymentIntent,

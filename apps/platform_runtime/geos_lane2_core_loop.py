@@ -127,7 +127,6 @@ def execute_core_loop(school_slug: str, *, seed_if_missing: bool = True) -> dict
         },
     )
     invoice = None
-    created = False
     invoice_id = ""
     try:
         invoice_ref = f"GEOS-PILOT-{school.slug[:8]}-{uuid.uuid4().hex[:8].upper()}"
@@ -153,7 +152,6 @@ def execute_core_loop(school_slug: str, *, seed_if_missing: bool = True) -> dict
         invoice.status = Invoice.Status.ISSUED
         invoice._recalculating = True  # noqa: SLF001 — allow total sync from lines
         invoice.save()
-        created = True
         invoice_id = str(invoice.pk)
     except Exception:
         invoice = None

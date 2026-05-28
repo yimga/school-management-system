@@ -46,6 +46,10 @@ from apps.reports.services import (
     terms_for_student,
     term_report_context,
 )
+from apps.portal.parent_identity import resolve_parent_simplified_default
+
+# CEZGP 1517: ``parent_simplified_default`` SiteSettings cascade (see resolve_parent_simplified_default).
+parent_simplified_default = resolve_parent_simplified_default
 from apps.portal.parent_portal_helpers import (
     require_parent_child_access,
     set_active_child,
@@ -1170,11 +1174,7 @@ def parent_dashboard(request: HttpRequest):
         active_child_id = guardian_students_for_switcher[0]["id"]
     policy = get_policy_for_request(request)
     is_rtl = bool(policy.get("rtl", False))
-    parent_simplified = str(request.GET.get("simple") or "").lower() in (
-        "1",
-        "true",
-        "yes",
-    )
+    parent_simplified = resolve_parent_simplified_default(request)
     q = request.GET.copy()
     q.pop("simple", None)
     parent_full_dashboard_url = request.path
@@ -1235,6 +1235,8 @@ def parent_dashboard(request: HttpRequest):
             "parent_simplified": parent_simplified,
             "parent_full_dashboard_url": parent_full_dashboard_url,
             "parent_show_legacy_dashboard": parent_simplified,
+            "show_pwa_install_cta": bool(flags.get("enable_portal_pwa", False)),
+            "parent_settings_security_url": reverse("portal:parent_settings_security"),
             **build_tp_hero_context(
                 request,
                 role=role,
@@ -1250,6 +1252,16 @@ def parent_dashboard(request: HttpRequest):
             ),
         },
     )
+
+
+@parent_portal_required
+@role_required(User.Role.PARENT)
+def parent_settings_security(request: HttpRequest):
+    """Parent security settings — passkey CTA when tenant allows WebAuthn."""
+    from apps.accounts.mfa_setup_flow import build_mfa_setup_context
+
+    ctx = build_mfa_setup_context(request)
+    return render(request, "parent/settings_security.html", ctx)
 
 
 def _whatsapp_invite_link(request: HttpRequest) -> str | None:

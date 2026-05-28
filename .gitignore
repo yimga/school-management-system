@@ -60,6 +60,8 @@ full_test_run.txt
 test_output.txt
 gate_log.txt
 gate_log2.txt
+tmp_aifail.txt
+tmp_*.txt
 
 # Backups and temp
 *.bak
@@ -88,6 +90,9 @@ db_step4.sqlite3
 *.png
 # Marketing ship assets (committed; CI + fresh clones must pass hero gate)
 !static/marketing/video/hero-home.mp4
+!static/marketing/video/loops/
+!static/marketing/video/loops/*.mp4
+!static/marketing/video/loops/*.webm
 !static/marketing/img/hero-home-poster.svg
 !static/marketing/fonts/**/*.woff2
 !static/marketing/css/marketing-critical.min.css

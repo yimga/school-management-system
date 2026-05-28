@@ -117,6 +117,81 @@
         <span class="badge text-bg-primary">{{ current_step.group|default:"launch" }}</span>
       </div>
 
+      {% if school and csv_dry_run_url and csv_apply_url %}
+      <section id="student-csv-import" class="setup-studio-checklist-item mb-4" data-rmc-scroll-policy="paginate" data-ux-qa-marker="student-csv-import">
+        <div class="setup-studio-section-head">
+          <div>
+            <div class="fw-semibold">{% trans "Import students (CSV)" %}</div>
+            <div class="setup-studio-muted">{% trans "Required columns: external_id, first_name, last_name. Dry-run before apply." %}</div>
+          </div>
+        </div>
+        <form id="rmc-csv-import-form" class="mb-3" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label class="form-label" for="rmc-csv-file">{% trans "Roster CSV" %}</label>
+            <input type="file" class="form-control form-control-sm" id="rmc-csv-file" name="csv_file" accept=".csv,text/csv" required>
+          </div>
+          <div class="setup-studio-actions">
+            <button type="button" class="btn btn-outline-primary btn-sm" id="rmc-csv-dry-run" data-url="{{ csv_dry_run_url }}">{% trans "Dry run" %}</button>
+            <button type="button" class="btn btn-primary btn-sm" id="rmc-csv-apply" data-url="{{ csv_apply_url }}" disabled>{% trans "Apply import" %}</button>
+          </div>
+        </form>
+        <div id="rmc-csv-import-status" class="setup-studio-muted small mb-2" role="status" aria-live="polite"></div>
+        <div class="table-responsive" data-rmc-scroll-policy="paginate">
+          <table class="table table-sm rmc-data-table d-none" id="rmc-csv-preview-table">
+            <thead>
+              <tr>
+                <th>{% trans "Line" %}</th>
+                <th>{% trans "External ID" %}</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Grade" %}</th>
+                <th>{% trans "Email" %}</th>
+              </tr>
+            </thead>
+            <tbody id="rmc-csv-preview-body"></tbody>
+          </table>
+          <table class="table table-sm rmc-data-table d-none" id="rmc-csv-errors-table">
+            <thead>
+              <tr>
+                <th>{% trans "Line" %}</th>
+                <th>{% trans "Field" %}</th>
+                <th>{% trans "Issue" %}</th>
+              </tr>
+            </thead>
+            <tbody id="rmc-csv-errors-body"></tbody>
+          </table>
+        </div>
+      </section>
+      {% endif %}
+
+      {% if onboarding_steps %}
+      <div class="setup-studio-section-head">
+        <div>
+          <div class="fw-semibold">{% trans "Onboarding checklist" %}</div>
+          <div class="setup-studio-muted">{% trans "CSV import, guardian invites, fees, and data export." %}</div>
+        </div>
+      </div>
+      <div class="setup-studio-list mb-3">
+        {% for ostep in onboarding_steps %}
+        <div class="setup-studio-checklist-item">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <div class="setup-studio-mini-title">{{ ostep.label }}</div>
+            </div>
+            <span class="badge {% if ostep.done %}text-bg-success{% else %}text-bg-warning{% endif %}">
+              {% if ostep.done %}{% trans "Done" %}{% else %}{% trans "Pending" %}{% endif %}
+            </span>
+          </div>
+          {% if not ostep.done and ostep.link %}
+          <div class="setup-studio-actions">
+            <a href="{{ ostep.link }}" class="btn btn-outline-primary btn-sm">{% trans "Open step" %}</a>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
       {% if current_step %}
       <div class="setup-studio-checklist-item mb-3">
         <div class="setup-studio-mini-title">{{ current_step.label }}</div>

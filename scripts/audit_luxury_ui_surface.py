@@ -698,6 +698,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Do not exit non-zero when score < 13 (default: enforce Phase 7 gate).",
     )
+    ap.add_argument("--base", default=None, help=argparse.SUPPRESS)
     args = ap.parse_args(argv)
 
     high_impact_templates = _high_impact_templates()

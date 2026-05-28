@@ -1,7 +1,6 @@
 """Unified lifecycle — both creation paths and offboarding checklist."""
 
 from django.test import TestCase
-from django.utils import timezone
 
 from apps.lifecycle.enrollment_workflow_matrix import (
     build_enrollment_track,
@@ -13,8 +12,6 @@ from apps.lifecycle.unified_lifecycle import (
     ALL_UNIFIED_STATES,
     CREATION_PATH_OPERATOR,
     CREATION_PATH_SELF_SERVE,
-    STATE_ACTIVATING,
-    STATE_CLOSED,
     STATE_DRAFT,
     STATE_PROVISIONING,
     STATE_LIVE,

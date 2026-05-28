@@ -5,7 +5,6 @@ from __future__ import annotations
 from django.test import SimpleTestCase
 
 from apps.migration_cloud.source_adapters import (
-    MigrationSourceAdapterSpec,
     all_capabilities,
     get_source,
     list_sources,

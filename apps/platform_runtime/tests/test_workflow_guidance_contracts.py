@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from django.test import RequestFactory, SimpleTestCase
+from django.test import SimpleTestCase
 
 from apps.platform_runtime import workflow_guidance, workflow_registry
 

@@ -1125,11 +1125,32 @@ def teacher_dashboard(request: HttpRequest):
         attendance_pct=int(attendance_pct) if attendance_pct is not None else None,
     )
 
+    from apps.dashboard.decision_surface_context import (
+        build_role_home_declaration,
+        build_teacher_dashboard_phase7_de,
+    )
+
+    teacher_role_home = {
+        "dashboard_type": "role-home",
+        "jtbd": "Complete marks and attendance with minimal navigation.",
+        "main_question": "What needs my attention in class today?",
+        "main_action": "Enter marks",
+    }
+    phase7_de = build_teacher_dashboard_phase7_de(
+        pending_evaluations=pending_marks,
+        completion_pct=completion_pct,
+        attendance_pct=int(attendance_pct) if attendance_pct is not None else None,
+        teacher_fast_workflows=teacher_fast_workflows,
+    )
+    role_home_declaration = build_role_home_declaration(teacher_role_home)
+
     return render(
         request,
         "teacher/dashboard.html",
         {
             **tp_hero,
+            "phase7_de": phase7_de,
+            "role_home_declaration": role_home_declaration,
             "teacher_show_legacy_dashboard": role_home_show_legacy(request),
             "year": year,
             "term": term,

@@ -13,7 +13,6 @@ Complements test_channel_adapter_runtime.py (contract tests) with:
 from __future__ import annotations
 
 import hashlib
-import logging
 
 from django.test import SimpleTestCase
 

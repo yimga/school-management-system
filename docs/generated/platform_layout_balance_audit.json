@@ -1,7 +1,7 @@
 {
   "status": "pass",
   "summary": {
-    "checks": 1427,
+    "checks": 1477,
     "failures": 0,
     "warnings": 0
   },
@@ -802,6 +802,12 @@
       "name": "templates/admin/includes/model_count_badge.html has no stray control characters",
       "status": "pass",
       "file": "templates/admin/includes/model_count_badge.html",
+      "count": 0
+    },
+    {
+      "name": "templates/admin/includes/operator_path_banner.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/admin/includes/operator_path_banner.html",
       "count": 0
     },
     {
@@ -2587,6 +2593,12 @@
       "count": 0
     },
     {
+      "name": "templates/finance/permission_to_pay.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/finance/permission_to_pay.html",
+      "count": 0
+    },
+    {
       "name": "templates/finance/receipt.html has no stray control characters",
       "status": "pass",
       "file": "templates/finance/receipt.html",
@@ -2626,6 +2638,12 @@
       "name": "templates/finance/trial_balance.html has no stray control characters",
       "status": "pass",
       "file": "templates/finance/trial_balance.html",
+      "count": 0
+    },
+    {
+      "name": "templates/finance/workforce_command_center.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/finance/workforce_command_center.html",
       "count": 0
     },
     {
@@ -4513,6 +4531,12 @@
       "count": 0
     },
     {
+      "name": "templates/partials/finance_glocal_strip.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/finance_glocal_strip.html",
+      "count": 0
+    },
+    {
       "name": "templates/partials/help_community_lane.html has no stray control characters",
       "status": "pass",
       "file": "templates/partials/help_community_lane.html",
@@ -4639,6 +4663,12 @@
       "count": 0
     },
     {
+      "name": "templates/partials/rmc_chart_js_self_host.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/rmc_chart_js_self_host.html",
+      "count": 0
+    },
+    {
       "name": "templates/partials/rmc_command_bar.html has no stray control characters",
       "status": "pass",
       "file": "templates/partials/rmc_command_bar.html",
@@ -4654,6 +4684,18 @@
       "name": "templates/partials/rmc_dropdown_viewport_safe_boot.html has no stray control characters",
       "status": "pass",
       "file": "templates/partials/rmc_dropdown_viewport_safe_boot.html",
+      "count": 0
+    },
+    {
+      "name": "templates/partials/rmc_dropzone_self_host.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/rmc_dropzone_self_host.html",
+      "count": 0
+    },
+    {
+      "name": "templates/partials/rmc_htmx_self_host.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/rmc_htmx_self_host.html",
       "count": 0
     },
     {
@@ -4684,6 +4726,12 @@
       "name": "templates/partials/rmc_lexicon_meta.html has no stray control characters",
       "status": "pass",
       "file": "templates/partials/rmc_lexicon_meta.html",
+      "count": 0
+    },
+    {
+      "name": "templates/partials/rmc_mermaid_self_host.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/rmc_mermaid_self_host.html",
       "count": 0
     },
     {
@@ -4720,6 +4768,12 @@
       "name": "templates/partials/rmc_print_v2_brand_block.html has no stray control characters",
       "status": "pass",
       "file": "templates/partials/rmc_print_v2_brand_block.html",
+      "count": 0
+    },
+    {
+      "name": "templates/partials/rmc_redoc_self_host.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/rmc_redoc_self_host.html",
       "count": 0
     },
     {
@@ -4807,9 +4861,21 @@
       "count": 0
     },
     {
+      "name": "templates/partials/rmc_wind_down_banner.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/rmc_wind_down_banner.html",
+      "count": 0
+    },
+    {
       "name": "templates/partials/rmc_zero_click_command_strip.html has no stray control characters",
       "status": "pass",
       "file": "templates/partials/rmc_zero_click_command_strip.html",
+      "count": 0
+    },
+    {
+      "name": "templates/partials/rmc_zxcvbn_self_host.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/partials/rmc_zxcvbn_self_host.html",
       "count": 0
     },
     {
@@ -5983,6 +6049,24 @@
       "count": 0
     },
     {
+      "name": "templates/schoolops/lost_belongings_lookup.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/schoolops/lost_belongings_lookup.html",
+      "count": 0
+    },
+    {
+      "name": "templates/schoolops/lost_belongings_mint.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/schoolops/lost_belongings_mint.html",
+      "count": 0
+    },
+    {
+      "name": "templates/schoolops/lost_belongings_recover.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/schoolops/lost_belongings_recover.html",
+      "count": 0
+    },
+    {
       "name": "templates/schoolops/operator/meal_plan_analytics.html has no stray control characters",
       "status": "pass",
       "file": "templates/schoolops/operator/meal_plan_analytics.html",
@@ -6052,6 +6136,12 @@
       "name": "templates/schoolops/ops_visitor_log.html has no stray control characters",
       "status": "pass",
       "file": "templates/schoolops/ops_visitor_log.html",
+      "count": 0
+    },
+    {
+      "name": "templates/schoolops/substitute_handover_form.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/schoolops/substitute_handover_form.html",
       "count": 0
     },
     {
@@ -6322,6 +6412,24 @@
       "name": "templates/schools/marketing_topic_page.html has no stray control characters",
       "status": "pass",
       "file": "templates/schools/marketing_topic_page.html",
+      "count": 0
+    },
+    {
+      "name": "templates/schools/mat_group_hub/dashboard.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/schools/mat_group_hub/dashboard.html",
+      "count": 0
+    },
+    {
+      "name": "templates/schools/mat_group_hub/detail.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/schools/mat_group_hub/detail.html",
+      "count": 0
+    },
+    {
+      "name": "templates/schools/mat_group_hub/edit.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/schools/mat_group_hub/edit.html",
       "count": 0
     },
     {
@@ -6964,6 +7072,180 @@
       "name": "templates/schools/verify_signup.html has no stray control characters",
       "status": "pass",
       "file": "templates/schools/verify_signup.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/boolean.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/boolean.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/color_picker.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/color_picker.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/csv_mapping.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/csv_mapping.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/datetime.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/datetime.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/decimal.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/decimal.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/domain_input.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/domain_input.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/draw_on_map.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/draw_on_map.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/duration.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/duration.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/file_upload.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/file_upload.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/image_upload.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/image_upload.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/key_value_pairs.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/key_value_pairs.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/long_text.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/long_text.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/multi_choice.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/multi_choice.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/number.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/number.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/ranked_list.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/ranked_list.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/rich_select.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/rich_select.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/single_choice.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/single_choice.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/structured_form.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/structured_form.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/inputs/text.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/inputs/text.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/operator_wizard.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/operator_wizard.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/operator_wizard_index.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/operator_wizard_index.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/partials/wizard_ai_rationale.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/partials/wizard_ai_rationale.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/partials/wizard_help_rail.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/partials/wizard_help_rail.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/partials/wizard_nav.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/partials/wizard_nav.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/partials/wizard_state_restore_banner.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/partials/wizard_state_restore_banner.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/partials/wizard_step_body.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/partials/wizard_step_body.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/partials/wizard_stepper.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/partials/wizard_stepper.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/tenant_wizard.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/tenant_wizard.html",
+      "count": 0
+    },
+    {
+      "name": "templates/setup_studio/tenant_wizard_index.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/setup_studio/tenant_wizard_index.html",
       "count": 0
     },
     {
@@ -7636,6 +7918,24 @@
       "name": "templates/siteconfig/template_gallery.html has no stray control characters",
       "status": "pass",
       "file": "templates/siteconfig/template_gallery.html",
+      "count": 0
+    },
+    {
+      "name": "templates/siteconfig/tenant_launch_fast_path.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/siteconfig/tenant_launch_fast_path.html",
+      "count": 0
+    },
+    {
+      "name": "templates/siteconfig/tenant_lifecycle_command_center.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/siteconfig/tenant_lifecycle_command_center.html",
+      "count": 0
+    },
+    {
+      "name": "templates/siteconfig/tenant_provisioning_status.html has no stray control characters",
+      "status": "pass",
+      "file": "templates/siteconfig/tenant_provisioning_status.html",
       "count": 0
     },
     {

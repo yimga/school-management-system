@@ -1,0 +1,22 @@
+{% load i18n %}
+{# CEZGP P2: guardian_student_links chrome — included from portal_base for parents. #}
+{% if guardian_student_links_chrome.enabled %}
+<nav
+  class="rmc-guardian-student-links d-none d-md-inline-flex align-items-center gap-1 small"
+  aria-label="{% trans 'Linked students' %}"
+  data-guardian-student-links="1"
+>
+  <span class="text-muted">{% trans "Students" %}:</span>
+  {% for link in guardian_student_links_chrome.links %}
+  <a
+    class="badge rounded-pill text-bg-light text-decoration-none"
+    href="{% url 'portal:parent_dashboard' %}?student={{ link.student_id }}"
+  >{{ link.label }}</a>
+  {% empty %}
+  <span class="text-muted">{% trans "None linked" %}</span>
+  {% endfor %}
+  {% if guardian_student_links_chrome.more_count %}
+  <span class="text-muted">+{{ guardian_student_links_chrome.more_count }}</span>
+  {% endif %}
+</nav>
+{% endif %}

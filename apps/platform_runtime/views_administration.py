@@ -42,7 +42,6 @@ from apps.platform_runtime.models import PackInstallation
 from apps.platform_runtime.operational_center_nav import (
     blueprint_marketplace_frame_context,
     tenant_blueprint_setup_frame_context,
-    tenant_import_setup_frame_context,
     tenant_pack_setup_frame_context,
     change_requests_frame_context,
     configuration_center_frame_context,

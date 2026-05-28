@@ -9,10 +9,10 @@
 | **Operational docs** | `CURRENT_SETUP_AND_GOOD_TO_GO.md`, old setup guides | **Docs only** — update or mark **DEPRECATED** when misleading. |
 | **Lint-scoped runtime** | `apps/*`, `templates/*`, `config/*` (excluding `migrations/`, `tests/`, `docs/`, `management/commands/` per `lint_gilead_residue.py`) | **Must be clean** — `python scripts/lint_gilead_residue.py` = **PASS** (includes JSON under `apps/` such as `backlog_unlock_registry.json`). |
 | **Management commands** | *(removed)* | Use `python manage.py seed_demo_tenant_users` (optional `--school-slug=` / `--username-prefix=`). |
-| **Tests** | Emails like `*@gileadtech.edu` in test fixtures | **Test-only** — optional neutralization; not lint-gated. |
+| **Tests** | `apps/**/tests/**`, top-level `tests/**`, Playwright staging examples | **Test-only** — optional neutralization; not lint-gated. |
 | **JSON / YAML fixtures** | `apps/**/fixtures/**` | **Fixture-only** — seed data; not HTTP surfaces; full-tree verifier allowlist path. |
 | **Locale catalogs** | `locale/**` (`*.po`; compiled `*.mo` not text-scanned) | **Legacy msgids** — refresh with `sync_i18n_catalog`; product strings still must pass `lint_gilead_residue.py` on runtime paths. |
-| **Inventory / audit scripts** | `generate_platform_inventory.py` “gilead” match counts; `.github/workflows/*` steps that run `scripts/verify_gilead_full_tree_classification.py` | **Tooling** — not user-facing; full-repo metric ≠ lint-scoped runtime bar. |
+| **Inventory / audit scripts** | `generate_platform_inventory.py` “gilead” match counts; `.github/workflows/*` steps that run `scripts/verify_gilead_full_tree_classification.py`; tracked `var/**` verifier logs; vendored dictionaries under `static/vendor/**` | **Tooling** — not user-facing; full-repo metric ≠ lint-scoped runtime bar. |
 
 **Single execution source:** [RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md](RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md) (§2.2 Gilead residue purge + §0 for scores).
 

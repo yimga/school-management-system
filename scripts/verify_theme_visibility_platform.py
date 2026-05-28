@@ -128,6 +128,7 @@ def check_render_smoke() -> list[str]:
     django.setup()
     from django.contrib.auth import get_user_model
     from django.test import Client, override_settings
+    from django.utils import timezone
 
     User = get_user_model()
     user, _ = User.objects.get_or_create(
@@ -137,6 +138,25 @@ def check_render_smoke() -> list[str]:
     if not user.check_password("verify-pass"):
         user.set_password("verify-pass")
         user.save(update_fields=["password"])
+    update_fields = []
+    if hasattr(user, "last_security_posture_review_at"):
+        user.last_security_posture_review_at = timezone.now()
+        update_fields.append("last_security_posture_review_at")
+    if update_fields:
+        user.save(update_fields=update_fields)
+    try:
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        TOTPDevice.objects.get_or_create(
+            user=user,
+            name="theme-platform-verify",
+            defaults={"confirmed": True},
+        )
+        TOTPDevice.objects.filter(user=user, name="theme-platform-verify").update(
+            confirmed=True
+        )
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
 
     host = "manager.runmycampus.com"
     # Mirrors docs/generated/THEME_VALIDATION_URLS.md (manager host).
@@ -218,6 +238,9 @@ def check_render_smoke() -> list[str]:
     with override_settings(ALLOWED_HOSTS=["*"]):
         client = Client(HTTP_HOST=host, raise_request_exception=False)
         client.force_login(user)
+        session = client.session
+        session["mfa_verified"] = True
+        session.save()
         for path, needles in probes:
             response = client.get(path, HTTP_HOST=host, secure=True)
             if response.status_code != 200:

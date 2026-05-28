@@ -10,9 +10,9 @@ Schema::
       "version": 1,
       "overrides": [
         {
-          "school": "gilead-tech-high",   # School.slug
+          "school": "example-academy",   # School.slug
           "policy_key": "admissions.numbering_strategy",
-          "value": {"strategy": "sequential", "prefix": "GTH"}
+          "value": {"strategy": "sequential", "prefix": "EXA"}
         },
         ...
       ]

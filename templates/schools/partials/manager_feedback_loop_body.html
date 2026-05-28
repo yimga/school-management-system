@@ -51,4 +51,15 @@
       </div>
     </section>
   </div>
+  <section class="mt-3">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header fw-semibold small">{% trans "Customer experience (CEZGP)" %}</div>
+      <div class="card-body small text-tertiary">
+        <p class="mb-1">{% trans "Run weekly friction digest and refresh the research matrix after each CEZGP phase." %}</p>
+        <code class="small">python manage.py digest_friction</code>
+        <span class="mx-1">·</span>
+        <code class="small">python scripts/audit_customer_experience_research_matrix.py --write</code>
+      </div>
+    </div>
+  </section>
 </div>

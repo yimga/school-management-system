@@ -137,7 +137,6 @@ def build_launch_rail_payload(school, user=None) -> dict[str, Any]:
     )
 
     next_fast = next((r for r in fast_path if not r["done"]), None)
-    next_lane = next((lane for lane in lanes if lane.get("url")), None)
 
     return {
         "creation_path": path,

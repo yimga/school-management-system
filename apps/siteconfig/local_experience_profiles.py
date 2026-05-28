@@ -13,7 +13,7 @@ operational-layout overlay that templates consume.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Iterable
 
 
@@ -169,11 +169,15 @@ def get_profile(key: str) -> LocalExperienceProfile | None:
     return _PROFILE_INDEX.get(key)
 
 
+def _profile_matches_country(profile: LocalExperienceProfile, country_code: str) -> bool:
+    return getattr(profile, "country", "") == country_code
+
+
 def list_profiles(*, country: str | None = None) -> list[dict]:
     rows = list(PROFILES)
     if country:
         cc = country.strip().upper()
-        rows = [r for r in rows if r.country == cc]
+        rows = [r for r in rows if _profile_matches_country(r, cc)]
     return [r.as_dict() for r in rows]
 
 

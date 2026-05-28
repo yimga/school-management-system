@@ -34,10 +34,6 @@ def _resolve_timezone(request: Any) -> str:
 
 def _format_local_time(dt, *, with_seconds: bool = True) -> str:
     locale = getattr(settings, "LANGUAGE_CODE", "en") or "en"
-    if with_seconds:
-        pattern = {"hour": "numeric", "minute": "2-digit", "second": "2-digit"}
-    else:
-        pattern = {"hour": "numeric", "minute": "2-digit"}
     try:
         from django.utils.formats import date_format
 

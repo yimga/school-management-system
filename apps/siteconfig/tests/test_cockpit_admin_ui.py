@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from django.contrib.auth import get_user_model
 from django.template import Context, Template
-from django.template.loader import render_to_string
 from django.test import RequestFactory, SimpleTestCase
 from django.urls import NoReverseMatch, reverse
 

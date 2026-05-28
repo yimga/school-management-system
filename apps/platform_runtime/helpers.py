@@ -514,6 +514,46 @@ def get_platform_site_settings_record(*, create: bool = False) -> Any:
     return site
 
 
+def update_school_site_settings_record(school: Any, defaults: dict[str, Any]) -> Any:
+    """Update or create the school-scoped slim settings row through the approved ORM choke point."""
+    if school is None or not isinstance(defaults, dict):
+        return None
+
+    field_names = {
+        field.name
+        for field in _TenantSettingsModel._meta.concrete_fields
+        if not getattr(field, "primary_key", False)
+    }
+    clean_defaults = {key: value for key, value in defaults.items() if key in field_names}
+    if not clean_defaults:
+        return None
+
+    try:
+        site, _ = _TenantSettingsModel.objects.update_or_create(
+            school=school,
+            defaults=clean_defaults,
+        )
+        return site
+    except (
+        AttributeError,
+        DatabaseError,
+        ImportError,
+        OSError,
+        RuntimeError,
+        TypeError,
+        ValueError,
+    ):
+        log_exception_with_context(
+            "Failed to update school slim tenant settings row",
+            extra={
+                "caller": "update_school_site_settings_record",
+                "school_id": getattr(school, "pk", None),
+                "fields": sorted(clean_defaults.keys()),
+            },
+        )
+        return None
+
+
 def apply_payload_dict_to_site_settings_shallow_base(
     base: Any, payload: dict[str, Any]
 ) -> None:

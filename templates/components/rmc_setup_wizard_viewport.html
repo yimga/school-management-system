@@ -1,0 +1,28 @@
+{% load i18n %}
+{# Viewport-locked multi-step wizard (SOVEREIGN-MULTI-PERSONALITY). #}
+<section
+  class="rmc-wizard-viewport rmc-reveal"
+  data-rmc-wizard-viewport="1"
+  data-rmc-scroll-policy="viewport-lock"
+  data-rmc-wizard-cache="session"
+  aria-labelledby="{{ wizard_title_id|default:'rmc-wizard-viewport-title' }}"
+>
+  <header class="rmc-wizard-viewport__header">
+    {% if wizard_eyebrow %}<p class="rmc-edt-eyebrow mb-2">{{ wizard_eyebrow }}</p>{% endif %}
+    <h2 id="{{ wizard_title_id|default:'rmc-wizard-viewport-title' }}" class="rmc-wizard-viewport__title rmc-text-shield">
+      {{ wizard_title }}
+    </h2>
+    {% if wizard_lead %}<p class="rmc-wizard-viewport__lead rmc-text-shield mb-0">{{ wizard_lead }}</p>{% endif %}
+  </header>
+  {% if wizard_steps %}
+  {% include "components/_wizard_steps.html" with step=wizard_step|default:1 steps=wizard_steps %}
+  {% endif %}
+  <div class="rmc-wizard-viewport__body rmc-iso-scroll-zone" data-rmc-iso-scroll-zone data-rmc-text-shield>
+    {{ wizard_body }}
+  </div>
+  {% if wizard_actions %}
+  <footer class="rmc-wizard-viewport__actions">
+    {{ wizard_actions }}
+  </footer>
+  {% endif %}
+</section>

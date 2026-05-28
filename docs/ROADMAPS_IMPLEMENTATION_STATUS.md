@@ -19,6 +19,34 @@
 
 **Batch 1175** remains **NOT STARTED (external pilot)** — repo intake scaffold only (`verify_pilot_defect_intake.py`, `PILOT_DEFECT_TRIAGE_RUNBOOK.md`). Do not equate with “pilot complete.”
 
+**Glocal adoption batches (1540–1546, internal DONE — 2026-05-28 audit):**
+
+| Batch | Repo status | Proof |
+|-------|-------------|--------|
+| **1540** Adoption tranche 1–3 + Lane 2 evidence | **DONE** | **GLOCAL_PRACTICAL_CLOSEOUT_PASS (live+spawn)**; **GLOCAL_ZERO_HARDCODE_KERNEL_PASS** |
+| **1541** Broad template adoption (21 surfaces) | **DONE** | **GLOCAL_ADOPTION_TRANCHE_PASS** |
+| **1542** Staff mega-lists + conflict cards | **DONE** | Drawer + card surfaces; RTL shell (live proof in **1545**) |
+| **1543** People roster tranche 4 | **DONE** | **GLOCAL_ADOPTION_TRANCHE_PASS** |
+| **1544** Finish-all auto row-detail | **DONE** | **96** drawer tables + **1** card; **GLOCAL_ADOPTION_TRANCHE_PASS** |
+| **1545** Finance requests + RTL CI | **DONE** | **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_PASS (live+spawn)**; CI `playwright-a11y-extended.yml` 15m |
+| **1546** Lane 2 residuals on disk | **DONE (repo)** | **LANE2_RESIDUALS_ON_DISK_PASS**; **1175** intake scaffold only |
+
+**External register (not repo DONE):** `glocal-second-postgres-region`, `glocal-ble-ocr-zero-input`, `glocal-crdt-mesh` — see `docs/external_dependencies_register.json`.
+
+**Marketing + Lane 2 repo batches (1547–1549, internal DONE):**
+
+| Batch | Repo status | Proof |
+|-------|-------------|--------|
+| **1547** Marketing viewport refit + honesty ledger | **DONE (repo)** | `lane2_external_blockers.json`; **MARKETING_INTENT_VIEWPORT_PASS** |
+| **1548** Isomorphic geo + `homepage.html` | **DONE (repo)** | `/storefront/`; `RunMyCampusGeoMiddleware`; `MARKETING_COPY_REGISTRY` |
+| **1549** MULTI-PERSONALITY-GRID pages | **DONE (repo)** | `/experience/{academics,edge-mesh,compliance,pricing}/`; **MARKETING_PERSONALITY_PAGES_PASS** |
+
+**Orchestrators:** `python scripts/verify_glocal_practical_closeout.py --live-playwright` → **GLOCAL_PRACTICAL_CLOSEOUT_PASS**; `python scripts/verify_marketing_lane2_internal_audit.py` → **MARKETING_LANE2_INTERNAL_AUDIT_PASS**.
+
+**Batch 1551 — SOVEREIGN layout token matrix (internal DONE):** `verify_sovereign_layout_token_matrix.py` → **SOVEREIGN_LAYOUT_TOKEN_MATRIX_PASS**; `data-rmc-personality-os` on `portal_base` / `control_plane_skeleton` / `base_marketing`; platform `{% text_token %}` (`apps/platform_runtime/templatetags/rmc_layout_tokens.py`).
+
+**Still external (do not mark DONE in SOT):** 1170 live Stripe charge (`verified_live`), 1199 hosted SHA match, 1175 real pilot school feedback, SOC2 attestation, app stores, translation vendor, live FX API.
+
 ---
 
 ## 1. Roadmap documents in docs (index)

@@ -78,6 +78,7 @@ def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--base", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--write-baseline", action="store_true")
     args = parser.parse_args()
     current = findings()

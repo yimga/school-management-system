@@ -6,7 +6,6 @@ from django.conf import settings
 
 from apps.accounts.profile_security_evaluation import evaluate_user_profile_security
 from apps.accounts.security_health import (
-    get_minimum_security_score_for_role,
     is_within_grace_period,
 )
 

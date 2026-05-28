@@ -73,7 +73,9 @@ def _bola_test_count() -> int:
 
 
 def main() -> int:
+    global ROOT, GENERATED
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", default=None, help="Repository root (defaults to script parent).")
     parser.add_argument("--write", action="store_true", help="Write JSON audit artifact.")
     parser.add_argument(
         "--run-tests",
@@ -81,6 +83,9 @@ def main() -> int:
         help="Run pillar Django test subset (slower).",
     )
     args = parser.parse_args()
+    if args.base:
+        ROOT = Path(args.base).resolve()
+        GENERATED = ROOT / "docs" / "generated" / "five_pillar_platform_audit.json"
     py = sys.executable
     rows: list[Row] = []
 

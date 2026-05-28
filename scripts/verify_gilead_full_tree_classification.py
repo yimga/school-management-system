@@ -155,6 +155,8 @@ def _is_allowed_reference_path(rel: str) -> bool:
     if rel.startswith("apps/") and "/migrations/" in rel:
         return True
     # 3) Tests / fixtures
+    if rel.startswith("tests/"):
+        return True
     if rel.startswith("apps/") and "/tests/" in rel:
         return True
     if rel.startswith("apps/") and "/fixtures/" in rel:
@@ -175,6 +177,11 @@ def _is_allowed_reference_path(rel: str) -> bool:
         return True
     # 8) Cursor planning/rules artifacts
     if rel.startswith(".cursor/"):
+        return True
+    # 9) Vendored dictionaries and tracked verifier logs are not product copy.
+    if rel.startswith("static/vendor/"):
+        return True
+    if rel.startswith("var/"):
         return True
     return False
 

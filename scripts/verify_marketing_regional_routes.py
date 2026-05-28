@@ -55,7 +55,12 @@ def main() -> int:
     host = os.environ.get("MARKETING_TEST_HOST", "runmycampus.com")
     for cc in TOP_TEN:
         path = regional_landing_path(cc)
-        resp = client.get(path, HTTP_HOST=host)
+        resp = client.get(
+            path,
+            HTTP_HOST=host,
+            HTTP_X_FORWARDED_PROTO="https",
+            secure=True,
+        )
         if resp.status_code != 200:
             errors.append(f"canonical GET {path} -> {resp.status_code}")
         body = resp.content.decode("utf-8", errors="replace")

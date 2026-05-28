@@ -2,7 +2,6 @@
 
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
-from django.urls import reverse
 
 from apps.lifecycle.wind_down import apply_wind_down_mode
 from apps.lifecycle.wind_down_guards import block_if_wind_down_commerce

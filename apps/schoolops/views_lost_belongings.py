@@ -145,7 +145,6 @@ def lost_belongings_lookup(request):
 @require_http_methods(["GET", "POST"])
 def lost_belongings_recover(request):
     school = request.school
-    tenant_id = str(school.pk) if school is not None else ""
     error = None
     event = None
     form = StaffRecoveryForm(request.POST or None)

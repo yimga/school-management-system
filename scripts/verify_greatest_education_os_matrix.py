@@ -106,6 +106,12 @@ def build_pillars() -> list[PillarResult]:
     ok_offboard, tail_off = _run([script, "scripts/verify_tenant_offboarding_surface.py"])
     ok_five, tail_five = _run([script, "scripts/verify_five_pillar_platform_completion.py"])
     ok_mw, tail_mw = _run([script, "scripts/verify_middleware_stack_order.py"])
+    ok_ce_ease, tail_ce_ease = _run(
+        [script, "scripts/verify_customer_experience_ease_layer.py"]
+    )
+    ok_ce_base, tail_ce_base = _run(
+        [script, "scripts/verify_customer_experience_baseline.py"]
+    )
 
     add(
         "google",
@@ -302,6 +308,41 @@ def build_pillars() -> list[PillarResult]:
         ],
     )
 
+    add(
+        "customer_experience",
+        "Customer experience — CEZGP ease + friction",
+        [
+            ("ce_ease_gate", "verify_customer_experience_ease_layer.py", ok_ce_ease, tail_ce_ease),
+            ("ce_baseline_gate", "verify_customer_experience_baseline.py", ok_ce_base, tail_ce_base),
+            (
+                "ce_matrix_audit",
+                "customer_experience_research_matrix.json",
+                _file_ok("docs/generated/customer_experience_research_matrix.json"),
+                "docs/generated/customer_experience_research_matrix.json",
+            ),
+            (
+                "ce_friction_report",
+                "report_friction_top_views.py",
+                _file_ok("scripts/report_friction_top_views.py"),
+                "scripts/report_friction_top_views.py",
+            ),
+            (
+                "ce_cmdk_ease",
+                "Cmd+K parent/finance/import actions",
+                _file_ok("apps/siteconfig/command_bar_registry.py", "parent_finance_pay_all")
+                and _file_ok("apps/siteconfig/command_bar_registry.py", "link_child"),
+                "command_bar_registry.py",
+            ),
+            (
+                "ce_parent_workflows",
+                "Parent contact + pay-all workflow partials",
+                _file_ok("templates/parent/contact_school.html", "workflow_next_action")
+                and _file_ok("templates/parent/finance.html", "workflow_next_action"),
+                "parent templates",
+            ),
+        ],
+    )
+
     return pillars
 
 
@@ -346,6 +387,7 @@ def render_markdown(payload: dict) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--base", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--write", action="store_true", help="Write generated artifacts.")
     parser.add_argument("--pillar", help="Filter output to one pillar id.")
     parser.add_argument(

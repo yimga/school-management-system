@@ -10,7 +10,7 @@ recommendation is returned — the recommender NEVER fabricates a template key.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from apps.brand_experience.experience_templates import (
@@ -19,7 +19,6 @@ from apps.brand_experience.experience_templates import (
     get_overlay,
     list_overlays,
 )
-from apps.siteconfig.local_experience_profiles import get_profile
 
 
 @dataclass(frozen=True)

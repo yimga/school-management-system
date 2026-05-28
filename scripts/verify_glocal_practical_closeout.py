@@ -47,7 +47,7 @@ def main() -> int:
     failures: list[str] = []
     for script, extra in STEPS:
         if script == "verify_teacher_dashboard_rtl_playwright.py" and args.live_playwright:
-            extra = ["--run"]
+            extra = ["--run", "--spawn-server"]
         ok, tail = _run(script, extra)
         if not ok:
             failures.append(f"{script}: {tail}")

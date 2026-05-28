@@ -1,14 +1,14 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load static i18n %}
 
 {% block title %}{% trans "Setup Wizards" %}{% endblock %}
 
-{% block extra_head %}
+{% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'css/rmc-wizard.css' %}">
 {% endblock %}
 
-{% block content %}
+{% block cp_content %}
 <main class="rmc-wizard-shell rmc-wizard-shell--operator">
   <header class="rmc-wizard-pane__head">
     <h1 class="rmc-wizard-pane__title">{% trans "Operator setup wizards" %}</h1>

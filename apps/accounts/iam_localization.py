@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.utils.translation import gettext as _
 
 
 def _school_settings(school) -> Any | None:

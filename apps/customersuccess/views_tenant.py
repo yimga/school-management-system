@@ -8,13 +8,15 @@ from collections.abc import Mapping
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import DatabaseError
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.views.decorators.http import require_POST
 
 from apps.setup_studio.services import execute_launch, get_setup_studio_payload
 
-from .services import get_support_copilot_suggestions
+from .bulk_csv_student_import import apply_bulk_csv, parse_and_validate_csv
+from .services import get_guided_onboarding_steps, get_support_copilot_suggestions
 
 TENANT_CUSTOMER_SUCCESS_SOFT_FAILURES = (
     AttributeError,
@@ -31,6 +33,35 @@ def _launch_studio_shell_url() -> str:
         return reverse("studio_os:launch")
     except NoReverseMatch:
         return ""
+
+
+def _resolve_guided_onboarding_school(request):
+    try:
+        from apps.lifecycle.tenant_school_resolve import resolve_request_school
+
+        return resolve_request_school(request)
+    except ImportError:
+        return getattr(request, "school", None)
+
+
+def _csv_upload_text(request) -> str:
+    upload = request.FILES.get("csv_file")
+    if upload is not None:
+        raw = upload.read()
+        if isinstance(raw, bytes):
+            return raw.decode("utf-8-sig", errors="replace")
+        return str(raw or "")
+    return (request.POST.get("csv_text") or "").strip()
+
+
+def _staff_may_run_csv_import(request) -> bool:
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+        return True
+    role = str(getattr(user, "role", "") or "").upper()
+    return role in {"ADMIN", "SUPERADMIN", "PROPRIETOR"}
 
 
 def _guided_onboarding_fallback_context(*, school=None, detail: str) -> dict:
@@ -65,6 +96,9 @@ def _guided_onboarding_fallback_context(*, school=None, detail: str) -> dict:
         "data_path_choices": [],
         "ai_recommended": False,
         "launch_studio_url": _launch_studio_shell_url(),
+        "onboarding_steps": [],
+        "csv_dry_run_url": "",
+        "csv_apply_url": "",
     }
 
 
@@ -953,8 +987,6 @@ def support_copilot_view(request):
 def guided_onboarding_view(request):
     """Section 11.4: Guided onboarding - Setup Studio. When not embedded, redirect to Studio Launch."""
     if request.GET.get("embed") != "1":
-        from django.urls import reverse
-
         return redirect(reverse("studio_os:launch"))
     try:
         from apps.lifecycle.tenant_school_resolve import resolve_request_school
@@ -1034,11 +1066,63 @@ def guided_onboarding_view(request):
             ),
         )
     context["launch_studio_url"] = _launch_studio_shell_url()
+    try:
+        context["onboarding_steps"] = get_guided_onboarding_steps(school)
+    except GUIDED_ONBOARDING_SOFT_FAILURES:
+        context["onboarding_steps"] = []
+    try:
+        context["csv_dry_run_url"] = reverse("siteconfig:guided_onboarding_csv_dry_run")
+        context["csv_apply_url"] = reverse("siteconfig:guided_onboarding_csv_apply")
+    except NoReverseMatch:
+        context["csv_dry_run_url"] = ""
+        context["csv_apply_url"] = ""
     return render(
         request,
         "customersuccess/guided_onboarding.html",
         context,
     )
+
+
+@login_required
+@require_POST
+def guided_onboarding_csv_dry_run(request):
+    """Validate roster CSV without writing — tenant-scoped, staff-only."""
+    if not _staff_may_run_csv_import(request):
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    school = _resolve_guided_onboarding_school(request)
+    if not school:
+        return JsonResponse({"ok": False, "error": "no_school"}, status=400)
+    text = _csv_upload_text(request)
+    if not text.strip():
+        return JsonResponse({"ok": False, "error": "empty_csv"}, status=400)
+    validated = parse_and_validate_csv(text)
+    payload = validated.as_dict()
+    payload["ok"] = True
+    return JsonResponse(payload)
+
+
+@login_required
+@require_POST
+def guided_onboarding_csv_apply(request):
+    """Apply a validated roster CSV — tenant-scoped, staff-only."""
+    if not _staff_may_run_csv_import(request):
+        return JsonResponse({"ok": False, "error": "forbidden"}, status=403)
+    school = _resolve_guided_onboarding_school(request)
+    if not school:
+        return JsonResponse({"ok": False, "error": "no_school"}, status=400)
+    text = _csv_upload_text(request)
+    if not text.strip():
+        return JsonResponse({"ok": False, "error": "empty_csv"}, status=400)
+    validated = parse_and_validate_csv(text)
+    if not validated.is_valid:
+        return JsonResponse(
+            {"ok": False, "validation": validated.as_dict()},
+            status=400,
+        )
+    apply_result = apply_bulk_csv(school_id=school.pk, validated=validated)
+    payload = apply_result.as_dict()
+    payload["ok"] = not apply_result.errors
+    return JsonResponse(payload, status=200 if payload["ok"] else 400)
 
 
 @login_required
@@ -1076,3 +1160,23 @@ def execute_launch_view(request):
             for err in errors:
                 messages.error(request, err)
     return redirect("siteconfig:guided_onboarding")
+
+
+@login_required
+def tenant_billing_estimate_view(request):
+    """CEZGP Lane 2 — tenant billing estimate + marketing pricing crosswalk (P10 / B6)."""
+    school = _resolve_guided_onboarding_school(request)
+    if school is None:
+        messages.error(request, "No school context for billing estimate.")
+        return redirect("siteconfig:guided_onboarding")
+    from .pricing_billing_clarity import tenant_billing_estimate_context
+
+    ctx = tenant_billing_estimate_context(school=school)
+    return render(
+        request,
+        "customersuccess/tenant_billing_estimate.html",
+        {
+            "school": school,
+            **ctx,
+        },
+    )

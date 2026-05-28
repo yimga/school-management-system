@@ -24,6 +24,7 @@
   {% include "marketing/partials/sections/_clinical_ledger.html" %}
   {% include "marketing/partials/sections/_rugged_engine.html" %}
 </div>
+{% include "marketing/partials/_personality_page_nav.html" with active="homepage" %}
 <nav class="mkt-intent-home__cta mkt-edt-container mkt-edt-container--wide" aria-label="{% trans 'Next steps' %}">
   <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta mkt-edt-cta--primary" data-cta="demo">{% trans "Book a demo" %}</a>
   <a href="{% url 'marketing_landing_v2' %}" class="mkt-edt-cta mkt-edt-cta--ghost">{% trans "Full platform story" %}</a>

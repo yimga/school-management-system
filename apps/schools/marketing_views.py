@@ -2463,6 +2463,30 @@ def marketing_intent_homepage(request):
     return render(request, "marketing/homepage.html", ctx)
 
 
+@require_GET
+def marketing_personality_page(request, personality_slug: str):
+    """Single-personality marketing viewport (academics / edge-mesh / compliance / pricing)."""
+    from django.http import Http404
+
+    from apps.schools.funnel_events import record_marketing_funnel_event
+    from apps.schools.marketing_personality_registry import get_personality_page
+
+    spec = get_personality_page(personality_slug)
+    if not spec or personality_slug == "homepage":
+        raise Http404
+    record_marketing_funnel_event("visit", request)
+    geo_country = _get_country_from_request(request)
+    ctx = _marketing_context(
+        request,
+        country_code=geo_country,
+        language_code=(getattr(request, "LANGUAGE_CODE", "") or "en"),
+        regional=False,
+    )
+    ctx["marketing_personality_slug"] = personality_slug
+    ctx["marketing_personality_spec"] = spec
+    return render(request, spec["template"], ctx)
+
+
 def _get_blog_posts(limit: int = 20):
     """Return published blog posts for marketing blog page; empty list if model unavailable."""
     try:

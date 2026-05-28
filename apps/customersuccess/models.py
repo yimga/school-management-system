@@ -291,6 +291,7 @@ class AutoTicketRule(models.Model):
         HEALTH_BELOW = "health_below", "Health score below threshold"
         INACTIVITY_DAYS = "inactivity_days", "Admin inactivity (days)"
         RISK_ALERT_RED = "risk_alert_red", "Red risk alert"
+        FEEDBACK_CRITICAL = "feedback_critical", "Critical/high feedback submission"
 
     name = models.CharField(max_length=120)
     trigger = models.CharField(max_length=40, choices=Trigger.choices, db_index=True)

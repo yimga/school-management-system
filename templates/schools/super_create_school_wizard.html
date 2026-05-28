@@ -103,16 +103,16 @@
                       {% trans "First admin email" as ts_lbl_email %}
                       <div class="mb-3">
                         {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="name" label=ts_lbl_name required=1 tag_title=wizard_field_tags.name.title tag_body=wizard_field_tags.name.body %}
-                        <input type="text" class="form-control" id="name" name="name" required placeholder="{% trans 'e.g. Gilead Tech High' %}">
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="{% trans 'e.g. Example Academy' %}">
                       </div>
                       <div class="mb-3">
                         {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="slug" label=ts_lbl_slug required=1 tag_title=wizard_field_tags.slug.title tag_body=wizard_field_tags.slug.body %}
-                        <input type="text" class="form-control" id="slug" name="slug" required placeholder="gilead-tech" autocomplete="off">
+                        <input type="text" class="form-control" id="slug" name="slug" required placeholder="example-academy" autocomplete="off">
                         <div class="form-text">{% trans "Lowercase letters, numbers, and hyphens only." %}</div>
                       </div>
                       <div class="mb-3">
                         {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="subdomain" label=ts_lbl_subdomain tag_title=wizard_field_tags.subdomain.title tag_body=wizard_field_tags.subdomain.body %}
-                        <input type="text" class="form-control" id="subdomain" name="subdomain" placeholder="gilead-tech" autocomplete="off">
+                        <input type="text" class="form-control" id="subdomain" name="subdomain" placeholder="example-academy" autocomplete="off">
                       </div>
                       <div class="mb-3">
                         {% include "schools/partials/tenant_studio_wizard_field_label.html" with field_id="contact_email" label=ts_lbl_email required=1 tag_title=wizard_field_tags.contact_email.title tag_body=wizard_field_tags.contact_email.body %}

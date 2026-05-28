@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import json
 
-from django.db import DatabaseError
 from django.db.models import Count, Sum
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -24,13 +23,10 @@ from apps.registries.models import (
     SubdivisionRegistry,
 )
 from .decision_architecture import get_decision_architecture_for_page
-from .models import School, SchoolProvisioningEvent
+from .models import School
 from .super_views_command_center_data import build_command_center_data as _build_command_center_data
 from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 from .super_views_dashboard_helpers import (
-    brand_profile_for_school,
-    education_level_label,
-    education_system_type_label,
     get_super_dashboard_section_order,
     month_options as build_month_options_list,
     parse_month_param,
@@ -593,6 +589,9 @@ def super_dashboard_v2(request):
     peer_operators = operator_peer_picker_context(
         exclude_user_id=request.user.pk if request.user.is_authenticated else None
     )
+    from apps.schools.residency_readiness import assess_readiness
+
+    data_residency_readiness = assess_readiness()
     return render(
         request,
         "schools/super_dashboard.html",
@@ -657,5 +656,6 @@ def super_dashboard_v2(request):
             ),
             "operator_super_dashboard_links": operator_super_dashboard_links,
             "peer_operators": peer_operators,
+            "data_residency_readiness": data_residency_readiness,
         },
     )

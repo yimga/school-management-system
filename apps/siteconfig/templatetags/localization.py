@@ -22,8 +22,6 @@ from decimal import Decimal
 from typing import Any
 
 from django import template
-from django.utils.dateformat import format as dj_format
-from django.utils.safestring import mark_safe
 
 register = template.Library()
 

@@ -1,4 +1,5 @@
 {% load i18n static %}
+{% url 'manager_support_request' as ai_escalate_url %}
 <div
   class="{% if ai_center_shell == 'control-plane' %}container-fluid py-2{% else %}container py-3{% endif %}"
   data-page-archetype="ai-center"
@@ -198,7 +199,7 @@ OLLAMA_MODEL=llama3</code></pre>
             ></pre>
             <div class="alert alert-warning py-2 px-3 mt-2 small d-none" data-rmc-ai-escalation hidden role="status">
               {% trans "Documentation gap detected." %}
-              <a href="#" class="alert-link ms-1" data-rmc-ai-escalate-link data-rmc-dead-link-allow="escalate-href-set-by-ai-assistant-js">{% trans "Escalate to Campus Helpdesk" %}</a>
+              <a href="{{ ai_escalate_url }}" class="alert-link ms-1" data-rmc-ai-escalate-link data-rmc-dead-link-allow="escalate-href-set-by-ai-assistant-js">{% trans "Escalate to Campus Helpdesk" %}</a>
             </div>
             <div class="d-flex gap-2 mt-2 d-none" data-rmc-ai-feedback hidden>
               <span class="text-muted small align-self-center">{% trans "Was this helpful?" %}</span>

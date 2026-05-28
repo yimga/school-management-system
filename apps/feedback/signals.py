@@ -20,6 +20,7 @@ from apps.feedback.models import (
     FeedbackVote,
     ReleaseNote,
 )
+from apps.feedback.notification_services import notify_critical_feedback_submission
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -163,6 +164,22 @@ def _email_submitter_on_feature_request(sender, instance: FeatureRequest, create
         ),
         recipients=[user.email],
     )
+
+
+@receiver(post_save, sender=FeedbackSubmission)
+def _notify_operators_on_critical_feedback(sender, instance: FeedbackSubmission, created, **kwargs):
+    if not created:
+        return
+    tags = instance.tags or []
+    if "auto_ticket" in tags:
+        return
+    notify_critical_feedback_submission(instance)
+    try:
+        from apps.customersuccess.auto_ticket_runner import evaluate_feedback_critical_rules
+
+        evaluate_feedback_critical_rules(instance)
+    except Exception:
+        logger.warning("feedback critical auto-ticket evaluation failed", exc_info=True)
 
 
 @receiver(post_save, sender=FeedbackSubmission)

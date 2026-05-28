@@ -1,0 +1,53 @@
+{
+  "generatedAt": "2026-05-27T14:40:29.263Z",
+  "baseUrl": "http://manager.localtest.me:8058",
+  "ok": true,
+  "rows": [
+    {
+      "label": "manager-admin-users",
+      "path": "/admin/accounts/user/",
+      "url": "http://manager.localtest.me:8058/admin/accounts/user/",
+      "status": "ok",
+      "markerPresent": true,
+      "scrollerSelector": "#cp-main-content",
+      "scrollerClientHeight": 672,
+      "scrollerScrollHeight": 5914,
+      "scrollBefore": 0,
+      "scrollAfter": 5242,
+      "overflowY": "scroll",
+      "scrollbarColor": "color(srgb 0.521569 0.486274 0.439216 / 0.62) color(srgb 1 0.980392 0.941176 / 0.78)",
+      "scrollbarGutter": "stable",
+      "forbiddenOverflowY": "hidden",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "innerWidth": 1440,
+      "rootScrollWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "failures": []
+    },
+    {
+      "label": "manager-super-operator-hub",
+      "path": "/super/platform-operator-hub/",
+      "url": "http://manager.localtest.me:8058/super/platform-operator-hub/?scroll_audit=1779892819388",
+      "status": "ok",
+      "markerPresent": true,
+      "scrollerSelector": ".rmc-app-shell__canvas-body",
+      "scrollerClientHeight": 469,
+      "scrollerScrollHeight": 11314,
+      "scrollBefore": 0,
+      "scrollAfter": 10845,
+      "overflowY": "scroll",
+      "scrollbarColor": "color(srgb 0.521569 0.486274 0.439216 / 0.62) color(srgb 1 0.980392 0.941176 / 0.78)",
+      "scrollbarGutter": "stable",
+      "forbiddenOverflowY": "hidden",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "innerWidth": 1440,
+      "rootScrollWidth": 1440,
+      "bodyScrollWidth": 1440,
+      "hasHorizontalOverflow": false,
+      "failures": []
+    }
+  ]
+}

@@ -7,7 +7,6 @@ CRDT-merge admin IAM is explicitly rejected — offline grants use intent queue 
 
 from __future__ import annotations
 
-from typing import Iterable
 
 
 def colon_tokens_from_permissions() -> list[str]:

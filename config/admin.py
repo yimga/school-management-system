@@ -11,6 +11,7 @@ from apps.dashboard.admin_context import build_admin_dashboard_context
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.db import DatabaseError
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template import TemplateDoesNotExist, TemplateSyntaxError
@@ -32,6 +33,7 @@ _ADMIN_CONTEXT_FALLBACK_ERRORS = (
     ImproperlyConfigured,
     TemplateDoesNotExist,
     TemplateSyntaxError,
+    DatabaseError,
 )
 
 
@@ -406,7 +408,7 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             from apps.siteconfig.platform_admin_catalog import build_platform_admin_catalog
 
             context["admin_catalog"] = build_platform_admin_catalog(app_list)
-        except Exception:
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             logging.getLogger(__name__).warning(
                 "platform admin catalog build failed", exc_info=True
             )
@@ -457,7 +459,7 @@ class PlatformAdminSite(BaseRunMyCampusAdminSite):
             from apps.siteconfig.admin_index_surface import empty_admin_index_surface
 
             context["admin_index_surface"] = empty_admin_index_surface()
-        except Exception:
+        except _ADMIN_CONTEXT_FALLBACK_ERRORS:
             logging.getLogger(__name__).warning(
                 "admin index surface context failed", exc_info=True
             )

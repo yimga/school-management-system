@@ -12,6 +12,7 @@ from smtplib import SMTPException
 
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.urls import NoReverseMatch
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ def _login_url(school) -> str:
 
     try:
         path = reverse("accounts:login")
-    except Exception:
+    except NoReverseMatch:
         path = "/authentication/login/"
     return build_tenant_authentication_url(school, path)
 

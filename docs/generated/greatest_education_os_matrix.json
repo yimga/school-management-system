@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-05-26T10:20:25.381203+00:00",
+  "generated_at": "2026-05-28T02:02:00.976407+00:00",
   "repo_target_pct": 99.0,
   "verdict": "GEOS_99_MATRIX_PASS",
   "overall": {
     "repo_pct": 100.0,
-    "live_pct": 100.0,
-    "composite_pct": 100.0
+    "live_pct": 88.9,
+    "composite_pct": 95.6
   },
   "honest_overall": {
     "repo_pct": 100.0,
-    "internal_pilot_pct": 100.0,
+    "internal_pilot_pct": 88.9,
     "public_live_pct": 0.0,
     "pwa_pct": 60.0,
     "external_vendor_pct": 0.0,
@@ -360,6 +360,63 @@
         "native_app_status": "DEFERRED",
         "verdict": "PUBLIC LIVE PENDING",
         "explanation": "repo=100.0% internal_pilot=100.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
+      }
+    },
+    {
+      "pillar_id": "customer_experience",
+      "title": "Customer experience \u2014 CEZGP ease + friction",
+      "repo_pct": 100.0,
+      "live_pct": 0.0,
+      "composite_pct": 60.0,
+      "checks": [
+        {
+          "check_id": "ce_ease_gate",
+          "description": "verify_customer_experience_ease_layer.py",
+          "passed": true,
+          "proof": "CUSTOMER_EXPERIENCE_EASE_LAYER_PASS"
+        },
+        {
+          "check_id": "ce_baseline_gate",
+          "description": "verify_customer_experience_baseline.py",
+          "passed": true,
+          "proof": "CUSTOMER_EXPERIENCE_BASELINE_PASS"
+        },
+        {
+          "check_id": "ce_matrix_audit",
+          "description": "customer_experience_research_matrix.json",
+          "passed": true,
+          "proof": "docs/generated/customer_experience_research_matrix.json"
+        },
+        {
+          "check_id": "ce_friction_report",
+          "description": "report_friction_top_views.py",
+          "passed": true,
+          "proof": "scripts/report_friction_top_views.py"
+        },
+        {
+          "check_id": "ce_cmdk_ease",
+          "description": "Cmd+K parent/finance/import actions",
+          "passed": true,
+          "proof": "command_bar_registry.py"
+        },
+        {
+          "check_id": "ce_parent_workflows",
+          "description": "Parent contact + pay-all workflow partials",
+          "passed": true,
+          "proof": "parent templates"
+        }
+      ],
+      "honest": {
+        "repo_pct": 100.0,
+        "internal_pilot_pct": 0.0,
+        "public_live_pct": 0.0,
+        "pwa_pct": 60.0,
+        "external_vendor_pct": 0.0,
+        "market_ready_pct": 0.0,
+        "composite_pct": 0.0,
+        "native_app_status": "DEFERRED",
+        "verdict": "PUBLIC LIVE PENDING",
+        "explanation": "repo=100.0% internal_pilot=0.0% public_live=0.0% pwa=60.0% external_vendor=0.0% (public live downgraded \u2014 no proof) (external vendor downgraded \u2014 no proof) (pwa capped at 60 \u2014 no browser proof)"
       }
     }
   ]

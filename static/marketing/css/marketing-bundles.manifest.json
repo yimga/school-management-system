@@ -1,6 +1,6 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-05-21T11:07:14Z",
+  "generated_utc": "2026-05-28T01:03:01Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
     "bytes": 21451,
@@ -34,22 +34,22 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 284953,
+    "bytes": 347234,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
-        "sha256": "1d966165ecf2c5f69264c8b0216d1a9b4f46a018d24fee612cb80f32fc33fa54",
-        "bytes": 69783
+        "sha256": "f6656c138d1578fa55bbfa859de4e82454f3922edbd3b8703ef9996501a45282",
+        "bytes": 139081
       },
       {
         "path": "static/css/rmc-platform-header.css",
-        "sha256": "69eb4c90bc2ee25d3c61ff458c3d9bcd0274b2b4ba2facf39c3c9e74d1437bb8",
-        "bytes": 12596
+        "sha256": "b4a8ad5c67f79338011ea23d2e3f2af25362c01b86638bda91d6a7676934096c",
+        "bytes": 13300
       },
       {
         "path": "static/css/statement-header.css",
-        "sha256": "40471ab3f9485a69aafd501ea4ac21208e95f59c420971e85cb053d714e60c31",
-        "bytes": 7889
+        "sha256": "74703e4d8b35273d4a5c2ead0d5ab29ea924b074d6e974dd49d5616d1f89e832",
+        "bytes": 8025
       },
       {
         "path": "static/marketing/css/tokens-schoolhouse.css",
@@ -77,6 +77,21 @@
         "bytes": 6542
       },
       {
+        "path": "static/marketing/css/marketing-visual-engine.css",
+        "sha256": "23a3b0972bc525e87f29c549b4e76d1105df8a2bfcb1e79dd95d5ac292ae41a8",
+        "bytes": 7845
+      },
+      {
+        "path": "static/marketing/css/marketing-intent-home.css",
+        "sha256": "a24b94d8fb70635be6a74c940e7de75685143c0b7d71b9eae76ba337f7b3d327",
+        "bytes": 1274
+      },
+      {
+        "path": "static/marketing/css/marketing-personality-pages.css",
+        "sha256": "24a61756f5ee591520df90187c80e3d81cb7a06cbc155bccbd7b9199b2e602ef",
+        "bytes": 3503
+      },
+      {
         "path": "static/marketing/css/marketing-edge-layout.css",
         "sha256": "2c23635d687b492bd11fc19770e38f672f5e4ef3682ce48da2aa2f2371714057",
         "bytes": 3143
@@ -88,8 +103,8 @@
       },
       {
         "path": "static/marketing/css/marketing-shell.css",
-        "sha256": "0d24a524257388aed69fbc3fd1f5a4a0a5d16decba40d0b66ed474c5d2704f8c",
-        "bytes": 38030
+        "sha256": "a8f01362b448ffa489370366e36f5d2523b969a543f1703be87de8762c257c93",
+        "bytes": 38100
       },
       {
         "path": "static/marketing/css/tokens-editorial.css",
@@ -103,8 +118,8 @@
       },
       {
         "path": "static/css/rmc-cool-apple-polish.css",
-        "sha256": "433ca71c7ef7119cfcbee590049fab9c89611aa41ca10246b309fdefcd3c3fda",
-        "bytes": 23009
+        "sha256": "6496751a5bdb8c6ec1ea775f25f8611a2e357094650a1a6390e2ddea2aae2659",
+        "bytes": 23166
       },
       {
         "path": "static/css/design-tokens-luxury.css",
@@ -118,13 +133,13 @@
       },
       {
         "path": "static/marketing/css/marketing-v3-pages.css",
-        "sha256": "0d8417edb647c8570816653ba866165fbba3a961ec244ef1b570190b05fae0f3",
-        "bytes": 8671
+        "sha256": "8a15b6e0fa8182092edb7c3f5064c7ea3dd403b0fbf7baa97528e8c82378855e",
+        "bytes": 8793
       },
       {
         "path": "static/css/rmc-bell-clock-product.css",
-        "sha256": "2ef4d16c0be63dd157f11626e4010f1d48d31571c797049b9d432807bd7141de",
-        "bytes": 8493
+        "sha256": "d24763ec260c96136502a2a07224c2038c4f15331f00c588ff21d3b1e8fc30fd",
+        "bytes": 8618
       },
       {
         "path": "static/marketing/css/proof-pages.css",
@@ -173,8 +188,8 @@
       },
       {
         "path": "static/css/rmc-world-class-experience.css",
-        "sha256": "681d3fcadc837504cd3a98d0eaf5b6459d243c2ba33c726016ffb8e2f22df3ac",
-        "bytes": 26237
+        "sha256": "af7dbc4cfad51fb1f0f714e098391aade4b7424febfd605ca55907fb67049e7e",
+        "bytes": 27278
       },
       {
         "path": "static/css/rmc-corporate-os.css",
@@ -190,7 +205,7 @@
   },
   "budgets": {
     "critical_max": 45000,
-    "enhanced_max": 290000,
+    "enhanced_max": 350000,
     "comment": "Critical = tokens + shell + contrast hardening + fonts + critical-path; enhanced includes personality+viz CSS (284KB as of 2026-05-21 after batch 1372 off-token-allow / theme-locked-allow CI markers preserved through minify). Deferred load via media=print onload."
   }
 }

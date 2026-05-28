@@ -1,0 +1,61 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Tenant data export (GDPR)" %}{% endblock %}
+
+{% block content %}
+<h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Tenant data export" %}</h1>
+<div class="container-lg py-4" data-page-archetype="task-form" data-rmc-scroll-policy="paginate">
+  <div class="mb-3">
+    <div class="eyebrow text-muted small">{% trans "Privacy & compliance" %}</div>
+    <h2 class="h4 mb-1">{% trans "Download your school's data" %}</h2>
+    <p class="small text-muted mb-0">
+      {% trans "Generate a portability ZIP of tenant records. This does not close or delete your school." %}
+    </p>
+  </div>
+
+  {% if error %}
+  <div class="alert alert-warning" role="alert">{{ error }}</div>
+  {% endif %}
+  {% if success %}
+  <div class="alert alert-success" role="status">
+    {% blocktrans with count=student_export_count %}Export ready ({{ count }} student bundles included).{% endblocktrans %}
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h3 class="h6">{% trans "Portability pack" %}</h3>
+      <p class="small text-muted">
+        {% trans "Includes roster, finance summaries, and audit-safe manifests where your plan allows. Large schools may take a few minutes." %}
+      </p>
+      <form method="post" class="d-flex flex-wrap gap-2" {% if data_rmc_offline_form %}data-rmc-offline-form="tenant-gdpr-export"{% endif %}>
+        {% csrf_token %}
+        <button type="submit" name="action" value="generate" class="btn btn-primary btn-sm">
+          {% trans "Generate export" %}
+        </button>
+        {% if has_export %}
+        <button type="submit" name="action" value="download" class="btn btn-outline-primary btn-sm">
+          {% trans "Download ZIP" %}
+        </button>
+        {% endif %}
+      </form>
+      {% if export_zip_path %}
+      <p class="small text-muted mt-2 mb-0"><code>{{ export_zip_path }}</code></p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if dsar_close_url %}
+  <div class="card shadow-sm border-warning">
+    <div class="card-body">
+      <h3 class="h6">{% trans "Export and close school" %}</h3>
+      <p class="small text-muted mb-2">
+        {% trans "If you intend to cease operations and delete the tenant after legal retention, use the separate export-and-close flow." %}
+      </p>
+      <a class="btn btn-outline-warning btn-sm" href="{{ dsar_close_url }}">{% trans "Export and close" %}</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

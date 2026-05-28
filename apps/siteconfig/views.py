@@ -2802,30 +2802,11 @@ def admission_number_preview_api(request):
 @login_required
 @staff_member_required(login_url=settings.LOGIN_URL)
 def feedback_roadmap(request):
-    """Product feedback roadmap: Planned / In Development / Released (tagged by region/module)."""
-    from .models import ProductFeedback
+    """Legacy ProductFeedback roadmap — redirects to apps.feedback operator surface.
 
-    planned = list(
-        ProductFeedback.objects.filter(status=ProductFeedback.Status.PLANNED).order_by(
-            "-upvotes", "-created_at"
-        )[:50]
-    )
-    in_dev = list(
-        ProductFeedback.objects.filter(
-            status=ProductFeedback.Status.IN_DEVELOPMENT
-        ).order_by("-upvotes", "-created_at")[:50]
-    )
-    released = list(
-        ProductFeedback.objects.filter(status=ProductFeedback.Status.RELEASED).order_by(
-            "-updated_at"
-        )[:50]
-    )
-    return render(
-        request,
-        "siteconfig/feedback_roadmap.html",
-        {
-            "planned": planned,
-            "in_development": in_dev,
-            "released": released,
-        },
-    )
+    ProductFeedback (siteconfig.models_marketing) remains for admin/historical rows;
+    new product voice lives in apps.feedback FeatureRequest / ReleaseNote.
+    """
+    from django.shortcuts import redirect
+
+    return redirect("feedback:product_feedback")

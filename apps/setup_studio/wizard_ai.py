@@ -400,7 +400,6 @@ def refresh_setup_recommendations(
     Future expansion: AI-generated per-tenant prioritization.
     """
     from apps.setup_studio import wizard_engine, wizard_state_resolver
-    from apps.setup_studio.models import SetupProgress
 
     if school is None or getattr(school, "pk", None) is None:
         return []

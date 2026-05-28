@@ -17,7 +17,6 @@ from django.db import transaction
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.utils.dateparse import parse_date
 
 from apps.finance.models_offline_capture import FinanceOfflineCaptureRecord
 
@@ -149,8 +148,10 @@ def _apply_cash_closure(
         return {"ok": False, "error": "validation", "details": dict(form.errors)}
 
     closure_date = form.cleaned_data["closure_date"]
+    # tenant-isolation-allow: finance-payment-scoped-via-invoice-compliance-profile-school
     cash_collected = Payment.objects.filter(
         invoice__profile=profile,
+        invoice__school_id=school_id,
         method=PaymentMethodCode.CASH,
         status="completed",
         paid_at__date=closure_date,
@@ -362,7 +363,7 @@ def _apply_report_request(
     school_id: int, user_id: int, fields: dict[str, Any], payload: dict[str, Any]
 ) -> dict[str, Any]:
     from apps.finance.forms import ReportRequestForm
-    from apps.finance.models import Notification, ReportRequest
+    from apps.finance.models import Notification
 
     form = ReportRequestForm(data=fields)
     if not form.is_valid():
@@ -596,7 +597,11 @@ def _apply_split_allocation(
     if not profile:
         return {"ok": False, "error": "no_compliance_profile"}
 
-    active_year = AcademicYear.objects.filter(is_active=True).order_by("-start_date").first()
+    # tenant-isolation-allow: split-allocation-active-year-scoped-to-school-tenant
+    active_year = AcademicYear.objects.filter(
+        school_id=school_id,
+        is_active=True,
+    ).order_by("-start_date").first()
     if not active_year:
         return {"ok": False, "error": "no_active_academic_year"}
 

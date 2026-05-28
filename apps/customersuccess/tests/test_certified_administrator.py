@@ -6,8 +6,6 @@ from django.test import SimpleTestCase
 
 from apps.customersuccess.certified_administrator import (
     CertificationExam,
-    CertificationModule,
-    CertificationTrack,
     get_track,
     list_tracks,
     summary,

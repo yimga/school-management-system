@@ -14,9 +14,8 @@ import hashlib
 import logging
 import secrets
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any
 
 
 logger = logging.getLogger(__name__)

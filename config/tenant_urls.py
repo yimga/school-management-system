@@ -185,7 +185,7 @@ def server_error(request):
     """Custom 500 (SOT batch 1218 hardened).
 
     Two-stage fallback so the 500 page survives context-processor or middleware
-    crashes. Reference incident: `gilead-school.runmycampus.com/school/settings/`
+    crashes. Reference incident: `example-school.runmycampus.com/school/settings/`
     returning 500 with no operator-friendly recovery (2026-05-07).
     """
     context = {"user": getattr(request, "user", None)}
@@ -378,6 +378,14 @@ urlpatterns = [
         "portal/configure/offboarding/export-and-close/",
         __import__("apps.lifecycle.views_dsar", fromlist=["dsar_export_and_close"]).dsar_export_and_close,
         name="lifecycle_dsar_export_and_close",
+    ),
+    path(
+        "portal/configure/privacy/data-export/",
+        __import__(
+            "apps.lifecycle.views_tenant_gdpr_export",
+            fromlist=["tenant_gdpr_data_export"],
+        ).tenant_gdpr_data_export,
+        name="tenant_gdpr_data_export",
     ),
     # Wave L5 (v3.61.4 — 2026-05-22): public per-tenant migration status (lifecycle app).
     path(

@@ -39,13 +39,27 @@ describeRtl('teacher dashboard — RTL mobile 390px', () => {
     const cookies = await page.context().cookies();
     const csrf = cookies.find((c) => c.name === 'csrftoken')?.value || '';
     const setLangUrl = tenantUrl('/i18n/setlang/persist/');
-    await page.request.post(setLangUrl, {
-      form: { language: 'ar', next: dashboardUrl },
-      headers: csrf
-        ? { 'X-CSRFToken': csrf, Referer: dashboardUrl }
-        : { Referer: dashboardUrl },
-      maxRedirects: 0,
-    });
+    try {
+      const persist = await page.request.post(setLangUrl, {
+        form: { language: 'ar', next: dashboardUrl },
+        headers: csrf
+          ? { 'X-CSRFToken': csrf, Referer: dashboardUrl }
+          : { Referer: dashboardUrl },
+        maxRedirects: 0,
+        timeout: 30000,
+      });
+      if (!persist.ok()) {
+        await page.request.post(tenantUrl('/i18n/setlang/'), {
+          form: { language: 'ar', next: dashboardUrl },
+          headers: csrf
+            ? { 'X-CSRFToken': csrf, Referer: dashboardUrl }
+            : { Referer: dashboardUrl },
+          timeout: 30000,
+        });
+      }
+    } catch {
+      // Cookie + ?language=ar still drive shell dir via context processors.
+    }
 
     await page.goto(dashboardUrl, {
       waitUntil: 'domcontentloaded',

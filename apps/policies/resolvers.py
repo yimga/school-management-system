@@ -128,6 +128,65 @@ def BrandingResolver(school, country_code=None, language_code=None) -> dict[str,
 
 
 # --- Channel (communication channel order and fallback) ---
+def is_within_quiet_hours(school, *, now=None) -> bool:
+    """
+    Return True when outbound parent notifications should be deferred per tenant policy.
+    ``quiet_hours`` shape: ``{"enabled": true, "start": "21:00", "end": "07:00", "timezone": "..."}``.
+    """
+    from datetime import datetime, time as time_type
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+    channel = ChannelResolver(school)
+    qh = channel.get("quiet_hours") or {}
+    if not isinstance(qh, dict) or not qh.get("enabled", True):
+        return False
+    start_raw = str(qh.get("start") or "").strip()
+    end_raw = str(qh.get("end") or "").strip()
+    if not start_raw or not end_raw:
+        return False
+
+    def _parse_hhmm(value: str) -> time_type | None:
+        parts = value.split(":", 1)
+        if len(parts) != 2:
+            return None
+        try:
+            hour = int(parts[0])
+            minute = int(parts[1])
+        except (TypeError, ValueError):
+            return None
+        if hour < 0 or hour > 23 or minute < 0 or minute > 59:
+            return None
+        return time_type(hour=hour, minute=minute)
+
+    start_t = _parse_hhmm(start_raw)
+    end_t = _parse_hhmm(end_raw)
+    if start_t is None or end_t is None:
+        return False
+
+    tz_name = str(qh.get("timezone") or "").strip()
+    if not tz_name and school is not None:
+        tz_name = str(getattr(school, "timezone", None) or "").strip()
+    if not tz_name:
+        from django.conf import settings
+
+        tz_name = getattr(settings, "TIME_ZONE", "UTC") or "UTC"
+    try:
+        tz = ZoneInfo(tz_name)
+    except ZoneInfoNotFoundError:
+        tz = ZoneInfo("UTC")
+
+    if now is None:
+        now = datetime.now(tz)
+    elif now.tzinfo is None:
+        now = now.replace(tzinfo=tz)
+    else:
+        now = now.astimezone(tz)
+    current = now.time()
+    if start_t <= end_t:
+        return start_t <= current < end_t
+    return current >= start_t or current < end_t
+
+
 def ChannelResolver(school) -> dict[str, Any]:
     """
     Return communication channel configuration: channel_order, fallback_order,

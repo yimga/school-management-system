@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-25T13:29:38.420894+00:00",
+  "generated_at": "2026-05-28T02:08:02.909543+00:00",
   "pass": true,
   "rows": [
     {
@@ -111,8 +111,8 @@
       "proof": "feature_control_panel_content.html"
     },
     {
-      "check_id": "feature_control_sticky_tabs",
-      "description": "Feature control category tabs are sticky nav",
+      "check_id": "feature_control_category_tabs",
+      "description": "Feature control category tabs present (static, not sticky)",
       "status": "PASS",
       "proof": "feature_control_panel_content.html"
     },
@@ -124,7 +124,7 @@
     },
     {
       "check_id": "admin_index_section_nav",
-      "description": "Platform admin index uses curated TOC section nav",
+      "description": "Platform admin index section jumps in unified hero toolbar",
       "status": "PASS",
       "proof": "templates/admin/index_superadmin.html"
     },
@@ -151,6 +151,12 @@
       "description": "Back-to-top uses 2-fold scroll threshold",
       "status": "PASS",
       "proof": "components__back_to_top.js"
+    },
+    {
+      "check_id": "back_to_top_scroll_container_first",
+      "description": "Back-to-top loads scroll-container before init",
+      "status": "PASS",
+      "proof": "components/back_to_top.html"
     }
   ]
 }

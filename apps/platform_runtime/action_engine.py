@@ -452,6 +452,30 @@ def _fallback_minimum_actions(user, school: Any, bucket: str) -> list[SystemActi
 
 def _collect_parent_actions(user, school: Any) -> list[SystemAction]:
     out: list[SystemAction] = []
+    try:
+        from decimal import Decimal
+
+        from apps.finance.family_billing_aggregator import aggregate_family_balance
+
+        summary = aggregate_family_balance(guardian_user_id=int(user.pk))
+        open_bal = summary.family_total_open_balance
+        if open_bal and open_bal > Decimal("0"):
+            pay_all = _safe_reverse("portal:parent_finance_pay_all")
+            if pay_all and not summary.currency_mismatch:
+                out.append(
+                    SystemAction(
+                        type="payments",
+                        title="Pay family balance",
+                        description="One checkout for every linked learner.",
+                        action_url=pay_all,
+                        priority=88,
+                        audience="parent",
+                        urgency="high",
+                        source="family_billing",
+                    )
+                )
+    except Exception:  # noqa: BLE001
+        pass
     dash = _safe_reverse("portal:parent_dashboard")
     if dash:
         out.append(
@@ -461,6 +485,19 @@ def _collect_parent_actions(user, school: Any) -> list[SystemAction]:
                 description="Fees, notices, and learner progress in one calm view.",
                 action_url=dash,
                 priority=35,
+                audience="parent",
+                source="role_default",
+            )
+        )
+    fin = _safe_reverse("portal:parent_finance")
+    if fin:
+        out.append(
+            SystemAction(
+                type="payments",
+                title="Fees & invoices",
+                description="Balances, receipts, and payment history.",
+                action_url=fin,
+                priority=32,
                 audience="parent",
                 source="role_default",
             )

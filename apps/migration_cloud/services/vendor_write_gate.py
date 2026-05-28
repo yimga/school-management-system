@@ -118,11 +118,9 @@ def _expected_token_hash(vendor_slug: str, counsel_sha: str) -> str:
     """Return the SHA-256 hex of ``f"{vendor_slug}:{counsel_sha}"``.
 
     The approval token is compared against this hash via
-    :func:`hmac.compare_digest`. Operators compute it externally with::
-
-        python -c 'import hashlib;print(hashlib.sha256(b"facts:<sha>").hexdigest())'
-
-    and provision it as ``RMC_VENDOR_WRITE_APPROVAL_TOKEN_<VENDOR>``.
+    :func:`hmac.compare_digest`. Operators compute the digest externally
+  (stdlib only) and provision it as ``RMC_VENDOR_WRITE_APPROVAL_TOKEN_<VENDOR>``,
+  e.g. ``hashlib.sha256(b"facts:<sha>").hexdigest()``.
     """
     pre = f"{vendor_slug}:{counsel_sha}".encode("utf-8")
     return hashlib.sha256(pre).hexdigest()

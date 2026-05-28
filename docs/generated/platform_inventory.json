@@ -1,31 +1,41 @@
 {
   "baseline_counts": {
-    "allow_any": 138,
-    "csrf_exempt": 447,
-    "cursor_execute": 395,
-    "except_exception": 1296,
-    "get_solo": 211,
-    "gilead": 16733,
-    "gilead_files": 196,
-    "html_files": 1226,
-    "management_commands": 258,
-    "markdown_files": 1374,
-    "migration_files": 884,
-    "print_calls": 2086,
-    "python_files": 4440,
-    "site_settings": 2156
+    "allow_any": 171,
+    "csrf_exempt": 504,
+    "cursor_execute": 396,
+    "except_exception": 1759,
+    "get_solo": 212,
+    "gilead": 16821,
+    "gilead_files": 225,
+    "html_files": 1495,
+    "management_commands": 272,
+    "markdown_files": 1562,
+    "migration_files": 924,
+    "print_calls": 2973,
+    "python_files": 5319,
+    "site_settings": 2408
   },
   "doc_drift": {
-    "actual_installed_app_count": 48,
-    "documented_app_count": 48,
+    "actual_installed_app_count": 51,
+    "documented_app_count": 51,
     "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
   "largest_python_files": [
     {
-      "bytes": 163184,
-      "lines": 4076,
+      "bytes": 206345,
+      "lines": 5086,
+      "path": "apps/siteconfig/forms_cockpit.py"
+    },
+    {
+      "bytes": 164862,
+      "lines": 4123,
       "path": "apps/schools/marketing_views.py"
+    },
+    {
+      "bytes": 148332,
+      "lines": 3109,
+      "path": "config/settings.py"
     },
     {
       "bytes": 143830,
@@ -33,18 +43,13 @@
       "path": "apps/schools/marketing_page_definitions.py"
     },
     {
-      "bytes": 137390,
-      "lines": 2934,
-      "path": "config/settings.py"
-    },
-    {
-      "bytes": 130653,
-      "lines": 3334,
+      "bytes": 136428,
+      "lines": 3469,
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 125763,
-      "lines": 3270,
+      "bytes": 131340,
+      "lines": 3416,
       "path": "apps/evals/views.py"
     },
     {
@@ -53,34 +58,29 @@
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 111317,
-      "lines": 2608,
+      "bytes": 112695,
+      "lines": 2645,
       "path": "apps/migration_cloud/views.py"
     },
     {
-      "bytes": 107110,
-      "lines": 2831,
+      "bytes": 110379,
+      "lines": 1920,
+      "path": "apps/siteconfig/_seed_country_localization.py"
+    },
+    {
+      "bytes": 108724,
+      "lines": 1958,
+      "path": "scripts/_batch_1489_generate_edos_artifacts.py"
+    },
+    {
+      "bytes": 106610,
+      "lines": 2812,
       "path": "apps/siteconfig/views.py"
     },
     {
-      "bytes": 106339,
-      "lines": 3037,
+      "bytes": 106422,
+      "lines": 3038,
       "path": "apps/finance/models.py"
-    },
-    {
-      "bytes": 99012,
-      "lines": 2816,
-      "path": "apps/siteconfig/admin.py"
-    },
-    {
-      "bytes": 96373,
-      "lines": 2422,
-      "path": "apps/studio_os/views.py"
-    },
-    {
-      "bytes": 83551,
-      "lines": 2075,
-      "path": "apps/finance/tasks.py"
     }
   ],
   "management_commands_list": [
@@ -146,6 +146,11 @@
     },
     {
       "app": "accounts",
+      "command": "ensure_platform_operator_profiles",
+      "path": "apps/accounts/management/commands/ensure_platform_operator_profiles.py"
+    },
+    {
+      "app": "accounts",
       "command": "ensure_superadmin",
       "path": "apps/accounts/management/commands/ensure_superadmin.py"
     },
@@ -178,6 +183,16 @@
       "app": "accounts",
       "command": "seed_render_users",
       "path": "apps/accounts/management/commands/seed_render_users.py"
+    },
+    {
+      "app": "accounts",
+      "command": "seed_tenant_identity_demo",
+      "path": "apps/accounts/management/commands/seed_tenant_identity_demo.py"
+    },
+    {
+      "app": "accounts",
+      "command": "sync_rebac_tuples",
+      "path": "apps/accounts/management/commands/sync_rebac_tuples.py"
     },
     {
       "app": "analytics",
@@ -405,6 +420,11 @@
       "path": "apps/communication/management/commands/sync_department_threads.py"
     },
     {
+      "app": "communication",
+      "command": "verify_whatsapp_parent_os_resolver",
+      "path": "apps/communication/management/commands/verify_whatsapp_parent_os_resolver.py"
+    },
+    {
       "app": "compliance",
       "command": "archive_old_audits",
       "path": "apps/compliance/management/commands/archive_old_audits.py"
@@ -481,6 +501,11 @@
     },
     {
       "app": "compliance",
+      "command": "tenant_offboarding_run_scheduled_purges",
+      "path": "apps/compliance/management/commands/tenant_offboarding_run_scheduled_purges.py"
+    },
+    {
+      "app": "compliance",
       "command": "tenant_purge",
       "path": "apps/compliance/management/commands/tenant_purge.py"
     },
@@ -498,6 +523,11 @@
       "app": "customers",
       "command": "ensure_tenant_schemas",
       "path": "apps/customers/management/commands/ensure_tenant_schemas.py"
+    },
+    {
+      "app": "customersuccess",
+      "command": "promote_helpcenter_ledger_to_first_class",
+      "path": "apps/customersuccess/management/commands/promote_helpcenter_ledger_to_first_class.py"
     },
     {
       "app": "evals",
@@ -578,6 +608,11 @@
       "app": "finance",
       "command": "seed_finance_defaults",
       "path": "apps/finance/management/commands/seed_finance_defaults.py"
+    },
+    {
+      "app": "finance",
+      "command": "seed_sfdp_regional_demo_packs",
+      "path": "apps/finance/management/commands/seed_sfdp_regional_demo_packs.py"
     },
     {
       "app": "finance",
@@ -726,8 +761,18 @@
     },
     {
       "app": "migration_cloud",
+      "command": "promote_maa_v2",
+      "path": "apps/migration_cloud/management/commands/promote_maa_v2.py"
+    },
+    {
+      "app": "migration_cloud",
       "command": "purge_audit_events_pre_approved",
       "path": "apps/migration_cloud/management/commands/purge_audit_events_pre_approved.py"
+    },
+    {
+      "app": "migration_cloud",
+      "command": "purge_completed_migration_bundles",
+      "path": "apps/migration_cloud/management/commands/purge_completed_migration_bundles.py"
     },
     {
       "app": "migration_cloud",
@@ -821,6 +866,11 @@
     },
     {
       "app": "platform_runtime",
+      "command": "apply_offline_mode_bundle",
+      "path": "apps/platform_runtime/management/commands/apply_offline_mode_bundle.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "apply_platform_migration",
       "path": "apps/platform_runtime/management/commands/apply_platform_migration.py"
     },
@@ -848,6 +898,11 @@
       "app": "platform_runtime",
       "command": "process_configuration_change_queue",
       "path": "apps/platform_runtime/management/commands/process_configuration_change_queue.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "record_geos_internal_core_loop",
+      "path": "apps/platform_runtime/management/commands/record_geos_internal_core_loop.py"
     },
     {
       "app": "platform_runtime",
@@ -961,6 +1016,11 @@
     },
     {
       "app": "portal",
+      "command": "seed_workflow_kb_corpus",
+      "path": "apps/portal/management/commands/seed_workflow_kb_corpus.py"
+    },
+    {
+      "app": "portal",
       "command": "verify_kb_exports",
       "path": "apps/portal/management/commands/verify_kb_exports.py"
     },
@@ -968,6 +1028,11 @@
       "app": "portal",
       "command": "verify_onboarding_setup",
       "path": "apps/portal/management/commands/verify_onboarding_setup.py"
+    },
+    {
+      "app": "registries",
+      "command": "seed_country_localization_registries",
+      "path": "apps/registries/management/commands/seed_country_localization_registries.py"
     },
     {
       "app": "registries",
@@ -1346,6 +1411,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "snapshot_platform_pulse",
+      "path": "apps/siteconfig/management/commands/snapshot_platform_pulse.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "sync_i18n_catalog",
       "path": "apps/siteconfig/management/commands/sync_i18n_catalog.py"
     },
@@ -1379,11 +1449,12 @@
     "allow_any": {
       "owners": [
         "marketplace_platform_api",
+        "migration_cloud_public_api_docs",
         "tenant_bootstrap_api",
         "webhook_platform_api"
       ],
-      "reviewed_files": 3,
-      "reviewed_occurrences": 7
+      "reviewed_files": 4,
+      "reviewed_occurrences": 10
     },
     "csrf_exempt": {
       "owners": [
@@ -1401,22 +1472,24 @@
         "migration_cloud",
         "north_star_api",
         "orchestration",
+        "parent_communications",
         "platform_observability",
         "portal_office_wopi",
+        "schoolops_email_delivery",
         "security_observability"
       ],
-      "reviewed_endpoints": 48,
-      "reviewed_files": 19
+      "reviewed_endpoints": 54,
+      "reviewed_files": 23
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 51,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
     "cursor_execute_apps_config_py_excl_migrations": 40,
-    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 8,
+    "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 1922,
-    "site_settings_refs_apps_py_excl_migrations": 65,
-    "site_settings_refs_apps_py_excl_migrations_tests": 30
+    "print_calls_scripts_py": 2797,
+    "site_settings_refs_apps_py_excl_migrations": 186,
+    "site_settings_refs_apps_py_excl_migrations_tests": 140
   },
   "site_settings_fields": [
     {
@@ -1426,6 +1499,18 @@
     {
       "field_name": "updated_at",
       "owner": "delete"
+    },
+    {
+      "field_name": "cockpit_payload",
+      "owner": "metadata_governance"
+    },
+    {
+      "field_name": "email_delivery",
+      "owner": "metadata_governance"
+    },
+    {
+      "field_name": "theme_personality",
+      "owner": "brand_experience"
     }
   ],
   "successor_domain_imports": {
@@ -1433,7 +1518,13 @@
       "apps/brand_experience/migrations/0003_svg_safe_validator.py",
       "apps/brand_experience/models.py",
       "apps/brand_experience/platform_global_branding.py",
-      "apps/brand_experience/resolvers.py"
+      "apps/brand_experience/resolvers.py",
+      "apps/brand_experience/services.py",
+      "apps/brand_experience/tests/test_experience_template_registry.py",
+      "apps/brand_experience/tests/test_services_apply_palette.py",
+      "apps/brand_experience/tests/test_template_marketplace_runtime.py",
+      "apps/brand_experience/tests/test_template_marketplace_semantic_runtime.py",
+      "apps/brand_experience/tests/test_template_tenant_boundary_runtime.py"
     ],
     "global_registries": [
       "apps/global_registries/models.py"

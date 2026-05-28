@@ -1,5 +1,5 @@
 {
-  "manifest_last_reviewed": "2026-04-24",
+  "manifest_last_reviewed": "2026-05-27",
   "files": {
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
@@ -30,6 +30,76 @@
       "expected_count": 1,
       "reason": "Section 2.4 SQLite PRAGMA integrity_check for recover_database command; staff-only.",
       "last_reviewed": "2026-04-24"
+    },
+    "apps/accounts/legacy_hashes/key_rotation.py": {
+      "expected_count": 1,
+      "reason": "Operational key-rotation helper builds a field update for selected encrypted columns only; tenant-wide operation is explicitly audited and limited to ops key rotation.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/analytics/management/commands/migrate_embeddings_to_pgvector.py": {
+      "expected_count": 3,
+      "reason": "Staff-run pgvector migration command performs extension/vector DDL and bounded batch backfill that has no ORM equivalent.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/analytics/management/commands/rebuild_pgvector_index.py": {
+      "expected_count": 5,
+      "reason": "Staff-run pgvector maintenance command checks catalog state and rebuilds IVFFLAT index/VACUUM ANALYZE with controlled constants.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/analytics/management/commands/verify_ai_ml_readiness.py": {
+      "expected_count": 1,
+      "reason": "Read-only PostgreSQL extension readiness probe for pgvector; operator verification command only.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/analytics/management/commands/verify_pgvector_index.py": {
+      "expected_count": 6,
+      "reason": "Read-only pgvector readiness and index diagnostics use pg_catalog, EXPLAIN, and row-count probes unavailable through ORM.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/analytics/semantic_search.py": {
+      "expected_count": 1,
+      "reason": "Vector similarity query uses pgvector distance operator with parameterized query and bounded result limit.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/migration_cloud/intake/access_intake.py": {
+      "expected_count": 1,
+      "reason": "Offline Microsoft Access intake reads a selected table through the pyodbc cursor API after source-file validation; not Django database SQL.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/migration_cloud/intake/sql_dump_intake.py": {
+      "expected_count": 3,
+      "reason": "Offline SQLite dump intake enumerates local import tables and materializes CSV payloads using quoted identifiers; not Django production SQL.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/migration_cloud/management/commands/purge_audit_events_pre_approved.py": {
+      "expected_count": 1,
+      "reason": "Pre-approved migration-cloud purge command deletes by tenant hash and cutoff inside an atomic block with explicit operator approval flow.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/migration_cloud/management/commands/verify_audit_chain.py": {
+      "expected_count": 1,
+      "reason": "Audit-chain repair path rewrites hash linkage for a verified event row during operator verification; append-only exception is explicit and logged.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/people/schema_repair.py": {
+      "expected_count": 3,
+      "reason": "Schema repair DDL/backfill adds and enforces one timestamp column using quoted identifiers during controlled startup repair.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/portal/kb_pgvector.py": {
+      "expected_count": 2,
+      "reason": "Knowledge-base pgvector adapter uses read-only schema introspection plus parameterized vector similarity search with school filter.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/portal/management/commands/migrate_kb_embeddings_to_pgvector.py": {
+      "expected_count": 6,
+      "reason": "Staff-run portal KB pgvector migration performs extension/vector DDL, batch backfill, index creation, and dimension detection.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/schools/rls_readiness.py": {
+      "expected_count": 3,
+      "reason": "RLS readiness preflight verifies PostgreSQL GUC support and pg_policies catalog state; read-only except SET/RESET session variable.",
+      "last_reviewed": "2026-05-27"
     }
   }
 }

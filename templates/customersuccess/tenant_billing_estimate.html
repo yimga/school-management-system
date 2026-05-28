@@ -1,0 +1,68 @@
+{% extends "portal_base.html" %}
+{% load i18n region_format %}
+
+{% block title %}{% trans "Billing estimate" %}{% endblock %}
+
+{% block content %}
+<h1 class="visually-hidden" data-rmc-injected-h1="1">{% trans "Billing estimate" %}</h1>
+<div class="container-lg py-4" data-page-archetype="operational-workbench" data-rmc-scroll-policy="paginate" data-tenant-billing-estimate="1">
+  <div class="mb-3">
+    <div class="eyebrow text-muted small">{% trans "Platform subscription" %}</div>
+    <h2 class="h4 mb-1">{% trans "Your plan and estimate" %}</h2>
+    <p class="small text-muted mb-0">{% trans "Honest totals from your tenant subscription row — live PSP settlement remains operator-configured." %}</p>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-muted">{% trans "Plan" %}</div>
+          <div class="h5 mb-0">{{ plan_name|default:"—" }}</div>
+          <div class="small text-muted">{{ subscription_status }}{% if billing_cycle %} · {{ billing_cycle }}{% endif %}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-muted">{% trans "Monthly estimate" %}</div>
+          <div class="h5 mb-0">{{ monthly_estimate_display|format_currency }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <div class="small text-muted">{% trans "Active students" %}</div>
+          <div class="h5 mb-0">{{ student_count }}</div>
+          {% if tenant_billing_estimate.per_student_hint %}
+          <div class="small text-muted">≈ {{ tenant_billing_estimate.per_student_hint|format_currency }} / {% trans "student" %} / {% trans "month" %}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="card shadow-sm mb-3" id="pricing-clarity-crosswalk" data-pricing-clarity-crosswalk="1">
+    <div class="card-body">
+      <h3 class="h6">{% trans "Pricing clarity crosswalk" %}</h3>
+      <p class="small text-muted">{{ live_psp_caveat }}</p>
+      {% if matched_package %}
+      <p class="mb-2">{% blocktrans with name=matched_package.name %}Matched marketing package: <strong>{{ name }}</strong>{% endblocktrans %}</p>
+      <p class="small text-muted mb-0">{{ matched_package.descriptor|default:"" }}</p>
+      {% else %}
+      <p class="small text-muted mb-2">{% trans "Compare public packages to confirm entitlements and support tier." %}</p>
+      {% endif %}
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        {% if marketing_pricing_url %}
+        <a class="btn btn-outline-primary btn-sm" href="{{ marketing_pricing_url }}" target="_blank" rel="noopener noreferrer">{% trans "Public pricing" %}</a>
+        {% endif %}
+        {% if packages_clarity_url %}
+        <a class="btn btn-outline-secondary btn-sm" href="{{ packages_clarity_url }}" target="_blank" rel="noopener noreferrer">{% trans "Package comparison" %}</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'siteconfig:guided_onboarding' %}">{% trans "Back to onboarding" %}</a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}

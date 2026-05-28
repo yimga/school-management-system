@@ -307,10 +307,10 @@ def _load_tenant_school_override(school) -> dict | None:
             get_email_delivery_payload,
             tenant_email_override_allowed,
         )
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
 
         # tenant-isolation-allow: platform-email-policy-row-no-tenant-scope
-        site_row = SiteSettings.objects.first()
+        site_row = get_platform_site_settings_record(create=False)
         if site_row is not None and not tenant_email_override_allowed(site_row):
             return None
         payload = get_email_delivery_payload(school)
@@ -365,10 +365,10 @@ def _load_tenant_school_override(school) -> dict | None:
 def _load_site_settings_override() -> dict:
     """Read ``SiteSettings.email_delivery`` defensively. Returns {} on any error."""
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_platform_site_settings_record
 
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
-        row = SiteSettings.objects.first()
+        row = get_platform_site_settings_record(create=False)
         if row is None:
             return {}
         payload = getattr(row, "email_delivery", None)

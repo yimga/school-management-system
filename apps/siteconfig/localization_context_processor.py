@@ -18,16 +18,16 @@ the user on the generic-fallback pack and never raises.
 
 from __future__ import annotations
 
+from django.utils import translation
+
+from apps.siteconfig.regional_ui import is_rtl_locale
+
 from .country_localization_service import (
-    get_languages,
     resolve_country_for_request,
-    resolve_country_pack,
     resolve_for_request,
-    resolve_language_for_request,
 )
 from .country_formats_service import (
     address_order_for,
-    compose_full_name,
     dial_code_for,
     name_order_for,
     postal_code_label_for,
@@ -146,7 +146,8 @@ def localization_context(request) -> dict:
             "week_start":       int(cal.get("week_start") or 1),
             "date_format":      _date_format(cc),
             "currency_code":    _currency_code(cc),
-            "is_rtl":           cc in _RTL_COUNTRIES,
+            "is_rtl":           cc in _RTL_COUNTRIES
+            or is_rtl_locale(translation.get_language() or lang_code),
             # Wave 4: format helpers — emit alongside calendar/terminology so
             # forms / cards / invoices don't need to import the helpers.
             "name_order":       name_order_for(cc),

@@ -244,6 +244,31 @@ class PaymentSplitTests(SimpleTestCase):
         self.assertEqual(p.leftover, Decimal("150"))
 
 
+class PayAllIntegrationShapeTests(SimpleTestCase):
+    """CEZGP 1515 — pay-all uses same FIFO kernel as portal checkout."""
+
+    def test_full_family_balance_matches_split_total(self):
+        children = _children((10, "Ada"))
+        invs = [
+            _invoice(1, 10, 80, due_date=date(2026, 3, 1)),
+            _invoice(2, 10, 20, due_date=date(2026, 4, 1)),
+        ]
+        summary = aggregate_family_balance(
+            guardian_user_id=1,
+            children_runner=lambda uid: children,
+            balance_runner=lambda ids: invs,
+        )
+        split = propose_payment_split(
+            guardian_user_id=1,
+            payment_amount=summary.family_total_open_balance,
+            children_runner=lambda uid: children,
+            balance_runner=lambda ids: invs,
+        )
+        self.assertEqual(split.total_proposed, Decimal("100"))
+        self.assertEqual(split.leftover, Decimal("0"))
+        self.assertEqual(len(split.lines), 2)
+
+
 class SerializationTests(SimpleTestCase):
 
     def test_summary_as_dict_keys_present(self):

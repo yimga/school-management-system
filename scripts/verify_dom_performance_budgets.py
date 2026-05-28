@@ -28,6 +28,7 @@ django.setup()
 
 from django.contrib.auth import get_user_model
 from django.test import Client, override_settings
+from django.utils import timezone
 
 # label, path, max_element_nodes, host
 DOM_BUDGETS = (
@@ -51,6 +52,9 @@ def main() -> int:
             password="Test1234",
             email="dom_budget@example.com",
         )
+    if hasattr(user, "last_security_posture_review_at"):
+        user.last_security_posture_review_at = timezone.now()
+        user.save(update_fields=["last_security_posture_review_at"])
     from apps.schools.models import School
 
     School.objects.get_or_create(

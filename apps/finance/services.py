@@ -651,7 +651,7 @@ def apply_payment(payment: Payment) -> None:
             from apps.finance.payment_notification_intent import dispatch_payment_received_intent
 
             dispatch_payment_received_intent(school=sch, payment=payment)
-    except Exception:
+    except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         logging.getLogger(__name__).warning(
             "payment_received notification intent failed", exc_info=True
         )

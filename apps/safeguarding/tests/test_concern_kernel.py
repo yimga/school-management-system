@@ -6,7 +6,6 @@ from django.test import SimpleTestCase
 
 from apps.safeguarding.concern_kernel import (
     ACKNOWLEDGED,
-    ACTION_TAKEN,
     CLOSED,
     DRAFT,
     REFERRED_EXTERNAL,

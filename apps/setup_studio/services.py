@@ -71,9 +71,11 @@ STEP_DEFINITIONS = (
         "label": "Connect or import data",
         "description": "Bring in your first student and staff data set so workflows, dashboards, and portals have live records.",
         "step_group": "data",
-        "link_name": "accounts:backend_student_list",
+        "link_name": "siteconfig:guided_onboarding",
+        "link_query": "embed=1",
+        "link_fragment": "student-csv-import",
         "weight": 15,
-        "recommended_choice": "Import the roster first, then layer finance and historical data.",
+        "recommended_choice": "Import the roster via CSV first, then layer finance and historical data.",
     },
     {
         "key": "role_preview",
@@ -109,10 +111,13 @@ def _step_link_from_definition(definition: dict[str, Any]) -> str:
     """Resolve setup step CTA URL, including optional query (e.g. Launch Studio pane)."""
     url = _safe_reverse(definition["link_name"])
     q = (definition.get("link_query") or "").strip()
-    if not q or url == "#":
-        return url
-    join = "&" if "?" in url else "?"
-    return f"{url}{join}{q}"
+    if q and url != "#":
+        join = "&" if "?" in url else "?"
+        url = f"{url}{join}{q}"
+    fragment = (definition.get("link_fragment") or "").strip().lstrip("#")
+    if fragment and url != "#":
+        url = f"{url}#{fragment}"
+    return url
 
 
 def _definition_by_key() -> dict[str, dict[str, Any]]:
@@ -1116,7 +1121,7 @@ def _build_data_path_choices(
             "key": "roster_import",
             "label": "Roster import first",
             "detail": "Upload students and staff first so every preview surface reflects real people and schedules.",
-            "cta_label": "Open roster workspace",
+            "cta_label": "Import students (CSV)",
             "cta_url": step_state["data_path"]["link"],
             "status": "Ready" if not has_students else "Already in place",
             "tone": "ready" if not has_students else "progress",

@@ -91,7 +91,6 @@ def super_blueprints_catalog(request):
     """Phase 3: Control-plane blueprint pack catalog. Wedge 14–22: filter/badge by primary_sector."""
     from apps.policies.models import BlueprintPack
     from apps.registries.services import WEDGE_14_22_SECTOR_CODES
-    from apps.schools.control_plane_pagination import paginate_for_request
 
     try:
         from config.admin import admin_site

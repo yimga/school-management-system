@@ -16,7 +16,7 @@ from apps.lifecycle.unified_lifecycle import (
     resolve_unified_lifecycle,
 )
 from apps.lifecycle.wind_down import apply_wind_down_mode
-from apps.schools.models import School, SchoolMembership, SchoolProvisioningEvent
+from apps.schools.models import School, SchoolMembership
 from apps.schools.signup_views import _redirect_verified_admin_to_tenant_surface
 from apps.schools.tenant_offboarding import get_offboarding_snapshot
 

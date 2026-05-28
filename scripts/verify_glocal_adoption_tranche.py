@@ -61,6 +61,7 @@ EXPLICIT_ROW_DETAIL_TARGETS: frozenset[str] = frozenset(
         "templates/finance/invoices.html",
         "templates/finance/global_payment_command_center.html",
         "templates/finance/offline_payment_intent_queue.html",
+        "templates/finance/requests.html",
     }
 )
 

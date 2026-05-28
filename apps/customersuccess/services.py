@@ -3,9 +3,11 @@ Section 11: Services for benchmark intelligence (11.3) and customer success (11.
 """
 
 from decimal import Decimal
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 from django.db.models import Avg, Q
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 CUSTOMER_SUCCESS_SOFT_FAILURES = (
@@ -271,6 +273,49 @@ def get_support_copilot_suggestions(school):
     return sorted(suggestions, key=lambda x: x["priority"])[:15]
 
 
+def _onboarding_step_link(name: str, *, query: str = "", fragment: str = "") -> str:
+    try:
+        url = reverse(name)
+    except (NoReverseMatch, TypeError, ValueError):
+        return ""
+    if query:
+        join = "&" if "?" in url else "?"
+        url = f"{url}{join}{query}"
+    if fragment:
+        url = f"{url}#{fragment.lstrip('#')}"
+    return url
+
+
+def _guided_onboarding_csv_link() -> str:
+    return _onboarding_step_link(
+        "siteconfig:guided_onboarding",
+        query="embed=1",
+        fragment="student-csv-import",
+    ) or "/siteconfig/guided-onboarding/?embed=1#student-csv-import"
+
+
+def _guardian_invite_step_done(school) -> bool:
+    from apps.people.models import StudentGuardian, StudentProfile
+    from apps.portal.models import PendingGuardianInvite
+
+    student_ids = StudentProfile.objects.filter(school=school).values_list("id", flat=True)
+    if PendingGuardianInvite.objects.filter(
+        student_id__in=student_ids, claimed_at__isnull=False
+    ).exists():
+        return True
+    if PendingGuardianInvite.objects.filter(student__school=school).exists():
+        return True
+    return StudentGuardian.objects.filter(
+        student__school=school, guardian_user__isnull=False
+    ).exists()
+
+
+def _post_fees_step_done(school) -> bool:
+    from apps.finance.models import Invoice
+
+    return Invoice.objects.filter(school=school).exists()
+
+
 def get_guided_onboarding_steps(school):
     """
     Section 11.4: Guided onboarding — steps and completion from existing data.
@@ -297,12 +342,39 @@ def get_guided_onboarding_steps(school):
         has_students = StudentProfile.objects.filter(
             school=school, is_active=True
         ).exists()
+        csv_link = _guided_onboarding_csv_link()
         steps.append(
             {
-                "key": "students",
-                "label": "Add students",
+                "key": "student_csv_import",
+                "label": "Import students (CSV)",
                 "done": has_students,
-                "link": "/authentication/backend/students/" if not has_students else "",
+                "link": csv_link if not has_students else "",
+            }
+        )
+    except OPTIONAL_ONBOARDING_STEP_FAILURES:
+        pass
+    try:
+        guardian_done = _guardian_invite_step_done(school)
+        guardian_link = _onboarding_step_link("accounts:backend_guardian_list")
+        steps.append(
+            {
+                "key": "guardian_invite",
+                "label": "Invite guardians",
+                "done": guardian_done,
+                "link": guardian_link if not guardian_done else "",
+            }
+        )
+    except OPTIONAL_ONBOARDING_STEP_FAILURES:
+        pass
+    try:
+        fees_done = _post_fees_step_done(school)
+        fees_link = _onboarding_step_link("finance:generate_fees")
+        steps.append(
+            {
+                "key": "post_fees",
+                "label": "Generate fee invoices",
+                "done": fees_done,
+                "link": fees_link if not fees_done else "",
             }
         )
     except OPTIONAL_ONBOARDING_STEP_FAILURES:
@@ -334,6 +406,32 @@ def get_guided_onboarding_steps(school):
                 "label": "Set school branding",
                 "done": has_branding,
                 "link": "/studio/experience/" if not has_branding else "",
+            }
+        )
+    except OPTIONAL_ONBOARDING_STEP_FAILURES:
+        pass
+    try:
+        export_link = _onboarding_step_link("tenant_gdpr_data_export")
+        if not export_link:
+            export_link = _onboarding_step_link("tenant_offboarding_export")
+        steps.append(
+            {
+                "key": "tenant_data_export",
+                "label": "Tenant data export (GDPR)",
+                "done": False,
+                "link": export_link or "/portal/configure/privacy/data-export/",
+            }
+        )
+    except OPTIONAL_ONBOARDING_STEP_FAILURES:
+        pass
+    try:
+        billing_link = _onboarding_step_link("tenant_billing_estimate")
+        steps.append(
+            {
+                "key": "billing_estimate",
+                "label": "Review platform billing estimate",
+                "done": False,
+                "link": billing_link or "/siteconfig/guided-onboarding/billing-estimate/",
             }
         )
     except OPTIONAL_ONBOARDING_STEP_FAILURES:

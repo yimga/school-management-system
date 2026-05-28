@@ -28,9 +28,9 @@ def infrastructure_email_page(request):
         return JsonResponse({"error": "Forbidden"}, status=403)
     school = request.school
     payload = get_email_delivery_payload(school)
-    from apps.siteconfig.models import SiteSettings
+    from apps.platform_runtime.helpers import get_platform_site_settings_record
 
-    site_row = SiteSettings.objects.first()
+    site_row = get_platform_site_settings_record(create=False)
     allow_override = tenant_email_override_allowed(site_row) if site_row else True
     return render(
         request,
@@ -49,9 +49,9 @@ def infrastructure_email_save(request):
     if not _require_school_admin(request):
         return JsonResponse({"error": "Forbidden"}, status=403)
     school = request.school
-    from apps.siteconfig.models import SiteSettings
+    from apps.platform_runtime.helpers import get_platform_site_settings_record
 
-    site_row = SiteSettings.objects.first()
+    site_row = get_platform_site_settings_record(create=False)
     if site_row is not None and not tenant_email_override_allowed(site_row):
         return JsonResponse({"error": "tenant_override_disabled"}, status=403)
     try:

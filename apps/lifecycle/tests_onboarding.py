@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import timedelta
-from unittest.mock import MagicMock
 
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
@@ -13,14 +12,12 @@ from apps.schools.models import School
 from .context_processors import lifecycle_readiness
 from .models import SchoolLifecycleStage
 from .readiness import (
-    LAUNCH_READY_THRESHOLD,
     compute_unified_score,
     maybe_record_launch_ready_stage,
     needs_concierge,
 )
 from .tasks_stall_watch import (
     STALL_DAYS_FOR_FLOOR,
-    STALL_DAYS_NO_UPDATE,
     detect_stalled_onboarding,
 )
 

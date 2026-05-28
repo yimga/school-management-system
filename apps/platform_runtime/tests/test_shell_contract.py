@@ -21,6 +21,7 @@ class ShellContractResolverTests(unittest.TestCase):
         self.assertEqual(c.route_family, "admin")
         self.assertEqual(c.layout_token, "admin")
         self.assertEqual(c.nav_family, "admin")
+        self.assertEqual(c.personality_os, "sovereign")
 
     def test_manager_super_path(self):
         rf = RequestFactory()
@@ -45,11 +46,13 @@ class ShellContractResolverTests(unittest.TestCase):
         ctx = shell_contract_context(req)
         self.assertIn("rmc_shell", ctx)
         self.assertEqual(ctx["rmc_shell"]["route_family"], "portal")
+        self.assertEqual(ctx["rmc_shell"]["personality_os"], "fluid")
         for key in (
             "layout_token",
             "nav_family",
             "host_kind",
             "main_region",
+            "personality_os",
             "portal_wrap_authenticated_shell",
             "authenticated_surface",
             "cp_layout_authenticated_shell",

@@ -8,6 +8,7 @@ from .models import (
     HealthCheckAlert,
     PerformanceTrace,
     PlatformIncident,
+    PlatformStatusIncident,
     SystemHealthMetric,
 )
 
@@ -76,6 +77,14 @@ class PlatformIncidentAdmin(admin.ModelAdmin):
         "resolved_at",
     )
     raw_id_fields = ("affected_school",)
+
+
+@admin.register(PlatformStatusIncident, site=platform_admin_site)
+class PlatformStatusIncidentAdmin(admin.ModelAdmin):
+    list_display = ("title", "severity", "status", "is_public", "started_at", "resolved_at")
+    list_filter = ("severity", "status", "is_public")
+    search_fields = ("title", "summary")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(FrictionEvent, site=platform_admin_site)

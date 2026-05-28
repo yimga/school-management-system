@@ -214,7 +214,7 @@ def flatten_capabilities(user, *, school) -> list[str]:
 @transaction.atomic
 def rebuild_user_permission_tuples(user, *, school) -> int:
     """Rewrite ``can`` tuples from roles + direct grants for one school."""
-    from apps.accounts.models import AccessRole, TemporaryRoleGrant
+    from apps.accounts.models import TemporaryRoleGrant
     from apps.accounts.models_rebac import RelationshipTuple
 
     if school is None or user is None:

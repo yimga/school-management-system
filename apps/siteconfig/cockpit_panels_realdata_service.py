@@ -34,7 +34,6 @@ from __future__ import annotations
 import hashlib
 import logging
 from datetime import timedelta
-from decimal import Decimal
 from typing import Any
 
 from django.core.cache import cache

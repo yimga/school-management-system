@@ -7,7 +7,7 @@ guardian-approval step.
 
 from __future__ import annotations
 
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django import forms
 

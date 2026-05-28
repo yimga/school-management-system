@@ -328,6 +328,18 @@ def api_offline_enqueue(request: HttpRequest) -> JsonResponse:
         return JsonResponse({"ok": False, "error": "payload_must_be_object"}, status=400)
     payload_dict = payload if isinstance(payload, dict) else {}
 
+    if payload_dict.get("entity") and payload_dict.get("entity_id"):
+        try:
+            from apps.sync_engine.event_envelope import validate_envelope_dict
+
+            env = validate_envelope_dict(payload_dict)
+            payload_dict = {**payload_dict, **env.to_dict()}
+        except Exception as exc:
+            return JsonResponse(
+                {"ok": False, "error": "invalid_envelope", "detail": str(exc)},
+                status=400,
+            )
+
     validation_errors = validate_offline_payload(action_type, payload_dict)
     if validation_errors:
         return JsonResponse(

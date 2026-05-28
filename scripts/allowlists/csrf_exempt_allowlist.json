@@ -1,5 +1,5 @@
 {
-  "manifest_last_reviewed": "2026-03-29",
+  "manifest_last_reviewed": "2026-05-27",
   "files": {
     "apps/accounts/views_saml.py": {
       "expected_count": 1,
@@ -44,6 +44,28 @@
       "audit_logging": "manual_review_required",
       "notes": "Billing webhook callback.",
       "last_reviewed": "2026-03-28"
+    },
+    "apps/billing/views_embedded_checkout.py": {
+      "expected_count": 1,
+      "owner": "billing",
+      "verdict": "keep_with_hardening",
+      "auth_model": "tenant_host_match_and_checkout_payload_validation",
+      "replay_protection": "cryptographically_random_session_id",
+      "rate_limiting": "tenant_scope_middleware",
+      "audit_logging": "checkout_session_dispatcher_manual_review_required",
+      "notes": "Anonymous parent checkout session endpoint accepts JSON from tenant marketing or parent portal without a browser CSRF token; tenant id is cross-checked against request.school when present and payload is schema-validated before PSP dispatch.",
+      "last_reviewed": "2026-05-27"
+    },
+    "apps/communication/views_whatsapp_webhook.py": {
+      "expected_count": 1,
+      "owner": "parent_communications",
+      "verdict": "keep_with_hardening",
+      "auth_model": "meta_whatsapp_signature_or_verify_token",
+      "replay_protection": "provider_signature_and_message_id_manual_review_required",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "pii_minimized_structured_logs",
+      "notes": "Meta WhatsApp webhook must accept provider GET/POST callbacks without browser CSRF; GET verification and POST delivery are guarded by integration verification, tenant feature flag gating, and hashed-phone logging.",
+      "last_reviewed": "2026-05-27"
     },
     "apps/finance/views_payments.py": {
       "expected_count": 1,
@@ -155,6 +177,17 @@
       "notes": "WOPI endpoints accept Collabora server callbacks without CSRF; guarded by document-scoped HMAC token and auth context.",
       "last_reviewed": "2026-03-28"
     },
+    "apps/schoolops/views_email_webhook.py": {
+      "expected_count": 1,
+      "owner": "schoolops_email_delivery",
+      "verdict": "keep_with_hardening",
+      "auth_model": "provider_webhook_signature",
+      "replay_protection": "provider_signature_and_body_cap",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "pii_minimized_structured_logs",
+      "notes": "Email provider bounce webhook must accept external POSTs without browser CSRF; provider-specific HMAC/signature checks run before JSON parsing, request bodies are capped, and recipient addresses are hashed before logging.",
+      "last_reviewed": "2026-05-27"
+    },
     "apps/security/csp_report_view.py": {
       "expected_count": 1,
       "owner": "security_observability",
@@ -187,6 +220,17 @@
       "audit_logging": "implemented",
       "notes": "Inbound connector webhook receiver; per-integration + per-IP rate limit before HMAC verify; school scoped via ServiceIntegration row.",
       "last_reviewed": "2026-05-18"
+    },
+    "apps/migration_cloud/views_guardian_consent.py": {
+      "expected_count": 3,
+      "owner": "migration_cloud",
+      "verdict": "keep_with_hardening",
+      "auth_model": "unguessable_url_token",
+      "replay_protection": "single_use_token_decision_state",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "guardian_consent_decision_rows_and_pii_minimized_logs",
+      "notes": "Anonymous guardian consent accept/decline/revoke POSTs use a 256-bit URL token as the credential; responses are uniform for probe resistance, cache-disabled, clickjack-protected, and decision state prevents replay.",
+      "last_reviewed": "2026-05-27"
     },
     "apps/orchestration/api.py": {
       "expected_count": 3,

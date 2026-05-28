@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n smart_link_tags %}
 
 {% block title %}{% trans "Access needs approval" %}{% endblock %}
 
@@ -11,8 +11,7 @@
     {% if is_admin_forbidden %}
       <p class="error-message">{% trans "This control-plane area is limited to superusers. Your daily workspace is still available." %}</p>
       <div class="error-actions">
-        <a class="btn btn-primary" href="{% url 'accounts:backend_dashboard' %}"><i class="bi bi-speedometer2 me-1"></i>{% trans "Open backend dashboard" %}</a>
-        <a class="btn btn-outline-secondary" href="{% url 'accounts:security_trust_hub' %}"><i class="bi bi-shield-check me-1"></i>{% trans "Review access status" %}</a>
+        {% render_smart_links state="error.403_staff" %}
       </div>
     {% else %}
       <p class="error-message">{% trans "Your account is signed in, but this page requires a permission your role doesn't currently have." %}</p>
@@ -20,8 +19,7 @@
         {% if PUBLIC_BRAND_MODE %}
           <a class="btn btn-primary" href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>{% trans "Return to sign in" %}</a>
         {% else %}
-          <a class="btn btn-primary" href="{% url 'accounts:redirect' %}"><i class="bi bi-house me-1"></i>{% trans "Go to dashboard" %}</a>
-          <a class="btn btn-outline-secondary" href="{% url 'accounts:request_waiver' %}"><i class="bi bi-key me-1"></i>{% trans "Request access" %}</a>
+          {% render_smart_links state="error.403" %}
         {% endif %}
       </div>
     {% endif %}

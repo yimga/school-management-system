@@ -27,7 +27,7 @@
     <textarea id="rmc-kb-ai-prompt" class="form-control mb-2" rows="2" maxlength="8000" placeholder="{% trans 'e.g. How do I rotate encryption keys on the control plane?' %}"></textarea>
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <button type="button" class="btn btn-primary btn-sm" data-rmc-kb-ai-ask>{% trans "Ask" %}</button>
-      <a class="btn btn-outline-danger btn-sm d-none" href="#" data-rmc-kb-ai-escalate>{% trans "Escalate to human agent" %}</a>
+      <a class="btn btn-outline-danger btn-sm d-none" href="{{ escalate_url }}" data-rmc-kb-ai-escalate>{% trans "Escalate to human agent" %}</a>
     </div>
     <div class="rmc-kb-ai-panel__answer mt-3 small d-none" data-rmc-kb-ai-answer role="status" aria-live="polite"></div>
     <div class="d-none mt-2 d-flex gap-2 align-items-center" data-rmc-kb-ai-csat role="group" aria-label="{% trans 'Rate this answer' %}">
