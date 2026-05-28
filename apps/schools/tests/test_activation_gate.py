@@ -178,3 +178,40 @@ class ConversionLockMiddlewareTests(TestCase):
         request = _build_request(self.user, self.school)
         mw = ConversionLockMiddleware(get_response=lambda r: None)
         self.assertIsNone(mw._maybe_redirect(request))
+
+    @override_settings(CONVERSION_LOCK_STRICT=True)
+    def test_first_action_completed_unlocks_redirect(self):
+        """Once a tenant records first-action completion, the lock lifts.
+
+        This is the bidirectional check on the audit gate — the lock must
+        engage when pending AND release when completed. Without this test,
+        a regression that always-redirected would still pass
+        ``test_strict_mode_redirects_when_first_action_not_completed``.
+        """
+        from apps.schools.conversion_lock_state import (
+            record_conversion_first_action,
+        )
+
+        record_conversion_first_action(
+            self.school, source="test", user=self.user
+        )
+        self.school.refresh_from_db()
+        request = _build_request(self.user, self.school)
+        mw = ConversionLockMiddleware(get_response=lambda r: None)
+        self.assertIsNone(mw._maybe_redirect(request))
+
+    @override_settings(CONVERSION_LOCK_STRICT=True)
+    def test_impersonation_session_bypasses_lock(self):
+        """Operator-impersonation sessions must NOT be bounced to first-action.
+
+        When a manager-host operator impersonates a tenant admin (support
+        workflow), the session carries ``impersonation`` truthy. The
+        operator needs the real dashboard, not the activation flow — the
+        tenant has already completed first-action from their side or the
+        operator is helping them complete it. Sending them to the
+        activation landing page would break support.
+        """
+        request = _build_request(self.user, self.school)
+        request.session["impersonation"] = {"actor_id": 42}
+        mw = ConversionLockMiddleware(get_response=lambda r: None)
+        self.assertIsNone(mw._maybe_redirect(request))

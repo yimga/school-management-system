@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 
-from apps.schools.models import School, SignupVerification
+from apps.schools.models import School, SchoolProvisioningEvent, SignupVerification
 from apps.schools.signup_views import verify_signup
 from apps.schools.super_views_offboarding_queue import api_super_run_scheduled_purges
 from apps.schools.tenant_offboarding import (
@@ -102,6 +102,55 @@ class TenantLifecycleFullTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         school.refresh_from_db()
         self.assertTrue(school.is_active)
+
+    @patch(
+        "apps.schools.tasks.dispatch_provision_school",
+        side_effect=OSError("broker unreachable"),
+    )
+    def test_verify_signup_records_failed_event_when_dispatch_raises(
+        self, _mock_dispatch
+    ):
+        """v4.00.2 audit: silent dispatch swallow surfaced in the timeline.
+
+        Prior to commit 6009ba56, a bare ``except: pass`` masked any
+        provisioning dispatch failure — the user landed on the dashboard
+        of a half-provisioned school with no welcome email and operators
+        had no signal. The current code logs + records a FAILED
+        SchoolProvisioningEvent so the offboarding queue / timeline shows
+        the failure. This test locks the audit chain so a future refactor
+        can't silently regress.
+        """
+        school = School.objects.create(
+            name="Dispatch Fail",
+            slug="dispatch-fail-school",
+            subdomain="dispatch-fail-school",
+            is_active=False,
+            country_code="US",
+            settings={},
+            default_region=self.region,
+        )
+        sv, _ = SignupVerification.objects.update_or_create(
+            school=school,
+            defaults={
+                "email": "owner@dispatch-fail.test",
+                "expires_at": timezone.now() + timedelta(days=1),
+                "verified_at": None,
+            },
+        )
+        request = self.factory.get(f"/verify-signup/?token={sv.token}")
+        resp = verify_signup(request)
+        # User is still logged in / redirected on success — email
+        # verification already proved ownership. The audit row is the
+        # operator-visible signal.
+        self.assertEqual(resp.status_code, 302)
+        event = SchoolProvisioningEvent.objects.filter(
+            school=school,
+            event_type=SchoolProvisioningEvent.EventType.FAILED,
+        ).first()
+        self.assertIsNotNone(event)
+        self.assertEqual(event.status, SchoolProvisioningEvent.Status.ERROR)
+        self.assertEqual(event.payload.get("error_type"), "OSError")
+        self.assertIn("broker unreachable", event.payload.get("error", ""))
 
     def test_self_service_schedules_purge_and_lists_due(self):
         request_self_service_closure(
