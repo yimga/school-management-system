@@ -1,0 +1,49 @@
+/**
+ * Intent-driven marketing homepage — scroll-snap stack of 100dvh personalities.
+ * Uses 8px grid (--mkt-space-*) from marketing-visual-engine.css.
+ */
+.mkt-intent-home__stack {
+  scroll-snap-type: y mandatory;
+  overflow-y: auto;
+  max-height: 100dvh;
+}
+
+.mkt-intent-home__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mkt-space-2, 16px);
+  justify-content: center;
+  padding: var(--mkt-space-3, 24px) var(--mkt-space-2, 16px);
+  border-top: 1px solid var(--hairline, rgba(26, 22, 18, 0.08));
+  background: var(--mkt-surface-cream, var(--surface-canvas, #faf8f5));
+}
+
+.mkt-ve-wizard__badge {
+  font-size: 0.75rem;
+  font-family: ui-monospace, monospace;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline, rgba(148, 163, 184, 0.35));
+  color: var(--mkt-accent, #10b981);
+  background: color-mix(in srgb, var(--mkt-accent, #10b981) 12%, transparent);
+}
+
+.mkt-ve-clinical-apm {
+  max-width: min(20rem, 100%);
+  height: auto;
+  object-fit: contain;
+  margin-inline: auto;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .mkt-intent-home__stack {
+    scroll-snap-type: none;
+    max-height: none;
+  }
+
+  .mkt-ve-section {
+    max-height: none;
+    min-height: 100dvh;
+  }
+}

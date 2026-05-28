@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Marketing isomorphic geo + homepage batch 1548 (2026-05-28)
+
+**A. Scope:** Complete RUNMYCAMPUS-SURGICAL-REFIT on existing stack (middleware, registry, homepage.html, /storefront/).
+
+**B. Shipped:** `RunMyCampusGeoMiddleware`; `MARKETING_COPY_REGISTRY`; `templates/marketing/homepage.html`; `marketing_intent_homepage` view; clinical APM `geo.apm_image`; wizard geo badge + currency CTA.
+
+**C. Proof:** **MARKETING_INTENT_VIEWPORT_PASS**; **9/9** `test_marketing_intent_viewport`.
+
+**D. SOT:** batch **1548** **DONE (repo-scope)**. **SW:** `sms-v3.99.11-marketing-isomorphic-geo-2026-05-28`.
+
 ## Slice — Marketing intent viewport + Lane 2 honesty batch 1547 (2026-05-28)
 
 **A. Scope:** Complete user ask without false DONE on 1175 / BLOCKED_EXTERNAL; RUNMYCAMPUS-SURGICAL-REFIT on existing marketing stack (no duplicate glocal_kernel app).

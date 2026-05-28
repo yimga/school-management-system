@@ -113,6 +113,17 @@ html[dir="rtl"] .mkt-ve-split {
   background: var(--mkt-surface-elevated, rgba(255, 255, 255, 0.06));
 }
 
+.mkt-ve-wizard__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mkt-space-1, 8px);
+  margin-bottom: var(--mkt-space-2, 16px);
+  padding-bottom: var(--mkt-space-1, 8px);
+  border-bottom: 1px solid var(--hairline, rgba(148, 163, 184, 0.35));
+}
+
 .mkt-ve-wizard__form {
   display: flex;
   flex-direction: column;

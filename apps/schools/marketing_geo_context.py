@@ -9,8 +9,9 @@ from __future__ import annotations
 from typing import Any
 
 from apps.schools.marketing_media_matrix import (
-    assets_for_country,
     apm_icons_for_country,
+    apm_primary_static_for_country,
+    assets_for_country,
     loop_bucket_for_country,
 )
 
@@ -41,6 +42,7 @@ def build_geo_context(request) -> dict[str, Any]:
         "loop_bucket": loop_bucket_for_country(cc),
         "assets": assets_for_country(cc),
         "apm_icons": apm_icons_for_country(cc),
+        "apm_image": apm_primary_static_for_country(cc),
         "is_rtl": direction == "rtl",
     }
 

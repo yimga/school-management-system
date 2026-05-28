@@ -39,6 +39,7 @@ from apps.schools.marketing_views import (
     developer_sandbox,
     institution_marketing_page,
     marketing_funnel_dashboard,
+    marketing_intent_homepage,
     marketing_landing,
     marketing_verb_hub,
     marketplace_marketing_page,
@@ -112,6 +113,7 @@ urlpatterns = [
     # Alias for tooling/checklists that expect marketing_home (same view as home).
     path("", home, name="marketing_home"),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
+    path("storefront/", marketing_intent_homepage, name="marketing_intent_homepage"),
     path("offline/", offline_page, name="offline"),
     # PWA manifest endpoints (mirrored from config/urls.py so templates that emit
     # `{% url 'pwa_manifest_platform' %}` work under the public urlconf when

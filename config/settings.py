@@ -284,6 +284,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",  # Optional legacy-domain redirect middleware
     "apps.schools.middleware.UrlConfSwitcherMiddleware",  # Public vs tenant URLConf from host/path
+    "apps.schools.marketing_geo_middleware.RunMyCampusGeoMiddleware",  # request.geo_context on public hosts
     "apps.schools.middleware.ReservedPublicHostAccessMiddleware",  # verify./support. host isolation
     "apps.schools.middleware.PublicPathRedirectMiddleware",  # public paths hit on tenant host -> base host
     "apps.schools.middleware.TenantMiddleware",  # When USE_DJANGO_TENANTS=0: resolve request.school from host
@@ -427,8 +428,8 @@ TEMPLATES = [
                 "apps.siteconfig.platform_palette.platform_palette_processor",  # `platform_palette` for server-rendered swatch/preview defaults
                 "apps.siteconfig.breadcrumb_context.breadcrumbs_context",
                 "apps.siteconfig.breadcrumb_context.page_metadata_context",
-                "apps.siteconfig.context_processors.language_context",
                 "apps.siteconfig.context_processors.region_settings",
+                "apps.siteconfig.context_processors.language_context",
                 "apps.siteconfig.context_processors.lexicon_context",  # Wave A — G1 tenant terminology overrides
                 "apps.siteconfig.context_processors.analytics_viz_context",
                 "apps.siteconfig.page_personality.personality_context_processor",  # v3.59.x Wave 11 Agent U — per-page-personality accent slug
@@ -1131,6 +1132,13 @@ MARKETING_VERB_NAV_ENABLED = os.getenv("MARKETING_VERB_NAV_ENABLED", "0").strip(
     "true",
     "yes",
 )
+# RUNMYCAMPUS-SURGICAL-REFIT: when true, / and marketing_landing render templates/marketing/homepage.html
+MARKETING_INTENT_HOMEPAGE = os.getenv("MARKETING_INTENT_HOMEPAGE", "0").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
 MARKETING_HERO_IMAGE_URL = (os.getenv("MARKETING_HERO_IMAGE_URL") or "").strip() or None
 MARKETING_HERO_VIDEO_URL = (os.getenv("MARKETING_HERO_VIDEO_URL") or "").strip() or None
 MARKETING_HERO_VIDEO_POSTER_URL = (

@@ -77,6 +77,41 @@ SANDBOX_MODULE_TO_SETUP_STEP: dict[str, str] = {
 
 VALID_SANDBOX_MODULES: frozenset[str] = frozenset(SANDBOX_MODULE_TO_SETUP_STEP.keys())
 
+# Zero-hardcoded marketing copy registry (RUNMYCAMPUS-SURGICAL-REFIT).
+# Country keys are ISO2; marketing_local may override headline/regulatory at render time.
+MARKETING_COPY_REGISTRY: dict[str, dict[str, str]] = {
+    "US": {
+        "txt_hero_headline": "The Sovereign Operating System for Modern Districts",
+        "txt_governing_body": "Department of Education Integration",
+        "txt_operational_claim": "Ambient, Phone-Free Campus Tracking Mechanics",
+        "txt_clinical_headline": "Split-Gateway Ledger Flow",
+        "txt_clinical_lead": "Real-time payment distributions and automated electronic invoicing.",
+        "txt_hero_subheadline": "One control plane for admissions, fees, and the message you send at 8:14 a.m.",
+    },
+    "SA": {
+        "txt_hero_headline": "نظام التشغيل السيادي للمؤسسات التعليمية الحديثة",
+        "txt_governing_body": "بوابة التكامل مع وزارة التعليم (MoE Portal)",
+        "txt_operational_claim": "آليات التتبع المحيطي الذكي بدون استخدام هواتف الطلاب",
+        "txt_clinical_headline": "دفتر الأستاذ المالي متعدد البوابات",
+        "txt_clinical_lead": "توزيع المدفوعات في الوقت الفعلي والفوترة الإلكترونية الآلية.",
+    },
+    "BR": {
+        "txt_hero_headline": "O sistema operacional soberano para redes modernas",
+        "txt_governing_body": "Integração com secretarias de educação",
+        "txt_operational_claim": "Rastreamento de campus sem celular no bolso — QR e totens",
+        "txt_clinical_headline": "Fluxo de ledger com divisão de gateways",
+        "txt_clinical_lead": "Distribuição de pagamentos em tempo real e faturamento eletrônico.",
+    },
+}
+
+_APM_PRIMARY_STATIC: dict[str, str] = {
+    "US": "images/marketing/platform-offline-sync-console.svg",
+    "SA": "images/marketing/platform-offline-sync-console.svg",
+    "BR": "images/marketing/platform-offline-sync-console.svg",
+    "NG": "images/marketing/platform-offline-sync-console.svg",
+    "IN": "images/marketing/platform-offline-sync-console.svg",
+}
+
 # platform slug → {% marketing_viz %} key for generic + auto-wired templates
 PLATFORM_VIZ_BY_SLUG: dict[str, str] = {
     "platform-admissions": "split_ledger_viz",
@@ -120,6 +155,12 @@ def assets_for_country(country_code: str) -> dict[str, str]:
     return base
 
 
+def apm_primary_static_for_country(country_code: str) -> str:
+    """Static path (under static/) for clinical ledger APM hero image."""
+    cc = (country_code or "").strip().upper()
+    return _APM_PRIMARY_STATIC.get(cc, _APM_PRIMARY_STATIC["US"])
+
+
 def apm_icons_for_country(country_code: str) -> list[dict[str, str]]:
     """Return illustrative APM labels for Clinical Ledger strip (no live PSP claims)."""
     cc = (country_code or "").strip().upper()
@@ -139,19 +180,24 @@ def apm_icons_for_country(country_code: str) -> list[dict[str, str]]:
 
 
 def marketing_copy_token(country_code: str, token: str, marketing_local: dict[str, Any] | None) -> str:
-    """Resolve marketing copy tokens for {% marketing_copy %}."""
+    """Resolve marketing copy tokens for {% marketing_copy %} / {% text_token %}."""
     ml = marketing_local or {}
-    operational = {
-        "US": "Ambient campus tracking — cardstock QR and passive tap counters (illustrative).",
-        "SA": "آليات التتبع المحيطي الذكي بدون استخدام هواتف الطلاب",
-        "BR": "Rastreamento de campus sem celular no bolso — QR e totens (ilustrativo).",
-    }
-    mapping = {
-        "txt_hero_headline": ml.get("headline_lead") or "Built for schools worldwide",
+    cc = (country_code or "US").strip().upper() or "US"
+    registry = MARKETING_COPY_REGISTRY.get(cc) or MARKETING_COPY_REGISTRY["US"]
+
+    if token == "txt_hero_headline" and ml.get("headline_lead"):
+        return str(ml["headline_lead"])
+    if token == "txt_governing_body" and ml.get("regulatory_line"):
+        return str(ml["regulatory_line"])
+    if token == "txt_hero_subheadline" and ml.get("hero_subline"):
+        return str(ml["hero_subline"])
+
+    if token in registry:
+        return registry[token]
+
+    extras = {
         "txt_platform_title": "RunMyCampus",
-        "txt_governing_body": ml.get("regulatory_line") or "Education authority",
-        "txt_operational_claim": operational.get(cc, operational["US"]),
         "txt_student_label": "Students",
         "txt_hero_subheadline": ml.get("hero_subline") or "",
     }
-    return str(mapping.get(token, f"[{token}]"))
+    return str(extras.get(token, f"[{token}]"))

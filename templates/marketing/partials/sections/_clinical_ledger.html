@@ -1,4 +1,4 @@
-{% load i18n marketing_media %}
+{% load i18n static marketing_media %}
 <section
   id="mkt-clinical-ledger"
   class="mkt-ve-section mkt-ve-section--clinical mkt-ve-section--viewport-lock"
@@ -9,17 +9,26 @@
   <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
     <header class="mkt-ve-section__header">
       <p class="mkt-edt-eyebrow">{% trans "Clinical ledger" %}</p>
-      <h2 id="mkt-clinical-headline" class="mkt-ve-section__title">
-        {% trans "Fees that reconcile like a ledger, not a spreadsheet." %}
+      <h2 id="mkt-clinical-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+        {% marketing_copy "txt_clinical_headline" %}
       </h2>
-      <p class="mkt-ve-section__lead">
-        {% trans "Split tuition, transport, and activity lines — illustrative amounts for your currency." %}
-        {% if geo.currency_symbol %}{{ geo.currency_symbol }}{% endif %}
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_clinical_lead" %}
+        {% if geo.currency_symbol %} · {{ geo.currency_symbol }}{% endif %}
       </p>
     </header>
     <div class="mkt-ve-split" data-mkt-split-ledger>
       <div class="mkt-ve-split__viz">
         {% marketing_viz "split_ledger_viz" %}
+        {% if geo.apm_image %}
+        <img
+          src="{% static geo.apm_image %}"
+          alt="{% trans 'Regional payout rail (illustrative)' %}"
+          class="mkt-ve-clinical-apm"
+          loading="lazy"
+          decoding="async"
+        >
+        {% endif %}
       </div>
       <div class="mkt-ve-split__controls">
         <label class="mkt-ve-split__slider-label">

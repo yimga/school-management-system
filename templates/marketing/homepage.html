@@ -1,0 +1,31 @@
+{% extends "marketing/base_marketing.html" %}
+{% load static i18n marketing_media %}
+
+{% block title %}RunMyCampus · {% marketing_copy "txt_hero_headline" %}{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-intent-home.css' %}">
+{% endblock %}
+
+{% block extrajs %}
+  {{ block.super }}
+  <script src="{% static 'marketing/js/mkt-sandbox-wizard.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-split-ledger.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-network-state.js' %}" defer></script>
+{% endblock %}
+
+{% block marketing_main_extra_classes %}mkt-intent-home px-0 py-0{% endblock %}
+
+{% block content %}
+<div class="mkt-intent-home__stack" data-mkt-intent-home data-rmc-scroll-policy="viewport-lock">
+  {% include "marketing/partials/sections/_sovereign_kernel.html" %}
+  {% include "marketing/partials/sections/_clinical_ledger.html" %}
+  {% include "marketing/partials/sections/_rugged_engine.html" %}
+</div>
+<nav class="mkt-intent-home__cta mkt-edt-container mkt-edt-container--wide" aria-label="{% trans 'Next steps' %}">
+  <a href="{% url 'marketing_demo' %}" class="mkt-edt-cta mkt-edt-cta--primary" data-cta="demo">{% trans "Book a demo" %}</a>
+  <a href="{% url 'marketing_landing_v2' %}" class="mkt-edt-cta mkt-edt-cta--ghost">{% trans "Full platform story" %}</a>
+</nav>
+{% endblock %}

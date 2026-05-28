@@ -2437,7 +2437,30 @@ def marketing_landing(request):
     ctx["marketing_geo_tagline"] = marketing_geo_tagline(geo_country, country_name)
     ctx["marketing_carousel_items"] = list(MARKETING_CAROUSEL_ITEMS)
     ctx["marketing_proof_quote"] = dict(MARKETING_PROOF_QUOTE)
-    return render(request, "schools/marketing_landing_v2.html", ctx)
+    from django.conf import settings
+
+    template = (
+        "marketing/homepage.html"
+        if getattr(settings, "MARKETING_INTENT_HOMEPAGE", False)
+        else "schools/marketing_landing_v2.html"
+    )
+    return render(request, template, ctx)
+
+
+@require_GET
+def marketing_intent_homepage(request):
+    """Viewport-locked three-personality storefront (templates/marketing/homepage.html)."""
+    from apps.schools.funnel_events import record_marketing_funnel_event
+
+    record_marketing_funnel_event("visit", request)
+    geo_country = _get_country_from_request(request)
+    ctx = _marketing_context(
+        request,
+        country_code=geo_country,
+        language_code=(getattr(request, "LANGUAGE_CODE", "") or "en"),
+        regional=False,
+    )
+    return render(request, "marketing/homepage.html", ctx)
 
 
 def _get_blog_posts(limit: int = 20):

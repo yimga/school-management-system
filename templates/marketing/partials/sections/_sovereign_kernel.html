@@ -9,11 +9,11 @@
   <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
     <header class="mkt-ve-section__header">
       <p class="mkt-edt-eyebrow">{% trans "Sovereign kernel" %}</p>
-      <h2 id="mkt-sovereign-headline" class="mkt-ve-section__title">
+      <h2 id="mkt-sovereign-headline" class="mkt-ve-section__title mkt-edos-text-shield">
         {% marketing_copy "txt_hero_headline" %}
       </h2>
-      <p class="mkt-ve-section__lead">
-        {% trans "One control plane for admissions, fees, and the message you send at 8:14 a.m. — illustrated for your region." %}
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_hero_subheadline" %}
       </p>
     </header>
     <div class="mkt-ve-section__grid">
@@ -46,7 +46,10 @@
         <p class="mkt-edt-illustrative-pill">{% trans "Simulated campus · not a live tenant" %}</p>
       </div>
       <div class="mkt-ve-wizard" data-mkt-sandbox-wizard>
-        <h3 class="mkt-ve-wizard__title mkt-edos-text-shield">{% marketing_copy "txt_governing_body" %}</h3>
+        <div class="mkt-ve-wizard__head">
+          <h3 class="mkt-ve-wizard__title mkt-edos-text-shield">{% marketing_copy "txt_governing_body" %}</h3>
+          <span class="mkt-ve-wizard__badge mkt-edos-text-shield">{{ geo.country_code }} {% trans "Core Active" %}</span>
+        </div>
         <form class="mkt-ve-wizard__form" data-mkt-sandbox-form novalidate>
           {% csrf_token %}
           <label class="mkt-ve-wizard__field">
@@ -80,7 +83,7 @@
             <label><input type="checkbox" name="modules" value="starter_stack" checked> {% trans "Starter stack" %}</label>
           </fieldset>
           <button type="submit" class="mkt-edt-cta mkt-edt-cta--primary" data-mkt-sandbox-submit>
-            {% trans "Validate configuration" %}
+            {% blocktrans with sym=geo.currency_symbol cur=geo.currency %}Initialize deployment matrix ({{ sym }} {{ cur }}){% endblocktrans %}
           </button>
           <p class="mkt-ve-wizard__status" data-mkt-sandbox-status hidden></p>
         </form>

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import subprocess
 import sys
 from pathlib import Path
@@ -61,3 +60,29 @@ class MarketingIntentViewportTests(SimpleTestCase):
         from apps.schools.templatetags import marketing_media
 
         self.assertTrue(hasattr(marketing_media, "text_token"))
+
+    def test_homepage_template_exists(self):
+        path = REPO / "templates/marketing/homepage.html"
+        self.assertTrue(path.is_file())
+        text = path.read_text(encoding="utf-8")
+        self.assertIn("mkt-intent-home__stack", text)
+
+    def test_copy_registry_sa_arabic_headline(self):
+        from apps.schools.marketing_media_matrix import (
+            MARKETING_COPY_REGISTRY,
+            marketing_copy_token,
+        )
+
+        headline = marketing_copy_token("SA", "txt_hero_headline", {})
+        self.assertIn("نظام", headline)
+        self.assertIn("txt_hero_headline", MARKETING_COPY_REGISTRY["US"])
+
+    def test_geo_context_includes_apm_image(self):
+        from apps.schools.marketing_geo_context import build_geo_context
+
+        class _Req:
+            META = {"HTTP_ACCEPT_LANGUAGE": "en-US"}
+            COOKIES = {}
+
+        geo = build_geo_context(_Req())
+        self.assertTrue(geo.get("apm_image"))
