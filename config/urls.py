@@ -407,6 +407,21 @@ urlpatterns = [
         "backend/",
         lambda request: redirect("accounts:backend_dashboard", permanent=False),
     ),
+    # v4.00.2 audit: mirror ``activation_first_action`` from config.tenant_urls
+    # so ConversionLockMiddleware / ActivationGateMiddleware can resolve the
+    # name regardless of which URLconf is active on the responding host. The
+    # view itself is tenant-scoped — manager-host requests will never reach it
+    # in practice — but having ``reverse("activation_first_action")`` work
+    # under config.urls eliminates the silent NoReverseMatch that made the
+    # middleware inert against any request that loaded the manager URLconf
+    # first.
+    path(
+        "activation/first-action/",
+        __import__(
+            "apps.schools.activation_views", fromlist=["activation_first_action"]
+        ).activation_first_action,
+        name="activation_first_action",
+    ),
     # Health and metrics
     path("healthz/", obs_views.healthz, name="healthz"),
     # Offline foundational: fresh CSRF token endpoint for SW replay (cookie may

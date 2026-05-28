@@ -158,16 +158,19 @@ class ConversionLockMiddlewareTests(TestCase):
         self.assertIn("/activation/first-action/", response["Location"])
 
     @override_settings(CONVERSION_LOCK_STRICT=True)
-    def test_strict_mode_no_redirect_when_request_school_absent_and_no_membership(self):
-        """Edge case: anonymous-ish path with no school resolution."""
+    def test_strict_mode_falls_back_to_membership_when_request_school_unset(self):
+        """v4.00.2 hardening: when no upstream middleware attached
+        ``request.school``, ConversionLockMiddleware now uses
+        ``resolve_request_school`` which falls back to the user's primary
+        membership. The redirect still fires."""
         request = _build_request(self.user, self.school)
-        request.school = None  # force resolver fallback path
-        # User still has membership to self.school via setUp; resolver will find it.
+        request.school = None  # force the resolver fallback path
         mw = ConversionLockMiddleware(get_response=lambda r: None)
         response = mw._maybe_redirect(request)
-        # With membership-based resolution, the middleware DOES find the school
-        # and the redirect still fires.
-        self.assertIsNotNone(response)
+        self.assertIsNotNone(
+            response,
+            "membership fallback should resolve the locked school and redirect",
+        )
         self.assertIn("/activation/first-action/", response["Location"])
 
     @override_settings(CONVERSION_LOCK_STRICT=False)
