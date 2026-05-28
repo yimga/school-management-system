@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "program_gap_registry_version": 7,
-  "generated_at": "2026-05-27",
+  "generated_at": "2026-05-28",
   "source": [
     "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md",
     "docs/RUNMYCAMPUS_AUTONOMOUS_EXECUTION_LOG.md"
@@ -366,6 +366,7 @@
   "sot_partial_forward_queue_batches": [
     "1158",
     "1170",
+    "1175",
     "1199",
     "1363"
   ],

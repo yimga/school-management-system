@@ -1,5 +1,25 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Lane 2 residuals on disk + RTL path fix batch 1546 (2026-05-28)
+
+**A. Scope:** Close four “what’s next” lanes honestly: RTL live Playwright path, batch **1170** evidence on disk, batch **1199** repo-local SHA parity artifact, batch **1175** pilot intake scaffold.
+
+**B. Shipped:** `write_geos_lane2_residual_evidence.py`, `verify_lane2_residuals_on_disk.py`, `verify_pilot_defect_intake.py`, `PILOT_DEFECT_TRIAGE_RUNBOOK.md`; evidence under `var/evidence/geos-99/{psp/stripe,render,pilot/gilead-school}/`; Playwright `tenantUrl` for setlang persist; metadata health gate rejects `missing_credentials` for faux `verified_live`.
+
+**C. Proof:** **LANE2_RESIDUALS_ON_DISK_PASS**; **PILOT_DEFECT_INTAKE_SCAFFOLD_PASS**; **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_SCAFFOLD_PASS**.
+
+**D. SOT:** §11.4 batch **1546** **DONE (repo-scope)**; **1175** → **PARTIAL (repo intake)**. **E. Residual:** Stripe phase1 `verified_live` charge JSON; Render hosted SHA probe; slot-2 pilot school; live RTL `--run --spawn-server`.
+
+## Slice — Glocal finance requests + RTL CI spawn batch 1545 (2026-05-27)
+
+**A. Scope:** `finance/requests.html` audit/inbox tables; Playwright `--spawn-server`; `region_settings` GET language for RTL shell.
+
+**B. Shipped:** Drawer on finance requests (2 tables); `verify_teacher_dashboard_rtl_playwright.py` spawn on port 8011; practical closeout `--live-playwright` uses spawn; `region_settings` activates query/cookie language before augment; Playwright `serviceWorkers: 'block'`.
+
+**C. Proof:** **GLOCAL_ADOPTION_TRANCHE_PASS (96 tables)**; **TEACHER_DASHBOARD_RTL_PLAYWRIGHT_SCAFFOLD_PASS**.
+
+**D. SOT:** §11.4 batch **1545** **DONE (repo-scope)**. **E. Residual:** live Playwright pass after Django cold start (~90s).
+
 ## Slice — Glocal adoption finish-all batch 1544 (2026-05-27)
 
 **A. Scope:** Close every remaining operational `rmc-data-table` with row-detail drawer (staff, operator `super_*`, migration cloud, marketing/base shells).

@@ -1,10 +1,18 @@
 {
-  "generated_at": "2026-05-23T23:55:36Z",
+  "generated_at": "2026-05-28T00:17:59Z",
   "school_slug": "gilead-school",
   "batches": [
     {
-      "batch": "1171",
-      "title": "WAfrica + global PSP keys per tenant",
+      "batch": "1170",
+      "title": "Stripe live PSP + Connect pilot evidence",
+      "evidence_paths": {
+        "1170_phase1": "var/evidence/geos-99/psp/stripe/phase1_platform_charge_evidence.json",
+        "1170_phase2": "var/evidence/geos-99/psp/stripe/phase2_connect_pilot_evidence.json"
+      },
+      "evidence_pending": [
+        "var/evidence/geos-99/psp/stripe/phase1_platform_charge_evidence.json",
+        "var/evidence/geos-99/psp/stripe/phase2_connect_pilot_evidence.json"
+      ],
       "gateway_checks": [
         {
           "provider": "stripe",
@@ -26,103 +34,20 @@
               }
             ]
           },
-          "stderr_tail": "rovider=payments) with matching slug/config.', '2026-05-23 23:55:59.413866'); alias=default\nDEBUG 2026-05-23 19:55:59,432 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.010) COMMIT; args=None; alias=default"
-        },
-        {
-          "provider": "paystack",
-          "mode": "metadata",
-          "exit_code": 0,
-          "result": {
-            "school": "gilead-school",
-            "provider": "paystack",
-            "mode": "metadata",
-            "results": [
-              {
-                "rail_code": "PAYSTACK",
-                "provider_key": "paystack",
-                "mode": "metadata",
-                "external_action_needed": "",
-                "status": "missing_credentials",
-                "message": "No enabled payments integration resolved for 'paystack'.",
-                "action_required": "Create Integration(provider=payments) with matching slug/config."
-              }
-            ]
-          },
-          "stderr_tail": "rovider=payments) with matching slug/config.', '2026-05-23 23:56:26.839202'); alias=default\nDEBUG 2026-05-23 19:56:26,876 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.031) COMMIT; args=None; alias=default"
-        },
-        {
-          "provider": "flutterwave",
-          "mode": "metadata",
-          "exit_code": 0,
-          "result": {
-            "school": "gilead-school",
-            "provider": "flutterwave",
-            "mode": "metadata",
-            "results": [
-              {
-                "rail_code": "FLUTTERWAVE",
-                "provider_key": "flutterwave",
-                "mode": "metadata",
-                "external_action_needed": "",
-                "status": "missing_credentials",
-                "message": "No enabled payments integration resolved for 'flutterwave'.",
-                "action_required": "Create Integration(provider=payments) with matching slug/config."
-              }
-            ]
-          },
-          "stderr_tail": "rovider=payments) with matching slug/config.', '2026-05-23 23:56:46.754256'); alias=default\nDEBUG 2026-05-23 19:56:46,783 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.021) COMMIT; args=None; alias=default"
-        },
-        {
-          "provider": "mtn_momo",
-          "mode": "metadata",
-          "exit_code": 0,
-          "result": {
-            "school": "gilead-school",
-            "provider": "mtn_momo",
-            "mode": "metadata",
-            "results": [
-              {
-                "rail_code": "MTN_MOMO",
-                "provider_key": "mtn_momo",
-                "mode": "metadata",
-                "external_action_needed": "",
-                "status": "missing_credentials",
-                "message": "MoMo rail not surfaced from regional profile + integrations.",
-                "action_required": "Configure school country + payments Integration."
-              }
-            ]
-          },
-          "stderr_tail": "igure school country + payments Integration.', '2026-05-23 23:57:08.293618'); alias=default\nDEBUG 2026-05-23 19:57:08,305 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.006) COMMIT; args=None; alias=default"
-        },
-        {
-          "provider": "orange_momo",
-          "mode": "metadata",
-          "exit_code": 0,
-          "result": {
-            "school": "gilead-school",
-            "provider": "orange_momo",
-            "mode": "metadata",
-            "results": [
-              {
-                "rail_code": "ORANGE_MOMO",
-                "provider_key": "orange_momo",
-                "mode": "metadata",
-                "external_action_needed": "",
-                "status": "missing_credentials",
-                "message": "MoMo rail not surfaced from regional profile + integrations.",
-                "action_required": "Configure school country + payments Integration."
-              }
-            ]
-          },
-          "stderr_tail": "igure school country + payments Integration.', '2026-05-23 23:57:32.980430'); alias=default\nDEBUG 2026-05-23 19:57:33,048 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.022) COMMIT; args=None; alias=default"
+          "stderr_tail": "rovider=payments) with matching slug/config.', '2026-05-28 00:18:54.598867'); alias=default\nDEBUG 2026-05-27 20:18:54,620 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.008) COMMIT; args=None; alias=default"
         }
       ],
+      "init_steps": [
+        "exists (skipped): var/evidence/geos-99/psp/stripe/phase1_platform_charge_evidence.json",
+        "exists (skipped): var/evidence/geos-99/psp/stripe/phase2_connect_pilot_evidence.json"
+      ],
       "operator_next": [
-        "Enable Integration(provider=payments) per PSP on pilot tenant (Django admin / School Studio)",
-        "Run metadata first: python manage.py check_payment_gateways --school=<slug> --provider=<psp> --mode=metadata",
-        "When sk_live_* exists: re-run with --mode=production_ping (Stripe/Paystack/Flutterwave only)",
-        "Supervised live charge per corridor; copy template \u2192 var/evidence/geos-99/psp/<psp>/phase1_*_evidence.json",
-        "Flip child register row to verified_live only after evidence on disk"
+        "Stripe Dashboard: select non-recurring + recurring + platform/marketplace",
+        "Render: STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET",
+        "Webhook: /finance/payments/webhook/stripe/",
+        "One supervised platform charge + refund; file phase1_platform_charge_evidence.json",
+        "Connect Express pilot at /siteconfig/billing-stripe/; file phase2_connect_pilot_evidence.json",
+        "Flip stripe_global_cards / stripe_connect_platform in external_dependencies_register.json"
       ]
     }
   ],
@@ -140,6 +65,9 @@
       "pass": true
     }
   },
-  "evidence_pending_all": [],
-  "lane2_money_status": "evidence_files_present_review_required"
+  "evidence_pending_all": [
+    "var/evidence/geos-99/psp/stripe/phase1_platform_charge_evidence.json",
+    "var/evidence/geos-99/psp/stripe/phase2_connect_pilot_evidence.json"
+  ],
+  "lane2_money_status": "pending_operator_evidence"
 }
