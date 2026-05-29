@@ -139,6 +139,79 @@ def _require_signature() -> bool:
     return str(raw).lower() in ("1", "true", "yes", "on")
 
 
+def _require_signature_strict() -> bool:
+    """v4.00.57 — When ``RMC_SAML_SIGNATURE_STRICT`` is truthy (default), a
+    deps_missing classification from the c14n verifier fails the request;
+    when explicitly disabled (set to ``0``/``false``/``no``/``off``), the
+    sweep falls back to the v4.00.46 presence-only signature check so an
+    operator can run with require=1 BEFORE the lxml/signxml install lands.
+    Default is strict because the silent-fallback case violates the
+    "signature required" contract."""
+    raw = (
+        getattr(settings, "RMC_SAML_SIGNATURE_STRICT", None)
+        if hasattr(settings, "RMC_SAML_SIGNATURE_STRICT")
+        else os.environ.get("RMC_SAML_SIGNATURE_STRICT", "")
+    )
+    if raw is None or raw == "":
+        return True
+    return str(raw).lower() not in ("0", "false", "no", "off")
+
+
+def _verify_saml_signature_c14n(b64_response: str, idp_cert_b64: str) -> tuple[bool, str]:
+    """v4.00.57 — Cryptographic signature verification w/ XML canonicalization.
+
+    Lazy-imports ``lxml`` + ``signxml``; returns ``(verified, reason)`` where
+    ``reason`` is one of:
+        ``"ok"``              — signature verified against IdP cert
+        ``"deps_missing"``    — lxml/signxml not installed (operator action)
+        ``"cert_unset"``      — RMC_SAML_IDP_CERT_PEM not configured
+        ``"bad_base64"``      — SAMLResponse not base64
+        ``"signature_missing"`` — no ``<ds:Signature>`` in response
+        ``"signature_invalid"`` — c14n digest / cert mismatch
+    Verification is read-only on its inputs; NEVER raises.
+    """
+    if not idp_cert_b64:
+        return False, "cert_unset"
+
+    try:
+        import base64
+        decoded = base64.b64decode(b64_response, validate=False)
+    except (ValueError, TypeError):
+        return False, "bad_base64"
+
+    # Lazy deps — when the install lands, this branch goes live without
+    # any other code edit.
+    try:
+        from lxml import etree  # type: ignore
+        from signxml import XMLVerifier  # type: ignore
+    except ImportError:
+        return False, "deps_missing"
+
+    try:
+        parser = etree.XMLParser(resolve_entities=False, no_network=True)
+        root = etree.fromstring(decoded, parser=parser)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml c14n: lxml parse failed: %s", exc)
+        return False, "bad_xml"
+
+    ns_dsig = "{http://www.w3.org/2000/09/xmldsig#}Signature"
+    if root.find(ns_dsig) is None and root.find(f".//{ns_dsig}") is None:
+        return False, "signature_missing"
+
+    # Rebuild the IdP cert PEM from the b64 we already stripped of armor.
+    pem = "-----BEGIN CERTIFICATE-----\n"
+    for i in range(0, len(idp_cert_b64), 64):
+        pem += idp_cert_b64[i:i + 64] + "\n"
+    pem += "-----END CERTIFICATE-----\n"
+
+    try:
+        XMLVerifier().verify(decoded, x509_cert=pem)
+        return True, "ok"
+    except Exception as exc:  # noqa: BLE001
+        logger.info("saml c14n: signature verification failed: %s", exc)
+        return False, "signature_invalid"
+
+
 def _parse_saml_response(b64_response: str) -> dict:
     """v4.00.45 — Parse a SAMLResponse: base64-decode, XML-parse, extract
     Subject NameID + Audience + NotBefore/NotOnOrAfter + Issuer.
@@ -333,6 +406,27 @@ def acs(request):
 
     if _require_signature() and _idp_cert_b64() and not parsed.get("signature_present"):
         return JsonResponse({"success": False, "stage": "signature_required_but_missing"}, status=401)
+
+    # v4.00.57 — c14n signature verification (lxml + signxml). Activates when
+    # RMC_SAML_REQUIRE_SIGNATURE=1 AND idp cert configured AND signature
+    # present. When deps not yet installed, RMC_SAML_SIGNATURE_STRICT (default
+    # true) decides whether to 503 the request or fall back to presence-only.
+    if _require_signature() and _idp_cert_b64() and parsed.get("signature_present"):
+        verified, reason = _verify_saml_signature_c14n(raw, _idp_cert_b64())
+        if not verified:
+            if reason == "deps_missing":
+                if _require_signature_strict():
+                    return JsonResponse(
+                        {"success": False, "stage": "signature_verifier_deps_missing",
+                         "detail": "install lxml + signxml runtime deps"},
+                        status=503,
+                    )
+                logger.warning("saml acs: c14n verifier deps_missing — falling back to presence-only check")
+            else:
+                return JsonResponse(
+                    {"success": False, "stage": "signature_verification_failed", "reason": reason},
+                    status=401,
+                )
 
     try:
         user, created = _provision_user_from_saml(name_id, parsed.get("attributes") or {})

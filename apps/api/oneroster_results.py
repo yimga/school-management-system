@@ -139,6 +139,71 @@ def _idem_cache_key(sourced_id: str, idem: str) -> str:
     return f"roster:results:idempo:{sourced_id}:{idem}"
 
 
+# ---------------------------------------------------------------------------
+# v4.00.57 — Idempotency-Key audit ring buffer.
+#
+# Each call to a Result-Service write endpoint that uses Idempotency-Key
+# records an event here so operators can see "this key was replayed N times"
+# vs "this key created a fresh row". Ring buffer (cap 500) lives in-process;
+# this is an operational debugging surface, NOT a forensic record (the
+# write itself is already audited via the model's append-only log).
+# ---------------------------------------------------------------------------
+
+_IDEM_AUDIT_RING: list[dict[str, Any]] = []
+_IDEM_AUDIT_RING_CAP = 500
+
+
+def _log_idem_event(
+    entity: str, idem: str, method: str, path: str,
+    status: int, replayed: bool,
+) -> None:
+    """Record an idempotency-key event into the ring buffer. NEVER raises."""
+    try:
+        from django.utils import timezone as _tz
+        evt = {
+            "ts_iso": _tz.now().isoformat(),
+            "entity": entity,
+            "idempotency_key": idem,
+            "method": method,
+            "path": path,
+            "status": int(status),
+            "replayed": bool(replayed),
+        }
+        _IDEM_AUDIT_RING.append(evt)
+        if len(_IDEM_AUDIT_RING) > _IDEM_AUDIT_RING_CAP:
+            # Trim from the head (oldest-first eviction).
+            del _IDEM_AUDIT_RING[: len(_IDEM_AUDIT_RING) - _IDEM_AUDIT_RING_CAP]
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("idem-audit log failed: %s", exc)
+
+
+def get_idem_audit_snapshot(*, limit: int = 200) -> list[dict[str, Any]]:
+    """Return a newest-first snapshot of the ring (cap ``limit``)."""
+    if limit <= 0:
+        return []
+    out = list(reversed(_IDEM_AUDIT_RING))
+    return out[:limit]
+
+
+def get_idem_audit_totals() -> dict[str, int]:
+    """Aggregate counts over the ring."""
+    by_entity: dict[str, int] = {}
+    replayed = 0
+    fresh = 0
+    for e in _IDEM_AUDIT_RING:
+        by_entity[e.get("entity", "")] = by_entity.get(e.get("entity", ""), 0) + 1
+        if e.get("replayed"):
+            replayed += 1
+        else:
+            fresh += 1
+    return {
+        "total": len(_IDEM_AUDIT_RING),
+        "fresh": fresh,
+        "replayed": replayed,
+        "by_entity": by_entity,
+    }
+
+
 def _hash_payload(method: str, path: str, body_bytes: bytes) -> str:
     import hashlib
     h = hashlib.sha256()
@@ -1771,6 +1836,87 @@ def classgroup_dispatch(request: HttpRequest, sourced_id: str):
     return classgroup_detail(request, sourced_id)
 
 
+# ---------------------------------------------------------------------------
+# v4.00.57 — ClassGroup bulk delete-by-class.
+#
+# When a teacher unassigns a class from a cohort or splits a cohort, the
+# integration must DELETE every classGroup containing that class. Doing N
+# DELETE round-trips is slow + non-atomic; this endpoint tombstones every
+# matching group in one request and reports the count.
+#
+# Body: ``{"classSourcedId": "<id>"}``
+# Idempotency-Key REQUIRED; same body + same key replays cached result.
+# ---------------------------------------------------------------------------
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def classgroups_bulk_delete_by_class(request: HttpRequest):
+    """v4.00.57 — Tombstone every classGroup containing ``classSourcedId``.
+
+    Returns ``{tombstoned: N, alreadyTombstoned: M, total: N+M, sourcedIds: [...]}``.
+    Empty match returns ``{tombstoned: 0, ...}`` with status 200 — NOT 404
+    (the "no groups contain this class" answer is valid).
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-classgroups-bulk-delete", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            _log_idem_event("classgroups-bulk-delete-by-class", idem, request.method, request.path, resp.status_code, True)
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    class_sid = str(payload.get("classSourcedId") or "").strip()
+    if not class_sid:
+        return JsonResponse({"error": "missing_classSourcedId"}, status=400)
+
+    tombstoned_ids: list[str] = []
+    already_tombstoned_ids: list[str] = []
+    # Walk a snapshot of overrides so we can mutate _CLASSGROUP_OVERRIDES safely.
+    for sid in list(_CLASSGROUP_OVERRIDES.keys()):
+        group = _CLASSGROUP_OVERRIDES.get(sid) or {}
+        members = group.get("classSourcedIds") or []
+        if class_sid not in members:
+            continue
+        if sid in _CLASSGROUP_TOMBSTONES:
+            already_tombstoned_ids.append(sid)
+            continue
+        _CLASSGROUP_TOMBSTONES.add(sid)
+        _CLASSGROUP_OVERRIDES.pop(sid, None)
+        tombstoned_ids.append(sid)
+
+    body_out = {
+        "classSourcedId": class_sid,
+        "tombstoned": len(tombstoned_ids),
+        "alreadyTombstoned": len(already_tombstoned_ids),
+        "total": len(tombstoned_ids) + len(already_tombstoned_ids),
+        "sourcedIds": tombstoned_ids,
+        "alreadySourcedIds": already_tombstoned_ids,
+    }
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=200)
+    resp["X-OneRoster-Entity"] = "class-groups-bulk-delete"
+    _log_idem_event("classgroups-bulk-delete-by-class", idem, request.method, request.path, 200, False)
+    return resp
+
+
 # --- Bulk Results import --------------------------------------------------
 
 _BULK_IMPORT_MAX_ROWS = 500
@@ -1881,6 +2027,7 @@ def post_results_bulk_import(request: HttpRequest):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_event("results-bulk-import", idem, request.method, request.path, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1954,6 +2101,7 @@ def post_results_bulk_import(request: HttpRequest):
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": status}, _IDEMPOTENCY_TTL)
     resp = JsonResponse(body_out, status=status)
     resp["X-OneRoster-Entity"] = "results-bulk"
+    _log_idem_event("results-bulk-import", idem, request.method, request.path, status, False)
     return resp
 
 
@@ -2109,3 +2257,91 @@ def gradebook_entry_detail(request: HttpRequest, sourced_id: str):
         if li.get("sourcedId") == li_sid:
             return JsonResponse({"gradeBookEntry": _gradebook_entry_for(li)})
     return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.57 — GradeBookEntry CSV export per class.
+#
+# Returns text/csv stream w/ Content-Disposition: attachment so a teacher
+# can pull the gradebook for a single classroom into Excel/Sheets without
+# parsing JSON. Built on the v4.00.56 projection; same auth gate.
+# ---------------------------------------------------------------------------
+
+_GRADEBOOK_CSV_COLUMNS = (
+    "sourcedId",
+    "lineItemSourcedId",
+    "lineItemTitle",
+    "classSourcedId",
+    "categorySourcedId",
+    "categoryTitle",
+    "classGroupSourcedIds",
+    "count",
+    "scored",
+    "pending",
+    "average",
+    "min",
+    "max",
+)
+
+
+def _csv_quote(v) -> str:
+    """RFC 4180 — wrap in double quotes when value contains delimiter, quote,
+    CR or LF; double internal quotes."""
+    s = "" if v is None else str(v)
+    if any(ch in s for ch in (',', '"', '\r', '\n')):
+        return '"' + s.replace('"', '""') + '"'
+    return s
+
+
+def _gradebook_csv_row(entry: dict) -> str:
+    li = entry.get("lineItem") or {}
+    cat = entry.get("category") or {}
+    cgs = entry.get("classGroups") or []
+    rollup = entry.get("resultsRollup") or {}
+    values = [
+        entry.get("sourcedId") or "",
+        li.get("sourcedId") or "",
+        li.get("title") or "",
+        li.get("classSourcedId") or "",
+        cat.get("sourcedId") or "" if isinstance(cat, dict) else "",
+        cat.get("title") or "" if isinstance(cat, dict) else "",
+        "|".join(g.get("sourcedId", "") for g in cgs),
+        rollup.get("count", 0),
+        rollup.get("scored", 0),
+        rollup.get("pending", 0),
+        rollup.get("average") or "",
+        rollup.get("min") or "",
+        rollup.get("max") or "",
+    ]
+    return ",".join(_csv_quote(v) for v in values) + "\r\n"
+
+
+@require_http_methods(["GET"])
+def gradebook_entries_csv(request: HttpRequest, class_sourced_id: str):
+    """v4.00.57 — Stream the GradeBookEntries for ``class_sourced_id`` as CSV.
+
+    Auth: bearer-gated. ``class_sourced_id`` is the OneRoster ``classSourcedId``
+    (the same value that goes into a lineItem). Empty CSV (just headers) when
+    no matching entries — never 404, since "no entries" is a valid teacher
+    answer."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    class_sourced_id = (class_sourced_id or "").strip()
+    if not class_sourced_id:
+        return JsonResponse({"error": "missing_class_sourced_id"}, status=400)
+
+    def _stream():
+        yield ",".join(_GRADEBOOK_CSV_COLUMNS) + "\r\n"
+        for entry in _all_gradebook_entries():
+            li = entry.get("lineItem") or {}
+            if str(li.get("classSourcedId") or "") != class_sourced_id:
+                continue
+            yield _gradebook_csv_row(entry)
+
+    from django.http import StreamingHttpResponse
+    resp = StreamingHttpResponse(_stream(), content_type="text/csv; charset=utf-8")
+    safe_class_id = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in class_sourced_id)[:64]
+    resp["Content-Disposition"] = f'attachment; filename="gradebook-{safe_class_id}.csv"'
+    resp["X-OneRoster-Entity"] = "gradebook-entries-csv"
+    return resp

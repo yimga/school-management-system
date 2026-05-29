@@ -1,0 +1,91 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Idempotency-Key audit" %} — {{ block.super }}{% endblock %}
+{% block content %}
+<div class="container-fluid rmc-page" style="max-width: 1280px;">
+  <nav style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+    <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
+    <span aria-hidden="true">›</span>
+    <span style="color: var(--text-primary);">{% trans "Idempotency-Key audit" %}</span>
+  </nav>
+  <header class="rmc-page__header" style="margin-bottom: 14px;">
+    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">{% trans "OneRoster Idempotency-Key audit" %}</h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 70ch;">
+      {% trans "In-process ring buffer of recent Result Service Idempotency-Key events. Operational visibility into which keys were freshly handled vs replayed from cache. Not a forensic record." %}
+    </p>
+  </header>
+
+  <section style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px;">
+    <div style="padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated);">
+      <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">{% trans "Total events" %}</div>
+      <div style="font-size: 1.3rem; font-weight: 600;">{{ totals.total }}</div>
+    </div>
+    <div style="padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated);">
+      <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">{% trans "Fresh" %}</div>
+      <div style="font-size: 1.3rem; font-weight: 600;">{{ totals.fresh }}</div>
+    </div>
+    <div style="padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated);">
+      <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">{% trans "Replayed" %}</div>
+      <div style="font-size: 1.3rem; font-weight: 600;">{{ totals.replayed }}</div>
+    </div>
+  </section>
+
+  <form method="get" style="display: flex; gap: 10px; margin-bottom: 14px; align-items: end; flex-wrap: wrap;">
+    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Entity" %}
+      <input name="entity" value="{{ filter_entity }}" placeholder="results-bulk-import / classgroups-bulk-delete-by-class"
+             style="display: block; min-width: 280px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+    </label>
+    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Replayed?" %}
+      <select name="replayed" style="display: block; min-width: 110px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+        <option value="" {% if not filter_replayed %}selected{% endif %}>{% trans "any" %}</option>
+        <option value="1" {% if filter_replayed == '1' or filter_replayed == 'only' %}selected{% endif %}>{% trans "replayed only" %}</option>
+        <option value="0" {% if filter_replayed == '0' or filter_replayed == 'exclude' %}selected{% endif %}>{% trans "fresh only" %}</option>
+      </select>
+    </label>
+    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Idempotency key" %}
+      <input name="idem" value="{{ filter_idem }}" placeholder="exact match"
+             style="display: block; min-width: 200px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+    </label>
+    <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Apply" %}</button>
+  </form>
+
+  <section>
+    {% if events %}
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="text-align: left; font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
+            <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "Time (UTC)" %}</th>
+            <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "Entity" %}</th>
+            <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "Method" %}</th>
+            <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "Path" %}</th>
+            <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); text-align: right;">{% trans "Status" %}</th>
+            <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "Replayed?" %}</th>
+            <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "Key" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in events %}
+            <tr>
+              <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); font-family: monospace; color: var(--text-secondary);">{{ e.ts_iso }}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); font-family: monospace;">{{ e.entity }}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); font-family: monospace;">{{ e.method }}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); font-family: monospace; color: var(--text-secondary); word-break: break-all;">{{ e.path }}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); text-align: right; font-family: monospace;">{{ e.status }}</td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">
+                {% if e.replayed %}
+                  <span style="display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--surface-elevated); color: var(--text-primary); font-size: 11px;">{% trans "replayed" %}</span>
+                {% else %}
+                  <span style="display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--surface-canvas); color: var(--text-secondary); font-size: 11px;">{% trans "fresh" %}</span>
+                {% endif %}
+              </td>
+              <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); font-family: monospace; word-break: break-all;">{{ e.idempotency_key }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p style="color: var(--text-secondary);">{% trans "No events recorded yet. The ring populates as Idempotency-Key writes hit the Result Service." %}</p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -614,11 +614,16 @@ urlpatterns = [
     path("roster/results/v1p2/classGroups/post/", _oneroster_results.post_classgroup, name="api-roster-results-class-group-post"),
     path("roster/results/v1p2/classGroups/<str:sourced_id>/put/", _oneroster_results.put_classgroup, name="api-roster-results-class-group-put"),
     path("roster/results/v1p2/classGroups/<str:sourced_id>/delete/", _oneroster_results.delete_classgroup, name="api-roster-results-class-group-delete"),
+    # v4.00.57 — bulk delete-by-class MUST precede the <sourced_id> catch-all
+    # so "bulk-delete-by-class" isn't parsed as a sourced_id.
+    path("roster/results/v1p2/classGroups/bulk-delete-by-class/", _oneroster_results.classgroups_bulk_delete_by_class, name="api-roster-results-class-groups-bulk-delete"),
     path("roster/results/v1p2/classGroups/<str:sourced_id>/", _oneroster_results.classgroup_dispatch, name="api-roster-results-class-group-detail"),
     path("roster/results/v1p2/results/import/", _oneroster_results.post_results_bulk_import, name="api-roster-results-bulk-import"),
     # v4.00.56 — GradeBookEntry projections (lineItem + category + classGroup + results rollup).
     path("roster/results/v1p2/gradeBookEntries/", _oneroster_results.gradebook_entries_collection, name="api-roster-results-gradebook-entries"),
     path("roster/results/v1p2/gradeBookEntries/<str:sourced_id>/", _oneroster_results.gradebook_entry_detail, name="api-roster-results-gradebook-entry-detail"),
+    # v4.00.57 — GradeBookEntry CSV export per class (download endpoint).
+    path("roster/results/v1p2/classes/<str:class_sourced_id>/gradeBookEntries.csv", _oneroster_results.gradebook_entries_csv, name="api-roster-results-gradebook-entries-csv"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,

@@ -8704,6 +8704,381 @@ COUNTRY_LOCALIZATION["BR-MG"] = {
 
 
 # ---------------------------------------------------------------------------
+# v4.00.57 (2026-05-29) — +13 ISO 3166-2 subdivisions
+#   +US-AZ (AzMERIT + ASU/UA), +US-CO (CMAS + CU Boulder + Mines),
+#   +US-MN (MCA + UMN + St Olaf), +US-MD (MCAP + Johns Hopkins + UMD),
+#   +US-TN (TNReady + UT-Knoxville + Vanderbilt)
+#   +IN-RJ (RBSE Rajasthan Praveshika+Senior Sec + IIT Jodhpur)
+#   +IN-MP (MPBSE Madhya Pradesh HSSC+HSC + IIT-Indore)
+#   +IN-OD (BSE Odisha HSC + Plus-Two + IIT Bhubaneswar)
+#   +JP-14 (Kanagawa-ken 3-gakki + Yokohama Nat'l U / Keio SFC)
+#   +KR-31 (Daegu Gwangyeoksi 2-hakgi + Kyungpook Nat'l U)
+#   +CL-RM (Chile Región Metropolitana SIMCE+PAES + U-Chile/PUC)
+#   +PE-LIM (Perú Lima Metropolitana ECE+UNALM/PUCP/UNMSM)
+#   +AR-C (CABA federal capital 4-trimestre + UBA hub)
+# Totals SOT 309 → 322.
+# ---------------------------------------------------------------------------
+
+# Arizona (US-AZ) — ADE AzMERIT + ESA voucher universal + ASU / UA / NAU.
+COUNTRY_LOCALIZATION["US-AZ"] = {
+    "calendar_system": {
+        "code": "usaz-2-semester", "label": "2-semester (ADE)",
+        "term_count": 2, "term_names": ["Fall Semester", "Spring Semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Preschool / Quality First",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-4"},
+        {"code": "elementary",  "label": "Elementary (K-5)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-10"},
+        {"code": "middle",      "label": "Middle (6-8) + AzMERIT/AASA",                   "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "high_school", "label": "High School (9-12) + AzMERIT + ACT",            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "charter",     "label": "Charter / BASIS / Great Hearts",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "5-18"},
+        {"code": "jtoa",        "label": "JTED Joint Technological Educ District",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-18"},
+        {"code": "university",  "label": "ASU / UA / NAU / GCU",                          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "usaz-pk", "label": "Preschool",          "order": 0},
+        {"code": "usaz-5",  "label": "Grade 5",            "order": 5},
+        {"code": "usaz-8",  "label": "Grade 8 (AASA)",     "order": 8},
+        {"code": "usaz-12", "label": "Grade 12 (ACT)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Colorado (US-CO) — CDE CMAS + CHSAA athletics + CU Boulder / Mines / CSU.
+COUNTRY_LOCALIZATION["US-CO"] = {
+    "calendar_system": {
+        "code": "usco-2-semester", "label": "2-semester (CDE)",
+        "term_count": 2, "term_names": ["Fall Semester", "Spring Semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Preschool / Universal Pre-K",                   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-4"},
+        {"code": "elementary",  "label": "Elementary (K-5)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-10"},
+        {"code": "middle",      "label": "Middle (6-8) + CMAS",                           "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "high_school", "label": "High School (9-12) + CMAS + PSAT/SAT",          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "charter",     "label": "Charter (DSST / KIPP Colorado)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "5-18"},
+        {"code": "career_tech", "label": "CTE Pathways / CCCS concurrent",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-18"},
+        {"code": "university",  "label": "CU Boulder / Mines / CSU / DU",                 "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "usco-pk", "label": "Preschool",          "order": 0},
+        {"code": "usco-5",  "label": "Grade 5",            "order": 5},
+        {"code": "usco-8",  "label": "Grade 8 (CMAS)",     "order": 8},
+        {"code": "usco-12", "label": "Grade 12 (SAT)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Minnesota (US-MN) — MDE MCA + open-enrollment + UMN / Carleton / St Olaf.
+COUNTRY_LOCALIZATION["US-MN"] = {
+    "calendar_system": {
+        "code": "usmn-2-semester", "label": "2-semester (MDE)",
+        "term_count": 2, "term_names": ["Fall Semester", "Spring Semester"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "ecfe",        "label": "ECFE / VPK",                                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-4"},
+        {"code": "elementary",  "label": "Elementary (K-5/6)",                            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",      "label": "Middle (6/7-8) + MCA",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "high_school", "label": "High School (9-12) + MCA + ACT/SAT",            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "pseo",        "label": "PSEO (post-secondary enrollment options)",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "lutheran",    "label": "Lutheran / Catholic (Cretin-Derham / Breck)",   "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "5-18"},
+        {"code": "university",  "label": "UMN / Carleton / St Olaf / Macalester",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "usmn-pk", "label": "ECFE",               "order": 0},
+        {"code": "usmn-5",  "label": "Grade 5",            "order": 5},
+        {"code": "usmn-8",  "label": "Grade 8 (MCA)",      "order": 8},
+        {"code": "usmn-12", "label": "Grade 12 (ACT)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Maryland (US-MD) — MSDE MCAP + Blueprint for Maryland's Future + JHU / UMD.
+COUNTRY_LOCALIZATION["US-MD"] = {
+    "calendar_system": {
+        "code": "usmd-2-semester", "label": "2-semester (MSDE)",
+        "term_count": 2, "term_names": ["Fall Semester", "Spring Semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "judy",        "label": "Judy Center / Pre-K",                           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-4"},
+        {"code": "elementary",  "label": "Elementary (K-5)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-10"},
+        {"code": "middle",      "label": "Middle (6-8) + MCAP",                           "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "high_school", "label": "High School (9-12) + MCAP + SAT",               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "magnet",      "label": "Magnet / Poly / Western / Eleanor Roosevelt",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "cte",         "label": "CTE Career Pathways",                           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-18"},
+        {"code": "university",  "label": "Johns Hopkins / UMD / UMBC / USNA",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "usmd-pk", "label": "Pre-K",              "order": 0},
+        {"code": "usmd-5",  "label": "Grade 5",            "order": 5},
+        {"code": "usmd-8",  "label": "Grade 8 (MCAP)",     "order": 8},
+        {"code": "usmd-12", "label": "Grade 12 (SAT)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Tennessee (US-TN) — TDOE TNReady + ESA + UT-Knoxville / Vanderbilt / Sewanee.
+COUNTRY_LOCALIZATION["US-TN"] = {
+    "calendar_system": {
+        "code": "ustn-2-semester", "label": "2-semester (TDOE)",
+        "term_count": 2, "term_names": ["Fall Semester", "Spring Semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Pre-K / Voluntary Pre-K",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-4"},
+        {"code": "elementary",  "label": "Elementary (K-5)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-10"},
+        {"code": "middle",      "label": "Middle (6-8) + TNReady",                        "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "high_school", "label": "High School (9-12) + TNReady + ACT",            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "stem_magnet", "label": "STEM Magnet (Hume-Fogg / MSE)",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "cte",         "label": "CTE (4 hours TCAT pathways)",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-18"},
+        {"code": "university",  "label": "UT Knoxville / Vanderbilt / Sewanee / MTSU",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ustn-pk", "label": "Pre-K",              "order": 0},
+        {"code": "ustn-5",  "label": "Grade 5",            "order": 5},
+        {"code": "ustn-8",  "label": "Grade 8 (TNReady)",  "order": 8},
+        {"code": "ustn-12", "label": "Grade 12 (ACT)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Rajasthan (IN-RJ) — RBSE Praveshika + Senior Sec + IIT-Jodhpur / MNIT.
+COUNTRY_LOCALIZATION["IN-RJ"] = {
+    "calendar_system": {
+        "code": "inrj-2-semester", "label": "2-semester (RBSE)",
+        "term_count": 2, "term_names": ["First Half", "Second Half"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "anganwadi",   "label": "Anganwadi",                                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (I-V)",                                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "upper_pri",   "label": "Upper-primary (VI-VIII)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "praveshika",  "label": "Praveshika (IX-X) + RBSE Secondary",            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "sr_sec",      "label": "Senior Sec (XI-XII) + RBSE",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "iti",         "label": "ITI / Polytechnic",                             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "university",  "label": "RU / MNIT / IIT Jodhpur / BITS Pilani",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "inrj-an","label": "Anganwadi",             "order": 0},
+        {"code": "inrj-5", "label": "Class V",               "order": 5},
+        {"code": "inrj-10","label": "Class X (Praveshika)",  "order": 10},
+        {"code": "inrj-12","label": "Class XII (Sr Sec)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Adhyapak / Adhyapika", "principal": "Pradhanacharya",
+        "term": "Semester", "report_card": "Pragati Patra", "grade_level": "Kaksha",
+    },
+}
+
+# Madhya Pradesh (IN-MP) — MPBSE HSC + HSSC + IIT Indore / MANIT Bhopal.
+COUNTRY_LOCALIZATION["IN-MP"] = {
+    "calendar_system": {
+        "code": "inmp-2-semester", "label": "2-semester (MPBSE)",
+        "term_count": 2, "term_names": ["First Half", "Second Half"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "anganwadi",   "label": "Anganwadi",                                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (I-V)",                                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "upper_pri",   "label": "Upper-primary (VI-VIII)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "hsc",         "label": "High School (IX-X) + MPBSE HSC",                "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-15"},
+        {"code": "hssc",        "label": "Higher Sec (XI-XII) + MPBSE HSSC",              "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "iti",         "label": "ITI / Polytechnic",                             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "university",  "label": "DAVV / MANIT / IIT Indore / IIM-I",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "inmp-an","label": "Anganwadi",            "order": 0},
+        {"code": "inmp-5", "label": "Class V",              "order": 5},
+        {"code": "inmp-10","label": "Class X (HSC)",        "order": 10},
+        {"code": "inmp-12","label": "Class XII (HSSC)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Adhyapak / Adhyapika", "principal": "Pradhanacharya",
+        "term": "Semester", "report_card": "Pragati Patra", "grade_level": "Kaksha",
+    },
+}
+
+# Odisha (IN-OD) — BSE Odisha HSC + CHSE Plus-Two + Odia-medium + IIT Bhubaneswar.
+COUNTRY_LOCALIZATION["IN-OD"] = {
+    "calendar_system": {
+        "code": "inod-2-semester", "label": "2-semester (BSE Odisha / CHSE)",
+        "term_count": 2, "term_names": ["First Half", "Second Half"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+    "school_types": [
+        {"code": "anganwadi",   "label": "Anganwadi",                                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (I-V)",                                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "upper_pri",   "label": "Upper-primary (VI-VII)",                        "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-12"},
+        {"code": "hsc",         "label": "High School (VIII-X) + BSE Odisha HSC",         "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "13-15"},
+        {"code": "plus_two",    "label": "Plus-Two (XI-XII) + CHSE",                      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "iti",         "label": "ITI / Polytechnic",                             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "university",  "label": "Utkal / IIT-BBS / NIT-Rourkela / KIIT",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "inod-an","label": "Anganwadi",            "order": 0},
+        {"code": "inod-5", "label": "Class V",              "order": 5},
+        {"code": "inod-10","label": "Class X (HSC)",        "order": 10},
+        {"code": "inod-12","label": "Class XII (Plus-Two)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Shikhayata / Shikhayatri", "principal": "Pradhanaadhyapaka",
+        "term": "Semester", "report_card": "Pragati Patra", "grade_level": "Shreni",
+    },
+}
+
+# Kanagawa (JP-14) — Todofuken; 3-gakki; Yokohama Nat'l U / Keio SFC.
+COUNTRY_LOCALIZATION["JP-14"] = {
+    "calendar_system": {
+        "code": "jp14-3-gakki", "label": "3-gakki (Kanagawa)",
+        "term_count": 3, "term_names": ["1学期", "2学期", "3学期"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",    "label": "幼稚園 (Kindergarten)",             "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shougakkou",  "label": "小学校 (Elementary 1-6)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "chuugakkou",  "label": "中学校 (Junior High 1-3)",          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "koukou",      "label": "高等学校 (Sr High 1-3)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "kousen",      "label": "高専 (Kosen technical)",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",  "label": "Yokohama Nat'l U / Keio SFC / Yokohama City U", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp14-y3", "label": "幼稚園 3y",     "order": 0},
+        {"code": "jp14-s6", "label": "小6年生",        "order": 6},
+        {"code": "jp14-c3", "label": "中3年生",        "order": 9},
+        {"code": "jp14-k3", "label": "高3年生",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "先生 (Sensei)", "principal": "校長 (Kouchou)",
+        "term": "学期 (Gakki)", "report_card": "通信簿", "grade_level": "年生",
+    },
+}
+
+# Daegu (KR-31) — Gwangyeoksi; 2-hakgi; Kyungpook Nat'l U + Keimyung.
+COUNTRY_LOCALIZATION["KR-31"] = {
+    "calendar_system": {
+        "code": "kr31-2-hakgi", "label": "2-hakgi (Daegu)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",    "label": "유치원 (Kindergarten)",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeunghakgyo","label": "초등학교 (Elementary 1-6)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "junghakgyo",  "label": "중학교 (Middle 1-3)",                "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "godeunghakgyo","label": "고등학교 (High 1-3) + Suneung","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "specialist",  "label": "특수목적고 (sci/foreign-lang)", "glyph": "\U0001F527", "primary_sector": "vocational", "typical_ages": "15-17"},
+        {"code": "university",  "label": "Kyungpook Nat'l U / Keimyung / DGIST / Yeungnam","glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr31-y", "label": "유치원",     "order": 0},
+        {"code": "kr31-c6","label": "초6학년",   "order": 6},
+        {"code": "kr31-j3","label": "윅3학년",   "order": 9},
+        {"code": "kr31-g3","label": "고3학년",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "선생님 (Seonsaeng-nim)", "principal": "교장",
+        "term": "학기 (Hakgi)", "report_card": "성적표", "grade_level": "학년",
+    },
+}
+
+# Chile Región Metropolitana (CL-RM) — MINEDUC + SIMCE + PAES + UCH / PUC / UTEM.
+COUNTRY_LOCALIZATION["CL-RM"] = {
+    "calendar_system": {
+        "code": "clrm-2-semestre", "label": "2-semestre (MINEDUC)",
+        "term_count": 2, "term_names": ["1º semestre", "2º semestre"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "parvulario",  "label": "Educación Parvularia (JUNJI/Integra)",     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-5"},
+        {"code": "basica",      "label": "Enseñanza Básica (1º-8º)",  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "media_ht",    "label": "Media Humanista-Científica (1°-4°) + PAES", "glyph": "\U0001F393", "primary_sector": "secondary", "typical_ages": "14-17"},
+        {"code": "media_tp",    "label": "Media Técnico-Profesional",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-17"},
+        {"code": "particular",  "label": "Particular Subvencionado / Pagado",              "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "5-17"},
+        {"code": "university",  "label": "UCH / PUC / USACH / UTEM / Universidad de los Andes", "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "clrm-pv","label": "Parvulario",                  "order": 0},
+        {"code": "clrm-b8","label": "8º Básico (SIMCE)", "order": 8},
+        {"code": "clrm-m2","label": "2° Medio (SIMCE)",       "order": 10},
+        {"code": "clrm-m4","label": "4° Medio (PAES)",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Profesor / Profesora", "principal": "Director / Directora",
+        "term": "Semestre", "report_card": "Informe de Notas", "grade_level": "Curso",
+    },
+}
+
+# Perú Lima Metropolitana (PE-LIM) — MINEDU + ECE + PUCP / UNALM / UNMSM.
+COUNTRY_LOCALIZATION["PE-LIM"] = {
+    "calendar_system": {
+        "code": "pelim-3-trimestre", "label": "3-trimestre (MINEDU/UGEL)",
+        "term_count": 3, "term_names": ["1er trim.", "2do trim.", "3er trim."],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "inicial",     "label": "Educación Inicial (Cuna / Jardín)",   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-5"},
+        {"code": "primaria",    "label": "Primaria (1°-6°)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "secundaria",  "label": "Secundaria (1°-5°) + ECE",            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "bachillerato","label": "Bachillerato Internacional / COAR",             "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "tecnico",     "label": "Instituto Técnico / SENATI / TECSUP",      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "university",  "label": "PUCP / UNALM / UNMSM / UPC / Pacifico",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "16+"},
+    ],
+    "education_levels": [
+        {"code": "pelim-in","label": "Inicial",            "order": 0},
+        {"code": "pelim-p6","label": "Primaria 6°",   "order": 6},
+        {"code": "pelim-s5","label": "Secundaria 5°", "order": 11},
+        {"code": "pelim-ba","label": "Bachillerato",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Profesor / Profesora", "principal": "Director / Directora",
+        "term": "Trimestre", "report_card": "Libreta de Notas", "grade_level": "Grado",
+    },
+}
+
+# Ciudad Autónoma de Buenos Aires (AR-C) — CABA federal capital + UBA hub.
+COUNTRY_LOCALIZATION["AR-C"] = {
+    "calendar_system": {
+        "code": "arc-4-trimestre", "label": "4-trimestre (CABA Min. Educación)",
+        "term_count": 4, "term_names": ["1º trim.", "2º trim.", "3º trim.", "4º trim."],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "jardin",      "label": "Jardín (Maternal + Inicial)",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-5"},
+        {"code": "primaria",    "label": "Primaria (1º-7º) + Jornada Completa", "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secundaria",  "label": "Secundaria Común (1º-5º)",       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "13-17"},
+        {"code": "secundaria_tecnica", "label": "Secundaria Técnica (ENET / ORT)",    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "13-17"},
+        {"code": "secundaria_arte","label": "Secundaria de Arte (Lola Mora / Manuel Belgrano)", "glyph": "\U0001F3A8", "primary_sector": "secondary", "typical_ages": "13-17"},
+        {"code": "university",  "label": "UBA / UTN-BA / UADE / Torcuato Di Tella",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "arc-j",  "label": "Jardín",          "order": 0},
+        {"code": "arc-p7", "label": "7º Primaria",     "order": 7},
+        {"code": "arc-s5", "label": "5º Secundaria",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Maestro/a (primaria) / Profesor/a (sec.)", "principal": "Director/a",
+        "term": "Trimestre", "report_card": "Boletín", "grade_level": "Año",
+    },
+}
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

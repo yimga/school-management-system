@@ -158,6 +158,7 @@ from .views_multicampus_extension import multicampus_extension
 from .views_lms_console import lms_index, lms_provider_detail, lms_token_save, lms_push_grade, lms_token_refresh
 from .views_tenant_binding import tenant_bindings_index, tenant_binding_reassign
 from .views_lms_audit import lms_audit_index, lms_audit_export_index, lms_audit_export_download
+from .views_idempotency_audit import idempotency_audit_index
 from .views_lms_pkce import lms_pkce_start, lms_pkce_callback, lms_pkce_build
 
 app_name = "portal"
@@ -194,6 +195,8 @@ urlpatterns = [
     # v4.00.56: retention-export download UI (lists + serves JSONL snapshots).
     path("super/integrations/lms/audit/exports/", lms_audit_export_index, name="lms_audit_export_index"),
     path("super/integrations/lms/audit/exports/<str:filename>/", lms_audit_export_download, name="lms_audit_export_download"),
+    # v4.00.57: OneRoster Idempotency-Key audit (ring-buffer operator UI).
+    path("super/integrations/oneroster/idempotency-audit/", idempotency_audit_index, name="idempotency_audit_index"),
     path("super/integrations/lms/<str:provider>/", lms_provider_detail, name="lms_provider_detail"),
     path("super/integrations/lms/<str:provider>/save/", lms_token_save, name="lms_token_save"),
     path("super/integrations/lms/<str:provider>/push-grade/", lms_push_grade, name="lms_push_grade"),
