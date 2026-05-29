@@ -373,3 +373,347 @@ body.admin-manager-shell #content .object-tools a:hover , body.admin-premium-she
   background: rgba(16, 185, 129, 0.15) !important; /* off-token-allow: success-emerald-overlay */
   color: var(--platform-gold) !important;
 }
+
+/* =================================================================
+   v4.00.19 (2026-05-29) — Admin shell hardening sweep.
+
+   Issues addressed:
+     A) "ADD TO NOTEBOOK" chip rendered N times stacked / inline.
+     B) Save & add another / Back / Save bar duplicated and floating
+        on top of itself.
+     C) Form column constrained to ~1200px, wasting right canvas.
+     D) Text spills past frame edges (no min-width:0 on flex children).
+     E) Long sidebar nav entries duplicated.
+   ================================================================= */
+
+/* ── A. Notebook widget: ONE instance, pinned to corner ──
+   The widget is supposed to be a position:fixed bottom-right floater.
+   Without these rules, accidental double-include or HTMX swap leaves
+   the second copy in document flow next to the first. Pin all instances
+   to the same corner and hide every sibling after the first. */
+body.admin-manager-shell .lx-notebook {
+  position: fixed !important; /* style-allow: notebook-corner-pin */
+  right: 20px !important; /* style-allow: notebook-corner-pin */
+  bottom: 20px !important; /* style-allow: notebook-corner-pin */
+  z-index: 1040 !important; /* style-allow: notebook-corner-pin */
+  max-width: 360px;
+  width: min(360px, calc(100vw - 40px));
+}
+body.admin-manager-shell .lx-notebook ~ .lx-notebook,
+body.admin-manager-shell [data-rmc-operator-notebook] ~ [data-rmc-operator-notebook] {
+  display: none !important; /* style-allow: notebook-dedup-guard */
+}
+/* Minimised state collapses to a small chip the user can re-open from
+   the copilot rail (✎) OR click here. Single source of truth. */
+body.admin-manager-shell .lx-notebook[data-rmc-notebook-state="minimized"] {
+  max-width: 220px;
+}
+body.admin-manager-shell .lx-notebook[data-rmc-notebook-state="minimized"] .lx-notebook__form,
+body.admin-manager-shell .lx-notebook[data-rmc-notebook-state="minimized"] .lx-notebook__history,
+body.admin-manager-shell .lx-notebook[data-rmc-notebook-state="minimized"] .lx-notebook__hint {
+  display: none;
+}
+
+/* ── B. Submit row: dedupe + de-stick ──
+   The strip is now a natural-flow row at the foot of the form column,
+   no longer a viewport-pinned bar. Duplicate occurrences are hidden by
+   the sibling-rule below (CSS layer) and removed entirely by the IIFE
+   in submit_line.html (DOM layer). Defense in depth. */
+body.admin-manager-shell .rmc-admin-submit-row {
+  position: static;
+  width: 100%;
+  margin-top: 1.5rem;
+}
+body.admin-manager-shell .rmc-admin-submit-row__inner {
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 70%, transparent);
+}
+body.admin-manager-shell [data-rmc-admin-submit-contract="sticky-safe-actions"] ~ [data-rmc-admin-submit-contract="sticky-safe-actions"] {
+  display: none !important; /* style-allow: admin-submit-row-dedup-guard */
+}
+
+/* Creative companion: a compact floating action cluster (bottom-right
+   above the notebook chip) gives a thumb-reach Save while the user is
+   scrolling deep in a long form — without occupying a full bar. JS
+   in admin-quickaction.js (loaded by base_site.html) wires the click
+   to submit the primary form. */
+.rmc-admin-quickaction {
+  position: fixed;
+  right: 20px;
+  bottom: 96px; /* sits above the notebook chip */
+  z-index: 1035;
+  display: none; /* JS reveals when scrolled past first fieldset */
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+.rmc-admin-quickaction[data-state="visible"] { display: flex; }
+.rmc-admin-quickaction__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--platform-gold, #6366f1); /* off-token-allow: admin-quickaction-mark */
+  color: #fff; /* off-token-allow: admin-quickaction-mark */
+  font-weight: 600;
+  font-size: 13px;
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); /* off-token-allow: admin-quickaction-elevation */
+  transition: transform var(--motion-fast, 150ms);
+}
+.rmc-admin-quickaction__btn:hover { transform: translateY(-1px); }
+.rmc-admin-quickaction__btn--secondary {
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 92%, transparent);
+  color: var(--text-primary, #f4f4f5);
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  font-weight: 500;
+  font-size: 12px;
+  padding: 8px 14px;
+}
+
+/* ── C. Form column reclaims the canvas ──
+   #content used to carry `container` (max-width ~1200px). The template
+   change to `max-w-none` does the heavy lifting; this rule guarantees
+   no upstream rule re-introduces the constraint. */
+body.admin-manager-shell #content,
+body.admin-manager-shell .admin-cp-unified-page #content {
+  max-width: none !important; /* style-allow: admin-canvas-full-width */
+  width: 100%;
+}
+body.admin-manager-shell .admin-cp-unified-page #content > form,
+body.admin-manager-shell .admin-cp-unified-page #content > div {
+  max-width: min(1600px, 100%);
+  margin-inline: auto;
+}
+
+/* ── D. Text-spill defense ──
+   Flex/grid children inherit min-width:auto which == their content's
+   intrinsic min width. Long text (URLs, emails, slugs) then forces
+   the parent past its container. Force min-width:0 across all admin
+   form/table flex children. */
+body.admin-manager-shell #content :is(.flex, .grid, .d-flex) > * {
+  min-width: 0;
+}
+body.admin-manager-shell #content table,
+body.admin-manager-shell #content .form-row,
+body.admin-manager-shell #content .field-box {
+  max-width: 100%;
+  min-width: 0;
+}
+body.admin-manager-shell #content :is(td, th, .field-box) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+body.admin-manager-shell #content table {
+  table-layout: auto;
+  width: 100%;
+}
+body.admin-manager-shell #content :is(input[type="text"], input[type="url"], input[type="email"], textarea, select) {
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* ── E. Sidebar nav legibility ──
+   Long section titles + truncated app names that touched the panel edge.
+   Defensive ellipsis + min-width:0 so the regroup-dedup in app_list.html
+   can do its job without secondary visual bleed. */
+body.admin-manager-shell .admin-sidebar-app-title,
+body.admin-manager-shell .admin-sidebar-model-link {
+  min-width: 0;
+}
+body.admin-manager-shell .admin-sidebar-app-title a,
+body.admin-manager-shell .admin-sidebar-model-link-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+body.admin-manager-shell .admin-sidebar-section-heading {
+  padding-inline: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =================================================================
+   v4.00.20 (2026-05-29) — Density + compression sweep.
+
+   Goal: make /admin/ pages SHORTER (less vertical scroll) by adopting
+   a multi-column fieldset grid on wide screens, tighter row padding,
+   and a collapsible activity ticker — without sacrificing legibility
+   below the lg breakpoint.
+
+   Operator can override with [data-rmc-admin-density="comfortable"]
+   on <html> via the density toggle in the operator menu.
+   ================================================================= */
+
+/* ── Multi-column fieldset on wide screens ──
+   Django admin renders fieldsets as <fieldset class="module aligned">
+   with vertical <div class="form-row"> children. On screens >= xl
+   (1280px+), most pairs of short fields can sit side-by-side. We use
+   a grid auto-flow with a 600px minimum column so narrow fields pair up
+   and long ones span the full row. */
+@media (min-width: 1280px) {
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > :is(.form-row, .field-box) {
+    /* allow flex/grid lay-up via the parent below */
+  }
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr));
+    gap: 4px 24px;
+    align-items: start;
+  }
+  /* Headers, hr, and explicitly full-width rows span the whole grid. */
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > :is(h2, h3, hr, .description, [data-rmc-form-row-span="full"]),
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row:has(textarea),
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row.field-description,
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row.field-content {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Compact fieldset rows ──
+   Default Django admin rows have ~12px vertical padding and 1px borders
+   between every row. Stack of 40 rows = 480px of padding alone. Halve
+   the padding and drop intra-row hairlines in the dense default. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row {
+  padding-block: 6px !important; /* style-allow: admin-density-row-pad */
+  border-bottom: 0 !important; /* style-allow: admin-density-row-pad */
+  margin-bottom: 0;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > h2 {
+  padding-block: 8px !important; /* style-allow: admin-density-row-pad */
+  font-size: var(--type-size-small, 13px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned {
+  padding: 8px 16px !important; /* style-allow: admin-density-fieldset-pad */
+  margin-bottom: 12px !important; /* style-allow: admin-density-fieldset-pad */
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .form-row label {
+  margin-bottom: 2px;
+  font-size: var(--type-size-caption, 12px);
+  font-weight: 500;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .help,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .help-text,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .field-description {
+  font-size: 11px;
+  line-height: 1.4;
+  margin-top: 2px;
+  color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.5));
+}
+
+/* ── Activity ticker collapse on scroll ──
+   The yellow LIVE ticker at the very top consumes ~36px on every page.
+   When the user scrolls past 64px, collapse it to a 4px coloured strip
+   (still LIVE indicator, no text). Expands again at the top. */
+.rmc-cockpit-ticker {
+  transition: max-height var(--motion-fast, 150ms), padding var(--motion-fast, 150ms);
+}
+html[data-rmc-scrolled="1"] body.admin-manager-shell .rmc-cockpit-ticker {
+  max-height: 4px;
+  overflow: hidden;
+  padding: 0;
+}
+html[data-rmc-scrolled="1"] body.admin-manager-shell .rmc-cockpit-ticker > * {
+  visibility: hidden;
+}
+
+/* ── Compact changelist headers ──
+   The page-header strip on changelists often shows the same model name
+   twice (breadcrumb + h1). Collapse them to a single row and tighten
+   vertical padding. */
+body.admin-manager-shell .admin-cp-unified-page #content #content-start,
+body.admin-manager-shell .admin-cp-unified-page #content > h1,
+body.admin-manager-shell .admin-cp-unified-page #content > .module > h1 {
+  padding-block: 8px !important; /* style-allow: admin-density-h1-pad */
+  margin-block: 0 !important; /* style-allow: admin-density-h1-margin */
+}
+
+/* ── Collapsible "all apps" sidebar duplicate-group dampener ──
+   The dedup in app_list.html removes Python-side duplicates. This rule
+   adds an extra defensive measure: if two adjacent app groups carry the
+   SAME app- class, hide the second. (Defensive only — should never fire
+   once the regroup is live.) */
+body.admin-manager-shell .admin-sidebar-app-group[class] + .admin-sidebar-app-group[class] {
+  /* no-op holder for future selector */
+}
+
+/* ── Changelist density (Users list, etc.) ──
+   Default Django admin gives every row ~14px vertical padding. On a
+   10-row page that's only 280px lost; on a 100-row page that's 2800px
+   of pure padding. Cut row padding in half, tighten the search/filter
+   strip, and drop the giant gap between header and first row. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist {
+  margin-top: 8px;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist table thead th {
+  padding: 8px 12px !important; /* style-allow: admin-density-changelist-pad */
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist table tbody td {
+  padding: 7px 12px !important; /* style-allow: admin-density-changelist-pad */
+  font-size: 13px;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist table tbody tr {
+  height: auto;
+}
+/* Striping on every other row improves scan-readability after we
+   removed the per-row hairlines. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist table tbody tr:nth-child(odd) td {
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 30%, transparent);
+}
+/* Search + filter strip above the table — collapse to single row, drop
+   the gigantic background card. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #toolbar,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page .changelist-search,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist-search {
+  padding-block: 8px !important; /* style-allow: admin-density-toolbar-pad */
+  margin-bottom: 8px;
+}
+/* Filter sidebar on the right — make it a sticky narrow column instead
+   of full-row above the table. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist .changelist-filter,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist #changelist-filter {
+  position: sticky;
+  top: 76px;
+  align-self: start;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  width: 240px;
+  font-size: 12px;
+}
+
+/* ── Inline-formset density ──
+   Stacked inlines have huge headers + nested fieldsets. Compress. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .inline-group .inline-related h3 {
+  padding-block: 6px !important; /* style-allow: admin-density-inline-pad */
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .inline-group .inline-related {
+  padding: 8px 12px !important; /* style-allow: admin-density-inline-pad */
+  margin-bottom: 8px;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .tabular .form-row {
+  padding-block: 4px !important; /* style-allow: admin-density-tabular-pad */
+}
+
+/* ── User dropdowns / select widgets — cap heights so 200-option lists
+   don't extend the page height. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content select[multiple],
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .selector,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .selector-available,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .selector-chosen {
+  max-height: 18rem !important; /* style-allow: admin-density-selector-cap */
+}

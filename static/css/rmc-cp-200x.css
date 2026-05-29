@@ -1483,22 +1483,30 @@ body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook
 [data-rmc-copilot-rail][data-rmc-copilot-active-tab="lens"]    .lx-copilot__input-wrap {
   display: none;
 }
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="chat"]    .lx-copilot__tab[data-rmc-copilot-tab="chat"],
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="lens"]    .lx-copilot__tab[data-rmc-copilot-tab="lens"],
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"] .lx-copilot__tab[data-rmc-copilot-tab="actions"],
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"] .lx-copilot__tab[data-rmc-copilot-tab="threads"] {
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="chat"]      .lx-copilot__tab[data-rmc-copilot-tab="chat"],
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="lens"]      .lx-copilot__tab[data-rmc-copilot-tab="lens"],
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"]   .lx-copilot__tab[data-rmc-copilot-tab="actions"],
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"]   .lx-copilot__tab[data-rmc-copilot-tab="threads"],
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="shortcuts"] .lx-copilot__tab[data-rmc-copilot-tab="shortcuts"],
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="today"]     .lx-copilot__tab[data-rmc-copilot-tab="today"] {
   color: var(--cp-chrome-text);
   border-bottom-color: #6366f1; /* off-token-allow: dark-chrome-copilot-mark */
 }
 
 .lx-copilot__pane { display: none; flex: 1; padding: 12px 14px; min-height: 0; overflow-y: auto; }
 [data-rmc-copilot-rail][data-rmc-copilot-active-tab="chat"]    .lx-copilot__thread { display: flex; flex-direction: column; gap: 8px; }
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="lens"]    .lx-copilot__thread,
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"] .lx-copilot__thread,
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"] .lx-copilot__thread { display: none; }
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="lens"]    .lx-copilot__pane[data-rmc-copilot-pane="lens"] { display: block; }
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"] .lx-copilot__pane[data-rmc-copilot-pane="actions"] { display: block; }
-[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"] .lx-copilot__pane[data-rmc-copilot-pane="threads"] { display: block; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="lens"]      .lx-copilot__thread,
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"]   .lx-copilot__thread,
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"]   .lx-copilot__thread,
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="shortcuts"] .lx-copilot__thread,
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="today"]     .lx-copilot__thread { display: none; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="lens"]      .lx-copilot__pane[data-rmc-copilot-pane="lens"] { display: block; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"]   .lx-copilot__pane[data-rmc-copilot-pane="actions"] { display: block; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"]   .lx-copilot__pane[data-rmc-copilot-pane="threads"] { display: block; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="shortcuts"] .lx-copilot__pane[data-rmc-copilot-pane="shortcuts"] { display: block; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="today"]     .lx-copilot__pane[data-rmc-copilot-pane="today"] { display: block; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="shortcuts"] .lx-copilot__input-wrap,
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="today"]     .lx-copilot__input-wrap { display: none; }
 
 .lx-copilot__selection { min-height: 1.25rem; }
 .lx-copilot__insights-wrap { border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.08)); }
@@ -1687,4 +1695,193 @@ body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook
   padding-top: 6px;
   padding-bottom: 6px;
 }
+
+/* ============================================================
+   Copilot rail v4.00.18 — quickstats strip + shortcuts/today panes.
+   ============================================================ */
+
+.lx-copilot__quickstats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
+}
+.lx-copilot__quickstat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm, 6px);
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 60%, transparent);
+  color: var(--cp-chrome-text, #f4f4f5);
+  text-decoration: none;
+  transition: background var(--motion-fast), transform var(--motion-fast);
+  min-width: 0;
+}
+.lx-copilot__quickstat:hover {
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 90%, transparent);
+  transform: translateY(-1px);
+}
+.lx-copilot__quickstat-icon {
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0.7;
+}
+.lx-copilot__quickstat-value {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.lx-copilot__quickstat-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.6));
+}
+
+.lx-copilot__pane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.06));
+}
+.lx-copilot__pane-head--secondary { margin-top: 10px; }
+.lx-copilot__pane-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.6));
+}
+.lx-copilot__pane-meta {
+  font-size: 10px;
+  color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.5));
+  font-variant-numeric: tabular-nums;
+}
+.lx-copilot__pane-edit {
+  background: transparent;
+  border: 0;
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.6));
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.lx-copilot__pane-edit:hover { color: var(--cp-chrome-text, #f4f4f5); }
+
+.lx-copilot__shortcuts {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lx-copilot__shortcut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm, 6px);
+  color: var(--cp-chrome-text, #f4f4f5);
+  text-decoration: none;
+  font-size: 12px;
+  transition: background var(--motion-fast);
+}
+.lx-copilot__shortcut:hover {
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 80%, transparent);
+}
+.lx-copilot__shortcut-icon {
+  width: 18px;
+  text-align: center;
+  opacity: 0.7;
+  font-size: 13px;
+}
+
+.lx-copilot__quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.lx-copilot__chip {
+  background: transparent;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--cp-chrome-text, #f4f4f5);
+  cursor: pointer;
+  transition: background var(--motion-fast), border-color var(--motion-fast);
+}
+.lx-copilot__chip:hover {
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 90%, transparent);
+  border-color: color-mix(in srgb, var(--hairline, rgba(255, 255, 255, 0.18)) 100%, transparent);
+}
+
+.lx-copilot__agenda,
+.lx-copilot__due-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lx-copilot__agenda li,
+.lx-copilot__due-list li {
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 6px);
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 50%, transparent);
+  color: var(--cp-chrome-text, #f4f4f5);
+}
+.lx-copilot__agenda-empty,
+.lx-copilot__due-empty {
+  color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.5)) !important; /* style-allow: dark-chrome-empty-muted */
+  background: transparent !important; /* style-allow: dark-chrome-empty-no-bg */
+  font-style: italic;
+}
+
+.lx-copilot__quick-capture {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+}
+.lx-copilot__quick-capture-input {
+  flex: 1 1 auto;
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 70%, transparent);
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-sm, 6px);
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--cp-chrome-text, #f4f4f5);
+  min-width: 0;
+}
+.lx-copilot__quick-capture-input::placeholder {
+  color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.4));
+}
+.lx-copilot__quick-capture-send {
+  flex: 0 0 auto;
+  width: 30px;
+  background: #6366f1; /* off-token-allow: dark-chrome-copilot-mark */
+  border: 0;
+  border-radius: var(--radius-sm, 6px);
+  color: #fff; /* off-token-allow: dark-chrome-copilot-mark */
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+.lx-copilot__quick-capture-send:hover { filter: brightness(1.08); }
 

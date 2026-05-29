@@ -95,7 +95,16 @@
                 <div class="cp-page-body cp-admin-page-body @container px-4 pb-4" data-rmc-cp-page-body="1" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required">
                 {% endif %}
 
-                    <div id="content" class="{% if is_manager_host %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}container{% endif %} mx-auto {% block coltype %}colM{% endblock %}"{% if not is_manager_host %} data-page-archetype="decision-console" data-decision-console-scope="django-admin"{% endif %}>
+                    {# v4.00.19 — admin canvas now defaults to full canvas width.
+                       Previously the `container` class (max-w ~1200px) was applied to
+                       all non-manager-host change forms, leaving 30-40% empty space on
+                       the right of wide screens. The canvas-body already constrains
+                       reading width via its own grid + container queries; the inner
+                       wrapper no longer needs to. is_manager_host + change-form pages
+                       (opts present) + the unified-page surface all get max-w-none.
+                       Only legacy changelist views without an explicit list_fullwidth
+                       opt-in still use container. #}
+                    <div id="content" class="{% if is_manager_host or opts %}w-100 max-w-none{% elif cl and not cl.model_admin.list_fullwidth %}container{% else %}w-100 max-w-none{% endif %} mx-auto {% block coltype %}colM{% endblock %}"{% if not is_manager_host %} data-page-archetype="decision-console" data-decision-console-scope="django-admin"{% endif %}>
                         {% block content_tabs %}
                             {% if opts and opts.app_label == 'siteconfig' and opts.model_name == 'sitesettings' and adminform %}
                                 <div class="site-settings-layout flex flex-col lg:flex-row gap-4 lg:gap-6">

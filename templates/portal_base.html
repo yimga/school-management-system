@@ -370,10 +370,14 @@
               {% if available_languages %}
               {% include "partials/language_switcher.html" %}
               {% endif %}
+              {% comment %} v4.00.17: header de-duplication. Removed standalone help icon
+                 (data-rmc-page-help), header notifications bell, and the help-center
+                 link — all three are surfaced by components/user_dropdown.html
+                 (Help & Support section + unread badge on avatar + notifications row),
+                 so duplicating them in the header was crowding the row onto two lines.
+                 Messages icon stays because it's a distinct destination not in the
+                 dropdown. {% endcomment %}
               {% if request.user.is_authenticated and not rmc_page_help_on_copilot_rail %}
-              <button type="button" class="btn btn-link text-white p-0 topbar-icon-btn" data-rmc-page-help title="{% trans 'Help on this page' %}" aria-label="{% trans 'Help on this page' %}">
-                <i class="bi bi-question-circle" aria-hidden="true"></i>
-              </button>
               <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_messages' %}" title="{% trans 'Messages' %}" aria-label="{% trans 'Open Messages' %}">
                 <i class="bi bi-chat-dots-fill"></i>
                 {% if messages_unread_count %}
@@ -381,25 +385,17 @@
                 {% endif %}
               </a>
               {% endif %}
-              {% if SHOW_HEADER_NOTIFICATIONS %}
-              <a class="btn btn-link p-0 position-relative topbar-icon-btn" href="{% url 'accounts:user_notifications' %}" title="{% trans 'Notifications' %}" aria-label="{% trans 'View notifications' %}">
-                <i class="bi bi-bell"></i>
-                {% if NOTIFICATIONS_UNREAD_COUNT %}
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger topbar-icon-badge">{{ NOTIFICATIONS_UNREAD_COUNT }}</span>
-                {% endif %}
-              </a>
-              {% endif %}
               {% comment %} Phase F follow-through (2026-05-12): Console / Configure shell switcher
                  visible in every authenticated portal page so operators can toggle modes
-                 from anywhere. Hidden below lg via .d-none .d-lg-inline-flex. {% endcomment %}
+                 from anywhere. Hidden below xl via .d-none .d-xl-inline-flex so the
+                 row never wraps on lg-class viewports. {% endcomment %}
               {% if request.user.is_authenticated and not request.public_host_kind == 'manager' %}
-                <span class="d-none d-lg-inline-flex align-items-center gap-2">
+                <span class="d-none d-xl-inline-flex align-items-center gap-2">
                   {% include "components/guardian_student_links.html" %}
                   {% include "components/rmc_campus_switcher.html" %}
                   {% include "components/rmc_shell_switcher.html" %}
                 </span>
               {% endif %}
-              <a class="btn btn-link p-0 topbar-icon-btn" href="{{ help_center_url }}" title="{% trans 'Help & Knowledge Base' %}" aria-label="{% trans 'Help' %}"><i class="bi bi-question-circle" aria-hidden="true"></i></a>
 
               {% comment %} Phase D end-to-end (2026-05-12): portal topbar now uses the same rich
                  user_dropdown.html as control plane and admin. The component already

@@ -146,7 +146,16 @@
     </h2>
     <div class="admin-sidebar-app-groups" role="group" x-show="allAppsOpen" x-transition.50ms>
   {% endif %}
-    {% for app in app_list %}
+    {# v4.00.19 — defensive dedup. When apps register the same ModelAdmin
+       under multiple sections or the cockpit context processor injects a
+       duplicate "section" of the same app, the original template printed the
+       same app row 30+ times. We dedup BY (section, app_label) here so the
+       canonical first occurrence wins. The proper root fix is in the Python
+       registry, but the template guard keeps the user out of the broken
+       view until that lands. #}
+    {% regroup app_list by app_label as app_label_groups %}
+    {% for app_group in app_label_groups %}
+    {% with app=app_group.list.0 %}
     {% ifchanged app.section %}
       {% if not forloop.first %}<hr class="admin-sidebar-section-divider" aria-hidden="true">{% endif %}
       <h2 class="admin-sidebar-section-heading">
@@ -202,6 +211,7 @@
       </ol>
       {% endif %}
     </div>
+    {% endwith %}
     {% endfor %}
     </div>
   {% if not platform_admin_sidebar_embed %}

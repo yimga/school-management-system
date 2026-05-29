@@ -64,6 +64,14 @@
               title="{% trans 'Recent threads' %}"
               aria-label="{% trans 'Recent threads' %}">⌘</button>
       <button class="lx-copilot__rail-icon" type="button"
+              data-rmc-copilot-tab="shortcuts"
+              title="{% trans 'Shortcuts & pinned' %}"
+              aria-label="{% trans 'Shortcuts & pinned' %}">⚐</button>
+      <button class="lx-copilot__rail-icon" type="button"
+              data-rmc-copilot-tab="today"
+              title="{% trans 'Today — agenda & due' %}"
+              aria-label="{% trans 'Today — agenda & due' %}">◐</button>
+      <button class="lx-copilot__rail-icon" type="button"
               data-rmc-operator-notebook-toggle
               title="{% trans 'Toggle operator notebook' %}"
               aria-label="{% trans 'Toggle operator notebook' %}">✎</button>
@@ -108,7 +116,43 @@
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="lens" role="tab">{% trans 'Lens' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="actions" role="tab">{% trans 'Actions' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="threads" role="tab">{% trans 'Threads' %}</button>
+        <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="shortcuts" role="tab">{% trans 'Shortcuts' %}</button>
+        <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="today" role="tab">{% trans 'Today' %}</button>
       </nav>
+
+      {# v4.00.18 — always-visible quick-stats strip. Hydrated by the services
+         bridge via [data-rmc-copilot-rail-quickstat]; SSR defaults below
+         degrade gracefully when context_processors haven't populated. #}
+      <div class="lx-copilot__quickstats" role="group" aria-label="{% trans 'At a glance' %}">
+        <a class="lx-copilot__quickstat" href="{% url 'accounts:user_messages' %}"
+           data-rmc-copilot-rail-quickstat="messages"
+           title="{% trans 'Unread messages' %}">
+          <span class="lx-copilot__quickstat-icon" aria-hidden="true">✉</span>
+          <span class="lx-copilot__quickstat-value" data-rmc-copilot-rail-quickstat-value>{% firstof messages_unread_count 0 %}</span>
+          <span class="lx-copilot__quickstat-label">{% trans 'Msg' %}</span>
+        </a>
+        <a class="lx-copilot__quickstat" href="{% url 'accounts:user_notifications' %}"
+           data-rmc-copilot-rail-quickstat="notifications"
+           title="{% trans 'Unread notifications' %}">
+          <span class="lx-copilot__quickstat-icon" aria-hidden="true">●</span>
+          <span class="lx-copilot__quickstat-value" data-rmc-copilot-rail-quickstat-value>{% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 %}</span>
+          <span class="lx-copilot__quickstat-label">{% trans 'Alerts' %}</span>
+        </a>
+        <span class="lx-copilot__quickstat"
+              data-rmc-copilot-rail-quickstat="pending"
+              title="{% trans 'Pending approvals on this surface' %}">
+          <span class="lx-copilot__quickstat-icon" aria-hidden="true">◆</span>
+          <span class="lx-copilot__quickstat-value" data-rmc-copilot-rail-quickstat-value>{% firstof copilot_pending_approvals_count 0 %}</span>
+          <span class="lx-copilot__quickstat-label">{% trans 'Pending' %}</span>
+        </span>
+        <span class="lx-copilot__quickstat"
+              data-rmc-copilot-rail-quickstat="due-today"
+              title="{% trans 'Due today' %}">
+          <span class="lx-copilot__quickstat-icon" aria-hidden="true">▣</span>
+          <span class="lx-copilot__quickstat-value" data-rmc-copilot-rail-quickstat-value>{% firstof copilot_due_today_count 0 %}</span>
+          <span class="lx-copilot__quickstat-label">{% trans 'Due' %}</span>
+        </span>
+      </div>
 
       <p class="lx-copilot__selection small text-secondary mb-0 px-3" data-rmc-copilot-rail-selection aria-live="polite"></p>
 
@@ -171,6 +215,76 @@
       {# Threads pane — recent threads (server-rendered or "no threads yet" empty state). #}
       <div class="lx-copilot__pane" data-rmc-copilot-pane="threads">
         <p class="lx-copilot__threads-empty">{% trans 'Recent threads will appear here once you have chatted with the copilot.' %}</p>
+      </div>
+
+      {# v4.00.18 — Shortcuts pane. Pinned destinations + frequent actions.
+         Server-rendered defaults are role-aware; the services bridge can
+         POST custom pins via data-rmc-copilot-rail-shortcuts-list. #}
+      <div class="lx-copilot__pane lx-copilot__pane--shortcuts" data-rmc-copilot-pane="shortcuts">
+        <div class="lx-copilot__pane-head">
+          <span class="lx-copilot__pane-title">{% trans 'Pinned' %}</span>
+          <button type="button" class="lx-copilot__pane-edit" data-rmc-copilot-shortcuts-edit aria-label="{% trans 'Edit pins' %}">{% trans 'Edit' %}</button>
+        </div>
+        <ul class="lx-copilot__shortcuts" data-rmc-copilot-rail-shortcuts-list>
+          {% if request.user.is_authenticated %}
+            {% if request.user.role == 'TEACHER' %}
+              <li><a class="lx-copilot__shortcut" href="{% url 'portal:teacher_dashboard_alias' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'My classes' %}</span></a></li>
+              <li><a class="lx-copilot__shortcut" href="{% url 'evals:teacher_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'Gradebook' %}</span></a></li>
+              <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
+            {% elif request.user.role == 'PARENT' %}
+              <li><a class="lx-copilot__shortcut" href="{% url 'portal:parent_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'My children' %}</span></a></li>
+              <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
+            {% elif request.user.role == 'STUDENT' %}
+              <li><a class="lx-copilot__shortcut" href="{% url 'portal:student_portal_grades' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">▤</span><span>{% trans 'My grades' %}</span></a></li>
+              <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
+            {% else %}
+              <li><a class="lx-copilot__shortcut" href="{% url 'accounts:backend_dashboard' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◐</span><span>{% trans 'Dashboard' %}</span></a></li>
+              <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_messages' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">✉</span><span>{% trans 'Inbox' %}</span></a></li>
+            {% endif %}
+            <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_notifications' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">●</span><span>{% trans 'Notifications' %}</span></a></li>
+            <li><a class="lx-copilot__shortcut" href="{% url 'accounts:user_profile' %}"><span class="lx-copilot__shortcut-icon" aria-hidden="true">◉</span><span>{% trans 'Profile' %}</span></a></li>
+          {% endif %}
+        </ul>
+        <div class="lx-copilot__pane-head lx-copilot__pane-head--secondary">
+          <span class="lx-copilot__pane-title">{% trans 'Quick actions' %}</span>
+        </div>
+        <div class="lx-copilot__quick-actions">
+          <button type="button" class="lx-copilot__chip" data-rmc-cmdk-open data-rmc-cmdk-prefix=":new ">{% trans 'New' %} ⌘N</button>
+          <button type="button" class="lx-copilot__chip" data-rmc-cmdk-open data-rmc-cmdk-prefix=":search ">{% trans 'Search' %} ⌘K</button>
+          <button type="button" class="lx-copilot__chip" data-rmc-cmdk-open data-rmc-cmdk-prefix=":go ">{% trans 'Go to…' %}</button>
+          <button type="button" class="lx-copilot__chip" data-rmc-cmdk-open data-rmc-cmdk-prefix=":help ">{% trans 'Help' %} ?</button>
+        </div>
+      </div>
+
+      {# v4.00.18 — Today pane. Agenda for today + due items + quick add. #}
+      <div class="lx-copilot__pane lx-copilot__pane--today" data-rmc-copilot-pane="today">
+        <div class="lx-copilot__pane-head">
+          <span class="lx-copilot__pane-title">{% trans 'Agenda' %}</span>
+          <span class="lx-copilot__pane-meta" data-rmc-copilot-rail-today-date></span>
+        </div>
+        <ul class="lx-copilot__agenda" data-rmc-copilot-rail-agenda-list aria-live="polite">
+          <li class="lx-copilot__agenda-empty">{% trans 'No events on the schedule yet today.' %}</li>
+        </ul>
+        <div class="lx-copilot__pane-head lx-copilot__pane-head--secondary">
+          <span class="lx-copilot__pane-title">{% trans 'Due today' %}</span>
+          <span class="lx-copilot__pane-meta" data-rmc-copilot-rail-due-count>{% firstof copilot_due_today_count 0 %}</span>
+        </div>
+        <ul class="lx-copilot__due-list" data-rmc-copilot-rail-due-list aria-live="polite">
+          <li class="lx-copilot__due-empty">{% trans 'Nothing due today. ✓' %}</li>
+        </ul>
+        <div class="lx-copilot__pane-head lx-copilot__pane-head--secondary">
+          <span class="lx-copilot__pane-title">{% trans 'Quick capture' %}</span>
+        </div>
+        <form class="lx-copilot__quick-capture" data-rmc-copilot-rail-quick-capture>
+          <label class="visually-hidden" for="rmc-copilot-quick-capture-input">{% trans 'Capture a note or task' %}</label>
+          <input id="rmc-copilot-quick-capture-input"
+                 class="lx-copilot__quick-capture-input"
+                 type="text"
+                 name="note"
+                 placeholder="{% trans 'Note, task, reminder…' %}"
+                 autocomplete="off">
+          <button type="submit" class="lx-copilot__quick-capture-send" aria-label="{% trans 'Save capture' %}">+</button>
+        </form>
       </div>
 
       <div class="lx-copilot__input-wrap">

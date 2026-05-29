@@ -1,11 +1,35 @@
 {% load i18n admin_urls %}
 
-<div {% if not is_popup %}id="submit-row"{% endif %} class="relative lg:sticky lg:bottom-0 z-40" data-rmc-admin-submit-contract="sticky-safe-actions">
+{% comment %} v4.00.19 (2026-05-29) — single-instance contract.
+
+   Background: in admin change_form rendering, when many inline formsets are
+   present, this partial can render more than once (the contract was that
+   `submit_row` appears at the *bottom* of the page, but stacked-inline
+   pagination + HTMX swaps can produce extras). With `lg:sticky lg:bottom-0`
+   they all pin to the bottom of the viewport, producing the "stacked save
+   bars" the customer reported.
+
+   Two-line defense:
+     1) data-rmc-admin-submit-row-primary marks this instance for the CSS
+        sibling-rule in admin-manager-shell.css that hides any duplicate
+        ([data-rmc-admin-submit-contract] ~ [data-rmc-admin-submit-contract]).
+     2) The inline IIFE at the end of this template removes duplicates from
+        the DOM after parse so the user only ever sees ONE strip.
+
+   Display contract: NOT a viewport-sticky bar anymore. The strip lives at the
+   natural foot of the form column, but a compact floating cluster
+   (.rmc-admin-quickaction) is rendered alongside for thumb-reach Save while
+   scrolling — see admin-manager-shell.css. {% endcomment %}
+<div {% if not is_popup %}id="submit-row"{% endif %}
+     class="rmc-admin-submit-row"
+     data-rmc-admin-submit-contract="sticky-safe-actions"
+     data-rmc-admin-submit-row-primary="1">
     {% if request.GET.next %}
     <input type="hidden" name="next" value="{{ request.GET.next }}" form="{{ opts.model_name }}_form">
     {% endif %}
-    <div class="backdrop-blur-xs bg-white/80 rounded-b-default pb-4 px-4 dark:bg-base-900/80 lg:border-t lg:border-base-200 relative lg:scrollable-top lg:py-0 dark:border-base-800">
-        <div class="flex flex-col-reverse gap-3 items-center mx-auto lg:flex-row-reverse container lg:h-[64px]">
+    <div class="rmc-admin-submit-row__inner backdrop-blur-xs bg-white/80 rounded-b-default pb-4 px-4 dark:bg-base-900/80 lg:border-t lg:border-base-200 relative dark:border-base-800">
+        <div class="flex flex-col-reverse gap-3 items-center mx-auto lg:flex-row-reverse lg:h-[64px] w-full">
+            <span class="rmc-admin-submit-row__hint d-none d-lg-inline text-xs text-base-500 dark:text-base-400 ms-auto" aria-hidden="true">⌘ + S</span>
             {% block submit-row %}
                 {% if show_save %}
                     <button type="submit" form="{{ opts.model_name }}_form" name="_save" class="bg-primary-600 block border border-transparent cursor-pointer font-medium px-3 py-2 rounded-default w-full lg:w-auto">
@@ -95,3 +119,25 @@
         </div>
     </div>
 </div>
+
+{# v4.00.19 — single-instance enforcement. Removes any duplicates that
+   appeared in the DOM (HTMX swap, double-include from a custom change_form,
+   or paginated inline footer). Idempotent: runs at parse, no-ops if there
+   was only ever one. #}
+<script>
+(function () {
+  try {
+    function dedup() {
+      var rows = document.querySelectorAll('[data-rmc-admin-submit-contract="sticky-safe-actions"]');
+      if (rows.length <= 1) return;
+      for (var i = 1; i < rows.length; i++) {
+        var r = rows[i];
+        if (r.parentNode) r.parentNode.removeChild(r);
+      }
+    }
+    dedup();
+    document.addEventListener('DOMContentLoaded', dedup);
+    document.addEventListener('htmx:afterSwap', dedup);
+  } catch (e) {}
+})();
+</script>
