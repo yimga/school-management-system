@@ -2210,3 +2210,168 @@ COUNTRY_LOCALIZATION["CI"] = {
     },
 }
 COUNTRY_REGIONAL_DEFAULT.pop("CI", None)
+
+# Tanzania — Anglophone, 2-7-4-2 system, PSLE / CSEE / ACSEE markers.
+COUNTRY_LOCALIZATION["TZ"] = {
+    "calendar_system": {
+        "code": "tz-2-term", "label": "2 Terms (Tanzanian)",
+        "term_count": 2, "term_names": ["Term 1", "Term 2"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "shule-ya-awali", "label": "Shule ya Awali / Pre-Primary",   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "msingi",         "label": "Shule ya Msingi (Std I-VII)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-13"},
+        {"code": "sekondari-o",    "label": "Sekondari O-Level (F1-F4 / CSEE)", "glyph": "\U0001F4DA", "primary_sector": "secondary",    "typical_ages": "14-17"},
+        {"code": "sekondari-a",    "label": "Sekondari A-Level (F5-F6 / ACSEE)", "glyph": "\U0001F393", "primary_sector": "secondary",   "typical_ages": "18-19"},
+        {"code": "ufundi-veta",    "label": "VETA / Vocational Training",     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "international",  "label": "International School",           "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "chuo-kikuu",     "label": "Chuo Kikuu / University",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tz-pre",  "label": "Pre-Primary",            "order": 0},
+        {"code": "tz-s1",   "label": "Standard I",             "order": 1},
+        {"code": "tz-s7",   "label": "Standard VII (PSLE)",    "order": 7},
+        {"code": "tz-f1",   "label": "Form 1",                 "order": 8},
+        {"code": "tz-f4",   "label": "Form 4 (CSEE)",          "order": 11},
+        {"code": "tz-f5",   "label": "Form 5",                 "order": 12},
+        {"code": "tz-f6",   "label": "Form 6 (ACSEE)",         "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Mwalimu / Teacher", "principal": "Mkuu wa Shule / Head Teacher",
+        "term": "Muhula / Term", "report_card": "Ripoti / Report",
+        "grade_level": "Darasa / Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TZ", None)
+
+# Uganda — Anglophone, 7-4-2 system, PLE / UCE / UACE markers.
+COUNTRY_LOCALIZATION["UG"] = {
+    "calendar_system": {
+        "code": "ug-3-term", "label": "3 Terms (Ugandan)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "nursery",      "label": "Nursery / Kindergarten",        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "Primary School (P1-P7 / PLE)",  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "o-level",      "label": "Secondary O-Level (S1-S4 / UCE)","glyph": "\U0001F4DA","primary_sector": "secondary",       "typical_ages": "13-17"},
+        {"code": "a-level",      "label": "Secondary A-Level (S5-S6 / UACE)","glyph": "\U0001F393","primary_sector": "secondary",      "typical_ages": "17-19"},
+        {"code": "btvet",        "label": "BTVET / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "international","label": "International School",          "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "university",   "label": "University",                    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ug-nur", "label": "Nursery",          "order": 0},
+        {"code": "ug-p1",  "label": "P1",               "order": 1},
+        {"code": "ug-p7",  "label": "P7 (PLE)",         "order": 7},
+        {"code": "ug-s1",  "label": "S1",               "order": 8},
+        {"code": "ug-s4",  "label": "S4 (UCE)",         "order": 11},
+        {"code": "ug-s5",  "label": "S5",               "order": 12},
+        {"code": "ug-s6",  "label": "S6 (UACE)",        "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head Teacher", "term": "Term",
+        "report_card": "Report Card", "grade_level": "Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("UG", None)
+
+# Ethiopia — Amharic+English, 8-2-2 + uni; National Exam at G8, G10, G12.
+COUNTRY_LOCALIZATION["ET"] = {
+    "calendar_system": {
+        "code": "et-2-semester", "label": "2 Semesters (Ethiopian)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",           "label": "Kindergarten / መዋዕለ ሕፃናት",       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary-1-8",  "label": "Primary (G1-G8) / የመጀመሪያ ደረጃ",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-14"},
+        {"code": "secondary-9-10","label": "General Secondary (G9-G10) / ሁለተኛ ደረጃ", "glyph": "\U0001F4DA", "primary_sector": "secondary","typical_ages": "15-16"},
+        {"code": "preparatory",  "label": "Preparatory (G11-G12) / መሰናዶ",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "17-18"},
+        {"code": "tvet",         "label": "TVET / ቴክኒክና ሙያ",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "international","label": "International School",            "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "4-18"},
+        {"code": "university",   "label": "University / ዩኒቨርሲቲ",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "et-kg",  "label": "KG",                 "order": 0},
+        {"code": "et-g1",  "label": "Grade 1",            "order": 1},
+        {"code": "et-g8",  "label": "Grade 8 (National)", "order": 8},
+        {"code": "et-g10", "label": "Grade 10 (EGSECE)",  "order": 10},
+        {"code": "et-g12", "label": "Grade 12 (EHEECE)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / መምህር", "principal": "Director / ርዕሰ መምህር",
+        "term": "Semester", "report_card": "Report Card / የውጤት ሪፖርት",
+        "grade_level": "Grade / ክፍል",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("ET", None)
+
+# Egypt — Arabic primary, English+French streams; Thanaweya Amma is the gate.
+COUNTRY_LOCALIZATION["EG"] = {
+    "calendar_system": {
+        "code": "eg-2-semester", "label": "2 Semesters (Egyptian)",
+        "term_count": 2, "term_names": ["Semester 1 / الفصل الأول", "Semester 2 / الفصل الثاني"],
+        "week_start": 6, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",                "label": "Kindergarten / رياض الأطفال",      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",           "label": "Primary (G1-G6) / ابتدائي",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "preparatory",       "label": "Preparatory (G7-G9) / إعدادي",     "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "secondary-general", "label": "General Secondary / ثانوي عام",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "secondary-azhar",   "label": "Al-Azhar Secondary / أزهري",       "glyph": "\U0001F54C", "primary_sector": "secondary",       "typical_ages": "6-18"},
+        {"code": "technical",         "label": "Technical Secondary / فني",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "international",     "label": "International School (IGCSE/IB)",  "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "4-18"},
+        {"code": "university",        "label": "University / جامعة",               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "eg-kg",  "label": "KG",                              "order": 0},
+        {"code": "eg-p1",  "label": "Primary 1",                       "order": 1},
+        {"code": "eg-p6",  "label": "Primary 6",                       "order": 6},
+        {"code": "eg-pr1", "label": "Preparatory 1",                   "order": 7},
+        {"code": "eg-pr3", "label": "Preparatory 3 (Cert.)",           "order": 9},
+        {"code": "eg-s1",  "label": "Secondary 1",                     "order": 10},
+        {"code": "eg-s3",  "label": "Secondary 3 (Thanaweya Amma)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / مدرس", "principal": "Principal / ناظر",
+        "term": "Semester / فصل دراسي", "report_card": "Report / شهادة",
+        "grade_level": "Grade / صف",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("EG", None)
+
+# South Africa — Tier-1 override of the regional default; 4 terms, NSC Matric.
+COUNTRY_LOCALIZATION["ZA"] = {
+    "calendar_system": {
+        "code": "za-4-term", "label": "4 Terms (South African)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "ecd",         "label": "ECD / Pre-school (Grade RR/R)",   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",     "label": "Primary School (Foundation+Intermediate, Gr R-7)", "glyph": "\U0001F3EB", "primary_sector": "primary",  "typical_ages": "5-13"},
+        {"code": "senior-phase","label": "Senior Phase (Gr 8-9)",           "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-15"},
+        {"code": "fet",         "label": "FET Phase (Gr 10-12 / NSC Matric)","glyph": "\U0001F393","primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "combined",    "label": "Combined School (Gr R-12)",       "glyph": "\U0001F3EB", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "tvet",        "label": "TVET College",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "lsen",        "label": "LSEN / Special-Needs School",     "glyph": "\U0001F9E9", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "independent", "label": "Independent / IEB School",        "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "university",  "label": "University",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "za-grr",  "label": "Grade R",                  "order": 0},
+        {"code": "za-g1",   "label": "Grade 1",                  "order": 1},
+        {"code": "za-g3",   "label": "Grade 3 (Foundation)",     "order": 3},
+        {"code": "za-g6",   "label": "Grade 6 (Intermediate)",   "order": 6},
+        {"code": "za-g7",   "label": "Grade 7 (Senior Primary)", "order": 7},
+        {"code": "za-g9",   "label": "Grade 9 (GETC)",           "order": 9},
+        {"code": "za-g10",  "label": "Grade 10 (FET)",           "order": 10},
+        {"code": "za-g12",  "label": "Grade 12 (NSC Matric)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Educator", "principal": "Principal", "term": "Term",
+        "report_card": "Report", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("ZA", None)

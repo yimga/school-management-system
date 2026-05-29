@@ -530,9 +530,77 @@ html[data-rmc-os-grade="1"] .rmc-cmdk__list [data-rmc-cmdk-group="slash"] {
 }
 
 /* ============================================================
+   v4.00.30 — VOICE INPUT MIC + AI-LINE SUGGESTION ROW
+   ============================================================ */
+.rmc-cmdk__mic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 6px;
+  padding: 0;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary, currentColor);
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+.rmc-cmdk__mic:hover {
+  background: color-mix(in oklab, var(--text-primary, currentColor) 8%, transparent);
+  color: var(--text-primary, currentColor);
+}
+.rmc-cmdk__mic.is-listening {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.55);
+  animation: rmc-cmdk-mic-pulse 1100ms ease-in-out infinite;
+}
+@keyframes rmc-cmdk-mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); }
+  50%      { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+
+.rmc-cmdk__item--ai-line {
+  position: relative;
+  display: grid !important; /* style-allow: cmdk-ai-line-row */
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px !important; /* style-allow: cmdk-ai-line-row */
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--rmc-page-accent, #6366f1) 12%, transparent),
+    transparent 80%
+  ) !important; /* style-allow: cmdk-ai-line-accent */
+  border-left: 2px solid var(--rmc-page-accent, #6366f1) !important; /* style-allow: cmdk-ai-line-accent */
+  cursor: pointer;
+}
+.rmc-cmdk__item--ai-line .rmc-cmdk__item-icon {
+  color: var(--rmc-page-accent, #6366f1);
+}
+.rmc-cmdk__item--ai-line .rmc-cmdk__item-label {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.rmc-cmdk__item--ai-line .rmc-cmdk__item-hint {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary, currentColor);
+  opacity: 0.85;
+}
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__mic {
+  border-color: var(--rmc-os-hairline, rgba(255, 255, 255, 0.08));
+}
+
+/* ============================================================
    PREFERS-REDUCED-MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   .rmc-os-command-rail__dot { animation: none; }
   html[data-rmc-os-grade="1"] .rmc-cmdk__panel { animation: none; }
+  .rmc-cmdk__mic.is-listening { animation: none; }
 }

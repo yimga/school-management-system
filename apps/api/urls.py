@@ -88,6 +88,7 @@ from apps.api.offline_device_api import OfflineTokenMintView
 from apps.api.iam_offline_api import OfflineIamIntentAPI, PermissionSnapshotAPI
 from apps.api.sync_bundle_api import SyncBundleUploadView
 from apps.portal.views_command_bar import api_command_bar_search
+from apps.portal.views_ai_line import api_ai_line_interpret
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
     api_import_error_resolver,
@@ -535,6 +536,7 @@ urlpatterns = [
     ),
     path("kb/typeahead/", api_kb_typeahead, name="kb-typeahead"),
     path("ai/command-bar/", api_command_bar_search, name="ai-command-bar"),
+    path("ai/line-interpret/", api_ai_line_interpret, name="ai-line-interpret"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,

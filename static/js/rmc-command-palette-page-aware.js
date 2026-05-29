@@ -1,5 +1,13 @@
 /**
- * rmc-command-palette-page-aware.js — v4.00.28 (2026-05-29)
+ * rmc-command-palette-page-aware.js — v4.00.30 (2026-05-29)
+ *
+ * v4.00.30: + Web Speech API voice input on the cmdk input bar.
+ *           + AI-line interpreter: as the user types, debounce-POST the
+ *             query to /api/v1/ai/line-interpret/. When the backend matches
+ *             a deterministic intent (e.g. "students who haven't paid term
+ *             2" → outstanding fees), prepend a single AI suggestion row
+ *             with the resolved URL — one-click jump instead of scrolling
+ *             through generic results.
  *
  * Augmentation layer that runs BEFORE rmc-command-palette.js. It reads
  * data-rmc-page-domain on <html> (set by admin-quickaction.js's page
@@ -234,10 +242,152 @@
     });
   }
 
+  // v4.00.30 — Web Speech API voice input. Adds a mic button to the cmdk
+  // input bar; clicking starts a one-shot dictation that fills the input
+  // and immediately re-fires its `input` event so results update live.
+  function wireVoiceInput() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return; // Browser lacks support — graceful no-op.
+    var input = document.getElementById("rmc-cmdk-input");
+    var bar = input && input.closest(".rmc-cmdk__inputbar");
+    if (!input || !bar || bar.querySelector(".rmc-cmdk__mic")) return;
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "rmc-cmdk__mic";
+    btn.setAttribute("aria-label", "Dictate query");
+    btn.title = "Voice search";
+    btn.innerHTML = '<i class="bi bi-mic" aria-hidden="true"></i>';
+
+    // Place before the Esc hint so the close affordance stays rightmost.
+    var esc = bar.querySelector(".rmc-cmdk__kbd-hint");
+    if (esc) {
+      bar.insertBefore(btn, esc);
+    } else {
+      bar.appendChild(btn);
+    }
+
+    var rec = null;
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      try {
+        if (rec) {
+          rec.stop();
+          rec = null;
+          btn.classList.remove("is-listening");
+          return;
+        }
+        rec = new SR();
+        rec.lang = (navigator.language || "en-US");
+        rec.interimResults = false;
+        rec.maxAlternatives = 1;
+        btn.classList.add("is-listening");
+        rec.onresult = function (e) {
+          var text = (e.results && e.results[0] && e.results[0][0] && e.results[0][0].transcript) || "";
+          if (text) {
+            input.value = text;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            input.focus();
+          }
+        };
+        rec.onend = function () {
+          btn.classList.remove("is-listening");
+          rec = null;
+        };
+        rec.onerror = function () {
+          btn.classList.remove("is-listening");
+          rec = null;
+        };
+        rec.start();
+      } catch (_) {
+        btn.classList.remove("is-listening");
+        rec = null;
+      }
+    });
+  }
+
+  // v4.00.30 — AI-line interpreter wiring. Listens on the cmdk input and
+  // debounces a POST to /api/v1/ai/line-interpret/. When the backend matches
+  // a deterministic intent, prepends a single AI suggestion to the results
+  // list (or replaces the prior AI row if one exists). Falls back silently
+  // on any error — generic cmdk results keep working.
+  function wireAiLineInterpreter() {
+    var input = document.getElementById("rmc-cmdk-input");
+    var list = document.getElementById("rmc-cmdk-list");
+    if (!input || !list) return;
+    var endpoint = "/api/v1/ai/line-interpret/";
+    var lastSuggestion = null;
+    var t = null;
+
+    function csrfToken() {
+      var m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+
+    function clearSuggestion() {
+      var prior = list.querySelector('[data-rmc-ai-line="1"]');
+      if (prior) prior.remove();
+      lastSuggestion = null;
+    }
+
+    function renderSuggestion(label, url, intent) {
+      clearSuggestion();
+      var li = document.createElement("li");
+      li.setAttribute("role", "option");
+      li.setAttribute("data-rmc-ai-line", "1");
+      li.className = "rmc-cmdk__item rmc-cmdk__item--ai-line";
+      li.innerHTML =
+        '<i class="bi bi-magic rmc-cmdk__item-icon" aria-hidden="true"></i>' +
+        '<span class="rmc-cmdk__item-label">' + label + '</span>' +
+        '<span class="rmc-cmdk__item-hint">AI · ' + (intent || "match") + '</span>';
+      li.addEventListener("click", function () { window.location.href = url; });
+      li.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") window.location.href = url;
+      });
+      // Prepend so it lands at the top.
+      if (list.firstChild) list.insertBefore(li, list.firstChild);
+      else list.appendChild(li);
+      lastSuggestion = { label: label, url: url, intent: intent };
+    }
+
+    function fetchInterpretation(q) {
+      if (!q || q.length < 4) { clearSuggestion(); return; }
+      try {
+        fetch(endpoint, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken(),
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          body: JSON.stringify({ q: q })
+        }).then(function (r) {
+          if (!r.ok) return null;
+          return r.json();
+        }).then(function (j) {
+          if (!j || !j.matched || !j.url) { clearSuggestion(); return; }
+          renderSuggestion(j.label || "Open", j.url, j.intent || "");
+        }).catch(function () { /* silent */ });
+      } catch (_) { /* silent */ }
+    }
+
+    input.addEventListener("input", function () {
+      clearTimeout(t);
+      var q = input.value;
+      t = setTimeout(function () { fetchInterpretation(q); }, 280);
+    });
+  }
+
   function bootAugmenter() {
     injectPageActions();
     injectSlashAndAi();
     wireCustomActions();
+    // Voice + AI-line wire after the palette has had a tick to mount its DOM.
+    setTimeout(function () {
+      wireVoiceInput();
+      wireAiLineInterpreter();
+    }, 0);
   }
 
   if (document.readyState === "loading") {

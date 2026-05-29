@@ -67,14 +67,38 @@ def list_teacher_classes(*, request: Any, school: Any) -> list[dict[str, Any]]:
 
 
 def list_grading_scale_choices(*, request: Any, school: Any) -> list[dict[str, Any]]:
-    return [
-        {"value": "percentage_0_100", "label_token": "Percentage 0–100", "metadata": {}},
-        {"value": "letter_a_f",       "label_token": "Letter A–F",       "metadata": {}},
-        {"value": "gpa_0_4",          "label_token": "GPA 0.0–4.0",      "metadata": {}},
-        {"value": "points_out_of_20", "label_token": "Points out of 20", "metadata": {}},
-        {"value": "rubric_levels",    "label_token": "Rubric levels",    "metadata": {}},
-        {"value": "competency_pass_fail", "label_token": "Competency pass/fail", "metadata": {}},
-    ]
+    """v4.00.30: country- and system-type-aware grading band picker.
+
+    Falls back to the universal 6-option list when no school context is
+    available so legacy callers keep working.
+    """
+    country = ""
+    system_codes: list[str] = []
+    try:
+        if school is not None:
+            country = (getattr(school, "country_code", "") or "").upper()
+            m2m = getattr(school, "education_system_types", None)
+            if m2m is not None:
+                system_codes = list(m2m.values_list("code", flat=True))
+            elif getattr(school, "school_type", ""):
+                system_codes = [school.school_type]
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("list_grading_scale_choices school-introspect fallback: %s", exc)
+
+    try:
+        from apps.siteconfig._grading_bands import grading_scale_choices
+
+        return grading_scale_choices(country_code=country, system_type_codes=system_codes)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("list_grading_scale_choices band fallback: %s", exc)
+        return [
+            {"value": "percentage_0_100", "label_token": "Percentage 0–100", "metadata": {}},
+            {"value": "letter_a_f",       "label_token": "Letter A–F",       "metadata": {}},
+            {"value": "gpa_0_4",          "label_token": "GPA 0.0–4.0",      "metadata": {}},
+            {"value": "points_out_of_20", "label_token": "Points out of 20", "metadata": {}},
+            {"value": "rubric_levels",    "label_token": "Rubric levels",    "metadata": {}},
+            {"value": "competency_pass_fail", "label_token": "Competency pass/fail", "metadata": {}},
+        ]
 
 
 def list_attendance_status_choices(*, request: Any, school: Any) -> list[dict[str, Any]]:
