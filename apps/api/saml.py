@@ -425,6 +425,136 @@ def _build_redirect_signed_url(
     return signed_url, "ok"
 
 
+# ---------------------------------------------------------------------------
+# v4.00.63 — SAML 2.0 HTTP-Redirect binding signature VERIFICATION (inbound).
+#
+# Counterpart to v4.00.62's outbound signing. When an IdP delivers a
+# LogoutRequest via Redirect binding, the URL carries:
+#
+#   ?SAMLRequest=<b64(deflate(xml))>
+#    &RelayState=<rs>            (optional)
+#    &SigAlg=<algorithm-URI>
+#    &Signature=<b64(signature)>
+#
+# Per SAML 2.0 Bindings § 3.4.4.1, the bytes that get verified are the
+# URL-encoded query string assembled in this EXACT order: SAMLRequest,
+# RelayState (if set), SigAlg. Order matters — the IdP's signer assembled
+# the bytes in this order before signing, so verification must reproduce
+# them exactly.
+# ---------------------------------------------------------------------------
+
+
+_SIG_ALG_URI_TO_HASH = {
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256": "sha256",
+    "http://www.w3.org/2000/09/xmldsig#rsa-sha1": "sha1",
+}
+
+
+def _verify_saml_redirect_signature(
+    *,
+    saml_request_b64: str,
+    relay_state: str,
+    sig_alg_uri: str,
+    signature_b64: str,
+    idp_cert_pem: str,
+) -> tuple[bool, str]:
+    """v4.00.63 — Verify a SAML 2.0 HTTP-Redirect binding signature.
+
+    Returns ``(verified, reason)`` where ``reason`` is one of:
+        ``ok``                — signature matches
+        ``deps_missing``      — cryptography lib not importable
+        ``cert_unset``        — IdP cert not configured
+        ``unsupported_alg``   — SigAlg URI not in our map
+        ``bad_signature_b64`` — signature base64-decode failed
+        ``bad_cert``          — cert PEM not parseable
+        ``signature_invalid`` — RSA verification failed (canonical mismatch
+                                or key mismatch)
+
+    Required URL params (per spec) are passed in explicitly so this
+    helper is reusable from non-Django callers (smoke / monitors).
+    NEVER raises.
+    """
+    if not idp_cert_pem:
+        return False, "cert_unset"
+    if not signature_b64:
+        return False, "signature_missing"
+
+    hash_name = _SIG_ALG_URI_TO_HASH.get(sig_alg_uri or "")
+    if hash_name is None:
+        return False, "unsupported_alg"
+
+    try:
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import padding
+        from cryptography.x509 import load_pem_x509_certificate
+        from cryptography.exceptions import InvalidSignature
+    except ImportError:
+        return False, "deps_missing"
+
+    import base64 as _b64m
+    try:
+        signature_bytes = _b64m.b64decode(signature_b64, validate=False)
+    except (ValueError, TypeError):
+        return False, "bad_signature_b64"
+
+    try:
+        cert = load_pem_x509_certificate(idp_cert_pem.encode("utf-8"))
+        pub = cert.public_key()
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml redirect-verify: cert parse failed: %s", exc)
+        return False, "bad_cert"
+
+    # Reconstruct canonical bytes in SAML spec-required order.
+    import urllib.parse as _ulib
+    parts = [("SAMLRequest", saml_request_b64)]
+    if relay_state:
+        parts.append(("RelayState", relay_state))
+    parts.append(("SigAlg", sig_alg_uri))
+    canonical = _ulib.urlencode(parts).encode("ascii")
+
+    hash_alg = hashes.SHA256() if hash_name == "sha256" else hashes.SHA1()
+    try:
+        pub.verify(signature_bytes, canonical, padding.PKCS1v15(), hash_alg)
+        return True, "ok"
+    except InvalidSignature:
+        return False, "signature_invalid"
+    except Exception as exc:  # noqa: BLE001
+        logger.info("saml redirect-verify: cryptography raised: %s", exc)
+        return False, "signature_invalid"
+
+
+def _require_redirect_signature() -> bool:
+    """v4.00.63 — Opt-in flag for inbound Redirect-binding signature
+    verification. Default OFF preserves v4.00.62 behavior (which was
+    presence-only via the c14n POST-binding verifier path)."""
+    raw = (
+        getattr(settings, "RMC_SAML_REQUIRE_REDIRECT_SIGNATURE", None)
+        if hasattr(settings, "RMC_SAML_REQUIRE_REDIRECT_SIGNATURE")
+        else os.environ.get("RMC_SAML_REQUIRE_REDIRECT_SIGNATURE", "")
+    )
+    if raw is None or raw == "":
+        return False
+    return str(raw).lower() in ("1", "true", "yes", "on")
+
+
+def _idp_cert_pem() -> str:
+    """v4.00.63 — IdP cert as PEM bytes (rebuilt from the b64 we stripped).
+
+    The existing ``_idp_cert_b64()`` returns the armorless base64 because
+    that's the form ``signxml`` expects. The Redirect binding verifier
+    uses ``cryptography.x509.load_pem_x509_certificate`` which DOES want
+    PEM armor, so we rebuild it on demand.
+    """
+    b64 = _idp_cert_b64()
+    if not b64:
+        return ""
+    pem = "-----BEGIN CERTIFICATE-----\n"
+    for i in range(0, len(b64), 64):
+        pem += b64[i:i + 64] + "\n"
+    pem += "-----END CERTIFICATE-----\n"
+    return pem
+
+
 def _parse_saml_response(b64_response: str) -> dict:
     """v4.00.45 — Parse a SAMLResponse: base64-decode, XML-parse, extract
     Subject NameID + Audience + NotBefore/NotOnOrAfter + Issuer.
@@ -850,6 +980,49 @@ def sls(request):
             {"success": False, "stage": "signature_required_but_missing"},
             status=401,
         )
+
+    # v4.00.63 — Redirect-binding signature verification. Distinct from the
+    # c14n verifier above (which inspects <ds:Signature> embedded in the
+    # XML for POST binding). The Redirect binding signature rides in the
+    # URL query string and signs the canonical (SAMLRequest, RelayState?,
+    # SigAlg) bytes. Activated by RMC_SAML_REQUIRE_REDIRECT_SIGNATURE=1.
+    redirect_sig_reason = ""
+    if _require_redirect_signature() and request.method == "GET":
+        url_sig = request.GET.get("Signature") or ""
+        url_sig_alg = request.GET.get("SigAlg") or ""
+        if not url_sig:
+            return JsonResponse(
+                {"success": False, "stage": "redirect_signature_required_but_missing"},
+                status=401,
+            )
+        pem = _idp_cert_pem()
+        if not pem:
+            return JsonResponse(
+                {"success": False, "stage": "redirect_signature_cert_unset"},
+                status=503,
+            )
+        verified, reason = _verify_saml_redirect_signature(
+            saml_request_b64=request.GET.get("SAMLRequest") or "",
+            relay_state=request.GET.get("RelayState") or "",
+            sig_alg_uri=url_sig_alg,
+            signature_b64=url_sig,
+            idp_cert_pem=pem,
+        )
+        redirect_sig_reason = reason
+        if not verified:
+            if reason == "deps_missing":
+                if _require_signature_strict():
+                    return JsonResponse(
+                        {"success": False, "stage": "redirect_signature_verifier_deps_missing"},
+                        status=503,
+                    )
+                logger.warning("saml sls: redirect verifier deps_missing - falling back")
+            else:
+                return JsonResponse(
+                    {"success": False, "stage": "redirect_signature_verification_failed",
+                     "reason": reason},
+                    status=401,
+                )
 
     # Flush the Django session.
     try:

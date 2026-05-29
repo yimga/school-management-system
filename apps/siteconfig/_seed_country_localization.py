@@ -11246,6 +11246,401 @@ COUNTRY_LOCALIZATION["AU-TAS"] = {
 
 
 # ---------------------------------------------------------------------------
+# v4.00.63 (2026-05-29) — +14 ISO 3166-2 subdivisions
+#   +US-DC (District of Columbia OSSE PARCC + Howard / GW / Georgetown / GMU)
+#   +IN-DL (Delhi DBSE + DU / JNU / IIT Delhi / Jamia Millia)
+#   +IN-PY (Puducherry PBSE + Pondicherry U)
+#   +JP-01 (Hokkaido 2-gakki + Hokkaido U + HUS + HUSTM)
+#   +KR-50 (Sejong SI special autonomous + Korea U Sejong + Hongik Sejong)
+#   +CN-LN (Liaoning gaokao + Dalian U of Tech + Northeastern U + LNNU)
+#   +CN-HE (Henan gaokao + Zhengzhou U + Henan U + Henan Tech)
+#   +CN-GS (Gansu gaokao + Lanzhou U + LZIT)
+#   +CN-HN (Hunan gaokao + CSU / Hunan U / NUDT / HNU)
+#   +CA-PE (PEI PEI-DLE + UPEI + Holland College)
+#   +CA-NB (New Brunswick + UNB + Mount Allison + StFX-NB)
+#   +CA-NL (Newfoundland and Labrador + MUN + College of NA)
+#   +AU-NT (Northern Territory + Charles Darwin U + Batchelor Institute)
+#   +AU-ACT (Australian Capital Territory + ANU + UCanberra + ACU)
+# ---------------------------------------------------------------------------
+
+# District of Columbia (US-DC) — PARCC / DC CAPE + Howard / GW / Georgetown / GMU.
+COUNTRY_LOCALIZATION["US-DC"] = {
+    "calendar_system": {
+        "code": "usdc-2-semester", "label": "2-semester (DC CAPE)",
+        "term_count": 2, "term_names": ["Fall", "Spring"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "pre_k",       "label": "Pre-K (DC Public Pre-K)",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary",  "label": "Elementary (K-5)",                          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",      "label": "Middle (6-8) + DC CAPE / PARCC",            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",        "label": "High (9-12) + SAT / AP",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "charter",     "label": "Charter (DC PCSB)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "5-18"},
+        {"code": "university",  "label": "Howard / GW / Georgetown / GMU / UDC",      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "usdc-pk", "label": "Pre-K",              "order": 0},
+        {"code": "usdc-5",  "label": "Grade 5",            "order": 5},
+        {"code": "usdc-8",  "label": "Grade 8 (DC CAPE)",  "order": 8},
+        {"code": "usdc-12", "label": "Grade 12",           "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Delhi (IN-DL) — DBSE / CBSE + DU / JNU / IIT Delhi / Jamia Millia / DTU.
+COUNTRY_LOCALIZATION["IN-DL"] = {
+    "calendar_system": {
+        "code": "indl-2-term", "label": "2-term (DBSE / CBSE)",
+        "term_count": 2, "term_names": ["Term 1", "Term 2"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "anganwadi",   "label": "Anganwadi (ICDS)",                        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (1-5)",                            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "secondary",   "label": "Secondary (6-10) + DBSE / CBSE Class X",   "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "senior_sec",  "label": "Senior Secondary (11-12) + CBSE Class XII","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "university",  "label": "DU / JNU / IIT Delhi / Jamia Millia / DTU","glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "indl-aw", "label": "Anganwadi",                "order": 0},
+        {"code": "indl-5",  "label": "Class V",                  "order": 5},
+        {"code": "indl-10", "label": "Class X (DBSE/CBSE)",      "order": 10},
+        {"code": "indl-12", "label": "Class XII (CBSE)",         "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Shikshak / Teacher", "principal": "Pradhanacharya / Principal",
+        "term": "Term", "report_card": "Marksheet", "grade_level": "Class",
+    },
+}
+
+# Puducherry (IN-PY) — PBSE + Pondicherry University + JIPMER.
+COUNTRY_LOCALIZATION["IN-PY"] = {
+    "calendar_system": {
+        "code": "inpy-2-term", "label": "2-term (PBSE)",
+        "term_count": 2, "term_names": ["Term 1", "Term 2"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+    "school_types": [
+        {"code": "anganwadi",   "label": "Anganwadi (ICDS)",                        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (1-5)",                            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "secondary",   "label": "Secondary (6-10) + PBSE Class X",          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "higher_sec",  "label": "Higher Secondary (11-12) + PBSE Class XII","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "university",  "label": "Pondicherry U / JIPMER / Pondicherry Eng", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "inpy-aw", "label": "Anganwadi",                "order": 0},
+        {"code": "inpy-5",  "label": "Class V",                  "order": 5},
+        {"code": "inpy-10", "label": "Class X (PBSE)",           "order": 10},
+        {"code": "inpy-12", "label": "Class XII (PBSE)",         "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Asiriyar", "principal": "Principal",
+        "term": "Term", "report_card": "Marksheet", "grade_level": "Class",
+    },
+}
+
+# Hokkaido (JP-01) — Todofuken; 2-gakki (cold-region variant); Hokkaido U + HUS + HUSTM.
+COUNTRY_LOCALIZATION["JP-01"] = {
+    "calendar_system": {
+        "code": "jp01-2-gakki", "label": "2-gakki (Hokkaido cold-region)",
+        "term_count": 2, "term_names": ["前期", "後期"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",    "label": "幼稚園 (Kindergarten)",             "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shougakkou",  "label": "小学校 (Elementary 1-6)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "chuugakkou",  "label": "中学校 (Junior High 1-3)",          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "koukou",      "label": "高等学校 (Sr High 1-3)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "kousen",      "label": "高専 (Kosen technical)",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",  "label": "Hokkaido U / HUS / HUSTM / Sapporo Med",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp01-y3", "label": "幼稚園 3y",     "order": 0},
+        {"code": "jp01-s6", "label": "小6年生",        "order": 6},
+        {"code": "jp01-c3", "label": "中3年生",        "order": 9},
+        {"code": "jp01-k3", "label": "高3年生",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "先生 (Sensei)", "principal": "校長 (Kouchou)",
+        "term": "学期 (Gakki)", "report_card": "通信簿", "grade_level": "年生",
+    },
+}
+
+# Sejong (KR-50) — Sejong-si special autonomous + Korea U Sejong + Hongik Sejong.
+COUNTRY_LOCALIZATION["KR-50"] = {
+    "calendar_system": {
+        "code": "kr50-2-hakgi", "label": "2-hakgi (Sejong-si)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",    "label": "Yuchiwon (Kindergarten)",                        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeunghakgyo","label": "Chodeung-hakgyo (Elementary 1-6)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "junghakgyo",  "label": "Jung-hakgyo (Middle 1-3)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "godeunghakgyo","label": "Godeung-hakgyo (High 1-3) + CSAT",              "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "teukseong",   "label": "Teukseonghwa (Vocational Specialized)",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-17"},
+        {"code": "university",  "label": "Korea U Sejong / Hongik Sejong / KAIST nearby",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr50-yu", "label": "Yuchiwon",                "order": 0},
+        {"code": "kr50-6",  "label": "Cho 6 (Elem)",             "order": 6},
+        {"code": "kr50-9",  "label": "Jung 3 (Middle)",          "order": 9},
+        {"code": "kr50-12", "label": "Godeung 3 (CSAT)",         "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim / Teacher", "principal": "Gyojangnim / Principal",
+        "term": "Hakgi", "report_card": "Saenghwal-gibo", "grade_level": "Hangnyeon",
+    },
+}
+
+# Liaoning (CN-LN) — gaokao Liaoning + Dalian U of Tech + Northeastern U + LNNU.
+COUNTRY_LOCALIZATION["CN-LN"] = {
+    "calendar_system": {
+        "code": "cnln-2-xueqi", "label": "2-xueqi (Liaoning gaokao)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",   "label": "幼儿园 (Kindergarten)",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "xiaoxue",     "label": "小学 (Primary 1-6)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "chuzhong",    "label": "初中 (Junior High 7-9)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "gaozhong",    "label": "高中 (Senior High 10-12) + gaokao Liaoning",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "zhongzhuan",  "label": "中专 (Vocational secondary)",                     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-17"},
+        {"code": "university",  "label": "Dalian U of Tech / Northeastern U / LNNU / DUFE","glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnln-yy", "label": "幼儿园",                "order": 0},
+        {"code": "cnln-6",  "label": "小学 6 (Grade 6)",       "order": 6},
+        {"code": "cnln-9",  "label": "初中 3 (Grade 9)",       "order": 9},
+        {"code": "cnln-12", "label": "高中 3 (gaokao)",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "老师 (Laoshi)", "principal": "校长 (Xiaozhang)",
+        "term": "学期 (Xueqi)", "report_card": "成绩单 (Chengjidan)", "grade_level": "年级 (Nianji)",
+    },
+}
+
+# Henan (CN-HE) — gaokao Henan + Zhengzhou U + Henan U + Henan Tech + Henan Normal.
+COUNTRY_LOCALIZATION["CN-HE"] = {
+    "calendar_system": {
+        "code": "cnhe-2-xueqi", "label": "2-xueqi (Henan gaokao)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",   "label": "幼儿园 (Kindergarten)",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "xiaoxue",     "label": "小学 (Primary 1-6)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "chuzhong",    "label": "初中 (Junior High 7-9)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "gaozhong",    "label": "高中 (Senior High 10-12) + gaokao Henan",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "zhongzhuan",  "label": "中专 (Vocational secondary)",                     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-17"},
+        {"code": "university",  "label": "Zhengzhou U / Henan U / Henan Tech / Henan Normal","glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnhe-yy", "label": "幼儿园",                "order": 0},
+        {"code": "cnhe-6",  "label": "小学 6 (Grade 6)",       "order": 6},
+        {"code": "cnhe-9",  "label": "初中 3 (Grade 9)",       "order": 9},
+        {"code": "cnhe-12", "label": "高中 3 (gaokao)",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "老师 (Laoshi)", "principal": "校长 (Xiaozhang)",
+        "term": "学期 (Xueqi)", "report_card": "成绩单 (Chengjidan)", "grade_level": "年级 (Nianji)",
+    },
+}
+
+# Gansu (CN-GS) — gaokao Gansu + Lanzhou U + Lanzhou Inst of Tech + NWNU.
+COUNTRY_LOCALIZATION["CN-GS"] = {
+    "calendar_system": {
+        "code": "cngs-2-xueqi", "label": "2-xueqi (Gansu gaokao)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",   "label": "幼儿园 (Kindergarten)",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "xiaoxue",     "label": "小学 (Primary 1-6)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "chuzhong",    "label": "初中 (Junior High 7-9)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "gaozhong",    "label": "高中 (Senior High 10-12) + gaokao Gansu",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "zhongzhuan",  "label": "中专 (Vocational secondary)",                     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-17"},
+        {"code": "university",  "label": "Lanzhou U / NWNU / LZIT / Lanzhou JT",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cngs-yy", "label": "幼儿园",                "order": 0},
+        {"code": "cngs-6",  "label": "小学 6 (Grade 6)",       "order": 6},
+        {"code": "cngs-9",  "label": "初中 3 (Grade 9)",       "order": 9},
+        {"code": "cngs-12", "label": "高中 3 (gaokao)",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "老师 (Laoshi)", "principal": "校长 (Xiaozhang)",
+        "term": "学期 (Xueqi)", "report_card": "成绩单 (Chengjidan)", "grade_level": "年级 (Nianji)",
+    },
+}
+
+# Hunan (CN-HN) — gaokao Hunan + CSU / Hunan U / NUDT / HNU.
+COUNTRY_LOCALIZATION["CN-HN"] = {
+    "calendar_system": {
+        "code": "cnhn-2-xueqi", "label": "2-xueqi (Hunan gaokao)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",   "label": "幼儿园 (Kindergarten)",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "xiaoxue",     "label": "小学 (Primary 1-6)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "chuzhong",    "label": "初中 (Junior High 7-9)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "gaozhong",    "label": "高中 (Senior High 10-12) + gaokao Hunan",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "zhongzhuan",  "label": "中专 (Vocational secondary)",                     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-17"},
+        {"code": "university",  "label": "CSU / Hunan U / NUDT / HNU / Xiangtan U",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnhn-yy", "label": "幼儿园",                "order": 0},
+        {"code": "cnhn-6",  "label": "小学 6 (Grade 6)",       "order": 6},
+        {"code": "cnhn-9",  "label": "初中 3 (Grade 9)",       "order": 9},
+        {"code": "cnhn-12", "label": "高中 3 (gaokao)",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "老师 (Laoshi)", "principal": "校长 (Xiaozhang)",
+        "term": "学期 (Xueqi)", "report_card": "成绩单 (Chengjidan)", "grade_level": "年级 (Nianji)",
+    },
+}
+
+# Prince Edward Island (CA-PE) — PEI-DLE + UPEI + Holland College.
+COUNTRY_LOCALIZATION["CA-PE"] = {
+    "calendar_system": {
+        "code": "cape-2-semester", "label": "2-semester (PEI-DLE)",
+        "term_count": 2, "term_names": ["Fall", "Winter"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten","label": "Kindergarten (5y)",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "elementary",  "label": "Elementary (1-6)",                                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "intermediate","label": "Intermediate (7-9)",                              "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "senior",      "label": "Senior High (10-12) + PEI-DLE",                   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "college",     "label": "Holland College",                                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "17+"},
+        {"code": "university",  "label": "UPEI (U of Prince Edward Island)",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "cape-k",  "label": "Kindergarten",          "order": 0},
+        {"code": "cape-6",  "label": "Grade 6",               "order": 6},
+        {"code": "cape-9",  "label": "Grade 9 (Intermediate)","order": 9},
+        {"code": "cape-12", "label": "Grade 12 (PEI-DLE)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# New Brunswick (CA-NB) — anglo+francophone districts + UNB + Mount Allison + StFX-NB.
+COUNTRY_LOCALIZATION["CA-NB"] = {
+    "calendar_system": {
+        "code": "canb-2-semester", "label": "2-semester (NB EECD)",
+        "term_count": 2, "term_names": ["Fall", "Winter"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten","label": "Kindergarten / Maternelle",                      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "elementary",  "label": "Elementary (1-5)",                                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "middle",      "label": "Middle (6-8)",                                    "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "high",        "label": "High (9-12)",                                     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-17"},
+        {"code": "college",     "label": "NBCC / CCNB (community colleges)",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "17+"},
+        {"code": "university",  "label": "UNB / Mount Allison / StFX-NB / U-de-Moncton",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "canb-k",  "label": "Kindergarten / Maternelle", "order": 0},
+        {"code": "canb-5",  "label": "Grade 5",                   "order": 5},
+        {"code": "canb-8",  "label": "Grade 8 (Middle)",          "order": 8},
+        {"code": "canb-12", "label": "Grade 12",                  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Enseignant", "principal": "Principal / Directeur",
+        "term": "Semester", "report_card": "Report Card / Bulletin", "grade_level": "Grade",
+    },
+}
+
+# Newfoundland and Labrador (CA-NL) — MUN + College of NA + CNA.
+COUNTRY_LOCALIZATION["CA-NL"] = {
+    "calendar_system": {
+        "code": "canl-2-semester", "label": "2-semester (NL EECD)",
+        "term_count": 2, "term_names": ["Fall", "Winter"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten","label": "Kindergarten",                                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "primary",     "label": "Primary (K-3)",                                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-8"},
+        {"code": "elementary",  "label": "Elementary (4-6)",                                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "9-11"},
+        {"code": "intermediate","label": "Intermediate (7-9)",                              "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "senior",      "label": "Senior High (10-12) + NL Public Exams",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "university",  "label": "MUN (Memorial U of NL) + CNA",                    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "canl-k",  "label": "Kindergarten",          "order": 0},
+        {"code": "canl-6",  "label": "Grade 6",               "order": 6},
+        {"code": "canl-9",  "label": "Grade 9 (Intermediate)","order": 9},
+        {"code": "canl-12", "label": "Grade 12 (NL Exams)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Northern Territory (AU-NT) — NT Board of Studies + Charles Darwin U + Batchelor Inst.
+COUNTRY_LOCALIZATION["AU-NT"] = {
+    "calendar_system": {
+        "code": "aunt-4-term", "label": "4-term (NT Board of Studies)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Preschool",                                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (T-6) + NAPLAN",                         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",      "label": "Middle (7-9) + NAPLAN",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "senior",      "label": "Senior (10-12) + NTCET",                          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "tafe",        "label": "Batchelor Institute (Indigenous TAFE)",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "university",  "label": "Charles Darwin U (CDU)",                          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "aunt-t",  "label": "Transition",            "order": 0},
+        {"code": "aunt-6",  "label": "Year 6 (NAPLAN)",       "order": 6},
+        {"code": "aunt-9",  "label": "Year 9 (NAPLAN)",       "order": 9},
+        {"code": "aunt-12", "label": "Year 12 (NTCET)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+
+# Australian Capital Territory (AU-ACT) — BSSS + ANU + UCanberra + ACU.
+COUNTRY_LOCALIZATION["AU-ACT"] = {
+    "calendar_system": {
+        "code": "auact-4-term", "label": "4-term (BSSS)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Preschool",                                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (K-6) + NAPLAN",                         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "high",        "label": "High (7-10) + NAPLAN",                           "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "college",     "label": "College (11-12) + ACT Senior Secondary Cert",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "tafe",        "label": "Canberra Institute of Technology (CIT)",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "university",  "label": "ANU / UCanberra / ACU / UNSW Canberra",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "auact-k",  "label": "Kindergarten",          "order": 0},
+        {"code": "auact-6",  "label": "Year 6 (NAPLAN)",       "order": 6},
+        {"code": "auact-10", "label": "Year 10",               "order": 10},
+        {"code": "auact-12", "label": "Year 12 (BSSS)",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

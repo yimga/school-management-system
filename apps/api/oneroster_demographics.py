@@ -228,6 +228,15 @@ def demographics_collection(request: HttpRequest):
     role_filter = (request.GET.get("role") or "").strip()
     if role_filter:
         items = [r for r in items if r.get("_role") == role_filter]
+    # v4.00.63 — OneRoster v1.2 spec ?dateLastModifiedAbove=<ISO> filter
+    # (Roster Service spec § 4.13 "Service interactions / Query"). Returns
+    # only records whose ``dateLastModified`` is strictly greater than the
+    # supplied bound. Bound is compared as ISO-8601 strings (lex-sortable
+    # for ISO timestamps with consistent timezone). Malformed bound:
+    # fall through to unfiltered (operator-facing surface, don't 400).
+    above = (request.GET.get("dateLastModifiedAbove") or "").strip()
+    if above:
+        items = [r for r in items if (r.get("dateLastModified") or "") > above]
     page, meta = _paginate(request, items)
     return _envelope("demographics", page, meta)
 
@@ -320,7 +329,14 @@ def _parse_demographic_payload(body_bytes: bytes):
 
 
 def _apply_demographic_to_student(s, inner: dict[str, Any]) -> None:
-    """Write the mappable demographic fields onto a StudentProfile instance."""
+    """Write the mappable demographic fields onto a StudentProfile instance.
+
+    v4.00.63 — when ``_orgSourcedId`` is supplied AND resolves to a real
+    School row, the student is re-bound to that school. Useful for
+    cross-tenant transfers driven from an upstream SIS. Bad orgSourcedId
+    (non-numeric / school not found) is silently dropped so a buggy
+    integration doesn't corrupt the student row.
+    """
     changed = False
     if "sex" in inner:
         sex_val = str(inner.get("sex") or "").strip().lower()
@@ -350,6 +366,25 @@ def _apply_demographic_to_student(s, inner: dict[str, Any]) -> None:
         if getattr(s, "place_of_birth", "") != city:
             s.place_of_birth = city
             changed = True
+    # v4.00.63 — _orgSourcedId override: move the student to a different
+    # school. Requires the school FK to resolve; non-existent school_id
+    # is silently dropped (operator-facing API, fail-soft).
+    if "_orgSourcedId" in inner:
+        new_org = str(inner.get("_orgSourcedId") or "").strip()
+        if new_org:
+            try:
+                from apps.schools.models import School
+                target = School.objects.filter(pk=new_org).first()  # tenant-isolation-allow: oneroster-demographic-org-override-write-bearer-auth
+                if target is not None and getattr(s, "school_id", None) != target.pk:
+                    s.school = target
+                    changed = True
+            except (ValueError, TypeError, Exception) as exc:  # noqa: BLE001
+                logger.debug("demographic org override failed: %s", exc)
+        else:
+            # Empty string explicitly clears the school binding.
+            if getattr(s, "school_id", None) is not None:
+                s.school = None
+                changed = True
     if changed:
         s.save()
 

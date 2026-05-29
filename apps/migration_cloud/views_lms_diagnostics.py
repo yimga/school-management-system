@@ -476,6 +476,11 @@ def lms_diagnostics_action_history(request: HttpRequest):
     and converted to tz-aware datetime (assumes UTC when no tz suffix).
     Bad timestamps fall through to the unwindowed default (logged, not
     error — operator-facing surface should NOT 400 on a typo).
+
+    v4.00.63 — ``?format=csv`` returns a gzip-compressed RFC-4180 CSV
+    export for operator forensic dumps. Columns: timestamp, action,
+    provider, actor_hash, considered, ok, failed. Filename includes
+    UTC date so the download can be filed cleanly.
     """
     try:
         limit = max(1, min(200, int(request.GET.get("limit") or "50")))
@@ -484,6 +489,12 @@ def lms_diagnostics_action_history(request: HttpRequest):
 
     since = _parse_window_iso(request.GET.get("since"))
     before = _parse_window_iso(request.GET.get("before"))
+
+    fmt = (request.GET.get("format") or "json").strip().lower()
+    if fmt == "csv":
+        return _action_history_csv_response(
+            limit=limit, since=since, before=before,
+        )
 
     return JsonResponse({
         "success": True,
@@ -494,6 +505,58 @@ def lms_diagnostics_action_history(request: HttpRequest):
         "totals": _action_totals(),
         "entries": get_last_action_snapshot(limit=limit, since=since, before=before),
     })
+
+
+def _action_history_csv_response(*, limit: int, since=None, before=None):
+    """v4.00.63 — gzip-compressed CSV export of the action-history snapshot.
+
+    Returns a Django HttpResponse with ``Content-Type: text/csv`` +
+    ``Content-Encoding: gzip`` and a ``Content-Disposition: attachment``
+    header. NEVER raises — DB errors fall through to an empty (header-only)
+    CSV so the operator gets back a parseable file.
+    """
+    import csv
+    import gzip
+    import io
+    from django.http import HttpResponse
+
+    # Use a higher cap for export reads — operators want the full window.
+    rows = get_last_action_snapshot(limit=max(1, min(2000, limit * 10)),
+                                    since=since, before=before)
+
+    # Build CSV in-memory; RFC-4180 quoting via csv module.
+    text_buf = io.StringIO()
+    writer = csv.writer(text_buf, quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
+    writer.writerow([
+        "timestamp_iso", "action", "provider",
+        "actor_hash", "considered", "ok", "failed",
+    ])
+    for r in rows:
+        writer.writerow([
+            r.get("ts_iso", ""),
+            r.get("action", ""),
+            r.get("provider", ""),
+            r.get("actor_hash", ""),
+            int(r.get("considered") or 0),
+            int(r.get("ok") or 0),
+            int(r.get("failed") or 0),
+        ])
+
+    # gzip the CSV bytes.
+    raw = text_buf.getvalue().encode("utf-8")
+    gz_buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=gz_buf, mode="wb", mtime=0) as gz:
+        gz.write(raw)
+    gz_bytes = gz_buf.getvalue()
+
+    today = timezone.now().strftime("%Y-%m-%d")
+    fname = f"lms_diag_action_history_{today}.csv.gz"
+    resp = HttpResponse(gz_bytes, content_type="text/csv")
+    resp["Content-Encoding"] = "gzip"
+    resp["Content-Disposition"] = f'attachment; filename="{fname}"'
+    resp["Content-Length"] = str(len(gz_bytes))
+    resp["X-Action-History-Row-Count"] = str(len(rows))
+    return resp
 
 
 def _parse_window_iso(raw):

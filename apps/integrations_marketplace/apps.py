@@ -95,6 +95,17 @@ class IntegrationsMarketplaceConfig(AppConfig):
                 "integrations_marketplace: failed to import lms_oauth_auto_prune"
             )
 
+        # v4.00.63 — LMSDiagActionAudit retention sweep (7y FERPA default).
+        # Mirrors v4.00.54's lms_audit_retention pattern for the v4.00.62
+        # dedicated diagnostics-action table.
+        try:
+            from apps.integrations_marketplace import lms_diag_action_retention  # noqa: F401
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "integrations_marketplace: failed to import lms_diag_action_retention"
+            )
+
         # v2.79 — startup advisory check: warn if OAUTH_CALLBACK_BASE_URL is
         # unset in a production-looking environment so operators don't ship a
         # broken OAuth dance silently.

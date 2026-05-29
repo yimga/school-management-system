@@ -114,6 +114,17 @@ def _build_schedule() -> dict[str, dict[str, Any]]:
             "options": {"expires": 3600},
         }
 
+    # v4.00.63 — LMSDiagActionAudit retention sweep (7y FERPA cutoff).
+    # Weekly Sun 04:30 UTC, just after the v4.00.55 audit-retention purge
+    # at 04:00. Sweep is dry-run-capable via env so operators can stage
+    # rollout; respects RMC_LMS_DIAG_ACTION_RETENTION_YEARS=0 for forever-retain.
+    if not _env_bool("RMC_LMS_DIAG_ACTION_RETENTION_BEAT_DISABLED"):
+        schedule["integrations-purge-lms-diag-action-rows"] = {
+            "task": "integrations_marketplace.purge_due_lms_diag_action_rows",
+            "schedule": crontab(hour=4, minute=30, day_of_week="sun"),
+            "options": {"expires": 7200},
+        }
+
     return schedule
 
 
