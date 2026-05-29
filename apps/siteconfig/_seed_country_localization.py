@@ -2844,3 +2844,265 @@ COUNTRY_LOCALIZATION["MG"] = {
     },
 }
 COUNTRY_REGIONAL_DEFAULT.pop("MG", None)
+
+# Somalia — Anglophone (English/Somali), 8-4 system.
+COUNTRY_LOCALIZATION["SO"] = {
+    "calendar_system": {
+        "code": "so-3-term", "label": "3 Terms (Somali)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 6, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "dugsi",       "label": "Dugsi / Pre-Primary",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",     "label": "Primary (Grade 1-8)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-14"},
+        {"code": "secondary",   "label": "Secondary (Form 1-4 / SSCE)",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "madrasa",     "label": "Madrasa / Islamic School",         "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "tvet",        "label": "TVET / Vocational",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",  "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "so-pre","label": "Pre-Primary",         "order": 0},
+        {"code": "so-g1", "label": "Grade 1",             "order": 1},
+        {"code": "so-g8", "label": "Grade 8 (End Prim)",  "order": 8},
+        {"code": "so-f4", "label": "Form 4 (SSCE)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Macalin / Teacher", "principal": "Maamulaha / Principal",
+        "term": "Muddo / Term", "report_card": "Warbixin / Report",
+        "grade_level": "Fasal / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SO", None)
+
+# Eritrea — Anglophone+Tigrinya, 5-3-4 system.
+COUNTRY_LOCALIZATION["ER"] = {
+    "calendar_system": {
+        "code": "er-2-semester", "label": "2 Semesters (Eritrean)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",          "label": "Kindergarten",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "elementary",  "label": "Elementary (G1-5)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "middle",      "label": "Middle (G6-8)",                    "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-14"},
+        {"code": "secondary",   "label": "Secondary (G9-12 / ESECE)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "tvet",        "label": "TVET",                             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",  "label": "University / College",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "er-kg",  "label": "KG",                "order": 0},
+        {"code": "er-g1",  "label": "Grade 1",           "order": 1},
+        {"code": "er-g5",  "label": "Grade 5",           "order": 5},
+        {"code": "er-g8",  "label": "Grade 8",           "order": 8},
+        {"code": "er-g12", "label": "Grade 12 (ESECE)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / መምህር", "principal": "Director / ርዕሰ መምህራን",
+        "term": "Semester", "report_card": "Report Card",
+        "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("ER", None)
+
+# Djibouti — Francophone primary + Arabic, French Bac.
+COUNTRY_LOCALIZATION["DJ"] = {
+    "calendar_system": {
+        "code": "dj-3-trimester", "label": "3 Trimestres (Djiboutien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "Maternelle",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École Primaire (CP-CM2 / CEP)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège (6e-3e / Brevet)",        "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Baccalauréat)", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-19"},
+        {"code": "technique",  "label": "Lycée Technique / EFTP",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite", "label": "Université de Djibouti",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "dj-mat","label": "Maternelle",         "order": 0},
+        {"code": "dj-cp", "label": "CP",                 "order": 1},
+        {"code": "dj-cm2","label": "CM2 (CEP)",          "order": 5},
+        {"code": "dj-3e", "label": "3ème (Brevet)",      "order": 9},
+        {"code": "dj-tle","label": "Terminale (Bac)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("DJ", None)
+
+# South Sudan — Anglophone, 8-4 system (post-2011 independence).
+COUNTRY_LOCALIZATION["SS"] = {
+    "calendar_system": {
+        "code": "ss-3-term", "label": "3 Terms (South Sudanese)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "pre-primary","label": "Pre-Primary",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",    "label": "Primary (P1-P8 / CPE)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-14"},
+        {"code": "secondary",  "label": "Secondary (S1-S4 / CSE)",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "tvet",       "label": "TVET / Vocational",                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university", "label": "University",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ss-pp","label": "Pre-Primary",          "order": 0},
+        {"code": "ss-p1","label": "P1",                   "order": 1},
+        {"code": "ss-p8","label": "P8 (CPE)",             "order": 8},
+        {"code": "ss-s4","label": "S4 (CSE)",             "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head Teacher", "term": "Term",
+        "report_card": "Report Card", "grade_level": "Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SS", None)
+
+# Malawi — Anglophone, 8-4-4 system, PSLCE / JCE / MSCE.
+COUNTRY_LOCALIZATION["MW"] = {
+    "calendar_system": {
+        "code": "mw-3-term", "label": "3 Terms (Malawian)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "ecd",        "label": "Early Childhood",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",    "label": "Primary (Std 1-8 / PSLCE)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-14"},
+        {"code": "junior-sec", "label": "Junior Secondary (Form 1-2 / JCE)",  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "14-16"},
+        {"code": "senior-sec", "label": "Senior Secondary (Form 3-4 / MSCE)", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "tvet",       "label": "TEVETA / Vocational",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university", "label": "University",                         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mw-ecd", "label": "ECD",                "order": 0},
+        {"code": "mw-s1",  "label": "Standard 1",         "order": 1},
+        {"code": "mw-s8",  "label": "Standard 8 (PSLCE)", "order": 8},
+        {"code": "mw-f2",  "label": "Form 2 (JCE)",       "order": 10},
+        {"code": "mw-f4",  "label": "Form 4 (MSCE)",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head Teacher", "term": "Term",
+        "report_card": "Report Form", "grade_level": "Standard / Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MW", None)
+
+# Botswana — Anglophone, BGCSE / JCE.
+COUNTRY_LOCALIZATION["BW"] = {
+    "calendar_system": {
+        "code": "bw-3-term", "label": "3 Terms (Botswana)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "reception", "label": "Reception",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "5-6"},
+        {"code": "primary",   "label": "Primary (Std 1-7 / PSLE)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "junior-sec","label": "Junior Secondary (F1-3 / JCE)",        "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-16"},
+        {"code": "senior-sec","label": "Senior Secondary (F4-5 / BGCSE)",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "brigade",   "label": "Brigade / TVET",                       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University",                           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bw-rec", "label": "Reception",         "order": 0},
+        {"code": "bw-s1",  "label": "Standard 1",        "order": 1},
+        {"code": "bw-s7",  "label": "Standard 7 (PSLE)", "order": 7},
+        {"code": "bw-f3",  "label": "Form 3 (JCE)",      "order": 10},
+        {"code": "bw-f5",  "label": "Form 5 (BGCSE)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head", "term": "Term",
+        "report_card": "Report", "grade_level": "Standard / Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BW", None)
+
+# Namibia — Anglophone, NSSCO / NSSCAS.
+COUNTRY_LOCALIZATION["NA"] = {
+    "calendar_system": {
+        "code": "na-3-term", "label": "3 Terms (Namibian)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool", "label": "Pre-Primary",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",   "label": "Primary (G1-7)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "junior-sec","label": "Junior Secondary (G8-9)",              "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-15"},
+        {"code": "nssco",     "label": "Senior Secondary (G10-11 / NSSCO)",    "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "nsscas",    "label": "Senior Secondary (G12 / NSSCAS)",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "17-18"},
+        {"code": "vet",       "label": "VET / Vocational",                     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University",                           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "na-pre","label": "Pre-Primary",         "order": 0},
+        {"code": "na-g1", "label": "Grade 1",             "order": 1},
+        {"code": "na-g7", "label": "Grade 7",             "order": 7},
+        {"code": "na-g11","label": "Grade 11 (NSSCO)",    "order": 11},
+        {"code": "na-g12","label": "Grade 12 (NSSCAS)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal", "term": "Term",
+        "report_card": "Report", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("NA", None)
+
+# Lesotho — Anglophone, LJSC / LGCSE.
+COUNTRY_LOCALIZATION["LS"] = {
+    "calendar_system": {
+        "code": "ls-3-term", "label": "3 Terms (Lesotho)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "ecd",       "label": "ECD / Pre-school",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",   "label": "Primary (Std 1-7 / PSLE)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "junior-sec","label": "Junior Secondary (F A-C / LJSC)",     "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-16"},
+        {"code": "senior-sec","label": "Senior Secondary (F D-E / LGCSE)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "tvet",      "label": "TVET / Vocational",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University",                          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ls-ecd","label": "ECD",                "order": 0},
+        {"code": "ls-s1", "label": "Standard 1",         "order": 1},
+        {"code": "ls-s7", "label": "Standard 7 (PSLE)",  "order": 7},
+        {"code": "ls-fc", "label": "Form C (LJSC)",      "order": 10},
+        {"code": "ls-fe", "label": "Form E (LGCSE)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal", "term": "Term",
+        "report_card": "Report", "grade_level": "Standard / Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("LS", None)
+
+# Eswatini — Anglophone+siSwati, EGCSE / JC.
+COUNTRY_LOCALIZATION["SZ"] = {
+    "calendar_system": {
+        "code": "sz-3-term", "label": "3 Terms (eSwatini)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool", "label": "Pre-school",                           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",   "label": "Primary (G1-7 / EPC)",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "junior-sec","label": "Junior Secondary (F1-3 / JC)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-16"},
+        {"code": "senior-sec","label": "Senior Secondary (F4-5 / EGCSE)",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "tvet",      "label": "TVET / Vocational",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University",                           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sz-pre","label": "Pre-school",          "order": 0},
+        {"code": "sz-g1", "label": "Grade 1",             "order": 1},
+        {"code": "sz-g7", "label": "Grade 7 (EPC)",       "order": 7},
+        {"code": "sz-f3", "label": "Form 3 (JC)",         "order": 10},
+        {"code": "sz-f5", "label": "Form 5 (EGCSE)",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Tichala / Teacher", "principal": "Thishela Lomkhulu / Principal",
+        "term": "Sikhatsi / Term", "report_card": "Imbiko / Report",
+        "grade_level": "Likilasi / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SZ", None)

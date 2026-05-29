@@ -352,6 +352,16 @@ COUNTRY_DEFAULT_SCHEMA: dict[str, str] = {
     "MZ": "mz-esg",  # Mozambique Lusophone ESG
     "AO": "ao-medio",  # Angola Lusophone Médio
     "MG": "fr-bac",
+    # v4.00.33 additions:
+    "SO": "ke-kcse",  # SSCE — letter-based, best-fit Kenya KCSE pattern
+    "ER": "ke-kcse",  # ESECE — English-language letter
+    "DJ": "fr-bac",   # French Bac
+    "SS": "ke-kcse",  # CSE — letter
+    "MW": "za-nsc",   # MSCE — credit/distinction
+    "BW": "za-nsc",   # BGCSE — credit ladder
+    "NA": "za-nsc",   # NSSCO/NSSCAS — Cambridge-style
+    "LS": "za-nsc",   # LGCSE — Cambridge IGCSE
+    "SZ": "za-nsc",   # EGCSE — Cambridge IGCSE
 }
 
 

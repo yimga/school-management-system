@@ -351,6 +351,40 @@ def api_ai_line_interpret(request):
     result = _interpret(query, request=request)
     if not result and ai_on:
         result = _llm_fallback(query, request)
+    _log_intent_hit(request, query, result, ai_on)
     if not result:
         return JsonResponse({"success": True, "query": query, "matched": False})
     return JsonResponse({"success": True, "query": query, **result})
+
+
+_ANALYTICS_LOGGER = logging.getLogger("ai_line.analytics")
+
+
+def _log_intent_hit(request, query: str, result: dict[str, Any] | None, ai_on: bool) -> None:
+    """v4.00.33 — structured logger for AI-line query analytics.
+
+    Emits one structured record per call so operators can see which
+    intents convert, which queries miss, and what % of misses escalate
+    to the LLM fallback. PII-safe: query is truncated to 80 chars; no
+    school slug, user id, or other identifying material is logged
+    (school_id only, hashed).
+    """
+    try:
+        school = getattr(request, "school", None)
+        school_id_hash = ""
+        if school is not None:
+            sid = getattr(school, "id", None) or getattr(school, "pk", None)
+            if sid is not None:
+                import hashlib as _hl
+                school_id_hash = _hl.sha256(str(sid).encode("utf-8")).hexdigest()[:12]
+        _ANALYTICS_LOGGER.info(
+            "ai_line_query intent=%s matched=%s ai_on=%s qlen=%d school=%s url=%s",
+            (result or {}).get("intent", "none"),
+            bool(result),
+            ai_on,
+            len(query or ""),
+            school_id_hash or "-",
+            (result or {}).get("url") or "-",
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("ai-line analytics log failed: %s", exc)

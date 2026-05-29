@@ -40,6 +40,9 @@
     <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
     {# v4.00.14: CRDT client library exposing window.rmcCRDT for offline ops. #}
     <script src="{% static 'js/rmc-crdt-client.js' %}" defer></script>
+    {# v4.00.33: country-aware admissions intake form auto-renderer; no-op when no opted-in container. #}
+    <link rel="stylesheet" href="{% static 'css/rmc-admissions-intake.css' %}">
+    <script src="{% static 'js/rmc-admissions-intake.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     {# Critical-read KB route signatures: /kb/article/ /kb/search /kb/category/ path === "/kb" kb-article kb-search kb-category kb-home kb-hub #}
     <script src="{% static 'js/kb-route-signature.js' %}"></script>

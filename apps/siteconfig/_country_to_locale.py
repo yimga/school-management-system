@@ -16,6 +16,7 @@ COUNTRY_TO_LOCALE: dict[str, str] = {
     "GH": "en", "NG": "en", "KE": "en", "UG": "en", "TZ": "en",
     "ZA": "en", "ZW": "en", "ZM": "en", "GM": "en", "SL": "en",
     "LR": "en", "MW": "en", "BW": "en", "NA": "en", "LS": "en",
+    "SZ": "en", "SS": "en",
     "RW": "en",   # English official since 2008
     # Francophone Africa
     "CM": "fr",   # bilingual but French majority
