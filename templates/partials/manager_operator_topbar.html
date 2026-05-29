@@ -49,10 +49,21 @@
             <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1">
           </div>
           {% if request.user.is_authenticated %}
-            {% if show_mfa_header_icon %}
-            <a href="{% if mfa_enrolled %}{{ mfa_profile_url }}{% else %}{{ mfa_setup_url }}?next={{ request.get_full_path|urlencode }}{% endif %}" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn{% if mfa_setup_needed %} rmc-platform-header__icon-btn--mfa-warn{% endif %}" aria-label="{% if mfa_enrolled %}{% trans 'MFA enrolled — manage in profile' %}{% else %}{% trans 'Set up MFA' %}{% endif %}" title="{% if mfa_enrolled %}{% trans 'MFA enrolled' %}{% else %}{% trans 'Set up MFA' %}{% endif %}">
-              <i class="bi bi-shield{% if mfa_enrolled %}-check{% endif %}" aria-hidden="true"></i>
-            </a>
+            {% comment %} v4.00.25 — Traffic-light security shield.
+               The plain MFA-only shield was replaced by the full security-posture
+               nav button. It binds to security_posture_zone (critical | warning |
+               ok) and animates accordingly via rmc-security-posture-nav.css:
+                 critical -> continuous fast pulse (rmc-security-pulse-fast)
+                 warning  -> periodic slow pulse  (rmc-security-pulse-slow)
+                 ok       -> steady green, no animation
+               Click opens the security posture review surface instead of
+               firing the (now-disabled) post-login modal. {% endcomment %}
+            {% if account_security_score is not None %}
+              {% include "partials/rmc_security_posture_nav_button.html" %}
+            {% elif show_mfa_header_icon %}
+              <a href="{% if mfa_enrolled %}{{ mfa_profile_url }}{% else %}{{ mfa_setup_url }}?next={{ request.get_full_path|urlencode }}{% endif %}" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn{% if mfa_setup_needed %} rmc-platform-header__icon-btn--mfa-warn{% endif %}" aria-label="{% if mfa_enrolled %}{% trans 'MFA enrolled — manage in profile' %}{% else %}{% trans 'Set up MFA' %}{% endif %}" title="{% if mfa_enrolled %}{% trans 'MFA enrolled' %}{% else %}{% trans 'Set up MFA' %}{% endif %}">
+                <i class="bi bi-shield{% if mfa_enrolled %}-check{% endif %}" aria-hidden="true"></i>
+              </a>
             {% endif %}
             <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" id="cpShowShortcutsHelp" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
               <i class="bi bi-command" aria-hidden="true"></i>

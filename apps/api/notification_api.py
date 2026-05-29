@@ -171,3 +171,62 @@ class NotificationViewSet(viewsets.ViewSet):
         count = self.get_queryset().filter(is_read=False).update(is_read=True)
 
         return Response({"status": "success", "marked_as_read": count})
+
+    @action(detail=False, methods=["post"], url_path="self-capture")
+    def self_capture(self, request):
+        """
+        Persist a client-side toast/snackbar as a Notification record so
+        bottom-of-screen flashes land in the user's notifications inbox
+        instead of disappearing.
+
+        Body: { "title": str, "message": str, "type": "success|error|warning|info", "link": optional }
+
+        v4.00.25 (2026-05-29) — added to support the UX directive that
+        bottom-of-screen toasts should be suppressed and routed into the
+        notifications page.
+        """
+        from apps.finance.models import Notification
+
+        title = (request.data.get("title") or "").strip()[:200]
+        message = (request.data.get("message") or "").strip()[:2000]
+        toast_type = (request.data.get("type") or "info").strip().lower()
+        link = (request.data.get("link") or "").strip()[:500] or None
+
+        if not message:
+            return Response(
+                {"status": "error", "detail": "message required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        severity_map = {
+            "success": "INFO",
+            "info": "INFO",
+            "warning": "WARNING",
+            "error": "ALERT",
+        }
+        severity = severity_map.get(toast_type, "INFO")
+
+        if not title:
+            title = {
+                "INFO": "Update",
+                "WARNING": "Heads up",
+                "ALERT": "Attention",
+            }.get(severity, "Notice")
+
+        notification = Notification.objects.create(
+            title=title,
+            message=message,
+            severity=severity,
+            recipient=request.user,
+            created_by=request.user,
+            link=link or "",
+        )
+
+        return Response(
+            {
+                "status": "success",
+                "notification_id": notification.id,
+                "severity": severity,
+            },
+            status=status.HTTP_201_CREATED,
+        )

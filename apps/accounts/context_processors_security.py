@@ -80,9 +80,12 @@ def account_security_context(request):
             "security_posture_inline_banner": False,
             "security_posture_blocked": show_block_banner,
             "security_posture_zone": zone,
-            "security_posture_session_modal_show": should_show_session_modal(
-                request, zone=zone
-            ),
+            # v4.00.25 (2026-05-29) — Post-login session modal disabled per UX
+            # directive. Security posture is now communicated by the animated
+            # shield in the header (continuous red flash / periodic yellow /
+            # steady green) plus the in-app notifications page. The modal
+            # interrupted the operator and is no longer surfaced.
+            "security_posture_session_modal_show": False,
             "security_posture_session_modal_ack": is_session_modal_acknowledged(
                 request
             ),

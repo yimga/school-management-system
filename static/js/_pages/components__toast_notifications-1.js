@@ -9,6 +9,68 @@
 
   var MAX_TOASTS = 5;
 
+  // v4.00.25 (2026-05-29) — Toast routing contract.
+  // Per UX directive, bottom-of-screen toasts are suppressed in favor of
+  // the in-app notifications page. showToast() now:
+  //   1) Suppresses the visual toast (no DOM render in the corner).
+  //   2) POSTs the payload to /api/v1/notifications/self-capture/ so the
+  //      message persists as a Notification record the user can see in
+  //      /accounts/notifications/.
+  //   3) Pulses the header bell + bumps its unread badge to draw the eye.
+  //   4) Honors `onUndo` callbacks for backwards compat (rare path: we
+  //      still render an inline ephemeral chip for these so the user can
+  //      undo).
+  // Pages that genuinely need the legacy bottom-corner UX can opt in by
+  // setting window.__RMC_TOAST_LEGACY_VISUAL__ = true before showToast
+  // runs (no callers do today; flag exists as an escape hatch).
+
+  function getCsrfToken() {
+    var v = (document.cookie || '').match(/csrftoken=([^;]+)/);
+    if (v) return v[1];
+    var m = document.querySelector('meta[name="csrf-token"]');
+    if (m && m.content) return m.content;
+    var inp = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    return inp ? inp.value : '';
+  }
+
+  function persistToInbox(message, type, opts) {
+    try {
+      fetch('/api/v1/notifications/self-capture/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({
+          title: (opts && opts.title) || '',
+          message: String(message || ''),
+          type: type || 'info',
+          link: (opts && opts.link) || ''
+        })
+      }).then(function () { bumpBellBadge(type); }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function bumpBellBadge(type) {
+    var bells = document.querySelectorAll('.cp-topbar-bell, [data-rmc-header-bell]');
+    bells.forEach(function (b) {
+      var badge = b.querySelector('.cp-topbar-bell__badge, .topbar-icon-badge');
+      if (badge) {
+        var n = parseInt(badge.textContent, 10);
+        badge.textContent = String((isNaN(n) ? 0 : n) + 1);
+        badge.style.display = '';
+      } else {
+        var newBadge = document.createElement('span');
+        newBadge.className = 'cp-topbar-bell__badge';
+        newBadge.textContent = '1';
+        b.appendChild(newBadge);
+      }
+      b.classList.add('rmc-bell-pulse');
+      setTimeout(function () { b.classList.remove('rmc-bell-pulse'); }, 1400);
+    });
+  }
+
   // Toast function - can be called globally
   // Third arg: number = duration_ms, or object { duration: number, onUndo: function }
   window.showToast = function(message, type, durationOrOptions) {
@@ -18,6 +80,15 @@
       : { duration: durationOrOptions };
     var duration = typeof options.duration === 'number' ? options.duration : 3000;
     var onUndo = typeof options.onUndo === 'function' ? options.onUndo : null;
+
+    // Route to inbox + pulse the bell. Always happens regardless of visual mode.
+    persistToInbox(message, type, options);
+
+    // Legacy visual path: only render the bottom-corner toast when an
+    // onUndo handler is supplied (needs a UI to click) OR the page has
+    // explicitly opted into the legacy visual.
+    var allowVisual = !!onUndo || !!window.__RMC_TOAST_LEGACY_VISUAL__;
+    if (!allowVisual) return;
 
     // Stack limit: keep only the 5 most recent (evict oldest synchronously)
     while (container.children.length >= MAX_TOASTS && container.firstChild) {

@@ -97,3 +97,114 @@
   color: var(--text-on-dark, #fff);
   border-color: color-mix(in srgb, currentColor 35%, transparent);
 }
+
+/* =================================================================
+   v4.00.25 (2026-05-29) — Traffic-light shield strengthening.
+
+   Customer directive: the security shield in the dashboard header
+   should signal posture by animating, not by spawning a modal.
+     - red    -> CONTINUOUS attention pulse (border + glow + icon)
+     - yellow -> PERIODIC reminder pulse (every ~3s, gentler)
+     - green  -> STEADY green glow, no animation
+   ================================================================= */
+
+/* Strengthen the red continuous pulse — animate the icon and the
+   border colour as well, not only the box-shadow halo. */
+@media (prefers-reduced-motion: no-preference) {
+  .rmc-security-posture-nav.rmc-security-pulse-fast,
+  .rmc-security-posture-nav--critical {
+    animation: rmc-security-pulse-fast 1.05s ease-in-out infinite;
+  }
+  .rmc-security-posture-nav.rmc-security-pulse-fast .bi,
+  .rmc-security-posture-nav--critical .bi {
+    animation: rmc-security-icon-pulse-fast 1.05s ease-in-out infinite;
+  }
+  .rmc-security-posture-nav.rmc-security-pulse-slow,
+  .rmc-security-posture-nav--warning {
+    animation: rmc-security-pulse-slow 3s ease-in-out infinite;
+  }
+  .rmc-security-posture-nav.rmc-security-pulse-slow .bi,
+  .rmc-security-posture-nav--warning .bi {
+    animation: rmc-security-icon-pulse-slow 3s ease-in-out infinite;
+  }
+}
+
+/* Green ok state — steady soft glow, no oscillation. */
+.rmc-security-posture-nav--ok {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--status-success-bg, #16a34a) 35%, transparent),
+              0 0 12px color-mix(in srgb, var(--status-success-bg, #16a34a) 25%, transparent);
+}
+.rmc-security-posture-nav--ok .bi {
+  color: var(--status-success-bg, #16a34a); /* off-token-allow: security-shield-ok */
+}
+
+/* Red icon takes the danger colour through the pulse. */
+.rmc-security-posture-nav--critical .bi {
+  color: var(--status-danger-bg, #dc2626); /* off-token-allow: security-shield-critical */
+}
+/* Yellow icon takes the warning colour. */
+.rmc-security-posture-nav--warning .bi {
+  color: var(--status-warning-bg, #d97706); /* off-token-allow: security-shield-warning */
+}
+
+@keyframes rmc-security-icon-pulse-fast {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.18); opacity: 0.6; }
+}
+@keyframes rmc-security-icon-pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.1); opacity: 0.75; }
+}
+
+/* Header-compact skin — when the shield sits inside the manager
+   topbar, drop the wordmark label and shrink to a 32px circular pill
+   to match the rest of the header icon row. */
+.rmc-platform-header__actions .rmc-security-posture-nav,
+.cp-header__row--utility .rmc-security-posture-nav {
+  padding: 0 8px !important; /* style-allow: security-shield-header */
+  height: 32px;
+  border-radius: 999px;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.rmc-platform-header__actions .rmc-security-posture-nav__label,
+.cp-header__row--utility .rmc-security-posture-nav__label {
+  display: none; /* icon + score read clean in the dense header */
+}
+.rmc-platform-header__actions .rmc-security-posture-nav__score,
+.cp-header__row--utility .rmc-security-posture-nav__score {
+  padding: 1px 6px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =================================================================
+   v4.00.25 — Bell pulse animation.
+   Triggered by toast routing JS — when a toast is suppressed and
+   persisted to the notifications inbox, the header bell briefly
+   pulses to alert the user that something new arrived in the inbox.
+   ================================================================= */
+
+.rmc-bell-pulse,
+.cp-topbar-bell.rmc-bell-pulse,
+[data-rmc-header-bell].rmc-bell-pulse {
+  animation: rmc-bell-pulse 1.4s ease-in-out 1;
+}
+@keyframes rmc-bell-pulse {
+  0%   { transform: scale(1) rotate(0); }
+  10%  { transform: scale(1.15) rotate(-10deg); }
+  20%  { transform: scale(1.15) rotate(10deg); }
+  30%  { transform: scale(1.15) rotate(-10deg); }
+  40%  { transform: scale(1.15) rotate(8deg); }
+  50%  { transform: scale(1.1) rotate(-6deg); }
+  60%  { transform: scale(1.05) rotate(4deg); }
+  70%  { transform: scale(1.02) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmc-bell-pulse { animation: none; }
+}
+
