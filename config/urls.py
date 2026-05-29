@@ -546,6 +546,8 @@ urlpatterns = [
     # v4.00.36 — SAML 2.0 SP endpoints (wedge 45). Routed at the platform
     # root so IdP redirect URIs stay stable (operators register the ACS URL).
     path("sso/saml/metadata/", __import__("apps.api.saml", fromlist=["metadata"]).metadata, name="sso_saml_metadata"),
+    # v4.00.65 — `.xml/` alias matches industry SAML metadata URL convention so IdP fetch tools that strip trailing slash + look for the extension behave correctly.
+    path("sso/saml/metadata.xml/", __import__("apps.api.saml", fromlist=["metadata"]).metadata, name="sso_saml_metadata_xml"),
     path("sso/saml/acs/", __import__("apps.api.saml", fromlist=["acs"]).acs, name="sso_saml_acs"),
     path("sso/saml/sls/", __import__("apps.api.saml", fromlist=["sls"]).sls, name="sso_saml_sls"),
     # v4.00.59 — IdP-initiated logout (POST-binding) — returns auto-submit HTML form.

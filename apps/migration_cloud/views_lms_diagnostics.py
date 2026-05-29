@@ -589,6 +589,9 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
     of any ``RMC_LMS_DIAG_ACTION_RETENTION_DRY_RUN`` env. Caller's
     ``?years=<N>`` overrides the retention window for the preview only —
     handy for "what if we lowered the window to 3y" planning conversations.
+
+    v4.00.65 — Default to HTML for browser hits; ``?format=json`` keeps
+    the original JSON shape for monitor / smoke probes.
     """
     try:
         from apps.integrations_marketplace.lms_diag_action_retention import (
@@ -623,12 +626,25 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
             status=503,
         )
 
-    return JsonResponse({
-        "success": True,
-        "generated_at": timezone.now().isoformat(),
-        "retention": out,
-        "note": "preview only — nothing was deleted",
-    })
+    fmt = (request.GET.get("format") or "").strip().lower()
+    if fmt == "json":
+        return JsonResponse({
+            "success": True,
+            "generated_at": timezone.now().isoformat(),
+            "retention": out,
+            "note": "preview only — nothing was deleted",
+        })
+
+    return render(
+        request,
+        "migration_cloud/super/lms_diagnostics_retention_preview.html",
+        {
+            "retention": out,
+            "generated_at": timezone.now().isoformat(),
+            "years_override": years,
+            "note": "preview only — nothing was deleted",
+        },
+    )
 
 
 def _parse_window_iso(raw):

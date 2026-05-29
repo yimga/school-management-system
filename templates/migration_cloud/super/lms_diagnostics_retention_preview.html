@@ -1,0 +1,98 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block page_title %}{% trans "LMS diag-action retention preview" %}{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--lms-diag-retention-preview" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Diag-action retention preview" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Forecasts what the next LMSDiagActionAudit retention sweep would purge — without actually deleting anything. Reuses the same cutoff math the Celery beat uses, so preview and real-sweep semantics stay identical." %}
+      <small style="display:block;color:var(--text-secondary);margin-top:4px;">
+        {% trans "generated_at" %}: <code>{{ generated_at }}</code>
+      </small>
+    </p>
+  </header>
+
+  <section role="alert" style="margin-bottom:14px;padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+    <strong style="color:var(--text-primary);">{% trans "Preview only — nothing was deleted." %}</strong>
+    <div style="margin-top:6px;color:var(--text-secondary);font-size:13px;">
+      {% trans "Use ?years=&lt;N&gt; to override the retention window for the forecast. The real Celery beat reads RMC_LMS_DIAG_ACTION_RETENTION_YEARS (default 7y FERPA)." %}
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">
+    <div style="padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Retention years" %}</div>
+      <div style="font-size:1.5rem;font-weight:600;">{{ retention.years }}</div>
+    </div>
+    <div style="padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Considered" %}</div>
+      <div style="font-size:1.5rem;font-weight:600;">{{ retention.considered }}</div>
+    </div>
+    <div style="padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Would delete" %}</div>
+      <div style="font-size:1.5rem;font-weight:600;">{{ retention.considered }}</div>
+    </div>
+    <div style="padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Actually deleted" %}</div>
+      <div style="font-size:1.5rem;font-weight:600;color:var(--text-secondary);">0</div>
+    </div>
+  </section>
+
+  <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
+    <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;">{% trans "Sweep parameters" %}</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tbody>
+        <tr>
+          <td style="padding:6px 0;color:var(--text-secondary);width:200px;">{% trans "dry_run" %}</td>
+          <td style="padding:6px 0;font-family:monospace;">{{ retention.dry_run|yesno:"True,False" }}</td>
+        </tr>
+        {% if retention.cutoff_iso %}
+        <tr>
+          <td style="padding:6px 0;color:var(--text-secondary);">{% trans "cutoff_iso" %}</td>
+          <td style="padding:6px 0;font-family:monospace;">{{ retention.cutoff_iso }}</td>
+        </tr>
+        {% endif %}
+        {% if retention.skipped %}
+        <tr>
+          <td style="padding:6px 0;color:var(--text-secondary);">{% trans "skipped" %}</td>
+          <td style="padding:6px 0;font-family:monospace;">{{ retention.skipped }}</td>
+        </tr>
+        {% endif %}
+        {% if years_override is not None %}
+        <tr>
+          <td style="padding:6px 0;color:var(--text-secondary);">{% trans "years_override" %}</td>
+          <td style="padding:6px 0;font-family:monospace;">{{ years_override }}</td>
+        </tr>
+        {% endif %}
+        {% if retention.error %}
+        <tr>
+          <td style="padding:6px 0;color:var(--text-secondary);">{% trans "error" %}</td>
+          <td style="padding:6px 0;font-family:monospace;color:var(--text-primary);">{{ retention.error }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </section>
+
+  <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
+    <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;">{% trans "Forecast different windows" %}</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:13px;">
+      <a href="?years=1" class="rmc-button rmc-button--secondary">1y</a>
+      <a href="?years=3" class="rmc-button rmc-button--secondary">3y</a>
+      <a href="?years=5" class="rmc-button rmc-button--secondary">5y</a>
+      <a href="?years=7" class="rmc-button rmc-button--secondary">7y (default)</a>
+      <a href="?years=10" class="rmc-button rmc-button--secondary">10y</a>
+      <a href="?years=0" class="rmc-button rmc-button--secondary">{% trans "retain forever" %}</a>
+    </div>
+  </section>
+
+  <footer style="font-size:12px;color:var(--text-secondary);margin-top:12px;">
+    <span>{{ note }}</span> ·
+    <a href="?format=json{% if years_override is not None %}&amp;years={{ years_override }}{% endif %}">{% trans "JSON" %}</a> ·
+    <a href="{% url 'migration_cloud_super:migration_cloud_lms_diagnostics' %}">&larr; {% trans "back to LMS diagnostics" %}</a>
+  </footer>
+</main>
+{% endblock %}

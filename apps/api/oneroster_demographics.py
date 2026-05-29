@@ -188,6 +188,30 @@ def _demographic_from_student(s) -> dict[str, Any]:
     return rec
 
 
+# v4.00.65 — OneRoster v1.2 Roster Service spec § 4.13 ?sort=/?orderBy=.
+#
+# Spec text: "sort - Identifies the field to sort the returned objects by.
+# orderBy - Identifies the sort order: 'asc' (default) or 'desc'."
+#
+# We allow sorting by any top-level field of the projected record. Unknown
+# fields no-op (no order change). Bad orderBy values fall back to 'asc'.
+# Empty string short-circuits to no-op (operator-facing surface — don't 400).
+_SORT_ALLOW_DESC = frozenset(("desc", "DESC"))
+
+
+def _apply_sort(items: list[dict[str, Any]], sort_field: str, order_by: str) -> list[dict[str, Any]]:
+    """Sort items in-place per OneRoster v1.2 spec § 4.13 (sort + orderBy)."""
+    field = (sort_field or "").strip()
+    if not field:
+        return items
+    direction = (order_by or "").strip()
+    reverse = direction in _SORT_ALLOW_DESC
+    # Guard against TypeError when the field is missing/None on some rows —
+    # coerce to empty string so sort is total. We do NOT 400 on unknown
+    # field per the operator-facing-surface contract.
+    return sorted(items, key=lambda r: (r.get(field) or ""), reverse=reverse)
+
+
 # v4.00.64 — OneRoster v1.2 Roster Service spec § 4.13 ?fields= field-mask.
 # Returns only the fields listed in the comma-separated query parameter,
 # plus ``sourcedId`` which is always preserved (clients use it as the
@@ -270,6 +294,13 @@ def demographics_collection(request: HttpRequest):
     above = (request.GET.get("dateLastModifiedAbove") or "").strip()
     if above:
         items = [r for r in items if (r.get("dateLastModified") or "") > above]
+    # v4.00.65 — OneRoster v1.2 spec § 4.13 ?sort= + ?orderBy=. Sort BEFORE
+    # masking so the operator can sort by a field they then drop from the
+    # projection (e.g. sort by dateLastModified, return only sourcedId).
+    sort_field = (request.GET.get("sort") or "").strip()
+    order_by = (request.GET.get("orderBy") or "").strip()
+    if sort_field:
+        items = _apply_sort(items, sort_field, order_by)
     # v4.00.64 — OneRoster v1.2 Roster Service spec § 4.13 ?fields= mask.
     mask = _parse_fields_mask(request.GET.get("fields") or "")
     if mask is not None:
@@ -373,7 +404,35 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_birth_date(inner)
     if err is not None:
         return None, err
+    err = _validate_sex_enum(inner)
+    if err is not None:
+        return None, err
     return inner, None
+
+
+# v4.00.65 — Demographics POST/PUT `sex` enum validation per OneRoster v1.2
+# spec § 4.13 vocabulary. The Demographics schema's `sex` field is a closed
+# enum: ``male`` / ``female`` / ``other`` (case-insensitive). Empty string
+# is an explicit clear (preserved). Anything else is 400.
+_DEMOGRAPHIC_SEX_VOCAB = frozenset(("male", "female", "other"))
+
+
+def _validate_sex_enum(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "sex" not in inner:
+        return None
+    raw = str(inner.get("sex") or "").strip().lower()
+    if not raw:
+        return None  # explicit clear allowed
+    if raw not in _DEMOGRAPHIC_SEX_VOCAB:
+        return JsonResponse(
+            {"error": "bad_sex_enum",
+             "reason": "value_not_in_vocab",
+             "received": str(inner.get("sex") or "")[:32],
+             "allowed": sorted(_DEMOGRAPHIC_SEX_VOCAB)},
+            status=400,
+        )
+    return None
 
 
 # v4.00.64 — Demographics POST/PUT body validation.

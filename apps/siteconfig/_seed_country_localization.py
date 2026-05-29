@@ -12026,6 +12026,392 @@ COUNTRY_LOCALIZATION["KR-46"] = {
 
 
 # ---------------------------------------------------------------------------
+# v4.00.65 (2026-05-29) — +14 Tier-1 subdivisions:
+#   JP-02 Aomori, JP-44 Oita, JP-39 Kochi,
+#   CN-QH Qinghai, CN-NX Ningxia, CN-GZ Guizhou,
+#   KR-42 Gangwon-do, KR-43 Chungcheongbuk-do, KR-44 Chungcheongnam-do,
+#   KR-47 Gyeongsangbuk-do, KR-48 Gyeongsangnam-do,
+#   RU-MOW Moscow, ZA-KZN KwaZulu-Natal, BR-RS Rio Grande do Sul.
+# ---------------------------------------------------------------------------
+
+# Aomori (JP-02) — northernmost Honshu 3-gakki + Hirosaki U + Aomori Public U.
+COUNTRY_LOCALIZATION["JP-02"] = {
+    "calendar_system": {
+        "code": "jp02-3-gakki", "label": "3-gakki (Aomori)",
+        "term_count": 3, "term_names": ["1-gakki", "2-gakki", "3-gakki"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",   "label": "Shogakko (1-6)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",   "label": "Chugakko (7-9)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko",  "label": "Kotogakko (10-12)",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "senshu",     "label": "Senshu-gakko (vocational)",             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "daigaku",    "label": "Hirosaki U + Aomori Public U + Aomori U", "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp02-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp02-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp02-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp02-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei", "principal": "Kocho",
+        "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen",
+    },
+}
+
+# Oita (JP-44) — Kyushu 2-gakki + Oita U + APU (Ritsumeikan Asia Pacific) + BCU.
+COUNTRY_LOCALIZATION["JP-44"] = {
+    "calendar_system": {
+        "code": "jp44-2-gakki", "label": "2-gakki (Oita)",
+        "term_count": 2, "term_names": ["Mae-ki", "Ato-ki"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",   "label": "Shogakko (1-6)",                         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",   "label": "Chugakko (7-9)",                         "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko",  "label": "Kotogakko (10-12)",                      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "senshu",     "label": "Senshu-gakko (vocational)",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "daigaku",    "label": "Oita U + APU + Beppu U + Nippon Bunri U", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",      "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp44-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp44-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp44-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp44-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei", "principal": "Kocho",
+        "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen",
+    },
+}
+
+# Kochi (JP-39) — Shikoku 2-gakki + Kochi U + Kochi U of Tech + Kochi Gakuen U.
+COUNTRY_LOCALIZATION["JP-39"] = {
+    "calendar_system": {
+        "code": "jp39-2-gakki", "label": "2-gakki (Kochi)",
+        "term_count": 2, "term_names": ["Mae-ki", "Ato-ki"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",   "label": "Shogakko (1-6)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",   "label": "Chugakko (7-9)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko",  "label": "Kotogakko (10-12)",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "senshu",     "label": "Senshu-gakko (vocational)",             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "daigaku",    "label": "Kochi U + KUT + Kochi Gakuen U",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp39-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp39-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp39-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp39-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei", "principal": "Kocho",
+        "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen",
+    },
+}
+
+# Qinghai (CN-QH) — Qinghai U + Qinghai Normal U + Qinghai U for Nationalities.
+COUNTRY_LOCALIZATION["CN-QH"] = {
+    "calendar_system": {
+        "code": "cnqh-2-sem", "label": "2-sem (Qinghai)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                                "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "Qinghai U + QHNU + QH U for Nationalities",     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnqh-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cnqh-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cnqh-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cnqh-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Ningxia (CN-NX) — Ningxia U + North Minzu U + Ningxia Medical U.
+COUNTRY_LOCALIZATION["CN-NX"] = {
+    "calendar_system": {
+        "code": "cnnx-2-sem", "label": "2-sem (Ningxia)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                           "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "Ningxia U + North Minzu U + NXMU",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnnx-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cnnx-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cnnx-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cnnx-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Guizhou (CN-GZ) — Guizhou U + Guizhou Normal + Guizhou Minzu + Guizhou U of Tech.
+COUNTRY_LOCALIZATION["CN-GZ"] = {
+    "calendar_system": {
+        "code": "cngz-2-sem", "label": "2-sem (Guizhou)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                                 "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                         "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "Guizhou U + GZNU + Guizhou Minzu + GUT",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cngz-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cngz-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cngz-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cngz-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Gangwon-do (KR-42) — Kangwon National U + Gangneung-Wonju NU + Hallym U.
+COUNTRY_LOCALIZATION["KR-42"] = {
+    "calendar_system": {
+        "code": "kr42-2-sem", "label": "2-sem (Gangwon-do)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",   "label": "Yuchiwon",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeung",   "label": "Chodeung Hakkyo (1-6)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jung",       "label": "Junghakgyo (7-9)",                     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "godeung",    "label": "Godeunghakgyo (10-12, Suneung)",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Maeisteo / Specialized Vocational HS", "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "daehakgyo",  "label": "Kangwon NU + GWNU + Hallym U",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr42-1",  "label": "Year 1 (Chodeung)", "order": 1},
+        {"code": "kr42-6",  "label": "Year 6 (Chodeung)", "order": 6},
+        {"code": "kr42-9",  "label": "Year 3 (Jung)",     "order": 9},
+        {"code": "kr42-12", "label": "Year 3 (Godeung)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim", "principal": "Gyojang",
+        "term": "Hakgi", "report_card": "Seongjeokpyo", "grade_level": "Hangnyeon",
+    },
+}
+
+# Chungcheongbuk-do (KR-43) — Chungbuk NU + Korea NU of Education + Cheongju U.
+COUNTRY_LOCALIZATION["KR-43"] = {
+    "calendar_system": {
+        "code": "kr43-2-sem", "label": "2-sem (Chungcheongbuk-do)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",   "label": "Yuchiwon",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeung",   "label": "Chodeung Hakkyo (1-6)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jung",       "label": "Junghakgyo (7-9)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "godeung",    "label": "Godeunghakgyo (10-12, Suneung)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Maeisteo / Specialized Vocational HS",   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "daehakgyo",  "label": "Chungbuk NU + KNUE + Cheongju U + UU",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr43-1",  "label": "Year 1 (Chodeung)", "order": 1},
+        {"code": "kr43-6",  "label": "Year 6 (Chodeung)", "order": 6},
+        {"code": "kr43-9",  "label": "Year 3 (Jung)",     "order": 9},
+        {"code": "kr43-12", "label": "Year 3 (Godeung)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim", "principal": "Gyojang",
+        "term": "Hakgi", "report_card": "Seongjeokpyo", "grade_level": "Hangnyeon",
+    },
+}
+
+# Chungcheongnam-do (KR-44) — Chungnam NU + Kongju NU + Hoseo U + Soonchunhyang U.
+COUNTRY_LOCALIZATION["KR-44"] = {
+    "calendar_system": {
+        "code": "kr44-2-sem", "label": "2-sem (Chungcheongnam-do)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",   "label": "Yuchiwon",                                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeung",   "label": "Chodeung Hakkyo (1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jung",       "label": "Junghakgyo (7-9)",                         "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "godeung",    "label": "Godeunghakgyo (10-12, Suneung)",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Maeisteo / Specialized Vocational HS",     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "daehakgyo",  "label": "Chungnam NU + Kongju NU + Hoseo U + SCH",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr44-1",  "label": "Year 1 (Chodeung)", "order": 1},
+        {"code": "kr44-6",  "label": "Year 6 (Chodeung)", "order": 6},
+        {"code": "kr44-9",  "label": "Year 3 (Jung)",     "order": 9},
+        {"code": "kr44-12", "label": "Year 3 (Godeung)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim", "principal": "Gyojang",
+        "term": "Hakgi", "report_card": "Seongjeokpyo", "grade_level": "Hangnyeon",
+    },
+}
+
+# Gyeongsangbuk-do (KR-47) — Kyungpook NU + Pohang U of Sci/Tech (POSTECH) + Yeungnam U.
+COUNTRY_LOCALIZATION["KR-47"] = {
+    "calendar_system": {
+        "code": "kr47-2-sem", "label": "2-sem (Gyeongsangbuk-do)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",   "label": "Yuchiwon",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeung",   "label": "Chodeung Hakkyo (1-6)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jung",       "label": "Junghakgyo (7-9)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "godeung",    "label": "Godeunghakgyo (10-12, Suneung)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Maeisteo / Specialized Vocational HS",   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "daehakgyo",  "label": "Kyungpook NU + POSTECH + Yeungnam U + ADD", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",     "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr47-1",  "label": "Year 1 (Chodeung)", "order": 1},
+        {"code": "kr47-6",  "label": "Year 6 (Chodeung)", "order": 6},
+        {"code": "kr47-9",  "label": "Year 3 (Jung)",     "order": 9},
+        {"code": "kr47-12", "label": "Year 3 (Godeung)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim", "principal": "Gyojang",
+        "term": "Hakgi", "report_card": "Seongjeokpyo", "grade_level": "Hangnyeon",
+    },
+}
+
+# Gyeongsangnam-do (KR-48) — Gyeongsang NU + Changwon NU + Inje U + Kyungnam U.
+COUNTRY_LOCALIZATION["KR-48"] = {
+    "calendar_system": {
+        "code": "kr48-2-sem", "label": "2-sem (Gyeongsangnam-do)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",   "label": "Yuchiwon",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeung",   "label": "Chodeung Hakkyo (1-6)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jung",       "label": "Junghakgyo (7-9)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "godeung",    "label": "Godeunghakgyo (10-12, Suneung)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Maeisteo / Specialized Vocational HS",   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "daehakgyo",  "label": "Gyeongsang NU + Changwon NU + Inje U",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr48-1",  "label": "Year 1 (Chodeung)", "order": 1},
+        {"code": "kr48-6",  "label": "Year 6 (Chodeung)", "order": 6},
+        {"code": "kr48-9",  "label": "Year 3 (Jung)",     "order": 9},
+        {"code": "kr48-12", "label": "Year 3 (Godeung)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim", "principal": "Gyojang",
+        "term": "Hakgi", "report_card": "Seongjeokpyo", "grade_level": "Hangnyeon",
+    },
+}
+
+# Moscow (RU-MOW) — Moscow State U (MSU) + HSE + MIPT + Bauman MSTU + RUDN.
+COUNTRY_LOCALIZATION["RU-MOW"] = {
+    "calendar_system": {
+        "code": "rumow-2-sem", "label": "2-sem (Moscow)",
+        "term_count": 2, "term_names": ["1-y semestr", "2-y semestr"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "detskiy_sad","label": "Detskiy sad (kindergarten)",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "nachalnaya", "label": "Nachalnaya shkola (1-4)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-10"},
+        {"code": "osnovnaya",  "label": "Osnovnaya shkola (5-9, OGE)",               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "srednyaya",  "label": "Srednyaya shkola (10-11, EGE)",             "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "kolledzh",   "label": "Kolledzh (vocational)",                     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "universitet","label": "MSU + HSE + MIPT + Bauman + RUDN",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "rumow-1",  "label": "Class 1",       "order": 1},
+        {"code": "rumow-4",  "label": "Class 4",       "order": 4},
+        {"code": "rumow-9",  "label": "Class 9 (OGE)", "order": 9},
+        {"code": "rumow-11", "label": "Class 11 (EGE)","order": 11},
+    ],
+    "terminology": {
+        "teacher": "Uchitel", "principal": "Direktor",
+        "term": "Semestr", "report_card": "Tabel", "grade_level": "Klass",
+    },
+}
+
+# KwaZulu-Natal (ZA-KZN) — UKZN + Durban U of Tech + Mangosuthu U of Tech + UNIZULU.
+COUNTRY_LOCALIZATION["ZA-KZN"] = {
+    "calendar_system": {
+        "code": "zakzn-4-term", "label": "4-term (DBE)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Grade R / Pre-Primary",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "primary",     "label": "Primary (R-7, ANA)",                          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",   "label": "Secondary (8-12, NSC Matric)",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "tvet",        "label": "TVET College (NQF 2-4)",                      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "university",  "label": "UKZN + DUT + MUT + UNIZULU",                  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "zakzn-r",  "label": "Grade R",          "order": 0},
+        {"code": "zakzn-7",  "label": "Grade 7 (Senior)", "order": 7},
+        {"code": "zakzn-9",  "label": "Grade 9 (GET)",    "order": 9},
+        {"code": "zakzn-12", "label": "Grade 12 (NSC)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Educator", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Grade",
+    },
+}
+
+# Rio Grande do Sul (BR-RS) — UFRGS + PUCRS + UFSM + Unisinos.
+COUNTRY_LOCALIZATION["BR-RS"] = {
+    "calendar_system": {
+        "code": "brrs-2-sem", "label": "2-sem (MEC + RS state)",
+        "term_count": 2, "term_names": ["1º Semestre", "2º Semestre"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "creche",       "label": "Creche / Pré-escola",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-5"},
+        {"code": "fundamental",  "label": "Ensino Fundamental (1-9)",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-14"},
+        {"code": "medio",        "label": "Ensino Médio (1-3) + ENEM",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "tecnico",      "label": "Curso Técnico (SENAI / IFRS)",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "universidade", "label": "UFRGS + PUCRS + UFSM + Unisinos",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "brrs-ei", "label": "Educação Infantil", "order": 0},
+        {"code": "brrs-5",  "label": "5º ano Fund.",      "order": 5},
+        {"code": "brrs-9",  "label": "9º ano Fund.",      "order": 9},
+        {"code": "brrs-12", "label": "3º ano Médio (ENEM)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor(a)", "principal": "Diretor(a)",
+        "term": "Semestre", "report_card": "Boletim", "grade_level": "Ano",
+    },
+}
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

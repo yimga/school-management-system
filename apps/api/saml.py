@@ -81,33 +81,178 @@ def _base_url(request: HttpRequest) -> str:
     return f"{scheme}://{request.get_host()}".rstrip("/")
 
 
-@require_http_methods(["GET"])
-def metadata(request):
-    """Serve XML metadata at ``/sso/saml/metadata/``."""
-    entity_id = _entity_id()
-    base = _base_url(request)
-    cert_b64 = _cert_body_b64()
-    xml = (
+def _metadata_cache_seconds() -> int:
+    """v4.00.65 — Cache TTL for the SAML SP metadata document.
+
+    Used in the ``validUntil`` attribute so IdPs refresh periodically.
+    Default 86400 (24h) — matches industry SAML metadata caching default.
+    """
+    raw = (
+        getattr(settings, "RMC_SAML_METADATA_CACHE_SECONDS", "")
+        or os.environ.get("RMC_SAML_METADATA_CACHE_SECONDS", "")
+        or ""
+    )
+    try:
+        val = int(raw) if str(raw).strip() else 86400
+    except (ValueError, TypeError):
+        val = 86400
+    return max(60, val)  # floor of 1min so we never produce already-expired metadata
+
+
+def _metadata_contact_email() -> str:
+    return str(
+        getattr(settings, "RMC_SAML_METADATA_CONTACT_EMAIL", "")
+        or os.environ.get("RMC_SAML_METADATA_CONTACT_EMAIL", "")
+        or ""
+    ).strip()
+
+
+def _metadata_organization_name() -> str:
+    return str(
+        getattr(settings, "RMC_SAML_METADATA_ORG_NAME", "")
+        or os.environ.get("RMC_SAML_METADATA_ORG_NAME", "")
+        or "RunMyCampus"
+    ).strip()
+
+
+def _metadata_organization_url() -> str:
+    return str(
+        getattr(settings, "RMC_SAML_METADATA_ORG_URL", "")
+        or os.environ.get("RMC_SAML_METADATA_ORG_URL", "")
+        or "https://runmycampus.com/"
+    ).strip()
+
+
+def _build_sp_metadata_xml(*, base: str, entity_id: str, cert_b64: str,
+                          authn_requests_signed: bool, want_assertions_signed: bool,
+                          valid_until_iso: str, cache_duration_iso: str) -> str:
+    """v4.00.65 — Build a richer SAML 2.0 SP metadata XML document.
+
+    Adds vs v4.00.46:
+      * ``validUntil`` + ``cacheDuration`` so IdPs refresh on TTL
+      * AuthnRequestsSigned reflects RMC_SAML_SP_SIGN_LOGOUT (the same flag
+        that drives v4.00.61 LogoutRequest + v4.00.64 LogoutResponse signing)
+      * SLS HTTP-POST binding (covers v4.00.59 sls_idp)
+      * SP-initiated SLO callback (``/sso/saml/slo/callback/``)
+      * Optional Organization + ContactPerson blocks (only emitted when
+        env carries non-empty values; empty defaults skip the block)
+    """
+    from django.utils.html import escape as _escape
+
+    ars_attr = "true" if authn_requests_signed else "false"
+    was_attr = "true" if want_assertions_signed else "false"
+
+    contact = _metadata_contact_email()
+    contact_xml = ""
+    if contact:
+        contact_xml = (
+            '  <md:ContactPerson contactType="technical">\n'
+            f'    <md:EmailAddress>{_escape(contact)}</md:EmailAddress>\n'
+            '  </md:ContactPerson>\n'
+        )
+
+    org_name = _metadata_organization_name()
+    org_url = _metadata_organization_url()
+    org_xml = ""
+    if org_name:
+        org_xml = (
+            '  <md:Organization>\n'
+            f'    <md:OrganizationName xml:lang="en">{_escape(org_name)}</md:OrganizationName>\n'
+            f'    <md:OrganizationDisplayName xml:lang="en">{_escape(org_name)}</md:OrganizationDisplayName>\n'
+            f'    <md:OrganizationURL xml:lang="en">{_escape(org_url or "https://runmycampus.com/")}</md:OrganizationURL>\n'
+            '  </md:Organization>\n'
+        )
+
+    return (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"'
-        f' entityID="{entity_id}">\n'
-        '  <md:SPSSODescriptor AuthnRequestsSigned="false" WantAssertionsSigned="true"'
+        ' xmlns:ds="http://www.w3.org/2000/09/xmldsig#"'
+        f' entityID="{_escape(entity_id)}"'
+        f' validUntil="{valid_until_iso}"'
+        f' cacheDuration="{cache_duration_iso}">\n'
+        f'  <md:SPSSODescriptor AuthnRequestsSigned="{ars_attr}" WantAssertionsSigned="{was_attr}"'
         '   protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">\n'
         '    <md:KeyDescriptor use="signing">\n'
-        '      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">\n'
+        '      <ds:KeyInfo>\n'
         '        <ds:X509Data>\n'
         f'          <ds:X509Certificate>{cert_b64}</ds:X509Certificate>\n'
         '        </ds:X509Data>\n'
         '      </ds:KeyInfo>\n'
         '    </md:KeyDescriptor>\n'
         '    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"'
-        f'     Location="{base}/sso/saml/sls/"/>\n'
+        f'     Location="{_escape(base)}/sso/saml/sls/"/>\n'
+        '    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"'
+        f'     Location="{_escape(base)}/sso/saml/sls/idp/"'
+        f'     ResponseLocation="{_escape(base)}/sso/saml/slo/callback/"/>\n'
         '    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>\n'
         '    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>\n'
+        '    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>\n'
         '    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"'
-        f'     Location="{base}/sso/saml/acs/" index="0" isDefault="true"/>\n'
+        f'     Location="{_escape(base)}/sso/saml/acs/" index="0" isDefault="true"/>\n'
         '  </md:SPSSODescriptor>\n'
+        f'{org_xml}'
+        f'{contact_xml}'
         '</md:EntityDescriptor>\n'
+    )
+
+
+@require_http_methods(["GET"])
+def metadata(request):
+    """Serve XML SP metadata at ``/sso/saml/metadata/`` (+ ``.xml/`` alias).
+
+    v4.00.65 — Richer metadata document carries ``validUntil`` +
+    ``cacheDuration``, reflects ``RMC_SAML_SP_SIGN_LOGOUT`` on
+    ``AuthnRequestsSigned``, exposes HTTP-Redirect + HTTP-POST SLS bindings,
+    optional Organization + ContactPerson blocks.
+
+    ``?format=json`` returns a parsed shape (entity_id, acs_url, sls_urls,
+    cert_present, etc.) for headless smoke / monitor probes — useful when
+    operators want to assert a deploy didn't drop fields without
+    pretty-printing XML.
+    """
+    from datetime import datetime, timedelta, timezone as _tz_m
+
+    entity_id = _entity_id()
+    base = _base_url(request)
+    cert_b64 = _cert_body_b64()
+
+    ttl = _metadata_cache_seconds()
+    now = datetime.now(_tz_m.utc)
+    valid_until = now + timedelta(seconds=ttl)
+    valid_until_iso = valid_until.strftime("%Y-%m-%dT%H:%M:%SZ")
+    cache_duration_iso = f"PT{ttl}S"  # ISO-8601 duration
+
+    authn_signed = _sp_sign_logout_enabled()
+    want_assertions_signed = _require_signature()
+
+    if (request.GET.get("format") or "").lower() == "json":
+        return JsonResponse({
+            "entity_id": entity_id,
+            "base_url": base,
+            "valid_until": valid_until_iso,
+            "cache_duration": cache_duration_iso,
+            "authn_requests_signed": authn_signed,
+            "want_assertions_signed": want_assertions_signed,
+            "cert_present": bool(cert_b64),
+            "acs_url": f"{base}/sso/saml/acs/",
+            "sls_urls": {
+                "http_redirect": f"{base}/sso/saml/sls/",
+                "http_post": f"{base}/sso/saml/sls/idp/",
+            },
+            "slo_callback_url": f"{base}/sso/saml/slo/callback/",
+            "organization_name": _metadata_organization_name(),
+            "organization_url": _metadata_organization_url(),
+            "contact_email": _metadata_contact_email(),
+        })
+
+    xml = _build_sp_metadata_xml(
+        base=base,
+        entity_id=entity_id,
+        cert_b64=cert_b64,
+        authn_requests_signed=authn_signed,
+        want_assertions_signed=want_assertions_signed,
+        valid_until_iso=valid_until_iso,
+        cache_duration_iso=cache_duration_iso,
     )
     return HttpResponse(xml, content_type="application/samlmetadata+xml; charset=utf-8")
 
@@ -303,7 +448,7 @@ def _sign_saml_logout_request(xml_bytes: bytes) -> tuple[bytes, str]:
         return xml_bytes, "bad_xml"
 
     alg = _sp_signature_alg()
-    signature_alg = f"rsa-sha256" if alg == "rsa-sha256" else alg
+    signature_alg = "rsa-sha256" if alg == "rsa-sha256" else alg
 
     try:
         signed_root = XMLSigner(
@@ -550,7 +695,7 @@ def _verify_saml_redirect_signature(
         return False, "unsupported_alg"
 
     try:
-        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives import hashes
         from cryptography.hazmat.primitives.asymmetric import padding
         from cryptography.x509 import load_pem_x509_certificate
         from cryptography.exceptions import InvalidSignature
@@ -695,9 +840,19 @@ def _parse_saml_response(b64_response: str) -> dict:
     # Signature presence (we do NOT canonicalize + verify here when the
     # idp cert is unset; tracked separately so the audit log records
     # whether the IdP did sign).
-    sig_present = root.find("{http://www.w3.org/2000/09/xmldsig#}Signature") is not None or (
+    # v4.00.65 — Track response-level + assertion-level separately. Most
+    # production IdPs (Okta, Azure AD, Auth0, Google) sign the inner
+    # <Assertion> element, NOT the outer <Response> wrapper. A new env
+    # flag RMC_SAML_REQUIRE_ASSERTION_SIGNATURE upgrades the requirement
+    # to "the Assertion itself MUST be signed" — strictly tighter than
+    # the v4.00.46 response-presence rule.
+    sig_present_response = (
+        root.find("{http://www.w3.org/2000/09/xmldsig#}Signature") is not None
+    )
+    sig_present_assertion = (
         assertion.find("{http://www.w3.org/2000/09/xmldsig#}Signature") is not None
     )
+    sig_present = sig_present_response or sig_present_assertion
 
     return {
         "status_code": status_code,
@@ -709,8 +864,34 @@ def _parse_saml_response(b64_response: str) -> dict:
         "not_on_or_after": not_on_or_after,
         "in_response_to": root.attrib.get("InResponseTo", ""),
         "signature_present": sig_present,
+        "signature_present_response": sig_present_response,
+        "signature_present_assertion": sig_present_assertion,
         "attributes": attrs,
     }
+
+
+def _require_assertion_signature() -> bool:
+    """v4.00.65 — Opt-in to strict assertion-level signature requirement.
+
+    When truthy, the ACS path requires the inner ``<Assertion>`` element
+    to carry a ``<ds:Signature>``. This is tighter than v4.00.46's
+    presence-only rule (which accepted EITHER a response-level OR
+    assertion-level signature) — it specifically rejects responses where
+    only the outer wrapper is signed, defending against attacks that
+    swap the inner Assertion while leaving the wrapper signature intact.
+
+    Default OFF preserves v4.00.46 + v4.00.57 behavior. Activate with
+    ``RMC_SAML_REQUIRE_ASSERTION_SIGNATURE=1`` after the IdP signs
+    Assertions (most production deployments already do).
+    """
+    raw = (
+        getattr(settings, "RMC_SAML_REQUIRE_ASSERTION_SIGNATURE", None)
+        if hasattr(settings, "RMC_SAML_REQUIRE_ASSERTION_SIGNATURE")
+        else os.environ.get("RMC_SAML_REQUIRE_ASSERTION_SIGNATURE", "")
+    )
+    if raw is None or raw == "":
+        return False
+    return str(raw).lower() in ("1", "true", "yes", "on")
 
 
 def _within_validity_window(not_before: str, not_on_or_after: str) -> bool:
@@ -820,6 +1001,20 @@ def acs(request):
 
     if _require_signature() and _idp_cert_b64() and not parsed.get("signature_present"):
         return JsonResponse({"success": False, "stage": "signature_required_but_missing"}, status=401)
+
+    # v4.00.65 — STRICT assertion-level signature requirement. When
+    # RMC_SAML_REQUIRE_ASSERTION_SIGNATURE=1, the inner <Assertion> element
+    # MUST carry <ds:Signature> — wrapper-only signatures are rejected. This
+    # defends against assertion-swap attacks where a valid wrapper signature
+    # is preserved while the inner subject + attributes are replaced.
+    if _require_assertion_signature() and not parsed.get("signature_present_assertion"):
+        return JsonResponse(
+            {"success": False,
+             "stage": "assertion_signature_required_but_missing",
+             "signature_present_response": parsed.get("signature_present_response", False),
+             "signature_present_assertion": False},
+            status=401,
+        )
 
     # v4.00.57 — c14n signature verification (lxml + signxml). Activates when
     # RMC_SAML_REQUIRE_SIGNATURE=1 AND idp cert configured AND signature
