@@ -572,6 +572,8 @@ urlpatterns = [
     path("roster/results/v1p2/lineItems/<str:sourced_id>/", _oneroster_results.line_item_detail, name="api-roster-results-line-item-detail"),
     path("roster/results/v1p2/results/", _oneroster_results.results_list, name="api-roster-results-list"),
     path("roster/results/v1p2/results/<str:sourced_id>/", _oneroster_results.result_detail, name="api-roster-results-detail"),
+    # v4.00.41: OneRoster Result Service WRITE (grade pass-back, idempotent PUT)
+    path("roster/results/v1p2/results/<str:sourced_id>/put/", _oneroster_results.put_result, name="api-roster-results-put"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,

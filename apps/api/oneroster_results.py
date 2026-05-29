@@ -125,8 +125,133 @@ def results_list(request: HttpRequest):
     return _envelope("results", page, meta)
 
 
-@require_http_methods(["GET"])
+def _idempotency_key(request: HttpRequest) -> str:
+    return (
+        request.META.get("HTTP_IDEMPOTENCY_KEY", "").strip()
+        or request.META.get("HTTP_X_IDEMPOTENCY_KEY", "").strip()
+    )
+
+
+_IDEMPOTENCY_TTL = 60 * 60 * 24
+
+
+def _idem_cache_key(sourced_id: str, idem: str) -> str:
+    return f"roster:results:idempo:{sourced_id}:{idem}"
+
+
+def _hash_payload(method: str, path: str, body_bytes: bytes) -> str:
+    import hashlib
+    h = hashlib.sha256()
+    h.update(method.encode("ascii"))
+    h.update(b"|")
+    h.update(path.encode("utf-8", errors="replace"))
+    h.update(b"|")
+    h.update(body_bytes)
+    return h.hexdigest()
+
+
+from django.core.cache import cache
+from django.views.decorators.csrf import csrf_exempt
+import json as _json
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def put_result(request: HttpRequest, sourced_id: str):
+    """v4.00.41 — Grade pass-back PUT.
+
+    Body: ``{"result": {"score": "85", "textScore": "B", "studentSourcedId":
+    "<student_pk>", "lineItemSourcedId": "li-<classroom_pk>"}}``
+
+    Idempotency-Key header REQUIRED.
+    Upserts an ``Evaluation`` row keyed by ``(student, classroom)``;
+    re-keyed by Evaluation.pk when sourcedId is ``res-<pk>``.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key(sourced_id, idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    inner = payload.get("result")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_result_envelope"}, status=400)
+
+    try:
+        from apps.evals.models import Evaluation
+        from apps.academics.models import Classroom
+    except Exception:  # noqa: BLE001
+        return JsonResponse({"error": "models_unavailable"}, status=500)
+
+    score_raw = inner.get("score", "")
+    text_score = str(inner.get("textScore") or "")[:16]
+    student_id = str(inner.get("studentSourcedId") or "").strip()
+    line_item = str(inner.get("lineItemSourcedId") or "").strip()
+    classroom_pk = line_item[3:] if line_item.startswith("li-") else line_item
+
+    try:
+        score_value = float(score_raw) if score_raw not in (None, "") else None  # money-float-allow: oneroster-score-is-not-money
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "score_not_numeric"}, status=400)
+
+    if sourced_id.startswith("res-"):
+        try:
+            pk = int(sourced_id[4:])
+        except (ValueError, TypeError):
+            return JsonResponse({"error": "bad_sourced_id"}, status=400)
+        obj = Evaluation.objects.filter(pk=pk).first()  # tenant-isolation-allow: result-write-by-evaluation-pk
+        created = False
+        if obj is None:
+            return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+    else:
+        if not student_id or not classroom_pk:
+            return JsonResponse({"error": "missing_student_or_classroom"}, status=400)
+        classroom = Classroom.objects.filter(pk=classroom_pk).first()  # tenant-isolation-allow: result-write-resolve-classroom
+        if classroom is None:
+            return JsonResponse({"error": "classroom_not_found"}, status=404)
+        obj, created = Evaluation.objects.get_or_create(  # tenant-isolation-allow: result-write-keyed-by-school-student
+            school=classroom.school,
+            student_id=student_id,
+            defaults={"final_score": score_value or 0, "letter_grade": text_score},
+        )
+
+    if score_value is not None and obj.final_score != score_value:
+        obj.final_score = score_value
+    if text_score and obj.letter_grade != text_score:
+        obj.letter_grade = text_score
+    obj.save(update_fields=["final_score", "letter_grade", "updated_at"])
+
+    body_out = {"result": _eval_to_result(obj)}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201 if created else 200}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=201 if created else 200)
+    resp["X-OneRoster-Entity"] = "result"
+    return resp
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT"])
 def result_detail(request: HttpRequest, sourced_id: str):
+    if request.method == "PUT":
+        return put_result(request, sourced_id)
     gate = _gate(request)
     if gate is not None:
         return gate

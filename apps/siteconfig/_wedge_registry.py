@@ -467,10 +467,12 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "deep_links": [
             ("Multi-campus group config", "/super/configure/multi-campus/"),
             ("Group billing rollup", "/portal/super/wedges/multicampus-billing/"),
+            ("Group academic rollup", "/portal/super/wedges/multicampus-academics/"),
         ],
         "checklist": [
             "Multi-campus group model present (parent_school FK)",
             "Group billing rollup view live (v4.00.38, Invoice + Payment aggregates)",
+            "Group academic rollup view live (v4.00.41, Evaluation + Attendance aggregates)",
         ],
     },
     # ----- Tier D — delivery model ----------------------------------------
@@ -766,11 +768,12 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
             ("Identity federation config", "/super/configure/identity-federation/"),
             ("SAML SP metadata", "/sso/saml/metadata/"),
             ("SCIM 2.0 ServiceProviderConfig", "/scim/v2/ServiceProviderConfig"),
+            ("OIDC providers", "/sso/oidc/providers/"),
         ],
         "checklist": [
             "SAML 2.0 SP metadata live (v4.00.37)",
             "SCIM 2.0 provisioning live (v4.00.39, Users + Groups, full CRUD + filter)",
-            "OIDC RP support (deferred)",
+            "OIDC RP live (v4.00.41, Discovery + auth-code + ID token validation)",
         ],
     },
 )

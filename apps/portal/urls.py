@@ -153,6 +153,7 @@ from .views_wedge_surfaces import (
 )
 from .views_multicampus_billing import multicampus_billing
 from .views_institution_assign import assignment_view, assignment_save
+from .views_multicampus_academics import multicampus_academics
 
 app_name = "portal"
 
@@ -176,6 +177,8 @@ urlpatterns = [
     # v4.00.39: Per-tenant institution-type assignment (Wedge 16/17/18)
     path("configure/institution-type/", assignment_view, name="institution_type_assign"),
     path("configure/institution-type/save/", assignment_save, name="institution_type_save"),
+    # v4.00.41: Multi-campus academic rollup (grades + attendance, Wedge 22)
+    path("super/wedges/multicampus-academics/", multicampus_academics, name="wedge_surface_multicampus_academics"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

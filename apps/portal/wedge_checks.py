@@ -271,10 +271,11 @@ def _check_wedge_20() -> dict[int, bool]:
 
 
 def _check_wedge_22() -> dict[int, bool]:
-    # Multi-campus / group — billing rollup live in v4.00.38
+    # Multi-campus / group — billing rollup live v4.00.38, academic rollup v4.00.41
     return {
         0: _module_importable("apps.schools.models"),
         1: _url_registered("portal:wedge_surface_multicampus_billing"),
+        2: _url_registered("portal:wedge_surface_multicampus_academics"),
     }
 
 
@@ -329,11 +330,11 @@ def _check_wedge_44() -> dict[int, bool]:
 
 
 def _check_wedge_45() -> dict[int, bool]:
-    # Identity + access federation — SAML in v4.00.37, SCIM 2.0 in v4.00.39
+    # Identity + access federation — SAML v4.00.37, SCIM 2.0 v4.00.39, OIDC RP v4.00.41
     return {
         0: _url_registered("sso_saml_metadata"),
         1: _url_registered("scim_v2_users"),
-        2: False,  # OIDC RP deferred
+        2: _url_registered("oidc_rp_providers"),
     }
 
 

@@ -237,12 +237,61 @@ def _apply_classes(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
 
 @transaction.atomic
 def _apply_enrollments(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
+    """v4.00.41 — real enrollment writes.
+
+    OneRoster enrollments connect a user to a class with a role
+    (student/teacher). For RMC the closest model is
+    ``apps.people.models.StudentProfile.classroom`` (student rows) and
+    ``Classroom.subject_assignments`` (teacher rows). v4.00.41 ships
+    the student leg only — teacher enrollments report as
+    accepted-deferred (Wedge 2 docket).
+    """
+    try:
+        from apps.people.models import StudentProfile
+        from apps.academics.models import Classroom
+    except Exception as exc:  # noqa: BLE001
+        report["enrollments"]["error"] = f"models_unavailable: {exc}"
+        return
+
     upserts, deletes = _classify_skips(rows)
+    written_student = 0
+    accepted_teacher = 0
+    skipped = 0
+    for r in upserts:
+        sid = (r.get("sourcedId") or "").strip()
+        user_sid = (r.get("userSourcedId") or "").strip()
+        class_sid = (r.get("classSourcedId") or "").strip()
+        role = (r.get("role") or "").strip().lower()
+        if not sid or not user_sid or not class_sid:
+            skipped += 1
+            continue
+        classroom = Classroom.objects.filter(pk=class_sid).first()  # tenant-isolation-allow: roster-import-resolve-classroom-by-pk
+        if classroom is None:
+            skipped += 1
+            continue
+        if role in ("student", "primary_student", ""):
+            try:
+                student = StudentProfile.objects.filter(user_id=user_sid).first()  # tenant-isolation-allow: roster-import-resolve-student-by-user-pk
+                if student is None:
+                    skipped += 1
+                    continue
+                if student.classroom_id != classroom.pk:
+                    student.classroom = classroom
+                    student.save(update_fields=["classroom"])
+                written_student += 1
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("oneroster enrollments: student-write failed sid=%s err=%s", sid, exc)
+                skipped += 1
+        elif role in ("teacher", "primary_teacher"):
+            # SubjectAssignment-keyed wiring deferred to next wave.
+            accepted_teacher += 1
+        else:
+            skipped += 1
     report["enrollments"].update({
-        "written": 0,
-        "skipped": len(upserts),
+        "written": written_student,
+        "skipped": skipped,
         "delete_marked": len(deletes),
-        "note": "v4.00.38: enrollments write skipped pending classes-write enablement.",
+        "teacher_accepted_deferred": accepted_teacher,
     })
 
 

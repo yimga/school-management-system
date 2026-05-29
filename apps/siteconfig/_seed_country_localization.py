@@ -4952,6 +4952,381 @@ COUNTRY_REGIONAL_DEFAULT.pop("PY", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.41 (2026-05-29) — Tier-1 packs:
+#   Central America (Hispanic + English Belize): CR, PA, HN, SV, NI, GT, BZ
+#   Pacific Micronesia: FM, MH, PW, KI, NR, TV
+#   North Africa tail: LY (Libya)
+# ---------------------------------------------------------------------------
+
+# Costa Rica — Spanish, Educación Preescolar / General Básica / Diversificada.
+COUNTRY_LOCALIZATION["CR"] = {
+    "calendar_system": {
+        "code": "cr-2-semester", "label": "2-semester (Costarricense)",
+        "term_count": 2, "term_names": ["Semestre 1", "Semestre 2"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "preescolar","label": "Educación Preescolar",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primaria",  "label": "Primaria (I-VI)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secundaria","label": "Secundaria (VII-XI / Bachillerato)",  "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "tecnica",   "label": "Educación Técnica",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universidad","label": "UCR / UNA / TEC / UNED",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "cr-pre","label": "Preescolar",        "order": 0},
+        {"code": "cr-vi", "label": "VI Grado",          "order": 6},
+        {"code": "cr-xi", "label": "XI (Bachillerato)", "order": 11},
+    ],
+    "terminology": {
+        "teacher": "Profesor / Educador", "principal": "Director",
+        "term": "Semestre", "report_card": "Boleta de notas", "grade_level": "Año",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CR", None)
+
+# Panama — Spanish + English, Premedia / Media, Bachiller.
+COUNTRY_LOCALIZATION["PA"] = {
+    "calendar_system": {
+        "code": "pa-3-trimester", "label": "Trimestres (Panameño)",
+        "term_count": 3, "term_names": ["Trimestre I", "Trimestre II", "Trimestre III"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "preescolar","label": "Educación Preescolar",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primaria",  "label": "Primaria (1-6)",                      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "premedia",  "label": "Premedia (7-9)",                      "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "media",     "label": "Media (10-12 / Bachiller)",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "profesional","label": "Bachiller Profesional Técnico",      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universidad","label": "Universidad de Panamá",              "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "pa-pre","label": "Preescolar",        "order": 0},
+        {"code": "pa-6",  "label": "Primaria 6",        "order": 6},
+        {"code": "pa-9",  "label": "Premedia 9",        "order": 9},
+        {"code": "pa-12", "label": "Media 12 (Bachiller)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Profesor", "principal": "Director",
+        "term": "Trimestre", "report_card": "Boleta", "grade_level": "Año / Grado",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PA", None)
+
+# Honduras — Spanish, Educación Básica (1-9), Educación Media.
+COUNTRY_LOCALIZATION["HN"] = {
+    "calendar_system": {
+        "code": "hn-3-trimester", "label": "Trimestres (Hondureño)",
+        "term_count": 3, "term_names": ["Trimestre I", "Trimestre II", "Trimestre III"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "prebasica", "label": "Prebásica",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "basica",    "label": "Educación Básica (1-9)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-15"},
+        {"code": "media",     "label": "Educación Media (Bachillerato / BTP)", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "universidad","label": "UNAH",                                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "hn-pre","label": "Prebásica",         "order": 0},
+        {"code": "hn-b9", "label": "Básica 9",          "order": 9},
+        {"code": "hn-m12","label": "Media 12 (Bach.)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Maestro / Profesor", "principal": "Director",
+        "term": "Trimestre", "report_card": "Boleta", "grade_level": "Grado",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("HN", None)
+
+# El Salvador — Spanish, Educación Básica + Media, PAES.
+COUNTRY_LOCALIZATION["SV"] = {
+    "calendar_system": {
+        "code": "sv-3-trimester", "label": "Trimestres (Salvadoreño)",
+        "term_count": 3, "term_names": ["Trimestre I", "Trimestre II", "Trimestre III"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "parvularia","label": "Parvularia (3-6)",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "basica",    "label": "Educación Básica (1-9)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-15"},
+        {"code": "media",     "label": "Bachillerato (PAES)",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "tecnico",   "label": "Bachillerato Técnico Vocacional",      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universidad","label": "Universidad de El Salvador (UES)",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sv-par","label": "Parvularia",        "order": 0},
+        {"code": "sv-b9", "label": "Básica 9",          "order": 9},
+        {"code": "sv-bach","label": "Bachillerato (PAES)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Profesor / Docente", "principal": "Director",
+        "term": "Trimestre", "report_card": "Libreta", "grade_level": "Grado",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SV", None)
+
+# Nicaragua — Spanish, Educación Inicial / Primaria / Secundaria.
+COUNTRY_LOCALIZATION["NI"] = {
+    "calendar_system": {
+        "code": "ni-3-trimester", "label": "Trimestres (Nicaragüense)",
+        "term_count": 3, "term_names": ["Trimestre I", "Trimestre II", "Trimestre III"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "inicial",   "label": "Educación Inicial",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaria",  "label": "Primaria (1-6)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secundaria","label": "Secundaria (1-5 / Bachiller)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "tecnica",   "label": "Educación Técnica",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "universidad","label": "UNAN-Managua",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "ni-in", "label": "Inicial",           "order": 0},
+        {"code": "ni-p6", "label": "Primaria 6",        "order": 6},
+        {"code": "ni-s5", "label": "Secundaria 5 (Bach.)","order": 11},
+    ],
+    "terminology": {
+        "teacher": "Maestro / Profesor", "principal": "Director",
+        "term": "Trimestre", "report_card": "Boletín", "grade_level": "Grado",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("NI", None)
+
+# Guatemala — Spanish + Maya languages, Preprimaria / Primaria / Básico / Diversificado.
+COUNTRY_LOCALIZATION["GT"] = {
+    "calendar_system": {
+        "code": "gt-3-trimester", "label": "Trimestres (Guatemalteco)",
+        "term_count": 3, "term_names": ["Trimestre I", "Trimestre II", "Trimestre III"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preprimaria","label": "Preprimaria",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primaria",   "label": "Primaria (1-6)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "basico",     "label": "Básico (1-3)",                         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "diversificado","label": "Diversificado (Bachillerato / Magisterio)","glyph": "\U0001F393","primary_sector": "secondary","typical_ages": "15-18"},
+        {"code": "tecnico",    "label": "Bachillerato Técnico (INTECAP)",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "bilingue",   "label": "Educación Bilingüe Intercultural (Maya)","glyph": "\U0001F4DA","primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "universidad","label": "USAC / Galileo / Marroquín",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gt-pre","label": "Preprimaria",       "order": 0},
+        {"code": "gt-p6", "label": "Primaria 6",        "order": 6},
+        {"code": "gt-b3", "label": "Básico 3",          "order": 9},
+        {"code": "gt-d5", "label": "Diversificado 5",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Maestro / Profesor", "principal": "Director",
+        "term": "Trimestre", "report_card": "Boleta de calificaciones", "grade_level": "Grado",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GT", None)
+
+# Belize — English (+ Spanish, Kriol), Standard / Form / CSEC.
+COUNTRY_LOCALIZATION["BZ"] = {
+    "calendar_system": {
+        "code": "bz-3-term", "label": "3-term (Belizean)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool","label": "Pre-school",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",  "label": "Primary (Infant + Standard 1-6 / PSE)", "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary","label": "Secondary (Form 1-4 / CSEC)",           "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "sixth-form","label": "Sixth Form / Junior College (CAPE)",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "tvet",     "label": "ITVET",                                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University of Belize",                  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bz-pre","label": "Pre-school",        "order": 0},
+        {"code": "bz-s6", "label": "Standard 6 (PSE)",  "order": 8},
+        {"code": "bz-f4", "label": "Form 4 (CSEC)",     "order": 12},
+        {"code": "bz-sf", "label": "Sixth Form (CAPE)", "order": 14},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Standard / Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BZ", None)
+
+# Federated States of Micronesia — English+Chuukese+Kosraean+Pohnpeian+Yapese.
+COUNTRY_LOCALIZATION["FM"] = {
+    "calendar_system": {
+        "code": "fm-2-semester", "label": "2-semester (FSM)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "headstart","label": "Head Start",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary","label": "Elementary (K-8)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "high-school","label": "High School (9-12)",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "college",  "label": "College of Micronesia-FSM",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "fm-hs", "label": "Head Start",        "order": 0},
+        {"code": "fm-g8", "label": "Grade 8",           "order": 8},
+        {"code": "fm-g12","label": "Grade 12",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("FM", None)
+
+# Marshall Islands — English+Marshallese.
+COUNTRY_LOCALIZATION["MH"] = {
+    "calendar_system": {
+        "code": "mh-2-semester", "label": "2-semester (Marshallese)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "ece",       "label": "Early Childhood Education",           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary","label": "Elementary (K-8)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "high-school","label": "High School (9-12)",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "college",   "label": "College of the Marshall Islands",     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mh-ece","label": "ECE",                "order": 0},
+        {"code": "mh-g8", "label": "Grade 8",            "order": 8},
+        {"code": "mh-g12","label": "Grade 12",           "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Ri-katak / Teacher", "principal": "Ri-kaki / Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MH", None)
+
+# Palau — English+Palauan.
+COUNTRY_LOCALIZATION["PW"] = {
+    "calendar_system": {
+        "code": "pw-2-semester", "label": "2-semester (Palauan)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool", "label": "Preschool",                           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary","label": "Elementary (K-8)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "high-school","label": "Palau High School (9-12)",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "community-college","label": "Palau Community College",      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "pw-pre","label": "Preschool",         "order": 0},
+        {"code": "pw-g8", "label": "Grade 8",           "order": 8},
+        {"code": "pw-g12","label": "Grade 12",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Sensei", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PW", None)
+
+# Kiribati — English+Gilbertese.
+COUNTRY_LOCALIZATION["KI"] = {
+    "calendar_system": {
+        "code": "ki-3-term", "label": "3-term (I-Kiribati)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool","label": "Pre-school",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",  "label": "Primary (Class 1-6)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "junior",   "label": "Junior Secondary (Form 1-3)",           "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-14"},
+        {"code": "senior",   "label": "Senior Secondary (Form 4-6 / KSSC)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "ktc",      "label": "Kiribati Teachers College",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ki-pre","label": "Pre-school",        "order": 0},
+        {"code": "ki-c6", "label": "Class 6",           "order": 6},
+        {"code": "ki-f3", "label": "Form 3 (Junior)",   "order": 9},
+        {"code": "ki-f6", "label": "Form 6 (KSSC)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Tia reirei / Teacher", "principal": "Mataniwi n Reirei",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Class / Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KI", None)
+
+# Nauru — English+Nauruan.
+COUNTRY_LOCALIZATION["NR"] = {
+    "calendar_system": {
+        "code": "nr-4-term", "label": "4-term (Nauruan)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool","label": "Pre-school",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",  "label": "Primary (Year 1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary","label": "Nauru Secondary School (Year 7-12)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "university","label": "USP Nauru Campus",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "nr-pre","label": "Pre-school",        "order": 0},
+        {"code": "nr-y6", "label": "Year 6",            "order": 6},
+        {"code": "nr-y12","label": "Year 12",           "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("NR", None)
+
+# Tuvalu — English+Tuvaluan.
+COUNTRY_LOCALIZATION["TV"] = {
+    "calendar_system": {
+        "code": "tv-3-term", "label": "3-term (Tuvaluan)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool","label": "Pre-school",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",  "label": "Primary (Year 1-8)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "secondary","label": "Motufoua Secondary (Year 9-13 / PSSC)", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "tttc",     "label": "Tuvalu Technical Training Centre",      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-19"},
+        {"code": "usp",      "label": "USP Tuvalu Campus",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tv-pre","label": "Pre-school",        "order": 0},
+        {"code": "tv-y8", "label": "Year 8",            "order": 8},
+        {"code": "tv-y13","label": "Year 13 (PSSC)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Faiakoga / Teacher", "principal": "Pule",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TV", None)
+
+# Libya — Arabic, Basic + Secondary + Higher (post-2011 system).
+COUNTRY_LOCALIZATION["LY"] = {
+    "calendar_system": {
+        "code": "ly-2-semester", "label": "2-semester (Libyan)",
+        "term_count": 2, "term_names": ["First Semester / فصل دراسي أول", "Second Semester / فصل دراسي ثاني"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",         "label": "Kindergarten / روضة",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "basic",      "label": "Basic Education (Grade 1-9)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-15"},
+        {"code": "secondary",  "label": "Secondary (Grade 10-12 / Thanaweya)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Technical / Vocational",             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "university", "label": "University of Tripoli / Benghazi",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ly-kg", "label": "روضة",            "order": 0},
+        {"code": "ly-g9", "label": "Grade 9 (Basic)",   "order": 9},
+        {"code": "ly-g12","label": "Thanaweya (Grade 12)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / Teacher", "principal": "مدير / Principal",
+        "term": "فصل دراسي / Semester", "report_card": "Report / تقرير", "grade_level": "Grade / الصف",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("LY", None)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

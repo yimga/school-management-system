@@ -531,6 +531,10 @@ urlpatterns = [
     path("scim/v2/Users/<str:user_id>", __import__("apps.api.scim", fromlist=["user_detail"]).user_detail, name="scim_v2_user_detail"),
     path("scim/v2/Groups", __import__("apps.api.scim", fromlist=["groups_collection"]).groups_collection, name="scim_v2_groups"),
     path("scim/v2/Groups/<str:group_id>", __import__("apps.api.scim", fromlist=["group_detail"]).group_detail, name="scim_v2_group_detail"),
+    # v4.00.41 — OIDC RP endpoints (wedge 45 item 3).
+    path("sso/oidc/login/<str:provider>/", __import__("apps.api.oidc_rp", fromlist=["login"]).login, name="oidc_rp_login"),
+    path("sso/oidc/callback/<str:provider>/", __import__("apps.api.oidc_rp", fromlist=["callback"]).callback, name="oidc_rp_callback"),
+    path("sso/oidc/providers/", __import__("apps.api.oidc_rp", fromlist=["list_providers"]).list_providers, name="oidc_rp_providers"),
     # Apps
     path(
         "siteconfig/",
