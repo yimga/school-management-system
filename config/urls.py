@@ -550,6 +550,9 @@ urlpatterns = [
     path("sso/saml/sls/", __import__("apps.api.saml", fromlist=["sls"]).sls, name="sso_saml_sls"),
     # v4.00.59 — IdP-initiated logout (POST-binding) — returns auto-submit HTML form.
     path("sso/saml/sls/idp/", __import__("apps.api.saml", fromlist=["sls_idp"]).sls_idp, name="sso_saml_sls_idp"),
+    # v4.00.60 — SP-initiated SLO: start (build LogoutRequest, POST to IdP) + callback (parse LogoutResponse).
+    path("sso/saml/slo/start/", __import__("apps.api.saml", fromlist=["slo_start"]).slo_start, name="sso_saml_slo_start"),
+    path("sso/saml/slo/callback/", __import__("apps.api.saml", fromlist=["slo_callback"]).slo_callback, name="sso_saml_slo_callback"),
     # v4.00.39 — SCIM 2.0 provisioning (wedge 45 item 2). Routed at platform
     # root so IdP SCIM endpoint configs stay stable.
     path("scim/v2/ServiceProviderConfig", __import__("apps.api.scim", fromlist=["service_provider_config"]).service_provider_config, name="scim_v2_spc"),

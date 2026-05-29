@@ -102,6 +102,18 @@ def _build_schedule() -> dict[str, dict[str, Any]]:
             "options": {"expires": 600},
         }
 
+    # v4.00.60 — auto-prune revoked OAuth grants. Walks expired rows whose
+    # refresh attempt classifies as ``refresh_revoked`` (per v4.00.54 hints
+    # + 400/401/403) and clears BOTH access_token AND refresh_token so the
+    # health/rotation beats don't hammer the dead grant every cycle. Daily
+    # 02:30 UTC to keep the window away from the 03:00 / 03:30 / 04:00 cluster.
+    if not _env_bool("RMC_LMS_OAUTH_AUTO_PRUNE_BEAT_DISABLED"):
+        schedule["integrations-lms-oauth-auto-prune"] = {
+            "task": "integrations_marketplace.auto_prune_revoked_lms_tokens",
+            "schedule": crontab(hour=2, minute=30),
+            "options": {"expires": 3600},
+        }
+
     return schedule
 
 

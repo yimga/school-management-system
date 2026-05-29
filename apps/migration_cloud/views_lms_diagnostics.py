@@ -152,11 +152,25 @@ def _compute_lms_diagnostics() -> dict:
 @staff_member_required
 @require_http_methods(["GET"])
 def lms_diagnostics(request: HttpRequest):
-    """v4.00.56 — Operator dashboard at /super/migration/lms/diagnostics/."""
+    """v4.00.56 — Operator dashboard at /super/migration/lms/diagnostics/.
+
+    v4.00.60 — emits the last-action ring snapshot alongside the diag rollup.
+    """
     diag = _compute_lms_diagnostics()
+    last_actions = get_last_action_snapshot(limit=20)
+    action_totals = _action_totals()
     if (request.GET.get("format") or "").lower() == "json":
-        return JsonResponse({"success": not diag["errors"], **diag})
-    return render(request, "migration_cloud/super/lms_diagnostics.html", {"diag": diag})
+        return JsonResponse({
+            "success": not diag["errors"],
+            **diag,
+            "last_actions": last_actions,
+            "action_totals": action_totals,
+        })
+    return render(request, "migration_cloud/super/lms_diagnostics.html", {
+        "diag": diag,
+        "last_actions": last_actions,
+        "action_totals": action_totals,
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -171,6 +185,88 @@ def _safe_provider(raw: str) -> str:
     be coerced into operating on arbitrary input."""
     p = (raw or "").strip().lower()
     return p if p in {"canvas", "moodle", "google_classroom", "google"} else ""
+
+
+# ---------------------------------------------------------------------------
+# v4.00.60 — Last-action history ring buffer.
+#
+# Records every successful force-refresh / force-rotate click so operators
+# can see recent diagnostic actions inline on the dashboard. Bounded ring
+# (cap 200) keeps memory predictable; oldest-first eviction. Each entry
+# records: timestamp, actor (username SHA-256[:12] — PII-safe), action,
+# provider, and the resulting counters.
+# ---------------------------------------------------------------------------
+
+_LAST_ACTION_RING: list[dict] = []
+_LAST_ACTION_RING_CAP = 200
+
+
+def _record_action(*, request: HttpRequest, action: str, provider: str, summary: dict) -> None:
+    """Append to the action ring. NEVER raises."""
+    try:
+        import hashlib
+        username = ""
+        if getattr(request, "user", None) and getattr(request.user, "is_authenticated", False):
+            username = str(getattr(request.user, "username", "") or "")
+        actor_hash = hashlib.sha256(username.encode("utf-8")).hexdigest()[:12] if username else ""
+        evt = {
+            "ts_iso": timezone.now().isoformat(),
+            "actor_hash": actor_hash,
+            "action": action,
+            "provider": provider,
+            "considered": int(summary.get("considered") or 0),
+            "ok": int(summary.get("refreshed") or summary.get("rotated") or 0),
+            "failed": int(summary.get("failed") or 0),
+        }
+        _LAST_ACTION_RING.append(evt)
+        if len(_LAST_ACTION_RING) > _LAST_ACTION_RING_CAP:
+            del _LAST_ACTION_RING[: len(_LAST_ACTION_RING) - _LAST_ACTION_RING_CAP]
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("lms_diagnostics: action-ring append failed: %s", exc)
+
+
+def get_last_action_snapshot(*, limit: int = 50) -> list[dict]:
+    """Return a newest-first snapshot of the action ring (cap ``limit``)."""
+    if limit <= 0:
+        return []
+    out = list(reversed(_LAST_ACTION_RING))
+    return out[:limit]
+
+
+def _action_totals() -> dict:
+    """Aggregate the ring buffer for the dashboard summary card."""
+    by_action: dict[str, int] = {}
+    by_provider: dict[str, int] = {}
+    for e in _LAST_ACTION_RING:
+        by_action[e.get("action", "")] = by_action.get(e.get("action", ""), 0) + 1
+        by_provider[e.get("provider", "")] = by_provider.get(e.get("provider", ""), 0) + 1
+    return {
+        "total": len(_LAST_ACTION_RING),
+        "by_action": by_action,
+        "by_provider": by_provider,
+    }
+
+
+@staff_member_required
+@require_http_methods(["GET"])
+def lms_diagnostics_action_history(request: HttpRequest):
+    """v4.00.60 — JSON-only endpoint returning the last-action ring snapshot.
+
+    Used by the dashboard's "Last action history" panel for lightweight
+    auto-refresh (no full page reload) and by external monitors who want
+    a stable shape they can poll.
+    """
+    try:
+        limit = max(1, min(200, int(request.GET.get("limit") or "50")))
+    except (ValueError, TypeError):
+        limit = 50
+    return JsonResponse({
+        "success": True,
+        "generated_at": timezone.now().isoformat(),
+        "limit": limit,
+        "totals": _action_totals(),
+        "entries": get_last_action_snapshot(limit=limit),
+    })
 
 
 @staff_member_required
@@ -205,6 +301,7 @@ def lms_diagnostics_force_refresh(request: HttpRequest):
         "failed": out.get("failed", 0),
         "results_for_provider": by_provider,
     }
+    _record_action(request=request, action="force_refresh", provider=provider, summary=summary)
 
     if (request.headers.get("Accept") or "").lower().startswith("application/json"):
         return JsonResponse(summary)
@@ -244,6 +341,7 @@ def lms_diagnostics_force_rotate(request: HttpRequest):
         "failed": out.get("failed", 0),
         "results_for_provider": by_provider,
     }
+    _record_action(request=request, action="force_rotate", provider=provider, summary=summary)
 
     if (request.headers.get("Accept") or "").lower().startswith("application/json"):
         return JsonResponse(summary)

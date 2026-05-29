@@ -798,3 +798,260 @@ def sls_idp(request):
         html = _autosubmit_form_html(action=idp_target, payload_b64=payload_b64, relay=relay)
         return HttpResponse(html, content_type="text/html; charset=utf-8")
     return HttpResponse(resp_bytes, content_type="text/xml; charset=utf-8")
+
+
+# ---------------------------------------------------------------------------
+# v4.00.60 — SP-initiated SLO.
+#
+# Counterpart to v4.00.58 ``sls`` (IdP-sent LogoutRequest) and v4.00.59
+# ``sls_idp`` (IdP-initiated with POST-binding response). SP-initiated
+# means the LOGOUT ORIGINATES at the SP side — the user clicks "log out"
+# in our app, we build a LogoutRequest, deliver it to the IdP, the IdP
+# terminates the IdP session AND every other SP session, then redirects
+# back to our ``sls_callback`` with a LogoutResponse we parse + verify.
+#
+# Two endpoints:
+#   * GET  /sso/saml/slo/start/    — builds the LogoutRequest, redirects
+#                                    the user-agent to the IdP via POST
+#                                    binding (auto-submit form).
+#   * POST /sso/saml/slo/callback/ — receives the IdP's LogoutResponse,
+#                                    parses Status, flushes session,
+#                                    redirects per ?next= or to /.
+# ---------------------------------------------------------------------------
+
+def _build_saml_logout_request(name_id: str, session_index: str, issuer: str, destination: str) -> bytes:
+    """v4.00.60 — Build a minimal LogoutRequest XML for SP-initiated SLO.
+
+    SAML 2.0 Web SSO LogoutRequest carries: Issuer (this SP), NameID
+    (the user being logged out at the IdP), and optionally SessionIndex
+    (so the IdP can target the specific authentication session).
+
+    Returns raw bytes ready for base64 encoding + form POST. Not signed
+    by us — IdPs that require signed LogoutRequests must wire a downstream
+    signer (mirrors the LogoutResponse contract).
+    """
+    from datetime import datetime, timezone
+    import uuid
+
+    issue_instant = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    req_id = f"_rmc-lr-sp-{uuid.uuid4().hex}"
+    dest_attr = f' Destination="{destination}"' if destination else ""
+    name_id_el = ""
+    if name_id:
+        from django.utils.html import escape as _escape
+        name_id_el = f'<saml:NameID>{_escape(name_id)}</saml:NameID>'
+    session_index_el = ""
+    if session_index:
+        from django.utils.html import escape as _escape
+        session_index_el = f'<samlp:SessionIndex>{_escape(session_index)}</samlp:SessionIndex>'
+    xml = (
+        f'<samlp:LogoutRequest xmlns:samlp="{_NS_SAMLP}" '
+        f'xmlns:saml="{_NS_SAML}" '
+        f'ID="{req_id}" Version="2.0" IssueInstant="{issue_instant}"{dest_attr}>'
+        f'<saml:Issuer>{issuer}</saml:Issuer>'
+        f'{name_id_el}'
+        f'{session_index_el}'
+        f'</samlp:LogoutRequest>'
+    )
+    return xml.encode("utf-8")
+
+
+def _parse_saml_logout_response(b64_payload: str) -> dict:
+    """v4.00.60 — Parse a SAML2 LogoutResponse payload.
+
+    Returns ``{id, issuer, in_response_to, status_code, signature_present,
+    error?}``. NEVER raises.
+    """
+    import base64
+    import xml.etree.ElementTree as ET
+    import zlib
+
+    if not b64_payload:
+        return {"error": "missing_payload"}
+
+    try:
+        decoded = base64.b64decode(b64_payload, validate=False)
+    except (ValueError, TypeError) as exc:
+        return {"error": f"bad_base64: {exc}"}
+
+    raw_xml = None
+    try:
+        raw_xml = zlib.decompress(decoded, -15)
+    except zlib.error:
+        raw_xml = decoded
+
+    try:
+        root = ET.fromstring(raw_xml)
+    except ET.ParseError:
+        try:
+            root = ET.fromstring(decoded)
+        except ET.ParseError as exc:
+            return {"error": f"bad_xml: {exc}"}
+
+    issuer_el = root.find(f"{{{_NS_SAML}}}Issuer")
+    issuer = (issuer_el.text or "").strip() if issuer_el is not None else ""
+    status_el = root.find(f"{{{_NS_SAMLP}}}Status")
+    status_code = ""
+    if status_el is not None:
+        sc = status_el.find(f"{{{_NS_SAMLP}}}StatusCode")
+        if sc is not None:
+            status_code = sc.attrib.get("Value", "") or ""
+    sig_present = root.find(f"{{{_NS_DSIG}}}Signature") is not None
+    return {
+        "id": root.attrib.get("ID", ""),
+        "issuer": issuer,
+        "in_response_to": root.attrib.get("InResponseTo", ""),
+        "destination": root.attrib.get("Destination", ""),
+        "status_code": status_code,
+        "signature_present": sig_present,
+    }
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def slo_start(request):
+    """v4.00.60 — SP-initiated SLO start.
+
+    The currently-authenticated user clicks "log out everywhere": we
+    build a LogoutRequest targeting the IdP, and POST the user-agent
+    to ``RMC_SAML_IDP_SLO_URL`` via an auto-submit HTML form.
+
+    Inputs (all optional, taken from session if not supplied):
+      * ``?name_id=`` — fallback for the user's name id
+      * ``?session_index=`` — fallback for the auth session index
+      * ``?next=`` — preserved across the round-trip in RelayState
+
+    ``?format=json`` returns the assembled LogoutRequest shape for
+    headless smoke testing.
+    """
+    import base64 as _b64
+
+    # Pull name_id + session_index from session if present, else from query
+    # (the SAML ACS persists both at login time when available).
+    sess = getattr(request, "session", None)
+    name_id = ""
+    session_index = ""
+    if sess is not None:
+        try:
+            name_id = sess.get("saml_name_id", "") or ""
+            session_index = sess.get("saml_session_index", "") or ""
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("slo_start: session lookup failed: %s", exc)
+    name_id = (request.GET.get("name_id") or name_id or "").strip()
+    session_index = (request.GET.get("session_index") or session_index or "").strip()
+    relay = (request.GET.get("next") or request.GET.get("RelayState") or "").strip()
+
+    idp_target = _idp_slo_target()
+    issuer = _entity_id() or "rmc-sp"
+    req_bytes = _build_saml_logout_request(
+        name_id=name_id,
+        session_index=session_index,
+        issuer=issuer,
+        destination=idp_target,
+    )
+    payload_b64 = _b64.b64encode(req_bytes).decode("ascii")
+
+    if (request.GET.get("format") or "").lower() == "json":
+        return JsonResponse({
+            "success": True,
+            "stage": "logout_request_built",
+            "name_id": name_id,
+            "session_index": session_index,
+            "issuer": issuer,
+            "destination": idp_target,
+            "logout_request_b64": payload_b64,
+            "binding": "HTTP-POST",
+            "relay_state": relay,
+        })
+
+    if not idp_target:
+        # Without an IdP target we cannot complete SP-initiated SLO.
+        return JsonResponse({
+            "success": False,
+            "stage": "idp_slo_target_missing",
+            "error": "RMC_SAML_IDP_SLO_URL not configured",
+        }, status=503)
+
+    # Auto-submit form posts SAMLRequest (NOT SAMLResponse) to the IdP.
+    from django.utils.html import escape as _escape
+    action_esc = _escape(idp_target)
+    payload_esc = _escape(payload_b64)
+    relay_html = (
+        f'<input type="hidden" name="RelayState" value="{_escape(relay)}">' if relay else ""
+    )
+    html = (
+        "<!DOCTYPE html><html><head>"
+        "<meta charset=\"utf-8\">"
+        "<title>SAML logout (SP-initiated)</title></head><body>"
+        f"<form id=\"slo-start-form\" method=\"post\" action=\"{action_esc}\">"
+        f"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{payload_esc}\">"
+        f"{relay_html}"
+        "<noscript><button type=\"submit\">Continue logout</button></noscript>"
+        "</form>"
+        "<script>document.getElementById('slo-start-form').submit();</script>"
+        "</body></html>"
+    )
+    return HttpResponse(html, content_type="text/html; charset=utf-8")
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def slo_callback(request):
+    """v4.00.60 — SP-initiated SLO callback.
+
+    The IdP redirects the user-agent back here with a LogoutResponse
+    (signaling the IdP-side session is terminated). We parse it, verify
+    the status code is Success, flush our local session, and redirect to
+    ``?RelayState=`` (or root if none).
+
+    ``?format=json`` returns the parsed shape for headless smoke testing.
+    """
+    saml_resp = request.POST.get("SAMLResponse") or request.GET.get("SAMLResponse") or ""
+    relay = request.POST.get("RelayState") or request.GET.get("RelayState") or ""
+    logger.info("saml slo-callback: received LogoutResponse (method=%s, len=%s)",
+                request.method, len(saml_resp))
+
+    parsed = _parse_saml_logout_response(saml_resp) if saml_resp else {"error": "missing_saml_response"}
+    if parsed.get("error"):
+        # Even on parse failure, flush the session so a partially-completed
+        # logout doesn't leave a logged-in user behind.
+        try:
+            request.session.flush()
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("saml slo-callback: session flush failed: %s", exc)
+        return JsonResponse(
+            {"success": False, "stage": "parse_failed", "error": parsed["error"]},
+            status=400,
+        )
+
+    status_code = parsed.get("status_code", "") or ""
+    is_success = status_code.endswith(":Success")
+
+    try:
+        request.session.flush()
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml slo-callback: session flush failed: %s", exc)
+
+    if (request.GET.get("format") or "").lower() == "json":
+        return JsonResponse({
+            "success": is_success,
+            "stage": "logged_out_sp_initiated" if is_success else "logout_response_non_success",
+            "id": parsed.get("id", ""),
+            "in_response_to": parsed.get("in_response_to", ""),
+            "issuer": parsed.get("issuer", ""),
+            "status_code": status_code,
+            "signature_present": parsed.get("signature_present", False),
+            "relay_state": relay,
+        })
+
+    if not is_success:
+        return JsonResponse(
+            {"success": False, "stage": "logout_response_non_success", "status_code": status_code},
+            status=401,
+        )
+
+    # Redirect to ``next``/RelayState (validated to start with "/" to avoid
+    # open redirect) or root.
+    target = relay if (relay.startswith("/") and not relay.startswith("//")) else "/"
+    from django.http import HttpResponseRedirect
+    return HttpResponseRedirect(target)

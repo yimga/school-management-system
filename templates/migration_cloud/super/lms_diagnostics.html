@@ -117,10 +117,54 @@
   {% endif %}
 
   <section style="margin-top:18px;">
+    <h2 class="rmc-h2" style="font-size:1rem;margin-bottom:8px;">
+      {% trans "Last action history" %}
+      <small style="font-weight:normal;color:var(--text-secondary);font-size:11px;margin-left:8px;">{% trans "ring buffer, cap 200, newest first" %}</small>
+    </h2>
+    {% if last_actions %}
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="text-align:left;font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">
+            <th style="padding:6px 10px;border-bottom:1px solid var(--hairline);">{% trans "Timestamp" %}</th>
+            <th style="padding:6px 10px;border-bottom:1px solid var(--hairline);">{% trans "Actor (hash)" %}</th>
+            <th style="padding:6px 10px;border-bottom:1px solid var(--hairline);">{% trans "Action" %}</th>
+            <th style="padding:6px 10px;border-bottom:1px solid var(--hairline);">{% trans "Provider" %}</th>
+            <th style="padding:6px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Considered" %}</th>
+            <th style="padding:6px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "OK" %}</th>
+            <th style="padding:6px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Failed" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in last_actions %}
+            <tr>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--hairline);font-family:monospace;font-size:11px;color:var(--text-secondary);">{{ a.ts_iso }}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--hairline);font-family:monospace;font-size:11px;">{{ a.actor_hash|default:"-" }}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--hairline);font-family:monospace;">{{ a.action }}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--hairline);font-family:monospace;">{{ a.provider }}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ a.considered }}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ a.ok }}</td>
+              <td style="padding:5px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ a.failed }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <p style="font-size:11px;color:var(--text-secondary);margin-top:6px;">
+        {% trans "Totals across the ring:" %}
+        <code>total={{ action_totals.total }}</code>
+        {% for k, v in action_totals.by_action.items %}<code style="margin-left:6px;">{{ k }}={{ v }}</code>{% endfor %}
+      </p>
+    {% else %}
+      <p style="color:var(--text-secondary);font-size:12px;">{% trans "No diagnostic actions recorded yet. Click 'Force refresh' or 'Force rotate' above to populate." %}</p>
+    {% endif %}
+  </section>
+
+  <section style="margin-top:18px;">
     <h2 class="rmc-h2" style="font-size:1rem;margin-bottom:8px;">{% trans "Headless format" %}</h2>
     <p style="color:var(--text-secondary);font-size:12px;">
       {% trans "External monitors can poll this surface at" %}
-      <code>?format=json</code> {% trans "for the same data." %}
+      <code>?format=json</code> {% trans "for the same data, or" %}
+      <code><a href="{% url 'migration_cloud_super:migration_cloud_lms_diagnostics_action_history' %}" style="color:var(--text-primary);">action-history/</a></code>
+      {% trans "for just the last-action ring." %}
     </p>
   </section>
 </main>
