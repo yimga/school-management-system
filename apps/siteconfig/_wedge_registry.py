@@ -468,11 +468,13 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
             ("Multi-campus group config", "/super/configure/multi-campus/"),
             ("Group billing rollup", "/portal/super/wedges/multicampus-billing/"),
             ("Group academic rollup", "/portal/super/wedges/multicampus-academics/"),
+            ("Group operational rollup", "/portal/super/wedges/multicampus-extension/"),
         ],
         "checklist": [
             "Multi-campus group model present (parent_school FK)",
             "Group billing rollup view live (v4.00.38, Invoice + Payment aggregates)",
             "Group academic rollup view live (v4.00.41, Evaluation + Attendance aggregates)",
+            "Group operational rollup view live (v4.00.43, SchoolEvent + Payment + TeacherProfile aggregates)",
         ],
     },
     # ----- Tier D — delivery model ----------------------------------------

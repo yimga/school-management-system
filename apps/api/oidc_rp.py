@@ -1,4 +1,4 @@
-"""v4.00.41 — OIDC Relying Party endpoints (Wedge 45 item 3).
+"""v4.00.42 — OIDC Relying Party endpoints (Wedge 45 item 3) with auto-provision.
 
 Implements the OAuth 2.0 / OpenID Connect 1.0 Authorization Code flow
 against a configured upstream IdP (Azure AD, Okta, Google Workspace,
@@ -12,7 +12,9 @@ OneLogin). The flow:
      validates state, exchanges code at the IdP ``token_endpoint``,
      receives ``id_token`` + ``access_token``, validates the ID token's
      signature against the IdP JWKS and ``iss``/``aud``/``exp``/``iat``
-     claims, then surfaces the verified subject.
+     claims, **auto-provisions the Django User**, **writes an authenticated
+     Django session via** ``login()``, and redirects to a success
+     destination (``next=`` query param or settings.LOGIN_REDIRECT_URL).
 
 Per-provider config lives in settings or env vars:
 
@@ -21,22 +23,29 @@ Per-provider config lives in settings or env vars:
             "discovery_url": "https://login.microsoftonline.com/<tenant>/.well-known/openid-configuration",
             "client_id":     "<...>",
             "client_secret": "<...>",
+            "role_claim":    "roles",          # optional — IdP claim that
+            "role_map":      {"admin": "ADMIN"} # carries role string + map.
         },
         "google": { ... },
     }
 
-Honest scope (v4.00.41)
------------------------
-* Discovery doc is fetched + cached (5min).
-* JWKS is fetched + cached (15min).
+v4.00.42 scope
+--------------
+* Discovery doc fetched + cached (5min).
+* JWKS fetched + cached (15min).
 * ``id_token`` signature verified via ``jwt.decode`` (RS256 / ES256).
-* ``iss``, ``aud``, ``exp``, ``iat`` claims enforced.
-* Authenticated subject is returned in the response body so the operator
-  can confirm the round-trip end-to-end.
+* ``iss``, ``aud``, ``exp``, ``iat`` + nonce enforced.
+* User auto-provisioned by ``email`` (fallback ``preferred_username``);
+  unusable password set on creation.
+* Role mapped from ``cfg["role_claim"]`` via ``cfg["role_map"]`` when
+  present; defaults to ``User.Role.PARENT``.
+* Django ``login()`` writes a session cookie (``backend`` selected from
+  ``AUTHENTICATION_BACKENDS[0]`` for SSO sessions).
+* Returns 200 JSON when ``?format=json`` is passed; 302 redirect to
+  ``next``/``LOGIN_REDIRECT_URL`` otherwise.
 
-Deferred to v4.00.42+:
-* Auto-provision Django ``User`` from the verified subject.
-* SSO session write (currently no Django ``login()`` call).
+Deferred to v4.00.43+:
+* Tenant binding (``request.tenant`` linkage on first-login provisioning).
 * RP-Initiated Logout per OIDC Session Management spec.
 """
 from __future__ import annotations
@@ -240,18 +249,145 @@ def callback(request: HttpRequest, provider: str):
     except Exception as exc:  # noqa: BLE001
         return JsonResponse({"error": "id_token_invalid", "detail": str(exc)}, status=401)
 
-    # Surface the verified subject. Auto-provision deferred.
-    return JsonResponse({
-        "success": True,
-        "stage": "id_token_verified",
-        "provider": provider,
-        "subject": claims.get("sub"),
-        "issuer": claims.get("iss"),
-        "email": claims.get("email"),
-        "name": claims.get("name"),
-        "preferred_username": claims.get("preferred_username"),
-        "user_provisioning": "deferred-v4.00.42",
-    })
+    # Auto-provision + login (v4.00.42).
+    try:
+        user, created = _provision_user(claims, cfg)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("oidc auto-provision failed provider=%s err=%s", provider, exc)
+        return JsonResponse({"error": "provision_failed", "detail": str(exc)}, status=500)
+
+    try:
+        _login_session(request, user)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("oidc session login failed provider=%s err=%s", provider, exc)
+        return JsonResponse({"error": "session_login_failed", "detail": str(exc)}, status=500)
+
+    next_url = _safe_next_url(request)
+    want_json = (request.GET.get("format") or "").lower() == "json"
+    if want_json:
+        return JsonResponse({
+            "success": True,
+            "stage": "logged_in",
+            "provider": provider,
+            "subject": claims.get("sub"),
+            "issuer": claims.get("iss"),
+            "email": claims.get("email"),
+            "name": claims.get("name"),
+            "preferred_username": claims.get("preferred_username"),
+            "user_id": user.pk,
+            "username": user.get_username(),
+            "role": getattr(user, "role", ""),
+            "created": created,
+            "redirect_to": next_url,
+        })
+    return HttpResponseRedirect(next_url)
+
+
+def _provision_user(claims: dict[str, Any], cfg: dict[str, str]) -> tuple[Any, bool]:
+    """Get-or-create a Django User keyed on the verified OIDC subject's email.
+
+    Returns ``(user, created_bool)``. Raises on any persistence failure.
+    """
+    from django.contrib.auth import get_user_model
+
+    UserModel = get_user_model()
+    email = (claims.get("email") or "").strip().lower()
+    pref = (claims.get("preferred_username") or "").strip()
+    sub = (claims.get("sub") or "").strip()
+    name = (claims.get("name") or "").strip()
+
+    # Username candidate: email's local-part, else preferred_username, else "oidc-<sub-prefix>".
+    if email:
+        username = email
+    elif pref:
+        username = pref
+    elif sub:
+        username = f"oidc-{sub[:24]}"
+    else:
+        raise RuntimeError("id_token missing email/preferred_username/sub")
+
+    role_claim = cfg.get("role_claim") or ""
+    role_map = cfg.get("role_map") or {}
+    mapped_role = ""
+    if role_claim and isinstance(role_map, dict):
+        raw = claims.get(role_claim)
+        if isinstance(raw, str):
+            mapped_role = role_map.get(raw, "")
+        elif isinstance(raw, (list, tuple)):
+            for r in raw:
+                if isinstance(r, str) and r in role_map:
+                    mapped_role = role_map[r]
+                    break
+
+    # Try email lookup first (most stable across IdP username churn).
+    user = None
+    if email:
+        user = UserModel.objects.filter(email__iexact=email).first()
+    if user is None:
+        user = UserModel.objects.filter(username=username).first()
+    if user is not None:
+        # Update mutable claims if changed.
+        dirty = []
+        if email and user.email.lower() != email:
+            user.email = email
+            dirty.append("email")
+        if name:
+            parts = name.split(" ", 1)
+            first = parts[0]
+            last = parts[1] if len(parts) > 1 else ""
+            if first and getattr(user, "first_name", "") != first:
+                user.first_name = first
+                dirty.append("first_name")
+            if last and getattr(user, "last_name", "") != last:
+                user.last_name = last
+                dirty.append("last_name")
+        if mapped_role and getattr(user, "role", "") != mapped_role:
+            user.role = mapped_role
+            dirty.append("role")
+        if dirty:
+            user.save(update_fields=dirty)
+        return user, False
+
+    # Create the user with an unusable password (SSO-only).
+    new_user = UserModel(username=username, email=email)
+    parts = name.split(" ", 1) if name else []
+    if parts:
+        new_user.first_name = parts[0]
+        if len(parts) > 1:
+            new_user.last_name = parts[1]
+    if mapped_role:
+        new_user.role = mapped_role
+    new_user.set_unusable_password()
+    new_user.save()
+    return new_user, True
+
+
+def _login_session(request: HttpRequest, user: Any) -> None:
+    """Write the Django auth session cookie for the verified user.
+
+    Uses ``AUTHENTICATION_BACKENDS[0]`` as the session backend marker,
+    so ``request.user`` resolves to this user on subsequent requests.
+    """
+    from django.conf import settings as _settings
+    from django.contrib.auth import login as _login
+
+    backends = getattr(_settings, "AUTHENTICATION_BACKENDS", ())
+    backend = backends[0] if backends else "django.contrib.auth.backends.ModelBackend"
+    user.backend = backend  # required by django.contrib.auth.login when multiple backends configured
+    _login(request, user)
+
+
+def _safe_next_url(request: HttpRequest) -> str:
+    """Pick the post-login redirect. Honors ?next= when same-host; else LOGIN_REDIRECT_URL."""
+    from django.conf import settings as _settings
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    raw = request.GET.get("next") or ""
+    if raw:
+        host = request.get_host()
+        if url_has_allowed_host_and_scheme(raw, allowed_hosts={host}, require_https=request.is_secure()):
+            return raw
+    return getattr(_settings, "LOGIN_REDIRECT_URL", "/") or "/"
 
 
 @require_http_methods(["GET"])

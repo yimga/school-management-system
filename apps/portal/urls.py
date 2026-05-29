@@ -154,6 +154,7 @@ from .views_wedge_surfaces import (
 from .views_multicampus_billing import multicampus_billing
 from .views_institution_assign import assignment_view, assignment_save
 from .views_multicampus_academics import multicampus_academics
+from .views_multicampus_extension import multicampus_extension
 
 app_name = "portal"
 
@@ -179,6 +180,8 @@ urlpatterns = [
     path("configure/institution-type/save/", assignment_save, name="institution_type_save"),
     # v4.00.41: Multi-campus academic rollup (grades + attendance, Wedge 22)
     path("super/wedges/multicampus-academics/", multicampus_academics, name="wedge_surface_multicampus_academics"),
+    # v4.00.42: Multi-campus operational rollup (events + fees + staff headcount, Wedge 22)
+    path("super/wedges/multicampus-extension/", multicampus_extension, name="wedge_surface_multicampus_extension"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

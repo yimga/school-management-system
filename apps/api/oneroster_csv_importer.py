@@ -237,25 +237,28 @@ def _apply_classes(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
 
 @transaction.atomic
 def _apply_enrollments(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
-    """v4.00.41 — real enrollment writes.
+    """v4.00.42 — real student AND teacher enrollment writes.
 
-    OneRoster enrollments connect a user to a class with a role
-    (student/teacher). For RMC the closest model is
-    ``apps.people.models.StudentProfile.classroom`` (student rows) and
-    ``Classroom.subject_assignments`` (teacher rows). v4.00.41 ships
-    the student leg only — teacher enrollments report as
-    accepted-deferred (Wedge 2 docket).
+    Student rows write ``StudentProfile.classroom``.
+    Teacher rows add the user to ``SubjectAssignment.teachers`` for every
+    SubjectAssignment under the resolved Classroom. A teacher row hitting
+    a Classroom that has no SubjectAssignment rows yet is recorded as
+    ``teacher_no_subject_slots`` (OneRoster lets enrollments arrive before
+    classes are fully provisioned).
     """
     try:
         from apps.people.models import StudentProfile
-        from apps.academics.models import Classroom
+        from apps.academics.models import Classroom, SubjectAssignment
+        from django.contrib.auth import get_user_model
     except Exception as exc:  # noqa: BLE001
         report["enrollments"]["error"] = f"models_unavailable: {exc}"
         return
 
+    UserModel = get_user_model()
     upserts, deletes = _classify_skips(rows)
     written_student = 0
-    accepted_teacher = 0
+    written_teacher = 0
+    teacher_no_subject_slots = 0
     skipped = 0
     for r in upserts:
         sid = (r.get("sourcedId") or "").strip()
@@ -283,15 +286,30 @@ def _apply_enrollments(rows: list[dict[str, str]], report: dict[str, Any]) -> No
                 logger.warning("oneroster enrollments: student-write failed sid=%s err=%s", sid, exc)
                 skipped += 1
         elif role in ("teacher", "primary_teacher"):
-            # SubjectAssignment-keyed wiring deferred to next wave.
-            accepted_teacher += 1
+            try:
+                teacher_user = UserModel.objects.filter(pk=user_sid).first()  # tenant-isolation-allow: roster-import-resolve-teacher-by-user-pk
+                if teacher_user is None:
+                    skipped += 1
+                    continue
+                slots = list(SubjectAssignment.objects.filter(classroom_id=classroom.pk))  # tenant-isolation-allow: roster-import-teacher-slots-by-classroom-pk
+                if not slots:
+                    teacher_no_subject_slots += 1
+                    continue
+                for sa in slots:
+                    sa.teachers.add(teacher_user)
+                written_teacher += 1
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("oneroster enrollments: teacher-write failed sid=%s err=%s", sid, exc)
+                skipped += 1
         else:
             skipped += 1
     report["enrollments"].update({
-        "written": written_student,
+        "written_student": written_student,
+        "written_teacher": written_teacher,
+        "written": written_student + written_teacher,
         "skipped": skipped,
         "delete_marked": len(deletes),
-        "teacher_accepted_deferred": accepted_teacher,
+        "teacher_no_subject_slots": teacher_no_subject_slots,
     })
 
 

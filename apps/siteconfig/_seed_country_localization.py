@@ -5327,6 +5327,412 @@ COUNTRY_REGIONAL_DEFAULT.pop("LY", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.42 (2026-05-29) — Eurasia tail + Caribbean micro + tax-haven micro.
+# +RU/BY/MD + DM/AG/KN/LC/VC/GD + AD/MC/SM/VA/LI.
+# ---------------------------------------------------------------------------
+
+# Russia — Russian, 4-quarter Common School + Lyceum/Gymnasium + Higher.
+COUNTRY_LOCALIZATION["RU"] = {
+    "calendar_system": {
+        "code": "ru-4-quarter", "label": "4-quarter (Russian)",
+        "term_count": 4, "term_names": ["I четверть", "II четверть", "III четверть", "IV четверть"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Детский сад",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "Начальная школа (1-4)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "basic",        "label": "Основная школа (5-9)",        "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "10-15"},
+        {"code": "secondary",    "label": "Средняя школа (10-11)",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "lyceum",       "label": "Лицей / Гимназия",             "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "10-17"},
+        {"code": "vocational",   "label": "Колледж / Техникум",           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",   "label": "Университет / ВУЗ",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "ru-kg",  "label": "Детский сад",          "order": 0},
+        {"code": "ru-g4",  "label": "4 класс (Начальная)", "order": 4},
+        {"code": "ru-g9",  "label": "9 класс (ОГЭ)",       "order": 9},
+        {"code": "ru-g11", "label": "11 класс (ЕГЭ)",      "order": 11},
+    ],
+    "terminology": {
+        "teacher": "Учитель", "principal": "Директор",
+        "term": "Четверть", "report_card": "Дневник", "grade_level": "Класс",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("RU", None)
+
+# Belarus — Russian/Belarusian, 4-quarter, similar to RU but with TsT exam at G11.
+COUNTRY_LOCALIZATION["BY"] = {
+    "calendar_system": {
+        "code": "by-4-quarter", "label": "4-quarter (Belarusian)",
+        "term_count": 4, "term_names": ["I чвэрць", "II чвэрць", "III чвэрць", "IV чвэрць"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Дзіцячы сад / Детский сад",       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "Пачатковая школа (1-4)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "basic",        "label": "Базавая школа (5-9)",             "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "10-15"},
+        {"code": "secondary",    "label": "Сярэдняя школа (10-11)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "gymnasium",    "label": "Гімназія / Лицэй",                "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "10-17"},
+        {"code": "vocational",   "label": "Каледж / Прафтэхвучылішча",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",   "label": "Універсітэт / ВНУ",               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "by-kg",  "label": "Дзіцячы сад",  "order": 0},
+        {"code": "by-g4",  "label": "4 клас",       "order": 4},
+        {"code": "by-g9",  "label": "9 клас",       "order": 9},
+        {"code": "by-g11", "label": "11 клас (ЦТ)", "order": 11},
+    ],
+    "terminology": {
+        "teacher": "Настаўнік / Учитель", "principal": "Дырэктар / Директор",
+        "term": "Чвэрць / Четверть", "report_card": "Дзённік / Дневник", "grade_level": "Клас / Класс",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BY", None)
+
+# Moldova — Romanian, 2-semester, Liceu + Bacalaureat at G12.
+COUNTRY_LOCALIZATION["MD"] = {
+    "calendar_system": {
+        "code": "md-2-semester", "label": "2-semester (Moldovan)",
+        "term_count": 2, "term_names": ["Semestrul I", "Semestrul II"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Grădiniță",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "Școală primară (1-4)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "gymnasium",    "label": "Gimnaziu (5-9)",                  "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "10-15"},
+        {"code": "lyceum",       "label": "Liceu (10-12) / Bacalaureat",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational",   "label": "Școală profesională / Colegiu",   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",   "label": "Universitate",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "md-kg",  "label": "Grădiniță",    "order": 0},
+        {"code": "md-g4",  "label": "Clasa a 4-a",  "order": 4},
+        {"code": "md-g9",  "label": "Clasa a 9-a",  "order": 9},
+        {"code": "md-g12", "label": "Bacalaureat",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Profesor", "principal": "Director",
+        "term": "Semestru", "report_card": "Carnet de note", "grade_level": "Clasă",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MD", None)
+
+# Dominica — English, CXC CSEC/CAPE system.
+COUNTRY_LOCALIZATION["DM"] = {
+    "calendar_system": {
+        "code": "dm-3-term", "label": "3-term (Dominican)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "ecce",       "label": "Early Childhood Centre",           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary School (K-6)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Secondary (Form 1-5 + CXC CSEC)",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "Sixth Form College (CAPE)",          "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "Dominica State College",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "dm-ecce","label": "ECCE",                "order": 0},
+        {"code": "dm-g6",  "label": "Grade 6 (CEE)",       "order": 6},
+        {"code": "dm-f5",  "label": "Form 5 (CXC CSEC)",   "order": 11},
+        {"code": "dm-l6",  "label": "Lower Sixth (CAPE)",  "order": 12},
+        {"code": "dm-u6",  "label": "Upper Sixth (CAPE)",  "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("DM", None)
+
+# Antigua & Barbuda — English, CXC CSEC/CAPE.
+COUNTRY_LOCALIZATION["AG"] = {
+    "calendar_system": {
+        "code": "ag-3-term", "label": "3-term (Antiguan)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool / Nursery",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Secondary (Form 1-5 + CXC)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "Sixth Form College (CAPE)",         "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "Antigua State College / UWI Five Islands","glyph": "\U0001F3DB", "primary_sector": "higher_ed","typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ag-ecce","label": "Preschool",            "order": 0},
+        {"code": "ag-g6",  "label": "Grade 6",              "order": 6},
+        {"code": "ag-f5",  "label": "Form 5 (CXC CSEC)",    "order": 11},
+        {"code": "ag-l6",  "label": "Lower Sixth (CAPE)",   "order": 12},
+        {"code": "ag-u6",  "label": "Upper Sixth (CAPE)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AG", None)
+
+# Saint Kitts & Nevis — English, CXC.
+COUNTRY_LOCALIZATION["KN"] = {
+    "calendar_system": {
+        "code": "kn-3-term", "label": "3-term (Kittitian/Nevisian)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-6)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Secondary (Form 1-5 + CXC CSEC)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "Sixth Form (CAPE)",                  "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "Clarence Fitzroy Bryant College",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kn-ecce","label": "Preschool",            "order": 0},
+        {"code": "kn-g6",  "label": "Grade 6 (TVTE)",       "order": 6},
+        {"code": "kn-f5",  "label": "Form 5 (CXC CSEC)",    "order": 11},
+        {"code": "kn-l6",  "label": "Lower Sixth (CAPE)",   "order": 12},
+        {"code": "kn-u6",  "label": "Upper Sixth (CAPE)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KN", None)
+
+# Saint Lucia — English/Kwéyòl, CXC.
+COUNTRY_LOCALIZATION["LC"] = {
+    "calendar_system": {
+        "code": "lc-3-term", "label": "3-term (Saint Lucian)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool / École maternelle",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-6)",                         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Secondary (Form 1-5 + CXC CSEC)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "Sir Arthur Lewis Community College (CAPE)","glyph": "\U0001F3DB", "primary_sector": "secondary",  "typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "University of the West Indies (Open)",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "lc-ecce","label": "Preschool",            "order": 0},
+        {"code": "lc-g6",  "label": "Grade 6 (CEE)",        "order": 6},
+        {"code": "lc-f5",  "label": "Form 5 (CXC CSEC)",    "order": 11},
+        {"code": "lc-l6",  "label": "Lower Sixth (CAPE)",   "order": 12},
+        {"code": "lc-u6",  "label": "Upper Sixth (CAPE)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Pwofesè", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("LC", None)
+
+# Saint Vincent & Grenadines — English, CXC.
+COUNTRY_LOCALIZATION["VC"] = {
+    "calendar_system": {
+        "code": "vc-3-term", "label": "3-term (Vincentian)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-6)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Secondary (Form 1-5 + CXC CSEC)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "St. Vincent & the Grenadines Community College (CAPE)","glyph": "\U0001F3DB","primary_sector": "secondary","typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "UWI Open Campus",                   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "vc-ecce","label": "Preschool",            "order": 0},
+        {"code": "vc-g6",  "label": "Grade 6 (CPEA)",       "order": 6},
+        {"code": "vc-f5",  "label": "Form 5 (CXC CSEC)",    "order": 11},
+        {"code": "vc-l6",  "label": "Lower Sixth (CAPE)",   "order": 12},
+        {"code": "vc-u6",  "label": "Upper Sixth (CAPE)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("VC", None)
+
+# Grenada — English, CXC.
+COUNTRY_LOCALIZATION["GD"] = {
+    "calendar_system": {
+        "code": "gd-3-term", "label": "3-term (Grenadian)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-7)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Secondary (Form 1-5 + CXC CSEC)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "T.A. Marryshow Community College (CAPE)","glyph": "\U0001F3DB", "primary_sector": "secondary","typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "St. George's University",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gd-ecce","label": "Preschool",            "order": 0},
+        {"code": "gd-g6",  "label": "Grade 6 (CPEA)",       "order": 6},
+        {"code": "gd-f5",  "label": "Form 5 (CXC CSEC)",    "order": 11},
+        {"code": "gd-l6",  "label": "Lower Sixth (CAPE)",   "order": 12},
+        {"code": "gd-u6",  "label": "Upper Sixth (CAPE)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GD", None)
+
+# Andorra — Catalan/Spanish/French. 3 systems (AD/ES/FR), 3 terms.
+COUNTRY_LOCALIZATION["AD"] = {
+    "calendar_system": {
+        "code": "ad-3-trimester", "label": "3-trimester (Andorran)",
+        "term_count": 3, "term_names": ["1r trimestre", "2n trimestre", "3r trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternal",        "label": "Maternal / Llar d'infants",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-6"},
+        {"code": "primary",         "label": "Primera Ensenyança (6-12)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secondary",       "label": "Segona Ensenyança (12-16)",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "baccalaureate",   "label": "Batxillerat / Bachillerato / Bac",     "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vocational",      "label": "Formació Professional",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",      "label": "Universitat d'Andorra",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ad-maternal", "label": "Maternal",      "order": 0},
+        {"code": "ad-p6",       "label": "6è Primera",    "order": 6},
+        {"code": "ad-s4",       "label": "4t Segona",     "order": 10},
+        {"code": "ad-bac",      "label": "Batxillerat",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mestre / Maestro / Maître", "principal": "Director / Directrice",
+        "term": "Trimestre", "report_card": "Butlletí", "grade_level": "Curs",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AD", None)
+
+# Monaco — French, identical to FR system but Principality-administered.
+COUNTRY_LOCALIZATION["MC"] = {
+    "calendar_system": {
+        "code": "mc-3-trimester", "label": "3-trimestre (Monégasque)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École maternelle",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École primaire",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège (6e-3e) / Brevet",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle) / Baccalauréat", "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Lycée professionnel / CFA",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university", "label": "International University of Monaco","glyph": "\U0001F3DB","primary_sector": "higher_ed",      "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mc-maternelle","label": "Maternelle",     "order": 0},
+        {"code": "mc-cm2",       "label": "CM2",            "order": 5},
+        {"code": "mc-3e",        "label": "3e (Brevet)",    "order": 9},
+        {"code": "mc-tle",       "label": "Tle (Bac)",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professeur", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MC", None)
+
+# San Marino — Italian (Sammarinese system; Liceo + Maturità).
+COUNTRY_LOCALIZATION["SM"] = {
+    "calendar_system": {
+        "code": "sm-2-quadrimester", "label": "2-quadrimester (Sammarinese)",
+        "term_count": 2, "term_names": ["I quadrimestre", "II quadrimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "infanzia",   "label": "Scuola dell'infanzia",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaria",   "label": "Scuola primaria (1-5)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "media",      "label": "Scuola media (6-8)",             "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "superiore",  "label": "Scuola superiore (9-13) / Maturità","glyph": "\U0001F393","primary_sector": "secondary",     "typical_ages": "14-19"},
+        {"code": "vocational", "label": "Istituto professionale",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-19"},
+        {"code": "university", "label": "Università degli Studi di San Marino","glyph": "\U0001F3DB","primary_sector": "higher_ed",   "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "sm-infanzia","label": "Infanzia",   "order": 0},
+        {"code": "sm-p5",      "label": "Primaria 5", "order": 5},
+        {"code": "sm-m3",      "label": "Media 3",    "order": 8},
+        {"code": "sm-mat",     "label": "Maturità",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Insegnante / Maestro", "principal": "Dirigente Scolastico",
+        "term": "Quadrimestre", "report_card": "Pagella", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SM", None)
+
+# Vatican City — Italian/Latin, ecclesiastical seminary system.
+COUNTRY_LOCALIZATION["VA"] = {
+    "calendar_system": {
+        "code": "va-2-semester", "label": "2-semester (Vatican)",
+        "term_count": 2, "term_names": ["Primo semestre", "Secondo semestre"],
+        "week_start": 0, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "primaria",    "label": "Scuola Primaria Pontificia",       "glyph": "\U0001F3EB", "primary_sector": "primary",   "typical_ages": "6-11"},
+        {"code": "seminary",    "label": "Seminario / Pontificio Collegio",  "glyph": "\U0001F3DB", "primary_sector": "secondary", "typical_ages": "11-19"},
+        {"code": "pontifical",  "label": "Università Pontificia (Gregoriana / Lateranense / Urbaniana)","glyph": "\U0001F3DB","primary_sector": "higher_ed","typical_ages": "18+"},
+        {"code": "athenaeum",   "label": "Pontificio Ateneo",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "va-p5",       "label": "Primaria 5",            "order": 5},
+        {"code": "va-baccalaureatus","label": "Baccalaureatus",   "order": 14},
+        {"code": "va-licentia", "label": "Licentia",              "order": 17},
+        {"code": "va-doctoratus","label": "Doctoratus",           "order": 20},
+    ],
+    "terminology": {
+        "teacher": "Professor / Maestro", "principal": "Rettore",
+        "term": "Semestre", "report_card": "Pagella", "grade_level": "Anno",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("VA", None)
+
+# Liechtenstein — German, mirrors Austrian/Swiss-German Gymnasium + Matura.
+COUNTRY_LOCALIZATION["LI"] = {
+    "calendar_system": {
+        "code": "li-2-semester", "label": "2-semester (Liechtensteiner)",
+        "term_count": 2, "term_names": ["1. Semester", "2. Semester"],
+        "week_start": 0, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primarschule", "label": "Primarschule (1-5)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "sekundarstufe1","label": "Sekundarstufe I / Oberschule / Realschule",
+                                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "gymnasium",    "label": "Liechtensteinisches Gymnasium (Matura)",
+                                  "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "11-19"},
+        {"code": "vocational",   "label": "Berufsbildung / Lehre",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",   "label": "Universität Liechtenstein",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "li-kg",    "label": "Kindergarten", "order": 0},
+        {"code": "li-p5",    "label": "Primarstufe 5","order": 5},
+        {"code": "li-sek4",  "label": "Sek I (9)",    "order": 9},
+        {"code": "li-matura","label": "Matura",       "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Lehrer / Lehrerin", "principal": "Schulleiter / Rektor",
+        "term": "Semester", "report_card": "Zeugnis", "grade_level": "Klasse",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("LI", None)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

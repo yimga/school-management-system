@@ -271,11 +271,13 @@ def _check_wedge_20() -> dict[int, bool]:
 
 
 def _check_wedge_22() -> dict[int, bool]:
-    # Multi-campus / group — billing rollup live v4.00.38, academic rollup v4.00.41
+    # Multi-campus / group — billing rollup live v4.00.38, academic rollup v4.00.41,
+    # operational extension (events + fees + staff headcount) v4.00.43.
     return {
         0: _module_importable("apps.schools.models"),
         1: _url_registered("portal:wedge_surface_multicampus_billing"),
         2: _url_registered("portal:wedge_surface_multicampus_academics"),
+        3: _url_registered("portal:wedge_surface_multicampus_extension"),
     }
 
 

@@ -338,6 +338,12 @@ class SubjectAssignment(models.Model):
         blank=True,
         help_text="Optional deadline for completing grades for this assignment (term/class/subject).",
     )
+    teachers = models.ManyToManyField(
+        "accounts.User",
+        blank=True,
+        related_name="taught_subject_assignments",
+        help_text="Users (with TeacherProfile) responsible for teaching this assignment slot.",
+    )
 
     class Meta:
         unique_together = ("academic_year", "term", "classroom", "specialty", "subject")

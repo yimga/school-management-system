@@ -248,10 +248,141 @@ def put_result(request: HttpRequest, sourced_id: str):
 
 
 @csrf_exempt
-@require_http_methods(["GET", "PUT"])
+@require_http_methods(["POST"])
+def post_result(request: HttpRequest):
+    """v4.00.42 — Grade pass-back POST (create new result row).
+
+    Body: ``{"result": {"score": "85", "textScore": "B", "studentSourcedId":
+    "<student_pk>", "lineItemSourcedId": "li-<classroom_pk>"}}``
+
+    Idempotency-Key header REQUIRED.
+    Always creates a fresh Evaluation; returns 201 with the new
+    ``sourcedId``. A second POST with the same Idempotency-Key + same
+    payload returns the cached 201 + ``Idempotency-Replay: true``. A
+    mismatched payload returns 409.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    inner = payload.get("result")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_result_envelope"}, status=400)
+
+    try:
+        from apps.evals.models import Evaluation
+        from apps.academics.models import Classroom
+    except Exception:  # noqa: BLE001
+        return JsonResponse({"error": "models_unavailable"}, status=500)
+
+    score_raw = inner.get("score", "")
+    text_score = str(inner.get("textScore") or "")[:16]
+    student_id = str(inner.get("studentSourcedId") or "").strip()
+    line_item = str(inner.get("lineItemSourcedId") or "").strip()
+    classroom_pk = line_item[3:] if line_item.startswith("li-") else line_item
+
+    if not student_id or not classroom_pk:
+        return JsonResponse({"error": "missing_student_or_classroom"}, status=400)
+
+    try:
+        score_value = float(score_raw) if score_raw not in (None, "") else None  # money-float-allow: oneroster-score-is-not-money
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "score_not_numeric"}, status=400)
+
+    classroom = Classroom.objects.filter(pk=classroom_pk).first()  # tenant-isolation-allow: result-post-resolve-classroom-by-pk
+    if classroom is None:
+        return JsonResponse({"error": "classroom_not_found"}, status=404)
+
+    try:
+        from apps.academics.models import SubjectAssignment
+        from apps.people.models import StudentProfile, TeacherProfile
+    except Exception:  # noqa: BLE001
+        return JsonResponse({"error": "models_unavailable"}, status=500)
+
+    sa = SubjectAssignment.objects.filter(classroom_id=classroom.pk).first()  # tenant-isolation-allow: result-post-resolve-sa-by-classroom-pk
+    if sa is None:
+        return JsonResponse({"error": "no_subject_assignment_for_classroom"}, status=422)
+    student = StudentProfile.objects.filter(user_id=student_id).first()  # tenant-isolation-allow: result-post-resolve-student-by-user-pk
+    if student is None:
+        return JsonResponse({"error": "student_not_found", "studentSourcedId": student_id}, status=404)
+    teacher_user = sa.teachers.first()
+    teacher = None
+    if teacher_user is not None:
+        teacher = TeacherProfile.objects.filter(user_id=teacher_user.pk).first()  # tenant-isolation-allow: result-post-resolve-teacher-from-sa
+    if teacher is None:
+        teacher = TeacherProfile.objects.filter(school_id=classroom.school_id).first()  # tenant-isolation-allow: result-post-resolve-teacher-fallback-school
+    if teacher is None:
+        return JsonResponse({"error": "no_teacher_for_school_or_assignment"}, status=422)
+
+    seed = score_value if score_value is not None else 0
+    obj = Evaluation.objects.create(  # tenant-isolation-allow: result-post-create-keyed-by-school-student-sa
+        school=classroom.school,
+        academic_year=sa.academic_year,
+        term=sa.term,
+        subject_assignment=sa,
+        student=student,
+        teacher=teacher,
+        exam_score=seed,
+        final_score=seed,
+        letter_grade=text_score,
+    )
+    body_out = {"result": _eval_to_result(obj)}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=201)
+    resp["Location"] = f"/api/roster/results/v1p2/results/res-{obj.pk}/"
+    resp["X-OneRoster-Entity"] = "result"
+    return resp
+
+
+def delete_result(request: HttpRequest, sourced_id: str):
+    """v4.00.42 — DELETE a Result row.
+
+    Per OneRoster v1.2 the entity is soft-deleted (``status: tobedeleted``).
+    Returns 204 on first delete; 200 on idempotent re-delete (already gone).
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    try:
+        from apps.evals.models import Evaluation
+    except Exception:  # noqa: BLE001
+        return JsonResponse({"error": "Evaluation_unavailable"}, status=500)
+    pk = sourced_id.split("-", 1)[1] if sourced_id.startswith("res-") else sourced_id
+    e = Evaluation.objects.filter(pk=pk).first()  # tenant-isolation-allow: result-service-delete-by-evaluation-pk
+    if e is None:
+        return JsonResponse({"result": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": True}, status=200)
+    e.delete()
+    return JsonResponse({"result": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": False}, status=200)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
 def result_detail(request: HttpRequest, sourced_id: str):
     if request.method == "PUT":
         return put_result(request, sourced_id)
+    if request.method == "DELETE":
+        return delete_result(request, sourced_id)
     gate = _gate(request)
     if gate is not None:
         return gate
@@ -264,3 +395,12 @@ def result_detail(request: HttpRequest, sourced_id: str):
     if e is None:
         return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
     return JsonResponse({"result": _eval_to_result(e)})
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def results_collection(request: HttpRequest):
+    """Dispatch GET → list, POST → create (with Idempotency-Key)."""
+    if request.method == "POST":
+        return post_result(request)
+    return results_list(request)
