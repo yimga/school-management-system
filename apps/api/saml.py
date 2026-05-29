@@ -324,6 +324,63 @@ def _sign_saml_logout_request(xml_bytes: bytes) -> tuple[bytes, str]:
     return signed_bytes, "ok"
 
 
+def _sign_saml_logout_response(xml_bytes: bytes) -> tuple[bytes, str]:
+    """v4.00.64 — Sign an outbound LogoutResponse XML in-place.
+
+    Same XML-DSig contract as :func:`_sign_saml_logout_request` (enveloped,
+    rsa-sha256 default, sha256 digest, xml-exc-c14n). Reuses the SP private
+    key + cert + signature algorithm env contract — operators who already
+    configured signing for v4.00.61 LogoutRequest get response signing
+    for free as soon as ``RMC_SAML_SP_SIGN_LOGOUT=1`` covers both flows.
+
+    Returns ``(signed_xml_bytes, reason)`` with the same 6-state taxonomy
+    as the request signer: ok/deps_missing/key_unset/cert_unset/bad_xml/
+    signature_error/serialize_error. Pass-through behavior preserved:
+    callers can fall through to unsigned XML when non-strict.
+    NEVER raises.
+    """
+    key_pem = _sp_private_key_pem().strip()
+    if not key_pem:
+        return xml_bytes, "key_unset"
+    cert_pem = _sp_cert_pem().strip()
+    if not cert_pem:
+        return xml_bytes, "cert_unset"
+
+    try:
+        from lxml import etree  # type: ignore
+        from signxml import XMLSigner, methods  # type: ignore
+    except ImportError:
+        return xml_bytes, "deps_missing"
+
+    try:
+        parser = etree.XMLParser(resolve_entities=False, no_network=True)
+        root = etree.fromstring(xml_bytes, parser=parser)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml sign-response: lxml parse failed: %s", exc)
+        return xml_bytes, "bad_xml"
+
+    alg = _sp_signature_alg()
+    signature_alg = "rsa-sha256" if alg == "rsa-sha256" else alg
+
+    try:
+        signed_root = XMLSigner(
+            method=methods.enveloped,
+            signature_algorithm=signature_alg,
+            digest_algorithm="sha256",
+            c14n_algorithm="http://www.w3.org/2001/10/xml-exc-c14n#",
+        ).sign(root, key=key_pem, cert=cert_pem)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("saml sign-response: signxml raised: %s", exc)
+        return xml_bytes, "signature_error"
+
+    try:
+        signed_bytes = etree.tostring(signed_root, xml_declaration=False)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml sign-response: tostring failed: %s", exc)
+        return xml_bytes, "serialize_error"
+    return signed_bytes, "ok"
+
+
 # ---------------------------------------------------------------------------
 # v4.00.62 — SAML 2.0 HTTP-Redirect binding signature (SLO outbound).
 #
@@ -452,13 +509,22 @@ _SIG_ALG_URI_TO_HASH = {
 
 def _verify_saml_redirect_signature(
     *,
-    saml_request_b64: str,
+    saml_request_b64: str = "",
+    saml_response_b64: str = "",
     relay_state: str,
     sig_alg_uri: str,
     signature_b64: str,
     idp_cert_pem: str,
 ) -> tuple[bool, str]:
     """v4.00.63 — Verify a SAML 2.0 HTTP-Redirect binding signature.
+
+    v4.00.64 extended to accept EITHER ``saml_request_b64`` (inbound
+    LogoutRequest via Redirect binding — original v4.00.63 contract) OR
+    ``saml_response_b64`` (inbound LogoutResponse on the SP-initiated SLO
+    callback path). The leading parameter name in the canonical query
+    string is ``SAMLRequest`` vs ``SAMLResponse`` per spec § 3.4.4.1 —
+    different IdPs sign whichever they emit, and we must reproduce the
+    bytes the IdP signed (exactly that leading key).
 
     Returns ``(verified, reason)`` where ``reason`` is one of:
         ``ok``                — signature matches
@@ -504,9 +570,14 @@ def _verify_saml_redirect_signature(
         logger.debug("saml redirect-verify: cert parse failed: %s", exc)
         return False, "bad_cert"
 
-    # Reconstruct canonical bytes in SAML spec-required order.
+    # Reconstruct canonical bytes in SAML spec-required order. The leading
+    # key is whichever payload the IdP emitted — SAMLRequest for inbound
+    # LogoutRequest, SAMLResponse for the callback LogoutResponse.
     import urllib.parse as _ulib
-    parts = [("SAMLRequest", saml_request_b64)]
+    if saml_response_b64:
+        parts = [("SAMLResponse", saml_response_b64)]
+    else:
+        parts = [("SAMLRequest", saml_request_b64)]
     if relay_state:
         parts.append(("RelayState", relay_state))
     parts.append(("SigAlg", sig_alg_uri))
@@ -1008,7 +1079,7 @@ def sls(request):
             signature_b64=url_sig,
             idp_cert_pem=pem,
         )
-        redirect_sig_reason = reason
+        redirect_sig_reason = reason  # noqa: F841 — surfaced for future telemetry
         if not verified:
             if reason == "deps_missing":
                 if _require_signature_strict():
@@ -1037,6 +1108,26 @@ def sls(request):
         destination=_idp_slo_target(),
     )
 
+    # v4.00.64 — opt-in sign the outbound LogoutResponse when RMC_SAML_SP_SIGN_LOGOUT=1.
+    # Same env contract as v4.00.61 LogoutRequest signing. Strict mode 503s on
+    # signer failure; non-strict falls through to unsigned XML.
+    resp_signature_reason = "unsigned"
+    resp_signed = False
+    if _sp_sign_logout_enabled():
+        signed_resp_bytes, resp_signature_reason = _sign_saml_logout_response(resp_bytes)
+        if resp_signature_reason == "ok":
+            resp_bytes = signed_resp_bytes
+            resp_signed = True
+        elif _require_signature_strict():
+            return JsonResponse({
+                "success": False,
+                "stage": "sp_signer_unavailable_response",
+                "reason": resp_signature_reason,
+            }, status=503)
+        else:
+            logger.warning("saml sls: response signing requested but %s - emitting unsigned",
+                           resp_signature_reason)
+
     if (request.GET.get("format") or "").lower() == "json":
         import base64 as _b64
         return JsonResponse({
@@ -1049,6 +1140,8 @@ def sls(request):
             "signature_reason": sig_reason,
             "logout_response_b64": _b64.b64encode(resp_bytes).decode("ascii"),
             "relay_state": relay,
+            "response_signed": resp_signed,
+            "response_signature_reason": resp_signature_reason,
         })
 
     # Redirect to IdP SLO target when configured; else return the XML inline.
@@ -1164,6 +1257,24 @@ def sls_idp(request):
         destination=_idp_slo_target(),
     )
 
+    # v4.00.64 — outbound LogoutResponse signing (parity with v4.00.58 sls).
+    resp_signature_reason = "unsigned"
+    resp_signed = False
+    if _sp_sign_logout_enabled():
+        signed_resp_bytes, resp_signature_reason = _sign_saml_logout_response(resp_bytes)
+        if resp_signature_reason == "ok":
+            resp_bytes = signed_resp_bytes
+            resp_signed = True
+        elif _require_signature_strict():
+            return JsonResponse({
+                "success": False,
+                "stage": "sp_signer_unavailable_response",
+                "reason": resp_signature_reason,
+            }, status=503)
+        else:
+            logger.warning("saml sls-idp: response signing requested but %s - emitting unsigned",
+                           resp_signature_reason)
+
     if (request.GET.get("format") or "").lower() == "json":
         return JsonResponse({
             "success": True,
@@ -1176,6 +1287,8 @@ def sls_idp(request):
             "logout_response_b64": _b64.b64encode(resp_bytes).decode("ascii"),
             "binding": "HTTP-POST",
             "relay_state": relay,
+            "response_signed": resp_signed,
+            "response_signature_reason": resp_signature_reason,
         })
 
     idp_target = _idp_slo_target()
@@ -1475,6 +1588,54 @@ def slo_callback(request):
     logger.info("saml slo-callback: received LogoutResponse (method=%s, len=%s)",
                 request.method, len(saml_resp))
 
+    # v4.00.64 — SP-initiated SLO Redirect-binding signed callback verification.
+    # Counterpart to v4.00.63 sls() verification path. When the IdP redirects
+    # the user-agent back here with ?SAMLResponse=...&SigAlg=...&Signature=...
+    # we verify the URL canonical bytes against the IdP cert. Activated by
+    # RMC_SAML_REQUIRE_REDIRECT_SIGNATURE=1 (default OFF preserves v4.00.60).
+    # GET-only — POST-binding callback signatures live in <ds:Signature>
+    # embedded in the LogoutResponse XML and are checked separately.
+    callback_sig_reason = ""
+    if _require_redirect_signature() and request.method == "GET":
+        url_sig = request.GET.get("Signature") or ""
+        url_sig_alg = request.GET.get("SigAlg") or ""
+        if not url_sig:
+            return JsonResponse(
+                {"success": False,
+                 "stage": "redirect_callback_signature_required_but_missing"},
+                status=401,
+            )
+        pem = _idp_cert_pem()
+        if not pem:
+            return JsonResponse(
+                {"success": False, "stage": "redirect_callback_signature_cert_unset"},
+                status=503,
+            )
+        verified, reason = _verify_saml_redirect_signature(
+            saml_response_b64=request.GET.get("SAMLResponse") or "",
+            relay_state=request.GET.get("RelayState") or "",
+            sig_alg_uri=url_sig_alg,
+            signature_b64=url_sig,
+            idp_cert_pem=pem,
+        )
+        callback_sig_reason = reason
+        if not verified:
+            if reason == "deps_missing":
+                if _require_signature_strict():
+                    return JsonResponse(
+                        {"success": False,
+                         "stage": "redirect_callback_signature_verifier_deps_missing"},
+                        status=503,
+                    )
+                logger.warning("saml slo-callback: redirect verifier deps_missing - falling back")
+            else:
+                return JsonResponse(
+                    {"success": False,
+                     "stage": "redirect_callback_signature_verification_failed",
+                     "reason": reason},
+                    status=401,
+                )
+
     parsed = _parse_saml_logout_response(saml_resp) if saml_resp else {"error": "missing_saml_response"}
     if parsed.get("error"):
         # Even on parse failure, flush the session so a partially-completed
@@ -1506,6 +1667,7 @@ def slo_callback(request):
             "status_code": status_code,
             "signature_present": parsed.get("signature_present", False),
             "relay_state": relay,
+            "callback_signature_reason": callback_sig_reason,
         })
 
     if not is_success:

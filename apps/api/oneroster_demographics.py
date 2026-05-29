@@ -188,6 +188,39 @@ def _demographic_from_student(s) -> dict[str, Any]:
     return rec
 
 
+# v4.00.64 — OneRoster v1.2 Roster Service spec § 4.13 ?fields= field-mask.
+# Returns only the fields listed in the comma-separated query parameter,
+# plus ``sourcedId`` which is always preserved (clients use it as the
+# record key). Unknown fields are silently dropped. Empty/missing param
+# means "no mask" — return the full record.
+#
+# Spec text: "fields - Identifies the fields of the resource that are to
+# be returned in the response. This is a comma-separated list of fields."
+#
+# Operator-facing semantics:
+#   ?fields=sex,birthDate          → returns {sourcedId, sex, birthDate}
+#   ?fields=                       → no mask, full record
+#   ?fields=bogus                  → returns {sourcedId} only
+#   ?fields=sourcedId              → returns {sourcedId} (no-op explicit)
+_FIELDS_MASK_PIN = ("sourcedId",)
+
+
+def _parse_fields_mask(raw: str) -> tuple[str, ...] | None:
+    """Return parsed mask tuple or None when no mask is active."""
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    return tuple(p.strip() for p in raw.split(",") if p.strip())
+
+
+def _apply_fields_mask(rec: dict[str, Any], mask: tuple[str, ...] | None) -> dict[str, Any]:
+    """Return a record with only the requested fields (plus sourcedId)."""
+    if mask is None:
+        return rec
+    keep = set(mask) | set(_FIELDS_MASK_PIN)
+    return {k: v for k, v in rec.items() if k in keep}
+
+
 def _iter_demographics() -> Iterable[dict[str, Any]]:
     try:
         from apps.people.models import StudentProfile
@@ -237,6 +270,10 @@ def demographics_collection(request: HttpRequest):
     above = (request.GET.get("dateLastModifiedAbove") or "").strip()
     if above:
         items = [r for r in items if (r.get("dateLastModified") or "") > above]
+    # v4.00.64 — OneRoster v1.2 Roster Service spec § 4.13 ?fields= mask.
+    mask = _parse_fields_mask(request.GET.get("fields") or "")
+    if mask is not None:
+        items = [_apply_fields_mask(r, mask) for r in items]
     page, meta = _paginate(request, items)
     return _envelope("demographics", page, meta)
 
@@ -262,7 +299,11 @@ def demographic_detail(request: HttpRequest, sourced_id: str):
         return JsonResponse({"error": "bad_sourced_id"}, status=400)
     if obj is None:
         return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
-    return JsonResponse({"demographic": _demographic_from_student(obj)})
+    rec = _demographic_from_student(obj)
+    mask = _parse_fields_mask(request.GET.get("fields") or "")
+    if mask is not None:
+        rec = _apply_fields_mask(rec, mask)
+    return JsonResponse({"demographic": rec})
 
 
 @require_http_methods(["GET"])
@@ -285,7 +326,11 @@ def student_demographics(request: HttpRequest, sourced_id: str):
         return JsonResponse({"error": "bad_sourced_id"}, status=400)
     if obj is None:
         return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
-    return JsonResponse({"demographic": _demographic_from_student(obj)})
+    rec = _demographic_from_student(obj)
+    mask = _parse_fields_mask(request.GET.get("fields") or "")
+    if mask is not None:
+        rec = _apply_fields_mask(rec, mask)
+    return JsonResponse({"demographic": rec})
 
 
 # ---------------------------------------------------------------------------
@@ -325,7 +370,61 @@ def _parse_demographic_payload(body_bytes: bytes):
     inner = payload.get("demographic")
     if not isinstance(inner, dict):
         return None, JsonResponse({"error": "missing_demographic_envelope"}, status=400)
+    err = _validate_birth_date(inner)
+    if err is not None:
+        return None, err
     return inner, None
+
+
+# v4.00.64 — Demographics POST/PUT body validation.
+#
+# OneRoster v1.2 Demographic.birthDate is ISO-8601 date (YYYY-MM-DD).
+# Two failure classes we reject with 400:
+#   * malformed string (non-ISO / non-numeric components)
+#   * out-of-range value: future date OR pre-floor (1900-01-01)
+# Empty string is allowed (explicit clear).
+# Strict floor 1900 is sufficient — no living student in our cohort is
+# older than that, and we never want to accept the year 0001 typo.
+_BIRTH_DATE_FLOOR_YEAR = 1900
+
+
+def _validate_birth_date(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "birthDate" not in inner:
+        return None
+    raw = str(inner.get("birthDate") or "").strip()
+    if not raw:
+        return None  # explicit clear — allowed
+    try:
+        from datetime import date as _date
+        parts = raw.split("-")
+        if len(parts) != 3:
+            return JsonResponse(
+                {"error": "bad_birth_date", "reason": "expected_YYYY_MM_DD"},
+                status=400,
+            )
+        y, m, d = int(parts[0]), int(parts[1]), int(parts[2])
+        bd = _date(y, m, d)
+    except (ValueError, TypeError):
+        return JsonResponse(
+            {"error": "bad_birth_date", "reason": "unparseable"},
+            status=400,
+        )
+    from datetime import date as _date2
+    today = _date2.today()
+    if bd > today:
+        return JsonResponse(
+            {"error": "bad_birth_date", "reason": "future_date_rejected",
+             "birthDate": raw},
+            status=400,
+        )
+    if bd.year < _BIRTH_DATE_FLOOR_YEAR:
+        return JsonResponse(
+            {"error": "bad_birth_date", "reason": "before_floor",
+             "floor_year": _BIRTH_DATE_FLOOR_YEAR},
+            status=400,
+        )
+    return None
 
 
 def _apply_demographic_to_student(s, inner: dict[str, Any]) -> None:

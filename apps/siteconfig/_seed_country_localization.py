@@ -11641,6 +11641,391 @@ COUNTRY_LOCALIZATION["AU-ACT"] = {
 
 
 # ---------------------------------------------------------------------------
+# v4.00.64 (2026-05-29) — +14 Tier-1 subdivisions:
+#   JP-46 Kagoshima, JP-47 Okinawa, JP-08 Ibaraki,
+#   CN-HL Heilongjiang, CN-JL Jilin, CN-NM Inner Mongolia,
+#   CA-YT Yukon, CA-NT Northwest Territories, CA-NU Nunavut,
+#   US-ID Idaho, IN-ML Meghalaya, IN-LA Ladakh, IN-UT Uttarakhand,
+#   KR-46 Jeollanam-do.
+# ---------------------------------------------------------------------------
+
+# Kagoshima (JP-46) — southern-Kyushu 2-gakki + Kagoshima U + KIT.
+COUNTRY_LOCALIZATION["JP-46"] = {
+    "calendar_system": {
+        "code": "jp46-2-gakki", "label": "2-gakki (Kagoshima)",
+        "term_count": 2, "term_names": ["Mae-ki", "Ato-ki"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",   "label": "Shogakko (1-6)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",   "label": "Chugakko (7-9)",                  "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko",  "label": "Kotogakko (10-12)",               "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "senshu",     "label": "Senshu-gakko (vocational)",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "daigaku",    "label": "Kagoshima U + KIT + Kagoshima Junshin", "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp46-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp46-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp46-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp46-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei", "principal": "Kocho",
+        "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen",
+    },
+}
+
+# Okinawa (JP-47) — sub-tropical 2-gakki + U-Ryukyus + Meio U + OIST.
+COUNTRY_LOCALIZATION["JP-47"] = {
+    "calendar_system": {
+        "code": "jp47-2-gakki", "label": "2-gakki (Okinawa)",
+        "term_count": 2, "term_names": ["Mae-ki", "Ato-ki"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",   "label": "Shogakko (1-6)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",   "label": "Chugakko (7-9)",                  "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko",  "label": "Kotogakko (10-12)",               "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "senshu",     "label": "Senshu-gakko (vocational)",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "daigaku",    "label": "U-Ryukyus + Meio U + OIST",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp47-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp47-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp47-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp47-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei", "principal": "Kocho",
+        "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen",
+    },
+}
+
+# Ibaraki (JP-08) — Kanto 3-gakki + U-Tsukuba + Ibaraki U + Tsukuba U of Tech.
+COUNTRY_LOCALIZATION["JP-08"] = {
+    "calendar_system": {
+        "code": "jp08-3-gakki", "label": "3-gakki (Ibaraki)",
+        "term_count": 3, "term_names": ["1-gakki", "2-gakki", "3-gakki"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",   "label": "Shogakko (1-6)",                         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",   "label": "Chugakko (7-9)",                         "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko",  "label": "Kotogakko (10-12)",                      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "senshu",     "label": "Senshu-gakko (vocational)",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "daigaku",    "label": "U-Tsukuba + Ibaraki U + Tsukuba U of Tech", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",    "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp08-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp08-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp08-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp08-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei", "principal": "Kocho",
+        "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen",
+    },
+}
+
+# Heilongjiang (CN-HL) — Harbin Institute of Tech + Heilongjiang U + Northeast Forestry + Harbin Engineering.
+COUNTRY_LOCALIZATION["CN-HL"] = {
+    "calendar_system": {
+        "code": "cnhl-2-sem", "label": "2-sem (Heilongjiang)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                                 "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                         "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "HIT + Heilongjiang U + Northeast Forestry + HEU", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnhl-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cnhl-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cnhl-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cnhl-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Jilin (CN-JL) — Jilin U + Northeast Normal + Changchun U of Sci/Tech + Yanbian U.
+COUNTRY_LOCALIZATION["CN-JL"] = {
+    "calendar_system": {
+        "code": "cnjl-2-sem", "label": "2-sem (Jilin)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "Jilin U + NENU + CUST + Yanbian U",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnjl-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cnjl-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cnjl-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cnjl-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Inner Mongolia (CN-NM) — Inner Mongolia U + IMUT + Inner Mongolia Normal + IMAU.
+COUNTRY_LOCALIZATION["CN-NM"] = {
+    "calendar_system": {
+        "code": "cnnm-2-sem", "label": "2-sem (Inner Mongolia)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                                "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "Inner Mongolia U + IMUT + IMNU + IMAU",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnnm-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cnnm-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cnnm-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cnnm-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Yukon (CA-YT) — Yukon Department of Education + Yukon U.
+COUNTRY_LOCALIZATION["CA-YT"] = {
+    "calendar_system": {
+        "code": "cayt-2-sem", "label": "2-sem (Yukon Dept of Education)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Pre-K",                                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "primary",     "label": "Primary (K-7) + FNESC integration",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "secondary",   "label": "Secondary (8-12)",                                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "vocational",  "label": "Yukon U trades + apprenticeship",                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "university",  "label": "Yukon U (degree programs)",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "cayt-k",  "label": "Kindergarten",      "order": 0},
+        {"code": "cayt-7",  "label": "Grade 7",           "order": 7},
+        {"code": "cayt-9",  "label": "Grade 9",           "order": 9},
+        {"code": "cayt-12", "label": "Grade 12",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Northwest Territories (CA-NT) — NWT Education Culture and Employment + Aurora College.
+COUNTRY_LOCALIZATION["CA-NT"] = {
+    "calendar_system": {
+        "code": "cant-2-sem", "label": "2-sem (NWT ECE)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Pre-K (Indigenous languages program)",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "primary",     "label": "Primary (K-6)",                                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",   "label": "Secondary (7-12, NWT Senior Sec Cert)",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",  "label": "Aurora College trades + apprenticeship",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "university",  "label": "Aurora College (degree programs)",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "cant-k",  "label": "Kindergarten",      "order": 0},
+        {"code": "cant-6",  "label": "Grade 6",           "order": 6},
+        {"code": "cant-9",  "label": "Grade 9",           "order": 9},
+        {"code": "cant-12", "label": "Grade 12",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Nunavut (CA-NU) — Department of Education + Nunavut Arctic College + Inuktitut bilingual.
+COUNTRY_LOCALIZATION["CA-NU"] = {
+    "calendar_system": {
+        "code": "canu-2-sem", "label": "2-sem (Nunavut Dept of Education)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Pre-K (Inuktitut immersion)",                      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "primary",     "label": "Primary (K-6, Inuktitut bilingual)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",   "label": "Secondary (7-12, Nunavut Sec School Diploma)",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",  "label": "Nunavut Arctic College trades + skills",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "university",  "label": "Nunavut Arctic College (degree partnerships)",     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "canu-k",  "label": "Kindergarten",      "order": 0},
+        {"code": "canu-6",  "label": "Grade 6",           "order": 6},
+        {"code": "canu-9",  "label": "Grade 9",           "order": 9},
+        {"code": "canu-12", "label": "Grade 12",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Idaho (US-ID) — Idaho SDE + Boise State + U-Idaho + Idaho State + BYU-Idaho.
+COUNTRY_LOCALIZATION["US-ID"] = {
+    "calendar_system": {
+        "code": "usid-2-sem", "label": "2-sem (Idaho SDE)",
+        "term_count": 2, "term_names": ["Fall", "Spring"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Idaho Preschool Development Grant",                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary",  "label": "Elementary (K-5/6) + ISAT",                        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "middle",      "label": "Middle (6-8) + ISAT",                              "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",        "label": "High (9-12, SAT/ACT + dual credit)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "charter",     "label": "Idaho Public Charter Schools",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-18"},
+        {"code": "university",  "label": "Boise State + U-Idaho + Idaho State + BYU-Idaho",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "usid-k",  "label": "Kindergarten",  "order": 0},
+        {"code": "usid-5",  "label": "Grade 5 (ISAT)", "order": 5},
+        {"code": "usid-8",  "label": "Grade 8 (ISAT)", "order": 8},
+        {"code": "usid-12", "label": "Grade 12",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Meghalaya (IN-ML) — MBOSE + NEHU + Martin Luther Christian U + St Anthony's College.
+COUNTRY_LOCALIZATION["IN-ML"] = {
+    "calendar_system": {
+        "code": "inml-2-sem", "label": "2-sem (MBOSE)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "anganwadi",    "label": "Anganwadi",                                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "Primary (I-V, MBOSE)",                            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "upper_primary","label": "Upper Primary (VI-VIII)",                          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "11-14"},
+        {"code": "secondary",    "label": "Secondary (IX-X, MBOSE SSLC)",                     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-16"},
+        {"code": "higher_sec",   "label": "Higher Secondary (XI-XII, MBOSE HSSLC)",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "university",   "label": "NEHU + MLCU + St Anthony's + USTM",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "inml-1",  "label": "Class I",           "order": 1},
+        {"code": "inml-5",  "label": "Class V",           "order": 5},
+        {"code": "inml-10", "label": "Class X (SSLC)",    "order": 10},
+        {"code": "inml-12", "label": "Class XII (HSSLC)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Class",
+    },
+}
+
+# Ladakh (IN-LA) — UT board + U-Ladakh + Eliezer Joldan College + CIBS.
+COUNTRY_LOCALIZATION["IN-LA"] = {
+    "calendar_system": {
+        "code": "inla-2-sem", "label": "2-sem (Ladakh UT)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "anganwadi",    "label": "Anganwadi",                                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "Primary (I-V)",                                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "upper_primary","label": "Upper Primary (VI-VIII)",                         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "11-14"},
+        {"code": "secondary",    "label": "Secondary (IX-X, JKBOSE)",                        "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-16"},
+        {"code": "higher_sec",   "label": "Higher Secondary (XI-XII, JKBOSE)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "university",   "label": "U-Ladakh + Eliezer Joldan + CIBS",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "inla-1",  "label": "Class I",   "order": 1},
+        {"code": "inla-5",  "label": "Class V",   "order": 5},
+        {"code": "inla-10", "label": "Class X",   "order": 10},
+        {"code": "inla-12", "label": "Class XII", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Class",
+    },
+}
+
+# Uttarakhand (IN-UT) — UBSE + IIT Roorkee + Doon U + HNB Garhwal U + GBPU Pantnagar.
+COUNTRY_LOCALIZATION["IN-UT"] = {
+    "calendar_system": {
+        "code": "inut-2-sem", "label": "2-sem (UBSE)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "anganwadi",    "label": "Anganwadi",                                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "Primary (I-V, UBSE)",                             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "upper_primary","label": "Upper Primary (VI-VIII)",                          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "11-14"},
+        {"code": "secondary",    "label": "Secondary (IX-X, UBSE)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "14-16"},
+        {"code": "higher_sec",   "label": "Higher Secondary (XI-XII, UBSE)",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "university",   "label": "IIT Roorkee + Doon U + HNB Garhwal + GBPU",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "inut-1",  "label": "Class I",   "order": 1},
+        {"code": "inut-5",  "label": "Class V",   "order": 5},
+        {"code": "inut-10", "label": "Class X",   "order": 10},
+        {"code": "inut-12", "label": "Class XII", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Class",
+    },
+}
+
+# Jeollanam-do (KR-46) — Chonnam National U + Mokpo National U + Sunchon National U.
+COUNTRY_LOCALIZATION["KR-46"] = {
+    "calendar_system": {
+        "code": "kr46-2-sem", "label": "2-sem (Jeollanam-do)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",   "label": "Yuchiwon",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeung",   "label": "Chodeung Hakkyo (1-6)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jung",       "label": "Junghakgyo (7-9)",                     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "godeung",    "label": "Godeunghakgyo (10-12, Suneung)",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Maeisteo / Specialized Vocational HS", "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "daehakgyo",  "label": "CNU + Mokpo NU + Sunchon NU",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr46-1",  "label": "Year 1 (Chodeung)", "order": 1},
+        {"code": "kr46-6",  "label": "Year 6 (Chodeung)", "order": 6},
+        {"code": "kr46-9",  "label": "Year 3 (Jung)",     "order": 9},
+        {"code": "kr46-12", "label": "Year 3 (Godeung)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim", "principal": "Gyojang",
+        "term": "Hakgi", "report_card": "Seongjeokpyo", "grade_level": "Hangnyeon",
+    },
+}
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

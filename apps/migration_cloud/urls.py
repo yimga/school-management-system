@@ -127,6 +127,8 @@ urlpatterns = [
     path("lms/diagnostics/force-rotate/", views_lms_diagnostics.lms_diagnostics_force_rotate, name="migration_cloud_lms_diagnostics_force_rotate"),  # rbac-allow: super-staff-migration-cloud-lms-force-rotate
     # v4.00.60 — last-action history JSON for the diagnostics dashboard panel.
     path("lms/diagnostics/action-history/", views_lms_diagnostics.lms_diagnostics_action_history, name="migration_cloud_lms_diagnostics_action_history"),  # rbac-allow: super-staff-migration-cloud-lms-action-history
+    # v4.00.64 — operator preview of "what would purge" before the next retention sweep fires.
+    path("lms/diagnostics/retention-preview/", views_lms_diagnostics.lms_diagnostics_retention_preview, name="migration_cloud_lms_diagnostics_retention_preview"),  # rbac-allow: super-staff-migration-cloud-lms-retention-preview
     # v3.40.0 Agent 6 — Migration Cloud Command Center (8-card operator dashboard).
     path("command-center/", views_command_center.MigrationCloudCommandCenterView.as_view(), name="migration_cloud_command_center"),  # rbac-allow: super-staff-migration-cloud-command-center
     # Wave 9 Agent N — vendor write-path authorization status (counsel-pending shovel-ready surface).

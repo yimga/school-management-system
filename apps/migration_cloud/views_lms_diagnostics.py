@@ -559,6 +559,78 @@ def _action_history_csv_response(*, limit: int, since=None, before=None):
     return resp
 
 
+# ---------------------------------------------------------------------------
+# v4.00.64 — Retention dry-run preview UI surface.
+#
+# Operator-facing forecast of what the next retention sweep would purge,
+# WITHOUT actually deleting anything. Reuses
+# ``sweep_lms_diag_action_retention(dry_run=True)`` from the v4.00.63
+# retention module so the cutoff math + considered-count logic stay
+# identical to the beat-driven sweep — no drift between preview and
+# real-sweep semantics.
+#
+# Inputs:
+#   ?years=<N>   — override the retention window (default = beat env);
+#                  N<=0 returns the retain-forever short-circuit shape.
+#
+# Output shape (JSON):
+#   {success, generated_at, retention: {years, cutoff_iso, considered,
+#    deleted, dry_run, skipped?, error?},
+#    note: "preview only — nothing was deleted"}
+# ---------------------------------------------------------------------------
+
+
+@staff_member_required
+@require_http_methods(["GET"])
+def lms_diagnostics_retention_preview(request: HttpRequest):
+    """v4.00.64 — Operator preview of the next retention sweep's footprint.
+
+    Always runs ``sweep_lms_diag_action_retention(dry_run=True)`` regardless
+    of any ``RMC_LMS_DIAG_ACTION_RETENTION_DRY_RUN`` env. Caller's
+    ``?years=<N>`` overrides the retention window for the preview only —
+    handy for "what if we lowered the window to 3y" planning conversations.
+    """
+    try:
+        from apps.integrations_marketplace.lms_diag_action_retention import (
+            sweep_lms_diag_action_retention,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"success": False, "error": f"sweep_unavailable: {exc}"},
+            status=503,
+        )
+
+    years_raw = (request.GET.get("years") or "").strip()
+    years: int | None = None
+    if years_raw:
+        try:
+            years = int(years_raw)
+        except (ValueError, TypeError):
+            return JsonResponse(
+                {"success": False, "error": "bad_years",
+                 "reason": "expected_integer", "value": years_raw},
+                status=400,
+            )
+
+    try:
+        out = sweep_lms_diag_action_retention(years=years, dry_run=True)
+    except Exception as exc:  # noqa: BLE001
+        # Defense-in-depth — sweep is documented NEVER to raise, but if
+        # someone breaks that contract the operator UI shouldn't 500.
+        logger.warning("retention preview: sweep raised: %s", exc)
+        return JsonResponse(
+            {"success": False, "error": f"sweep_raised: {exc}"},
+            status=503,
+        )
+
+    return JsonResponse({
+        "success": True,
+        "generated_at": timezone.now().isoformat(),
+        "retention": out,
+        "note": "preview only — nothing was deleted",
+    })
+
+
 def _parse_window_iso(raw):
     """v4.00.62 — Parse an ISO-8601 timestamp into a tz-aware datetime.
 
