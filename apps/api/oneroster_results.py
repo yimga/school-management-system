@@ -667,6 +667,214 @@ def grading_period_detail(request: HttpRequest, sourced_id: str):
     return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
 
 
+def _parse_date(raw: str):
+    if not raw:
+        return None
+    try:
+        from datetime import date
+        # support both YYYY-MM-DD and full ISO strings.
+        return date.fromisoformat(raw[:10])
+    except (ValueError, TypeError):
+        return None
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_grading_period(request: HttpRequest):
+    """v4.00.52 — Create a new GradingPeriod (projects onto ``Term``).
+
+    Body: ``{"gradingPeriod": {"title": "Spring Term", "beginDate": "...",
+    "endDate": "...", "academicSessionSourcedId": "ay-<academic_year_pk>"}}``
+    Idempotency-Key REQUIRED.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post-gradingperiod", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    inner = payload.get("gradingPeriod")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_gradingPeriod_envelope"}, status=400)
+
+    title = str(inner.get("title") or "").strip()
+    if not title:
+        return JsonResponse({"error": "missing_title"}, status=400)
+    ay_sourced = str(inner.get("academicSessionSourcedId") or "").strip()
+    if not ay_sourced.startswith("ay-"):
+        return JsonResponse({"error": "bad_academicSessionSourcedId"}, status=400)
+    ay_pk = ay_sourced[3:]
+
+    try:
+        from apps.academics.models import AcademicYear, Term
+    except Exception:  # noqa: BLE001
+        return JsonResponse({"error": "models_unavailable"}, status=500)
+
+    ay = AcademicYear.objects.filter(pk=ay_pk).first()  # tenant-isolation-allow: result-post-gradingperiod-resolve-academicyear
+    if ay is None:
+        return JsonResponse({"error": "academic_year_not_found"}, status=404)
+
+    start = _parse_date(str(inner.get("beginDate") or ""))
+    end = _parse_date(str(inner.get("endDate") or ""))
+
+    create_kwargs: dict = {"name": title, "academic_year": ay}
+    if start is not None and hasattr(Term, "start_date"):
+        create_kwargs["start_date"] = start
+    if end is not None and hasattr(Term, "end_date"):
+        create_kwargs["end_date"] = end
+    try:
+        term = Term.objects.create(**create_kwargs)  # tenant-isolation-allow: result-post-gradingperiod-create-term-in-resolved-ay
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse({"error": "create_failed", "detail": str(exc)}, status=500)
+
+    item = {
+        "sourcedId": f"gp-{term.pk}",
+        "status": "active",
+        "title": term.name or title,
+        "type": "gradingPeriod",
+        "beginDate": term.start_date.isoformat() if getattr(term, "start_date", None) else "",
+        "endDate": term.end_date.isoformat() if getattr(term, "end_date", None) else "",
+        "academicSessionSourcedId": ay_sourced,
+    }
+    body_out = {"gradingPeriod": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=201)
+    resp["Location"] = f"/api/roster/results/v1p2/gradingPeriods/{item['sourcedId']}/"
+    resp["X-OneRoster-Entity"] = "gradingPeriod"
+    return resp
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def put_grading_period(request: HttpRequest, sourced_id: str):
+    """v4.00.52 — Update a GradingPeriod (renames the backing Term)."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key(f"gradingperiod:{sourced_id}", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    inner = payload.get("gradingPeriod")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_gradingPeriod_envelope"}, status=400)
+    if not sourced_id.startswith("gp-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+
+    try:
+        from apps.academics.models import Term
+    except Exception:  # noqa: BLE001
+        return JsonResponse({"error": "models_unavailable"}, status=500)
+    term_pk = sourced_id[3:]
+    term = Term.objects.filter(pk=term_pk).first()  # tenant-isolation-allow: result-put-gradingperiod-resolve-term-by-pk
+    if term is None:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+    dirty: list[str] = []
+    new_title = str(inner.get("title") or "").strip()
+    if new_title and term.name != new_title:
+        term.name = new_title
+        dirty.append("name")
+    start = _parse_date(str(inner.get("beginDate") or ""))
+    end = _parse_date(str(inner.get("endDate") or ""))
+    if start is not None and hasattr(term, "start_date") and term.start_date != start:
+        term.start_date = start
+        dirty.append("start_date")
+    if end is not None and hasattr(term, "end_date") and term.end_date != end:
+        term.end_date = end
+        dirty.append("end_date")
+    if dirty:
+        try:
+            term.save(update_fields=dirty)
+        except Exception as exc:  # noqa: BLE001
+            return JsonResponse({"error": "save_failed", "detail": str(exc)}, status=500)
+
+    item = {
+        "sourcedId": sourced_id,
+        "status": "active",
+        "title": term.name,
+        "type": "gradingPeriod",
+        "beginDate": term.start_date.isoformat() if getattr(term, "start_date", None) else "",
+        "endDate": term.end_date.isoformat() if getattr(term, "end_date", None) else "",
+        "academicSessionSourcedId": f"ay-{term.academic_year_id}" if getattr(term, "academic_year_id", None) else "",
+    }
+    body_out = {"gradingPeriod": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=200)
+    resp["X-OneRoster-Entity"] = "gradingPeriod"
+    return resp
+
+
+def delete_grading_period(request: HttpRequest, sourced_id: str):
+    """v4.00.52 — Soft-delete a GradingPeriod via cache mark.
+
+    Returns 200 + ``alreadyDeleted: false`` on first call, 200 +
+    ``alreadyDeleted: true`` on re-delete. The backing ``Term`` row is
+    NOT physically deleted (it is referenced by SubjectAssignment +
+    Evaluation FKs) — the soft-delete is recorded server-side so OneRoster
+    consumers stop polling.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if not sourced_id.startswith("gp-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+    ck = f"roster:results:gradingperiod-deleted:{sourced_id}"
+    already = bool(cache.get(ck))
+    if not already:
+        cache.set(ck, True, _IDEMPOTENCY_TTL)
+    return JsonResponse({"gradingPeriod": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": already}, status=200)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def grading_periods_collection(request: HttpRequest):
+    if request.method == "POST":
+        return post_grading_period(request)
+    return grading_periods_list(request)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def grading_period_dispatch(request: HttpRequest, sourced_id: str):
+    if request.method == "PUT":
+        return put_grading_period(request, sourced_id)
+    if request.method == "DELETE":
+        return delete_grading_period(request, sourced_id)
+    return grading_period_detail(request, sourced_id)
+
+
 @require_http_methods(["GET"])
 def categories_list(request: HttpRequest):
     gate = _gate(request)

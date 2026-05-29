@@ -6873,6 +6873,374 @@ COUNTRY_REGIONAL_DEFAULT.pop("EH", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.52 (2026-05-29) — Remaining territories + ISO 3166-2 subdivisions
+# with distinct school systems.
+# Territories: +AQ/CC/CX/UM/GS  |  Subdivisions: +GB-SCT/GB-WLS/GB-NIR + ES-CT/ES-PV/ES-GA + CA-QC + AU-VIC + US-CA.
+# ---------------------------------------------------------------------------
+
+# Antarctica — research-station home-school (CHILE+NZ+AR+others rotate).
+COUNTRY_LOCALIZATION["AQ"] = {
+    "calendar_system": {
+        "code": "aq-2-rotation", "label": "2-rotation (Antarctic Research)",
+        "term_count": 2, "term_names": ["Austral summer", "Austral winter"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "homeschool",  "label": "Family / home-school at station",        "glyph": "\U0001F3EB", "primary_sector": "primary",   "typical_ages": "5-15"},
+        {"code": "research",    "label": "Antarctic research station",              "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "aq-home", "label": "Home-school",       "order": 5},
+        {"code": "aq-rch",  "label": "Research",          "order": 18},
+    ],
+    "terminology": {
+        "teacher": "Tutor / Maestro / Profesor / Onderwijzer",
+        "principal": "Station Leader",
+        "term": "Rotation", "report_card": "Progress report", "grade_level": "Level",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AQ", None)
+
+# Cocos (Keeling) Islands — Cocos Islands District High School (AU NSW-aligned).
+COUNTRY_LOCALIZATION["CC"] = {
+    "calendar_system": {
+        "code": "cc-4-term", "label": "4-term (Cocos Islands)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Cocos Islands Preschool",                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "central",    "label": "Cocos Islands District HS (K-12)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-18"},
+        {"code": "vocational", "label": "Vocational",                              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "cc-pre","label": "Preschool",        "order": 0},
+        {"code": "cc-y6", "label": "Year 6",           "order": 6},
+        {"code": "cc-y10","label": "Year 10",          "order": 10},
+        {"code": "cc-y12","label": "Year 12 (WACE)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Cikgu", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CC", None)
+
+# Christmas Island — Christmas Island District HS (AU NSW-aligned).
+COUNTRY_LOCALIZATION["CX"] = {
+    "calendar_system": {
+        "code": "cx-4-term", "label": "4-term (Christmas Island)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Christmas Island Preschool",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "central",    "label": "Christmas Island District HS (K-12)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-18"},
+        {"code": "vocational", "label": "Vocational",                              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "cx-pre","label": "Preschool",        "order": 0},
+        {"code": "cx-y6", "label": "Year 6",           "order": 6},
+        {"code": "cx-y10","label": "Year 10",          "order": 10},
+        {"code": "cx-y12","label": "Year 12 (WACE)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / 老师", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CX", None)
+
+# US Minor Outlying Islands — DOD dependents schools (Wake/Midway/Johnston).
+COUNTRY_LOCALIZATION["UM"] = {
+    "calendar_system": {
+        "code": "um-2-semester", "label": "2-semester (US Minor Outlying)",
+        "term_count": 2, "term_names": ["1st semester", "2nd semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "elementary", "label": "DOD Dependents Elementary (rare)",        "glyph": "\U0001F3EB", "primary_sector": "primary",   "typical_ages": "5-11"},
+        {"code": "remote",     "label": "DOD remote / correspondence (default)",    "glyph": "\U0001F3DB", "primary_sector": "primary",   "typical_ages": "5-18"},
+    ],
+    "education_levels": [
+        {"code": "um-g5", "label": "Grade 5",          "order": 5},
+        {"code": "um-g12","label": "Grade 12 (DODEA)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("UM", None)
+
+# South Georgia & South Sandwich Islands — FK-administered, correspondence only.
+COUNTRY_LOCALIZATION["GS"] = {
+    "calendar_system": {
+        "code": "gs-3-term", "label": "3-term (South Georgia)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "research",    "label": "BAS / Government Officers research",      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+        {"code": "remote",      "label": "FK correspondence school (children)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-16"},
+    ],
+    "education_levels": [
+        {"code": "gs-y11","label": "Year 11 (via FK)",  "order": 11},
+        {"code": "gs-rch","label": "Research",           "order": 18},
+    ],
+    "terminology": {
+        "teacher": "Tutor", "principal": "Government Officer",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GS", None)
+
+# Scotland — distinct SQA Highers + Advanced Highers system.
+COUNTRY_LOCALIZATION["GB-SCT"] = {
+    "calendar_system": {
+        "code": "gbsct-3-term", "label": "3-term (Scottish)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Nursery / Early Years",                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (P1-P7)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",   "label": "Secondary (S1-S6) / Nat 5 + Highers",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",  "label": "Scottish College (HNC/HND)",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",  "label": "Scottish university",                    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "gbsct-nur",  "label": "Nursery",            "order": 0},
+        {"code": "gbsct-p7",   "label": "P7",                 "order": 7},
+        {"code": "gbsct-s4",   "label": "S4 (Nat 5)",         "order": 11},
+        {"code": "gbsct-s5",   "label": "S5 (Highers)",       "order": 12},
+        {"code": "gbsct-s6",   "label": "S6 (Advanced Highers)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Tidsear", "principal": "Heid Teacher / Heedmaister",
+        "term": "Term", "report_card": "Report", "grade_level": "Year / Stage",
+    },
+}
+
+# Wales — Welsh-medium + Welsh GCSE/A-Level + Cwricwlwm.
+COUNTRY_LOCALIZATION["GB-WLS"] = {
+    "calendar_system": {
+        "code": "gbwls-3-term", "label": "3-term (Welsh)",
+        "term_count": 3, "term_names": ["Autumn / Hydref", "Spring / Gwanwyn", "Summer / Haf"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "nursery",     "label": "Cylch Meithrin / Nursery",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "2-5"},
+        {"code": "primary",     "label": "Ysgol Gynradd / Primary (Y1-Y6)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",   "label": "Ysgol Uwchradd / Secondary (Y7-Y11) GCSE","glyph": "\U0001F393","primary_sector": "secondary",     "typical_ages": "11-16"},
+        {"code": "sixth_form",  "label": "Ysgol Chweched Dosbarth (Y12-Y13) A-Level","glyph": "\U0001F3DB","primary_sector": "secondary",    "typical_ages": "16-18"},
+        {"code": "vocational",  "label": "Coleg / FE College",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "gbwls-nur", "label": "Cylch Meithrin",      "order": 0},
+        {"code": "gbwls-y6",  "label": "Year 6 / Blwyddyn 6",  "order": 6},
+        {"code": "gbwls-y11", "label": "Year 11 / Bl. 11 (GCSE)","order": 11},
+        {"code": "gbwls-y13", "label": "Year 13 / Bl. 13 (A-Level)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Athro / Athrawes / Teacher", "principal": "Pennaeth / Headteacher",
+        "term": "Tymor / Term", "report_card": "Adroddiad / Report", "grade_level": "Blwyddyn / Year",
+    },
+}
+
+# Northern Ireland — CCEA GCSE / A-Level.
+COUNTRY_LOCALIZATION["GB-NIR"] = {
+    "calendar_system": {
+        "code": "gbnir-3-term", "label": "3-term (Northern Irish)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Nursery / Reception",                   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (P1-P7)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "grammar",     "label": "Grammar School (Y8-Y12) + CCEA GCSE",    "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "11-16"},
+        {"code": "secondary",   "label": "Secondary (Y8-Y12) + CCEA GCSE",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-16"},
+        {"code": "sixth_form",  "label": "Sixth Form (Y13-Y14) + CCEA A-Level",    "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vocational",  "label": "FE College",                            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "gbnir-pre","label": "Nursery",                "order": 0},
+        {"code": "gbnir-p7", "label": "P7 (transfer)",           "order": 7},
+        {"code": "gbnir-y12","label": "Year 12 (CCEA GCSE)",     "order": 11},
+        {"code": "gbnir-y14","label": "Year 14 (CCEA A-Level)",  "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+
+# Catalonia (ES-CT) — Batxillerat + Selectivitat in Catalan.
+COUNTRY_LOCALIZATION["ES-CT"] = {
+    "calendar_system": {
+        "code": "esct-3-trimester", "label": "3-trimester (Català)",
+        "term_count": 3, "term_names": ["1r trimestre", "2n trimestre", "3r trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "infantil", "label": "Educació infantil",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaria", "label": "Educació primària (1r-6è)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "eso",      "label": "ESO (1r-4t) / Graduat",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "batxillerat","label": "Batxillerat + Selectivitat / PAU",        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "fp",       "label": "Formació Professional (FP)",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "universitat","label": "Universitat catalana (UB / UPC / UAB)",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "esct-inf","label": "Infantil",          "order": 0},
+        {"code": "esct-p6", "label": "6è Primària",        "order": 6},
+        {"code": "esct-eso4","label": "4t ESO",            "order": 10},
+        {"code": "esct-bat","label": "Batxillerat (PAU)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mestre / Mestra / Professor", "principal": "Director / Directora",
+        "term": "Trimestre", "report_card": "Butlletí", "grade_level": "Curs",
+    },
+}
+
+# Basque Country (ES-PV) — Euskera medium + EAU.
+COUNTRY_LOCALIZATION["ES-PV"] = {
+    "calendar_system": {
+        "code": "espv-3-trimester", "label": "3-trimester (Euskera)",
+        "term_count": 3, "term_names": ["1. hiruhilekoa", "2. hiruhilekoa", "3. hiruhilekoa"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "haur",      "label": "Haur hezkuntza (Infantil)",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "lehen",     "label": "Lehen hezkuntza (Primaria)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "dbh",       "label": "DBH (ESO) — D / B / A ereduak",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "batx",      "label": "Batxilergoa + EAU (PAU euskaraz)",        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "lh",        "label": "Lanbide Heziketa / FP",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "univ",      "label": "EHU / Mondragon / Deusto",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "espv-haur","label": "Haur hezkuntza", "order": 0},
+        {"code": "espv-lhp6","label": "Lehen Heziketa 6","order": 6},
+        {"code": "espv-dbh4","label": "DBH 4",          "order": 10},
+        {"code": "espv-eau" ,"label": "Batxilergoa (EAU)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Irakasle / Maestro", "principal": "Zuzendari / Director",
+        "term": "Hiruhileko", "report_card": "Txosten", "grade_level": "Maila",
+    },
+}
+
+# Galicia (ES-GA) — Galician-medium FP / Bacharelato + ABAU.
+COUNTRY_LOCALIZATION["ES-GA"] = {
+    "calendar_system": {
+        "code": "esga-3-trimester", "label": "3-trimester (Galego)",
+        "term_count": 3, "term_names": ["1º trimestre", "2º trimestre", "3º trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "infantil",  "label": "Educación infantil",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaria",  "label": "Educación primaria",                      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "eso",       "label": "ESO (1º-4º)",                              "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "bach",      "label": "Bacharelato + ABAU",                       "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "fp",        "label": "Formación Profesional (FP)",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "universidade","label": "USC / UDC / UVigo",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "esga-inf","label": "Infantil",          "order": 0},
+        {"code": "esga-p6", "label": "6º Primaria",        "order": 6},
+        {"code": "esga-eso4","label": "4º ESO",            "order": 10},
+        {"code": "esga-abau","label": "Bacharelato (ABAU)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mestre / Mestra / Profesor", "principal": "Director / Directora",
+        "term": "Trimestre", "report_card": "Boletín", "grade_level": "Curso",
+    },
+}
+
+# Quebec (CA-QC) — French-language K-11 + CÉGEP DEC.
+COUNTRY_LOCALIZATION["CA-QC"] = {
+    "calendar_system": {
+        "code": "caqc-2-semester", "label": "2-semester (Québécois)",
+        "term_count": 2, "term_names": ["Étape 1 (Automne)", "Étape 2 (Hiver)"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "prematernelle","label": "Prématernelle / CPE",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primaire",    "label": "Primaire (1re-6e année)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondaire",  "label": "Secondaire (1-5) + DES",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-17"},
+        {"code": "cegep",       "label": "Cégep / Collégial / DEC",                "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "vocational",  "label": "DEP / Formation professionnelle",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",  "label": "Université du Québec / McGill / UdeM",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "caqc-prem","label": "Prématernelle", "order": 0},
+        {"code": "caqc-p6", "label": "6e année",       "order": 6},
+        {"code": "caqc-s5", "label": "Sec. 5 (DES)",   "order": 11},
+        {"code": "caqc-dec","label": "Cégep (DEC)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / Enseignante", "principal": "Directeur / Directrice",
+        "term": "Étape", "report_card": "Bulletin", "grade_level": "Année",
+    },
+}
+
+# Victoria (AU-VIC) — VCE + VCE-VM + VPC.
+COUNTRY_LOCALIZATION["AU-VIC"] = {
+    "calendar_system": {
+        "code": "auvic-4-term", "label": "4-term (Victorian)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Kindergarten / 4yr-old kinder",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (Foundation-Y6)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",   "label": "Secondary (Y7-Y10)",                     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "vce",         "label": "VCE (Y11-Y12) / VCAA",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vce_vm",      "label": "VCE Vocational Major / VPC",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-18"},
+        {"code": "tafe",        "label": "Victorian TAFE",                          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",  "label": "Melbourne / Monash / Deakin / RMIT",      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "auvic-kinder","label": "Kinder",            "order": 0},
+        {"code": "auvic-y6",    "label": "Year 6",            "order": 6},
+        {"code": "auvic-y10",   "label": "Year 10",           "order": 10},
+        {"code": "auvic-y12",   "label": "Year 12 (VCE/ATAR)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+
+# California (US-CA) — A-G admission + CAASPP + CalGrant.
+COUNTRY_LOCALIZATION["US-CA"] = {
+    "calendar_system": {
+        "code": "usca-2-semester", "label": "2-semester (Californian)",
+        "term_count": 2, "term_names": ["Fall semester", "Spring semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "tk",          "label": "Transitional Kindergarten (TK)",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "elementary",  "label": "Elementary (K-5)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",      "label": "Middle (6-8) / CAASPP",                  "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",        "label": "High (9-12) / CA HS Diploma + A-G",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "vocational",  "label": "Career Technical Education (CTE)",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "cc",          "label": "California Community Colleges (CCC)",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+        {"code": "uc_csu",      "label": "UC / CSU system",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "usca-tk", "label": "TK",                "order": 0},
+        {"code": "usca-g5", "label": "Grade 5",           "order": 5},
+        {"code": "usca-g8", "label": "Grade 8",           "order": 8},
+        {"code": "usca-g12","label": "Grade 12 (A-G)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Maestro/a", "principal": "Principal / Director/a",
+        "term": "Semester", "report_card": "Report Card / Boletín", "grade_level": "Grade",
+    },
+}
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

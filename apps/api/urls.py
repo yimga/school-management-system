@@ -98,7 +98,6 @@ from apps.api import oneroster as _oneroster
 from apps.api import oneroster_csv_importer as _oneroster_csv
 from apps.api import oneroster_writes as _oneroster_writes
 from apps.api import oneroster_results as _oneroster_results
-from apps.api import saml as _saml
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
     api_import_error_resolver,
@@ -582,8 +581,12 @@ urlpatterns = [
     path("roster/results/v1p2/lineItems/<str:sourced_id>/put/", _oneroster_results.put_line_item, name="api-roster-results-line-item-put"),
     path("roster/results/v1p2/lineItems/<str:sourced_id>/delete/", _oneroster_results.delete_line_item, name="api-roster-results-line-item-delete"),
     # v4.00.47: GradingPeriods + Categories (OneRoster Result Service spec coverage).
-    path("roster/results/v1p2/gradingPeriods/", _oneroster_results.grading_periods_list, name="api-roster-results-grading-periods"),
-    path("roster/results/v1p2/gradingPeriods/<str:sourced_id>/", _oneroster_results.grading_period_detail, name="api-roster-results-grading-period-detail"),
+    path("roster/results/v1p2/gradingPeriods/", _oneroster_results.grading_periods_collection, name="api-roster-results-grading-periods"),
+    path("roster/results/v1p2/gradingPeriods/<str:sourced_id>/", _oneroster_results.grading_period_dispatch, name="api-roster-results-grading-period-detail"),
+    # v4.00.52: GradingPeriod write coverage (POST + PUT + DELETE).
+    path("roster/results/v1p2/gradingPeriods/post/", _oneroster_results.post_grading_period, name="api-roster-results-grading-period-post"),
+    path("roster/results/v1p2/gradingPeriods/<str:sourced_id>/put/", _oneroster_results.put_grading_period, name="api-roster-results-grading-period-put"),
+    path("roster/results/v1p2/gradingPeriods/<str:sourced_id>/delete/", _oneroster_results.delete_grading_period, name="api-roster-results-grading-period-delete"),
     path("roster/results/v1p2/categories/", _oneroster_results.categories_list, name="api-roster-results-categories"),
     path("roster/results/v1p2/categories/<str:sourced_id>/", _oneroster_results.category_detail, name="api-roster-results-category-detail"),
     path(

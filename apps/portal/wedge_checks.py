@@ -114,6 +114,8 @@ def _check_wedge_2() -> dict[int, bool]:
         7: _url_registered("api:api-roster-results-line-item-post"),  # v4.00.51 lineItem POST/PUT/DELETE
         8: _url_registered("portal:lms_push_grade"),  # v4.00.51 push_grade UI button
         9: _url_registered("portal:lms_token_refresh"),  # v4.00.51 OAuth2 refresh helper
+        10: _url_registered("api:api-roster-results-grading-period-post"),  # v4.00.52 GradingPeriod writes
+        11: _module_importable("apps.integrations_marketplace.models_lms_audit"),  # v4.00.52 audit log
     }
 
 
@@ -347,6 +349,7 @@ def _check_wedge_45() -> dict[int, bool]:
         3: _url_registered("oidc_rp_logout"),  # v4.00.46 — OIDC RP-Initiated Logout
         4: _url_registered("sso_saml_acs"),  # v4.00.46 — SAML ACS validates + writes session
         5: _module_importable("apps.accounts.models_sso"),  # v4.00.51 — UserTenantBinding
+        6: _url_registered("portal:tenant_bindings_index"),  # v4.00.52 — operator UI
     }
 
 

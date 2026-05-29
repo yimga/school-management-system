@@ -156,6 +156,7 @@ from .views_institution_assign import assignment_view, assignment_save
 from .views_multicampus_academics import multicampus_academics
 from .views_multicampus_extension import multicampus_extension
 from .views_lms_console import lms_index, lms_provider_detail, lms_token_save, lms_push_grade, lms_token_refresh
+from .views_tenant_binding import tenant_bindings_index, tenant_binding_reassign
 
 app_name = "portal"
 
@@ -189,6 +190,9 @@ urlpatterns = [
     path("super/integrations/lms/<str:provider>/save/", lms_token_save, name="lms_token_save"),
     path("super/integrations/lms/<str:provider>/push-grade/", lms_push_grade, name="lms_push_grade"),
     path("super/integrations/lms/<str:provider>/refresh-token/", lms_token_refresh, name="lms_token_refresh"),
+    # v4.00.52: Tenant-binding operator UI.
+    path("super/sso/bindings/", tenant_bindings_index, name="tenant_bindings_index"),
+    path("super/sso/bindings/reassign/", tenant_binding_reassign, name="tenant_binding_reassign"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

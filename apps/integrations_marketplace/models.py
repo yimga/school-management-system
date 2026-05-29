@@ -131,3 +131,6 @@ __all__ = [
 
 # v4.00.47 — LMS connector tokens (Canvas / Moodle / Google Classroom).
 from .models_lms_token import LMSConnectorToken  # noqa: E402,F401
+
+# v4.00.52 — LMS push_grade audit log.
+from .models_lms_audit import LMSPushGradeAudit  # noqa: E402,F401

@@ -26,6 +26,61 @@ from apps.api import lms_adapters
 logger = logging.getLogger(__name__)
 
 
+_REFRESH_WINDOW_SECONDS = 60
+
+
+def _maybe_proactive_refresh(row, provider: str) -> dict:
+    """v4.00.52 — Proactive OAuth2 token refresh.
+
+    If the row has a refresh_token + expires_at < now + 60s + client creds
+    are configured in env, refreshes the token in-place and persists.
+
+    Returns a dict with ``refreshed`` boolean + ``status_code``/``detail``
+    for audit. Never raises.
+    """
+    if row is None or not getattr(row, "refresh_token", "") or not getattr(row, "expires_at", None):
+        return {"refreshed": False, "reason": "not_eligible"}
+    from django.utils import timezone as _tz
+
+    if row.expires_at >= _tz.now() + _td_seconds(_REFRESH_WINDOW_SECONDS):
+        return {"refreshed": False, "reason": "not_due"}
+
+    import os as _os
+    from django.conf import settings as _settings
+
+    provider_upper = provider.upper()
+    cid = (getattr(_settings, f"RMC_LMS_{provider_upper}_CLIENT_ID", "") or _os.environ.get(f"RMC_LMS_{provider_upper}_CLIENT_ID", "") or "").strip()
+    csec = (getattr(_settings, f"RMC_LMS_{provider_upper}_CLIENT_SECRET", "") or _os.environ.get(f"RMC_LMS_{provider_upper}_CLIENT_SECRET", "") or "").strip()
+    if not cid or not csec:
+        return {"refreshed": False, "reason": "client_creds_missing"}
+
+    kwargs: dict = {"refresh_token": row.refresh_token, "client_id": cid, "client_secret": csec}
+    if provider == "canvas":
+        kwargs["base_url"] = row.base_url or ""
+    try:
+        result = lms_adapters.refresh_token(provider, **kwargs)
+    except Exception as exc:  # noqa: BLE001
+        return {"refreshed": False, "reason": f"adapter_raise: {exc}"}
+
+    if not result.get("ok") or not result.get("access_token"):
+        return {"refreshed": False, "reason": "refresh_failed", "status_code": result.get("status_code"), "detail": result.get("detail", "")}
+
+    row.access_token = result["access_token"]
+    exp = int(result.get("expires_in") or 0)
+    if exp:
+        from datetime import timedelta as _td
+
+        row.expires_at = _tz.now() + _td(seconds=exp)
+    row.save(update_fields=["access_token", "expires_at", "updated_at"])
+    return {"refreshed": True, "expires_in": exp, "status_code": result.get("status_code")}
+
+
+def _td_seconds(s: int):
+    from datetime import timedelta
+
+    return timedelta(seconds=s)
+
+
 def _resolve_token_row(school_id, provider: str):
     """Return the LMSConnectorToken row for (school, provider), or None."""
     from apps.integrations_marketplace.models import LMSConnectorToken
@@ -80,6 +135,7 @@ def lms_provider_detail(request: HttpRequest, provider: str):
         elif not row.access_token:
             action_result = {"error": "token_empty", "school": school_id}
         else:
+            refresh = _maybe_proactive_refresh(row, provider)
             try:
                 courses = lms_adapters.dispatch(
                     provider, "list_courses",
@@ -88,7 +144,7 @@ def lms_provider_detail(request: HttpRequest, provider: str):
             except Exception as exc:  # noqa: BLE001 — adapter errors should always surface inline
                 logger.warning("lms console %s list_courses failed school=%s err=%s", provider, school_id, exc)
                 courses = [{"error": f"adapter_raise: {exc}"}]
-            action_result = {"school": school_id, "courses": courses}
+            action_result = {"school": school_id, "courses": courses, "refresh": refresh}
 
     if school_id and action == "list_assignments":
         course_id = (request.GET.get("course") or "").strip()
@@ -303,6 +359,7 @@ def lms_push_grade(request: HttpRequest, provider: str):
     except (ValueError, TypeError):
         return JsonResponse({"error": "score_not_numeric"}, status=400)
 
+    refresh = _maybe_proactive_refresh(row, provider)
     try:
         result = lms_adapters.dispatch(
             provider, "push_grade",
@@ -314,6 +371,28 @@ def lms_push_grade(request: HttpRequest, provider: str):
         logger.warning("lms console %s push_grade failed school=%s err=%s", provider, school_id_raw, exc)
         result = {"ok": False, "status_code": 0, "detail": f"adapter_raise: {exc}"}
 
+    # v4.00.52 — audit the attempt (always; PII-safe via SHA-256[:16] of user_id).
+    audit_pk = None
+    try:
+        from apps.integrations_marketplace.models import LMSPushGradeAudit
+        from apps.integrations_marketplace.models_lms_audit import _hash16
+
+        audit = LMSPushGradeAudit.objects.create(  # tenant-isolation-allow: audit-rows-keyed-by-school-staff-required
+            school_id=row.school_id,
+            provider=provider,
+            course_id=course_id[:128],
+            assignment_id=assignment_id[:128],
+            user_hash=_hash16(user_id),
+            score_text=f"{score:.2f}",  # money-float-allow: lms-score-not-money
+            ok=bool(result.get("ok")),
+            status_code=int(result.get("status_code") or 0),
+            detail=str(result.get("detail") or "")[:255],
+            actor_user_id=str(getattr(request.user, "pk", "") or ""),
+        )
+        audit_pk = audit.pk
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("lms push_grade audit write failed school=%s err=%s", school_id_raw, exc)
+
     payload = {
         "success": bool(result.get("ok")),
         "provider": provider,
@@ -323,6 +402,8 @@ def lms_push_grade(request: HttpRequest, provider: str):
         "user_id": user_id,
         "score": score,
         "result": result,
+        "refresh": refresh,
+        "audit_id": audit_pk,
     }
     if (request.GET.get("format") or "").lower() == "json" or (request.POST.get("format") or "").lower() == "json":
         return JsonResponse(payload)

@@ -111,6 +111,8 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
             "OneRoster lineItem POST/PUT/DELETE write coverage live (v4.00.51)",
             "LMS push_grade UI button live on operator console (v4.00.51)",
             "OAuth2 token-refresh helper live (Canvas + Google; Moodle wstoken 501) (v4.00.51)",
+            "OneRoster GradingPeriod POST/PUT/DELETE write coverage live (v4.00.52)",
+            "LMS push_grade audit log live (v4.00.52, LMSPushGradeAudit, PII-safe SHA-256[:16] user_hash)",
         ],
     },
     {
@@ -785,6 +787,7 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
             "OIDC RP-Initiated Logout live (v4.00.46, end_session_endpoint + state + post_logout_redirect_uri)",
             "SAML ACS validates + writes session (v4.00.46, NameID + Audience + validity-window + provision + login())",
             "SSO tenant binding live (v4.00.51, UserTenantBinding for both OIDC + SAML provisioning)",
+            "Tenant-binding operator UI live (v4.00.52, /portal/super/sso/bindings/ + reassign)",
         ],
     },
 )
@@ -875,6 +878,8 @@ def coverage_summary() -> dict[str, Any]:
         "total": total,
         "with_deep_links": with_deep_links,
         "with_deep_links_pct": round(100.0 * with_deep_links / total, 1) if total else 0.0,
+        "with_facets": with_facets,
+        "with_facets_pct": round(100.0 * with_facets / total, 1) if total else 0.0,
         "by_tier": by_tier_count,
         "by_phase": by_phase_count,
     }
