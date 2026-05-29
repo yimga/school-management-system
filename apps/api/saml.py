@@ -477,8 +477,203 @@ def acs(request):
     return HttpResponseRedirect(target)
 
 
+_NS_DSIG = "http://www.w3.org/2000/09/xmldsig#"
+
+
+def _parse_saml_logout_request(b64_payload: str) -> dict:
+    """v4.00.58 — Parse a SAML2 LogoutRequest payload.
+
+    Accepts both HTTP-POST base64 form AND HTTP-Redirect base64+deflate form;
+    detects deflate by trying inflate-raw first and falling back to plain
+    base64. Returns ``{id, issuer, name_id, name_id_format, session_index,
+    not_on_or_after, signature_present, error?}``. NEVER raises.
+    """
+    import base64
+    import xml.etree.ElementTree as ET
+    import zlib
+
+    if not b64_payload:
+        return {"error": "missing_payload"}
+
+    try:
+        decoded = base64.b64decode(b64_payload, validate=False)
+    except (ValueError, TypeError) as exc:
+        return {"error": f"bad_base64: {exc}"}
+
+    # HTTP-Redirect binding wraps in deflate; try inflate first.
+    raw_xml = None
+    try:
+        raw_xml = zlib.decompress(decoded, -15)  # raw deflate (no zlib header)
+    except zlib.error:
+        raw_xml = decoded
+
+    try:
+        root = ET.fromstring(raw_xml)
+    except ET.ParseError:
+        # Maybe the payload was NOT deflated after all and inflate above
+        # produced garbage; retry with the original base64.
+        try:
+            root = ET.fromstring(decoded)
+        except ET.ParseError as exc:
+            return {"error": f"bad_xml: {exc}"}
+
+    issuer_el = root.find(f"{{{_NS_SAML}}}Issuer")
+    issuer = (issuer_el.text or "").strip() if issuer_el is not None else ""
+    name_id_el = root.find(f"{{{_NS_SAML}}}NameID")
+    name_id = (name_id_el.text or "").strip() if name_id_el is not None else ""
+    name_id_format = name_id_el.attrib.get("Format", "") if name_id_el is not None else ""
+    session_index_el = root.find(f"{{{_NS_SAMLP}}}SessionIndex")
+    session_index = (session_index_el.text or "").strip() if session_index_el is not None else ""
+    sig_present = root.find(f"{{{_NS_DSIG}}}Signature") is not None
+
+    return {
+        "id": root.attrib.get("ID", ""),
+        "issuer": issuer,
+        "name_id": name_id,
+        "name_id_format": name_id_format,
+        "session_index": session_index,
+        "not_on_or_after": root.attrib.get("NotOnOrAfter", ""),
+        "destination": root.attrib.get("Destination", ""),
+        "signature_present": sig_present,
+    }
+
+
+def _build_saml_logout_response(in_response_to: str, issuer: str, destination: str) -> bytes:
+    """v4.00.58 — Build a minimal LogoutResponse XML w/ Status=Success.
+
+    Returns raw bytes ready for base64+deflate encoding by the caller. Not
+    signed by us by default — IdPs that require signed responses MUST
+    receive the response via a downstream signer. The plaintext-XML path
+    is the same the SAML 2 Web SSO Logout Profile defines.
+    """
+    from datetime import datetime, timezone
+    import uuid
+
+    issue_instant = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    resp_id = f"_rmc-lr-{uuid.uuid4().hex}"
+    in_resp_to_attr = f' InResponseTo="{in_response_to}"' if in_response_to else ""
+    dest_attr = f' Destination="{destination}"' if destination else ""
+    xml = (
+        f'<samlp:LogoutResponse xmlns:samlp="{_NS_SAMLP}" '
+        f'xmlns:saml="{_NS_SAML}" '
+        f'ID="{resp_id}" Version="2.0" IssueInstant="{issue_instant}"{dest_attr}{in_resp_to_attr}>'
+        f'<saml:Issuer>{issuer}</saml:Issuer>'
+        f'<samlp:Status><samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/></samlp:Status>'
+        f'</samlp:LogoutResponse>'
+    )
+    return xml.encode("utf-8")
+
+
+def _idp_slo_target() -> str:
+    """v4.00.58 — Return the IdP's SLO redirect target.
+
+    Honors ``RMC_SAML_IDP_SLO_URL`` env / setting; falls back to root.
+    """
+    val = (
+        getattr(settings, "RMC_SAML_IDP_SLO_URL", None)
+        if hasattr(settings, "RMC_SAML_IDP_SLO_URL")
+        else os.environ.get("RMC_SAML_IDP_SLO_URL", "")
+    )
+    return (val or "").strip()
+
+
 @require_http_methods(["GET", "POST"])
 def sls(request):
-    """SLO endpoint stub — logs + acks; full SLO flow deferred."""
-    logger.info("saml sls: logout request received (method=%s)", request.method)
-    return JsonResponse({"success": True, "stage": "logout-acknowledged"})
+    """v4.00.58 — Hardened SLO endpoint.
+
+    Steps:
+      1. Extract SAMLRequest (HTTP-POST body or HTTP-Redirect query string).
+      2. Parse + classify (id, name_id, session_index, not_on_or_after,
+         signature_present, issuer).
+      3. Optional signature check — honors RMC_SAML_REQUIRE_SIGNATURE; when
+         truthy AND idp cert configured AND signature present, run the
+         v4.00.57 c14n verifier. deps_missing classification falls back
+         per RMC_SAML_SIGNATURE_STRICT (default true -> 503).
+      4. Flush the Django session (idempotent — no-op when not logged in).
+      5. Build LogoutResponse w/ Status=Success.
+      6. Redirect to the IdP's SLO URL (RMC_SAML_IDP_SLO_URL) when set,
+         else return the response inline as JSON / XML based on Accept.
+
+    ``?format=json`` returns the parsed shape for headless smoke / monitoring.
+    """
+    saml_req = request.POST.get("SAMLRequest") or request.GET.get("SAMLRequest") or ""
+    relay = request.POST.get("RelayState") or request.GET.get("RelayState") or ""
+    logger.info("saml sls: received LogoutRequest (method=%s, len=%s, relay_len=%s)",
+                request.method, len(saml_req), len(relay))
+
+    parsed = _parse_saml_logout_request(saml_req) if saml_req else {"error": "missing_saml_request"}
+    if parsed.get("error"):
+        # Even on parse failure we still flush the session so a poisoned
+        # request can't leave a logged-in user behind.
+        try:
+            request.session.flush()
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("saml sls: session flush failed: %s", exc)
+        return JsonResponse(
+            {"success": False, "stage": "parse_failed", "error": parsed["error"]},
+            status=400,
+        )
+
+    # Optional signature check.
+    sig_reason = ""
+    if _require_signature() and _idp_cert_b64() and parsed.get("signature_present"):
+        verified, reason = _verify_saml_signature_c14n(saml_req, _idp_cert_b64())
+        sig_reason = reason
+        if not verified:
+            if reason == "deps_missing":
+                if _require_signature_strict():
+                    return JsonResponse(
+                        {"success": False, "stage": "signature_verifier_deps_missing"},
+                        status=503,
+                    )
+                logger.warning("saml sls: c14n verifier deps_missing - falling back to presence-only")
+            else:
+                return JsonResponse(
+                    {"success": False, "stage": "signature_verification_failed", "reason": reason},
+                    status=401,
+                )
+    elif _require_signature() and _idp_cert_b64() and not parsed.get("signature_present"):
+        return JsonResponse(
+            {"success": False, "stage": "signature_required_but_missing"},
+            status=401,
+        )
+
+    # Flush the Django session.
+    try:
+        request.session.flush()
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml sls: session flush failed: %s", exc)
+
+    # Build LogoutResponse.
+    resp_bytes = _build_saml_logout_response(
+        in_response_to=parsed.get("id", ""),
+        issuer=_entity_id() or "rmc-sp",
+        destination=_idp_slo_target(),
+    )
+
+    if (request.GET.get("format") or "").lower() == "json":
+        import base64 as _b64
+        return JsonResponse({
+            "success": True,
+            "stage": "logged_out",
+            "in_response_to": parsed.get("id", ""),
+            "name_id": parsed.get("name_id", ""),
+            "session_index": parsed.get("session_index", ""),
+            "signature_present": parsed.get("signature_present", False),
+            "signature_reason": sig_reason,
+            "logout_response_b64": _b64.b64encode(resp_bytes).decode("ascii"),
+            "relay_state": relay,
+        })
+
+    # Redirect to IdP SLO target when configured; else return the XML inline.
+    idp_target = _idp_slo_target()
+    if idp_target:
+        import base64 as _b64
+        import urllib.parse
+        params = {"SAMLResponse": _b64.b64encode(resp_bytes).decode("ascii")}
+        if relay:
+            params["RelayState"] = relay
+        sep = "&" if "?" in idp_target else "?"
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(f"{idp_target}{sep}{urllib.parse.urlencode(params)}")
+    return HttpResponse(resp_bytes, content_type="text/xml; charset=utf-8")

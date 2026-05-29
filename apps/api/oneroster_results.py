@@ -185,6 +185,43 @@ def get_idem_audit_snapshot(*, limit: int = 200) -> list[dict[str, Any]]:
     return out[:limit]
 
 
+def _entity_from_path(path: str) -> str:
+    """v4.00.58 — Derive a stable, human-readable entity name from a Result
+    Service URL path. Used by the sweep instrumentation to avoid per-endpoint
+    hardcoded strings."""
+    p = (path or "").rstrip("/")
+    for marker, label in (
+        ("/lineItems/", "line-item"),
+        ("/gradingPeriods/", "grading-period"),
+        ("/categories/", "category"),
+        ("/attachments/", "attachment"),
+        ("/rubrics/", "rubric"),
+        ("/classGroups/bulk-delete-by-class", "classgroups-bulk-delete-by-class"),
+        ("/classGroups/", "class-group"),
+        ("/results/import", "results-bulk-import"),
+        ("/results/bulk-update", "results-bulk-update"),
+        ("/results/", "result"),
+    ):
+        if marker in p:
+            return label
+    return "unknown"
+
+
+def _log_idem_from_request(request, idem: str, status: int, replayed: bool) -> None:
+    """v4.00.58 — Convenience: derive entity from request.path and record."""
+    try:
+        _log_idem_event(
+            _entity_from_path(getattr(request, "path", "")),
+            idem,
+            getattr(request, "method", ""),
+            getattr(request, "path", ""),
+            int(status),
+            bool(replayed),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("idem-audit log (path-derived) failed: %s", exc)
+
+
 def get_idem_audit_totals() -> dict[str, int]:
     """Aggregate counts over the ring."""
     by_entity: dict[str, int] = {}
@@ -248,6 +285,7 @@ def put_result(request: HttpRequest, sourced_id: str):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -307,6 +345,7 @@ def put_result(request: HttpRequest, sourced_id: str):
 
     body_out = {"result": _eval_to_result(obj)}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201 if created else 200}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 201 if created else 200, False)
     resp = JsonResponse(body_out, status=201 if created else 200)
     resp["X-OneRoster-Entity"] = "result"
     return resp
@@ -342,6 +381,7 @@ def post_result(request: HttpRequest):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -414,6 +454,7 @@ def post_result(request: HttpRequest):
     )
     body_out = {"result": _eval_to_result(obj)}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 201, False)
     resp = JsonResponse(body_out, status=201)
     resp["Location"] = f"/api/roster/results/v1p2/results/res-{obj.pk}/"
     resp["X-OneRoster-Entity"] = "result"
@@ -504,6 +545,7 @@ def post_line_item(request: HttpRequest):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -546,6 +588,7 @@ def post_line_item(request: HttpRequest):
     }
     body_out = {"lineItem": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 201, False)
     resp = JsonResponse(body_out, status=201)
     resp["Location"] = f"/api/roster/results/v1p2/lineItems/{item['sourcedId']}/"
     resp["X-OneRoster-Entity"] = "lineItem"
@@ -578,6 +621,7 @@ def put_line_item(request: HttpRequest, sourced_id: str):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -619,6 +663,7 @@ def put_line_item(request: HttpRequest, sourced_id: str):
     }
     body_out = {"lineItem": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 200, False)
     resp = JsonResponse(body_out, status=200)
     resp["X-OneRoster-Entity"] = "lineItem"
     return resp
@@ -767,6 +812,7 @@ def post_grading_period(request: HttpRequest):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -819,6 +865,7 @@ def post_grading_period(request: HttpRequest):
     }
     body_out = {"gradingPeriod": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 201, False)
     resp = JsonResponse(body_out, status=201)
     resp["Location"] = f"/api/roster/results/v1p2/gradingPeriods/{item['sourcedId']}/"
     resp["X-OneRoster-Entity"] = "gradingPeriod"
@@ -844,6 +891,7 @@ def put_grading_period(request: HttpRequest, sourced_id: str):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -896,6 +944,7 @@ def put_grading_period(request: HttpRequest, sourced_id: str):
     }
     body_out = {"gradingPeriod": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 200, False)
     resp = JsonResponse(body_out, status=200)
     resp["X-OneRoster-Entity"] = "gradingPeriod"
     return resp
@@ -1040,6 +1089,7 @@ def post_category(request: HttpRequest):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1068,6 +1118,7 @@ def post_category(request: HttpRequest):
     _CATEGORY_TOMBSTONES.discard(sid)
     body_out = {"category": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 201, False)
     resp = JsonResponse(body_out, status=201)
     resp["Location"] = f"/api/roster/results/v1p2/categories/{sid}/"
     resp["X-OneRoster-Entity"] = "category"
@@ -1095,6 +1146,7 @@ def put_category(request: HttpRequest, sourced_id: str):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1131,6 +1183,7 @@ def put_category(request: HttpRequest, sourced_id: str):
     _CATEGORY_TOMBSTONES.discard(sourced_id)
     body_out = {"category": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 200, False)
     resp = JsonResponse(body_out, status=200)
     resp["X-OneRoster-Entity"] = "category"
     return resp
@@ -1267,6 +1320,7 @@ def post_attachment(request: HttpRequest):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1310,6 +1364,7 @@ def post_attachment(request: HttpRequest):
 
     body_out = {"attachment": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 201, False)
     resp = JsonResponse(body_out, status=201)
     resp["Location"] = f"/api/roster/results/v1p2/attachments/{sid}/"
     resp["X-OneRoster-Entity"] = "attachment"
@@ -1337,6 +1392,7 @@ def put_attachment(request: HttpRequest, sourced_id: str):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1373,6 +1429,7 @@ def put_attachment(request: HttpRequest, sourced_id: str):
     _ATTACHMENT_OVERRIDES[sourced_id] = item
     body_out = {"attachment": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 200, False)
     resp = JsonResponse(body_out, status=200)
     resp["X-OneRoster-Entity"] = "attachment"
     return resp
@@ -1476,6 +1533,7 @@ def post_rubric(request: HttpRequest):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1516,6 +1574,7 @@ def post_rubric(request: HttpRequest):
 
     body_out = {"rubric": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 201, False)
     resp = JsonResponse(body_out, status=201)
     resp["Location"] = f"/api/roster/results/v1p2/rubrics/{sid}/"
     resp["X-OneRoster-Entity"] = "rubric"
@@ -1543,6 +1602,7 @@ def put_rubric(request: HttpRequest, sourced_id: str):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1574,6 +1634,7 @@ def put_rubric(request: HttpRequest, sourced_id: str):
     _RUBRIC_OVERRIDES[sourced_id] = item
     body_out = {"rubric": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 200, False)
     resp = JsonResponse(body_out, status=200)
     resp["X-OneRoster-Entity"] = "rubric"
     return resp
@@ -1695,6 +1756,7 @@ def post_classgroup(request: HttpRequest):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1736,6 +1798,7 @@ def post_classgroup(request: HttpRequest):
 
     body_out = {"classGroup": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 201, False)
     resp = JsonResponse(body_out, status=201)
     resp["Location"] = f"/api/roster/results/v1p2/classGroups/{sid}/"
     resp["X-OneRoster-Entity"] = "classGroup"
@@ -1763,6 +1826,7 @@ def put_classgroup(request: HttpRequest, sourced_id: str):
         if cached.get("payload_hash") == payload_hash:
             resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
             resp["Idempotency-Replay"] = "true"
+            _log_idem_from_request(request, idem, resp.status_code, True)
             return resp
         return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
 
@@ -1799,6 +1863,7 @@ def put_classgroup(request: HttpRequest, sourced_id: str):
     _CLASSGROUP_OVERRIDES[sourced_id] = item
     body_out = {"classGroup": item}
     cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    _log_idem_from_request(request, idem, 200, False)
     resp = JsonResponse(body_out, status=200)
     resp["X-OneRoster-Entity"] = "classGroup"
     return resp
@@ -2106,6 +2171,197 @@ def post_results_bulk_import(request: HttpRequest):
 
 
 # ---------------------------------------------------------------------------
+# v4.00.58 — Results bulk-update.
+#
+# Mass grade change without creating new rows. Each row identifies an
+# existing Evaluation via ``sourcedId`` (``res-<pk>``) OR via
+# ``(studentSourcedId, lineItemSourcedId)``. Updates score/textScore in
+# place. Per-row outcome: updated / not_found / errored / unchanged.
+# Top-level body adds ``replayed`` like v4.00.56 bulk-import.
+# Idempotency-Key REQUIRED. Per-row ``idempotencyKey`` honored.
+# ---------------------------------------------------------------------------
+
+
+def _update_one_result(inner: dict[str, Any]) -> dict[str, Any]:
+    """Apply one bulk-update row. Returns ``{outcome, sourcedId?, error?}``."""
+    try:
+        from apps.evals.models import Evaluation
+        from apps.academics.models import Classroom
+    except Exception as exc:  # noqa: BLE001
+        return {"outcome": "errored", "error": f"models_unavailable: {exc}"}
+
+    sourced_id = str(inner.get("sourcedId") or "").strip()
+    student_id = str(inner.get("studentSourcedId") or "").strip()
+    line_item = str(inner.get("lineItemSourcedId") or "").strip()
+    classroom_pk = line_item[3:] if line_item.startswith("li-") else line_item
+
+    score_raw = inner.get("score", None)
+    text_score = str(inner.get("textScore") or "")[:16]
+
+    score_value = None
+    if score_raw not in (None, ""):
+        try:
+            score_value = float(score_raw)  # money-float-allow: oneroster-score-is-not-money-numeric-update
+        except (ValueError, TypeError):
+            return {"outcome": "errored", "error": "score_not_numeric"}
+
+    if score_value is None and not text_score:
+        return {"outcome": "errored", "error": "no_score_or_text_score_to_update"}
+
+    try:
+        obj = None
+        if sourced_id.startswith("res-"):
+            try:
+                pk = int(sourced_id[4:])
+            except (ValueError, TypeError):
+                return {"outcome": "errored", "error": "bad_sourced_id"}
+            obj = Evaluation.objects.filter(pk=pk).first()  # tenant-isolation-allow: result-bulk-update-by-pk
+        elif student_id and classroom_pk:
+            classroom = Classroom.objects.filter(pk=classroom_pk).first()  # tenant-isolation-allow: result-bulk-update-resolve-classroom
+            if classroom is None:
+                return {"outcome": "not_found", "error": "classroom_not_found"}
+            obj = Evaluation.objects.filter(  # tenant-isolation-allow: result-bulk-update-resolve-eval-by-school-student
+                school=classroom.school, student_id=student_id,
+            ).first()
+        else:
+            return {"outcome": "errored", "error": "missing_identifier"}
+
+        if obj is None:
+            return {"outcome": "not_found", "error": "evaluation_not_found"}
+
+        changed_fields: list[str] = []
+        if score_value is not None and obj.final_score != score_value:
+            obj.final_score = score_value
+            changed_fields.append("final_score")
+        if text_score and obj.letter_grade != text_score:
+            obj.letter_grade = text_score
+            changed_fields.append("letter_grade")
+        if not changed_fields:
+            return {"outcome": "unchanged", "sourcedId": f"res-{obj.pk}"}
+        changed_fields.append("updated_at")
+        obj.save(update_fields=changed_fields)
+        return {"outcome": "updated", "sourcedId": f"res-{obj.pk}", "fields": [f for f in changed_fields if f != "updated_at"]}
+    except (ValueError, TypeError) as exc:
+        return {"outcome": "errored", "error": f"bad_field_value: {exc}"}
+    except Exception as exc:  # noqa: BLE001 — bulk-update row must NEVER abort the batch
+        logger.warning("bulk-update row failed: %s", exc)
+        return {"outcome": "errored", "error": f"row_failed: {exc}"}
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_results_bulk_update(request: HttpRequest):
+    """v4.00.58 — Bulk-update existing Result rows (UPDATE, never CREATE).
+
+    Body: ``{"results": [{"sourcedId": "res-N", "score": "92", "textScore": "A-",
+    "idempotencyKey": "<optional>"}, ...]}``
+
+    Idempotency-Key REQUIRED. Per-row outcomes: ``updated``, ``not_found``,
+    ``errored``, ``unchanged``. 207 on partial failure; 200 when all clean.
+    Per-row ``idempotencyKey`` short-circuits to cached outcome on retry.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post-results-bulk-update", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            _log_idem_event("results-bulk-update", idem, request.method, request.path, resp.status_code, True)
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    rows = payload.get("results")
+    if not isinstance(rows, list):
+        return JsonResponse({"error": "missing_results_array"}, status=400)
+    if not rows:
+        return JsonResponse({"error": "empty_results_array"}, status=400)
+    if len(rows) > _BULK_IMPORT_MAX_ROWS:
+        return JsonResponse(
+            {"error": "too_many_rows", "max": _BULK_IMPORT_MAX_ROWS, "received": len(rows)},
+            status=413,
+        )
+
+    outcomes: list[dict[str, Any]] = []
+    updated = 0
+    not_found = 0
+    errored = 0
+    unchanged = 0
+    replayed = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            outcomes.append({"outcome": "errored", "error": "bad_row_shape"})
+            errored += 1
+            continue
+        row_idem = str(row.get("idempotencyKey") or "").strip()
+        if row_idem:
+            cached_row = cache.get(_bulk_row_idem_cache_key(row_idem))
+            if isinstance(cached_row, dict) and cached_row.get("outcome") in ("updated", "unchanged"):
+                replay_out = {
+                    "outcome": cached_row.get("outcome"),
+                    "sourcedId": cached_row.get("sourcedId", ""),
+                    "idempotencyKey": row_idem,
+                    "replayed": True,
+                }
+                outcomes.append(replay_out)
+                replayed += 1
+                if replay_out["outcome"] == "updated":
+                    updated += 1
+                else:
+                    unchanged += 1
+                continue
+        out = _update_one_result(row)
+        if row_idem:
+            out = {**out, "idempotencyKey": row_idem}
+            if out.get("outcome") in ("updated", "unchanged"):
+                cache.set(
+                    _bulk_row_idem_cache_key(row_idem),
+                    {"outcome": out["outcome"], "sourcedId": out.get("sourcedId", "")},
+                    _BULK_IMPORT_ROW_IDEM_TTL,
+                )
+        outcomes.append(out)
+        outcome = out.get("outcome", "errored")
+        if outcome == "updated":
+            updated += 1
+        elif outcome == "not_found":
+            not_found += 1
+        elif outcome == "unchanged":
+            unchanged += 1
+        else:
+            errored += 1
+
+    body_out = {
+        "total": len(rows),
+        "updated": updated,
+        "not_found": not_found,
+        "errored": errored,
+        "unchanged": unchanged,
+        "replayed": replayed,
+        "outcomes": outcomes,
+    }
+    status = 207 if (errored or not_found) else 200
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": status}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=status)
+    resp["X-OneRoster-Entity"] = "results-bulk-update"
+    _log_idem_event("results-bulk-update", idem, request.method, request.path, status, False)
+    return resp
+
+
+# ---------------------------------------------------------------------------
 # v4.00.56 — GradeBookEntry projections (lineItem + category + classGroup
 # + results rollup composition view).
 #
@@ -2314,6 +2570,99 @@ def _gradebook_csv_row(entry: dict) -> str:
         rollup.get("max") or "",
     ]
     return ",".join(_csv_quote(v) for v in values) + "\r\n"
+
+
+# ---------------------------------------------------------------------------
+# v4.00.58 — GradeBookEntry PDF render per class (reportlab landscape table).
+#
+# Same projection set as the v4.00.57 CSV export, but rendered as a
+# portable PDF for posting / printing. reportlab is already on the
+# requirements list (used by other report surfaces). When reportlab
+# is unavailable for any reason, the endpoint returns 503 with explicit
+# ``reportlab_missing`` so the operator sees the gap.
+# ---------------------------------------------------------------------------
+
+
+@require_http_methods(["GET"])
+def gradebook_entries_pdf(request: HttpRequest, class_sourced_id: str):
+    """v4.00.58 — Render GradeBookEntries for ``class_sourced_id`` as PDF.
+
+    Bearer-gated. ``class_sourced_id`` is the OneRoster classSourcedId.
+    Empty match returns a PDF with header + "(no entries)" caption, NOT 404.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    class_sourced_id = (class_sourced_id or "").strip()
+    if not class_sourced_id:
+        return JsonResponse({"error": "missing_class_sourced_id"}, status=400)
+
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import landscape, A4
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.platypus import (
+            SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+        )
+    except ImportError:
+        return JsonResponse({"error": "reportlab_missing"}, status=503)
+
+    from django.http import HttpResponse
+    import io
+
+    rows = []
+    for entry in _all_gradebook_entries():
+        li = entry.get("lineItem") or {}
+        if str(li.get("classSourcedId") or "") != class_sourced_id:
+            continue
+        cat = entry.get("category") or {}
+        cgs = entry.get("classGroups") or []
+        rollup = entry.get("resultsRollup") or {}
+        rows.append([
+            entry.get("sourcedId") or "",
+            li.get("title") or "",
+            (cat.get("title") if isinstance(cat, dict) else "") or "",
+            "|".join(g.get("sourcedId", "") for g in cgs),
+            str(rollup.get("count", 0)),
+            str(rollup.get("scored", 0)),
+            str(rollup.get("pending", 0)),
+            str(rollup.get("average") or ""),
+            str(rollup.get("min") or ""),
+            str(rollup.get("max") or ""),
+        ])
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buf, pagesize=landscape(A4),
+        leftMargin=12 * mm, rightMargin=12 * mm,
+        topMargin=12 * mm, bottomMargin=12 * mm,
+        title=f"Gradebook {class_sourced_id}",
+    )
+    styles = getSampleStyleSheet()
+    story = [Paragraph(f"<b>Gradebook — class {class_sourced_id}</b>", styles["Title"]), Spacer(1, 6)]
+    header = ["sourcedId", "lineItem", "category", "classGroups", "count", "scored", "pending", "avg", "min", "max"]
+    table_data = [header] + rows if rows else [header, ["(no entries)"] + [""] * (len(header) - 1)]
+    tbl = Table(table_data, repeatRows=1)
+    tbl.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f2937")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#9ca3af")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (4, 1), (-1, -1), "RIGHT"),
+    ]))
+    story.append(tbl)
+    doc.build(story)
+    pdf_bytes = buf.getvalue()
+    buf.close()
+
+    safe_class_id = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in class_sourced_id)[:64]
+    resp = HttpResponse(pdf_bytes, content_type="application/pdf")
+    resp["Content-Disposition"] = f'attachment; filename="gradebook-{safe_class_id}.pdf"'
+    resp["X-OneRoster-Entity"] = "gradebook-entries-pdf"
+    return resp
 
 
 @require_http_methods(["GET"])

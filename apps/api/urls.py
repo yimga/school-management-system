@@ -619,11 +619,15 @@ urlpatterns = [
     path("roster/results/v1p2/classGroups/bulk-delete-by-class/", _oneroster_results.classgroups_bulk_delete_by_class, name="api-roster-results-class-groups-bulk-delete"),
     path("roster/results/v1p2/classGroups/<str:sourced_id>/", _oneroster_results.classgroup_dispatch, name="api-roster-results-class-group-detail"),
     path("roster/results/v1p2/results/import/", _oneroster_results.post_results_bulk_import, name="api-roster-results-bulk-import"),
+    # v4.00.58 — Bulk-update existing Result rows (UPDATE, never CREATE).
+    path("roster/results/v1p2/results/bulk-update/", _oneroster_results.post_results_bulk_update, name="api-roster-results-bulk-update"),
     # v4.00.56 — GradeBookEntry projections (lineItem + category + classGroup + results rollup).
     path("roster/results/v1p2/gradeBookEntries/", _oneroster_results.gradebook_entries_collection, name="api-roster-results-gradebook-entries"),
     path("roster/results/v1p2/gradeBookEntries/<str:sourced_id>/", _oneroster_results.gradebook_entry_detail, name="api-roster-results-gradebook-entry-detail"),
     # v4.00.57 — GradeBookEntry CSV export per class (download endpoint).
     path("roster/results/v1p2/classes/<str:class_sourced_id>/gradeBookEntries.csv", _oneroster_results.gradebook_entries_csv, name="api-roster-results-gradebook-entries-csv"),
+    # v4.00.58 — GradeBookEntry PDF render per class (reportlab landscape table).
+    path("roster/results/v1p2/classes/<str:class_sourced_id>/gradeBookEntries.pdf", _oneroster_results.gradebook_entries_pdf, name="api-roster-results-gradebook-entries-pdf"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,
