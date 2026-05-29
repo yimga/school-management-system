@@ -57,10 +57,12 @@
             <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" id="cpShowShortcutsHelp" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
               <i class="bi bi-command" aria-hidden="true"></i>
             </button>
-            <a href="{% url 'studio_os:shell' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-xl-inline-flex" title="{% trans 'Studio workspace' %}">
-              <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
-              <span>{% trans "Studio" %}</span>
-            </a>
+            {# v4.00.24 — Studio chip removed from manager header per UX
+               directive. Studio is reachable from the Workspace dropdown
+               and the command palette (Ctrl+K → studio); keeping it in
+               the topbar was forcing the row to stretch on lg viewports
+               and competing with the weather/date/operator-presence pills
+               for space. #}
             {% if not rmc_shell.manager_header_hide_config_chip %}
             <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-lg-inline-flex" title="{% trans 'Configuration Control Center' %}" data-rmc-header-config-chip="1">
               <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>

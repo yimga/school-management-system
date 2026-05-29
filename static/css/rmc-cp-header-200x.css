@@ -473,3 +473,139 @@ body.control-plane-shell .cp-nav-pill__glyph {
   line-height: 1;
   flex-shrink: 0;
 }
+
+/* =================================================================
+   v4.00.24 (2026-05-29) — Manager header rebalance.
+
+   Customer feedback: the manager/control-plane header is stretched
+   across the full width with too much empty space between groups
+   (search · weather · pills · icons · workspace · bell · theme ·
+   avatar). The Studio chip was already removed in the template.
+   This block:
+     1. Replaces the 1fr stretch with a content-width flex row so the
+        items pack together at the right (search owns the left-stretch).
+     2. Caps the command/search bar at min(420px, 35vw) so it never
+        eats the room the actions need.
+     3. Compacts every action chip / icon-btn to a uniform 32px hit
+        target with 4px gap.
+     4. Hides the most secondary chips (operator-presence labels) to
+        icon-only at lg, reveals text at xl+.
+   ================================================================= */
+
+/* Outer 3-column grid: brand | toolbar | (none) -> brand auto / toolbar
+   takes the rest. Same as before but no awkward stretch. */
+.cp-header__row--utility .rmc-platform-header__inner,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__inner,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__inner {
+  grid-template-columns: minmax(220px, auto) 1fr !important; /* style-allow: header-rebalance-grid */
+  gap: 12px !important; /* style-allow: header-rebalance-gap */
+  padding: 8px 16px !important; /* style-allow: header-rebalance-pad */
+  min-height: 56px;
+}
+
+/* Inner toolbar: search on the LEFT, packed actions on the RIGHT, gap 6px,
+   no stretch in the middle. */
+.cp-header__row--utility .rmc-platform-header__toolbar,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__toolbar,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__toolbar {
+  display: flex !important; /* style-allow: header-rebalance-flex */
+  flex-wrap: nowrap !important; /* style-allow: header-rebalance-flex */
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px !important; /* style-allow: header-rebalance-flex */
+  min-width: 0;
+}
+
+/* Search bar gets a fixed max-width; never grows past 35% of viewport */
+.cp-header__row--utility .rmc-platform-header__command,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__command,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__command {
+  flex: 1 1 320px;
+  max-width: min(420px, 35vw) !important; /* style-allow: header-rebalance-search */
+  margin-right: auto; /* pushes everything else to the right */
+  justify-self: start;
+}
+
+/* Weather/context strip stays compact (no horizontal padding) */
+.cp-header__row--utility .rmc-platform-header__context,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__context,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__context {
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+/* Actions cluster packs tight, never wraps */
+.cp-header__row--utility .rmc-platform-header__actions,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__actions,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px !important; /* style-allow: header-rebalance-actions-gap */
+  margin: 0;
+}
+
+/* Every icon-button in the manager header normalised to 32x32 so the
+   row reads as a clean strip of pills instead of mismatched lumps. */
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__icon-btn,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__icon-btn,
+body.admin-manager-shell .cp-header__row--utility .cp-topbar-bell,
+body.control-plane-shell .cp-header__row--utility .cp-topbar-bell,
+body.admin-manager-shell .cp-header__row--utility .cp-topbar-theme-toggle,
+body.control-plane-shell .cp-header__row--utility .cp-topbar-theme-toggle {
+  width: 32px !important; /* style-allow: header-rebalance-icon */
+  height: 32px !important; /* style-allow: header-rebalance-icon */
+  padding: 0 !important; /* style-allow: header-rebalance-icon */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+/* Pill-style chips (Config, Workspace) compress: smaller padding, font 12,
+   only show their text labels at >= xl. */
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__chip,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__chip {
+  padding: 4px 10px !important; /* style-allow: header-rebalance-chip */
+  font-size: 12px !important; /* style-allow: header-rebalance-chip */
+  height: 32px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+/* Operator-presence pills (1 operator online / All systems handling well)
+   compact to small dot+text format and hide label below xl */
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__actions .cp-operator-presence,
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__actions [data-rmc-operator-presence],
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__actions .cp-operator-presence,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__actions [data-rmc-operator-presence] {
+  font-size: 11px;
+  padding: 4px 8px;
+  gap: 4px;
+  height: 28px;
+}
+@media (max-width: 1279.98px) {
+  body.control-plane-shell .cp-header__row--utility .rmc-platform-header__actions .cp-operator-presence__label,
+  body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__actions .cp-operator-presence__label,
+  body.control-plane-shell .cp-header__row--utility .rmc-platform-header__actions [data-rmc-operator-presence-label],
+  body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__actions [data-rmc-operator-presence-label] {
+    display: none;
+  }
+}
+
+/* Brand wordmark — keep compact, never wrap, ellipsis if needed */
+body.admin-manager-shell .cp-header__row--utility .cp-brand,
+body.control-plane-shell .cp-header__row--utility .cp-brand {
+  max-width: 320px;
+  flex: 0 0 auto;
+}
+body.admin-manager-shell .cp-header__row--utility .cp-brand__crumb,
+body.control-plane-shell .cp-header__row--utility .cp-brand__crumb {
+  font-size: 10px;
+  opacity: 0.7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
