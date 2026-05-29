@@ -27,7 +27,7 @@
     </section>
   {% endif %}
 
-  <section style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;">
+  <section style="display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:18px;">
     <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
       <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Configured" %}</div>
       <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.configured }}</div>
@@ -48,6 +48,14 @@
       <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Missing refresh token" %}</div>
       <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.missing_refresh }}</div>
     </div>
+    <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Auto-pruned (24h)" %}</div>
+      <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.pruned_24h|default:"0" }}</div>
+    </div>
+    <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Prune dry-run (24h)" %}</div>
+      <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.pruned_dry_run_24h|default:"0" }}</div>
+    </div>
   </section>
 
   <section>
@@ -65,6 +73,8 @@
             <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Push fail (24h)" %}</th>
             <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Rot OK (24h)" %}</th>
             <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Rot fail (24h)" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Pruned (24h)" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Prune dry (24h)" %}</th>
             <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);">{% trans "Latest refresh" %}</th>
             <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);">{% trans "Actions" %}</th>
           </tr>
@@ -81,6 +91,8 @@
               <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.push_failed_24h }}</td>
               <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.rotation_ok_24h }}</td>
               <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.rotation_failed_24h }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.prune_24h|default:"0" }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;color:var(--text-secondary);">{{ p.prune_dry_run_24h|default:"0" }}</td>
               <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);font-family:monospace;font-size:11px;color:var(--text-secondary);">{{ p.latest_refresh_at }}</td>
               <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);white-space:nowrap;">
                 <form method="post" action="{% url 'migration_cloud_super:migration_cloud_lms_diagnostics_force_refresh' %}" style="display:inline;">

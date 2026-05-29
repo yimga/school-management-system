@@ -138,6 +138,15 @@ def _demographic_from_student(s) -> dict[str, Any]:
         except Exception:  # noqa: BLE001
             date_last_modified = ""
     sid = f"demo-{s.pk}"
+    # v4.00.61 — OneRoster v1.2 spec Appendix link field. Each Demographic
+    # records the User sourcedIds it applies to. Our projection is 1:1
+    # (one Demographic ← one StudentProfile ← one User), so the array
+    # carries a single User.pk string. Empty when the StudentProfile
+    # has no linked user (rare — orphaned profile rows).
+    user_sourced_ids: list[str] = []
+    user_id = getattr(s, "user_id", None)
+    if user_id:
+        user_sourced_ids.append(str(user_id))
     rec = {
         "sourcedId": sid,
         "status": "active",
@@ -155,6 +164,8 @@ def _demographic_from_student(s) -> dict[str, Any]:
         "stateOfBirthAbbreviation": "",
         "cityOfBirth": (getattr(s, "place_of_birth", "") or ""),
         "publicSchoolResidenceStatus": "",
+        # v4.00.61 spec link field — GUIDRef array per IMS OneRoster v1.2.
+        "userSourcedIds": user_sourced_ids,
     }
     # v4.00.60 — fold in any caller-supplied optional fields stored in the
     # override ring so caller-supplied race/ethnicity/citizenship round-trips.
@@ -178,11 +189,19 @@ def _iter_demographics() -> Iterable[dict[str, Any]]:
 
 @require_http_methods(["GET"])
 def demographics_collection(request: HttpRequest):
-    """v4.00.59 — Paginated list of Demographic records."""
+    """v4.00.59 — Paginated list of Demographic records.
+
+    v4.00.61 — supports ``?userSourcedId=<pk>`` filter per OneRoster v1.2
+    spec convention: returns only Demographic records whose ``userSourcedIds``
+    array contains the supplied User sourcedId.
+    """
     gate = _gate(request)
     if gate is not None:
         return gate
     items = list(_iter_demographics())
+    user_filter = (request.GET.get("userSourcedId") or "").strip()
+    if user_filter:
+        items = [r for r in items if user_filter in (r.get("userSourcedIds") or [])]
     page, meta = _paginate(request, items)
     return _envelope("demographics", page, meta)
 

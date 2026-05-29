@@ -212,6 +212,118 @@ def _verify_saml_signature_c14n(b64_response: str, idp_cert_b64: str) -> tuple[b
         return False, "signature_invalid"
 
 
+# ---------------------------------------------------------------------------
+# v4.00.61 — SAML LogoutRequest signing (SP-initiated SLO outbound).
+#
+# Reuses the v4.00.57 lazy lxml+signxml import pattern so the install is
+# the ONLY operator action required to activate. Until lxml/signxml land,
+# the signing helper returns ``(unsigned_xml, "deps_missing")`` and the
+# caller honors ``RMC_SAML_SIGNATURE_STRICT`` to decide fail-closed
+# (503 in strict mode) or fall through to the unsigned path.
+#
+# Configuration:
+#   * ``RMC_SAML_SP_SIGN_LOGOUT=1`` — opt-in to signed LogoutRequest path
+#                                    (default OFF — preserves v4.00.60).
+#   * ``RMC_SAML_SP_PRIVATE_KEY_PEM`` — PEM-encoded SP RSA private key.
+#   * ``RMC_SAML_SP_CERT_PEM``        — PEM-encoded SP X509 cert (embedded
+#                                       in the signature as ``KeyInfo``).
+#   * ``RMC_SAML_SP_SIGNATURE_ALG``   — defaults to RSA-SHA256.
+# ---------------------------------------------------------------------------
+
+
+def _sp_sign_logout_enabled() -> bool:
+    """v4.00.61 — opt-in toggle for the signed LogoutRequest path."""
+    raw = (
+        getattr(settings, "RMC_SAML_SP_SIGN_LOGOUT", None)
+        if hasattr(settings, "RMC_SAML_SP_SIGN_LOGOUT")
+        else os.environ.get("RMC_SAML_SP_SIGN_LOGOUT", "")
+    )
+    if raw is None or raw == "":
+        return False
+    return str(raw).lower() in ("1", "true", "yes", "on")
+
+
+def _sp_private_key_pem() -> str:
+    return (
+        getattr(settings, "RMC_SAML_SP_PRIVATE_KEY_PEM", "")
+        or os.environ.get("RMC_SAML_SP_PRIVATE_KEY_PEM", "")
+        or ""
+    )
+
+
+def _sp_cert_pem() -> str:
+    return (
+        getattr(settings, "RMC_SAML_SP_CERT_PEM", "")
+        or os.environ.get("RMC_SAML_SP_CERT_PEM", "")
+        or ""
+    )
+
+
+def _sp_signature_alg() -> str:
+    raw = (
+        getattr(settings, "RMC_SAML_SP_SIGNATURE_ALG", "")
+        or os.environ.get("RMC_SAML_SP_SIGNATURE_ALG", "")
+        or ""
+    ).strip()
+    return raw or "rsa-sha256"
+
+
+def _sign_saml_logout_request(xml_bytes: bytes) -> tuple[bytes, str]:
+    """v4.00.61 — Sign a LogoutRequest XML in-place via signxml + lxml.
+
+    Returns ``(signed_xml_bytes, reason)`` where ``reason`` is one of:
+        ``"ok"``              — signature embedded successfully
+        ``"deps_missing"``    — lxml/signxml not installed (operator action)
+        ``"key_unset"``       — SP private key not configured
+        ``"cert_unset"``      — SP cert not configured
+        ``"signature_error"`` — signxml raised mid-sign (key/cert mismatch)
+
+    Pass-through: when reason != "ok", returns the original unsigned bytes
+    so callers in non-strict mode can still emit a usable LogoutRequest.
+    NEVER raises.
+    """
+    key_pem = _sp_private_key_pem().strip()
+    if not key_pem:
+        return xml_bytes, "key_unset"
+    cert_pem = _sp_cert_pem().strip()
+    if not cert_pem:
+        return xml_bytes, "cert_unset"
+
+    try:
+        from lxml import etree  # type: ignore
+        from signxml import XMLSigner, methods  # type: ignore
+    except ImportError:
+        return xml_bytes, "deps_missing"
+
+    try:
+        parser = etree.XMLParser(resolve_entities=False, no_network=True)
+        root = etree.fromstring(xml_bytes, parser=parser)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml sign: lxml parse failed: %s", exc)
+        return xml_bytes, "bad_xml"
+
+    alg = _sp_signature_alg()
+    signature_alg = f"rsa-sha256" if alg == "rsa-sha256" else alg
+
+    try:
+        signed_root = XMLSigner(
+            method=methods.enveloped,
+            signature_algorithm=signature_alg,
+            digest_algorithm="sha256",
+            c14n_algorithm="http://www.w3.org/2001/10/xml-exc-c14n#",
+        ).sign(root, key=key_pem, cert=cert_pem)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("saml sign: signxml raised: %s", exc)
+        return xml_bytes, "signature_error"
+
+    try:
+        signed_bytes = etree.tostring(signed_root, xml_declaration=False)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml sign: tostring failed: %s", exc)
+        return xml_bytes, "serialize_error"
+    return signed_bytes, "ok"
+
+
 def _parse_saml_response(b64_response: str) -> dict:
     """v4.00.45 — Parse a SAMLResponse: base64-decode, XML-parse, extract
     Subject NameID + Audience + NotBefore/NotOnOrAfter + Issuer.
@@ -949,6 +1061,27 @@ def slo_start(request):
         issuer=issuer,
         destination=idp_target,
     )
+
+    # v4.00.61 — opt-in sign the LogoutRequest body when RMC_SAML_SP_SIGN_LOGOUT=1.
+    # Honors RMC_SAML_SIGNATURE_STRICT (default true): on deps_missing / key_unset
+    # / cert_unset, strict mode 503s; non-strict falls through to unsigned XML.
+    signature_reason = "unsigned"
+    signed = False
+    if _sp_sign_logout_enabled():
+        signed_bytes, signature_reason = _sign_saml_logout_request(req_bytes)
+        if signature_reason == "ok":
+            req_bytes = signed_bytes
+            signed = True
+        elif _require_signature_strict():
+            return JsonResponse({
+                "success": False,
+                "stage": "sp_signer_unavailable",
+                "reason": signature_reason,
+            }, status=503)
+        else:
+            logger.warning("saml slo_start: signing requested but %s - emitting unsigned",
+                           signature_reason)
+
     payload_b64 = _b64.b64encode(req_bytes).decode("ascii")
 
     if (request.GET.get("format") or "").lower() == "json":
@@ -962,6 +1095,8 @@ def slo_start(request):
             "logout_request_b64": payload_b64,
             "binding": "HTTP-POST",
             "relay_state": relay,
+            "signed": signed,
+            "signature_reason": signature_reason,
         })
 
     if not idp_target:
