@@ -239,20 +239,41 @@ _DIAG_ACTION_COURSE_ID = "_diag_action"
 
 def _persist_action_to_db(*, action: str, provider: str, actor_hash: str,
                           actor_user_id: str, summary: dict) -> None:
-    """Write the action to LMSPushGradeAudit so it survives worker restarts.
+    """Write the action to LMSDiagActionAudit + LMSPushGradeAudit.
 
-    Uses the existing LMSPushGradeAudit table to avoid a new migration.
+    v4.00.62 — dual-write during transition: new dedicated
+    ``LMSDiagActionAudit`` table is canonical; legacy
+    ``LMSPushGradeAudit`` with ``course_id="_diag_action"`` still
+    written so any operator tooling watching the legacy table during
+    deploy doesn't go blind mid-flight. Read paths prefer the new
+    table; legacy rows are read only on fall-through.
     NEVER raises — DB unavailability degrades gracefully to in-process ring.
     """
+    considered = int(summary.get("considered") or 0)
+    ok_count = int(summary.get("refreshed") or summary.get("rotated") or 0)
+    failed = int(summary.get("failed") or 0)
+
+    # v4.00.62 canonical: dedicated LMSDiagActionAudit table.
+    try:
+        from apps.integrations_marketplace.models import LMSDiagActionAudit
+        LMSDiagActionAudit.objects.create(  # tenant-isolation-allow: lms-diagnostics-action-audit-platform-scope-staff-only
+            action=action,
+            provider=provider,
+            actor_hash=actor_hash,
+            actor_user_id=(actor_user_id or ""),
+            considered=considered,
+            ok_count=ok_count,
+            failed_count=failed,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("lms_diagnostics: diag-action db persist failed: %s", exc)
+
+    # Legacy mirror — kept during the transition window so any operator
+    # tooling watching the legacy table during deploy doesn't go blind.
     try:
         from apps.integrations_marketplace.models import LMSPushGradeAudit
-
-        considered = int(summary.get("considered") or 0)
-        ok_count = int(summary.get("refreshed") or summary.get("rotated") or 0)
-        failed = int(summary.get("failed") or 0)
-        # Encode counters into detail so the read-back can reconstruct.
         detail = f"considered={considered} ok={ok_count} failed={failed}"
-        LMSPushGradeAudit.objects.create(  # tenant-isolation-allow: lms-diagnostics-action-audit-platform-scope-staff-only
+        LMSPushGradeAudit.objects.create(  # tenant-isolation-allow: lms-diagnostics-action-audit-legacy-mirror-platform-scope
             school_id=None,
             provider=provider,
             course_id=_DIAG_ACTION_COURSE_ID,
@@ -262,10 +283,10 @@ def _persist_action_to_db(*, action: str, provider: str, actor_hash: str,
             ok=(failed == 0 and ok_count >= 0),
             status_code=200,
             detail=detail[:512],
-            actor_user_id=(actor_user_id or None),
+            actor_user_id=(actor_user_id or ""),
         )
     except Exception as exc:  # noqa: BLE001
-        logger.debug("lms_diagnostics: db persist failed: %s", exc)
+        logger.debug("lms_diagnostics: legacy db persist failed: %s", exc)
 
 
 def _row_to_action_event(row) -> dict:
@@ -293,16 +314,62 @@ def _row_to_action_event(row) -> dict:
     }
 
 
-def _read_action_history_from_db(*, limit: int = 50) -> list[dict]:
-    """Newest-first DB read of recent diag-action rows. NEVER raises."""
+def _diag_row_to_event(row) -> dict:
+    """v4.00.62 — Project an LMSDiagActionAudit row into the ring-buffer shape."""
+    ts = getattr(row, "created_at", None)
+    return {
+        "ts_iso": ts.isoformat() if ts else "",
+        "actor_hash": str(getattr(row, "actor_hash", "") or ""),
+        "action": str(getattr(row, "action", "") or ""),
+        "provider": str(getattr(row, "provider", "") or ""),
+        "considered": int(getattr(row, "considered", 0) or 0),
+        "ok": int(getattr(row, "ok_count", 0) or 0),
+        "failed": int(getattr(row, "failed_count", 0) or 0),
+    }
+
+
+def _read_action_history_from_db(
+    *,
+    limit: int = 50,
+    since=None,
+    before=None,
+) -> list[dict]:
+    """Newest-first DB read of recent diag-action rows. NEVER raises.
+
+    v4.00.62 — prefers the new dedicated ``LMSDiagActionAudit`` table;
+    falls through to legacy ``LMSPushGradeAudit`` when the new table is
+    empty (covers the deploy transition before the first action lands).
+    Supports ``since`` + ``before`` datetime window (T5 v4.00.62).
+    """
+    # New canonical table.
+    try:
+        from apps.integrations_marketplace.models import LMSDiagActionAudit
+        qs = LMSDiagActionAudit.objects.all()  # tenant-isolation-allow: lms-diagnostics-action-history-read-platform-scope-staff-only
+        if since is not None:
+            qs = qs.filter(created_at__gte=since)
+        if before is not None:
+            qs = qs.filter(created_at__lt=before)
+        qs = qs.order_by("-created_at")[:max(1, limit)]
+        rows = list(qs)
+        if rows:
+            return [_diag_row_to_event(r) for r in rows]
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("lms_diagnostics: diag-table db read failed: %s", exc)
+
+    # Legacy fall-through.
     try:
         from apps.integrations_marketplace.models import LMSPushGradeAudit
-        qs = LMSPushGradeAudit.objects.filter(  # tenant-isolation-allow: lms-diagnostics-action-history-read-platform-scope-staff-only
+        qs = LMSPushGradeAudit.objects.filter(  # tenant-isolation-allow: lms-diagnostics-action-history-legacy-read-platform-scope-staff-only
             course_id=_DIAG_ACTION_COURSE_ID,
-        ).order_by("-created_at")[:max(1, limit)]
+        )
+        if since is not None:
+            qs = qs.filter(created_at__gte=since)
+        if before is not None:
+            qs = qs.filter(created_at__lt=before)
+        qs = qs.order_by("-created_at")[:max(1, limit)]
         return [_row_to_action_event(r) for r in qs]
     except Exception as exc:  # noqa: BLE001
-        logger.debug("lms_diagnostics: db read failed: %s", exc)
+        logger.debug("lms_diagnostics: legacy db read failed: %s", exc)
         return []
 
 
@@ -338,21 +405,43 @@ def _record_action(*, request: HttpRequest, action: str, provider: str, summary:
         logger.debug("lms_diagnostics: action-ring append failed: %s", exc)
 
 
-def get_last_action_snapshot(*, limit: int = 50, durable: bool = True) -> list[dict]:
+def get_last_action_snapshot(
+    *,
+    limit: int = 50,
+    durable: bool = True,
+    since=None,
+    before=None,
+) -> list[dict]:
     """Return a newest-first snapshot of recent actions.
 
     v4.00.61 — when ``durable=True`` (default), reads from the DB first so
     the operator sees actions from PRIOR worker generations too. Falls
-    back to the in-process ring when DB is unavailable. Pass
-    ``durable=False`` to read ring-only (faster, in-process only).
+    back to the in-process ring when DB is unavailable.
+    v4.00.62 — optional ``since`` + ``before`` window (datetime); both
+    must be tz-aware (request layer parses ISO-8601 -> UTC dt).
     """
     if limit <= 0:
         return []
     if durable:
-        rows = _read_action_history_from_db(limit=limit)
+        rows = _read_action_history_from_db(limit=limit, since=since, before=before)
         if rows:
             return rows
     out = list(reversed(_LAST_ACTION_RING))
+    # In-process ring window filter (when DB read returned nothing).
+    if since is not None or before is not None:
+        from datetime import datetime as _dt
+        filtered = []
+        for e in out:
+            try:
+                ts = _dt.fromisoformat(e.get("ts_iso", "").replace("Z", "+00:00"))
+            except (ValueError, TypeError):
+                continue
+            if since is not None and ts < since:
+                continue
+            if before is not None and ts >= before:
+                continue
+            filtered.append(e)
+        out = filtered
     return out[:limit]
 
 
@@ -381,21 +470,57 @@ def _action_totals() -> dict:
 def lms_diagnostics_action_history(request: HttpRequest):
     """v4.00.60 — JSON-only endpoint returning the last-action ring snapshot.
 
-    Used by the dashboard's "Last action history" panel for lightweight
-    auto-refresh (no full page reload) and by external monitors who want
-    a stable shape they can poll.
+    v4.00.62 — supports ISO-8601 ``?since=`` + ``?before=`` window
+    pagination for forensic reads ("show me every operator click in this
+    1-hour window"). Both bounds parsed as RFC-3339 / ISO-8601 strings
+    and converted to tz-aware datetime (assumes UTC when no tz suffix).
+    Bad timestamps fall through to the unwindowed default (logged, not
+    error — operator-facing surface should NOT 400 on a typo).
     """
     try:
         limit = max(1, min(200, int(request.GET.get("limit") or "50")))
     except (ValueError, TypeError):
         limit = 50
+
+    since = _parse_window_iso(request.GET.get("since"))
+    before = _parse_window_iso(request.GET.get("before"))
+
     return JsonResponse({
         "success": True,
         "generated_at": timezone.now().isoformat(),
         "limit": limit,
+        "since": since.isoformat() if since else "",
+        "before": before.isoformat() if before else "",
         "totals": _action_totals(),
-        "entries": get_last_action_snapshot(limit=limit),
+        "entries": get_last_action_snapshot(limit=limit, since=since, before=before),
     })
+
+
+def _parse_window_iso(raw):
+    """v4.00.62 — Parse an ISO-8601 timestamp into a tz-aware datetime.
+
+    Returns ``None`` on missing OR malformed input (operator-facing
+    surface, so we don't 400). Accepts ``2026-05-29T12:00:00Z`` (Z
+    suffix), ``2026-05-29T12:00:00+00:00``, ``2026-05-29T12:00:00`` (naive,
+    treated as UTC), and ``2026-05-29`` (midnight UTC).
+    """
+    if not raw:
+        return None
+    raw = str(raw).strip()
+    if not raw:
+        return None
+    from datetime import datetime, timezone as _tz_mod
+    # Normalize trailing Z to +00:00 so fromisoformat accepts it on 3.10.
+    if raw.endswith("Z"):
+        raw = raw[:-1] + "+00:00"
+    try:
+        dt = datetime.fromisoformat(raw)
+    except (ValueError, TypeError):
+        logger.debug("lms_diagnostics: window parse failed: %r", raw)
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=_tz_mod.utc)
+    return dt
 
 
 @staff_member_required

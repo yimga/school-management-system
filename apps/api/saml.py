@@ -324,6 +324,107 @@ def _sign_saml_logout_request(xml_bytes: bytes) -> tuple[bytes, str]:
     return signed_bytes, "ok"
 
 
+# ---------------------------------------------------------------------------
+# v4.00.62 — SAML 2.0 HTTP-Redirect binding signature (SLO outbound).
+#
+# Distinct from v4.00.61's HTTP-POST binding signature (which embeds a
+# <ds:Signature> element inside the XML and forwards as form POST). The
+# Redirect binding signs the URL QUERY STRING (after deflate+base64
+# encoding the SAMLRequest), per SAML 2.0 Bindings § 3.4.4.
+#
+# Wire format that the IdP redirects to:
+#
+#   <IdP-SLO-URL>?SAMLRequest=<b64(deflate(xml))>
+#                &RelayState=<rs>
+#                &SigAlg=<alg-URI>
+#                &Signature=<b64(rsa-sign(<query-string-before-Signature>))>
+#
+# IMPORTANT: the bytes that get signed are the URL-ENCODED query string
+# UP TO (but not including) the `&Signature=` token. Order MUST be
+# SAMLRequest, RelayState (if set), SigAlg.
+# ---------------------------------------------------------------------------
+
+
+_SIG_ALG_URI = {
+    "rsa-sha256": "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+    "rsa-sha1":   "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
+}
+
+
+def _build_redirect_signed_url(
+    *,
+    idp_target: str,
+    saml_request_b64: str,
+    relay_state: str,
+) -> tuple[str, str]:
+    """v4.00.62 — Build a signed HTTP-Redirect URL for SP-initiated SLO.
+
+    ``saml_request_b64`` MUST already be ``base64(deflate(xml))`` — the
+    caller is responsible for the compression step (matches the SAML 2.0
+    binding spec which puts the raw-deflate compression on the SP side).
+
+    Returns ``(url, reason)`` where ``reason`` is:
+        ``ok`` — fully signed redirect URL built
+        ``deps_missing`` — cryptography library not importable
+        ``key_unset`` — SP private key not configured
+        ``unsupported_alg`` — RMC_SAML_SP_SIGNATURE_ALG not in our map
+        ``sign_error`` — cryptography raised mid-sign
+
+    On any non-ok reason, returns the unsigned URL (caller chooses
+    fail-closed via strict mode or fall-through).
+    NEVER raises.
+    """
+    import urllib.parse as _ulib
+
+    alg = _sp_signature_alg()
+    alg_uri = _SIG_ALG_URI.get(alg)
+    base_query_parts = [("SAMLRequest", saml_request_b64)]
+    if relay_state:
+        base_query_parts.append(("RelayState", relay_state))
+
+    # Build unsigned URL first (for non-ok pass-through).
+    unsigned_query = _ulib.urlencode(base_query_parts)
+    sep = "&" if "?" in idp_target else "?"
+    unsigned_url = f"{idp_target}{sep}{unsigned_query}" if idp_target else ""
+
+    if alg_uri is None:
+        return unsigned_url, "unsupported_alg"
+
+    key_pem = _sp_private_key_pem().strip()
+    if not key_pem:
+        return unsigned_url, "key_unset"
+
+    # The bytes to SIGN per spec: URL-encoded query string up to (but
+    # not including) the &Signature= token, with SigAlg appended.
+    signed_parts = list(base_query_parts) + [("SigAlg", alg_uri)]
+    canonical = _ulib.urlencode(signed_parts).encode("ascii")
+
+    try:
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import padding
+        from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+    except ImportError:
+        return unsigned_url, "deps_missing"
+
+    try:
+        pk = serialization.load_pem_private_key(
+            key_pem.encode("utf-8"), password=None,
+        )
+        if not isinstance(pk, RSAPrivateKey):
+            return unsigned_url, "key_not_rsa"
+        hash_alg = hashes.SHA256() if alg == "rsa-sha256" else hashes.SHA1()
+        signature = pk.sign(canonical, padding.PKCS1v15(), hash_alg)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("saml redirect-sign: cryptography raised: %s", exc)
+        return unsigned_url, "sign_error"
+
+    import base64 as _b64m
+    sig_b64 = _b64m.b64encode(signature).decode("ascii")
+    signed_query = _ulib.urlencode(signed_parts + [("Signature", sig_b64)])
+    signed_url = f"{idp_target}{sep}{signed_query}"
+    return signed_url, "ok"
+
+
 def _parse_saml_response(b64_response: str) -> dict:
     """v4.00.45 — Parse a SAMLResponse: base64-decode, XML-parse, extract
     Subject NameID + Audience + NotBefore/NotOnOrAfter + Issuer.
@@ -1082,10 +1183,56 @@ def slo_start(request):
             logger.warning("saml slo_start: signing requested but %s - emitting unsigned",
                            signature_reason)
 
+    # v4.00.62 — binding choice. POST (default, preserves v4.00.60) embeds
+    # the signed XML in an auto-submit form. REDIRECT (?binding=redirect)
+    # uses raw-deflate + base64 + URL-encoded query string and signs the
+    # query string per SAML 2.0 Bindings § 3.4.4.
+    binding = (request.GET.get("binding") or "post").strip().lower()
+    if binding not in ("post", "redirect"):
+        binding = "post"
+
+    # Common base64 of the in-memory XML (signed-if-applicable for POST,
+    # unsigned-original for redirect — Redirect binding doesn't embed
+    # <ds:Signature>, the signature rides in the query string).
     payload_b64 = _b64.b64encode(req_bytes).decode("ascii")
 
+    # Redirect binding deflate-then-base64. SAML spec requires raw deflate
+    # (no zlib header), so use zlib.compressobj with wbits=-15.
+    import zlib as _zlib
+    redirect_b64 = ""
+    if binding == "redirect":
+        compressor = _zlib.compressobj(level=9, wbits=-15)
+        deflated = compressor.compress(req_bytes) + compressor.flush()
+        redirect_b64 = _b64.b64encode(deflated).decode("ascii")
+
+    # Build the signed Redirect URL when in redirect mode + signing enabled.
+    redirect_url = ""
+    redirect_sig_reason = "unsigned"
+    if binding == "redirect" and idp_target:
+        if _sp_sign_logout_enabled():
+            redirect_url, redirect_sig_reason = _build_redirect_signed_url(
+                idp_target=idp_target,
+                saml_request_b64=redirect_b64,
+                relay_state=relay,
+            )
+            if redirect_sig_reason != "ok" and _require_signature_strict():
+                return JsonResponse({
+                    "success": False,
+                    "stage": "sp_signer_unavailable_redirect",
+                    "reason": redirect_sig_reason,
+                    "binding": "HTTP-Redirect",
+                }, status=503)
+        else:
+            # Unsigned redirect URL — caller opted out of signing.
+            import urllib.parse as _ulib
+            parts = [("SAMLRequest", redirect_b64)]
+            if relay:
+                parts.append(("RelayState", relay))
+            sep = "&" if "?" in idp_target else "?"
+            redirect_url = f"{idp_target}{sep}{_ulib.urlencode(parts)}"
+
     if (request.GET.get("format") or "").lower() == "json":
-        return JsonResponse({
+        body = {
             "success": True,
             "stage": "logout_request_built",
             "name_id": name_id,
@@ -1093,11 +1240,15 @@ def slo_start(request):
             "issuer": issuer,
             "destination": idp_target,
             "logout_request_b64": payload_b64,
-            "binding": "HTTP-POST",
+            "binding": "HTTP-Redirect" if binding == "redirect" else "HTTP-POST",
             "relay_state": relay,
-            "signed": signed,
-            "signature_reason": signature_reason,
-        })
+            "signed": signed if binding == "post" else (redirect_sig_reason == "ok"),
+            "signature_reason": signature_reason if binding == "post" else redirect_sig_reason,
+        }
+        if binding == "redirect":
+            body["saml_request_deflated_b64"] = redirect_b64
+            body["redirect_url"] = redirect_url
+        return JsonResponse(body)
 
     if not idp_target:
         # Without an IdP target we cannot complete SP-initiated SLO.
@@ -1107,7 +1258,12 @@ def slo_start(request):
             "error": "RMC_SAML_IDP_SLO_URL not configured",
         }, status=503)
 
-    # Auto-submit form posts SAMLRequest (NOT SAMLResponse) to the IdP.
+    # Redirect binding → 302 to signed URL (or unsigned-built URL).
+    if binding == "redirect":
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(redirect_url)
+
+    # POST binding → auto-submit HTML form (preserves v4.00.60).
     from django.utils.html import escape as _escape
     action_esc = _escape(idp_target)
     payload_esc = _escape(payload_b64)

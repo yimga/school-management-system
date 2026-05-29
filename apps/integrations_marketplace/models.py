@@ -134,3 +134,7 @@ from .models_lms_token import LMSConnectorToken  # noqa: E402,F401
 
 # v4.00.52 — LMS push_grade audit log.
 from .models_lms_audit import LMSPushGradeAudit  # noqa: E402,F401
+
+# v4.00.62 — dedicated LMS diagnostics action-audit log (cleans up the
+# v4.00.61 reuse of LMSPushGradeAudit with course_id="_diag_action").
+from .models_lms_diag_action_audit import LMSDiagActionAudit  # noqa: E402,F401

@@ -147,6 +147,15 @@ def _demographic_from_student(s) -> dict[str, Any]:
     user_id = getattr(s, "user_id", None)
     if user_id:
         user_sourced_ids.append(str(user_id))
+    # v4.00.62 — non-spec auxiliary fields surfaced for ?orgSourcedId= +
+    # ?role= filters. Underscore-prefixed so OneRoster spec consumers can
+    # ignore them, but still present in the JSON so filtering is testable.
+    org_sid = ""
+    school_id = getattr(s, "school_id", None)
+    if school_id:
+        org_sid = str(school_id)
+    # StudentProfile is always role=student per OneRoster v1.2 vocabulary.
+    role = "student"
     rec = {
         "sourcedId": sid,
         "status": "active",
@@ -166,6 +175,9 @@ def _demographic_from_student(s) -> dict[str, Any]:
         "publicSchoolResidenceStatus": "",
         # v4.00.61 spec link field — GUIDRef array per IMS OneRoster v1.2.
         "userSourcedIds": user_sourced_ids,
+        # v4.00.62 auxiliary filter fields (non-spec, underscore-prefixed).
+        "_orgSourcedId": org_sid,
+        "_role": role,
     }
     # v4.00.60 — fold in any caller-supplied optional fields stored in the
     # override ring so caller-supplied race/ethnicity/citizenship round-trips.
@@ -191,9 +203,17 @@ def _iter_demographics() -> Iterable[dict[str, Any]]:
 def demographics_collection(request: HttpRequest):
     """v4.00.59 — Paginated list of Demographic records.
 
-    v4.00.61 — supports ``?userSourcedId=<pk>`` filter per OneRoster v1.2
-    spec convention: returns only Demographic records whose ``userSourcedIds``
-    array contains the supplied User sourcedId.
+    Filters (v4.00.61 + v4.00.62):
+      * ``?userSourcedId=<pk>`` — match records whose ``userSourcedIds``
+        array contains the supplied User sourcedId
+      * ``?orgSourcedId=<pk>`` (v4.00.62) — scope to one school (matches
+        the projection's ``_orgSourcedId`` aux field which carries the
+        StudentProfile.school_id as a string)
+      * ``?role=<value>`` (v4.00.62) — filter by OneRoster role vocab;
+        StudentProfile rows always project as ``role="student"`` so the
+        only meaningful values are ``"student"`` (passes through) or any
+        other value (zero rows). Useful when an external sync pipeline
+        wants to assert the projection only returns students.
     """
     gate = _gate(request)
     if gate is not None:
@@ -202,6 +222,12 @@ def demographics_collection(request: HttpRequest):
     user_filter = (request.GET.get("userSourcedId") or "").strip()
     if user_filter:
         items = [r for r in items if user_filter in (r.get("userSourcedIds") or [])]
+    org_filter = (request.GET.get("orgSourcedId") or "").strip()
+    if org_filter:
+        items = [r for r in items if r.get("_orgSourcedId") == org_filter]
+    role_filter = (request.GET.get("role") or "").strip()
+    if role_filter:
+        items = [r for r in items if r.get("_role") == role_filter]
     page, meta = _paginate(request, items)
     return _envelope("demographics", page, meta)
 
