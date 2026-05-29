@@ -90,6 +90,61 @@
     });
   }
 
+  /* v4.00.23 — Page personality auto-detect.
+     Sets [data-rmc-page-domain] on <html> before first paint so the CSS
+     variables in rmc-page-personality.css resolve. Priority:
+       1. Explicit <meta name="rmc-page-domain" content="finance"> in <head>.
+       2. body class hint (e.g. "rmc-page-domain-finance").
+       3. URL path inference (/admin/finance/... -> "finance").
+     The domain attribute on <html> drives accent + glyph + tagline +
+     copilot-rail title across every component.
+  */
+  function detectPageDomain() {
+    var html = document.documentElement;
+    if (html.getAttribute("data-rmc-page-domain")) return html.getAttribute("data-rmc-page-domain");
+
+    // 1. <meta name="rmc-page-domain">
+    var m = document.querySelector('meta[name="rmc-page-domain"]');
+    if (m && m.content) return m.content.trim().toLowerCase();
+
+    // 2. body class hint
+    var b = document.body;
+    if (b && b.className) {
+      var match = (b.className.match(/rmc-page-domain-([a-z]+)/) || []);
+      if (match[1]) return match[1];
+    }
+
+    // 3. URL path inference. Map app names to domains.
+    var path = (window.location && window.location.pathname || "").toLowerCase();
+    var MAP = [
+      [/\/admin\/finance|\/finance|\/billing|\/invoice|\/fee|\/payroll|\/ledger/, "finance"],
+      [/\/admin\/people|\/people|\/student|\/teacher|\/parent|\/guardian|\/accounts/, "people"],
+      [/\/admin\/evals|\/evals|\/grade|\/curriculum|\/gradebook|\/assessment/, "academic"],
+      [/\/admin\/attendance|\/attendance|\/timetable|\/schedule|\/calendar/, "operations"],
+      [/\/admin\/admissions|\/admissions|\/intake|\/applicant|\/lead/, "admissions"],
+      [/\/admin\/communication|\/communication|\/message|\/notification|\/broadcast/, "comms"],
+      [/\/admin\/transport|\/fleet|\/transport|\/route/, "fleet"],
+      [/\/admin\/hostel|\/hostel|\/boarding|\/dorm/, "hostel"],
+      [/\/admin\/marketplace|\/marketplace|\/integrations?|\/connector/, "marketplace"],
+      [/\/admin\/security|\/security|\/compliance|\/audit|\/permission/, "security"],
+      [/\/admin\/(siteconfig|tenancy|tenants)|\/admin\/?$|\/admin\/index|\/super\/?$/, "admin"]
+    ];
+    for (var i = 0; i < MAP.length; i++) {
+      if (MAP[i][0].test(path)) return MAP[i][1];
+    }
+    return "";
+  }
+
+  function applyPageDomain() {
+    var html = document.documentElement;
+    if (html.getAttribute("data-rmc-page-domain")) return;
+    var d = detectPageDomain();
+    if (d) html.setAttribute("data-rmc-page-domain", d);
+  }
+
+  // Apply BEFORE first paint when possible.
+  try { applyPageDomain(); } catch (e) {}
+
   /* v4.00.20 — scroll-aware ticker collapse + density-toggle persistence.
      Sets [data-rmc-scrolled="1"] on <html> once the user scrolls past 64px;
      CSS in admin-manager-shell.css uses that to collapse the LIVE ticker
@@ -136,8 +191,90 @@
   }
 
   function bootAll() {
+    applyPageDomain();
     init();
     initShellEnhancements();
+    initHoverInspector();
+  }
+
+  /* v4.00.23 — Hover-row inspector.
+     Innovative: hovering any table row for >450ms summons a small
+     contextual chip in the bottom-right (just above the floating Save
+     cluster) showing key fields from the row. No click needed. Disappears
+     when the user moves away or scrolls. Reduces "click row to see
+     details" friction in admin changelists.
+  */
+  function initHoverInspector() {
+    var chip = null;
+    var hoverTimer = null;
+    var lastRow = null;
+
+    function ensureChip() {
+      if (chip) return chip;
+      chip = document.createElement("div");
+      chip.className = "rmc-hover-inspector";
+      chip.setAttribute("aria-live", "polite");
+      chip.setAttribute("data-state", "hidden");
+      document.body.appendChild(chip);
+      return chip;
+    }
+
+    function summarizeRow(tr) {
+      var cells = tr.querySelectorAll("td, th");
+      if (!cells.length) return null;
+      var fields = [];
+      var headRow = tr.closest("table") && tr.closest("table").querySelector("thead tr");
+      var headers = headRow ? Array.prototype.slice.call(headRow.querySelectorAll("th")).map(function (h) { return (h.textContent || "").trim(); }) : [];
+      for (var i = 0; i < cells.length && fields.length < 4; i++) {
+        var v = (cells[i].textContent || "").trim().replace(/\s+/g, " ");
+        if (!v || v === "—" || v.length > 96) continue;
+        fields.push({ label: headers[i] || ("Col " + (i + 1)), value: v });
+      }
+      return fields.length ? fields : null;
+    }
+
+    function show(tr) {
+      var fields = summarizeRow(tr);
+      if (!fields) return;
+      var c = ensureChip();
+      c.innerHTML = "";
+      var head = document.createElement("div");
+      head.className = "rmc-hover-inspector__head";
+      head.textContent = "Inspect";
+      c.appendChild(head);
+      var list = document.createElement("dl");
+      list.className = "rmc-hover-inspector__list";
+      fields.forEach(function (f) {
+        var dt = document.createElement("dt");
+        dt.textContent = f.label;
+        var dd = document.createElement("dd");
+        dd.textContent = f.value;
+        list.appendChild(dt);
+        list.appendChild(dd);
+      });
+      c.appendChild(list);
+      c.setAttribute("data-state", "visible");
+    }
+
+    function hide() {
+      if (chip) chip.setAttribute("data-state", "hidden");
+    }
+
+    document.addEventListener("mouseover", function (ev) {
+      var tr = ev.target && ev.target.closest && ev.target.closest("#changelist tbody tr, .rmc-data-table tbody tr");
+      if (!tr || tr === lastRow) return;
+      lastRow = tr;
+      if (hoverTimer) clearTimeout(hoverTimer);
+      hoverTimer = setTimeout(function () { show(tr); }, 450);
+    });
+    document.addEventListener("mouseout", function (ev) {
+      var tr = ev.target && ev.target.closest && ev.target.closest("#changelist tbody tr, .rmc-data-table tbody tr");
+      if (!tr) return;
+      if (hoverTimer) clearTimeout(hoverTimer);
+      hide();
+      lastRow = null;
+    });
+    window.addEventListener("scroll", hide, { passive: true });
   }
 
   if (document.readyState === "loading") {

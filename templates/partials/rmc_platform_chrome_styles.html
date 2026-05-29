@@ -7,6 +7,9 @@
 <link rel="stylesheet" href="{% static 'css/rmc-section-nav-toc.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-shell-scroll-contract.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-dropdown-viewport-safe.css' %}">
+{# v4.00.23 — page personality contract. Maps data-rmc-page-domain to
+   accent + glyph + tagline. Defaults to platform indigo when absent. #}
+<link rel="stylesheet" href="{% static 'css/rmc-page-personality.css' %}">
 {# Non-critical polish/styles are preloaded and promoted post-hydration by rmc-chrome-style-loader.js. #}
 <link rel="preload" as="style" href="{% static 'css/rmc-platform-chrome-premium.css' %}" data-rmc-deferred-style>
 <link rel="preload" as="style" href="{% static 'css/rmc-admin-modal-overlay-guard.css' %}" data-rmc-deferred-style>

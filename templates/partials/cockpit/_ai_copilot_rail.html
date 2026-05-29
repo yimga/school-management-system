@@ -71,6 +71,10 @@
               data-rmc-copilot-tab="today"
               title="{% trans 'Today — agenda & due' %}"
               aria-label="{% trans 'Today — agenda & due' %}">◐</button>
+      <button class="lx-copilot__rail-icon lx-copilot__rail-icon--context" type="button"
+              data-rmc-copilot-tab="context"
+              title="{% trans 'Context — about this page' %}"
+              aria-label="{% trans 'Context — about this page' %}">◈</button>
       <button class="lx-copilot__rail-icon" type="button"
               data-rmc-operator-notebook-toggle
               title="{% trans 'Toggle operator notebook' %}"
@@ -118,6 +122,7 @@
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="threads" role="tab">{% trans 'Threads' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="shortcuts" role="tab">{% trans 'Shortcuts' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="today" role="tab">{% trans 'Today' %}</button>
+        <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="context" role="tab">{% trans 'Context' %}</button>
       </nav>
 
       {# v4.00.18 — always-visible quick-stats strip. Hydrated by the services
@@ -285,6 +290,65 @@
                  autocomplete="off">
           <button type="submit" class="lx-copilot__quick-capture-send" aria-label="{% trans 'Save capture' %}">+</button>
         </form>
+      </div>
+
+      {# v4.00.23 — Context pane. Per-page personality + key metrics +
+         AI explainer slot. Reads data-rmc-page-domain from <html>; the
+         rmc-copilot-personality.js bridge updates the metric tiles and
+         explainer paragraph from rmc_page_personality template context. #}
+      <div class="lx-copilot__pane lx-copilot__pane--context" data-rmc-copilot-pane="context">
+        <div class="lx-copilot__context-eyebrow">
+          <span class="lx-copilot__context-glyph" data-rmc-copilot-rail-context-glyph aria-hidden="true">◈</span>
+          <span class="lx-copilot__context-tagline" data-rmc-copilot-rail-context-tagline>{% firstof rmc_page_personality.tagline _("Platform") %}</span>
+        </div>
+        <h2 class="lx-copilot__context-title" data-rmc-copilot-rail-context-title>
+          {% firstof rmc_page_personality.title page_title _("This page") %}
+        </h2>
+        <p class="lx-copilot__context-description" data-rmc-copilot-rail-context-description>
+          {% firstof rmc_page_personality.description _("Open the Context tab on any page to see what RunMyCampus knows about it — key metrics, recent activity, what most operators do here.") %}
+        </p>
+
+        {# Domain key-metrics — 2-up tiles, hydrated by the services bridge
+           or rendered server-side via rmc_page_personality.metrics. #}
+        {% if rmc_page_personality.metrics %}
+        <div class="lx-copilot__context-metrics" role="group" aria-label="{% trans 'Page metrics' %}">
+          {% for metric in rmc_page_personality.metrics %}
+          <div class="lx-copilot__context-metric"{% if metric.href %} data-href="{{ metric.href }}"{% endif %}>
+            <span class="lx-copilot__context-metric-label">{{ metric.label }}</span>
+            <span class="lx-copilot__context-metric-value">{{ metric.value }}</span>
+            {% if metric.delta %}<span class="lx-copilot__context-metric-delta lx-copilot__context-metric-delta--{{ metric.delta_direction|default:'neutral' }}">{{ metric.delta }}</span>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {# Top common operator actions for this page-class. Reduces clicks
+           by surfacing the path of greatest action — operator no longer
+           hunts through nav for "the thing they always do here". #}
+        {% if rmc_page_personality.common_actions %}
+        <div class="lx-copilot__pane-head lx-copilot__pane-head--secondary">
+          <span class="lx-copilot__pane-title">{% trans 'Common here' %}</span>
+        </div>
+        <ul class="lx-copilot__shortcuts">
+          {% for action in rmc_page_personality.common_actions %}
+          <li><a class="lx-copilot__shortcut"
+                 href="{{ action.href }}"
+                 {% if forloop.first %}data-rmc-domain-primary="1"{% endif %}>
+            <span class="lx-copilot__shortcut-icon" aria-hidden="true">{{ action.glyph|default:"▸" }}</span>
+            <span>{{ action.label }}</span>
+          </a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        {# Recent activity for this page-class (last 5 changes the user or
+           team made on this surface). Hydrated client-side. #}
+        <div class="lx-copilot__pane-head lx-copilot__pane-head--secondary">
+          <span class="lx-copilot__pane-title">{% trans 'Recent on this surface' %}</span>
+        </div>
+        <ul class="lx-copilot__context-recent" data-rmc-copilot-rail-context-recent aria-live="polite">
+          <li class="lx-copilot__context-recent-empty">{% trans 'No recent activity to show.' %}</li>
+        </ul>
       </div>
 
       <div class="lx-copilot__input-wrap">

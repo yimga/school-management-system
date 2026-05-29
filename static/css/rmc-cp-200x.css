@@ -1885,3 +1885,124 @@ body[data-rmc-notebook-footer-dock="1"] .rmc-footer-notebook-anchor .lx-notebook
 }
 .lx-copilot__quick-capture-send:hover { filter: brightness(1.08); }
 
+/* ============================================================
+   Copilot rail v4.00.23 — Context tab (page-personality aware).
+   ============================================================ */
+
+.lx-copilot__pane--context {
+  padding: 14px 14px 18px !important; /* style-allow: context-pane-pad */
+}
+
+.lx-copilot__context-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--rmc-page-accent-soft, rgba(99, 102, 241, 0.12));
+  color: var(--rmc-page-accent, #6366f1); /* off-token-allow: context-eyebrow-fallback */
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.lx-copilot__context-glyph {
+  font-size: 12px;
+  line-height: 1;
+}
+.lx-copilot__context-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 6px;
+  color: var(--cp-chrome-text, #f4f4f5);
+}
+.lx-copilot__context-description {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.7));
+  margin: 0 0 12px;
+}
+
+.lx-copilot__context-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.lx-copilot__context-metric {
+  position: relative;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm, 6px);
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 70%, transparent);
+  border-left: 2px solid var(--rmc-page-accent, #6366f1); /* off-token-allow: context-metric-accent */
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.lx-copilot__context-metric[data-href] { cursor: pointer; }
+.lx-copilot__context-metric[data-href]:hover {
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 100%, transparent);
+}
+.lx-copilot__context-metric-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.55));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lx-copilot__context-metric-value {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--cp-chrome-text, #f4f4f5);
+}
+.lx-copilot__context-metric-delta {
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.lx-copilot__context-metric-delta--up   { color: #16a34a; } /* off-token-allow: delta-direction-up */
+.lx-copilot__context-metric-delta--down { color: #dc2626; } /* off-token-allow: delta-direction-down */
+.lx-copilot__context-metric-delta--neutral { color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.55)); }
+
+.lx-copilot__context-recent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lx-copilot__context-recent li {
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 6px);
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 50%, transparent);
+  color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.7));
+}
+.lx-copilot__context-recent-empty {
+  font-style: italic;
+  color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.45)) !important; /* style-allow: context-recent-empty */
+  background: transparent !important; /* style-allow: context-recent-empty */
+}
+
+/* Collapsed-rail Context icon adopts the page accent so the user can
+   read the current domain at a glance from the 44px strip. */
+[data-rmc-page-domain] .lx-copilot__rail-icon--context {
+  color: var(--rmc-page-accent, #6366f1);
+}
+
+/* Active-tab wiring for Context follows the same pattern as the other
+   tabs in the existing rule block. */
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="context"] .lx-copilot__pane[data-rmc-copilot-pane="context"] { display: block; }
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="context"] .lx-copilot__thread,
+[data-rmc-copilot-rail][data-rmc-copilot-active-tab="context"] .lx-copilot__input-wrap { display: none; }
+

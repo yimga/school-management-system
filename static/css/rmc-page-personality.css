@@ -1,0 +1,312 @@
+/**
+ * rmc-page-personality.css — v4.00.23 (2026-05-29)
+ * --------------------------------------------------------------------
+ * Each page on the platform belongs to a *domain* (academic, finance,
+ * people, ops, admissions, comms, fleet, hostel, marketplace, security,
+ * admin). The page declares its domain via a single attribute on <html>
+ * or <body>:
+ *
+ *     <body data-rmc-page-domain="finance">
+ *
+ * This file maps every domain to:
+ *   --rmc-page-accent       — primary accent colour (used by hero, links,
+ *                             selected pills, focus rings)
+ *   --rmc-page-accent-soft  — a low-saturation tint for surface fills
+ *   --rmc-page-glyph        — a single character / emoji used as a domain
+ *                             marker (eyebrow, copilot rail title)
+ *   --rmc-page-tagline      — a short descriptor surfaced by the copilot
+ *                             rail's "Context" tab
+ *
+ * Components that should adapt:
+ *   .cp-hero__eyebrow       — colour + leading glyph
+ *   .lx-copilot__title-mark — leading glyph + accent
+ *   .tp-primary-nav__item[aria-current="page"] — accent background
+ *   .rmc-page-accent-stripe — a 3px coloured strip at the top of the
+ *                             canvas; rendered by base shells
+ *   focus rings + selected states
+ *
+ * Default (no domain attr) uses the platform indigo so existing pages
+ * are unaffected. Domains layered on top by override.
+ */
+
+:root {
+  --rmc-page-accent: #6366f1; /* off-token-allow: page-personality-default */
+  --rmc-page-accent-soft: rgba(99, 102, 241, 0.12); /* off-token-allow: page-personality-default */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-default */
+  --rmc-page-glyph: "✦";
+  --rmc-page-tagline: "Platform";
+}
+
+/* ── Academic (gradebook, classes, curriculum, evaluations) ── */
+[data-rmc-page-domain="academic"] {
+  --rmc-page-accent: #2563eb; /* off-token-allow: page-personality-academic */
+  --rmc-page-accent-soft: rgba(37, 99, 235, 0.1); /* off-token-allow: page-personality-academic */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-academic */
+  --rmc-page-glyph: "▤";
+  --rmc-page-tagline: "Academic";
+}
+
+/* ── Finance (fees, invoices, ledger, payments, payroll) ── */
+[data-rmc-page-domain="finance"] {
+  --rmc-page-accent: #b45309; /* off-token-allow: page-personality-finance */
+  --rmc-page-accent-soft: rgba(180, 83, 9, 0.12); /* off-token-allow: page-personality-finance */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-finance */
+  --rmc-page-glyph: "₵";
+  --rmc-page-tagline: "Finance";
+}
+
+/* ── People (students, staff, parents, guardians) ── */
+[data-rmc-page-domain="people"] {
+  --rmc-page-accent: #16a34a; /* off-token-allow: page-personality-people */
+  --rmc-page-accent-soft: rgba(22, 163, 74, 0.1); /* off-token-allow: page-personality-people */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-people */
+  --rmc-page-glyph: "◉";
+  --rmc-page-tagline: "People";
+}
+
+/* ── Operations (attendance, schedules, timetable, calendar) ── */
+[data-rmc-page-domain="operations"] {
+  --rmc-page-accent: #0d9488; /* off-token-allow: page-personality-operations */
+  --rmc-page-accent-soft: rgba(13, 148, 136, 0.1); /* off-token-allow: page-personality-operations */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-operations */
+  --rmc-page-glyph: "◐";
+  --rmc-page-tagline: "Operations";
+}
+
+/* ── Admissions (intake, applications, leads, funnel) ── */
+[data-rmc-page-domain="admissions"] {
+  --rmc-page-accent: #c026d3; /* off-token-allow: page-personality-admissions */
+  --rmc-page-accent-soft: rgba(192, 38, 211, 0.1); /* off-token-allow: page-personality-admissions */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-admissions */
+  --rmc-page-glyph: "↗";
+  --rmc-page-tagline: "Admissions";
+}
+
+/* ── Communications (messages, notifications, broadcasts) ── */
+[data-rmc-page-domain="comms"] {
+  --rmc-page-accent: #db2777; /* off-token-allow: page-personality-comms */
+  --rmc-page-accent-soft: rgba(219, 39, 119, 0.1); /* off-token-allow: page-personality-comms */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-comms */
+  --rmc-page-glyph: "✉";
+  --rmc-page-tagline: "Communications";
+}
+
+/* ── Fleet / Transport ── */
+[data-rmc-page-domain="fleet"] {
+  --rmc-page-accent: #ea580c; /* off-token-allow: page-personality-fleet */
+  --rmc-page-accent-soft: rgba(234, 88, 12, 0.1); /* off-token-allow: page-personality-fleet */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-fleet */
+  --rmc-page-glyph: "⛯";
+  --rmc-page-tagline: "Fleet";
+}
+
+/* ── Hostel / Boarding ── */
+[data-rmc-page-domain="hostel"] {
+  --rmc-page-accent: #7c3aed; /* off-token-allow: page-personality-hostel */
+  --rmc-page-accent-soft: rgba(124, 58, 237, 0.1); /* off-token-allow: page-personality-hostel */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-hostel */
+  --rmc-page-glyph: "⌂";
+  --rmc-page-tagline: "Hostel";
+}
+
+/* ── Marketplace / Integrations ── */
+[data-rmc-page-domain="marketplace"] {
+  --rmc-page-accent: #0891b2; /* off-token-allow: page-personality-marketplace */
+  --rmc-page-accent-soft: rgba(8, 145, 178, 0.1); /* off-token-allow: page-personality-marketplace */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-marketplace */
+  --rmc-page-glyph: "⌬";
+  --rmc-page-tagline: "Marketplace";
+}
+
+/* ── Security / Compliance ── */
+[data-rmc-page-domain="security"] {
+  --rmc-page-accent: #dc2626; /* off-token-allow: page-personality-security */
+  --rmc-page-accent-soft: rgba(220, 38, 38, 0.1); /* off-token-allow: page-personality-security */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-security */
+  --rmc-page-glyph: "⛨";
+  --rmc-page-tagline: "Security";
+}
+
+/* ── Admin / Configuration ── */
+[data-rmc-page-domain="admin"] {
+  --rmc-page-accent: #475569; /* off-token-allow: page-personality-admin */
+  --rmc-page-accent-soft: rgba(71, 85, 105, 0.12); /* off-token-allow: page-personality-admin */
+  --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-admin */
+  --rmc-page-glyph: "⚙";
+  --rmc-page-tagline: "Configuration";
+}
+
+/* ============================================================
+   Component bindings — components that pick up the accent vars.
+   ============================================================ */
+
+/* Top-of-canvas accent stripe — 3px wash that immediately signals
+   which domain the user is in. Subtle. Honours reduced-motion. */
+.rmc-page-accent-stripe {
+  height: 3px;
+  background: var(--rmc-page-accent);
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Hero eyebrow gets a coloured leading glyph. */
+[data-rmc-page-domain] .cp-hero__eyebrow::before {
+  content: var(--rmc-page-glyph) " ";
+  color: var(--rmc-page-accent);
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+/* Copilot rail title gets the domain glyph + accent. */
+[data-rmc-page-domain] .lx-copilot__title-mark {
+  color: var(--rmc-page-accent);
+}
+[data-rmc-page-domain] .lx-copilot__title-mark::before {
+  content: var(--rmc-page-glyph);
+}
+
+/* Selected pills / current-page nav adopt the domain accent
+   instead of the platform indigo default. */
+[data-rmc-page-domain] body.portal-body-with-layout .tp-primary-nav__item[aria-current="page"] {
+  background: var(--rmc-page-accent);
+  box-shadow: 0 2px 8px var(--rmc-page-accent-soft);
+}
+
+/* Active copilot tab underline picks up the domain accent. */
+[data-rmc-page-domain] [data-rmc-copilot-rail][data-rmc-copilot-active-tab="chat"]      .lx-copilot__tab[data-rmc-copilot-tab="chat"],
+[data-rmc-page-domain] [data-rmc-copilot-rail][data-rmc-copilot-active-tab="lens"]      .lx-copilot__tab[data-rmc-copilot-tab="lens"],
+[data-rmc-page-domain] [data-rmc-copilot-rail][data-rmc-copilot-active-tab="actions"]   .lx-copilot__tab[data-rmc-copilot-tab="actions"],
+[data-rmc-page-domain] [data-rmc-copilot-rail][data-rmc-copilot-active-tab="threads"]   .lx-copilot__tab[data-rmc-copilot-tab="threads"],
+[data-rmc-page-domain] [data-rmc-copilot-rail][data-rmc-copilot-active-tab="shortcuts"] .lx-copilot__tab[data-rmc-copilot-tab="shortcuts"],
+[data-rmc-page-domain] [data-rmc-copilot-rail][data-rmc-copilot-active-tab="today"]     .lx-copilot__tab[data-rmc-copilot-tab="today"],
+[data-rmc-page-domain] [data-rmc-copilot-rail][data-rmc-copilot-active-tab="context"]   .lx-copilot__tab[data-rmc-copilot-tab="context"] {
+  border-bottom-color: var(--rmc-page-accent) !important; /* style-allow: page-personality-tab-accent */
+}
+
+/* Quickstats hover state picks up the accent. */
+[data-rmc-page-domain] .lx-copilot__quickstat:hover {
+  outline: 1px solid var(--rmc-page-accent-soft);
+}
+
+/* Shortcuts: leading icon picks up the accent for the domain-primary
+   shortcut (marked with data-rmc-domain-primary="1"). */
+[data-rmc-page-domain] .lx-copilot__shortcut[data-rmc-domain-primary="1"] .lx-copilot__shortcut-icon {
+  color: var(--rmc-page-accent);
+  opacity: 1;
+}
+
+/* Focus ring on inputs/buttons inside the canvas takes the accent. */
+[data-rmc-page-domain] :is(.cp-hero, .tp-primary-nav, .rmc-app-shell__canvas) :is(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--rmc-page-accent);
+  outline-offset: 2px;
+}
+
+/* Page-personality eyebrow chip — small floating chip at top-right of
+   the canvas-body that announces the current domain by name + glyph.
+   Renders when the template includes <span class="rmc-page-eyebrow-chip">. */
+.rmc-page-eyebrow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--rmc-page-accent-soft);
+  color: var(--rmc-page-accent);
+  border: 1px solid var(--rmc-page-accent-soft);
+}
+.rmc-page-eyebrow-chip::before {
+  content: var(--rmc-page-glyph);
+  font-size: 12px;
+}
+
+/* Context tab pane background uses the accent-soft as a wash. */
+[data-rmc-page-domain] .lx-copilot__pane[data-rmc-copilot-pane="context"] {
+  background: linear-gradient(180deg, var(--rmc-page-accent-soft) 0%, transparent 80%);
+}
+
+/* Per-domain reading-mode top accent inside cards (3px coloured border
+   on the left of every primary card in the canvas). Subtle reminder of
+   where you are while scrolling. */
+[data-rmc-page-domain="finance"] body.portal-body-with-layout :is(.rmc-card, .portal-card, .tp-card)[data-rmc-domain-card="1"] {
+  border-left: 3px solid var(--rmc-page-accent);
+}
+
+/* ============================================================
+   Hover-row inspector chip — innovative no-click row preview.
+   Mounted by admin-quickaction.js; appears bottom-right after
+   ~450ms of hover on a table row. Domain-tinted top border.
+   ============================================================ */
+
+.rmc-hover-inspector {
+  position: fixed;
+  right: 20px;
+  bottom: 180px; /* sits above the floating Save cluster + notebook chip */
+  z-index: 1030;
+  min-width: 240px;
+  max-width: 320px;
+  background: color-mix(in srgb, var(--surface-popover, #1a1a22) 96%, transparent);
+  backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  border-radius: 10px;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.1));
+  border-top: 2px solid var(--rmc-page-accent, #6366f1); /* off-token-allow: hover-inspector-accent */
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); /* off-token-allow: hover-inspector-elevation */
+  padding: 10px 12px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+  pointer-events: none;
+}
+.rmc-hover-inspector[data-state="visible"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+.rmc-hover-inspector__head {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--rmc-page-accent, #6366f1); /* off-token-allow: hover-inspector-accent */
+  margin-bottom: 6px;
+}
+.rmc-hover-inspector__list {
+  display: grid;
+  grid-template-columns: minmax(60px, max-content) 1fr;
+  column-gap: 10px;
+  row-gap: 4px;
+  margin: 0;
+  font-size: 11px;
+}
+.rmc-hover-inspector__list dt {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--cp-chrome-text-faint, rgba(255, 255, 255, 0.5));
+  align-self: center;
+}
+.rmc-hover-inspector__list dd {
+  margin: 0;
+  font-weight: 500;
+  color: var(--cp-chrome-text, #f4f4f5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reduced motion: skip the slide-in. */
+@media (prefers-reduced-motion: reduce) {
+  .rmc-hover-inspector {
+    transition: opacity 80ms linear;
+    transform: none;
+  }
+}

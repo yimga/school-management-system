@@ -1,0 +1,47 @@
+{% load i18n %}
+{% comment %} v4.00.23 — Page personality declaration.
+
+   Include this partial near the top of a page's {% block content %} (or
+   in {% block extrahead %} for the meta tag) to explicitly declare its
+   domain. Without this include, admin-quickaction.js will infer the
+   domain from the URL path — explicit declaration is more reliable.
+
+   Usage:
+
+     {% include "partials/rmc_page_personality.html" with
+        domain="finance"
+        title="Fees ledger"
+        tagline="Receivables"
+        glyph="₵"
+     %}
+
+   `domain` is the only required argument; the rest fall back to the
+   defaults from rmc-page-personality.css.
+
+   Available domains:
+     academic    finance       people        operations    admissions
+     comms       fleet         hostel        marketplace   security
+     admin       (or omit for the platform default)
+
+   What this partial emits:
+     1. A <meta name="rmc-page-domain"> in case the personality JS hasn't
+        run yet (the JS reads meta as priority #1 over URL inference).
+     2. An inline script that sets data-rmc-page-domain on <html> before
+        first paint, so CSS vars resolve without a flash.
+     3. (Optional) A visible eyebrow chip the page can choose to render.
+{% endcomment %}
+
+{% if domain %}
+<meta name="rmc-page-domain" content="{{ domain }}">
+<script>
+  (function () {
+    try { document.documentElement.setAttribute("data-rmc-page-domain", "{{ domain|escapejs }}"); } catch (e) {}
+  })();
+</script>
+{% endif %}
+
+{% if show_eyebrow_chip and domain %}
+<span class="rmc-page-eyebrow-chip" data-rmc-page-eyebrow-chip>
+  {% if tagline %}{{ tagline }}{% else %}{{ domain|capfirst }}{% endif %}
+</span>
+{% endif %}
