@@ -1775,6 +1775,17 @@ def classgroup_dispatch(request: HttpRequest, sourced_id: str):
 
 _BULK_IMPORT_MAX_ROWS = 500
 
+# v4.00.56 — Per-row idempotency. When a bulk-import row carries an
+# ``idempotencyKey`` field, the successful outcome is cached so a future
+# batch that retries the same row replays the prior result without
+# re-creating the underlying ``Evaluation``. Errored outcomes are NOT
+# cached: the operator should be able to retry after fixing data.
+_BULK_IMPORT_ROW_IDEM_TTL = 60 * 60 * 24
+
+
+def _bulk_row_idem_cache_key(idem: str) -> str:
+    return f"roster:results:bulk-row-idempo:{idem}"
+
 
 def _import_one_result(inner: dict[str, Any]) -> dict[str, Any]:
     """Apply one bulk-import row. Returns ``{outcome, sourcedId?, error?}``.
@@ -1893,12 +1904,39 @@ def post_results_bulk_import(request: HttpRequest):
     outcomes: list[dict[str, Any]] = []
     created = 0
     errored = 0
+    replayed = 0
     for row in rows:
         if not isinstance(row, dict):
             outcomes.append({"outcome": "errored", "error": "bad_row_shape"})
             errored += 1
             continue
+        # v4.00.56 — per-row idempotency replay: if this row carries a row-
+        # level ``idempotencyKey`` AND the prior outcome was ``created``, we
+        # short-circuit and reuse the cached sourcedId. Errored outcomes are
+        # NOT cached so operator can retry after fixing data.
+        row_idem = str(row.get("idempotencyKey") or "").strip()
+        if row_idem:
+            cached_row = cache.get(_bulk_row_idem_cache_key(row_idem))
+            if isinstance(cached_row, dict) and cached_row.get("outcome") == "created":
+                replay_out = {
+                    "outcome": "created",
+                    "sourcedId": cached_row.get("sourcedId", ""),
+                    "idempotencyKey": row_idem,
+                    "replayed": True,
+                }
+                outcomes.append(replay_out)
+                replayed += 1
+                created += 1
+                continue
         out = _import_one_result(row)
+        if row_idem:
+            out = {**out, "idempotencyKey": row_idem}
+            if out.get("outcome") == "created":
+                cache.set(
+                    _bulk_row_idem_cache_key(row_idem),
+                    {"outcome": "created", "sourcedId": out.get("sourcedId", "")},
+                    _BULK_IMPORT_ROW_IDEM_TTL,
+                )
         outcomes.append(out)
         if out["outcome"] == "created":
             created += 1
@@ -1909,6 +1947,7 @@ def post_results_bulk_import(request: HttpRequest):
         "total": len(rows),
         "created": created,
         "errored": errored,
+        "replayed": replayed,
         "outcomes": outcomes,
     }
     status = 207 if errored else 201
@@ -1916,3 +1955,157 @@ def post_results_bulk_import(request: HttpRequest):
     resp = JsonResponse(body_out, status=status)
     resp["X-OneRoster-Entity"] = "results-bulk"
     return resp
+
+
+# ---------------------------------------------------------------------------
+# v4.00.56 — GradeBookEntry projections (lineItem + category + classGroup
+# + results rollup composition view).
+#
+# OneRoster Result Service does NOT define a separate GradeBookEntry object,
+# but operators repeatedly need a single read endpoint that joins the
+# lineItem with its category, its containing classGroup(s), and a rollup of
+# the per-student results — i.e. the gradebook row a teacher actually looks
+# at when reading "this assignment, in this cohort, with this score
+# distribution".
+#
+# Projection rules:
+#   * ``sourcedId`` derives from the lineItem: ``gbe-<classroom_pk>``
+#     (replacing the ``li-`` prefix). 1:1 with lineItem.
+#   * ``lineItem`` — the full lineItem dict.
+#   * ``category`` — full category dict resolved by the lineItem's
+#     ``category`` string (which holds a category SOURCEDID when set via
+#     POST/PUT, falling back to ``"cat-<category_string>"`` for default
+#     summative/formative seeds). ``None`` when no match.
+#   * ``classGroups`` — list of classGroups whose ``classSourcedIds``
+#     contain the lineItem's ``classSourcedId``. May be empty.
+#   * ``resultsRollup`` — ``{count, average, min, max, scored, pending}``
+#     computed over the matching results. Average/min/max use numeric
+#     coercion of ``score``; non-numeric scores are excluded.
+#
+# Filters:
+#   * ``?classSourcedId=<id>``  — only entries in that class.
+#   * ``?classGroupSourcedId=<id>`` — only entries whose containing
+#     classGroups include that id.
+#
+# Read-only — no POST/PUT/DELETE. Bearer-token gated by ``_gate``.
+# ---------------------------------------------------------------------------
+
+
+def _gradebook_entry_for(line_item: dict[str, Any]) -> dict[str, Any]:
+    """Compose one GradeBookEntry from a lineItem record."""
+    li_sid = line_item.get("sourcedId") or ""
+    classroom_pk = li_sid[3:] if li_sid.startswith("li-") else li_sid
+    class_sid = str(line_item.get("classSourcedId") or "")
+
+    # Category resolution: lineItem.category may be a sourcedId already
+    # (``cat-quiz``) OR a plain string like ``summative``. Try both.
+    cat_field = str(line_item.get("category") or "").strip()
+    resolved_category = None
+    if cat_field:
+        candidate_ids = [cat_field, f"cat-{cat_field}"]
+        all_cats = _all_categories()
+        by_sid = {c.get("sourcedId"): c for c in all_cats}
+        for cid in candidate_ids:
+            if cid in by_sid:
+                resolved_category = by_sid[cid]
+                break
+
+    # ClassGroup resolution: any classGroup containing this lineItem's class.
+    matched_class_groups = []
+    for g in _all_classgroups():
+        members = g.get("classSourcedIds") or []
+        if class_sid and class_sid in members:
+            matched_class_groups.append(g)
+
+    # Results rollup.
+    count = 0
+    scored = 0
+    pending = 0
+    total = 0.0
+    minimum = None
+    maximum = None
+    for r in _iter_results():
+        if r.get("lineItemSourcedId") != li_sid:
+            continue
+        count += 1
+        score_str = str(r.get("score") or "").strip()
+        if not score_str:
+            pending += 1
+            continue
+        try:
+            v = float(score_str)  # money-float-allow: result-score-not-money-numeric-rollup
+        except (ValueError, TypeError):
+            pending += 1
+            continue
+        scored += 1
+        total += v
+        minimum = v if minimum is None or v < minimum else minimum
+        maximum = v if maximum is None or v > maximum else maximum
+
+    average = (total / scored) if scored else None
+    rollup = {
+        "count": count,
+        "scored": scored,
+        "pending": pending,
+        "average": ("%.2f" % average) if average is not None else None,
+        "min": ("%.2f" % minimum) if minimum is not None else None,
+        "max": ("%.2f" % maximum) if maximum is not None else None,
+    }
+
+    return {
+        "sourcedId": f"gbe-{classroom_pk}",
+        "lineItem": line_item,
+        "category": resolved_category,
+        "classGroups": matched_class_groups,
+        "resultsRollup": rollup,
+    }
+
+
+def _all_gradebook_entries() -> Iterable[dict[str, Any]]:
+    for li in _iter_line_items():
+        yield _gradebook_entry_for(li)
+
+
+@require_http_methods(["GET"])
+def gradebook_entries_collection(request: HttpRequest):
+    """v4.00.56 — List GradeBookEntry projections.
+
+    Filters: ``?classSourcedId=<id>``, ``?classGroupSourcedId=<id>``.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = list(_all_gradebook_entries())
+
+    class_filter = (request.GET.get("classSourcedId") or "").strip()
+    cg_filter = (request.GET.get("classGroupSourcedId") or "").strip()
+
+    if class_filter:
+        items = [
+            e for e in items
+            if str(e.get("lineItem", {}).get("classSourcedId") or "") == class_filter
+        ]
+    if cg_filter:
+        items = [
+            e for e in items
+            if any(g.get("sourcedId") == cg_filter for g in e.get("classGroups", []))
+        ]
+
+    page, meta = _paginate(request, items)
+    return _envelope("gradeBookEntries", page, meta)
+
+
+@require_http_methods(["GET"])
+def gradebook_entry_detail(request: HttpRequest, sourced_id: str):
+    """v4.00.56 — Detail for a single GradeBookEntry by sourcedId."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if not sourced_id.startswith("gbe-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+    li_pk = sourced_id[4:]
+    li_sid = f"li-{li_pk}"
+    for li in _iter_line_items():
+        if li.get("sourcedId") == li_sid:
+            return JsonResponse({"gradeBookEntry": _gradebook_entry_for(li)})
+    return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)

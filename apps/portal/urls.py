@@ -157,7 +157,7 @@ from .views_multicampus_academics import multicampus_academics
 from .views_multicampus_extension import multicampus_extension
 from .views_lms_console import lms_index, lms_provider_detail, lms_token_save, lms_push_grade, lms_token_refresh
 from .views_tenant_binding import tenant_bindings_index, tenant_binding_reassign
-from .views_lms_audit import lms_audit_index
+from .views_lms_audit import lms_audit_index, lms_audit_export_index, lms_audit_export_download
 from .views_lms_pkce import lms_pkce_start, lms_pkce_callback, lms_pkce_build
 
 app_name = "portal"
@@ -191,6 +191,9 @@ urlpatterns = [
     # v4.00.53: LMS push-grade audit log operator UI (Wedge 2) — must precede
     # the ``<str:provider>`` catch-all so ``audit`` is not parsed as a provider.
     path("super/integrations/lms/audit/", lms_audit_index, name="lms_audit_index"),
+    # v4.00.56: retention-export download UI (lists + serves JSONL snapshots).
+    path("super/integrations/lms/audit/exports/", lms_audit_export_index, name="lms_audit_export_index"),
+    path("super/integrations/lms/audit/exports/<str:filename>/", lms_audit_export_download, name="lms_audit_export_download"),
     path("super/integrations/lms/<str:provider>/", lms_provider_detail, name="lms_provider_detail"),
     path("super/integrations/lms/<str:provider>/save/", lms_token_save, name="lms_token_save"),
     path("super/integrations/lms/<str:provider>/push-grade/", lms_push_grade, name="lms_push_grade"),

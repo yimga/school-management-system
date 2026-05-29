@@ -23,6 +23,7 @@ from . import (
     views_connectors,
     views_dsar_admin,
     views_health,
+    views_lms_diagnostics,
     views_maa_counsel_activate,
     views_maa_promotion,
     views_smoke_history,
@@ -119,6 +120,8 @@ urlpatterns = [
     # relative path under the portal mount; both shells render identically
     # because the view does not read per-shell tenant scope.
     path("health/", views_health.MigrationCloudHealthView.as_view(), name="migration_cloud_health"),  # rbac-allow: super-staff-migration-cloud-health-status
+    # v4.00.56 — LMS connector diagnostics (token health + 24h refresh/rotation outcomes).
+    path("lms/diagnostics/", views_lms_diagnostics.lms_diagnostics, name="migration_cloud_lms_diagnostics"),  # rbac-allow: super-staff-migration-cloud-lms-diagnostics
     # v3.40.0 Agent 6 — Migration Cloud Command Center (8-card operator dashboard).
     path("command-center/", views_command_center.MigrationCloudCommandCenterView.as_view(), name="migration_cloud_command_center"),  # rbac-allow: super-staff-migration-cloud-command-center
     # Wave 9 Agent N — vendor write-path authorization status (counsel-pending shovel-ready surface).

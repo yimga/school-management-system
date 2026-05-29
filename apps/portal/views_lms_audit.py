@@ -9,14 +9,31 @@ Surfaces the v4.00.52 ``LMSPushGradeAudit`` append-only rows to staff:
 
 The view is staff-only and read-only. The model itself is append-only —
 no UPDATE/DELETE surfaces are exposed.
+
+v4.00.56 — Adds retention-export download UI:
+
+  * ``GET /portal/super/integrations/lms/audit/exports/`` — lists the
+    JSONL snapshots written by ``sweep_lms_audit_retention(export_dir=...)``
+    so an operator can grab the forensic record of a purge.
+  * ``GET /portal/super/integrations/lms/audit/exports/<filename>/`` —
+    streams a single export with ``Content-Disposition: attachment``.
+
+Both endpoints refuse to operate when ``RMC_LMS_AUDIT_RETENTION_EXPORT_DIR``
+is unset — there's no implicit default directory (the retention sweep is
+opt-in). Filename validation rejects path traversal AND any name that
+doesn't match the ``lms_audit_purge_*.jsonl`` pattern emitted by the
+sweep, so the endpoint cannot be coerced into serving unrelated files.
 """
 from __future__ import annotations
 
 import logging
+import os
+import re
 from datetime import datetime, timezone
+from pathlib import Path
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpRequest, JsonResponse
+from django.http import FileResponse, HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
@@ -124,4 +141,121 @@ def lms_audit_index(request: HttpRequest):
         "filter_since": since_raw,
         "filter_rotation": rotation_raw,
         "rotation_marker": _ROTATION_COURSE_ID_MARKER,
+        "export_dir_configured": bool((os.environ.get("RMC_LMS_AUDIT_RETENTION_EXPORT_DIR") or "").strip()),
     })
+
+
+# ---------------------------------------------------------------------------
+# v4.00.56 — Retention-export download UI.
+#
+# Filename pattern from ``lms_audit_retention._write_export``:
+#   ``lms_audit_purge_<cutoff_iso_safe>.jsonl``
+# where the iso ts is sanitized (colons → ``-``, ``+`` → ``p``). We pin the
+# whitelist regex tightly so no traversal / unrelated file can be served.
+# ---------------------------------------------------------------------------
+
+_EXPORT_FILENAME_RE = re.compile(r"^lms_audit_purge_[A-Za-z0-9_\-:.]+\.jsonl$")
+_EXPORT_LIST_CAP = 1000
+
+
+def _resolve_export_dir() -> Path | None:
+    raw = (os.environ.get("RMC_LMS_AUDIT_RETENTION_EXPORT_DIR") or "").strip()
+    if not raw:
+        return None
+    try:
+        return Path(raw).expanduser().resolve()
+    except OSError:
+        return None
+
+
+def _validate_export_filename(name: str) -> bool:
+    """Return True iff ``name`` is a plain filename matching the sweep output."""
+    if not name or name != os.path.basename(name):
+        return False
+    if ".." in name or "/" in name or "\\" in name:
+        return False
+    return bool(_EXPORT_FILENAME_RE.match(name))
+
+
+@staff_member_required
+@require_http_methods(["GET"])
+def lms_audit_export_index(request: HttpRequest):
+    """v4.00.56 — List operator-visible retention-export JSONL files."""
+    export_dir = _resolve_export_dir()
+
+    files: list[dict] = []
+    error_reason = ""
+    if export_dir is None:
+        error_reason = "export_dir_not_configured"
+    elif not export_dir.exists():
+        error_reason = "export_dir_missing"
+    elif not export_dir.is_dir():
+        error_reason = "export_dir_not_a_directory"
+    else:
+        try:
+            for entry in sorted(export_dir.iterdir(), reverse=True)[:_EXPORT_LIST_CAP]:
+                name = entry.name
+                if not entry.is_file() or not _validate_export_filename(name):
+                    continue
+                try:
+                    st = entry.stat()
+                except OSError:
+                    continue
+                files.append({
+                    "name": name,
+                    "size_bytes": int(st.st_size),
+                    "modified_iso": datetime.fromtimestamp(st.st_mtime, tz=timezone.utc).isoformat(),
+                })
+        except OSError as exc:
+            error_reason = f"listing_failed: {exc}"
+
+    if (request.GET.get("format") or "").lower() == "json":
+        return JsonResponse({
+            "success": not error_reason,
+            "export_dir": str(export_dir) if export_dir else "",
+            "files": files,
+            "count": len(files),
+            "error": error_reason,
+        })
+
+    return render(request, "super/integrations/lms_audit_exports.html", {
+        "files": files,
+        "export_dir": str(export_dir) if export_dir else "",
+        "error_reason": error_reason,
+    })
+
+
+@staff_member_required
+@require_http_methods(["GET"])
+def lms_audit_export_download(request: HttpRequest, filename: str):
+    """v4.00.56 — Stream a single export JSONL with Content-Disposition."""
+    if not _validate_export_filename(filename):
+        return JsonResponse({"error": "bad_filename"}, status=400)
+
+    export_dir = _resolve_export_dir()
+    if export_dir is None:
+        return JsonResponse({"error": "export_dir_not_configured"}, status=404)
+    if not export_dir.exists() or not export_dir.is_dir():
+        return JsonResponse({"error": "export_dir_missing"}, status=404)
+
+    target = (export_dir / filename).resolve()
+    # Defense in depth: target MUST live inside export_dir after resolution
+    # (covers symlink shenanigans on POSIX).
+    try:
+        target.relative_to(export_dir)
+    except ValueError:
+        return JsonResponse({"error": "path_traversal_refused"}, status=400)
+
+    if not target.exists() or not target.is_file():
+        return JsonResponse({"error": "not_found", "filename": filename}, status=404)
+
+    try:
+        fh = open(target, "rb")
+    except OSError as exc:
+        logger.warning("lms_audit_export_download: open failed %s: %s", filename, exc)
+        return JsonResponse({"error": "open_failed"}, status=500)
+
+    resp = FileResponse(fh, content_type="application/x-ndjson")
+    resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+    resp["X-Audit-Export"] = "lms-retention-purge"
+    return resp

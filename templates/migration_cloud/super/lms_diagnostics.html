@@ -1,0 +1,101 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block page_title %}{% trans "LMS connector diagnostics" %}{% endblock %}
+
+{% block extra_head %}
+  {{ block.super }}
+  <meta http-equiv="refresh" content="60">
+{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--lms-diagnostics" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "LMS connector diagnostics" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Live token health and 24-hour push-grade / rotation outcomes for every configured LMS connector. Auto-refreshes every 60 seconds." %}
+      <small style="display:block;color:var(--text-secondary);margin-top:4px;">{% trans "generated_at" %}: <code>{{ diag.generated_at }}</code></small>
+    </p>
+  </header>
+
+  {% if diag.errors %}
+    <section role="alert" style="margin-bottom:14px;padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <strong>{% trans "Some diagnostics sections failed (non-fatal)." %}</strong>
+      <ul style="margin-top:8px;font-family:monospace;font-size:12px;color:var(--text-secondary);">
+        {% for e in diag.errors %}<li>{{ e }}</li>{% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <section style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;">
+    <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Configured" %}</div>
+      <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.configured }}</div>
+    </div>
+    <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Unconfigured" %}</div>
+      <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.unconfigured }}</div>
+    </div>
+    <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Expired" %}</div>
+      <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.expired }}</div>
+    </div>
+    <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Past rotation grace" %}</div>
+      <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.past_grace }}</div>
+    </div>
+    <div style="padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Missing refresh token" %}</div>
+      <div style="font-size:1.3rem;font-weight:600;">{{ diag.totals.missing_refresh }}</div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="rmc-h2" style="font-size:1rem;margin-bottom:8px;">{% trans "Per provider" %}</h2>
+    {% if diag.providers %}
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="text-align:left;font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);">{% trans "Provider" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Total" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Configured" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Expired" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Past grace" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Push OK (24h)" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Push fail (24h)" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Rot OK (24h)" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Rot fail (24h)" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);">{% trans "Latest refresh" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in diag.providers %}
+            <tr>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);font-family:monospace;">{{ p.provider }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.total }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.configured }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.expired }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.past_grace }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.push_ok_24h }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.push_failed_24h }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.rotation_ok_24h }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.rotation_failed_24h }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);font-family:monospace;font-size:11px;color:var(--text-secondary);">{{ p.latest_refresh_at }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p style="color:var(--text-secondary);">{% trans "No LMS connector tokens configured yet. Provision tokens via /portal/super/integrations/lms/." %}</p>
+    {% endif %}
+  </section>
+
+  <section style="margin-top:18px;">
+    <h2 class="rmc-h2" style="font-size:1rem;margin-bottom:8px;">{% trans "Headless format" %}</h2>
+    <p style="color:var(--text-secondary);font-size:12px;">
+      {% trans "External monitors can poll this surface at" %}
+      <code>?format=json</code> {% trans "for the same data." %}
+    </p>
+  </section>
+</main>
+{% endblock %}
