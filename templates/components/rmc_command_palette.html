@@ -42,6 +42,8 @@
   "ai_center_url": "{{ cmdk_ai_center_global|default:''|escapejs }}",
   "help_center_url": "{{ cmdk_help_center_global|default:''|escapejs }}",
   "ai_gateway_console_url": "{{ cmdk_gw|default:''|escapejs }}",
+  "locale": "{{ LANGUAGE_CODE|default:'en'|escapejs }}",
+  "ai_line_url": "/api/v1/ai/line-interpret/",
   "shortcuts": {
     "open": ["mod+k", "mod+/"],
     "close": ["escape"]

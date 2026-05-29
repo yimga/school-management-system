@@ -2375,3 +2375,238 @@ COUNTRY_LOCALIZATION["ZA"] = {
     },
 }
 COUNTRY_REGIONAL_DEFAULT.pop("ZA", None)
+
+# Togo — Francophone, CEPD / BEPC / Bac.
+COUNTRY_LOCALIZATION["TG"] = {
+    "calendar_system": {
+        "code": "tg-3-term", "label": "3 Trimestres (Togolais)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle",  "label": "Jardin / Maternelle",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",    "label": "École Primaire (CP1-CM2 / CEPD)","glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",     "label": "Collège (6e-3e / BEPC)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",       "label": "Lycée (2nde-Tle / Baccalauréat)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",   "label": "Enseignement Technique / EFTP",  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite",  "label": "Université",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tg-mat", "label": "Maternelle",        "order": 0},
+        {"code": "tg-cp",  "label": "CP1-CP2",           "order": 1},
+        {"code": "tg-cm",  "label": "CM2 (CEPD)",        "order": 6},
+        {"code": "tg-3e",  "label": "3ème (BEPC)",       "order": 10},
+        {"code": "tg-tle", "label": "Terminale (Bac)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur / Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TG", None)
+
+# Benin — Francophone, CEP / BEPC / Bac.
+COUNTRY_LOCALIZATION["BJ"] = {
+    "calendar_system": {
+        "code": "bj-3-term", "label": "3 Trimestres (Béninois)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle",  "label": "Maternelle",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",    "label": "École Primaire (CI-CM2 / CEP)",  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",     "label": "Collège (6e-3e / BEPC)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",       "label": "Lycée (2nde-Tle / Bac)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",   "label": "EFTP / Technique",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite",  "label": "Université",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bj-mat", "label": "Maternelle",       "order": 0},
+        {"code": "bj-ci",  "label": "CI",               "order": 1},
+        {"code": "bj-cm2", "label": "CM2 (CEP)",        "order": 6},
+        {"code": "bj-3e",  "label": "3ème (BEPC)",      "order": 10},
+        {"code": "bj-tle", "label": "Terminale (Bac)",  "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur / Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BJ", None)
+
+# Burkina Faso — Francophone, CEP / BEPC / Bac.
+COUNTRY_LOCALIZATION["BF"] = {
+    "calendar_system": {
+        "code": "bf-3-term", "label": "3 Trimestres (Burkinabè)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "prescolaire","label": "Préscolaire",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "Primaire (CP1-CM2 / CEP)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "post-primaire","label": "Post-Primaire (6e-3e / BEPC)",  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "secondaire", "label": "Secondaire (2nde-Tle / Bac)",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",  "label": "EFTP / Technique",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite", "label": "Université",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bf-pre",  "label": "Préscolaire",       "order": 0},
+        {"code": "bf-cp1",  "label": "CP1",               "order": 1},
+        {"code": "bf-cm2",  "label": "CM2 (CEP)",         "order": 6},
+        {"code": "bf-3e",   "label": "3ème (BEPC)",       "order": 10},
+        {"code": "bf-tle",  "label": "Terminale (Bac)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BF", None)
+
+# Mali — Francophone, DEF (instead of BEPC) / Bac.
+COUNTRY_LOCALIZATION["ML"] = {
+    "calendar_system": {
+        "code": "ml-3-term", "label": "3 Trimestres (Malien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "jardin",     "label": "Jardin d'enfants",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "fondamental-1","label": "Fondamental 1er Cycle (1-6)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-12"},
+        {"code": "fondamental-2","label": "Fondamental 2e Cycle (7-9 / DEF)","glyph": "\U0001F4DA","primary_sector": "middle",         "typical_ages": "13-15"},
+        {"code": "secondaire", "label": "Secondaire (10-12 / Bac)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "technique",  "label": "EFTP / Technique",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "universite", "label": "Université",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ml-1",  "label": "Année 1",            "order": 1},
+        {"code": "ml-6",  "label": "Année 6 (Fin 1er Cycle)", "order": 6},
+        {"code": "ml-9",  "label": "Année 9 (DEF)",      "order": 9},
+        {"code": "ml-12", "label": "Année 12 (Bac)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Année",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("ML", None)
+
+# Niger — Francophone, CFEPD / BEPC / Bac.
+COUNTRY_LOCALIZATION["NE"] = {
+    "calendar_system": {
+        "code": "ne-3-term", "label": "3 Trimestres (Nigérien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "prescolaire","label": "Préscolaire",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "Primaire (CI-CM2 / CFEPD)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",    "label": "Collège (6e-3e / BEPC)",          "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Bac)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",  "label": "EFTP / Technique",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite", "label": "Université",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ne-ci",  "label": "CI",                "order": 1},
+        {"code": "ne-cm2", "label": "CM2 (CFEPD)",       "order": 6},
+        {"code": "ne-3e",  "label": "3ème (BEPC)",       "order": 10},
+        {"code": "ne-tle", "label": "Terminale (Bac)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("NE", None)
+
+# Morocco — Arabic + French, Brevet / Baccalauréat.
+COUNTRY_LOCALIZATION["MA"] = {
+    "calendar_system": {
+        "code": "ma-2-semester", "label": "2 Semestres (Marocain)",
+        "term_count": 2, "term_names": ["Semestre 1 / الفصل الأول", "Semestre 2 / الفصل الثاني"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "prescolaire",     "label": "Préscolaire / تعليم أولي",                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primaire",        "label": "Primaire (1-6) / ابتدائي",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",         "label": "Collège (1-3 / Brevet) / إعدادي",          "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "lycee-qualifiant","label": "Lycée Qualifiant (Bac) / تأهيلي",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "technique",       "label": "Technique / OFPPT",                        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "francais-amse",   "label": "Mission Française (AEFE)",                 "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "universite",      "label": "Université / جامعة",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ma-pre",   "label": "Préscolaire",          "order": 0},
+        {"code": "ma-p1",    "label": "Primaire 1",           "order": 1},
+        {"code": "ma-p6",    "label": "Primaire 6",           "order": 6},
+        {"code": "ma-c1",    "label": "Collège 1",            "order": 7},
+        {"code": "ma-c3",    "label": "Collège 3 (Brevet)",   "order": 9},
+        {"code": "ma-l1",    "label": "Tronc Commun",         "order": 10},
+        {"code": "ma-bac1",  "label": "1ère Baccalauréat",    "order": 11},
+        {"code": "ma-bac2",  "label": "2ème Baccalauréat",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / أستاذ", "principal": "Directeur / مدير",
+        "term": "Semestre / فصل", "report_card": "Bulletin / نقطة",
+        "grade_level": "Niveau / مستوى",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MA", None)
+
+# Tunisia — Arabic + French, Diplôme Fin d'études / Baccalauréat.
+COUNTRY_LOCALIZATION["TN"] = {
+    "calendar_system": {
+        "code": "tn-3-trimester", "label": "3 Trimestres (Tunisien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "prescolaire", "label": "Préscolaire",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",    "label": "École Primaire (1-6)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "preparatoire","label": "Préparatoire (7-9 / Diplôme)",             "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "secondaire",  "label": "Secondaire (1-4 / Baccalauréat)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-19"},
+        {"code": "technique",   "label": "Formation Professionnelle / ATFP",         "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite",  "label": "Université",                               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "tn-p1",   "label": "Primaire 1",                 "order": 1},
+        {"code": "tn-p6",   "label": "Primaire 6",                 "order": 6},
+        {"code": "tn-prep3","label": "Préparatoire 3 (Diplôme)",   "order": 9},
+        {"code": "tn-bac4", "label": "Bac 4 (Baccalauréat)",       "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / معلّم", "principal": "Directeur / مدير",
+        "term": "Trimestre / ثلاثي", "report_card": "Bulletin / بطاقة الأعداد",
+        "grade_level": "Niveau / مستوى",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TN", None)
+
+# Algeria — Arabic + French, BEM / Baccalauréat.
+COUNTRY_LOCALIZATION["DZ"] = {
+    "calendar_system": {
+        "code": "dz-3-trimester", "label": "3 Trimestres (Algérien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "prescolaire", "label": "Préscolaire / تحضيري",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "5-6"},
+        {"code": "primaire",    "label": "Primaire (1-5) / ابتدائي",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "moyen",       "label": "Moyen (1-4 / BEM) / متوسط",                  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "secondaire",  "label": "Secondaire (1-3 / Bac) / ثانوي",             "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "technique",   "label": "Formation Professionnelle / تكوين مهني",    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite",  "label": "Université / جامعة",                         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "dz-p1",   "label": "Primaire 1",            "order": 1},
+        {"code": "dz-p5",   "label": "Primaire 5",            "order": 5},
+        {"code": "dz-m4",   "label": "Moyen 4 (BEM)",         "order": 9},
+        {"code": "dz-s3",   "label": "Secondaire 3 (Bac)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / أستاذ", "principal": "Directeur / مدير",
+        "term": "Trimestre / فصل", "report_card": "Bulletin / كشف نقاط",
+        "grade_level": "Niveau / مستوى",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("DZ", None)

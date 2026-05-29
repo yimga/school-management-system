@@ -1,6 +1,14 @@
 /**
- * rmc-command-palette-page-aware.js — v4.00.30 (2026-05-29)
+ * rmc-command-palette-page-aware.js — v4.00.31 (2026-05-29)
  *
+ * v4.00.31: + Locale-aware voice input: rec.lang now reads from the cmdk
+ *             data block's `locale` (Django LANGUAGE_CODE) before falling
+ *             back to navigator.language — so a Francophone tenant gets
+ *             French dictation, not en-US.
+ *           + Opt-in LLM fallback: when the deterministic pattern misses
+ *             AND the input ends with " ??" or a long (>20 char) query,
+ *             re-fetch with &ai=1 — escalates to the gateway for a
+ *             single round-trip. Keeps default latency tight.
  * v4.00.30: + Web Speech API voice input on the cmdk input bar.
  *           + AI-line interpreter: as the user types, debounce-POST the
  *             query to /api/v1/ai/line-interpret/. When the backend matches
@@ -242,6 +250,37 @@
     });
   }
 
+  // v4.00.30/31 — Reads the cmdk data block once for shared config (locale,
+  // ai_line_url, etc.). Falls back to safe defaults so we keep running on
+  // older shells that haven't picked up the new fields yet.
+  function readCmdkConfig() {
+    var node = document.getElementById(DATA_ID);
+    if (!node) return { locale: "", ai_line_url: "/api/v1/ai/line-interpret/" };
+    try {
+      var data = JSON.parse(node.textContent || "{}");
+      return {
+        locale: (data.locale || "").toString(),
+        ai_line_url: data.ai_line_url || "/api/v1/ai/line-interpret/"
+      };
+    } catch (e) {
+      return { locale: "", ai_line_url: "/api/v1/ai/line-interpret/" };
+    }
+  }
+
+  // Map Django LANGUAGE_CODE → BCP-47 tag the Web Speech API expects.
+  function resolveSpeechLang(localeFromCmdk) {
+    var map = {
+      "en": "en-US", "fr": "fr-FR", "es": "es-ES", "pt": "pt-PT", "ar": "ar-EG",
+      "sw": "sw-KE", "ha": "ha-NG", "yo": "yo-NG", "ig": "ig-NG",
+      "am": "am-ET", "rw": "rw-RW", "zh": "zh-CN", "de": "de-DE", "it": "it-IT",
+      "ru": "ru-RU", "ja": "ja-JP"
+    };
+    var raw = (localeFromCmdk || "").toLowerCase();
+    if (!raw) return navigator.language || "en-US";
+    if (raw.indexOf("-") > 0) return raw;
+    return map[raw] || navigator.language || "en-US";
+  }
+
   // v4.00.30 — Web Speech API voice input. Adds a mic button to the cmdk
   // input bar; clicking starts a one-shot dictation that fills the input
   // and immediately re-fires its `input` event so results update live.
@@ -278,7 +317,8 @@
           return;
         }
         rec = new SR();
-        rec.lang = (navigator.language || "en-US");
+        var cfg = readCmdkConfig();
+        rec.lang = resolveSpeechLang(cfg.locale);
         rec.interimResults = false;
         rec.maxAlternatives = 1;
         btn.classList.add("is-listening");
@@ -315,7 +355,8 @@
     var input = document.getElementById("rmc-cmdk-input");
     var list = document.getElementById("rmc-cmdk-list");
     if (!input || !list) return;
-    var endpoint = "/api/v1/ai/line-interpret/";
+    var cfg = readCmdkConfig();
+    var endpoint = cfg.ai_line_url || "/api/v1/ai/line-interpret/";
     var lastSuggestion = null;
     var t = null;
 
@@ -350,24 +391,43 @@
       lastSuggestion = { label: label, url: url, intent: intent };
     }
 
+    function postOnce(q, withAi) {
+      return fetch(endpoint, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify(withAi ? { q: q, ai: "1" } : { q: q })
+      }).then(function (r) { return r.ok ? r.json() : null; });
+    }
+
     function fetchInterpretation(q) {
       if (!q || q.length < 4) { clearSuggestion(); return; }
+      // Opt into the LLM fallback when the operator double-asks ("?? ") OR
+      // the query is long enough to read like a sentence. Cheap heuristic
+      // that keeps short navigations latency-tight.
+      var explicitAsk = /\?\?\s*$/.test(q);
+      var sentenceish = q.length >= 22 && q.split(/\s+/).length >= 4;
+      var wantsAi = explicitAsk || sentenceish;
       try {
-        fetch(endpoint, {
-          method: "POST",
-          credentials: "same-origin",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken(),
-            "X-Requested-With": "XMLHttpRequest"
-          },
-          body: JSON.stringify({ q: q })
-        }).then(function (r) {
-          if (!r.ok) return null;
-          return r.json();
-        }).then(function (j) {
-          if (!j || !j.matched || !j.url) { clearSuggestion(); return; }
-          renderSuggestion(j.label || "Open", j.url, j.intent || "");
+        postOnce(q, false).then(function (j) {
+          if (j && j.matched && j.url) {
+            renderSuggestion(j.label || "Open", j.url, j.intent || "");
+            return;
+          }
+          if (wantsAi) {
+            return postOnce(q, true).then(function (k) {
+              if (k && k.matched && k.url) {
+                renderSuggestion(k.label || "Open", k.url, k.intent || "ai");
+              } else {
+                clearSuggestion();
+              }
+            });
+          }
+          clearSuggestion();
         }).catch(function () { /* silent */ });
       } catch (_) { /* silent */ }
     }

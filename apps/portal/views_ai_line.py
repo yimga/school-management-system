@@ -195,6 +195,83 @@ def _interpret(query: str) -> dict[str, Any] | None:
     return None
 
 
+def _llm_fallback(query: str, request: Any) -> dict[str, Any] | None:
+    """Last-resort: route the query through the AI gateway.
+
+    Asks the gateway to emit a JSON object `{"url": "/...", "label": "..."}`
+    or empty when no navigation answer applies. Returns None on any failure
+    (no AI policy, no gateway, parse error) so the caller keeps the
+    deterministic "matched: false" contract intact.
+    """
+    if not query:
+        return None
+    try:
+        from services.ai_helpers import invoke_with_request
+    except ImportError:
+        return None
+    prompt = (
+        "You are RunMyCampus's navigation copilot. The operator typed the "
+        "following query into the command palette of a school-management "
+        "system. Resolve it to a single internal navigation URL on this "
+        "platform. Respond with ONLY a JSON object of the shape "
+        '{"url": "/finance/...", "label": "Outstanding fees"} '
+        'or {"url": "", "label": ""} if no navigation answer applies. '
+        "Never invent external URLs; only internal paths starting with /. "
+        "If the query is conversational or unanswerable, return empty.\n\n"
+        f"Query: {query}\n\n"
+        "JSON:"
+    )
+    try:
+        result = invoke_with_request(
+            task_type="admin_copilot",
+            prompt=prompt,
+            request=request,
+            user_query=query,
+            require_available=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("ai-line llm fallback failed: %s", exc)
+        return None
+    if not result:
+        return None
+    payload, _meta = result if isinstance(result, tuple) else (result, {})
+    text = ""
+    if isinstance(payload, str):
+        text = payload
+    elif isinstance(payload, dict):
+        text = (
+            payload.get("response")
+            or payload.get("text")
+            or payload.get("content")
+            or ""
+        )
+        if not text and isinstance(payload.get("message"), dict):
+            text = payload["message"].get("content", "")
+    text = (text or "").strip()
+    if not text:
+        return None
+    # Extract first JSON object from the response.
+    start = text.find("{")
+    end = text.rfind("}")
+    if start < 0 or end <= start:
+        return None
+    try:
+        obj = json.loads(text[start : end + 1])
+    except (ValueError, TypeError):
+        return None
+    url = (obj.get("url") or "").strip()
+    label = (obj.get("label") or "").strip() or "Open"
+    if not url or not url.startswith("/"):
+        return None
+    return {
+        "matched": True,
+        "label": label,
+        "url": url,
+        "params": {},
+        "intent": "llm_fallback",
+    }
+
+
 @require_http_methods(["GET", "POST"])
 @csrf_protect
 @login_required
@@ -202,8 +279,11 @@ def api_ai_line_interpret(request):
     """POST/GET q=<natural language> → {matched, label, url, params, intent}.
 
     Always returns 200 with `matched: false` when no deterministic intent
-    fires, so callers can keep their AI/free-text fallback without parsing
-    HTTP error codes.
+    AND no LLM fallback fires, so callers can keep their AI/free-text
+    fallback without parsing HTTP error codes.
+
+    LLM fallback is opt-in per-request via `&ai=1` (default off) so the
+    palette doesn't fan out to the gateway on every keystroke.
     """
     try:
         if request.method == "POST" and request.body:
@@ -211,10 +291,13 @@ def api_ai_line_interpret(request):
         else:
             body = request.GET
         query = (body.get("q") or body.get("query") or "").strip()[:500]
+        ai_on = str(body.get("ai", "0")).lower() in ("1", "true", "yes")
     except (ValueError, TypeError) as exc:
         logger.debug("ai-line bad body: %s", exc)
         return JsonResponse({"success": False, "error": "bad_request"}, status=400)
     result = _interpret(query)
+    if not result and ai_on:
+        result = _llm_fallback(query, request)
     if not result:
         return JsonResponse({"success": True, "query": query, "matched": False})
     return JsonResponse({"success": True, "query": query, **result})
