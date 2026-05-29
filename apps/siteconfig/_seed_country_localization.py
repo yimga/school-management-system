@@ -5733,6 +5733,393 @@ COUNTRY_REGIONAL_DEFAULT.pop("LI", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.45 (2026-05-29) — Polynesian + Caribbean-Dutch + US territories + FK.
+# +CK/NU/TK/PN + CW/AW/SX/BQ + PR/GU/VI/MP/AS + FK.
+# ---------------------------------------------------------------------------
+
+# Cook Islands — English/Māori, NZ-style with NCEA at L3.
+COUNTRY_LOCALIZATION["CK"] = {
+    "calendar_system": {
+        "code": "ck-4-term", "label": "4-term (Cook Islands)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Punanga reo / Preschool",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Y1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "Secondary (Y7-13) / NCEA",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-18"},
+        {"code": "vocational", "label": "Cook Islands TVET",                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "USP Cook Islands Campus",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ck-pre",  "label": "Punanga reo",      "order": 0},
+        {"code": "ck-y6",   "label": "Year 6",           "order": 6},
+        {"code": "ck-y11",  "label": "Year 11 (NCEA1)",  "order": 11},
+        {"code": "ck-y13",  "label": "Year 13 (NCEA3)",  "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Pu-apii / Teacher", "principal": "Mata-orāanga / Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CK", None)
+
+# Niue — English/Niuean, NZ-aligned.
+COUNTRY_LOCALIZATION["NU"] = {
+    "calendar_system": {
+        "code": "nu-4-term", "label": "4-term (Niue)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Niue Primary (Y1-6)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "Niue High School (Y7-13) / NCEA",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-18"},
+        {"code": "vocational", "label": "Vocational",                        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "USP Niue Campus",                    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "nu-pre", "label": "Preschool",      "order": 0},
+        {"code": "nu-y6",  "label": "Year 6",         "order": 6},
+        {"code": "nu-y11", "label": "Year 11 (NCEA1)","order": 11},
+        {"code": "nu-y13", "label": "Year 13 (NCEA3)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Faiaoga / Teacher", "principal": "Pule",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("NU", None)
+
+# Tokelau — English/Tokelauan, NZ system.
+COUNTRY_LOCALIZATION["TK"] = {
+    "calendar_system": {
+        "code": "tk-4-term", "label": "4-term (Tokelauan)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Atafu / Fakaofo / Nukunonu Primary","glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "Tokelau Secondary (Y7-13)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-18"},
+        {"code": "vocational", "label": "Vocational",                        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "USP via NZ partner",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tk-pre","label": "Preschool",      "order": 0},
+        {"code": "tk-y6", "label": "Year 6",         "order": 6},
+        {"code": "tk-y11","label": "Year 11 (NCEA1)","order": 11},
+        {"code": "tk-y13","label": "Year 13 (NCEA3)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Faiaoga / Teacher", "principal": "Pulemu",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TK", None)
+
+# Pitcairn — English (UK), one-room school w/ NZ NCEA via correspondence.
+COUNTRY_LOCALIZATION["PN"] = {
+    "calendar_system": {
+        "code": "pn-4-term", "label": "4-term (Pitcairn)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "primary",    "label": "Pitcairn Island School (one-room K-Y8)","glyph": "\U0001F3EB", "primary_sector": "primary","typical_ages": "5-13"},
+        {"code": "secondary",  "label": "NZ correspondence (Y9-13)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+    ],
+    "education_levels": [
+        {"code": "pn-y8", "label": "Year 8",            "order": 8},
+        {"code": "pn-y13","label": "Year 13 (NCEA3)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head Teacher",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PN", None)
+
+# Curaçao — Papiamentu/Dutch/English, mirrors Dutch system.
+COUNTRY_LOCALIZATION["CW"] = {
+    "calendar_system": {
+        "code": "cw-2-semester", "label": "2-semester (Curaçaoan)",
+        "term_count": 2, "term_names": ["Period 1", "Period 2"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Skol di basis (Kleuter)",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",      "label": "Funderend ondoso (Basisschool)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "vmbo",         "label": "VSBO (VMBO equiv)",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "havo_vwo",     "label": "HAVO / VWO",                        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",   "label": "SBO (MBO equiv)",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",   "label": "University of Curaçao (UoC)",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cw-kg", "label": "Kleuter",             "order": 0},
+        {"code": "cw-g6", "label": "Grupo 6 (FO)",        "order": 6},
+        {"code": "cw-vsbo4","label": "VSBO klas 4",       "order": 10},
+        {"code": "cw-vwo6","label": "VWO klas 6",         "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mener / Sñora / Docent", "principal": "Direktor",
+        "term": "Periode", "report_card": "Rapòrt", "grade_level": "Grupo / Klas",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CW", None)
+
+# Aruba — Papiamento/Dutch, Dutch system.
+COUNTRY_LOCALIZATION["AW"] = {
+    "calendar_system": {
+        "code": "aw-2-semester", "label": "2-semester (Aruban)",
+        "term_count": 2, "term_names": ["Periode 1", "Periode 2"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Kleuterschool",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",      "label": "Basisschool (Enseñansa básico)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "vmbo",         "label": "EPB / EPI (VMBO equiv)",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "havo_vwo",     "label": "Colegio Arubano (HAVO/VWO)",        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",   "label": "EPI Tecnico",                       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",   "label": "University of Aruba",               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "aw-kg",   "label": "Kleuter",            "order": 0},
+        {"code": "aw-g6",   "label": "Grado 6",            "order": 6},
+        {"code": "aw-vmbo4","label": "VMBO klas 4",        "order": 10},
+        {"code": "aw-vwo6", "label": "VWO klas 6",         "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Maestro / Maestra / Docent", "principal": "Director",
+        "term": "Periode", "report_card": "Rapport", "grade_level": "Grado / Klas",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AW", None)
+
+# Sint Maarten — Dutch/English, Dutch system + English-track.
+COUNTRY_LOCALIZATION["SX"] = {
+    "calendar_system": {
+        "code": "sx-2-semester", "label": "2-semester (St. Maarten)",
+        "term_count": 2, "term_names": ["Periode 1", "Periode 2"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Kleuterschool / Kindergarten",     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",      "label": "Basisschool / Primary",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "vmbo",         "label": "VMBO / Lower Secondary",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "havo_vwo",     "label": "HAVO / VWO / IB",                   "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",   "label": "USM Vocational",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",   "label": "University of St. Martin (USM)",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sx-kg", "label": "Kleuter",         "order": 0},
+        {"code": "sx-g6", "label": "Grade 6",         "order": 6},
+        {"code": "sx-vmbo4","label": "VMBO klas 4",   "order": 10},
+        {"code": "sx-vwo6","label": "VWO klas 6",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Docent", "principal": "Principal / Directeur",
+        "term": "Periode / Term", "report_card": "Report / Rapport", "grade_level": "Grade / Klas",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SX", None)
+
+# Caribbean Netherlands (Bonaire/Saba/St. Eustatius) — Dutch system, also English on Saba/Statia.
+COUNTRY_LOCALIZATION["BQ"] = {
+    "calendar_system": {
+        "code": "bq-2-semester", "label": "2-semester (Caribbean Netherlands)",
+        "term_count": 2, "term_names": ["Periode 1", "Periode 2"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Funderend onderwijs (kleuter)",    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",      "label": "Funderend onderwijs (basisschool)","glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "vmbo",         "label": "VMBO",                              "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "havo_vwo",     "label": "HAVO / VWO",                        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",   "label": "MBO (Caribbean Netherlands)",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",   "label": "University of the Antilles (open)",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bq-kg", "label": "Kleuter",         "order": 0},
+        {"code": "bq-g6", "label": "Groep 6 / Grade 6","order": 6},
+        {"code": "bq-vmbo4","label": "VMBO klas 4",   "order": 10},
+        {"code": "bq-vwo6","label": "VWO klas 6",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Docent / Teacher", "principal": "Directeur / Principal",
+        "term": "Periode / Term", "report_card": "Rapport / Report", "grade_level": "Groep / Klas",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BQ", None)
+
+# Puerto Rico — Spanish/English, US system K-12 + Bachillerato.
+COUNTRY_LOCALIZATION["PR"] = {
+    "calendar_system": {
+        "code": "pr-2-semester", "label": "2-semester (Puerto Rican)",
+        "term_count": 2, "term_names": ["Primer semestre", "Segundo semestre"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "Kindergarten",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "elementary",   "label": "Escuela elemental (K-6)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "middle",       "label": "Escuela intermedia (7-9)",         "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "high",         "label": "Escuela superior (10-12) / Bachillerato","glyph": "\U0001F393","primary_sector": "secondary","typical_ages": "15-18"},
+        {"code": "vocational",   "label": "Instituto técnico",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",   "label": "Universidad de Puerto Rico (UPR)", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "pr-kg", "label": "Kindergarten",      "order": 0},
+        {"code": "pr-g6", "label": "Grado 6",           "order": 6},
+        {"code": "pr-g9", "label": "Grado 9",           "order": 9},
+        {"code": "pr-g12","label": "Grado 12 (Bachillerato)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Maestro / Maestra", "principal": "Director / Directora",
+        "term": "Semestre", "report_card": "Boletín de notas", "grade_level": "Grado",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PR", None)
+
+# Guam — English/Chamorro, US system + DODEA.
+COUNTRY_LOCALIZATION["GU"] = {
+    "calendar_system": {
+        "code": "gu-2-semester", "label": "2-semester (Guamanian)",
+        "term_count": 2, "term_names": ["1st semester", "2nd semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Pre-K / Head Start",                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary", "label": "Elementary (K-5)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",     "label": "Middle (6-8)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",       "label": "High (9-12) / Guam Diploma",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "vocational", "label": "Guam Community College",             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "University of Guam (UOG)",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gu-prek","label": "Pre-K",       "order": 0},
+        {"code": "gu-g5", "label": "Grade 5",      "order": 5},
+        {"code": "gu-g8", "label": "Grade 8",      "order": 8},
+        {"code": "gu-g12","label": "Grade 12",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Maestro / Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GU", None)
+
+# US Virgin Islands — English, US system.
+COUNTRY_LOCALIZATION["VI"] = {
+    "calendar_system": {
+        "code": "vi-2-semester", "label": "2-semester (USVI)",
+        "term_count": 2, "term_names": ["1st semester", "2nd semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Pre-K",                             "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary", "label": "Elementary (K-5)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",     "label": "Middle (6-8)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",       "label": "High (9-12) / USVI Diploma",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "vocational", "label": "Career & Technical Education",      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "University of the Virgin Islands",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "vi-prek","label": "Pre-K",       "order": 0},
+        {"code": "vi-g5", "label": "Grade 5",      "order": 5},
+        {"code": "vi-g8", "label": "Grade 8",      "order": 8},
+        {"code": "vi-g12","label": "Grade 12",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("VI", None)
+
+# Northern Mariana Islands — English/Chamorro/Carolinian, US system.
+COUNTRY_LOCALIZATION["MP"] = {
+    "calendar_system": {
+        "code": "mp-2-semester", "label": "2-semester (CNMI)",
+        "term_count": 2, "term_names": ["1st semester", "2nd semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Head Start",                        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary", "label": "Elementary (K-5)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",     "label": "Middle (6-8)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",       "label": "High (9-12) / CNMI Diploma",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "vocational", "label": "Career & Technical Education",      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "Northern Marianas College",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mp-prek","label": "Head Start",   "order": 0},
+        {"code": "mp-g5", "label": "Grade 5",       "order": 5},
+        {"code": "mp-g8", "label": "Grade 8",       "order": 8},
+        {"code": "mp-g12","label": "Grade 12",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Maestro / Sensei",
+        "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MP", None)
+
+# American Samoa — English/Samoan, US system.
+COUNTRY_LOCALIZATION["AS"] = {
+    "calendar_system": {
+        "code": "as-2-semester", "label": "2-semester (American Samoan)",
+        "term_count": 2, "term_names": ["1st semester", "2nd semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "ecce",       "label": "ECE",                               "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary", "label": "Elementary (K-6)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Secondary (7-12) / Am. Samoa Diploma","glyph": "\U0001F393","primary_sector": "secondary",      "typical_ages": "12-18"},
+        {"code": "vocational", "label": "Vocational / Career-tech",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "American Samoa Community College",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "as-ece","label": "ECE",             "order": 0},
+        {"code": "as-g6", "label": "Grade 6",         "order": 6},
+        {"code": "as-g12","label": "Grade 12",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Faiaoga / Teacher", "principal": "Pule",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AS", None)
+
+# Falkland Islands — English (UK), Falkland Islands Community School + IGCSE/A-Level via UK.
+COUNTRY_LOCALIZATION["FK"] = {
+    "calendar_system": {
+        "code": "fk-3-term", "label": "3-term (Falkland Islands)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "ecce",       "label": "Stanley Nursery",                   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Infant & Junior School (R-Y6)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "FICS (Y7-Y11) / IGCSE",              "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-16"},
+        {"code": "sixth_form", "label": "UK Sixth-form (A-Level via partner)","glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vocational", "label": "Vocational",                        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "fk-ecce","label": "Nursery",            "order": 0},
+        {"code": "fk-y6", "label": "Year 6",              "order": 6},
+        {"code": "fk-y11","label": "Year 11 (IGCSE)",     "order": 11},
+        {"code": "fk-a2", "label": "Year 13 (A-Level)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head Teacher",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("FK", None)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

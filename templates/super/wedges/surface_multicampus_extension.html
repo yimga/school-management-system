@@ -29,6 +29,16 @@
       <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.staff_rollup.teacher_active|default:"0" }}</div>
       <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{% trans "active" %} / {{ tree.staff_rollup.teacher_total|default:"0" }} {% trans "total" %}</div>
     </div>
+    <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Discipline" %}</div>
+      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.discipline_rollup.open|default:"0" }}</div>
+      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{% trans "open" %} / {{ tree.discipline_rollup.incident_count|default:"0" }} {% trans "total" %} · {{ tree.discipline_rollup.high_severity|default:"0" }} {% trans "high" %}</div>
+    </div>
+    <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Transport" %}</div>
+      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.transport_rollup.active_routes|default:"0" }}</div>
+      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{% trans "active routes" %} · {{ tree.transport_rollup.stop_count|default:"0" }} {% trans "stops" %}</div>
+    </div>
   </section>
 
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">

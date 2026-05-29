@@ -274,9 +274,32 @@ _OBSERVABILITY_PROM_BACKEND = (
     getattr(settings, "OBSERVABILITY_METRICS_BACKEND", "noop") == "prometheus-client"
 )
 
+from apps.siteconfig.views_public_status import (
+    PublicStatusFeed as _PublicStatusFeed,
+    public_status_page as _public_status_page,
+    public_status_subscribe as _public_status_subscribe,
+    public_status_unsubscribe as _public_status_unsubscribe,
+    public_status_verify as _public_status_verify,
+)
+
 urlpatterns = [
     path("", home, name="home"),
     path("", home, name="marketing_home"),
+    # v4.00.43 — public status page (anonymous; cached 30s).
+    path("status/", _public_status_page, name="public_status"),
+    # v4.00.45 — Atom feed + double opt-in email subscriptions.
+    path("status/feed.xml", _PublicStatusFeed(), name="public_status_feed"),
+    path("status/subscribe/", _public_status_subscribe, name="public_status_subscribe"),
+    path(
+        "status/verify/<str:token>/",
+        _public_status_verify,
+        name="public_status_verify",
+    ),
+    path(
+        "status/unsubscribe/<str:token>/",
+        _public_status_unsubscribe,
+        name="public_status_unsubscribe",
+    ),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("storefront/", marketing_intent_homepage, name="marketing_intent_homepage"),
     path(
@@ -535,6 +558,9 @@ urlpatterns = [
     path("sso/oidc/login/<str:provider>/", __import__("apps.api.oidc_rp", fromlist=["login"]).login, name="oidc_rp_login"),
     path("sso/oidc/callback/<str:provider>/", __import__("apps.api.oidc_rp", fromlist=["callback"]).callback, name="oidc_rp_callback"),
     path("sso/oidc/providers/", __import__("apps.api.oidc_rp", fromlist=["list_providers"]).list_providers, name="oidc_rp_providers"),
+    # v4.00.45 — OIDC RP-Initiated Logout (Session Management 1.0).
+    path("sso/oidc/logout/<str:provider>/", __import__("apps.api.oidc_rp", fromlist=["logout"]).logout, name="oidc_rp_logout"),
+    path("sso/oidc/logout/callback/<str:provider>/", __import__("apps.api.oidc_rp", fromlist=["logout_callback"]).logout_callback, name="oidc_rp_logout_callback"),
     # Apps
     path(
         "siteconfig/",

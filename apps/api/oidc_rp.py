@@ -390,6 +390,119 @@ def _safe_next_url(request: HttpRequest) -> str:
     return getattr(_settings, "LOGIN_REDIRECT_URL", "/") or "/"
 
 
+_LOGOUT_STATE_PREFIX = "oidc:logout:state:"
+_LOGOUT_STATE_TTL = 60 * 5
+
+
+def _store_logout_state(state: str, provider: str, post_redirect: str) -> None:
+    cache.set(
+        _LOGOUT_STATE_PREFIX + state,
+        {"provider": provider, "post_redirect": post_redirect, "issued_at": int(time.time())},
+        _LOGOUT_STATE_TTL,
+    )
+
+
+def _consume_logout_state(state: str) -> dict[str, Any] | None:
+    ck = _LOGOUT_STATE_PREFIX + state
+    record = cache.get(ck)
+    if record:
+        cache.delete(ck)
+    return record if isinstance(record, dict) else None
+
+
+@require_http_methods(["GET"])
+def logout(request: HttpRequest, provider: str):
+    """v4.00.45 — RP-Initiated Logout per OIDC Session Management 1.0.
+
+    Discovers the IdP's ``end_session_endpoint`` from the cached discovery
+    doc, drops the local Django session, then redirects the user agent
+    to the IdP with ``id_token_hint`` (when present in the session),
+    ``post_logout_redirect_uri`` (our callback), and ``state``.
+
+    When the provider exposes no ``end_session_endpoint`` we still drop
+    the local session and redirect to ``post_logout_redirect_uri`` so
+    the user is at least signed out of RunMyCampus.
+    """
+    cfg = _providers().get(provider)
+    if not cfg:
+        return JsonResponse({"error": "unknown_provider", "provider": provider}, status=404)
+    try:
+        disc = _discovery(cfg)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse({"error": "discovery_failed", "detail": str(exc)}, status=502)
+
+    end_session = disc.get("end_session_endpoint") or ""
+    post_redirect = (request.GET.get("post_logout_redirect_uri") or "").strip()
+    if not post_redirect:
+        explicit = (
+            getattr(settings, "RMC_OIDC_REDIRECT_BASE_URL", "")
+            or os.environ.get("RMC_OIDC_REDIRECT_BASE_URL", "")
+            or ""
+        ).rstrip("/")
+        base = explicit or f"{'https' if request.is_secure() else 'http'}://{request.get_host()}"
+        post_redirect = f"{base}/sso/oidc/logout/callback/{provider}/"
+
+    id_token_hint = ""
+    sess = getattr(request, "session", None)
+    if sess is not None:
+        id_token_hint = sess.get("oidc_id_token", "") or ""
+
+    state = secrets.token_urlsafe(24)
+    _store_logout_state(state, provider, post_redirect)
+
+    # Drop the local Django session.
+    try:
+        from django.contrib.auth import logout as _django_logout
+
+        _django_logout(request)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("oidc logout: local session drop failed err=%s", exc)
+
+    if not end_session:
+        # No upstream end-session — at least we've logged the user out locally.
+        return HttpResponseRedirect(post_redirect)
+
+    params: dict[str, str] = {
+        "post_logout_redirect_uri": post_redirect,
+        "state": state,
+        "client_id": cfg.get("client_id", ""),
+    }
+    if id_token_hint:
+        params["id_token_hint"] = id_token_hint
+    return HttpResponseRedirect(f"{end_session}?{urllib.parse.urlencode({k: v for k, v in params.items() if v})}")
+
+
+@require_http_methods(["GET"])
+def logout_callback(request: HttpRequest, provider: str):
+    """Post-logout return URL. Verifies state if present, then renders a
+    minimal acknowledgement so operators can confirm the round-trip.
+
+    A best-effort second-pass ``django.contrib.auth.logout`` is invoked
+    in case the user was reauthenticated via session-fixation between
+    the initial logout and this callback.
+    """
+    state = (request.GET.get("state") or "").strip()
+    rec = _consume_logout_state(state) if state else None
+
+    try:
+        from django.contrib.auth import logout as _django_logout
+
+        _django_logout(request)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("oidc logout_callback: local session drop failed err=%s", exc)
+
+    want_json = (request.GET.get("format") or "").lower() == "json"
+    if want_json:
+        return JsonResponse({
+            "success": True,
+            "stage": "logged_out",
+            "provider": provider,
+            "state_valid": bool(rec and rec.get("provider") == provider),
+            "post_redirect_was": (rec or {}).get("post_redirect", ""),
+        })
+    return HttpResponseRedirect(getattr(settings, "LOGOUT_REDIRECT_URL", "/") or "/")
+
+
 @require_http_methods(["GET"])
 def list_providers(request: HttpRequest):
     """Operator-visible list of configured providers (codes only — no secrets)."""

@@ -107,8 +107,8 @@ def _check_wedge_2() -> dict[int, bool]:
         0: _app_installed("apps.integrations_marketplace"),
         1: _module_importable("apps.migration_cloud.api.webhook_dispatch"),
         2: _url_registered("api:api-roster-results-line-items"),  # v4.00.39
-        3: False,  # Canvas adapter deferred
-        4: False,  # Moodle adapter deferred
+        3: _module_importable("apps.api.lms_adapters"),  # v4.00.46 Canvas / Moodle / Google Classroom
+        4: _module_importable("apps.api.lms_adapters"),
     }
 
 
@@ -332,11 +332,14 @@ def _check_wedge_44() -> dict[int, bool]:
 
 
 def _check_wedge_45() -> dict[int, bool]:
-    # Identity + access federation — SAML v4.00.37, SCIM 2.0 v4.00.39, OIDC RP v4.00.41
+    # Identity + access federation — SAML metadata v4.00.37 + assertion validation v4.00.46;
+    # SCIM 2.0 v4.00.39; OIDC RP v4.00.41 + RP-Initiated Logout v4.00.46.
     return {
         0: _url_registered("sso_saml_metadata"),
         1: _url_registered("scim_v2_users"),
         2: _url_registered("oidc_rp_providers"),
+        3: _url_registered("oidc_rp_logout"),  # v4.00.46 — OIDC RP-Initiated Logout
+        4: _url_registered("sso_saml_acs"),  # v4.00.46 — SAML ACS validates + writes session
     }
 
 

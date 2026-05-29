@@ -104,8 +104,8 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
             "Integrations marketplace surface live",
             "Webhook dispatcher live with HMAC + 6-stage retry",
             "OneRoster Result Service read endpoints live (v4.00.39)",
-            "Canvas adapter (deferred)",
-            "Moodle adapter (deferred)",
+            "Canvas / Moodle / Google Classroom adapter SOT live (v4.00.46, list_courses + list_assignments + push_grade)",
+            "LMS adapter dispatch wired (canvas + moodle + google_classroom)",
         ],
     },
     {
@@ -771,11 +771,14 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
             ("SAML SP metadata", "/sso/saml/metadata/"),
             ("SCIM 2.0 ServiceProviderConfig", "/scim/v2/ServiceProviderConfig"),
             ("OIDC providers", "/sso/oidc/providers/"),
+            ("OIDC logout (azure)", "/sso/oidc/logout/azure/"),
         ],
         "checklist": [
             "SAML 2.0 SP metadata live (v4.00.37)",
             "SCIM 2.0 provisioning live (v4.00.39, Users + Groups, full CRUD + filter)",
             "OIDC RP live (v4.00.41, Discovery + auth-code + ID token validation)",
+            "OIDC RP-Initiated Logout live (v4.00.46, end_session_endpoint + state + post_logout_redirect_uri)",
+            "SAML ACS validates + writes session (v4.00.46, NameID + Audience + validity-window + provision + login())",
         ],
     },
 )

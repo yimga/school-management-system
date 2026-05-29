@@ -85,6 +85,50 @@ def _fees_aggregate(school_ids: list[int]) -> dict[str, Any]:
     }
 
 
+def _discipline_aggregate(school_ids: list[int]) -> dict[str, Any]:
+    """v4.00.46 — Discipline Incident rollup."""
+    if not school_ids:
+        return {"incident_count": 0, "open": 0, "resolved": 0, "high_severity": 0}
+    try:
+        from apps.academics.models import Incident
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("multicampus extension: Incident unavailable: %s", exc)
+        return {"error": "Incident_unavailable"}
+    qs = Incident.objects.filter(school_id__in=school_ids)  # tenant-isolation-allow: group-rollup-discipline-by-explicit-school-id-list
+    total = qs.count()
+    if not total:
+        return {"incident_count": 0, "open": 0, "resolved": 0, "high_severity": 0}
+    open_n = qs.filter(status__in=["OPEN", "REFERRED"]).count()
+    resolved_n = qs.filter(status="RESOLVED").count()
+    high_sev = qs.filter(severity="HIGH").count()
+    return {
+        "incident_count": total,
+        "open": open_n,
+        "resolved": resolved_n,
+        "high_severity": high_sev,
+    }
+
+
+def _transport_aggregate(school_ids: list[int]) -> dict[str, Any]:
+    """v4.00.46 — Transport Route + Stop rollup."""
+    if not school_ids:
+        return {"route_count": 0, "active_routes": 0, "stop_count": 0}
+    try:
+        from apps.schoolops.models import Route, Stop
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("multicampus extension: Route/Stop unavailable: %s", exc)
+        return {"error": "Route_unavailable"}
+    routes = Route.objects.filter(school_id__in=school_ids)  # tenant-isolation-allow: group-rollup-transport-routes-by-explicit-school-id-list
+    total = routes.count()
+    active = routes.filter(is_active=True).count()
+    stops = Stop.objects.filter(route__school_id__in=school_ids).count()  # tenant-isolation-allow: group-rollup-transport-stops-by-explicit-school-id-list
+    return {
+        "route_count": total,
+        "active_routes": active,
+        "stop_count": stops,
+    }
+
+
 def _staff_aggregate(school_ids: list[int]) -> dict[str, Any]:
     if not school_ids:
         return {"teacher_total": 0, "teacher_active": 0, "teacher_inactive": 0, "department_count": 0}
@@ -133,6 +177,8 @@ def _build_tree(parent_id: int | None) -> dict[str, Any]:
             "events": _events_aggregate([child.pk]),
             "fees": _fees_aggregate([child.pk]),
             "staff": _staff_aggregate([child.pk]),
+            "discipline": _discipline_aggregate([child.pk]),
+            "transport": _transport_aggregate([child.pk]),
         })
     return {
         "parent": ({"id": parent.pk, "name": parent.name, "slug": getattr(parent, "slug", "")} if parent else None),
@@ -141,6 +187,8 @@ def _build_tree(parent_id: int | None) -> dict[str, Any]:
         "events_rollup": _events_aggregate(descendant_ids),
         "fees_rollup": _fees_aggregate(descendant_ids),
         "staff_rollup": _staff_aggregate(descendant_ids),
+        "discipline_rollup": _discipline_aggregate(descendant_ids),
+        "transport_rollup": _transport_aggregate(descendant_ids),
         "descendant_count": len(descendant_ids),
     }
 
