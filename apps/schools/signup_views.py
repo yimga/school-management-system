@@ -370,10 +370,34 @@ def signup_school(request: HttpRequest):
     # v3.62.2 — school_type validated against the COUNTRY's pack first; if
     # not present there, fall back to the legacy hardcoded map so existing
     # bookmarked-form clients keep working.
-    school_type_raw = (request.POST.get("school_type") or "").strip().lower()
-    school_type = validate_school_type(country_code, school_type_raw)
-    if not school_type and school_type_raw in _SCHOOL_TYPE_TO_PRIMARY_SECTOR:
-        school_type = school_type_raw
+    # v4.00.27 (2026-05-29) — multi-select aware. The signup form now sends
+    # a checkbox group instead of a single radio so a school can declare
+    # every cycle it covers (Cameroon comprehensive lycée: 1er + 2ème
+    # cycle; Nigeria full school: nursery + primary + JSS + SSS; US K-12:
+    # elementary + middle + high; etc.). We accept getlist() AND fall back
+    # to the legacy single-value POST so older bookmarked forms still work.
+    raw_multi = [s.strip().lower() for s in request.POST.getlist("school_type") if s and s.strip()]
+    if not raw_multi:
+        single = (request.POST.get("school_type") or "").strip().lower()
+        if single:
+            raw_multi = [single]
+
+    validated_types = []
+    for cand in raw_multi:
+        v = validate_school_type(country_code, cand)
+        if not v and cand in _SCHOOL_TYPE_TO_PRIMARY_SECTOR:
+            v = cand
+        if v and v not in validated_types:
+            validated_types.append(v)
+
+    # `school_type` (singular) preserves the legacy contract used downstream
+    # for primary_sector resolution and lifecycle hooks — it carries the
+    # FIRST selected cycle. The full list is preserved in `school_type_raw`
+    # below (pipe-joined) for the create-time M2M sync and is round-tripped
+    # back to the template on validation re-render so the user's checkbox
+    # selections survive POST-error reloads.
+    school_type = validated_types[0] if validated_types else ""
+    school_type_raw = "|".join(validated_types)
 
     # v3.62.8 (Wave 6) — language picker. For multilingual countries this
     # value drives the per-language education-system overlay (CM Anglo vs
@@ -553,6 +577,31 @@ def signup_school(request: HttpRequest):
         if sector:
             create_kwargs["primary_sector"] = sector[:64]
     school = School.objects.create(**create_kwargs)
+
+    # v4.00.27 (2026-05-29) — persist all selected education cycles to the
+    # School.education_system_types M2M so downstream blueprint/form/grade
+    # band assignment can iterate every cycle the school covers, not just
+    # the primary one. Falls open silently if registry isn't populated for
+    # the picked codes — the singular school_type CharField still drives
+    # the legacy primary_sector path so nothing breaks.
+    if validated_types:
+        try:
+            from apps.registries.models import EducationSystemTypeRegistry
+            for code in validated_types:
+                try:
+                    reg, _ = EducationSystemTypeRegistry.objects.get_or_create(
+                        code=code[:64],
+                        defaults={"name": code.replace("-", " ").title()[:128]},
+                    )
+                    school.education_system_types.add(reg)
+                except (ValueError, TypeError):
+                    continue
+        except (ImportError, AttributeError) as exc:
+            logger.debug(
+                "signup education_system_types sync skipped err=%s",
+                type(exc).__name__,
+                exc_info=True,
+            )
     _assign_data_residency_or_record_failure(school)
     try:
         from apps.lifecycle.unified_lifecycle import (

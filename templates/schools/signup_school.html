@@ -248,33 +248,46 @@
          compact cards in a wrapping flex row — Apple HIG, no scroll.{% endcomment %}
       <div class="mb-3 rmc-signup-field" data-rmc-signup-field="school_type">
         <div class="rmc-signup-field__label-row">
-          <span class="rmc-signup-field__label-text">{% trans "School type" %}</span>
-          <span class="rmc-signup-field__optional">({% trans "optional" %})</span>
+          <span class="rmc-signup-field__label-text">{% trans "Education cycles your school covers" %}</span>
+          <span class="rmc-signup-field__optional">({% trans "select all that apply" %})</span>
         </div>
+        <p class="rmc-signup-field__help small text-muted mb-2">
+          {% blocktrans trimmed %}
+          Pick every level / cycle your institution offers. A Cameroonian
+          secondary school covering 1er & 2ème cycle, a US K-12 covering
+          elementary + middle + high — select them all. We will configure
+          forms, grading bands, and reports for each cycle.
+          {% endblocktrans %}
+        </p>
         {% comment %}v3.62.2 (2026-05-22) Wave 1 local-first:
-           School-type cards now driven by country_pack.school_types. Each
-           country's pack defines its own school tiers with locally-recognized
-           labels (e.g. "Junior Secondary" in Nigeria, "Collège" in France,
-           "Higher Secondary" in India) and glyphs. The grid carries
-           data-rmc-country-cards="school-type" so rmc-signup-country-adapter.js
-           re-renders it when the operator changes country.{% endcomment %}
+           School-type cards driven by country_pack.school_types — each
+           country's pack defines its own tiers with locally-recognized labels
+           and glyphs. v4.00.27 (2026-05-29): switched from radio to checkbox
+           so an institution can declare every cycle it covers (e.g. a
+           Cameroonian comprehensive lycée covers both 1er cycle and 2ème
+           cycle; a Nigerian school may cover nursery + primary + JSS + SSS).
+           The view (signup_views.py::signup_school) accepts getlist().{% endcomment %}
         <div class="rmc-signup-type-cards"
-             role="radiogroup"
-             aria-label="{% trans 'School type' %}"
+             role="group"
+             aria-label="{% trans 'Education cycles your school covers' %}"
              data-rmc-country-cards="school-type"
-             data-rmc-country-cards-radio="school_type">
-          {% with chosen=school_type|default:'' %}
+             data-rmc-country-cards-multi="school_type"
+             data-rmc-multi-select="1">
+          {% with chosen_csv=school_type|default:'' %}
             {% for st in country_pack.school_types %}
-              <label class="rmc-signup-type-card {% if chosen == st.code %}rmc-signup-type-card--selected{% endif %}">
-                <input type="radio" name="school_type" value="{{ st.code }}"
+              {% with code_marker="|"|add:st.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}
+              <label class="rmc-signup-type-card {% if code_marker in chosen_marker %}rmc-signup-type-card--selected{% endif %}">
+                <input type="checkbox" name="school_type" value="{{ st.code }}"
                        class="rmc-signup-type-card__input"
-                       {% if chosen == st.code %}checked{% endif %}>
+                       {% if code_marker in chosen_marker %}checked{% endif %}>
                 <span class="rmc-signup-type-card__glyph" aria-hidden="true">{{ st.glyph }}</span>
                 <span class="rmc-signup-type-card__title">{{ st.label }}</span>
                 {% if st.typical_ages %}
                 <span class="rmc-signup-type-card__sub">{{ st.typical_ages }}</span>
                 {% endif %}
+                <span class="rmc-signup-type-card__check" aria-hidden="true">✓</span>
               </label>
+              {% endwith %}
             {% endfor %}
           {% endwith %}
         </div>

@@ -282,3 +282,77 @@
   align-items: baseline;
   margin-bottom: 4px;
 }
+
+/* =================================================================
+   v4.00.27 (2026-05-29) — Multi-select school-type cards.
+
+   The signup form switched from <input type="radio"> to checkbox so a
+   school can pick every education cycle it covers (Cameroon comprehensive
+   lycée: 1er cycle + 2ème cycle; Nigeria full school: nursery + primary +
+   JSS + SSS; US K-12: elementary + middle + high; etc.).
+
+   The previous radio-style highlight used a server-rendered class
+   (.rmc-signup-type-card--selected). With multi-select, client-side
+   live updates need a CSS-driven highlight via :has(input:checked).
+   ================================================================= */
+
+.rmc-signup-type-card {
+  position: relative;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease,
+              transform 120ms ease, box-shadow 120ms ease;
+}
+.rmc-signup-type-card:hover {
+  transform: translateY(-1px);
+}
+.rmc-signup-type-card:has(input:checked),
+.rmc-signup-type-card--selected {
+  border-color: var(--rmc-page-accent, var(--color-primary-500, #6366f1)) !important; /* style-allow: signup-multi-select */
+  background: var(--rmc-page-accent-soft, var(--color-primary-50, rgba(99, 102, 241, 0.08))) !important; /* style-allow: signup-multi-select */
+  box-shadow: 0 0 0 1px var(--rmc-page-accent, #6366f1), 0 6px 18px var(--rmc-page-accent-soft, rgba(99, 102, 241, 0.18)); /* style-allow: signup-multi-select */
+}
+.rmc-signup-type-card__check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--rmc-page-accent, #6366f1); /* off-token-allow: signup-multi-select */
+  color: #fff; /* off-token-allow: signup-multi-select */
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 120ms ease, transform 120ms ease;
+  pointer-events: none;
+}
+.rmc-signup-type-card:has(input:checked) .rmc-signup-type-card__check,
+.rmc-signup-type-card--selected .rmc-signup-type-card__check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Multi-select hint text under the field label. */
+.rmc-signup-field__help {
+  margin-top: 2px;
+  max-width: 72ch;
+  line-height: 1.4;
+}
+
+/* Field group emits a small count chip when multiple cards are checked.
+   Pure CSS counter using sibling-count is not possible; the count is
+   surfaced by inline JS on the signup page when present. The chip
+   itself is styled here so the JS can just toggle its visibility. */
+.rmc-signup-type-cards[data-rmc-multi-select="1"]::after {
+  content: attr(data-selected-count);
+  position: absolute;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rmc-page-accent, #6366f1); /* off-token-allow: signup-multi-select-chip */
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
