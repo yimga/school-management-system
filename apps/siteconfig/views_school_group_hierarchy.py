@@ -18,6 +18,7 @@ from apps.schools.hierarchy_helpers import (
     get_school_tree,
     get_school_descendants,
 )
+from apps.schools.views_group_console import group_console_url_for_school
 
 
 @login_required
@@ -64,6 +65,7 @@ def school_group_hierarchy(request: HttpRequest) -> HttpResponse:
 
     scope_label = "group" if parent or child_schools else "single-tenant"
     group_intel = build_group_intelligence_context(school, request.user)
+    group_console_url = group_console_url_for_school(school)
 
     return render(
         request,
@@ -85,5 +87,6 @@ def school_group_hierarchy(request: HttpRequest) -> HttpResponse:
             "admin_school_url": admin_school_url,
             "group_intelligence": group_intel,
             "security_surface_url": security_surface_url,
+            "group_console_url": group_console_url,
         },
     )

@@ -32,6 +32,12 @@ class Room(models.Model):
     name = models.CharField(max_length=100, unique=True)
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES)
     capacity = models.IntegerField()
+    capacity_fraction = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=1,
+        help_text="Fractional utilization cap (1.00 = full room; 0.50 = half-day block).",
+    )
     floor = models.IntegerField(default=1)
     building = models.CharField(max_length=100, blank=True)
     facilities = models.JSONField(

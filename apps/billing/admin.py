@@ -14,6 +14,7 @@ from apps.billing.models import (
     TenantSubscription,
     UsageMeter,
 )
+from apps.billing.models_usage_caps import UsageCap
 
 
 @admin.register(BillingAccount, site=platform_admin_site)
@@ -209,3 +210,48 @@ class RevenueSharePayoutAdmin(admin.ModelAdmin):
     )
     list_filter = ("payout_scope", "status", "processor_code", "currency_code")
     search_fields = ("payee_name", "payee_ref", "external_payout_ref")
+
+
+@admin.register(UsageCap, site=platform_admin_site)
+class UsageCapAdmin(admin.ModelAdmin):
+    """v4.00.36 Phase 3: per-tenant usage caps + soft-warn + auto-freeze.
+
+    Use ``soft_warn_at = 0`` to disable the soft warning; ``hard_cap = 0``
+    to disable auto-suspension. ``enforce_cap_actions(school, dimension)``
+    writes a ``usage_cap_events`` audit trail into BillingAccount.metadata
+    on every soft-warn / hard-cap evaluation.
+    """
+
+    list_display = (
+        "school",
+        "dimension",
+        "soft_warn_at",
+        "hard_cap",
+        "period_grain",
+        "headroom_pct",
+        "updated_at",
+    )
+    list_filter = ("dimension", "period_grain")
+    search_fields = ("school__name", "dimension")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("school__name", "dimension")
+
+    def headroom_pct(self, obj):
+        """Quick operator scan: percent of hard_cap consumed in the current period.
+
+        Read-only, computed on render. ``--`` when ``hard_cap`` is 0.
+        """
+        if not obj or not obj.hard_cap:
+            return "--"
+        try:
+            from apps.billing.usage_caps import evaluate_cap
+
+            verdict = evaluate_cap(obj.school, obj.dimension)
+        except (ImportError, RuntimeError):
+            return "--"
+        if verdict.hard_cap <= 0:
+            return "--"
+        pct = (verdict.current * 100) // verdict.hard_cap
+        return f"{pct}% ({verdict.band})"
+
+    headroom_pct.short_description = "Headroom"

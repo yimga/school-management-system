@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-05-29T15:58:42.259308+00:00",
+  "verdict": "GLOBAL_GOVERNANCE_PLAN_COMPLETION_PASS",
+  "finding_count": 0,
+  "mode": "strict",
+  "register_item_count": 41,
+  "status_counts": {
+    "DONE": 41,
+    "NOT_DONE": 0
+  },
+  "failures": []
+}

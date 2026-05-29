@@ -1,0 +1,22 @@
+{
+  "label": "GDPR & UK GDPR",
+  "seo_title": "RunMyCampus GDPR \u2014 EU/UK data protection",
+  "seo_description": "GDPR-aligned processing: lawful basis, data subject rights, DPA, and international transfers.",
+  "headline": "GDPR and UK GDPR readiness.",
+  "subheadline": "We support controllers (schools) with technical and organizational measures: access control, export, retention tooling, and breach notification workflows.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Roles",
+      "body": "Your school is typically the controller; RunMyCampus processes data on documented instructions (processor)."
+    },
+    {
+      "title": "Rights",
+      "body": "Export, rectification, and erasure flows are exposed per tenant admin workflows; DSAR coordination via your DPO contact."
+    },
+    {
+      "title": "Transfers",
+      "body": "Standard contractual clauses and regional deployment options per TENANT_ISOLATION_AND_DATA_RESIDENCY.md."
+    }
+  ]
+}

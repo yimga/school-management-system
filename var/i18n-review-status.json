@@ -33,8 +33,8 @@
       "kind": "ai-draft",
       "reviewer": null,
       "reviewed_at": null,
-      "translated_target_strings": 96,
-      "notes": "AI-drafted in batch v3.23.9 (memory: i18n-translations-coverage-finish-v3-23-9). LLM-supplied French at editorial register; native-speaker review pending before production deploy. 15 msgids absent from current catalog were skipped."
+      "translated_target_strings": 7,
+      "notes": "AI-drafted via seed_marketing_site (batch 1568). Native-speaker review packet: docs/i18n/translation_requests/fr.md. Flip to production-ready: python manage.py i18n_review_status --mark-reviewed fr --reviewer \"<name>\"."
     },
     "de": {
       "review_status": "needs-native-review",

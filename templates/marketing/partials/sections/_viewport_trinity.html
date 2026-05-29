@@ -1,0 +1,53 @@
+{% load i18n marketing_media %}
+<section
+  id="mkt-viewport-trinity"
+  class="mkt-ve-section mkt-ve-section--trinity mkt-ve-section--viewport-lock"
+  data-mkt-personality="resilience"
+  data-mkt-scroll-policy="viewport-lock"
+  aria-labelledby="mkt-trinity-headline"
+>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-ve-section__header">
+      <p class="mkt-edt-eyebrow">{% trans "All-continent profile" %}</p>
+      <h2 id="mkt-trinity-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+        {% marketing_copy "txt_trinity_headline" %}
+      </h2>
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_trinity_lead" %}
+      </p>
+    </header>
+    <div class="mkt-ve-trinity" data-mkt-viewport-trinity>
+      <div class="mkt-ve-trinity__tabs" role="tablist" aria-label="{% trans 'Device profiles' %}">
+        <button type="button" role="tab" class="mkt-ve-trinity__tab is-active" data-mkt-trinity-mode="phone" aria-selected="true">{% trans "2G phone" %}</button>
+        <button type="button" role="tab" class="mkt-ve-trinity__tab" data-mkt-trinity-mode="chromebook" aria-selected="false">{% trans "Chromebook" %}</button>
+        <button type="button" role="tab" class="mkt-ve-trinity__tab" data-mkt-trinity-mode="noc" aria-selected="false">{% trans "4K NOC" %}</button>
+      </div>
+      <div class="mkt-ve-trinity__stage" data-mkt-trinity-stage>
+        <div class="mkt-ve-trinity__device mkt-ve-trinity__device--phone is-active" data-mkt-trinity-panel="phone">
+          <p class="mkt-ve-trinity__status">{% trans "Offline PWA · IndexedDB sync queue" %}</p>
+          <p class="mkt-ve-trinity__chat">{% trans "Mark present: Room 4B" %}</p>
+          <p class="mkt-ve-trinity__metric">{% trans "Core shell payload" %} &lt; 15 KB</p>
+        </div>
+        <div class="mkt-ve-trinity__device mkt-ve-trinity__device--chromebook" data-mkt-trinity-panel="chromebook" hidden>
+          <p class="mkt-ve-trinity__status">{% trans "Touch-optimized attendance swipe" %}</p>
+          <div class="mkt-ve-trinity__touch-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="mkt-ve-trinity__device mkt-ve-trinity__device--noc" data-mkt-trinity-panel="noc" hidden>
+          <div class="mkt-ve-trinity__noc-grid">
+            <div>{% trans "Admissions funnel" %}</div>
+            <div>{% trans "Fee collection" %}</div>
+            <div>{% trans "Migration health" %}</div>
+          </div>
+        </div>
+      </div>
+      <div class="mkt-ve-trinity__rtl" data-mkt-trinity-rtl>
+        <button type="button" class="mkt-ve-trinity__rtl-toggle" data-mkt-trinity-dir="ltr" aria-pressed="false">LTR</button>
+        <button type="button" class="mkt-ve-trinity__rtl-toggle is-active" data-mkt-trinity-dir="rtl" aria-pressed="true">RTL</button>
+        <div class="mkt-ve-trinity__mirror">
+          <p dir="ltr" data-mkt-trinity-ltr>{% trans "Fee receipt · Term 2" %}</p>
+          <p dir="rtl" data-mkt-trinity-rtl-text>{% trans "إشعار ولي الأمر · الفصل الثاني" %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

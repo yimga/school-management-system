@@ -1,0 +1,22 @@
+{
+  "label": "K-12 districts",
+  "seo_title": "K-12 districts | RunMyCampus",
+  "seo_description": "Board-ready compliance, feeder patterns, and per-campus isolation with group rollups.",
+  "headline": "District oversight without shadow systems.",
+  "subheadline": "Board-ready compliance, feeder patterns, and per-campus isolation with group rollups.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Campus isolation",
+      "body": "Each school is a tenant; district sees permitted aggregates only."
+    },
+    {
+      "title": "Policy inheritance",
+      "body": "Push grading scales, calendars, and finance rules from the center."
+    },
+    {
+      "title": "Board packets",
+      "body": "Procurement-friendly exports for public meetings."
+    }
+  ]
+}

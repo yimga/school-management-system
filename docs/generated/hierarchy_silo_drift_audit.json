@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-05-29T13:46:53.389760+00:00",
+  "verdict": "HIERARCHY_SILO_DRIFT_PASS",
+  "finding_count": 0,
+  "drift_rows": [
+    {
+      "silo": "organization",
+      "status": "implemented",
+      "note": "apps/governance Phase 2A"
+    }
+  ],
+  "failures": [],
+  "note": "parent_school + mat_groups + Organization documented; mat_groups JSON not yet derived from Organization"
+}

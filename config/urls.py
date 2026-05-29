@@ -276,6 +276,7 @@ _OBSERVABILITY_PROM_BACKEND = (
 
 from apps.siteconfig.views_public_status import (
     PublicStatusFeed as _PublicStatusFeed,
+    public_status_history as _public_status_history,
     public_status_page as _public_status_page,
     public_status_subscribe as _public_status_subscribe,
     public_status_unsubscribe as _public_status_unsubscribe,
@@ -300,6 +301,8 @@ urlpatterns = [
         _public_status_unsubscribe,
         name="public_status_unsubscribe",
     ),
+    # v4.00.49 — monthly history aggregations (cached 5min).
+    path("status/history/", _public_status_history, name="public_status_history"),
     path("v2/", marketing_landing_v2, name="marketing_landing_v2"),
     path("storefront/", marketing_intent_homepage, name="marketing_intent_homepage"),
     path(

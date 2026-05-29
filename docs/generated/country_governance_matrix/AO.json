@@ -1,0 +1,187 @@
+{
+  "iso_alpha2": "AO",
+  "iso_alpha3": "AGO",
+  "name_en": "Angola",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Africa",
+  "region_bucket": "africa",
+  "dissection_wave": "W-Africa",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {
+        "pt": "Ministério da Educação"
+      }
+    },
+    {
+      "level": 2,
+      "label_en": "Province",
+      "label_local": {
+        "pt": "Província"
+      }
+    },
+    {
+      "level": 3,
+      "label_en": "Municipality",
+      "label_local": {
+        "pt": "Município"
+      }
+    },
+    {
+      "level": 4,
+      "label_en": "School",
+      "label_local": {
+        "pt": "Escola"
+      }
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "municipality",
+    "province",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Angola statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "pt"
+  ],
+  "official_languages": [
+    {
+      "iso639": "pt",
+      "label_native": "Português",
+      "label_en": "Portuguese",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "pt"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "pt": "Professor",
+      "en": "Teacher"
+    },
+    "principal": {
+      "pt": "Diretor",
+      "en": "Principal"
+    },
+    "term": {
+      "pt": "Trimestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "pt": "Boletim",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "pt": "Classe",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {
+          "pt": "Ministério da Educação"
+        }
+      },
+      {
+        "level": 2,
+        "label_en": "Province",
+        "label_local": {
+          "pt": "Província"
+        }
+      },
+      {
+        "level": 3,
+        "label_en": "Municipality",
+        "label_local": {
+          "pt": "Município"
+        }
+      },
+      {
+        "level": 4,
+        "label_en": "School",
+        "label_local": {
+          "pt": "Escola"
+        }
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "pre-escolar",
+        "label": "Pré-escolar"
+      },
+      {
+        "code": "primario",
+        "label": "Ensino Primário (1-6)"
+      },
+      {
+        "code": "i-ciclo-sec",
+        "label": "Secundário I Ciclo (7-9)"
+      },
+      {
+        "code": "ii-ciclo-sec",
+        "label": "Secundário II Ciclo / Médio (10-13)"
+      },
+      {
+        "code": "tecnico",
+        "label": "Ensino Técnico-Profissional"
+      },
+      {
+        "code": "universidade",
+        "label": "Universidade"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "+244",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3 Trimestres (Angolano); Terms: 1º Trimestre, 2º Trimestre, 3º Trimestre; Year starts month 2",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "group_common",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Africa/Luanda"
+}

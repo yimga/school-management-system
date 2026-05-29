@@ -84,6 +84,8 @@ SUBPROCESS_GATES = (
     "scripts/verify_marketing_platform_pages_visual_coverage.py",
     "scripts/verify_marketing_loops_hero_derived.py",
     "scripts/verify_marketing_platform_routed_dedicated.py",
+    "scripts/verify_marketing_site_seeded.py",
+    "scripts/verify_marketing_i18n_production_gate.py",
 )
 
 

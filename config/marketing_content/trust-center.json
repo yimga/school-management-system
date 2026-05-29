@@ -1,0 +1,26 @@
+{
+  "label": "Trust Center",
+  "seo_title": "RunMyCampus Trust Center - Security, compliance, and privacy",
+  "seo_description": "Security and compliance trust center: certifications, data handling, auditability, and regional compliance.",
+  "headline": "Security and compliance trust center.",
+  "subheadline": "Transparent security posture, compliance alignment, and audit-ready controls for schools and regulators.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Security",
+      "body": "Tenant isolation, encryption, access controls, and audit logs as standard."
+    },
+    {
+      "title": "Compliance",
+      "body": "Region-aware defaults and workflows aligned to local education and data regulations."
+    },
+    {
+      "title": "Transparency",
+      "body": "Documented practices, runbooks, and support for audits and due diligence."
+    },
+    {
+      "title": "Deep dives",
+      "body": "FERPA alignment, GDPR & UK GDPR, retention schedules, and incident response \u2014 see linked trust pages below."
+    }
+  ]
+}

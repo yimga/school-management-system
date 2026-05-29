@@ -5,7 +5,8 @@
   data-rmc-theme-experience-hub="1"
   data-rmc-plane="{% if operator_plane %}platform{% else %}tenant{% endif %}"
   data-rmc-scroll-policy="paginate"
-  {% if not operator_plane %}data-rmc-page-fold-nav="required" data-rmc-section-nav="curated"{% endif %}
+  data-rmc-page-fold-nav="required"
+  {% if not operator_plane %}data-rmc-section-nav="curated"{% endif %}
 >
   <header class="mb-3 rmc-reveal">
     <p class="small text-muted mb-1">
@@ -26,17 +27,16 @@
       {% endif %}
     </div>
     <h1 class="h3 mb-2">{{ hub_title }}</h1>
-    <p class="text-muted mb-0">{{ hub_subtitle }}</p>
+    <p class="text-muted mb-2">{{ hub_subtitle }}</p>
+    <nav
+      class="rmc-cp-compact__fold-nav d-flex flex-wrap align-items-center gap-2"
+      aria-label="{% trans 'Jump to section' %}"
+    >
+      <a class="btn btn-outline-secondary btn-sm" href="#theme-hub-glance" data-rmc-section-anchor>{% trans "At a glance" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="#theme-hub-builder" data-rmc-section-anchor>{% trans "Visual builder" %}</a>
+      <a class="btn btn-outline-secondary btn-sm" href="#theme-hub-surfaces" data-rmc-section-anchor>{% trans "Surfaces" %}</a>
+    </nav>
   </header>
-
-  <nav class="rmc-cp-compact__fold-nav rmc-section-nav rmc-section-nav--inline mb-2" aria-label="{% trans 'On this page' %}" data-rmc-section-nav-curated="1">
-    <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
-    <div class="rmc-surface-subnav" role="list">
-      <a href="#theme-hub-glance" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "At a glance" %}</a>
-      <a href="#theme-hub-builder" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Visual builder" %}</a>
-      <a href="#theme-hub-surfaces" class="rmc-section-nav__link" role="listitem" data-rmc-section-anchor>{% trans "Surfaces" %}</a>
-    </div>
-  </nav>
 
   <section
     id="theme-hub-glance"

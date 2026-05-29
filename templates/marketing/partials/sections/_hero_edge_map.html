@@ -1,0 +1,32 @@
+{% load i18n %}
+<div class="mkt-ve-edge-map" data-mkt-edge-map aria-label="{% trans 'Illustrative global edge routing' %}">
+  <p class="mkt-ve-edge-map__title mkt-edos-text-shield">{% trans "Edge routing preview" %}</p>
+  <div class="mkt-ve-edge-map__grid">
+    <svg class="mkt-ve-edge-map__svg" viewBox="0 0 720 200" role="img" aria-hidden="true">
+      <rect width="720" height="200" fill="transparent"/>
+      <path d="M40 100 Q180 40 360 100 T680 100" fill="none" stroke="var(--hairline, rgba(148,163,184,0.35))" stroke-width="1"/>
+    </svg>
+    <ul class="mkt-ve-edge-map__cities">
+      <li>
+        <button type="button" class="mkt-ve-edge-map__city is-active" data-mkt-edge-city="NBO" data-edge-ms="12" data-currency="KES" data-ppp="0.31" aria-pressed="true">Nairobi</button>
+      </li>
+      <li>
+        <button type="button" class="mkt-ve-edge-map__city" data-mkt-edge-city="LON" data-edge-ms="8" data-currency="GBP" data-ppp="1.0" aria-pressed="false">London</button>
+      </li>
+      <li>
+        <button type="button" class="mkt-ve-edge-map__city" data-mkt-edge-city="BOM" data-edge-ms="14" data-currency="INR" data-ppp="0.28" aria-pressed="false">Mumbai</button>
+      </li>
+      <li>
+        <button type="button" class="mkt-ve-edge-map__city" data-mkt-edge-city="NYC" data-edge-ms="9" data-currency="USD" data-ppp="1.0" aria-pressed="false">New York</button>
+      </li>
+    </ul>
+    <aside class="mkt-ve-edge-map__panel" data-mkt-edge-panel>
+      <dl class="mkt-ve-edge-map__stats">
+        <div><dt>{% trans "Edge RTT" %}</dt><dd data-mkt-edge-rtt>12 ms</dd></div>
+        <div><dt>{% trans "Currency" %}</dt><dd data-mkt-edge-currency>{% if geo.currency %}{{ geo.currency }}{% else %}USD{% endif %}</dd></div>
+        <div><dt>{% trans "PPP factor" %}</dt><dd data-mkt-edge-ppp>—</dd></div>
+      </dl>
+      <p class="mkt-ve-edge-map__disclaimer">{% trans "Illustrative edge routing · not live telemetry" %}</p>
+    </aside>
+  </div>
+</div>

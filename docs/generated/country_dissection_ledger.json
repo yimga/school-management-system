@@ -1,0 +1,2008 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-29T15:07:42.260195+00:00",
+  "iso_count": 249,
+  "verified_count": 249,
+  "by_wave": {
+    "W-Europe": 44,
+    "W-Asia": 47,
+    "W-Americas": 35,
+    "W-Territories": 53,
+    "W-Africa": 54,
+    "W-Oceania": 16
+  },
+  "entries": [
+    {
+      "iso_alpha2": "AD",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AE",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AF",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AG",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AI",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AL",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AM",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AO",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "AQ",
+      "continent": "Antarctica",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AR",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AS",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AT",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AU",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AW",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AX",
+      "continent": "Europe",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "AZ",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BA",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BB",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BD",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BE",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BF",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "BG",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BH",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BI",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "BJ",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "BL",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BM",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BN",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BO",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BQ",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BR",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BS",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BT",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BV",
+      "continent": "Antarctica",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BW",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BY",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "BZ",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CA",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CC",
+      "continent": "Asia",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CD",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "CF",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "CG",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "CH",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CI",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "CK",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CL",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CM",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "CN",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CO",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CR",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CU",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CV",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "CW",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CX",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CY",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "CZ",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "DE",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "DJ",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "DK",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "DM",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "DO",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "DZ",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "EC",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "EE",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "EG",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "EH",
+      "continent": "Africa",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "ER",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "ES",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "ET",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "FI",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "FJ",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "FK",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "FM",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "FO",
+      "continent": "Europe",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "FR",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GA",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "GB",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GD",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GE",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GF",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GG",
+      "continent": "Europe",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GH",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GI",
+      "continent": "Europe",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GL",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GM",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GN",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "GP",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GQ",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "GR",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GS",
+      "continent": "Antarctica",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GT",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GU",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "GW",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "GY",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "HK",
+      "continent": "Asia",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "HM",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "HN",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "HR",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "HT",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "HU",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "ID",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IE",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IL",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IM",
+      "continent": "Europe",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IN",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IO",
+      "continent": "Asia",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IQ",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IR",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IS",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "IT",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "JE",
+      "continent": "Europe",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "JM",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "JO",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "JP",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KE",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KG",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KH",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KI",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KM",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "KN",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KP",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KR",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KW",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KY",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "KZ",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LA",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LB",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LC",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LI",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LK",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LR",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LS",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LT",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LU",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LV",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "LY",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "MA",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "MC",
+      "continent": "Europe",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MD",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "ME",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MF",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MG",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "MH",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MK",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "ML",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "MM",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MN",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MO",
+      "continent": "Asia",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MP",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MQ",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MR",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "MS",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MT",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MU",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "MV",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MW",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MX",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MY",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "MZ",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "NA",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NC",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NE",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "NF",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NG",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NI",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NL",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NO",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NP",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NR",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NU",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "NZ",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "OM",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PA",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PE",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PF",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PG",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PH",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PK",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PL",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PM",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PN",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PR",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PS",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PT",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PW",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "PY",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "QA",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "RE",
+      "continent": "Africa",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "RO",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "RS",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "RU",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "RW",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "SA",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SB",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SC",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "SD",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "SE",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SG",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SH",
+      "continent": "Africa",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SI",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SJ",
+      "continent": "Europe",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SK",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SL",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SM",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SN",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "SO",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "SR",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SS",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "ST",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "SV",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SX",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SY",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "SZ",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "TC",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TD",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "TF",
+      "continent": "Africa",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TG",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "TH",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TJ",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TK",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TL",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TM",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TN",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "TO",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TR",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TT",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TV",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TW",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "TZ",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "UA",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "UG",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "UM",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "US",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "UY",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "UZ",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "VA",
+      "continent": "Europe",
+      "wave": "W-Europe",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "VC",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "VE",
+      "continent": "Americas",
+      "wave": "W-Americas",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "VG",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "VI",
+      "continent": "Americas",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "VN",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "VU",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "WF",
+      "continent": "Oceania",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "WS",
+      "continent": "Oceania",
+      "wave": "W-Oceania",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "YE",
+      "continent": "Asia",
+      "wave": "W-Asia",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "YT",
+      "continent": "Africa",
+      "wave": "W-Territories",
+      "dissection_status": "verified",
+      "research_tier": "T3",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "ZA",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T1",
+      "verified_at": "2026-05-29T13:14:38.207647+00:00"
+    },
+    {
+      "iso_alpha2": "ZM",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    },
+    {
+      "iso_alpha2": "ZW",
+      "continent": "Africa",
+      "wave": "W-Africa",
+      "dissection_status": "verified",
+      "research_tier": "T2",
+      "verified_at": "2026-05-29T13:14:54.637180+00:00"
+    }
+  ]
+}

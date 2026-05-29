@@ -1,0 +1,152 @@
+{
+  "iso_alpha2": "LU",
+  "iso_alpha3": "LUX",
+  "name_en": "Luxembourg",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Europe",
+  "region_bucket": "europe",
+  "dissection_wave": "W-Europe",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "authority",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Luxembourg statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "fr",
+    "de",
+    "lb"
+  ],
+  "official_languages": [
+    {
+      "iso639": "fr",
+      "label_native": "Français",
+      "label_en": "French",
+      "role": "education_medium",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "de",
+      "label_native": "Deutsch",
+      "label_en": "German",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "lb",
+      "label_native": "Lëtzebuergesch",
+      "label_en": "Luxembourgish",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "fr",
+    "de",
+    "lb"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "fr": "Enseignant",
+      "en": "Teacher"
+    },
+    "principal": {
+      "fr": "Directeur",
+      "en": "Principal"
+    },
+    "term": {
+      "fr": "Trimestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "fr": "Bulletin",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "fr": "Classe",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "spillschoul",
+        "label": "Spillschoul / École préscolaire"
+      },
+      {
+        "code": "fondamental",
+        "label": "Enseignement fondamental"
+      },
+      {
+        "code": "secondaire",
+        "label": "Enseignement secondaire / Lycée"
+      },
+      {
+        "code": "universite",
+        "label": "Université du Luxembourg"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3 Trimester (Luxembourg); Terms: Trimestre 1, Trimestre 2, Trimestre 3; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Europe/Luxembourg"
+}

@@ -1,0 +1,60 @@
+{% load i18n static marketing_media %}
+<section
+  id="mkt-hero-speed-duel"
+  class="mkt-ve-section mkt-ve-section--hero-duel mkt-ve-section--viewport-lock"
+  data-mkt-personality="acquisition"
+  data-mkt-scroll-policy="viewport-lock"
+  aria-labelledby="mkt-speed-duel-headline"
+>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-ve-section__header">
+      <p class="mkt-edt-eyebrow">{% trans "Conversion engine" %}</p>
+      <h2 id="mkt-speed-duel-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+        {% marketing_copy "txt_speed_duel_headline" %}
+      </h2>
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_speed_duel_lead" %}
+      </p>
+    </header>
+    <div class="mkt-ve-speed-duel" data-mkt-speed-duel>
+      <div class="mkt-ve-speed-duel__panel mkt-ve-speed-duel__panel--legacy" aria-label="{% trans 'Legacy SIS path (simulated)' %}">
+        <p class="mkt-ve-speed-duel__label">{% trans "Legacy stack" %}</p>
+        <ol class="mkt-ve-speed-duel__trail" data-mkt-legacy-trail>
+          <li>{% trans "Reports" %}</li>
+          <li>{% trans "Academic" %}</li>
+          <li>{% trans "Report cards" %}</li>
+          <li>{% trans "Filter cohort" %}</li>
+          <li>{% trans "Export PDF" %}</li>
+        </ol>
+        <p class="mkt-ve-speed-duel__metric">
+          <span data-mkt-legacy-clicks>0</span> {% trans "clicks" %} ·
+          <span data-mkt-legacy-ms>—</span>
+        </p>
+        <button type="button" class="mkt-edt-cta mkt-edt-cta--ghost mkt-ve-speed-duel__run" data-mkt-legacy-run>
+          {% trans "Simulate legacy path" %}
+        </button>
+      </div>
+      <div class="mkt-ve-speed-duel__panel mkt-ve-speed-duel__panel--rmc" aria-label="{% trans 'RunMyCampus path (simulated)' %}">
+        <p class="mkt-ve-speed-duel__label">{% trans "RunMyCampus OS" %}</p>
+        <label class="mkt-ve-speed-duel__command">
+          <span class="visually-hidden">{% trans "Command" %}</span>
+          <input type="text" readonly value="{% trans 'Publish Q2 report cards for Grade 10-A' %}" data-mkt-rmc-command>
+        </label>
+        <div class="mkt-ve-speed-duel__stream" data-mkt-rmc-stream hidden aria-live="polite"></div>
+        <div class="mkt-ve-speed-duel__cards" data-mkt-rmc-cards hidden>
+          <div class="mkt-ve-speed-duel__card" data-mkt-stream-slot="card-roster">{% trans "Roster verified" %}</div>
+          <div class="mkt-ve-speed-duel__card" data-mkt-stream-slot="card-grade">{% trans "Grades locked" %}</div>
+          <div class="mkt-ve-speed-duel__card mkt-ve-speed-duel__card--action" data-mkt-stream-slot="action-publish">{% trans "Publish" %}</div>
+        </div>
+        <p class="mkt-ve-speed-duel__metric">
+          TTFT <span data-mkt-rmc-ttft>—</span> · {% trans "total" %} <span data-mkt-rmc-total>—</span>
+        </p>
+        <button type="button" class="mkt-edt-cta mkt-edt-cta--primary mkt-ve-speed-duel__run" data-mkt-rmc-run>
+          {% trans "Run command" %}
+        </button>
+      </div>
+    </div>
+    <p class="mkt-edt-illustrative-pill">{% trans "Simulated benchmarks · not a live tenant" %}</p>
+    {% include "marketing/partials/sections/_hero_edge_map.html" %}
+  </div>
+</section>

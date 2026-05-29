@@ -1,0 +1,22 @@
+{
+  "label": "Compliance",
+  "seo_title": "RunMyCampus Compliance - FERPA, GDPR, regional",
+  "seo_description": "Compliance posture for FERPA, GDPR, and regional education regulations.",
+  "headline": "Compliance that scales with you.",
+  "subheadline": "FERPA and GDPR-aligned workflows; regional compliance defaults and audit readiness.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "FERPA alignment",
+      "body": "Student record access and disclosure controls aligned to FERPA practices."
+    },
+    {
+      "title": "GDPR readiness",
+      "body": "Data subject rights, lawful basis, and cross-border transfer considerations."
+    },
+    {
+      "title": "Regional defaults",
+      "body": "Country-specific compliance profiles and terminology from the global registry."
+    }
+  ]
+}

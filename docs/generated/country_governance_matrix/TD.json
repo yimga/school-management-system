@@ -1,0 +1,201 @@
+{
+  "iso_alpha2": "TD",
+  "iso_alpha3": "TCD",
+  "name_en": "Chad",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Africa",
+  "region_bucket": "africa",
+  "dissection_wave": "W-Africa",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {
+        "fr": "Ministère de l'Éducation Nationale"
+      }
+    },
+    {
+      "level": 2,
+      "label_en": "Region",
+      "label_local": {
+        "fr": "Province"
+      }
+    },
+    {
+      "level": 3,
+      "label_en": "Département",
+      "label_local": {
+        "fr": "Département"
+      }
+    },
+    {
+      "level": 4,
+      "label_en": "School",
+      "label_local": {
+        "fr": "Établissement scolaire"
+      }
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "department",
+    "region",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Chad statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "fr",
+    "ar"
+  ],
+  "official_languages": [
+    {
+      "iso639": "fr",
+      "label_native": "Français",
+      "label_en": "French",
+      "role": "education_medium",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "ar",
+      "label_native": "العربية",
+      "label_en": "Arabic",
+      "role": "official",
+      "script": "Arab",
+      "direction": "rtl"
+    }
+  ],
+  "education_languages": [
+    "fr",
+    "ar"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "fr": "Enseignant",
+      "en": "Teacher"
+    },
+    "principal": {
+      "fr": "Directeur",
+      "en": "Principal"
+    },
+    "term": {
+      "fr": "Trimestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "fr": "Bulletin",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "fr": "Classe",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {
+          "fr": "Ministère de l'Éducation Nationale"
+        }
+      },
+      {
+        "level": 2,
+        "label_en": "Region",
+        "label_local": {
+          "fr": "Province"
+        }
+      },
+      {
+        "level": 3,
+        "label_en": "Département",
+        "label_local": {
+          "fr": "Département"
+        }
+      },
+      {
+        "level": 4,
+        "label_en": "School",
+        "label_local": {
+          "fr": "Établissement scolaire"
+        }
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "prescolaire",
+        "label": "Préscolaire"
+      },
+      {
+        "code": "primaire",
+        "label": "Primaire (CP-CM2 / CEPE)"
+      },
+      {
+        "code": "college",
+        "label": "Collège (6e-3e / BEPC)"
+      },
+      {
+        "code": "lycee",
+        "label": "Lycée (2nde-Tle / Bac)"
+      },
+      {
+        "code": "arabophone",
+        "label": "École Arabophone"
+      },
+      {
+        "code": "technique",
+        "label": "EFTP / Technique"
+      },
+      {
+        "code": "universite",
+        "label": "Université"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3 Trimestres (Tchadien); Terms: 1er Trimestre, 2ème Trimestre, 3ème Trimestre; Year starts month 10",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "group_common",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Africa/Ndjamena"
+}

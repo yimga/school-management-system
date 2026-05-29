@@ -1,0 +1,140 @@
+{
+  "iso_alpha2": "NL",
+  "iso_alpha3": "NLD",
+  "name_en": "Netherlands",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Europe",
+  "region_bucket": "europe",
+  "dissection_wave": "W-Europe",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "authority",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Netherlands statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "nl"
+  ],
+  "official_languages": [
+    {
+      "iso639": "nl",
+      "label_native": "Nederlands",
+      "label_en": "Dutch",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "nl"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "nl": "Leraar / Docent",
+      "en": "Teacher"
+    },
+    "principal": {
+      "nl": "Schoolleider / Directeur",
+      "en": "Principal"
+    },
+    "term": {
+      "nl": "Semester",
+      "en": "Term"
+    },
+    "report_card": {
+      "nl": "Rapport",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "nl": "Groep / Klas",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "peuterspeelzaal",
+        "label": "Peuterspeelzaal"
+      },
+      {
+        "code": "basisschool",
+        "label": "Basisschool"
+      },
+      {
+        "code": "vmbo",
+        "label": "VMBO"
+      },
+      {
+        "code": "havo",
+        "label": "HAVO"
+      },
+      {
+        "code": "vwo",
+        "label": "VWO / Gymnasium"
+      },
+      {
+        "code": "universiteit",
+        "label": "Universiteit / HBO"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "NL",
+  "phone_country_code": "+31",
+  "postal_label": "Postcode",
+  "grading_scale_family": "generic",
+  "calendar_notes": "2 Semesters; Terms: Eerste Semester, Tweede Semester; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T1",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Europe/Amsterdam"
+}

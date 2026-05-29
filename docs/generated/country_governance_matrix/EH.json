@@ -1,0 +1,170 @@
+{
+  "iso_alpha2": "EH",
+  "iso_alpha3": "ESH",
+  "name_en": "Western Sahara",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Africa",
+  "region_bucket": "africa",
+  "dissection_wave": "W-Africa",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "Territory administration",
+      "label_local": {
+        "en": "Territory (MA)"
+      }
+    },
+    {
+      "level": 2,
+      "label_en": "School",
+      "label_local": {
+        "en": "School"
+      }
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "territory",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "MA",
+  "education_pack_tier": "generic_fallback",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": false
+  },
+  "languages_expected": [
+    "ar",
+    "me"
+  ],
+  "official_languages": [
+    {
+      "iso639": "ar",
+      "label_native": "Arabic",
+      "label_en": "Arabic",
+      "role": "official",
+      "script": "Latn",
+      "direction": "rtl"
+    },
+    {
+      "iso639": "me",
+      "label_native": "me",
+      "label_en": "me",
+      "role": "co_official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "ar",
+    "me"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "ar": "Teacher",
+      "en": "Teacher"
+    },
+    "principal": {
+      "ar": "Principal",
+      "en": "Principal"
+    },
+    "term": {
+      "ar": "Semester",
+      "en": "Term"
+    },
+    "report_card": {
+      "ar": "Report Card",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "ar": "Grade",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "Territory administration",
+        "label_local": {
+          "en": "Territory (MA)"
+        }
+      },
+      {
+        "level": 2,
+        "label_en": "School",
+        "label_local": {
+          "en": "School"
+        }
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "preschool",
+        "label": "Preschool / Pre-K"
+      },
+      {
+        "code": "elementary",
+        "label": "Elementary School"
+      },
+      {
+        "code": "middle",
+        "label": "Middle School"
+      },
+      {
+        "code": "high",
+        "label": "High School"
+      },
+      {
+        "code": "college",
+        "label": "College / University"
+      },
+      {
+        "code": "k12",
+        "label": "K-12 (combined)"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "",
+  "terminology_source": "matrix_research",
+  "locale_catalog_keys": [],
+  "customer_risks": [
+    "territory_inherits_MA_governance"
+  ],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Africa/El_Aaiun"
+}

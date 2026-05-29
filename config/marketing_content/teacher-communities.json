@@ -1,0 +1,22 @@
+{
+  "label": "Teacher communities",
+  "seo_title": "Teacher communities | RunMyCampus",
+  "seo_description": "Thread lists, tag filters, and school-scoped channels that respect tenant boundaries.",
+  "headline": "Professional communities without algorithmic noise.",
+  "subheadline": "Thread lists, tag filters, and school-scoped channels that respect tenant boundaries.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Scoped discussions",
+      "body": "Communities inherit tenant isolation \u2014 no cross-school leakage."
+    },
+    {
+      "title": "Moderation tools",
+      "body": "Admins pin, archive, and export threads for policy review."
+    },
+    {
+      "title": "Resource attachments",
+      "body": "Link lesson assets and KB articles inline."
+    }
+  ]
+}

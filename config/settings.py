@@ -209,7 +209,7 @@ INSTALLED_APPS = [
     "apps.events.apps.EventsConfig",
     "apps.marketplace.apps.MarketplaceConfig",
     "apps.registries.apps.RegistriesConfig",
-    "apps.billing",  # Entitlements: can(), limits(), usage() (blueprint A1)
+    "apps.billing.apps.BillingConfig",  # Entitlements + storage metering signals (v4.00.36)
     "apps.sales.apps.SalesConfig",  # Internal founder pipeline (public schema; manager host)
     "apps.student360",  # Student 360: timeline feed, export pack (blueprint B1)
     "apps.school_events.apps.SchoolEventsConfig",
@@ -220,6 +220,7 @@ INSTALLED_APPS = [
     "apps.reports",
     "apps.siteconfig.apps.SiteconfigConfig",
     "apps.schools",
+    "apps.governance.apps.GovernanceConfig",
     "apps.security.apps.SecurityConfig",
     "apps.schoolops.apps.SchoolOpsConfig",
     "apps.analytics",
@@ -1500,6 +1501,14 @@ CELERY_BEAT_SCHEDULE = {
         "kwargs": {"older_than_days": 30},
         "options": {"expires": 3600},
     },
+    # v4.00.37 — support SLA breach sweep. Every 30 minutes scans open / in-progress /
+    # waiting tickets, fires the existing notification fan-out once per kind per
+    # status. Idempotent via ticket.metadata["sla_alerts"].
+    "siteconfig-support-sla-breach-sweep": {
+        "task": "siteconfig.support_sla_breach_sweep",
+        "schedule": 1800.0,
+        "options": {"expires": 1700},
+    },
     # Move 2 — orchestration runner: drain pending runs every minute.
     "orchestration-process-due-runs": {
         "task": "orchestration.process_due_runs",
@@ -1799,6 +1808,15 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 300.0,  # Every 5 minutes
         "options": {"expires": 240},
     },
+    # v4.00.53: proactively refresh LMSConnectorToken (Canvas/Google/Moodle)
+    # rows whose access tokens expire within 24h. Pairs with the v4.00.52
+    # 60s inline middleware (which catches the immediate-use path); this
+    # sweep keeps tokens warm for batch jobs that don't touch the inline path.
+    "integrations-refresh-lms-tokens": {
+        "task": "integrations_marketplace.refresh_due_lms_tokens",
+        "schedule": 3600.0,  # Hourly is plenty given the 24h window.
+        "options": {"expires": 3300},
+    },
     # v2.100: renew calendar/mail push subscriptions before they expire.
     # Google Calendar channels last ~30d, Graph subscriptions ~3d — without
     # this, push delivery silently stops and tenants get no notifications.
@@ -1885,6 +1903,27 @@ if _ensure_demo_cron_slug:
         "schedule": 86400.0,
         "options": {"expires": 7200},
     }
+
+# v4.00.36 — AI gateway metric Redis-bucket → UsageMeter flush.
+# Cache buckets at ai:metrics:* have a 3-day TTL; this drains them every
+# 5 minutes into the canonical ai_invocations dimension so billing can read.
+CELERY_BEAT_SCHEDULE["billing-flush-ai-metrics"] = {
+    "task": "apps.billing.tasks_ai_token_flush.flush_ai_metrics_buckets",
+    "schedule": (
+        _celery_crontab(minute="*/5")
+        if _celery_crontab is not None
+        else 300.0
+    ),
+    "options": {"expires": 240},
+}
+
+# v4.00.36 Phase 3 — AWS-style real-time meter buffer flush every 60s.
+# Hot path uses Redis HINCRBY; this drains into UsageMeter.
+CELERY_BEAT_SCHEDULE["billing-flush-realtime-meter"] = {
+    "task": "apps.billing.realtime_meter.flush_hot_buffers",
+    "schedule": 60.0,
+    "options": {"expires": 55},
+}
 
 if os.getenv("TENANT_AUTO_PURGE_ENABLED", "").strip().lower() in ("1", "true", "yes"):
     CELERY_BEAT_SCHEDULE["schools-run-scheduled-tenant-purges"] = {
@@ -3004,6 +3043,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "rest_framework_simplejwt.token_blacklist",
         "apps.accounts",
         "apps.schools",
+        "apps.governance.apps.GovernanceConfig",
         "apps.security.apps.SecurityConfig",
         "apps.siteconfig",
         "apps.runtime_blueprints.apps.RuntimeBlueprintsConfig",  # Proxy-owner for DashboardWidget; required by reports

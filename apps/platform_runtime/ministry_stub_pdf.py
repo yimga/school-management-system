@@ -22,17 +22,10 @@ def build_ministry_stub_pdf_bytes(
     from reportlab.lib.pagesizes import letter
     from reportlab.pdfgen import canvas
 
-    from apps.platform_runtime.learning_institution_catalog import (
-        STATUTORY_JURISDICTION_HINTS,
-    )
+    from apps.governance.country_matrix_service import resolve_statutory_jurisdiction_hint
 
     cc = (country_code or "").strip().upper()[:2]
-    hint = STATUTORY_JURISDICTION_HINTS.get(cc) if cc else None
-    if cc and len(cc) == 2 and cc.isalpha() and not hint:
-        hint = {
-            "label": f"Jurisdiction ({cc})",
-            "framework": "Configure region pack and statutory connectors — this PDF is a shell only.",
-        }
+    hint = resolve_statutory_jurisdiction_hint(cc) if cc else None
 
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=letter)

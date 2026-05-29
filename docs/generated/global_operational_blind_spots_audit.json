@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-05-29T13:05:55.211921+00:00",
+  "verdict": "GLOBAL_OPERATIONAL_BLIND_SPOTS_PASS",
+  "finding_count": 0,
+  "checks": {
+    "blind_spot_1_calendars": true,
+    "blind_spot_2_family_graph": true,
+    "blind_spot_3_offline_pwa": true,
+    "blind_spot_4_names": true,
+    "blind_spot_5_residency": true,
+    "blind_spot_6_ledger": true,
+    "blind_spot_7_grading": true,
+    "granular_sms_router": true,
+    "granular_scheduling": true
+  },
+  "failures": []
+}

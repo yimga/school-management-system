@@ -17,6 +17,10 @@ REPO = Path(__file__).resolve().parents[3]
 class MarketingIntentViewportTests(SimpleTestCase):
     def test_personality_sections_viewport_locked(self):
         for partial in (
+            "_hero_speed_duel.html",
+            "_zero_ui_lab.html",
+            "_viewport_trinity.html",
+            "_enterprise_constellation.html",
             "_sovereign_kernel.html",
             "_clinical_ledger.html",
             "_rugged_engine.html",

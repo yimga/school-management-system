@@ -7,8 +7,8 @@
    bs-toggle modal binding was removed — the post-login modal is
    disabled in v4.00.25. {% endcomment %}
 {% if request.user.is_authenticated and account_security_score is not None %}
-{% url 'accounts:security_posture_review' as _rmc_security_review_url %}
-<a href="{{ _rmc_security_review_url|default:'/accounts/security/' }}"
+{% url 'accounts:security_posture_review' as rmc_security_review_url %}
+<a href="{{ rmc_security_review_url|default:'/accounts/security/' }}"
    class="rmc-security-posture-nav cp-primary-nav__pill cp-nav-pill rmc-security-posture-nav--{{ security_posture_zone|default:'ok' }}{% if security_posture_zone == 'critical' %} rmc-security-pulse-fast{% elif security_posture_zone == 'warning' %} rmc-security-pulse-slow{% endif %}"
    data-rmc-security-posture-nav="1"
    data-rmc-security-zone="{{ security_posture_zone|default:'ok' }}"

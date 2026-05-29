@@ -1,0 +1,137 @@
+{
+  "iso_alpha2": "PF",
+  "iso_alpha3": "PYF",
+  "name_en": "French Polynesia",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Oceania",
+  "region_bucket": "oceania",
+  "dissection_wave": "W-Territories",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [],
+  "employer_model": "school",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "Ministry of Education — French Polynesia statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": false
+  },
+  "languages_expected": [
+    "fr",
+    "ty"
+  ],
+  "official_languages": [
+    {
+      "iso639": "fr",
+      "label_native": "French",
+      "label_en": "French",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "ty",
+      "label_native": "Tahitian",
+      "label_en": "Tahitian",
+      "role": "co_official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "fr",
+    "ty"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "fr": "Enseignant / Orometua haapii",
+      "en": "Teacher"
+    },
+    "principal": {
+      "fr": "Proviseur",
+      "en": "Principal"
+    },
+    "term": {
+      "fr": "Trimestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "fr": "Bulletin",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "fr": "Classe",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [],
+    "school_type_labels": [
+      {
+        "code": "maternelle",
+        "label": "École Maternelle"
+      },
+      {
+        "code": "primaire",
+        "label": "École Élémentaire"
+      },
+      {
+        "code": "college",
+        "label": "Collège / DNB"
+      },
+      {
+        "code": "lycee",
+        "label": "Lycée / Bac"
+      },
+      {
+        "code": "professionnel",
+        "label": "Lycée Professionnel"
+      },
+      {
+        "code": "universite",
+        "label": "Université de la Polynésie française"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3 Trimestres (Polynésie); Terms: 1er Trimestre, 2ème Trimestre, 3ème Trimestre; Year starts month 8",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Pacific/Tahiti"
+}

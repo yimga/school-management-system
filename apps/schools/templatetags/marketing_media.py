@@ -17,6 +17,7 @@ _VIZ_PARTIALS = {
     "transit_beacon": "marketing/viz/transit_beacon.svg.html",
     "gradebook_viz": "marketing/viz/gradebook_frameworks.svg.html",
     "gradebook_frameworks": "marketing/viz/gradebook_frameworks.svg.html",
+    "enterprise_constellation_viz": "marketing/viz/enterprise_constellation.svg.html",
 }
 
 

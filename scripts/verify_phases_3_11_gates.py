@@ -169,12 +169,14 @@ def main(argv: list[str] | None = None) -> int:
         "Broad except: allowlist + strict",
     )
     run(
-        [py, _script_path("generate_platform_inventory.py"), "--write", *base_args],
-        "Platform inventory artifacts refreshed (pre-deploy parity)",
-    )
-    run(
-        [py, _script_path("generate_platform_inventory.py"), "--check", *base_args],
-        "Platform inventory JSON matches repo (post-write pre-deploy parity)",
+        [
+            py,
+            _script_path("generate_platform_inventory.py"),
+            "--write",
+            "--check",
+            *base_args,
+        ],
+        "Platform inventory artifacts refreshed and verified (pre-deploy parity)",
     )
     run(
         [py, _script_path("verify_shell_architecture_matrix.py"), *base_args],

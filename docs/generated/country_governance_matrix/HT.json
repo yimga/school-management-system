@@ -1,0 +1,151 @@
+{
+  "iso_alpha2": "HT",
+  "iso_alpha3": "HTI",
+  "name_en": "Haiti",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Americas",
+  "region_bucket": "americas",
+  "dissection_wave": "W-Americas",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "district",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "district",
+    "state"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Haiti statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "ht",
+    "fr"
+  ],
+  "official_languages": [
+    {
+      "iso639": "ht",
+      "label_native": "Kreyòl Ayisyen",
+      "label_en": "Haitian",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "fr",
+      "label_native": "Français",
+      "label_en": "French",
+      "role": "education_medium",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "ht",
+    "fr"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "ht": "Pwofesè / Enseignant",
+      "fr": "Enseignant",
+      "en": "Teacher"
+    },
+    "principal": {
+      "ht": "Direktè / Directeur",
+      "fr": "Directeur",
+      "en": "Principal"
+    },
+    "term": {
+      "ht": "Trimès / Trimestre",
+      "fr": "Trimestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "ht": "Karnè / Bulletin",
+      "fr": "Bulletin",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "ht": "Klas",
+      "fr": "Classe",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "prescolaire",
+        "label": "Préscolaire / Lekòl matènèl"
+      },
+      {
+        "code": "fondamental",
+        "label": "École Fondamentale (9 ans)"
+      },
+      {
+        "code": "secondaire",
+        "label": "Secondaire / Bac"
+      },
+      {
+        "code": "professionnel",
+        "label": "Lycée Professionnel"
+      },
+      {
+        "code": "universite",
+        "label": "Université d'État (UEH)"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3 Trimestres (Haïtien); Terms: 1er Trimestre, 2ème Trimestre, 3ème Trimestre; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "America/Port-au-Prince"
+}

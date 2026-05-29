@@ -5,6 +5,9 @@ from decimal import Decimal
 from django.conf import settings
 from django.db import models
 
+# v4.00.36 Phase 3: ensure Django discovers the UsageCap model.
+from apps.billing.models_usage_caps import UsageCap  # noqa: F401
+
 
 def _platform_default_currency():
     """Top-level callable for migration safety. Django can serialize a top-level
@@ -25,6 +28,17 @@ class BillingAccount(models.Model):
         "schools.School",
         on_delete=models.CASCADE,
         related_name="billing_account",
+    )
+    parent_account = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="child_accounts",
+        help_text=(
+            "v4.00.36 Phase 3: optional roll-up parent for multi-campus enterprise networks. "
+            "Children retain their own ledger; the parent aggregates via rollup_account_balance()."
+        ),
     )
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.ACTIVE, db_index=True

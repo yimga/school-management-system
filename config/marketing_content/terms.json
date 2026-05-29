@@ -1,0 +1,22 @@
+{
+  "label": "Terms of Service",
+  "seo_title": "RunMyCampus Terms of Service",
+  "seo_description": "Terms of service for the RunMyCampus platform.",
+  "headline": "Terms of Service",
+  "subheadline": "Terms governing use of the RunMyCampus platform and services.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Acceptance",
+      "body": "By using the platform you agree to these terms."
+    },
+    {
+      "title": "Use of service",
+      "body": "Permitted use, account responsibility, and acceptable use."
+    },
+    {
+      "title": "Limitation of liability",
+      "body": "Standard limitations as permitted by applicable law."
+    }
+  ]
+}

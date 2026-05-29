@@ -1,0 +1,150 @@
+{
+  "iso_alpha2": "TL",
+  "iso_alpha3": "TLS",
+  "name_en": "Timor-Leste",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Oceania",
+  "region_bucket": "oceania",
+  "dissection_wave": "W-Oceania",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "state",
+    "federal"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Timor-Leste statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "tet",
+    "pt"
+  ],
+  "official_languages": [
+    {
+      "iso639": "tet",
+      "label_native": "Tetun",
+      "label_en": "Tetum",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "pt",
+      "label_native": "Português",
+      "label_en": "Portuguese",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "tet",
+    "pt"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "tet": "Professor / Mestre",
+      "en": "Teacher"
+    },
+    "principal": {
+      "tet": "Diretor",
+      "en": "Principal"
+    },
+    "term": {
+      "tet": "Semestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "tet": "Boletim",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "tet": "Klase / Classe",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "pre-escolar",
+        "label": "Pré-escolar"
+      },
+      {
+        "code": "eb1",
+        "label": "Ensino Básico 1º Ciclo (1-6)"
+      },
+      {
+        "code": "eb3",
+        "label": "Ensino Básico 3º Ciclo (7-9)"
+      },
+      {
+        "code": "secundario",
+        "label": "Ensino Secundário (10-12)"
+      },
+      {
+        "code": "tecnico",
+        "label": "Ensino Técnico-Profissional"
+      },
+      {
+        "code": "universidade",
+        "label": "Universidade"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "+670",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "2 Semestres (Timorense); Terms: Semestre 1, Semestre 2; Year starts month 1",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Asia/Dili"
+}

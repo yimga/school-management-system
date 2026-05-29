@@ -13,6 +13,10 @@ from apps.schools.marketing_personality_registry import (
     get_personality_page,
     personality_slugs,
 )
+from apps.schools.marketing_url_inventory import (
+    ACQUISITION_PERSONALITY_SLUGS,
+    iter_marketing_acquisition_smoke_targets,
+)
 
 REPO = Path(__file__).resolve().parents[3]
 
@@ -20,7 +24,14 @@ REPO = Path(__file__).resolve().parents[3]
 class MarketingPersonalityPagesTests(SimpleTestCase):
     def test_registry_slugs(self):
         slugs = personality_slugs()
-        for slug in ("academics", "edge-mesh", "compliance", "pricing"):
+        for slug in (
+            "zero-ui",
+            "enterprise-ledger",
+            "academics",
+            "edge-mesh",
+            "compliance",
+            "pricing",
+        ):
             self.assertIn(slug, slugs)
             spec = get_personality_page(slug)
             self.assertIsNotNone(spec)
@@ -28,8 +39,8 @@ class MarketingPersonalityPagesTests(SimpleTestCase):
 
     def test_reverse_personality_urls(self):
         self.assertEqual(
-            reverse("marketing_personality_page", kwargs={"personality_slug": "academics"}),
-            "/experience/academics/",
+            reverse("marketing_personality_page", kwargs={"personality_slug": "zero-ui"}),
+            "/experience/zero-ui/",
         )
 
     def test_copy_tokens_us_and_sa(self):
@@ -37,6 +48,51 @@ class MarketingPersonalityPagesTests(SimpleTestCase):
         self.assertNotIn("[txt_", us)
         sa = marketing_copy_token("SA", "txt_compliance_headline", {})
         self.assertTrue(sa)
+
+    def test_zero_ui_template_playground(self):
+        text = (REPO / "templates/marketing/zero_ui_lab.html").read_text(encoding="utf-8")
+        partial = (
+            REPO / "templates/marketing/partials/sections/_zero_ui_lab.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn('data-mkt-personality-page="zero-ui"', text)
+        self.assertIn("mkt-zero-ui-playground.js", text)
+        self.assertIn("data-mkt-zero-ui-playground", partial)
+
+    def test_enterprise_ledger_constellation(self):
+        text = (REPO / "templates/marketing/enterprise_ledger.html").read_text(
+            encoding="utf-8"
+        )
+        partial = (
+            REPO
+            / "templates/marketing/partials/sections/_enterprise_constellation.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn('data-mkt-personality-page="enterprise-ledger"', text)
+        self.assertIn("_enterprise_constellation.html", text)
+        self.assertIn("data-mkt-enterprise-constellation", partial)
+
+    def test_homepage_speed_duel(self):
+        text = (REPO / "templates/marketing/homepage.html").read_text(encoding="utf-8")
+        partial = (
+            REPO / "templates/marketing/partials/sections/_hero_speed_duel.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("_hero_speed_duel.html", text)
+        self.assertIn("mkt-speed-duel.js", text)
+        self.assertIn("data-mkt-speed-duel", partial)
+
+    def test_edge_mesh_trinity(self):
+        text = (REPO / "templates/marketing/edge_mesh.html").read_text(encoding="utf-8")
+        partial = (
+            REPO / "templates/marketing/partials/sections/_viewport_trinity.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn("_viewport_trinity.html", text)
+        self.assertIn("data-mkt-viewport-trinity", partial)
+
+    def test_acquisition_smoke_inventory(self):
+        targets = iter_marketing_acquisition_smoke_targets()
+        paths = {t.path for t in targets}
+        self.assertIn("/storefront/", paths)
+        for slug in ACQUISITION_PERSONALITY_SLUGS:
+            self.assertIn(f"/experience/{slug}/", paths)
 
     def test_academics_template_viewport(self):
         text = (REPO / "templates/marketing/academics.html").read_text(encoding="utf-8")

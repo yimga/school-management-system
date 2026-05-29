@@ -1,0 +1,22 @@
+{
+  "label": "Academics",
+  "seo_title": "Academics & Grades | RunMyCampus",
+  "seo_description": "Syllabi, attendance, report cards, and interventions in one platform. Teacher and admin dashboards.",
+  "headline": "Academics and grades in one place.",
+  "subheadline": "Syllabi, attendance, report cards, and interventions with role-ready dashboards.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Grades and report cards",
+      "body": "Configurable grading scales, report cards, and transcript-ready exports."
+    },
+    {
+      "title": "Attendance",
+      "body": "Daily attendance, trends, and early intervention signals."
+    },
+    {
+      "title": "Teacher dashboard",
+      "body": "One place for classes, grading, and parent communication."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "label": "Careers",
+  "seo_title": "Careers | RunMyCampus",
+  "seo_description": "Interactive engineering stack selector, open roles, and how we ship tenant-safe features.",
+  "headline": "Build campus software with us.",
+  "subheadline": "Interactive engineering stack selector, open roles, and how we ship tenant-safe features.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Stack",
+      "body": "Django, TypeScript, and mechanical verifiers \u2014 no shadow IT in prod."
+    },
+    {
+      "title": "Ownership",
+      "body": "Small teams own RUN \u00b7 TEACH \u00b7 PAY \u00b7 COMMUNICATE surfaces end-to-end."
+    },
+    {
+      "title": "Remote-friendly",
+      "body": "Async-first with quarterly campus immersion weeks."
+    }
+  ]
+}

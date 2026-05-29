@@ -1,0 +1,195 @@
+{
+  "iso_alpha2": "ER",
+  "iso_alpha3": "ERI",
+  "name_en": "Eritrea",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Africa",
+  "region_bucket": "africa",
+  "dissection_wave": "W-Africa",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {
+        "en": "Ministry of Education",
+        "ti": "ሚኒስትሪ ትምህርቲ"
+      }
+    },
+    {
+      "level": 2,
+      "label_en": "Region",
+      "label_local": {
+        "en": "Region",
+        "ti": "ዞባ"
+      }
+    },
+    {
+      "level": 3,
+      "label_en": "Sub-region",
+      "label_local": {
+        "en": "Sub-region",
+        "ti": "ንኡስ ዞባ"
+      }
+    },
+    {
+      "level": 4,
+      "label_en": "School",
+      "label_local": {
+        "en": "School",
+        "ti": "ቤት ትምህርቲ"
+      }
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "sub_region",
+    "region",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Eritrea statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "ti"
+  ],
+  "official_languages": [
+    {
+      "iso639": "ti",
+      "label_native": "ትግርኛ",
+      "label_en": "Tigrinya",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "ti"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "ti": "Teacher / መምህር",
+      "en": "Teacher"
+    },
+    "principal": {
+      "ti": "Director / ርዕሰ መምህራን",
+      "en": "Principal"
+    },
+    "term": {
+      "ti": "Semester",
+      "en": "Term"
+    },
+    "report_card": {
+      "ti": "Report Card",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "ti": "Grade",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {
+          "en": "Ministry of Education",
+          "ti": "ሚኒስትሪ ትምህርቲ"
+        }
+      },
+      {
+        "level": 2,
+        "label_en": "Region",
+        "label_local": {
+          "en": "Region",
+          "ti": "ዞባ"
+        }
+      },
+      {
+        "level": 3,
+        "label_en": "Sub-region",
+        "label_local": {
+          "en": "Sub-region",
+          "ti": "ንኡስ ዞባ"
+        }
+      },
+      {
+        "level": 4,
+        "label_en": "School",
+        "label_local": {
+          "en": "School",
+          "ti": "ቤት ትምህርቲ"
+        }
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "kg",
+        "label": "Kindergarten"
+      },
+      {
+        "code": "elementary",
+        "label": "Elementary (G1-5)"
+      },
+      {
+        "code": "middle",
+        "label": "Middle (G6-8)"
+      },
+      {
+        "code": "secondary",
+        "label": "Secondary (G9-12 / ESECE)"
+      },
+      {
+        "code": "tvet",
+        "label": "TVET"
+      },
+      {
+        "code": "university",
+        "label": "University / College"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "2 Semesters (Eritrean); Terms: Semester 1, Semester 2; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "group_common",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Africa/Asmara"
+}

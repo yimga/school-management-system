@@ -811,6 +811,36 @@ urlpatterns = [
         name="support_assign_ticket",
     ),
     path(
+        "support/bulk/",
+        require_super_access_with_host(super_views.support_bulk_action),
+        name="support_bulk_action",
+    ),
+    path(
+        "support/auto-rules/",
+        require_super_access_with_host(super_views.support_auto_rules_dashboard),
+        name="support_auto_rules_dashboard",
+    ),
+    path(
+        "support/auto-rules/save/",
+        require_super_access_with_host(super_views.support_auto_rules_save),
+        name="support_auto_rules_save",
+    ),
+    path(
+        "support/on-call/",
+        require_super_access_with_host(super_views.support_on_call_dashboard),
+        name="support_on_call_dashboard",
+    ),
+    path(
+        "support/on-call/save/",
+        require_super_access_with_host(super_views.support_on_call_save),
+        name="support_on_call_save",
+    ),
+    path(
+        "support/on-call/generate/",
+        require_super_access_with_host(super_views.support_on_call_generate),
+        name="support_on_call_generate",
+    ),
+    path(
         "support/ticket/<uuid:ticket_id>/",
         require_super_access_with_host(super_views.super_support_ticket_detail),
         name="support_ticket_detail",

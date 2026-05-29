@@ -1,0 +1,316 @@
+/**
+ * v4.00.37 — Support quick-create chip + modal.
+ *
+ * Themed via design tokens — recessive surfaces so tenant brand wins.
+ */
+
+.rmc-support-quick-chip {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.25rem);
+  bottom: clamp(0.75rem, 2vw, 1.25rem);
+  z-index: 1060;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, #14141c);
+  color: var(--text-primary);
+  font: 600 0.8125rem/1 var(--type-family-base, system-ui);
+  box-shadow: var(--elev-3, 0 12px 32px rgba(0, 0, 0, 0.18));
+  cursor: pointer;
+  transition: transform var(--motion-fast, 150ms) var(--ease-standard, ease),
+    box-shadow var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+
+.rmc-support-quick-chip:hover,
+.rmc-support-quick-chip:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: var(--elev-3, 0 16px 36px rgba(0, 0, 0, 0.22));
+  outline: 2px solid color-mix(in oklab, var(--school-primary, #4f46e5) 80%, transparent);
+  outline-offset: 2px;
+}
+
+.rmc-support-quick-chip__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in oklab, var(--school-primary, #4f46e5) 90%, transparent);
+  color: #fff; /* off-token-allow: chip-icon-fixed-contrast */
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+@media print {
+  .rmc-support-quick-chip {
+    display: none !important;
+  }
+}
+
+.rmc-support-quick__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: color-mix(in oklab, #0b0b14 70%, transparent); /* off-token-allow: modal-overlay-scrim */
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.rmc-support-quick__card {
+  width: min(36rem, 100%);
+  max-height: min(86vh, 760px);
+  overflow: auto;
+  background: var(--surface-elevated, #14141c);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg, 18px);
+  border: 1px solid var(--hairline);
+  padding: clamp(1rem, 2vw, 1.5rem);
+  box-shadow: var(--elev-3, 0 16px 48px rgba(0, 0, 0, 0.28));
+}
+
+.rmc-support-quick__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.rmc-support-quick__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.rmc-support-quick__hint {
+  margin: 0.35rem 0 1rem;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+}
+
+.rmc-support-quick__close {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem 0.45rem;
+  border-radius: var(--radius-sm, 8px);
+}
+
+.rmc-support-quick__close:hover {
+  background: var(--surface-overlay);
+  color: var(--text-primary);
+}
+
+.rmc-support-quick__templates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.rmc-support-quick__tpl {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-pill, 999px);
+  font: 600 0.75rem/1 var(--type-family-base, system-ui);
+  padding: 0.45rem 0.85rem;
+  cursor: pointer;
+}
+
+.rmc-support-quick__tpl:hover,
+.rmc-support-quick__tpl.is-active {
+  border-color: color-mix(in oklab, var(--school-primary, #4f46e5) 60%, var(--hairline));
+  color: var(--text-primary);
+}
+
+.rmc-support-quick__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.rmc-support-quick__subject {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-canvas, #0d0d14);
+  color: var(--text-primary);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+.rmc-support-quick__subject:focus,
+.rmc-support-quick__body:focus {
+  outline: 2px solid color-mix(in oklab, var(--school-primary, #4f46e5) 80%, transparent);
+  outline-offset: 1px;
+}
+
+.rmc-support-quick__kb {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  padding: 0.55rem 0.75rem;
+  background: color-mix(in oklab, var(--surface-canvas, #0d0d14) 92%, transparent);
+}
+
+.rmc-support-quick__kb-head {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.rmc-support-quick__kb-hit {
+  display: block;
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--radius-sm, 8px);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.8125rem;
+}
+
+.rmc-support-quick__kb-hit:hover {
+  background: var(--surface-overlay);
+}
+
+.rmc-support-quick__body-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.rmc-support-quick__body {
+  appearance: none;
+  width: 100%;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-canvas, #0d0d14);
+  color: var(--text-primary);
+  padding: 0.65rem 0.85rem;
+  font: inherit;
+  min-height: 7rem;
+}
+
+.rmc-support-quick__voice {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-elevated, #14141c);
+  color: var(--text-secondary);
+  font: 600 0.75rem/1 var(--type-family-base, system-ui);
+  padding: 0.6rem 0.85rem;
+  cursor: pointer;
+}
+
+.rmc-support-quick__voice.is-recording {
+  background: color-mix(in oklab, #c2410c 70%, var(--surface-elevated)); /* off-token-allow: recording-indicator */
+  color: #fff; /* off-token-allow: recording-contrast */
+  border-color: transparent;
+}
+
+.rmc-support-quick__dropzone {
+  border: 1.5px dashed var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  padding: 0.85rem 0.9rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.rmc-support-quick__dropzone:focus-visible,
+.rmc-support-quick__dropzone.is-dragover {
+  border-style: solid;
+  border-color: color-mix(in oklab, var(--school-primary, #4f46e5) 60%, var(--hairline));
+  background: color-mix(in oklab, var(--school-primary, #4f46e5) 8%, transparent);
+  color: var(--text-primary);
+}
+
+.rmc-support-quick__file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+}
+
+.rmc-support-quick__file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-overlay);
+}
+
+.rmc-support-quick__file-remove {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.rmc-support-quick__status {
+  min-height: 1.2rem;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.rmc-support-quick__status.is-error {
+  color: #fca5a5; /* off-token-allow: status-error-fixed-contrast */
+}
+
+.rmc-support-quick__status.is-ok {
+  color: #6ee7b7; /* off-token-allow: status-ok-fixed-contrast */
+}
+
+.rmc-support-quick__status.is-pending {
+  color: var(--text-secondary);
+}
+
+.rmc-support-quick__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.rmc-support-quick__submit,
+.rmc-support-quick__cancel {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--text-primary);
+  font: 600 0.875rem/1 var(--type-family-base, system-ui);
+  padding: 0.55rem 1.05rem;
+  border-radius: var(--radius-pill, 999px);
+  cursor: pointer;
+}
+
+.rmc-support-quick__submit {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed); /* off-token-allow: primary-cta-fixed-accent */
+  color: #fff; /* off-token-allow: primary-cta-contrast */
+  border-color: transparent;
+}
+
+.rmc-support-quick__submit[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}

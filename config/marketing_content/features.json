@@ -1,0 +1,34 @@
+{
+  "label": "Features",
+  "seo_title": "RunMyCampus Features - Admissions, academics, finance, and more",
+  "seo_description": "Explore features for admissions, academics, finance, communication, and compliance.",
+  "headline": "Features that scale with your campus.",
+  "subheadline": "From admissions to finance, one platform for every school workflow.",
+  "schema_type": "CollectionPage",
+  "segments": [
+    {
+      "title": "AI Co-pilot",
+      "body": "Smart assistance for workflows, reporting, and decision support across the platform."
+    },
+    {
+      "title": "Real-time Analytics",
+      "body": "Live dashboards and actionable insights for enrollment, attendance, and operations."
+    },
+    {
+      "title": "Customizable Workflows",
+      "body": "Adapt processes, forms, and approvals to your school's policies."
+    },
+    {
+      "title": "Admissions & enrollment",
+      "body": "Online applications, applicant tracking, and enrollment management."
+    },
+    {
+      "title": "Academics & grading",
+      "body": "Curriculum, gradebooks, report cards, and metadata-driven rubrics."
+    },
+    {
+      "title": "Finance & billing",
+      "body": "Fee management, invoicing, multi-currency, and audit trail."
+    }
+  ]
+}

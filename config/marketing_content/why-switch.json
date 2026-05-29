@@ -1,0 +1,22 @@
+{
+  "label": "Why Switch",
+  "seo_title": "Why Switch to RunMyCampus - Migration-first school management",
+  "seo_description": "Migrate from spreadsheets or legacy SIS with minimal risk. Clear timelines, data import, and tenant isolation.",
+  "headline": "Why switch to RunMyCampus.",
+  "subheadline": "Migration-first design: bring your data, keep your workflows, gain one platform for operations.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Migration-first",
+      "body": "Structured import paths and provisioning so you move data once and run on a single source of truth."
+    },
+    {
+      "title": "No lock-in",
+      "body": "Export and portability options so you stay in control of your school data."
+    },
+    {
+      "title": "Same day readiness",
+      "body": "Templates and blueprints get you live quickly without starting from scratch."
+    }
+  ]
+}

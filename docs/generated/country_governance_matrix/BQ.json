@@ -1,0 +1,147 @@
+{
+  "iso_alpha2": "BQ",
+  "iso_alpha3": "BES",
+  "name_en": "Bonaire, Sint Eustatius and Saba",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Americas",
+  "region_bucket": "americas",
+  "dissection_wave": "W-Territories",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [],
+  "employer_model": "school",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Bonaire, Sint Eustatius and Saba statutory reporting (matrix default).",
+  "education_pack_tier": "generic_fallback",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "nl",
+    "pa",
+    "en"
+  ],
+  "official_languages": [
+    {
+      "iso639": "nl",
+      "label_native": "Dutch",
+      "label_en": "Dutch",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "pa",
+      "label_native": "Panjabi",
+      "label_en": "Panjabi",
+      "role": "co_official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "en",
+      "label_native": "English",
+      "label_en": "English",
+      "role": "co_official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "nl",
+    "pa",
+    "en"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "nl": "Teacher",
+      "en": "Teacher"
+    },
+    "principal": {
+      "nl": "Principal",
+      "en": "Principal"
+    },
+    "term": {
+      "nl": "Semester",
+      "en": "Term"
+    },
+    "report_card": {
+      "nl": "Report Card",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "nl": "Grade",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [],
+    "school_type_labels": [
+      {
+        "code": "preschool",
+        "label": "Preschool / Pre-K"
+      },
+      {
+        "code": "elementary",
+        "label": "Elementary School"
+      },
+      {
+        "code": "middle",
+        "label": "Middle School"
+      },
+      {
+        "code": "high",
+        "label": "High School"
+      },
+      {
+        "code": "college",
+        "label": "College / University"
+      },
+      {
+        "code": "k12",
+        "label": "K-12 (combined)"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "",
+  "terminology_source": "matrix_research",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "America/Kralendijk"
+}

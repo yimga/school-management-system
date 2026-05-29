@@ -1,0 +1,22 @@
+{
+  "label": "GDPR",
+  "seo_title": "GDPR | RunMyCampus",
+  "seo_description": "Lawful basis registry, DSAR workflow, and erasure attestations.",
+  "headline": "GDPR and cross-border transfers.",
+  "subheadline": "Lawful basis registry, DSAR workflow, and erasure attestations.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "DSAR runbook",
+      "body": "30-day SLA with redaction and operator attestation."
+    },
+    {
+      "title": "Transfer tools",
+      "body": "SCCs and DPA templates linked from procurement packets."
+    },
+    {
+      "title": "Erasure",
+      "body": "Right-to-be-forgotten paths with audit trail."
+    }
+  ]
+}

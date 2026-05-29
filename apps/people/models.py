@@ -1577,3 +1577,6 @@ class StudentNote(models.Model):
     def __str__(self):
         label = self.title or self.body[:48]
         return f"{self.get_kind_display()}: {label}"
+
+
+from apps.people.staff_compliance import StaffComplianceRecord  # noqa: E402,F401

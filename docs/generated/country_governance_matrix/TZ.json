@@ -1,0 +1,211 @@
+{
+  "iso_alpha2": "TZ",
+  "iso_alpha3": "TZA",
+  "name_en": "Tanzania, United Republic of",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Africa",
+  "region_bucket": "africa",
+  "dissection_wave": "W-Africa",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {
+        "en": "Ministry of Education",
+        "sw": "Wizara ya Elimu"
+      }
+    },
+    {
+      "level": 2,
+      "label_en": "Region",
+      "label_local": {
+        "en": "Region",
+        "sw": "Mkoa"
+      }
+    },
+    {
+      "level": 3,
+      "label_en": "Council",
+      "label_local": {
+        "en": "Council",
+        "sw": "Halmashauri"
+      }
+    },
+    {
+      "level": 4,
+      "label_en": "Ward",
+      "label_local": {
+        "en": "Ward",
+        "sw": "Kata"
+      }
+    },
+    {
+      "level": 5,
+      "label_en": "School",
+      "label_local": {
+        "en": "School",
+        "sw": "Shule"
+      }
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "ward",
+    "council",
+    "region",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Tanzania, United Republic of statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "en"
+  ],
+  "official_languages": [
+    {
+      "iso639": "en",
+      "label_native": "English",
+      "label_en": "English",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "en"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "en": "Mwalimu / Teacher"
+    },
+    "principal": {
+      "en": "Mkuu wa Shule / Head Teacher"
+    },
+    "term": {
+      "en": "Muhula / Term"
+    },
+    "report_card": {
+      "en": "Ripoti / Report"
+    },
+    "grade_level": {
+      "en": "Darasa / Class"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {
+          "en": "Ministry of Education",
+          "sw": "Wizara ya Elimu"
+        }
+      },
+      {
+        "level": 2,
+        "label_en": "Region",
+        "label_local": {
+          "en": "Region",
+          "sw": "Mkoa"
+        }
+      },
+      {
+        "level": 3,
+        "label_en": "Council",
+        "label_local": {
+          "en": "Council",
+          "sw": "Halmashauri"
+        }
+      },
+      {
+        "level": 4,
+        "label_en": "Ward",
+        "label_local": {
+          "en": "Ward",
+          "sw": "Kata"
+        }
+      },
+      {
+        "level": 5,
+        "label_en": "School",
+        "label_local": {
+          "en": "School",
+          "sw": "Shule"
+        }
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "shule-ya-awali",
+        "label": "Shule ya Awali / Pre-Primary"
+      },
+      {
+        "code": "msingi",
+        "label": "Shule ya Msingi (Std I-VII)"
+      },
+      {
+        "code": "sekondari-o",
+        "label": "Sekondari O-Level (F1-F4 / CSEE)"
+      },
+      {
+        "code": "sekondari-a",
+        "label": "Sekondari A-Level (F5-F6 / ACSEE)"
+      },
+      {
+        "code": "ufundi-veta",
+        "label": "VETA / Vocational Training"
+      },
+      {
+        "code": "international",
+        "label": "International School"
+      },
+      {
+        "code": "chuo-kikuu",
+        "label": "Chuo Kikuu / University"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "+255",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "2 Terms (Tanzanian); Terms: Term 1, Term 2; Year starts month 1",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T1",
+  "recommended_operating_mode": "group_common",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "TZS",
+  "timezone": "Africa/Dar_es_Salaam"
+}

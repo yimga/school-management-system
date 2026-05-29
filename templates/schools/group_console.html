@@ -1,0 +1,66 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Group Console" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Group Console" %}{% endblock %}
+
+{% block backend_page %}
+<div
+  class="container-fluid py-2"
+  style="max-width: 52rem;"
+  data-rmc-group-console="1"
+  data-rmc-page-fold-nav="required"
+>
+  <h1 class="h4 mb-2">{% trans "Group Console" %}</h1>
+  <p class="text-muted small mb-3">
+    {% trans "Organization rollup for member schools. Standalone tenants never see this surface." %}
+  </p>
+
+  {% if organization %}
+  <div class="alert alert-light border mb-3" role="status">
+    <div class="small text-uppercase text-muted">{% trans "Organization" %}</div>
+    <div class="fw-semibold">{{ organization.name }}</div>
+    <div class="small mt-1">{% trans "Member schools" %}: {{ member_count }}</div>
+  </div>
+  {% endif %}
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header bg-light fw-semibold">{% trans "Member schools" %}</div>
+    <div class="card-body p-0">
+      <table class="table table-sm mb-0 rmc-data-table" data-rmc-scroll-policy="paginate">
+        <thead>
+          <tr>
+            <th>{% trans "School" %}</th>
+            <th>{% trans "Mode" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in member_schools %}
+          <tr{% if row.is_current %} class="table-active"{% endif %}>
+            <td>{{ row.name }}</td>
+            <td><code>{{ row.operating_mode }}</code></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" class="text-muted">{% trans "No member schools linked." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header bg-light fw-semibold">{% trans "Policy inheritance" %}</div>
+    <div class="card-body">
+      <ul class="list-unstyled small mb-0">
+        {% for domain, disposition in inherit_domains.items %}
+        <li><strong>{{ domain }}</strong>: <code>{{ disposition }}</code></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  {% if hierarchy_url %}
+  <a class="btn btn-sm btn-outline-secondary" href="{{ hierarchy_url }}">{% trans "School group hierarchy" %}</a>
+  {% endif %}
+</div>
+{% endblock %}

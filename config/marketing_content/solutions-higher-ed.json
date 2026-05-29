@@ -1,0 +1,22 @@
+{
+  "label": "Higher education",
+  "seo_title": "Higher education | RunMyCampus",
+  "seo_description": "Provost-ready narratives for multi-college governance, research compliance, and cross-campus analytics.",
+  "headline": "Research university operating model.",
+  "subheadline": "Provost-ready narratives for multi-college governance, research compliance, and cross-campus analytics.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Schools & colleges",
+      "body": "Delegate autonomy with network-level policy inheritance."
+    },
+    {
+      "title": "Research data",
+      "body": "Separate sensitivity tiers for grants and human-subjects workflows."
+    },
+    {
+      "title": "Accreditation packs",
+      "body": "Evidence exports aligned to regional accreditors."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "label": "WCAG",
+  "seo_title": "WCAG | RunMyCampus",
+  "seo_description": "WCAG 2.2 criteria mapped to product surfaces with remediation status.",
+  "headline": "Accessibility conformance matrix.",
+  "subheadline": "WCAG 2.2 criteria mapped to product surfaces with remediation status.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Criteria grid",
+      "body": "A/AA coverage per shell: marketing, portal, control plane."
+    },
+    {
+      "title": "Assistive tech",
+      "body": "Keyboard, screen reader, and contrast gates in CI."
+    },
+    {
+      "title": "VPAT path",
+      "body": "Request VPAT exports via procurement checklist."
+    }
+  ]
+}

@@ -136,7 +136,6 @@ def super_blueprints_catalog(request):
         "schools/super_blueprints_catalog.html",
         {
             "packs": packs,
-            "page_obj": page_obj,
             "dashboard_url": reverse("super:dashboard"),
             "primary_sector_filter": primary_sector,
             "sector_choices": WEDGE_14_22_SECTOR_CODES,

@@ -1,0 +1,18 @@
+{
+  "label": "Reports",
+  "seo_title": "Reports | RunMyCampus - Education and operations reports",
+  "seo_description": "Reports and benchmarks on school operations and RunMyCampus platform.",
+  "headline": "Reports.",
+  "subheadline": "Benchmarks and reports on education operations and platform adoption.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Benchmarks",
+      "body": "Industry benchmarks and adoption reports."
+    },
+    {
+      "title": "Resources",
+      "body": "Download reports and link to resources when available."
+    }
+  ]
+}

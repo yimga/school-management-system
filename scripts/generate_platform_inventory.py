@@ -677,6 +677,65 @@ def _verify_scoped_gravity_trend_matches(scoped: dict[str, int]) -> str | None:
     return None
 
 
+def _verify_inventory_artifacts(
+    inventory: dict[str, object],
+    json_text: str,
+    md_text: str,
+    *,
+    require_files_exist: bool,
+) -> int:
+    if require_files_exist and (not JSON_PATH.exists() or not MD_PATH.exists()):
+        print(
+            "platform inventory artifacts are missing; run with --write",
+            file=sys.stderr,
+        )
+        return 1
+    doc_drift = inventory.get("doc_drift") or {}
+    if doc_drift.get("is_stale"):
+        print(
+            "platform inventory: doc_drift.is_stale is true — align "
+            f"`{doc_drift.get('legacy_doc', 'docs/ALL_MODULES_COMPLETE_LIST.md')}` "
+            "app count with config/settings.py `apps.*` INSTALLED_APPS entries, "
+            "then run: python scripts/generate_platform_inventory.py --write",
+            file=sys.stderr,
+        )
+        return 1
+    scoped = inventory.get("scoped_gravity_counts") or {}
+    prints = scoped.get("print_calls_apps_py_excl_migrations_tests_management")
+    if prints is None:
+        print(
+            "platform inventory: scoped_gravity_counts missing "
+            "print_calls_apps_py_excl_migrations_tests_management; regenerate inventory",
+            file=sys.stderr,
+        )
+        return 1
+    if prints != 0:
+        print(
+            "platform inventory: scoped print_calls_apps_py_excl_migrations_tests_management "
+            f"must be 0 for P6 merge bar (got {prints!r}); remove print() from apps product paths "
+            "or run scripts/lint_no_print_in_apps.py",
+            file=sys.stderr,
+        )
+        return 1
+    if (
+        JSON_PATH.read_text(encoding="utf-8") != json_text
+        or MD_PATH.read_text(encoding="utf-8") != md_text
+    ):
+        print(
+            "platform inventory artifacts are stale; run scripts/generate_platform_inventory.py --write",
+            file=sys.stderr,
+        )
+        return 1
+    trend_err = _verify_scoped_gravity_trend_matches(
+        inventory.get("scoped_gravity_counts") or {}
+    )
+    if trend_err:
+        print(f"platform inventory: {trend_err}", file=sys.stderr)
+        return 1
+    print("generate_platform_inventory: committed inventory is up to date.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Generate or verify the north-star platform inventory."
@@ -708,58 +767,6 @@ def main(argv: list[str] | None = None) -> int:
     json_text = json.dumps(inventory, indent=2, sort_keys=True) + "\n"
     md_text = _to_markdown(inventory)
 
-    if args.check:
-        if not JSON_PATH.exists() or not MD_PATH.exists():
-            print(
-                "platform inventory artifacts are missing; run with --write",
-                file=sys.stderr,
-            )
-            return 1
-        doc_drift = inventory.get("doc_drift") or {}
-        if doc_drift.get("is_stale"):
-            print(
-                "platform inventory: doc_drift.is_stale is true — align "
-                f"`{doc_drift.get('legacy_doc', 'docs/ALL_MODULES_COMPLETE_LIST.md')}` "
-                "app count with config/settings.py `apps.*` INSTALLED_APPS entries, "
-                "then run: python scripts/generate_platform_inventory.py --write",
-                file=sys.stderr,
-            )
-            return 1
-        scoped = inventory.get("scoped_gravity_counts") or {}
-        prints = scoped.get("print_calls_apps_py_excl_migrations_tests_management")
-        if prints is None:
-            print(
-                "platform inventory: scoped_gravity_counts missing "
-                "print_calls_apps_py_excl_migrations_tests_management; regenerate inventory",
-                file=sys.stderr,
-            )
-            return 1
-        if prints != 0:
-            print(
-                "platform inventory: scoped print_calls_apps_py_excl_migrations_tests_management "
-                f"must be 0 for P6 merge bar (got {prints!r}); remove print() from apps product paths "
-                "or run scripts/lint_no_print_in_apps.py",
-                file=sys.stderr,
-            )
-            return 1
-        if (
-            JSON_PATH.read_text(encoding="utf-8") != json_text
-            or MD_PATH.read_text(encoding="utf-8") != md_text
-        ):
-            print(
-                "platform inventory artifacts are stale; run scripts/generate_platform_inventory.py --write",
-                file=sys.stderr,
-            )
-            return 1
-        trend_err = _verify_scoped_gravity_trend_matches(
-            inventory.get("scoped_gravity_counts") or {}
-        )
-        if trend_err:
-            print(f"platform inventory: {trend_err}", file=sys.stderr)
-            return 1
-        print("generate_platform_inventory: committed inventory is up to date.")
-        return 0
-
     if args.write:
         DOCS_DIR.mkdir(parents=True, exist_ok=True)
         JSON_PATH.write_text(json_text, encoding="utf-8")
@@ -769,9 +776,17 @@ def main(argv: list[str] | None = None) -> int:
             f"generate_platform_inventory: wrote {JSON_PATH.relative_to(ROOT)}, "
             f"{MD_PATH.relative_to(ROOT)}, {TREND_PATH.relative_to(ROOT)}"
         )
-        return 0
 
-    print(json_text)
+    if args.check:
+        return _verify_inventory_artifacts(
+            inventory,
+            json_text,
+            md_text,
+            require_files_exist=not args.write,
+        )
+
+    if not args.write:
+        print(json_text)
     return 0
 
 

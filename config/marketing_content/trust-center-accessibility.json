@@ -1,0 +1,22 @@
+{
+  "label": "Accessibility (WCAG)",
+  "seo_title": "RunMyCampus accessibility \u2014 WCAG 2.2 AA target",
+  "seo_description": "WCAG 2.2 AA across public and tenant surfaces; AAA contrast goals for grades and financial ledgers.",
+  "headline": "Accessibility statement.",
+  "subheadline": "Semantic tokens, focus-visible rings, skip links, and reduced-motion fallbacks across marketing and dashboard shells.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "WCAG 2.2 AA target",
+      "body": "We target AA conformance on public marketing and tenant operational surfaces, with ongoing scanner and contrast-guard enforcement in CI."
+    },
+    {
+      "title": "High-stakes AAA contrast",
+      "body": "Grades, balances, and ledger views prioritize AAA-readable contrast via theme tokens and contrast remediation tooling."
+    },
+    {
+      "title": "Keyboard & motion",
+      "body": "Skip links, focus-visible rings, and prefers-reduced-motion fallbacks ship in all primary shells."
+    }
+  ]
+}

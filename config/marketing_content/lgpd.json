@@ -1,0 +1,18 @@
+{
+  "label": "LGPD",
+  "seo_title": "RunMyCampus and LGPD - Brazilian data protection",
+  "seo_description": "LGPD (Lei Geral de Prote\u00e7\u00e3o de Dados) alignment for RunMyCampus.",
+  "headline": "LGPD alignment for Brazilian operations.",
+  "subheadline": "Data processing in line with LGPD principles and legal basis.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Legal basis",
+      "body": "Processing based on consent, contract, or legitimate interest as appropriate."
+    },
+    {
+      "title": "Rights of data subjects",
+      "body": "Access, correction, deletion, and portability in line with LGPD."
+    }
+  ]
+}

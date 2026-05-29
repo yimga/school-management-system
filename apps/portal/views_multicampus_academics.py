@@ -15,7 +15,7 @@ from decimal import Decimal
 from typing import Any
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Q
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods

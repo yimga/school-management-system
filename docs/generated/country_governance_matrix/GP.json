@@ -1,0 +1,127 @@
+{
+  "iso_alpha2": "GP",
+  "iso_alpha3": "GLP",
+  "name_en": "Guadeloupe",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Americas",
+  "region_bucket": "americas",
+  "dissection_wave": "W-Territories",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [],
+  "employer_model": "school",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Guadeloupe statutory reporting (matrix default).",
+  "education_pack_tier": "generic_fallback",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": false
+  },
+  "languages_expected": [
+    "fr"
+  ],
+  "official_languages": [
+    {
+      "iso639": "fr",
+      "label_native": "French",
+      "label_en": "French",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "fr"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "fr": "Teacher",
+      "en": "Teacher"
+    },
+    "principal": {
+      "fr": "Principal",
+      "en": "Principal"
+    },
+    "term": {
+      "fr": "Semester",
+      "en": "Term"
+    },
+    "report_card": {
+      "fr": "Report Card",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "fr": "Grade",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [],
+    "school_type_labels": [
+      {
+        "code": "preschool",
+        "label": "Preschool / Pre-K"
+      },
+      {
+        "code": "elementary",
+        "label": "Elementary School"
+      },
+      {
+        "code": "middle",
+        "label": "Middle School"
+      },
+      {
+        "code": "high",
+        "label": "High School"
+      },
+      {
+        "code": "college",
+        "label": "College / University"
+      },
+      {
+        "code": "k12",
+        "label": "K-12 (combined)"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "",
+  "terminology_source": "matrix_research",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "America/Guadeloupe"
+}

@@ -286,8 +286,11 @@
       </li>
       {% endif %}
       <li>
+        {% if request.public_host_kind == 'manager' %}
         {% url 'manager_support_request' as manager_support_url %}
+        {% else %}
         {% url 'portal:support_request' as portal_support_url %}
+        {% endif %}
         {% if request.public_host_kind == 'manager' and manager_support_url %}
         <a class="dropdown-item" href="{{ manager_support_url }}" title="{% trans 'Contact Support' %}">
           <i class="bi bi-envelope"></i>

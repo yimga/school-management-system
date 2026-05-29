@@ -1,0 +1,122 @@
+{
+  "iso_alpha2": "VI",
+  "iso_alpha3": "VIR",
+  "name_en": "Virgin Islands, U.S.",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Americas",
+  "region_bucket": "americas",
+  "dissection_wave": "W-Territories",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [],
+  "employer_model": "school",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Virgin Islands, U.S. statutory reporting (matrix default).",
+  "education_pack_tier": "generic_fallback",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": false
+  },
+  "languages_expected": [
+    "en"
+  ],
+  "official_languages": [
+    {
+      "iso639": "en",
+      "label_native": "English",
+      "label_en": "English",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "en"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "en": "Teacher"
+    },
+    "principal": {
+      "en": "Principal"
+    },
+    "term": {
+      "en": "Semester"
+    },
+    "report_card": {
+      "en": "Report Card"
+    },
+    "grade_level": {
+      "en": "Grade"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [],
+    "school_type_labels": [
+      {
+        "code": "preschool",
+        "label": "Preschool / Pre-K"
+      },
+      {
+        "code": "elementary",
+        "label": "Elementary School"
+      },
+      {
+        "code": "middle",
+        "label": "Middle School"
+      },
+      {
+        "code": "high",
+        "label": "High School"
+      },
+      {
+        "code": "college",
+        "label": "College / University"
+      },
+      {
+        "code": "k12",
+        "label": "K-12 (combined)"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "",
+  "terminology_source": "matrix_research",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "America/St_Thomas"
+}

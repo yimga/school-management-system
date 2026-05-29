@@ -41409,7 +41409,7 @@ msgid "Semantic {{ t }} search"
 msgstr ""
 
 msgid "Send"
-msgstr ""
+msgstr "Envoyer"
 
 msgid "Send test email to {{ addr }}"
 msgstr ""
@@ -44029,4 +44029,1306 @@ msgid "Total CA mark"
 msgstr ""
 
 msgid "Validation result"
+msgstr ""
+
+msgid "0"
+msgstr ""
+
+msgid "12 months"
+msgstr ""
+
+msgid "18 months"
+msgstr ""
+
+msgid "24 months"
+msgstr ""
+
+msgid "2G phone"
+msgstr ""
+
+msgid "3 months"
+msgstr ""
+
+msgid "4K NOC"
+msgstr ""
+
+msgid "6 months"
+msgstr ""
+
+msgid "AI"
+msgstr ""
+
+msgid "AI drafted reply"
+msgstr ""
+
+msgid "AI triage suggestion"
+msgstr ""
+
+msgid "AI-fallback rate"
+msgstr ""
+
+msgid "AI-line intent coverage"
+msgstr ""
+
+msgid "AI-line intent shortcuts"
+msgstr ""
+
+msgid "Accept AI triage"
+msgstr ""
+
+msgid "Access token"
+msgstr ""
+
+msgid "Action result"
+msgstr ""
+
+msgid "Active immediately"
+msgstr ""
+
+msgid "Active public incident"
+msgstr ""
+
+msgid "Add Sarah as admin"
+msgstr ""
+
+msgid "Add a rule"
+msgstr ""
+
+msgid "Add or update token"
+msgstr ""
+
+msgid "Add shift"
+msgstr ""
+
+msgid "Admissions funnel"
+msgstr ""
+
+msgid "Age band"
+msgstr ""
+
+msgid "Agenda"
+msgstr ""
+
+msgid "All-continent profile"
+msgstr ""
+
+msgid "Allowed next"
+msgstr ""
+
+msgid "Alternating (only odd weeks)"
+msgstr ""
+
+msgid ""
+"Append-only log of every push-grade attempt. Learner identifiers are "
+"SHA-256[:16] hashed; this surface is read-only."
+msgstr ""
+
+msgid "Applied facets:"
+msgstr ""
+
+msgid "Apply AI category + priority to this ticket."
+msgstr ""
+
+msgid ""
+"Ask the AI to draft a first-response reply. You can edit before sending; "
+"nothing is auto-posted."
+msgstr ""
+
+msgid "Assignment"
+msgstr ""
+
+msgid "Atom feed"
+msgstr ""
+
+msgid "Attachments"
+msgstr ""
+
+msgid "Attend #"
+msgstr ""
+
+msgid "Attend %"
+msgstr ""
+
+msgid "Auto-ticket rules"
+msgstr ""
+
+msgid "Auto-ticket rules — Super Admin"
+msgstr ""
+
+msgid "Avg final"
+msgstr ""
+
+msgid "Back to support"
+msgstr ""
+
+msgid "Backup"
+msgstr ""
+
+msgid "Backups"
+msgstr ""
+
+msgid "Base URL (Canvas/Moodle)"
+msgstr ""
+
+msgid "Billed"
+msgstr ""
+
+msgid "Billed total"
+msgstr ""
+
+msgid "Buffer empty."
+msgstr ""
+
+msgid "Bulk grade entry"
+msgstr ""
+
+msgid "Bulk update failed."
+msgstr ""
+
+msgid "By intent"
+msgstr ""
+
+msgid "CC"
+msgstr ""
+
+msgid "Cambridge programmes"
+msgstr ""
+
+msgid "Canonical filter for grouped surfaces"
+msgstr ""
+
+msgid ""
+"Canonical operator pages for the {{ counter }} go-to-market wedge. Each "
+"wedge has a stable URL at <code>/super/wedge/&lt;id&gt;/</code> with "
+"registry metadata, a wired-status checklist, and deep links into the "
+"platform surface that implements it.{% plural %}Canonical operator pages for"
+" the {{ counter }} go-to-market wedges. Each wedge has a stable URL at "
+"<code>/super/wedge/&lt;id&gt;/</code> with registry metadata, a wired-status"
+" checklist, and deep links into the platform surface that implements it."
+msgstr ""
+
+msgid "Canonical ticket UUID"
+msgstr ""
+
+msgid "Canonical ticket UUID — this ticket will be closed"
+msgstr ""
+
+msgid "Capture a note or task"
+msgstr ""
+
+msgid ""
+"Charter authorizer, IB + Cambridge programmes, and faith tradition for this "
+"tenant. Drives Wedge 16 / 17 / 18 detail pages and per-school reporting."
+msgstr ""
+
+msgid "Child incidents"
+msgstr ""
+
+msgid "Child of parent incident"
+msgstr ""
+
+msgid "Choose a subject assignment and term, then load the roster to begin."
+msgstr ""
+
+msgid "Chromebook"
+msgstr ""
+
+msgid "Client-side mock · governed AI gateway in product"
+msgstr ""
+
+msgid "Coll %"
+msgstr ""
+
+msgid "Collection %"
+msgstr ""
+
+msgid "Command"
+msgstr ""
+
+msgid "Common here"
+msgstr ""
+
+msgid "Config (JSON)"
+msgstr ""
+
+msgid "Context — about this page"
+msgstr ""
+
+msgid "Conversion engine"
+msgstr ""
+
+msgid "Core shell payload"
+msgstr ""
+
+msgid "Country localization — wedge-scoped"
+msgstr ""
+
+msgid "Course"
+msgstr ""
+
+msgid "Course ID"
+msgstr ""
+
+msgid "Create rule"
+msgstr ""
+
+msgid ""
+"Define regex → URL shortcuts that beat the platform defaults inside this "
+"school's command palette. When a user types something matching "
+"<code>match</code> we route them to <code>url</code>."
+msgstr ""
+
+msgid "Delete this rule?"
+msgstr ""
+
+msgid "Delivery filter:"
+msgstr ""
+
+msgid "Delivery tag"
+msgstr ""
+
+msgid "Depts"
+msgstr ""
+
+msgid "Device profiles"
+msgstr ""
+
+msgid "Discipline"
+msgstr ""
+
+msgid "Discord webhook"
+msgstr ""
+
+msgid "Download as JSON"
+msgstr ""
+
+msgid "Edge RTT"
+msgstr ""
+
+msgid "Edge routing preview"
+msgstr ""
+
+msgid "Edit pins"
+msgstr ""
+
+msgid "Education cycles your school covers"
+msgstr ""
+
+msgid ""
+"Email needs verification. SMS / Slack / Discord auto-confirm at subscribe "
+"time."
+msgstr ""
+
+msgid "Email, phone (+1234...), or webhook URL"
+msgstr ""
+
+msgid "End hour"
+msgstr ""
+
+msgid "Ends"
+msgstr ""
+
+msgid "Enter a value before applying."
+msgstr ""
+
+msgid "Eval #"
+msgstr ""
+
+msgid "Evaluations"
+msgstr ""
+
+msgid "Example"
+msgstr ""
+
+msgid "Example commands"
+msgstr ""
+
+msgid "Exempt John from final math"
+msgstr ""
+
+msgid "Exempt John from the final math exam"
+msgstr ""
+
+msgid "Existing rules"
+msgstr ""
+
+msgid "Facets"
+msgstr ""
+
+msgid "Fee collection"
+msgstr ""
+
+msgid "Fee receipt · Term 2"
+msgstr ""
+
+msgid "Filter cohort"
+msgstr ""
+
+msgid "Filtered to this wedge"
+msgstr ""
+
+msgid ""
+"Filtered to wedge #{{ wedge_id }} <strong>{{ wedge_name }}</strong> — {{ "
+"total }} matching row(s)."
+msgstr ""
+
+msgid "Formal"
+msgstr ""
+
+msgid "Freeze Lincoln Academy billing"
+msgstr ""
+
+msgid "Full acquisition story"
+msgstr ""
+
+msgid "Full pricing"
+msgstr ""
+
+msgid "Generate recurring rotation"
+msgstr ""
+
+msgid "Generate rotation"
+msgstr ""
+
+msgid "Generate week 1 only"
+msgstr ""
+
+msgid "Go to…"
+msgstr ""
+
+msgid "Grades locked"
+msgstr ""
+
+msgid "Grading scales — wedge-scoped"
+msgstr ""
+
+msgid "Group Console"
+msgstr ""
+
+msgid "Group label"
+msgstr ""
+
+msgid "Handover notes"
+msgstr ""
+
+msgid "Hold Ctrl/Cmd to select multiple."
+msgstr ""
+
+msgid "HoldCo"
+msgstr ""
+
+msgid "HoldCo / Diocese"
+msgstr ""
+
+msgid "HoldCo dashboard total (normalized)"
+msgstr ""
+
+msgid "Hybrid"
+msgstr ""
+
+msgid "IB programmes"
+msgstr ""
+
+msgid "IT admin @ HoldCo"
+msgstr ""
+
+msgid "Illustrative edge routing · not live telemetry"
+msgstr ""
+
+msgid "Illustrative enterprise org constellation"
+msgstr ""
+
+msgid "Illustrative global edge routing"
+msgstr ""
+
+msgid "Illustrative wallets · real rails in product"
+msgstr ""
+
+msgid "In-process buffer per worker; not durable across restarts."
+msgstr ""
+
+msgid "Incident links"
+msgstr ""
+
+msgid "Inherit from group"
+msgstr ""
+
+msgid "Institution type assignment"
+msgstr ""
+
+msgid "Institution types"
+msgstr ""
+
+msgid "Institution-type registry — wedge-scoped"
+msgstr ""
+
+msgid "Integrations marketplace — wedge-scoped"
+msgstr ""
+
+msgid "Inv #"
+msgstr ""
+
+msgid "JSON"
+msgstr ""
+
+msgid "JSON export"
+msgstr ""
+
+msgid ""
+"JSON list of <code>{\"match\", \"label\", \"url\"}</code> objects ({{ "
+"intent_count }} configured)"
+msgstr ""
+
+msgid "Join organization group"
+msgstr ""
+
+msgid "Jump to section"
+msgstr ""
+
+msgid "K-12 cluster"
+msgstr ""
+
+msgid "LMS connectors"
+msgstr ""
+
+msgid "LMS integrations"
+msgstr ""
+
+msgid "LMS push-grade audit"
+msgstr ""
+
+msgid "Last 12 months — average CSAT trend"
+msgstr ""
+
+msgid ""
+"Last {{ snapshot_count }} of {{ buffer_cap }} command-palette AI-line "
+"queries on this worker. PII-safe: school IDs are hashed; query text is never"
+" logged."
+msgstr ""
+
+msgid "Launch sandbox"
+msgstr ""
+
+msgid "Learner (SHA-256[:16])"
+msgstr ""
+
+msgid "Legacy SIS path (simulated)"
+msgstr ""
+
+msgid "Levels"
+msgstr ""
+
+msgid ""
+"Link this school to an organization and choose which policy domains inherit "
+"from the group."
+msgstr ""
+
+msgid "Link to parent"
+msgstr ""
+
+msgid "Live on-call right now"
+msgstr ""
+
+msgid ""
+"Live status of RunMyCampus services. We post incidents here as soon as we "
+"acknowledge them."
+msgstr ""
+
+msgid "Live: NOT verified"
+msgstr ""
+
+msgid "Live: verified"
+msgstr ""
+
+msgid "Load roster"
+msgstr ""
+
+msgid "Major"
+msgstr ""
+
+msgid "Mark duplicate"
+msgstr ""
+
+msgid "Mark present: Room 4B"
+msgstr ""
+
+msgid "Marked duplicate of"
+msgstr ""
+
+msgid "Match rate"
+msgstr ""
+
+msgid "Matched"
+msgstr ""
+
+msgid "Mean time to resolve"
+msgstr ""
+
+msgid "Member schools"
+msgstr ""
+
+msgid "Migration health"
+msgstr ""
+
+msgid "Minor"
+msgstr ""
+
+msgid ""
+"Monthly incident counts and mean-time-to-resolve. Updates every 5 minutes."
+msgstr ""
+
+msgid "Most recent"
+msgstr ""
+
+msgid "Msg"
+msgstr ""
+
+msgid "Multi-campus academics"
+msgstr ""
+
+msgid "Multi-campus billing"
+msgstr ""
+
+msgid "Multi-campus group academic rollup"
+msgstr ""
+
+msgid "Multi-campus group billing rollup"
+msgstr ""
+
+msgid "Multi-campus group operational rollup"
+msgstr ""
+
+msgid "Multi-campus operations"
+msgstr ""
+
+msgid "Multi-wallet rollup (illustrative)"
+msgstr ""
+
+msgid "My grades"
+msgstr ""
+
+msgid "Neutral"
+msgstr ""
+
+msgid "New"
+msgstr ""
+
+msgid "Next wedge"
+msgstr ""
+
+msgid "No LMS tokens configured yet."
+msgstr ""
+
+msgid "No audit rows match the filter."
+msgstr ""
+
+msgid "No auto-ticket rules yet. Add one below."
+msgstr ""
+
+msgid "No bindings match the filter."
+msgstr ""
+
+msgid "No checklist entries."
+msgstr ""
+
+msgid "No countries match this filter."
+msgstr ""
+
+msgid "No deep links wired yet"
+msgstr ""
+
+msgid "No deep links wired yet."
+msgstr ""
+
+msgid "No evaluations match the chosen subject + term."
+msgstr ""
+
+msgid "No events on the schedule yet today."
+msgstr ""
+
+msgid "No grading scales match this filter."
+msgstr ""
+
+msgid "No incidents recorded yet in this window."
+msgstr ""
+
+msgid "No integrations match this filter."
+msgstr ""
+
+msgid "No live check registered"
+msgstr ""
+
+msgid "No member schools linked."
+msgstr ""
+
+msgid "No member schools."
+msgstr ""
+
+msgid "No queries yet — try the command palette."
+msgstr ""
+
+msgid "No recent activity to show."
+msgstr ""
+
+msgid "No skips (every week is live)"
+msgstr ""
+
+msgid "No tokens configured for this provider."
+msgstr ""
+
+msgid "No upcoming shifts. Add one to start the rotation."
+msgstr ""
+
+msgid "Note, task, reminder…"
+msgstr ""
+
+msgid "Nothing due today. ✓"
+msgstr ""
+
+msgid "OK?"
+msgstr ""
+
+msgid "Offline PWA · IndexedDB sync queue"
+msgstr ""
+
+msgid "On-call"
+msgstr ""
+
+msgid "On-call rotation"
+msgstr ""
+
+msgid "One parent org · many institution types · unified login profile."
+msgstr ""
+
+msgid "Only every third week"
+msgstr ""
+
+msgid "Open public status page"
+msgstr ""
+
+msgid ""
+"Organization rollup for member schools. Standalone tenants never see this "
+"surface."
+msgstr ""
+
+msgid "Override AI triage"
+msgstr ""
+
+msgid "PPP factor"
+msgstr ""
+
+msgid "Page last refreshed"
+msgstr ""
+
+msgid "Page metrics"
+msgstr ""
+
+msgid "Parent incident ticket UUID"
+msgstr ""
+
+msgid "Parent ticket UUID"
+msgstr ""
+
+msgid "Pass %"
+msgstr ""
+
+msgid "Pass rate"
+msgstr ""
+
+msgid "Past months: incident history & MTTR"
+msgstr ""
+
+msgid "Past shifts (last 25)"
+msgstr ""
+
+msgid "Pause"
+msgstr ""
+
+msgid "Pending approvals on this surface"
+msgstr ""
+
+msgid ""
+"Per-(school, provider) OAuth2 tokens. Tokens are Fernet-encrypted at rest."
+msgstr ""
+
+msgid "Phases"
+msgstr ""
+
+msgid ""
+"Pick a subject + term, select students, then apply a score across all "
+"selected rows."
+msgstr ""
+
+msgid ""
+"Pick every level / cycle your institution offers. A Cameroonian secondary "
+"school covering 1er & 2ème cycle, a US K-12 covering elementary + middle + "
+"high — select them all. We will configure forms, grading bands, and reports "
+"for each cycle."
+msgstr ""
+
+msgid ""
+"Pick two or more staff users and we'll alternate weekly — week 1 user A "
+"primary + user B backup, week 2 user B primary + user A backup, and so on."
+msgstr ""
+
+msgid "Picker kind:"
+msgstr ""
+
+msgid "Policy inheritance"
+msgstr ""
+
+msgid "Poly-institutional core"
+msgstr ""
+
+msgid "Polytechnic"
+msgstr ""
+
+msgid "Previous wedge"
+msgstr ""
+
+msgid ""
+"Primary on-call receives every new ticket; backups are paged when the "
+"primary doesn't respond inside SLA."
+msgstr ""
+
+msgid "Priority suggestion"
+msgstr ""
+
+msgid "Promote to public"
+msgstr ""
+
+msgid "Promote to public incident"
+msgstr ""
+
+msgid "Provisioning failures (last 7 days):"
+msgstr ""
+
+msgid "Pub"
+msgstr ""
+
+msgid "Public status page"
+msgstr ""
+
+msgid "Public summary"
+msgstr ""
+
+msgid "Public title"
+msgstr ""
+
+msgid "Publish Q2 report cards for Grade 10-A"
+msgstr ""
+
+msgid "Push grade"
+msgstr ""
+
+msgid "Read-only — admin role required to save changes."
+msgstr ""
+
+msgid "Read-only — only school admins can save changes."
+msgstr ""
+
+msgid "Reassign"
+msgstr ""
+
+msgid "Reassign binding"
+msgstr ""
+
+msgid "Recent on this surface"
+msgstr ""
+
+msgid "Recently resolved (last 14 days)"
+msgstr ""
+
+msgid "Refresh token (optional)"
+msgstr ""
+
+msgid "Remove this shift?"
+msgstr ""
+
+msgid "Resolved (window)"
+msgstr ""
+
+msgid "Result canvas (simulated)"
+msgstr ""
+
+msgid "Role tag"
+msgstr ""
+
+msgid "Roster (Ctrl/Cmd-click to multi-select)"
+msgstr ""
+
+msgid "Roster verified"
+msgstr ""
+
+msgid "Run command"
+msgstr ""
+
+msgid "RunMyCampus OS"
+msgstr ""
+
+msgid "RunMyCampus path (simulated)"
+msgstr ""
+
+msgid "SMS"
+msgstr ""
+
+msgid "SSO tenant bindings"
+msgstr ""
+
+msgid "Sat"
+msgstr ""
+
+msgid "Save capture"
+msgstr ""
+
+msgid "Save shortcuts"
+msgstr ""
+
+msgid "Save token"
+msgstr ""
+
+msgid "Scope (optional)"
+msgstr ""
+
+msgid "Score field"
+msgstr ""
+
+msgid "Search by name, tier, phase, slug, or facet…"
+msgstr ""
+
+msgid "Select all"
+msgstr ""
+
+msgid "Select all visible tickets"
+msgstr ""
+
+msgid "Select or type a command to compile the OS layout."
+msgstr ""
+
+msgid "Select organization"
+msgstr ""
+
+msgid "Select ticket"
+msgstr ""
+
+msgid "Send as reply"
+msgstr ""
+
+msgid "Severity mix"
+msgstr ""
+
+msgid "Short customer-facing description. Do not include PII."
+msgstr ""
+
+msgid "Shortcuts & pinned"
+msgstr ""
+
+msgid "Shown rows"
+msgstr ""
+
+msgid "Siblings in tier"
+msgstr ""
+
+msgid "Simulate legacy path"
+msgstr ""
+
+msgid "Simulated benchmarks · not a live tenant"
+msgstr ""
+
+msgid "Since (ISO)"
+msgstr ""
+
+msgid "Skip pattern"
+msgstr ""
+
+msgid "Skip specific weeks"
+msgstr ""
+
+msgid "Skip week 1 only"
+msgstr ""
+
+msgid "Slack webhook"
+msgstr ""
+
+msgid "Staff user"
+msgstr ""
+
+msgid "Start hour"
+msgstr ""
+
+msgid "Started (window)"
+msgstr ""
+
+msgid "Starts"
+msgstr ""
+
+msgid "Status history"
+msgstr ""
+
+msgid "Student @ university"
+msgstr ""
+
+msgid "Subject assignment"
+msgstr ""
+
+msgid "Succeeded"
+msgstr ""
+
+msgid "Sun"
+msgstr ""
+
+msgid "Support on-call rotation"
+msgstr ""
+
+msgid "Support on-call — Super Admin"
+msgstr ""
+
+msgid "Target School ID"
+msgstr ""
+
+msgid "Teacher @ K-12 cluster"
+msgstr ""
+
+msgid ""
+"This ticket was merged as a duplicate. The team is tracking your issue on a "
+"single thread."
+msgstr ""
+
+msgid "Tiers"
+msgstr ""
+
+msgid "Today — agenda & due"
+msgstr ""
+
+msgid "Tone"
+msgstr ""
+
+msgid "Tool-call schema (simulated)"
+msgstr ""
+
+msgid "Total queries"
+msgstr ""
+
+msgid "Touch-optimized attendance swipe"
+msgstr ""
+
+msgid "Type a school command"
+msgstr ""
+
+msgid "Types"
+msgstr ""
+
+msgid "Unified login"
+msgstr ""
+
+msgid "University"
+msgstr ""
+
+msgid "Unread notifications"
+msgstr ""
+
+msgid ""
+"Up to 25 entries. <code>url</code> must start with <code>/</code>. Invalid "
+"rows are silently dropped on save."
+msgstr ""
+
+msgid "Upcoming (next 30 days)"
+msgstr ""
+
+msgid "Update incident"
+msgstr ""
+
+msgid "Update public incident"
+msgstr ""
+
+msgid ""
+"User → School bindings minted by OIDC + SAML provisioning. Reassigning a row"
+" marks it source=manual for audit."
+msgstr ""
+
+msgid ""
+"Visible to anyone with the URL — do not include school names or personal "
+"data."
+msgstr ""
+
+msgid "Wedge 16 — Charter authorizer"
+msgstr ""
+
+msgid "Wedge 17 — IB + Cambridge programmes"
+msgstr ""
+
+msgid "Wedge 18 — Faith tradition"
+msgstr ""
+
+msgid "Wedge registry"
+msgstr ""
+
+msgid "Wedges"
+msgstr ""
+
+msgid "Weeks ahead"
+msgstr ""
+
+msgid "With deep links"
+msgstr ""
+
+msgid "Zero-UI"
+msgstr ""
+
+msgid "Zero-UI lab"
+msgstr ""
+
+msgid "active routes"
+msgstr ""
+
+msgid "any"
+msgstr ""
+
+msgid "assign to me"
+msgstr ""
+
+msgid "blank to undo"
+msgstr ""
+
+msgid "blank to unlink"
+msgstr ""
+
+msgid "clear filter"
+msgstr ""
+
+msgid "clicks"
+msgstr ""
+
+msgid "comma-separated, 1-indexed"
+msgstr ""
+
+msgid "detail"
+msgstr ""
+
+msgid "draft"
+msgstr ""
+
+msgid "drill"
+msgstr ""
+
+msgid "e.g. Auto-ticket on critical feedback"
+msgstr ""
+
+msgid "e.g. {\"threshold\": 50} for health_below, {\"days\": 14} for inactivity_days."
+msgstr ""
+
+msgid "high"
+msgstr ""
+
+msgid "institution code:"
+msgstr ""
+
+msgid "list courses"
+msgstr ""
+
+msgid "next/prev ticket"
+msgstr ""
+
+msgid "open ticket"
+msgstr ""
+
+msgid "operator-only"
+msgstr ""
+
+msgid "pub."
+msgstr ""
+
+msgid "qlen"
+msgstr ""
+
+msgid "range {{ lo }} → {{ hi }}"
+msgstr ""
+
+msgid "rec."
+msgstr ""
+
+msgid "resolve"
+msgstr ""
+
+msgid "row(s) updated. Reload to see the latest values."
+msgstr ""
+
+msgid "school(s)"
+msgstr ""
+
+msgid "school(s) in rollup"
+msgstr ""
+
+msgid "select all that apply"
+msgstr ""
+
+msgid "subject assignment id"
+msgstr ""
+
+msgid "success"
+msgstr ""
+
+msgid "term id"
+msgstr ""
+
+msgid "toggle select"
+msgstr ""
+
+msgid "tokens"
+msgstr ""
+
+msgid "wedge"
+msgstr ""
+
+msgid "wedge #"
+msgstr ""
+
+msgid "with ?wedge filter"
+msgstr ""
+
+msgid "{{ active }} active rule{% plural %}{{ active }} active rules"
+msgstr ""
+
+msgid "{{ count }} active incident{% plural %}{{ count }} active incidents"
+msgstr ""
+
+msgid ""
+"{{ counter }} row in the roster{% plural %}{{ counter }} rows in the roster"
+msgstr ""
+
+msgid ""
+"{{ counter }} tenant has a recent provisioning failure.{% plural %}{{ "
+"counter }} tenants have recent provisioning failures."
+msgstr ""
+
+msgid "{{ inactive }} paused{% plural %}{{ inactive }} paused"
+msgstr ""
+
+msgid "{{ months }} months charted"
+msgstr ""
+
+msgid ""
+"{{ total }} total. Append <code>?wedge=&lt;id&gt;</code> to filter — see <a "
+"href=\"/portal/super/wedges/\" style=\"color: var(--text-primary);\">wedge "
+"registry</a> for valid IDs."
+msgstr ""
+
+msgid "إشعار ولي الأمر · الفصل الثاني"
+msgstr ""
+
+msgid "← Back to live status"
+msgstr ""
+
+msgid "Export directory"
+msgstr ""
+
+msgid "Exports unavailable."
+msgstr ""
+
+msgid "External monitors can poll this surface at"
+msgstr ""
+
+msgid "Headless format"
+msgstr ""
+
+msgid ""
+"JSONL snapshots written before the FERPA 7-year retention sweep purges rows "
+"from the live audit table. Each file is a forensic record of what left the "
+"live store."
+msgstr ""
+
+msgid "LMS audit retention exports"
+msgstr ""
+
+msgid "LMS connector diagnostics"
+msgstr ""
+
+msgid "Latest refresh"
+msgstr ""
+
+msgid ""
+"Live token health and 24-hour push-grade / rotation outcomes for every "
+"configured LMS connector. Auto-refreshes every 60 seconds."
+msgstr ""
+
+msgid "Missing refresh token"
+msgstr ""
+
+msgid "Modified (UTC)"
+msgstr ""
+
+msgid ""
+"No LMS connector tokens configured yet. Provision tokens via "
+"/portal/super/integrations/lms/."
+msgstr ""
+
+msgid ""
+"No exports found in the directory yet. The retention sweep writes one file "
+"per purge batch."
+msgstr ""
+
+msgid "Past grace"
+msgstr ""
+
+msgid "Past rotation grace"
+msgstr ""
+
+msgid "Per provider"
+msgstr ""
+
+msgid "Push OK (24h)"
+msgstr ""
+
+msgid "Push fail (24h)"
+msgstr ""
+
+msgid "Retention exports"
+msgstr ""
+
+msgid "Rot OK (24h)"
+msgstr ""
+
+msgid "Rot fail (24h)"
+msgstr ""
+
+msgid "Rotation event from token-rotation sweep"
+msgstr ""
+
+msgid "Rotation events"
+msgstr ""
+
+msgid "Rotation rows"
+msgstr ""
+
+msgid "Set the"
+msgstr ""
+
+msgid "Some diagnostics sections failed (non-fatal)."
+msgstr ""
+
+msgid "Unconfigured"
+msgstr ""
+
+msgid ""
+"env var to a writable directory on every beat worker, then re-run the sweep."
+" The directory is opt-in by design — without it the retention purge runs "
+"without an export."
+msgstr ""
+
+msgid "exclude"
+msgstr ""
+
+msgid "for the same data."
+msgstr ""
+
+msgid "generated_at"
+msgstr ""
+
+msgid "include"
+msgstr ""
+
+msgid "only"
+msgstr ""
+
+msgid "rotation"
 msgstr ""

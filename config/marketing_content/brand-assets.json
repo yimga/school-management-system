@@ -1,0 +1,22 @@
+{
+  "label": "Brand assets",
+  "seo_title": "Brand assets | RunMyCampus",
+  "seo_description": "Download SVG marks, copy hex tokens, and preview co-brand lockups \u2014 pixel-perfect, not placeholder ZIPs.",
+  "headline": "Brand system for partners and press.",
+  "subheadline": "Download SVG marks, copy hex tokens, and preview co-brand lockups \u2014 pixel-perfect, not placeholder ZIPs.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Logo suite",
+      "body": "Primary, reversed, and favicon variants with clear-space rules."
+    },
+    {
+      "title": "Color tokens",
+      "body": "Semantic marketing palette mapped to CSS variables for co-brand sites."
+    },
+    {
+      "title": "Typography",
+      "body": "Source Serif 4 pairing guidance for editorial surfaces."
+    }
+  ]
+}

@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
 
 import pytz
+from django.db import models
 
 from apps.siteconfig.global_catalog import GlobalGeoCatalog
 
@@ -242,6 +247,227 @@ def sync_subdivisions_from_legacy_provinces() -> int:
         if was_created:
             created += 1
     return created
+
+
+_ISO3166_SUBDIVISION_TYPE_ALIASES: dict[str, str] = {
+    "state": "state",
+    "province": "province",
+    "region": "region",
+    "district": "district",
+    "territory": "territory",
+    "department": "department",
+    "county": "county",
+    "municipality": "municipality",
+    "canton": "canton",
+    "parish": "parish",
+    "prefecture": "prefecture",
+    "governorate": "governorate",
+    "oblast": "oblast",
+    "raion": "raion",
+    "commune": "commune",
+    "borough": "borough",
+    "city": "city",
+    "capital": "capital",
+    "country": "country",
+}
+
+
+def map_pycountry_subdivision_type(type_name: str | None) -> str:
+    """Normalize pycountry subdivision ``type`` labels to registry slug values."""
+    raw = (type_name or "subdivision").strip().lower()
+    slug = re.sub(r"[^a-z0-9]+", "_", raw).strip("_") or "subdivision"
+    return _ISO3166_SUBDIVISION_TYPE_ALIASES.get(slug, slug)[:40]
+
+
+def subdivision_code_from_iso3166(iso_code: str, country_alpha2: str) -> str:
+    """Return the subdivision suffix from an ISO 3166-2 code (e.g. US-CA -> CA)."""
+    code = (iso_code or "").strip().upper()
+    prefix = f"{country_alpha2.strip().upper()}-"
+    if code.startswith(prefix):
+        code = code[len(prefix) :]
+    return code[:32]
+
+
+@dataclass(frozen=True)
+class Iso3166SubdivisionSeedResult:
+    countries_processed: int
+    subdivisions_created: int
+    subdivisions_updated: int
+    countries_with_subdivisions: tuple[str, ...]
+
+
+def _sovereign_country_codes_from_matrix() -> frozenset[str]:
+    repo_root = Path(__file__).resolve().parents[2]
+    matrix_path = repo_root / "docs" / "generated" / "country_governance_matrix.json"
+    if not matrix_path.is_file():
+        return frozenset()
+    try:
+        matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return frozenset()
+    return frozenset(
+        str(row.get("iso_alpha2") or "").upper()
+        for row in matrix.get("rows") or []
+        if row.get("sovereign_state")
+    )
+
+
+def seed_iso3166_subdivisions(
+    *,
+    dry_run: bool = False,
+    country_codes: list[str] | None = None,
+) -> Iso3166SubdivisionSeedResult:
+    """Bulk-seed SubdivisionRegistry rows from pycountry ISO 3166-2 subdivisions."""
+    import pycountry
+
+    ensure_country_registry_seed()
+
+    qs = CountryRegistry.objects.all()
+    if country_codes:
+        codes = {str(code or "").strip().upper() for code in country_codes if str(code or "").strip()}
+        qs = qs.filter(code__in=codes)
+    elif not qs.exists():
+        for alpha2, name in sorted(pytz.country_names.items(), key=lambda item: item[1]):
+            alpha2 = str(alpha2 or "").upper()
+            if not alpha2:
+                continue
+            CountryRegistry.objects.get_or_create(
+                code=alpha2,
+                defaults={"name": str(name or alpha2)},
+            )
+        qs = CountryRegistry.objects.all()
+
+    sovereign_codes = _sovereign_country_codes_from_matrix()
+    created = 0
+    updated = 0
+    countries_with: set[str] = set()
+
+    for country in qs.order_by("code"):
+        alpha2 = str(country.code or "").upper()
+        if not alpha2:
+            continue
+        subdivisions = list(pycountry.subdivisions.get(country_code=alpha2))
+        if not subdivisions and alpha2 in sovereign_codes:
+            subdivisions = []
+
+        if not subdivisions:
+            if alpha2 in sovereign_codes:
+                if dry_run:
+                    countries_with.add(alpha2)
+                    continue
+                _, was_created = SubdivisionRegistry.objects.update_or_create(
+                    country=country,
+                    code="NAT",
+                    defaults={
+                        "name": country.name,
+                        "subdivision_type": "country",
+                        "metadata": {
+                            "source": "national_fallback",
+                            "iso3166_2": False,
+                        },
+                        "is_active": True,
+                    },
+                )
+                if was_created:
+                    created += 1
+                else:
+                    updated += 1
+                countries_with.add(alpha2)
+            continue
+
+        for subdivision in subdivisions:
+            sub_code = subdivision_code_from_iso3166(
+                str(getattr(subdivision, "code", "") or ""),
+                alpha2,
+            )
+            if not sub_code:
+                continue
+            defaults = {
+                "name": str(getattr(subdivision, "name", "") or sub_code),
+                "subdivision_type": map_pycountry_subdivision_type(
+                    getattr(subdivision, "type", None)
+                ),
+                "metadata": {
+                    "source": "iso3166_2",
+                    "iso3166_2": True,
+                    "pycountry_code": str(getattr(subdivision, "code", "") or ""),
+                    "pycountry_type": str(getattr(subdivision, "type", "") or ""),
+                },
+                "is_active": True,
+            }
+            if dry_run:
+                countries_with.add(alpha2)
+                continue
+            _, was_created = SubdivisionRegistry.objects.update_or_create(
+                country=country,
+                code=sub_code,
+                defaults=defaults,
+            )
+            if was_created:
+                created += 1
+            else:
+                updated += 1
+            countries_with.add(alpha2)
+
+    return Iso3166SubdivisionSeedResult(
+        countries_processed=qs.count(),
+        subdivisions_created=created,
+        subdivisions_updated=updated,
+        countries_with_subdivisions=tuple(sorted(countries_with)),
+    )
+
+
+def update_governance_matrix_subdivision_flags(
+    *,
+    matrix_path: Path | None = None,
+    write_shards: bool = True,
+) -> int:
+    """Set ``deep_layers.subdivisions_seeded`` for countries with registry rows."""
+    repo_root = Path(__file__).resolve().parents[2]
+    path = matrix_path or (repo_root / "docs" / "generated" / "country_governance_matrix.json")
+    if not path.is_file():
+        return 0
+
+    subdivision_counts = dict(
+        SubdivisionRegistry.objects.values("country_id")
+        .annotate(total=models.Count("id"))
+        .values_list("country_id", "total")
+    )
+
+    matrix = json.loads(path.read_text(encoding="utf-8"))
+    flagged = 0
+    for row in matrix.get("rows") or []:
+        iso = str(row.get("iso_alpha2") or "").upper()
+        if not iso:
+            continue
+        deep = row.setdefault("deep_layers", {})
+        has_rows = subdivision_counts.get(iso, 0) >= 1
+        if has_rows:
+            deep["subdivisions_seeded"] = True
+            flagged += 1
+        else:
+            deep["subdivisions_seeded"] = False
+
+    matrix["generated_at"] = datetime.now(timezone.utc).isoformat()
+    path.write_text(
+        json.dumps(matrix, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+    if write_shards:
+        shard_dir = path.parent / "country_governance_matrix"
+        shard_dir.mkdir(parents=True, exist_ok=True)
+        for row in matrix.get("rows") or []:
+            iso = str(row.get("iso_alpha2") or "")
+            if not iso:
+                continue
+            shard_path = shard_dir / f"{iso}.json"
+            shard_path.write_text(
+                json.dumps(row, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+
+    return flagged
 
 
 def ensure_document_type_seed() -> None:

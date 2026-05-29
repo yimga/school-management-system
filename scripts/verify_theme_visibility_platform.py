@@ -133,12 +133,15 @@ def check_render_smoke() -> list[str]:
     User = get_user_model()
     user, _ = User.objects.get_or_create(
         username="theme_platform_verify",
-        defaults={"is_staff": True, "is_superuser": True},
+        defaults={"is_staff": True, "is_superuser": True, "role": User.Role.SUPERADMIN},
     )
+    update_fields: list[str] = []
+    if getattr(user, "role", None) != User.Role.SUPERADMIN:
+        user.role = User.Role.SUPERADMIN
+        update_fields.append("role")
     if not user.check_password("verify-pass"):
         user.set_password("verify-pass")
-        user.save(update_fields=["password"])
-    update_fields = []
+        update_fields.append("password")
     if hasattr(user, "last_security_posture_review_at"):
         user.last_security_posture_review_at = timezone.now()
         update_fields.append("last_security_posture_review_at")

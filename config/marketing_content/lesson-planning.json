@@ -1,0 +1,22 @@
+{
+  "label": "Lesson planning",
+  "seo_title": "Lesson planning | RunMyCampus",
+  "seo_description": "Drag-friendly blocks, standards tags, and dependency hints for multi-period units.",
+  "headline": "Template canvas for rapid outlining.",
+  "subheadline": "Drag-friendly blocks, standards tags, and dependency hints for multi-period units.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Block library",
+      "body": "Objectives, materials, assessments, and differentiation columns."
+    },
+    {
+      "title": "Dependency tree",
+      "body": "Visualize prerequisite lessons before publishing to teachers."
+    },
+    {
+      "title": "Publish path",
+      "body": "Push approved templates to teacher workspaces in one action."
+    }
+  ]
+}

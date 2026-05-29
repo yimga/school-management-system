@@ -1,0 +1,22 @@
+{
+  "label": "Cookie policy",
+  "seo_title": "Cookie policy | RunMyCampus",
+  "seo_description": "Tracker categories with purpose, retention, and opt-out mechanics.",
+  "headline": "Cookie and storage matrix.",
+  "subheadline": "Tracker categories with purpose, retention, and opt-out mechanics.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Strictly necessary",
+      "body": "Session, CSRF, and tenant routing \u2014 no consent required."
+    },
+    {
+      "title": "Analytics",
+      "body": "Optional telemetry with regional defaults."
+    },
+    {
+      "title": "Preferences",
+      "body": "Theme and density stored with explicit consent where required."
+    }
+  ]
+}

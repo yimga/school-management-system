@@ -384,4 +384,64 @@ class GradeScaleRegistry(models.Model):
         return self.name
 
 
+class TenantGradeScaleOverride(models.Model):
+    """v4.00.36 — per-tenant grade-scale override.
+
+    ``GradeScaleRegistry`` is the platform catalog (read-only families like
+    "0-20 FR", "4.0 GPA US"). Until now, the only way a tenant could pick
+    a non-default scale was via ``RuntimeDefaults.default_grading_scale``
+    (a single string slot). This model lets a tenant pin one or more
+    scales — typically one default and optional context-specific ones —
+    without touching the platform catalog.
+
+    Resolution: ``apps.registries.grade_scale_resolver.resolve_grade_scale_for_tenant``.
+    """
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="grade_scale_overrides",
+    )
+    grade_scale = models.ForeignKey(
+        GradeScaleRegistry,
+        on_delete=models.PROTECT,
+        related_name="tenant_overrides",
+    )
+    context_key = models.CharField(
+        max_length=64,
+        blank=True,
+        help_text=(
+            "Optional context tag (e.g. 'primary', 'secondary', 'university'); "
+            "blank entries are the tenant's default override."
+        ),
+    )
+    is_default = models.BooleanField(
+        default=True,
+        help_text="When true, used as the tenant's default scale.",
+    )
+    effective_from = models.DateField(null=True, blank=True)
+    effective_until = models.DateField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["school", "context_key", "-is_default"]
+        verbose_name = "Tenant grade scale override"
+        verbose_name_plural = "Tenant grade scale overrides"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "context_key"],
+                name="registries_uniq_school_grade_scale_context",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["school", "is_default"]),
+        ]
+
+    def __str__(self):
+        ctx = f"/{self.context_key}" if self.context_key else ""
+        return f"{self.school_id}{ctx}: {self.grade_scale_id}"
+
+
 from .tenant_registry_models import TenantAttendanceCode, TenantFeeTypeEntry  # noqa: E402,F401

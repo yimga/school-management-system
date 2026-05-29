@@ -1,0 +1,18 @@
+{
+  "label": "Research",
+  "seo_title": "Research | RunMyCampus - Education operations insights",
+  "seo_description": "Research and insights on school operations, EdTech, and platform adoption.",
+  "headline": "Research.",
+  "subheadline": "Insights on education operations, EdTech trends, and platform adoption.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Insights",
+      "body": "Reports and analysis on school operations, migration, and platform best practices."
+    },
+    {
+      "title": "Resources",
+      "body": "Link to resources, blog, and guides for deeper reading."
+    }
+  ]
+}

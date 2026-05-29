@@ -1,0 +1,22 @@
+{
+  "label": "Student Information System",
+  "seo_title": "Student Information System (SIS) | RunMyCampus",
+  "seo_description": "Cloud-based student information system: enrollment, grades, attendance, and parent portals in one place.",
+  "headline": "Student information system that connects everyone.",
+  "subheadline": "Enrollment, grades, attendance, and parent communication in one secure platform.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Student 360",
+      "body": "One view per student: profile, attendance, grades, and interventions."
+    },
+    {
+      "title": "Role-ready portals",
+      "body": "Admins, teachers, parents, and students get the right data and tools."
+    },
+    {
+      "title": "Reporting and compliance",
+      "body": "Export-ready reports and regional compliance defaults."
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "label": "Retention & deletion",
+  "seo_title": "RunMyCampus \u2014 data retention and deletion",
+  "seo_description": "Configurable retention, archival, and end-of-contract deletion practices.",
+  "headline": "Retention and deletion.",
+  "subheadline": "Align retention to your jurisdiction: academic records, finance, communications, and logs have configurable policies per module.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Configurable periods",
+      "body": "Admins set retention-aligned exports and offboarding checklists; audit logs support compliance evidence."
+    },
+    {
+      "title": "End of contract",
+      "body": "School data export and tenant teardown per contract schedule; subprocessors notified per DPA."
+    }
+  ]
+}

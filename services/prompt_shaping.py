@@ -12,7 +12,8 @@ highest-probability action payload.
 
 Wire path:
     request -> middleware reads X-RMC-Viewport -> stores on request.rmc_viewport
-            -> view calls ``shape(prompt, viewport=request.rmc_viewport, ...)``
+            -> view calls ``shape(prompt, viewport=request.rmc_viewport,
+              country_code=..., institution_type=...)``
             -> services.ai_gateway streams the shaped prompt to LiteLLM
 """
 
@@ -84,14 +85,74 @@ def _strip_decorative_schema(prompt: str) -> str:
     return out.strip()
 
 
+def institution_terminology_system_lines(
+    country_code: str | None,
+    institution_type: str | None = None,
+) -> tuple[str, ...]:
+    """
+    Build LiteLLM system-message lines from the country governance matrix.
+
+    Pulls ``local_terminology`` (and optional ``school_type_labels`` match for
+    ``institution_type``) via ``apps.governance.country_matrix_service``.
+    """
+    from apps.governance.country_matrix_service import get_matrix_row
+
+    row = get_matrix_row(country_code)
+    if not row:
+        return ()
+
+    lines: list[str] = []
+    name_en = row.get("name_en") or str(country_code or "").upper()
+    if name_en:
+        lines.append(
+            f"Institution locale: {name_en} ({str(country_code or '').upper()})."
+        )
+
+    local_term = row.get("local_terminology")
+    if not isinstance(local_term, dict):
+        return tuple(lines)
+
+    for key in ("student", "teacher", "principal", "term", "report_card", "grade_level"):
+        entry = local_term.get(key)
+        if not isinstance(entry, dict):
+            continue
+        label = entry.get("en")
+        if not label:
+            for value in entry.values():
+                if isinstance(value, str) and value.strip():
+                    label = value.strip()
+                    break
+        if label:
+            human_key = key.replace("_", " ")
+            lines.append(f"Prefer local term for {human_key}: {label}.")
+
+    if institution_type:
+        school_types = local_term.get("school_type_labels")
+        if isinstance(school_types, list):
+            for item in school_types:
+                if not isinstance(item, dict):
+                    continue
+                if str(item.get("code", "")).lower() == str(institution_type).lower():
+                    label = item.get("label") or institution_type
+                    lines.append(f"Institution type context: {label}.")
+                    break
+
+    return tuple(lines)
+
+
 def shape(
     prompt: str,
     *,
     viewport: str | None = "A",
     extra_system: Iterable[str] | None = None,
+    country_code: str | None = None,
+    institution_type: str | None = None,
 ) -> ShapedPrompt:
     vp = normalize_viewport(viewport)
     base = list(SYSTEM_MESSAGES[vp])
+    base.extend(
+        institution_terminology_system_lines(country_code, institution_type=institution_type)
+    )
     if extra_system:
         base.extend(s for s in extra_system if s)
     body = prompt or ""

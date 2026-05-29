@@ -1,5 +1,85 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Marketing site 100% seed batch 1568 (2026-05-29)
+
+**A. Scope:** End-to-end marketing site seeding — DB CMS + all `config/marketing_content/*.json` from page definitions.
+
+**B. Shipped:** `marketing_content_seed.py`; `seed_marketing_site` management command; `verify_marketing_site_seeded.py`; **56** new JSON content files (81 slug coverage); bootstrap + `validate_marketing_urls --seed-cms` wired to orchestrator.
+
+**C. Proof:** **MARKETING_SITE_SEEDED_PASS**; `validate_marketing_urls --smoke` **200** on storefront + experience/*; `test_seed_marketing_site` + `test_seed_marketing_cms` **2/2 OK**.
+
+**D. SOT:** batch **1568** **DONE**. **E. External:** native sign-off for `fr`/`es`/`pt-br` via `fr.md` packet + `verify_marketing_i18n_production_gate.py --production`.
+
+## Slice — Marketing acquisition engine batch 1567 (2026-05-29)
+
+**A. Scope:** 10X customer-acquisition marketing — four weaponized page families (hero duel, Zero-UI lab, all-continent trinity, enterprise ledger) on existing MULTI-PERSONALITY-GRID stack.
+
+**B. Shipped:** Section partials `_hero_speed_duel`, `_hero_edge_map`, `_zero_ui_lab`, `_viewport_trinity`, `_enterprise_constellation`; pages `zero_ui_lab.html`, `enterprise_ledger.html`; registry slugs `zero-ui`, `enterprise-ledger`; nav + copy registry US/SA/BR; page-level `marketing-acquisition-engine.css` (not in enhanced bundle — budget preserved).
+
+**C. Proof:** `verify_marketing_personality_pages` **MARKETING_PERSONALITY_PAGES_PASS**; `verify_marketing_intent_viewport` **MARKETING_INTENT_VIEWPORT_PASS**; `verify_marketing_lane2_internal_audit` **MARKETING_LANE2_INTERNAL_AUDIT_PASS**; `test_marketing_personality_pages` **11/11**; `npm run build:marketing-css` enhanced **348701B** ≤ 350000B.
+
+**D. SOT:** batch **1567** **DONE**. **E. Honest:** simulated metrics only on public marketing; no live edge telemetry or LLM calls from marketing playground.
+
+## Slice — Pre-deploy gate residual closeout batch 1566 (2026-05-29)
+
+**A. Scope:** Close batch **1565** honest residual — `verify_phases_3_11_gates.py` in-repo blockers (migration drift, lint, inventory, shell conformance, API snapshot).
+
+**B. Shipped:** `siteconfig` `0192_close_migration_drift_gate` + `governance` `0004_close_migration_drift_gate`; Ruff fixes (`signup_views` `school_type_raw` context, `_wedge_registry.with_facets`, `views_lms_pkce`); `broad_except_allowlist.json` reconcile; `ALL_MODULES_COMPLETE_LIST.md` **53** apps; 3 operator templates → `control_plane_base.html`; `api_v1_named_routes.json` refresh.
+
+**C. Proof:** `makemigrations --check` clean; `check_real_migration_drift.py` **0** real; `generate_platform_inventory.py --write --check` PASS (atomic); `verify_phase2_authenticated_shell_conformance` PASS; `verify_control_plane_hub_registry_drift` PASS; full `verify_phases_3_11_gates.py` — in progress (csrf allowlist + hub registry closed this pass).
+
+**D. SOT:** batch **1566** **DONE**. **E. External unchanged:** PSP webhooks + counsel MC per lane2 blockers.
+
+## Slice — Global governance program closure batch 1565 (2026-05-29)
+
+**A. Scope:** Phase 5 terminal gate — strict completion register, matrix drift audit, doc discipline, closure map, competitor benchmark appendix.
+
+**B. Shipped:** Enhanced `verify_country_governance_matrix.py --drift-check` (shard vs aggregate field parity + `country_governance_matrix_drift_audit.json`); `COUNTRY_GOVERNANCE_MATRIX.md` competitor benchmark appendix; register **41/41 DONE**.
+
+**C. Proof:** `verify_global_governance_plan_completion --strict` PASS; `verify_country_governance_matrix --drift-check --write` PASS; `verify_doc_plan_density_discipline` PASS; `generate_system_closure_map --write`. **Honest:** `verify_phases_3_11_gates` fails on pre-existing `accounts.UserTenantBinding` migration drift (not a register item).
+
+**D. SOT:** batch **1565** **DONE (program complete)**. **E. Phase exit gates (all green):** 0D, 1, 2C, 3E, 4G, 5 strict. **Register snapshot:** 41/41 DONE, 0 NOT_DONE.
+
+## Slice — Global governance Phase 4 multi-agent batch 1564 (2026-05-29)
+
+**A. Scope:** Phase 4A–4G — Group Console, teacher transfer apply, group billing consolidation, EMIS org aggregate, granular ops six gaps, staff compliance registry.
+
+**B. Shipped:** **PRODUCT** — `group_console.py` + tenant views/templates (opt-in, hidden for standalone) + join-group upgrade wizard; **GOV** — `Employment`/`SchoolAssignment` + `transfer_apply.py`; **FINANCE** — `group_consolidation.py`; **EMIS** — `org_aggregate.py` role-separated reporting; **OPS** — SMS multi-gateway router, fast switch, fractional capacity, instruction-day ledger, operational time profile, `StaffComplianceRecord` attendance gate.
+
+**C. Proof:** `verify_global_governance_plan_completion --phase-max 4G` PASS; `verify_global_operational_blind_spots --granular-ops` PASS; 17 Phase 4 unit tests PASS.
+
+**D. SOT:** batch **1564** **DONE (repo-scope)**. **E. Next:** Phase 5 program closure (`--strict`).
+
+## Slice — Global governance Phase 3 multi-agent batch 1563 (2026-05-29)
+
+**A. Scope:** Phase 3A–3E — matrix runtime wiring (signup + statutory hints for 249 countries), ISO 3166-2 subdivision seed, context profiles + org FX rollup + LiteLLM terminology, MC/MoE/security deep layers.
+
+**B. Shipped:** **RUNTIME** — `country_matrix_service.py` resolver + signup `governance` settings + statutory extract/PDF wiring; **GEO** — `seed_iso3166_subdivisions` (5,048 rows, 100% sovereign coverage) + `deepen_governance_matrix_layers.py`; **LOCALE/FINANCE** — `SchoolContextProfile`, `org_fx_rollup`, `prompt_shaping` + `terminology_service.matrix_institution_vocabulary`; **AUDIT** — register 30/41 DONE, CI Phase 3E bundle.
+
+**C. Proof:** `verify_global_governance_plan_completion --phase-max 3E` PASS; `verify_subdivision_coverage --min-sovereign-pct 100` PASS; `verify_country_layer_consistency --mc-depth` PASS; 19 Phase 3 unit tests PASS.
+
+**D. SOT:** batch **1563** **DONE (repo-scope)**. **E. Next:** Phase 4A opt-in Group Console.
+
+## Slice — Global governance Phase 0C–2C multi-agent batch 1562 (2026-05-29)
+
+**A. Scope:** Coordinator-moderated parallel execution Phase 0C through Phase 2C — 249-country matrix enrichment, Organization governance layer, wedge 22 MAT hub linkage.
+
+**B. Shipped:** Agent **GEO** — `global_governance_africa_overrides.py` (59 Africa codes) + enrich pipeline; Agent **LOCALE** — `global_governance_continent_defaults.py` + `--continent all` → 249/249 verified; Agent **GOV** — `apps/governance/` models/migrations/services/tests + School governance fields; **Coordinator** — wedge 22 MAT hub URLs, `hierarchy_helpers` org-scope, doc/CI/register updates.
+
+**C. Proof:** `verify_global_governance_plan_completion --phase-max 2C` PASS; matrix + ledger `--require-verified` PASS; `verify_wedge_line_registry` PASS; governance SimpleTestCase 3/3 PASS.
+
+**D. SOT:** batch **1562** **DONE (repo-scope)**. **E. Next:** Phase 3A matrix runtime wiring (signup, statutory hints); subdivisions seed; group console product surfaces.
+
+## Slice — Global governance Phase 0A-0B + P1 language overlay batch 1561 (2026-05-29)
+
+**A. Scope:** Execute global governance plan — Phase 0A completion register + matrix skeleton + aggressive audit loop; Phase 0B mandate crosswalk + integration map; P1 critical language overlay regression for 11 African Tier-1 countries.
+
+**B. Shipped:** `scripts/generate_global_governance_bootstrap.py`, `scripts/lib/global_governance_geo.py`, `docs/generated/country_governance_matrix.json` (249 rows + shards), `country_dissection_ledger.json`, `global_governance_completion_register.json`, `verify_global_governance_plan_completion.py` + 8 sibling governance verifiers; CI job `global-governance-plan-completion`; docs `GLOBAL_GOVERNANCE_MANDATE_CROSSWALK.md`, `GLOBAL_GOVERNANCE_INTEGRATION_MAP.md`, `COUNTRY_GOVERNANCE_MATRIX.md`; Campus canonical doc fix; v4.00.30 language re-fold in `_seed_country_localization.py`; `test_country_language_overlay_regression.py`.
+
+**C. Proof:** `verify_global_governance_plan_completion --phase-max 0B` PASS; matrix + ledger verifiers PASS; `apps.siteconfig.tests.test_country_language_overlay_regression` 2/2 PASS.
+
+**D. SOT:** batch **1561** **DONE (repo-scope)**. **E. Next:** Phase 0C continental dissection (W-Africa first); remaining P1 doc/MAT hub items.
+
 ## Slice — Audit follow-on closures batch 1560 (2026-05-28)
 
 **A. Scope:** Full-platform audit on top of v3.99.20 surfaces 6 real findings + 1 cross-tenant data leak; close them all with the smallest possible surgical changes; preserve every architectural boundary; bump SW monotonic.

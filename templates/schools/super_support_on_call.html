@@ -1,0 +1,239 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Support on-call — Super Admin" %}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:support_dashboard' %}">{% trans "Support" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "On-call" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% trans "Support on-call rotation" %}</h1>
+      <p class="text-muted small mb-0">{% trans "Primary on-call receives every new ticket; backups are paged when the primary doesn't respond inside SLA." %}</p>
+    </div>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:support_dashboard' %}">{% trans "Back to support" %}</a>
+  </div>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} py-2 px-3 small" role="alert">{{ message }}</div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header">{% trans "Live on-call right now" %}</div>
+        <div class="card-body">
+          <div class="small text-muted">{% trans "Primary" %}</div>
+          <div class="h5 mb-2">
+            {% if active_primary %}{{ active_primary.get_full_name|default:active_primary.email|default:active_primary.username }}{% else %}<span class="text-muted">—</span>{% endif %}
+          </div>
+          <div class="small text-muted">{% trans "Backups" %}</div>
+          {% if active_backups %}
+          <ul class="list-unstyled mb-0">
+            {% for u in active_backups %}
+            <li>{{ u.get_full_name|default:u.email|default:u.username }}</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <span class="text-muted">—</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header">{% trans "Add shift" %}</div>
+        <div class="card-body">
+          <form method="post" action="{% url 'super:support_on_call_save' %}" class="row g-3">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div class="col-md-6">
+              <label class="form-label small" for="id_user_id">{% trans "Staff user" %}</label>
+              <select class="form-select" name="user_id" id="id_user_id" required>
+                <option value="">—</option>
+                {% for u in candidates %}
+                <option value="{{ u.pk }}">{{ u.get_full_name|default:u.email|default:u.username }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small" for="id_role_tag">{% trans "Role tag" %} <span class="text-muted">({% trans "optional" %})</span></label>
+              <input type="text" name="role_tag" id="id_role_tag" maxlength="40" class="form-control" placeholder="platform">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small" for="id_starts_at">{% trans "Starts" %}</label>
+              <input type="datetime-local" name="starts_at" id="id_starts_at" class="form-control" value="{{ now_iso }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small" for="id_ends_at">{% trans "Ends" %}</label>
+              <input type="datetime-local" name="ends_at" id="id_ends_at" class="form-control" value="{{ default_end_iso }}" required>
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check">
+                <input type="checkbox" name="is_primary" id="id_is_primary" class="form-check-input" value="1" checked>
+                <label class="form-check-label small" for="id_is_primary">{% trans "Primary" %}</label>
+              </div>
+            </div>
+            <div class="col-12">
+              <label class="form-label small" for="id_notes">{% trans "Notes" %}</label>
+              <input type="text" name="notes" id="id_notes" class="form-control" maxlength="240" placeholder="{% trans 'Handover notes' %}">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">{% trans "Add shift" %}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# v4.00.45 — recurring-shift generator (Mon-Fri 9-17 UTC alternating roster). #}
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header">{% trans "Generate recurring rotation" %}</div>
+    <div class="card-body">
+      <p class="small text-muted mb-2">{% trans "Pick two or more staff users and we'll alternate weekly — week 1 user A primary + user B backup, week 2 user B primary + user A backup, and so on." %}</p>
+      <form method="post" action="{% url 'super:support_on_call_generate' %}" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-6">
+          <label class="form-label small" for="id_user_ids">{% trans "Roster (Ctrl/Cmd-click to multi-select)" %}</label>
+          <select class="form-select" name="user_ids" id="id_user_ids" multiple size="6" required>
+            {% for u in candidates %}
+            <option value="{{ u.pk }}">{{ u.get_full_name|default:u.email|default:u.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label small" for="id_weeks">{% trans "Weeks ahead" %}</label>
+              <input type="number" name="weeks" id="id_weeks" class="form-control" min="1" max="26" value="4">
+            </div>
+            <div class="col-6">
+              <label class="form-label small" for="id_role_tag">{% trans "Role tag" %}</label>
+              <input type="text" name="role_tag" id="id_role_tag" class="form-control" maxlength="40" placeholder="platform">
+            </div>
+            <div class="col-4">
+              <label class="form-label small" for="id_start_hour">{% trans "Start hour" %}</label>
+              <input type="number" name="start_hour" id="id_start_hour" class="form-control" min="0" max="23" value="9">
+            </div>
+            <div class="col-4">
+              <label class="form-label small" for="id_end_hour">{% trans "End hour" %}</label>
+              <input type="number" name="end_hour" id="id_end_hour" class="form-control" min="1" max="24" value="17">
+            </div>
+            <div class="col-4">
+              <label class="form-label small" for="id_tz_name">{% trans "Timezone" %}</label>
+              <input type="text" name="tz_name" id="id_tz_name" class="form-control" maxlength="40" value="UTC">
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="d-flex flex-wrap gap-3 small">
+            {% for d in 'mon tue wed thu fri sat sun'|cut:' '|make_list %}{% endfor %}
+            <label class="form-check-label"><input type="checkbox" name="days" value="mon" class="form-check-input me-1" checked>{% trans "Mon" %}</label>
+            <label class="form-check-label"><input type="checkbox" name="days" value="tue" class="form-check-input me-1" checked>{% trans "Tue" %}</label>
+            <label class="form-check-label"><input type="checkbox" name="days" value="wed" class="form-check-input me-1" checked>{% trans "Wed" %}</label>
+            <label class="form-check-label"><input type="checkbox" name="days" value="thu" class="form-check-input me-1" checked>{% trans "Thu" %}</label>
+            <label class="form-check-label"><input type="checkbox" name="days" value="fri" class="form-check-input me-1" checked>{% trans "Fri" %}</label>
+            <label class="form-check-label"><input type="checkbox" name="days" value="sat" class="form-check-input me-1">{% trans "Sat" %}</label>
+            <label class="form-check-label"><input type="checkbox" name="days" value="sun" class="form-check-input me-1">{% trans "Sun" %}</label>
+          </div>
+        </div>
+        {# v4.00.49 — skip-week patterns: holidays, mid-cycle PTO, alternating cadences. #}
+        <div class="col-md-6">
+          <label class="form-label small" for="id_skip_pattern">{% trans "Skip pattern" %}</label>
+          <select class="form-select" name="skip_pattern" id="id_skip_pattern">
+            <option value="none" selected>{% trans "No skips (every week is live)" %}</option>
+            <option value="alternating">{% trans "Alternating (only odd weeks)" %}</option>
+            <option value="every-third">{% trans "Only every third week" %}</option>
+            <option value="skip-first-week">{% trans "Skip week 1 only" %}</option>
+            <option value="first-week-only">{% trans "Generate week 1 only" %}</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small" for="id_skip_weeks">{% trans "Skip specific weeks" %} <span class="text-muted">({% trans "comma-separated, 1-indexed" %})</span></label>
+          <input type="text" name="skip_weeks" id="id_skip_weeks" class="form-control" maxlength="120" placeholder="2, 5, 8">
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">{% trans "Generate rotation" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header">{% trans "Upcoming (next 30 days)" %}</div>
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-sm mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>{% trans "User" %}</th>
+            <th>{% trans "Role tag" %}</th>
+            <th>{% trans "Primary" %}</th>
+            <th>{% trans "Starts" %}</th>
+            <th>{% trans "Ends" %}</th>
+            <th>{% trans "Notes" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in upcoming %}
+          <tr>
+            <td>{{ s.user.get_full_name|default:s.user.email|default:s.user.username }}</td>
+            <td>{{ s.role_tag|default:"—" }}</td>
+            <td>{% if s.is_primary %}<span class="badge text-bg-primary">{% trans "Primary" %}</span>{% else %}<span class="badge text-bg-secondary">{% trans "Backup" %}</span>{% endif %}</td>
+            <td><span class="small">{{ s.starts_at|date:"Y-m-d H:i" }}</span></td>
+            <td><span class="small">{{ s.ends_at|date:"Y-m-d H:i" }}</span></td>
+            <td><span class="small text-muted">{{ s.notes|default:"—" }}</span></td>
+            <td class="text-end">
+              <form method="post" action="{% url 'super:support_on_call_save' %}" class="d-inline" onsubmit="return confirm('{% trans "Remove this shift?" %}');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="shift_id" value="{{ s.pk }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Remove" %}</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-muted small p-3">{% trans "No upcoming shifts. Add one to start the rotation." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if past %}
+  <details class="card border-0 shadow-sm">
+    <summary class="card-header">{% trans "Past shifts (last 25)" %}</summary>
+    <div class="card-body p-0 table-responsive">
+      <table class="table table-sm mb-0 align-middle">
+        <thead>
+          <tr><th>{% trans "User" %}</th><th>{% trans "Starts" %}</th><th>{% trans "Ends" %}</th><th>{% trans "Primary" %}</th></tr>
+        </thead>
+        <tbody>
+          {% for s in past %}
+          <tr>
+            <td>{{ s.user.get_full_name|default:s.user.email|default:s.user.username }}</td>
+            <td><span class="small">{{ s.starts_at|date:"Y-m-d H:i" }}</span></td>
+            <td><span class="small">{{ s.ends_at|date:"Y-m-d H:i" }}</span></td>
+            <td>{% if s.is_primary %}<span class="badge text-bg-primary">P</span>{% else %}<span class="badge text-bg-secondary">B</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </details>
+  {% endif %}
+</div>
+{% endblock %}

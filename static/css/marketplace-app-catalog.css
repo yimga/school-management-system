@@ -2,21 +2,13 @@
  * Control-plane app catalog — paginated browse (extends rmc-cp-compact-surface.css)
  */
 
-.rmc-mkt-catalog {
-  --rmc-mkt-catalog-sticky-top: var(--rmc-cp-compact-sticky-top, 4.25rem);
-}
-
 .rmc-mkt-catalog__install-bar {
-  position: sticky;
-  top: calc(var(--rmc-mkt-catalog-sticky-top) + 2.5rem);
-  z-index: 1015;
+  position: static;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   border-radius: 0.75rem;
   border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
   background: color-mix(in oklab, var(--surface-elevated, #14141c) 94%, transparent);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
 }
 
 .rmc-mkt-catalog__browse-head {
@@ -137,10 +129,4 @@
 .rmc-mkt-catalog__guide summary {
   cursor: pointer;
   font-weight: 600;
-}
-
-@media (max-width: 767.98px) {
-  .rmc-mkt-catalog__install-bar {
-    position: static;
-  }
 }

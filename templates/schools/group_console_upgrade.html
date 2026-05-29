@@ -1,0 +1,42 @@
+{% extends "backend_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Join organization group" %} – {{ school.name }}{% endblock %}
+{% block backend_title %}{% trans "Join organization group" %}{% endblock %}
+
+{% block backend_page %}
+<div class="container-fluid py-2" style="max-width: 40rem;" data-rmc-scroll-policy="paginate">
+  <h1 class="h4 mb-2">{% trans "Join organization group" %}</h1>
+  <p class="text-muted small mb-3">
+    {% trans "Link this school to an organization and choose which policy domains inherit from the group." %}
+  </p>
+
+  <form method="post" class="card shadow-sm">
+    {% csrf_token %}
+    <div class="card-body">
+      <div class="mb-3">
+        <label class="form-label" for="organization_id">{% trans "Organization" %}</label>
+        <select class="form-select" name="organization_id" id="organization_id" required>
+          <option value="">{% trans "Select organization" %}</option>
+          {% for org in organizations %}
+          <option value="{{ org.pk }}">{{ org.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% for domain in known_domains %}
+      <div class="mb-2">
+        <label class="form-label small" for="inherit_{{ domain }}">{{ domain }}</label>
+        <select class="form-select form-select-sm" name="inherit_{{ domain }}" id="inherit_{{ domain }}">
+          <option value="local">{% trans "Local" %}</option>
+          <option value="inherit">{% trans "Inherit from group" %}</option>
+          <option value="hybrid">{% trans "Hybrid" %}</option>
+        </select>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="card-footer d-flex gap-2">
+      <button type="submit" class="btn btn-primary btn-sm">{% trans "Join group" %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

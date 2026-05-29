@@ -1,0 +1,140 @@
+{
+  "iso_alpha2": "PA",
+  "iso_alpha3": "PAN",
+  "name_en": "Panama",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Americas",
+  "region_bucket": "americas",
+  "dissection_wave": "W-Americas",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "district",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "district",
+    "state"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Panama statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "es"
+  ],
+  "official_languages": [
+    {
+      "iso639": "es",
+      "label_native": "Español",
+      "label_en": "Spanish",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "es"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "es": "Profesor",
+      "en": "Teacher"
+    },
+    "principal": {
+      "es": "Director",
+      "en": "Principal"
+    },
+    "term": {
+      "es": "Trimestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "es": "Boleta",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "es": "Año / Grado",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "preescolar",
+        "label": "Educación Preescolar"
+      },
+      {
+        "code": "primaria",
+        "label": "Primaria (1-6)"
+      },
+      {
+        "code": "premedia",
+        "label": "Premedia (7-9)"
+      },
+      {
+        "code": "media",
+        "label": "Media (10-12 / Bachiller)"
+      },
+      {
+        "code": "profesional",
+        "label": "Bachiller Profesional Técnico"
+      },
+      {
+        "code": "universidad",
+        "label": "Universidad de Panamá"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "+507",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "Trimestres (Panameño); Terms: Trimestre I, Trimestre II, Trimestre III; Year starts month 3",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "America/Panama"
+}

@@ -1,0 +1,18 @@
+{
+  "label": "Guides",
+  "seo_title": "Guides | RunMyCampus",
+  "seo_description": "How-to and implementation guides for RunMyCampus and school operations.",
+  "headline": "Guides.",
+  "subheadline": "Implementation and how-to guides for setup, migration, and operations.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Implementation",
+      "body": "Getting started, migration, and rollout guides."
+    },
+    {
+      "title": "How-to",
+      "body": "Step-by-step guides for common tasks and workflows."
+    }
+  ]
+}

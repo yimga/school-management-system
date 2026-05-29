@@ -1,5 +1,5 @@
 {
-  "manifest_last_reviewed": "2026-05-27",
+  "manifest_last_reviewed": "2026-05-29",
   "files": {
     "apps/accounts/views_saml.py": {
       "expected_count": 1,
@@ -121,6 +121,72 @@
       "audit_logging": "implemented",
       "notes": "OneRoster roster webhook (school-scoped secret) + platform marketplace integration webhook (RuntimeDefaults.webhook_signing_secret; X-RunMyCampus-Integration-Signature; PlatformIntegrationWebhookEvent audit).",
       "last_reviewed": "2026-03-28"
+    },
+    "apps/api/oidc_rp.py": {
+      "expected_count": 1,
+      "owner": "identity_access",
+      "verdict": "keep",
+      "auth_model": "oidc_callback_post",
+      "replay_protection": "id_token_nonce_state",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "OIDC RP callback accepts IdP POST without browser CSRF token.",
+      "last_reviewed": "2026-05-29"
+    },
+    "apps/api/oneroster_csv_importer.py": {
+      "expected_count": 1,
+      "owner": "interop_oneroster",
+      "verdict": "keep",
+      "auth_model": "bearer_token_oneroster",
+      "replay_protection": "token_auth_only",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "OneRoster CSV bulk import API; machine client Bearer auth.",
+      "last_reviewed": "2026-05-29"
+    },
+    "apps/api/oneroster_results.py": {
+      "expected_count": 29,
+      "owner": "interop_oneroster",
+      "verdict": "keep",
+      "auth_model": "bearer_token_oneroster",
+      "replay_protection": "token_auth_only",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "OneRoster grade/results read API surface; machine client Bearer auth.",
+      "last_reviewed": "2026-05-29"
+    },
+    "apps/api/oneroster_writes.py": {
+      "expected_count": 3,
+      "owner": "interop_oneroster",
+      "verdict": "keep",
+      "auth_model": "bearer_token_oneroster",
+      "replay_protection": "token_auth_only",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "OneRoster roster mutation endpoints; machine client Bearer auth.",
+      "last_reviewed": "2026-05-29"
+    },
+    "apps/api/saml.py": {
+      "expected_count": 1,
+      "owner": "identity_access",
+      "verdict": "keep",
+      "auth_model": "signed_saml_assertion",
+      "replay_protection": "idp_assertion_validity_window",
+      "rate_limiting": "not_applicable",
+      "audit_logging": "manual_review_required",
+      "notes": "SAML SP ACS callback under apps/api; IdP POST without CSRF.",
+      "last_reviewed": "2026-05-29"
+    },
+    "apps/api/scim.py": {
+      "expected_count": 4,
+      "owner": "identity_provisioning",
+      "verdict": "keep",
+      "auth_model": "bearer_token_scim",
+      "replay_protection": "token_auth_only_manual_review_required",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "manual_review_required",
+      "notes": "Bearer-token SCIM v2 provisioning under apps/api/scim.py.",
+      "last_reviewed": "2026-05-29"
     },
     "apps/apicenter/oauth_views.py": {
       "expected_count": 1,

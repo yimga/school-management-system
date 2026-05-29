@@ -1,0 +1,22 @@
+{
+  "label": "FERPA & student records",
+  "seo_title": "RunMyCampus FERPA \u2014 student education records",
+  "seo_description": "How RunMyCampus supports FERPA-aligned handling of student education records for US K12 and higher ed.",
+  "headline": "FERPA and student education records.",
+  "subheadline": "RunMyCampus is designed so schools remain the custodian of education records; we act as a school official tool under your direction.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "School as custodian",
+      "body": "Your institution controls access, roles, and data exports. Directory information flags and parent/guardian access are configured per your policy."
+    },
+    {
+      "title": "Minimum necessary",
+      "body": "Role-based access, audit logs, and tenant isolation reduce exposure of student PII to only what each workflow requires."
+    },
+    {
+      "title": "Subprocessors",
+      "body": "List subprocessors and DPA terms in your order form; regional hosting options documented under data residency."
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "label": "Training academies",
+  "seo_title": "Training academies | RunMyCampus",
+  "seo_description": "Video walkthroughs, certification paths, and role-based checkpoints for admins, teachers, and finance.",
+  "headline": "Operator academies with measurable progress.",
+  "subheadline": "Video walkthroughs, certification paths, and role-based checkpoints for admins, teachers, and finance.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Learning paths",
+      "body": "Modular courses aligned to RUN \u00b7 TEACH \u00b7 PAY \u00b7 COMMUNICATE matrices."
+    },
+    {
+      "title": "Progress telemetry",
+      "body": "Completion bars reflect real module states \u2014 not decorative percentages."
+    },
+    {
+      "title": "Office hours",
+      "body": "Book implementation office hours from any academy module."
+    }
+  ]
+}

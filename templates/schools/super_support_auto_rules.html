@@ -1,0 +1,118 @@
+{% extends "control_plane_base.html" %}
+{% load static i18n %}
+
+{% block cp_title %}{% trans "Auto-ticket rules — Super Admin" %}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="{% url 'super:dashboard' %}">{% trans "Control Plane" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'super:support_dashboard' %}">{% trans "Support" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Auto-ticket rules" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+      <h1 class="h4 mb-1">{% trans "Auto-ticket rules" %}</h1>
+      <p class="text-muted small mb-0">
+        {% blocktrans count active=active_count %}{{ active }} active rule{% plural %}{{ active }} active rules{% endblocktrans %} ·
+        {% blocktrans count inactive=inactive_count %}{{ inactive }} paused{% plural %}{{ inactive }} paused{% endblocktrans %}
+      </p>
+    </div>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:support_dashboard' %}">{% trans "Back to support" %}</a>
+  </div>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} py-2 px-3 small" role="alert">{{ message }}</div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header">{% trans "Existing rules" %}</div>
+    <div class="card-body p-0">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>{% trans "Name" %}</th>
+            <th>{% trans "Trigger" %}</th>
+            <th>{% trans "Config" %}</th>
+            <th>{% trans "Active" %}</th>
+            <th>{% trans "Updated" %}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rules %}
+          <tr>
+            <td>{{ r.name }}</td>
+            <td><span class="badge text-bg-secondary">{{ r.get_trigger_display }}</span></td>
+            <td><code class="small">{{ r.config }}</code></td>
+            <td>{% if r.is_active %}<span class="badge text-bg-success">{% trans "On" %}</span>{% else %}<span class="badge text-bg-warning">{% trans "Off" %}</span>{% endif %}</td>
+            <td><span class="small text-muted">{{ r.updated_at|date:"Y-m-d H:i" }}</span></td>
+            <td class="text-end">
+              <form method="post" action="{% url 'super:support_auto_rules_save' %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="toggle">
+                <input type="hidden" name="rule_id" value="{{ r.pk }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">{% if r.is_active %}{% trans "Pause" %}{% else %}{% trans "Activate" %}{% endif %}</button>
+              </form>
+              <form method="post" action="{% url 'super:support_auto_rules_save' %}" class="d-inline" onsubmit="return confirm('{% trans "Delete this rule?" %}');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="rule_id" value="{{ r.pk }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">{% trans "Delete" %}</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-muted small p-3">{% trans "No auto-ticket rules yet. Add one below." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-header">{% trans "Add a rule" %}</div>
+    <div class="card-body">
+      <form method="post" action="{% url 'super:support_auto_rules_save' %}" class="row g-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create">
+        <div class="col-md-5">
+          <label class="form-label small" for="id_name">{% trans "Name" %}</label>
+          <input type="text" name="name" id="id_name" class="form-control" required maxlength="120" placeholder="{% trans 'e.g. Auto-ticket on critical feedback' %}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small" for="id_trigger">{% trans "Trigger" %}</label>
+          <select name="trigger" id="id_trigger" class="form-select" required>
+            <option value="">—</option>
+            {% for val, label in trigger_choices %}
+            <option value="{{ val }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <div class="form-check">
+            <input type="checkbox" name="is_active" id="id_is_active" class="form-check-input" value="1" checked>
+            <label class="form-check-label small" for="id_is_active">{% trans "Active immediately" %}</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label small" for="id_config">{% trans "Config (JSON)" %}</label>
+          <textarea name="config" id="id_config" class="form-control font-monospace small" rows="4" placeholder='{"threshold": 50}'>{}</textarea>
+          <div class="form-text small">{% trans 'e.g. {"threshold": 50} for health_below, {"days": 14} for inactivity_days.' %}</div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">{% trans "Create rule" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

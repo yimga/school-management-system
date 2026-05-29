@@ -458,3 +458,111 @@ def snapshot_platform_pulse_daily():
         )
         return {"status": "error"}
     return {"status": "ok"}
+
+
+_SITECONFIG_SLA_SWEEP_ERRORS = (
+    AttributeError,
+    DatabaseError,
+    ImportError,
+    LookupError,
+    TypeError,
+    ValueError,
+)
+
+
+@shared_task(name="siteconfig.support_sla_breach_sweep")
+def support_sla_breach_sweep():
+    """v4.00.37 — Sweep open support tickets and notify assignees on SLA breach.
+
+    Runs every 30 minutes via Celery beat. For each open / in-progress ticket
+    that has crossed its response-SLA OR resolution-SLA threshold, fires the
+    notification hook with type "support.sla.breached" so the existing
+    email + push fan-out delivers a breach warning. Each breach is recorded
+    once per status-transition window via ticket.metadata["sla_alerts"] so
+    operators are not spammed.
+    """
+    try:
+        from apps.siteconfig.models_feature_controls import GlobalSupportTicket
+        from apps.siteconfig.support_sla import (
+            ticket_resolution_breach,
+            ticket_response_breach,
+        )
+        from apps.siteconfig.support_ticket_hooks import (
+            run_support_ticket_created_hooks,
+        )
+    except _SITECONFIG_SLA_SWEEP_ERRORS as exc:
+        log_exception_with_context(
+            "support_sla_breach_sweep: import failed",
+            extra={"error": str(exc)[:200]},
+        )
+        return {"status": "error", "checked": 0, "alerted": 0}
+
+    open_statuses = (
+        GlobalSupportTicket.Status.OPEN,
+        GlobalSupportTicket.Status.IN_PROGRESS,
+        GlobalSupportTicket.Status.WAITING,
+    )
+    # tenant-isolation-allow: support-sla-sweep-cross-tenant-platform-job-by-design
+    queryset = GlobalSupportTicket.objects.filter(status__in=open_statuses).order_by(
+        "-priority", "created_at"
+    )
+
+    checked = 0
+    alerted = 0
+    for ticket in queryset.iterator(chunk_size=200):
+        checked += 1
+        try:
+            response_breach = ticket_response_breach(ticket)
+            resolution_breach = ticket_resolution_breach(ticket)
+            if not response_breach and not resolution_breach:
+                continue
+            metadata = dict(ticket.metadata or {})
+            alerts = list(metadata.get("sla_alerts") or [])
+            kind = "resolution" if resolution_breach else "response"
+            existing_for_kind = [a for a in alerts if a.get("kind") == kind]
+            # Only one alert per kind per status — avoids spamming on every sweep.
+            if existing_for_kind and existing_for_kind[-1].get("status") == ticket.status:
+                continue
+            from django.utils import timezone
+
+            alerts.append(
+                {
+                    "kind": kind,
+                    "status": ticket.status,
+                    "priority": ticket.priority,
+                    "at": timezone.now().isoformat(),
+                }
+            )
+            metadata["sla_alerts"] = alerts[-20:]
+            type(ticket).objects.filter(pk=ticket.pk).update(metadata=metadata)
+            recipient_id = ticket.assigned_to_id
+            # v4.00.43 — escalate to backup on-call when the resolution SLA
+            # breached. Notifies the FIRST backup currently on call (if any)
+            # without removing the original assignee.
+            try:
+                run_support_ticket_created_hooks(
+                    str(ticket.pk),
+                    primary_recipient_id=recipient_id,
+                )
+            except _SITECONFIG_SLA_SWEEP_ERRORS:
+                pass
+            if kind == "resolution":
+                try:
+                    from apps.siteconfig.support_on_call import get_first_backup
+
+                    backup = get_first_backup()
+                    if backup is not None and getattr(backup, "id", None) != recipient_id:
+                        run_support_ticket_created_hooks(
+                            str(ticket.pk),
+                            primary_recipient_id=backup.id,
+                        )
+                except _SITECONFIG_SLA_SWEEP_ERRORS:
+                    pass
+            alerted += 1
+        except _SITECONFIG_SLA_SWEEP_ERRORS as exc:
+            log_exception_with_context(
+                "support_sla_breach_sweep: per-ticket failed",
+                extra={"ticket_id": str(ticket.pk), "error": str(exc)[:200]},
+            )
+            continue
+    return {"status": "ok", "checked": checked, "alerted": alerted}

@@ -1,0 +1,18 @@
+{
+  "label": "Buyer Toolkit",
+  "seo_title": "RunMyCampus Buyer Toolkit - Evaluation checklist and implementation guide",
+  "seo_description": "Download the school management buyer evaluation checklist and implementation timeline. Role-based ownership for school lead, IT, finance, and admissions.",
+  "headline": "Buyer toolkit and implementation checklist.",
+  "subheadline": "Evaluate RunMyCampus with a structured checklist and plan rollout with clear role ownership.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Buyer evaluation checklist",
+      "body": "Criteria for tenancy, security, localization, and support. Use before you commit."
+    },
+    {
+      "title": "Implementation checklist",
+      "body": "Phased rollout with school lead, IT, finance, and admissions ownership. Download and track progress."
+    }
+  ]
+}

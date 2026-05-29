@@ -1,0 +1,184 @@
+{
+  "iso_alpha2": "PK",
+  "iso_alpha3": "PAK",
+  "name_en": "Pakistan",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Asia",
+  "region_bucket": "asia",
+  "dissection_wave": "W-Asia",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Pakistan statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "ur",
+    "en",
+    "pa",
+    "sd",
+    "ps"
+  ],
+  "official_languages": [
+    {
+      "iso639": "ur",
+      "label_native": "اُردُو",
+      "label_en": "Urdu",
+      "role": "official",
+      "script": "Latn",
+      "direction": "rtl"
+    },
+    {
+      "iso639": "en",
+      "label_native": "English",
+      "label_en": "English",
+      "role": "education_medium",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "pa",
+      "label_native": "پنجابی",
+      "label_en": "Panjabi",
+      "role": "national",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "sd",
+      "label_native": "سنڌي",
+      "label_en": "Sindhi",
+      "role": "national",
+      "script": "Latn",
+      "direction": "rtl"
+    },
+    {
+      "iso639": "ps",
+      "label_native": "پښتو",
+      "label_en": "Pushto",
+      "role": "national",
+      "script": "Latn",
+      "direction": "rtl"
+    }
+  ],
+  "education_languages": [
+    "ur",
+    "en"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "ur": "Teacher / استاد",
+      "en": "Teacher"
+    },
+    "principal": {
+      "ur": "Principal / پرنسپل",
+      "en": "Headmaster"
+    },
+    "term": {
+      "ur": "Term",
+      "en": "Term"
+    },
+    "report_card": {
+      "ur": "Result Card",
+      "en": "Report"
+    },
+    "grade_level": {
+      "ur": "Class",
+      "en": "Form"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "pre-primary",
+        "label": "Pre-primary / Katchi"
+      },
+      {
+        "code": "primary",
+        "label": "Primary (Class 1-5)"
+      },
+      {
+        "code": "middle",
+        "label": "Middle (Class 6-8)"
+      },
+      {
+        "code": "matric",
+        "label": "Matric (Class 9-10 / SSC)"
+      },
+      {
+        "code": "intermediate",
+        "label": "Intermediate (Class 11-12 / HSC)"
+      },
+      {
+        "code": "olevel",
+        "label": "Cambridge O / A-Level (private)"
+      },
+      {
+        "code": "madrassa",
+        "label": "Madrassa (Wafaq)"
+      },
+      {
+        "code": "university",
+        "label": "University"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "+92",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "Pakistan academic year; Terms: Term 1, Term 2; Year starts month 4",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T1",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Asia/Karachi"
+}

@@ -1,0 +1,38 @@
+{% load i18n marketing_media %}
+<section
+  id="mkt-zero-ui-lab"
+  class="mkt-ve-section mkt-ve-section--zero-ui mkt-ve-section--viewport-lock"
+  data-mkt-personality="zero-ui"
+  data-mkt-scroll-policy="viewport-lock"
+  aria-labelledby="mkt-zero-ui-headline"
+>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-ve-section__header">
+      <p class="mkt-edt-eyebrow">{% trans "Zero-UI lab" %}</p>
+      <h2 id="mkt-zero-ui-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+        {% marketing_copy "txt_zero_ui_headline" %}
+      </h2>
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_zero_ui_lead" %}
+      </p>
+    </header>
+    <div class="mkt-ve-zero-ui" data-mkt-zero-ui-playground>
+      <div class="mkt-ve-zero-ui__prompt">
+        <label for="mkt-zero-ui-input">{% trans "Type a school command" %}</label>
+        <input id="mkt-zero-ui-input" type="text" class="mkt-ve-zero-ui__input" data-mkt-zero-ui-input autocomplete="off" placeholder="{% trans 'Exempt John from the final math exam' %}">
+        <div class="mkt-ve-zero-ui__chips" role="group" aria-label="{% trans 'Example commands' %}">
+          <button type="button" class="mkt-ve-zero-ui__chip" data-mkt-zero-ui-preset="add-admin">{% trans "Add Sarah as admin" %}</button>
+          <button type="button" class="mkt-ve-zero-ui__chip" data-mkt-zero-ui-preset="exempt-exam">{% trans "Exempt John from final math" %}</button>
+          <button type="button" class="mkt-ve-zero-ui__chip" data-mkt-zero-ui-preset="freeze-tenant">{% trans "Freeze Lincoln Academy billing" %}</button>
+        </div>
+      </div>
+      <div class="mkt-ve-zero-ui__split">
+        <pre class="mkt-ve-zero-ui__json" data-mkt-zero-ui-json aria-label="{% trans 'Tool-call schema (simulated)' %}">{}</pre>
+        <div class="mkt-ve-zero-ui__canvas" data-mkt-zero-ui-canvas aria-label="{% trans 'Result canvas (simulated)' %}">
+          <p class="mkt-ve-zero-ui__canvas-placeholder">{% trans "Select or type a command to compile the OS layout." %}</p>
+        </div>
+      </div>
+      <p class="mkt-edt-illustrative-pill">{% trans "Client-side mock · governed AI gateway in product" %}</p>
+    </div>
+  </div>
+</section>

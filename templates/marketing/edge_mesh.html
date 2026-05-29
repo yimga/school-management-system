@@ -7,18 +7,21 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-pages.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-acquisition-engine.css' %}">
 {% endblock %}
 
 {% block extrajs %}
   {{ block.super }}
+  <script src="{% static 'marketing/js/mkt-viewport-trinity.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-network-state.js' %}" defer></script>
 {% endblock %}
 
 {% block marketing_main_extra_classes %}mkt-personality-page mkt-personality-page--rugged px-0 py-0{% endblock %}
 
 {% block content %}
-<article class="mkt-personality-page__viewport" data-mkt-personality-page="edge-mesh" data-rmc-scroll-policy="viewport-lock">
+<div class="mkt-personality-page__viewport mkt-personality-page__viewport--stacked mkt-personality-page__stack" data-mkt-personality-page="edge-mesh" data-rmc-scroll-policy="viewport-lock">
+  {% include "marketing/partials/sections/_viewport_trinity.html" %}
   {% include "marketing/partials/sections/_rugged_engine.html" %}
-</article>
+</div>
 {% include "marketing/partials/_personality_page_nav.html" with active="edge-mesh" %}
 {% endblock %}

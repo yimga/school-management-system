@@ -1,0 +1,22 @@
+{
+  "label": "Privacy Policy",
+  "seo_title": "RunMyCampus Privacy Policy",
+  "seo_description": "How RunMyCampus collects, uses, and protects your data.",
+  "headline": "Privacy Policy",
+  "subheadline": "How we collect, use, and protect your data. FERPA and GDPR aligned.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Data we collect",
+      "body": "Account, usage, and school data necessary to operate the platform."
+    },
+    {
+      "title": "How we use it",
+      "body": "To provide and improve the service, support, and compliance."
+    },
+    {
+      "title": "Your rights",
+      "body": "Access, correction, deletion, and portability where applicable by law."
+    }
+  ]
+}

@@ -101,7 +101,12 @@ def send_email(
 
 
 def _bump_sms_usage_meter(school: Any, body: str) -> None:
-    """Roll SMS into billing UsageMeter (segments — coarse GSM-7 estimate)."""
+    """Roll SMS into billing UsageMeter (segments — coarse GSM-7 estimate).
+
+    v4.00.36: also emit the canonical billing-layer ``sms_count`` dimension
+    (one tick per message) so dashboards / budget gates can read a
+    message-count without inferring it from segments.
+    """
     if school is None:
         return
     try:
@@ -117,6 +122,12 @@ def _bump_sms_usage_meter(school: Any, body: str) -> None:
         )
     except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
         logger.debug("SMS usage meter rollup skipped", exc_info=True)
+    try:
+        from apps.billing.models_metering import record as _record_dim
+
+        _record_dim(school, "sms_count", delta=1)
+    except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
+        logger.debug("SMS sms_count dimension rollup skipped", exc_info=True)
 
 
 def send_sms(

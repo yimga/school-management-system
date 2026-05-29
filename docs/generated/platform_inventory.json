@@ -1,27 +1,32 @@
 {
   "baseline_counts": {
     "allow_any": 173,
-    "csrf_exempt": 504,
-    "cursor_execute": 396,
-    "except_exception": 1796,
+    "csrf_exempt": 549,
+    "cursor_execute": 405,
+    "except_exception": 1994,
     "get_solo": 212,
-    "gilead": 16829,
-    "gilead_files": 227,
-    "html_files": 1511,
+    "gilead": 16832,
+    "gilead_files": 229,
+    "html_files": 1555,
     "management_commands": 273,
-    "markdown_files": 1562,
-    "migration_files": 927,
-    "print_calls": 3068,
-    "python_files": 5395,
-    "site_settings": 2411
+    "markdown_files": 1564,
+    "migration_files": 943,
+    "print_calls": 3142,
+    "python_files": 5527,
+    "site_settings": 2432
   },
   "doc_drift": {
-    "actual_installed_app_count": 52,
-    "documented_app_count": 52,
+    "actual_installed_app_count": 53,
+    "documented_app_count": 53,
     "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
   "largest_python_files": [
+    {
+      "bytes": 568629,
+      "lines": 8722,
+      "path": "apps/siteconfig/_seed_country_localization.py"
+    },
     {
       "bytes": 206345,
       "lines": 5086,
@@ -33,8 +38,8 @@
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 151532,
-      "lines": 3158,
+      "bytes": 153895,
+      "lines": 3209,
       "path": "config/settings.py"
     },
     {
@@ -63,24 +68,19 @@
       "path": "apps/migration_cloud/views.py"
     },
     {
-      "bytes": 110379,
-      "lines": 1920,
-      "path": "apps/siteconfig/_seed_country_localization.py"
-    },
-    {
       "bytes": 108724,
       "lines": 1958,
       "path": "scripts/_batch_1489_generate_edos_artifacts.py"
     },
     {
+      "bytes": 108563,
+      "lines": 3090,
+      "path": "apps/finance/models.py"
+    },
+    {
       "bytes": 106610,
       "lines": 2812,
       "path": "apps/siteconfig/views.py"
-    },
-    {
-      "bytes": 106422,
-      "lines": 3038,
-      "path": "apps/finance/models.py"
     }
   ],
   "management_commands_list": [
@@ -1471,6 +1471,7 @@
         "identity_provisioning",
         "integrations_marketplace",
         "interop_lti",
+        "interop_oneroster",
         "interop_webhook",
         "learning_institution",
         "marketing_leads",
@@ -1483,18 +1484,18 @@
         "schoolops_email_delivery",
         "security_observability"
       ],
-      "reviewed_endpoints": 54,
-      "reviewed_files": 23
+      "reviewed_endpoints": 93,
+      "reviewed_files": 29
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 54,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 93,
     "cursor_execute_apps_config_py_excl_migrations": 40,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 2891,
-    "site_settings_refs_apps_py_excl_migrations": 187,
-    "site_settings_refs_apps_py_excl_migrations_tests": 141
+    "print_calls_scripts_py": 2961,
+    "site_settings_refs_apps_py_excl_migrations": 195,
+    "site_settings_refs_apps_py_excl_migrations_tests": 147
   },
   "site_settings_fields": [
     {

@@ -1,0 +1,22 @@
+{
+  "label": "Finance",
+  "seo_title": "Finance & Billing | RunMyCampus",
+  "seo_description": "Tuition billing, payment tracking, scholarships, and financial reporting for schools.",
+  "headline": "Finance and billing tailored to schools.",
+  "subheadline": "Fees, payments, and financial reporting without spreadsheets.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Tuition and fees",
+      "body": "Billing cycles, payment plans, and fee structures by program or grade."
+    },
+    {
+      "title": "Payment tracking",
+      "body": "Payment gateways, receipts, and reconciliation in one place."
+    },
+    {
+      "title": "Reporting",
+      "body": "Financial dashboards and export-ready reports for leadership and auditors."
+    }
+  ]
+}

@@ -1,7 +1,10 @@
 """
 Seed marketing CMS: published blog posts and optional MarketingContent keys for the public site.
 Idempotent (update_or_create). Run: python manage.py seed_marketing_cms
-Included in bootstrap_platform_catalog --all so /blog/ and CMS overrides are populated.
+
+For full site seed (CMS + config/marketing_content JSON), prefer: python manage.py seed_marketing_site
+
+Included in bootstrap_platform_catalog --all via seed_marketing_site.
 
 Env (separate from this command): TENANT_EXAMPLE_SLUG + MULTI_TENANT_BASE_DOMAIN can derive
 MARKETING_DEMO_TENANT_URL when the latter is unset (see config/settings.py). Hero/video and

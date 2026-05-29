@@ -1,0 +1,22 @@
+{
+  "label": "GDPR",
+  "seo_title": "RunMyCampus and GDPR - Data protection",
+  "seo_description": "GDPR and EU data protection alignment for RunMyCampus.",
+  "headline": "GDPR and data protection alignment.",
+  "subheadline": "Lawful basis, data subject rights, and cross-border transfer considerations.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Lawful basis and purpose",
+      "body": "Processing aligned to contract and legitimate interest where appropriate."
+    },
+    {
+      "title": "Data subject rights",
+      "body": "Access, rectification, erasure, and portability support via platform and processes."
+    },
+    {
+      "title": "Cross-border and DPA",
+      "body": "Transfer mechanisms and data processing agreements where required."
+    }
+  ]
+}

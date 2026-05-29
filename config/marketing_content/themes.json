@@ -1,0 +1,30 @@
+{
+  "label": "Themes",
+  "seo_title": "Themes and Design | RunMyCampus - Branding and portal customization",
+  "seo_description": "Brand your school portal: logo, colors, templates, dashboards, and mobile-responsive design. Theme studio and live previews.",
+  "headline": "Themes and design.",
+  "subheadline": "Brand your portal with logo, colors, templates, and dashboards. Mobile-responsive and consistent across roles.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Branding",
+      "body": "Logo, colors, and portal appearance per school. Consistent identity for admin, teacher, parent, and student views."
+    },
+    {
+      "title": "Templates",
+      "body": "Report templates, form templates, and dashboard layouts. Start from blueprints or customize."
+    },
+    {
+      "title": "Dashboards",
+      "body": "Role-based dashboards with widgets and KPIs. Configure what each role sees on login."
+    },
+    {
+      "title": "Live previews",
+      "body": "Preview branding and layout changes before publishing. No surprises at go-live."
+    },
+    {
+      "title": "Mobile responsiveness",
+      "body": "Portals and forms work on phones and tablets. Parents and staff can use the platform on any device."
+    }
+  ]
+}

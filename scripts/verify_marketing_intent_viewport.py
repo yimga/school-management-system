@@ -14,10 +14,14 @@ BASE = REPO / "templates/marketing/base_marketing.html"
 def main() -> int:
     findings: list[str] = []
     for name in (
+        "_hero_speed_duel.html",
         "_sovereign_kernel.html",
         "_clinical_ledger.html",
         "_rugged_engine.html",
         "_fluid_classroom.html",
+        "_zero_ui_lab.html",
+        "_viewport_trinity.html",
+        "_enterprise_constellation.html",
     ):
         path = SECTIONS / name
         if not path.is_file():
@@ -33,6 +37,7 @@ def main() -> int:
     if homepage.is_file():
         hp = homepage.read_text(encoding="utf-8")
         for partial in (
+            "_hero_speed_duel.html",
             "_sovereign_kernel.html",
             "_clinical_ledger.html",
             "_rugged_engine.html",

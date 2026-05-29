@@ -1,0 +1,22 @@
+{
+  "label": "Terms",
+  "seo_title": "Terms | RunMyCampus",
+  "seo_description": "Side-anchored navigation across acceptance, usage, and limitation sections.",
+  "headline": "Terms of service.",
+  "subheadline": "Side-anchored navigation across acceptance, usage, and limitation sections.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Acceptance",
+      "body": "Contract formation for schools and authorized users."
+    },
+    {
+      "title": "Acceptable use",
+      "body": "Prohibited conduct and security responsibilities."
+    },
+    {
+      "title": "Liability",
+      "body": "Limitations described in plain language with counsel review dates."
+    }
+  ]
+}

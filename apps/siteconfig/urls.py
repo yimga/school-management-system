@@ -144,6 +144,7 @@ from .views_school_onboarding import (
     school_activation_onboarding,
 )
 from .views_school_group_hierarchy import school_group_hierarchy
+from apps.schools.views_group_console import group_console, group_console_upgrade
 from .views_console_ai_rag import ingest_policy_docs as ai_rag_ingest_policy_docs
 from .legacy_redirects import (
     legacy_customizer_clear_preview_redirect,
@@ -223,6 +224,16 @@ urlpatterns = [
         "schools/group-hierarchy/",
         school_group_hierarchy,
         name="school_group_hierarchy",
+    ),
+    path(
+        "schools/group-console/",
+        group_console,
+        name="group_console",
+    ),
+    path(
+        "schools/group-console/upgrade/",
+        group_console_upgrade,
+        name="group_console_upgrade",
     ),
     path(
         "billing/plan/",

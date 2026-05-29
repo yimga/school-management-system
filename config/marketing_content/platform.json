@@ -1,0 +1,34 @@
+{
+  "label": "Platform",
+  "seo_title": "RunMyCampus Platform \u2014 One platform, every school operation",
+  "seo_description": "One platform for daily operations, multi-school oversight, configuration, marketplace apps, migration, and analytics. Built for schools and districts.",
+  "headline": "One platform. Every school operation.",
+  "subheadline": "Daily operations, multi-school view, configuration, marketplace, migration, and analytics \u2014 built to work the way schools actually run.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Daily operations",
+      "body": "Run every part of school operations: admissions, academics, attendance, finance, communication, workflows, reports, Student 360."
+    },
+    {
+      "title": "Multi-school view",
+      "body": "Govern schools, districts, and networks from one command center. Policies, health, usage."
+    },
+    {
+      "title": "Configured for your school",
+      "body": "One platform core, configured for your institution. Country, language, branding, workflow and dashboard packs."
+    },
+    {
+      "title": "Marketplace",
+      "body": "Apps, integrations, workflow packs, dashboard packs, blueprint packs, templates."
+    },
+    {
+      "title": "Migration",
+      "body": "Import, map, validate, and switch from legacy systems safely."
+    },
+    {
+      "title": "Analytics & Integrations",
+      "body": "School and district analytics, health scores, payments, messaging, SSO, APIs, webhooks."
+    }
+  ]
+}

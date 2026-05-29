@@ -1,0 +1,139 @@
+{
+  "iso_alpha2": "GE",
+  "iso_alpha3": "GEO",
+  "name_en": "Georgia",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Asia",
+  "region_bucket": "asia",
+  "dissection_wave": "W-Asia",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Georgia statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "ka"
+  ],
+  "official_languages": [
+    {
+      "iso639": "ka",
+      "label_native": "ქართული",
+      "label_en": "Georgian",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "ka"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "ka": "Mastsavlebeli / მასწავლებელი",
+      "en": "Teacher"
+    },
+    "principal": {
+      "ka": "Direktori / დირექტორი",
+      "en": "Principal"
+    },
+    "term": {
+      "ka": "Trimesteri / ტრიმესტრი",
+      "en": "Term"
+    },
+    "report_card": {
+      "ka": "Tabeli / ტაბელი",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "ka": "Klasi / კლასი",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "skola-skolamde",
+        "label": "Skoldagi (Pre-school)"
+      },
+      {
+        "code": "primary",
+        "label": "Dawebiti Skola (Primary I-VI)"
+      },
+      {
+        "code": "basic",
+        "label": "Sazogadoebrivi (Basic VII-IX)"
+      },
+      {
+        "code": "secondary",
+        "label": "Saqartvelo (Secondary X-XII / UNE)"
+      },
+      {
+        "code": "vocational",
+        "label": "Professional / Vocational"
+      },
+      {
+        "code": "university",
+        "label": "University (TSU / Ilia)"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3-term (Georgian); Terms: I trimester, II trimester, III trimester; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Asia/Tbilisi"
+}

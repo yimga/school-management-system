@@ -1,0 +1,133 @@
+{
+  "iso_alpha2": "MO",
+  "iso_alpha3": "MAC",
+  "name_en": "Macao",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Asia",
+  "region_bucket": "asia",
+  "dissection_wave": "W-Territories",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [],
+  "employer_model": "school",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Macao statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": false
+  },
+  "languages_expected": [
+    "zh-hant",
+    "pt"
+  ],
+  "official_languages": [
+    {
+      "iso639": "zh-hant",
+      "label_native": "繁體中文",
+      "label_en": "zh-hant",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "pt",
+      "label_native": "Português",
+      "label_en": "Portuguese",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "zh-hant",
+    "pt"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "zh-hant": "Teacher / Professor / 老師",
+      "en": "Teacher"
+    },
+    "principal": {
+      "zh-hant": "Principal / Director / 校長",
+      "en": "Principal"
+    },
+    "term": {
+      "zh-hant": "Term / Período / 學期",
+      "en": "Term"
+    },
+    "report_card": {
+      "zh-hant": "Report Card / Boletim / 成績表",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "zh-hant": "Grade / Ano / 年級",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [],
+    "school_type_labels": [
+      {
+        "code": "preschool",
+        "label": "Pre-escolar / 幼兒教育"
+      },
+      {
+        "code": "primary",
+        "label": "Primário / 小學教育"
+      },
+      {
+        "code": "secondary",
+        "label": "Secundário / 中學教育"
+      },
+      {
+        "code": "vocational",
+        "label": "Técnico-Profissional / 技術教育"
+      },
+      {
+        "code": "university",
+        "label": "Universidade / 大學"
+      }
+    ]
+  },
+  "name_order": "family-given",
+  "address_format_key": "generic",
+  "phone_country_code": "+853",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3 Terms (Macao, Portuguese-Chinese); Terms: 1º Período / 第一學期, 2º Período / 第二學期, 3º Período / 第三學期; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Asia/Macau"
+}

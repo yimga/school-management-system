@@ -1,0 +1,143 @@
+{
+  "iso_alpha2": "CN",
+  "iso_alpha3": "CHN",
+  "name_en": "China",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Asia",
+  "region_bucket": "asia",
+  "dissection_wave": "W-Asia",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — China statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "zh-hans"
+  ],
+  "official_languages": [
+    {
+      "iso639": "zh-hans",
+      "label_native": "简体中文",
+      "label_en": "zh-hans",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "zh-hans"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "zh-hans": "Laoshi / 老师",
+      "en": "Teacher"
+    },
+    "principal": {
+      "zh-hans": "Xiaozhang / 校长",
+      "en": "Principal"
+    },
+    "term": {
+      "zh-hans": "Xueqi / 学期",
+      "en": "Term"
+    },
+    "report_card": {
+      "zh-hans": "Chengjidan / 成绩单",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "zh-hans": "Nianji / 年级",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "youeryuan",
+        "label": "Youeryuan (Kindergarten)"
+      },
+      {
+        "code": "xiaoxue",
+        "label": "Xiaoxue (Primary, 小学 6y)"
+      },
+      {
+        "code": "chuzhong",
+        "label": "Chuzhong (Junior High, 初中 3y)"
+      },
+      {
+        "code": "gaozhong",
+        "label": "Gaozhong (Senior High, 高中 / 高考)"
+      },
+      {
+        "code": "zhongzhuan",
+        "label": "Zhongzhuan (Specialized Secondary)"
+      },
+      {
+        "code": "international",
+        "label": "International / Cambridge / IB"
+      },
+      {
+        "code": "daxue",
+        "label": "Daxue (University, 大学)"
+      }
+    ]
+  },
+  "name_order": "family-given",
+  "address_format_key": "CN",
+  "phone_country_code": "+86",
+  "postal_label": "邮政编码",
+  "grading_scale_family": "generic",
+  "calendar_notes": "2-semester (PRC); Terms: 第一学期, 第二学期; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T1",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "CNY",
+  "timezone": "Asia/Shanghai"
+}

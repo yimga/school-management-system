@@ -1,0 +1,22 @@
+{
+  "label": "School Administration Software",
+  "seo_title": "School Administration Software | RunMyCampus",
+  "seo_description": "School administration software for admins, principals, and district leaders. Dashboards, workflows, and reporting in one place.",
+  "headline": "School administration software that empowers leaders.",
+  "subheadline": "Dashboards, workflows, and reporting for admins, principals, and district leaders.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Admin dashboards",
+      "body": "Enrollment, attendance, finance, and compliance at a glance."
+    },
+    {
+      "title": "Configurable workflows",
+      "body": "Approvals, communications, and processes without custom code."
+    },
+    {
+      "title": "Audit and reporting",
+      "body": "Audit trails and export-ready reports for boards and regulators."
+    }
+  ]
+}

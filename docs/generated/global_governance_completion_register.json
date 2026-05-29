@@ -1,0 +1,423 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-29T18:10:00.000000+00:00",
+  "program": "global_governance_audit",
+  "plan_ref": ".cursor/plans/global_governance_audit_582fd47d.plan.md",
+  "item_count": 41,
+  "status_counts": {
+    "DONE": 41,
+    "NOT_DONE": 0
+  },
+  "items": [
+    {
+      "id": "P0A-completion-register",
+      "phase": "0A",
+      "title": "Global governance completion register bootstrapped",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "docs/generated/global_governance_completion_register.json",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0A-aggressive-audit-loop",
+      "phase": "0A",
+      "title": "verify_global_governance_plan_completion.py master gate",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_governance_plan_completion.py --phase-max 0A",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0A-matrix-skeleton-249",
+      "phase": "0A",
+      "title": "country_governance_matrix.json skeleton \u2014 249 ISO rows + shards",
+      "agent_lane": "GEO",
+      "status": "DONE",
+      "proof": "python scripts/verify_country_governance_matrix.py --allow-skeleton",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0A-dissection-ledger",
+      "phase": "0A",
+      "title": "country_dissection_ledger.json tracks all ISO codes",
+      "agent_lane": "GEO",
+      "status": "DONE",
+      "proof": "python scripts/verify_country_dissection_ledger.py --allow-skeleton",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0A-verifier-scaffold",
+      "phase": "0A",
+      "title": "Governance verifier scripts scaffolded",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_governance_plan_completion.py --phase-max 0A",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0A-ci-job",
+      "phase": "0A",
+      "title": "CI job global-governance-plan-completion wired",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": ".github/workflows/architectural-boundaries.yml global-governance-plan-completion",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-mandate-crosswalk",
+      "phase": "0B",
+      "title": "GLOBAL_GOVERNANCE_MANDATE_CROSSWALK.md published",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "docs/GLOBAL_GOVERNANCE_MANDATE_CROSSWALK.md",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-audit-findings-register",
+      "phase": "0B",
+      "title": "Audit findings register + stale doc reconciliation plan",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_governance_doc_truth.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-integration-map",
+      "phase": "0B",
+      "title": "GLOBAL_GOVERNANCE_INTEGRATION_MAP.md",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "docs/GLOBAL_GOVERNANCE_INTEGRATION_MAP.md",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-seven-blind-spots-audit",
+      "phase": "0B",
+      "title": "Seven global blind spots audited",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_operational_blind_spots.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-dissection-waves",
+      "phase": "0C",
+      "title": "Continental dissection waves \u2014 249/249 verified",
+      "agent_lane": "GEO",
+      "status": "DONE",
+      "proof": "python scripts/verify_country_dissection_ledger.py --require-verified",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-matrix-249-rows",
+      "phase": "0C",
+      "title": "country_governance_matrix \u2014 full research per ISO",
+      "agent_lane": "GEO",
+      "status": "DONE",
+      "proof": "python scripts/verify_country_governance_matrix.py --require-verified",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-language-locality-sync",
+      "phase": "0C",
+      "title": "Matrix languages + terminology synced with seed packs",
+      "agent_lane": "LOCALE",
+      "status": "DONE",
+      "proof": "python scripts/verify_country_layer_consistency.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-country-governance-matrix-md",
+      "phase": "0C",
+      "title": "COUNTRY_GOVERNANCE_MATRIX.md continental index",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "docs/COUNTRY_GOVERNANCE_MATRIX.md",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-verifiers-bundle",
+      "phase": "0D",
+      "title": "Phase 0 verifier bundle green",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_governance_plan_completion.py --phase-max 0D",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0-governance-archetypes",
+      "phase": "0D",
+      "title": "apps/governance/archetypes.py catalog",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "apps/governance/archetypes.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P1-language-overlay-fix",
+      "phase": "1",
+      "title": "Fix 11-country language overlay regression",
+      "agent_lane": "LOCALE",
+      "status": "DONE",
+      "proof": "python manage.py test apps.siteconfig.tests.test_country_language_overlay_regression",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P1-doc-truth-reconciliation",
+      "phase": "1",
+      "title": "Campus/EMIS/MAT hub doc truth reconciliation",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_governance_doc_truth.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P1-wedge22-mat-hub",
+      "phase": "1",
+      "title": "Wire wedge 22 to MAT hub nav",
+      "agent_lane": "PRODUCT",
+      "status": "DONE",
+      "proof": "apps/platform_runtime/wedge_line_registry.py mat-hub link",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P2-governance-org-models",
+      "phase": "2A",
+      "title": "apps/governance Organization layer models",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python manage.py test apps.governance.tests",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P2-hierarchy-unification",
+      "phase": "2B",
+      "title": "Unify parent_school, mat_groups, Organization",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python scripts/verify_hierarchy_silo_drift.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P2-operating-modes-wiring",
+      "phase": "2B",
+      "title": "governance_operating_mode + governance_inherit runtime",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python scripts/verify_school_operating_modes.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P2-exit-gate",
+      "phase": "2C",
+      "title": "Phase 2 exit gate",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_governance_plan_completion.py --phase-max 2C",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P3-matrix-runtime-wiring",
+      "phase": "3A",
+      "title": "Wire matrix into signup + statutory hints (249 countries)",
+      "agent_lane": "RUNTIME",
+      "status": "DONE",
+      "proof": "python manage.py test apps.schools.tests.test_governance_matrix_runtime",
+      "sot_batch": "1563",
+      "blocked_reason": null
+    },
+    {
+      "id": "P3-subdivisions-all-sovereigns",
+      "phase": "3B",
+      "title": "ISO 3166-2 subdivision seed for all sovereign states",
+      "agent_lane": "GEO",
+      "status": "DONE",
+      "proof": "python scripts/verify_subdivision_coverage.py --min-sovereign-pct 100",
+      "sot_batch": "1563",
+      "blocked_reason": null
+    },
+    {
+      "id": "P3-context-profiles",
+      "phase": "3C",
+      "title": "Context Profile layer \u2014 multi-role same user",
+      "agent_lane": "RUNTIME",
+      "status": "DONE",
+      "proof": "python manage.py test apps.schools.tests.test_context_profiles",
+      "sot_batch": "1563",
+      "blocked_reason": null
+    },
+    {
+      "id": "P3-multi-currency-rollup",
+      "phase": "3C",
+      "title": "Org-level FX rollup dashboard",
+      "agent_lane": "FINANCE",
+      "status": "DONE",
+      "proof": "python manage.py test apps.finance.tests.test_org_fx_rollup",
+      "sot_batch": "1563",
+      "blocked_reason": null
+    },
+    {
+      "id": "P3-litellm-institution-terminology",
+      "phase": "3C",
+      "title": "LiteLLM + terminology_service institution-type vocabulary",
+      "agent_lane": "LOCALE",
+      "status": "DONE",
+      "proof": "services/prompt_shaping.py institution terminology wiring",
+      "sot_batch": "1563",
+      "blocked_reason": null
+    },
+    {
+      "id": "P3-mc-moe-security-depth",
+      "phase": "3D",
+      "title": "Migration Cloud + MoE + security annex depth for all countries",
+      "agent_lane": "GEO",
+      "status": "DONE",
+      "proof": "python scripts/verify_country_layer_consistency.py --mc-depth",
+      "sot_batch": "1563",
+      "blocked_reason": null
+    },
+    {
+      "id": "P3-exit-gate",
+      "phase": "3E",
+      "title": "Phase 3 exit gate",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_governance_plan_completion.py --phase-max 3E",
+      "sot_batch": "1563",
+      "blocked_reason": null
+    },
+    {
+      "id": "P4-group-console",
+      "phase": "4A",
+      "title": "Opt-in Group Console for group_member schools",
+      "agent_lane": "PRODUCT",
+      "status": "DONE",
+      "proof": "python manage.py test apps.schools.tests.test_group_console",
+      "sot_batch": "1564",
+      "blocked_reason": null
+    },
+    {
+      "id": "P4-transfer-hr-workflow",
+      "phase": "4B",
+      "title": "Teacher transfer apply workflow",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python manage.py test apps.interop.tests.test_transfer_apply",
+      "sot_batch": "1564",
+      "blocked_reason": null
+    },
+    {
+      "id": "P4-group-billing-fx",
+      "phase": "4C",
+      "title": "Group billing + consolidated AR",
+      "agent_lane": "FINANCE",
+      "status": "DONE",
+      "proof": "python manage.py test apps.billing.tests.test_group_consolidation",
+      "sot_batch": "1564",
+      "blocked_reason": null
+    },
+    {
+      "id": "P4-emis-aggregate-pipeline",
+      "phase": "4D",
+      "title": "EMIS aggregate pipeline with role-separated reporting",
+      "agent_lane": "EMIS",
+      "status": "DONE",
+      "proof": "python manage.py test emis.tests.test_org_aggregate",
+      "sot_batch": "1564",
+      "blocked_reason": null
+    },
+    {
+      "id": "P4-granular-ops-six-gaps",
+      "phase": "4E",
+      "title": "Granular ops \u2014 SMS router, fast switch, fractional capacity, instruction-day ledger",
+      "agent_lane": "OPS",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_operational_blind_spots.py --granular-ops",
+      "sot_batch": "1564",
+      "blocked_reason": null
+    },
+    {
+      "id": "P4-staff-compliance-registry",
+      "phase": "4F",
+      "title": "staff_compliance_registry \u2014 clearance expiry blocks attendance",
+      "agent_lane": "OPS",
+      "status": "DONE",
+      "proof": "python manage.py test apps.people.tests.test_staff_compliance",
+      "sot_batch": "1564",
+      "blocked_reason": null
+    },
+    {
+      "id": "P4-exit-gate",
+      "phase": "4G",
+      "title": "Phase 4 exit gate",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_governance_plan_completion.py --phase-max 4G",
+      "sot_batch": "1564",
+      "blocked_reason": null
+    },
+    {
+      "id": "P5-continuous-audit",
+      "phase": "5",
+      "title": "Continuous matrix drift audit + quarterly benchmark",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_country_governance_matrix.py --drift-check",
+      "sot_batch": "1565",
+      "blocked_reason": null
+    },
+    {
+      "id": "P5-program-closure",
+      "phase": "5",
+      "title": "Program closure \u2014 100% register DONE or EXTERNAL_BLOCKED",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_global_governance_plan_completion.py --strict",
+      "sot_batch": "1565",
+      "blocked_reason": null
+    },
+    {
+      "id": "CROSS-sot-discipline",
+      "phase": "CROSS",
+      "title": "SOT \u00a711.4 + autonomous log discipline every slice",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "docs/RUNMYCAMPUS_SINGLE_EXECUTION_SOURCE_OF_TRUTH.md \u00a711.4",
+      "sot_batch": "1565",
+      "blocked_reason": null
+    },
+    {
+      "id": "CROSS-multi-agent-coordination",
+      "phase": "CROSS",
+      "title": "Multi-agent lane coordination protocol",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": ".cursor/plans/global_governance_audit_582fd47d.plan.md Multi-agent partition",
+      "sot_batch": "1565",
+      "blocked_reason": null
+    }
+  ]
+}

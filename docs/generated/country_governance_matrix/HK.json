@@ -1,0 +1,133 @@
+{
+  "iso_alpha2": "HK",
+  "iso_alpha3": "HKG",
+  "name_en": "Hong Kong",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Asia",
+  "region_bucket": "asia",
+  "dissection_wave": "W-Territories",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [],
+  "employer_model": "school",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Hong Kong statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": false
+  },
+  "languages_expected": [
+    "zh-hant",
+    "en"
+  ],
+  "official_languages": [
+    {
+      "iso639": "zh-hant",
+      "label_native": "繁體中文 (粵語)",
+      "label_en": "zh-hant",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "en",
+      "label_native": "English",
+      "label_en": "English",
+      "role": "education_medium",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "zh-hant",
+    "en"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "zh-hant": "Teacher / 老師",
+      "en": "Teacher"
+    },
+    "principal": {
+      "zh-hant": "Principal / 校長",
+      "en": "Headmaster"
+    },
+    "term": {
+      "zh-hant": "Term / 學期",
+      "en": "Term"
+    },
+    "report_card": {
+      "zh-hant": "Report Card / 成績表",
+      "en": "Report"
+    },
+    "grade_level": {
+      "zh-hant": "Form / 級",
+      "en": "Form"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [],
+    "school_type_labels": [
+      {
+        "code": "kindergarten",
+        "label": "Kindergarten / 幼稚園"
+      },
+      {
+        "code": "primary",
+        "label": "Primary / 小學"
+      },
+      {
+        "code": "secondary",
+        "label": "Secondary / 中學"
+      },
+      {
+        "code": "international",
+        "label": "International School"
+      },
+      {
+        "code": "university",
+        "label": "University / 大學"
+      }
+    ]
+  },
+  "name_order": "family-given",
+  "address_format_key": "generic",
+  "phone_country_code": "+852",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3 Terms (Hong Kong, British-influenced); Terms: 第一學期 / Term 1, 第二學期 / Term 2, 第三學期 / Term 3; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Asia/Hong_Kong"
+}

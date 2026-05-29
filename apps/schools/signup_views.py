@@ -116,6 +116,7 @@ from apps.siteconfig.country_localization_service import (
     validate_language_code,
     validate_school_type,
 )
+from apps.governance.country_matrix_service import signup_governance_defaults
 
 # v3.17 (2026-05-17): public onboarding gained a Migration step.
 # Order: 1 Region/type → 2 Plan/look → 3 Migration → 4 Review → signup.
@@ -344,6 +345,7 @@ def signup_school(request: HttpRequest):
                 # name; each entry carries the calendar_code that auto-fills
                 # the calendar radio when the operator picks their state.
                 "india_state_options": get_india_state_options(),
+                "governance_matrix_hint": signup_governance_defaults(cc),
             },
         )
 
@@ -439,10 +441,9 @@ def signup_school(request: HttpRequest):
                 "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
                 "signup_countries": _signup_countries(),
                 "country_pack": resolve_country_pack(country_code),
+                "school_type": school_type_raw,
             },
         )
-
-    slug = slug or _slug_from_name(name)
     if (
         School.objects.filter(slug=slug).exists()
         or School.objects.filter(subdomain=slug).exists()
@@ -470,6 +471,7 @@ def signup_school(request: HttpRequest):
                 # v3.62.2: country pack on slug-taken re-render so cards
                 # stay localized in the error state.
                 "country_pack": resolve_country_pack(country_code),
+                "school_type": school_type_raw,
             },
         )
 
@@ -496,6 +498,10 @@ def signup_school(request: HttpRequest):
             "language_code": language_code or "",
             "_seeded_at_signup": True,
         }
+    if country_code:
+        gov_defaults = signup_governance_defaults(country_code)
+        gov_defaults["_seeded_at_signup"] = True
+        school_settings["governance"] = gov_defaults
     # Backwards compatibility: keep the v3.61 term_preset hint for any code
     # path still reading school.settings["term_preset"] directly.
     if term_preset == "uk-3-term" or (term_preset_raw.upper() in ("UK", "GB")):

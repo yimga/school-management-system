@@ -1,0 +1,135 @@
+{
+  "iso_alpha2": "KH",
+  "iso_alpha3": "KHM",
+  "name_en": "Cambodia",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Asia",
+  "region_bucket": "asia",
+  "dissection_wave": "W-Asia",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Cambodia statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "km"
+  ],
+  "official_languages": [
+    {
+      "iso639": "km",
+      "label_native": "ខ្មែរ",
+      "label_en": "Khmer",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "km"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "km": "Teacher / គ្រូ",
+      "en": "Teacher"
+    },
+    "principal": {
+      "km": "Principal / នាយកសាលា",
+      "en": "Principal"
+    },
+    "term": {
+      "km": "Semester / មានទី",
+      "en": "Term"
+    },
+    "report_card": {
+      "km": "Report Card / សែនលទ្ធផល",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "km": "Grade / ថ្នាក់",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "preschool",
+        "label": "Preschool / មណ្ឌលមត្តេយ្យ"
+      },
+      {
+        "code": "primary",
+        "label": "Primary / រេៀនបប្ទមសឹក្សា"
+      },
+      {
+        "code": "lower-sec",
+        "label": "Lower Secondary / កំរិតមធ្យមសិក្សាបម្រុង"
+      },
+      {
+        "code": "upper-sec",
+        "label": "Upper Secondary / កំរិតមធ្យមសិក្សាទុតិយភូមិ"
+      },
+      {
+        "code": "university",
+        "label": "University / សាកលវិទ្យាល័យ"
+      }
+    ]
+  },
+  "name_order": "family-given",
+  "address_format_key": "generic",
+  "phone_country_code": "+855",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "2 Semesters (Cambodian); Terms: មានទី១ / Semester 1, មានទី២ / Semester 2; Year starts month 11",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Asia/Phnom_Penh"
+}

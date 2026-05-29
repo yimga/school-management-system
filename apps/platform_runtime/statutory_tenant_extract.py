@@ -21,18 +21,11 @@ def build_statutory_tenant_extract(
     country_code: str | None = None,
 ) -> dict[str, Any]:
     """Return JSON-serializable statutory shell with live tenant counts."""
-    from apps.platform_runtime.learning_institution_catalog import (
-        CATALOG_VERSION,
-        STATUTORY_JURISDICTION_HINTS,
-    )
+    from apps.governance.country_matrix_service import resolve_statutory_jurisdiction_hint
+    from apps.platform_runtime.learning_institution_catalog import CATALOG_VERSION
 
     cc = (country_code or "").strip().upper()[:2]
-    hint = STATUTORY_JURISDICTION_HINTS.get(cc) if cc and len(cc) == 2 else None
-    if cc and len(cc) == 2 and cc.isalpha() and not hint:
-        hint = {
-            "label": f"Jurisdiction ({cc})",
-            "framework": "Configure region pack and statutory connectors.",
-        }
+    hint = resolve_statutory_jurisdiction_hint(cc) if cc and len(cc) == 2 else None
 
     active_students = active_teachers = guardian_links = distinct_guardians = 0
     try:

@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-05-29T00:00:00+00:00",
+  "program": "global_governance_audit",
+  "findings": [
+    {
+      "id": "GG-001",
+      "severity": "critical",
+      "title": "11-country language overlay regression",
+      "evidence": "apps/siteconfig/_seed_country_localization.py v4.00.28/29 patches",
+      "phase": "1",
+      "register_id": "P1-language-overlay-fix",
+      "status": "closed"
+    },
+    {
+      "id": "GG-002",
+      "severity": "high",
+      "title": "SubdivisionRegistry has zero ISO 3166-2 rows",
+      "evidence": "apps/registries SubdivisionRegistry",
+      "phase": "3B",
+      "register_id": "P3-subdivisions-all-sovereigns",
+      "status": "open"
+    },
+    {
+      "id": "GG-003",
+      "severity": "high",
+      "title": "Migration Cloud deep profiles cover ~39/249 countries",
+      "evidence": "apps/migration_cloud/country_profiles.py",
+      "phase": "3D",
+      "register_id": "P3-mc-moe-security-depth",
+      "status": "open"
+    },
+    {
+      "id": "GG-004",
+      "severity": "medium",
+      "title": "Campus doc claimed future \u2014 schoolops.Campus exists",
+      "evidence": "docs/SCHOOL_TENANT_CAMPUS_CANONICAL.md",
+      "phase": "1",
+      "register_id": "P1-doc-truth-reconciliation",
+      "status": "in_progress"
+    },
+    {
+      "id": "GG-005",
+      "severity": "medium",
+      "title": "Three hierarchy silos undocumented",
+      "evidence": "parent_school vs mat_groups vs Campus",
+      "phase": "2B",
+      "register_id": "P2-hierarchy-unification",
+      "status": "open"
+    },
+    {
+      "id": "GG-006",
+      "severity": "medium",
+      "title": "No SOT batch for shipped MAT Group Hub",
+      "evidence": "apps/schools/mat_group_hub.py",
+      "phase": "1",
+      "register_id": "P1-wedge22-mat-hub",
+      "status": "open"
+    },
+    {
+      "id": "GG-007",
+      "severity": "medium",
+      "title": "Organization governance layer missing",
+      "evidence": "apps/governance/ absent",
+      "phase": "2A",
+      "register_id": "P2-governance-org-models",
+      "status": "open"
+    }
+  ]
+}

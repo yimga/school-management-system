@@ -1,0 +1,34 @@
+{
+  "label": "Getting started",
+  "seo_title": "Getting Started with RunMyCampus - Onboarding in six steps",
+  "seo_description": "Sign up, setup wizard, branding, features, migration, and launch. Get your school on RunMyCampus with a clear path from trial to go-live.",
+  "headline": "Get started in six steps.",
+  "subheadline": "From sign-up to launch: setup wizard, branding, features, migration, and go-live.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Step 1 \u2014 Sign up",
+      "body": "Create your account and confirm your school or district. Choose your plan and region."
+    },
+    {
+      "title": "Step 2 \u2014 Setup wizard",
+      "body": "Configure timezone, calendar, terms, and academic structure. The wizard guides you through core settings."
+    },
+    {
+      "title": "Step 3 \u2014 Branding",
+      "body": "Upload your logo, set colors, and customize portal appearance. Your school identity across the platform."
+    },
+    {
+      "title": "Step 4 \u2014 Features",
+      "body": "Enable modules and assign workflow and dashboard packs. Turn on admissions, academics, finance, and communication as needed."
+    },
+    {
+      "title": "Step 5 \u2014 Migration",
+      "body": "Import students and staff from spreadsheets or your current SIS. Use field mapping and validation before go-live."
+    },
+    {
+      "title": "Step 6 \u2014 Launch",
+      "body": "Go live with your tenant. Train users, invite parents and teachers, and switch to RunMyCampus as your source of truth."
+    }
+  ]
+}

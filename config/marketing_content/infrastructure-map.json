@@ -1,0 +1,22 @@
+{
+  "label": "Infrastructure",
+  "seo_title": "Infrastructure | RunMyCampus",
+  "seo_description": "Interactive map of API gateways, worker regions, and failover pairs \u2014 illustrative, refreshed from status feeds.",
+  "headline": "Regional topology you can audit.",
+  "subheadline": "Interactive map of API gateways, worker regions, and failover pairs \u2014 illustrative, refreshed from status feeds.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Edge gateways",
+      "body": "Ingress nodes with latency vectors per geography."
+    },
+    {
+      "title": "Worker regions",
+      "body": "Celery and async workers pinned to data-residency choices."
+    },
+    {
+      "title": "Failover pairs",
+      "body": "Warm standby paths documented for operator drills."
+    }
+  ]
+}

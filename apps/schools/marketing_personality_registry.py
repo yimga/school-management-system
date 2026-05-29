@@ -12,6 +12,20 @@ PERSONALITY_PAGES: dict[str, dict[str, Any]] = {
         "personality": "sovereign",
         "scroll_policy": "viewport-lock",
     },
+    "zero-ui": {
+        "template": "marketing/zero_ui_lab.html",
+        "title_token": "txt_zero_ui_headline",
+        "personality": "zero-ui",
+        "scroll_policy": "viewport-lock",
+        "scripts": ("mkt-zero-ui-playground.js",),
+    },
+    "enterprise-ledger": {
+        "template": "marketing/enterprise_ledger.html",
+        "title_token": "txt_enterprise_headline",
+        "personality": "enterprise",
+        "scroll_policy": "viewport-lock",
+        "scripts": ("mkt-enterprise-constellation.js", "mkt-split-ledger.js"),
+    },
     "academics": {
         "template": "marketing/academics.html",
         "title_token": "txt_academics_headline",

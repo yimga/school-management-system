@@ -1,0 +1,22 @@
+{
+  "label": "Communication",
+  "seo_title": "Communication & Portals | RunMyCampus",
+  "seo_description": "Role-ready portals for parents, teachers, and students. Messaging and announcements.",
+  "headline": "Communication that reaches every role.",
+  "subheadline": "Parents, teachers, and students stay connected with purpose-built portals.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Parent portal",
+      "body": "Attendance, grades, fees, and messages in one place for families."
+    },
+    {
+      "title": "Teacher and student portals",
+      "body": "Class tools, assignments, and school-wide announcements."
+    },
+    {
+      "title": "Messaging",
+      "body": "SMS and email providers with governed templates and delivery tracking."
+    }
+  ]
+}

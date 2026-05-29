@@ -209,7 +209,12 @@ WEDGE_LINES: Final[tuple[dict[str, int | str | tuple[str, ...]], ...]] = (
         "name": "Multi-campus / group",
         "tier": "C",
         "phase": 3,
-        "urls": _urls("super:education_systems", "super:group_campuses"),
+        "urls": _urls(
+            "super:education_systems",
+            "super:group_campuses",
+            "super:mat_group_hub_dashboard",
+            "super:mat_group_hub_create",
+        ),
     },
     # Tier D — delivery 23–30
     {

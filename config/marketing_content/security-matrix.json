@@ -1,0 +1,22 @@
+{
+  "label": "Security matrix",
+  "seo_title": "Security matrix | RunMyCampus",
+  "seo_description": "Dense matrix mapping platform roles to data domains with export for procurement reviewers.",
+  "headline": "Role \u00d7 resource access grid.",
+  "subheadline": "Dense matrix mapping platform roles to data domains with export for procurement reviewers.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "RBAC source",
+      "body": "Generated from live permission registry \u2014 not a static PDF."
+    },
+    {
+      "title": "Field-level notes",
+      "body": "Sensitive tiers flagged for finance and student health data."
+    },
+    {
+      "title": "Export",
+      "body": "CSV and JSON artifacts for security questionnaires."
+    }
+  ]
+}

@@ -438,6 +438,34 @@ jobs:
         run: |
           python scripts/verify_plan_deliverables_12_pillar.py --strict
 
+  global-governance-plan-completion:
+    name: "Global governance program closure (Phase 5 strict gate)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Run global governance Phase 5 program closure bundle
+        run: |
+          python scripts/verify_country_governance_matrix.py --require-verified --drift-check --write
+          python scripts/verify_country_dissection_ledger.py --require-verified
+          python scripts/verify_subdivision_coverage.py --min-sovereign-pct 100
+          python scripts/verify_country_layer_consistency.py --mc-depth
+          python scripts/verify_hierarchy_silo_drift.py --write
+          python scripts/verify_governance_no_hardcode.py
+          python scripts/verify_school_operating_modes.py
+          python scripts/verify_global_operational_blind_spots.py --granular-ops
+          python scripts/verify_governance_doc_truth.py
+          python scripts/verify_global_governance_plan_completion.py --strict --json
+          python scripts/verify_doc_plan_density_discipline.py
+          python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_group_console apps.interop.tests.test_transfer_apply apps.billing.tests.test_group_consolidation emis.tests.test_org_aggregate apps.people.tests.test_staff_compliance apps.schools.tests.test_governance_matrix_runtime apps.governance.tests.test_prompt_shaping_terminology apps.finance.tests.test_org_fx_rollup apps.schools.tests.test_context_profiles.ContextProfileServiceTests apps.registries.tests.test_seed_iso3166_subdivisions apps.governance.tests.test_models apps.siteconfig.tests.test_country_language_overlay_regression
+
   ai-engine-room:
     name: "AI engine room completeness (tiers 1-5)"
     runs-on: ubuntu-latest

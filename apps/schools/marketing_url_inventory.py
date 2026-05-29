@@ -39,6 +39,16 @@ _GET_OK_POST_ONLY = frozenset({200, 405})
 # Slug must exist after ``seed_marketing_cms`` (or equivalent) for 200.
 BLOG_DETAIL_SEED_SLUG = "from-spreadsheets-to-one-platform"
 
+# MULTI-PERSONALITY-GRID + acquisition engine (batch 1567).
+ACQUISITION_PERSONALITY_SLUGS: tuple[str, ...] = (
+    "zero-ui",
+    "enterprise-ledger",
+    "edge-mesh",
+    "academics",
+    "compliance",
+    "pricing",
+)
+
 _MARKETING_REVERSE_KWARGS: dict[str, dict] = {
     "marketing_blog_detail": {"slug": BLOG_DETAIL_SEED_SLUG},
     "marketing_buyer_toolkit_download": {"document": "buyer-checklist"},
@@ -118,6 +128,34 @@ def iter_marketing_smoke_targets() -> list[MarketingUrlSmokeTarget]:
             else _GET_OK_DEFAULT
         )
         targets.append(MarketingUrlSmokeTarget(name=name, path=path, ok_statuses=ok))
+    return targets
+
+
+def iter_marketing_acquisition_smoke_targets() -> list[MarketingUrlSmokeTarget]:
+    """Storefront + experience/* personality pages (batch 1567 acquisition engine)."""
+    targets: list[MarketingUrlSmokeTarget] = []
+    storefront = resolve_marketing_url("marketing_intent_homepage")
+    if storefront:
+        targets.append(
+            MarketingUrlSmokeTarget(
+                name="marketing_intent_homepage",
+                path=storefront,
+                ok_statuses=_GET_OK_DEFAULT,
+            )
+        )
+    for slug in ACQUISITION_PERSONALITY_SLUGS:
+        path = resolve_marketing_url(
+            "marketing_personality_page", kwargs={"personality_slug": slug}
+        )
+        if not path:
+            continue
+        targets.append(
+            MarketingUrlSmokeTarget(
+                name=f"marketing_personality_page:{slug}",
+                path=path,
+                ok_statuses=_GET_OK_DEFAULT,
+            )
+        )
     return targets
 
 

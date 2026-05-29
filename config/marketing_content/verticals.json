@@ -1,0 +1,22 @@
+{
+  "label": "By School Type",
+  "seo_title": "RunMyCampus by School Type - K12, private, international, district",
+  "seo_description": "Purpose-built for private K12, international schools, and multi-campus districts. ROI and workflows by vertical.",
+  "headline": "Built for your school type.",
+  "subheadline": "Vertical-specific workflows, compliance defaults, and ROI that match how you operate.",
+  "schema_type": "CollectionPage",
+  "segments": [
+    {
+      "title": "Private K12",
+      "body": "Admissions, grading, fee management, and parent communication in one tenant."
+    },
+    {
+      "title": "International schools",
+      "body": "Multi-currency, multi-language, and region-aware compliance out of the box."
+    },
+    {
+      "title": "Districts & networks",
+      "body": "Multi-campus with central oversight and school-level autonomy."
+    }
+  ]
+}

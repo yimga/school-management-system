@@ -349,6 +349,61 @@ def get_report_label(school: Any) -> str:
     return get_effective_terminology_for_school(school)["report_card"]
 
 
+def matrix_institution_vocabulary(country_code: str | None) -> dict[str, Any]:
+    """
+    Institution-type vocabulary from the country governance matrix (Phase 3C).
+
+    Complements viewport-only ``prompt_shaping`` with lexicon keys operators
+    expect in templates — ministry name, admin levels, school-type labels.
+    """
+    from apps.governance.country_matrix_service import get_matrix_row
+
+    row = get_matrix_row(country_code)
+    if not row:
+        return {}
+
+    local = row.get("local_terminology")
+    if not isinstance(local, dict):
+        local = {}
+
+    out: dict[str, Any] = {
+        "country_code": str(row.get("iso_alpha2") or "").upper(),
+        "country_name": str(row.get("name_en") or ""),
+        "governance_archetype": str(row.get("governance_archetype") or ""),
+    }
+
+    for key in ("teacher", "principal", "term", "report_card", "grade_level", "student"):
+        entry = local.get(key)
+        if isinstance(entry, dict):
+            label = entry.get("en") or next(
+                (v for v in entry.values() if isinstance(v, str) and v.strip()),
+                None,
+            )
+            if label:
+                out[key] = str(label)
+
+    ministry = local.get("ministry_name")
+    if isinstance(ministry, dict):
+        label = ministry.get("en") or next(
+            (v for v in ministry.values() if isinstance(v, str) and v.strip()),
+            None,
+        )
+        if label:
+            out["ministry_name"] = str(label)
+
+    school_types = local.get("school_type_labels")
+    if isinstance(school_types, list):
+        out["school_type_labels"] = [
+            item for item in school_types if isinstance(item, dict)
+        ]
+
+    admin_levels = row.get("admin_levels")
+    if isinstance(admin_levels, list):
+        out["admin_level_labels"] = admin_levels
+
+    return out
+
+
 __all__ = [
     "DEFAULT_TERMINOLOGY",
     "TERMINOLOGY_KEYS",
@@ -359,6 +414,7 @@ __all__ = [
     "get_report_label",
     "get_term_label",
     "lexicon_payload",
+    "matrix_institution_vocabulary",
     "resolve_all_terms",
     "resolve_term",
 ]

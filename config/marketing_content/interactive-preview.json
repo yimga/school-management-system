@@ -1,0 +1,18 @@
+{
+  "label": "Interactive preview",
+  "seo_title": "RunMyCampus Interactive Preview - Explore the product",
+  "seo_description": "Interactive product preview: explore the interface with sample data. No account required.",
+  "headline": "Interactive preview.",
+  "subheadline": "Explore the interface with sample data. Links to full demo and sign-up when you're ready.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Sample experience",
+      "body": "Navigate a simulated school backend: dashboards, lists, and forms with safe sample data."
+    },
+    {
+      "title": "Next step",
+      "body": "Book a live demo or start a trial to get your own tenant and real data migration."
+    }
+  ]
+}

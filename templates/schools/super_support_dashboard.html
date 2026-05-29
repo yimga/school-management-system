@@ -40,6 +40,9 @@
     <a href="{% url 'super:command_center' %}" class="btn btn-sm btn-outline-warning">{% trans "Open command center" %}</a>
     <a href="{% url 'super:support_tickets_export_csv' %}?status={{ status_filter|urlencode }}&priority={{ priority_filter|urlencode }}" class="btn btn-sm btn-outline-secondary">{% trans "Export CSV" %}</a>
     <a href="{% url 'super:support_csat_dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "CSAT analytics" %}</a>
+    <a href="{% url 'super:support_auto_rules_dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "Auto-ticket rules" %}</a>
+    <a href="{% url 'super:support_on_call_dashboard' %}" class="btn btn-sm btn-outline-secondary">{% trans "On-call rotation" %}</a>
+    <a href="{% url 'public_status' %}" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener">{% trans "Public status page" %}</a>
   </div>
   <div class="row g-3 mb-4 rmc-reveal-stagger">
     <div class="col-md-4 rmc-reveal">
@@ -97,6 +100,15 @@
         <button type="submit" class="btn btn-sm btn-primary">{% trans "Filter" %}</button>
       </form>
     </div>
+    {# v4.00.37 — bulk-action toolbar (assign-me, in-progress, resolve, escalate); listener below. #}
+    {% include "components/_bulk_actions_toolbar.html" with bulk_table_id="support-queue-table" bulk_actions=support_bulk_actions %}
+    <div class="px-3 py-2 small text-muted d-flex flex-wrap gap-2" data-rmc-support-keyboard-hints>
+      <span><kbd>j</kbd>/<kbd>k</kbd> {% trans "next/prev ticket" %}</span>
+      <span><kbd>x</kbd> {% trans "toggle select" %}</span>
+      <span><kbd>Enter</kbd> {% trans "open ticket" %}</span>
+      <span><kbd>a</kbd> {% trans "assign to me" %}</span>
+      <span><kbd>r</kbd> {% trans "resolve" %}</span>
+    </div>
     <div id="support-queue" class="card-body p-0"
          hx-get="{% url 'super:support_queue_fragment' %}?status={{ status_filter }}&priority={{ priority_filter }}"
          hx-trigger="every 60s, load"
@@ -106,4 +118,137 @@
   </div>
 </div>
 {% include "partials/rmc_htmx_self_host.html" %}
+{# v4.00.37 — bulk action POST + keyboard navigation for the operator queue. #}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  "use strict";
+  function getCsrf() {
+    var m = document.querySelector('meta[name="csrf-token"]');
+    if (m && m.getAttribute("content")) return m.getAttribute("content");
+    var c = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return c ? decodeURIComponent(c[1]) : "";
+  }
+  function flashFromResponse(data) {
+    if (data && typeof data.detail === "string") {
+      console.info("[support] bulk:", data.detail);
+    }
+    if (window.htmx) {
+      var q = document.getElementById("support-queue");
+      if (q && q.getAttribute("hx-get")) {
+        window.htmx.trigger(q, "load");
+      }
+    }
+  }
+  function postBulk(action, ids) {
+    var fd = new FormData();
+    fd.append("action", action);
+    ids.forEach(function (id) {
+      fd.append("ticket_ids", id);
+    });
+    fetch("{% url 'super:support_bulk_action' %}", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "X-CSRFToken": getCsrf(),
+        Accept: "application/json",
+      },
+      body: fd,
+    })
+      .then(function (r) {
+        return r.ok ? r.json() : r.json().catch(function () { return { error: "failed" }; });
+      })
+      .then(flashFromResponse)
+      .catch(function () {});
+  }
+  function bindToolbar() {
+    var table = document.getElementById("support-queue-table");
+    if (!table || table.__rmcSupportBulkBound) return;
+    table.__rmcSupportBulkBound = true;
+    table.addEventListener("rmc:bulk-action", function (ev) {
+      var detail = ev.detail || {};
+      if (!detail.action || !detail.ids || !detail.ids.length) return;
+      postBulk(detail.action, detail.ids);
+    });
+  }
+  function focusedRow() {
+    var table = document.getElementById("support-queue-table");
+    if (!table) return null;
+    return table.querySelector("tbody tr.is-focused") || table.querySelector("tbody tr[data-ticket-id]");
+  }
+  function setFocus(row) {
+    if (!row) return;
+    var table = document.getElementById("support-queue-table");
+    if (!table) return;
+    table.querySelectorAll("tbody tr.is-focused").forEach(function (r) {
+      r.classList.remove("is-focused");
+    });
+    row.classList.add("is-focused");
+    if (row.scrollIntoView) row.scrollIntoView({ block: "nearest" });
+  }
+  function nextRow(row, dir) {
+    var sib = dir === "down" ? row.nextElementSibling : row.previousElementSibling;
+    while (sib && !sib.hasAttribute("data-ticket-id")) {
+      sib = dir === "down" ? sib.nextElementSibling : sib.previousElementSibling;
+    }
+    return sib;
+  }
+  function onKey(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+    var tag = (e.target && e.target.tagName) || "";
+    if (/^(input|textarea|select|button)$/i.test(tag)) return;
+    var row = focusedRow();
+    if (!row) return;
+    var key = e.key;
+    if (key === "j") {
+      var n = nextRow(row, "down");
+      if (n) {
+        setFocus(n);
+        e.preventDefault();
+      }
+    } else if (key === "k") {
+      var p = nextRow(row, "up");
+      if (p) {
+        setFocus(p);
+        e.preventDefault();
+      }
+    } else if (key === "x") {
+      var cb = row.querySelector('input[data-rmc-bulk-checkbox]');
+      if (cb) {
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event("change", { bubbles: true }));
+        e.preventDefault();
+      }
+    } else if (key === "Enter") {
+      var url = row.getAttribute("data-ticket-url");
+      if (url) {
+        window.location.href = url;
+        e.preventDefault();
+      }
+    } else if (key === "a") {
+      var id = row.getAttribute("data-ticket-id");
+      if (id) {
+        postBulk("assign_me", [id]);
+        e.preventDefault();
+      }
+    } else if (key === "r") {
+      var rid = row.getAttribute("data-ticket-id");
+      if (rid) {
+        postBulk("resolve", [rid]);
+        e.preventDefault();
+      }
+    }
+  }
+  function boot() {
+    bindToolbar();
+    document.addEventListener("keydown", onKey);
+    // Re-bind toolbar after HTMX swaps (table id stays the same, but JS state is local to the new node).
+    document.body.addEventListener("htmx:afterSwap", bindToolbar);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+})();
+</script>
 {% endblock %}

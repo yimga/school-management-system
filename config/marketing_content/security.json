@@ -1,0 +1,22 @@
+{
+  "label": "Security",
+  "seo_title": "RunMyCampus Security - Architecture and encryption",
+  "seo_description": "Security architecture, encryption at rest and in transit, and access controls for RunMyCampus.",
+  "headline": "Security by design.",
+  "subheadline": "Encryption, tenant isolation, and access controls protect your school data.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Architecture",
+      "body": "Subdomain tenant isolation; dedicated host contract for public, tenant, and manager surfaces."
+    },
+    {
+      "title": "Encryption",
+      "body": "Encryption at rest and in transit; secrets and credentials managed securely."
+    },
+    {
+      "title": "Access controls",
+      "body": "Role-based access and audit trails for all administrative and support actions."
+    }
+  ]
+}

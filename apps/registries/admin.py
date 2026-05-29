@@ -16,6 +16,7 @@ from .models import (
     InstitutionTypeRegistry,
     LocaleRegistry,
     SubdivisionRegistry,
+    TenantGradeScaleOverride,
     TimeZoneRegistry,
 )
 
@@ -452,3 +453,34 @@ class GradeScaleRegistryAdmin(admin.ModelAdmin):
     list_display = ("code", "name", "family", "country_code", "sort_order", "is_active")
     list_filter = ("is_active", "family")
     search_fields = ("code", "name")
+
+
+@admin.register(TenantGradeScaleOverride, site=platform_admin_site)
+class TenantGradeScaleOverrideAdmin(admin.ModelAdmin):
+    """v4.00.36 — per-tenant grade-scale override.
+
+    Resolution order used by ``apps.registries.grade_scale_resolver``:
+
+    1. ``(school, context_key)`` exact-match row (e.g. context_key="primary").
+    2. ``(school, context_key="")`` is the tenant's default override.
+    3. ``RuntimeDefaults.default_grading_scale`` (platform default).
+    4. ``GradeScaleRegistry`` first row matching ``school.country_code``.
+    5. ``None`` (caller falls back to its model default).
+
+    Leave ``context_key`` blank to override the tenant's default scale.
+    Fill it (e.g. "primary", "secondary", "university") to scope the
+    override to a single academic division.
+    """
+
+    list_display = (
+        "school",
+        "grade_scale",
+        "context_key",
+        "is_default",
+        "effective_from",
+        "effective_until",
+        "updated_at",
+    )
+    list_filter = ("is_default", "context_key")
+    search_fields = ("school__name", "grade_scale__code", "grade_scale__name")
+    readonly_fields = ("created_at", "updated_at")

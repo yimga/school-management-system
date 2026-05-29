@@ -1,0 +1,22 @@
+{
+  "label": "FERPA",
+  "seo_title": "FERPA | RunMyCampus",
+  "seo_description": "Access, disclosure, and audit mechanics for student records \u2014 written for counsel and IT together.",
+  "headline": "FERPA-aligned education records.",
+  "subheadline": "Access, disclosure, and audit mechanics for student records \u2014 written for counsel and IT together.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Directory information",
+      "body": "Configurable opt-outs and disclosure logging."
+    },
+    {
+      "title": "School official access",
+      "body": "Legitimate educational interest enforced in RBAC."
+    },
+    {
+      "title": "Parent rights",
+      "body": "Portal paths for review and amendment requests."
+    }
+  ]
+}

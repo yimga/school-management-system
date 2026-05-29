@@ -821,5 +821,7 @@
     <script src="{% static 'js/_pages/rmc-lifecycle-concierge.js' %}" defer></script>
     {% include "lifecycle/concierge_modal.html" %}
     {% endif %}
+    {# v4.00.37: universal "Report issue" chip — auto-attaches URL + role + browser context. #}
+    {% include "partials/rmc_support_quick_create.html" %}
   </body>
 </html>

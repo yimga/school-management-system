@@ -1,0 +1,22 @@
+{
+  "label": "Cookie Policy",
+  "seo_title": "RunMyCampus Cookie Policy",
+  "seo_description": "How RunMyCampus uses cookies and similar technologies on its public website.",
+  "headline": "Cookie Policy",
+  "subheadline": "How we use cookies and similar technologies on our public website.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "What we use",
+      "body": "We use strictly necessary cookies for session and security. When analytics or chat widgets are enabled via settings, third-party cookies may be used; we document them in deployment settings."
+    },
+    {
+      "title": "Your choices",
+      "body": "You can disable non-essential cookies via browser settings. Essential cookies are required for the site to function."
+    },
+    {
+      "title": "Updates",
+      "body": "We may update this policy when we add or change features that use cookies. The date of the last update is reflected on this page."
+    }
+  ]
+}

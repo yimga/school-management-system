@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-05-29T13:02:50.380444+00:00",
+  "verdict": "GOVERNANCE_DOC_TRUTH_PASS",
+  "finding_count": 0,
+  "checks": [
+    {
+      "id": "campus-model-exists",
+      "status": "PASS"
+    },
+    {
+      "id": "campus-doc-truth",
+      "status": "PASS"
+    },
+    {
+      "id": "mat-hub-code",
+      "status": "PASS"
+    },
+    {
+      "id": "mat-hub-doc",
+      "status": "PASS"
+    },
+    {
+      "id": "mandate-crosswalk",
+      "status": "PASS"
+    }
+  ],
+  "failures": []
+}

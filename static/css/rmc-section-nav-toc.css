@@ -147,6 +147,12 @@
 .rmc-section-nav--inline .rmc-surface-subnav {
   flex: 1 1 auto;
   min-width: 0;
+  /* In-page section jumps render frameless — no floating bordered chrome. */
+  padding: 0;
+  border: 0;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 body.admin-manager-shell .cp-admin-v1-index .cp-hero + .cp-steering {

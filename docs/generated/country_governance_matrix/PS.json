@@ -1,0 +1,135 @@
+{
+  "iso_alpha2": "PS",
+  "iso_alpha3": "PSE",
+  "name_en": "Palestine, State of",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Asia",
+  "region_bucket": "asia",
+  "dissection_wave": "W-Asia",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Palestine, State of statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "ar"
+  ],
+  "official_languages": [
+    {
+      "iso639": "ar",
+      "label_native": "العربية",
+      "label_en": "Arabic",
+      "role": "official",
+      "script": "Arab",
+      "direction": "rtl"
+    }
+  ],
+  "education_languages": [
+    "ar"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "ar": "Teacher / معلّم",
+      "en": "Teacher"
+    },
+    "principal": {
+      "ar": "Principal / مدير المدرسة",
+      "en": "Principal"
+    },
+    "term": {
+      "ar": "Semester / فصل",
+      "en": "Term"
+    },
+    "report_card": {
+      "ar": "Report Card / كشف علامات",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "ar": "Grade / صف",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "kindergarten",
+        "label": "Kindergarten / رياض أطفال"
+      },
+      {
+        "code": "basic",
+        "label": "Basic / أساسي"
+      },
+      {
+        "code": "secondary",
+        "label": "Secondary / ثانوي (Tawjihi)"
+      },
+      {
+        "code": "vocational",
+        "label": "Vocational / مهني"
+      },
+      {
+        "code": "university",
+        "label": "University / جامعة"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "2 Semesters (Palestinian); Terms: الفصل الأول, الفصل الثاني; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Asia/Hebron"
+}

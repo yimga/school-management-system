@@ -1,0 +1,163 @@
+{
+  "iso_alpha2": "LK",
+  "iso_alpha3": "LKA",
+  "name_en": "Sri Lanka",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Asia",
+  "region_bucket": "asia",
+  "dissection_wave": "W-Asia",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Sri Lanka statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "si",
+    "ta",
+    "en"
+  ],
+  "official_languages": [
+    {
+      "iso639": "si",
+      "label_native": "සිංහල",
+      "label_en": "Sinhala",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "ta",
+      "label_native": "தமிழ்",
+      "label_en": "Tamil",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    },
+    {
+      "iso639": "en",
+      "label_native": "English",
+      "label_en": "English",
+      "role": "education_medium",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "si",
+    "ta",
+    "en"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "si": "Teacher / ගුරු / ஆசிரியர்",
+      "en": "Teacher"
+    },
+    "principal": {
+      "si": "Principal / විදුහල්පති",
+      "en": "Headmaster"
+    },
+    "term": {
+      "si": "Term",
+      "en": "Term"
+    },
+    "report_card": {
+      "si": "Progress Report",
+      "en": "Report"
+    },
+    "grade_level": {
+      "si": "Year",
+      "en": "Form"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "pre-school",
+        "label": "Pre-school / Montessori"
+      },
+      {
+        "code": "primary",
+        "label": "Primary (Year 1-5 / Scholarship)"
+      },
+      {
+        "code": "junior",
+        "label": "Junior Secondary (Year 6-9)"
+      },
+      {
+        "code": "ol",
+        "label": "O/L (Year 10-11)"
+      },
+      {
+        "code": "al",
+        "label": "A/L (Year 12-13)"
+      },
+      {
+        "code": "pirivena",
+        "label": "Pirivena (Buddhist monastic)"
+      },
+      {
+        "code": "university",
+        "label": "University"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "+94",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3-term (Sri Lankan); Terms: Term 1, Term 2, Term 3; Year starts month 1",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Asia/Colombo"
+}

@@ -511,6 +511,17 @@ class Invoice(models.Model):
     balance_amount = models.DecimalField(
         max_digits=12, decimal_places=2, default=Decimal("0.00")
     )
+    currency = models.ForeignKey(
+        "registries.CurrencyRegistry",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="finance_invoices",
+        help_text=(
+            "Optional canonical currency (registries.CurrencyRegistry). "
+            "When unset, falls back to ComplianceProfile.currency_code on the linked profile."
+        ),
+    )
     preferred_payment_method = models.CharField(
         max_length=20,
         choices=PaymentMethodCode.choices,
@@ -579,6 +590,23 @@ class Invoice(models.Model):
         Part F 25.1: Invoice immutability — once issued/paid, amount and key fields are read-only.
         Internal recalculation (from line add/delete or payment sync) is allowed via _recalculating.
         """
+        # v4.00.36: auto-populate the typed CurrencyRegistry FK from the
+        # linked profile's currency_code so dashboards have a typed row.
+        if self.currency_id is None and self.profile is not None:
+            profile_currency = (
+                getattr(self.profile, "currency_code", "") or ""
+            ).strip()
+            if profile_currency:
+                try:
+                    from apps.registries.models import CurrencyRegistry
+
+                    self.currency = (
+                        CurrencyRegistry.objects.filter(
+                            code__iexact=profile_currency
+                        ).only("code").first()
+                    )
+                except (AttributeError, RuntimeError, ValueError, ImportError):
+                    pass
         skip_immutability = getattr(self, "_recalculating", False)
         if not skip_immutability and self.pk and self.status != self.Status.DRAFT:
             try:
@@ -730,6 +758,17 @@ class Payment(models.Model):
         validators=[MinValueValidator(Decimal("0.01"))],  # Must be positive
     )
     currency_code = models.CharField(max_length=3, default="USD")
+    currency = models.ForeignKey(
+        "registries.CurrencyRegistry",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="finance_payments",
+        help_text=(
+            "Optional canonical currency (registries.CurrencyRegistry). "
+            "When unset, falls back to currency_code string."
+        ),
+    )
     purpose = models.CharField(
         max_length=20, choices=PURPOSE_CHOICES, default="tuition"
     )
@@ -905,6 +944,19 @@ class Payment(models.Model):
             self.reference_number = uuid.uuid4().hex
         if self.gateway_transaction_id == "":
             self.gateway_transaction_id = None
+        # v4.00.36: auto-populate the typed CurrencyRegistry FK when only
+        # the legacy string is set, so dashboards / FX paths can read .currency.
+        if self.currency_id is None and self.currency_code:
+            try:
+                from apps.registries.models import CurrencyRegistry
+
+                self.currency = (
+                    CurrencyRegistry.objects.filter(
+                        code__iexact=self.currency_code
+                    ).only("code").first()
+                )
+            except (AttributeError, RuntimeError, ValueError, ImportError):
+                pass
         self.full_clean()
         super().save(*args, **kwargs)
 

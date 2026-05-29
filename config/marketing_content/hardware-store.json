@@ -1,0 +1,22 @@
+{
+  "label": "Hardware store",
+  "seo_title": "Hardware store | RunMyCampus",
+  "seo_description": "Rugged scanners, receipt printers, and ID card kits with spec tables and deployment notes per region.",
+  "headline": "Campus hardware that pairs with your OS.",
+  "subheadline": "Rugged scanners, receipt printers, and ID card kits with spec tables and deployment notes per region.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Curated catalog",
+      "body": "SKUs vetted for attendance, canteen, and front-office workflows."
+    },
+    {
+      "title": "Spec transparency",
+      "body": "Power, connectivity, and warranty columns \u2014 no mystery bundles."
+    },
+    {
+      "title": "Fulfillment honesty",
+      "body": "Lead times and RMA paths vary by corridor; checkout routes to your operator."
+    }
+  ]
+}

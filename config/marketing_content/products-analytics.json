@@ -1,0 +1,22 @@
+{
+  "label": "Analytics",
+  "seo_title": "Analytics & Reporting | RunMyCampus",
+  "seo_description": "Real-time dashboards, enrollment and attendance trends, and actionable insights for school leaders.",
+  "headline": "Analytics that inform decisions.",
+  "subheadline": "Live dashboards, trends, and reports for enrollment, attendance, and outcomes.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Leader dashboards",
+      "body": "Enrollment, attendance, and performance at a glance."
+    },
+    {
+      "title": "Trends and reports",
+      "body": "Export-ready reports and trend analysis for boards and regulators."
+    },
+    {
+      "title": "AI insights",
+      "body": "Predictive signals and recommended interventions where enabled."
+    }
+  ]
+}

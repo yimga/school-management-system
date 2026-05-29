@@ -9,6 +9,8 @@ The MAT (Multi-Academy Trust / district / school network) Group Hub gives a grou
 | URL | Purpose |
 |---|---|
 | `/super/mat-hub/` | All groups + summary cards |
+| `/super/mat-hub/edit/` | Create a new MAT group in the registry |
+| `/super/mat-hub/<group_id>/edit/` | Edit an existing group's members and metadata |
 | `/super/mat-hub/<group_id>/` | One group's per-member detail |
 | `/super/mat-hub/<group_id>/api/` | JSON endpoint for the rollup |
 
@@ -33,6 +35,8 @@ MAT groups live in the **operator-side** `SiteSettings` (the control-plane singl
 ```
 
 The parser is at [apps/schools/mat_group_hub.py:parse_mat_registry](beta/school-management-system/apps/schools/mat_group_hub.py).
+
+**Phase 2 (global governance):** Optional `apps/governance.Organization` FK on `School` complements this operator registry — MAT hub remains the control-plane rollup surface; member schools with `governance_operating_mode=group_member` link to an `Organization` when customers opt into the org overlay.
 
 ## Tenant isolation
 

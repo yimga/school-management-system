@@ -1,0 +1,25 @@
+{% load i18n %}<svg class="mkt-viz mkt-viz--enterprise" viewBox="0 0 480 280" role="img" aria-labelledby="mkt-viz-enterprise-title" xmlns="http://www.w3.org/2000/svg" data-mkt-enterprise-graph>
+  <title id="mkt-viz-enterprise-title">{% trans "Illustrative enterprise org constellation" %}</title>
+  <rect width="480" height="280" fill="var(--mkt-surface-elevated, #0f172a)" rx="8"/>
+  <g data-mkt-enterprise-node="holdco">
+    <rect x="180" y="16" width="120" height="44" rx="6" fill="var(--mkt-accent, #4f46e5)" opacity="0.9"/>
+    <text x="240" y="44" fill="#f8fafc" font-size="11" text-anchor="middle" font-family="system-ui">{% trans "HoldCo" %}</text>
+  </g>
+  <g data-mkt-enterprise-node="k12">
+    <rect x="40" y="120" width="100" height="40" rx="6" fill="#334155" stroke="var(--mkt-accent, #38bdf8)" stroke-width="1"/>
+    <text x="90" y="145" fill="#e2e8f0" font-size="10" text-anchor="middle" font-family="system-ui">{% trans "K-12 cluster" %}</text>
+  </g>
+  <g data-mkt-enterprise-node="polytechnic">
+    <rect x="190" y="120" width="100" height="40" rx="6" fill="#334155" stroke="var(--mkt-accent, #38bdf8)" stroke-width="1"/>
+    <text x="240" y="145" fill="#e2e8f0" font-size="10" text-anchor="middle" font-family="system-ui">{% trans "Polytechnic" %}</text>
+  </g>
+  <g data-mkt-enterprise-node="university">
+    <rect x="340" y="120" width="100" height="40" rx="6" fill="#334155" stroke="var(--mkt-accent, #38bdf8)" stroke-width="1"/>
+    <text x="390" y="145" fill="#e2e8f0" font-size="10" text-anchor="middle" font-family="system-ui">{% trans "University" %}</text>
+  </g>
+  <g data-mkt-enterprise-node="user">
+    <circle cx="240" cy="230" r="28" fill="none" stroke="#34d399" stroke-width="2"/>
+    <text x="240" y="235" fill="#34d399" font-size="10" text-anchor="middle" font-family="system-ui">{% trans "Unified login" %}</text>
+  </g>
+  <path d="M240 60 L90 120 M240 60 L240 120 M240 60 L390 120 M240 140 L240 202" stroke="#64748b" stroke-width="1" fill="none"/>
+</svg>

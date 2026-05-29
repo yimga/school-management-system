@@ -159,6 +159,24 @@ def scoped_schools_for_user(user: "User", root_school=None) -> QuerySet:
             desc = get_school_descendants(m.school, include_self=False)
             ids.update(desc.values_list("pk", flat=True))
 
+    # Organization overlay (Phase 2): org roles see member schools in group mode.
+    try:
+        from apps.governance.models import OrgMembership
+        from apps.governance.services import school_in_group_mode
+
+        org_memberships = OrgMembership.objects.filter(user=user).select_related("organization")
+        for org_membership in org_memberships:
+            # tenant-isolation-allow: org-membership-scoped-school-list-for-group-operator
+            org_schools = School.objects.filter(
+                organization_id=org_membership.organization_id,
+                is_active=True,
+            )
+            for org_school in org_schools:
+                if school_in_group_mode(org_school):
+                    ids.add(org_school.pk)
+    except ImportError:
+        pass
+
     if root_school is not None:
         allowed = {root_school.pk}
         allowed.update(get_school_descendants(root_school).values_list("pk", flat=True))

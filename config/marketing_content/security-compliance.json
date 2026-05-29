@@ -1,0 +1,22 @@
+{
+  "label": "Security & Compliance",
+  "seo_title": "RunMyCampus Security & Compliance - FERPA/GDPR-ready controls",
+  "seo_description": "Security-first tenancy with audit trails, access controls, compliance regions, and operational monitoring.",
+  "headline": "Security and compliance built into daily operations.",
+  "subheadline": "Protect tenant data with auditability, policy controls, and region-aware compliance defaults.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Tenant-scoped controls",
+      "body": "Data access, policy settings, and activity traces stay scoped to each school."
+    },
+    {
+      "title": "Audit readiness",
+      "body": "Operational events, support actions, and administrative changes remain reviewable."
+    },
+    {
+      "title": "Regional compliance posture",
+      "body": "Map schools to compliance regions and align workflows to local obligations."
+    }
+  ]
+}

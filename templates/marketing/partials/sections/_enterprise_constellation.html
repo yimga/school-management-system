@@ -1,0 +1,44 @@
+{% load i18n marketing_media %}
+<section
+  id="mkt-enterprise-constellation"
+  class="mkt-ve-section mkt-ve-section--enterprise mkt-ve-section--viewport-lock"
+  data-mkt-personality="enterprise"
+  data-mkt-scroll-policy="viewport-lock"
+  aria-labelledby="mkt-enterprise-headline"
+>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-ve-section__header">
+      <p class="mkt-edt-eyebrow">{% trans "Poly-institutional core" %}</p>
+      <h2 id="mkt-enterprise-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+        {% marketing_copy "txt_enterprise_headline" %}
+      </h2>
+      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+        {% marketing_copy "txt_enterprise_lead" %}
+      </p>
+    </header>
+    <div class="mkt-ve-enterprise" data-mkt-enterprise-constellation>
+      <div class="mkt-ve-enterprise__viz">
+        {% marketing_viz "enterprise_constellation_viz" %}
+      </div>
+      <aside class="mkt-ve-enterprise__detail" data-mkt-enterprise-detail aria-live="polite">
+        <h3 class="mkt-ve-enterprise__detail-title">{% trans "HoldCo / Diocese" %}</h3>
+        <p class="mkt-ve-enterprise__detail-body">{% trans "One parent org · many institution types · unified login profile." %}</p>
+        <ul class="mkt-ve-enterprise__roles">
+          <li>{% trans "Teacher @ K-12 cluster" %}</li>
+          <li>{% trans "Student @ university" %}</li>
+          <li>{% trans "IT admin @ HoldCo" %}</li>
+        </ul>
+      </aside>
+    </div>
+    <div class="mkt-ve-enterprise__ledger" data-mkt-enterprise-ledger>
+      <h3 class="mkt-ve-enterprise__ledger-title">{% trans "Multi-wallet rollup (illustrative)" %}</h3>
+      <ul class="mkt-ve-enterprise__wallets">
+        <li data-wallet="mpesa">M-Pesa · KES 42%</li>
+        <li data-wallet="mtn">MTN MoMo · KES 31%</li>
+        <li data-wallet="stripe">Stripe · USD 27%</li>
+      </ul>
+      <p class="mkt-ve-enterprise__rollup" data-mkt-enterprise-rollup>{% trans "HoldCo dashboard total (normalized)" %}</p>
+    </div>
+    <p class="mkt-edt-illustrative-pill">{% trans "Illustrative wallets · real rails in product" %}</p>
+  </div>
+</section>

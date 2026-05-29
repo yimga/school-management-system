@@ -1,0 +1,165 @@
+{
+  "iso_alpha2": "CV",
+  "iso_alpha3": "CPV",
+  "name_en": "Cabo Verde",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Africa",
+  "region_bucket": "africa",
+  "dissection_wave": "W-Africa",
+  "dissection_status": "verified",
+  "governance_archetype": "single_org_multi_site",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {
+        "pt": "Ministério da Educação",
+        "en": "Ministério da Educação"
+      }
+    },
+    {
+      "level": 2,
+      "label_en": "School",
+      "label_local": {
+        "en": "School",
+        "pt": "Ministério da Educação"
+      }
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Cabo Verde statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "pt"
+  ],
+  "official_languages": [
+    {
+      "iso639": "pt",
+      "label_native": "Português",
+      "label_en": "Portuguese",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "pt"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "pt": "Professor",
+      "en": "Teacher"
+    },
+    "principal": {
+      "pt": "Diretor",
+      "en": "Principal"
+    },
+    "term": {
+      "pt": "Trimestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "pt": "Boletim",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "pt": "Ano",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {
+          "pt": "Ministério da Educação",
+          "en": "Ministério da Educação"
+        }
+      },
+      {
+        "level": 2,
+        "label_en": "School",
+        "label_local": {
+          "en": "School",
+          "pt": "Ministério da Educação"
+        }
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "pre-escolar",
+        "label": "Pré-escolar"
+      },
+      {
+        "code": "ebi",
+        "label": "EBI Ensino Básico Integrado (1-6)"
+      },
+      {
+        "code": "1-ciclo-sec",
+        "label": "Secundário 1º Ciclo (7-8)"
+      },
+      {
+        "code": "2-ciclo-sec",
+        "label": "Secundário 2º Ciclo (9-10)"
+      },
+      {
+        "code": "3-ciclo-sec",
+        "label": "Secundário 3º Ciclo (11-12)"
+      },
+      {
+        "code": "tecnico",
+        "label": "Ensino Técnico"
+      },
+      {
+        "code": "universidade",
+        "label": "Universidade"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3 Trimestres (Cabo-verdiano); Terms: 1º Trimestre, 2º Trimestre, 3º Trimestre; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Atlantic/Cape_Verde"
+}

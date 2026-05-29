@@ -27,6 +27,18 @@
         {% if ticket.sla_resolution_breach %}{% trans "Resolution SLA breach" %}{% endif %}
       </div>
       {% endif %}
+      {% if ticket.merged_into_id %}
+      <div class="alert alert-info py-2 px-3 mt-2 mb-0 small" role="status">
+        {% trans "Marked duplicate of" %}
+        <a href="{% url 'super:support_ticket_detail' ticket.merged_into_id %}">#{{ ticket.merged_into_id }}</a>
+      </div>
+      {% endif %}
+      {% if ticket.linked_to_id %}
+      <div class="alert alert-secondary py-2 px-3 mt-2 mb-0 small" role="status">
+        {% trans "Child of parent incident" %}
+        <a href="{% url 'super:support_ticket_detail' ticket.linked_to_id %}">#{{ ticket.linked_to_id }}</a>
+      </div>
+      {% endif %}
     </div>
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'super:support_dashboard' %}">{% trans "Back to queue" %}</a>
   </div>
@@ -37,8 +49,39 @@
         <div class="card-header">{% trans "Request" %}</div>
         <div class="card-body">
           <pre class="small mb-0 text-wrap ws-pre-wrap" >{{ ticket.body }}</pre>
+          {% with attachments=ticket.attachments.all %}
+            {% if attachments %}
+            <hr class="my-3">
+            <h2 class="h6 mb-2">{% trans "Attachments" %} <span class="badge text-bg-secondary">{{ attachments|length }}</span></h2>
+            <ul class="list-unstyled mb-0 small">
+              {% for a in attachments %}
+              <li class="mb-1">
+                <a href="{{ a.file.url }}" target="_blank" rel="noopener noreferrer">{{ a.filename }}</a>
+                <span class="text-muted">({{ a.byte_size|filesizeformat }}, {{ a.get_source_display }})</span>
+                {% if not a.visible_to_submitter %}<span class="badge text-bg-warning ms-1">{% trans "operator-only" %}</span>{% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          {% endwith %}
         </div>
       </div>
+      {% with children=ticket.linked_children.all %}
+        {% if children %}
+        <div class="card border-0 shadow-sm mt-3">
+          <div class="card-header">{% trans "Child incidents" %} <span class="badge text-bg-secondary">{{ children|length }}</span></div>
+          <div class="card-body">
+            <ul class="list-unstyled mb-0 small">
+              {% for c in children %}
+              <li class="mb-1">
+                <a href="{% url 'super:support_ticket_detail' c.pk %}">#{{ c.pk }}</a> · {{ c.school.name }} · {{ c.get_status_display }}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+      {% endwith %}
     </div>
     <div class="col-lg-4 rmc-reveal" data-dashboard-column="rail">
       {% if tenant_message_admin_url %}
@@ -157,6 +200,9 @@
             <option value="{{ val }}" {% if ticket.status == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
+          {% if allowed_next_statuses %}
+          <div class="form-text small">{% trans "Allowed next" %}: {{ allowed_next_statuses|join:", " }}</div>
+          {% endif %}
         </div>
         <div class="col-12">
           <label class="form-label" for="id_internal_notes">{% trans "Internal notes" %} <span class="text-muted">({% trans "operators only" %})</span></label>
@@ -164,6 +210,191 @@
         </div>
         <div class="col-12">
           <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# v4.00.43 — AI triage suggestion (only when populated by services.ai_helpers). #}
+  {% if ai_triage %}
+  <div class="card border-0 shadow-sm mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>{% trans "AI triage suggestion" %}</span>
+      <span class="badge text-bg-secondary">{{ ai_triage.model|default:ai_triage.provider|default:"AI" }}</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-3 small">
+        <div class="col-md-3">
+          <div class="text-muted">{% trans "Category" %}</div>
+          <div class="fw-semibold">{{ ai_triage.category|default:"—" }}</div>
+        </div>
+        <div class="col-md-3">
+          <div class="text-muted">{% trans "Priority suggestion" %}</div>
+          <div class="fw-semibold">{{ ai_triage.priority_suggestion|default:"—" }}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted">{% trans "Generated" %}</div>
+          <div>{{ ai_triage.generated_at|default:"—" }}</div>
+        </div>
+        {% if ai_triage.summary %}
+        <div class="col-12">
+          <div class="text-muted">{% trans "Summary" %}</div>
+          <div>{{ ai_triage.summary }}</div>
+        </div>
+        {% endif %}
+        {% if ai_triage.reasoning %}
+        <div class="col-12">
+          <div class="text-muted">{% trans "Reasoning" %}</div>
+          <div class="small text-muted">{{ ai_triage.reasoning }}</div>
+        </div>
+        {% endif %}
+      </div>
+      <hr class="my-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-6">
+          <form method="post" class="d-flex flex-wrap gap-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="ai_triage_accept">
+            <input type="hidden" name="applied_priority" value="{{ ai_triage.priority_suggestion }}">
+            <input type="hidden" name="applied_category" value="{{ ai_triage.category }}">
+            <button type="submit" class="btn btn-sm btn-success" title="{% trans 'Apply AI category + priority to this ticket.' %}">{% trans "Accept AI triage" %}</button>
+          </form>
+        </div>
+        <div class="col-12 col-md-6">
+          <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="ai_triage_override">
+            <div class="col-6">
+              <label class="form-label small mb-1" for="id_applied_priority">{% trans "Priority" %}</label>
+              <select name="applied_priority" id="id_applied_priority" class="form-select form-select-sm">
+                <option value="LOW" {% if ticket.priority == 'LOW' %}selected{% endif %}>{% trans "Low" %}</option>
+                <option value="NORMAL" {% if ticket.priority == 'NORMAL' %}selected{% endif %}>{% trans "Normal" %}</option>
+                <option value="HIGH" {% if ticket.priority == 'HIGH' %}selected{% endif %}>{% trans "High" %}</option>
+                <option value="URGENT" {% if ticket.priority == 'URGENT' %}selected{% endif %}>{% trans "Urgent" %}</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small mb-1" for="id_applied_category">{% trans "Category" %}</label>
+              <input type="text" name="applied_category" id="id_applied_category" class="form-control form-control-sm" maxlength="64" value="{{ ai_triage.category }}">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-sm btn-outline-warning">{% trans "Override AI triage" %}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# v4.00.49 — AI drafted reply: generate / edit / accept / discard. Operator stays in the loop. #}
+  {% with draft=ticket.metadata.ai_draft_reply %}
+  <div class="card border-0 shadow-sm mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>{% trans "AI drafted reply" %}</span>
+      {% if draft %}<span class="badge text-bg-secondary">{{ draft.confidence|default:"medium" }} · {{ draft.tone|default:"warm" }}</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if draft %}
+      <p class="small text-muted mb-2">{% trans "Generated" %} {{ draft.generated_at|default:"—" }} · {{ draft.model|default:draft.provider|default:"AI" }}{% if draft.next_step_hint %} · {% trans "Next step" %}: {{ draft.next_step_hint }}{% endif %}</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="ai_draft_accept">
+        <textarea name="draft_text" class="form-control mb-2" rows="6" maxlength="1600">{{ draft.draft_text }}</textarea>
+        <div class="d-flex gap-2 flex-wrap">
+          <button type="submit" class="btn btn-sm btn-success">{% trans "Send as reply" %}</button>
+          <button type="submit" name="action" value="ai_draft_discard" class="btn btn-sm btn-outline-secondary">{% trans "Discard draft" %}</button>
+        </div>
+      </form>
+      {% else %}
+      <p class="small text-muted mb-2">{% trans "Ask the AI to draft a first-response reply. You can edit before sending; nothing is auto-posted." %}</p>
+      <form method="post" class="d-flex gap-2 align-items-end flex-wrap">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="ai_draft_generate">
+        <div>
+          <label class="form-label small mb-1" for="id_draft_tone">{% trans "Tone" %}</label>
+          <select name="draft_tone" id="id_draft_tone" class="form-select form-select-sm">
+            <option value="warm" selected>{% trans "Warm" %}</option>
+            <option value="neutral">{% trans "Neutral" %}</option>
+            <option value="formal">{% trans "Formal" %}</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary">{% trans "Generate AI draft" %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endwith %}
+
+  {# v4.00.43 — Promote to public incident. Updates an active one when present. #}
+  <div class="card border-0 shadow-sm mt-3">
+    <div class="card-header">
+      {% if active_public_incident %}{% trans "Update public incident" %}{% else %}{% trans "Promote to public incident" %}{% endif %}
+    </div>
+    <div class="card-body">
+      {% if active_public_incident %}
+      <p class="small text-muted mb-2">{% trans "Active public incident" %}: #{{ active_public_incident.pk }} · {{ active_public_incident.get_status_display }} ({{ active_public_incident.get_severity_display }})</p>
+      {% endif %}
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="promote_incident">
+        <div class="col-md-8">
+          <label class="form-label small" for="id_incident_title">{% trans "Public title" %}</label>
+          <input type="text" name="incident_title" id="id_incident_title" maxlength="180" class="form-control" value="{% if active_public_incident %}{{ active_public_incident.title }}{% else %}{{ ticket.subject|truncatechars:160 }}{% endif %}" required>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small" for="id_incident_severity">{% trans "Severity" %}</label>
+          <select name="incident_severity" id="id_incident_severity" class="form-select">
+            {% for val, label in incident_severity_choices %}
+            <option value="{{ val }}" {% if active_public_incident and active_public_incident.severity == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small" for="id_incident_status">{% trans "Status" %}</label>
+          <select name="incident_status" id="id_incident_status" class="form-select">
+            {% for val, label in incident_status_choices %}
+            <option value="{{ val }}" {% if active_public_incident and active_public_incident.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label small" for="id_incident_summary">{% trans "Public summary" %}</label>
+          <textarea name="incident_summary" id="id_incident_summary" class="form-control" rows="3" placeholder="{% trans 'Short customer-facing description. Do not include PII.' %}">{% if active_public_incident %}{{ active_public_incident.summary }}{% endif %}</textarea>
+          <div class="form-text small">{% trans "Visible to anyone with the URL — do not include school names or personal data." %}</div>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-warning">{% if active_public_incident %}{% trans "Update incident" %}{% else %}{% trans "Promote to public" %}{% endif %}</button>
+          <a class="btn btn-outline-secondary ms-2" href="{% url 'public_status' %}" target="_blank" rel="noopener">{% trans "Open public status page" %}</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {# v4.00.42 — incident linking + duplicate merge #}
+  <div class="card border-0 shadow-sm mt-3">
+    <div class="card-header">{% trans "Incident links" %}</div>
+    <div class="card-body">
+      <form method="post" class="row g-3 align-items-end mb-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="link">
+        <div class="col-md-8">
+          <label class="form-label small" for="id_parent_ticket_id">{% trans "Parent incident ticket UUID" %} <span class="text-muted">({% trans "blank to unlink" %})</span></label>
+          <input type="text" name="parent_ticket_id" id="id_parent_ticket_id" class="form-control" value="{{ ticket.linked_to_id|default_if_none:'' }}" placeholder="{% trans 'Parent ticket UUID' %}">
+        </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-outline-secondary">{% trans "Link to parent" %}</button>
+        </div>
+      </form>
+      <form method="post" class="row g-3 align-items-end">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="merge">
+        <div class="col-md-8">
+          <label class="form-label small" for="id_merge_target_id">{% trans "Canonical ticket UUID" %} <span class="text-muted">({% trans "blank to undo" %})</span></label>
+          <input type="text" name="merge_target_id" id="id_merge_target_id" class="form-control" value="{{ ticket.merged_into_id|default_if_none:'' }}" placeholder="{% trans 'Canonical ticket UUID — this ticket will be closed' %}">
+        </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-outline-warning">{% trans "Mark duplicate" %}</button>
         </div>
       </form>
     </div>

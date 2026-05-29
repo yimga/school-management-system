@@ -34,6 +34,8 @@ USAGE_DIMENSIONS: tuple[tuple[str, str], ...] = (
     ("db_sessions", "DB sessions"),
     ("api_calls", "API calls"),
     ("ai_tokens", "AI tokens"),
+    ("ai_invocations", "AI invocations"),
+    ("sms_count", "SMS messages"),
     ("marketplace_installs", "Marketplace installs"),
 )
 USAGE_DIMENSION_CODES: frozenset[str] = frozenset(code for code, _ in USAGE_DIMENSIONS)

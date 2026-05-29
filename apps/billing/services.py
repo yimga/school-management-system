@@ -1688,3 +1688,84 @@ def set_payment_settings(
         school.pk, settlement_currency, settlement_country,
     )
     return True
+
+
+def compute_subscription_price_for_school(
+    school,
+    plan,
+    *,
+    student_count: int | None = None,
+) -> "dict":
+    """v4.00.36 — apply PPP multiplier + VAT to a Plan's base price for a tenant.
+
+    Reads the plan's base price (FLAT or PER_STUDENT × students), resolves
+    the tenant's country_code, and runs the amount through the canonical
+    regional pricing helper. Returns a serialisable dict::
+
+        {
+          "subtotal": Decimal, "tax": Decimal, "total": Decimal,
+          "currency_code": str, "multiplier": Decimal, "tax_rate": Decimal,
+          "tax_code": str, "country_code": str, "billing_model": str,
+        }
+
+    Falls back to base USD when ``school`` or ``plan`` is missing — never
+    raises into the request path.
+    """
+    if school is None or plan is None:
+        return {
+            "subtotal": Decimal("0.00"), "tax": Decimal("0.00"), "total": Decimal("0.00"),
+            "currency_code": "USD", "multiplier": Decimal("1"), "tax_rate": Decimal("0"),
+            "tax_code": "", "country_code": "", "billing_model": "FLAT",
+        }
+
+    billing_model = (getattr(plan, "billing_model", "") or "FLAT").upper()
+    base_price = Decimal("0.00")
+    try:
+        if billing_model == "PER_STUDENT" and plan.price_per_student:
+            count = max(0, int(student_count or 0))
+            base_price = Decimal(str(plan.price_per_student)) * Decimal(count)
+        elif billing_model == "TIERED" and isinstance(plan.tier_rules, list):
+            count = max(0, int(student_count or 0))
+            base_price = Decimal("0.00")
+            for band in plan.tier_rules:
+                if not isinstance(band, dict):
+                    continue
+                band_max = int(band.get("max") or 0)
+                if count <= band_max or band_max == 0:
+                    base_price = Decimal(str(band.get("price") or 0))
+                    break
+        else:
+            base_price = Decimal(str(plan.base_price or 0))
+    except (AttributeError, TypeError, ValueError):
+        base_price = Decimal("0.00")
+
+    try:
+        from apps.billing.regional_pricing import compute_localized_price
+
+        country_code = (getattr(school, "country_code", "") or "").upper()
+        localized = compute_localized_price(base_price, country_code)
+    except (ImportError, RuntimeError):
+        localized = None
+    if localized is None:
+        return {
+            "subtotal": base_price.quantize(Decimal("0.01")),
+            "tax": Decimal("0.00"),
+            "total": base_price.quantize(Decimal("0.01")),
+            "currency_code": "USD",
+            "multiplier": Decimal("1"),
+            "tax_rate": Decimal("0"),
+            "tax_code": "",
+            "country_code": "",
+            "billing_model": billing_model,
+        }
+    return {
+        "subtotal": localized.subtotal,
+        "tax": localized.tax,
+        "total": localized.total,
+        "currency_code": localized.currency_code,
+        "multiplier": localized.multiplier,
+        "tax_rate": localized.tax_rate,
+        "tax_code": localized.tax_code,
+        "country_code": localized.country_code,
+        "billing_model": billing_model,
+    }

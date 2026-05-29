@@ -31,7 +31,6 @@ import hmac
 import logging
 import os
 import re
-import uuid
 from typing import Any
 
 from django.conf import settings

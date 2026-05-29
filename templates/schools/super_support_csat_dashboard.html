@@ -33,6 +33,24 @@
         </div>
       </div>
     </div>
+    {% if sparkline_svg %}
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <div class="text-muted small">{% trans "Last 12 months — average CSAT trend" %}</div>
+              <div class="small">
+                {% blocktrans with months=sparkline_count %}{{ months }} months charted{% endblocktrans %} ·
+                {% blocktrans with lo=sparkline_range.min hi=sparkline_range.max %}range {{ lo }} → {{ hi }}{% endblocktrans %}
+              </div>
+            </div>
+            <div class="text-primary" aria-hidden="true">{{ sparkline_svg|safe }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
   <div class="card border-0 shadow-sm mb-4">
     <div class="card-header">{% trans "By month" %}</div>

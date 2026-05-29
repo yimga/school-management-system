@@ -25,6 +25,16 @@ SUPPORT_TICKET_SOFT_FAILURES = (
 
 
 def _pick_support_owner() -> User | None:
+    # v4.00.43 — prefer the live on-call user over the role-based fallback chain.
+    try:
+        from apps.siteconfig.support_on_call import get_active_on_call_user
+
+        on_call = get_active_on_call_user()
+        if on_call is not None:
+            return on_call
+    except (ImportError, LookupError, AttributeError):
+        pass
+
     preferred_roles = [
         User.Role.IT_ADMIN,
     ]
@@ -182,6 +192,13 @@ def support_request(request):
                     run_support_ticket_created_hooks(
                         tid, primary_recipient_id=rid
                     )
+                except SUPPORT_TICKET_SOFT_FAILURES:
+                    pass
+                # v4.00.43 — AI triage; soft-fails when AI gateway unavailable.
+                try:
+                    from apps.siteconfig.support_ai_triage import run_ai_triage
+
+                    run_ai_triage(ticket, request=None)
                 except SUPPORT_TICKET_SOFT_FAILURES:
                     pass
 

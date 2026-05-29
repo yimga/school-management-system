@@ -1,0 +1,22 @@
+{
+  "label": "Admissions",
+  "seo_title": "Admissions & Enrollment | RunMyCampus",
+  "seo_description": "Automate admissions from application to enrollment. Capture leads, track applications, waitlists, and communications.",
+  "headline": "Automate admissions from application to enrollment.",
+  "subheadline": "Capture leads, qualify applicants, and onboard students in one configurable flow.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Application workflow",
+      "body": "From enquiry to decision with configurable stages and automation."
+    },
+    {
+      "title": "Waitlists & communications",
+      "body": "Manage waitlists and automated parent and staff communications."
+    },
+    {
+      "title": "Analytics",
+      "body": "Funnel and conversion dashboards for admissions leads and enrollment."
+    }
+  ]
+}

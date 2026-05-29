@@ -143,14 +143,11 @@ def site_settings_snapshot(request: HttpRequest) -> JsonResponse:
     """GET /api/v1/runtime/site-settings — public-safe SiteSettings projection."""
     payload: dict[str, Any] = {"settings": {}}
     try:
-        from apps.siteconfig.models import SiteSettings  # type: ignore[attr-defined]
+        from apps.platform_runtime.helpers import get_effective_site_settings
     except ImportError:
         return _runtime_response(request, "site_settings_snapshot", payload)
     school = getattr(request, "school", None)
-    qs = SiteSettings.objects.all()
-    if school is not None:
-        qs = qs.filter(school=school)
-    row = qs.first()
+    row = get_effective_site_settings(request=request, school=school)
     if row is not None:
         # Public-safe projection: brand + locale + theme; never secrets.
         public_keys = ("brand_payload", "theme_personality", "cockpit_payload")

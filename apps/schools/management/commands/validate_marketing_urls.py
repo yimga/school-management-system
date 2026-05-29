@@ -40,7 +40,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--seed-cms",
             action="store_true",
-            help="With --full: run seed_marketing_cms first so /blog/<slug>/ returns 200.",
+            help="With --full: run seed_marketing_site first so /blog/<slug>/ and CMS JSON are populated.",
         )
 
     def handle(self, *args, **options):
@@ -102,6 +102,7 @@ class Command(BaseCommand):
             "marketing_implementation_assurance",
             "marketing_security_packet_request",
             "marketing_security_packet_submit",
+            "marketing_intent_homepage",
         ]
         self.stdout.write("Resolving marketing URL names...")
         for name in url_names:
@@ -163,8 +164,10 @@ class Command(BaseCommand):
             host = get_canonical_base_domain() or "runmycampus.com"
 
             if run_full and seed_cms:
-                self.stdout.write("Running seed_marketing_cms (for blog detail and CMS keys)...")
-                call_command("seed_marketing_cms", verbosity=0)
+                self.stdout.write(
+                    "Running seed_marketing_site (CMS + marketing_content JSON)..."
+                )
+                call_command("seed_marketing_site", verbosity=0)
 
             if run_full:
                 from apps.schools.marketing_url_inventory import (
@@ -242,8 +245,50 @@ class Command(BaseCommand):
                                 f"  GET adjacent {target.name} {target.path}: {e}"
                             )
                         )
+                from apps.schools.marketing_url_inventory import (
+                    iter_marketing_acquisition_smoke_targets,
+                )
+
+                self.stdout.write(
+                    "Acquisition smoke: storefront + experience/* personality pages..."
+                )
+                for target in iter_marketing_acquisition_smoke_targets():
+                    try:
+                        resp = client.get(target.path, HTTP_HOST=host, follow=True)
+                        if target.accepts(resp.status_code):
+                            self.stdout.write(
+                                self.style.SUCCESS(
+                                    f"  GET {target.name} {target.path} -> {resp.status_code}"
+                                )
+                            )
+                        else:
+                            errors.append(
+                                f"GET {target.name} {target.path} -> {resp.status_code}"
+                            )
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"  GET {target.name} {target.path} -> {resp.status_code}"
+                                )
+                            )
+                    except (
+                        OSError,
+                        ConnectionError,
+                        ValueError,
+                        TypeError,
+                        KeyError,
+                        AttributeError,
+                        RuntimeError,
+                    ) as e:
+                        errors.append(f"GET {target.name} {target.path}: {e}")
+                        self.stdout.write(
+                            self.style.ERROR(f"  GET {target.name} {target.path}: {e}")
+                        )
             elif run_smoke:
                 self.stdout.write("Smoke-testing key URLs (test client)...")
+                from apps.schools.marketing_url_inventory import (
+                    iter_marketing_acquisition_smoke_targets,
+                )
+
                 smoke_names = [
                     "marketing_landing",
                     "marketing_demo",
@@ -255,6 +300,7 @@ class Command(BaseCommand):
                     "marketing_trust_dedicated",
                     "marketing_pricing_packages_clarity",
                     "marketing_story_implementation",
+                    "marketing_intent_homepage",
                 ]
                 paths = []
                 for name in smoke_names:
@@ -262,6 +308,9 @@ class Command(BaseCommand):
                         paths.append(reverse(name))
                     except NoReverseMatch:
                         pass
+                for target in iter_marketing_acquisition_smoke_targets():
+                    if target.path not in paths:
+                        paths.append(target.path)
                 for path in paths:
                     try:
                         resp = client.get(path, HTTP_HOST=host, follow=True)

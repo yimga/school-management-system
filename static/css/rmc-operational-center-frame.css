@@ -850,6 +850,16 @@ body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .rmc-ops-frame
   opacity: 0.9;
 }
 
+/* Inline section-jump anchors in the workbench toolbar (replaces the standalone "Jump to" frame). */
+body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .rmc-ops-frame__jump,
+:is(body.portal-body-with-layout, body.manager-portal-bridge)
+  :is(#main-content, .portal-page-body)
+  .rmc-ops-frame__actions .rmc-ops-frame__jump {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 /* Marketplace workbenches: no duplicate operator surface strip under canvas chrome */
 body.control-plane-shell [data-rmc-marketplace-workbench="1"] + .rmc-operator-workspace-nav,
 body.control-plane-shell [data-rmc-marketplace-workbench="1"] ~ nav[data-rmc-operator-surface-strip] {

@@ -1,0 +1,136 @@
+{
+  "iso_alpha2": "RO",
+  "iso_alpha3": "ROU",
+  "name_en": "Romania",
+  "sovereign_state": true,
+  "territory": false,
+  "continent": "Europe",
+  "region_bucket": "europe",
+  "dissection_wave": "W-Europe",
+  "dissection_status": "verified",
+  "governance_archetype": "state_emis_hub",
+  "admin_levels": [
+    {
+      "level": 1,
+      "label_en": "National ministry",
+      "label_local": {}
+    }
+  ],
+  "employer_model": "state",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "authority",
+    "ministry"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Romania statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": true,
+    "lep": false,
+    "moe_preset": true,
+    "security_annex": true,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "ro"
+  ],
+  "official_languages": [
+    {
+      "iso639": "ro",
+      "label_native": "Română",
+      "label_en": "Romanian",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "ro"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "ro": "Profesor/oară / Învățător/oare",
+      "en": "Teacher"
+    },
+    "principal": {
+      "ro": "Director/oare",
+      "en": "Principal"
+    },
+    "term": {
+      "ro": "Semestru",
+      "en": "Term"
+    },
+    "report_card": {
+      "ro": "Carnet de note / Foaie matricolă",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "ro": "Clasă",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [
+      {
+        "level": 1,
+        "label_en": "National ministry",
+        "label_local": {}
+      }
+    ],
+    "school_type_labels": [
+      {
+        "code": "gradinita",
+        "label": "Grădiniță"
+      },
+      {
+        "code": "primara",
+        "label": "Școală primară"
+      },
+      {
+        "code": "gimnaziu",
+        "label": "Gimnaziu"
+      },
+      {
+        "code": "liceu",
+        "label": "Liceu (Bacalaureat)"
+      },
+      {
+        "code": "universitate",
+        "label": "Universitate"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "+40",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "2 Semestre (Românesc); Terms: Semestrul I, Semestrul II; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T2",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Europe/Bucharest"
+}

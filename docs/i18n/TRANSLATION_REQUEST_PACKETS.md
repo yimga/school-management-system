@@ -12,6 +12,7 @@ The codebase intentionally does **not** ship AI-drafted translations for these l
 | `ha` (Hausa) | [translation_requests/ha.md](translation_requests/ha.md) | 111 strings | West Africa private schools, Nigeria / Niger corridor |
 | `sw` (Swahili) | [translation_requests/sw.md](translation_requests/sw.md) | 111 strings | East Africa private schools, Kenya / Tanzania corridor |
 | `pid` (Nigerian Pidgin) | [translation_requests/pid.md](translation_requests/pid.md) | 111 strings | Pan-Nigeria operator-facing copy |
+| `fr` (French) | [translation_requests/fr.md](translation_requests/fr.md) | 111 strings | Francophone schools — **native review of AI draft** (not blank fill) |
 
 ## What a translator receives
 

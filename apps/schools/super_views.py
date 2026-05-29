@@ -51,7 +51,17 @@ from .super_views_support import (
     super_support_ticket_detail,
     super_support_tickets_export_csv,
     support_assign_ticket,
+    support_bulk_action,
     support_queue_fragment,
+)
+from .super_views_support_auto_rules import (
+    support_auto_rules_dashboard,
+    support_auto_rules_save,
+)
+from .super_views_support_on_call import (
+    support_on_call_dashboard,
+    support_on_call_generate,
+    support_on_call_save,
 )
 from .super_views_ai import (
     ai_model_hub,
@@ -163,6 +173,12 @@ __all__ = (
     "super_trust_center",
     "super_usage",
     "support_assign_ticket",
+    "support_auto_rules_dashboard",
+    "support_auto_rules_save",
+    "support_bulk_action",
+    "support_on_call_dashboard",
+    "support_on_call_generate",
+    "support_on_call_save",
     "support_queue_fragment",
 )
 

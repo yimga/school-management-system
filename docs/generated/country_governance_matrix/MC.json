@@ -1,0 +1,127 @@
+{
+  "iso_alpha2": "MC",
+  "iso_alpha3": "MCO",
+  "name_en": "Monaco",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Europe",
+  "region_bucket": "europe",
+  "dissection_wave": "W-Territories",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [],
+  "employer_model": "school",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Monaco statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "fr"
+  ],
+  "official_languages": [
+    {
+      "iso639": "fr",
+      "label_native": "Français",
+      "label_en": "French",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "fr"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "fr": "Professeur",
+      "en": "Teacher"
+    },
+    "principal": {
+      "fr": "Directeur",
+      "en": "Principal"
+    },
+    "term": {
+      "fr": "Trimestre",
+      "en": "Term"
+    },
+    "report_card": {
+      "fr": "Bulletin",
+      "en": "Report card"
+    },
+    "grade_level": {
+      "fr": "Classe",
+      "en": "Grade level"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [],
+    "school_type_labels": [
+      {
+        "code": "maternelle",
+        "label": "École maternelle"
+      },
+      {
+        "code": "primaire",
+        "label": "École primaire"
+      },
+      {
+        "code": "college",
+        "label": "Collège (6e-3e) / Brevet"
+      },
+      {
+        "code": "lycee",
+        "label": "Lycée (2nde-Tle) / Baccalauréat"
+      },
+      {
+        "code": "vocational",
+        "label": "Lycée professionnel / CFA"
+      },
+      {
+        "code": "university",
+        "label": "International University of Monaco"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3-trimestre (Monégasque); Terms: 1er trimestre, 2e trimestre, 3e trimestre; Year starts month 9",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Europe/Monaco"
+}

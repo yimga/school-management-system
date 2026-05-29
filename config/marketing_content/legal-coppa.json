@@ -1,0 +1,22 @@
+{
+  "label": "COPPA",
+  "seo_title": "COPPA | RunMyCampus",
+  "seo_description": "Age gates, consent capture, and minimized profiles for younger learners.",
+  "headline": "Child safety and parental consent.",
+  "subheadline": "Age gates, consent capture, and minimized profiles for younger learners.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Consent boundaries",
+      "body": "Parent authorization before non-essential processing."
+    },
+    {
+      "title": "Data minimization",
+      "body": "Fields required for instruction only \u2014 no surplus profiling."
+    },
+    {
+      "title": "Vendor diligence",
+      "body": "Marketplace apps inherit child-safety review states."
+    }
+  ]
+}

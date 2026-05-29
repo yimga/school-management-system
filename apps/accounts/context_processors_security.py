@@ -17,7 +17,6 @@ from apps.accounts.security_posture_notifications import (
     is_corner_snoozed,
     is_session_modal_acknowledged,
     security_posture_zone,
-    should_show_session_modal,
 )
 
 logger = logging.getLogger(__name__)

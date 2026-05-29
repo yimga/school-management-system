@@ -1,0 +1,18 @@
+{
+  "label": "FERPA",
+  "seo_title": "RunMyCampus and FERPA - Student privacy",
+  "seo_description": "How RunMyCampus supports FERPA-aligned student record and privacy practices.",
+  "headline": "FERPA-aligned student record practices.",
+  "subheadline": "Access controls, audit trails, and disclosure safeguards for education records.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Access and disclosure",
+      "body": "Role-based access to education records; audit trails for disclosure events."
+    },
+    {
+      "title": "Consent and consent management",
+      "body": "Where applicable, consent and preference controls for sharing and communications."
+    }
+  ]
+}

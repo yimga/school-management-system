@@ -1,0 +1,22 @@
+{
+  "label": "Design studio",
+  "seo_title": "Design Studio | RunMyCampus - Theme and customization",
+  "seo_description": "Customize your school portal: theme studio, branding, templates, and live preview. One place for appearance and layout.",
+  "headline": "Design studio.",
+  "subheadline": "Theme and customization in one place. Branding, templates, and live preview without code.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Theme studio",
+      "body": "Central place to manage logo, colors, and portal theme. Changes apply across admin, teacher, parent, and student portals."
+    },
+    {
+      "title": "Customization",
+      "body": "Tweak layouts, labels, and visibility. No code required\u2014configure from the UI."
+    },
+    {
+      "title": "Live preview",
+      "body": "See how your branding and layout look before you publish. Iterate with confidence."
+    }
+  ]
+}

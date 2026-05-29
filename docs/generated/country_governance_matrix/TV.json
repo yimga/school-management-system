@@ -1,0 +1,118 @@
+{
+  "iso_alpha2": "TV",
+  "iso_alpha3": "TUV",
+  "name_en": "Tuvalu",
+  "sovereign_state": false,
+  "territory": true,
+  "continent": "Oceania",
+  "region_bucket": "oceania",
+  "dissection_wave": "W-Territories",
+  "dissection_status": "verified",
+  "governance_archetype": "district_trust_overlay",
+  "admin_levels": [],
+  "employer_model": "school",
+  "ownership_types": [
+    "public",
+    "private"
+  ],
+  "school_structure": "both_common",
+  "reporting_chain": [
+    "school",
+    "parent_sovereign"
+  ],
+  "statutory_framework_ref": "Ministry of Education — Tuvalu statutory reporting (matrix default).",
+  "education_pack_tier": "tier1_native",
+  "deep_layers": {
+    "mc_profile": false,
+    "lep": false,
+    "moe_preset": false,
+    "security_annex": false,
+    "subdivisions_seeded": true
+  },
+  "languages_expected": [
+    "en"
+  ],
+  "official_languages": [
+    {
+      "iso639": "en",
+      "label_native": "English",
+      "label_en": "English",
+      "role": "official",
+      "script": "Latn",
+      "direction": "ltr"
+    }
+  ],
+  "education_languages": [
+    "en"
+  ],
+  "local_terminology": {
+    "teacher": {
+      "en": "Faiakoga / Teacher"
+    },
+    "principal": {
+      "en": "Pule"
+    },
+    "term": {
+      "en": "Term"
+    },
+    "report_card": {
+      "en": "Report Card"
+    },
+    "grade_level": {
+      "en": "Year"
+    },
+    "student": {
+      "en": "Student"
+    },
+    "classroom": {
+      "en": "Classroom"
+    },
+    "ministry_name": {
+      "en": "Ministry of Education"
+    },
+    "admin_level_labels": [],
+    "school_type_labels": [
+      {
+        "code": "preschool",
+        "label": "Pre-school"
+      },
+      {
+        "code": "primary",
+        "label": "Primary (Year 1-8)"
+      },
+      {
+        "code": "secondary",
+        "label": "Motufoua Secondary (Year 9-13 / PSSC)"
+      },
+      {
+        "code": "tttc",
+        "label": "Tuvalu Technical Training Centre"
+      },
+      {
+        "code": "usp",
+        "label": "USP Tuvalu Campus"
+      }
+    ]
+  },
+  "name_order": "given-family",
+  "address_format_key": "generic",
+  "phone_country_code": "",
+  "postal_label": "Postal code",
+  "grading_scale_family": "generic",
+  "calendar_notes": "3-term (Tuvaluan); Terms: Term 1, Term 2, Term 3; Year starts month 1",
+  "terminology_source": "seed_pack",
+  "locale_catalog_keys": [],
+  "customer_risks": [],
+  "research_tier": "T3",
+  "recommended_operating_mode": "standalone",
+  "configurable_policy_domains": [
+    "curriculum",
+    "fees",
+    "HR",
+    "branding",
+    "EMIS",
+    "integrations"
+  ],
+  "currency": "USD",
+  "timezone": "Pacific/Funafuti"
+}

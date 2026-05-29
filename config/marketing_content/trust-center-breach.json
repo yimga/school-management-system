@@ -1,0 +1,18 @@
+{
+  "label": "Incident response",
+  "seo_title": "RunMyCampus \u2014 security incident & breach notification",
+  "seo_description": "Incident response coordination with customer security contacts and regulator timelines where applicable.",
+  "headline": "Security incidents and breach notification.",
+  "subheadline": "We maintain incident playbooks, logging, and customer notification channels defined in your security addendum.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Detection",
+      "body": "Monitoring, alerting, and audit trails across application and infrastructure layers."
+    },
+    {
+      "title": "Notification",
+      "body": "Customer security contact notified without undue delay; regulatory timelines depend on your role as controller."
+    }
+  ]
+}

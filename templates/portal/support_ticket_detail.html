@@ -22,8 +22,27 @@
   <div class="card-header">{% trans "Original request" %}</div>
   <div class="card-body">
     <pre class="small mb-0 text-wrap ws-pre-wrap" >{{ ticket.body }}</pre>
+    {% with attachments=ticket.attachments.all %}
+      {% if attachments %}
+      <hr class="my-3">
+      <h2 class="h6 mb-2">{% trans "Attachments" %}</h2>
+      <ul class="list-unstyled mb-0 small">
+        {% for a in attachments %}
+        {% if a.visible_to_submitter %}
+        <li class="mb-1"><a href="{{ a.file.url }}" target="_blank" rel="noopener noreferrer">{{ a.filename }}</a> <span class="text-muted">({{ a.byte_size|filesizeformat }})</span></li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+      {% endif %}
+    {% endwith %}
   </div>
 </div>
+
+{% if ticket.merged_into_id %}
+<div class="alert alert-info small mb-4" role="status">
+  {% trans "This ticket was merged as a duplicate. The team is tracking your issue on a single thread." %}
+</div>
+{% endif %}
 
 {% if public_replies %}
 <div class="card border-0 shadow-sm mb-4">

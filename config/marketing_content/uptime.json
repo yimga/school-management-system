@@ -1,0 +1,22 @@
+{
+  "label": "Uptime and status",
+  "seo_title": "RunMyCampus Uptime and Status - Platform availability",
+  "seo_description": "Platform uptime, SLA, and status. View current status and planned maintenance. Trust and transparency for schools.",
+  "headline": "Uptime and status.",
+  "subheadline": "Platform availability, SLA, and a link to our live status page when configured.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Uptime target",
+      "body": "RunMyCampus targets 99.9% platform availability. Planned maintenance is communicated in advance."
+    },
+    {
+      "title": "SLA",
+      "body": "Service level commitments for availability and support. Details in your agreement."
+    },
+    {
+      "title": "Status page",
+      "body": "When a public status page is configured, you can check current status and incident history here."
+    }
+  ]
+}

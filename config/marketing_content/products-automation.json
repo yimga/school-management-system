@@ -1,0 +1,22 @@
+{
+  "label": "Automation",
+  "seo_title": "Workflow Automation | RunMyCampus",
+  "seo_description": "Configurable workflows: from grade-drop alerts to parent notifications and tutoring assignment.",
+  "headline": "Automate school operations.",
+  "subheadline": "Build flows without code: triggers, conditions, and actions that scale.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Triggers",
+      "body": "Grade changes, attendance patterns, payments, and custom events."
+    },
+    {
+      "title": "Actions",
+      "body": "Notify teacher, notify parent, assign intervention, or update records."
+    },
+    {
+      "title": "Visibility",
+      "body": "Audit trails and dashboards for every automated step."
+    }
+  ]
+}

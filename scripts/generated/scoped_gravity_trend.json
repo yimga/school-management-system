@@ -384,6 +384,90 @@
         "site_settings_refs_apps_py_excl_migrations": 187,
         "site_settings_refs_apps_py_excl_migrations_tests": 141
       }
+    },
+    {
+      "recorded_at": "2026-05-29T16:15:30.769341+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 72,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2958,
+        "site_settings_refs_apps_py_excl_migrations": 197,
+        "site_settings_refs_apps_py_excl_migrations_tests": 149
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T16:38:21.252187+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 76,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2958,
+        "site_settings_refs_apps_py_excl_migrations": 197,
+        "site_settings_refs_apps_py_excl_migrations_tests": 149
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T17:20:52.160581+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 80,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2958,
+        "site_settings_refs_apps_py_excl_migrations": 197,
+        "site_settings_refs_apps_py_excl_migrations_tests": 149
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T17:33:32.039475+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 88,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2958,
+        "site_settings_refs_apps_py_excl_migrations": 197,
+        "site_settings_refs_apps_py_excl_migrations_tests": 149
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T18:32:27.228924+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 88,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2958,
+        "site_settings_refs_apps_py_excl_migrations": 195,
+        "site_settings_refs_apps_py_excl_migrations_tests": 147
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T19:32:37.892443+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 93,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2959,
+        "site_settings_refs_apps_py_excl_migrations": 195,
+        "site_settings_refs_apps_py_excl_migrations_tests": 147
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T20:15:47.549910+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 93,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 2961,
+        "site_settings_refs_apps_py_excl_migrations": 195,
+        "site_settings_refs_apps_py_excl_migrations_tests": 147
+      }
     }
   ]
 }

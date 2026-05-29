@@ -128,6 +128,9 @@
     {% if console_url %}
     <a class="btn btn-sm btn-outline-primary" href="{{ console_url }}">{% trans "Configuration control center" %}</a>
     {% endif %}
+    {% if group_console_url %}
+    <a class="btn btn-sm btn-outline-primary" href="{{ group_console_url }}">{% trans "Group Console" %}</a>
+    {% endif %}
     <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:backend_dashboard' %}">{% trans "School health dashboard" %}</a>
     {% if security_surface_url %}
     <a class="btn btn-sm btn-outline-secondary" href="{{ security_surface_url }}">{% trans "Security surface (platform)" %}</a>

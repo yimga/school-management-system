@@ -1,0 +1,22 @@
+{
+  "label": "School Management System",
+  "seo_title": "School Management System | RunMyCampus - One Platform for K-12 and Higher Ed",
+  "seo_description": "Unified school management system for admissions, academics, finance, communication, and compliance. One platform for K-12 and higher ed.",
+  "headline": "The school management system that scales.",
+  "subheadline": "One platform for admissions, academics, finance, communication, and compliance\u2014from single campus to multi-country.",
+  "schema_type": "WebPage",
+  "segments": [
+    {
+      "title": "Unified operations",
+      "body": "Replace spreadsheets and point solutions with one tenant-first platform."
+    },
+    {
+      "title": "K-12 and higher ed",
+      "body": "Purpose-built workflows for every institution type."
+    },
+    {
+      "title": "Multi-tenant from day one",
+      "body": "Each school gets its own domain, branding, and data isolation."
+    }
+  ]
+}
