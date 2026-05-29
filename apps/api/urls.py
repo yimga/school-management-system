@@ -609,6 +609,13 @@ urlpatterns = [
     path("roster/results/v1p2/rubrics/<str:sourced_id>/put/", _oneroster_results.put_rubric, name="api-roster-results-rubric-put"),
     path("roster/results/v1p2/rubrics/<str:sourced_id>/delete/", _oneroster_results.delete_rubric, name="api-roster-results-rubric-delete"),
     path("roster/results/v1p2/rubrics/<str:sourced_id>/", _oneroster_results.rubric_dispatch, name="api-roster-results-rubric-detail"),
+    # v4.00.55: ClassGroup write coverage + Results bulk-import.
+    path("roster/results/v1p2/classGroups/", _oneroster_results.classgroups_collection, name="api-roster-results-class-groups"),
+    path("roster/results/v1p2/classGroups/post/", _oneroster_results.post_classgroup, name="api-roster-results-class-group-post"),
+    path("roster/results/v1p2/classGroups/<str:sourced_id>/put/", _oneroster_results.put_classgroup, name="api-roster-results-class-group-put"),
+    path("roster/results/v1p2/classGroups/<str:sourced_id>/delete/", _oneroster_results.delete_classgroup, name="api-roster-results-class-group-delete"),
+    path("roster/results/v1p2/classGroups/<str:sourced_id>/", _oneroster_results.classgroup_dispatch, name="api-roster-results-class-group-detail"),
+    path("roster/results/v1p2/results/import/", _oneroster_results.post_results_bulk_import, name="api-roster-results-bulk-import"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,

@@ -1544,3 +1544,375 @@ def rubric_dispatch(request: HttpRequest, sourced_id: str):
     if request.method == "DELETE":
         return delete_rubric(request, sourced_id)
     return rubric_detail(request, sourced_id)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.55 — ClassGroup write coverage + Results bulk-import (Wedge 2).
+#
+# ClassGroups (``cg-<slug>``) — OneRoster Result Service grouping that
+# lets districts bundle classes by department / grade / cohort. Stored
+# in a runtime override map alongside the lineItem/category projections.
+#
+# Results bulk-import — single Idempotency-Keyed POST that accepts an
+# array of up to 500 Result envelopes. Per-row validation; partial
+# failures DO NOT abort the batch — each row gets a 4-tuple outcome
+# (created / updated / skipped / errored). Replay returns the cached
+# top-level body + ``Idempotency-Replay: true``.
+# ---------------------------------------------------------------------------
+
+_CLASSGROUP_OVERRIDES: dict[str, dict[str, Any]] = {}
+_CLASSGROUP_TOMBSTONES: set[str] = set()
+_ALLOWED_CLASSGROUP_TYPES = {"department", "grade", "cohort", "homeroom", "advisory", "other"}
+
+
+def _all_classgroups() -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for sid, g in _CLASSGROUP_OVERRIDES.items():
+        if sid in _CLASSGROUP_TOMBSTONES:
+            continue
+        out.append(dict(g))
+    out.sort(key=lambda r: r.get("sourcedId", ""))
+    return out
+
+
+@require_http_methods(["GET"])
+def classgroups_list(request: HttpRequest):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = _all_classgroups()
+    page, meta = _paginate(request, items)
+    return _envelope("classGroups", page, meta)
+
+
+@require_http_methods(["GET"])
+def classgroup_detail(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if sourced_id in _CLASSGROUP_TOMBSTONES:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+    g = _CLASSGROUP_OVERRIDES.get(sourced_id)
+    if not g:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+    return JsonResponse({"classGroup": g})
+
+
+def _validate_class_sids(raw) -> tuple[list[str] | None, str]:
+    if raw is None:
+        return [], ""
+    if not isinstance(raw, list):
+        return None, "bad_classSourcedIds"
+    out: list[str] = []
+    for v in raw:
+        s = str(v or "").strip()
+        if not s:
+            return None, "empty_class_sid"
+        out.append(s)
+    return out, ""
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_classgroup(request: HttpRequest):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post-classgroup", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    inner = payload.get("classGroup")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_classGroup_envelope"}, status=400)
+
+    title = str(inner.get("title") or "").strip()
+    if not title:
+        return JsonResponse({"error": "missing_title"}, status=400)
+    g_type = str(inner.get("type") or "department").strip().lower()
+    if g_type not in _ALLOWED_CLASSGROUP_TYPES:
+        return JsonResponse({"error": "bad_type"}, status=400)
+    class_sids, err = _validate_class_sids(inner.get("classSourcedIds"))
+    if err:
+        return JsonResponse({"error": err}, status=400)
+
+    sid_raw = str(inner.get("sourcedId") or "").strip()
+    if sid_raw:
+        sid = sid_raw if sid_raw.startswith("cg-") else f"cg-{_slugify_for_sid(sid_raw)}"
+    else:
+        sid = f"cg-{_slugify_for_sid(title)}"
+
+    item = {
+        "sourcedId": sid,
+        "status": "active",
+        "title": title,
+        "type": g_type,
+        "classSourcedIds": class_sids,
+    }
+    _CLASSGROUP_OVERRIDES[sid] = item
+    _CLASSGROUP_TOMBSTONES.discard(sid)
+
+    body_out = {"classGroup": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=201)
+    resp["Location"] = f"/api/roster/results/v1p2/classGroups/{sid}/"
+    resp["X-OneRoster-Entity"] = "classGroup"
+    return resp
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def put_classgroup(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if not sourced_id.startswith("cg-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key(f"classgroup:{sourced_id}", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    inner = payload.get("classGroup")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_classGroup_envelope"}, status=400)
+
+    existing = _CLASSGROUP_OVERRIDES.get(sourced_id)
+    if existing is None or sourced_id in _CLASSGROUP_TOMBSTONES:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+    item = dict(existing)
+    if "title" in inner:
+        item["title"] = str(inner["title"]).strip() or item["title"]
+    if "type" in inner:
+        new_type = str(inner["type"]).strip().lower()
+        if new_type not in _ALLOWED_CLASSGROUP_TYPES:
+            return JsonResponse({"error": "bad_type"}, status=400)
+        item["type"] = new_type
+    if "classSourcedIds" in inner:
+        class_sids, err = _validate_class_sids(inner.get("classSourcedIds"))
+        if err:
+            return JsonResponse({"error": err}, status=400)
+        item["classSourcedIds"] = class_sids
+    if "status" in inner:
+        new_status = str(inner["status"]).strip().lower()
+        if new_status not in {"active", "tobedeleted"}:
+            return JsonResponse({"error": "bad_status"}, status=400)
+        item["status"] = new_status
+    _CLASSGROUP_OVERRIDES[sourced_id] = item
+    body_out = {"classGroup": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=200)
+    resp["X-OneRoster-Entity"] = "classGroup"
+    return resp
+
+
+def delete_classgroup(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    already = sourced_id in _CLASSGROUP_TOMBSTONES or sourced_id not in _CLASSGROUP_OVERRIDES
+    if not already:
+        _CLASSGROUP_TOMBSTONES.add(sourced_id)
+        _CLASSGROUP_OVERRIDES.pop(sourced_id, None)
+    return JsonResponse(
+        {"classGroup": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": already},
+        status=200,
+    )
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def classgroups_collection(request: HttpRequest):
+    if request.method == "POST":
+        return post_classgroup(request)
+    return classgroups_list(request)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def classgroup_dispatch(request: HttpRequest, sourced_id: str):
+    if request.method == "PUT":
+        return put_classgroup(request, sourced_id)
+    if request.method == "DELETE":
+        return delete_classgroup(request, sourced_id)
+    return classgroup_detail(request, sourced_id)
+
+
+# --- Bulk Results import --------------------------------------------------
+
+_BULK_IMPORT_MAX_ROWS = 500
+
+
+def _import_one_result(inner: dict[str, Any]) -> dict[str, Any]:
+    """Apply one bulk-import row. Returns ``{outcome, sourcedId?, error?}``.
+
+    All ORM lookups are wrapped in a single try block so that malformed
+    PKs (wrong type for the column), missing tables, or any other
+    per-row failure yield an errored outcome without aborting the
+    batch.
+    """
+    try:
+        from apps.evals.models import Evaluation
+        from apps.academics.models import Classroom, SubjectAssignment
+        from apps.people.models import StudentProfile, TeacherProfile
+    except Exception as exc:  # noqa: BLE001
+        return {"outcome": "errored", "error": f"models_unavailable: {exc}"}
+
+    student_id = str(inner.get("studentSourcedId") or "").strip()
+    line_item = str(inner.get("lineItemSourcedId") or "").strip()
+    classroom_pk = line_item[3:] if line_item.startswith("li-") else line_item
+    if not student_id or not classroom_pk:
+        return {"outcome": "errored", "error": "missing_student_or_classroom"}
+
+    score_raw = inner.get("score", "")
+    text_score = str(inner.get("textScore") or "")[:16]
+    try:
+        score_value = float(score_raw) if score_raw not in (None, "") else None  # money-float-allow: oneroster-score-is-not-money
+    except (ValueError, TypeError):
+        return {"outcome": "errored", "error": "score_not_numeric"}
+
+    try:
+        classroom = Classroom.objects.filter(pk=classroom_pk).first()  # tenant-isolation-allow: result-bulk-import-resolve-classroom-by-pk
+        if classroom is None:
+            return {"outcome": "errored", "error": "classroom_not_found"}
+
+        sa = SubjectAssignment.objects.filter(classroom_id=classroom.pk).first()  # tenant-isolation-allow: result-bulk-import-resolve-sa-by-classroom-pk
+        if sa is None:
+            return {"outcome": "errored", "error": "no_subject_assignment_for_classroom"}
+        student = StudentProfile.objects.filter(user_id=student_id).first()  # tenant-isolation-allow: result-bulk-import-resolve-student-by-user-pk
+        if student is None:
+            return {"outcome": "errored", "error": "student_not_found"}
+        teacher_user = sa.teachers.first()
+        teacher = None
+        if teacher_user is not None:
+            teacher = TeacherProfile.objects.filter(user_id=teacher_user.pk).first()  # tenant-isolation-allow: result-bulk-import-resolve-teacher-from-sa
+        if teacher is None:
+            teacher = TeacherProfile.objects.filter(school_id=classroom.school_id).first()  # tenant-isolation-allow: result-bulk-import-resolve-teacher-fallback-school
+        if teacher is None:
+            return {"outcome": "errored", "error": "no_teacher_for_school_or_assignment"}
+
+        seed = score_value if score_value is not None else 0
+        obj = Evaluation.objects.create(  # tenant-isolation-allow: result-bulk-import-create-keyed-by-school-student-sa
+            school=classroom.school,
+            academic_year=sa.academic_year,
+            term=sa.term,
+            subject_assignment=sa,
+            student=student,
+            teacher=teacher,
+            exam_score=seed,
+            final_score=seed,
+            letter_grade=text_score,
+        )
+        return {"outcome": "created", "sourcedId": f"res-{obj.pk}"}
+    except (ValueError, TypeError) as exc:
+        return {"outcome": "errored", "error": f"bad_field_value: {exc}"}
+    except Exception as exc:  # noqa: BLE001 — bulk-import row must NEVER abort the batch
+        logger.warning("bulk-import row failed: %s", exc)
+        return {"outcome": "errored", "error": f"row_failed: {exc}"}
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_results_bulk_import(request: HttpRequest):
+    """v4.00.55 — Bulk-import Result rows.
+
+    Body: ``{"results": [{"score": "85", "textScore": "B",
+    "studentSourcedId": "<pk>", "lineItemSourcedId": "li-<class_pk>"}, ...]}``
+
+    Idempotency-Key REQUIRED. Per-row failures DO NOT abort the batch;
+    each row gets ``{"outcome": "created|errored", "sourcedId": ..., "error": ...}``.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post-results-bulk", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    rows = payload.get("results")
+    if not isinstance(rows, list):
+        return JsonResponse({"error": "missing_results_array"}, status=400)
+    if not rows:
+        return JsonResponse({"error": "empty_results_array"}, status=400)
+    if len(rows) > _BULK_IMPORT_MAX_ROWS:
+        return JsonResponse(
+            {"error": "too_many_rows", "max": _BULK_IMPORT_MAX_ROWS, "received": len(rows)},
+            status=413,
+        )
+
+    outcomes: list[dict[str, Any]] = []
+    created = 0
+    errored = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            outcomes.append({"outcome": "errored", "error": "bad_row_shape"})
+            errored += 1
+            continue
+        out = _import_one_result(row)
+        outcomes.append(out)
+        if out["outcome"] == "created":
+            created += 1
+        else:
+            errored += 1
+
+    body_out = {
+        "total": len(rows),
+        "created": created,
+        "errored": errored,
+        "outcomes": outcomes,
+    }
+    status = 207 if errored else 201
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": status}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=status)
+    resp["X-OneRoster-Entity"] = "results-bulk"
+    return resp

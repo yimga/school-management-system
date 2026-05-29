@@ -28,6 +28,16 @@ try:
 except Exception as exc:
     logger.warning("Celery platform task signals not connected: %s", exc)
 
+# v4.00.55 — Wire the LMS beat schedule SOT (refresh + rotation + retention
+# sweeps). Idempotent: respects any operator-defined CELERY_BEAT_SCHEDULE
+# entry with the same key. Each entry has its own env-var disable flag.
+try:
+    from apps.integrations_marketplace.beat_schedule import install_lms_beat_schedule
+
+    install_lms_beat_schedule(app)
+except Exception as exc:
+    logger.warning("LMS beat schedule not installed: %s", exc)
+
 
 @app.task(bind=True)
 def debug_task(self):

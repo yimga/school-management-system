@@ -37,6 +37,13 @@ def _parse_since(raw: str):
     return dt
 
 
+# v4.00.55 — rotation rows are tagged with course_id="_rotation" by the
+# token-rotation sweep (apps.integrations_marketplace.lms_token_rotation).
+# The operator UI exposes 4-valued filtering: all / rotation-only / push-
+# only / none. Default is "all" so the existing surface is unchanged.
+_ROTATION_COURSE_ID_MARKER = "_rotation"
+
+
 @staff_member_required
 @require_http_methods(["GET"])
 def lms_audit_index(request: HttpRequest):
@@ -47,12 +54,13 @@ def lms_audit_index(request: HttpRequest):
     ok_raw = (request.GET.get("ok") or "").strip()
     school = (request.GET.get("school") or "").strip()
     since_raw = (request.GET.get("since") or "").strip()
+    rotation_raw = (request.GET.get("rotation") or "").strip().lower()
 
     if provider:
         qs = qs.filter(provider=provider)
-    if ok_raw in ("1", "true", "True"):
+    if ok_raw in ("1", "true"):
         qs = qs.filter(ok=True)
-    elif ok_raw in ("0", "false", "False"):
+    elif ok_raw in ("0", "false"):
         qs = qs.filter(ok=False)
     if school:
         qs = qs.filter(school_id=school)
@@ -60,11 +68,20 @@ def lms_audit_index(request: HttpRequest):
     if since_dt is not None:
         qs = qs.filter(created_at__gte=since_dt)
 
+    if rotation_raw in ("1", "true", "only"):
+        qs = qs.filter(course_id=_ROTATION_COURSE_ID_MARKER)
+    elif rotation_raw in ("0", "false", "exclude"):
+        qs = qs.exclude(course_id=_ROTATION_COURSE_ID_MARKER)
+
     rows = list(qs[:_PAGE_CAP])
+    rotation_count = sum(1 for r in rows if r.course_id == _ROTATION_COURSE_ID_MARKER)
+    push_count = len(rows) - rotation_count
     totals = {
         "count": len(rows),
         "ok": sum(1 for r in rows if r.ok),
         "failed": sum(1 for r in rows if not r.ok),
+        "rotation": rotation_count,
+        "push": push_count,
     }
 
     if (request.GET.get("format") or "").lower() == "json":
@@ -84,6 +101,7 @@ def lms_audit_index(request: HttpRequest):
                     "detail": r.detail,
                     "actor_user_id": r.actor_user_id,
                     "created_at": r.created_at.isoformat() if r.created_at else "",
+                    "is_rotation": r.course_id == _ROTATION_COURSE_ID_MARKER,
                 }
                 for r in rows
             ],
@@ -93,6 +111,7 @@ def lms_audit_index(request: HttpRequest):
                 "ok": ok_raw,
                 "school": school,
                 "since": since_raw,
+                "rotation": rotation_raw,
             },
         })
 
@@ -103,4 +122,6 @@ def lms_audit_index(request: HttpRequest):
         "filter_ok": ok_raw,
         "filter_school": school,
         "filter_since": since_raw,
+        "filter_rotation": rotation_raw,
+        "rotation_marker": _ROTATION_COURSE_ID_MARKER,
     })
