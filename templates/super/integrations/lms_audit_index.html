@@ -1,0 +1,92 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "LMS push-grade audit" %} — {{ block.super }}{% endblock %}
+{% block content %}
+<div class="container-fluid rmc-page" style="max-width: 1280px;">
+  <nav style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+    <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
+    <span aria-hidden="true">›</span>
+    <a href="{% url 'portal:lms_index' %}" style="color: var(--text-secondary); text-decoration: none;">{% trans "LMS integrations" %}</a>
+    <span aria-hidden="true">›</span>
+    <span style="color: var(--text-primary);">{% trans "Audit log" %}</span>
+  </nav>
+  <header class="rmc-page__header" style="margin-bottom: 14px;">
+    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">{% trans "LMS push-grade audit" %}</h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 70ch;">
+      {% trans "Append-only log of every push-grade attempt. Learner identifiers are SHA-256[:16] hashed; this surface is read-only." %}
+    </p>
+  </header>
+
+  <section style="display: flex; gap: 12px; margin-bottom: 14px;">
+    <div style="flex: 1; padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated);">
+      <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">{% trans "Shown rows" %}</div>
+      <div style="font-size: 1.3rem; font-weight: 600;">{{ totals.count }}</div>
+    </div>
+    <div style="flex: 1; padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated);">
+      <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">{% trans "Succeeded" %}</div>
+      <div style="font-size: 1.3rem; font-weight: 600; color: var(--text-primary);">{{ totals.ok }}</div>
+    </div>
+    <div style="flex: 1; padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated);">
+      <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">{% trans "Failed" %}</div>
+      <div style="font-size: 1.3rem; font-weight: 600;">{{ totals.failed }}</div>
+    </div>
+  </section>
+
+  <form method="get" style="display: flex; gap: 10px; margin-bottom: 14px; align-items: end; flex-wrap: wrap;">
+    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Provider" %}
+      <input name="provider" value="{{ filter_provider }}" placeholder="canvas / moodle / google" style="display: block; min-width: 160px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+    </label>
+    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "OK?" %}
+      <select name="ok" style="display: block; min-width: 110px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
+        <option value="" {% if not filter_ok %}selected{% endif %}>{% trans "any" %}</option>
+        <option value="1" {% if filter_ok == '1' %}selected{% endif %}>{% trans "success" %}</option>
+        <option value="0" {% if filter_ok == '0' %}selected{% endif %}>{% trans "failed" %}</option>
+      </select>
+    </label>
+    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "School ID" %}
+      <input name="school" value="{{ filter_school }}" style="display: block; min-width: 200px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+    </label>
+    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Since (ISO)" %}
+      <input name="since" value="{{ filter_since }}" placeholder="2026-05-29" style="display: block; min-width: 160px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
+    </label>
+    <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Filter" %}</button>
+  </form>
+
+  <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+    <table style="width: 100%; border-collapse: collapse; font-size: 12.5px;">
+      <thead>
+        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "When" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Provider" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "OK" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "HTTP" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Course" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Assignment" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Learner (SHA-256[:16])" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Score" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Detail" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Actor" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 11.5px;">{{ r.created_at|date:"Y-m-d H:i:s" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 11.5px;">{{ r.provider }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{% if r.ok %}<span style="color: var(--text-primary);">✓</span>{% else %}<span style="color: var(--text-primary); opacity: 0.85;">✗</span>{% endif %}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 11.5px;">{{ r.status_code }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 11.5px;">{{ r.course_id|truncatechars:24 }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 11.5px;">{{ r.assignment_id|truncatechars:24 }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 11.5px;">{{ r.user_hash }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 11.5px;">{{ r.score_text|default:"—" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-size: 11.5px;">{{ r.detail|default:"—"|truncatechars:48 }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 11.5px;">{{ r.actor_user_id|default:"—"|truncatechars:16 }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="10" style="padding: 18px; text-align: center; color: var(--text-secondary);">{% trans "No audit rows match the filter." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

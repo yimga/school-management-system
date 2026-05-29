@@ -157,6 +157,8 @@ from .views_multicampus_academics import multicampus_academics
 from .views_multicampus_extension import multicampus_extension
 from .views_lms_console import lms_index, lms_provider_detail, lms_token_save, lms_push_grade, lms_token_refresh
 from .views_tenant_binding import tenant_bindings_index, tenant_binding_reassign
+from .views_lms_audit import lms_audit_index
+from .views_lms_pkce import lms_pkce_start, lms_pkce_callback
 
 app_name = "portal"
 
@@ -186,13 +188,21 @@ urlpatterns = [
     path("super/wedges/multicampus-extension/", multicampus_extension, name="wedge_surface_multicampus_extension"),
     # v4.00.47: LMS connector operator console (Wedge 2 — Canvas/Moodle/Google Classroom)
     path("super/integrations/lms/", lms_index, name="lms_index"),
+    # v4.00.53: LMS push-grade audit log operator UI (Wedge 2) — must precede
+    # the ``<str:provider>`` catch-all so ``audit`` is not parsed as a provider.
+    path("super/integrations/lms/audit/", lms_audit_index, name="lms_audit_index"),
     path("super/integrations/lms/<str:provider>/", lms_provider_detail, name="lms_provider_detail"),
     path("super/integrations/lms/<str:provider>/save/", lms_token_save, name="lms_token_save"),
     path("super/integrations/lms/<str:provider>/push-grade/", lms_push_grade, name="lms_push_grade"),
     path("super/integrations/lms/<str:provider>/refresh-token/", lms_token_refresh, name="lms_token_refresh"),
+    # v4.00.53: OAuth2 PKCE flow for operator token-mint UI (Wedge 2).
+    path("super/integrations/lms/<str:provider>/pkce/start/", lms_pkce_start, name="lms_pkce_start"),
+    path("super/integrations/lms/<str:provider>/pkce/callback/", lms_pkce_callback, name="lms_pkce_callback"),
     # v4.00.52: Tenant-binding operator UI.
     path("super/sso/bindings/", tenant_bindings_index, name="tenant_bindings_index"),
     path("super/sso/bindings/reassign/", tenant_binding_reassign, name="tenant_binding_reassign"),
+    # v4.00.53: LMS push-grade audit URL is registered above the provider
+    # catch-all (see lms_audit_index above lms_provider_detail).
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

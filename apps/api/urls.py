@@ -587,8 +587,14 @@ urlpatterns = [
     path("roster/results/v1p2/gradingPeriods/post/", _oneroster_results.post_grading_period, name="api-roster-results-grading-period-post"),
     path("roster/results/v1p2/gradingPeriods/<str:sourced_id>/put/", _oneroster_results.put_grading_period, name="api-roster-results-grading-period-put"),
     path("roster/results/v1p2/gradingPeriods/<str:sourced_id>/delete/", _oneroster_results.delete_grading_period, name="api-roster-results-grading-period-delete"),
-    path("roster/results/v1p2/categories/", _oneroster_results.categories_list, name="api-roster-results-categories"),
-    path("roster/results/v1p2/categories/<str:sourced_id>/", _oneroster_results.category_detail, name="api-roster-results-category-detail"),
+    path("roster/results/v1p2/categories/", _oneroster_results.categories_collection, name="api-roster-results-categories"),
+    # v4.00.53: Category write coverage (POST + PUT + DELETE) — POST route
+    # registered BEFORE the ``<str:sourced_id>`` catch-all so ``post`` is not
+    # parsed as a sourcedId.
+    path("roster/results/v1p2/categories/post/", _oneroster_results.post_category, name="api-roster-results-category-post"),
+    path("roster/results/v1p2/categories/<str:sourced_id>/put/", _oneroster_results.put_category, name="api-roster-results-category-put"),
+    path("roster/results/v1p2/categories/<str:sourced_id>/delete/", _oneroster_results.delete_category, name="api-roster-results-category-delete"),
+    path("roster/results/v1p2/categories/<str:sourced_id>/", _oneroster_results.category_dispatch, name="api-roster-results-category-detail"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,

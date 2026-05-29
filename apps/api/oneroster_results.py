@@ -880,7 +880,7 @@ def categories_list(request: HttpRequest):
     gate = _gate(request)
     if gate is not None:
         return gate
-    page, meta = _paginate(request, list(_CATEGORIES))
+    page, meta = _paginate(request, _all_categories())
     return _envelope("categories", page, meta)
 
 
@@ -889,7 +889,221 @@ def category_detail(request: HttpRequest, sourced_id: str):
     gate = _gate(request)
     if gate is not None:
         return gate
-    for c in _CATEGORIES:
+    for c in _all_categories():
         if c["sourcedId"] == sourced_id:
             return JsonResponse({"category": c})
     return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.53 — Category write coverage (POST/PUT/DELETE).
+#
+# Categories are stored in a runtime override map keyed by ``cat-<slug>``
+# alongside the 6 built-in seeds. POST creates with Idempotency-Key
+# semantics; PUT updates title/type/status; DELETE soft-removes. The 6
+# built-in seed categories are never physically removed — DELETE on a
+# seed records a soft-tombstone so list readers skip the row, and a
+# subsequent POST with the same sourcedId resurrects it.
+# ---------------------------------------------------------------------------
+
+_CATEGORY_OVERRIDES: dict[str, dict[str, Any]] = {}
+_CATEGORY_TOMBSTONES: set[str] = set()
+_ALLOWED_CATEGORY_TYPES = {
+    "summative", "formative", "homework", "practice",
+    "participation", "attendance", "project", "exam", "lab", "other",
+}
+
+
+def _seed_categories_by_id() -> dict[str, dict[str, Any]]:
+    return {c["sourcedId"]: dict(c) for c in _CATEGORIES}
+
+
+def _all_categories() -> list[dict[str, Any]]:
+    """Compose seeds + overrides minus tombstones (deterministic order)."""
+    out: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for c in _CATEGORIES:
+        sid = c["sourcedId"]
+        if sid in _CATEGORY_TOMBSTONES:
+            continue
+        merged = dict(c)
+        if sid in _CATEGORY_OVERRIDES:
+            merged.update(_CATEGORY_OVERRIDES[sid])
+        out.append(merged)
+        seen.add(sid)
+    for sid, c in _CATEGORY_OVERRIDES.items():
+        if sid in seen or sid in _CATEGORY_TOMBSTONES:
+            continue
+        out.append(dict(c))
+    return out
+
+
+def _validate_category_payload(inner: dict[str, Any]) -> tuple[str | None, dict[str, Any] | None]:
+    title = str(inner.get("title") or "").strip()
+    if not title:
+        return "missing_title", None
+    ctype = str(inner.get("type") or "summative").strip()
+    if ctype not in _ALLOWED_CATEGORY_TYPES:
+        return "bad_type", None
+    status = str(inner.get("status") or "active").strip()
+    if status not in ("active", "tobedeleted"):
+        return "bad_status", None
+    return None, {"title": title, "type": ctype, "status": status}
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_category(request: HttpRequest):
+    """v4.00.53 — Create a new Result Service Category.
+
+    Body: ``{"category": {"title": "Quiz", "type": "formative",
+    "sourcedId": "cat-quiz"}}``. ``sourcedId`` optional; when omitted the
+    server derives ``cat-<slugified-title>``. Idempotency-Key REQUIRED.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post-category", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    inner = payload.get("category")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_category_envelope"}, status=400)
+
+    err, cleaned = _validate_category_payload(inner)
+    if err is not None:
+        return JsonResponse({"error": err}, status=400)
+
+    sid = str(inner.get("sourcedId") or "").strip()
+    if not sid:
+        slug = "".join(ch.lower() if ch.isalnum() else "-" for ch in cleaned["title"]).strip("-")
+        slug = slug[:48] or "untitled"
+        sid = f"cat-{slug}"
+    if not sid.startswith("cat-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+
+    item = {"sourcedId": sid, **cleaned}
+    _CATEGORY_OVERRIDES[sid] = item
+    _CATEGORY_TOMBSTONES.discard(sid)
+    body_out = {"category": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=201)
+    resp["Location"] = f"/api/roster/results/v1p2/categories/{sid}/"
+    resp["X-OneRoster-Entity"] = "category"
+    return resp
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def put_category(request: HttpRequest, sourced_id: str):
+    """v4.00.53 — Update an existing Result Service Category."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if not sourced_id.startswith("cat-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key(f"category:{sourced_id}", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    existing = None
+    for c in _all_categories():
+        if c["sourcedId"] == sourced_id:
+            existing = c
+            break
+    if existing is None:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    inner = payload.get("category")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_category_envelope"}, status=400)
+
+    merged_input = {"title": existing.get("title", ""), "type": existing.get("type", "summative"),
+                    "status": existing.get("status", "active")}
+    if inner.get("title") is not None:
+        merged_input["title"] = inner.get("title")
+    if inner.get("type") is not None:
+        merged_input["type"] = inner.get("type")
+    if inner.get("status") is not None:
+        merged_input["status"] = inner.get("status")
+    err, cleaned = _validate_category_payload(merged_input)
+    if err is not None:
+        return JsonResponse({"error": err}, status=400)
+
+    item = {"sourcedId": sourced_id, **cleaned}
+    _CATEGORY_OVERRIDES[sourced_id] = item
+    _CATEGORY_TOMBSTONES.discard(sourced_id)
+    body_out = {"category": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=200)
+    resp["X-OneRoster-Entity"] = "category"
+    return resp
+
+
+def delete_category(request: HttpRequest, sourced_id: str):
+    """v4.00.53 — Soft-delete a Category (idempotent).
+
+    Returns 200 + ``alreadyDeleted: false`` on first call, 200 +
+    ``alreadyDeleted: true`` on re-delete. Seeds are tombstoned (not
+    removed); overrides are removed from the override map.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if not sourced_id.startswith("cat-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+    seeds = _seed_categories_by_id()
+    already = sourced_id in _CATEGORY_TOMBSTONES or (sourced_id not in seeds and sourced_id not in _CATEGORY_OVERRIDES)
+    if not already:
+        _CATEGORY_TOMBSTONES.add(sourced_id)
+        _CATEGORY_OVERRIDES.pop(sourced_id, None)
+    return JsonResponse({"category": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": already}, status=200)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def categories_collection(request: HttpRequest):
+    if request.method == "POST":
+        return post_category(request)
+    return categories_list(request)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def category_dispatch(request: HttpRequest, sourced_id: str):
+    if request.method == "PUT":
+        return put_category(request, sourced_id)
+    if request.method == "DELETE":
+        return delete_category(request, sourced_id)
+    return category_detail(request, sourced_id)

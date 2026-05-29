@@ -7241,6 +7241,399 @@ COUNTRY_LOCALIZATION["US-CA"] = {
 
 
 # ---------------------------------------------------------------------------
+# v4.00.53 (2026-05-29) — 14 more ISO 3166-2 subdivisions with materially
+# distinct school systems (state/province/region exams + diplomas).
+# US-NY/TX/MA/FL  +  IN-MH/TN/KA  +  DE-BY/NW  +  CN-XJ  +  CA-ON/BC  +
+# AU-NSW + BR-SP.
+# ---------------------------------------------------------------------------
+
+# New York State (US-NY) — Regents Diploma + NYSESLAT + Advanced Regents.
+COUNTRY_LOCALIZATION["US-NY"] = {
+    "calendar_system": {
+        "code": "usny-2-semester", "label": "2-semester (New York Regents)",
+        "term_count": 2, "term_names": ["Fall semester", "Spring semester"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preK",        "label": "Universal Pre-K (UPK)",                   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "elementary",  "label": "Elementary (K-5)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",      "label": "Middle (6-8)",                           "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",        "label": "High (9-12) + Regents Diploma",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "boces",       "label": "BOCES CTE",                              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "suny",        "label": "SUNY / CUNY",                            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "usny-upk","label": "UPK",                       "order": 0},
+        {"code": "usny-g5", "label": "Grade 5",                   "order": 5},
+        {"code": "usny-g8", "label": "Grade 8 (NYS ELA/Math)",    "order": 8},
+        {"code": "usny-g12","label": "Grade 12 (Regents)",        "order": 12},
+        {"code": "usny-adv","label": "Advanced Regents",          "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Texas (US-TX) — STAAR + TEA + Endorsement Pathways.
+COUNTRY_LOCALIZATION["US-TX"] = {
+    "calendar_system": {
+        "code": "ustx-2-semester", "label": "2-semester (Texas TEA)",
+        "term_count": 2, "term_names": ["Fall semester", "Spring semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "pk",          "label": "Pre-K",                                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary",  "label": "Elementary (K-5) + STAAR",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",      "label": "Middle (6-8) + STAAR",                   "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",        "label": "High (9-12) + EOC + Endorsement",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "cte",         "label": "Career & Technical Education (CTE)",     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "uti",         "label": "Texas universities",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "ustx-pk", "label": "Pre-K",                     "order": 0},
+        {"code": "ustx-g5", "label": "Grade 5",                   "order": 5},
+        {"code": "ustx-g8", "label": "Grade 8 (STAAR)",           "order": 8},
+        {"code": "ustx-g12","label": "Grade 12 (EOC + FHSP)",     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Maestro/a", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card / Boletín", "grade_level": "Grade",
+    },
+}
+
+# Massachusetts (US-MA) — MCAS + Adams Scholarship + Mass Core.
+COUNTRY_LOCALIZATION["US-MA"] = {
+    "calendar_system": {
+        "code": "usma-2-semester", "label": "2-semester (Massachusetts MCAS)",
+        "term_count": 2, "term_names": ["Fall semester", "Spring semester"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Preschool / Pre-K",                      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary",  "label": "Elementary (K-5)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",      "label": "Middle (6-8) + MCAS",                    "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",        "label": "High (9-12) + MCAS + Mass Core",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "voc_tech",    "label": "Voc-Tech (Ch. 74)",                      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-18"},
+        {"code": "umass",       "label": "UMass / state universities",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "usma-pre","label": "Preschool",                 "order": 0},
+        {"code": "usma-g5", "label": "Grade 5",                   "order": 5},
+        {"code": "usma-g10","label": "Grade 10 (MCAS)",           "order": 10},
+        {"code": "usma-g12","label": "Grade 12 (Mass Core)",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+
+# Florida (US-FL) — FAST + Bright Futures + ACCEL.
+COUNTRY_LOCALIZATION["US-FL"] = {
+    "calendar_system": {
+        "code": "usfl-2-semester", "label": "2-semester (Florida FAST)",
+        "term_count": 2, "term_names": ["Fall semester", "Spring semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "vpk",         "label": "VPK (Voluntary Pre-K)",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "elementary",  "label": "Elementary (K-5) + FAST",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",      "label": "Middle (6-8) + FAST",                    "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "high",        "label": "High (9-12) + Standard Diploma",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "cte",         "label": "Career & Technical Education (CTE)",     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "suf",         "label": "State University System (SUS) of FL",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "usfl-vpk","label": "VPK",                       "order": 0},
+        {"code": "usfl-g5", "label": "Grade 5",                   "order": 5},
+        {"code": "usfl-g8", "label": "Grade 8 (FAST)",            "order": 8},
+        {"code": "usfl-g12","label": "Grade 12 (Standard)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Maestro/a", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card / Boletín", "grade_level": "Grade",
+    },
+}
+
+# Maharashtra (IN-MH) — MSBSHSE SSC (Class X) + HSC (Class XII) + Marathi-medium.
+COUNTRY_LOCALIZATION["IN-MH"] = {
+    "calendar_system": {
+        "code": "inmh-2-term", "label": "2-term (Maharashtra MSBSHSE)",
+        "term_count": 2, "term_names": ["First term", "Second term"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+    "school_types": [
+        {"code": "balwadi",     "label": "Balwadi / Anganwadi",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",     "label": "Primary (Std 1-4) Marathi/English",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "upper_primary","label": "Upper Primary (Std 5-7)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "10-13"},
+        {"code": "secondary",   "label": "Secondary (Std 8-10) + SSC",              "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-16"},
+        {"code": "junior_col",  "label": "Junior College (Std 11-12) + HSC",        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "iti",         "label": "ITI / Polytechnic",                       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "inmh-bal","label": "Balwadi",                    "order": 0},
+        {"code": "inmh-s7", "label": "Std 7",                      "order": 7},
+        {"code": "inmh-s10","label": "Std 10 (SSC)",               "order": 10},
+        {"code": "inmh-s12","label": "Std 12 (HSC)",               "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Shikshak / शिक्षक / Teacher", "principal": "Mukhyadhyapak / मुख्याध्यापक",
+        "term": "Sattra / सत्र / Term", "report_card": "Pragati pustika / प्रगती पुस्तिका",
+        "grade_level": "Iyatta / इयत्ता / Standard",
+    },
+}
+
+# Tamil Nadu (IN-TN) — TN State Board SSLC + HSE + Samacheer Kalvi.
+COUNTRY_LOCALIZATION["IN-TN"] = {
+    "calendar_system": {
+        "code": "intn-3-term", "label": "3-term (Tamil Nadu Samacheer Kalvi)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+    "school_types": [
+        {"code": "anganwadi",   "label": "Anganwadi",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",     "label": "Primary (Std 1-5) Tamil/English",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "middle",      "label": "Middle (Std 6-8)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "11-14"},
+        {"code": "high",        "label": "High (Std 9-10) + SSLC",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-16"},
+        {"code": "hr_sec",      "label": "Higher Secondary (Std 11-12) + HSE",      "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "polytechnic", "label": "TN Polytechnic / ITI",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "intn-ang","label": "Anganwadi",                  "order": 0},
+        {"code": "intn-s8", "label": "Std 8",                      "order": 8},
+        {"code": "intn-s10","label": "Std 10 (SSLC)",              "order": 10},
+        {"code": "intn-s12","label": "Std 12 (HSE)",               "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Aasiriyar / ஆசிரியர் / Teacher", "principal": "Thalaimai aasiriyar / தலைமை ஆசிரியர்",
+        "term": "Kaalam / காலம் / Term", "report_card": "Murraiyaru / முற்றையறிக்கை",
+        "grade_level": "Vakuppu / வகுப்பு / Standard",
+    },
+}
+
+# Karnataka (IN-KA) — KSEAB SSLC + PUC I/II + Kannada-medium.
+COUNTRY_LOCALIZATION["IN-KA"] = {
+    "calendar_system": {
+        "code": "inka-2-term", "label": "2-term (Karnataka KSEAB)",
+        "term_count": 2, "term_names": ["Term 1", "Term 2"],
+        "week_start": 1, "academic_year_starts_month": 6,
+    },
+    "school_types": [
+        {"code": "anganwadi",   "label": "Anganwadi",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",     "label": "Primary (Std 1-5) Kannada/English",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "high",        "label": "High (Std 8-10) + SSLC",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-16"},
+        {"code": "puc",         "label": "Pre-University (PUC I/II)",               "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "iti",         "label": "ITI / Diploma",                           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "inka-ang","label": "Anganwadi",                  "order": 0},
+        {"code": "inka-s7", "label": "Std 7",                      "order": 7},
+        {"code": "inka-s10","label": "Std 10 (SSLC)",              "order": 10},
+        {"code": "inka-puc","label": "PUC II",                     "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Shikshakaru / ಶಿಕ್ಷಕರು / Teacher", "principal": "Mukhyopadhyaaya / ಮುಖ್ಯೋಪಾಧ್ಯಾಯ",
+        "term": "Saala / ಸಾಲ / Term", "report_card": "Pragati patra / ಪ್ರಗತಿ ಪತ್ರ",
+        "grade_level": "Tarrgati / ತರಗತಿ / Standard",
+    },
+}
+
+# Bavaria (DE-BY) — Bayerisches Abitur + G9 Gymnasium.
+COUNTRY_LOCALIZATION["DE-BY"] = {
+    "calendar_system": {
+        "code": "deby-2-semester", "label": "2-semester (Bayerisches Schuljahr)",
+        "term_count": 2, "term_names": ["1. Halbjahr", "2. Halbjahr"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten","label": "Kindergarten",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "grundschule", "label": "Grundschule (Kl. 1-4)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "mittelschule","label": "Mittelschule (Kl. 5-9/10)",               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "10-16"},
+        {"code": "realschule",  "label": "Realschule (Kl. 5-10) + Mittlere Reife",  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "10-16"},
+        {"code": "gymnasium",   "label": "Gymnasium G9 (Kl. 5-13) + Abitur",        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "10-19"},
+        {"code": "berufsschule","label": "Berufsschule (dual system)",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-20"},
+    ],
+    "education_levels": [
+        {"code": "deby-kg", "label": "Kindergarten",               "order": 0},
+        {"code": "deby-k4", "label": "Klasse 4",                    "order": 4},
+        {"code": "deby-k10","label": "Klasse 10 (Mittl. Reife)",    "order": 10},
+        {"code": "deby-k13","label": "Klasse 13 (Abitur)",          "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Lehrer / Lehrerin", "principal": "Schulleiter / Schulleiterin",
+        "term": "Halbjahr", "report_card": "Zeugnis", "grade_level": "Klasse",
+    },
+}
+
+# North Rhine-Westphalia (DE-NW) — G9 Gymnasium + Gesamtschule + ZAP.
+COUNTRY_LOCALIZATION["DE-NW"] = {
+    "calendar_system": {
+        "code": "denw-2-semester", "label": "2-semester (NRW Schuljahr)",
+        "term_count": 2, "term_names": ["1. Halbjahr", "2. Halbjahr"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "kindergarten","label": "Kita / Kindergarten",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "grundschule", "label": "Grundschule (Kl. 1-4)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "hauptschule", "label": "Hauptschule (Kl. 5-10)",                  "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "10-16"},
+        {"code": "realschule",  "label": "Realschule + Mittlere Reife",             "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "10-16"},
+        {"code": "gesamtschule","label": "Gesamtschule (integrated)",               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "10-19"},
+        {"code": "gymnasium",   "label": "Gymnasium G9 + Abitur",                   "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "10-19"},
+        {"code": "berufskolleg","label": "Berufskolleg (vocational)",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-21"},
+    ],
+    "education_levels": [
+        {"code": "denw-kg", "label": "Kita",                       "order": 0},
+        {"code": "denw-k4", "label": "Klasse 4",                    "order": 4},
+        {"code": "denw-k10","label": "Klasse 10 (ZAP/MSA)",         "order": 10},
+        {"code": "denw-k13","label": "Klasse 13 (Abitur)",          "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Lehrer / Lehrerin", "principal": "Schulleiter / Schulleiterin",
+        "term": "Halbjahr", "report_card": "Zeugnis", "grade_level": "Klasse",
+    },
+}
+
+# Xinjiang Uyghur Autonomous Region (CN-XJ) — bilingual (Mandarin + Uyghur).
+COUNTRY_LOCALIZATION["CN-XJ"] = {
+    "calendar_system": {
+        "code": "cnxj-2-semester", "label": "2-semester (Xinjiang bilingual)",
+        "term_count": 2, "term_names": ["1st semester / 第一学期", "2nd semester / 第二学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",   "label": "Youeryuan / 幼儿园 (Kindergarten)",        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",     "label": "Xiaoxue / 小学 (Primary G1-6) bilingual", "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",    "label": "Chuzhong / 初中 (Junior G7-9)",            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",    "label": "Gaozhong / 高中 (Senior G10-12) + Gaokao", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",  "label": "Zhongzhuan / 中专 (vocational)",           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "daxue",       "label": "Daxue / 大学 (Xinjiang University etc.)", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "cnxj-yey","label": "Youeryuan / 幼儿园",          "order": 0},
+        {"code": "cnxj-g6", "label": "Grade 6 / 6年级",             "order": 6},
+        {"code": "cnxj-g9", "label": "Grade 9 / 9年级 (Zhongkao)",  "order": 9},
+        {"code": "cnxj-g12","label": "Grade 12 / 12年级 (Gaokao)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi / 老师 / Oqutquchi / ئوقۇتقۇچى", "principal": "Xiaozhang / 校长",
+        "term": "Xueqi / 学期", "report_card": "Chengjidan / 成绩单",
+        "grade_level": "Nianji / 年级",
+    },
+}
+
+# Ontario (CA-ON) — OSSD + EQAO + grade-level 1-12 + Ontario Scholar.
+COUNTRY_LOCALIZATION["CA-ON"] = {
+    "calendar_system": {
+        "code": "caon-2-semester", "label": "2-semester (Ontario OSSD)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "JK / SK (Junior + Senior Kindergarten)",  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "elementary",  "label": "Elementary (G1-8) + EQAO",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-14"},
+        {"code": "secondary",   "label": "Secondary (G9-12) + OSSD + OSSLT",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "francais",    "label": "École de langue française",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "4-18"},
+        {"code": "college",     "label": "Ontario College of Applied Arts (CAAT)",   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "17+"},
+        {"code": "university",  "label": "Ontario university",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "caon-jk", "label": "JK",                          "order": 0},
+        {"code": "caon-g6", "label": "Grade 6 (EQAO)",              "order": 6},
+        {"code": "caon-g10","label": "Grade 10 (OSSLT)",            "order": 10},
+        {"code": "caon-g12","label": "Grade 12 (OSSD)",             "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Enseignant·e", "principal": "Principal / Directeur·trice",
+        "term": "Semester / Semestre", "report_card": "Report Card / Bulletin",
+        "grade_level": "Grade / Année",
+    },
+}
+
+# British Columbia (CA-BC) — BC Dogwood Diploma + Foundation Skills + IB.
+COUNTRY_LOCALIZATION["CA-BC"] = {
+    "calendar_system": {
+        "code": "cabc-2-semester", "label": "2-semester (BC Dogwood)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "StrongStart / Pre-K",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementary",  "label": "Elementary (K-7) + FSA",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "secondary",   "label": "Secondary (8-12) + Dogwood Diploma",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "francophone", "label": "École francophone (CSF)",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-18"},
+        {"code": "college",     "label": "BC College / Institute",                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "17+"},
+        {"code": "university",  "label": "BC university (UBC / SFU)",               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "cabc-pre","label": "StrongStart",                 "order": 0},
+        {"code": "cabc-g7", "label": "Grade 7",                     "order": 7},
+        {"code": "cabc-g10","label": "Grade 10 (Numeracy/Literacy)","order": 10},
+        {"code": "cabc-g12","label": "Grade 12 (Dogwood)",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Enseignant·e", "principal": "Principal / Directeur·trice",
+        "term": "Semester / Semestre", "report_card": "Report Card / Bulletin",
+        "grade_level": "Grade / Année",
+    },
+}
+
+# New South Wales (AU-NSW) — HSC + NESA + Year 12 Australian Tertiary Admission Rank.
+COUNTRY_LOCALIZATION["AU-NSW"] = {
+    "calendar_system": {
+        "code": "aunsw-4-term", "label": "4-term (NSW)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Preschool / Long-day care",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (K-6) + NAPLAN",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",   "label": "Secondary (Y7-Y10) + RoSA",               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "senior",      "label": "Senior (Y11-Y12) + HSC + ATAR",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "tafe",        "label": "TAFE NSW (vocational)",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-25"},
+        {"code": "university",  "label": "NSW university",                          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "aunsw-pre","label": "Preschool",                  "order": 0},
+        {"code": "aunsw-y6", "label": "Year 6 (NAPLAN)",            "order": 6},
+        {"code": "aunsw-y10","label": "Year 10 (RoSA)",             "order": 10},
+        {"code": "aunsw-y12","label": "Year 12 (HSC + ATAR)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+
+# São Paulo (BR-SP) — SARESP + ENEM + Fundamental II + Médio + ETEC.
+COUNTRY_LOCALIZATION["BR-SP"] = {
+    "calendar_system": {
+        "code": "brsp-4-bimestre", "label": "4-bimestre (São Paulo SEDUC)",
+        "term_count": 4, "term_names": ["1º bimestre", "2º bimestre", "3º bimestre", "4º bimestre"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "creche",      "label": "Creche / Pré-escola",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-5"},
+        {"code": "fund_i",      "label": "Fundamental I (1º-5º ano)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "fund_ii",     "label": "Fundamental II (6º-9º ano) + SARESP",     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "medio",       "label": "Ensino Médio (1º-3º) + ENEM",             "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "etec",        "label": "ETEC (técnico Centro Paula Souza)",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "fatec",       "label": "FATEC / USP / Unicamp / UNESP",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "brsp-cre","label": "Creche",                      "order": 0},
+        {"code": "brsp-f5", "label": "5º ano",                      "order": 5},
+        {"code": "brsp-f9", "label": "9º ano (SARESP)",             "order": 9},
+        {"code": "brsp-m3", "label": "3ª série Médio (ENEM)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor / Professora", "principal": "Diretor / Diretora",
+        "term": "Bimestre", "report_card": "Boletim", "grade_level": "Ano / Série",
+    },
+}
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

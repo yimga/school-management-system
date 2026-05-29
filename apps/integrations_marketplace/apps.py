@@ -44,6 +44,16 @@ class IntegrationsMarketplaceConfig(AppConfig):
                 "integrations_marketplace: failed to bind celery tenant signals"
             )
 
+        # v4.00.53 — import LMS token-refresh sweep so the @shared_task
+        # registers with Celery before the beat scheduler reads the registry.
+        try:
+            from apps.integrations_marketplace import lms_token_refresh  # noqa: F401
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "integrations_marketplace: failed to import lms_token_refresh"
+            )
+
         # v2.79 — startup advisory check: warn if OAUTH_CALLBACK_BASE_URL is
         # unset in a production-looking environment so operators don't ship a
         # broken OAuth dance silently.
