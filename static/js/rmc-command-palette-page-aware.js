@@ -134,9 +134,115 @@
     try { node.textContent = JSON.stringify(data); } catch (e) {}
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", injectPageActions);
-  } else {
+  /* v4.00.29 — Slash-command mode + always-visible Ask-AI line.
+
+     SLASH MODE
+       When the user types "/" as the first character in the cmdk input,
+       the existing palette filters down to items whose label starts with
+       a verb. We seed a "Slash" group with deterministic verb commands so
+       slashing always finds something:
+
+         /new student          /go fees           /density
+         /new invoice          /go gradebook      /theme
+         /new broadcast        /go inbox          /explain  (AI)
+         /new event            /go security       /help
+         /new staff            /go reports
+
+     ASK-AI LINE
+       A pinned "Ask AI" item ALWAYS appears in the data (kept first in
+       the Actions group). The existing rmc-command-palette.js also
+       synthesises an askAiItem() when no other match exists. The pinned
+       version means the user always has a "talk to AI" affordance at
+       glance distance.
+  */
+  function injectSlashAndAi() {
+    var node = document.getElementById(DATA_ID);
+    if (!node || !node.textContent) return;
+    var data;
+    try { data = JSON.parse(node.textContent); } catch (e) { return; }
+    if (!data || !Array.isArray(data.groups)) return;
+
+    var slashItems = [
+      { label: "/new student",      url: "/people/students/new/",         icon: "bi-person-plus",     keywords: "slash new student add enroll" },
+      { label: "/new invoice",      url: "/finance/invoices/new/",        icon: "bi-receipt",         keywords: "slash new invoice fee bill" },
+      { label: "/new broadcast",    url: "/communication/broadcast/new/", icon: "bi-megaphone",       keywords: "slash new broadcast message announce" },
+      { label: "/new event",        url: "/calendar/new/",                icon: "bi-calendar-plus",   keywords: "slash new event calendar" },
+      { label: "/new staff",        url: "/people/staff/new/",            icon: "bi-person-badge",    keywords: "slash new staff teacher hire" },
+      { label: "/new assessment",   url: "/evals/assessments/new/",       icon: "bi-clipboard-check", keywords: "slash new assessment quiz test" },
+      { label: "/go fees",          url: "/finance/",                     icon: "bi-cash-coin",       keywords: "slash go navigate fees finance" },
+      { label: "/go gradebook",     url: "/evals/teacher/dashboard/",     icon: "bi-table",           keywords: "slash go navigate gradebook" },
+      { label: "/go inbox",         url: "/accounts/notifications/",      icon: "bi-bell",            keywords: "slash go navigate inbox notifications" },
+      { label: "/go security",      url: "/accounts/security/",           icon: "bi-shield-check",    keywords: "slash go navigate security posture" },
+      { label: "/go reports",       url: "/reports/",                     icon: "bi-bar-chart",       keywords: "slash go navigate reports analytics" },
+      { label: "/go attendance",    url: "/attendance/",                  icon: "bi-check2-square",   keywords: "slash go navigate attendance" },
+      { label: "/density",          action: "rmc:cmdk:toggle-density",    icon: "bi-arrows-collapse", keywords: "slash density toggle compact comfortable" },
+      { label: "/theme",            action: "rmc:cmdk:toggle-theme",      icon: "bi-circle-half",     keywords: "slash theme toggle dark light" },
+      { label: "/explain",          action: "rmc:cmdk:ask-ai",            icon: "bi-stars",           keywords: "slash explain ai ask question" },
+      { label: "/help",             url: "/help/",                        icon: "bi-life-preserver",  keywords: "slash help support docs" }
+    ];
+
+    var alreadyHasSlash = data.groups.some(function (g) {
+      return g && g["data-rmc-cmdk-group"] === "slash";
+    });
+    if (!alreadyHasSlash) {
+      data.groups.push({
+        label: "Slash · type / to filter verbs",
+        "data-rmc-cmdk-group": "slash",
+        items: slashItems
+      });
+    }
+
+    // Pin "Ask AI" to the first Actions group so it stays glance-distance.
+    var actionsGroup = null;
+    for (var i = 0; i < data.groups.length; i++) {
+      if (data.groups[i] && /actions/i.test(data.groups[i].label || "")) {
+        actionsGroup = data.groups[i];
+        break;
+      }
+    }
+    if (actionsGroup) {
+      var hasAskAi = (actionsGroup.items || []).some(function (it) {
+        return it && (it.action === "rmc:cmdk:ask-ai" || (it.label || "").toLowerCase().indexOf("ask ai") === 0);
+      });
+      if (!hasAskAi) {
+        actionsGroup.items.unshift({
+          label: "Ask AI — describe what you need",
+          action: "rmc:cmdk:ask-ai",
+          icon: "bi-stars",
+          keywords: "ai ask natural language question chat assistant",
+          "data-rmc-pinned": "1"
+        });
+      }
+    }
+
+    try { node.textContent = JSON.stringify(data); } catch (e) {}
+  }
+
+  // Wire the "rmc:cmdk:toggle-density" action by listening for the custom
+  // event the palette dispatches. The palette already fires events for
+  // standard action verbs; we add ours alongside.
+  function wireCustomActions() {
+    document.addEventListener("rmc:cmdk:toggle-density", function () {
+      if (window.rmcAdminDensity && typeof window.rmcAdminDensity.toggle === "function") {
+        window.rmcAdminDensity.toggle();
+      }
+    });
+    document.addEventListener("rmc:cmdk:toggle-osgrade", function () {
+      if (window.rmcOsGrade && typeof window.rmcOsGrade.toggle === "function") {
+        window.rmcOsGrade.toggle();
+      }
+    });
+  }
+
+  function bootAugmenter() {
     injectPageActions();
+    injectSlashAndAi();
+    wireCustomActions();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootAugmenter);
+  } else {
+    bootAugmenter();
   }
 })();

@@ -487,6 +487,48 @@ html[data-rmc-os-grade="1"] .rmc-cmdk__list [data-rmc-cmdk-group="page"] {
   border-bottom: 1px solid var(--rmc-os-hairline);
 }
 
+/* v4.00.29 — Pinned Ask-AI item.
+   Stands out as a high-contrast accent row at the head of Actions so the
+   "talk to AI" affordance is always glance-distance regardless of query. */
+html[data-rmc-os-grade="1"] .rmc-cmdk__item[data-rmc-pinned="1"],
+.rmc-cmdk__item[data-rmc-pinned="1"] {
+  background: linear-gradient(90deg,
+    var(--rmc-os-glow, var(--rmc-page-accent, #6366f1)) 0%, /* off-token-allow: cmdk-pinned-ai */
+    transparent 70%);
+  color: #fff !important; /* style-allow: cmdk-pinned-ai */
+  font-weight: 600;
+  position: relative;
+  margin: 2px 0;
+}
+html[data-rmc-os-grade="1"] .rmc-cmdk__item[data-rmc-pinned="1"] .rmc-cmdk__item-icon,
+.rmc-cmdk__item[data-rmc-pinned="1"] .rmc-cmdk__item-icon {
+  color: #fff !important; /* style-allow: cmdk-pinned-ai */
+  opacity: 1;
+}
+html[data-rmc-os-grade="1"] .rmc-cmdk__item[data-rmc-pinned="1"]::after,
+.rmc-cmdk__item[data-rmc-pinned="1"]::after {
+  content: "AI";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--rmc-os-font-mono, monospace);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.4); /* style-allow: cmdk-pinned-ai */
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+/* Slash group label adopts a mono prefix to telegraph the verb mode. */
+html[data-rmc-os-grade="1"] .rmc-cmdk__list [data-rmc-cmdk-group="slash"] {
+  border-top: 1px dashed var(--rmc-os-hairline);
+  padding-top: 4px;
+  margin-top: 4px;
+}
+
 /* ============================================================
    PREFERS-REDUCED-MOTION
    ============================================================ */

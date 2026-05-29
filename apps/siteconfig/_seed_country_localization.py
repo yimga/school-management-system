@@ -1997,3 +1997,216 @@ COUNTRY_LOCALIZATION["CM"] = {
 }
 # Cameroon is no longer a regional-default lookup; it's Tier-1 explicit.
 COUNTRY_REGIONAL_DEFAULT.pop("CM", None)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.29 (2026-05-29) — West & East African Tier-1 expansion (GH/KE/RW/SN/CI).
+#
+# Each entry captures the LOCALLY-RECOGNIZED cycle labels for that country's
+# system so the multi-select school-type checkboxes (v4.00.27) surface the
+# operator's actual mental model instead of an inherited regional default.
+# Education ladders enumerate every grade level the operator might M2M into
+# School.education_levels; ordering follows the local academic progression.
+# ---------------------------------------------------------------------------
+
+# Ghana — JHS/SHS system. Free SHS since 2017; BECE/WASSCE exams.
+COUNTRY_LOCALIZATION["GH"] = {
+    "calendar_system": {
+        "code": "gh-3-term", "label": "3 Terms (Ghanaian)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "creche",           "label": "Crèche / Day Care",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-3"},
+        {"code": "kg",               "label": "Kindergarten (KG)",                       "glyph": "\U0001F3A8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "primary",          "label": "Primary School (P1-P6)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jhs",              "label": "Junior High School (JHS / BECE)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "shs",              "label": "Senior High School (SHS / WASSCE)",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "tvet",             "label": "TVET / Technical & Vocational",           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-21"},
+        {"code": "international",    "label": "International School (IB / Cambridge)",   "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "university",       "label": "University / Tertiary",                   "glyph": "\U0001F3DB",  "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gh-kg1", "label": "KG 1",                "order": 0},
+        {"code": "gh-kg2", "label": "KG 2",                "order": 1},
+        {"code": "gh-p1",  "label": "Primary 1 (P1)",      "order": 2},
+        {"code": "gh-p2",  "label": "Primary 2 (P2)",      "order": 3},
+        {"code": "gh-p3",  "label": "Primary 3 (P3)",      "order": 4},
+        {"code": "gh-p4",  "label": "Primary 4 (P4)",      "order": 5},
+        {"code": "gh-p5",  "label": "Primary 5 (P5)",      "order": 6},
+        {"code": "gh-p6",  "label": "Primary 6 (P6)",      "order": 7},
+        {"code": "gh-jhs1", "label": "JHS 1",              "order": 8},
+        {"code": "gh-jhs2", "label": "JHS 2",              "order": 9},
+        {"code": "gh-jhs3", "label": "JHS 3 (BECE)",       "order": 10},
+        {"code": "gh-shs1", "label": "SHS 1",              "order": 11},
+        {"code": "gh-shs2", "label": "SHS 2",              "order": 12},
+        {"code": "gh-shs3", "label": "SHS 3 (WASSCE)",     "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Headmaster / Headmistress",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GH", None)
+
+# Kenya — CBC (Competency Based Curriculum, post-2017) + legacy 8-4-4.
+COUNTRY_LOCALIZATION["KE"] = {
+    "calendar_system": {
+        "code": "ke-3-term", "label": "3 Terms (Kenyan)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "ecde",        "label": "ECDE (Early Childhood)",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary-cbc", "label": "Primary (Grade 1-6 / CBC)",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "jss-cbc",     "label": "Junior Secondary (Grade 7-9 / CBC)", "glyph": "\U0001F4DA", "primary_sector": "middle",         "typical_ages": "12-14"},
+        {"code": "sss-cbc",     "label": "Senior Secondary (Grade 10-12 / CBC)", "glyph": "\U0001F393", "primary_sector": "secondary",   "typical_ages": "15-17"},
+        {"code": "tvet",        "label": "TVET / Technical College",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "legacy-844",  "label": "Legacy 8-4-4 (KCPE/KCSE)",          "glyph": "\U0001F4D6", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "university",  "label": "University",                        "glyph": "\U0001F3DB",  "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        # CBC ladder (2017+)
+        {"code": "ke-pp1", "label": "PP1 (Pre-Primary 1)",    "order": 0},
+        {"code": "ke-pp2", "label": "PP2 (Pre-Primary 2)",    "order": 1},
+        {"code": "ke-g1",  "label": "Grade 1",                "order": 2},
+        {"code": "ke-g2",  "label": "Grade 2",                "order": 3},
+        {"code": "ke-g3",  "label": "Grade 3",                "order": 4},
+        {"code": "ke-g4",  "label": "Grade 4",                "order": 5},
+        {"code": "ke-g5",  "label": "Grade 5",                "order": 6},
+        {"code": "ke-g6",  "label": "Grade 6 (KPSEA)",        "order": 7},
+        {"code": "ke-g7",  "label": "Grade 7 (JSS)",          "order": 8},
+        {"code": "ke-g8",  "label": "Grade 8 (JSS)",          "order": 9},
+        {"code": "ke-g9",  "label": "Grade 9 (JSS)",          "order": 10},
+        {"code": "ke-g10", "label": "Grade 10 (SSS)",         "order": 11},
+        {"code": "ke-g11", "label": "Grade 11 (SSS)",         "order": 12},
+        {"code": "ke-g12", "label": "Grade 12 (KCSE)",        "order": 13},
+        # Legacy 8-4-4 (still in use by older cohorts)
+        {"code": "ke-s1",  "label": "Form 1 (Legacy)",        "order": 100},
+        {"code": "ke-s2",  "label": "Form 2 (Legacy)",        "order": 101},
+        {"code": "ke-s3",  "label": "Form 3 (Legacy)",        "order": 102},
+        {"code": "ke-s4",  "label": "Form 4 (Legacy KCSE)",   "order": 103},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head Teacher / Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KE", None)
+
+# Rwanda — bilingual EN/FR, 9-Year Basic Education + Upper Secondary.
+COUNTRY_LOCALIZATION["RW"] = {
+    "calendar_system": {
+        "code": "rw-3-term", "label": "3 Terms (Rwandan)",
+        "term_count": 3, "term_names": ["Term 1 / 1er Trimestre", "Term 2 / 2e Trimestre", "Term 3 / 3e Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "nursery",        "label": "Nursery / Maternelle",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",        "label": "Primary (P1-P6) / École Primaire",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-12"},
+        {"code": "lower-secondary", "label": "Lower Secondary (S1-S3) / Tronc Commun",       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-15"},
+        {"code": "upper-secondary", "label": "Upper Secondary (S4-S6) / Cycle Supérieur",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "tvet",           "label": "TVET",                                          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",     "label": "University / Université",                       "glyph": "\U0001F3DB",  "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "rw-n1", "label": "Nursery 1",       "order": 0},
+        {"code": "rw-n2", "label": "Nursery 2",       "order": 1},
+        {"code": "rw-n3", "label": "Nursery 3",       "order": 2},
+        {"code": "rw-p1", "label": "P1",              "order": 3},
+        {"code": "rw-p2", "label": "P2",              "order": 4},
+        {"code": "rw-p3", "label": "P3",              "order": 5},
+        {"code": "rw-p4", "label": "P4",              "order": 6},
+        {"code": "rw-p5", "label": "P5",              "order": 7},
+        {"code": "rw-p6", "label": "P6 (PLE)",        "order": 8},
+        {"code": "rw-s1", "label": "S1",              "order": 9},
+        {"code": "rw-s2", "label": "S2",              "order": 10},
+        {"code": "rw-s3", "label": "S3 (O-Level)",    "order": 11},
+        {"code": "rw-s4", "label": "S4",              "order": 12},
+        {"code": "rw-s5", "label": "S5",              "order": 13},
+        {"code": "rw-s6", "label": "S6 (A-Level)",    "order": 14},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Enseignant", "principal": "Head Teacher / Directeur",
+        "term": "Term / Trimestre", "report_card": "Report Card / Bulletin", "grade_level": "Class / Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("RW", None)
+
+# Senegal — Francophone, CEP / BFEM / Baccalauréat.
+COUNTRY_LOCALIZATION["SN"] = {
+    "calendar_system": {
+        "code": "sn-3-term", "label": "3 Trimestres (Sénégalais)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "maternelle",      "label": "École Maternelle",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "elementaire",     "label": "École Élémentaire (CI-CM2)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-12"},
+        {"code": "moyen",           "label": "Cycle Moyen (Collège — 6e-3e)",   "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-16"},
+        {"code": "secondaire",      "label": "Lycée (2nde-Terminale)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",       "label": "Enseignement Technique",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "daara-moderne",   "label": "Daara Moderne (Franco-Arabe)",    "glyph": "\U0001F4D6", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "universite",      "label": "Université",                      "glyph": "\U0001F3DB",  "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sn-ms",   "label": "Maternelle",            "order": 0},
+        {"code": "sn-ci",   "label": "CI (Cours d'Initiation)", "order": 1},
+        {"code": "sn-cp",   "label": "CP",                    "order": 2},
+        {"code": "sn-ce1",  "label": "CE1",                   "order": 3},
+        {"code": "sn-ce2",  "label": "CE2",                   "order": 4},
+        {"code": "sn-cm1",  "label": "CM1",                   "order": 5},
+        {"code": "sn-cm2",  "label": "CM2 (CFEE)",            "order": 6},
+        {"code": "sn-6e",   "label": "6ème",                  "order": 7},
+        {"code": "sn-5e",   "label": "5ème",                  "order": 8},
+        {"code": "sn-4e",   "label": "4ème",                  "order": 9},
+        {"code": "sn-3e",   "label": "3ème (BFEM)",           "order": 10},
+        {"code": "sn-2nde", "label": "Seconde",               "order": 11},
+        {"code": "sn-1ere", "label": "Première",              "order": 12},
+        {"code": "sn-tle",  "label": "Terminale (Bac)",       "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SN", None)
+
+# Côte d'Ivoire — Francophone, CEPE / BEPC / Baccalauréat.
+COUNTRY_LOCALIZATION["CI"] = {
+    "calendar_system": {
+        "code": "ci-3-term", "label": "3 Trimestres (Ivoirien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle",  "label": "École Maternelle",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",    "label": "École Primaire (CP1-CM2)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",     "label": "Collège (6e-3e / BEPC)",          "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",       "label": "Lycée (2nde-Tle / Bac)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",   "label": "Enseignement Technique / EFTP",   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "international", "label": "École Internationale",          "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-19"},
+        {"code": "universite",  "label": "Université",                      "glyph": "\U0001F3DB",  "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ci-ms",   "label": "Maternelle",            "order": 0},
+        {"code": "ci-cp1",  "label": "CP1",                   "order": 1},
+        {"code": "ci-cp2",  "label": "CP2",                   "order": 2},
+        {"code": "ci-ce1",  "label": "CE1",                   "order": 3},
+        {"code": "ci-ce2",  "label": "CE2",                   "order": 4},
+        {"code": "ci-cm1",  "label": "CM1",                   "order": 5},
+        {"code": "ci-cm2",  "label": "CM2 (CEPE)",            "order": 6},
+        {"code": "ci-6e",   "label": "6ème",                  "order": 7},
+        {"code": "ci-5e",   "label": "5ème",                  "order": 8},
+        {"code": "ci-4e",   "label": "4ème",                  "order": 9},
+        {"code": "ci-3e",   "label": "3ème (BEPC)",           "order": 10},
+        {"code": "ci-2nde", "label": "Seconde",               "order": 11},
+        {"code": "ci-1ere", "label": "Première",              "order": 12},
+        {"code": "ci-tle",  "label": "Terminale (Bac)",       "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur / Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CI", None)
