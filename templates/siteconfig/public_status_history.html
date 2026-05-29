@@ -1,0 +1,139 @@
+{% load i18n %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% trans "Status history" %} — RunMyCampus</title>
+  <meta name="robots" content="index, follow">
+  <link rel="alternate" type="application/atom+xml" title="RunMyCampus platform status" href="{% url 'public_status_feed' %}">
+  <style>
+    :root {
+      --ok: #16a34a;
+      --warn: #d97706;
+      --bad: #dc2626;
+      --text: #0f172a;
+      --muted: #475569;
+      --surface: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --text: #f1f5f9; --muted: #94a3b8; --surface: #0f172a; --bg: #020617; --border: #1e293b; }
+    }
+    body { margin: 0; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); padding: 2rem 1rem 4rem; }
+    .wrap { max-width: 56rem; margin: 0 auto; }
+    h1 { font-size: 1.75rem; margin: 0 0 0.25rem; }
+    .lead { color: var(--muted); margin: 0 0 1.5rem; }
+    .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+    .totals .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem 1rem; }
+    .totals .label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .totals .value { font-size: 1.65rem; font-weight: 600; margin-top: 0.15rem; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    thead th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: color-mix(in oklab, var(--surface) 80%, var(--bg)); padding: 0.65rem 0.85rem; text-align: left; border-bottom: 1px solid var(--border); }
+    tbody td { padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .sev-pill { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; margin-right: 0.2rem; }
+    .sev-pill.MINOR { background: color-mix(in oklab, var(--warn) 14%, transparent); color: var(--warn); }
+    .sev-pill.MAJOR { background: color-mix(in oklab, var(--warn) 22%, transparent); color: var(--warn); }
+    .sev-pill.CRITICAL { background: color-mix(in oklab, var(--bad) 20%, transparent); color: var(--bad); }
+    .mttr { font-variant-numeric: tabular-nums; color: var(--muted); }
+    .mttr.has-value { color: var(--text); }
+    footer { color: var(--muted); font-size: 0.85rem; margin-top: 2rem; text-align: center; }
+    .footer-links { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .footer-links a { color: var(--muted); text-decoration: none; }
+    .footer-links a:hover { text-decoration: underline; }
+    .empty { color: var(--muted); padding: 1.25rem; text-align: center; font-style: italic; }
+    .range-form { display: inline-flex; gap: 0.4rem; align-items: center; margin: 0 0 1rem; font-size: 0.88rem; color: var(--muted); }
+    .range-form select { padding: 0.3rem 0.5rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; }
+    .muted-dash { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>{% trans "Status history" %}</h1>
+    <p class="lead">{% trans "Monthly incident counts and mean-time-to-resolve. Updates every 5 minutes." %}</p>
+
+    <form class="range-form" method="get">
+      <label for="id_months">{% trans "Range" %}</label>
+      <noscript><button type="submit" class="range-submit">{% trans "Apply" %}</button></noscript>
+      <select name="months" id="id_months" data-auto-submit="1">
+        <option value="3" {% if months == 3 %}selected{% endif %}>{% trans "3 months" %}</option>
+        <option value="6" {% if months == 6 %}selected{% endif %}>{% trans "6 months" %}</option>
+        <option value="12" {% if months == 12 %}selected{% endif %}>{% trans "12 months" %}</option>
+        <option value="18" {% if months == 18 %}selected{% endif %}>{% trans "18 months" %}</option>
+        <option value="24" {% if months == 24 %}selected{% endif %}>{% trans "24 months" %}</option>
+      </select>
+    </form>
+
+    <div class="totals">
+      <div class="card">
+        <div class="label">{% trans "Started (window)" %}</div>
+        <div class="value">{{ totals.started }}</div>
+      </div>
+      <div class="card">
+        <div class="label">{% trans "Resolved (window)" %}</div>
+        <div class="value">{{ totals.resolved }}</div>
+      </div>
+      <div class="card">
+        <div class="label">{% trans "Critical" %}</div>
+        <div class="value">{{ totals.by_severity.CRITICAL }}</div>
+      </div>
+      <div class="card">
+        <div class="label">{% trans "Major" %}</div>
+        <div class="value">{{ totals.by_severity.MAJOR }}</div>
+      </div>
+      <div class="card">
+        <div class="label">{% trans "Minor" %}</div>
+        <div class="value">{{ totals.by_severity.MINOR }}</div>
+      </div>
+    </div>
+
+    {% if history %}
+    <table>
+      <thead>
+        <tr>
+          <th>{% trans "Month" %}</th>
+          <th>{% trans "Started" %}</th>
+          <th>{% trans "Resolved" %}</th>
+          <th>{% trans "Severity mix" %}</th>
+          <th>{% trans "Mean time to resolve" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bucket in history %}
+        <tr>
+          <td>{{ bucket.label }}</td>
+          <td>{{ bucket.started }}</td>
+          <td>{{ bucket.resolved }}</td>
+          <td>
+            {% if bucket.by_severity.CRITICAL %}<span class="sev-pill CRITICAL">{{ bucket.by_severity.CRITICAL }} CRITICAL</span>{% endif %}
+            {% if bucket.by_severity.MAJOR %}<span class="sev-pill MAJOR">{{ bucket.by_severity.MAJOR }} MAJOR</span>{% endif %}
+            {% if bucket.by_severity.MINOR %}<span class="sev-pill MINOR">{{ bucket.by_severity.MINOR }} MINOR</span>{% endif %}
+            {% if not bucket.started %}<span class="muted-dash">—</span>{% endif %}
+          </td>
+          <td class="mttr {% if bucket.mttr_minutes %}has-value{% endif %}">
+            {% if bucket.mttr_minutes %}{{ bucket.mttr_minutes }} {% trans "min" %}{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty">{% trans "No incidents recorded yet in this window." %}</p>
+    {% endif %}
+
+    <footer>
+      <div class="footer-links">
+        <a href="{% url 'public_status' %}">{% trans "← Back to live status" %}</a>
+        <a href="{% url 'public_status_feed' %}" rel="alternate" type="application/atom+xml">{% trans "Atom feed" %}</a>
+      </div>
+    </footer>
+  </main>
+  <script nonce="{{ csp_nonce|default:'' }}">
+    // CSP-safe progressive enhancement: auto-submit the range selector on change.
+    document.querySelectorAll("select[data-auto-submit]").forEach(function (sel) {
+      sel.addEventListener("change", function () { sel.form && sel.form.submit(); });
+    });
+  </script>
+</body>
+</html>

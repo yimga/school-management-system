@@ -58,6 +58,19 @@ class SiteconfigConfig(AppConfig):
             ValueError,
         ) as exc:
             logger.warning("Siteconfig signal wiring skipped: %s", exc)
+        # v4.00.45 — public status page subscriber fan-out on PublicIncident save.
+        try:
+            from .signals_public_status import _connect_public_incident_signals
+
+            _connect_public_incident_signals()
+        except (
+            AttributeError,
+            ImportError,
+            RuntimeError,
+            TypeError,
+            ValueError,
+        ) as exc:
+            logger.warning("Siteconfig public-incident signal wiring skipped: %s", exc)
         # Default Django admin site only; manager and tenant urlconfs use config.admin.admin_site
         # (RunMyCampusAdminSite), which has login_template = "auth/admin_login.html" for the high-end
         # superadmin login. This assignment affects django.contrib.admin.site if used elsewhere.

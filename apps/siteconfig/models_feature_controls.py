@@ -255,6 +255,25 @@ class GlobalSupportTicket(models.Model):
     )
     csat_comment = models.TextField(blank=True, default="")
     csat_submitted_at = models.DateTimeField(null=True, blank=True)
+    # v4.00.42 — incident linking. linked_to points at a parent incident (one-to-many
+    # children grouping). merged_into points at the canonical "kept" ticket when this
+    # one is marked a duplicate; both are nullable self-FKs.
+    linked_to = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="linked_children",
+        help_text="Parent incident this ticket belongs to.",
+    )
+    merged_into = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="merged_duplicates",
+        help_text="Canonical ticket this one was merged into as a duplicate.",
+    )
 
     class Meta:
         ordering = ["-created_at", "-id"]
@@ -338,3 +357,239 @@ class GlobalSupportTicketWebhookEndpoint(models.Model):
 
     def __str__(self):
         return self.name or self.url[:80]
+
+
+def _support_attachment_upload_to(instance, filename: str) -> str:
+    """Per-ticket attachment path; UUID directories avoid collisions."""
+    return f"support_tickets/{instance.ticket_id}/{filename}"
+
+
+class GlobalSupportTicketAttachment(models.Model):
+    """v4.00.42 — File attached to a global support ticket (image, log, doc).
+
+    Uploaded by either the submitter (via the universal quick-create chip or
+    the tenant follow-up form) or by an operator. Visible to the submitter
+    when ``visible_to_submitter`` is True.
+    """
+
+    class Source(models.TextChoices):
+        QUICK_CREATE = "QUICK_CREATE", "Quick-create chip"
+        FOLLOW_UP = "FOLLOW_UP", "Tenant follow-up"
+        OPERATOR = "OPERATOR", "Operator upload"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ticket = models.ForeignKey(
+        GlobalSupportTicket,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    uploader = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="support_ticket_attachments",
+    )
+    file = models.FileField(upload_to=_support_attachment_upload_to, max_length=400)
+    filename = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=120, blank=True, default="")
+    byte_size = models.PositiveIntegerField(default=0)
+    source = models.CharField(
+        max_length=24,
+        choices=Source.choices,
+        default=Source.QUICK_CREATE,
+    )
+    visible_to_submitter = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        indexes = [
+            models.Index(fields=["ticket", "created_at"]),
+        ]
+        verbose_name = "Global support ticket attachment"
+        verbose_name_plural = "Global support ticket attachments"
+
+    def __str__(self):
+        return f"Attachment {self.filename} on {self.ticket_id}"
+
+
+class SupportOnCallShift(models.Model):
+    """v4.00.43 — On-call rotation for the support team.
+
+    A shift covers a half-open window [starts_at, ends_at) for one user. A
+    primary shift is used to route new tickets and breach alerts; secondary
+    shifts are backups paged when the primary doesn't respond within the
+    response-SLA window. Multiple shifts can be active at once (primary +
+    backup); helpers prefer the most-recent primary.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="support_on_call_shifts",
+    )
+    role_tag = models.CharField(
+        max_length=40,
+        blank=True,
+        default="",
+        help_text="Optional grouping (e.g. 'platform', 'billing').",
+    )
+    is_primary = models.BooleanField(default=True, db_index=True)
+    starts_at = models.DateTimeField(db_index=True)
+    ends_at = models.DateTimeField(db_index=True)
+    notes = models.CharField(max_length=240, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-starts_at", "-id"]
+        indexes = [
+            models.Index(fields=["starts_at", "ends_at"]),
+            models.Index(fields=["is_primary", "starts_at"]),
+        ]
+        verbose_name = "Support on-call shift"
+        verbose_name_plural = "Support on-call shifts"
+
+    def __str__(self):
+        return f"{self.user_id} {'PRIMARY' if self.is_primary else 'BACKUP'} {self.starts_at:%Y-%m-%d %H:%M}"
+
+
+class PublicIncident(models.Model):
+    """v4.00.43 — Operator-promoted public incident on the status page.
+
+    Operators can promote a ``GlobalSupportTicket`` to a public incident when a
+    visible outage or platform issue is acknowledged. The incident has its own
+    lifecycle (investigating → identified → monitoring → resolved) and is
+    rendered on the unauthenticated ``/status/`` page. Severity is independent
+    of the source ticket's priority (the source ticket may stay HIGH while the
+    public incident is reported as MAJOR).
+    """
+
+    class Severity(models.TextChoices):
+        MINOR = "MINOR", "Minor"
+        MAJOR = "MAJOR", "Major"
+        CRITICAL = "CRITICAL", "Critical"
+
+    class Status(models.TextChoices):
+        INVESTIGATING = "INVESTIGATING", "Investigating"
+        IDENTIFIED = "IDENTIFIED", "Identified"
+        MONITORING = "MONITORING", "Monitoring"
+        RESOLVED = "RESOLVED", "Resolved"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    source_ticket = models.ForeignKey(
+        GlobalSupportTicket,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="public_incidents",
+    )
+    title = models.CharField(max_length=180)
+    summary = models.TextField(blank=True, default="")
+    severity = models.CharField(
+        max_length=12, choices=Severity.choices, default=Severity.MINOR
+    )
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.INVESTIGATING,
+    )
+    promoted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="promoted_public_incidents",
+    )
+    started_at = models.DateTimeField()
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-started_at", "-id"]
+        indexes = [
+            models.Index(fields=["status", "-started_at"]),
+            models.Index(fields=["-started_at"]),
+        ]
+        verbose_name = "Public incident"
+        verbose_name_plural = "Public incidents"
+
+    def __str__(self):
+        return f"{self.severity} {self.status}: {self.title}"
+
+
+class PublicIncidentSubscription(models.Model):
+    """v4.00.45+v4.00.49 — Anonymous multi-channel opt-in for public status updates.
+
+    Subscribers receive a notification when a ``PublicIncident`` is created or
+    its status changes. Double opt-in: an EMAIL subscriber clicks a confirm
+    link before any incident emails ship; non-email channels (SMS / Slack /
+    Discord webhook) auto-confirm at subscribe time since possession of the
+    target address (phone number, webhook URL) IS the proof of intent.
+
+    v4.00.49 — Added ``channel`` + ``address`` so SMS/Slack/Discord webhook
+    targets share the same fan-out pipeline. Each (channel, address) pair is
+    unique; an operator who wants both email AND Slack on the same incident
+    creates two rows.
+
+    PII boundary: ``email`` + ``address`` are stored verbatim; never logged at
+    INFO level. Tokens are stored as opaque 64-char strings.
+    """
+
+    class Channel(models.TextChoices):
+        EMAIL = "EMAIL", "Email"
+        SMS = "SMS", "SMS"
+        SLACK = "SLACK", "Slack webhook"
+        DISCORD = "DISCORD", "Discord webhook"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    channel = models.CharField(
+        max_length=12,
+        choices=Channel.choices,
+        default=Channel.EMAIL,
+    )
+    address = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Phone (E.164) for SMS, webhook URL for Slack/Discord. EMAIL rows mirror the email field here.",
+    )
+    email = models.EmailField(max_length=240, blank=True, default="")
+    verification_token = models.CharField(max_length=64, unique=True)
+    unsubscribe_token = models.CharField(max_length=64, unique=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    unsubscribed_at = models.DateTimeField(null=True, blank=True)
+    last_alerted_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "id"]
+        indexes = [
+            models.Index(fields=["confirmed_at"]),
+            models.Index(fields=["unsubscribed_at"]),
+            models.Index(fields=["channel"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["channel", "address"],
+                name="uniq_public_sub_channel_address",
+                condition=models.Q(address__gt=""),
+            ),
+        ]
+        verbose_name = "Public incident subscription"
+        verbose_name_plural = "Public incident subscriptions"
+
+    def __str__(self):
+        return f"{self.get_channel_display()}:{self.destination} ({'live' if self.is_live else 'pending/unsub'})"
+
+    @property
+    def is_live(self) -> bool:
+        return self.confirmed_at is not None and self.unsubscribed_at is None
+
+    @property
+    def destination(self) -> str:
+        return self.address or self.email or ""

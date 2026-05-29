@@ -1,0 +1,132 @@
+{% load i18n %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% trans "Platform status" %} — RunMyCampus</title>
+  <meta name="robots" content="index, follow">
+  <link rel="alternate" type="application/atom+xml" title="RunMyCampus platform status" href="{% url 'public_status_feed' %}">
+  <style>
+    :root {
+      --ok: #16a34a;
+      --warn: #d97706;
+      --bad: #dc2626;
+      --text: #0f172a;
+      --muted: #475569;
+      --surface: #ffffff;
+      --bg: #f8fafc;
+      --border: #e2e8f0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --text: #f1f5f9; --muted: #94a3b8; --surface: #0f172a; --bg: #020617; --border: #1e293b; }
+    }
+    body { margin: 0; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg); padding: 2rem 1rem 4rem; }
+    .wrap { max-width: 50rem; margin: 0 auto; }
+    h1 { font-size: 1.75rem; margin: 0 0 0.25rem; }
+    .lead { color: var(--muted); margin: 0 0 1.5rem; }
+    .pill { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.95rem; border-radius: 999px; font-weight: 600; font-size: 0.95rem; }
+    .pill.ok { background: color-mix(in oklab, var(--ok) 18%, transparent); color: var(--ok); }
+    .pill.warn { background: color-mix(in oklab, var(--warn) 20%, transparent); color: var(--warn); }
+    .pill.bad { background: color-mix(in oklab, var(--bad) 20%, transparent); color: var(--bad); }
+    .pill .dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: currentColor; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; margin: 0.6rem 0; }
+    .card h2 { font-size: 1.05rem; margin: 0 0 0.2rem; }
+    .card .meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.45rem; }
+    .card .summary { white-space: pre-wrap; margin: 0; }
+    .sev { font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .sev.MINOR { color: var(--warn); }
+    .sev.MAJOR { color: var(--warn); }
+    .sev.CRITICAL { color: var(--bad); }
+    .stat { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    section + section { margin-top: 1.5rem; }
+    footer { color: var(--muted); font-size: 0.85rem; margin-top: 2rem; text-align: center; }
+    .subscribe { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: stretch; margin-top: 0.75rem; }
+    .subscribe select, .subscribe input { padding: 0.55rem 0.85rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; }
+    .subscribe select { flex: 0 0 auto; min-width: 7.5rem; }
+    .subscribe input { flex: 1 1 16rem; }
+    .subscribe button { padding: 0.55rem 1rem; border-radius: 8px; border: 0; background: var(--text); color: var(--surface); font: 600 0.9rem/1 inherit; cursor: pointer; }
+    .subscribe button:hover { opacity: 0.92; }
+    .subscribe small { flex-basis: 100%; color: var(--muted); font-size: 0.78rem; }
+    .flash { padding: 0.55rem 0.85rem; border-radius: 8px; margin: 0.5rem 0; font-size: 0.9rem; }
+    .flash.success { background: color-mix(in oklab, var(--ok) 12%, transparent); color: var(--ok); }
+    .flash.error { background: color-mix(in oklab, var(--bad) 12%, transparent); color: var(--bad); }
+    .footer-links { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+    .footer-links a { color: var(--muted); text-decoration: none; }
+    .footer-links a:hover { text-decoration: underline; }
+    .history-link { margin: 0.75rem 0 0; font-size: 0.88rem; }
+    .history-link a { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>{% trans "Platform status" %}</h1>
+    <p class="lead">{% trans "Live status of RunMyCampus services. We post incidents here as soon as we acknowledge them." %}</p>
+    {% if messages %}
+    {% for m in messages %}
+    <p class="flash {{ m.tags|default:'success' }}" role="status">{{ m }}</p>
+    {% endfor %}
+    {% endif %}
+    {% if all_systems_normal %}
+    <p class="pill ok"><span class="dot" aria-hidden="true"></span>{% trans "All systems operational" %}</p>
+    {% else %}
+    <p class="pill bad"><span class="dot" aria-hidden="true"></span>{% blocktrans count count=active_count %}{{ count }} active incident{% plural %}{{ count }} active incidents{% endblocktrans %}</p>
+    {% endif %}
+
+    <form class="subscribe" method="post" action="{% url 'public_status_subscribe' %}">
+      {% csrf_token %}
+      <select name="channel" aria-label="{% trans 'Channel' %}">
+        <option value="EMAIL">{% trans "Email" %}</option>
+        <option value="SMS">{% trans "SMS" %}</option>
+        <option value="SLACK">{% trans "Slack webhook" %}</option>
+        <option value="DISCORD">{% trans "Discord webhook" %}</option>
+      </select>
+      <input type="text" name="address" placeholder="{% trans 'Email, phone (+1234...), or webhook URL' %}" required maxlength="500" aria-label="{% trans 'Destination' %}">
+      <button type="submit">{% trans "Subscribe" %}</button>
+      <small>{% trans "Email needs verification. SMS / Slack / Discord auto-confirm at subscribe time." %}</small>
+    </form>
+
+    {# v4.00.49 — link to monthly history aggregation #}
+    <p class="history-link"><a href="{% url 'public_status_history' %}">{% trans "Past months: incident history & MTTR" %} →</a></p>
+
+    {% if active %}
+    <section>
+      <p class="stat">{% trans "Active incidents" %}</p>
+      {% for inc in active %}
+      <div class="card">
+        <h2>{{ inc.title }}</h2>
+        <div class="meta">
+          <span class="sev {{ inc.severity }}">{{ inc.get_severity_display }}</span> ·
+          <span>{{ inc.get_status_display }}</span> ·
+          <span>{% trans "Started" %} {{ inc.started_at|date:"M j, Y H:i e" }}</span>
+        </div>
+        {% if inc.summary %}<p class="summary">{{ inc.summary }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    {% if recently_resolved %}
+    <section>
+      <p class="stat">{% trans "Recently resolved (last 14 days)" %}</p>
+      {% for inc in recently_resolved %}
+      <div class="card">
+        <h2>{{ inc.title }}</h2>
+        <div class="meta">
+          <span class="sev {{ inc.severity }}">{{ inc.get_severity_display }}</span> ·
+          <span>{% trans "Resolved" %} {{ inc.resolved_at|date:"M j, Y H:i e" }}</span>
+        </div>
+        {% if inc.summary %}<p class="summary">{{ inc.summary }}</p>{% endif %}
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <footer>
+      <div>{% trans "Page last refreshed" %} {{ now|date:"M j, Y H:i e" }}.</div>
+      <div class="footer-links">
+        <a href="{% url 'public_status_feed' %}" rel="alternate" type="application/atom+xml">{% trans "Atom feed" %}</a>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

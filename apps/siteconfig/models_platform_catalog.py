@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -639,6 +641,17 @@ class CountryMultiplier(models.Model):
         decimal_places=4,
         default=1,
         help_text="Price multiplier (e.g. 0.6 for discounted region, 1.0 for base)",
+    )
+    tax_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=4,
+        default=Decimal("0.0000"),
+        help_text="VAT / sales-tax rate applied at billing time (e.g. 0.1800 for 18% VAT).",
+    )
+    tax_code = models.CharField(
+        max_length=32,
+        blank=True,
+        help_text="Local tax code identifier (e.g. VAT, GST, CCAA-IGV); informational only.",
     )
     name = models.CharField(max_length=120, blank=True)
     is_active = models.BooleanField(default=True)
