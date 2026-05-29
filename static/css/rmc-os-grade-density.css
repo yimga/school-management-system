@@ -1,0 +1,370 @@
+/**
+ * rmc-os-grade-density.css — v4.00.26 (2026-05-29)
+ *
+ * The "OS-grade command cockpit" density layer.
+ *
+ * Philosophy: every millimeter must serve a functional purpose. Hairline
+ * borders, micro-typography, glow-edge focus states, compact letter-
+ * spacing. The dashboard should read like a flight deck — dense, alive,
+ * mechanically sound. No bloated padding. No round friendly card frames.
+ * Razor-thin separators. Tabular numerics. Mono-glyph icons.
+ *
+ * Activation: this layer is OPT-IN via [data-rmc-os-grade="1"] on <html>
+ * (or absent attribute means default-off for safety). Set by default for
+ * authenticated manager + admin shells via the v4.00.26 bootstrap. Users
+ * can flip it via window.rmcOsGrade.toggle().
+ *
+ * Tokens this layer introduces:
+ *   --rmc-os-hairline       — 1px hairline color (default --hairline-strong)
+ *   --rmc-os-glow            — accent glow color (default --rmc-page-accent)
+ *   --rmc-os-scanline-alpha  — overlay scanline opacity (default 0)
+ *   --rmc-os-font-mono       — monospaced font stack for numerics
+ *
+ * What this layer changes:
+ *   - Tightens line-heights to 1.25 from 1.5+
+ *   - Removes round-corner softness on data containers (4px max)
+ *   - Adds 1px hairline borders + glow edges on hover/focus
+ *   - Adds tabular-nums + slashed-zero on all .rmc-num and numeric inputs
+ *   - Adds a 28px "command rail" foot to sticky surfaces
+ *   - Razor-thin sidebar with compact item rhythm
+ *   - Auto-collapse cards on narrow viewports
+ *
+ * This file is additive. It does NOT replace the existing aesthetic
+ * system — it overlays on top. Disable by removing the attribute.
+ */
+
+:root {
+  --rmc-os-hairline: var(--hairline-strong, rgba(255, 255, 255, 0.14));
+  --rmc-os-glow: var(--rmc-page-accent, #6366f1); /* off-token-allow: os-grade-glow-default */
+  --rmc-os-glow-soft: var(--rmc-page-accent-soft, rgba(99, 102, 241, 0.18)); /* off-token-allow: os-grade-glow-default */
+  --rmc-os-scanline-alpha: 0;
+  --rmc-os-font-mono: "JetBrains Mono", "SF Mono", "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --rmc-os-density-step: 4px;
+}
+
+/* ============================================================
+   GLOBAL OS-GRADE TYPOGRAPHY
+   ============================================================ */
+
+html[data-rmc-os-grade="1"] body {
+  font-feature-settings: "tnum" 1, "ss01" 1, "cv11" 1;
+  letter-spacing: -0.005em;
+}
+
+html[data-rmc-os-grade="1"] :is(h1, h2, h3, h4, .cp-hero__title, .rmc-card__title, .modal-title) {
+  letter-spacing: -0.012em;
+  line-height: 1.18;
+}
+
+html[data-rmc-os-grade="1"] :is(.rmc-num, .stat-value, .lx-copilot__quickstat-value,
+   .lx-copilot__context-metric-value, td.numeric, td.text-end, input[type="number"]) {
+  font-family: var(--rmc-os-font-mono);
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+html[data-rmc-os-grade="1"] :is(.small, .text-secondary, .text-muted, .help-text, .form-text, .help) {
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+/* ============================================================
+   HAIRLINE BORDER + GLOW-EDGE SYSTEM
+   ============================================================ */
+
+/* Cards lose their round-friendly look. 4px max corner, 1px hairline,
+   no shadow by default. Glow on hover/focus-within. */
+html[data-rmc-os-grade="1"] :is(.rmc-card, .card, .module, .module.aligned, .rmc-stat-card,
+   .lx-notebook, .rmc-os-page-header, .cp-page-header) {
+  border-radius: 4px !important; /* style-allow: os-grade-corner */
+  border: 1px solid var(--rmc-os-hairline) !important; /* style-allow: os-grade-edge */
+  box-shadow: none !important; /* style-allow: os-grade-edge */
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+html[data-rmc-os-grade="1"] :is(.rmc-card, .card, .module, .rmc-stat-card):hover,
+html[data-rmc-os-grade="1"] :is(.rmc-card, .card, .module, .rmc-stat-card):focus-within {
+  border-color: var(--rmc-os-glow) !important; /* style-allow: os-grade-edge */
+  box-shadow: 0 0 0 1px var(--rmc-os-glow-soft), 0 0 14px var(--rmc-os-glow-soft) !important; /* style-allow: os-grade-edge */
+}
+
+/* Buttons: rectangular, hairline, glow on focus. No round pill default. */
+html[data-rmc-os-grade="1"] :is(.btn, .cp-btn, .cp-primary-nav__pill, .tp-primary-nav__item,
+   button[type="submit"], button[type="button"]):not(.rmc-security-posture-nav):not(.lx-copilot__quickstat):not(.rmc-admin-quickaction__btn) {
+  border-radius: 3px !important; /* style-allow: os-grade-corner */
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+html[data-rmc-os-grade="1"] :is(.btn, .cp-btn, button[type="submit"]):focus-visible {
+  outline: 1px solid var(--rmc-os-glow) !important; /* style-allow: os-grade-edge */
+  outline-offset: 1px;
+  box-shadow: 0 0 12px var(--rmc-os-glow-soft) !important; /* style-allow: os-grade-edge */
+}
+
+/* Inputs share the same hairline grammar. */
+html[data-rmc-os-grade="1"] :is(input.form-control, select.form-select, textarea.form-control,
+   input[type="text"], input[type="number"], input[type="email"], input[type="search"]) {
+  border-radius: 3px !important; /* style-allow: os-grade-corner */
+  border: 1px solid var(--rmc-os-hairline) !important; /* style-allow: os-grade-edge */
+}
+html[data-rmc-os-grade="1"] :is(input.form-control, select.form-select, textarea.form-control):focus {
+  border-color: var(--rmc-os-glow) !important; /* style-allow: os-grade-edge */
+  box-shadow: 0 0 0 1px var(--rmc-os-glow-soft), 0 0 12px var(--rmc-os-glow-soft) !important; /* style-allow: os-grade-edge */
+  outline: none;
+}
+
+/* ============================================================
+   RAZOR-THIN SIDEBAR RHYTHM
+   ============================================================ */
+
+html[data-rmc-os-grade="1"] :is(.admin-sidebar-app-title, .admin-sidebar-model-link,
+   .tp-sidebar-link, .portal-sidebar-link, .cp-sidebar-link, .studio-os__rail a) {
+  padding: 5px 10px !important; /* style-allow: os-grade-sidebar */
+  font-size: 12px !important; /* style-allow: os-grade-sidebar */
+  line-height: 1.3 !important; /* style-allow: os-grade-sidebar */
+  letter-spacing: 0;
+  display: flex !important; /* style-allow: os-grade-sidebar */
+  align-items: center;
+  gap: 8px !important; /* style-allow: os-grade-sidebar */
+  border-radius: 3px !important; /* style-allow: os-grade-sidebar */
+}
+
+html[data-rmc-os-grade="1"] :is(.admin-sidebar-icon, .admin-sidebar-model-icon,
+   .tp-sidebar-link__icon, .cp-sidebar-link__icon) {
+  width: 14px !important; /* style-allow: os-grade-sidebar */
+  height: 14px !important; /* style-allow: os-grade-sidebar */
+  flex: 0 0 14px;
+  opacity: 0.75;
+}
+html[data-rmc-os-grade="1"] :is(.admin-sidebar-icon, .admin-sidebar-model-icon) svg {
+  width: 14px;
+  height: 14px;
+}
+html[data-rmc-os-grade="1"] .admin-sidebar-model-link.active .admin-sidebar-model-icon,
+html[data-rmc-os-grade="1"] :is(.admin-sidebar-model-link, .tp-sidebar-link):hover .admin-sidebar-icon {
+  opacity: 1;
+}
+
+html[data-rmc-os-grade="1"] .admin-sidebar-section-heading,
+html[data-rmc-os-grade="1"] .cp-sidebar-section-heading {
+  font-size: 9px !important; /* style-allow: os-grade-sidebar */
+  font-weight: 700 !important; /* style-allow: os-grade-sidebar */
+  letter-spacing: 0.1em !important; /* style-allow: os-grade-sidebar */
+  text-transform: uppercase;
+  padding: 8px 10px 4px !important; /* style-allow: os-grade-sidebar */
+  margin: 0 !important; /* style-allow: os-grade-sidebar */
+  color: color-mix(in srgb, currentColor 60%, transparent);
+}
+
+html[data-rmc-os-grade="1"] .admin-sidebar-app-title {
+  font-weight: 600;
+  font-size: 11px !important; /* style-allow: os-grade-sidebar */
+  letter-spacing: 0.02em;
+}
+
+html[data-rmc-os-grade="1"] .admin-sidebar-model-list {
+  gap: 1px !important; /* style-allow: os-grade-sidebar */
+  padding-left: 8px !important; /* style-allow: os-grade-sidebar */
+  border-left: 1px solid var(--rmc-os-hairline);
+  margin-left: 10px !important; /* style-allow: os-grade-sidebar */
+}
+
+html[data-rmc-os-grade="1"] .admin-sidebar-app-group {
+  margin-bottom: 4px !important; /* style-allow: os-grade-sidebar */
+}
+
+html[data-rmc-os-grade="1"] .admin-sidebar-section-divider {
+  margin: 6px 8px !important; /* style-allow: os-grade-sidebar */
+  border-color: var(--rmc-os-hairline) !important; /* style-allow: os-grade-sidebar */
+  opacity: 0.6;
+}
+
+/* Sidebar containment — prevent overflow into the canvas area, which is
+   what produced the "10 users" vertical pile-up bug. */
+html[data-rmc-os-grade="1"] :is(.admin-sidebar, .cp-sidebar-inner, .tp-sidebar-inner,
+   #portalSidebar, #cp-sidebar-col, .portal-sidebar-col, .cp-sidebar-col) {
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 100dvh;
+  overscroll-behavior: contain;
+  contain: layout style;
+}
+
+/* ============================================================
+   COMMAND RAIL FOOT — a 28px telemetry strip across the bottom of
+   the canvas with current section + density toggle + Cmd+K hint
+   ============================================================ */
+
+.rmc-os-command-rail {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1020;
+  display: none;
+  height: 24px;
+  padding: 0 12px;
+  align-items: center;
+  gap: 12px;
+  background: color-mix(in srgb, var(--surface-popover, #0c0c12) 92%, transparent);
+  border-top: 1px solid var(--rmc-os-hairline);
+  font-family: var(--rmc-os-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, currentColor 75%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+html[data-rmc-os-grade="1"] .rmc-os-command-rail {
+  display: flex;
+}
+.rmc-os-command-rail__slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.rmc-os-command-rail__slot--right {
+  margin-left: auto;
+}
+.rmc-os-command-rail__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rmc-os-glow);
+  box-shadow: 0 0 6px var(--rmc-os-glow);
+  animation: rmc-os-pulse-soft 1.8s ease-in-out infinite;
+}
+@keyframes rmc-os-pulse-soft {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+.rmc-os-command-rail__kbd {
+  font-family: inherit;
+  padding: 1px 5px;
+  border: 1px solid var(--rmc-os-hairline);
+  border-radius: 2px;
+  font-size: 9px;
+}
+
+/* Push the canvas + footer-anchored widgets up by 24px so they don't
+   collide with the command rail. */
+html[data-rmc-os-grade="1"] body {
+  padding-bottom: 24px;
+}
+html[data-rmc-os-grade="1"] .lx-notebook { bottom: 44px !important; } /* style-allow: os-grade-rail-offset */
+html[data-rmc-os-grade="1"] .rmc-admin-quickaction { bottom: 120px !important; } /* style-allow: os-grade-rail-offset */
+html[data-rmc-os-grade="1"] .rmc-hover-inspector { bottom: 200px !important; } /* style-allow: os-grade-rail-offset */
+
+/* ============================================================
+   TABLE TIGHTNESS — micro-rows, mono numerics, glow on hovered cell
+   ============================================================ */
+
+html[data-rmc-os-grade="1"] :is(.rmc-data-table, #changelist table, table.table) {
+  border: 1px solid var(--rmc-os-hairline);
+  border-radius: 4px;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+html[data-rmc-os-grade="1"] :is(.rmc-data-table, #changelist table, table.table) thead th {
+  font-size: 9px !important; /* style-allow: os-grade-table */
+  font-weight: 700 !important; /* style-allow: os-grade-table */
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 8px !important; /* style-allow: os-grade-table */
+  border-bottom: 1px solid var(--rmc-os-hairline) !important; /* style-allow: os-grade-table */
+  background: color-mix(in srgb, var(--surface-elevated, #1a1a22) 60%, transparent);
+}
+html[data-rmc-os-grade="1"] :is(.rmc-data-table, #changelist table, table.table) tbody td {
+  padding: 5px 8px !important; /* style-allow: os-grade-table */
+  border-bottom: 1px solid color-mix(in srgb, var(--rmc-os-hairline) 50%, transparent) !important; /* style-allow: os-grade-table */
+  font-family: inherit;
+}
+html[data-rmc-os-grade="1"] :is(.rmc-data-table, #changelist table, table.table) tbody tr:hover td {
+  background: color-mix(in srgb, var(--rmc-os-glow) 8%, transparent);
+}
+
+/* ============================================================
+   PAGE-FOLD HEADER STRIP COMPRESS
+   ============================================================ */
+
+html[data-rmc-os-grade="1"] :is(.cp-hero, .rmc-os-page-header) {
+  border-bottom: 1px solid var(--rmc-os-hairline);
+  border-radius: 0 !important; /* style-allow: os-grade-pagehead */
+  padding: 6px 16px !important; /* style-allow: os-grade-pagehead */
+}
+html[data-rmc-os-grade="1"] .cp-hero__title,
+html[data-rmc-os-grade="1"] .rmc-os-page-header h1 {
+  font-size: clamp(16px, 1.4vw, 22px) !important; /* style-allow: os-grade-pagehead */
+  margin: 0 !important; /* style-allow: os-grade-pagehead */
+}
+html[data-rmc-os-grade="1"] .cp-hero__eyebrow {
+  font-size: 9px !important; /* style-allow: os-grade-pagehead */
+  letter-spacing: 0.1em;
+}
+html[data-rmc-os-grade="1"] .cp-hero__lede {
+  -webkit-line-clamp: 1;
+  font-size: 11px !important; /* style-allow: os-grade-pagehead */
+  margin: 2px 0 !important; /* style-allow: os-grade-pagehead */
+}
+
+/* ============================================================
+   DEVICE PROFILES
+   ============================================================ */
+
+/* ─ Ultra-wide / 4K — multi-pane horizontal split where possible ─ */
+@media (min-width: 1920px) {
+  html[data-rmc-os-grade="1"] body.admin-manager-shell .admin-cp-unified-page #content {
+    display: grid;
+    grid-template-columns: minmax(720px, 1.6fr) minmax(360px, 0.8fr);
+    gap: 12px;
+    align-items: start;
+  }
+  html[data-rmc-os-grade="1"] body.admin-manager-shell .admin-cp-unified-page #content > form {
+    grid-column: 1;
+    max-width: none;
+  }
+  html[data-rmc-os-grade="1"] body.admin-manager-shell .admin-cp-unified-page #content > .module:not(form .module),
+  html[data-rmc-os-grade="1"] body.admin-manager-shell .admin-cp-unified-page #content > .changelist-search {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ─ Tablet — sidebar collapses to 32px icon tray ─ */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  html[data-rmc-os-grade="1"] body.admin-manager-shell .cp-sidebar-col,
+  html[data-rmc-os-grade="1"] body.portal-body-with-layout .portal-sidebar-col {
+    width: 36px !important; /* style-allow: os-grade-tablet */
+    min-width: 36px !important; /* style-allow: os-grade-tablet */
+    overflow: hidden;
+  }
+  html[data-rmc-os-grade="1"] body.admin-manager-shell .cp-sidebar-col .admin-sidebar-model-link-text,
+  html[data-rmc-os-grade="1"] body.admin-manager-shell .cp-sidebar-col .admin-sidebar-app-title a,
+  html[data-rmc-os-grade="1"] body.portal-body-with-layout .portal-sidebar-col .tp-sidebar-link__label {
+    display: none;
+  }
+  html[data-rmc-os-grade="1"] body.admin-manager-shell .admin-sidebar-section-heading {
+    display: none;
+  }
+}
+
+/* ─ Mobile / low-end — single-column stream, command bar bottom-zone ─ */
+@media (max-width: 767.98px) {
+  html[data-rmc-os-grade="1"] :is(.cp-sidebar-col, .portal-sidebar-col) {
+    display: none;
+  }
+  html[data-rmc-os-grade="1"] :is(#content, #main-content, #cp-main-content) {
+    padding: 6px 8px;
+  }
+  html[data-rmc-os-grade="1"] :is(.rmc-card, .module, .rmc-stat-card) {
+    border-radius: 0 !important; /* style-allow: os-grade-mobile */
+    border-left: 0 !important; /* style-allow: os-grade-mobile */
+    border-right: 0 !important; /* style-allow: os-grade-mobile */
+    margin-inline: -8px;
+  }
+}
+
+/* ============================================================
+   PREFERS-REDUCED-MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .rmc-os-command-rail__dot { animation: none; }
+}

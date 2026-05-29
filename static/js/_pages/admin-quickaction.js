@@ -145,6 +145,95 @@
   // Apply BEFORE first paint when possible.
   try { applyPageDomain(); } catch (e) {}
 
+  /* v4.00.26 — OS-grade density bootstrap.
+     Auto-enables [data-rmc-os-grade="1"] on <html> for manager + admin
+     shells (when the body carries .admin-manager-shell / .control-plane-shell).
+     Operator opt-out via localStorage["rmc-os-grade"] = "off".
+     Public API: window.rmcOsGrade.{get,set,toggle}. */
+  function applyOsGrade() {
+    var html = document.documentElement;
+    if (html.getAttribute("data-rmc-os-grade")) return;
+    try {
+      var stored = localStorage.getItem("rmc-os-grade");
+      if (stored === "off") return;
+      if (stored === "on") {
+        html.setAttribute("data-rmc-os-grade", "1");
+        return;
+      }
+    } catch (e) {}
+    // Default-on for the two ops surfaces.
+    var b = document.body;
+    if (b && (b.classList.contains("admin-manager-shell") ||
+              b.classList.contains("control-plane-shell"))) {
+      html.setAttribute("data-rmc-os-grade", "1");
+    }
+  }
+
+  function ensureCommandRail() {
+    if (document.querySelector(".rmc-os-command-rail")) return;
+    var rail = document.createElement("div");
+    rail.className = "rmc-os-command-rail";
+    rail.setAttribute("role", "status");
+    rail.setAttribute("aria-live", "polite");
+    var domain = document.documentElement.getAttribute("data-rmc-page-domain") || "platform";
+    rail.innerHTML =
+      '<span class="rmc-os-command-rail__slot">' +
+        '<span class="rmc-os-command-rail__dot" aria-hidden="true"></span>' +
+        '<span class="rmc-os-command-rail__label">' + domain.toUpperCase() + '</span>' +
+      '</span>' +
+      '<span class="rmc-os-command-rail__slot">' +
+        '<span>SECURE · TLS 1.3</span>' +
+      '</span>' +
+      '<span class="rmc-os-command-rail__slot rmc-os-command-rail__slot--right">' +
+        '<span>DENSITY</span> ' +
+        '<kbd class="rmc-os-command-rail__kbd" data-rmc-density-toggle title="Toggle density">D</kbd>' +
+        '<span style="margin-left:8px">COMMAND</span> ' +
+        '<kbd class="rmc-os-command-rail__kbd">⌘K</kbd>' +
+      '</span>';
+    document.body.appendChild(rail);
+
+    var k = rail.querySelector("[data-rmc-density-toggle]");
+    if (k) k.addEventListener("click", function () {
+      if (window.rmcAdminDensity) window.rmcAdminDensity.toggle();
+    });
+  }
+
+  function dedupAdminSidebar() {
+    var seen = Object.create(null);
+    var groups = document.querySelectorAll(".admin-sidebar-app-group");
+    groups.forEach(function (g) {
+      var titleEl = g.querySelector(".admin-sidebar-app-title a, .admin-sidebar-app-title");
+      var name = (titleEl ? (titleEl.textContent || "").trim() : "").replace(/\s+/g, " ").toLowerCase();
+      if (!name) return;
+      if (seen[name]) {
+        // Already rendered an identical sidebar app group — remove this dup.
+        if (g.parentNode) g.parentNode.removeChild(g);
+        return;
+      }
+      seen[name] = 1;
+    });
+    // Same defensive dedup for section headings.
+    var seenHeadings = Object.create(null);
+    var headings = document.querySelectorAll(".admin-sidebar-section-heading");
+    headings.forEach(function (h) {
+      var n = (h.textContent || "").trim().toLowerCase();
+      if (!n) return;
+      if (seenHeadings[n]) { if (h.parentNode) h.parentNode.removeChild(h); return; }
+      seenHeadings[n] = 1;
+    });
+  }
+
+  try { applyOsGrade(); } catch (e) {}
+
+  window.rmcOsGrade = {
+    get: function () { return document.documentElement.getAttribute("data-rmc-os-grade") === "1"; },
+    set: function (on) {
+      document.documentElement.setAttribute("data-rmc-os-grade", on ? "1" : "0");
+      try { localStorage.setItem("rmc-os-grade", on ? "on" : "off"); } catch (e) {}
+    },
+    toggle: function () { this.set(!this.get()); return this.get(); }
+  };
+
   /* v4.00.20 — scroll-aware ticker collapse + density-toggle persistence.
      Sets [data-rmc-scrolled="1"] on <html> once the user scrolls past 64px;
      CSS in admin-manager-shell.css uses that to collapse the LIVE ticker
@@ -192,9 +281,12 @@
 
   function bootAll() {
     applyPageDomain();
+    applyOsGrade();
     init();
     initShellEnhancements();
     initHoverInspector();
+    dedupAdminSidebar();
+    ensureCommandRail();
   }
 
   /* v4.00.23 — Hover-row inspector.

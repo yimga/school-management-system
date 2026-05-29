@@ -146,15 +146,17 @@
     </h2>
     <div class="admin-sidebar-app-groups" role="group" x-show="allAppsOpen" x-transition.50ms>
   {% endif %}
-    {# v4.00.19 — defensive dedup. When apps register the same ModelAdmin
-       under multiple sections or the cockpit context processor injects a
-       duplicate "section" of the same app, the original template printed the
-       same app row 30+ times. We dedup BY (section, app_label) here so the
-       canonical first occurrence wins. The proper root fix is in the Python
-       registry, but the template guard keeps the user out of the broken
-       view until that lands. #}
-    {% regroup app_list by app_label as app_label_groups %}
-    {% for app_group in app_label_groups %}
+    {# v4.00.26 — defensive dedup, take 2. v4.00.19 regrouped by
+       app_label, which still left visible duplicates when the same
+       *display name* came from different app_labels ("BACKOFFICE -
+       MAINTENANCE & REPAIR" was rendering 2-3 times in production
+       because the cockpit nav injector emitted multiple synthetic app
+       entries). Switching the regroup key to `name` collapses those by
+       what the user actually sees. Pair with the JS dedup in
+       admin-quickaction.js (v4.00.26) which removes any same-name
+       siblings that still leak through. #}
+    {% regroup app_list by name as app_name_groups %}
+    {% for app_group in app_name_groups %}
     {% with app=app_group.list.0 %}
     {% ifchanged app.section %}
       {% if not forloop.first %}<hr class="admin-sidebar-section-divider" aria-hidden="true">{% endif %}
