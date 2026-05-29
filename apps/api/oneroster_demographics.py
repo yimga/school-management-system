@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import json as _json
 import logging
+import re
 from typing import Any, Iterable
 
 from django.core.cache import cache
@@ -294,6 +295,14 @@ def demographics_collection(request: HttpRequest):
     above = (request.GET.get("dateLastModifiedAbove") or "").strip()
     if above:
         items = [r for r in items if (r.get("dateLastModified") or "") > above]
+    # v4.00.66 — OneRoster v1.2 spec § 4.13 ?filter= boolean expression.
+    # Grammar: predicate (logical_op predicate)*; predicate is
+    # field comparison_op 'value'. AND-precedence > OR-precedence.
+    # Parser is fail-safe — bad expr falls through to no-op (operator UI).
+    filter_expr = (request.GET.get("filter") or "").strip()
+    if filter_expr:
+        from apps.api.oneroster_filter import apply_filter as _apply_filter
+        items = _apply_filter(items, filter_expr)
     # v4.00.65 — OneRoster v1.2 spec § 4.13 ?sort= + ?orderBy=. Sort BEFORE
     # masking so the operator can sort by a field they then drop from the
     # projection (e.g. sort by dateLastModified, return only sourcedId).
@@ -407,7 +416,68 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_sex_enum(inner)
     if err is not None:
         return None, err
+    err = _validate_country_of_birth_code(inner)
+    if err is not None:
+        return None, err
     return inner, None
+
+
+# v4.00.66 — Demographics POST/PUT `countryOfBirthCode` ISO 3166-1 alpha-2.
+# OneRoster v1.2 spec Demographics.countryOfBirthCode field carries a
+# 2-letter ISO 3166-1 alpha-2 country code (e.g. "NG", "US", "GB").
+# Empty string is an explicit clear (preserved). Anything else must match
+# the COUNTRY_LOCALIZATION SOT — operators get a 400 with the received
+# value + a short note pointing at the SOT.
+#
+# We resolve the allow-set lazily so the platform's full ISO 3166-1 list
+# stays the SoT (we don't carry a duplicate hardcoded list in demographics).
+_COUNTRY_OF_BIRTH_CODE_RE = re.compile(r"^[A-Za-z]{2}$")
+
+
+def _resolve_iso_3166_alpha2_codes() -> frozenset:
+    """Pull the ISO 3166-1 alpha-2 codes the platform knows about.
+
+    Walks COUNTRY_LOCALIZATION keys that look like a 2-letter code (skips
+    subdivision codes like ``US-CA``). NEVER raises — returns empty set
+    on import failure so the validator falls through to regex-only.
+    """
+    try:
+        from apps.siteconfig._seed_country_localization import COUNTRY_LOCALIZATION
+    except Exception:  # noqa: BLE001
+        return frozenset()
+    return frozenset(
+        k for k in COUNTRY_LOCALIZATION.keys()
+        if isinstance(k, str) and len(k) == 2 and k.isalpha() and k.isupper()
+    )
+
+
+def _validate_country_of_birth_code(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "countryOfBirthCode" not in inner:
+        return None
+    raw = str(inner.get("countryOfBirthCode") or "").strip()
+    if not raw:
+        return None  # explicit clear
+    if not _COUNTRY_OF_BIRTH_CODE_RE.match(raw):
+        return JsonResponse(
+            {"error": "bad_country_of_birth_code",
+             "reason": "expected_iso_3166_1_alpha_2",
+             "received": raw[:32]},
+            status=400,
+        )
+    code = raw.upper()
+    allow = _resolve_iso_3166_alpha2_codes()
+    # When the SOT is empty (model unavailable), accept any well-shaped
+    # alpha-2 code; the regex above guarantees the shape.
+    if allow and code not in allow:
+        return JsonResponse(
+            {"error": "bad_country_of_birth_code",
+             "reason": "not_in_iso_3166_1_alpha_2",
+             "received": code,
+             "note": "must match a 2-letter ISO 3166-1 code from COUNTRY_LOCALIZATION SOT"},
+            status=400,
+        )
+    return None
 
 
 # v4.00.65 — Demographics POST/PUT `sex` enum validation per OneRoster v1.2

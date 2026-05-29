@@ -913,13 +913,89 @@ def _within_validity_window(not_before: str, not_on_or_after: str) -> bool:
     return True
 
 
+# ---------------------------------------------------------------------------
+# v4.00.66 — SAML attribute mapping config.
+#
+# Pre-v4.00.66, _provision_user_from_saml hard-coded the SAML attribute
+# names (givenName / firstName / sn / surname / familyName / email / mail).
+# IdPs in the wild use different names per their vendor / config:
+#
+#   Okta:        firstName, lastName, email
+#   Azure AD:    http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname
+#   Google:      first_name, last_name, email
+#   Shibboleth:  urn:oid:2.5.4.42 (given name), urn:oid:2.5.4.4 (sn)
+#
+# Operators now configure the per-field source via env. Each
+# RMC_SAML_ATTR_<FIELD> carries a comma-separated priority list of
+# attribute keys to try (first non-empty wins). Defaults preserve
+# v4.00.45 behavior. Empty / missing env → defaults.
+#
+# Supported fields: first_name, last_name, email.
+# ---------------------------------------------------------------------------
+
+_DEFAULT_SAML_ATTR_MAP = {
+    "first_name": ("givenName", "firstName", "first_name",
+                   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname",
+                   "urn:oid:2.5.4.42"),
+    "last_name": ("sn", "surname", "familyName", "lastName", "last_name",
+                  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname",
+                  "urn:oid:2.5.4.4"),
+    "email": ("email", "mail", "emailAddress",
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+              "urn:oid:0.9.2342.19200300.100.1.3"),
+}
+
+
+def _resolve_saml_attr_map() -> dict:
+    """v4.00.66 — Build the active SAML attribute-priority map.
+
+    For each known field (first_name, last_name, email):
+      1. Read ``RMC_SAML_ATTR_<FIELD_UPPER>`` env var
+      2. Split on comma + strip whitespace → priority tuple
+      3. Empty → fall back to the default map
+
+    NEVER raises — bad env values fall back to defaults silently.
+    """
+    out = {}
+    for field, default in _DEFAULT_SAML_ATTR_MAP.items():
+        env_key = f"RMC_SAML_ATTR_{field.upper()}"
+        raw = (
+            getattr(settings, env_key, None)
+            if hasattr(settings, env_key)
+            else os.environ.get(env_key, "")
+        )
+        if raw is None or str(raw).strip() == "":
+            out[field] = tuple(default)
+            continue
+        parts = tuple(p.strip() for p in str(raw).split(",") if p.strip())
+        out[field] = parts or tuple(default)
+    return out
+
+
+def _extract_saml_attr(attrs: dict, priority: tuple) -> str:
+    """Walk the priority list, return first non-empty stripped value."""
+    for key in priority:
+        val = attrs.get(key, "")
+        if val and str(val).strip():
+            return str(val).strip()
+    return ""
+
+
 def _provision_user_from_saml(name_id: str, attrs: dict) -> tuple:
     """Get-or-create User by email (NameID often *is* the email). Returns
-    ``(user, created)``."""
+    ``(user, created)``.
+
+    v4.00.66 — Attribute lookup now routes through the operator-configurable
+    map (RMC_SAML_ATTR_FIRST_NAME / _LAST_NAME / _EMAIL). Defaults preserve
+    v4.00.45 behavior so unconfigured deployments keep working.
+    """
     from django.contrib.auth import get_user_model
 
+    attr_map = _resolve_saml_attr_map()
+
     UserModel = get_user_model()
-    email = (attrs.get("email") or attrs.get("mail") or "").strip().lower()
+    email_raw = _extract_saml_attr(attrs, attr_map["email"])
+    email = email_raw.lower().strip()
     if not email and "@" in name_id:
         email = name_id.lower()
     username = email or name_id or ""
@@ -933,8 +1009,8 @@ def _provision_user_from_saml(name_id: str, attrs: dict) -> tuple:
     if user is not None:
         return user, False
     new_user = UserModel(username=username, email=email)
-    given = (attrs.get("givenName") or attrs.get("firstName") or "").strip()
-    family = (attrs.get("sn") or attrs.get("surname") or attrs.get("familyName") or "").strip()
+    given = _extract_saml_attr(attrs, attr_map["first_name"])
+    family = _extract_saml_attr(attrs, attr_map["last_name"])
     if given:
         new_user.first_name = given
     if family:

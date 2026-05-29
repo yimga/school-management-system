@@ -580,6 +580,52 @@ def _action_history_csv_response(*, limit: int, since=None, before=None):
 # ---------------------------------------------------------------------------
 
 
+# v4.00.66 — Retention force-purge token round-trip.
+#
+# The HTML preview surface emits a signed token bound to the exact
+# ``(years, cutoff_iso)`` it just showed the operator. The force-purge
+# POST view validates the token (Django TimestampSigner, 5min TTL) and
+# THEN runs the real sweep with ``dry_run=False``. A token issued for
+# 7y CANNOT be replayed against the 3y sweep — the cutoff is part of
+# the signed payload — so the operator can't accidentally purge more
+# than they previewed.
+#
+# Audit-trail safety: every successful purge writes an audit row via the
+# v4.00.61 ``_record_action`` path with action="retention_purge" so the
+# diagnostics history surface reflects the deletion.
+_RETENTION_PURGE_TOKEN_SALT = "rmc.lms_diag_action.retention_purge.v4.00.66"
+_RETENTION_PURGE_TOKEN_TTL_SECONDS = 300  # 5min
+
+
+def _make_retention_purge_token(*, years: int, cutoff_iso: str) -> str:
+    from django.core.signing import TimestampSigner
+    signer = TimestampSigner(salt=_RETENTION_PURGE_TOKEN_SALT)
+    payload = f"{int(years)}:{cutoff_iso or ''}"
+    return signer.sign(payload)
+
+
+def _read_retention_purge_token(raw: str):
+    """Return ``(years, cutoff_iso)`` on valid token, else (None, reason)."""
+    from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+    signer = TimestampSigner(salt=_RETENTION_PURGE_TOKEN_SALT)
+    if not raw:
+        return None, "missing_token"
+    try:
+        payload = signer.unsign(raw, max_age=_RETENTION_PURGE_TOKEN_TTL_SECONDS)
+    except SignatureExpired:
+        return None, "expired_token"
+    except BadSignature:
+        return None, "bad_token"
+    if ":" not in payload:
+        return None, "malformed_payload"
+    years_s, cutoff_iso = payload.split(":", 1)
+    try:
+        years = int(years_s)
+    except (ValueError, TypeError):
+        return None, "bad_years"
+    return (years, cutoff_iso), "ok"
+
+
 @staff_member_required
 @require_http_methods(["GET"])
 def lms_diagnostics_retention_preview(request: HttpRequest):
@@ -592,6 +638,11 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
 
     v4.00.65 — Default to HTML for browser hits; ``?format=json`` keeps
     the original JSON shape for monitor / smoke probes.
+
+    v4.00.66 — HTML render emits a 5min-TTL signed token bound to
+    ``(years, cutoff_iso)`` so the operator can click "Confirm purge"
+    without replay risk. The token is consumed by
+    ``lms_diagnostics_retention_purge``.
     """
     try:
         from apps.integrations_marketplace.lms_diag_action_retention import (
@@ -626,12 +677,25 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
             status=503,
         )
 
+    # v4.00.66 — Mint a force-purge token only when the sweep produced a
+    # real cutoff (i.e. years > 0 and the table has a row to purge). For
+    # retain_forever / errored shapes the token is empty and the HTML
+    # template gates the button off.
+    purge_token = ""
+    if out.get("considered", 0) > 0 and out.get("cutoff_iso"):
+        purge_token = _make_retention_purge_token(
+            years=int(out.get("years") or 0),
+            cutoff_iso=str(out.get("cutoff_iso") or ""),
+        )
+
     fmt = (request.GET.get("format") or "").strip().lower()
     if fmt == "json":
         return JsonResponse({
             "success": True,
             "generated_at": timezone.now().isoformat(),
             "retention": out,
+            "purge_token": purge_token,
+            "purge_token_ttl_seconds": _RETENTION_PURGE_TOKEN_TTL_SECONDS,
             "note": "preview only — nothing was deleted",
         })
 
@@ -642,8 +706,90 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
             "retention": out,
             "generated_at": timezone.now().isoformat(),
             "years_override": years,
+            "purge_token": purge_token,
+            "purge_token_ttl_seconds": _RETENTION_PURGE_TOKEN_TTL_SECONDS,
             "note": "preview only — nothing was deleted",
         },
+    )
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def lms_diagnostics_retention_purge(request: HttpRequest):
+    """v4.00.66 — Honor the "Confirm purge" click from the preview UI.
+
+    Validates the signed token + runs the REAL sweep with ``dry_run=False``.
+    Emits an audit row via the v4.00.61 action-history path so the
+    purge appears in the diagnostics dashboard alongside operator clicks.
+
+    Response shape: JSON ``{success, action="retention_purge", considered,
+    deleted, cutoff_iso, years, token_reason}``. Form-submitted clicks
+    redirect back to the preview page w/ ``?purged_deleted=N`` so the
+    operator sees the result inline.
+
+    Failure modes:
+      * Missing/expired/bad token → 401 ``invalid_purge_token`` w/ reason
+      * Sweep unavailable (model import failure) → 503
+      * Sweep raised (defense-in-depth) → 503
+    """
+    raw_token = (request.POST.get("token") or request.GET.get("token") or "").strip()
+    parsed, reason = _read_retention_purge_token(raw_token)
+    if parsed is None:
+        return JsonResponse(
+            {"success": False, "stage": "invalid_purge_token", "reason": reason},
+            status=401,
+        )
+    years, cutoff_iso = parsed
+
+    try:
+        from apps.integrations_marketplace.lms_diag_action_retention import (
+            sweep_lms_diag_action_retention,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {"success": False, "stage": "sweep_unavailable", "error": str(exc)},
+            status=503,
+        )
+
+    try:
+        out = sweep_lms_diag_action_retention(years=years, dry_run=False)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("retention purge: sweep raised: %s", exc)
+        return JsonResponse(
+            {"success": False, "stage": "sweep_raised", "error": str(exc)},
+            status=503,
+        )
+
+    summary = {
+        "success": True,
+        "action": "retention_purge",
+        "considered": out.get("considered", 0),
+        "deleted": out.get("deleted", 0),
+        "cutoff_iso": out.get("cutoff_iso", cutoff_iso),
+        "years": out.get("years", years),
+        "token_reason": reason,
+    }
+    # Wire into v4.00.61 action-history ring so the purge appears in
+    # the operator audit trail alongside force-refresh / force-rotate clicks.
+    try:
+        _record_action(
+            request=request,
+            action="retention_purge",
+            provider="lms_diag_action",
+            summary={**summary, "ok": out.get("deleted", 0),
+                     "failed": (out.get("considered", 0) - out.get("deleted", 0))},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("retention purge: audit emit failed: %s", exc)
+
+    if (request.headers.get("Accept") or "").lower().startswith("application/json"):
+        return JsonResponse(summary)
+
+    # Form-submitted click → redirect back to the preview with a result query.
+    from django.http import HttpResponseRedirect
+    return HttpResponseRedirect(
+        f"/super/migration/lms/diagnostics/retention-preview/"
+        f"?purged_deleted={summary['deleted']}&purged_considered={summary['considered']}"
     )
 
 

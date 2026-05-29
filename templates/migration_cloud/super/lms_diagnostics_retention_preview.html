@@ -89,6 +89,38 @@
     </div>
   </section>
 
+  {# v4.00.66 — Force-purge button (only emitted when a token was minted, #}
+  {# i.e. the preview produced a real cutoff w/ at least one row to delete). #}
+  {% if purge_token %}
+  <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
+    <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;color:var(--text-primary);">{% trans "Confirm purge" %}</h2>
+    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;">
+      {% blocktrans count counter=retention.considered %}Permanently delete {{ counter }} row older than the cutoff above.{% plural %}Permanently delete {{ counter }} rows older than the cutoff above.{% endblocktrans %}
+      {% trans "This token is valid for" %} {{ purge_token_ttl_seconds }}s.
+    </p>
+    <form method="post" action="{% url 'migration_cloud_super:migration_cloud_lms_diagnostics_retention_purge' %}" style="display:flex;gap:8px;align-items:center;">
+      {% csrf_token %}
+      <input type="hidden" name="token" value="{{ purge_token }}">
+      <button type="submit" class="rmc-button rmc-button--danger" style="background:var(--text-primary);color:var(--surface-elevated);">
+        {% trans "Confirm purge — actually delete" %} ({{ retention.considered }})
+      </button>
+      <span style="color:var(--text-secondary);font-size:12px;">
+        {% trans "Audit row is written to action-history." %}
+      </span>
+    </form>
+  </section>
+  {% endif %}
+
+  {% if request.GET.purged_deleted %}
+  <section role="alert" style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
+    <strong style="color:var(--text-primary);">{% trans "Purge complete." %}</strong>
+    <div style="margin-top:6px;color:var(--text-secondary);font-size:13px;">
+      {% trans "Deleted" %}: <code>{{ request.GET.purged_deleted }}</code> ·
+      {% trans "Considered" %}: <code>{{ request.GET.purged_considered }}</code>
+    </div>
+  </section>
+  {% endif %}
+
   <footer style="font-size:12px;color:var(--text-secondary);margin-top:12px;">
     <span>{{ note }}</span> ·
     <a href="?format=json{% if years_override is not None %}&amp;years={{ years_override }}{% endif %}">{% trans "JSON" %}</a> ·
