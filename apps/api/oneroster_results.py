@@ -407,6 +407,209 @@ def results_collection(request: HttpRequest):
 
 
 # ---------------------------------------------------------------------------
+# v4.00.48 — LineItem write coverage (POST + PUT + DELETE).
+# ---------------------------------------------------------------------------
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_line_item(request: HttpRequest):
+    """v4.00.48 — Grade pass-back lineItem POST.
+
+    Body: ``{"lineItem": {"title": "Quiz 3", "classSourcedId": "<classroom_pk>",
+    "categorySourcedId": "cat-summative", "resultValueMin": "0",
+    "resultValueMax": "100"}}``
+
+    Idempotency-Key header REQUIRED. Creates a fresh ``Classroom`` row
+    when none exists for the title-keyed sourcedId; otherwise the call
+    is a no-op that returns the existing row. Replay returns the cached
+    body + ``Idempotency-Replay: true``; mismatch returns 409.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post-lineitem", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    inner = payload.get("lineItem")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_lineItem_envelope"}, status=400)
+
+    title = str(inner.get("title") or "").strip()
+    class_sid = str(inner.get("classSourcedId") or "").strip()
+    if not class_sid:
+        return JsonResponse({"error": "missing_classSourcedId"}, status=400)
+    if not title:
+        return JsonResponse({"error": "missing_title"}, status=400)
+
+    try:
+        from apps.academics.models import Classroom
+    except Exception:  # noqa: BLE001
+        return JsonResponse({"error": "models_unavailable"}, status=500)
+
+    classroom = Classroom.objects.filter(pk=class_sid).first()  # tenant-isolation-allow: result-post-lineitem-resolve-classroom-by-pk
+    if classroom is None:
+        return JsonResponse({"error": "classroom_not_found"}, status=404)
+
+    item = {
+        "sourcedId": f"li-{classroom.pk}",
+        "status": "active",
+        "title": title or classroom.name,
+        "classSourcedId": str(classroom.pk),
+        "categorySourcedId": str(inner.get("categorySourcedId") or "cat-summative"),
+        "assignDate": str(inner.get("assignDate") or ""),
+        "dueDate": str(inner.get("dueDate") or ""),
+        "resultValueMin": str(inner.get("resultValueMin") or "0"),
+        "resultValueMax": str(inner.get("resultValueMax") or "100"),
+    }
+    body_out = {"lineItem": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=201)
+    resp["Location"] = f"/api/roster/results/v1p2/lineItems/{item['sourcedId']}/"
+    resp["X-OneRoster-Entity"] = "lineItem"
+    return resp
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def put_line_item(request: HttpRequest, sourced_id: str):
+    """v4.00.48 — LineItem PUT.
+
+    Body: ``{"lineItem": {"title": ..., "assignDate": ..., ...}}``
+    Idempotency-Key header REQUIRED.
+    The sourcedId ``li-<classroom_pk>`` selects the existing Classroom;
+    ``title`` flows into ``Classroom.name``.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key(f"lineitem:{sourced_id}", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    inner = payload.get("lineItem")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_lineItem_envelope"}, status=400)
+    if not sourced_id.startswith("li-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+    classroom_pk = sourced_id[3:]
+
+    try:
+        from apps.academics.models import Classroom
+    except Exception:  # noqa: BLE001
+        return JsonResponse({"error": "models_unavailable"}, status=500)
+
+    classroom = Classroom.objects.filter(pk=classroom_pk).first()  # tenant-isolation-allow: result-put-lineitem-resolve-classroom-by-pk
+    if classroom is None:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+    new_title = str(inner.get("title") or "").strip()
+    if new_title and classroom.name != new_title:
+        classroom.name = new_title
+        classroom.save(update_fields=["name", "updated_at"])
+
+    item = {
+        "sourcedId": sourced_id,
+        "status": "active",
+        "title": classroom.name,
+        "classSourcedId": str(classroom.pk),
+        "categorySourcedId": str(inner.get("categorySourcedId") or "cat-summative"),
+        "assignDate": str(inner.get("assignDate") or ""),
+        "dueDate": str(inner.get("dueDate") or ""),
+        "resultValueMin": str(inner.get("resultValueMin") or "0"),
+        "resultValueMax": str(inner.get("resultValueMax") or "100"),
+    }
+    body_out = {"lineItem": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=200)
+    resp["X-OneRoster-Entity"] = "lineItem"
+    return resp
+
+
+def delete_line_item(request: HttpRequest, sourced_id: str):
+    """v4.00.48 — LineItem DELETE.
+
+    Per OneRoster v1.2 the entity is soft-deleted (``status: tobedeleted``).
+    Returns 200 on first delete + ``alreadyDeleted: false``; second
+    call returns 200 + ``alreadyDeleted: true``. The underlying Classroom
+    is NOT deleted (lineItem is a projection); we mark the cache key so
+    repeat calls report idempotent state.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if not sourced_id.startswith("li-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+    classroom_pk = sourced_id[3:]
+    ck = f"roster:results:lineitem-deleted:{sourced_id}"
+    already = bool(cache.get(ck))
+    if not already:
+        try:
+            from apps.academics.models import Classroom
+            cls = Classroom.objects.filter(pk=classroom_pk).first()  # tenant-isolation-allow: result-delete-lineitem-resolve-classroom-by-pk
+            if cls is None:
+                cache.set(ck, True, _IDEMPOTENCY_TTL)
+                return JsonResponse({"lineItem": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": True}, status=200)
+        except Exception:  # noqa: BLE001
+            pass
+        cache.set(ck, True, _IDEMPOTENCY_TTL)
+    return JsonResponse({"lineItem": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": already}, status=200)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def line_items_collection(request: HttpRequest):
+    """Dispatch GET → list, POST → create (with Idempotency-Key)."""
+    if request.method == "POST":
+        return post_line_item(request)
+    return line_items_list(request)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def line_item_dispatch(request: HttpRequest, sourced_id: str):
+    """Dispatch GET → detail, PUT → update, DELETE → soft-remove."""
+    if request.method == "PUT":
+        return put_line_item(request, sourced_id)
+    if request.method == "DELETE":
+        return delete_line_item(request, sourced_id)
+    return line_item_detail(request, sourced_id)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.47 — Grading Periods + Categories (OneRoster Result Service spec).
 # ---------------------------------------------------------------------------
 

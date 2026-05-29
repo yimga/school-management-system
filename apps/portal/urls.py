@@ -155,7 +155,7 @@ from .views_multicampus_billing import multicampus_billing
 from .views_institution_assign import assignment_view, assignment_save
 from .views_multicampus_academics import multicampus_academics
 from .views_multicampus_extension import multicampus_extension
-from .views_lms_console import lms_index, lms_provider_detail, lms_token_save
+from .views_lms_console import lms_index, lms_provider_detail, lms_token_save, lms_push_grade, lms_token_refresh
 
 app_name = "portal"
 
@@ -187,6 +187,8 @@ urlpatterns = [
     path("super/integrations/lms/", lms_index, name="lms_index"),
     path("super/integrations/lms/<str:provider>/", lms_provider_detail, name="lms_provider_detail"),
     path("super/integrations/lms/<str:provider>/save/", lms_token_save, name="lms_token_save"),
+    path("super/integrations/lms/<str:provider>/push-grade/", lms_push_grade, name="lms_push_grade"),
+    path("super/integrations/lms/<str:provider>/refresh-token/", lms_token_refresh, name="lms_token_refresh"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

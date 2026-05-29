@@ -49,6 +49,101 @@ def _err_text(data: Any, code: int) -> str:
     return f"http_{code}"
 
 
+def _http_post_form(url: str, payload: dict[str, str]) -> tuple[int, Any]:
+    """POST application/x-www-form-urlencoded — used by OAuth2 token endpoints."""
+    data = urllib.parse.urlencode(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=_TIMEOUT) as resp:  # noqa: S310 — trusted OAuth2 token endpoint
+            body = resp.read().decode("utf-8", errors="replace")
+            try:
+                return resp.status, json.loads(body) if body else {}
+            except (ValueError, TypeError):
+                return resp.status, {"raw": body}
+    except urllib.error.HTTPError as exc:
+        try:
+            body = exc.read().decode("utf-8", errors="replace")
+            return exc.code, json.loads(body) if body else {"error": f"http_{exc.code}"}
+        except Exception:  # noqa: BLE001
+            return exc.code, {"error": f"http_{exc.code}"}
+    except urllib.error.URLError as exc:
+        return 0, {"error": f"urlopen_failed: {exc.reason}"}
+
+
+# ---------------------------------------------------------------------------
+# OAuth2 token-refresh helpers — Canvas + Google. Moodle uses wstoken (no refresh).
+# ---------------------------------------------------------------------------
+
+def canvas_refresh_token(refresh_token: str, client_id: str, client_secret: str, base_url: str) -> dict[str, Any]:
+    """Canvas Instructure OAuth2 refresh.
+
+    Returns ``{"ok", "access_token", "expires_in", "scope", "raw"}``.
+    On failure: ``{"ok": False, "status_code": ..., "detail": ...}``.
+    """
+    if not refresh_token:
+        return {"ok": False, "status_code": 400, "detail": "missing_refresh_token"}
+    code, data = _http_post_form(
+        f"{base_url.rstrip('/')}/login/oauth2/token",
+        {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": client_id,
+            "client_secret": client_secret,
+        },
+    )
+    if 200 <= code < 300 and isinstance(data, dict) and data.get("access_token"):
+        return {
+            "ok": True,
+            "status_code": code,
+            "access_token": data.get("access_token", ""),
+            "expires_in": int(data.get("expires_in") or 0),
+            "scope": data.get("scope") or "",
+            "raw": data,
+        }
+    return {"ok": False, "status_code": code, "detail": _err_text(data, code)}
+
+
+def google_refresh_token(refresh_token: str, client_id: str, client_secret: str) -> dict[str, Any]:
+    """Google OAuth2 refresh."""
+    if not refresh_token:
+        return {"ok": False, "status_code": 400, "detail": "missing_refresh_token"}
+    code, data = _http_post_form(
+        "https://oauth2.googleapis.com/token",
+        {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": client_id,
+            "client_secret": client_secret,
+        },
+    )
+    if 200 <= code < 300 and isinstance(data, dict) and data.get("access_token"):
+        return {
+            "ok": True,
+            "status_code": code,
+            "access_token": data.get("access_token", ""),
+            "expires_in": int(data.get("expires_in") or 0),
+            "scope": data.get("scope") or "",
+            "raw": data,
+        }
+    return {"ok": False, "status_code": code, "detail": _err_text(data, code)}
+
+
+def refresh_token(provider: str, **kwargs: Any) -> dict[str, Any]:
+    """Dispatch helper. Moodle returns "unsupported" — wstoken doesn't expire."""
+    if provider == "canvas":
+        return canvas_refresh_token(**kwargs)
+    if provider == "google_classroom":
+        return google_refresh_token(**kwargs)
+    if provider == "moodle":
+        return {"ok": False, "status_code": 501, "detail": "moodle_wstoken_no_refresh"}
+    return {"ok": False, "status_code": 404, "detail": f"unknown_provider: {provider}"}
+
+
 def _http_get_json(url: str, headers: dict[str, str]) -> tuple[int, Any]:
     req = urllib.request.Request(url, headers=headers, method="GET")
     try:

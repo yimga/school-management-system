@@ -111,6 +111,9 @@ def _check_wedge_2() -> dict[int, bool]:
         4: _module_importable("apps.api.lms_adapters"),
         5: _url_registered("portal:lms_index"),  # v4.00.47 operator console
         6: _url_registered("api:api-roster-results-grading-periods"),  # v4.00.47 GradingPeriod + categories
+        7: _url_registered("api:api-roster-results-line-item-post"),  # v4.00.51 lineItem POST/PUT/DELETE
+        8: _url_registered("portal:lms_push_grade"),  # v4.00.51 push_grade UI button
+        9: _url_registered("portal:lms_token_refresh"),  # v4.00.51 OAuth2 refresh helper
     }
 
 
@@ -335,13 +338,15 @@ def _check_wedge_44() -> dict[int, bool]:
 
 def _check_wedge_45() -> dict[int, bool]:
     # Identity + access federation — SAML metadata v4.00.37 + assertion validation v4.00.46;
-    # SCIM 2.0 v4.00.39; OIDC RP v4.00.41 + RP-Initiated Logout v4.00.46.
+    # SCIM 2.0 v4.00.39; OIDC RP v4.00.41 + RP-Initiated Logout v4.00.46;
+    # tenant binding v4.00.51.
     return {
         0: _url_registered("sso_saml_metadata"),
         1: _url_registered("scim_v2_users"),
         2: _url_registered("oidc_rp_providers"),
         3: _url_registered("oidc_rp_logout"),  # v4.00.46 — OIDC RP-Initiated Logout
         4: _url_registered("sso_saml_acs"),  # v4.00.46 — SAML ACS validates + writes session
+        5: _module_importable("apps.accounts.models_sso"),  # v4.00.51 — UserTenantBinding
     }
 
 

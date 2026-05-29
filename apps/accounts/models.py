@@ -641,3 +641,6 @@ from apps.accounts.models_rebac import (  # noqa: E402,F401
     OfflineAccessIntent,
     RelationshipTuple,
 )
+
+# v4.00.50 — SSO-provisioned user → tenant binding.
+from apps.accounts.models_sso import UserTenantBinding  # noqa: E402,F401

@@ -90,6 +90,26 @@ def lms_provider_detail(request: HttpRequest, provider: str):
                 courses = [{"error": f"adapter_raise: {exc}"}]
             action_result = {"school": school_id, "courses": courses}
 
+    if school_id and action == "list_assignments":
+        course_id = (request.GET.get("course") or "").strip()
+        if not course_id:
+            action_result = {"error": "missing_course"}
+        else:
+            row = _resolve_token_row(school_id, provider)
+            if row is None or not row.access_token:
+                action_result = {"error": "no_token_configured", "school": school_id}
+            else:
+                try:
+                    assignments = lms_adapters.dispatch(
+                        provider, "list_assignments",
+                        course_id=course_id, token=row.access_token,
+                        base_url=row.base_url or "", limit=25,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("lms console %s list_assignments failed school=%s err=%s", provider, school_id, exc)
+                    assignments = [{"error": f"adapter_raise: {exc}"}]
+                action_result = {"school": school_id, "course_id": course_id, "assignments": assignments}
+
     if (request.GET.get("format") or "").lower() == "json":
         payload = {
             "provider": provider,
@@ -174,3 +194,139 @@ def lms_token_save(request: HttpRequest, provider: str):
             "masked_token": row.masked_token(),
         })
     return HttpResponseRedirect(reverse("portal:lms_provider_detail", args=[provider]))
+
+
+@staff_member_required
+@csrf_protect
+@require_http_methods(["POST"])
+def lms_token_refresh(request: HttpRequest, provider: str):
+    """v4.00.50 — OAuth2 token-refresh button.
+
+    Reads the per-(school, provider) refresh_token + client_id/secret from
+    the row + settings env, calls the LMS adapter refresh helper,
+    persists the new access_token + expires_at on success.
+
+    Settings keys (per provider): ``RMC_LMS_<PROVIDER>_CLIENT_ID``,
+    ``RMC_LMS_<PROVIDER>_CLIENT_SECRET``. Failure surfaces as JSON.
+    """
+    if not _provider_supported(provider):
+        return JsonResponse({"error": "unknown_provider", "provider": provider}, status=404)
+
+    school_id_raw = (request.POST.get("school") or "").strip()
+    if not school_id_raw:
+        return JsonResponse({"error": "missing_school"}, status=400)
+    row = _resolve_token_row(school_id_raw, provider)
+    if row is None or not row.refresh_token:
+        return JsonResponse({"error": "no_refresh_token", "school": school_id_raw}, status=412)
+
+    import os as _os
+    from django.conf import settings as _settings
+
+    provider_upper = provider.upper()
+    cid_key = f"RMC_LMS_{provider_upper}_CLIENT_ID"
+    csec_key = f"RMC_LMS_{provider_upper}_CLIENT_SECRET"
+    client_id = (getattr(_settings, cid_key, "") or _os.environ.get(cid_key, "") or "").strip()
+    client_secret = (getattr(_settings, csec_key, "") or _os.environ.get(csec_key, "") or "").strip()
+    if not client_id or not client_secret:
+        return JsonResponse({"error": "client_credentials_missing", "needed": [cid_key, csec_key]}, status=412)
+
+    kwargs: dict = {
+        "refresh_token": row.refresh_token,
+        "client_id": client_id,
+        "client_secret": client_secret,
+    }
+    if provider == "canvas":
+        kwargs["base_url"] = row.base_url or ""
+
+    try:
+        result = lms_adapters.refresh_token(provider, **kwargs)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("lms console %s refresh_token failed school=%s err=%s", provider, school_id_raw, exc)
+        result = {"ok": False, "status_code": 0, "detail": f"adapter_raise: {exc}"}
+
+    persisted = False
+    if result.get("ok") and result.get("access_token"):
+        row.access_token = result["access_token"]
+        expires_in = int(result.get("expires_in") or 0)
+        if expires_in:
+            from django.utils import timezone as _tz
+            from datetime import timedelta as _td
+
+            row.expires_at = _tz.now() + _td(seconds=expires_in)
+        row.save(update_fields=["access_token", "expires_at", "updated_at"])
+        persisted = True
+
+    payload = {
+        "success": bool(result.get("ok")),
+        "provider": provider,
+        "school": school_id_raw,
+        "persisted": persisted,
+        "expires_at": row.expires_at.isoformat() if row.expires_at else "",
+        "masked_token": row.masked_token(),
+        "result_status_code": result.get("status_code"),
+        "result_detail": result.get("detail", ""),
+    }
+    if (request.GET.get("format") or "").lower() == "json" or (request.POST.get("format") or "").lower() == "json":
+        return JsonResponse(payload)
+    return HttpResponseRedirect(reverse("portal:lms_provider_detail", args=[provider]))
+
+
+@staff_member_required
+@csrf_protect
+@require_http_methods(["POST"])
+def lms_push_grade(request: HttpRequest, provider: str):
+    """v4.00.48 — Push a single grade through the LMS adapter SOT.
+
+    POST body: ``school``, ``course_id``, ``assignment_id``, ``user_id``,
+    ``score``. Resolves the per-(school, provider) token + base_url, then
+    dispatches to the v4.00.46 adapter. Result is returned as JSON; the
+    HTML caller can re-render the provider page on a 302 redirect.
+    """
+    if not _provider_supported(provider):
+        return JsonResponse({"error": "unknown_provider", "provider": provider}, status=404)
+
+    school_id_raw = (request.POST.get("school") or "").strip()
+    if not school_id_raw:
+        return JsonResponse({"error": "missing_school"}, status=400)
+    row = _resolve_token_row(school_id_raw, provider)
+    if row is None or not row.access_token:
+        return JsonResponse({"error": "no_token_configured", "school": school_id_raw}, status=412)
+
+    course_id = (request.POST.get("course_id") or "").strip()
+    assignment_id = (request.POST.get("assignment_id") or "").strip()
+    user_id = (request.POST.get("user_id") or "").strip()
+    score_raw = (request.POST.get("score") or "").strip()
+    if not course_id or not assignment_id or not user_id or score_raw == "":
+        return JsonResponse({"error": "missing_field", "required": ["course_id", "assignment_id", "user_id", "score"]}, status=400)
+    try:
+        score = float(score_raw)  # money-float-allow: lms-score-not-money
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "score_not_numeric"}, status=400)
+
+    try:
+        result = lms_adapters.dispatch(
+            provider, "push_grade",
+            course_id=course_id, assignment_id=assignment_id,
+            user_id=user_id, score=score,
+            token=row.access_token, base_url=row.base_url or "",
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("lms console %s push_grade failed school=%s err=%s", provider, school_id_raw, exc)
+        result = {"ok": False, "status_code": 0, "detail": f"adapter_raise: {exc}"}
+
+    payload = {
+        "success": bool(result.get("ok")),
+        "provider": provider,
+        "school": school_id_raw,
+        "course_id": course_id,
+        "assignment_id": assignment_id,
+        "user_id": user_id,
+        "score": score,
+        "result": result,
+    }
+    if (request.GET.get("format") or "").lower() == "json" or (request.POST.get("format") or "").lower() == "json":
+        return JsonResponse(payload)
+    return HttpResponseRedirect(
+        reverse("portal:lms_provider_detail", args=[provider])
+        + f"?school={school_id_raw}&action=list_assignments&course={course_id}"
+    )

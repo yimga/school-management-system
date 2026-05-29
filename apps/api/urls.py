@@ -577,6 +577,10 @@ urlpatterns = [
     # v4.00.42: POST creates a fresh result row; DELETE soft-removes it.
     path("roster/results/v1p2/results/post/", _oneroster_results.post_result, name="api-roster-results-post"),
     path("roster/results/v1p2/results/<str:sourced_id>/delete/", _oneroster_results.delete_result, name="api-roster-results-delete"),
+    # v4.00.48: LineItem write coverage (POST + PUT + DELETE).
+    path("roster/results/v1p2/lineItems/post/", _oneroster_results.post_line_item, name="api-roster-results-line-item-post"),
+    path("roster/results/v1p2/lineItems/<str:sourced_id>/put/", _oneroster_results.put_line_item, name="api-roster-results-line-item-put"),
+    path("roster/results/v1p2/lineItems/<str:sourced_id>/delete/", _oneroster_results.delete_line_item, name="api-roster-results-line-item-delete"),
     # v4.00.47: GradingPeriods + Categories (OneRoster Result Service spec coverage).
     path("roster/results/v1p2/gradingPeriods/", _oneroster_results.grading_periods_list, name="api-roster-results-grading-periods"),
     path("roster/results/v1p2/gradingPeriods/<str:sourced_id>/", _oneroster_results.grading_period_detail, name="api-roster-results-grading-period-detail"),

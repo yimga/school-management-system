@@ -276,6 +276,16 @@ def callback(request: HttpRequest, provider: str):
     except Exception as exc:  # noqa: BLE001
         logger.debug("oidc session id_token persist failed err=%s", exc)
 
+    # v4.00.50 — bind the user to the resolved tenant.
+    try:
+        _bind_tenant_for_user(
+            user, source="oidc", provider=provider,
+            subject=str(claims.get("sub") or ""),
+            issuer=str(claims.get("iss") or ""),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oidc tenant bind failed err=%s", exc)
+
     next_url = _safe_next_url(request)
     want_json = (request.GET.get("format") or "").lower() == "json"
     if want_json:
@@ -374,6 +384,67 @@ def _provision_user(claims: dict[str, Any], cfg: dict[str, str]) -> tuple[Any, b
     new_user.set_unusable_password()
     new_user.save()
     return new_user, True
+
+
+def _bind_tenant_for_user(user: Any, *, source: str, provider: str, subject: str, issuer: str) -> None:
+    """v4.00.50 — Record / refresh the SSO-provisioned tenant binding.
+
+    The resolved tenant is chosen, in order of preference:
+      1. existing ``UserTenantBinding.school`` (re-login keeps prior bind)
+      2. an existing ``TeacherProfile.school`` or ``StudentProfile.school``
+         on the user (the SSO subject reuses a known profile)
+      3. provider config ``cfg["default_school_id"]`` (not handled here —
+         caller may pass via subject/issuer pre-mapping)
+      4. None — no bind written; row is left absent.
+    """
+    try:
+        from apps.accounts.models_sso import UserTenantBinding
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oidc bind_tenant: model unavailable err=%s", exc)
+        return
+
+    existing = UserTenantBinding.objects.filter(user_id=user.pk).first()  # tenant-isolation-allow: sso-binding-lookup-by-user-pk
+    school = None
+    if existing is not None:
+        school = existing.school
+    if school is None:
+        try:
+            from apps.people.models import TeacherProfile, StudentProfile
+
+            prof = TeacherProfile.objects.filter(user_id=user.pk).first()  # tenant-isolation-allow: sso-binding-resolve-school-from-teacher-profile
+            if prof is not None and prof.school_id:
+                school = prof.school
+            if school is None:
+                sp = StudentProfile.objects.filter(user_id=user.pk).first()  # tenant-isolation-allow: sso-binding-resolve-school-from-student-profile
+                if sp is not None and sp.school_id:
+                    school = sp.school
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("oidc bind_tenant: profile lookup failed err=%s", exc)
+
+    if school is None:
+        return
+
+    if existing is None:
+        UserTenantBinding.objects.create(
+            user_id=user.pk, school=school, source=source,
+            provider=provider, subject=subject, issuer=issuer,
+        )
+    else:
+        dirty = []
+        if existing.school_id != school.pk:
+            existing.school = school
+            dirty.append("school")
+        if provider and existing.provider != provider:
+            existing.provider = provider
+            dirty.append("provider")
+        if subject and existing.subject != subject:
+            existing.subject = subject
+            dirty.append("subject")
+        if issuer and existing.issuer != issuer:
+            existing.issuer = issuer
+            dirty.append("issuer")
+        if dirty:
+            existing.save(update_fields=dirty + ["updated_at"])
 
 
 def _login_session(request: HttpRequest, user: Any) -> None:

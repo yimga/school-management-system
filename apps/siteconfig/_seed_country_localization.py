@@ -6504,6 +6504,375 @@ COUNTRY_REGIONAL_DEFAULT.pop("NF", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.48 (2026-05-29) — Greater-China SARs + French overseas tail + Nordic autonomous + Indian Ocean + Western Sahara.
+# +HK/MO + TF/PM/BL/MF/GP/MQ + SJ/AX/FO/GL + IO + EH.
+# ---------------------------------------------------------------------------
+
+# Hong Kong — Cantonese/English, 3+3+4 system with HKDSE at S6.
+COUNTRY_LOCALIZATION["HK"] = {
+    "calendar_system": {
+        "code": "hk-3-term", "label": "3-term (Hong Kong)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "幼稚園 Kindergarten (K1-K3)",       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "小學 Primary (P1-P6)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secondary",    "label": "中學 Secondary (S1-S6) / HKDSE",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",   "label": "VTC / IVE",                         "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-20"},
+        {"code": "international","label": "International / ESF / DSS schools",  "glyph": "\U0001F30D", "primary_sector": "secondary",       "typical_ages": "3-18"},
+        {"code": "university",   "label": "HKU / CUHK / HKUST / PolyU / CityU",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "hk-kg", "label": "幼稚園 K3",       "order": 0},
+        {"code": "hk-p6", "label": "P6 (TSA)",        "order": 6},
+        {"code": "hk-s3", "label": "S3 (Junior)",     "order": 9},
+        {"code": "hk-s6", "label": "S6 (HKDSE)",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "教師 / Teacher", "principal": "校長 / Principal",
+        "term": "學期 / Term", "report_card": "成績表 / Report Card", "grade_level": "級 / Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("HK", None)
+
+# Macau — Cantonese/Portuguese/English, 3+3+4 system with Macao DSE.
+COUNTRY_LOCALIZATION["MO"] = {
+    "calendar_system": {
+        "code": "mo-3-term", "label": "3-term (Macanese)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kindergarten", "label": "幼兒教育 / Educação Infantil",        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",      "label": "小學 / Ensino Primário (P1-P6)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secondary",    "label": "中學 / Ensino Secundário (S1-S6)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "vocational",   "label": "Vocational / IFT",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-20"},
+        {"code": "university",   "label": "University of Macau / MUST / USJ",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mo-kg", "label": "幼兒教育",       "order": 0},
+        {"code": "mo-p6", "label": "P6",             "order": 6},
+        {"code": "mo-s3", "label": "S3 (Junior)",    "order": 9},
+        {"code": "mo-s6", "label": "S6 (Macao DSE)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "教師 / Professor", "principal": "校長 / Director",
+        "term": "學期 / Trimestre", "report_card": "成績表 / Boletim", "grade_level": "級 / Ano",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MO", None)
+
+# French Southern Territories (TAAF) — French, research-station / Crozet/Kerguelen.
+COUNTRY_LOCALIZATION["TF"] = {
+    "calendar_system": {
+        "code": "tf-3-trimester", "label": "3-trimestre (TAAF)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "remote_field", "label": "École à distance (CNED Réunion)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-18"},
+        {"code": "research",     "label": "Station de recherche scientifique",     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tf-base","label": "CNED remote",   "order": 6},
+        {"code": "tf-rech","label": "Recherche",     "order": 18},
+    ],
+    "terminology": {
+        "teacher": "Tuteur CNED", "principal": "Chef de district",
+        "term": "Trimestre", "report_card": "Bulletin CNED", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TF", None)
+
+# Saint Pierre & Miquelon — French, FR système.
+COUNTRY_LOCALIZATION["PM"] = {
+    "calendar_system": {
+        "code": "pm-3-trimester", "label": "3-trimestre (Saint-Pierrais)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École primaire",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège / Brevet",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée Émile Letournel / Baccalauréat","glyph": "\U0001F3DB","primary_sector": "secondary",     "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Lycée pro / LP",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+    ],
+    "education_levels": [
+        {"code": "pm-mat","label": "Maternelle",      "order": 0},
+        {"code": "pm-cm2","label": "CM2",             "order": 5},
+        {"code": "pm-3e", "label": "3e (Brevet)",     "order": 9},
+        {"code": "pm-tle","label": "Tle (Bac)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professeur", "principal": "Proviseur / Principal",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PM", None)
+
+# Saint Barthélemy — French, FR système (small island, CNED-supplement).
+COUNTRY_LOCALIZATION["BL"] = {
+    "calendar_system": {
+        "code": "bl-3-trimester", "label": "3-trimestre (Saint-Barth)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École primaire",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège Mireille Choisy",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée Saint-Barth (Bac via Antilles)","glyph": "\U0001F3DB","primary_sector": "secondary",      "typical_ages": "15-18"},
+    ],
+    "education_levels": [
+        {"code": "bl-mat","label": "Maternelle",      "order": 0},
+        {"code": "bl-cm2","label": "CM2",             "order": 5},
+        {"code": "bl-3e", "label": "3e (Brevet)",     "order": 9},
+        {"code": "bl-tle","label": "Tle (Bac)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professeur", "principal": "Principal",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BL", None)
+
+# Saint Martin (FR) — French, FR système.
+COUNTRY_LOCALIZATION["MF"] = {
+    "calendar_system": {
+        "code": "mf-3-trimester", "label": "3-trimestre (Saint-Martinois)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École primaire",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège / Brevet",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée polyvalent Robert Weinum / Bac","glyph": "\U0001F3DB","primary_sector": "secondary",     "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Lycée pro",                         "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+    ],
+    "education_levels": [
+        {"code": "mf-mat","label": "Maternelle",      "order": 0},
+        {"code": "mf-cm2","label": "CM2",             "order": 5},
+        {"code": "mf-3e", "label": "3e (Brevet)",     "order": 9},
+        {"code": "mf-tle","label": "Tle (Bac)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professeur", "principal": "Principal",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MF", None)
+
+# Guadeloupe — French DOM, FR système.
+COUNTRY_LOCALIZATION["GP"] = {
+    "calendar_system": {
+        "code": "gp-3-trimester", "label": "3-trimestre (Guadeloupéen)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École primaire",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège (6e-3e) / Brevet",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle) / Baccalauréat",   "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Lycée pro / CFA",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university", "label": "Université des Antilles",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gp-mat","label": "Maternelle",      "order": 0},
+        {"code": "gp-cm2","label": "CM2",             "order": 5},
+        {"code": "gp-3e", "label": "3e (Brevet)",     "order": 9},
+        {"code": "gp-tle","label": "Tle (Bac)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professeur / Mèt", "principal": "Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GP", None)
+
+# Martinique — French DOM, FR système.
+COUNTRY_LOCALIZATION["MQ"] = {
+    "calendar_system": {
+        "code": "mq-3-trimester", "label": "3-trimestre (Martiniquais)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École primaire",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège (6e-3e) / Brevet",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle) / Baccalauréat",   "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Lycée pro / CFA",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university", "label": "Université des Antilles (Martinique)","glyph": "\U0001F3DB","primary_sector": "higher_ed",      "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mq-mat","label": "Maternelle",      "order": 0},
+        {"code": "mq-cm2","label": "CM2",             "order": 5},
+        {"code": "mq-3e", "label": "3e (Brevet)",     "order": 9},
+        {"code": "mq-tle","label": "Tle (Bac)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professeur / Mèt", "principal": "Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MQ", None)
+
+# Svalbard & Jan Mayen — Norwegian, mirrors NO system (Longyearbyen Skole).
+COUNTRY_LOCALIZATION["SJ"] = {
+    "calendar_system": {
+        "code": "sj-2-semester", "label": "2-semester (Svalbard)",
+        "term_count": 2, "term_names": ["Høstsemester", "Vårsemester"],
+        "week_start": 0, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "barnehage", "label": "Barnehage / Kindergarten",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "1-6"},
+        {"code": "grunnskole","label": "Grunnskole 1-10 (Longyearbyen Skole)","glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-15"},
+        {"code": "vgs",       "label": "Videregående (Studiespesialisering)",  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-19"},
+        {"code": "unis",      "label": "University Centre in Svalbard (UNIS)",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "sj-bh", "label": "Barnehage",       "order": 0},
+        {"code": "sj-g7", "label": "7. trinn",        "order": 7},
+        {"code": "sj-g10","label": "10. trinn",       "order": 10},
+        {"code": "sj-vg3","label": "VG3",             "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Lærer / Teacher", "principal": "Rektor",
+        "term": "Semester", "report_card": "Vitnemål", "grade_level": "Trinn",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SJ", None)
+
+# British Indian Ocean Territory — Diego Garcia Naval Support Facility school.
+COUNTRY_LOCALIZATION["IO"] = {
+    "calendar_system": {
+        "code": "io-2-semester", "label": "2-semester (BIOT)",
+        "term_count": 2, "term_names": ["1st semester", "2nd semester"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "primary",   "label": "Diego Garcia Naval Support School",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-14"},
+    ],
+    "education_levels": [
+        {"code": "io-g8", "label": "Grade 8",         "order": 8},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("IO", None)
+
+# Åland Islands — Swedish, FI Lukio-aligned.
+COUNTRY_LOCALIZATION["AX"] = {
+    "calendar_system": {
+        "code": "ax-2-semester", "label": "2-semester (Åländsk)",
+        "term_count": 2, "term_names": ["Hösttermin", "Vårtermin"],
+        "week_start": 0, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "daghem",    "label": "Daghem / Förskola",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "1-6"},
+        {"code": "grundskola","label": "Grundskola (årskurs 1-9)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-16"},
+        {"code": "gymnasium", "label": "Ålands lyceum / Gymnasium (Studentexamen)","glyph": "\U0001F3DB","primary_sector": "secondary",   "typical_ages": "16-19"},
+        {"code": "vocational","label": "Ålands yrkesgymnasium",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university","label": "Högskolan på Åland",                  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "ax-dh", "label": "Daghem",           "order": 0},
+        {"code": "ax-g9", "label": "Årskurs 9",        "order": 9},
+        {"code": "ax-stu","label": "Studentexamen",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Lärare / Teacher", "principal": "Rektor",
+        "term": "Termin", "report_card": "Betyg", "grade_level": "Årskurs",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AX", None)
+
+# Faroe Islands — Faroese/Danish, mirrors DK Studentereksamen.
+COUNTRY_LOCALIZATION["FO"] = {
+    "calendar_system": {
+        "code": "fo-2-semester", "label": "2-semester (Føroyskt)",
+        "term_count": 2, "term_names": ["1. semester", "2. semester"],
+        "week_start": 0, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "barnaskuli", "label": "Barnaskúli / Børnehave",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "grunnskuli", "label": "Fólkaskúli (1-9)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-16"},
+        {"code": "gymnasium",  "label": "Føroyamálsdeildin / Gymnasium / Studentaprógv","glyph": "\U0001F3DB","primary_sector": "secondary","typical_ages": "16-19"},
+        {"code": "vocational", "label": "Vinnuskúli / Erhvervsskole",         "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "Fróðskaparsetur Føroya",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "fo-bh", "label": "Barnaskúli",       "order": 0},
+        {"code": "fo-g9", "label": "9. flokkur",       "order": 9},
+        {"code": "fo-stu","label": "Studentaprógv",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Lærari / Teacher", "principal": "Skúlastjóri",
+        "term": "Semester", "report_card": "Vitnisburður", "grade_level": "Flokkur",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("FO", None)
+
+# Greenland — Kalaallisut/Danish, DK-aligned with GU/GUX exam.
+COUNTRY_LOCALIZATION["GL"] = {
+    "calendar_system": {
+        "code": "gl-2-semester", "label": "2-semester (Kalaallit)",
+        "term_count": 2, "term_names": ["1. semester", "2. semester"],
+        "week_start": 0, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "meeqqerivik",    "label": "Meeqqerivik / Daginstitution",   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "1-6"},
+        {"code": "folkeskole",     "label": "Folkeskoli (1-10)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-16"},
+        {"code": "gymnasium",      "label": "GU / GUX (Studentereksamen)",     "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "vocational",     "label": "Erhvervsuddannelse / Inerisaavik","glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",     "label": "Ilisimatusarfik (Univ. of Greenland)","glyph": "\U0001F3DB", "primary_sector": "higher_ed",   "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "gl-mv", "label": "Meeqqerivik",     "order": 0},
+        {"code": "gl-g10","label": "10. klasse",      "order": 10},
+        {"code": "gl-gux","label": "GUX / Studenter", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Ilinniartitsisoq / Lærer", "principal": "Atuarfium pisortaa / Rektor",
+        "term": "Semester", "report_card": "Karakter / Eksamensbevis", "grade_level": "Klasse",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GL", None)
+
+# Western Sahara — Arabic/Spanish/Hassaniya; SADR Polisario administration + MA-controlled mix.
+COUNTRY_LOCALIZATION["EH"] = {
+    "calendar_system": {
+        "code": "eh-2-semester", "label": "2-semester (Sahrawi)",
+        "term_count": 2, "term_names": ["الفصل الأول / 1er semestre", "الفصل الثاني / 2e semestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "روضة / Preescolar / Maternelle",      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",    "label": "Educación primaria (Sahrawi schools)","glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secondary",  "label": "Secundaria sahrauí (Cuba / Argelia partnership)","glyph": "\U0001F393","primary_sector": "secondary","typical_ages": "12-18"},
+        {"code": "vocational", "label": "Formación profesional",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-20"},
+        {"code": "university", "label": "Universidad de Tifariti (Polisario)", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "eh-pre","label": "Preescolar",     "order": 0},
+        {"code": "eh-g6", "label": "Grade 6",        "order": 6},
+        {"code": "eh-g12","label": "Bachiller",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / Maestro / Maître", "principal": "مدير / Director",
+        "term": "فصل / Semestre", "report_card": "كشف / Boletín", "grade_level": "صف / Grado",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("EH", None)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

@@ -344,6 +344,17 @@ def acs(request):
     except Exception as exc:  # noqa: BLE001
         return JsonResponse({"success": False, "stage": "session_login_failed", "detail": str(exc)}, status=500)
 
+    # v4.00.50 — bind the user to the resolved tenant from existing profiles.
+    try:
+        from apps.api.oidc_rp import _bind_tenant_for_user as _bind
+
+        _bind(
+            user, source="saml", provider="saml",
+            subject=name_id, issuer=parsed.get("issuer", ""),
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml tenant bind failed err=%s", exc)
+
     want_json = (request.GET.get("format") or "").lower() == "json"
     if want_json:
         return JsonResponse({
