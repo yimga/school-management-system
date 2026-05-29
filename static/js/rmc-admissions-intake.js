@@ -1,9 +1,17 @@
 /**
- * rmc-admissions-intake.js — v4.00.33 (2026-05-29)
+ * rmc-admissions-intake.js — v4.00.35 (2026-05-29)
  *
  * Auto-renderer for the country/system-type-aware admissions intake schema.
  * Any element with `data-rmc-admissions-intake="1"` will be populated with
  * a per-subject <fieldset> driven by the tenant's resolved exam schema.
+ *
+ * v4.00.35: when the rendered fieldset is inside a <form>, the script also
+ * attaches a submit-time hook that POSTs `{applicant_id, exam_scores,
+ * exam_marker, exam_schema_code}` to `/api/v1/admissions/applicant-scores/`
+ * if the form carries `data-rmc-intake-auto-post="1"` AND a hidden
+ * `applicant_id` field is present. The native form still submits — the
+ * auto-POST runs first as a best-effort capture and never blocks the
+ * surrounding form lifecycle.
  *
  * Markup contract (operator side):
  *   <div data-rmc-admissions-intake="1"
@@ -121,6 +129,9 @@
 
     root.appendChild(grid);
 
+    // v4.00.35 — wire optional auto-POST hook on the enclosing form.
+    wireAutoPost(root, schema, prefix);
+
     // Dispatch a custom event so calling pages can react (e.g. show
     // "score required" hint, refresh a totals widget, etc.)
     try {
@@ -129,6 +140,57 @@
         detail: { schema: schema, field_count: fieldSpecs.length }
       }));
     } catch (_) { /* IE noop */ }
+  }
+
+  function wireAutoPost(root, schema, prefix) {
+    // Find the enclosing <form> + check the opt-in flag.
+    var form = root.closest ? root.closest("form") : null;
+    if (!form) return;
+    if ((form.getAttribute("data-rmc-intake-auto-post") || "").toLowerCase() !== "1") return;
+    if (form.getAttribute("data-rmc-intake-autopost-wired") === "1") return;
+    form.setAttribute("data-rmc-intake-autopost-wired", "1");
+
+    form.addEventListener("submit", function () {
+      try {
+        var applicantField = form.querySelector('input[name="applicant_id"]');
+        if (!applicantField || !applicantField.value) return;
+
+        var scores = {};
+        form.querySelectorAll('[name^="' + prefix + '"]').forEach(function (el) {
+          var subject = el.name.substring(prefix.length);
+          if (subject && el.value) scores[subject] = el.value;
+        });
+
+        var body = new FormData();
+        body.append("applicant_id", applicantField.value);
+        body.append("exam_marker", schema.exam_marker || schema.code || "");
+        body.append("exam_schema_code", schema.code || "");
+        body.append("exam_scores_json", JSON.stringify(scores));
+        var csrf = (form.querySelector('input[name="csrfmiddlewaretoken"]') || {}).value;
+        if (csrf) body.append("csrfmiddlewaretoken", csrf);
+
+        // Best-effort fire-and-forget. We DO NOT await this — the form's
+        // own submit handler still runs as normal.
+        if (navigator.sendBeacon) {
+          // sendBeacon doesn't include csrfmiddlewaretoken header, so fall
+          // back to keepalive fetch when we need CSRF.
+          fetch("/api/v1/admissions/applicant-scores/", {
+            method: "POST",
+            credentials: "same-origin",
+            body: body,
+            keepalive: true,
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          }).catch(function () { /* silent */ });
+        } else {
+          fetch("/api/v1/admissions/applicant-scores/", {
+            method: "POST",
+            credentials: "same-origin",
+            body: body,
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          }).catch(function () { /* silent */ });
+        }
+      } catch (_) { /* silent */ }
+    }, { capture: true });
   }
 
   function escapeHtml(s) {

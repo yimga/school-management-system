@@ -94,10 +94,27 @@ def api_admissions_applicant_scores(request):
     Tenant-isolation: only updates the applicant when its school matches
     ``request.school`` (or the user is staff).
     """
-    try:
-        body = json.loads(request.body) if request.body else {}
-    except (ValueError, TypeError):
-        return JsonResponse({"success": False, "error": "bad_json"}, status=400)
+    # Accept either JSON body OR multipart/form-data (the form auto-POST
+    # hook in rmc-admissions-intake.js posts FormData so keepalive fetch /
+    # sendBeacon stays simple).
+    content_type = (request.META.get("CONTENT_TYPE") or "").lower()
+    body: dict
+    if "application/json" in content_type:
+        try:
+            body = json.loads(request.body) if request.body else {}
+        except (ValueError, TypeError):
+            return JsonResponse({"success": False, "error": "bad_json"}, status=400)
+    else:
+        body = {
+            "applicant_id": request.POST.get("applicant_id"),
+            "exam_schema_code": request.POST.get("exam_schema_code") or "",
+            "exam_marker": request.POST.get("exam_marker") or "",
+        }
+        scores_raw = request.POST.get("exam_scores_json") or "{}"
+        try:
+            body["scores"] = json.loads(scores_raw)
+        except (ValueError, TypeError):
+            body["scores"] = {}
 
     applicant_id = body.get("applicant_id")
     schema_code = (body.get("exam_schema_code") or "").strip()[:40]

@@ -93,6 +93,7 @@ from apps.portal.views_admissions_intake import (
     api_admissions_intake_schema,
     api_admissions_applicant_scores,
 )
+from apps.portal.views_wedges import api_wedge_list, api_wedge_detail
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
     api_import_error_resolver,
@@ -543,6 +544,9 @@ urlpatterns = [
     path("ai/line-interpret/", api_ai_line_interpret, name="ai-line-interpret"),
     path("admissions/intake-schema/", api_admissions_intake_schema, name="admissions-intake-schema"),
     path("admissions/applicant-scores/", api_admissions_applicant_scores, name="admissions-applicant-scores"),
+    # v4.00.35: wedge registry JSON API
+    path("super/wedges/", api_wedge_list, name="super-wedge-list"),
+    path("super/wedges/<int:wedge_id>/", api_wedge_detail, name="super-wedge-detail"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,

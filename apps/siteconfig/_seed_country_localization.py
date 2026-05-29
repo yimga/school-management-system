@@ -3389,3 +3389,308 @@ COUNTRY_LOCALIZATION["CF"] = {
     },
 }
 COUNTRY_REGIONAL_DEFAULT.pop("CF", None)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.35 (2026-05-29) — Tier-1 packs: SD, BI + SC, MU, RE, KM (Indian Ocean)
+# + PK, BD, LK, NP (South-Asia migration corridor). Africa Tier-1 → 48.
+# ---------------------------------------------------------------------------
+
+# Sudan — Arabophone + English (post-2024 system), 8+3 plus Sudanese certificate.
+COUNTRY_LOCALIZATION["SD"] = {
+    "calendar_system": {
+        "code": "sd-2-semester", "label": "Sudan academic year",
+        "term_count": 2, "term_names": ["First Semester", "Second Semester"],
+        "week_start": 0, "academic_year_starts_month": 7,
+    },
+    "school_types": [
+        {"code": "pre",        "label": "Riyadh / Pre-school",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "basic",      "label": "Basic (Grade 1-8)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-14"},
+        {"code": "secondary",  "label": "Secondary (Grade 9-11 + SSC)",   "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "technical",  "label": "Technical / Vocational",         "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-19"},
+        {"code": "university", "label": "University",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sd-pre", "label": "Pre-school",         "order": 0},
+        {"code": "sd-g8",  "label": "Grade 8 (Basic certificate)", "order": 8},
+        {"code": "sd-ssc", "label": "Sudanese SSC",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / معلم", "principal": "Headmaster / مدير",
+        "term": "Semester", "report_card": "Report", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SD", None)
+
+# Burundi — Francophone, fundamental + post-fundamental, CFE / Bac.
+COUNTRY_LOCALIZATION["BI"] = {
+    "calendar_system": {
+        "code": "bi-3-trimester", "label": "3 Trimestres (Burundais)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "prescolaire",      "label": "Préscolaire",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "fondamental",      "label": "École Fondamentale (9 ans)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-15"},
+        {"code": "post-fondamental", "label": "Post-Fondamental / Bac",                 "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "15-19"},
+        {"code": "technique",        "label": "EFTP / Technique",                       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite",       "label": "Université du Burundi",                  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bi-pre", "label": "Préscolaire",       "order": 0},
+        {"code": "bi-f9",  "label": "Fondamental 9",     "order": 9},
+        {"code": "bi-bac", "label": "Bac",               "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BI", None)
+
+# Seychelles — Anglophone, primary + secondary + post-secondary IGCSE/A-Levels.
+COUNTRY_LOCALIZATION["SC"] = {
+    "calendar_system": {
+        "code": "sc-3-term", "label": "3-term (Seychelles)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "creche",     "label": "Crèche",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",    "label": "Primary (P1-P6)",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secondary",  "label": "Secondary (S1-S5 / IGCSE)",       "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "post-secondary","label": "Post-Secondary / A-Levels",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "polytechnic","label": "Polytechnic / TVET",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "University of Seychelles",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sc-cre","label": "Crèche",            "order": 0},
+        {"code": "sc-p6", "label": "Primary 6",         "order": 6},
+        {"code": "sc-s5", "label": "Secondary 5 (IGCSE)", "order": 11},
+        {"code": "sc-a",  "label": "A-Levels",          "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Headteacher",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SC", None)
+
+# Mauritius — Anglo-Francophone, 9-year basic + Cambridge SC/HSC.
+COUNTRY_LOCALIZATION["MU"] = {
+    "calendar_system": {
+        "code": "mu-3-term", "label": "3-term (Mauritian)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "pre-primary","label": "Pre-primary",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Grade 1-6 / PSAC)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "Secondary (Grade 7-13 / SC / HSC)","glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "11-18"},
+        {"code": "polytechnic","label": "Polytechnic Mauritius",           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "University of Mauritius",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mu-pp","label": "Pre-primary",       "order": 0},
+        {"code": "mu-g6","label": "Grade 6 (PSAC)",    "order": 6},
+        {"code": "mu-sc","label": "School Certificate","order": 11},
+        {"code": "mu-hsc","label": "Higher School Cert.", "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Enseignant", "principal": "Rector",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MU", None)
+
+# Réunion — Francophone (French overseas), Bac.
+COUNTRY_LOCALIZATION["RE"] = {
+    "calendar_system": {
+        "code": "re-3-trimester", "label": "3 Trimestres (Réunionnais)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École Maternelle",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École Élémentaire (CP-CM2)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège (6e-3e / DNB)",           "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Bac)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "universite", "label": "Université de La Réunion",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "re-mat","label": "Maternelle",        "order": 0},
+        {"code": "re-cm2","label": "CM2",               "order": 5},
+        {"code": "re-3e", "label": "3ème (DNB)",        "order": 9},
+        {"code": "re-tle","label": "Terminale (Bac)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("RE", None)
+
+# Comoros — Francophone+Arabic, École-Coranique stream + standard Francophone.
+COUNTRY_LOCALIZATION["KM"] = {
+    "calendar_system": {
+        "code": "km-3-trimester", "label": "3 Trimestres (Comorien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "coranique",  "label": "École Coranique",                 "glyph": "\U0001F54C", "primary_sector": "early_childhood", "typical_ages": "4-7"},
+        {"code": "primaire",   "label": "Primaire (CP-CM2 / CEPE)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",    "label": "Collège (6e-3e / BEPC)",          "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Bac)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "universite", "label": "Université des Comores",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "km-cor","label": "École Coranique",   "order": 0},
+        {"code": "km-cm2","label": "CM2 (CEPE)",        "order": 6},
+        {"code": "km-3e", "label": "3ème (BEPC)",       "order": 10},
+        {"code": "km-tle","label": "Terminale (Bac)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / معلم", "principal": "Directeur / مدير",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KM", None)
+
+# Pakistan — Anglophone+Urdu, Matric / Inter / FBISE+provincial boards.
+COUNTRY_LOCALIZATION["PK"] = {
+    "calendar_system": {
+        "code": "pk-2-semester", "label": "Pakistan academic year",
+        "term_count": 2, "term_names": ["Term 1", "Term 2"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "pre-primary","label": "Pre-primary / Katchi",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Class 1-5)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-10"},
+        {"code": "middle",     "label": "Middle (Class 6-8)",              "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-13"},
+        {"code": "matric",     "label": "Matric (Class 9-10 / SSC)",       "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "13-16"},
+        {"code": "intermediate","label": "Intermediate (Class 11-12 / HSC)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "olevel",     "label": "Cambridge O / A-Level (private)", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "madrassa",   "label": "Madrassa (Wafaq)",                "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "pk-kg",   "label": "Kachi / Pre-primary","order": 0},
+        {"code": "pk-c5",   "label": "Class 5",            "order": 5},
+        {"code": "pk-c8",   "label": "Class 8 (Middle)",   "order": 8},
+        {"code": "pk-ssc",  "label": "Matric / SSC",       "order": 10},
+        {"code": "pk-hsc",  "label": "Intermediate / HSC", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / استاد", "principal": "Principal / پرنسپل",
+        "term": "Term", "report_card": "Result Card", "grade_level": "Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PK", None)
+
+# Bangladesh — Bangla+English, PEC / JSC / SSC / HSC.
+COUNTRY_LOCALIZATION["BD"] = {
+    "calendar_system": {
+        "code": "bd-2-term", "label": "Bangladesh academic year",
+        "term_count": 2, "term_names": ["First Term", "Second Term"],
+        "week_start": 0, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "pre-primary","label": "Pre-primary",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Class 1-5 / PEC)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-10"},
+        {"code": "junior-secondary","label": "Junior Secondary (Class 6-8 / JSC)","glyph": "\U0001F4DA", "primary_sector": "middle",   "typical_ages": "10-13"},
+        {"code": "secondary",  "label": "Secondary (Class 9-10 / SSC)",    "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "13-16"},
+        {"code": "higher-secondary","label": "Higher Secondary (Class 11-12 / HSC)","glyph": "\U0001F393", "primary_sector": "secondary","typical_ages": "16-18"},
+        {"code": "madrasah",   "label": "Madrasah (Ebtedayee → Kamil)",    "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "english-medium","label": "English Medium (O / A-Level)", "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bd-pp",   "label": "Pre-primary",      "order": 0},
+        {"code": "bd-pec",  "label": "PEC (Class 5)",    "order": 5},
+        {"code": "bd-jsc",  "label": "JSC (Class 8)",    "order": 8},
+        {"code": "bd-ssc",  "label": "SSC (Class 10)",   "order": 10},
+        {"code": "bd-hsc",  "label": "HSC (Class 12)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / শিক্ষক", "principal": "Headmaster / প্রধান শিক্ষক",
+        "term": "Term", "report_card": "Result Sheet", "grade_level": "Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BD", None)
+
+# Sri Lanka — Sinhala+Tamil+English, Year 1-13, O/L + A/L.
+COUNTRY_LOCALIZATION["LK"] = {
+    "calendar_system": {
+        "code": "lk-3-term", "label": "3-term (Sri Lankan)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "pre-school", "label": "Pre-school / Montessori",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Year 1-5 / Scholarship)","glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-10"},
+        {"code": "junior",     "label": "Junior Secondary (Year 6-9)",     "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-14"},
+        {"code": "ol",         "label": "O/L (Year 10-11)",                "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "14-16"},
+        {"code": "al",         "label": "A/L (Year 12-13)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "pirivena",   "label": "Pirivena (Buddhist monastic)",    "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "8-18"},
+        {"code": "university", "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "lk-pre","label": "Pre-school",         "order": 0},
+        {"code": "lk-y5", "label": "Year 5 Scholarship", "order": 5},
+        {"code": "lk-ol", "label": "O/L (Year 11)",      "order": 11},
+        {"code": "lk-al", "label": "A/L (Year 13)",      "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher / ගුරු / ஆசிரியர்", "principal": "Principal / විදුහල්පති",
+        "term": "Term", "report_card": "Progress Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("LK", None)
+
+# Nepal — Nepali+English, SEE / +2.
+COUNTRY_LOCALIZATION["NP"] = {
+    "calendar_system": {
+        "code": "np-2-term", "label": "Nepal academic year",
+        "term_count": 2, "term_names": ["First Term", "Second Term"],
+        "week_start": 0, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "ecd",       "label": "ECD / Pre-school",                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "basic",     "label": "Basic (Class 1-8)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "secondary", "label": "Secondary (Class 9-10 / SEE)",     "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "13-16"},
+        {"code": "plus-two",  "label": "+2 / Higher Secondary (Class 11-12)","glyph": "\U0001F393", "primary_sector": "secondary",     "typical_ages": "16-18"},
+        {"code": "monastic",  "label": "Monastic (Gumba)",                 "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university","label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "np-ecd", "label": "ECD",                "order": 0},
+        {"code": "np-c8",  "label": "Class 8 (Basic)",    "order": 8},
+        {"code": "np-see", "label": "SEE (Class 10)",     "order": 10},
+        {"code": "np-12",  "label": "+2 (Class 12)",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / शिक्षक", "principal": "Principal / प्रधानाध्यापक",
+        "term": "Term", "report_card": "Result Sheet", "grade_level": "Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("NP", None)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
+#
+# v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
+# overwriting the Wave 6 fold above. Re-apply COUNTRY_LANGUAGES for every
+# Tier-1 row so bilingual signup (`get_languages`) stays correct.
+# ---------------------------------------------------------------------------
+
+try:
+    from ._seed_country_languages import COUNTRY_LANGUAGES as _REFOLD_COUNTRY_LANGUAGES
+
+    for _cc, _langs in _REFOLD_COUNTRY_LANGUAGES.items():
+        if _cc in COUNTRY_LOCALIZATION:
+            COUNTRY_LOCALIZATION[_cc]["languages"] = list(_langs)
+    del _cc, _langs, _REFOLD_COUNTRY_LANGUAGES
+except ImportError:
+    pass

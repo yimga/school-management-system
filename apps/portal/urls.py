@@ -143,6 +143,7 @@ from .views_ai_line_admin import (
     tenant_ai_line_intents_save,
     ai_line_intent_coverage,
 )
+from .views_wedges import wedge_index, wedge_detail
 
 app_name = "portal"
 
@@ -153,6 +154,9 @@ urlpatterns = [
     path("configure/ai-line-intents/", tenant_ai_line_intents_view, name="ai_line_intents"),
     path("configure/ai-line-intents/save/", tenant_ai_line_intents_save, name="ai_line_intents_save"),
     path("super/ai-line/intent-coverage/", ai_line_intent_coverage, name="ai_line_intent_coverage"),
+    # v4.00.35: canonical wedge operator URLs.
+    path("super/wedges/", wedge_index, name="wedge_index"),
+    path("super/wedge/<int:wedge_id>/", wedge_detail, name="wedge_detail"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

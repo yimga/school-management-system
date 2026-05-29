@@ -1,4 +1,4 @@
-"""v4.00.34 — operator UIs for AI-line.
+"""v4.00.35 — operator UIs for AI-line.
 
 Two pages:
   * ``/portal/configure/ai-line-intents/`` — tenant-admin editor for the
@@ -6,7 +6,8 @@ Two pages:
   * ``/super/ai-line/intent-coverage/`` — staff dashboard summarizing
     which AI-line intents are firing across the platform. Best-effort:
     reads from an in-process ring buffer that ``_log_intent_hit()`` pushes
-    into; falls back to "no recent data" when the worker is fresh.
+    into AND mirrors into the Django cache so cross-worker observability
+    works without log shipping.
 """
 from __future__ import annotations
 
@@ -18,6 +19,7 @@ from typing import Any
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
@@ -29,29 +31,62 @@ logger = logging.getLogger(__name__)
 # ----- In-process ring buffer ---------------------------------------------
 # Per-worker; not durable. Operators get a "last N calls" view without
 # requiring a log-shipping pipeline. For real cross-worker observability
-# we'd push to the metrics bridge — v4.00.34 ships the in-process snapshot.
+# we ALSO mirror to the Django cache (v4.00.35).
 _BUFFER_CAP = 500
 _BUFFER: collections.deque = collections.deque(maxlen=_BUFFER_CAP)
 _BUFFER_LOCK = threading.Lock()
 
+# v4.00.35 — durable mirror via cache. Single key holds the last
+# ``_BUFFER_CAP`` rows; writes serialize via a tiny in-process lock so
+# concurrent pushes don't trample each other. Cache backend can be anything
+# (locmem / redis / memcached); we degrade silently if cache is unavailable.
+_CACHE_KEY = "ai_line:intent_coverage:ring"
+_CACHE_TTL = 60 * 60 * 24  # 24h sliding window
+
+
+def _push_cache(entry: dict[str, Any]) -> None:
+    try:
+        existing = cache.get(_CACHE_KEY) or []
+        if not isinstance(existing, list):
+            existing = []
+        existing.append(entry)
+        if len(existing) > _BUFFER_CAP:
+            existing = existing[-_BUFFER_CAP:]
+        cache.set(_CACHE_KEY, existing, _CACHE_TTL)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("ai-line cache mirror failed: %s", exc)
+
 
 def record_intent_hit(*, intent: str, matched: bool, ai_on: bool, qlen: int, school: str, url: str) -> None:
     """Called from ``views_ai_line._log_intent_hit`` to also stash a record."""
+    entry = {
+        "intent": intent or "none",
+        "matched": bool(matched),
+        "ai_on": bool(ai_on),
+        "qlen": int(qlen or 0),
+        "school": (school or "-")[:16],
+        "url": (url or "-")[:80],
+    }
     try:
         with _BUFFER_LOCK:
-            _BUFFER.append({
-                "intent": intent or "none",
-                "matched": bool(matched),
-                "ai_on": bool(ai_on),
-                "qlen": int(qlen or 0),
-                "school": (school or "-")[:16],
-                "url": (url or "-")[:80],
-            })
+            _BUFFER.append(entry)
     except Exception as exc:  # noqa: BLE001
         logger.debug("ai-line buffer push failed: %s", exc)
+    _push_cache(entry)
 
 
 def _snapshot() -> list[dict[str, Any]]:
+    """Best-effort cross-worker snapshot — cache wins when available.
+
+    Falls back to the in-process ring buffer when the cache backend is
+    locmem on a fresh worker (still useful for single-worker dev).
+    """
+    try:
+        durable = cache.get(_CACHE_KEY)
+        if isinstance(durable, list) and durable:
+            return list(durable)[-_BUFFER_CAP:]
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("ai-line cache read failed: %s", exc)
     with _BUFFER_LOCK:
         return list(_BUFFER)
 

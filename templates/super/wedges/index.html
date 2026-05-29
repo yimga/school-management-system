@@ -1,0 +1,110 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Wedge registry" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid rmc-page" style="max-width: 1200px;">
+  <header class="rmc-page__header" style="margin-bottom: 18px;">
+    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">
+      <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>
+      {% trans "Wedge registry" %}
+    </h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 72ch;">
+      {% blocktrans count counter=summary.total %}Canonical operator pages for the {{ counter }} go-to-market wedge. Each wedge has a stable URL at <code>/super/wedge/&lt;id&gt;/</code> with registry metadata, a wired-status checklist, and deep links into the platform surface that implements it.{% plural %}Canonical operator pages for the {{ counter }} go-to-market wedges. Each wedge has a stable URL at <code>/super/wedge/&lt;id&gt;/</code> with registry metadata, a wired-status checklist, and deep links into the platform surface that implements it.{% endblocktrans %}
+    </p>
+  </header>
+
+  <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 22px;">
+    <div class="rmc-stat-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div class="rmc-stat-card__label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Wedges" %}</div>
+      <div class="rmc-stat-card__value" style="font-size: 2rem; font-weight: 700;">{{ summary.total }}</div>
+    </div>
+    <div class="rmc-stat-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div class="rmc-stat-card__label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "With deep links" %}</div>
+      <div class="rmc-stat-card__value" style="font-size: 2rem; font-weight: 700;">{{ summary.with_deep_links }} <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">/ {{ summary.total }}</span></div>
+      <div class="rmc-stat-card__hint" style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{{ summary.with_deep_links_pct }}%</div>
+    </div>
+    <div class="rmc-stat-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div class="rmc-stat-card__label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Tiers" %}</div>
+      <div class="rmc-stat-card__value" style="font-size: 1.6rem; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.04em;">
+        {% for tier, count in summary.by_tier.items %}{{ tier }}<span style="color: var(--text-secondary); font-weight: 500;">{{ count }}</span>{% if not forloop.last %} {% endif %}{% endfor %}
+      </div>
+    </div>
+    <div class="rmc-stat-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div class="rmc-stat-card__label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Phases" %}</div>
+      <div class="rmc-stat-card__value" style="font-size: 1.6rem; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.04em;">
+        {% for phase, count in summary.by_phase.items %}{{ phase }}<span style="color: var(--text-secondary); font-weight: 500;">{{ count }}</span>{% if not forloop.last %} {% endif %}{% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-bottom: 18px;">
+    <label for="rmc-wedge-search" style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); margin-bottom: 6px;">{% trans "Filter" %}</label>
+    <input id="rmc-wedge-search" type="search" placeholder="{% trans 'Search by name, tier, phase, slug, or facet…' %}"
+           style="width: 100%; max-width: 480px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated); color: var(--text-primary); font-size: 14px;"
+           autocomplete="off" />
+  </section>
+
+  {# Render the wedges grouped by tier — explicit nested loop because by_tier is a dict keyed by tier code. #}
+  {% for tier_code, tier_meta in tiers.items %}
+    <section class="rmc-tier-block" data-rmc-tier="{{ tier_code }}" style="margin-bottom: 28px;">
+      <h2 style="font-size: 1.15rem; margin: 0 0 10px; letter-spacing: -0.01em;">
+        <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-elevated); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--hairline); font-size: 13px; margin-right: 6px;">{{ tier_code }}</span>
+        {{ tier_meta.label }}
+      </h2>
+      <div class="rmc-wedge-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+        {% for w in wedges %}
+          {% if w.tier == tier_code %}
+            <article class="rmc-wedge-card" data-rmc-wedge-search="{{ w.id }} {{ w.tier }} P{{ w.phase }} {{ w.slug }} {{ w.name }}{% for k, v in w.facets.items %} {{ k }}:{{ v }}{% endfor %}"
+                     style="border: 1px solid var(--hairline); border-radius: 12px; padding: 14px; background: var(--surface-elevated); display: flex; flex-direction: column; gap: 8px; position: relative;">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 11px;">
+                <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 5px; color: var(--text-secondary);">#{{ w.id }}</span>
+                <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-bg); border: 1px solid var(--hairline); padding: 1px 6px; border-radius: 5px; color: var(--text-secondary);">{{ w.tier }}-P{{ w.phase }}</span>
+                <span style="margin-left: auto; color: var(--text-secondary);">
+                  {% if w.deep_links %}{{ w.deep_links|length }} link{{ w.deep_links|length|pluralize }}{% else %}<span title="{% trans 'No deep links wired yet' %}">—</span>{% endif %}
+                </span>
+              </div>
+              <h3 style="margin: 0; font-size: 1rem; letter-spacing: -0.005em; line-height: 1.3;">
+                <a href="/portal/super/wedge/{{ w.id }}/" style="color: var(--text-primary); text-decoration: none;">{{ w.name }}</a>
+              </h3>
+              <p style="margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.45;">{{ w.brief|truncatewords:24 }}</p>
+              {% if w.facets %}
+                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto;">
+                  {% for k, v in w.facets.items %}
+                    <span style="font-size: 10px; padding: 2px 6px; border-radius: 5px; background: var(--surface-bg); border: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ k }}:{{ v }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </article>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </section>
+  {% endfor %}
+
+  <footer style="margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-secondary);">
+    <span>{% trans "JSON export" %}: <a href="?format=json" style="color: var(--text-primary);">/portal/super/wedges/?format=json</a></span>
+    <span>{% trans "API" %}: <a href="/api/v1/super/wedges/" style="color: var(--text-primary);">/api/v1/super/wedges/</a></span>
+  </footer>
+</div>
+
+<script nonce="{{ csp_nonce }}">
+(function(){
+  var input = document.getElementById("rmc-wedge-search");
+  if (!input) return;
+  var cards = Array.prototype.slice.call(document.querySelectorAll("[data-rmc-wedge-search]"));
+  input.addEventListener("input", function(){
+    var q = (input.value || "").trim().toLowerCase();
+    cards.forEach(function(card){
+      var hay = (card.getAttribute("data-rmc-wedge-search") || "").toLowerCase();
+      card.style.display = (!q || hay.indexOf(q) !== -1) ? "" : "none";
+    });
+    // hide empty tier sections after filter
+    document.querySelectorAll("[data-rmc-tier]").forEach(function(sec){
+      var any = Array.prototype.slice.call(sec.querySelectorAll("[data-rmc-wedge-search]")).some(function(c){ return c.style.display !== "none"; });
+      sec.style.display = any ? "" : "none";
+    });
+  });
+})();
+</script>
+{% endblock %}

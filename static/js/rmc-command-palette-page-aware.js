@@ -350,14 +350,26 @@
         rec = new SR();
         var cfg = readCmdkConfig();
         rec.lang = resolveSpeechLang(cfg.locale);
-        rec.interimResults = false;
+        rec.interimResults = true;  // v4.00.35 — live-stream partials so user sees the recognizer "thinking"
+        rec.continuous = false;
         rec.maxAlternatives = 1;
         rec.onresult = function (e) {
-          var text = (e.results && e.results[0] && e.results[0][0] && e.results[0][0].transcript) || "";
-          if (text) {
-            input.value = text;
+          // v4.00.35 — assemble final + interim spans. Show interim in
+          // real time, lock in finals when the recognizer commits.
+          var finalText = "";
+          var interimText = "";
+          for (var i = 0; i < e.results.length; i++) {
+            var r = e.results[i];
+            var seg = (r && r[0] && r[0].transcript) || "";
+            if (r.isFinal) finalText += seg;
+            else interimText += seg;
+          }
+          var combined = (finalText + interimText).trim();
+          if (combined) {
+            input.value = combined;
             input.dispatchEvent(new Event("input", { bubbles: true }));
-            input.focus();
+            // Don't .focus() on every interim tick — it can move the caret
+            // around mid-typing. Focus once at start instead.
           }
         };
         rec.onend = function () {
@@ -373,6 +385,7 @@
         rec.start();
         btn.classList.add("is-listening");
         startElapsed();
+        input.focus();
       } catch (_) {
         btn.classList.remove("is-listening");
         rec = null;
