@@ -1,0 +1,36 @@
+{% extends "super/wedges/_surface_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Grading scales" %}{% if wedge %} — {{ wedge.name }}{% endif %} — {{ block.super }}{% endblock %}
+{% block surface_label %}{% trans "Grading scales" %}{% endblock %}
+{% block surface_title %}{% trans "Grading scales — wedge-scoped" %}{% endblock %}
+{% block surface_body %}
+  {% if delivery %}
+    <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px;">
+      {% trans "Delivery filter:" %} <code style="background: var(--surface-elevated); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--hairline);">{{ delivery }}</code>
+    </p>
+  {% endif %}
+  <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Kind" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Code" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Label" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Delivery tag" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px;">{{ r.kind }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600;">{{ r.code }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.label }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px;">{{ r.delivery_tag }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" style="padding: 18px; text-align: center; color: var(--text-secondary);">{% trans "No grading scales match this filter." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

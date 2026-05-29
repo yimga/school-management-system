@@ -38,3 +38,10 @@ class PortalConfig(AppConfig):
             log_ai_startup_posture(health=health, conn=conn)
         except Exception:  # noqa: BLE001 — never block Django boot on AI probe
             logger.debug("AI startup probe skipped", exc_info=True)
+
+        # v4.00.36 — register live-checks for the canonical wedge registry.
+        # Import is the registration trigger; module is side-effecting on purpose.
+        try:
+            from apps.portal import wedge_checks  # noqa: F401
+        except Exception:  # noqa: BLE001 — never block boot on wedge plumbing
+            logger.debug("wedge check registration skipped", exc_info=True)

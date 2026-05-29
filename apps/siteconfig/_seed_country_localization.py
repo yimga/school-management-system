@@ -3678,6 +3678,448 @@ COUNTRY_REGIONAL_DEFAULT.pop("NP", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.36 (2026-05-29) — Tier-1 packs: AE/SA/QA/KW/BH/OM (Gulf) + LB/JO/SY/IQ
+# (Levant) + PH/ID/MY/VN/TH (SE-Asia). MENA Tier-1 → 13. Asia Tier-1 → 9.
+# ---------------------------------------------------------------------------
+
+# United Arab Emirates — Arabic+English, MoE / KHDA / ADEK.
+COUNTRY_LOCALIZATION["AE"] = {
+    "calendar_system": {
+        "code": "ae-3-term", "label": "3-term (Emirati)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",         "label": "Kindergarten (KG1-KG2)",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "cycle-1",    "label": "Cycle 1 (Grade 1-5)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "cycle-2",    "label": "Cycle 2 (Grade 6-9)",             "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "cycle-3",    "label": "Cycle 3 (Grade 10-12 / MoE)",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "british",    "label": "British curriculum (KHDA/ADEK)",  "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "american",   "label": "American curriculum",             "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "ib",         "label": "IB World School",                 "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "indian",     "label": "Indian / CBSE / ICSE",            "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ae-kg",  "label": "KG",                "order": 0},
+        {"code": "ae-g5",  "label": "Grade 5",           "order": 5},
+        {"code": "ae-g9",  "label": "Grade 9",           "order": 9},
+        {"code": "ae-g12", "label": "Grade 12 (MoE)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / معلم", "principal": "Principal / مدير",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AE", None)
+
+# Saudi Arabia — Arabic+English, MoE Tahsili+Qudurat, Tawjihi.
+COUNTRY_LOCALIZATION["SA"] = {
+    "calendar_system": {
+        "code": "sa-2-semester", "label": "2-semester (Saudi)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "rawdah",     "label": "Rawdah (Kindergarten)",           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "ibtidai",    "label": "Ibtidai (Primary, Grade 1-6)",    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "mutawassit", "label": "Mutawassit (Intermediate 7-9)",   "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "thanawi",    "label": "Thanawi (Secondary 10-12)",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "international","label": "International / Cambridge / IB","glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sa-raw", "label": "Rawdah",            "order": 0},
+        {"code": "sa-g6",  "label": "Grade 6 (Ibtidai)", "order": 6},
+        {"code": "sa-g9",  "label": "Grade 9 (Mutawassit)", "order": 9},
+        {"code": "sa-g12", "label": "Grade 12 (Thanawi)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / Teacher", "principal": "مدير / Principal",
+        "term": "Semester / فصل دراسي", "report_card": "Report / تقرير", "grade_level": "Grade / الصف",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SA", None)
+
+# Qatar — Arabic+English, MoEHE.
+COUNTRY_LOCALIZATION["QA"] = {
+    "calendar_system": {
+        "code": "qa-2-semester", "label": "2-semester (Qatari)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",         "label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",    "label": "Primary (Grade 1-6)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "preparatory","label": "Preparatory (Grade 7-9)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "secondary",  "label": "Secondary (Grade 10-12 / GSC)",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "british",    "label": "British curriculum",              "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "ib",         "label": "IB World School",                 "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "university", "label": "University (Education City)",     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "qa-kg",  "label": "KG",                "order": 0},
+        {"code": "qa-g6",  "label": "Grade 6",           "order": 6},
+        {"code": "qa-g9",  "label": "Grade 9",           "order": 9},
+        {"code": "qa-g12", "label": "Grade 12 (GSC)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / Teacher", "principal": "مدير / Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("QA", None)
+
+# Kuwait — Arabic+English, MoE, Thanaweya.
+COUNTRY_LOCALIZATION["KW"] = {
+    "calendar_system": {
+        "code": "kw-2-semester", "label": "2-semester (Kuwaiti)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",         "label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",    "label": "Primary (Grade 1-5)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "intermediate","label": "Intermediate (Grade 6-9)",       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "secondary",  "label": "Secondary (Grade 10-12)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "private",    "label": "Private / International",         "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "Kuwait University",               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kw-kg",  "label": "KG",                "order": 0},
+        {"code": "kw-g5",  "label": "Grade 5",           "order": 5},
+        {"code": "kw-g9",  "label": "Grade 9",           "order": 9},
+        {"code": "kw-g12", "label": "Grade 12",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / Teacher", "principal": "مدير / Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KW", None)
+
+# Bahrain — Arabic+English, MoE.
+COUNTRY_LOCALIZATION["BH"] = {
+    "calendar_system": {
+        "code": "bh-2-semester", "label": "2-semester (Bahraini)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",         "label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",    "label": "Primary (Grade 1-6)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "intermediate","label": "Intermediate (Grade 7-9)",       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "secondary",  "label": "Secondary (Grade 10-12)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "private",    "label": "Private / British / Indian",      "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "University of Bahrain",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bh-kg",  "label": "KG",                "order": 0},
+        {"code": "bh-g6",  "label": "Grade 6",           "order": 6},
+        {"code": "bh-g9",  "label": "Grade 9",           "order": 9},
+        {"code": "bh-g12", "label": "Grade 12",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / Teacher", "principal": "مدير / Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BH", None)
+
+# Oman — Arabic+English, MoE.
+COUNTRY_LOCALIZATION["OM"] = {
+    "calendar_system": {
+        "code": "om-2-semester", "label": "2-semester (Omani)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",          "label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "cycle-1",     "label": "Cycle 1 (Grade 1-4)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "cycle-2",     "label": "Cycle 2 (Grade 5-10)",            "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-16"},
+        {"code": "post-basic",  "label": "Post-basic (Grade 11-12 / GED)",  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "private",     "label": "Private / International",         "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university",  "label": "Sultan Qaboos University",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "om-kg",  "label": "KG",                "order": 0},
+        {"code": "om-g4",  "label": "Grade 4 (Cycle 1)", "order": 4},
+        {"code": "om-g10", "label": "Grade 10 (Cycle 2)","order": 10},
+        {"code": "om-g12", "label": "Grade 12 (GED)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / Teacher", "principal": "مدير / Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("OM", None)
+
+# Lebanon — Arabic+French+English, MoE Baccalauréat libanais.
+COUNTRY_LOCALIZATION["LB"] = {
+    "calendar_system": {
+        "code": "lb-3-term", "label": "3-term (Lebanese)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Preschool / Maternelle",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "elementary",  "label": "Elementary (EB1-EB6)",           "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "intermediate","label": "Intermediate (EB7-EB9 / Brevet)","glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "secondary",   "label": "Secondary (S1-S3 / Bac libanais)","glyph": "\U0001F393", "primary_sector": "secondary",      "typical_ages": "15-18"},
+        {"code": "technical",   "label": "Technical / TS / BT",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "francophone", "label": "Francophone (mission laïque)",   "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "anglophone",  "label": "Anglophone (IB / SAT)",          "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "university",  "label": "University (AUB / USJ / LU)",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "lb-pre","label": "Preschool",         "order": 0},
+        {"code": "lb-eb6","label": "EB6",               "order": 6},
+        {"code": "lb-eb9","label": "EB9 (Brevet)",      "order": 9},
+        {"code": "lb-s3", "label": "S3 (Bac)",          "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / معلم / Enseignant", "principal": "Principal / مدير / Directeur",
+        "term": "Term / Trimestre", "report_card": "Report Card / Bulletin", "grade_level": "Class / الصف",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("LB", None)
+
+# Jordan — Arabic+English, MoE Tawjihi.
+COUNTRY_LOCALIZATION["JO"] = {
+    "calendar_system": {
+        "code": "jo-2-semester", "label": "2-semester (Jordanian)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",         "label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "basic",      "label": "Basic (Grade 1-10)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-16"},
+        {"code": "secondary",  "label": "Secondary (Grade 11-12 / Tawjihi)","glyph": "\U0001F393", "primary_sector": "secondary",      "typical_ages": "16-18"},
+        {"code": "vocational", "label": "Vocational stream",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-18"},
+        {"code": "private",    "label": "Private / International / IB",    "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jo-kg",  "label": "KG",                "order": 0},
+        {"code": "jo-g10", "label": "Grade 10 (Basic)",  "order": 10},
+        {"code": "jo-tw",  "label": "Tawjihi (Grade 12)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / Teacher", "principal": "مدير / Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("JO", None)
+
+# Syria — Arabic, MoE Shahada (Baccalaureate).
+COUNTRY_LOCALIZATION["SY"] = {
+    "calendar_system": {
+        "code": "sy-2-semester", "label": "2-semester (Syrian)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",         "label": "Kindergarten / حضانة",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "basic",      "label": "Basic (Grade 1-9)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-15"},
+        {"code": "secondary",  "label": "Secondary (Grade 10-12 / Shahada)","glyph": "\U0001F393", "primary_sector": "secondary",      "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Vocational secondary",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "university", "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sy-kg",  "label": "حضانة",            "order": 0},
+        {"code": "sy-g9",  "label": "Grade 9 (Basic)",   "order": 9},
+        {"code": "sy-g12", "label": "Shahada (Grade 12)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم", "principal": "مدير",
+        "term": "Semester / فصل دراسي", "report_card": "Report / تقرير", "grade_level": "Grade / الصف",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SY", None)
+
+# Iraq — Arabic+Kurdish, MoE, Baccalauréat.
+COUNTRY_LOCALIZATION["IQ"] = {
+    "calendar_system": {
+        "code": "iq-2-semester", "label": "2-semester (Iraqi)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kg",         "label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",    "label": "Primary (Grade 1-6 / Sixth Grade Exam)","glyph": "\U0001F3EB", "primary_sector": "primary","typical_ages": "6-12"},
+        {"code": "intermediate","label": "Intermediate (Grade 7-9 / Third Grade Exam)","glyph": "\U0001F4DA", "primary_sector": "middle", "typical_ages": "12-15"},
+        {"code": "preparatory","label": "Preparatory (Grade 10-12 / Baccalaureate)","glyph": "\U0001F393", "primary_sector": "secondary","typical_ages": "15-18"},
+        {"code": "vocational", "label": "Vocational",                       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "kurdistan",  "label": "Kurdistan Region (Kurdish medium)","glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "iq-kg",  "label": "KG",                "order": 0},
+        {"code": "iq-g6",  "label": "Grade 6",           "order": 6},
+        {"code": "iq-g9",  "label": "Grade 9",           "order": 9},
+        {"code": "iq-g12", "label": "Baccalaureate (Grade 12)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "معلم / مامۆستا / Teacher", "principal": "مدير / Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("IQ", None)
+
+
+# Philippines — English+Filipino, K-12 (5+6+6 then SHS senior), DepEd.
+COUNTRY_LOCALIZATION["PH"] = {
+    "calendar_system": {
+        "code": "ph-2-semester", "label": "2-semester (DepEd)",
+        "term_count": 2, "term_names": ["First Semester", "Second Semester"],
+        "week_start": 0, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "kinder",     "label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "5-6"},
+        {"code": "elementary", "label": "Elementary (Grade 1-6)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "junior-high","label": "Junior High School (Grade 7-10)", "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "senior-high","label": "Senior High School (Grade 11-12 / SHS)","glyph": "\U0001F393", "primary_sector": "secondary","typical_ages": "16-18"},
+        {"code": "tech-voc",   "label": "TESDA / Tech-Voc",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "madrasah",   "label": "Madrasah (BARMM)",                "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university", "label": "University / College",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ph-k",   "label": "Kindergarten",      "order": 0},
+        {"code": "ph-g6",  "label": "Grade 6",           "order": 6},
+        {"code": "ph-g10", "label": "Grade 10 (JHS)",    "order": 10},
+        {"code": "ph-g12", "label": "Grade 12 (SHS)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Guro", "principal": "Principal / Punong-guro",
+        "term": "Semester", "report_card": "Card / Kard", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PH", None)
+
+# Indonesia — Bahasa+English, SD/SMP/SMA + pesantren stream.
+COUNTRY_LOCALIZATION["ID"] = {
+    "calendar_system": {
+        "code": "id-2-semester", "label": "2-semester (Indonesia)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 7,
+    },
+    "school_types": [
+        {"code": "tk",         "label": "TK (Taman Kanak-Kanak)",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "sd",         "label": "SD (Sekolah Dasar, Grade 1-6)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "smp",        "label": "SMP (Junior Secondary 7-9)",      "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "sma",        "label": "SMA (Senior Secondary 10-12)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "smk",        "label": "SMK (Vocational secondary)",      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "madrasah",   "label": "Madrasah (MI/MTs/MA)",            "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "pesantren",  "label": "Pesantren (Islamic boarding)",    "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "international","label": "Sekolah Internasional",         "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "university", "label": "Universitas",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "id-tk",  "label": "TK",                "order": 0},
+        {"code": "id-sd",  "label": "SD (kelas 6)",      "order": 6},
+        {"code": "id-smp", "label": "SMP (kelas 9)",     "order": 9},
+        {"code": "id-sma", "label": "SMA (kelas 12)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Guru / Teacher", "principal": "Kepala Sekolah / Principal",
+        "term": "Semester", "report_card": "Rapor", "grade_level": "Kelas",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("ID", None)
+
+# Malaysia — Bahasa Melayu+English+Mandarin+Tamil, UPSR/PT3/SPM.
+COUNTRY_LOCALIZATION["MY"] = {
+    "calendar_system": {
+        "code": "my-2-semester", "label": "2-semester (Malaysian)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 0, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "tadika",      "label": "Tadika (Pre-school)",             "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "sk",          "label": "SK / Sekolah Rendah (Year 1-6)",  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-12"},
+        {"code": "sjkc",        "label": "SJK(C) Chinese vernacular",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-12"},
+        {"code": "sjkt",        "label": "SJK(T) Tamil vernacular",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-12"},
+        {"code": "smk",         "label": "SMK (Lower 1-3 / PT3 + Upper 4-5 / SPM)","glyph": "\U0001F4DA","primary_sector": "secondary","typical_ages": "13-17"},
+        {"code": "form-six",    "label": "Form Six / STPM",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "international","label": "International (Cambridge / IB)", "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "vocational",  "label": "Kolej Vokasional",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-19"},
+        {"code": "university",  "label": "Universiti",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "my-tad", "label": "Tadika",            "order": 0},
+        {"code": "my-y6",  "label": "Year 6 (UPSR retired)", "order": 6},
+        {"code": "my-pt3", "label": "Form 3 (PT3)",      "order": 9},
+        {"code": "my-spm", "label": "Form 5 (SPM)",      "order": 11},
+        {"code": "my-stpm","label": "Form 6 (STPM)",     "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Cikgu / Teacher", "principal": "Pengetua / Headmaster",
+        "term": "Semester", "report_card": "Slip Keputusan", "grade_level": "Tingkatan",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MY", None)
+
+# Vietnam — Vietnamese+English, 5+4+3, THPT.
+COUNTRY_LOCALIZATION["VN"] = {
+    "calendar_system": {
+        "code": "vn-2-semester", "label": "2-semester (Vietnamese)",
+        "term_count": 2, "term_names": ["Học kỳ 1", "Học kỳ 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "mam-non",   "label": "Mầm Non (Kindergarten)",           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "tieu-hoc",  "label": "Tiểu Học (Primary, Lớp 1-5)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "thcs",      "label": "THCS (Lower Secondary, Lớp 6-9)",  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "thpt",      "label": "THPT (Upper Secondary, Lớp 10-12)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "gdnn",      "label": "GDNN (Vocational)",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "international","label": "Trường Quốc Tế",                "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "dai-hoc",   "label": "Đại Học (University)",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "vn-mn", "label": "Mầm Non",            "order": 0},
+        {"code": "vn-l5", "label": "Lớp 5 (Tiểu Học)",   "order": 5},
+        {"code": "vn-l9", "label": "Lớp 9 (THCS)",       "order": 9},
+        {"code": "vn-l12","label": "Lớp 12 (THPT)",      "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Giáo viên / Teacher", "principal": "Hiệu trưởng / Principal",
+        "term": "Học kỳ", "report_card": "Học bạ", "grade_level": "Lớp",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("VN", None)
+
+# Thailand — Thai+English, P1-6 / M1-6, ONESQA.
+COUNTRY_LOCALIZATION["TH"] = {
+    "calendar_system": {
+        "code": "th-2-semester", "label": "2-semester (Thai)",
+        "term_count": 2, "term_names": ["First Semester", "Second Semester"],
+        "week_start": 1, "academic_year_starts_month": 5,
+    },
+    "school_types": [
+        {"code": "anuban",     "label": "Anuban (Pre-school)",             "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "prathom",    "label": "Prathom (Primary P1-P6)",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "mattayom-1-3","label": "Mattayom 1-3 (Lower Secondary)", "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "mattayom-4-6","label": "Mattayom 4-6 (Upper Secondary)", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Vocational (Por Wor Chor)",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "international","label": "International School",          "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "buddhist",   "label": "Buddhist temple school",          "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "university", "label": "University / Mahawitthayalai",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "th-anu","label": "Anuban",            "order": 0},
+        {"code": "th-p6", "label": "Prathom 6",         "order": 6},
+        {"code": "th-m3", "label": "Mattayom 3",        "order": 9},
+        {"code": "th-m6", "label": "Mattayom 6",        "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Kru / Teacher", "principal": "Phu-amnuay-kan / Principal",
+        "term": "Semester", "report_card": "Por Mor (ป.พ.)", "grade_level": "Chan",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TH", None)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

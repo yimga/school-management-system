@@ -517,6 +517,11 @@ urlpatterns = [
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
     path("api/v1/oauth/", include(("apps.apicenter.oauth_urls", "oauth"), namespace="oauth")),
     path("api/v2/", include(("apps.api.urls_v2", "api_v2"), namespace="api_v2")),
+    # v4.00.36 — SAML 2.0 SP endpoints (wedge 45). Routed at the platform
+    # root so IdP redirect URIs stay stable (operators register the ACS URL).
+    path("sso/saml/metadata/", __import__("apps.api.saml", fromlist=["metadata"]).metadata, name="sso_saml_metadata"),
+    path("sso/saml/acs/", __import__("apps.api.saml", fromlist=["acs"]).acs, name="sso_saml_acs"),
+    path("sso/saml/sls/", __import__("apps.api.saml", fromlist=["sls"]).sls, name="sso_saml_sls"),
     # Apps
     path(
         "siteconfig/",

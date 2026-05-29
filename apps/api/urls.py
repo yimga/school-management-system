@@ -94,6 +94,8 @@ from apps.portal.views_admissions_intake import (
     api_admissions_applicant_scores,
 )
 from apps.portal.views_wedges import api_wedge_list, api_wedge_detail
+from apps.api import oneroster as _oneroster
+from apps.api import saml as _saml
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
     api_import_error_resolver,
@@ -547,6 +549,14 @@ urlpatterns = [
     # v4.00.35: wedge registry JSON API
     path("super/wedges/", api_wedge_list, name="super-wedge-list"),
     path("super/wedges/<int:wedge_id>/", api_wedge_detail, name="super-wedge-detail"),
+    # v4.00.36: OneRoster v1.2 read-only Rostering endpoints (wedge 44)
+    path("roster/v1p2/orgs/", _oneroster.orgs, name="api-roster-v1p2-orgs"),
+    path("roster/v1p2/schools/", _oneroster.schools, name="api-roster-v1p2-schools"),
+    path("roster/v1p2/users/", _oneroster.users, name="api-roster-v1p2-users"),
+    path("roster/v1p2/students/", _oneroster.students, name="api-roster-v1p2-students"),
+    path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
+    path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),
+    path("roster/v1p2/academic-sessions/", _oneroster.academic_sessions, name="api-roster-v1p2-academic-sessions"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,
