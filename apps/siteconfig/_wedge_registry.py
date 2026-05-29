@@ -98,10 +98,12 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "deep_links": [
             ("Integrations marketplace", "/integrations/"),
             ("Webhook subscriptions", "/super/migration/operator/webhooks/"),
+            ("OneRoster Result Service (read)", "/api/roster/results/v1p2/lineItems/"),
         ],
         "checklist": [
             "Integrations marketplace surface live",
             "Webhook dispatcher live with HMAC + 6-stage retry",
+            "OneRoster Result Service read endpoints live (v4.00.39)",
             "Canvas adapter (deferred)",
             "Moodle adapter (deferred)",
         ],
@@ -375,7 +377,7 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "checklist": [
             "Institution-type SOT registered (v4.00.38)",
             "Charter authorizer registry seeded (US/UK/SE/NL)",
-            "Per-tenant authorizer assignment (deferred to v4.00.39)",
+            "Per-tenant authorizer assignment live (v4.00.39, School.charter_authorizer_code + /configure/institution-type/)",
         ],
     },
     {
@@ -393,7 +395,7 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "checklist": [
             "IB programme registry seeded (PYP / MYP / DP / CP)",
             "Cambridge programme registry seeded (Primary / Lower Sec / IGCSE / AICE)",
-            "Per-tenant IB authorization status field (deferred to v4.00.39)",
+            "Per-tenant IB authorization live (v4.00.39, School.ib_programmes JSONField + /configure/institution-type/)",
         ],
     },
     {
@@ -409,7 +411,7 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         ],
         "checklist": [
             "Faith tradition registry seeded (15 traditions)",
-            "Per-tenant tradition field assignment (deferred to v4.00.39)",
+            "Per-tenant tradition assignment live (v4.00.39, School.faith_tradition_code + /configure/institution-type/)",
         ],
     },
     {
@@ -756,17 +758,19 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "phase": 5,
         "name": "Identity and access federation",
         "brief": (
-            "Enterprise SSO / SAML / OIDC federation — Azure AD, Okta, "
-            "Google Workspace, OneLogin, ADFS."
+            "Enterprise SSO / SAML / OIDC federation + SCIM 2.0 provisioning "
+            "— Azure AD, Okta, Google Workspace, OneLogin, ADFS."
         ),
         "facets": {"capability": "integration", "domain": "identity"},
         "deep_links": [
             ("Identity federation config", "/super/configure/identity-federation/"),
+            ("SAML SP metadata", "/sso/saml/metadata/"),
+            ("SCIM 2.0 ServiceProviderConfig", "/scim/v2/ServiceProviderConfig"),
         ],
         "checklist": [
-            "SAML 2.0 SP support (deferred)",
+            "SAML 2.0 SP metadata live (v4.00.37)",
+            "SCIM 2.0 provisioning live (v4.00.39, Users + Groups, full CRUD + filter)",
             "OIDC RP support (deferred)",
-            "SCIM 2.0 provisioning (deferred)",
         ],
     },
 )

@@ -67,6 +67,7 @@ from .views_support import (
     support_request,
     support_ticket_detail,
 )
+from .views_support_quick import kb_search_inline, support_quick_create
 from .views_offline_sync import (
     api_offline_apply_batch,
     api_offline_enqueue,
@@ -151,6 +152,7 @@ from .views_wedge_surfaces import (
     institution_types_by_wedge,
 )
 from .views_multicampus_billing import multicampus_billing
+from .views_institution_assign import assignment_view, assignment_save
 
 app_name = "portal"
 
@@ -171,6 +173,9 @@ urlpatterns = [
     # v4.00.38: Tier-C institution-type registry + multi-campus billing surface
     path("super/wedges/institution-types/", institution_types_by_wedge, name="wedge_surface_institution_types"),
     path("super/wedges/multicampus-billing/", multicampus_billing, name="wedge_surface_multicampus_billing"),
+    # v4.00.39: Per-tenant institution-type assignment (Wedge 16/17/18)
+    path("configure/institution-type/", assignment_view, name="institution_type_assign"),
+    path("configure/institution-type/save/", assignment_save, name="institution_type_save"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),
@@ -240,6 +245,8 @@ urlpatterns = [
         name="support_ticket_detail",
     ),
     path("support/", support_request, name="support_request"),
+    path("support/quick-create/", support_quick_create, name="support_quick_create"),
+    path("api/v1/kb/search/", kb_search_inline, name="kb_search_inline"),
     path("offline/sync-queue/", offline_sync_queue, name="offline_sync_queue"),
     path("offline/conflicts/", offline_sync_conflicts, name="offline_sync_conflicts"),
     path("api/offline/enqueue/", api_offline_enqueue, name="api_offline_enqueue"),

@@ -97,6 +97,7 @@ from apps.portal.views_wedges import api_wedge_list, api_wedge_detail
 from apps.api import oneroster as _oneroster
 from apps.api import oneroster_csv_importer as _oneroster_csv
 from apps.api import oneroster_writes as _oneroster_writes
+from apps.api import oneroster_results as _oneroster_results
 from apps.api import saml as _saml
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
@@ -566,6 +567,11 @@ urlpatterns = [
     path("roster/v1p2/orgs/<str:sourced_id>/", _oneroster_writes.put_org, name="api-roster-v1p2-put-org"),
     path("roster/v1p2/users/<str:sourced_id>/", _oneroster_writes.put_user, name="api-roster-v1p2-put-user"),
     path("roster/v1p2/classes/<str:sourced_id>/", _oneroster_writes.put_class, name="api-roster-v1p2-put-class"),
+    # v4.00.39: OneRoster Result Service (read-only line items + results)
+    path("roster/results/v1p2/lineItems/", _oneroster_results.line_items_list, name="api-roster-results-line-items"),
+    path("roster/results/v1p2/lineItems/<str:sourced_id>/", _oneroster_results.line_item_detail, name="api-roster-results-line-item-detail"),
+    path("roster/results/v1p2/results/", _oneroster_results.results_list, name="api-roster-results-list"),
+    path("roster/results/v1p2/results/<str:sourced_id>/", _oneroster_results.result_detail, name="api-roster-results-detail"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,

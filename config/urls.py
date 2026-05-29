@@ -522,6 +522,15 @@ urlpatterns = [
     path("sso/saml/metadata/", __import__("apps.api.saml", fromlist=["metadata"]).metadata, name="sso_saml_metadata"),
     path("sso/saml/acs/", __import__("apps.api.saml", fromlist=["acs"]).acs, name="sso_saml_acs"),
     path("sso/saml/sls/", __import__("apps.api.saml", fromlist=["sls"]).sls, name="sso_saml_sls"),
+    # v4.00.39 — SCIM 2.0 provisioning (wedge 45 item 2). Routed at platform
+    # root so IdP SCIM endpoint configs stay stable.
+    path("scim/v2/ServiceProviderConfig", __import__("apps.api.scim", fromlist=["service_provider_config"]).service_provider_config, name="scim_v2_spc"),
+    path("scim/v2/Schemas", __import__("apps.api.scim", fromlist=["schemas"]).schemas, name="scim_v2_schemas"),
+    path("scim/v2/ResourceTypes", __import__("apps.api.scim", fromlist=["resource_types"]).resource_types, name="scim_v2_resource_types"),
+    path("scim/v2/Users", __import__("apps.api.scim", fromlist=["users_collection"]).users_collection, name="scim_v2_users"),
+    path("scim/v2/Users/<str:user_id>", __import__("apps.api.scim", fromlist=["user_detail"]).user_detail, name="scim_v2_user_detail"),
+    path("scim/v2/Groups", __import__("apps.api.scim", fromlist=["groups_collection"]).groups_collection, name="scim_v2_groups"),
+    path("scim/v2/Groups/<str:group_id>", __import__("apps.api.scim", fromlist=["group_detail"]).group_detail, name="scim_v2_group_detail"),
     # Apps
     path(
         "siteconfig/",

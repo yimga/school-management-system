@@ -170,16 +170,68 @@ def _apply_users(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
 
 @transaction.atomic
 def _apply_classes(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
-    """Classes import — RMC's Classroom model identity contract may differ;
-    in v4.00.38 we record-but-skip writes when we can't safely map the
-    school relationship, so dry-run import always reports without
-    blowing up."""
+    """v4.00.39 — real Classroom upserts.
+
+    Identity contract:
+      * Resolve the school via ``schoolSourcedId`` (the OneRoster
+        sourcedId of the org, which we mirror onto School.slug at import).
+      * Match the existing Classroom by ``(school, code)`` if the
+        ``classCode`` column is provided, else by ``(school, name)``.
+      * Title -> ``Classroom.name``. Course code (if present) ->
+        ``Classroom.code``.
+    """
+    try:
+        from apps.schools.models import School
+        from apps.academics.models import Classroom
+    except Exception as exc:  # noqa: BLE001
+        report["classes"]["error"] = f"models_unavailable: {exc}"
+        return
+
     upserts, deletes = _classify_skips(rows)
+    written = 0
+    skipped = 0
+    for r in upserts:
+        sid = (r.get("sourcedId") or "").strip()
+        title = (r.get("title") or "").strip()[:120]
+        school_sourced_id = (r.get("schoolSourcedId") or "").strip().lower()
+        course_code = (r.get("classCode") or r.get("courseCode") or "").strip()[:40]
+        if not sid or not title or not school_sourced_id:
+            skipped += 1
+            continue
+        school = School.objects.filter(slug=school_sourced_id).first()  # tenant-isolation-allow: roster-import-resolve-school-by-sourced-id
+        if school is None:
+            skipped += 1
+            continue
+        try:
+            if course_code:
+                obj, created = Classroom.objects.get_or_create(  # tenant-isolation-allow: roster-import-classroom-keyed-by-school-and-code
+                    school=school,
+                    code=course_code,
+                    defaults={"name": title},
+                )
+            else:
+                obj, created = Classroom.objects.get_or_create(  # tenant-isolation-allow: roster-import-classroom-keyed-by-school-and-name
+                    school=school,
+                    name=title,
+                    defaults={"code": ""},
+                )
+            changed = False
+            if obj.name != title:
+                obj.name = title
+                changed = True
+            if course_code and obj.code != course_code:
+                obj.code = course_code
+                changed = True
+            if changed:
+                obj.save(update_fields=[f for f in ("name", "code") if hasattr(obj, f)])
+            written += 1
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("oneroster import: classroom upsert failed sid=%s err=%s", sid, exc)
+            skipped += 1
     report["classes"].update({
-        "written": 0,
-        "skipped": len(upserts),
+        "written": written,
+        "skipped": skipped,
         "delete_marked": len(deletes),
-        "note": "v4.00.38: classes write skipped pending Classroom<->School FK contract confirmation.",
     })
 
 

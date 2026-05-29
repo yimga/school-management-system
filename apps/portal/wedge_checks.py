@@ -106,8 +106,9 @@ def _check_wedge_2() -> dict[int, bool]:
     return {
         0: _app_installed("apps.integrations_marketplace"),
         1: _module_importable("apps.migration_cloud.api.webhook_dispatch"),
-        2: False,  # Canvas adapter deferred
-        3: False,  # Moodle adapter deferred
+        2: _url_registered("api:api-roster-results-line-items"),  # v4.00.39
+        3: False,  # Canvas adapter deferred
+        4: False,  # Moodle adapter deferred
     }
 
 
@@ -226,29 +227,38 @@ def _check_wedge_15() -> dict[int, bool]:
     return {0: True}  # private-school registration is unconditional baseline
 
 
+def _has_school_field(field_name: str) -> bool:
+    try:
+        from apps.schools.models import School
+        School._meta.get_field(field_name)
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _check_wedge_16() -> dict[int, bool]:
-    # Charter — authorizer registry live in v4.00.38
+    # Charter — per-tenant assignment live in v4.00.39
     return {
         0: _module_importable("apps.siteconfig._institution_types"),
         1: _module_importable("apps.siteconfig._institution_types"),
-        2: False,  # Per-tenant authorizer assignment deferred
+        2: _has_school_field("charter_authorizer_code") and _url_registered("portal:institution_type_assign"),
     }
 
 
 def _check_wedge_18() -> dict[int, bool]:
-    # Faith-based — tradition registry live in v4.00.38
+    # Faith-based — per-tenant assignment live in v4.00.39
     return {
         0: _module_importable("apps.siteconfig._institution_types"),
-        1: False,  # Per-tenant tradition field deferred
+        1: _has_school_field("faith_tradition_code") and _url_registered("portal:institution_type_assign"),
     }
 
 
 def _check_wedge_17() -> dict[int, bool]:
-    # International (institution) — IB + Cambridge programme registry live in v4.00.38
+    # International (institution) — per-tenant IB authorization live in v4.00.39
     return {
         0: _module_importable("apps.siteconfig._institution_types"),
         1: _module_importable("apps.siteconfig._institution_types"),
-        2: False,  # Per-tenant IB authorization status field deferred
+        2: _has_school_field("ib_programmes") and _url_registered("portal:institution_type_assign"),
     }
 
 
@@ -319,11 +329,11 @@ def _check_wedge_44() -> dict[int, bool]:
 
 
 def _check_wedge_45() -> dict[int, bool]:
-    # Identity + access federation — v4.00.36 ships SAML metadata endpoint
+    # Identity + access federation — SAML in v4.00.37, SCIM 2.0 in v4.00.39
     return {
         0: _url_registered("sso_saml_metadata"),
-        1: False,  # full OIDC RP deferred
-        2: False,  # SCIM 2.0 deferred
+        1: _url_registered("scim_v2_users"),
+        2: False,  # OIDC RP deferred
     }
 
 

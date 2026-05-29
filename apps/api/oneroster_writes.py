@@ -209,31 +209,63 @@ def _upsert_user(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any],
 
 
 def _upsert_class(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any], int]:
+    """v4.00.39 — real Classroom upserts.
+
+    Resolves the school via ``school`` body field (the OneRoster
+    ``schoolSourcedId``) which we mirror onto School.slug at import.
+    Matches the existing Classroom by ``(school, code)`` if classCode
+    is set; otherwise by ``(school, name)``.
+    """
     try:
         from apps.academics.models import Classroom
+        from apps.schools.models import School
     except Exception as exc:  # noqa: BLE001
-        logger.debug("oneroster classes: model not importable: %s", exc)
-        return {
-            "class": {
-                "sourcedId": sourced_id,
-                "status": "accepted-deferred",
-                "title": (body.get("title") or "").strip(),
-                "note": "classes write deferred to v4.00.39 pending Classroom identity contract",
-            }
-        }, 202
+        return {"error": f"models_unavailable: {exc}"}, 500
+
     title = (body.get("title") or "").strip()[:120]
+    course_code = (body.get("classCode") or body.get("courseCode") or "").strip()[:40]
+    school_id = (body.get("school") or body.get("schoolSourcedId") or "").strip().lower()
     if not title:
         return {"error": "missing_title"}, 400
-    # In v4.00.38 we accept-and-respond but defer the actual write so we
-    # never overwrite an unrelated Classroom row whose identity contract
-    # doesn't match OneRoster's sourcedId concept.
-    return {
+    if not school_id:
+        return {"error": "missing_school_sourced_id"}, 400
+    school = School.objects.filter(slug=school_id).first()  # tenant-isolation-allow: roster-write-resolve-school-by-sourced-id
+    if school is None:
+        return {"error": "school_not_found"}, 404
+
+    with _PROCESS_LOCK:
+        if course_code:
+            obj, created = Classroom.objects.get_or_create(  # tenant-isolation-allow: roster-write-classroom-keyed-by-school-and-code
+                school=school,
+                code=course_code,
+                defaults={"name": title},
+            )
+        else:
+            obj, created = Classroom.objects.get_or_create(  # tenant-isolation-allow: roster-write-classroom-keyed-by-school-and-name
+                school=school,
+                name=title,
+                defaults={"code": ""},
+            )
+        changed = False
+        if obj.name != title:
+            obj.name = title
+            changed = True
+        if course_code and obj.code != course_code:
+            obj.code = course_code
+            changed = True
+        if changed:
+            obj.save(update_fields=[f for f in ("name", "code") if hasattr(obj, f)])
+
+    payload = {
         "class": {
-            "sourcedId": sourced_id,
-            "status": "accepted-deferred",
-            "title": title,
+            "sourcedId": str(obj.pk),
+            "status": "active",
+            "title": obj.name,
+            "classCode": getattr(obj, "code", ""),
+            "school": school.slug,
         }
-    }, 202
+    }
+    return payload, 201 if created else 200
 
 
 # ----- generic dispatcher -------------------------------------------------

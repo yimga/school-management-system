@@ -221,6 +221,12 @@ def _get_role_choices():
     return User.Role.choices
 
 
+def _get_governance_operating_mode_choices():
+    from apps.governance.operating_modes import GovernanceOperatingMode
+
+    return GovernanceOperatingMode.choices
+
+
 class LiveSchoolManager(models.Manager):
     """Opt-in manager that hides soft-deleted schools (deleted_at IS NOT NULL).
 
@@ -320,7 +326,10 @@ class School(models.Model):
     settings = models.JSONField(
         default=dict,
         blank=True,
-        help_text="School-level overrides: grading_logic, term_count, custom fields config, etc.",
+        help_text=(
+            "School-level overrides: grading_logic, term_count, custom fields config, etc. "
+            "Optional governance_inherit map (domain → inherit|local|hybrid) for group-member schools."
+        ),
     )
     features = models.JSONField(
         default=dict,
@@ -358,6 +367,22 @@ class School(models.Model):
         blank=True,
         related_name="child_schools",
         help_text="Parent tenant e.g. Catholic Education Secretariat",
+    )
+    # Global governance Phase 2A: optional legal owner (nullable — standalone schools unaffected)
+    organization = models.ForeignKey(
+        "governance.Organization",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="schools",
+        help_text="Optional Organization overlay; null = standalone individual management.",
+    )
+    governance_operating_mode = models.CharField(
+        max_length=32,
+        choices=_get_governance_operating_mode_choices,
+        default="standalone",  # role-string-allow: default matches GovernanceOperatingMode.STANDALONE registry
+        db_index=True,
+        help_text="standalone | group_member | group_member_sovereign (default standalone).",
     )
     # Multi-level hierarchy: materialized path (e.g. "" or "uuid1" or "uuid1/uuid2") for recursive queries
     hierarchy_path = models.CharField(
@@ -570,6 +595,40 @@ class School(models.Model):
         help_text=(
             "When True, platform operators must name a second approver (different SUPERADMIN/superuser) "
             "before impersonation is allowed (four-eyes)."
+        ),
+    )
+
+    # v4.00.39 — Tier-C wedge per-tenant institution-type assignment.
+    # Each tenant can flag which charter authorizer / IB+Cambridge
+    # programmes / faith tradition applies. Drives Wedge 16/17/18 detail
+    # pages + per-school reporting.
+    charter_authorizer_code = models.CharField(
+        max_length=40,
+        blank=True,
+        default="",
+        help_text=(
+            "Wedge 16 (Charter): the authorizer code from "
+            "apps.siteconfig._institution_types.CHARTER_AUTHORIZERS "
+            "(e.g. 'us-soe', 'uk-academy-trust')."
+        ),
+    )
+    ib_programmes = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            "Wedge 17 (International): list of IB / Cambridge programme "
+            "codes this school is authorized for (e.g. ['pyp', 'myp', "
+            "'dp', 'cam-igcse'])."
+        ),
+    )
+    faith_tradition_code = models.CharField(
+        max_length=40,
+        blank=True,
+        default="",
+        help_text=(
+            "Wedge 18 (Faith-based): the tradition code from "
+            "apps.siteconfig._institution_types.FAITH_TRADITIONS "
+            "(e.g. 'catholic', 'islamic-sunni', 'interfaith')."
         ),
     )
 

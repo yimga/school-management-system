@@ -4563,6 +4563,395 @@ COUNTRY_REGIONAL_DEFAULT.pop("SG", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.39 (2026-05-29) — Tier-1 packs:
+#   Caucasus + Central Asia tail: GE, AM, AZ, TM, KG, TJ
+#   West Indies / Caribbean:      HT, JM, TT, BB, CU
+#   Andean:                       BO, EC, PY
+# ---------------------------------------------------------------------------
+
+# Georgia — Georgian+English, 6+3+3, Unified National Exams.
+COUNTRY_LOCALIZATION["GE"] = {
+    "calendar_system": {
+        "code": "ge-3-term", "label": "3-term (Georgian)",
+        "term_count": 3, "term_names": ["I trimester", "II trimester", "III trimester"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "skola-skolamde","label": "Skoldagi (Pre-school)",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",   "label": "Dawebiti Skola (Primary I-VI)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "basic",     "label": "Sazogadoebrivi (Basic VII-IX)",     "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "secondary", "label": "Saqartvelo (Secondary X-XII / UNE)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational","label": "Professional / Vocational",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University (TSU / Ilia)",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ge-pre","label": "Skoldagi",          "order": 0},
+        {"code": "ge-g6", "label": "Grade VI",          "order": 6},
+        {"code": "ge-g9", "label": "Grade IX (Basic)",  "order": 9},
+        {"code": "ge-g12","label": "Grade XII (UNE)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mastsavlebeli / მასწავლებელი", "principal": "Direktori / დირექტორი",
+        "term": "Trimesteri / ტრიმესტრი", "report_card": "Tabeli / ტაბელი", "grade_level": "Klasi / კლასი",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GE", None)
+
+# Armenia — Armenian+English, 4+5+3, Unified Entrance Examinations.
+COUNTRY_LOCALIZATION["AM"] = {
+    "calendar_system": {
+        "code": "am-2-semester", "label": "2-semester (Armenian)",
+        "term_count": 2, "term_names": ["1st semester", "2nd semester"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "mankapartez","label": "Mankapartez (Kindergarten)",      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "tarrakan",  "label": "Tarrakan (Primary 1-4)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "miginq",    "label": "Miginq Dproc (Middle 5-9)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-15"},
+        {"code": "averagh",   "label": "Averagh Dproc (High 10-12)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational","label": "Vocational / Colleges",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University (YSU / AUA)",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "am-mk", "label": "Mankapartez",      "order": 0},
+        {"code": "am-g4", "label": "Grade 4",          "order": 4},
+        {"code": "am-g9", "label": "Grade 9 (Miginq)", "order": 9},
+        {"code": "am-g12","label": "Grade 12 (UEE)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Usuts'ich / Ուսուցիչ", "principal": "Tnoren / Տնօրեն",
+        "term": "Semester / Կիսամյակ", "report_card": "Tabel / Տաբել", "grade_level": "Dasaran / Դասարան",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AM", None)
+
+# Azerbaijan — Azerbaijani+Russian+English, 4+5+2, MIQ.
+COUNTRY_LOCALIZATION["AZ"] = {
+    "calendar_system": {
+        "code": "az-2-semester", "label": "2-semester (Azerbaijani)",
+        "term_count": 2, "term_names": ["1-ci semestr", "2-ci semestr"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "bagca",     "label": "Bağça (Kindergarten)",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "ibtidai",   "label": "İbtidai (Primary 1-4)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "umumi-orta","label": "Ümumi Orta (5-9)",                  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-15"},
+        {"code": "tam-orta",  "label": "Tam Orta (10-11 / MIQ)",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "vocational","label": "Peşə Məktəbi",                      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University (BSU / ADU)",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "az-bg", "label": "Bağça",            "order": 0},
+        {"code": "az-g4", "label": "Sinif 4",          "order": 4},
+        {"code": "az-g9", "label": "Sinif 9 (Ümumi)",  "order": 9},
+        {"code": "az-g11","label": "Sinif 11 (MIQ)",   "order": 11},
+    ],
+    "terminology": {
+        "teacher": "Müəllim / Teacher", "principal": "Direktor",
+        "term": "Semestr", "report_card": "Qiymət dəftəri", "grade_level": "Sinif",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AZ", None)
+
+# Turkmenistan — Turkmen+Russian, 12-year basic.
+COUNTRY_LOCALIZATION["TM"] = {
+    "calendar_system": {
+        "code": "tm-2-semester", "label": "2-semester (Turkmen)",
+        "term_count": 2, "term_names": ["1-nji semestr", "2-nji semestr"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "cagalar-bagy","label": "Çagalar bagy (Kindergarten)",     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "basanjy",   "label": "Başlangyç (Primary 1-4)",           "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "umumy",     "label": "Umumy (5-9)",                       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-15"},
+        {"code": "ýokary",    "label": "Ýokary orta (10-12)",               "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "university","label": "University (TDU)",                  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tm-bg", "label": "Çagalar bagy",     "order": 0},
+        {"code": "tm-g4", "label": "Synp 4",           "order": 4},
+        {"code": "tm-g9", "label": "Synp 9 (Umumy)",   "order": 9},
+        {"code": "tm-g12","label": "Synp 12 (Ýokary)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mugallym / Teacher", "principal": "Müdir",
+        "term": "Semestr", "report_card": "Gündelik", "grade_level": "Synp",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TM", None)
+
+# Kyrgyzstan — Kyrgyz+Russian, 11-year, ORT.
+COUNTRY_LOCALIZATION["KG"] = {
+    "calendar_system": {
+        "code": "kg-2-semester", "label": "2-semester (Kyrgyz)",
+        "term_count": 2, "term_names": ["1-чейрек", "2-чейрек"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "bakcha",    "label": "Bakcha (Kindergarten)",             "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "boluk",     "label": "Boluk Bilim (Primary 1-4)",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "negizgi",   "label": "Negizgi (5-9)",                     "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "10-15"},
+        {"code": "orto",      "label": "Orto (10-11 / ORT)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "vocational","label": "Kesiptik (Vocational)",             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University (KNU)",                  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "kg-bk", "label": "Bakcha",            "order": 0},
+        {"code": "kg-g4", "label": "Klass 4",           "order": 4},
+        {"code": "kg-g9", "label": "Klass 9 (Negizgi)", "order": 9},
+        {"code": "kg-g11","label": "Klass 11 (ORT)",    "order": 11},
+    ],
+    "terminology": {
+        "teacher": "Mugalim / Мугалим", "principal": "Direktor",
+        "term": "Choyrek / Чейрек", "report_card": "Künölük", "grade_level": "Klass",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KG", None)
+
+# Tajikistan — Tajik+Russian, 4+5+2, university entrance.
+COUNTRY_LOCALIZATION["TJ"] = {
+    "calendar_system": {
+        "code": "tj-2-semester", "label": "2-semester (Tajik)",
+        "term_count": 2, "term_names": ["Семестри 1", "Семестри 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "kudakiston","label": "Kudakiston (Kindergarten)",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-7"},
+        {"code": "ibtidoi",   "label": "Ibtidoi (Primary 1-4)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-11"},
+        {"code": "asosi",     "label": "Asosi (5-9)",                       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "miyona",    "label": "Miyona (10-11)",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "university","label": "University (TNU)",                  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "tj-kd", "label": "Kudakiston",       "order": 0},
+        {"code": "tj-g4", "label": "Sinf 4",           "order": 4},
+        {"code": "tj-g9", "label": "Sinf 9 (Asosi)",   "order": 9},
+        {"code": "tj-g11","label": "Sinf 11 (Miyona)", "order": 11},
+    ],
+    "terminology": {
+        "teacher": "Mu'allim / Муаллим", "principal": "Direktor",
+        "term": "Semestr / Семестр", "report_card": "Daftari қayd", "grade_level": "Sinf",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TJ", None)
+
+# Haiti — French+Creole, École Fondamentale, Bac.
+COUNTRY_LOCALIZATION["HT"] = {
+    "calendar_system": {
+        "code": "ht-3-trimester", "label": "3 Trimestres (Haïtien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "prescolaire","label": "Préscolaire / Lekòl matènèl",      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "fondamental","label": "École Fondamentale (9 ans)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-15"},
+        {"code": "secondaire","label": "Secondaire / Bac",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-19"},
+        {"code": "professionnel","label": "Lycée Professionnel",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite","label": "Université d'État (UEH)",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ht-pre","label": "Préscolaire",      "order": 0},
+        {"code": "ht-f9", "label": "Fondamental 9",    "order": 9},
+        {"code": "ht-bac","label": "Bac",              "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Pwofesè / Enseignant", "principal": "Direktè / Directeur",
+        "term": "Trimès / Trimestre", "report_card": "Karnè / Bulletin", "grade_level": "Klas",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("HT", None)
+
+# Jamaica — English+Patois, primary + secondary + CSEC/CAPE.
+COUNTRY_LOCALIZATION["JM"] = {
+    "calendar_system": {
+        "code": "jm-3-term", "label": "3-term (Jamaican)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "basic",     "label": "Basic School (Early Years)",       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",   "label": "Primary (Grade 1-6 / PEP)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secondary", "label": "Secondary (Grade 7-11 / CSEC)",    "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth-form","label": "Sixth Form / CAPE",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "hartt",     "label": "HEART / TVET",                     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-19"},
+        {"code": "university","label": "University of the West Indies",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jm-bs", "label": "Basic School",      "order": 0},
+        {"code": "jm-g6", "label": "Grade 6 (PEP)",     "order": 6},
+        {"code": "jm-g11","label": "Grade 11 (CSEC)",   "order": 11},
+        {"code": "jm-sf", "label": "Sixth Form (CAPE)", "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal / Headmaster",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("JM", None)
+
+# Trinidad & Tobago — English, primary + secondary + CSEC/CAPE.
+COUNTRY_LOCALIZATION["TT"] = {
+    "calendar_system": {
+        "code": "tt-3-term", "label": "3-term (Trinidadian)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "early-childhood","label": "Early Childhood",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",   "label": "Primary (Std 1-5 / SEA)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary", "label": "Secondary (Form 1-5 / CSEC)",      "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "11-17"},
+        {"code": "sixth-form","label": "Form 6 / CAPE",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "university","label": "UWI St. Augustine",                 "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tt-ec", "label": "Early Childhood",  "order": 0},
+        {"code": "tt-s5", "label": "Std 5 (SEA)",       "order": 6},
+        {"code": "tt-f5", "label": "Form 5 (CSEC)",     "order": 11},
+        {"code": "tt-f6", "label": "Form 6 (CAPE)",     "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Book", "grade_level": "Standard / Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TT", None)
+
+# Barbados — English, primary + secondary + CSEC/CAPE.
+COUNTRY_LOCALIZATION["BB"] = {
+    "calendar_system": {
+        "code": "bb-3-term", "label": "3-term (Barbadian)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "nursery",   "label": "Nursery",                            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",   "label": "Primary (1-6 / BSSEE)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary", "label": "Secondary (Form 1-5 / CSEC)",        "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "11-17"},
+        {"code": "sixth-form","label": "Form 6 / CAPE",                      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "samuel-jackman","label": "Samuel Jackman Prescod / TVET", "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-19"},
+        {"code": "university","label": "UWI Cave Hill",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bb-n",  "label": "Nursery",          "order": 0},
+        {"code": "bb-p6", "label": "Class 6 (BSSEE)",  "order": 6},
+        {"code": "bb-f5", "label": "Form 5 (CSEC)",    "order": 11},
+        {"code": "bb-f6", "label": "Form 6 (CAPE)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Class / Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BB", None)
+
+# Cuba — Spanish, primary + secundaria + preuniversitario.
+COUNTRY_LOCALIZATION["CU"] = {
+    "calendar_system": {
+        "code": "cu-2-semester", "label": "2-semester (Cubano)",
+        "term_count": 2, "term_names": ["Semestre 1", "Semestre 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "circulo",   "label": "Círculo Infantil",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaria",  "label": "Primaria (1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secundaria","label": "Secundaria Básica (7-9)",           "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "preuniv",   "label": "Preuniversitario (10-12)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "tecnica",   "label": "Educación Técnica y Profesional",   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universidad","label": "Universidad de La Habana",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cu-ci", "label": "Círculo Infantil",  "order": 0},
+        {"code": "cu-p6", "label": "Grado 6",           "order": 6},
+        {"code": "cu-s9", "label": "Grado 9 (Sec. Básica)","order": 9},
+        {"code": "cu-pu12","label": "Grado 12 (Preuniv.)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Profesor / Maestro", "principal": "Director",
+        "term": "Semestre", "report_card": "Libreta de notas", "grade_level": "Grado",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CU", None)
+
+# Bolivia — Spanish+Quechua+Aymara, Educación Inicial → Comunitario.
+COUNTRY_LOCALIZATION["BO"] = {
+    "calendar_system": {
+        "code": "bo-2-semester", "label": "2-semester (Boliviano)",
+        "term_count": 2, "term_names": ["Semestre 1", "Semestre 2"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "inicial",   "label": "Educación Inicial",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaria",  "label": "Primaria Comunitaria (1-6)",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secundaria","label": "Secundaria Comunitaria (1-6 / Bach.)","glyph": "\U0001F393","primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "tecnica",   "label": "Educación Técnica",                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universidad","label": "UMSA / UAGRM / etc.",               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bo-in", "label": "Inicial",           "order": 0},
+        {"code": "bo-p6", "label": "Primaria 6",        "order": 6},
+        {"code": "bo-s6", "label": "Secundaria 6 (Bach.)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Maestro / Profesor", "principal": "Director",
+        "term": "Semestre", "report_card": "Libreta", "grade_level": "Curso",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BO", None)
+
+# Ecuador — Spanish+Kichwa, EGB + Bachillerato, ENES.
+COUNTRY_LOCALIZATION["EC"] = {
+    "calendar_system": {
+        "code": "ec-3-quimestre", "label": "Quimestres (Ecuatoriano)",
+        "term_count": 2, "term_names": ["Quimestre 1", "Quimestre 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "inicial",   "label": "Educación Inicial",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "egb",       "label": "Educación General Básica (1-10)",    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-15"},
+        {"code": "bachillerato","label": "Bachillerato General Unificado (1-3 BGU)","glyph": "\U0001F393","primary_sector": "secondary","typical_ages": "15-18"},
+        {"code": "tecnico",   "label": "Bachillerato Técnico",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "universidad","label": "Universidad",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ec-in", "label": "Inicial",           "order": 0},
+        {"code": "ec-egb10","label":"EGB 10",           "order": 10},
+        {"code": "ec-bgu3","label": "BGU 3 (Bach.)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Docente / Profesor", "principal": "Rector / Director",
+        "term": "Quimestre", "report_card": "Libreta", "grade_level": "Año / Curso",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("EC", None)
+
+# Paraguay — Spanish+Guaraní, Inicial → EEB → Educación Media.
+COUNTRY_LOCALIZATION["PY"] = {
+    "calendar_system": {
+        "code": "py-2-semester", "label": "2-semester (Paraguayo)",
+        "term_count": 2, "term_names": ["Semestre 1", "Semestre 2"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "inicial",   "label": "Educación Inicial",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "eeb",       "label": "EEB (Escolar Básica 1-9)",           "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-15"},
+        {"code": "media",     "label": "Educación Media (1-3 / Bach.)",      "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "tecnica",   "label": "Bachillerato Técnico",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "universidad","label": "Universidad Nacional de Asunción",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "py-in", "label": "Inicial",           "order": 0},
+        {"code": "py-eeb9","label":"EEB 9",             "order": 9},
+        {"code": "py-em3","label": "Media 3 (Bach.)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mbo'ehára / Profesor", "principal": "Sãmbyhyhára / Director",
+        "term": "Semestre", "report_card": "Libreta", "grade_level": "Año / Mbo'esyry",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PY", None)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
