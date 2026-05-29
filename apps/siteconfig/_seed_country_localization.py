@@ -1918,3 +1918,82 @@ try:
 except ImportError:
     COUNTRY_LANGUAGES = {}
 
+
+# ---------------------------------------------------------------------------
+# v4.00.28 (2026-05-29) — Cameroon Tier-1 entry.
+#
+# Cameroon's bilingual education system is unique: Francophone schools follow
+# the FR cycle (maternelle/élémentaire/collège/lycée), Anglophone schools
+# follow a Nigerian/British hybrid (nursery/primary/secondary), and many
+# institutions ("écoles bilingues") run BOTH systems side-by-side. The
+# multi-select school-type checkbox (v4.00.27) lets a school declare every
+# cycle it covers; this seed entry surfaces the LOCALLY-RECOGNIZED labels
+# for each cycle so the Cameroonian operator sees their actual mental model
+# (Collège — 1er cycle / Lycée — 2nd cycle / GHS / etc.) instead of the
+# generic French ones inherited from africa-francophone.
+#
+# Education levels intentionally enumerate BOTH the Francophone (6ème → Tle)
+# and Anglophone (Form 1 → Upper 6) ladders so a bilingual school can M2M
+# both into education_levels. Operator can prune either ladder post-signup.
+# ---------------------------------------------------------------------------
+
+COUNTRY_LOCALIZATION["CM"] = {
+    "calendar_system": {
+        "code": "cm-3-term",
+        "label": "3 Terms (Cameroon)",
+        "term_count": 3,
+        "term_names": ["1er Trimestre / Term 1", "2e Trimestre / Term 2", "3e Trimestre / Term 3"],
+        "week_start": 1,
+        "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle",          "label": "Maternelle / Nursery",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",            "label": "École Primaire / Primary School",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college-1er-cycle",   "label": "Collège — 1er cycle (Forms 1-5 / 6ème-3ème)",   "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-16"},
+        {"code": "lycee-2nd-cycle",     "label": "Lycée — 2nd cycle (Lower & Upper Sixth / 2nde-Tle)", "glyph": "\U0001F3DB",  "primary_sector": "secondary",       "typical_ages": "15-19"},
+        {"code": "lycee-technique",     "label": "Lycée Technique / Technical High School",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "ghs",                 "label": "Government High School (GHS)",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-19"},
+        {"code": "ecole-bilingue",      "label": "École Bilingue / Bilingual School",             "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-19"},
+        {"code": "universite",          "label": "Université / University",                       "glyph": "\U0001F393", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        # Francophone ladder
+        {"code": "cm-ms",   "label": "Maternelle (3-5)",          "order": 0},
+        {"code": "cm-sil",  "label": "SIL / CP",                  "order": 1},
+        {"code": "cm-cp",   "label": "Cours Préparatoire",        "order": 2},
+        {"code": "cm-ce1",  "label": "CE1",                       "order": 3},
+        {"code": "cm-ce2",  "label": "CE2",                       "order": 4},
+        {"code": "cm-cm1",  "label": "CM1",                       "order": 5},
+        {"code": "cm-cm2",  "label": "CM2 (CEP)",                 "order": 6},
+        {"code": "cm-6e",   "label": "6ème",                      "order": 7},
+        {"code": "cm-5e",   "label": "5ème",                      "order": 8},
+        {"code": "cm-4e",   "label": "4ème",                      "order": 9},
+        {"code": "cm-3e",   "label": "3ème (BEPC)",               "order": 10},
+        {"code": "cm-2nde", "label": "Seconde",                   "order": 11},
+        {"code": "cm-1ere", "label": "Première (Probatoire)",     "order": 12},
+        {"code": "cm-tle",  "label": "Terminale (Baccalauréat)",  "order": 13},
+        # Anglophone ladder (run in parallel for bilingual schools)
+        {"code": "cm-cls1", "label": "Class 1 / Nursery 1",       "order": 100},
+        {"code": "cm-cls2", "label": "Class 2 / Nursery 2",       "order": 101},
+        {"code": "cm-cls3", "label": "Class 3",                   "order": 102},
+        {"code": "cm-cls4", "label": "Class 4",                   "order": 103},
+        {"code": "cm-cls5", "label": "Class 5",                   "order": 104},
+        {"code": "cm-cls6", "label": "Class 6 (FSLC)",            "order": 105},
+        {"code": "cm-f1",   "label": "Form 1",                    "order": 110},
+        {"code": "cm-f2",   "label": "Form 2",                    "order": 111},
+        {"code": "cm-f3",   "label": "Form 3",                    "order": 112},
+        {"code": "cm-f4",   "label": "Form 4",                    "order": 113},
+        {"code": "cm-f5",   "label": "Form 5 (GCE O/L)",          "order": 114},
+        {"code": "cm-ls",   "label": "Lower Sixth",               "order": 115},
+        {"code": "cm-us",   "label": "Upper Sixth (GCE A/L)",     "order": 116},
+    ],
+    "terminology": {
+        "teacher":     "Enseignant / Teacher",
+        "principal":   "Proviseur / Principal",
+        "term":        "Trimestre / Term",
+        "report_card": "Bulletin / Report Card",
+        "grade_level": "Classe / Class",
+    },
+}
+# Cameroon is no longer a regional-default lookup; it's Tier-1 explicit.
+COUNTRY_REGIONAL_DEFAULT.pop("CM", None)

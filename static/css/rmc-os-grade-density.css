@@ -363,8 +363,134 @@ html[data-rmc-os-grade="1"] .cp-hero__lede {
 }
 
 /* ============================================================
+   COMMAND PALETTE — OS-GRADE COCKPIT SKIN
+   Layered on top of rmc-long-page-grammar.css base styles when
+   [data-rmc-os-grade="1"] is active. Cinematic central modal:
+   bigger, harder edges, mono hints, accent glow, razor-thin rows.
+   ============================================================ */
+
+html[data-rmc-os-grade="1"] .rmc-cmdk { padding-top: clamp(6vh, 14vh, 12rem); }
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__panel {
+  width: min(720px, 92vw) !important; /* style-allow: os-grade-cmdk */
+  max-height: 64vh;
+  border-radius: 6px !important; /* style-allow: os-grade-cmdk */
+  border: 1px solid var(--rmc-os-glow) !important; /* style-allow: os-grade-cmdk */
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55),
+              0 0 1px var(--rmc-os-glow),
+              0 0 40px var(--rmc-os-glow-soft) !important; /* style-allow: os-grade-cmdk */
+  background: color-mix(in srgb, var(--surface-popover, #0c0c12) 95%, transparent) !important; /* style-allow: os-grade-cmdk */
+}
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__inputbar {
+  padding: 14px 18px !important; /* style-allow: os-grade-cmdk */
+  border-bottom: 1px solid var(--rmc-os-hairline) !important; /* style-allow: os-grade-cmdk */
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--rmc-os-glow) 6%, transparent) 0%,
+    transparent 100%);
+}
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__icon {
+  color: var(--rmc-os-glow) !important; /* style-allow: os-grade-cmdk */
+  font-size: 16px;
+}
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__input {
+  font-size: 15px !important; /* style-allow: os-grade-cmdk */
+  letter-spacing: -0.005em;
+  font-weight: 500;
+}
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__kbd-hint {
+  font-family: var(--rmc-os-font-mono);
+  font-size: 10px !important; /* style-allow: os-grade-cmdk */
+  padding: 2px 7px !important; /* style-allow: os-grade-cmdk */
+  border: 1px solid var(--rmc-os-hairline) !important; /* style-allow: os-grade-cmdk */
+  background: transparent !important; /* style-allow: os-grade-cmdk */
+  color: color-mix(in srgb, currentColor 70%, transparent);
+  letter-spacing: 0.04em;
+}
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__list {
+  padding: 4px !important; /* style-allow: os-grade-cmdk */
+}
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__item {
+  padding: 7px 10px !important; /* style-allow: os-grade-cmdk */
+  border-radius: 3px !important; /* style-allow: os-grade-cmdk */
+  gap: 10px;
+  border-left: 2px solid transparent;
+  transition: border-color 80ms ease, background 80ms ease;
+}
+html[data-rmc-os-grade="1"] .rmc-cmdk__item.is-active {
+  background: color-mix(in srgb, var(--rmc-os-glow) 10%, transparent) !important; /* style-allow: os-grade-cmdk */
+  border-left-color: var(--rmc-os-glow);
+}
+html[data-rmc-os-grade="1"] .rmc-cmdk__item-icon {
+  font-size: 13px;
+  width: 16px;
+  opacity: 0.75;
+}
+html[data-rmc-os-grade="1"] .rmc-cmdk__item.is-active .rmc-cmdk__item-icon {
+  color: var(--rmc-os-glow) !important; /* style-allow: os-grade-cmdk */
+  opacity: 1;
+}
+html[data-rmc-os-grade="1"] .rmc-cmdk__item-label {
+  font-size: 13px !important; /* style-allow: os-grade-cmdk */
+  font-weight: 500;
+  letter-spacing: 0;
+}
+html[data-rmc-os-grade="1"] .rmc-cmdk__item-sub {
+  font-size: 10px !important; /* style-allow: os-grade-cmdk */
+  font-family: var(--rmc-os-font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+html[data-rmc-os-grade="1"] .rmc-cmdk__footer {
+  border-top: 1px solid var(--rmc-os-hairline);
+  padding: 6px 14px !important; /* style-allow: os-grade-cmdk */
+  font-family: var(--rmc-os-font-mono);
+  font-size: 9px !important; /* style-allow: os-grade-cmdk */
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--surface-popover, #0c0c12) 60%, transparent);
+}
+html[data-rmc-os-grade="1"] .rmc-cmdk__footer kbd {
+  font-family: inherit;
+  font-size: 9px;
+  padding: 1px 5px;
+  border: 1px solid var(--rmc-os-hairline);
+  border-radius: 2px;
+}
+
+/* Section labels inside the palette (Navigate / Actions / Recents /
+   Page actions) become tiny telemetry-style headers. */
+html[data-rmc-os-grade="1"] .rmc-cmdk__group-label,
+html[data-rmc-os-grade="1"] .rmc-cmdk__section {
+  font-family: var(--rmc-os-font-mono);
+  font-size: 9px !important; /* style-allow: os-grade-cmdk */
+  font-weight: 700 !important; /* style-allow: os-grade-cmdk */
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 10px 4px !important; /* style-allow: os-grade-cmdk */
+  color: var(--rmc-os-glow);
+  opacity: 0.85;
+}
+
+/* "Page actions" group injected by JS gets a soft accent stripe. */
+html[data-rmc-os-grade="1"] .rmc-cmdk__list [data-rmc-cmdk-group="page"] {
+  background: linear-gradient(90deg, var(--rmc-os-glow-soft) 0%, transparent 60%);
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--rmc-os-hairline);
+}
+
+/* ============================================================
    PREFERS-REDUCED-MOTION
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
   .rmc-os-command-rail__dot { animation: none; }
+  html[data-rmc-os-grade="1"] .rmc-cmdk__panel { animation: none; }
 }
