@@ -677,3 +677,124 @@ def sls(request):
         from django.http import HttpResponseRedirect
         return HttpResponseRedirect(f"{idp_target}{sep}{urllib.parse.urlencode(params)}")
     return HttpResponse(resp_bytes, content_type="text/xml; charset=utf-8")
+
+
+def _autosubmit_form_html(action: str, payload_b64: str, relay: str) -> str:
+    """v4.00.59 — Build an HTTP-POST binding auto-submit HTML form.
+
+    Used by the IdP-initiated logout flow: after the SP processes the
+    incoming LogoutRequest, it must return a LogoutResponse to the IdP via
+    POST binding (which means rendering an HTML form that auto-submits via
+    JavaScript). RelayState is preserved when set.
+
+    HTML is intentionally minimal and JS-only — operators with NoScript
+    can still click the "Continue" button to complete the flow.
+    """
+    from django.utils.html import escape as _escape
+    action_esc = _escape(action)
+    payload_esc = _escape(payload_b64)
+    relay_html = (
+        f'<input type="hidden" name="RelayState" value="{_escape(relay)}">' if relay else ""
+    )
+    return (
+        "<!DOCTYPE html><html><head>"
+        "<meta charset=\"utf-8\">"
+        "<title>SAML logout</title></head><body>"
+        f"<form id=\"slo-form\" method=\"post\" action=\"{action_esc}\">"
+        f"<input type=\"hidden\" name=\"SAMLResponse\" value=\"{payload_esc}\">"
+        f"{relay_html}"
+        "<noscript><button type=\"submit\">Continue logout</button></noscript>"
+        "</form>"
+        "<script>document.getElementById('slo-form').submit();</script>"
+        "</body></html>"
+    )
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def sls_idp(request):
+    """v4.00.59 — IdP-initiated logout endpoint (POST-binding).
+
+    Distinct from v4.00.58 ``sls`` in that the response payload is sent
+    back to the IdP via an HTML auto-submit form (HTTP-POST binding) rather
+    than via 302 redirect (HTTP-Redirect binding). Some IdPs (notably
+    Microsoft Entra ID, Okta enterprise) require POST-binding for the
+    logout response when the LogoutRequest itself was POST-bound.
+
+    Same validation flow as ``sls``: parse LogoutRequest, optionally
+    verify c14n signature, flush Django session, build LogoutResponse.
+    The terminal step differs: when ``RMC_SAML_IDP_SLO_URL`` is set, this
+    endpoint returns a self-submitting HTML form posting to the IdP. When
+    unset, returns the raw XML inline (parity with the v4.00.58 fallback).
+    """
+    import base64 as _b64
+
+    saml_req = request.POST.get("SAMLRequest") or request.GET.get("SAMLRequest") or ""
+    relay = request.POST.get("RelayState") or request.GET.get("RelayState") or ""
+    logger.info("saml sls-idp: received LogoutRequest (method=%s, len=%s)", request.method, len(saml_req))
+
+    parsed = _parse_saml_logout_request(saml_req) if saml_req else {"error": "missing_saml_request"}
+    if parsed.get("error"):
+        try:
+            request.session.flush()
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("saml sls-idp: session flush failed: %s", exc)
+        return JsonResponse(
+            {"success": False, "stage": "parse_failed", "error": parsed["error"]},
+            status=400,
+        )
+
+    sig_reason = ""
+    if _require_signature() and _idp_cert_b64() and parsed.get("signature_present"):
+        verified, reason = _verify_saml_signature_c14n(saml_req, _idp_cert_b64())
+        sig_reason = reason
+        if not verified:
+            if reason == "deps_missing":
+                if _require_signature_strict():
+                    return JsonResponse(
+                        {"success": False, "stage": "signature_verifier_deps_missing"},
+                        status=503,
+                    )
+                logger.warning("saml sls-idp: c14n verifier deps_missing - falling back")
+            else:
+                return JsonResponse(
+                    {"success": False, "stage": "signature_verification_failed", "reason": reason},
+                    status=401,
+                )
+    elif _require_signature() and _idp_cert_b64() and not parsed.get("signature_present"):
+        return JsonResponse(
+            {"success": False, "stage": "signature_required_but_missing"},
+            status=401,
+        )
+
+    try:
+        request.session.flush()
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml sls-idp: session flush failed: %s", exc)
+
+    resp_bytes = _build_saml_logout_response(
+        in_response_to=parsed.get("id", ""),
+        issuer=_entity_id() or "rmc-sp",
+        destination=_idp_slo_target(),
+    )
+
+    if (request.GET.get("format") or "").lower() == "json":
+        return JsonResponse({
+            "success": True,
+            "stage": "logged_out_idp_initiated",
+            "in_response_to": parsed.get("id", ""),
+            "name_id": parsed.get("name_id", ""),
+            "session_index": parsed.get("session_index", ""),
+            "signature_present": parsed.get("signature_present", False),
+            "signature_reason": sig_reason,
+            "logout_response_b64": _b64.b64encode(resp_bytes).decode("ascii"),
+            "binding": "HTTP-POST",
+            "relay_state": relay,
+        })
+
+    idp_target = _idp_slo_target()
+    payload_b64 = _b64.b64encode(resp_bytes).decode("ascii")
+    if idp_target:
+        html = _autosubmit_form_html(action=idp_target, payload_b64=payload_b64, relay=relay)
+        return HttpResponse(html, content_type="text/html; charset=utf-8")
+    return HttpResponse(resp_bytes, content_type="text/xml; charset=utf-8")

@@ -98,6 +98,7 @@ from apps.api import oneroster as _oneroster
 from apps.api import oneroster_csv_importer as _oneroster_csv
 from apps.api import oneroster_writes as _oneroster_writes
 from apps.api import oneroster_results as _oneroster_results
+from apps.api import oneroster_demographics as _oneroster_demographics
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
     api_import_error_resolver,
@@ -559,6 +560,10 @@ urlpatterns = [
     path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
     path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),
     path("roster/v1p2/academic-sessions/", _oneroster.academic_sessions, name="api-roster-v1p2-academic-sessions"),
+    # v4.00.59 — OneRoster v1.2 demographics endpoints (read-only).
+    path("roster/v1p2/demographics/", _oneroster_demographics.demographics_collection, name="api-roster-v1p2-demographics"),
+    path("roster/v1p2/demographics/<str:sourced_id>/", _oneroster_demographics.demographic_detail, name="api-roster-v1p2-demographic-detail"),
+    path("roster/v1p2/students/<str:sourced_id>/demographics/", _oneroster_demographics.student_demographics, name="api-roster-v1p2-student-demographics"),
     # v4.00.38: OneRoster v1.2 CSV bundle import (Clever/ClassLink-compatible)
     path("roster/v1p2/import/", _oneroster_csv.import_bundle, name="api-roster-v1p2-import"),
     path("roster/v1p2/import/last-report/", _oneroster_csv.last_import_report, name="api-roster-v1p2-import-last-report"),

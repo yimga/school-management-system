@@ -157,3 +157,98 @@ def lms_diagnostics(request: HttpRequest):
     if (request.GET.get("format") or "").lower() == "json":
         return JsonResponse({"success": not diag["errors"], **diag})
     return render(request, "migration_cloud/super/lms_diagnostics.html", {"diag": diag})
+
+
+# ---------------------------------------------------------------------------
+# v4.00.59 — Operator action buttons: force-refresh + force-rotate per
+# provider. POSTs land here from the diagnostics dashboard; CSRF-protected
+# Django session auth via @staff_member_required.
+# ---------------------------------------------------------------------------
+
+
+def _safe_provider(raw: str) -> str:
+    """Whitelist allow-list of provider slugs so the action endpoints can't
+    be coerced into operating on arbitrary input."""
+    p = (raw or "").strip().lower()
+    return p if p in {"canvas", "moodle", "google_classroom", "google"} else ""
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def lms_diagnostics_force_refresh(request: HttpRequest):
+    """v4.00.59 — Force-refresh every expired token for ``?provider=<slug>``.
+
+    Reuses v4.00.59 ``lms_oauth_health.sweep_lms_oauth_health`` so the
+    outcome lands in the audit ring via the existing ``_health_check``
+    marker. Returns JSON summary; redirects to the diagnostics page when
+    the request is form-submitted (no Accept JSON header).
+    """
+    provider = _safe_provider(request.POST.get("provider") or request.GET.get("provider") or "")
+    if not provider:
+        return JsonResponse({"success": False, "error": "missing_or_bad_provider"}, status=400)
+
+    try:
+        from apps.integrations_marketplace.lms_oauth_health import sweep_lms_oauth_health
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse({"success": False, "error": f"sweep_unavailable: {exc}"}, status=503)
+
+    out = sweep_lms_oauth_health()
+    # Filter the result for the requested provider so the operator sees
+    # only what was relevant to their click.
+    by_provider = [r for r in out.get("results", []) if r.get("provider") == provider]
+    summary = {
+        "success": True,
+        "action": "force_refresh",
+        "provider": provider,
+        "considered": out.get("considered", 0),
+        "refreshed": out.get("refreshed", 0),
+        "failed": out.get("failed", 0),
+        "results_for_provider": by_provider,
+    }
+
+    if (request.headers.get("Accept") or "").lower().startswith("application/json"):
+        return JsonResponse(summary)
+    # Form-submitted: send the operator back to the dashboard.
+    from django.http import HttpResponseRedirect
+    return HttpResponseRedirect(
+        f"/super/migration/lms/diagnostics/?action=force_refresh&provider={provider}"
+        f"&considered={summary['considered']}&refreshed={summary['refreshed']}&failed={summary['failed']}"
+    )
+
+
+@staff_member_required
+@require_http_methods(["POST"])
+def lms_diagnostics_force_rotate(request: HttpRequest):
+    """v4.00.59 — Force-rotate every token past the rotation-grace window
+    for ``?provider=<slug>``.
+
+    Reuses v4.00.54 ``lms_token_rotation.sweep_lms_tokens_due_rotation``.
+    """
+    provider = _safe_provider(request.POST.get("provider") or request.GET.get("provider") or "")
+    if not provider:
+        return JsonResponse({"success": False, "error": "missing_or_bad_provider"}, status=400)
+
+    try:
+        from apps.integrations_marketplace.lms_token_rotation import sweep_lms_tokens_due_rotation
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse({"success": False, "error": f"sweep_unavailable: {exc}"}, status=503)
+
+    out = sweep_lms_tokens_due_rotation()
+    by_provider = [r for r in out.get("results", []) if r.get("provider") == provider]
+    summary = {
+        "success": True,
+        "action": "force_rotate",
+        "provider": provider,
+        "considered": out.get("considered", 0),
+        "rotated": out.get("rotated", 0),
+        "failed": out.get("failed", 0),
+        "results_for_provider": by_provider,
+    }
+
+    if (request.headers.get("Accept") or "").lower().startswith("application/json"):
+        return JsonResponse(summary)
+    from django.http import HttpResponseRedirect
+    return HttpResponseRedirect(
+        f"/super/migration/lms/diagnostics/?action=force_rotate&provider={provider}"
+        f"&considered={summary['considered']}&rotated={summary['rotated']}&failed={summary['failed']}"
+    )

@@ -122,6 +122,9 @@ urlpatterns = [
     path("health/", views_health.MigrationCloudHealthView.as_view(), name="migration_cloud_health"),  # rbac-allow: super-staff-migration-cloud-health-status
     # v4.00.56 — LMS connector diagnostics (token health + 24h refresh/rotation outcomes).
     path("lms/diagnostics/", views_lms_diagnostics.lms_diagnostics, name="migration_cloud_lms_diagnostics"),  # rbac-allow: super-staff-migration-cloud-lms-diagnostics
+    # v4.00.59 — operator action buttons on the diagnostics dashboard.
+    path("lms/diagnostics/force-refresh/", views_lms_diagnostics.lms_diagnostics_force_refresh, name="migration_cloud_lms_diagnostics_force_refresh"),  # rbac-allow: super-staff-migration-cloud-lms-force-refresh
+    path("lms/diagnostics/force-rotate/", views_lms_diagnostics.lms_diagnostics_force_rotate, name="migration_cloud_lms_diagnostics_force_rotate"),  # rbac-allow: super-staff-migration-cloud-lms-force-rotate
     # v3.40.0 Agent 6 — Migration Cloud Command Center (8-card operator dashboard).
     path("command-center/", views_command_center.MigrationCloudCommandCenterView.as_view(), name="migration_cloud_command_center"),  # rbac-allow: super-staff-migration-cloud-command-center
     # Wave 9 Agent N — vendor write-path authorization status (counsel-pending shovel-ready surface).

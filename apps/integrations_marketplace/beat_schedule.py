@@ -91,6 +91,17 @@ def _build_schedule() -> dict[str, dict[str, Any]]:
             "options": {"expires": 7200},
         }
 
+    # v4.00.59 — reactive OAuth health beat: catch tokens that fully expired
+    # despite the hourly proactive refresh. Default cadence 15 minutes; each
+    # outcome emits an LMSPushGradeAudit row tagged ``course_id="_health_check"``
+    # so /super/migration/lms/diagnostics/ surfaces the result in the 24h rollup.
+    if not _env_bool("RMC_LMS_OAUTH_HEALTH_BEAT_DISABLED"):
+        schedule["integrations-lms-oauth-health"] = {
+            "task": "integrations_marketplace.auto_refresh_expired_lms_tokens",
+            "schedule": 900.0,
+            "options": {"expires": 600},
+        }
+
     return schedule
 
 

@@ -75,6 +75,16 @@ class IntegrationsMarketplaceConfig(AppConfig):
                 "integrations_marketplace: failed to import lms_audit_retention"
             )
 
+        # v4.00.59 — LMS OAuth health beat: reactive auto-refresh of expired
+        # tokens + audit-ring attach.
+        try:
+            from apps.integrations_marketplace import lms_oauth_health  # noqa: F401
+        except Exception:  # noqa: BLE001
+            import logging
+            logging.getLogger(__name__).exception(
+                "integrations_marketplace: failed to import lms_oauth_health"
+            )
+
         # v2.79 — startup advisory check: warn if OAUTH_CALLBACK_BASE_URL is
         # unset in a production-looking environment so operators don't ship a
         # broken OAuth dance silently.

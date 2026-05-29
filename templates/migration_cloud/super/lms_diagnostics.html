@@ -66,6 +66,7 @@
             <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Rot OK (24h)" %}</th>
             <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;">{% trans "Rot fail (24h)" %}</th>
             <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);">{% trans "Latest refresh" %}</th>
+            <th style="padding:8px 10px;border-bottom:1px solid var(--hairline);">{% trans "Actions" %}</th>
           </tr>
         </thead>
         <tbody>
@@ -81,6 +82,18 @@
               <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.rotation_ok_24h }}</td>
               <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);text-align:right;font-family:monospace;">{{ p.rotation_failed_24h }}</td>
               <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);font-family:monospace;font-size:11px;color:var(--text-secondary);">{{ p.latest_refresh_at }}</td>
+              <td style="padding:8px 10px;border-bottom:1px solid var(--hairline);white-space:nowrap;">
+                <form method="post" action="{% url 'migration_cloud_super:migration_cloud_lms_diagnostics_force_refresh' %}" style="display:inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="provider" value="{{ p.provider }}">
+                  <button type="submit" style="padding:3px 8px;border-radius:6px;border:1px solid var(--hairline);background:var(--surface-canvas);color:var(--text-primary);font-size:11px;cursor:pointer;">{% trans "Force refresh" %}</button>
+                </form>
+                <form method="post" action="{% url 'migration_cloud_super:migration_cloud_lms_diagnostics_force_rotate' %}" style="display:inline;margin-left:4px;">
+                  {% csrf_token %}
+                  <input type="hidden" name="provider" value="{{ p.provider }}">
+                  <button type="submit" style="padding:3px 8px;border-radius:6px;border:1px solid var(--hairline);background:var(--surface-canvas);color:var(--text-primary);font-size:11px;cursor:pointer;">{% trans "Force rotate" %}</button>
+                </form>
+              </td>
             </tr>
           {% endfor %}
         </tbody>
@@ -89,6 +102,19 @@
       <p style="color:var(--text-secondary);">{% trans "No LMS connector tokens configured yet. Provision tokens via /portal/super/integrations/lms/." %}</p>
     {% endif %}
   </section>
+
+  {% if request.GET.action %}
+    <section style="margin-top:14px;padding:10px 14px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
+      <strong>{% trans "Last action" %}:</strong>
+      <span style="font-family:monospace;font-size:12px;">{{ request.GET.action }} on {{ request.GET.provider }}</span>
+      <span style="color:var(--text-secondary);font-size:12px;margin-left:8px;">
+        considered={{ request.GET.considered|default:"0" }}
+        {% if request.GET.refreshed %}refreshed={{ request.GET.refreshed }}{% endif %}
+        {% if request.GET.rotated %}rotated={{ request.GET.rotated }}{% endif %}
+        failed={{ request.GET.failed|default:"0" }}
+      </span>
+    </section>
+  {% endif %}
 
   <section style="margin-top:18px;">
     <h2 class="rmc-h2" style="font-size:1rem;margin-bottom:8px;">{% trans "Headless format" %}</h2>
