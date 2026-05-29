@@ -3106,3 +3106,286 @@ COUNTRY_LOCALIZATION["SZ"] = {
     },
 }
 COUNTRY_REGIONAL_DEFAULT.pop("SZ", None)
+
+# Guinea-Bissau — Lusophone, 6-3-3 system.
+COUNTRY_LOCALIZATION["GW"] = {
+    "calendar_system": {
+        "code": "gw-3-trimester", "label": "3 Trimestres (Guinea-Bissau)",
+        "term_count": 3, "term_names": ["1º Trimestre", "2º Trimestre", "3º Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "pre-escolar", "label": "Pré-escolar",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "basico-1",    "label": "Ensino Básico 1º Ciclo (1-4)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "basico-2",    "label": "Ensino Básico 2º Ciclo (5-6)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "10-12"},
+        {"code": "basico-3",    "label": "Ensino Básico 3º Ciclo (7-9)",      "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "secundario",  "label": "Ensino Secundário (10-12)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "tecnico",     "label": "Ensino Técnico-Profissional",       "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "13-19"},
+        {"code": "universidade","label": "Universidade",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gw-pre","label": "Pré-escolar",         "order": 0},
+        {"code": "gw-1",  "label": "Classe 1",            "order": 1},
+        {"code": "gw-6",  "label": "Classe 6",            "order": 6},
+        {"code": "gw-9",  "label": "Classe 9",            "order": 9},
+        {"code": "gw-12", "label": "Classe 12",           "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor", "principal": "Diretor", "term": "Trimestre",
+        "report_card": "Boletim", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GW", None)
+
+# Cape Verde — Lusophone, EBI + Secundário.
+COUNTRY_LOCALIZATION["CV"] = {
+    "calendar_system": {
+        "code": "cv-3-trimester", "label": "3 Trimestres (Cabo-verdiano)",
+        "term_count": 3, "term_names": ["1º Trimestre", "2º Trimestre", "3º Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "pre-escolar", "label": "Pré-escolar",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "ebi",         "label": "EBI Ensino Básico Integrado (1-6)", "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "1-ciclo-sec", "label": "Secundário 1º Ciclo (7-8)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-14"},
+        {"code": "2-ciclo-sec", "label": "Secundário 2º Ciclo (9-10)",        "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "14-16"},
+        {"code": "3-ciclo-sec", "label": "Secundário 3º Ciclo (11-12)",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "tecnico",     "label": "Ensino Técnico",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universidade","label": "Universidade",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cv-pre","label": "Pré-escolar",         "order": 0},
+        {"code": "cv-1",  "label": "Classe 1",            "order": 1},
+        {"code": "cv-6",  "label": "Classe 6 (Fim EBI)",  "order": 6},
+        {"code": "cv-10", "label": "Classe 10",           "order": 10},
+        {"code": "cv-12", "label": "Classe 12",           "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor", "principal": "Diretor", "term": "Trimestre",
+        "report_card": "Boletim", "grade_level": "Ano",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CV", None)
+
+# São Tomé e Príncipe — Lusophone, 6-3-3 system.
+COUNTRY_LOCALIZATION["ST"] = {
+    "calendar_system": {
+        "code": "st-3-trimester", "label": "3 Trimestres (São Tomense)",
+        "term_count": 3, "term_names": ["1º Trimestre", "2º Trimestre", "3º Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "pre-escolar","label": "Pré-escolar",                        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primario",   "label": "Ensino Básico (1-6)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secundario", "label": "Secundário (7-12)",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-18"},
+        {"code": "tecnico",    "label": "Ensino Técnico",                     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universidade","label": "Universidade",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "st-pre","label": "Pré-escolar",         "order": 0},
+        {"code": "st-6",  "label": "Classe 6",            "order": 6},
+        {"code": "st-12", "label": "Classe 12",           "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor", "principal": "Diretor", "term": "Trimestre",
+        "report_card": "Boletim", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("ST", None)
+
+# Timor-Leste — Lusophone+Tetum, EB1 + EB2 + ES.
+COUNTRY_LOCALIZATION["TL"] = {
+    "calendar_system": {
+        "code": "tl-2-semester", "label": "2 Semestres (Timorense)",
+        "term_count": 2, "term_names": ["Semestre 1", "Semestre 2"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "pre-escolar","label": "Pré-escolar",                        "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "eb1",        "label": "Ensino Básico 1º Ciclo (1-6)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "eb3",        "label": "Ensino Básico 3º Ciclo (7-9)",       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "secundario", "label": "Ensino Secundário (10-12)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "tecnico",    "label": "Ensino Técnico-Profissional",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universidade","label": "Universidade",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tl-pre","label": "Pré-escolar",         "order": 0},
+        {"code": "tl-6",  "label": "Classe 6 (Fim EB1)",  "order": 6},
+        {"code": "tl-9",  "label": "Classe 9 (Fim EB3)",  "order": 9},
+        {"code": "tl-12", "label": "Classe 12",           "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor / Mestre", "principal": "Diretor",
+        "term": "Semestre", "report_card": "Boletim", "grade_level": "Klase / Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TL", None)
+
+# Congo (Brazzaville) — Francophone, CEPE / BEPC / Bac.
+COUNTRY_LOCALIZATION["CG"] = {
+    "calendar_system": {
+        "code": "cg-3-trimester", "label": "3 Trimestres (Congolais Brazza)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "Maternelle",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "Primaire (CP-CM2 / CEPE)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",    "label": "Collège (6e-3e / BEPC)",            "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Baccalauréat)",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",  "label": "Lycée Technique / EFTP",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite", "label": "Université Marien Ngouabi",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cg-mat","label": "Maternelle",         "order": 0},
+        {"code": "cg-cm2","label": "CM2 (CEPE)",         "order": 6},
+        {"code": "cg-3e", "label": "3ème (BEPC)",        "order": 10},
+        {"code": "cg-tle","label": "Terminale (Bac)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CG", None)
+
+# DR Congo — Francophone, EPSP TENAFEP / Examen d'État.
+COUNTRY_LOCALIZATION["CD"] = {
+    "calendar_system": {
+        "code": "cd-3-trimester", "label": "3 Trimestres (RDC)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle",   "label": "École Maternelle",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",     "label": "Primaire (1-6 / TENAFEP)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "humanites-1",  "label": "Humanités 1er Cycle (7-8)",       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-14"},
+        {"code": "humanites-2",  "label": "Humanités 2e Cycle (9-12 / État)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "technique",    "label": "EFTP / Technique",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "13-19"},
+        {"code": "universite",   "label": "Université",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cd-mat","label": "Maternelle",            "order": 0},
+        {"code": "cd-p6", "label": "Primaire 6 (TENAFEP)",  "order": 6},
+        {"code": "cd-h2", "label": "Humanités 2 (Tronc Co.)","order": 8},
+        {"code": "cd-h6", "label": "Humanités 6 (Examen d'État)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Préfet d'études",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CD", None)
+
+# Guinea — Francophone, CEE / Brevet / Baccalauréat.
+COUNTRY_LOCALIZATION["GN"] = {
+    "calendar_system": {
+        "code": "gn-3-trimester", "label": "3 Trimestres (Guinéen)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "prescolaire","label": "Préscolaire",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "Primaire (CP1-CM2 / CEE)",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",    "label": "Collège (6e-3e / Brevet)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Bac)",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",  "label": "EFTP / Technique",                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite", "label": "Université",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gn-pre","label": "Préscolaire",        "order": 0},
+        {"code": "gn-cm2","label": "CM2 (CEE)",          "order": 6},
+        {"code": "gn-3e", "label": "3ème (Brevet)",      "order": 10},
+        {"code": "gn-tle","label": "Terminale (Bac)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GN", None)
+
+# Gabon — Francophone, CEP / BEPC / Bac.
+COUNTRY_LOCALIZATION["GA"] = {
+    "calendar_system": {
+        "code": "ga-3-trimester", "label": "3 Trimestres (Gabonais)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "Maternelle",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "Primaire (CP-CM2 / CEP)",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",    "label": "Collège (6e-3e / BEPC)",          "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Bac)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",  "label": "EFTP / Technique",                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite", "label": "Université Omar Bongo",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ga-mat","label": "Maternelle",         "order": 0},
+        {"code": "ga-cm2","label": "CM2 (CEP)",          "order": 6},
+        {"code": "ga-3e", "label": "3ème (BEPC)",        "order": 10},
+        {"code": "ga-tle","label": "Terminale (Bac)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GA", None)
+
+# Chad — Francophone+Arabic, CEPE / BEPC / Bac.
+COUNTRY_LOCALIZATION["TD"] = {
+    "calendar_system": {
+        "code": "td-3-trimester", "label": "3 Trimestres (Tchadien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "prescolaire","label": "Préscolaire",                      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "Primaire (CP-CM2 / CEPE)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",    "label": "Collège (6e-3e / BEPC)",          "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Bac)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "arabophone", "label": "École Arabophone",                 "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "technique",  "label": "EFTP / Technique",                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite", "label": "Université",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "td-pre","label": "Préscolaire",        "order": 0},
+        {"code": "td-cm2","label": "CM2 (CEPE)",         "order": 6},
+        {"code": "td-3e", "label": "3ème (BEPC)",        "order": 10},
+        {"code": "td-tle","label": "Terminale (Bac)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / معلم", "principal": "Directeur / مدير",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TD", None)
+
+# Central African Republic — Francophone, CEPE / BEPC / Bac.
+COUNTRY_LOCALIZATION["CF"] = {
+    "calendar_system": {
+        "code": "cf-3-trimester", "label": "3 Trimestres (Centrafricain)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "Maternelle",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "Primaire (CP-CM2 / CEPE)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "college",    "label": "Collège (6e-3e / BEPC)",          "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-16"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle / Bac)",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-19"},
+        {"code": "technique",  "label": "EFTP / Technique",                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite", "label": "Université de Bangui",             "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cf-mat","label": "Maternelle",         "order": 0},
+        {"code": "cf-cm2","label": "CM2 (CEPE)",         "order": 6},
+        {"code": "cf-3e", "label": "3ème (BEPC)",        "order": 10},
+        {"code": "cf-tle","label": "Terminale (Bac)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Directeur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CF", None)

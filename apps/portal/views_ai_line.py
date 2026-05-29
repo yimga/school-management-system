@@ -386,5 +386,20 @@ def _log_intent_hit(request, query: str, result: dict[str, Any] | None, ai_on: b
             school_id_hash or "-",
             (result or {}).get("url") or "-",
         )
+        # Also stash in the in-process ring buffer that powers the
+        # /super/ai-line/intent-coverage/ dashboard.
+        try:
+            from apps.portal.views_ai_line_admin import record_intent_hit
+
+            record_intent_hit(
+                intent=(result or {}).get("intent", "none"),
+                matched=bool(result),
+                ai_on=ai_on,
+                qlen=len(query or ""),
+                school=school_id_hash or "-",
+                url=(result or {}).get("url") or "-",
+            )
+        except Exception:  # noqa: BLE001
+            pass
     except Exception as exc:  # noqa: BLE001
         logger.debug("ai-line analytics log failed: %s", exc)

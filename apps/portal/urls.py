@@ -138,12 +138,21 @@ from .views_partner_docs import partner_documentation_assistant
 from .views_runmycampus_guide import runmycampus_guide
 # v4.00.9: streaming AI gateway view for the rmcStreamMount progressive client.
 from .views_ai_stream import ai_stream_view
+from .views_ai_line_admin import (
+    tenant_ai_line_intents_view,
+    tenant_ai_line_intents_save,
+    ai_line_intent_coverage,
+)
 
 app_name = "portal"
 
 urlpatterns = [
     # v4.00.9: streaming AI gateway — SSE chunks for rmcStreamMount.
     path("ai/stream/", ai_stream_view, name="ai_stream"),
+    # v4.00.34: AI-line intent shortcuts editor + staff coverage dashboard.
+    path("configure/ai-line-intents/", tenant_ai_line_intents_view, name="ai_line_intents"),
+    path("configure/ai-line-intents/save/", tenant_ai_line_intents_save, name="ai_line_intents_save"),
+    path("super/ai-line/intent-coverage/", ai_line_intent_coverage, name="ai_line_intent_coverage"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

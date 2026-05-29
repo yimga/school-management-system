@@ -1060,6 +1060,19 @@ class Applicant(models.Model):
         related_name="assigned_applicants",
     )
     extra_data = models.JSONField(default=dict, blank=True)
+    # v4.00.34: country-aware exam-score capture.
+    exam_scores = models.JSONField(
+        default=dict, blank=True,
+        help_text="Per-subject scores keyed by schema subject code, e.g. {'english': 'A1', 'math': 'B2'}.",
+    )
+    exam_schema_code = models.CharField(
+        max_length=40, blank=True,
+        help_text="Slug of the apps.siteconfig._admissions_intake_schemas entry used.",
+    )
+    exam_marker = models.CharField(
+        max_length=80, blank=True,
+        help_text="Display label for the exam (WASSCE / KCSE / Thanaweya / Baccalauréat …).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -1070,6 +1083,7 @@ class Applicant(models.Model):
         indexes = [
             models.Index(fields=["school", "stage"]),
             models.Index(fields=["email", "school"]),
+            models.Index(fields=["school", "exam_schema_code"]),
         ]
 
     def __str__(self):

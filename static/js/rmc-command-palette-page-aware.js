@@ -1,5 +1,9 @@
 /**
- * rmc-command-palette-page-aware.js — v4.00.31 (2026-05-29)
+ * rmc-command-palette-page-aware.js — v4.00.34 (2026-05-29)
+ *
+ * v4.00.34: + Voice elapsed-ms pulse: the mic button shows a tiny live
+ *             "0.4s" counter while dictating, so the user can tell whether
+ *             the recognizer is still listening (often hard on noisy mics).
  *
  * v4.00.31: + Locale-aware voice input: rec.lang now reads from the cmdk
  *             data block's `locale` (Django LANGUAGE_CODE) before falling
@@ -307,6 +311,32 @@
     }
 
     var rec = null;
+    var elapsedTimer = null;
+    var startedAt = 0;
+
+    function clearElapsed() {
+      if (elapsedTimer) {
+        clearInterval(elapsedTimer);
+        elapsedTimer = null;
+      }
+      var existing = btn.querySelector(".rmc-cmdk__mic-elapsed");
+      if (existing) existing.remove();
+    }
+
+    function startElapsed() {
+      clearElapsed();
+      startedAt = performance.now ? performance.now() : Date.now();
+      var badge = document.createElement("span");
+      badge.className = "rmc-cmdk__mic-elapsed";
+      badge.textContent = "0.0s";
+      btn.appendChild(badge);
+      elapsedTimer = setInterval(function () {
+        var now = performance.now ? performance.now() : Date.now();
+        var s = ((now - startedAt) / 1000).toFixed(1);
+        badge.textContent = s + "s";
+      }, 100);
+    }
+
     btn.addEventListener("click", function (ev) {
       ev.preventDefault();
       try {
@@ -314,6 +344,7 @@
           rec.stop();
           rec = null;
           btn.classList.remove("is-listening");
+          clearElapsed();
           return;
         }
         rec = new SR();
@@ -321,7 +352,6 @@
         rec.lang = resolveSpeechLang(cfg.locale);
         rec.interimResults = false;
         rec.maxAlternatives = 1;
-        btn.classList.add("is-listening");
         rec.onresult = function (e) {
           var text = (e.results && e.results[0] && e.results[0][0] && e.results[0][0].transcript) || "";
           if (text) {
@@ -333,15 +363,20 @@
         rec.onend = function () {
           btn.classList.remove("is-listening");
           rec = null;
+          clearElapsed();
         };
         rec.onerror = function () {
           btn.classList.remove("is-listening");
           rec = null;
+          clearElapsed();
         };
         rec.start();
+        btn.classList.add("is-listening");
+        startElapsed();
       } catch (_) {
         btn.classList.remove("is-listening");
         rec = null;
+        clearElapsed();
       }
     });
   }

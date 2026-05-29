@@ -29,7 +29,7 @@ COUNTRY_TO_LOCALE: dict[str, str] = {
     # Horn of Africa
     "ET": "am", "ER": "en", "SO": "en",
     # Lusophone Africa
-    "MZ": "pt", "AO": "pt", "GW": "pt", "CV": "pt", "ST": "pt",
+    "MZ": "pt", "AO": "pt", "GW": "pt", "CV": "pt", "ST": "pt", "TL": "pt",
     # Default English-speaking world
     "US": "en", "GB": "en", "CA": "en", "AU": "en", "NZ": "en",
     "IE": "en",

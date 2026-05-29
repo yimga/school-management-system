@@ -1,0 +1,87 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "AI-line intent coverage" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid rmc-page" style="max-width: 1100px;">
+  <header class="rmc-page__header" style="margin-bottom: 18px;">
+    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">
+      <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+      {% trans "AI-line intent coverage" %}
+    </h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 64ch;">
+      {% blocktrans %}Last {{ snapshot_count }} of {{ buffer_cap }} command-palette AI-line queries on this worker. PII-safe: school IDs are hashed; query text is never logged.{% endblocktrans %}
+    </p>
+  </header>
+
+  <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px;">
+    <div class="rmc-stat-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div class="rmc-stat-card__label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Total queries" %}</div>
+      <div class="rmc-stat-card__value" style="font-size: 2rem; font-weight: 700;">{{ summary.total }}</div>
+    </div>
+    <div class="rmc-stat-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div class="rmc-stat-card__label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Match rate" %}</div>
+      <div class="rmc-stat-card__value" style="font-size: 2rem; font-weight: 700;">{{ summary.match_rate }}%</div>
+    </div>
+    <div class="rmc-stat-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <div class="rmc-stat-card__label" style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "AI-fallback rate" %}</div>
+      <div class="rmc-stat-card__value" style="font-size: 2rem; font-weight: 700;">{{ summary.ai_rate }}%</div>
+    </div>
+  </section>
+
+  <section style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 18px;">
+    <div class="rmc-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <h2 style="font-size: 1.05rem; margin: 0 0 10px; letter-spacing: -0.01em;">{% trans "By intent" %}</h2>
+      {% if summary.by_intent %}
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          {% for intent, n in summary.by_intent %}
+            <li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--hairline); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;">
+              <span>{{ intent }}</span>
+              <span style="color: var(--text-secondary);">{{ n }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p style="color: var(--text-secondary); font-style: italic;">{% trans "No queries yet — try the command palette." %}</p>
+      {% endif %}
+    </div>
+
+    <div class="rmc-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
+      <h2 style="font-size: 1.05rem; margin: 0 0 10px; letter-spacing: -0.01em;">{% trans "Most recent" %}</h2>
+      {% if summary.recent %}
+        <table style="width: 100%; border-collapse: collapse; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;">
+          <thead>
+            <tr style="color: var(--text-secondary); text-align: left;">
+              <th style="padding: 6px 4px; border-bottom: 1px solid var(--hairline);">{% trans "Intent" %}</th>
+              <th style="padding: 6px 4px; border-bottom: 1px solid var(--hairline);">{% trans "Matched" %}</th>
+              <th style="padding: 6px 4px; border-bottom: 1px solid var(--hairline);">{% trans "AI" %}</th>
+              <th style="padding: 6px 4px; border-bottom: 1px solid var(--hairline);">{% trans "qlen" %}</th>
+              <th style="padding: 6px 4px; border-bottom: 1px solid var(--hairline);">{% trans "School" %}</th>
+              <th style="padding: 6px 4px; border-bottom: 1px solid var(--hairline);">{% trans "URL" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in summary.recent %}
+              <tr>
+                <td style="padding: 4px;">{{ r.intent }}</td>
+                <td style="padding: 4px;">{{ r.matched|yesno:"yes,no" }}</td>
+                <td style="padding: 4px;">{{ r.ai_on|yesno:"yes,no" }}</td>
+                <td style="padding: 4px;">{{ r.qlen }}</td>
+                <td style="padding: 4px;">{{ r.school }}</td>
+                <td style="padding: 4px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ r.url }}">{{ r.url }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p style="color: var(--text-secondary); font-style: italic;">{% trans "Buffer empty." %}</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <p style="margin-top: 18px; color: var(--text-secondary); font-size: 12px;">
+    <a href="?format=json" style="color: var(--rmc-page-accent, var(--text-primary));">{% trans "Download as JSON" %}</a>
+    · {% trans "In-process buffer per worker; not durable across restarts." %}
+  </p>
+</div>
+{% endblock %}

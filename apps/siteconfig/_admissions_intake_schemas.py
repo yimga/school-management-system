@@ -362,6 +362,17 @@ COUNTRY_DEFAULT_SCHEMA: dict[str, str] = {
     "NA": "za-nsc",   # NSSCO/NSSCAS — Cambridge-style
     "LS": "za-nsc",   # LGCSE — Cambridge IGCSE
     "SZ": "za-nsc",   # EGCSE — Cambridge IGCSE
+    # v4.00.34 additions — Lusophone + Central Africa Francophone:
+    "GW": "mz-esg",   # Lusophone Classe 12, same 0-20 family
+    "CV": "mz-esg",   # EBI + Secundário, 0-20
+    "ST": "mz-esg",   # Classe 12, 0-20
+    "TL": "mz-esg",   # Lusophone+Tetum, 0-20
+    "CG": "fr-bac",   # Francophone Bac
+    "CD": "fr-bac",   # RDC Examen d'État
+    "GN": "fr-bac",
+    "GA": "fr-bac",
+    "TD": "fr-bac",
+    "CF": "fr-bac",
 }
 
 
