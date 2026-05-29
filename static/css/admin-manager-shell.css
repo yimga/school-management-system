@@ -818,3 +818,117 @@ html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .rmc-d
   font-size: 12px;
   line-height: 1.4;
 }
+
+/* =================================================================
+   v4.00.22 (2026-05-29) — Inline label rows + pagination + checkbox
+   density. Continues the make-pages-shorter sweep.
+   ================================================================= */
+
+/* ── Side-by-side label/input rows on wide screens ──
+   Django admin renders form rows as block-stacked label-then-input. On
+   screens >= 1024px we can put the label in a fixed-width left column
+   and the input on the right, saving one full row of vertical space
+   per field. The 2-column fieldset grid (v4.00.20) still applies on
+   top, so a 40-field form becomes ~10 rows of side-by-side pairs. */
+@media (min-width: 1024px) {
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 180px) 1fr;
+    align-items: center;
+    gap: 8px 16px;
+  }
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row > label {
+    text-align: right;
+    padding-right: 4px;
+    align-self: center;
+    margin: 0 !important; /* style-allow: admin-density-inline-label */
+    font-size: 12px;
+    color: var(--cp-chrome-text-muted, rgba(255, 255, 255, 0.7));
+  }
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row > :is(.help, .help-text, .field-description) {
+    grid-column: 2;
+    margin-top: 2px;
+  }
+  /* Textarea/M2M rows revert to stacked because they need full width. */
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row:has(textarea),
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row:has(.selector) {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row:has(textarea) > label,
+  html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row:has(.selector) > label {
+    text-align: left;
+    padding-right: 0;
+  }
+}
+
+/* ── Checkbox rows inline ──
+   Standalone checkbox fields (IS ACTIVE, IS STAFF, etc.) used to consume
+   a full grid row. Pull them inline with their label and shrink. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row.checkbox-row,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row:has(> .field-box > input[type="checkbox"]:only-of-type) {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-block: 4px !important; /* style-allow: admin-density-checkbox-pad */
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row.checkbox-row > label,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content fieldset.module.aligned > .form-row:has(> .field-box > input[type="checkbox"]:only-of-type) > label {
+  text-align: left;
+  margin: 0 !important; /* style-allow: admin-density-checkbox-label */
+  font-weight: 500;
+}
+
+/* ── Submit row compression ──
+   Buttons in the submit row don't need to be giant. Cap at 36px height
+   and shrink labels. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .rmc-admin-submit-row__inner button,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .rmc-admin-submit-row__inner a {
+  padding: 8px 14px !important; /* style-allow: admin-density-submit-pad */
+  font-size: 13px !important; /* style-allow: admin-density-submit-pad */
+  line-height: 1.3;
+  height: auto;
+  min-height: 36px;
+}
+
+/* ── Pagination strip at foot of changelist ──
+   Default pagination shows page-number list + "X records" + pagination
+   form on three rows. Inline them on >= md. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page .paginator {
+  padding-block: 8px !important; /* style-allow: admin-density-paginator */
+  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page .paginator a,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page .paginator .this-page {
+  padding: 3px 8px;
+  font-size: 12px;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* ── Action toolbar (bulk delete/activate dropdown) compression ── */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist-form .actions {
+  padding-block: 6px !important; /* style-allow: admin-density-actions */
+  font-size: 12px;
+  gap: 8px;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist-form .actions label,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist-form .actions select,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #changelist-form .actions button {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* ── Empty / no-results states fill canvas instead of being a sad
+       line of text alone in 400vh of white space. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page .rmc-empty,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page .rmc-no-results {
+  min-height: 0;
+  padding: 24px 16px;
+}
