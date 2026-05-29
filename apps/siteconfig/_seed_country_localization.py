@@ -4120,6 +4120,449 @@ COUNTRY_REGIONAL_DEFAULT.pop("TH", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.38 (2026-05-29) — Tier-1 packs:
+#   East Asia:        JP, KR, CN, TW
+#   Central Asia:     KZ, UZ, AF
+#   Pacific:          PG, FJ, WS
+#   French overseas:  NC, PF, YT
+#   South Asia tail:  IN, SG
+# Asia Tier-1 -> 18 (was 9). MENA still 13.
+# ---------------------------------------------------------------------------
+
+# Japan — Japanese+English, 6-3-3-4, Shougakkou / Chuugakkou / Koukou / Daigaku.
+COUNTRY_LOCALIZATION["JP"] = {
+    "calendar_system": {
+        "code": "jp-3-term", "label": "3-term (Japanese)",
+        "term_count": 3, "term_names": ["First Term", "Second Term", "Third Term"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien (Kindergarten)",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "shougakkou", "label": "Shougakkou (Elementary 1-6)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuugakkou", "label": "Chuugakkou (Junior High 1-3)",    "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "koukou",     "label": "Koukou (Senior High 1-3)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "kousen",     "label": "Kousen (Technical college 5y)",   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-20"},
+        {"code": "senshuu",    "label": "Senshuu-gakkou (Special)",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "international","label": "International School",          "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "daigaku",    "label": "Daigaku (University)",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp-yo","label": "Youchien",          "order": 0},
+        {"code": "jp-s6","label": "Shougakkou 6 (小6)","order": 6},
+        {"code": "jp-c3","label": "Chuugakkou 3 (中3)","order": 9},
+        {"code": "jp-k3","label": "Koukou 3 (高3)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei / 先生", "principal": "Kouchou / 校長",
+        "term": "Gakki / 学期", "report_card": "Tsuushinbo / 通信簿", "grade_level": "Nensei / 年生",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("JP", None)
+
+# South Korea — Korean+English, 6-3-3-4, CSAT.
+COUNTRY_LOCALIZATION["KR"] = {
+    "calendar_system": {
+        "code": "kr-2-semester", "label": "2-semester (Korean)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",      "label": "Yuchiwon (Kindergarten)",       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "chodeunghakgyo","label": "Chodeunghakgyo (Elementary 1-6)","glyph": "\U0001F3EB","primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "junghakgyo",    "label": "Junghakgyo (Middle 1-3)",       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "godeunghakgyo", "label": "Godeunghakgyo (High 1-3 / CSAT)","glyph": "\U0001F393","primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "specialized",   "label": "Specialized Vocational",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "international", "label": "International School",          "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "daehakgyo",     "label": "Daehakgyo (University)",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr-yu", "label": "Yuchiwon",         "order": 0},
+        {"code": "kr-c6", "label": "Chodeung 6",       "order": 6},
+        {"code": "kr-j3", "label": "Jung 3",           "order": 9},
+        {"code": "kr-g3", "label": "Godeung 3 (CSAT)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim / 선생님", "principal": "Gyojang / 교장",
+        "term": "Hakgi / 학기", "report_card": "Saenghwal Tongjipyo / 생활통지표", "grade_level": "Hagnyeon / 학년",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KR", None)
+
+# China (PRC) — Mandarin+English, 6-3-3, gaokao.
+COUNTRY_LOCALIZATION["CN"] = {
+    "calendar_system": {
+        "code": "cn-2-semester", "label": "2-semester (PRC)",
+        "term_count": 2, "term_names": ["第一学期", "第二学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",   "label": "Youeryuan (Kindergarten)",       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",     "label": "Xiaoxue (Primary, 小学 6y)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",    "label": "Chuzhong (Junior High, 初中 3y)","glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "gaozhong",    "label": "Gaozhong (Senior High, 高中 / 高考)","glyph": "\U0001F393","primary_sector": "secondary",     "typical_ages": "15-18"},
+        {"code": "zhongzhuan",  "label": "Zhongzhuan (Specialized Secondary)","glyph": "\U0001F527","primary_sector": "vocational",     "typical_ages": "15-19"},
+        {"code": "international","label": "International / Cambridge / IB","glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "daxue",       "label": "Daxue (University, 大学)",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cn-yey","label": "Youeryuan",        "order": 0},
+        {"code": "cn-x6", "label": "Xiaoxue 6 (小6)",  "order": 6},
+        {"code": "cn-c3", "label": "Chuzhong 3 (初3)", "order": 9},
+        {"code": "cn-g3", "label": "Gaozhong 3 (gaokao)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi / 老师", "principal": "Xiaozhang / 校长",
+        "term": "Xueqi / 学期", "report_card": "Chengjidan / 成绩单", "grade_level": "Nianji / 年级",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("CN", None)
+
+# Taiwan — Mandarin+English, 12-year basic, GSAT.
+COUNTRY_LOCALIZATION["TW"] = {
+    "calendar_system": {
+        "code": "tw-2-semester", "label": "2-semester (Taiwanese)",
+        "term_count": 2, "term_names": ["第一學期", "第二學期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youzhiyuan",   "label": "Youzhiyuan (Kindergarten)",     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "guoxiao",      "label": "Guomin Xiaoxue (Primary 1-6)",  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "guozhong",     "label": "Guomin Zhongxue (Junior 1-3)",  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaoji Zhongxue (Senior 1-3 / GSAT)","glyph": "\U0001F393","primary_sector": "secondary",     "typical_ages": "15-18"},
+        {"code": "gaozhi",       "label": "Gaoji Zhiye (Vocational High)", "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "international","label": "International School",          "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "daxue",        "label": "Daxue (University)",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "tw-yu","label": "Youzhiyuan",       "order": 0},
+        {"code": "tw-g6","label": "Guoxiao 6",        "order": 6},
+        {"code": "tw-j3","label": "Guozhong 3",       "order": 9},
+        {"code": "tw-h3","label": "Gaozhong 3 (GSAT)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi / 老師", "principal": "Xiaozhang / 校長",
+        "term": "Xueqi / 學期", "report_card": "Chengjidan / 成績單", "grade_level": "Nianji / 年級",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TW", None)
+
+# Kazakhstan — Kazakh+Russian+English, 5+4+2, UNT.
+COUNTRY_LOCALIZATION["KZ"] = {
+    "calendar_system": {
+        "code": "kz-2-semester", "label": "2-semester (Kazakhstani)",
+        "term_count": 2, "term_names": ["I семестр", "II семестр"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "pre-school","label": "Bobek (Pre-school)",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",   "label": "Primary (Grade 1-5)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "basic",     "label": "Basic Secondary (Grade 6-9)",       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "general",   "label": "General Secondary (Grade 10-11 / UNT)","glyph": "\U0001F393","primary_sector": "secondary",      "typical_ages": "15-17"},
+        {"code": "lyceum",    "label": "Lyceum / Gymnasium",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-17"},
+        {"code": "tvet",      "label": "TVET College",                      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university","label": "University",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "kz-pre","label": "Bobek",            "order": 0},
+        {"code": "kz-g5", "label": "Grade 5",          "order": 5},
+        {"code": "kz-g9", "label": "Grade 9 (Basic)",  "order": 9},
+        {"code": "kz-g11","label": "Grade 11 (UNT)",   "order": 11},
+    ],
+    "terminology": {
+        "teacher": "Mұғалім / Учитель / Teacher", "principal": "Директор / Director",
+        "term": "Semester / Жартыжылдық", "report_card": "Дневник / Күнделік", "grade_level": "Sınıp / Класс",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KZ", None)
+
+# Uzbekistan — Uzbek+Russian, 11-year basic, DTM.
+COUNTRY_LOCALIZATION["UZ"] = {
+    "calendar_system": {
+        "code": "uz-2-semester", "label": "2-semester (Uzbek)",
+        "term_count": 2, "term_names": ["1-yarim yillik", "2-yarim yillik"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "bog-cha",    "label": "Bog'cha (Kindergarten)",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-7"},
+        {"code": "boshlangich","label": "Boshlang'ich (Primary 1-4)",      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-11"},
+        {"code": "umumiy",     "label": "Umumiy O'rta (General 5-9)",      "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "akademik",   "label": "Akademik Litsey (10-11)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "kasb-hunar", "label": "Kasb-hunar (Vocational)",         "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "oliy",       "label": "Oliy (University)",               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "uz-bog","label": "Bog'cha",          "order": 0},
+        {"code": "uz-g4", "label": "Boshlang'ich 4",   "order": 4},
+        {"code": "uz-g9", "label": "Umumiy O'rta 9",   "order": 9},
+        {"code": "uz-g11","label": "Akademik 11 (DTM)","order": 11},
+    ],
+    "terminology": {
+        "teacher": "Oqituvchi / Teacher", "principal": "Direktor / Principal",
+        "term": "Yarim yillik / Semester", "report_card": "Kundalik", "grade_level": "Sinf",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("UZ", None)
+
+# Afghanistan — Dari+Pashto, MoE Bacaluria (12).
+COUNTRY_LOCALIZATION["AF"] = {
+    "calendar_system": {
+        "code": "af-2-semester", "label": "2-semester (Afghan)",
+        "term_count": 2, "term_names": ["Semester 1 / نیم سال اول", "Semester 2 / نیم سال دوم"],
+        "week_start": 6, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "pre-school","label": "Pre-school / کودکستان",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "primary",   "label": "Primary (Grade 1-6)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "lower-sec", "label": "Lower Secondary (Grade 7-9)",       "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "upper-sec", "label": "Upper Secondary (Grade 10-12 / Baccalaureate)","glyph": "\U0001F393","primary_sector": "secondary","typical_ages": "15-18"},
+        {"code": "vocational","label": "Vocational stream",                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "madrasa",   "label": "Madrasa",                           "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "university","label": "University",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "af-pre","label": "Pre-school",       "order": 0},
+        {"code": "af-g6", "label": "Grade 6",          "order": 6},
+        {"code": "af-g9", "label": "Grade 9",          "order": 9},
+        {"code": "af-g12","label": "Grade 12 (Baccalaureate)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mu'allim / معلم", "principal": "Mudir / مدیر",
+        "term": "Semester / نیم سال", "report_card": "Karnama / کارنامه", "grade_level": "Senf / صنف",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AF", None)
+
+# Papua New Guinea — English+Tok Pisin, elementary + primary + secondary.
+COUNTRY_LOCALIZATION["PG"] = {
+    "calendar_system": {
+        "code": "pg-4-term", "label": "4-term (PNG)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "elementary","label": "Elementary (E1-E2)",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "6-8"},
+        {"code": "primary",   "label": "Primary (Grade 3-8)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "8-14"},
+        {"code": "secondary", "label": "Secondary (Grade 9-12)",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "tvet",      "label": "TVET College",                      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university","label": "University of Papua New Guinea",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "pg-e2", "label": "Elementary 2",     "order": 0},
+        {"code": "pg-g8", "label": "Grade 8",          "order": 8},
+        {"code": "pg-g10","label": "Grade 10",         "order": 10},
+        {"code": "pg-g12","label": "Grade 12",         "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Tisa", "principal": "Headmaster / Het Tisa",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PG", None)
+
+# Fiji — English+Fijian+Hindi, P1-Y13, FSLC / FSCE / FY13.
+COUNTRY_LOCALIZATION["FJ"] = {
+    "calendar_system": {
+        "code": "fj-3-term", "label": "3-term (Fijian)",
+        "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "kindergarten","label": "Kindergarten",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",     "label": "Primary (Y1-Y8)",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "secondary",   "label": "Secondary (Y9-Y13 / FY13)",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "tvet",        "label": "TVET / Polytechnic",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university",  "label": "University of the South Pacific", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "fj-k", "label": "Kindergarten",      "order": 0},
+        {"code": "fj-y8","label": "Year 8",            "order": 8},
+        {"code": "fj-y12","label":"Year 12 (FSCE)",    "order": 12},
+        {"code": "fj-y13","label":"Year 13 (FY13)",    "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Qase ni vuli", "principal": "Headmaster",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("FJ", None)
+
+# Samoa — English+Samoan, Y1-Y13, PSSC.
+COUNTRY_LOCALIZATION["WS"] = {
+    "calendar_system": {
+        "code": "ws-4-term", "label": "4-term (Samoan)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "ecce",       "label": "ECCE (Aoga Amata)",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Y1-Y8)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-13"},
+        {"code": "secondary",  "label": "Secondary (Y9-Y13 / PSSC)",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "tvet",       "label": "TVET",                             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-19"},
+        {"code": "university", "label": "National University of Samoa",     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "ws-ecce","label": "Aoga Amata",      "order": 0},
+        {"code": "ws-y8", "label": "Year 8",           "order": 8},
+        {"code": "ws-y13","label": "Year 13 (PSSC)",   "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Faiaoga / Teacher", "principal": "Pule Aoga",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("WS", None)
+
+# New Caledonia — Francophone (French overseas), Vice-Rectorat.
+COUNTRY_LOCALIZATION["NC"] = {
+    "calendar_system": {
+        "code": "nc-3-trimester", "label": "3 Trimestres (Néo-Calédonien)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "maternelle","label": "École Maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",  "label": "École Élémentaire (CP-CM2)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",   "label": "Collège (6e-3e / DNB)",             "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "lycee",     "label": "Lycée (2nde-Tle / Bac)",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "professionnel","label": "Lycée Professionnel",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite","label": "Université de Nouvelle-Calédonie",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "nc-mat","label": "Maternelle",       "order": 0},
+        {"code": "nc-cm2","label": "CM2",              "order": 5},
+        {"code": "nc-3e","label": "3ème (DNB)",        "order": 9},
+        {"code": "nc-tle","label": "Terminale (Bac)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant", "principal": "Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("NC", None)
+
+# French Polynesia — Francophone+Tahitian.
+COUNTRY_LOCALIZATION["PF"] = {
+    "calendar_system": {
+        "code": "pf-3-trimester", "label": "3 Trimestres (Polynésie)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 8,
+    },
+    "school_types": [
+        {"code": "maternelle","label": "École Maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",  "label": "École Élémentaire",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",   "label": "Collège / DNB",                     "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "lycee",     "label": "Lycée / Bac",                       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "professionnel","label": "Lycée Professionnel",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite","label": "Université de la Polynésie française","glyph": "\U0001F3DB","primary_sector": "higher_ed",      "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "pf-mat","label": "Maternelle",       "order": 0},
+        {"code": "pf-cm2","label": "CM2",              "order": 5},
+        {"code": "pf-3e", "label": "3ème (DNB)",       "order": 9},
+        {"code": "pf-tle","label": "Terminale (Bac)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / Orometua haapii", "principal": "Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("PF", None)
+
+# Mayotte — Francophone (French overseas, Indian Ocean), Académie.
+COUNTRY_LOCALIZATION["YT"] = {
+    "calendar_system": {
+        "code": "yt-3-trimester", "label": "3 Trimestres (Mahorais)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle","label": "École Maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",  "label": "École Élémentaire",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",   "label": "Collège (6e-3e / DNB)",             "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "lycee",     "label": "Lycée (2nde-Tle / Bac)",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "professionnel","label": "Lycée Professionnel",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite","label": "CUFR de Mayotte",                   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "yt-mat","label": "Maternelle",       "order": 0},
+        {"code": "yt-cm2","label": "CM2",              "order": 5},
+        {"code": "yt-3e", "label": "3ème (DNB)",       "order": 9},
+        {"code": "yt-tle","label": "Terminale (Bac)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / Mwalimu", "principal": "Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("YT", None)
+
+# India — English+Hindi+22 regional, 5+3+2+2 (NEP 2020), CBSE/ICSE/state boards.
+COUNTRY_LOCALIZATION["IN"] = {
+    "calendar_system": {
+        "code": "in-2-semester", "label": "2-semester (Indian)",
+        "term_count": 2, "term_names": ["Term 1", "Term 2"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "pre-primary", "label": "Pre-primary (Nursery / KG)",      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",     "label": "Primary (Class 1-5)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "upper-primary","label": "Upper Primary (Class 6-8)",      "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-14"},
+        {"code": "secondary",   "label": "Secondary (Class 9-10 / X Board)","glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "14-16"},
+        {"code": "senior-sec",  "label": "Senior Secondary (Class 11-12 / XII Board)","glyph": "\U0001F393","primary_sector": "secondary","typical_ages": "16-18"},
+        {"code": "cbse",        "label": "CBSE board",                      "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "icse",        "label": "ICSE / ISC board",                "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "state-board", "label": "State Board",                     "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "ib-cambridge","label": "IB / Cambridge IGCSE",            "glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "iti",         "label": "ITI / Polytechnic",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14-19"},
+        {"code": "madrasa",     "label": "Madrasa",                         "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "5-18"},
+        {"code": "university",  "label": "University / College",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "in-kg",   "label": "KG / Pre-primary","order": 0},
+        {"code": "in-c5",   "label": "Class 5",         "order": 5},
+        {"code": "in-c8",   "label": "Class 8",         "order": 8},
+        {"code": "in-c10",  "label": "Class 10 (X)",    "order": 10},
+        {"code": "in-c12",  "label": "Class 12 (XII)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Shikshak / शिक्षक", "principal": "Principal / Prachārya",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("IN", None)
+
+# Singapore — English+Mandarin+Malay+Tamil, P1-P6 + PSLE + Sec + JC.
+COUNTRY_LOCALIZATION["SG"] = {
+    "calendar_system": {
+        "code": "sg-4-term", "label": "4-term (Singaporean)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",   "label": "Pre-school / Kindergarten",       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",     "label": "Primary (P1-P6 / PSLE)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "secondary",   "label": "Secondary (Sec 1-5 / O-Level)",   "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "jc",          "label": "Junior College / A-Level",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "ite",         "label": "ITE / Polytechnic",               "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "international","label": "International School (IB / CIE)","glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "madrasah",    "label": "Madrasah",                        "glyph": "\U0001F54C", "primary_sector": "k12",             "typical_ages": "6-18"},
+        {"code": "university",  "label": "University",                      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sg-pre","label": "Pre-school",       "order": 0},
+        {"code": "sg-p6", "label": "P6 (PSLE)",        "order": 6},
+        {"code": "sg-s4", "label": "Sec 4 (O-Level)",  "order": 10},
+        {"code": "sg-jc2","label": "JC2 (A-Level)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Cikgu", "principal": "Principal / Pengetua",
+        "term": "Term", "report_card": "Report Book", "grade_level": "Level",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SG", None)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

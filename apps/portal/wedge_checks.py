@@ -163,13 +163,11 @@ def _check_wedge_7() -> dict[int, bool]:
 
 def _check_wedge_8() -> dict[int, bool]:
     # Asia
-    pk_bd_lk_np = all(_country_pack(cc) for cc in ("PK", "BD", "LK", "NP"))
-    seasia = all(_country_pack(cc) for cc in ("PH", "ID", "MY", "VN", "TH"))
-    return {
-        0: pk_bd_lk_np,
-        1: seasia,  # v4.00.36 just added the SE-Asia 5
-        2: False,  # JP/KR/CN still deferred
-    }
+    sasia = all(_country_pack(cc) for cc in ("PK", "BD", "LK", "NP", "IN"))
+    seasia = all(_country_pack(cc) for cc in ("PH", "ID", "MY", "VN", "TH", "SG"))
+    easia = all(_country_pack(cc) for cc in ("JP", "KR", "CN", "TW"))
+    centralasia = all(_country_pack(cc) for cc in ("KZ", "UZ", "AF"))
+    return {0: sasia, 1: seasia, 2: easia, 3: centralasia}
 
 
 def _check_wedge_9() -> dict[int, bool]:
@@ -228,9 +226,30 @@ def _check_wedge_15() -> dict[int, bool]:
     return {0: True}  # private-school registration is unconditional baseline
 
 
+def _check_wedge_16() -> dict[int, bool]:
+    # Charter — authorizer registry live in v4.00.38
+    return {
+        0: _module_importable("apps.siteconfig._institution_types"),
+        1: _module_importable("apps.siteconfig._institution_types"),
+        2: False,  # Per-tenant authorizer assignment deferred
+    }
+
+
+def _check_wedge_18() -> dict[int, bool]:
+    # Faith-based — tradition registry live in v4.00.38
+    return {
+        0: _module_importable("apps.siteconfig._institution_types"),
+        1: False,  # Per-tenant tradition field deferred
+    }
+
+
 def _check_wedge_17() -> dict[int, bool]:
-    # International (institution)
-    return {0: False}  # IB program structure still deferred
+    # International (institution) — IB + Cambridge programme registry live in v4.00.38
+    return {
+        0: _module_importable("apps.siteconfig._institution_types"),
+        1: _module_importable("apps.siteconfig._institution_types"),
+        2: False,  # Per-tenant IB authorization status field deferred
+    }
 
 
 def _check_wedge_20() -> dict[int, bool]:
@@ -242,10 +261,10 @@ def _check_wedge_20() -> dict[int, bool]:
 
 
 def _check_wedge_22() -> dict[int, bool]:
-    # Multi-campus / group
+    # Multi-campus / group — billing rollup live in v4.00.38
     return {
         0: _module_importable("apps.schools.models"),
-        1: False,  # central reporting rollup deferred
+        1: _url_registered("portal:wedge_surface_multicampus_billing"),
     }
 
 
@@ -327,7 +346,9 @@ _CHECKS: dict[int, Callable[[], dict[int, bool]]] = {
     13: _check_wedge_13,
     14: _check_wedge_14,
     15: _check_wedge_15,
+    16: _check_wedge_16,
     17: _check_wedge_17,
+    18: _check_wedge_18,
     20: _check_wedge_20,
     22: _check_wedge_22,
     26: _check_wedge_26,

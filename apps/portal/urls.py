@@ -148,7 +148,9 @@ from .views_wedge_surfaces import (
     countries_by_wedge,
     integrations_by_wedge,
     grading_scales_by_wedge,
+    institution_types_by_wedge,
 )
+from .views_multicampus_billing import multicampus_billing
 
 app_name = "portal"
 
@@ -166,6 +168,9 @@ urlpatterns = [
     path("super/wedges/countries/", countries_by_wedge, name="wedge_surface_countries"),
     path("super/wedges/integrations/", integrations_by_wedge, name="wedge_surface_integrations"),
     path("super/wedges/grading-scales/", grading_scales_by_wedge, name="wedge_surface_grading"),
+    # v4.00.38: Tier-C institution-type registry + multi-campus billing surface
+    path("super/wedges/institution-types/", institution_types_by_wedge, name="wedge_surface_institution_types"),
+    path("super/wedges/multicampus-billing/", multicampus_billing, name="wedge_surface_multicampus_billing"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),

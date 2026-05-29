@@ -1,0 +1,37 @@
+{% extends "super/wedges/_surface_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Institution types" %}{% if wedge %} — {{ wedge.name }}{% endif %} — {{ block.super }}{% endblock %}
+{% block surface_label %}{% trans "Institution types" %}{% endblock %}
+{% block surface_title %}{% trans "Institution-type registry — wedge-scoped" %}{% endblock %}
+{% block surface_body %}
+  <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px;">
+    {% trans "Picker kind:" %} <code style="background: var(--surface-elevated); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--hairline);">{{ picker.kind }}</code>
+    {% if picker.institution.code %}<span style="margin-left: 8px;">{% trans "institution code:" %} <code style="background: var(--surface-elevated); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--hairline);">{{ picker.institution.code }}</code></span>{% endif %}
+  </p>
+  <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+      <thead>
+        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Code" %}</th>
+          <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Label" %}</th>
+          {% if picker.kind == "authorizers" %}<th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Region" %}</th>{% endif %}
+          {% if picker.kind == "programmes" %}<th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Age band" %}</th>{% endif %}
+          {% if picker.kind == "all-types" %}<th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Wedge" %}</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600;">{{ r.code }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.label }}</td>
+            {% if picker.kind == "authorizers" %}<td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ r.region }}</td>{% endif %}
+            {% if picker.kind == "programmes" %}<td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ r.age_band }}</td>{% endif %}
+            {% if picker.kind == "all-types" %}<td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);"><a href="/portal/super/wedge/{{ r.wedge_id }}/" style="font-size: 11px; color: var(--text-primary);">#{{ r.wedge_id }} →</a></td>{% endif %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="3" style="padding: 18px; text-align: center; color: var(--text-secondary);">{% trans "No rows." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

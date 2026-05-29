@@ -224,18 +224,20 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "phase": 1,
         "name": "Asia",
         "brief": (
-            "South / Southeast / East Asia — major migration-corridor "
-            "countries (PK/BD/IN/LK/NP) plus Southeast Asia (PH/ID/MY/VN/TH) "
-            "and East Asia."
+            "South / Southeast / East / Central Asia — migration corridor "
+            "(PK/BD/IN/LK/NP), SEA (PH/ID/MY/VN/TH/SG), East Asia "
+            "(JP/KR/CN/TW), Central Asia (KZ/UZ/AF)."
         ),
         "facets": {"region": "asia"},
         "deep_links": [
             ("Country localization (Asia)", "/siteconfig/super/configure/country-localization/?region=asia"),
+            ("Asia country list", "/portal/super/wedges/countries/?wedge=8"),
         ],
         "checklist": [
-            "PK/BD/LK/NP packs added (v4.00.35)",
-            "PH/ID/MY/VN/TH (deferred)",
-            "JP/KR/CN (deferred)",
+            "S-Asia core: PK/BD/LK/NP/IN packs registered",
+            "SE-Asia: PH/ID/MY/VN/TH/SG packs registered",
+            "E-Asia: JP/KR/CN/TW packs registered (v4.00.38)",
+            "Central Asia: KZ/UZ/AF packs registered (v4.00.38)",
         ],
     },
     {
@@ -365,10 +367,16 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "tier": "C",
         "phase": 2,
         "name": "Charter",
-        "brief": "Charter / academy networks (US/UK).",
+        "brief": "Charter / academy networks (US/UK + Friskola/bijzondere).",
         "facets": {"institution": "charter"},
-        "deep_links": [],
-        "checklist": ["Charter program-type (deferred)"],
+        "deep_links": [
+            ("Charter authorizer picker", "/portal/super/wedges/institution-types/"),
+        ],
+        "checklist": [
+            "Institution-type SOT registered (v4.00.38)",
+            "Charter authorizer registry seeded (US/UK/SE/NL)",
+            "Per-tenant authorizer assignment (deferred to v4.00.39)",
+        ],
     },
     {
         "id": 17,
@@ -376,13 +384,16 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "tier": "C",
         "phase": 2,
         "name": "International (institution)",
-        "brief": "Schools serving expat/internationally-mobile families.",
+        "brief": "Schools serving expat/internationally-mobile families. IB + Cambridge programme registry.",
         "facets": {"institution": "international"},
         "deep_links": [
             ("Education system: international", "/super/configure/education-systems/?type=international"),
+            ("IB + Cambridge programme picker", "/portal/super/wedges/institution-types/"),
         ],
         "checklist": [
-            "IB program structure (deferred)",
+            "IB programme registry seeded (PYP / MYP / DP / CP)",
+            "Cambridge programme registry seeded (Primary / Lower Sec / IGCSE / AICE)",
+            "Per-tenant IB authorization status field (deferred to v4.00.39)",
         ],
     },
     {
@@ -391,10 +402,15 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "tier": "C",
         "phase": 2,
         "name": "Faith-based",
-        "brief": "Catholic / Anglican / Protestant / Islamic / Jewish / etc.",
+        "brief": "Catholic / Anglican / Protestant / Islamic / Jewish / Hindu / Buddhist / Sikh / Bahá'í / interfaith.",
         "facets": {"institution": "faith-based"},
-        "deep_links": [],
-        "checklist": ["Faith-based feature flag (deferred)"],
+        "deep_links": [
+            ("Faith tradition picker", "/portal/super/wedges/institution-types/"),
+        ],
+        "checklist": [
+            "Faith tradition registry seeded (15 traditions)",
+            "Per-tenant tradition field assignment (deferred to v4.00.39)",
+        ],
     },
     {
         "id": 19,
@@ -443,15 +459,16 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "name": "Multi-campus / group",
         "brief": (
             "Multi-campus school groups under shared brand — central enrollment, "
-            "single-sign-on across campuses, group-level reporting."
+            "single-sign-on across campuses, group-level reporting + billing."
         ),
         "facets": {"institution": "multi-campus"},
         "deep_links": [
             ("Multi-campus group config", "/super/configure/multi-campus/"),
+            ("Group billing rollup", "/portal/super/wedges/multicampus-billing/"),
         ],
         "checklist": [
-            "Multi-campus group model present",
-            "Central reporting rollup (deferred)",
+            "Multi-campus group model present (parent_school FK)",
+            "Group billing rollup view live (v4.00.38, Invoice + Payment aggregates)",
         ],
     },
     # ----- Tier D — delivery model ----------------------------------------

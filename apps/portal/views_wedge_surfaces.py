@@ -226,6 +226,48 @@ def integrations_by_wedge(request):
 
 @staff_member_required
 @require_http_methods(["GET"])
+def institution_types_by_wedge(request):
+    """Institution-type registry picker filtered by ``?wedge=<id>``.
+
+    Surfaces the authorizers / IB+Cambridge programmes / faith
+    traditions per the v4.00.38 institution-type SOT. Honors
+    ``?format=json`` like the sibling surfaces.
+    """
+    try:
+        from apps.siteconfig._institution_types import picker_for_wedge, INSTITUTION_TYPES
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("institution types unavailable: %s", exc)
+        picker_for_wedge = lambda wid: {"institution": {}, "kind": "type-only", "rows": []}
+        INSTITUTION_TYPES = {}
+
+    w = _wedge_from_request(request)
+    picker: dict[str, Any]
+    if w is None:
+        picker = {"institution": {}, "kind": "all-types", "rows": [
+            {"code": v["code"], "label": v["label"], "wedge_id": k}
+            for k, v in INSTITUTION_TYPES.items()
+        ]}
+    else:
+        picker = picker_for_wedge(w["id"])
+
+    if _wants_json(request):
+        return JsonResponse({
+            "success": True,
+            "wedge": w["id"] if w else None,
+            "picker": picker,
+            "count": len(picker["rows"]),
+        })
+    return render(request, "super/wedges/surface_institution_types.html", {
+        "wedge": w,
+        "picker": picker,
+        "rows": picker["rows"],
+        "total": len(picker["rows"]),
+        "is_filtered": w is not None,
+    })
+
+
+@staff_member_required
+@require_http_methods(["GET"])
 def grading_scales_by_wedge(request):
     """Grading scales filtered by ``?wedge=<id>``."""
     try:

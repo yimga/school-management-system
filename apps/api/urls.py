@@ -95,6 +95,8 @@ from apps.portal.views_admissions_intake import (
 )
 from apps.portal.views_wedges import api_wedge_list, api_wedge_detail
 from apps.api import oneroster as _oneroster
+from apps.api import oneroster_csv_importer as _oneroster_csv
+from apps.api import oneroster_writes as _oneroster_writes
 from apps.api import saml as _saml
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
@@ -557,6 +559,13 @@ urlpatterns = [
     path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
     path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),
     path("roster/v1p2/academic-sessions/", _oneroster.academic_sessions, name="api-roster-v1p2-academic-sessions"),
+    # v4.00.38: OneRoster v1.2 CSV bundle import (Clever/ClassLink-compatible)
+    path("roster/v1p2/import/", _oneroster_csv.import_bundle, name="api-roster-v1p2-import"),
+    path("roster/v1p2/import/last-report/", _oneroster_csv.last_import_report, name="api-roster-v1p2-import-last-report"),
+    # v4.00.38: OneRoster v1.2 PUT (single-entity upsert) with idempotency-key
+    path("roster/v1p2/orgs/<str:sourced_id>/", _oneroster_writes.put_org, name="api-roster-v1p2-put-org"),
+    path("roster/v1p2/users/<str:sourced_id>/", _oneroster_writes.put_user, name="api-roster-v1p2-put-user"),
+    path("roster/v1p2/classes/<str:sourced_id>/", _oneroster_writes.put_class, name="api-roster-v1p2-put-class"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,
