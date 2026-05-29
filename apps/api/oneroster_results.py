@@ -1107,3 +1107,440 @@ def category_dispatch(request: HttpRequest, sourced_id: str):
     if request.method == "DELETE":
         return delete_category(request, sourced_id)
     return category_detail(request, sourced_id)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.54 — LineItem Attachment + Rubric write coverage (Wedge 2).
+#
+# Attachments (``att-<slug>``) and rubrics (``rub-<slug>``) are auxiliary
+# OneRoster Result Service entities attached to LineItems. They are
+# stored in runtime override maps with the same Idempotency-Key contract
+# as categories. POST creates, PUT updates, DELETE soft-removes via
+# tombstone. GET list/detail compose the in-memory map.
+#
+# Validation guarantees:
+#   - Attachments require ``lineItemSourcedId`` (must start ``li-``) and
+#     ``url`` (must start http:// or https://).
+#   - Rubrics require ``lineItemSourcedId`` and at least one criterion
+#     in ``criteria`` (each criterion {title, points}).
+# ---------------------------------------------------------------------------
+
+_ATTACHMENT_OVERRIDES: dict[str, dict[str, Any]] = {}
+_ATTACHMENT_TOMBSTONES: set[str] = set()
+_RUBRIC_OVERRIDES: dict[str, dict[str, Any]] = {}
+_RUBRIC_TOMBSTONES: set[str] = set()
+_ALLOWED_ATTACHMENT_TYPES = {"file", "link", "video", "image", "audio", "document", "other"}
+
+
+def _slugify_for_sid(raw: str, fallback: str = "item") -> str:
+    import re
+    base = re.sub(r"[^a-z0-9-]+", "-", (raw or "").lower()).strip("-")
+    return base or fallback
+
+
+def _all_attachments() -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for sid, a in _ATTACHMENT_OVERRIDES.items():
+        if sid in _ATTACHMENT_TOMBSTONES:
+            continue
+        out.append(dict(a))
+    out.sort(key=lambda r: r.get("sourcedId", ""))
+    return out
+
+
+def _all_rubrics() -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for sid, r in _RUBRIC_OVERRIDES.items():
+        if sid in _RUBRIC_TOMBSTONES:
+            continue
+        out.append(dict(r))
+    out.sort(key=lambda r: r.get("sourcedId", ""))
+    return out
+
+
+@require_http_methods(["GET"])
+def attachments_list(request: HttpRequest):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = _all_attachments()
+    line_item = (request.GET.get("lineItem") or "").strip()
+    if line_item:
+        items = [a for a in items if a.get("lineItemSourcedId") == line_item]
+    page, meta = _paginate(request, items)
+    return _envelope("attachments", page, meta)
+
+
+@require_http_methods(["GET"])
+def attachment_detail(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if sourced_id in _ATTACHMENT_TOMBSTONES:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+    a = _ATTACHMENT_OVERRIDES.get(sourced_id)
+    if not a:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+    return JsonResponse({"attachment": a})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_attachment(request: HttpRequest):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post-attachment", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    inner = payload.get("attachment")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_attachment_envelope"}, status=400)
+
+    line_item = str(inner.get("lineItemSourcedId") or "").strip()
+    if not line_item.startswith("li-"):
+        return JsonResponse({"error": "bad_lineItemSourcedId"}, status=400)
+    url = str(inner.get("url") or "").strip()
+    if not (url.startswith("http://") or url.startswith("https://")):
+        return JsonResponse({"error": "bad_url"}, status=400)
+    a_type = str(inner.get("type") or "link").strip().lower()
+    if a_type not in _ALLOWED_ATTACHMENT_TYPES:
+        return JsonResponse({"error": "bad_type"}, status=400)
+    title = str(inner.get("title") or "").strip() or "Attachment"
+
+    sid_raw = str(inner.get("sourcedId") or "").strip()
+    if sid_raw:
+        sid = sid_raw if sid_raw.startswith("att-") else f"att-{_slugify_for_sid(sid_raw)}"
+    else:
+        sid = f"att-{_slugify_for_sid(title)}"
+
+    item = {
+        "sourcedId": sid,
+        "status": "active",
+        "lineItemSourcedId": line_item,
+        "title": title,
+        "url": url,
+        "type": a_type,
+    }
+    _ATTACHMENT_OVERRIDES[sid] = item
+    _ATTACHMENT_TOMBSTONES.discard(sid)
+
+    body_out = {"attachment": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=201)
+    resp["Location"] = f"/api/roster/results/v1p2/attachments/{sid}/"
+    resp["X-OneRoster-Entity"] = "attachment"
+    return resp
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def put_attachment(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if not sourced_id.startswith("att-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key(f"attachment:{sourced_id}", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    inner = payload.get("attachment")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_attachment_envelope"}, status=400)
+
+    existing = _ATTACHMENT_OVERRIDES.get(sourced_id)
+    if existing is None or sourced_id in _ATTACHMENT_TOMBSTONES:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+    item = dict(existing)
+    if "title" in inner:
+        item["title"] = str(inner["title"]).strip() or item["title"]
+    if "url" in inner:
+        new_url = str(inner["url"]).strip()
+        if not (new_url.startswith("http://") or new_url.startswith("https://")):
+            return JsonResponse({"error": "bad_url"}, status=400)
+        item["url"] = new_url
+    if "type" in inner:
+        new_type = str(inner["type"]).strip().lower()
+        if new_type not in _ALLOWED_ATTACHMENT_TYPES:
+            return JsonResponse({"error": "bad_type"}, status=400)
+        item["type"] = new_type
+    if "status" in inner:
+        new_status = str(inner["status"]).strip().lower()
+        if new_status not in {"active", "tobedeleted"}:
+            return JsonResponse({"error": "bad_status"}, status=400)
+        item["status"] = new_status
+    _ATTACHMENT_OVERRIDES[sourced_id] = item
+    body_out = {"attachment": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=200)
+    resp["X-OneRoster-Entity"] = "attachment"
+    return resp
+
+
+def delete_attachment(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    already = sourced_id in _ATTACHMENT_TOMBSTONES or sourced_id not in _ATTACHMENT_OVERRIDES
+    if not already:
+        _ATTACHMENT_TOMBSTONES.add(sourced_id)
+        _ATTACHMENT_OVERRIDES.pop(sourced_id, None)
+    return JsonResponse(
+        {"attachment": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": already},
+        status=200,
+    )
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def attachments_collection(request: HttpRequest):
+    if request.method == "POST":
+        return post_attachment(request)
+    return attachments_list(request)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def attachment_dispatch(request: HttpRequest, sourced_id: str):
+    if request.method == "PUT":
+        return put_attachment(request, sourced_id)
+    if request.method == "DELETE":
+        return delete_attachment(request, sourced_id)
+    return attachment_detail(request, sourced_id)
+
+
+# --- Rubrics --------------------------------------------------------------
+
+@require_http_methods(["GET"])
+def rubrics_list(request: HttpRequest):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = _all_rubrics()
+    line_item = (request.GET.get("lineItem") or "").strip()
+    if line_item:
+        items = [r for r in items if r.get("lineItemSourcedId") == line_item]
+    page, meta = _paginate(request, items)
+    return _envelope("rubrics", page, meta)
+
+
+@require_http_methods(["GET"])
+def rubric_detail(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if sourced_id in _RUBRIC_TOMBSTONES:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+    r = _RUBRIC_OVERRIDES.get(sourced_id)
+    if not r:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+    return JsonResponse({"rubric": r})
+
+
+def _validate_criteria(raw) -> tuple[list[dict[str, Any]] | None, str]:
+    if not isinstance(raw, list) or not raw:
+        return None, "missing_criteria"
+    out: list[dict[str, Any]] = []
+    for c in raw:
+        if not isinstance(c, dict):
+            return None, "bad_criterion"
+        title = str(c.get("title") or "").strip()
+        if not title:
+            return None, "missing_criterion_title"
+        try:
+            pts = float(c.get("points", 0))  # money-float-allow: oneroster-rubric-points-not-money
+        except (ValueError, TypeError):
+            return None, "bad_criterion_points"
+        if pts < 0:
+            return None, "negative_criterion_points"
+        out.append({"title": title, "points": pts})
+    return out, ""
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def post_rubric(request: HttpRequest):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key("collection-post-rubric", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 201))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    inner = payload.get("rubric")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_rubric_envelope"}, status=400)
+
+    line_item = str(inner.get("lineItemSourcedId") or "").strip()
+    if not line_item.startswith("li-"):
+        return JsonResponse({"error": "bad_lineItemSourcedId"}, status=400)
+
+    criteria, err = _validate_criteria(inner.get("criteria"))
+    if err:
+        return JsonResponse({"error": err}, status=400)
+
+    title = str(inner.get("title") or "").strip() or "Rubric"
+    sid_raw = str(inner.get("sourcedId") or "").strip()
+    if sid_raw:
+        sid = sid_raw if sid_raw.startswith("rub-") else f"rub-{_slugify_for_sid(sid_raw)}"
+    else:
+        sid = f"rub-{_slugify_for_sid(title)}"
+
+    item = {
+        "sourcedId": sid,
+        "status": "active",
+        "lineItemSourcedId": line_item,
+        "title": title,
+        "criteria": criteria,
+    }
+    _RUBRIC_OVERRIDES[sid] = item
+    _RUBRIC_TOMBSTONES.discard(sid)
+
+    body_out = {"rubric": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 201}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=201)
+    resp["Location"] = f"/api/roster/results/v1p2/rubrics/{sid}/"
+    resp["X-OneRoster-Entity"] = "rubric"
+    return resp
+
+
+@csrf_exempt
+@require_http_methods(["PUT"])
+def put_rubric(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    if not sourced_id.startswith("rub-"):
+        return JsonResponse({"error": "bad_sourced_id"}, status=400)
+
+    idem = _idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _hash_payload(request.method, request.path, body_bytes)
+    ck = _idem_cache_key(f"rubric:{sourced_id}", idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=int(cached.get("status") or 200))
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_payload_mismatch"}, status=409)
+
+    try:
+        payload = _json.loads(body_bytes) if body_bytes else {}
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    inner = payload.get("rubric")
+    if not isinstance(inner, dict):
+        return JsonResponse({"error": "missing_rubric_envelope"}, status=400)
+
+    existing = _RUBRIC_OVERRIDES.get(sourced_id)
+    if existing is None or sourced_id in _RUBRIC_TOMBSTONES:
+        return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+    item = dict(existing)
+    if "title" in inner:
+        item["title"] = str(inner["title"]).strip() or item["title"]
+    if "criteria" in inner:
+        criteria, err = _validate_criteria(inner.get("criteria"))
+        if err:
+            return JsonResponse({"error": err}, status=400)
+        item["criteria"] = criteria
+    if "status" in inner:
+        new_status = str(inner["status"]).strip().lower()
+        if new_status not in {"active", "tobedeleted"}:
+            return JsonResponse({"error": "bad_status"}, status=400)
+        item["status"] = new_status
+    _RUBRIC_OVERRIDES[sourced_id] = item
+    body_out = {"rubric": item}
+    cache.set(ck, {"payload_hash": payload_hash, "response_body": body_out, "status": 200}, _IDEMPOTENCY_TTL)
+    resp = JsonResponse(body_out, status=200)
+    resp["X-OneRoster-Entity"] = "rubric"
+    return resp
+
+
+def delete_rubric(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    already = sourced_id in _RUBRIC_TOMBSTONES or sourced_id not in _RUBRIC_OVERRIDES
+    if not already:
+        _RUBRIC_TOMBSTONES.add(sourced_id)
+        _RUBRIC_OVERRIDES.pop(sourced_id, None)
+    return JsonResponse(
+        {"rubric": {"sourcedId": sourced_id, "status": "tobedeleted"}, "alreadyDeleted": already},
+        status=200,
+    )
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def rubrics_collection(request: HttpRequest):
+    if request.method == "POST":
+        return post_rubric(request)
+    return rubrics_list(request)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT", "DELETE"])
+def rubric_dispatch(request: HttpRequest, sourced_id: str):
+    if request.method == "PUT":
+        return put_rubric(request, sourced_id)
+    if request.method == "DELETE":
+        return delete_rubric(request, sourced_id)
+    return rubric_detail(request, sourced_id)

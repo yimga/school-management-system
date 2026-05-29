@@ -158,7 +158,7 @@ from .views_multicampus_extension import multicampus_extension
 from .views_lms_console import lms_index, lms_provider_detail, lms_token_save, lms_push_grade, lms_token_refresh
 from .views_tenant_binding import tenant_bindings_index, tenant_binding_reassign
 from .views_lms_audit import lms_audit_index
-from .views_lms_pkce import lms_pkce_start, lms_pkce_callback
+from .views_lms_pkce import lms_pkce_start, lms_pkce_callback, lms_pkce_build
 
 app_name = "portal"
 
@@ -198,6 +198,8 @@ urlpatterns = [
     # v4.00.53: OAuth2 PKCE flow for operator token-mint UI (Wedge 2).
     path("super/integrations/lms/<str:provider>/pkce/start/", lms_pkce_start, name="lms_pkce_start"),
     path("super/integrations/lms/<str:provider>/pkce/callback/", lms_pkce_callback, name="lms_pkce_callback"),
+    # v4.00.54: PKCE authorize-URL builder API endpoint (headless pre-flight).
+    path("super/integrations/lms/<str:provider>/pkce/build/", lms_pkce_build, name="lms_pkce_build"),
     # v4.00.52: Tenant-binding operator UI.
     path("super/sso/bindings/", tenant_bindings_index, name="tenant_bindings_index"),
     path("super/sso/bindings/reassign/", tenant_binding_reassign, name="tenant_binding_reassign"),

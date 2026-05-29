@@ -32,7 +32,7 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpRequest, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
@@ -45,6 +45,14 @@ logger = logging.getLogger(__name__)
 
 # Default scopes follow the LMS adapter SOT. Operators can override via
 # ``RMC_LMS_<PROVIDER>_PKCE_SCOPE`` env vars without touching code.
+# PKCE supports the 3 LMS providers the platform integrates with. Note that
+# the adapter SOT (``apps.api.lms_adapters``) keys Google as ``google_classroom``
+# but PKCE uses the shorter slug ``google`` everywhere because that's what
+# Google publishes for its OAuth2 endpoints — keeping the slugs separated
+# avoids leaking the adapter implementation choice into the operator URL.
+_SUPPORTED_PKCE_PROVIDERS: set[str] = {"canvas", "moodle", "google"}
+
+
 _DEFAULT_SCOPES: dict[str, str] = {
     "canvas": "url:GET|/api/v1/courses url:GET|/api/v1/courses/:course_id/assignments url:POST|/api/v1/courses/:course_id/assignments/:assignment_id/submissions/:user_id",
     "google": "https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.students",
@@ -129,9 +137,7 @@ def lms_pkce_start(request: HttpRequest, provider: str):
 
     Required: ``?school=<id>`` query-string.
     """
-    from apps.api import lms_adapters
-
-    if provider not in lms_adapters.supported_providers():
+    if provider not in _SUPPORTED_PKCE_PROVIDERS:
         return JsonResponse({"error": "unknown_provider"}, status=404)
     if provider == "moodle":
         return JsonResponse({"error": "unsupported_provider", "detail": "moodle uses wstoken, not OAuth2"}, status=400)
@@ -316,3 +322,102 @@ def lms_pkce_callback(request: HttpRequest, provider: str):
             "scope": row.scope,
         })
     return HttpResponseRedirect(reverse("portal:lms_provider_detail", args=[provider]))
+
+
+# ---------------------------------------------------------------------------
+# v4.00.54 — Per-row PKCE authorize-URL builder API endpoint.
+#
+# Returns the authorize URL + verifier as JSON WITHOUT a 302 — useful for
+# headless integration smoke tests, operator pre-flight, and external
+# automation that wants to drive the consent step in its own browser.
+#
+# Operator MUST opt-in by passing ``?include_verifier=1`` to receive the
+# raw verifier. By default the verifier is hashed (SHA-256[:16]) so the
+# response can be logged without leaking PKCE material. Either way, the
+# response is JSON-only and never persists the verifier to session.
+# ---------------------------------------------------------------------------
+
+
+@staff_member_required
+@require_http_methods(["GET"])
+def lms_pkce_build(request: HttpRequest, provider: str):
+    """v4.00.54 — Build a PKCE authorize URL without redirecting.
+
+    Required: ``?school=<id>``. Canvas additionally needs ``base_url`` either
+    on an existing ``LMSConnectorToken`` row or via ``?base_url=...``.
+    """
+    if provider not in _SUPPORTED_PKCE_PROVIDERS:
+        return JsonResponse({"error": "unknown_provider"}, status=404)
+    if provider == "moodle":
+        return JsonResponse(
+            {"error": "unsupported_provider", "detail": "moodle uses wstoken, not OAuth2"},
+            status=400,
+        )
+
+    school_id = (request.GET.get("school") or "").strip()
+    if not school_id:
+        return JsonResponse({"error": "missing_school"}, status=400)
+
+    client_id = _resolve_client_id(provider)
+    if not client_id:
+        return JsonResponse(
+            {"error": "client_id_missing", "needed": f"RMC_LMS_{provider.upper()}_CLIENT_ID"},
+            status=412,
+        )
+
+    base_url = (request.GET.get("base_url") or "").strip()
+    if provider == "canvas" and not base_url:
+        from apps.integrations_marketplace.models import LMSConnectorToken
+        row = LMSConnectorToken.objects.filter(  # tenant-isolation-allow: pkce-build-resolve-base-url-staff-required
+            school_id=school_id, provider=provider
+        ).first()
+        base_url = (getattr(row, "base_url", "") or "").strip() if row else ""
+    eps = _provider_oauth_endpoints(provider, base_url)
+    if eps is None:
+        return JsonResponse(
+            {"error": "missing_base_url", "detail": "canvas requires base_url"},
+            status=400,
+        )
+
+    verifier = _gen_code_verifier()
+    challenge = _challenge_from_verifier(verifier)
+    state = secrets.token_urlsafe(32)
+    redirect_uri = _resolve_redirect_uri(request, provider)
+
+    params = {
+        "client_id": client_id,
+        "response_type": "code",
+        "redirect_uri": redirect_uri,
+        "code_challenge": challenge,
+        "code_challenge_method": "S256",
+        "state": state,
+    }
+    scope = _resolve_scope(provider)
+    if scope:
+        params["scope"] = scope
+    if provider == "google":
+        params["access_type"] = "offline"
+        params["prompt"] = "consent"
+
+    auth_url = eps["authorize_url"] + "?" + urllib.parse.urlencode(params)
+
+    include_verifier = (request.GET.get("include_verifier") or "").strip() in {"1", "true", "yes"}
+    verifier_payload: dict[str, Any] = {
+        "verifier_sha256_16": hashlib.sha256(verifier.encode("ascii")).hexdigest()[:16],
+        "code_challenge": challenge,
+        "code_challenge_method": "S256",
+    }
+    if include_verifier:
+        verifier_payload["code_verifier"] = verifier
+
+    return JsonResponse({
+        "provider": provider,
+        "school": school_id,
+        "authorize_url": auth_url,
+        "token_url": eps["token_url"],
+        "redirect_uri": redirect_uri,
+        "state": state,
+        "scope": scope,
+        "pkce": verifier_payload,
+        "client_id": client_id,
+    })
