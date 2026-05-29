@@ -2610,3 +2610,237 @@ COUNTRY_LOCALIZATION["DZ"] = {
     },
 }
 COUNTRY_REGIONAL_DEFAULT.pop("DZ", None)
+
+# Liberia — Anglophone, WASSCE family + WAEC BECE-equivalent.
+COUNTRY_LOCALIZATION["LR"] = {
+    "calendar_system": {
+        "code": "lr-3-term", "label": "3 Terms (Liberian)",
+        "term_count": 3, "term_names": ["1st Period", "2nd Period", "3rd Period"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "ecd",         "label": "ECD / Early Childhood",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",     "label": "Primary (Grade 1-6)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "junior-high", "label": "Junior High (G7-9 / WAEC BECE)",   "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "senior-high", "label": "Senior High (G10-12 / WASSCE)",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "tvet",        "label": "TVET / Vocational",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",  "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "lr-ecd","label": "ECD",                  "order": 0},
+        {"code": "lr-g1", "label": "Grade 1",              "order": 1},
+        {"code": "lr-g6", "label": "Grade 6",              "order": 6},
+        {"code": "lr-g9", "label": "Grade 9 (WAEC BECE)",  "order": 9},
+        {"code": "lr-g12","label": "Grade 12 (WASSCE)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal", "term": "Period",
+        "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("LR", None)
+
+# The Gambia — Anglophone, WAEC family with own BECE + WASSCE.
+COUNTRY_LOCALIZATION["GM"] = {
+    "calendar_system": {
+        "code": "gm-3-term", "label": "3 Terms (Gambian)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "nursery",     "label": "Nursery",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-7"},
+        {"code": "lower-basic", "label": "Lower Basic (Grade 1-6)",          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "7-13"},
+        {"code": "upper-basic", "label": "Upper Basic (G7-9 / GABECE)",      "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-16"},
+        {"code": "senior-secondary", "label": "Senior Secondary (G10-12 / WASSCE)", "glyph": "\U0001F393", "primary_sector": "secondary","typical_ages": "16-19"},
+        {"code": "tvet",        "label": "TVET / Skills Training",           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university",  "label": "University",                       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gm-nur",  "label": "Nursery",            "order": 0},
+        {"code": "gm-g1",   "label": "Grade 1",            "order": 1},
+        {"code": "gm-g6",   "label": "Grade 6",            "order": 6},
+        {"code": "gm-g9",   "label": "Grade 9 (GABECE)",   "order": 9},
+        {"code": "gm-g12",  "label": "Grade 12 (WASSCE)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head Teacher", "term": "Term",
+        "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GM", None)
+
+# Sierra Leone — Anglophone, WAEC NPSE / BECE / WASSCE.
+COUNTRY_LOCALIZATION["SL"] = {
+    "calendar_system": {
+        "code": "sl-3-term", "label": "3 Terms (Sierra Leonean)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "pre-primary","label": "Pre-Primary",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",    "label": "Primary (Class 1-6 / NPSE)",        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jss",        "label": "Junior Secondary (JSS1-3 / BECE)",  "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "sss",        "label": "Senior Secondary (SSS1-3 / WASSCE)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "tvet",       "label": "TVET / Vocational",                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university", "label": "University",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "sl-pp", "label": "Pre-Primary",       "order": 0},
+        {"code": "sl-c6", "label": "Class 6 (NPSE)",    "order": 6},
+        {"code": "sl-j3", "label": "JSS 3 (BECE)",      "order": 9},
+        {"code": "sl-s3", "label": "SSS 3 (WASSCE)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal", "term": "Term",
+        "report_card": "Report Card", "grade_level": "Class",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SL", None)
+
+# Zimbabwe — Anglophone, ZIMSEC O-Level + A-Level.
+COUNTRY_LOCALIZATION["ZW"] = {
+    "calendar_system": {
+        "code": "zw-3-term", "label": "3 Terms (Zimbabwean)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "ecd",        "label": "ECD (A + B)",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",    "label": "Primary (Grade 1-7 / Grade-7 Exams)","glyph": "\U0001F3EB","primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "o-level",    "label": "Secondary O-Level (Form 1-4 / ZIMSEC O)","glyph": "\U0001F4DA","primary_sector": "secondary","typical_ages": "13-17"},
+        {"code": "a-level",    "label": "Secondary A-Level (Form 5-6 / ZIMSEC A)","glyph": "\U0001F393","primary_sector": "secondary","typical_ages": "17-19"},
+        {"code": "polytechnic","label": "Polytechnic / Vocational",          "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "independent","label": "Independent / Private",             "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-19"},
+        {"code": "university", "label": "University",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "zw-ecd-a","label": "ECD A",            "order": 0},
+        {"code": "zw-g1",   "label": "Grade 1",          "order": 1},
+        {"code": "zw-g7",   "label": "Grade 7 (Exams)",  "order": 7},
+        {"code": "zw-f4",   "label": "Form 4 (O-Level)", "order": 11},
+        {"code": "zw-f6",   "label": "Form 6 (A-Level)", "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head", "term": "Term",
+        "report_card": "Report Book", "grade_level": "Grade / Form",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("ZW", None)
+
+# Zambia — Anglophone, ECZ Grade-7 / Grade-9 / Grade-12 exams.
+COUNTRY_LOCALIZATION["ZM"] = {
+    "calendar_system": {
+        "code": "zm-3-term", "label": "3 Terms (Zambian)",
+        "term_count": 3, "term_names": ["1st Term", "2nd Term", "3rd Term"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "ecd",        "label": "ECE / Pre-school",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primary",    "label": "Primary (G1-7 / Grade-7 Exam)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "junior-sec", "label": "Junior Secondary (G8-9 / Grade-9)", "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "13-15"},
+        {"code": "senior-sec", "label": "Senior Secondary (G10-12 / Grade-12)","glyph": "\U0001F393","primary_sector": "secondary",      "typical_ages": "15-18"},
+        {"code": "tvet",       "label": "TEVET / Vocational",                "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university", "label": "University",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "zm-ece","label": "ECE",                  "order": 0},
+        {"code": "zm-g1", "label": "Grade 1",              "order": 1},
+        {"code": "zm-g7", "label": "Grade 7 (Exam)",       "order": 7},
+        {"code": "zm-g9", "label": "Grade 9 (Junior Exam)","order": 9},
+        {"code": "zm-g12","label": "Grade 12 (School-Cert)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Head Teacher", "term": "Term",
+        "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("ZM", None)
+
+# Mozambique — Lusophone, Ensino Primário + Secundário (ESG I + II).
+COUNTRY_LOCALIZATION["MZ"] = {
+    "calendar_system": {
+        "code": "mz-3-trimester", "label": "3 Trimestres (Moçambicano)",
+        "term_count": 3, "term_names": ["1º Trimestre", "2º Trimestre", "3º Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "pre-escolar",   "label": "Pré-escolar",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "ep1",           "label": "Ensino Primário EP1 (1-5)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "ep2",           "label": "Ensino Primário EP2 (6-7)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "11-13"},
+        {"code": "esg1",          "label": "Secundário Geral ESG-I (8-10)",   "glyph": "\U0001F4DA", "primary_sector": "secondary",       "typical_ages": "13-16"},
+        {"code": "esg2",          "label": "Secundário Geral ESG-II (11-12)", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "tecnico",       "label": "Ensino Técnico-Profissional",     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "13-19"},
+        {"code": "universidade",  "label": "Universidade",                    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mz-pre","label": "Pré-escolar",       "order": 0},
+        {"code": "mz-1",  "label": "Classe 1",          "order": 1},
+        {"code": "mz-5",  "label": "Classe 5 (Fim EP1)","order": 5},
+        {"code": "mz-7",  "label": "Classe 7 (Fim EP2)","order": 7},
+        {"code": "mz-10", "label": "Classe 10 (Fim ESG-I)","order": 10},
+        {"code": "mz-12", "label": "Classe 12 (Fim ESG-II)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor", "principal": "Diretor", "term": "Trimestre",
+        "report_card": "Boletim", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MZ", None)
+
+# Angola — Lusophone, Ensino Primário + Secundário I (Iniciação) + II (Médio).
+COUNTRY_LOCALIZATION["AO"] = {
+    "calendar_system": {
+        "code": "ao-3-trimester", "label": "3 Trimestres (Angolano)",
+        "term_count": 3, "term_names": ["1º Trimestre", "2º Trimestre", "3º Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "pre-escolar",  "label": "Pré-escolar",                      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primario",     "label": "Ensino Primário (1-6)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "i-ciclo-sec",  "label": "Secundário I Ciclo (7-9)",         "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "ii-ciclo-sec", "label": "Secundário II Ciclo / Médio (10-13)","glyph": "\U0001F393","primary_sector": "secondary",      "typical_ages": "15-19"},
+        {"code": "tecnico",      "label": "Ensino Técnico-Profissional",      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "13-19"},
+        {"code": "universidade", "label": "Universidade",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "19+"},
+    ],
+    "education_levels": [
+        {"code": "ao-pre","label": "Pré-escolar",         "order": 0},
+        {"code": "ao-1",  "label": "Classe 1",            "order": 1},
+        {"code": "ao-6",  "label": "Classe 6 (Fim Prim.)","order": 6},
+        {"code": "ao-9",  "label": "Classe 9 (Fim I Ciclo)","order": 9},
+        {"code": "ao-13", "label": "Classe 13 (Fim Médio)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Professor", "principal": "Diretor", "term": "Trimestre",
+        "report_card": "Boletim", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AO", None)
+
+# Madagascar — Francophone+Malagasy, CEPE / BEPC / Baccalauréat.
+COUNTRY_LOCALIZATION["MG"] = {
+    "calendar_system": {
+        "code": "mg-3-trimester", "label": "3 Trimestres (Malgache)",
+        "term_count": 3, "term_names": ["1er Trimestre", "2ème Trimestre", "3ème Trimestre"],
+        "week_start": 1, "academic_year_starts_month": 10,
+    },
+    "school_types": [
+        {"code": "ecole-maternelle", "label": "École Maternelle",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",         "label": "Primaire (T1-T5 / CEPE)",       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",          "label": "Collège (6e-3e / BEPC)",        "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "11-15"},
+        {"code": "lycee",            "label": "Lycée (2nde-Tle / Baccalauréat)","glyph": "\U0001F393","primary_sector": "secondary",      "typical_ages": "15-19"},
+        {"code": "technique",        "label": "EFTP / Technique",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "universite",       "label": "Université",                    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mg-mat","label": "Maternelle",         "order": 0},
+        {"code": "mg-t1", "label": "T1",                 "order": 1},
+        {"code": "mg-t5", "label": "T5 (CEPE)",          "order": 5},
+        {"code": "mg-3e", "label": "3ème (BEPC)",        "order": 9},
+        {"code": "mg-tle","label": "Terminale (Bac)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Enseignant / Mpampianatra", "principal": "Directeur / Talen-tsekoly",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MG", None)

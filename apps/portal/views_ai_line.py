@@ -174,13 +174,66 @@ def _resolve_url(route: str, params: dict[str, str], fallback: str) -> str:
     return f"{base}?{encoded}" if encoded else base
 
 
-def _interpret(query: str) -> dict[str, Any] | None:
+def _load_tenant_overrides(request) -> list[dict[str, Any]]:
+    """v4.00.32 — pull tenant-defined intent → URL overrides.
+
+    Read from ``school.runtime_defaults['ai_line_intents']`` if present.
+    Shape: ``[{"match": "regex", "label": "...", "url": "/..."}, …]``.
+    Tenant admins can preset shortcuts like "fees" → /finance/dashboard/
+    that beat the generic patterns below.
+    """
+    if request is None:
+        return []
+    school = getattr(request, "school", None)
+    if school is None:
+        return []
+    try:
+        rd = getattr(school, "runtime_defaults", None) or {}
+        if isinstance(rd, dict):
+            data = rd.get("ai_line_intents") or []
+        else:
+            data = getattr(rd, "ai_line_intents", None) or []
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("tenant override load failed: %s", exc)
+        return []
+    out: list[dict[str, Any]] = []
+    if not isinstance(data, list):
+        return []
+    for raw in data[:25]:  # cap to avoid runaway lists
+        if not isinstance(raw, dict):
+            continue
+        match = str(raw.get("match") or "").strip()
+        url = str(raw.get("url") or "").strip()
+        if not match or not url.startswith("/"):
+            continue
+        out.append({
+            "match": match,
+            "label": str(raw.get("label") or "Open"),
+            "url": url,
+        })
+    return out
+
+
+def _interpret(query: str, request: Any | None = None) -> dict[str, Any] | None:
     q = (query or "").strip().lower()
     if not q:
         return None
     # Strip a leading "/" (slash command) but keep the rest interpretable.
     if q.startswith("/"):
         q = q[1:].strip()
+    # Tenant-defined overrides win over built-in handlers.
+    for ov in _load_tenant_overrides(request):
+        try:
+            if re.search(ov["match"], q, re.I):
+                return {
+                    "matched": True,
+                    "label": ov["label"],
+                    "url": ov["url"],
+                    "params": {},
+                    "intent": "tenant_override",
+                }
+        except re.error:
+            continue
     for handler in _INTENT_HANDLERS:
         match = handler(q)
         if match:
@@ -295,7 +348,7 @@ def api_ai_line_interpret(request):
     except (ValueError, TypeError) as exc:
         logger.debug("ai-line bad body: %s", exc)
         return JsonResponse({"success": False, "error": "bad_request"}, status=400)
-    result = _interpret(query)
+    result = _interpret(query, request=request)
     if not result and ai_on:
         result = _llm_fallback(query, request)
     if not result:

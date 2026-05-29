@@ -262,6 +262,24 @@ SCHEMAS: dict[str, dict[str, Any]] = {
         "min_subjects_required": 5,
         "notes": "Note sur 20. Moyenne ≥ 10 pour passer au lycée.",
     },
+    # Mozambique — Lusophone ESG-I + ESG-II.
+    "mz-esg": {
+        "code": "mz-esg", "label": "ESG-II (Moçambique Classe 12)",
+        "applies_to_level": "secondary", "exam_marker": "Exame Nacional",
+        "subjects": ["portugues", "ingles", "matematica", "fisica", "quimica", "biologia", "historia"],
+        "score_kind": "points_n", "choices": [str(i) for i in range(0, 21)], "max": 20,
+        "min_subjects_required": 6,
+        "notes": "Notas 0-20. Aprovação: ≥10. Sistema de avaliação português adaptado.",
+    },
+    # Angola — Lusophone Médio (Classe 13).
+    "ao-medio": {
+        "code": "ao-medio", "label": "Médio (Angola Classe 13)",
+        "applies_to_level": "secondary", "exam_marker": "Exame de Acesso",
+        "subjects": ["portugues", "ingles", "matematica", "fisica", "quimica", "biologia", "historia"],
+        "score_kind": "points_n", "choices": [str(i) for i in range(0, 21)], "max": 20,
+        "min_subjects_required": 6,
+        "notes": "Notas 0-20. Acesso ao ensino superior via exame nacional + média.",
+    },
     # Rwanda
     "rw-percent": {
         "code": "rw-percent", "label": "Pourcentage (Rwanda)",
@@ -308,6 +326,13 @@ SYSTEM_TYPE_TO_SCHEMA: dict[str, str] = {
     "moyen": "dz-bem",
     # Francophone fallback
     "lycee-sn": "fr-bac",
+    # v4.00.32 — Anglo West Africa + Southern Africa + Lusophone:
+    "senior-high": "waec-wassce",       # Liberia
+    "senior-secondary": "waec-wassce",  # Gambia
+    "sss": "waec-wassce",               # Sierra Leone
+    "esg2": "mz-esg",                   # Mozambique
+    "ii-ciclo-sec": "ao-medio",         # Angola
+    # Madagascar lycée + Zimbabwe/Zambia inherit existing keys.
 }
 
 
@@ -321,6 +346,12 @@ COUNTRY_DEFAULT_SCHEMA: dict[str, str] = {
     "SN": "fr-bac", "CI": "fr-bac", "TG": "fr-bac", "BJ": "fr-bac",
     "BF": "fr-bac", "ML": "fr-bac", "NE": "fr-bac",
     "MA": "ma-bac", "TN": "tn-bac", "DZ": "dz-bac",
+    # v4.00.32 additions:
+    "ZW": "za-nsc",  # ZIMSEC O/A — best-fit pre-dedicated-schema is NSC bands
+    "ZM": "za-nsc",  # ECZ Grade 12 — same school-cert ladder
+    "MZ": "mz-esg",  # Mozambique Lusophone ESG
+    "AO": "ao-medio",  # Angola Lusophone Médio
+    "MG": "fr-bac",
 }
 
 

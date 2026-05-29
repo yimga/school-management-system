@@ -1,4 +1,4 @@
-{% load i18n static %}
+{% load i18n static localization %}
 {% comment %} Phase G (2026-05-12): platform-wide ⌘K command palette. Mount on every
    authenticated shell. Apple-style frosted popover that lets users jump to
    any page, student, class, fee, setting, or AI action. Uses semantic
@@ -37,12 +37,13 @@
 {% else %}
   {% url 'feedback:help_center' as cmdk_help_center_global %}
 {% endif %}
+{% cmdk_best_locale as cmdk_resolved_locale %}
 <script type="application/json" id="rmc-cmdk-data">{
   "api_url": "{{ cmdk_api_global|default:''|escapejs }}",
   "ai_center_url": "{{ cmdk_ai_center_global|default:''|escapejs }}",
   "help_center_url": "{{ cmdk_help_center_global|default:''|escapejs }}",
   "ai_gateway_console_url": "{{ cmdk_gw|default:''|escapejs }}",
-  "locale": "{{ LANGUAGE_CODE|default:'en'|escapejs }}",
+  "locale": "{{ cmdk_resolved_locale|default:'en'|escapejs }}",
   "ai_line_url": "/api/v1/ai/line-interpret/",
   "shortcuts": {
     "open": ["mod+k", "mod+/"],

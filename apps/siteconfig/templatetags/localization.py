@@ -438,3 +438,39 @@ def local_name_order(context) -> str:
     """Return either 'given-family' (Western) or 'family-given' (Eastern)."""
     loc = _loc_from_context(context)
     return str(loc.get("name_order") or "given-family")
+
+
+@register.simple_tag(takes_context=True, name="cmdk_best_locale")
+def cmdk_best_locale(context) -> str:
+    """v4.00.32 — best LANGUAGE_CODE for the cmdk + Web Speech voice input.
+
+    Resolves: user pref → Django LANGUAGE_CODE → school.country_code default.
+    Used by ``templates/components/rmc_command_palette.html`` so Francophone
+    + Arabic tenants get dictation in their language by default.
+    """
+    request = context.get("request")
+    user = getattr(request, "user", None) if request else None
+    user_locale = ""
+    try:
+        if user is not None and getattr(user, "is_authenticated", False):
+            user_locale = str(getattr(user, "preferred_locale", "") or "")
+    except Exception:  # noqa: BLE001
+        user_locale = ""
+    request_locale = str(context.get("LANGUAGE_CODE", "") or "")
+    school = getattr(request, "school", None) if request else None
+    school_country = ""
+    try:
+        if school is not None:
+            school_country = str(getattr(school, "country_code", "") or "")
+    except Exception:  # noqa: BLE001
+        school_country = ""
+    try:
+        from apps.siteconfig._country_to_locale import best_locale
+
+        return best_locale(
+            user_locale=user_locale,
+            school_country=school_country,
+            request_locale=request_locale,
+        )
+    except Exception:  # noqa: BLE001
+        return request_locale or "en"

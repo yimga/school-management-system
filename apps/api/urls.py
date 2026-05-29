@@ -89,6 +89,7 @@ from apps.api.iam_offline_api import OfflineIamIntentAPI, PermissionSnapshotAPI
 from apps.api.sync_bundle_api import SyncBundleUploadView
 from apps.portal.views_command_bar import api_command_bar_search
 from apps.portal.views_ai_line import api_ai_line_interpret
+from apps.portal.views_admissions_intake import api_admissions_intake_schema
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
     api_import_error_resolver,
@@ -537,6 +538,7 @@ urlpatterns = [
     path("kb/typeahead/", api_kb_typeahead, name="kb-typeahead"),
     path("ai/command-bar/", api_command_bar_search, name="ai-command-bar"),
     path("ai/line-interpret/", api_ai_line_interpret, name="ai-line-interpret"),
+    path("admissions/intake-schema/", api_admissions_intake_schema, name="admissions-intake-schema"),
     path(
         "ai/smart-settings/",
         api_smart_settings_assistant,
