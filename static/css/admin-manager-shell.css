@@ -717,3 +717,104 @@ html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin
 html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .admin-cp-unified-page #content .selector-chosen {
   max-height: 18rem !important; /* style-allow: admin-density-selector-cap */
 }
+
+/* =================================================================
+   v4.00.21 (2026-05-29) — Activity ticker + admin hero + control-plane
+   header density. Wave 5/6/8 from the running backlog.
+   ================================================================= */
+
+/* ── Activity ticker — compress from ~36px to ~28px ──
+   The LIVE ticker sits on every authenticated page. 8px saved on a
+   global strip is 8px back to the canvas on every page. */
+body.admin-manager-shell .rmc-cockpit-ticker,
+body.control-plane-shell .rmc-cockpit-ticker,
+body.portal-body-with-layout .rmc-cockpit-ticker {
+  min-height: 28px;
+  padding-block: 4px !important; /* style-allow: ticker-density-pad */
+  font-size: 11px;
+  line-height: 1.3;
+}
+body.admin-manager-shell .rmc-cockpit-ticker .rmc-cockpit-ticker__card,
+body.control-plane-shell .rmc-cockpit-ticker .rmc-cockpit-ticker__card,
+body.portal-body-with-layout .rmc-cockpit-ticker .rmc-cockpit-ticker__card {
+  padding-block: 2px;
+  font-size: 11px;
+}
+body.admin-manager-shell .rmc-cockpit-ticker .rmc-cockpit-ticker__live-pill,
+body.control-plane-shell .rmc-cockpit-ticker .rmc-cockpit-ticker__live-pill,
+body.portal-body-with-layout .rmc-cockpit-ticker .rmc-cockpit-ticker__live-pill {
+  padding: 1px 6px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* ── Admin index hero — compress padding + collapse long lede ──
+   The .cp-hero on /admin/ index has ~96px vertical padding and a
+   3-line lede paragraph that consumes 200px before the first action
+   appears. Halve the padding and clamp the lede to 2 lines so the
+   action toolbar is above-the-fold on a 13" laptop. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-hero {
+  padding: 16px 24px !important; /* style-allow: admin-hero-density-pad */
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-hero__title {
+  font-size: clamp(20px, 2vw, 28px) !important; /* style-allow: admin-hero-density-h1 */
+  margin-block: 4px !important; /* style-allow: admin-hero-density-h1 */
+  line-height: 1.15;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-hero__eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-hero__lede {
+  font-size: 13px;
+  line-height: 1.45;
+  margin-block: 6px !important; /* style-allow: admin-hero-density-lede */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 72ch;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-hero__actions,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-hero__actions--toolbar {
+  margin-top: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-btn {
+  padding: 6px 12px !important; /* style-allow: admin-hero-density-btn */
+  font-size: 12px;
+  line-height: 1.3;
+  border-radius: 8px;
+}
+
+/* ── Control-plane page header strip ──
+   The .cp-page-header that appears below the cp-hero on every CP page
+   often shows tabs + title + actions stacked. Tighten its padding too. */
+html:not([data-rmc-admin-density="comfortable"]) body.control-plane-shell .cp-page-header,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-page-header,
+html:not([data-rmc-admin-density="comfortable"]) body.control-plane-shell .rmc-os-page-header,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .rmc-os-page-header {
+  padding-block: 8px !important; /* style-allow: cp-header-density-pad */
+}
+html:not([data-rmc-admin-density="comfortable"]) body.control-plane-shell .cp-page-header h1,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-page-header h1,
+html:not([data-rmc-admin-density="comfortable"]) body.control-plane-shell .rmc-os-page-header h1,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .rmc-os-page-header h1 {
+  font-size: clamp(18px, 1.6vw, 24px);
+  margin-block: 2px;
+  line-height: 1.2;
+}
+
+/* ── Steering / banner strips on admin pages ──
+   The "cp-steering" + "tenant_admin_decision_banner" + "operator_outcome_deck"
+   strips below the hero each take ~64px. Reduce vertical padding. */
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell :is(.cp-steering, .rmc-decision-banner, .rmc-operator-outcome-deck) {
+  padding-block: 8px !important; /* style-allow: admin-strip-density */
+}
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .cp-steering__body,
+html:not([data-rmc-admin-density="comfortable"]) body.admin-manager-shell .rmc-decision-banner__body {
+  font-size: 12px;
+  line-height: 1.4;
+}

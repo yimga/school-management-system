@@ -160,3 +160,113 @@ body.portal-body-with-layout #main-content .breadcrumb,
 body.backend-shell #main-content .breadcrumb {
   margin-bottom: 0.35rem;
 }
+
+/* =================================================================
+   v4.00.21 (2026-05-29) — Tenant portal density port.
+
+   Mirrors the admin density compression to the tenant portal so
+   parent / teacher / student dashboards are equally short. Operator
+   override via [data-rmc-tenant-density="comfortable"] on <html>.
+   Default is compact.
+   ================================================================= */
+
+/* ── Portal page header strip ── */
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .tp-page-header,
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .portal-page-header,
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .rmc-page-header {
+  padding-block: 8px !important; /* style-allow: portal-density-header-pad */
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .tp-page-header h1,
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .portal-page-header h1,
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .rmc-page-header h1 {
+  font-size: clamp(18px, 1.6vw, 24px);
+  margin-block: 2px;
+  line-height: 1.2;
+}
+
+/* ── Portal dashboard cards: tighter padding ── */
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout :is(.rmc-card, .portal-card, .tp-card, .card) {
+  padding: 12px 14px;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout :is(.rmc-card, .portal-card, .tp-card, .card) > :is(.card-header, .card-body, .card-footer) {
+  padding: 8px 12px;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout :is(.rmc-card__title, .portal-card__title, .card-title) {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+/* ── Portal stat cards (KPI bento) ──
+   The 4-up KPI strip on dashboards often has 80px tall tiles with 32px
+   value text. Tighten so the strip fits in 64px. */
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout :is(.rmc-stat-card, .portal-stat-card, .tp-stat-card) {
+  padding: 10px 14px;
+  min-height: 64px;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout :is(.rmc-stat-card__label, .portal-stat-card__label) {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout :is(.rmc-stat-card__value, .portal-stat-card__value) {
+  font-size: 22px;
+  line-height: 1.1;
+  margin-block: 2px;
+}
+
+/* ── Portal tables (gradebook, attendance, fee list) ──
+   Mirror the admin changelist compression. */
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout table {
+  font-size: 13px;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout table thead th {
+  padding: 8px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout table tbody td {
+  padding: 6px 10px;
+  line-height: 1.4;
+  vertical-align: middle;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout table tbody tr:nth-child(odd) td {
+  background: color-mix(in srgb, var(--surface-elevated, #f6f7fa) 50%, transparent);
+}
+
+/* ── Portal forms ── */
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .form-label,
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout label.form-label {
+  font-size: 12px;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout :is(.form-control, .form-select, input.form-control, select.form-select) {
+  padding: 6px 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 0;
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .form-text,
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .help-text {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+/* ── Tenant primary nav pills (portal_base.html tp-primary-nav) ── */
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .tp-primary-nav {
+  padding-block: 6px !important; /* style-allow: portal-density-nav-pad */
+}
+html:not([data-rmc-tenant-density="comfortable"]) body.portal-body-with-layout .tp-primary-nav__item {
+  padding: 6px 14px !important; /* style-allow: portal-density-nav-pad */
+  font-size: 12px;
+}
+
+/* ── Text spill defense on portal canvas, mirroring admin ── */
+body.portal-body-with-layout :is(#main-content, #cp-main-content, .portal-page-body) :is(.row, .d-flex, .grid) > * {
+  min-width: 0;
+}
+body.portal-body-with-layout :is(#main-content, #cp-main-content, .portal-page-body) :is(td, th) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
