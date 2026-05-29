@@ -6120,6 +6120,390 @@ COUNTRY_REGIONAL_DEFAULT.pop("FK", None)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.47 (2026-05-29) — UK Crown Deps + Caribbean BOTs + Atlantic + French overseas.
+# +IM/JE/GG + TC/KY/BM/AI/VG/MS + SH/GI + GF/WF + NF.
+# ---------------------------------------------------------------------------
+
+# Isle of Man — English/Manx, UK system.
+COUNTRY_LOCALIZATION["IM"] = {
+    "calendar_system": {
+        "code": "im-3-term", "label": "3-term (Manx)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool / Foundation",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Y1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "Secondary (Y7-11) / GCSE",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-16"},
+        {"code": "sixth_form", "label": "Sixth Form / UCM (A-Level)",        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vocational", "label": "University College Isle of Man",    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "im-pre","label": "Foundation",       "order": 0},
+        {"code": "im-y6", "label": "Year 6",           "order": 6},
+        {"code": "im-y11","label": "Year 11 (GCSE)",   "order": 11},
+        {"code": "im-y13","label": "Year 13 (A-Level)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Fer-ynsee / Teacher", "principal": "Ard-ynseyder / Head",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("IM", None)
+
+# Jersey — English/French/Jèrriais, UK system w/ Jersey-specific Highlands College.
+COUNTRY_LOCALIZATION["JE"] = {
+    "calendar_system": {
+        "code": "je-3-term", "label": "3-term (Jerseyman)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool / Reception",             "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Y1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "Secondary (Y7-11) / GCSE",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-16"},
+        {"code": "sixth_form", "label": "Hautlieu / Beaulieu / Victoria Sixth Form","glyph": "\U0001F3DB", "primary_sector": "secondary","typical_ages": "16-18"},
+        {"code": "vocational", "label": "Highlands College",                 "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "je-pre","label": "Reception",        "order": 0},
+        {"code": "je-y6", "label": "Year 6",           "order": 6},
+        {"code": "je-y11","label": "Year 11 (GCSE)",   "order": 11},
+        {"code": "je-y13","label": "Year 13 (A-Level)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Mait' / Teacher", "principal": "Têtard / Head",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("JE", None)
+
+# Guernsey — English/French/Guernésiais, UK system.
+COUNTRY_LOCALIZATION["GG"] = {
+    "calendar_system": {
+        "code": "gg-3-term", "label": "3-term (Guernsey)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Pre-Reception",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Y1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "Secondary (Y7-11) / GCSE",          "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-16"},
+        {"code": "sixth_form", "label": "Sixth Form Centre (Les Varendes)",  "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vocational", "label": "Guernsey College of FE",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "gg-pre","label": "Pre-Reception",    "order": 0},
+        {"code": "gg-y6", "label": "Year 6",           "order": 6},
+        {"code": "gg-y11","label": "Year 11 (GCSE)",   "order": 11},
+        {"code": "gg-y13","label": "Year 13 (A-Level)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Maître / Teacher", "principal": "Head Teacher",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GG", None)
+
+# Turks and Caicos — English, CXC + UK A-Level via partners.
+COUNTRY_LOCALIZATION["TC"] = {
+    "calendar_system": {
+        "code": "tc-3-term", "label": "3-term (TCI)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-6)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Secondary (Form 1-5) + CXC CSEC",    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "TCI Community College (CAPE/A-Level)","glyph": "\U0001F3DB", "primary_sector": "secondary",     "typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "tc-pre","label": "Preschool",          "order": 0},
+        {"code": "tc-g6", "label": "Grade 6",            "order": 6},
+        {"code": "tc-f5", "label": "Form 5 (CXC CSEC)",  "order": 11},
+        {"code": "tc-u6", "label": "Upper Sixth",        "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("TC", None)
+
+# Cayman Islands — English, UK IGCSE+A-Level + CXC.
+COUNTRY_LOCALIZATION["KY"] = {
+    "calendar_system": {
+        "code": "ky-3-term", "label": "3-term (Caymanian)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool / Reception",             "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (Y1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "John Gray HS / Clifton Hunter / IGCSE","glyph": "\U0001F393","primary_sector": "secondary","typical_ages": "11-16"},
+        {"code": "sixth_form", "label": "UCCI Sixth Form / A-Level",         "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vocational", "label": "UCCI (University College Cayman)",  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "ky-pre","label": "Reception",        "order": 0},
+        {"code": "ky-y6", "label": "Year 6",           "order": 6},
+        {"code": "ky-y11","label": "Year 11 (IGCSE)",  "order": 11},
+        {"code": "ky-y13","label": "Year 13 (A-Level)","order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("KY", None)
+
+# Bermuda — English, US-style HS + IGCSE/A-Level options.
+COUNTRY_LOCALIZATION["BM"] = {
+    "calendar_system": {
+        "code": "bm-2-semester", "label": "2-semester (Bermudian)",
+        "term_count": 2, "term_names": ["Semester 1", "Semester 2"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (P1-P6)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "middle",     "label": "Middle (M1-M3)",                    "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "secondary",  "label": "Senior (S1-S4) / Bermuda Diploma",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "vocational", "label": "Bermuda College",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "bm-pre","label": "Preschool",        "order": 0},
+        {"code": "bm-p6", "label": "P6",               "order": 6},
+        {"code": "bm-m3", "label": "M3",               "order": 9},
+        {"code": "bm-s4", "label": "S4 (Bermuda Diploma)","order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Semester", "report_card": "Report Card", "grade_level": "Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("BM", None)
+
+# Anguilla — English, CXC + UK A-Level.
+COUNTRY_LOCALIZATION["AI"] = {
+    "calendar_system": {
+        "code": "ai-3-term", "label": "3-term (Anguillian)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-6)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "ALHCS (Form 1-5) + CXC CSEC",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "Sixth Form (CAPE)",                  "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "ai-pre","label": "Preschool",          "order": 0},
+        {"code": "ai-g6", "label": "Grade 6",            "order": 6},
+        {"code": "ai-f5", "label": "Form 5 (CXC CSEC)",  "order": 11},
+        {"code": "ai-u6", "label": "Upper Sixth",        "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("AI", None)
+
+# British Virgin Islands — English, CXC + UK A-Level.
+COUNTRY_LOCALIZATION["VG"] = {
+    "calendar_system": {
+        "code": "vg-3-term", "label": "3-term (BVI)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-6)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Elmore Stoutt HS / CXC CSEC",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "H. Lavity Stoutt CC (CAPE)",         "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "vg-pre","label": "Preschool",          "order": 0},
+        {"code": "vg-g6", "label": "Grade 6",            "order": 6},
+        {"code": "vg-f5", "label": "Form 5 (CXC CSEC)",  "order": 11},
+        {"code": "vg-u6", "label": "Upper Sixth",        "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("VG", None)
+
+# Montserrat — English, CXC.
+COUNTRY_LOCALIZATION["MS"] = {
+    "calendar_system": {
+        "code": "ms-3-term", "label": "3-term (Montserratian)",
+        "term_count": 3, "term_names": ["Michaelmas", "Lent", "Trinity"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary (K-6)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Montserrat SS (Form 1-5) + CXC CSEC","glyph": "\U0001F393", "primary_sector": "secondary",      "typical_ages": "12-17"},
+        {"code": "sixth_form", "label": "Montserrat CC (CAPE)",               "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "17-19"},
+        {"code": "vocational", "label": "Technical / Vocational",            "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "ms-pre","label": "Preschool",          "order": 0},
+        {"code": "ms-g6", "label": "Grade 6",            "order": 6},
+        {"code": "ms-f5", "label": "Form 5 (CXC CSEC)",  "order": 11},
+        {"code": "ms-u6", "label": "Upper Sixth",        "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report Card", "grade_level": "Form / Grade",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("MS", None)
+
+# Saint Helena — English, UK system + IGCSE.
+COUNTRY_LOCALIZATION["SH"] = {
+    "calendar_system": {
+        "code": "sh-3-term", "label": "3-term (Saint Helena)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Pilling/Harford Primary (Y1-6)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-11"},
+        {"code": "secondary",  "label": "Prince Andrew School (Y7-11) / IGCSE","glyph": "\U0001F393","primary_sector": "secondary",      "typical_ages": "11-16"},
+        {"code": "sixth_form", "label": "Sixth Form (A-Level via UK)",        "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vocational", "label": "Saint Helena Community College",    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "sh-pre","label": "Preschool",          "order": 0},
+        {"code": "sh-y6", "label": "Year 6",             "order": 6},
+        {"code": "sh-y11","label": "Year 11 (IGCSE)",    "order": 11},
+        {"code": "sh-y13","label": "Year 13 (A-Level)",  "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Headteacher",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("SH", None)
+
+# Gibraltar — English/Spanish, UK system + IGCSE/A-Level.
+COUNTRY_LOCALIZATION["GI"] = {
+    "calendar_system": {
+        "code": "gi-3-term", "label": "3-term (Gibraltarian)",
+        "term_count": 3, "term_names": ["Autumn", "Spring", "Summer"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Nursery",                           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "First / Middle Schools (Y1-7)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "5-12"},
+        {"code": "secondary",  "label": "Bayside/Westside (Y8-11) / IGCSE",  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "sixth_form", "label": "Gibraltar College Sixth Form",      "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "vocational", "label": "Gibraltar College of FE",           "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+        {"code": "university", "label": "University of Gibraltar",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gi-nur","label": "Nursery",            "order": 0},
+        {"code": "gi-y6", "label": "Year 6",             "order": 6},
+        {"code": "gi-y11","label": "Year 11 (IGCSE)",    "order": 11},
+        {"code": "gi-y13","label": "Year 13 (A-Level)",  "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Teacher / Maestro", "principal": "Headteacher",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GI", None)
+
+# French Guiana — French, FR system.
+COUNTRY_LOCALIZATION["GF"] = {
+    "calendar_system": {
+        "code": "gf-3-trimester", "label": "3-trimestre (Guyanais)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École primaire",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège (6e-3e) / Brevet",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée (2nde-Tle) / Baccalauréat",    "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Lycée pro / CFA",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+        {"code": "university", "label": "Université de Guyane",               "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gf-mat","label": "Maternelle",      "order": 0},
+        {"code": "gf-cm2","label": "CM2",             "order": 5},
+        {"code": "gf-3e", "label": "3e (Brevet)",     "order": 9},
+        {"code": "gf-tle","label": "Tle (Bac)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professeur", "principal": "Proviseur / Principal",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("GF", None)
+
+# Wallis & Futuna — French, FR system.
+COUNTRY_LOCALIZATION["WF"] = {
+    "calendar_system": {
+        "code": "wf-3-trimester", "label": "3-trimestre (Wallisien)",
+        "term_count": 3, "term_names": ["1er trimestre", "2e trimestre", "3e trimestre"],
+        "week_start": 0, "academic_year_starts_month": 2,
+    },
+    "school_types": [
+        {"code": "maternelle", "label": "École maternelle",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "primaire",   "label": "École primaire",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "college",    "label": "Collège / Brevet",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "11-15"},
+        {"code": "lycee",      "label": "Lycée d'État de Wallis / Bac",      "glyph": "\U0001F3DB", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "LP / SEP Wallis",                   "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-19"},
+    ],
+    "education_levels": [
+        {"code": "wf-mat","label": "Maternelle",      "order": 0},
+        {"code": "wf-cm2","label": "CM2",             "order": 5},
+        {"code": "wf-3e", "label": "3e (Brevet)",     "order": 9},
+        {"code": "wf-tle","label": "Tle (Bac)",       "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Faiako / Professeur", "principal": "Proviseur",
+        "term": "Trimestre", "report_card": "Bulletin", "grade_level": "Classe",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("WF", None)
+
+# Norfolk Island — English, AU NSW-aligned + NZ NCEA correspondence.
+COUNTRY_LOCALIZATION["NF"] = {
+    "calendar_system": {
+        "code": "nf-4-term", "label": "4-term (Norfolk Island)",
+        "term_count": 4, "term_names": ["Term 1", "Term 2", "Term 3", "Term 4"],
+        "week_start": 1, "academic_year_starts_month": 1,
+    },
+    "school_types": [
+        {"code": "preschool",  "label": "Preschool",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "central",    "label": "Norfolk Island Central School (K-12)","glyph": "\U0001F3EB","primary_sector": "primary",       "typical_ages": "5-18"},
+        {"code": "vocational", "label": "Vocational",                        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16-20"},
+    ],
+    "education_levels": [
+        {"code": "nf-pre","label": "Preschool",        "order": 0},
+        {"code": "nf-y6", "label": "Year 6",           "order": 6},
+        {"code": "nf-y10","label": "Year 10 (NSW RoSA)","order": 10},
+        {"code": "nf-y12","label": "Year 12 (HSC)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Teacher", "principal": "Principal",
+        "term": "Term", "report_card": "Report", "grade_level": "Year",
+    },
+}
+COUNTRY_REGIONAL_DEFAULT.pop("NF", None)
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

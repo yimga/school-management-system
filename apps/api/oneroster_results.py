@@ -404,3 +404,81 @@ def results_collection(request: HttpRequest):
     if request.method == "POST":
         return post_result(request)
     return results_list(request)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.47 — Grading Periods + Categories (OneRoster Result Service spec).
+# ---------------------------------------------------------------------------
+
+_CATEGORIES: list[dict[str, Any]] = [
+    {"sourcedId": "cat-summative",   "status": "active", "title": "Summative",    "type": "summative"},
+    {"sourcedId": "cat-formative",   "status": "active", "title": "Formative",    "type": "formative"},
+    {"sourcedId": "cat-homework",    "status": "active", "title": "Homework",     "type": "homework"},
+    {"sourcedId": "cat-practice",    "status": "active", "title": "Practice",     "type": "practice"},
+    {"sourcedId": "cat-participation","status": "active","title": "Participation","type": "participation"},
+    {"sourcedId": "cat-attendance",  "status": "active", "title": "Attendance",   "type": "attendance"},
+]
+
+
+def _iter_grading_periods() -> Iterable[dict[str, Any]]:
+    """Build GradingPeriod records from ``apps.academics.models.Term``."""
+    try:
+        from apps.academics.models import Term
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oneroster gradingPeriods: Term unavailable: %s", exc)
+        return
+    qs = Term.objects.select_related("academic_year").order_by("-academic_year_id", "id")  # tenant-isolation-allow: result-service-grading-period-platform-scope-bearer-auth-required
+    for t in qs[:1000]:
+        start = getattr(t, "start_date", None)
+        end = getattr(t, "end_date", None)
+        ay = getattr(t, "academic_year", None)
+        yield {
+            "sourcedId": f"gp-{t.pk}",
+            "status": "active",
+            "title": getattr(t, "name", "") or f"Term {t.pk}",
+            "type": "gradingPeriod",
+            "beginDate": start.isoformat() if start else "",
+            "endDate": end.isoformat() if end else "",
+            "academicSessionSourcedId": f"ay-{ay.pk}" if ay else "",
+        }
+
+
+@require_http_methods(["GET"])
+def grading_periods_list(request: HttpRequest):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = list(_iter_grading_periods())
+    page, meta = _paginate(request, items)
+    return _envelope("gradingPeriods", page, meta)
+
+
+@require_http_methods(["GET"])
+def grading_period_detail(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    for item in _iter_grading_periods():
+        if item["sourcedId"] == sourced_id:
+            return JsonResponse({"gradingPeriod": item})
+    return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+
+@require_http_methods(["GET"])
+def categories_list(request: HttpRequest):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    page, meta = _paginate(request, list(_CATEGORIES))
+    return _envelope("categories", page, meta)
+
+
+@require_http_methods(["GET"])
+def category_detail(request: HttpRequest, sourced_id: str):
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    for c in _CATEGORIES:
+        if c["sourcedId"] == sourced_id:
+            return JsonResponse({"category": c})
+    return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)

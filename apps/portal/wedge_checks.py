@@ -109,6 +109,8 @@ def _check_wedge_2() -> dict[int, bool]:
         2: _url_registered("api:api-roster-results-line-items"),  # v4.00.39
         3: _module_importable("apps.api.lms_adapters"),  # v4.00.46 Canvas / Moodle / Google Classroom
         4: _module_importable("apps.api.lms_adapters"),
+        5: _url_registered("portal:lms_index"),  # v4.00.47 operator console
+        6: _url_registered("api:api-roster-results-grading-periods"),  # v4.00.47 GradingPeriod + categories
     }
 
 

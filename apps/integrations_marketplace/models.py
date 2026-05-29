@@ -126,4 +126,8 @@ __all__ = [
     "PublisherOrganization",
     "ScopeGrant",
     "ServiceIntegration",
+    "LMSConnectorToken",
 ]
+
+# v4.00.47 — LMS connector tokens (Canvas / Moodle / Google Classroom).
+from .models_lms_token import LMSConnectorToken  # noqa: E402,F401

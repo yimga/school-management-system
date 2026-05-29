@@ -106,6 +106,8 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
             "OneRoster Result Service read endpoints live (v4.00.39)",
             "Canvas / Moodle / Google Classroom adapter SOT live (v4.00.46, list_courses + list_assignments + push_grade)",
             "LMS adapter dispatch wired (canvas + moodle + google_classroom)",
+            "LMS operator console live (v4.00.47, /portal/super/integrations/lms/<provider>/)",
+            "OneRoster Result Service GradingPeriod + categories endpoints live (v4.00.47)",
         ],
     },
     {

@@ -262,6 +262,20 @@ def callback(request: HttpRequest, provider: str):
         logger.warning("oidc session login failed provider=%s err=%s", provider, exc)
         return JsonResponse({"error": "session_login_failed", "detail": str(exc)}, status=500)
 
+    # v4.00.47 — persist the id_token + provider + subject in the session so
+    # RP-Initiated Logout can supply ``id_token_hint`` to the IdP. The
+    # id_token is a signed JWT — caller-presentation only — but we store
+    # it scoped to the session for the duration of the SSO session.
+    try:
+        sess = getattr(request, "session", None)
+        if sess is not None:
+            sess["oidc_id_token"] = id_token
+            sess["oidc_provider"] = provider
+            sess["oidc_subject"] = claims.get("sub") or ""
+            sess["oidc_issuer"] = claims.get("iss") or ""
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oidc session id_token persist failed err=%s", exc)
+
     next_url = _safe_next_url(request)
     want_json = (request.GET.get("format") or "").lower() == "json"
     if want_json:

@@ -155,6 +155,7 @@ from .views_multicampus_billing import multicampus_billing
 from .views_institution_assign import assignment_view, assignment_save
 from .views_multicampus_academics import multicampus_academics
 from .views_multicampus_extension import multicampus_extension
+from .views_lms_console import lms_index, lms_provider_detail, lms_token_save
 
 app_name = "portal"
 
@@ -182,6 +183,10 @@ urlpatterns = [
     path("super/wedges/multicampus-academics/", multicampus_academics, name="wedge_surface_multicampus_academics"),
     # v4.00.42: Multi-campus operational rollup (events + fees + staff headcount, Wedge 22)
     path("super/wedges/multicampus-extension/", multicampus_extension, name="wedge_surface_multicampus_extension"),
+    # v4.00.47: LMS connector operator console (Wedge 2 — Canvas/Moodle/Google Classroom)
+    path("super/integrations/lms/", lms_index, name="lms_index"),
+    path("super/integrations/lms/<str:provider>/", lms_provider_detail, name="lms_provider_detail"),
+    path("super/integrations/lms/<str:provider>/save/", lms_token_save, name="lms_token_save"),
     # Pass 13.D: AI draft endpoints (teacher-comms inbox + report-card editor).
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),
