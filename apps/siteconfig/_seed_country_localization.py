@@ -15961,6 +15961,138 @@ COUNTRY_LOCALIZATION["HR-21"] = _v4_00_82("HR-21","hr21-2-sem","2-semester (Zagr
 
 
 # ---------------------------------------------------------------------------
+# v4.00.83 (2026-05-30) — +14 subdivisions: JP central (JP-16 Toyama,
+#   JP-17 Ishikawa, JP-18 Fukui, JP-21 Gifu, JP-23 Aichi Nagoya,
+#   JP-25 Shiga) + CN-GS Gansu + CL major (CL-RM Santiago Metropolitan,
+#   CL-BI Biobío) + CO major (CO-BOG Bogotá Capital, CO-VAC Valle del
+#   Cauca) + NG major (NG-LA Lagos, NG-KN Kano) + EC-P Pichincha Quito.
+# ---------------------------------------------------------------------------
+def _v4_00_83(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# JP-16 Toyama, JP-17 Ishikawa, JP-18 Fukui (all standard JP shape).
+for _c, _u in (("JP-16","Toyama Univ"), ("JP-17","Kanazawa Univ"), ("JP-18","Univ of Fukui")):
+    COUNTRY_LOCALIZATION[_c] = _v4_00_83(_c, _c.lower().replace("-","")+"-3-term", f"3-term ({_c.split('-')[1]})",3,["1st term","2nd term","3rd term"],4,
+        [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"university","label":_u,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_c.lower().replace("-","")+"-1","label":"Grade 1","order":1},{"code":_c.lower().replace("-","")+"-12","label":"Grade 12","order":12}],
+        {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+del _c, _u
+
+# JP-21 Gifu.
+COUNTRY_LOCALIZATION["JP-21"] = _v4_00_83("JP-21","jp21-3-term","3-term (Gifu)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Gifu Univ + Gifu Pharm + Asahi Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp21-1","label":"Grade 1","order":1},{"code":"jp21-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# JP-23 Aichi (Nagoya — 4th biggest metro).
+COUNTRY_LOCALIZATION["JP-23"] = _v4_00_83("JP-23","jp23-3-term","3-term (Aichi / Nagoya)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Nagoya Univ + Nagoya Inst Tech + Aichi Univ + Chukyo Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp23-1","label":"Grade 1","order":1},{"code":"jp23-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# JP-25 Shiga.
+COUNTRY_LOCALIZATION["JP-25"] = _v4_00_83("JP-25","jp25-3-term","3-term (Shiga)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Shiga Univ + Ritsumeikan BKC","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp25-1","label":"Grade 1","order":1},{"code":"jp25-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# CN-GS Gansu.
+COUNTRY_LOCALIZATION["CN-GS"] = _v4_00_83("CN-GS","cngs-2-sem","2-semester (Gansu / Lanzhou Gaokao)",2,["First semester","Second semester"],9,
+    [{"code":"youeryuan","label":"Yòu'éryuán","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"xiaoxue","label":"Xiǎoxué (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chuzhong","label":"Chūzhōng (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"gaozhong","label":"Gāozhōng (Gr 10-12) + Gaokao","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"daxue","label":"Lanzhou Univ + NWNU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cngs-1","label":"Grade 1","order":1},{"code":"cngs-12","label":"Grade 12 + Gaokao","order":12}],
+    {"teacher":"Lǎoshī","principal":"Xiàozhǎng","term":"Xuéqī","report_card":"Chéngjī dān","grade_level":"Niánjí"})
+
+# CL-RM Santiago Metropolitan.
+COUNTRY_LOCALIZATION["CL-RM"] = _v4_00_83("CL-RM","clrm-2-sem","2-semester (Santiago Metropolitan / PAES)",2,["1er semestre","2do semestre"],3,
+    [{"code":"prebasica","label":"Educación Prebásica","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"basica","label":"Educación Básica (1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"media","label":"Educación Media (1-4) + PAES","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"superior","label":"UChile + PUC-CL + UDP + USACH + UAI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"clrm-1","label":"1º Básico","order":1},{"code":"clrm-8","label":"8º Básico","order":8},{"code":"clrm-12","label":"4º Medio + PAES","order":12}],
+    {"teacher":"Profesor","principal":"Director","term":"Semestre","report_card":"Boletín","grade_level":"Curso"})
+
+# CL-BI Biobío.
+COUNTRY_LOCALIZATION["CL-BI"] = _v4_00_83("CL-BI","clbi-2-sem","2-semester (Biobío / Concepción)",2,["1er semestre","2do semestre"],3,
+    [{"code":"prebasica","label":"Educación Prebásica","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"basica","label":"Educación Básica (1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"media","label":"Educación Media (1-4) + PAES","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"superior","label":"UdeC + UCSC + UBB","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"clbi-1","label":"1º Básico","order":1},{"code":"clbi-12","label":"4º Medio + PAES","order":12}],
+    {"teacher":"Profesor","principal":"Director","term":"Semestre","report_card":"Boletín","grade_level":"Curso"})
+
+# CO-BOG Bogotá Capital District.
+COUNTRY_LOCALIZATION["CO-BOG"] = _v4_00_83("CO-BOG","cobog-2-sem","2-semester (Bogotá D.C. / ICFES)",2,["1er semestre","2do semestre"],1,
+    [{"code":"preescolar","label":"Preescolar","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Básica Primaria (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"secundaria","label":"Básica Secundaria (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"media","label":"Media (10-11) + ICFES Saber 11","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"superior","label":"UNAL + Andes + Javeriana + Externado + ENS","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"cobog-1","label":"1º Primaria","order":1},{"code":"cobog-11","label":"11º Media + ICFES","order":11}],
+    {"teacher":"Profesor","principal":"Rector","term":"Semestre","report_card":"Boletín","grade_level":"Grado"})
+
+# CO-VAC Valle del Cauca (Cali).
+COUNTRY_LOCALIZATION["CO-VAC"] = _v4_00_83("CO-VAC","covac-2-sem","2-semester (Valle del Cauca / Cali)",2,["1er semestre","2do semestre"],1,
+    [{"code":"preescolar","label":"Preescolar","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Básica Primaria (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"secundaria","label":"Básica Secundaria (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"media","label":"Media (10-11) + ICFES Saber 11","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"superior","label":"UniValle + USB-Cali + ICESI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"covac-1","label":"1º Primaria","order":1},{"code":"covac-11","label":"11º Media + ICFES","order":11}],
+    {"teacher":"Profesor","principal":"Rector","term":"Semestre","report_card":"Boletín","grade_level":"Grado"})
+
+# NG-LA Lagos.
+COUNTRY_LOCALIZATION["NG-LA"] = _v4_00_83("NG-LA","ngla-3-term","3-term (Lagos State / WASSCE)",3,["1st term","2nd term","3rd term"],9,
+    [{"code":"creche","label":"Creche / Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (1-6) + Common Entrance","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"jss","label":"JSS (1-3) + BECE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"sss","label":"SSS (1-3) + WASSCE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UNILAG + LASU + Pan Atlantic Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ngla-1","label":"Primary 1","order":1},{"code":"ngla-12","label":"SSS 3 + WASSCE","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report Sheet","grade_level":"Class"})
+
+# NG-KN Kano.
+COUNTRY_LOCALIZATION["NG-KN"] = _v4_00_83("NG-KN","ngkn-3-term","3-term (Kano State / WASSCE)",3,["1st term","2nd term","3rd term"],9,
+    [{"code":"creche","label":"Creche / Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (1-6) + Common Entrance","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"jss","label":"JSS (1-3) + BECE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"sss","label":"SSS (1-3) + WASSCE + Hausa Islamiyya","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Bayero Univ Kano + Kano Univ Sci Tech","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ngkn-1","label":"Primary 1","order":1},{"code":"ngkn-12","label":"SSS 3 + WASSCE","order":12}],
+    {"teacher":"Malam / Teacher","principal":"Principal","term":"Term","report_card":"Report Sheet","grade_level":"Class"})
+
+# EC-P Pichincha (Quito).
+COUNTRY_LOCALIZATION["EC-P"] = _v4_00_83("EC-P","ecp-2-sem","2-semester (Pichincha / Quito / Bachiller)",2,["1er quimestre","2do quimestre"],9,
+    [{"code":"inicial","label":"Educación Inicial","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"egb","label":"EGB (1-10)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-14"},
+     {"code":"bgu","label":"BGU (1-3) + Bachiller","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"superior","label":"USFQ + PUCE + EPN + UCE","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ecp-1","label":"1º EGB","order":1},{"code":"ecp-10","label":"10º EGB","order":10},{"code":"ecp-13","label":"3º BGU + Bachiller","order":13}],
+    {"teacher":"Profesor","principal":"Rector","term":"Quimestre","report_card":"Libreta","grade_level":"Año"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

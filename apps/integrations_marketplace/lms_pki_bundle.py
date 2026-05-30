@@ -155,3 +155,67 @@ def bundle_fingerprint(bundle: dict) -> str:
     Python versions because we sort keys + use compact separators."""
     canonical = json.dumps(bundle, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+
+
+# v4.00.83 — CSV export for counsel-handoff spreadsheet ingestion.
+#
+# Returns a gzipped CSV. Deterministic: rows sorted by provider slug,
+# columns in fixed order, gzip mtime=0 so byte-for-byte stable across
+# re-runs. Caller is responsible for HTTP wiring (Content-Type +
+# Content-Encoding=gzip + Content-Disposition).
+import csv
+import gzip
+import io
+
+
+_PKI_CSV_COLUMNS = (
+    "slug", "label", "maturity", "oauth_ready", "is_scaffold",
+    "authorize_url", "token_url", "authorize_url_suffix",
+    "token_url_suffix", "default_scopes",
+)
+
+
+def render_pki_bundle_csv(bundle: dict) -> bytes:
+    """Return the providers array of `bundle` as gzipped CSV bytes.
+    Stable shape — providers sorted by slug. Empty cells for missing
+    optional fields. Lists serialized as ';'-separated."""
+    providers = sorted(bundle.get("providers", []), key=lambda p: p.get("slug", ""))
+
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    # Header
+    writer.writerow(["#schema_version", bundle.get("schema_version", "")])
+    writer.writerow(["#generated_at", bundle.get("generated_at", "")])
+    writer.writerow([])  # blank line separator
+    writer.writerow(_PKI_CSV_COLUMNS)
+    for prov in providers:
+        scopes = prov.get("default_scopes", [])
+        if isinstance(scopes, (list, tuple)):
+            scopes_cell = ";".join(str(s) for s in scopes)
+        else:
+            scopes_cell = str(scopes or "")
+        writer.writerow([
+            prov.get("slug", ""),
+            prov.get("label", ""),
+            prov.get("maturity", ""),
+            "true" if prov.get("oauth_ready") else "false",
+            "true" if prov.get("is_scaffold") else "false",
+            prov.get("authorize_url", ""),
+            prov.get("token_url", ""),
+            prov.get("authorize_url_suffix", ""),
+            prov.get("token_url_suffix", ""),
+            scopes_cell,
+        ])
+
+    csv_bytes = buf.getvalue().encode("utf-8")
+    out = io.BytesIO()
+    # mtime=0 -> deterministic across re-runs
+    with gzip.GzipFile(fileobj=out, mode="wb", mtime=0) as gz:
+        gz.write(csv_bytes)
+    return out.getvalue()
+
+
+def decode_pki_bundle_csv(blob: bytes) -> str:
+    """Inverse of render_pki_bundle_csv — returns the CSV text. Helper
+    for tests + operators who downloaded the file."""
+    return gzip.decompress(blob).decode("utf-8")

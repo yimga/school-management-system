@@ -29,13 +29,17 @@ Clever / ClassLink connector adapters.
 """
 from __future__ import annotations
 
+import hashlib
 import hmac
+import json as _json
 import logging
 import os
 from typing import Any, Iterable
 
 from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpRequest, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 logger = logging.getLogger(__name__)
@@ -657,3 +661,171 @@ def users_delta_v1p2(request):
     resp["X-Active-Count"] = str(active_count)
     resp["X-Tombstone-Count"] = str(tombstone_count)
     return resp
+
+
+# ----- v4.00.83 Wave 15 T2: bulk POST /users/ (idempotent batch) ---------
+#
+# POST /api/roster/v1p2/users/bulk/
+#
+# Required header: Idempotency-Key: <opaque>  -> 428 if absent
+# Body shape:      {"users": [<user_payload>, ...]}  (max 500 entries)
+# Response:        207 Multi-Status
+#                  {"results": [{"sourcedId": "...", "status": "...",
+#                                "reason"?: "..."}],
+#                   "summary":  {"created": N, "updated": M,
+#                                "skipped": K, "error": E, "total": T}}
+#
+# Idempotency contract:
+#   * same Idempotency-Key + same body bytes -> cached 207 body
+#     + Idempotency-Replay: true header
+#   * same Idempotency-Key + different body  -> 409 idempotency_key_conflict
+#   * TTL: 24h
+#
+# Per-row processing strategy:
+#   This baseline VALIDATES each user payload (shape check on sourcedId,
+#   orgSourcedIds, givenName, familyName, role) and returns "skipped"
+#   with reason="bulk_create_pending_storage_impl" to honestly signal
+#   that the bulk-write storage layer (User row create/update) is
+#   deferred to a future wave. The contract surface (shape, idempotency,
+#   headers, 207, per-row reasons) is real and tested. Invalid rows
+#   return status="error" with the failing reason echoed.
+_BULK_USERS_MAX_ITEMS = 500
+_BULK_USERS_IDEMPOTENCY_TTL = 60 * 60 * 24
+_BULK_USERS_REQUIRED_FIELDS = ("sourcedId", "givenName", "familyName", "role")
+_BULK_USERS_ALLOWED_ROLES = frozenset((
+    "student", "teacher", "administrator", "staff",
+    "parent", "guardian", "aide", "proctor", "relative",
+))
+
+
+def _bulk_users_idem_cache_key(idem: str) -> str:
+    return f"roster:users:bulk:idempo:{idem}"
+
+
+def _bulk_users_hash_body(body_bytes: bytes) -> str:
+    """sha256[:16] of the raw body bytes (matches demographics convention)."""
+    h = hashlib.sha256()
+    h.update(body_bytes or b"")
+    return h.hexdigest()[:16]
+
+
+def _bulk_user_idempotency_key(request: HttpRequest) -> str:
+    return (
+        request.META.get("HTTP_IDEMPOTENCY_KEY", "").strip()
+        or request.META.get("HTTP_X_IDEMPOTENCY_KEY", "").strip()
+    )
+
+
+def _validate_bulk_user_row(row: Any) -> tuple[str, str | None]:
+    """Minimal shape check on a single user payload.
+
+    Returns ``(sourcedId, error_reason_or_None)``. ``sourcedId`` is echoed
+    as the empty string when the payload isn't a dict (so the per-row
+    result still carries the field).
+    """
+    if not isinstance(row, dict):
+        return "", "row_not_object"
+    sid = str(row.get("sourcedId") or "").strip()
+    if not sid:
+        return "", "missing_sourcedId"
+    for field in ("givenName", "familyName", "role"):
+        val = str(row.get(field) or "").strip()
+        if not val:
+            return sid, f"missing_{field}"
+    role = str(row.get("role") or "").strip().lower()
+    if role not in _BULK_USERS_ALLOWED_ROLES:
+        return sid, "bad_role"
+    org_sids = row.get("orgSourcedIds")
+    if org_sids is not None and not isinstance(org_sids, list):
+        return sid, "orgSourcedIds_not_list"
+    return sid, None
+
+
+def _process_bulk_users(users: list[Any]) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    """Per-row processor. v4.00.83 — VALIDATE only and return "skipped" with
+    reason="bulk_create_pending_storage_impl" to honestly signal that the
+    bulk-write storage layer is deferred to a future wave. Invalid rows
+    return status="error" with the failing reason echoed. The contract
+    surface (shape, idempotency, headers, 207) is real.
+    """
+    results: list[dict[str, Any]] = []
+    summary = {"created": 0, "updated": 0, "skipped": 0, "error": 0, "total": 0}
+    for row in users:
+        sid, err = _validate_bulk_user_row(row)
+        if err is not None:
+            results.append({"sourcedId": sid, "status": "error", "reason": err})
+            summary["error"] += 1
+        else:
+            results.append({
+                "sourcedId": sid,
+                "status": "skipped",
+                "reason": "bulk_create_pending_storage_impl",
+            })
+            summary["skipped"] += 1
+        summary["total"] += 1
+    return results, summary
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def users_bulk_post(request: HttpRequest):
+    """v4.00.83 Wave 15 T2 — POST /api/roster/v1p2/users/bulk/
+
+    Idempotent batch user upsert per OneRoster v1.2 bulk semantics. Per-row
+    processing returns ``status="skipped"`` with ``reason="bulk_create_
+    pending_storage_impl"`` to honestly signal that the storage layer is
+    deferred. Invalid rows return ``status="error"``.
+
+    Required: ``Idempotency-Key`` header. Body: ``{"users": [...]}``
+    (max 500 entries). Response: 207 Multi-Status with per-row results +
+    summary counters. Replay returns cached body with
+    ``Idempotency-Replay: true``. Mismatched body on same key -> 409.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+
+    idem = _bulk_user_idempotency_key(request)
+    if not idem:
+        return JsonResponse({"error": "missing_idempotency_key"}, status=428)
+
+    body_bytes = request.body or b""
+    payload_hash = _bulk_users_hash_body(body_bytes)
+    ck = _bulk_users_idem_cache_key(idem)
+    cached = cache.get(ck)
+    if isinstance(cached, dict):
+        if cached.get("payload_hash") == payload_hash:
+            resp = JsonResponse(cached["response_body"], status=207)
+            resp["Idempotency-Replay"] = "true"
+            return resp
+        return JsonResponse({"error": "idempotency_key_conflict"}, status=409)
+
+    if not body_bytes:
+        return JsonResponse({"error": "empty_body"}, status=400)
+    try:
+        payload = _json.loads(body_bytes)
+    except (ValueError, TypeError):
+        return JsonResponse({"error": "bad_json"}, status=400)
+    if not isinstance(payload, dict):
+        return JsonResponse({"error": "bad_envelope"}, status=400)
+    if "users" not in payload:
+        return JsonResponse({"error": "missing_users_key"}, status=400)
+    users = payload.get("users")
+    if not isinstance(users, list):
+        return JsonResponse({"error": "users_not_list"}, status=400)
+    if len(users) > _BULK_USERS_MAX_ITEMS:
+        return JsonResponse(
+            {"error": "too_many_users",
+             "received_count": len(users),
+             "max_count": _BULK_USERS_MAX_ITEMS},
+            status=400,
+        )
+
+    results, summary = _process_bulk_users(users)
+    body = {"results": results, "summary": summary}
+    cache.set(
+        ck,
+        {"payload_hash": payload_hash, "response_body": body},
+        _BULK_USERS_IDEMPOTENCY_TTL,
+    )
+    return JsonResponse(body, status=207)

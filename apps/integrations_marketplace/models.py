@@ -141,3 +141,6 @@ from .models_lms_diag_action_audit import LMSDiagActionAudit  # noqa: E402,F401
 
 # v4.00.79 — WebhookDeadLetter persistence (DLQ for webhook retry FSM).
 from .models_webhook_dead_letter import WebhookDeadLetter  # noqa: E402,F401
+
+# v4.00.83 — Per-tenant retention override (lookup precedence: row > env > default).
+from .models_tenant_retention_override import TenantRetentionOverride  # noqa: E402,F401

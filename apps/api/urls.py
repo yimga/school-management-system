@@ -562,6 +562,10 @@ urlpatterns = [
     # returns active + tombstone rows). Registered BEFORE the
     # `users/<str:sourced_id>/` catch-all so the literal "delta" segment wins.
     path("roster/v1p2/users/delta/", _oneroster.users_delta_v1p2, name="api-roster-v1p2-users-delta"),
+    # v4.00.83 Wave 15 T2 — bulk POST users (idempotent batch). Registered
+    # BEFORE the `users/<str:sourced_id>/` catch-all so "bulk" isn't parsed
+    # as a sourcedId.
+    path("roster/v1p2/users/bulk/", _oneroster.users_bulk_post, name="api-roster-v1p2-users-bulk"),
     path("roster/v1p2/students/", _oneroster.students, name="api-roster-v1p2-students"),
     path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
     # v4.00.77 — staff convenience endpoint (users w/ administrator/staff role).

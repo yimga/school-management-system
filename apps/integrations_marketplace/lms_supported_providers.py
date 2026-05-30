@@ -65,17 +65,20 @@ SUPPORTED_LMS_PROVIDERS = frozenset({
 })
 
 # Providers whose OAuth refresh flow is wired in ``lms_token_refresh.py``.
+# v4.00.83: Schoology promoted from SCAFFOLD → OAUTH_READY. Live outbound is
+# still gated behind ``RMC_SCHOOLOGY_OAUTH_LIVE_OUTBOUND`` env at the adapter
+# layer; the SOT registers OAuth readiness for the diagnostics rollup card.
 OAUTH_READY_LMS_PROVIDERS = frozenset({
     PROVIDER_CANVAS,
     PROVIDER_MOODLE,
     PROVIDER_GOOGLE_CLASSROOM,
     PROVIDER_GOOGLE_LEGACY_ALIAS,
+    PROVIDER_SCHOOLOGY,
 })
 
 # Providers w/ adapter stubs only — DO NOT attempt OAuth exchange. The
 # diagnostics UI surfaces these as "Scaffold (coming soon)" pills.
 SCAFFOLD_LMS_PROVIDERS = frozenset({
-    PROVIDER_SCHOOLOGY,
     PROVIDER_BRIGHTSPACE_D2L,
     PROVIDER_BLACKBOARD,
     PROVIDER_POWERSCHOOL,

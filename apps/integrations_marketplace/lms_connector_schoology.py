@@ -163,4 +163,135 @@ def pull_courses(*, base_url: str, access_token: str) -> list[dict]:
 
 
 def is_scaffold() -> bool:
-    return True
+    # v4.00.83 — Schoology promoted to OAUTH_READY in lms_supported_providers.
+    # Kept returning False so callers checking the adapter directly see the
+    # current maturity. The honest-stub push_grade above remains for dry-run
+    # consumers; live outbound is gated by ``push_grade_live`` + env flag.
+    return False
+
+
+# ---------------------------------------------------------------------------
+# v4.00.83 — Live OAuth code-exchange (gated behind env flag).
+# ---------------------------------------------------------------------------
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+LIVE_OUTBOUND_ENV = "RMC_SCHOOLOGY_OAUTH_LIVE_OUTBOUND"
+
+# Default OAuth scopes — Schoology splits read/write at the consent screen.
+DEFAULT_SCOPES = ("read", "write")
+
+
+def _live_outbound_enabled() -> bool:
+    return os.environ.get(LIVE_OUTBOUND_ENV, "") in ("1", "true", "yes", "on")
+
+
+def exchange_authorization_code_for_token(*, code: str, client_id: str, client_secret: str, redirect_uri: str, token_url: str = DEFAULT_TOKEN_URL, timeout: int = 15) -> dict:
+    """Exchange an OAuth authorization code for an access token.
+
+    When LIVE_OUTBOUND_ENV is unset (default), returns a dry-run dict that
+    looks like a Schoology success response — useful for testing the
+    plumbing without hitting prod.
+
+    On real outbound: returns the upstream JSON OR raises an exception if
+    the upstream returned non-2xx. Caller MUST handle exceptions.
+
+    NEVER logs client_secret / access_token / refresh_token (PII guard).
+    """
+    if not _live_outbound_enabled():
+        return {
+            "access_token": "dry-run-access-token",
+            "refresh_token": "dry-run-refresh-token",
+            "expires_in": 3600,
+            "token_type": "Bearer",
+            "scope": " ".join(DEFAULT_SCOPES) if DEFAULT_SCOPES else "",
+            "dry_run": True,
+            "reason": "live_outbound_disabled_env_unset",
+        }
+    try:
+        import requests
+    except ImportError:
+        return {"dry_run": False, "ok": False, "reason": "requests_lib_missing"}
+
+    try:
+        resp = requests.post(
+            token_url,
+            data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "redirect_uri": redirect_uri,
+            },
+            headers={"Accept": "application/json"},
+            timeout=timeout,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("schoology token exchange network error: %s", type(exc).__name__)
+        return {"dry_run": False, "ok": False, "reason": "network_error", "exc_type": type(exc).__name__}
+
+    if not (200 <= resp.status_code < 300):
+        logger.warning("schoology token exchange http_%s", resp.status_code)
+        return {"dry_run": False, "ok": False, "reason": "http_error", "http_status": resp.status_code}
+
+    try:
+        body = resp.json()
+    except Exception:  # noqa: BLE001
+        return {"dry_run": False, "ok": False, "reason": "json_parse_error", "http_status": resp.status_code}
+
+    body["dry_run"] = False
+    body["ok"] = True
+    return body
+
+
+def push_grade_live(*, access_token: str, section_id: str, assignment_id: str, student_id: str, score: float, max_score: float, comment: str = "", api_base: str = "https://api.schoology.com/v1", timeout: int = 15) -> dict:
+    """REAL outbound push_grade. Gated behind LIVE_OUTBOUND_ENV. Returns
+    upstream JSON on success, structured error dict on failure. NEVER raises."""
+    if not _live_outbound_enabled():
+        return {
+            "ok": False,
+            "dry_run": True,
+            "reason": "live_outbound_disabled_env_unset",
+            "would_target": f"{api_base}/sections/{section_id}/grades",
+        }
+    try:
+        import requests
+    except ImportError:
+        return {"ok": False, "dry_run": False, "reason": "requests_lib_missing"}
+
+    payload = {
+        "grades": {
+            "grade": [{
+                "type": 1,
+                "assignment_id": assignment_id,
+                "enrollment_id": student_id,
+                "grade": float(score),
+                "max_points": float(max_score),
+                "comment": comment[:1000],
+            }],
+        },
+    }
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    try:
+        resp = requests.put(
+            f"{api_base}/sections/{section_id}/grades",
+            json=payload,
+            headers=headers,
+            timeout=timeout,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "dry_run": False, "reason": "network_error", "exc_type": type(exc).__name__}
+
+    if not (200 <= resp.status_code < 300):
+        return {"ok": False, "dry_run": False, "reason": "http_error", "http_status": resp.status_code}
+
+    try:
+        return {"ok": True, "dry_run": False, "http_status": resp.status_code, "upstream": resp.json()}
+    except Exception:  # noqa: BLE001
+        return {"ok": True, "dry_run": False, "http_status": resp.status_code}
