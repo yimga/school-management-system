@@ -14520,6 +14520,145 @@ COUNTRY_LOCALIZATION["RW-01"] = _v4_00_72("RW-01","rw01-3-term","3-term (Kigali)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.73 (2026-05-29) — +14 subdivisions: VN-CT Can Tho,
+#   VN-DN Da Nang, VN-HP Hai Phong, TH-13 Pathum Thani, TH-90 Songkhla,
+#   PH-MNL Manila, ID-JB West Java, ID-JT Central Java, ID-BT Banten,
+#   MY-10 Selangor, SG-01 Singapore (subdivision proxy),
+#   KH-12 Phnom Penh, LA-VT Vientiane, NP-3 Bagmati (incl. Kathmandu).
+# ---------------------------------------------------------------------------
+def _v4_00_73(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+COUNTRY_LOCALIZATION["VN-CT"] = _v4_00_73("VN-CT","vnct-2-sem","2-sem (Can Tho)",2,["Học kỳ I","Học kỳ II"],8,
+    [{"code":"mam_non","label":"Mẫu giáo","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"tieu_hoc","label":"Tiểu học (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"thcs","label":"THCS (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"thpt","label":"THPT (10-12) + TN THPT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"dai_hoc","label":"Can Tho U + Nam Can Tho U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"vnct-1","label":"Lớp 1","order":1},{"code":"vnct-9","label":"Lớp 9","order":9},{"code":"vnct-12","label":"Lớp 12 + TN","order":12}],
+    {"teacher":"Giáo viên","principal":"Hiệu trưởng","term":"Học kỳ","report_card":"Học bạ","grade_level":"Lớp"})
+
+COUNTRY_LOCALIZATION["VN-DN"] = _v4_00_73("VN-DN","vndn-2-sem","2-sem (Da Nang)",2,["Học kỳ I","Học kỳ II"],8,
+    [{"code":"mam_non","label":"Mẫu giáo","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"tieu_hoc","label":"Tiểu học (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"thcs","label":"THCS (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"thpt","label":"THPT (10-12) + TN THPT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"dai_hoc","label":"Da Nang U + Duy Tan U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"vndn-1","label":"Lớp 1","order":1},{"code":"vndn-9","label":"Lớp 9","order":9},{"code":"vndn-12","label":"Lớp 12 + TN","order":12}],
+    {"teacher":"Giáo viên","principal":"Hiệu trưởng","term":"Học kỳ","report_card":"Học bạ","grade_level":"Lớp"})
+
+COUNTRY_LOCALIZATION["VN-HP"] = _v4_00_73("VN-HP","vnhp-2-sem","2-sem (Hai Phong)",2,["Học kỳ I","Học kỳ II"],8,
+    [{"code":"mam_non","label":"Mẫu giáo","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"tieu_hoc","label":"Tiểu học (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"thcs","label":"THCS (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"thpt","label":"THPT (10-12) + TN THPT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"dai_hoc","label":"Hai Phong U + VMU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"vnhp-1","label":"Lớp 1","order":1},{"code":"vnhp-9","label":"Lớp 9","order":9},{"code":"vnhp-12","label":"Lớp 12 + TN","order":12}],
+    {"teacher":"Giáo viên","principal":"Hiệu trưởng","term":"Học kỳ","report_card":"Học bạ","grade_level":"Lớp"})
+
+COUNTRY_LOCALIZATION["TH-13"] = _v4_00_73("TH-13","th13-2-term","2-term (Pathum Thani)",2,["First semester","Second semester"],5,
+    [{"code":"anubaan","label":"Anubaan","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"prathom","label":"Prathom (P.1-P.6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"matthayom_ton","label":"Mat. Ton (M.1-M.3)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"matthayom_plai","label":"Mat. Plai (M.4-M.6) + ONET","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"mahawittayalai","label":"Thammasat Rangsit + Bangkok U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"th13-1","label":"Prathom 1","order":1},{"code":"th13-6","label":"Prathom 6","order":6},{"code":"th13-9","label":"Matthayom 3","order":9},{"code":"th13-12","label":"Matthayom 6 + ONET","order":12}],
+    {"teacher":"Khru","principal":"Phu Amnuaykan","term":"Phak Rian","report_card":"Bai Patthana","grade_level":"Chan"})
+
+COUNTRY_LOCALIZATION["TH-90"] = _v4_00_73("TH-90","th90-2-term","2-term (Songkhla)",2,["First semester","Second semester"],5,
+    [{"code":"anubaan","label":"Anubaan","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"prathom","label":"Prathom (P.1-P.6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"matthayom_ton","label":"Mat. Ton (M.1-M.3)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"matthayom_plai","label":"Mat. Plai (M.4-M.6) + ONET","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"mahawittayalai","label":"PSU + Thaksin U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"th90-1","label":"Prathom 1","order":1},{"code":"th90-6","label":"Prathom 6","order":6},{"code":"th90-9","label":"Matthayom 3","order":9},{"code":"th90-12","label":"Matthayom 6 + ONET","order":12}],
+    {"teacher":"Khru","principal":"Phu Amnuaykan","term":"Phak Rian","report_card":"Bai Patthana","grade_level":"Chan"})
+
+COUNTRY_LOCALIZATION["PH-MNL"] = _v4_00_73("PH-MNL","phmnl-2-sem","2-semester (Manila / DepEd K-12)",2,["First semester","Second semester"],8,
+    [{"code":"kinder","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"5"},
+     {"code":"elementary","label":"Elementary (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"junior_hs","label":"JHS (7-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-16"},
+     {"code":"senior_hs","label":"SHS (11-12) + UPCAT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"UP Diliman/Manila + UST + Ateneo + DLSU + UE","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"phmnl-1","label":"Grade 1","order":1},{"code":"phmnl-6","label":"Grade 6","order":6},{"code":"phmnl-10","label":"Grade 10 (JHS)","order":10},{"code":"phmnl-12","label":"Grade 12 (SHS) + UPCAT","order":12}],
+    {"teacher":"Guro","principal":"Punong-guro","term":"Semester","report_card":"Card","grade_level":"Grado"})
+
+COUNTRY_LOCALIZATION["ID-JB"] = _v4_00_73("ID-JB","idjb-2-sem","2-sem (West Java)",2,["Semester ganjil","Semester genap"],7,
+    [{"code":"paud","label":"PAUD","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"sd","label":"SD (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"smp","label":"SMP (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"sma","label":"SMA (10-12) + UTBK-SNBT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"universitas","label":"ITB + UI Bandung + UNPAD + IPB + UPI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"idjb-1","label":"Kelas 1","order":1},{"code":"idjb-6","label":"Kelas 6","order":6},{"code":"idjb-9","label":"Kelas 9","order":9},{"code":"idjb-12","label":"Kelas 12 + UTBK","order":12}],
+    {"teacher":"Guru","principal":"Kepala Sekolah","term":"Semester","report_card":"Rapor","grade_level":"Kelas"})
+
+COUNTRY_LOCALIZATION["ID-JT"] = _v4_00_73("ID-JT","idjt-2-sem","2-sem (Central Java)",2,["Semester ganjil","Semester genap"],7,
+    [{"code":"paud","label":"PAUD","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"sd","label":"SD (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"smp","label":"SMP (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"sma","label":"SMA (10-12) + UTBK-SNBT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"universitas","label":"UGM + UNDIP + UNS + UNNES","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"idjt-1","label":"Kelas 1","order":1},{"code":"idjt-6","label":"Kelas 6","order":6},{"code":"idjt-9","label":"Kelas 9","order":9},{"code":"idjt-12","label":"Kelas 12 + UTBK","order":12}],
+    {"teacher":"Guru","principal":"Kepala Sekolah","term":"Semester","report_card":"Rapor","grade_level":"Kelas"})
+
+COUNTRY_LOCALIZATION["ID-BT"] = _v4_00_73("ID-BT","idbt-2-sem","2-sem (Banten)",2,["Semester ganjil","Semester genap"],7,
+    [{"code":"paud","label":"PAUD","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"sd","label":"SD (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"smp","label":"SMP (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"sma","label":"SMA (10-12) + UTBK-SNBT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"universitas","label":"UNTIRTA + Pelita Harapan + Pamulang","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"idbt-1","label":"Kelas 1","order":1},{"code":"idbt-6","label":"Kelas 6","order":6},{"code":"idbt-9","label":"Kelas 9","order":9},{"code":"idbt-12","label":"Kelas 12 + UTBK","order":12}],
+    {"teacher":"Guru","principal":"Kepala Sekolah","term":"Semester","report_card":"Rapor","grade_level":"Kelas"})
+
+COUNTRY_LOCALIZATION["MY-10"] = _v4_00_73("MY-10","my10-2-sem","2-semester (Selangor)",2,["First semester","Second semester"],1,
+    [{"code":"tadika","label":"Tadika (kindergarten)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-6"},
+     {"code":"sk","label":"Sekolah Rendah (Std 1-6) + UPSR (until 2020) / PT3","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-12"},
+     {"code":"smr","label":"Sekolah Menengah Rendah (Form 1-3) + PT3","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-15"},
+     {"code":"smk","label":"Sekolah Menengah Atas (Form 4-5) + SPM","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"universiti","label":"UPM + UKM + UNITEN + UPSI + Taylor's","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"my10-1","label":"Standard 1","order":1},{"code":"my10-6","label":"Standard 6","order":6},{"code":"my10-9","label":"Form 3 + PT3","order":9},{"code":"my10-11","label":"Form 5 + SPM","order":11}],
+    {"teacher":"Cikgu","principal":"Pengetua","term":"Semester","report_card":"Surat Akuan","grade_level":"Darjah"})
+
+COUNTRY_LOCALIZATION["SG-01"] = _v4_00_73("SG-01","sg01-2-sem","2-semester (Singapore / MOE)",2,["Term 1-2","Term 3-4"],1,
+    [{"code":"preschool","label":"Pre-school / N1-K2","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-6"},
+     {"code":"primary","label":"Primary (P1-P6) + PSLE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-12"},
+     {"code":"secondary","label":"Secondary (Sec 1-4/5) + N/O-level","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-17"},
+     {"code":"jc","label":"JC / Polytechnic (Sec 5-6) + A-level","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"17-19"},
+     {"code":"university","label":"NUS + NTU + SMU + SUTD + SIT","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"sg01-1","label":"P1","order":1},{"code":"sg01-6","label":"P6 + PSLE","order":6},{"code":"sg01-10","label":"Sec 4 + O-level","order":10},{"code":"sg01-12","label":"JC 2 + A-level","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Level"})
+
+COUNTRY_LOCALIZATION["KH-12"] = _v4_00_73("KH-12","kh12-2-sem","2-sem (Phnom Penh)",2,["First semester","Second semester"],10,
+    [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"lower_secondary","label":"Lower Sec (7-9) + Diploma","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"upper_secondary","label":"Upper Sec (10-12) + Bakdoub","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"RUPP + ITC + UHST + Norton U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"kh12-1","label":"Grade 1","order":1},{"code":"kh12-6","label":"Grade 6","order":6},{"code":"kh12-9","label":"Grade 9 + Diploma","order":9},{"code":"kh12-12","label":"Grade 12 + Bakdoub","order":12}],
+    {"teacher":"Kru","principal":"Director","term":"Semester","report_card":"Report","grade_level":"Class"})
+
+COUNTRY_LOCALIZATION["LA-VT"] = _v4_00_73("LA-VT","lavt-2-sem","2-sem (Vientiane)",2,["First semester","Second semester"],9,
+    [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (P1-P5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"lower_secondary","label":"Lower Sec (M1-M4)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"upper_secondary","label":"Upper Sec (M5-M7) + Baccalauréat","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"NUOL + Souphanouvong U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"lavt-1","label":"P1","order":1},{"code":"lavt-5","label":"P5","order":5},{"code":"lavt-9","label":"M4","order":9},{"code":"lavt-12","label":"M7 + Bac","order":12}],
+    {"teacher":"Khouton","principal":"Director","term":"Semester","report_card":"Report","grade_level":"Class"})
+
+COUNTRY_LOCALIZATION["NP-3"] = _v4_00_73("NP-3","np3-2-sem","2-sem (Bagmati / Kathmandu)",2,["First semester","Second semester"],4,
+    [{"code":"ecd","label":"ECD / Montessori","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"basic","label":"Basic Level (1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"sl","label":"Secondary (9-10) + SEE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"hs","label":"Higher Secondary (11-12) + NEB","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"TU + Kathmandu U + Pokhara U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"np3-1","label":"Class 1","order":1},{"code":"np3-8","label":"Class 8","order":8},{"code":"np3-10","label":"Class 10 + SEE","order":10},{"code":"np3-12","label":"Class 12 + NEB","order":12}],
+    {"teacher":"Sir/Miss","principal":"Pradhan adhyapak","term":"Term","report_card":"Report","grade_level":"Kaksha"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

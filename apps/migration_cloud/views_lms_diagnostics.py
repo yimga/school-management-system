@@ -268,6 +268,54 @@ def _bump_retention_sweep_counter(*, kind: str, considered: int, deleted: int) -
         logger.debug("retention counters bump failed: %s", exc)
 
 
+def build_diagnostics_forensic_export(*, since=None, before=None,
+                                       provider: str = "", action: str = "",
+                                       limit: int = 2000) -> dict:
+    """v4.00.73 — Build a forensic export packet of the action-history.
+
+    Returns ``{generated_at, filters, rollup_by_action, entries}`` where
+    ``entries`` is the windowed snapshot, ``rollup_by_action`` is the
+    by-action aggregation over the same window. Designed for incident-
+    response forensic walks — when an operator suspects a misuse pattern
+    they pull this, attach to a Linear ticket, and hand to security.
+    """
+    try:
+        entries = get_last_action_snapshot(limit=max(1, min(5000, limit)),
+                                           since=since, before=before, durable=True)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("forensic export snapshot failed: %s", exc)
+        entries = []
+    filtered = []
+    for evt in entries:
+        if provider and str(evt.get("provider") or "").lower() != provider.lower():
+            continue
+        if action and str(evt.get("action") or "").lower() != action.lower():
+            continue
+        filtered.append(evt)
+    rollup: dict[str, dict[str, int]] = {}
+    for evt in filtered:
+        a = str(evt.get("action") or "unknown")
+        bucket = rollup.setdefault(a, {"count": 0, "ok_total": 0,
+                                       "failed_total": 0, "considered_total": 0})
+        bucket["count"] += 1
+        bucket["ok_total"] += int(evt.get("ok") or 0)
+        bucket["failed_total"] += int(evt.get("failed") or 0)
+        bucket["considered_total"] += int(evt.get("considered") or 0)
+    return {
+        "generated_at": timezone.now().isoformat(),
+        "filters": {
+            "since": since.isoformat() if since else "",
+            "before": before.isoformat() if before else "",
+            "provider": provider or "",
+            "action": action or "",
+            "limit": limit,
+        },
+        "rollup_by_action": rollup,
+        "entries": filtered,
+        "entry_count": len(filtered),
+    }
+
+
 def action_history_rollup_by_action(*, limit: int = 200) -> dict[str, dict[str, int]]:
     """v4.00.72 — Roll up the last-action history ring by action name.
 

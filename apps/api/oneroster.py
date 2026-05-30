@@ -302,6 +302,20 @@ def academic_sessions(request):
 
 
 @require_http_methods(["GET"])
+def grading_periods(request):
+    """v4.00.73 — Convenience endpoint for academicSessions where type==gradingPeriod.
+
+    Equivalent to ``GET /academic-sessions/?type=gradingPeriod`` per spec § 4.13.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = [s for s in _iter_academic_sessions() if s.get("type") == "gradingPeriod"]
+    page, meta = _paginate(request, items)
+    return _envelope("gradingPeriods", page, meta)
+
+
+@require_http_methods(["GET"])
 def terms(request):
     """v4.00.72 — Convenience endpoint for academicSessions where type==term.
 

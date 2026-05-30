@@ -115,3 +115,35 @@ def lms_provider_rollup_order() -> tuple[str, ...]:
         PROVIDER_SCHOOLOGY,
         PROVIDER_BRIGHTSPACE_D2L,
     )
+
+
+def lms_provider_rollup_card() -> list[dict]:
+    """v4.00.73 — Render-ready list-of-dicts for the operator dashboard's
+    "providers" card. Consumes ``lms_provider_rollup_order()`` and decorates
+    each provider w/ label + maturity pill ("Production" vs "Scaffold").
+
+    Returns: ``[{slug, label, maturity, oauth_ready, is_scaffold, pill}]``
+    where ``pill`` is the rendered chip text the template displays.
+    """
+    cards: list[dict] = []
+    for slug in lms_provider_rollup_order():
+        oauth_ready = is_oauth_ready_lms_provider(slug)
+        scaffold = is_scaffold_lms_provider(slug)
+        if oauth_ready:
+            maturity = "production"
+            pill = "Production"
+        elif scaffold:
+            maturity = "scaffold"
+            pill = "Scaffold (coming soon)"
+        else:
+            maturity = "unknown"
+            pill = "Unknown"
+        cards.append({
+            "slug": slug,
+            "label": canonical_lms_provider_label(slug),
+            "maturity": maturity,
+            "oauth_ready": oauth_ready,
+            "is_scaffold": scaffold,
+            "pill": pill,
+        })
+    return cards
