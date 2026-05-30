@@ -89,6 +89,26 @@ SCAFFOLD_LMS_PROVIDERS = frozenset({
     PROVIDER_ITSLEARNING,
 })
 
+# v4.00.88: Providers whose full OAuth + push_grade live-outbound paths have
+# completed scaffold → oauth_ready → production progression. The "production"
+# pill on the diagnostics rollup card is a SUPERSET of "oauth_ready" — every
+# entry here MUST also be in OAUTH_READY_LMS_PROVIDERS. Live outbound is still
+# gated by per-provider env flags at the adapter layer; this set governs the
+# operator-facing maturity pill only.
+#
+# Promotion history:
+#   v4.00.69 — initial production set: Canvas, Moodle, Google Classroom (+legacy alias)
+#   v4.00.88 — Schoology promoted from oauth_ready (was oauth_ready at v4.00.83)
+#   v4.00.88 — D2L Brightspace promoted from oauth_ready (was oauth_ready at v4.00.84)
+PRODUCTION_LMS_PROVIDERS = frozenset({
+    PROVIDER_CANVAS,
+    PROVIDER_MOODLE,
+    PROVIDER_GOOGLE_CLASSROOM,
+    PROVIDER_GOOGLE_LEGACY_ALIAS,
+    PROVIDER_SCHOOLOGY,        # v4.00.88 — promoted from oauth_ready (v4.00.83)
+    PROVIDER_BRIGHTSPACE_D2L,  # v4.00.88 — promoted from oauth_ready (v4.00.84)
+})
+
 
 def is_supported_lms_provider(provider: str) -> bool:
     """Return True iff ``provider`` is recognized by the platform.
@@ -107,6 +127,14 @@ def is_scaffold_lms_provider(provider: str) -> bool:
     """Return True iff the provider is a v4.00.69+ scaffold (adapter only,
     no production OAuth flow yet)."""
     return (provider or "").strip().lower() in SCAFFOLD_LMS_PROVIDERS
+
+
+def is_production_lms_provider(provider: str) -> bool:
+    """v4.00.88 — Return True iff the provider's full OAuth + push_grade
+    live-outbound paths have completed scaffold→oauth_ready→production
+    progression. SUPERSET of ``is_oauth_ready_lms_provider``.
+    """
+    return (provider or "").strip().lower() in PRODUCTION_LMS_PROVIDERS
 
 
 def canonical_lms_provider_label(provider: str) -> str:
@@ -146,7 +174,14 @@ def lms_provider_rollup_order() -> tuple[str, ...]:
 def lms_provider_rollup_card() -> list[dict]:
     """v4.00.73 — Render-ready list-of-dicts for the operator dashboard's
     "providers" card. Consumes ``lms_provider_rollup_order()`` and decorates
-    each provider w/ label + maturity pill ("Production" vs "Scaffold").
+    each provider w/ label + maturity pill.
+
+    v4.00.88 — maturity tiering split into 3 levels:
+      * "production"  — in PRODUCTION_LMS_PROVIDERS (full OAuth + push_grade
+                        live-outbound paths complete; pill "Production")
+      * "oauth_ready" — in OAUTH_READY_LMS_PROVIDERS but NOT yet in
+                        PRODUCTION_LMS_PROVIDERS (pill "OAuth Ready")
+      * "scaffold"    — in SCAFFOLD_LMS_PROVIDERS (pill "Scaffold (coming soon)")
 
     Returns: ``[{slug, label, maturity, oauth_ready, is_scaffold, pill}]``
     where ``pill`` is the rendered chip text the template displays.
@@ -155,9 +190,13 @@ def lms_provider_rollup_card() -> list[dict]:
     for slug in lms_provider_rollup_order():
         oauth_ready = is_oauth_ready_lms_provider(slug)
         scaffold = is_scaffold_lms_provider(slug)
-        if oauth_ready:
+        production = is_production_lms_provider(slug)
+        if production:
             maturity = "production"
             pill = "Production"
+        elif oauth_ready:
+            maturity = "oauth_ready"
+            pill = "OAuth Ready"
         elif scaffold:
             maturity = "scaffold"
             pill = "Scaffold (coming soon)"

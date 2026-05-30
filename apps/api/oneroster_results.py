@@ -32,6 +32,15 @@ from django.http import HttpRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from apps.api.oneroster import _envelope, _gate, _paginate
+# v4.00.88 T3 — Result Service Roster-path list endpoints reuse the
+# v4.00.64 fields-mask + v4.00.65 sort helpers (defined in
+# ``oneroster_demographics``) so the surface matches the Roster Service
+# list endpoints on ?fields= + ?sort= + ?orderBy=.
+from apps.api.oneroster_demographics import (
+    _apply_fields_mask as _apply_fields_mask_demog,
+    _apply_sort as _apply_sort_demog,
+    _parse_fields_mask as _parse_fields_mask_demog,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -2896,6 +2905,13 @@ def categories_list_v1p2_roster(request: HttpRequest):
     if title_q:
         items = [it for it in items if title_q in (it.get("title") or "").lower()]
 
+    # v4.00.88 T3 — apply sort BEFORE pagination + field mask so X-Total-Count
+    # reflects the pre-mask count and pagination operates on a sorted list.
+    sort_field = (request.GET.get("sort") or "").strip()
+    order_by = (request.GET.get("orderBy") or "").strip()
+    if sort_field:
+        items = _apply_sort_demog(items, sort_field, order_by)
+
     total = len(items)
 
     try:
@@ -2909,6 +2925,11 @@ def categories_list_v1p2_roster(request: HttpRequest):
     limit = max(1, min(500, limit))
     offset = max(0, offset)
     page = items[offset:offset + limit]
+
+    # v4.00.88 T3 — apply ?fields= mask LAST so X-Total-Count is unaffected.
+    mask = _parse_fields_mask_demog(request.GET.get("fields") or "")
+    if mask is not None:
+        page = [_apply_fields_mask_demog(rec, mask) for rec in page]
 
     resp = JsonResponse({"categories": page})
     resp["X-Total-Count"] = str(total)
@@ -3076,6 +3097,12 @@ def results_list_v1p2_roster(request: HttpRequest):
             if (it.get("lineItem") or {}).get("sourcedId") == lineitem_q
         ]
 
+    # v4.00.88 T3 — apply sort BEFORE pagination + field mask.
+    sort_field = (request.GET.get("sort") or "").strip()
+    order_by = (request.GET.get("orderBy") or "").strip()
+    if sort_field:
+        items = _apply_sort_demog(items, sort_field, order_by)
+
     total = len(items)
 
     try:
@@ -3089,6 +3116,11 @@ def results_list_v1p2_roster(request: HttpRequest):
     limit = max(1, min(500, limit))
     offset = max(0, offset)
     page = items[offset:offset + limit]
+
+    # v4.00.88 T3 — apply ?fields= mask LAST.
+    mask = _parse_fields_mask_demog(request.GET.get("fields") or "")
+    if mask is not None:
+        page = [_apply_fields_mask_demog(rec, mask) for rec in page]
 
     resp = JsonResponse({"results": page})
     resp["X-Total-Count"] = str(total)
@@ -3240,6 +3272,12 @@ def score_scales_list_v1p2_roster(request: HttpRequest):
                                  "allowed": sorted(_ALLOWED_SCORE_SCALE_TYPES)}, status=400)
         items = [it for it in items if (it.get("type") or "").lower() == type_q]
 
+    # v4.00.88 T3 — apply sort BEFORE pagination + field mask.
+    sort_field = (request.GET.get("sort") or "").strip()
+    order_by = (request.GET.get("orderBy") or "").strip()
+    if sort_field:
+        items = _apply_sort_demog(items, sort_field, order_by)
+
     total = len(items)
 
     try:
@@ -3253,6 +3291,11 @@ def score_scales_list_v1p2_roster(request: HttpRequest):
     limit = max(1, min(500, limit))
     offset = max(0, offset)
     page = items[offset:offset + limit]
+
+    # v4.00.88 T3 — apply ?fields= mask LAST.
+    mask = _parse_fields_mask_demog(request.GET.get("fields") or "")
+    if mask is not None:
+        page = [_apply_fields_mask_demog(rec, mask) for rec in page]
 
     resp = JsonResponse({"scoreScales": page})
     resp["X-Total-Count"] = str(total)

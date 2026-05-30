@@ -80,6 +80,9 @@ _DEMOGRAPHIC_OVERRIDE_FIELDS = (
     "previousMiddleName",  # v4.00.81
     "gradeLevels",  # v4.00.82
     "subjectCodes",  # v4.00.82
+    "englishLearnerStatus",  # v4.00.88 T2
+    "economicallyDisadvantagedStatus",  # v4.00.88 T2
+    "familySituation",  # v4.00.88 T2
 )
 
 
@@ -466,6 +469,15 @@ def _parse_demographic_payload(body_bytes: bytes):
     if err is not None:
         return None, err
     err = _validate_subject_codes(inner)
+    if err is not None:
+        return None, err
+    err = _validate_english_learner_status(inner)
+    if err is not None:
+        return None, err
+    err = _validate_economically_disadvantaged_status(inner)
+    if err is not None:
+        return None, err
+    err = _validate_family_situation(inner)
     if err is not None:
         return None, err
     return inner, None
@@ -939,6 +951,62 @@ def _validate_subject_codes(inner: dict[str, Any]):
                  "reason": "control_chars"},
                 status=400,
             )
+    return None
+
+
+# v4.00.88 T2 — Demographics POST/PUT v1.2 spec field set completion.
+#
+# Three additional fields per OneRoster v1.2 Demographics spec:
+#   * englishLearnerStatus           — closed vocab (yes / no / exited)
+#   * economicallyDisadvantagedStatus — closed vocab (yes / no / declined-to-state)
+#   * familySituation                 — free-text (256 char cap, control-char reject)
+#
+# All three accept empty string as explicit clear. Closed-vocab fields follow
+# the same pattern as `_validate_gender_identity` (case-insensitive lookup);
+# free-text follows the same pattern as `_validate_tribal_affiliation`.
+ENGLISH_LEARNER_STATUS_VOCAB = frozenset(("yes", "no", "exited"))
+ECONOMICALLY_DISADVANTAGED_VOCAB = frozenset(("yes", "no", "declined-to-state"))
+_FAMILY_SITUATION_MAX_LEN = 256
+_FAMILY_SITUATION_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_english_learner_status(inner):
+    if "englishLearnerStatus" not in inner:
+        return None
+    raw = str(inner.get("englishLearnerStatus") or "").strip().lower()
+    if not raw:
+        return None
+    if raw not in ENGLISH_LEARNER_STATUS_VOCAB:
+        return JsonResponse({"error": "bad_english_learner_status", "reason": "value_not_in_vocab",
+                             "received": str(inner.get("englishLearnerStatus"))[:16],
+                             "allowed": sorted(ENGLISH_LEARNER_STATUS_VOCAB)}, status=400)
+    return None
+
+
+def _validate_economically_disadvantaged_status(inner):
+    if "economicallyDisadvantagedStatus" not in inner:
+        return None
+    raw = str(inner.get("economicallyDisadvantagedStatus") or "").strip().lower()
+    if not raw:
+        return None
+    if raw not in ECONOMICALLY_DISADVANTAGED_VOCAB:
+        return JsonResponse({"error": "bad_economically_disadvantaged_status", "reason": "value_not_in_vocab",
+                             "received": str(inner.get("economicallyDisadvantagedStatus"))[:32],
+                             "allowed": sorted(ECONOMICALLY_DISADVANTAGED_VOCAB)}, status=400)
+    return None
+
+
+def _validate_family_situation(inner):
+    if "familySituation" not in inner:
+        return None
+    raw = str(inner.get("familySituation") or "")
+    if not raw:
+        return None
+    if len(raw) > _FAMILY_SITUATION_MAX_LEN:
+        return JsonResponse({"error": "bad_family_situation", "reason": "too_long",
+                             "received_length": len(raw), "max_length": _FAMILY_SITUATION_MAX_LEN}, status=400)
+    if _FAMILY_SITUATION_CONTROL_RE.search(raw):
+        return JsonResponse({"error": "bad_family_situation", "reason": "control_chars"}, status=400)
     return None
 
 

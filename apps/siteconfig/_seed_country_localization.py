@@ -16568,6 +16568,62 @@ COUNTRY_LOCALIZATION["SS-EC"] = _v4_00_87("SS-EC","ssec-3-term","3-term (Eastern
 
 
 # ---------------------------------------------------------------------------
+# v4.00.88 (2026-05-30) FINAL of 10-wave sweep — +14 subdivisions:
+#   Pacific micronations (PG-WHM Western Highlands, FM-PNI Pohnpei,
+#   SB-CT Honiara, VU-SHE Shefa/Port Vila, CK-RAR Rarotonga,
+#   TO-15 Tongatapu, MH-MAJ Majuro) + Caribbean (TC Turks&Caicos,
+#   CW Curaçao, AG-08 Saint John Antigua, LC-CA Castries,
+#   VC-04 Kingstown SVG, GD-01 Saint George, DM-02 Saint Andrew).
+# ---------------------------------------------------------------------------
+def _v4_00_88(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# Compact Pacific 3-term shape.
+_pacific_88 = (
+    ("PG-WHM","Western Highlands","Univ of Goroka + Mt Hagen Tech",1,"6-18","PNG SSC"),
+    ("FM-PNI","Pohnpei","College of Micronesia + Pohnpei Campus",9,"6-18","FSM Cert"),
+    ("SB-CT","Honiara","Solomon Islands National Univ",1,"6-18","PSSC"),
+    ("VU-SHE","Shefa / Port Vila","Univ of South Pacific Emalus",2,"6-18","VSSC"),
+    ("CK-RAR","Rarotonga","USP Cook Islands + Cook Univ",2,"5-18","NCEA"),
+    ("TO-15","Tongatapu","'Atenisi Univ + USP Tonga",2,"5-18","TSC"),
+    ("MH-MAJ","Majuro","College of Marshall Islands",9,"6-18","MISST"),
+)
+for _c, _lbl, _uni, _asm, _ages, _exit in _pacific_88:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_88(_c, _slug + "-3-term", f"3-term ({_lbl})", 3, ["Term 1","Term 2","Term 3"], _asm,
+        [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primary","label":"Primary","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"secondary","label":f"Secondary + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+         {"code":"university","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Year 1","order":1},{"code":_slug+"-12","label":f"Year 12 + {_exit}","order":12}],
+        {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Year"})
+del _pacific_88, _c, _lbl, _uni, _asm, _ages, _exit, _slug
+
+# Compact Caribbean 3-term WAEC/CSEC-pattern.
+_caribbean_88 = (
+    ("TC","Turks & Caicos / TCI","Turks & Caicos Community College",9,"CSEC"),
+    ("CW","Curaçao / Willemstad","Univ of Curaçao Dr Moises da Costa Gomez",9,"VSBO/HAVO/VWO"),
+    ("AG-08","Saint John (Antigua)","Univ of West Indies Open Campus",9,"CSEC"),
+    ("LC-CA","Castries (Saint Lucia)","Univ of West Indies Open Campus",9,"CSEC"),
+    ("VC-04","Kingstown (SVG)","Univ of West Indies Open Campus",9,"CSEC"),
+    ("GD-01","Saint George (Grenada)","St George's Univ + Univ of West Indies",9,"CSEC"),
+    ("DM-02","Saint Andrew (Dominica)","Dominica State College + UWI Open",9,"CSEC"),
+)
+for _c, _lbl, _uni, _asm, _exit in _caribbean_88:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_88(_c, _slug + "-3-term", f"3-term ({_lbl})", 3, ["Term 1","Term 2","Term 3"], _asm,
+        [{"code":"preschool","label":"Pre-school","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primary","label":"Primary","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-11"},
+         {"code":"secondary","label":f"Secondary + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"11-18"},
+         {"code":"university","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Class 1","order":1},{"code":_slug+"-13","label":f"Form 5/6 + {_exit}","order":13}],
+        {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Class"})
+del _caribbean_88, _c, _lbl, _uni, _asm, _exit, _slug
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
