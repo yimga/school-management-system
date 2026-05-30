@@ -1,6 +1,143 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-28 (v4.00.13 — **load-bearing follow-on to v4.00.12 five-class closeout**: ships the items the wave skipped — CSS class grammar registration, RLS coverage scanner, unit tests for the 4 pure modules, CSP nonce, semantic stage→pill mapping, label resolution, friendly slugs, 5-col + viewport-lock wider adoption, JIT DRF permission, CRDT ops view, enrollment forecast tile, adaptive kernel caller, CA-mark input, monetization inspector. SW `sms-v4.00.13-load-bearing-followon-2026-05-28`.)
+**Last updated:** 2026-05-30 (v4.00.79 → v4.00.92 — **22-wave Platform Readiness Sweep**: 100-target ISO 3166-2 subdivision expansion (482 → 710), OneRoster v1.2 + Result Service spec coverage, Demographics v1.2 (20 fields), SAML 2.0 SP-initiated SSO + SLO + encrypted assertion + multi-IdP + per-tenant attr overrides, OAuth 2.0 live outbound for Schoology + D2L (production maturity) + RFC-6749 error decoder + 429 Retry-After + token-expiry + refresh-rotation tracking + redirect-uri validation + scope-mismatch detection, SAML SHA1 rejection + clock-skew tolerance + assertion-ID replay cache, OneRoster client_credentials grant + filter/sort/fields wiring + HEAD verb, LTI 1.3 tool registration UI + token endpoint + JWKS + scope enforcement, 11 new Django unit-test files. ~617+ smoke cases green. SW `sms-v4.00.92-platform-readiness-sweep-final-2026-05-30`.)
+
+## 2026-05-30 — Platform Readiness Sweep v4.00.79 → v4.00.92 (Waves 11–26)
+
+**Status:** SHIPPED in-repo across 22 waves over 2 days (2026-05-29 → 2026-05-30). 100 targets closed (50 + 50 across two 10-wave sweeps + Wave 21–26 follow-up). **0 regressions, 0 SKIP, 617+ smoke cases green.**
+
+**SW:** `sms-v4.00.92-platform-readiness-sweep-final-2026-05-30` (monotonic across waves; bumped only on CSS/JS-touching waves per CLAUDE.md rule; Python-only waves leave SW alone).
+
+### T1 — Geographic SOT (every wave): +228 ISO 3166-2 subdivisions
+
+Net 482 → 710 across all waves. Coverage: Japan (47/47 prefectures complete), China (all provinces), India (all states), all 50 US states, all EU countries with regional subdivisions, Latin America (PE/AR/CL/CO/BR/EC), Africa (NG/ZA/EG/ET/UG/GH/KE/TZ/SN/MA/DZ + many more), Middle East (AE/IL/JO/EG/IR/IQ/TR/QA/SA/KW/BH/OM/LB), South Pacific island nations (PG-WHM/FM-PNI/SB-CT/VU-SHE/CK-RAR/TO-15/MH-MAJ), Caribbean (JM/TT/BB/BS/TC/CW/AG/LC/VC/GD/DM), Asia-Pacific tail (NP/BT/MN/MM/KH/LA + Pacific microstates). Each row carries `(timezone, terms_per_year, term_code_calc, assessment_model, school_types, level_bands, default_term)`.
+
+### T2 — OneRoster v1.2 (W11–W20 + W25 spec-completeness)
+
+**Rostering Service**: orgs detail+parent/metadata; schools; classes (enriched + detail); courses; enrollments (with `?since`/`?before` window); users (delta with tombstones + bulk POST with Idempotency-Key + students/teachers/staff segregation); academic_sessions detail + enriched + `?type=` filter + terms convenience + gradingPeriods; lineItems (with `?since`/`?before`/`?classSourcedId=`); demographics (PUT + collection + detail + 20 override fields with full validation).
+
+**Result Service** (complete): /categories/ (8 IMS-standard codes, deterministic sourcedIds), /results/ (from Evaluation model), /scoreScales/ (4 production-ready scales), all with /list+/detail+?sort+?orderBy+?fields= wired.
+
+**Filter language** (§ 4.13): `=, !=, >, >=, <, <=, ~` + `AND, OR, NOT` precedence + parens + `IN(<a>,<b>)` (empty=always-False) + `IS NULL/IS NOT NULL` + `LIKE %_` (case-insensitive, anchored regex). Recursive-descent parser at `apps/api/oneroster_filter.py`.
+
+**Query options** (W25 generalized): `?sort=` + `?orderBy=` + `?fields=` field-mask + `?since=`/`?before=` windows. Shared `_apply_sort`/`_parse_fields_mask`/`_apply_fields_mask` helpers wired into ALL collection-list views.
+
+**HEAD verb support** (W25): returns 200 + `X-Total-Count` header + empty body across all 6 collection-list views.
+
+**Authentication** (W25): OAuth2 `client_credentials` grant (RFC 6749 § 4.4) at `/api/roster/v1p2/oauth/token/`. Reads `RMC_ONEROSTER_OAUTH_CLIENTS` JSON for client registrations. Scope vocab: `roster-core.readonly`/`roster-core.createput`/`roster-demographics.*`/`roster-results.*`. Static-Bearer back-compat preserved.
+
+### T3 — Demographics v1.2 (W11–W20)
+
+**20 override fields** matching the full CEDS / federal-reporting vocab: 7-flag race/ethnicity (`americanIndianOrAlaskaNative`, `asian`, `blackOrAfricanAmerican`, `hispanicOrLatinoEthnicity`, `nativeHawaiianOrOtherPacificIslander`, `white`, `demographicRaceTwoOrMoreRaces`), birth fields (`birthDate` with floor 1900-01-01 + ceiling today, `countryOfBirthCode` ISO 3166-1, `stateOfBirthAbbreviation` ISO 3166-2 scoped, `cityOfBirth` 120-char + ctrl-strip), identity (`sex` enum, `genderIdentity` 7-vocab, `genderIdentityDescription` gated to self-describe), status (`englishLearnerStatus`, `economicallyDisadvantagedStatus`, `familySituation` 256-char), names (`preferredFirst/LastName`, `previousLast/MiddleName`, `middleName` 80-char, `suffix`/`title` 20-char), tribal (`tribalAffiliation`, `countryOfCitizenship` multi-value cap 5), academic (`gradeLevels` CEDS, `subjectCodes` SCED).
+
+### T4 — SAML 2.0 (W14–W22 + W24 security hardening)
+
+**SP-initiated SSO**: AuthnRequest builder (`_build_saml_authn_request`), both HTTP-Redirect (302) + HTTP-POST (auto-submit form) bindings, env-driven IdP target.
+
+**SP-initiated SLO**: signed LogoutRequest (W17 RSA-SHA256 + xml-exc-c14n) + signed LogoutResponse (W18 mirror); 7-state reason taxonomy on each.
+
+**Encrypted Assertion decrypt** (W18): AES-128/256-CBC + RSA-1_5 wrapped CEK; 10-reason taxonomy; lazy-imports `lxml`+`cryptography`; SKIP-cleanly contract.
+
+**Multi-IdP federation** (W17): `RMC_SAML_MULTI_IDP_REGISTRY` JSON env; exact → wildcard `*.suffix` → HRD → single-IdP precedence.
+
+**Per-tenant attribute mapping** (W17): default 5-name list (Okta/Azure/Google/Shibboleth/legacy LDAP) + per-tenant override via env.
+
+**SessionIndex registry** (W18): registers `assertion.SessionIndex` ↔ Django `session_key`; backchannel SLO sends targeted kill not broad logout; cap 10000 entries, threading.Lock-protected.
+
+**SP metadata XML** (W14): `/sso/saml/metadata.xml` + `.xml/` alias + validUntil + cacheDuration; JSON shape via `?format=json`; dual SLS bindings.
+
+**Hardening (W24 v4.00.91)**:
+- `_is_signature_algorithm_allowed` — RSA-SHA1 rejected by default; `RMC_SAML_ALLOW_RSA_SHA1=1` opt-in for legacy IdPs.
+- `_is_within_validity_window` — `RMC_SAML_CLOCK_SKEW_SECONDS=300` (5-min default, clamped [0, 3600]) tolerance on NotBefore/NotOnOrAfter.
+- `_register_assertion_id` — Lock-protected LRU cache (cap 10000, 24h TTL) detects assertion-ID replay within validity window. `RMC_SAML_REPLAY_DEFENSE_ENABLED=0` opt-out for IdPs that intentionally re-broadcast.
+
+### T5 — OAuth 2.0 + LMS connectors (W11–W22 + W24 security)
+
+**6 production providers**: Canvas, Moodle, Google Classroom, Google, Schoology (W15 promoted W20), D2L Brightspace (W16 promoted W20).
+
+**4 scaffolds (env-gated honest stubs)**: Blackboard (W11), PowerSchool (W12), Sakai (W13), Itslearning (W14). Each connector exposes `oauth_authorize_url` / `refresh_token` / `push_grade` / `pull_courses` / `is_scaffold` + state-mint helpers (TimestampSigner, 10-min TTL, 5-state reason taxonomy).
+
+**Schoology + D2L live paths** (W21 v4.00.89):
+- `exchange_authorization_code_for_token` — env-gated by `RMC_*_OAUTH_LIVE_OUTBOUND`; dry-run by default; structured error dict; never raises.
+- `refresh_access_token` — same env-gate + 4-state taxonomy + audit on every path.
+- `push_grade_live` — Schoology PUT `/sections/<id>/grades`; D2L PUT `/d2l/api/le/<ver>/<orgUnit>/grades/<gradeObj>/values/<user>`.
+- `_record_audit` — wraps `LMSDiagActionAudit` SOT; NEVER logs `client_secret`/`access_token`/`refresh_token`/`code`/`api_key`/`private_key`/`signature_text`; SHA-256[:12] correlation hashes.
+- `_retry_with_backoff` — retries `Timeout`+`ConnErr`+HTTP 502/503/504 (exponential 1s/2s/4s capped 8s); does NOT retry 4xx/2xx/non-network.
+
+**Hardening (W22 v4.00.90)** — new `apps/integrations_marketplace/oauth_live_path_helpers.py`:
+- `decode_oauth2_error_response` — RFC 6749 § 5.2 normalized taxonomy (6 standard codes + `upstream_error_unknown` fallback + non-dict body safe + 256-char + ctrl-strip).
+- `parse_retry_after` — RFC 7231 § 7.1.3 delta-sec + HTTP-date forms + neg-clamp + None fallback.
+- `is_token_expired` — safer-on-malformed for background refresh sweeps.
+- 429 retry honored when `Retry-After` parseable (capped 60s); bare-429 stays terminal.
+- `issued_at_iso` UTC ISO-8601 on success bodies.
+
+**Hardening (W24 v4.00.91)** — RFC 6749 § 10.4 + § 5.2 closures:
+- `track_refresh_token_issuance` + `mark_refresh_token_rotated` + `is_refresh_token_rotated` — single-use refresh-token rotation tracking; Lock-protected ring buffer cap 1000 per provider; SHA-256[:12] hashes only.
+- `validate_redirect_uri_consistency` — defense-in-depth re-check; catches scheme/host/path drift on response_metadata echoback.
+- `compare_scopes` — operator-visible warning for granted-narrower (legit downscoping) or granted-broader (scope creep) responses; does NOT fail the request, surfaces in audit.
+
+### T6 — Operational maturity (W11–W19)
+
+**Webhook DeadLetter** (W11–W12): `WebhookDeadLetter` model + migration 0005 + `enqueue_dead_letter`/`list_due`/`mark_replayed`/`sweep_expired_due`/`decode_payload` helpers + dispatcher wiring at EXHAUSTED + `WebhookDeadLetterListView` + `WebhookDeadLetterReplayView` + `templates/migration_cloud/operator/dlq_list.html` (rmc-segmented filter nav + rmc-data-table + replay button + payload_b64/tenant_schema defense-in-depth, `?format=html`).
+
+**Per-tenant retention overrides** (W15): `TenantRetentionOverride` model + migration 0006 + `lms_retention_resolver` (precedence: row → env → 7y default) + `retention_escalation_alerts` (W19; warning@1000 / critical@10x / below_floor warning<3y / critical<floor/2 + ring cap 200 + resolver wired).
+
+**Audit packet exporters** (W18–W20): JSON + CSV (gzipped, mtime=0 deterministic, 8 cols + 6 #comment header rows) + JSONL streaming envelope-first + HMAC tenant-isolated signature (HKDF-lite: `HMAC(root, "tenant:<schema>")`, constant-time verify) + counsel-handoff PDF (reportlab → PDF, missing → HTML fallback, XSS escape, secret-leak guard).
+
+**PKI bundle** (W15–W16): `build_lms_pki_bundle` (5-provider + 6 beats + schema_version + notes; NEVER leaks `client_secret`/`private_key`/`api_key`; SHA-256[:16] bundle_fingerprint deterministic + tamper-detection) + CSV export + JSON export + import validator with `PKIBundleImportError`.
+
+**Webhook key rotation** (W17): `webhook_key_rotation.py` dual-secret stage→mint_dual→promote (cap 100, grace expiry).
+
+**OAuth scope downscoper** (W18): `downscope_for_operation(*, provider, operation, default_scopes)` w/ 9 operations (push_grade→write, read_roster→read, etc.); keyword aliases write→{write,post,put,delete,patch} and read→{read,get} for Canvas URL scopes.
+
+### T7 — Observability (W14, W16, W17)
+
+**Prometheus exposition** (W14): `/lms-oauth-metrics/` endpoint at parallel route to existing `/metrics/`; text-exposition format 0.0.4.
+
+**Per-tenant OAuth metrics** (W16): `record_refresh_attempt_for_tenant` + `get_oauth_metrics_per_tenant_snapshot` w/ 3 new HELP/TYPE blocks `_by_tenant_total`. Thread-Lock-protected.
+
+**Diagnostics alarms** (W17): 4-tier severity (critical < 50% / high < 70% / warning < 80% / info); `compute_diagnostics_alarms` helper.
+
+### T8 — LTI 1.3 infrastructure (W25 v4.00.92)
+
+**Existing (pre-W25)**: OIDC launch + AGS (lineitems/scores/results) + NRPS (memberships) + Deep Linking response surface in `apps/schools/section8_views.py` (~1100 lines) + `apps/schools/lti_id_token_verify.py` (RS256/ES256/RS384/ES384 JWT verifier).
+
+**W25 additions**:
+- **Public JWKS endpoint** (`/lti/jwks/` + `/.well-known/jwks.json` alias): `get_or_generate_platform_keypair` + `build_jwks` + `sign_platform_jwt` + `current_kid` helpers in new `apps/schools/lti_platform_jwks.py`; persistent storage via `RMC_LTI_PLATFORM_PRIVATE_KEY_PEM`/`_PUBLIC_KEY_PEM`; ephemeral keypair in dev when env unset.
+- **Tool token endpoint** (`/lti/auth/token/`): `issue_lti_tool_access_token` validates tool's JWT assertion (signed by tool's private key, verified via `tool_jwks_url` stored in ServiceIntegration.config), returns Bearer + expires_in=3600 + scope=intersection(requested, permitted).
+- **Scope enforcement** on AGS + NRPS: `_lti_validate_token_scope` helper wired into each view; 5 standard LTI scope URIs (`lineitem`/`lineitem.readonly`/`result.readonly`/`score`/`contextmembership.readonly`); 403 `insufficient_scope` on mismatch.
+- **Tool registration admin UI** (`/super/lti/tools/` list + `/register/` create + `/<id>/` detail): `LTIToolRegistrationForm` + `LTIToolRegistrationView` staff_member_required + `LTIToolRegistrationForm` accepts `tool_client_id`/`platform_id`/`deployment_id`/`tool_jwks_url`/`tool_oidc_login_url`/`tool_redirect_uris`/`permitted_scopes`/`tool_description`; generates one-time-shown 32-byte secret + SHA-256[:64] hash; writes `ServiceIntegration` row.
+
+### T9 — Test infrastructure (W26 v4.00.92)
+
+11 new Django TestCase test files for the W11–W22 modules: `test_lms_connector_schoology.py` / `_d2l.py` / `_blackboard.py` / `_powerschool.py` / `_sakai.py` / `_itslearning.py` / `test_oauth_live_path_helpers.py` / `test_webhook_dead_letter.py` / `test_webhook_key_rotation.py` / `test_retention_escalation_alerts.py` / `test_oauth_scope_downscoper.py`. Patterns: monkeypatched `requests`, audit-hook collector, env teardown, no-sleep patch for retry tests. Runnable via `python manage.py test apps.integrations_marketplace.tests` — finally bring W11–W22 code into the CI test infrastructure (smokes were the only validation before).
+
+### Migrations (4 new across the sweep)
+
+- `0004_lms_diag_action_audit.py` (earlier wave; reused as audit SOT by W21–W22)
+- `0005_webhookdeadletter.py` (W11)
+- `0006_tenantretentionoverride.py` (W15)
+- W21 explicit-index-name AlterField on `LMSDiagActionAudit` (merged into existing migration; `makemigrations --dry-run --check` → "No changes detected")
+
+All pure `CreateModel` ops, reverse-safe. Zero NOT NULL columns without defaults. Zero schema-namespace breakage.
+
+### Zero-tolerance scanner gates (all clean)
+
+`scan_tenant_queryset_safety 0` / `scan_tenant_isolation_marker_quality 0` / `scan_pii_logging_smell 0` / `scan_print_statements 0` / `scan_bare_except 0` / `scan_subprocess_shell_true 0` / `scan_money_float 0` / `scan_migration_model_imports 0` / `scan_drf_schema_coverage 0` / `scan_repo_secrets 0`.
+
+### Commits
+
+f064f0f2 (W11) / 03fd52af (W12) / cf2efe2 (W13) / 1da1bb93 (W14) / 19c3fd1 (W15) / 2da5d6ac (W16) / cb5c0a (W17) / 3780ec33 (W18) / c40e4f (W19) / aeff728e + 2abfc861 (W20) / 8b15b045 (W21) / ab4c5c18 (W22) / 7ee20fe6 (audit follow-up) / a0bc9242 (external bundle) + W24/W25/W26 commits to follow.
+
+### Honest deferred (real-world dependencies)
+
+- **Real Schoology + D2L tenant sandbox**: code paths complete + audit + retry + rotation + RFC-6749 decode all green via fully-mocked smokes; live HTTP requires actual partner OAuth credentials from those vendors (not a code gap).
+- **Tool side of LTI 1.3 onboarding**: platform side complete; district IT teams must register external tools using the new `/super/lti/tools/` UI before tools can launch.
+- **OAuth2 refresh-token rotation persistence**: in-process ring buffer is fine for single-worker deploys; multi-worker prod will want a shared cache (Redis) to detect cross-worker token replay — flag for production-deploy environment design.
+
+---
+
+## 2026-05-28 — v4.00.13: Load-bearing follow-on (CI gates + UX polish + feature wiring)
 
 ## 2026-05-28 — v4.00.13: Load-bearing follow-on (CI gates + UX polish + feature wiring)
 

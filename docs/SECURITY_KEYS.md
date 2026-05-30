@@ -884,3 +884,79 @@ the skip-flag matrix, so a future auditor can confirm "yes, the
 operator rotated companion + Fernet on 2026-05-19, and the chain
 was clean on both sides of the rotation."
 
+---
+
+## LMS OAuth live-outbound + SAML 2.0 env gates (Waves 17–22, 2026-05-30)
+
+Wave 11–22 added the OAuth code-exchange + push_grade_live + refresh + audit path
+for Schoology and D2L Brightspace, plus the full SAML 2.0 SP surface (signed
+LogoutRequest/Response, encrypted assertion decrypt, multi-IdP federation,
+per-tenant attribute overrides, SessionIndex registry). All gated behind env so
+the live HTTP path NEVER fires by accident in dev.
+
+### LMS OAuth live-outbound env (W21 v4.00.89 + W22 v4.00.90)
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `RMC_SCHOOLOGY_OAUTH_LIVE_OUTBOUND` | unset (= `0` = dry-run) | When `1`/`true`/`yes`/`on`, `exchange_authorization_code_for_token`, `refresh_access_token`, and `push_grade_live` fire real HTTPS calls to `api.schoology.com`. Set ONLY after tenant has provisioned OAuth client_id + client_secret with Schoology. |
+| `RMC_D2L_OAUTH_LIVE_OUTBOUND` | unset (= `0` = dry-run) | Same as Schoology but for D2L Brightspace (`/d2l/api/le/{version}/...`). |
+
+Behavior when unset: helpers return `{"dry_run": True, "ok": False, "reason": "live_outbound_disabled_env_unset", "target_url": <intended URL>}` so callers can unit-test payload assembly without hitting the network.
+
+**Audit guarantees** (apps/integrations_marketplace/lms_connector_{schoology,d2l}.py):
+
+- NEVER logs `client_secret`, `access_token`, `refresh_token`, or `code` — only SHA-256[:12] correlation hashes
+- Wraps `LMSDiagActionAudit` SOT so audit storage is unified
+- 4-state reason taxonomy: `ok` / `validation_error` / `network_error` / `upstream_error`
+- RFC-6749 § 5.2 error decode (`invalid_grant` / `invalid_client` / etc.) surfaces in `result.oauth_error_code`
+- 429 with `Retry-After` is honored (delta-seconds OR HTTP-date, capped 60s)
+- Exponential backoff 1s/2s/4s (cap 8s) on `requests.Timeout` / `ConnectionError` / 5xx
+- Success bodies carry `issued_at_iso` (UTC ISO-8601) so background refresh sweep can check `is_token_expired()`
+
+### SAML 2.0 SP env (W17 v4.00.85 + W18 v4.00.86 + W21 v4.00.89)
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `RMC_SAML_SP_PRIVATE_KEY_PEM` | unset | SP RSA private key (PEM-encoded; armored or armorless both accepted). Required before any LogoutRequest / LogoutResponse signing or EncryptedAssertion decrypt. |
+| `RMC_SAML_SP_CERT_PEM` | unset | SP X.509 cert (PEM-encoded). Required before LogoutRequest signing. |
+| `RMC_SAML_SP_SIGN_LOGOUT` | unset (= off) | When `1`, sign outbound LogoutRequest AND outbound LogoutResponse with XML-DSig (RSA-SHA256 + xml-exc-c14n). Requires both PEM env vars set. |
+| `RMC_SAML_SP_SIGNATURE_ALG` | `rsa-sha256` | Override signing algorithm. Per W24 (v4.00.91) `rsa-sha1` is rejected by default. |
+| `RMC_SAML_SIGNATURE_STRICT` | `0` | When `1`, fail-closed on missing `lxml`/`signxml` deps. When `0`, log WARNING and continue unsigned. |
+| `RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION` | `0` | When `1`, ACS returns 401 when IdP sends an unencrypted Assertion. |
+| `RMC_SAML_REQUIRE_ASSERTION_SIGNATURE` | `0` | When `1`, ACS returns 401 when neither the Response nor the Assertion carries an XML-DSig Signature (defends vs assertion-swap). |
+| `RMC_SAML_REQUIRE_REDIRECT_SIGNATURE` | `0` | When `1`, /sls/ and /slo/callback/ reject unsigned Redirect-binding requests. |
+| `RMC_SAML_SP_ENTITY_ID` | (auto-derived) | Audience-restriction enforcement target. Should match the SP entityID published in `/sso/saml/metadata.xml`. |
+| `RMC_SAML_IDP_SSO_URL` | unset | IdP SSO endpoint. Required by `login_start` view to mint SP-initiated AuthnRequest. |
+| `RMC_SAML_LOGIN_BUTTON_LABEL` | `Sign in with SSO` | Label shown on the login template's SAML SSO button (when available). |
+| `RMC_SAML_MULTI_IDP_REGISTRY` | unset (= single IdP) | JSON-encoded multi-IdP registry. Shape: `{"@school.edu": {"idp_target": "https://...", "force_authn": false, "binding": "redirect"}, ...}`. Resolution precedence: exact → wildcard `*.suffix` → HRD → single-IdP fallback. |
+| `RMC_SAML_ATTR_FIRST_NAME` | (5 defaults) | Comma-separated list of attribute names checked for first name (Okta / Azure / Google / Shibboleth / legacy LDAP defaults; per-tenant overrides via `RMC_SAML_ATTR_FIRST_NAME_<TENANT_SCHEMA>`). |
+| `RMC_SAML_ATTR_LAST_NAME` | (5 defaults) | Same for last name. |
+| `RMC_SAML_ATTR_EMAIL` | (5 defaults) | Same for email. |
+| `RMC_SAML_HRD_MAPPING` | unset | Home Realm Discovery per-domain mapping. Used as fallback when multi-IdP registry has no match. |
+| `RMC_SAML_METADATA_CACHE_SECONDS` | `86400` (24h) | `cacheDuration` attribute on SP metadata XML. |
+
+**Audit guarantees** (apps/api/saml.py):
+
+- NEVER logs assertion XML, NameID, or attribute statements (only outcome reason)
+- Token-correlation via SessionIndex registry (cap 10000, in-process Lock-protected)
+- Strict-mode 503 `sp_signer_unavailable` when sign deps missing
+- All 7-state / 10-state taxonomies surface in audit (key_unset / cert_unset / bad_xml / signature_error / etc.)
+
+### Operator runbook — rotate a Schoology / D2L OAuth client_secret
+
+1. Provision a new `client_secret` in the vendor's developer console (keep the old one active during overlap).
+2. Set the new secret in your tenant's secret store: `RMC_SCHOOLOGY_OAUTH_CLIENT_SECRET=<new>` (or `RMC_D2L_OAUTH_CLIENT_SECRET=<new>`).
+3. Restart the worker pool (or run `manage.py reload_oauth_credentials --provider=schoology` if available in your deploy).
+4. Verify the next token refresh fires successfully — check `lms_oauth_audit` log lines for `action=oauth_refresh provider=schoology ok=True`.
+5. Revoke the OLD secret in the vendor console.
+
+### Operator runbook — provision a new district for SAML SSO
+
+1. Generate SP keypair (or reuse existing): `openssl req -x509 -nodes -newkey rsa:2048 -keyout sp.key -out sp.crt -days 365 -subj "/CN=manager.runmycampus.com"`
+2. Set env: `RMC_SAML_SP_PRIVATE_KEY_PEM=$(cat sp.key)` + `RMC_SAML_SP_CERT_PEM=$(cat sp.crt)`
+3. Fetch our metadata XML: `curl https://manager.runmycampus.com/sso/saml/metadata.xml` — hand to the district's IT team.
+4. They register us as an SP in their IdP (Okta/Azure/Google) and give us their metadata URL.
+5. Set: `RMC_SAML_IDP_SSO_URL=https://<district-idp>/saml/sso` + add their attribute names to `RMC_SAML_ATTR_*` if non-standard.
+6. Optionally turn on `RMC_SAML_REQUIRE_ASSERTION_SIGNATURE=1` once you've confirmed their IdP signs assertions.
+7. Test the round-trip with `scripts/smoke_v4_00_89_saml.py` (requires `pip install lxml signxml`).
+
