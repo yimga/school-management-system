@@ -27,7 +27,7 @@
     "authority",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Cyprus statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Cyprus statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -43,7 +43,7 @@
   "official_languages": [
     {
       "iso639": "el",
-      "label_native": "Ελληνικά",
+      "label_native": "\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac",
       "label_en": "Modern Greek (1453-)",
       "role": "official",
       "script": "Latn",
@@ -51,7 +51,7 @@
     },
     {
       "iso639": "tr",
-      "label_native": "Türkçe",
+      "label_native": "T\u00fcrk\u00e7e",
       "label_en": "Turkish",
       "role": "official",
       "script": "Latn",
@@ -64,23 +64,23 @@
   ],
   "local_terminology": {
     "teacher": {
-      "el": "Δάσκαλος/α / Καθηγητής/τρια",
+      "el": "\u0394\u03ac\u03c3\u03ba\u03b1\u03bb\u03bf\u03c2/\u03b1 / \u039a\u03b1\u03b8\u03b7\u03b3\u03b7\u03c4\u03ae\u03c2/\u03c4\u03c1\u03b9\u03b1",
       "en": "Teacher"
     },
     "principal": {
-      "el": "Διευθυντής/ντρια",
+      "el": "\u0394\u03b9\u03b5\u03c5\u03b8\u03c5\u03bd\u03c4\u03ae\u03c2/\u03bd\u03c4\u03c1\u03b9\u03b1",
       "en": "Principal"
     },
     "term": {
-      "el": "Τρίμηνο",
+      "el": "\u03a4\u03c1\u03af\u03bc\u03b7\u03bd\u03bf",
       "en": "Term"
     },
     "report_card": {
-      "el": "Έλεγχος / Απολυτήριο",
+      "el": "\u0388\u03bb\u03b5\u03b3\u03c7\u03bf\u03c2 / \u0391\u03c0\u03bf\u03bb\u03c5\u03c4\u03ae\u03c1\u03b9\u03bf",
       "en": "Report card"
     },
     "grade_level": {
-      "el": "Τάξη",
+      "el": "\u03a4\u03ac\u03be\u03b7",
       "en": "Grade level"
     },
     "student": {
@@ -102,23 +102,23 @@
     "school_type_labels": [
       {
         "code": "nipiagogeio",
-        "label": "Νηπιαγωγείο / Kindergarten"
+        "label": "\u039d\u03b7\u03c0\u03b9\u03b1\u03b3\u03c9\u03b3\u03b5\u03af\u03bf / Kindergarten"
       },
       {
         "code": "dimotiko",
-        "label": "Δημοτικό / Primary"
+        "label": "\u0394\u03b7\u03bc\u03bf\u03c4\u03b9\u03ba\u03cc / Primary"
       },
       {
         "code": "gymnasio",
-        "label": "Γυμνάσιο / Lower Secondary"
+        "label": "\u0393\u03c5\u03bc\u03bd\u03ac\u03c3\u03b9\u03bf / Lower Secondary"
       },
       {
         "code": "lykeio",
-        "label": "Λύκειο / Upper Secondary"
+        "label": "\u039b\u03cd\u03ba\u03b5\u03b9\u03bf / Upper Secondary"
       },
       {
         "code": "panepistimio",
-        "label": "Πανεπιστήμιο / University of Cyprus"
+        "label": "\u03a0\u03b1\u03bd\u03b5\u03c0\u03b9\u03c3\u03c4\u03ae\u03bc\u03b9\u03bf / University of Cyprus"
       }
     ]
   },
@@ -127,7 +127,7 @@
   "phone_country_code": "",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "3 Τρίμηνα (Greek Cypriot); Terms: Α' Τρίμηνο, Β' Τρίμηνο, Γ' Τρίμηνο; Year starts month 9",
+  "calendar_notes": "3 \u03a4\u03c1\u03af\u03bc\u03b7\u03bd\u03b1 (Greek Cypriot); Terms: \u0391' \u03a4\u03c1\u03af\u03bc\u03b7\u03bd\u03bf, \u0392' \u03a4\u03c1\u03af\u03bc\u03b7\u03bd\u03bf, \u0393' \u03a4\u03c1\u03af\u03bc\u03b7\u03bd\u03bf; Year starts month 9",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -142,5 +142,102 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Asia/Nicosia"
+  "timezone": "Asia/Nicosia",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "GDPR"
+    ],
+    "age_of_digital_consent": 14,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "EU_AI_Act_2024",
+      "ed_tech_risk_class": "varies_high_risk_when_admissions_or_assessment",
+      "citation": "Regulation (EU) 2024/1689"
+    },
+    "sms_telecom_rule": {
+      "regime": "ePrivacy_Directive_2002_58_EC",
+      "opt_in": "express",
+      "citation": "Directive 2002/58/EC"
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "DSA",
+      "citation": "Regulation (EU) 2022/2065"
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [
+        "EAA_2025"
+      ],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "CY"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

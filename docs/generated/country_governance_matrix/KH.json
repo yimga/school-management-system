@@ -26,7 +26,7 @@
     "school",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Cambodia statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Cambodia statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -41,7 +41,7 @@
   "official_languages": [
     {
       "iso639": "km",
-      "label_native": "ខ្មែរ",
+      "label_native": "\u1781\u17d2\u1798\u17c2\u179a",
       "label_en": "Khmer",
       "role": "official",
       "script": "Latn",
@@ -53,23 +53,23 @@
   ],
   "local_terminology": {
     "teacher": {
-      "km": "Teacher / គ្រូ",
+      "km": "Teacher / \u1782\u17d2\u179a\u17bc",
       "en": "Teacher"
     },
     "principal": {
-      "km": "Principal / នាយកសាលា",
+      "km": "Principal / \u1793\u17b6\u1799\u1780\u179f\u17b6\u179b\u17b6",
       "en": "Principal"
     },
     "term": {
-      "km": "Semester / មានទី",
+      "km": "Semester / \u1798\u17b6\u1793\u1791\u17b8",
       "en": "Term"
     },
     "report_card": {
-      "km": "Report Card / សែនលទ្ធផល",
+      "km": "Report Card / \u179f\u17c2\u1793\u179b\u1791\u17d2\u1792\u1795\u179b",
       "en": "Report card"
     },
     "grade_level": {
-      "km": "Grade / ថ្នាក់",
+      "km": "Grade / \u1790\u17d2\u1793\u17b6\u1780\u17cb",
       "en": "Grade level"
     },
     "student": {
@@ -91,23 +91,23 @@
     "school_type_labels": [
       {
         "code": "preschool",
-        "label": "Preschool / មណ្ឌលមត្តេយ្យ"
+        "label": "Preschool / \u1798\u178e\u17d2\u178c\u179b\u1798\u178f\u17d2\u178f\u17c1\u1799\u17d2\u1799"
       },
       {
         "code": "primary",
-        "label": "Primary / រេៀនបប្ទមសឹក្សា"
+        "label": "Primary / \u179a\u17c1\u17c0\u1793\u1794\u1794\u17d2\u1791\u1798\u179f\u17b9\u1780\u17d2\u179f\u17b6"
       },
       {
         "code": "lower-sec",
-        "label": "Lower Secondary / កំរិតមធ្យមសិក្សាបម្រុង"
+        "label": "Lower Secondary / \u1780\u17c6\u179a\u17b7\u178f\u1798\u1792\u17d2\u1799\u1798\u179f\u17b7\u1780\u17d2\u179f\u17b6\u1794\u1798\u17d2\u179a\u17bb\u1784"
       },
       {
         "code": "upper-sec",
-        "label": "Upper Secondary / កំរិតមធ្យមសិក្សាទុតិយភូមិ"
+        "label": "Upper Secondary / \u1780\u17c6\u179a\u17b7\u178f\u1798\u1792\u17d2\u1799\u1798\u179f\u17b7\u1780\u17d2\u179f\u17b6\u1791\u17bb\u178f\u17b7\u1799\u1797\u17bc\u1798\u17b7"
       },
       {
         "code": "university",
-        "label": "University / សាកលវិទ្យាល័យ"
+        "label": "University / \u179f\u17b6\u1780\u179b\u179c\u17b7\u1791\u17d2\u1799\u17b6\u179b\u17d0\u1799"
       }
     ]
   },
@@ -116,7 +116,7 @@
   "phone_country_code": "+855",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "2 Semesters (Cambodian); Terms: មានទី១ / Semester 1, មានទី២ / Semester 2; Year starts month 11",
+  "calendar_notes": "2 Semesters (Cambodian); Terms: \u1798\u17b6\u1793\u1791\u17b8\u17e1 / Semester 1, \u1798\u17b6\u1793\u1791\u17b8\u17e2 / Semester 2; Year starts month 11",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -131,5 +131,100 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Asia/Phnom_Penh"
+  "timezone": "Asia/Phnom_Penh",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "generic_no_specific_statute_documented"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "KH"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

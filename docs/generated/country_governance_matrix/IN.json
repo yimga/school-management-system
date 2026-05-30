@@ -26,7 +26,7 @@
     "school",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — India statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 India statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -61,7 +61,7 @@
     },
     {
       "iso639": "hi",
-      "label_native": "हिन्दी",
+      "label_native": "\u0939\u093f\u0928\u094d\u0926\u0940",
       "label_en": "Hindi",
       "role": "education_medium",
       "script": "Latn",
@@ -69,7 +69,7 @@
     },
     {
       "iso639": "ta",
-      "label_native": "தமிழ்",
+      "label_native": "\u0ba4\u0bae\u0bbf\u0bb4\u0bcd",
       "label_en": "Tamil",
       "role": "education_medium",
       "script": "Latn",
@@ -77,7 +77,7 @@
     },
     {
       "iso639": "te",
-      "label_native": "తెలుగు",
+      "label_native": "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41",
       "label_en": "Telugu",
       "role": "education_medium",
       "script": "Latn",
@@ -85,7 +85,7 @@
     },
     {
       "iso639": "mr",
-      "label_native": "मराठी",
+      "label_native": "\u092e\u0930\u093e\u0920\u0940",
       "label_en": "Marathi",
       "role": "education_medium",
       "script": "Latn",
@@ -93,7 +93,7 @@
     },
     {
       "iso639": "bn",
-      "label_native": "বাংলা",
+      "label_native": "\u09ac\u09be\u0982\u09b2\u09be",
       "label_en": "Bengali",
       "role": "education_medium",
       "script": "Latn",
@@ -101,7 +101,7 @@
     },
     {
       "iso639": "gu",
-      "label_native": "ગુજરાતી",
+      "label_native": "\u0a97\u0ac1\u0a9c\u0ab0\u0abe\u0aa4\u0ac0",
       "label_en": "Gujarati",
       "role": "education_medium",
       "script": "Latn",
@@ -109,7 +109,7 @@
     },
     {
       "iso639": "ml",
-      "label_native": "മലയാളം",
+      "label_native": "\u0d2e\u0d32\u0d2f\u0d3e\u0d33\u0d02",
       "label_en": "Malayalam",
       "role": "education_medium",
       "script": "Latn",
@@ -117,7 +117,7 @@
     },
     {
       "iso639": "kn",
-      "label_native": "ಕನ್ನಡ",
+      "label_native": "\u0c95\u0ca8\u0ccd\u0ca8\u0ca1",
       "label_en": "Kannada",
       "role": "education_medium",
       "script": "Latn",
@@ -125,7 +125,7 @@
     },
     {
       "iso639": "pa",
-      "label_native": "ਪੰਜਾਬੀ",
+      "label_native": "\u0a2a\u0a70\u0a1c\u0a3e\u0a2c\u0a40",
       "label_en": "Panjabi",
       "role": "education_medium",
       "script": "Latn",
@@ -133,7 +133,7 @@
     },
     {
       "iso639": "or",
-      "label_native": "ଓଡ଼ିଆ",
+      "label_native": "\u0b13\u0b21\u0b3c\u0b3f\u0b06",
       "label_en": "Oriya (macrolanguage)",
       "role": "education_medium",
       "script": "Latn",
@@ -141,7 +141,7 @@
     },
     {
       "iso639": "as",
-      "label_native": "অসমীয়া",
+      "label_native": "\u0985\u09b8\u09ae\u09c0\u09af\u09bc\u09be",
       "label_en": "Assamese",
       "role": "education_medium",
       "script": "Latn",
@@ -149,7 +149,7 @@
     },
     {
       "iso639": "ur",
-      "label_native": "اردو",
+      "label_native": "\u0627\u0631\u062f\u0648",
       "label_en": "Urdu",
       "role": "education_medium",
       "script": "Latn",
@@ -173,79 +173,79 @@
   ],
   "local_terminology": {
     "teacher": {
-      "en": "Teacher / Shikshak / शिक्षक",
-      "hi": "Adhyāpak",
-      "ta": "ஆசிரியர் (Aasiriyar)",
-      "te": "ఉపాధ్యాయుడు (Upādhyāyudu)",
-      "mr": "शिक्षक (Shikshak)",
-      "bn": "শিক্ষক (Shikkhok)",
-      "gu": "શિક્ષક (Shikshak)",
-      "ml": "അദ്ധ്യാപകൻ (Adhyāpakan)",
-      "kn": "ಶಿಕ್ಷಕರು (Shikshakaru)",
-      "pa": "ਅਧਿਆਪਕ (Adhyāpak)",
-      "or": "ଶିକ୍ଷକ (Shikshyaka)",
-      "as": "শিক্ষক (Xikkhok)",
-      "ur": "استاذ / مُعَلّم (Ustād / Muʿallim)"
+      "en": "Teacher / Shikshak / \u0936\u093f\u0915\u094d\u0937\u0915",
+      "hi": "Adhy\u0101pak",
+      "ta": "\u0b86\u0b9a\u0bbf\u0bb0\u0bbf\u0baf\u0bb0\u0bcd (Aasiriyar)",
+      "te": "\u0c09\u0c2a\u0c3e\u0c27\u0c4d\u0c2f\u0c3e\u0c2f\u0c41\u0c21\u0c41 (Up\u0101dhy\u0101yudu)",
+      "mr": "\u0936\u093f\u0915\u094d\u0937\u0915 (Shikshak)",
+      "bn": "\u09b6\u09bf\u0995\u09cd\u09b7\u0995 (Shikkhok)",
+      "gu": "\u0ab6\u0abf\u0a95\u0acd\u0ab7\u0a95 (Shikshak)",
+      "ml": "\u0d05\u0d26\u0d4d\u0d27\u0d4d\u0d2f\u0d3e\u0d2a\u0d15\u0d7b (Adhy\u0101pakan)",
+      "kn": "\u0cb6\u0cbf\u0c95\u0ccd\u0cb7\u0c95\u0cb0\u0cc1 (Shikshakaru)",
+      "pa": "\u0a05\u0a27\u0a3f\u0a06\u0a2a\u0a15 (Adhy\u0101pak)",
+      "or": "\u0b36\u0b3f\u0b15\u0b4d\u0b37\u0b15 (Shikshyaka)",
+      "as": "\u09b6\u09bf\u0995\u09cd\u09b7\u0995 (Xikkhok)",
+      "ur": "\u0627\u0633\u062a\u0627\u0630 / \u0645\u064f\u0639\u064e\u0644\u0651\u0645 (Ust\u0101d / Mu\u02bfallim)"
     },
     "principal": {
-      "en": "Principal / Prachārya",
-      "hi": "Pradhānāchārya",
-      "ta": "தலைமை ஆசிரியர் (Thalaimai Aasiriyar)",
-      "te": "ప్రధానోపాధ్యాయుడు (Pradhānōpādhyāyudu)",
-      "mr": "मुख्याध्यापक (Mukhyadhyapak)",
-      "bn": "প্রধান শিক্ষক (Prodhan Shikkhok)",
-      "gu": "આચાર્ય (Acharya)",
-      "ml": "പ്രധാന അദ്ധ്യാപകൻ (Pradhāna Adhyāpakan)",
-      "kn": "ಮುಖ್ಯೋಪಾಧ್ಯಾಯರು (Mukhyopadhyayaru)",
-      "pa": "ਪ੍ਰਿੰਸੀਪਲ (Princhipal)",
-      "or": "ପ୍ରଧାନ ଶିକ୍ଷକ (Pradhāna Shikshyaka)",
-      "as": "প্ৰধান শিক্ষক (Prodhan Xikkhok)",
-      "ur": "مُدیر (Mudīr)"
+      "en": "Principal / Prach\u0101rya",
+      "hi": "Pradh\u0101n\u0101ch\u0101rya",
+      "ta": "\u0ba4\u0bb2\u0bc8\u0bae\u0bc8 \u0b86\u0b9a\u0bbf\u0bb0\u0bbf\u0baf\u0bb0\u0bcd (Thalaimai Aasiriyar)",
+      "te": "\u0c2a\u0c4d\u0c30\u0c27\u0c3e\u0c28\u0c4b\u0c2a\u0c3e\u0c27\u0c4d\u0c2f\u0c3e\u0c2f\u0c41\u0c21\u0c41 (Pradh\u0101n\u014dp\u0101dhy\u0101yudu)",
+      "mr": "\u092e\u0941\u0916\u094d\u092f\u093e\u0927\u094d\u092f\u093e\u092a\u0915 (Mukhyadhyapak)",
+      "bn": "\u09aa\u09cd\u09b0\u09a7\u09be\u09a8 \u09b6\u09bf\u0995\u09cd\u09b7\u0995 (Prodhan Shikkhok)",
+      "gu": "\u0a86\u0a9a\u0abe\u0ab0\u0acd\u0aaf (Acharya)",
+      "ml": "\u0d2a\u0d4d\u0d30\u0d27\u0d3e\u0d28 \u0d05\u0d26\u0d4d\u0d27\u0d4d\u0d2f\u0d3e\u0d2a\u0d15\u0d7b (Pradh\u0101na Adhy\u0101pakan)",
+      "kn": "\u0cae\u0cc1\u0c96\u0ccd\u0caf\u0ccb\u0caa\u0cbe\u0ca7\u0ccd\u0caf\u0cbe\u0caf\u0cb0\u0cc1 (Mukhyopadhyayaru)",
+      "pa": "\u0a2a\u0a4d\u0a30\u0a3f\u0a70\u0a38\u0a40\u0a2a\u0a32 (Princhipal)",
+      "or": "\u0b2a\u0b4d\u0b30\u0b27\u0b3e\u0b28 \u0b36\u0b3f\u0b15\u0b4d\u0b37\u0b15 (Pradh\u0101na Shikshyaka)",
+      "as": "\u09aa\u09cd\u09f0\u09a7\u09be\u09a8 \u09b6\u09bf\u0995\u09cd\u09b7\u0995 (Prodhan Xikkhok)",
+      "ur": "\u0645\u064f\u062f\u06cc\u0631 (Mud\u012br)"
     },
     "term": {
       "en": "Term",
       "hi": "Satr",
-      "ta": "காலாண்டு (Kaalaandu)",
-      "te": "త్రైమాసికము (Traimāsikamu)",
-      "mr": "सत्र (Satra)",
-      "bn": "সাময়িকী (Samoyiki)",
-      "gu": "સત્ર (Satra)",
-      "ml": "ടേം (Term)",
-      "kn": "ಸತ್ರ (Satra)",
-      "pa": "ਟਰਮ (Term)",
-      "or": "ସତ୍ର (Satra)",
-      "as": "সত্ৰ (Sotro)",
-      "ur": "ماہی (Māhī)"
+      "ta": "\u0b95\u0bbe\u0bb2\u0bbe\u0ba3\u0bcd\u0b9f\u0bc1 (Kaalaandu)",
+      "te": "\u0c24\u0c4d\u0c30\u0c48\u0c2e\u0c3e\u0c38\u0c3f\u0c15\u0c2e\u0c41 (Traim\u0101sikamu)",
+      "mr": "\u0938\u0924\u094d\u0930 (Satra)",
+      "bn": "\u09b8\u09be\u09ae\u09af\u09bc\u09bf\u0995\u09c0 (Samoyiki)",
+      "gu": "\u0ab8\u0aa4\u0acd\u0ab0 (Satra)",
+      "ml": "\u0d1f\u0d47\u0d02 (Term)",
+      "kn": "\u0cb8\u0ca4\u0ccd\u0cb0 (Satra)",
+      "pa": "\u0a1f\u0a30\u0a2e (Term)",
+      "or": "\u0b38\u0b24\u0b4d\u0b30 (Satra)",
+      "as": "\u09b8\u09a4\u09cd\u09f0 (Sotro)",
+      "ur": "\u0645\u0627\u06c1\u06cc (M\u0101h\u012b)"
     },
     "report_card": {
       "en": "Report Card",
       "hi": "Prativedan",
-      "ta": "முன்னேற்ற அறிக்கை (Munnetra Arikai)",
-      "te": "నివేదిక (Nivēdika)",
-      "mr": "प्रगती पुस्तक (Pragati Pustak)",
-      "bn": "প্রতিবেদন (Protibedon)",
-      "gu": "પ્રગતિ પત્રક (Pragati Patrak)",
-      "ml": "പുരോഗതി റിപ്പോർട്ട് (Purōgati Rippōrṭṭ)",
-      "kn": "ಪ್ರಗತಿ ವರದಿ (Pragati Varadi)",
-      "pa": "ਪ੍ਰਗਤੀ ਰਿਪੋਰਟ (Pragati Riporṭ)",
-      "or": "ପ୍ରଗତି ପତ୍ର (Pragati Patra)",
-      "as": "প্ৰগতি পত্ৰ (Progoti Potro)",
-      "ur": "رپورٹ کارڈ (Riporṭ Kārḍ)"
+      "ta": "\u0bae\u0bc1\u0ba9\u0bcd\u0ba9\u0bc7\u0bb1\u0bcd\u0bb1 \u0b85\u0bb1\u0bbf\u0b95\u0bcd\u0b95\u0bc8 (Munnetra Arikai)",
+      "te": "\u0c28\u0c3f\u0c35\u0c47\u0c26\u0c3f\u0c15 (Niv\u0113dika)",
+      "mr": "\u092a\u094d\u0930\u0917\u0924\u0940 \u092a\u0941\u0938\u094d\u0924\u0915 (Pragati Pustak)",
+      "bn": "\u09aa\u09cd\u09b0\u09a4\u09bf\u09ac\u09c7\u09a6\u09a8 (Protibedon)",
+      "gu": "\u0aaa\u0acd\u0ab0\u0a97\u0aa4\u0abf \u0aaa\u0aa4\u0acd\u0ab0\u0a95 (Pragati Patrak)",
+      "ml": "\u0d2a\u0d41\u0d30\u0d4b\u0d17\u0d24\u0d3f \u0d31\u0d3f\u0d2a\u0d4d\u0d2a\u0d4b\u0d7c\u0d1f\u0d4d\u0d1f\u0d4d (Pur\u014dgati Ripp\u014dr\u1e6d\u1e6d)",
+      "kn": "\u0caa\u0ccd\u0cb0\u0c97\u0ca4\u0cbf \u0cb5\u0cb0\u0ca6\u0cbf (Pragati Varadi)",
+      "pa": "\u0a2a\u0a4d\u0a30\u0a17\u0a24\u0a40 \u0a30\u0a3f\u0a2a\u0a4b\u0a30\u0a1f (Pragati Ripor\u1e6d)",
+      "or": "\u0b2a\u0b4d\u0b30\u0b17\u0b24\u0b3f \u0b2a\u0b24\u0b4d\u0b30 (Pragati Patra)",
+      "as": "\u09aa\u09cd\u09f0\u0997\u09a4\u09bf \u09aa\u09a4\u09cd\u09f0 (Progoti Potro)",
+      "ur": "\u0631\u067e\u0648\u0631\u0679 \u06a9\u0627\u0631\u0688 (Ripor\u1e6d K\u0101r\u1e0d)"
     },
     "grade_level": {
       "en": "Class",
-      "hi": "Kakṣā",
-      "ta": "வகுப்பு (Vagupu)",
-      "te": "తరగతి (Taragati)",
-      "mr": "इयत्ता (Iyatta)",
-      "bn": "শ্রেণী (Shreni)",
-      "gu": "ધોરણ (Dhoran)",
-      "ml": "ക്ലാസ് (Class)",
-      "kn": "ತರಗತಿ (Taragati)",
-      "pa": "ਜਮਾਤ (Jamāt)",
-      "or": "ଶ୍ରେଣୀ (Shreni)",
-      "as": "শ্ৰেণী (Xreni)",
-      "ur": "جماعت (Jamāʿat)"
+      "hi": "Kak\u1e63\u0101",
+      "ta": "\u0bb5\u0b95\u0bc1\u0baa\u0bcd\u0baa\u0bc1 (Vagupu)",
+      "te": "\u0c24\u0c30\u0c17\u0c24\u0c3f (Taragati)",
+      "mr": "\u0907\u092f\u0924\u094d\u0924\u093e (Iyatta)",
+      "bn": "\u09b6\u09cd\u09b0\u09c7\u09a3\u09c0 (Shreni)",
+      "gu": "\u0aa7\u0acb\u0ab0\u0aa3 (Dhoran)",
+      "ml": "\u0d15\u0d4d\u0d32\u0d3e\u0d38\u0d4d (Class)",
+      "kn": "\u0ca4\u0cb0\u0c97\u0ca4\u0cbf (Taragati)",
+      "pa": "\u0a1c\u0a2e\u0a3e\u0a24 (Jam\u0101t)",
+      "or": "\u0b36\u0b4d\u0b30\u0b47\u0b23\u0b40 (Shreni)",
+      "as": "\u09b6\u09cd\u09f0\u09c7\u09a3\u09c0 (Xreni)",
+      "ur": "\u062c\u0645\u0627\u0639\u062a (Jam\u0101\u02bfat)"
     },
     "student": {
       "en": "Student"
@@ -334,5 +334,100 @@
     "integrations"
   ],
   "currency": "INR",
-  "timezone": "Asia/Kolkata"
+  "timezone": "Asia/Kolkata",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "DPDP_Act_2023"
+    ],
+    "age_of_digital_consent": 18,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "TRAI_TCCCPR_DLT_Headers_Required",
+      "opt_in": "implied_with_DLT_registration",
+      "citation": "TRAI TCCCPR 2018"
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 60,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "IT_Rules_2021",
+      "citation": "Information Technology Rules 2021"
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "IN"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

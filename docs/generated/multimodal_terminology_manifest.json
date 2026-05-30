@@ -1,0 +1,21 @@
+{
+  "entries": [
+    {
+      "term_key": "principal",
+      "iso_alpha2": "DE",
+      "label_native": "Schulleiter",
+      "transliteration": "Schulleiter",
+      "audio_url": "/x",
+      "sign_language_video_url": "/y"
+    },
+    {
+      "term_key": "teacher",
+      "iso_alpha2": "FR",
+      "label_native": "enseignant",
+      "transliteration": "enseignant",
+      "audio_url": "/static/terminology/audio/fr/teacher.mp3",
+      "sign_language_video_url": "/static/terminology/sign/lsf/teacher.mp4"
+    }
+  ],
+  "schema_version": "0.1.0"
+}

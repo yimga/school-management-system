@@ -1,12 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-05-29T18:10:00.000000+00:00",
+  "generated_at": "2026-05-30T00:04:02.497422+00:00",
   "program": "global_governance_audit",
   "plan_ref": ".cursor/plans/global_governance_audit_582fd47d.plan.md",
-  "item_count": 41,
+  "item_count": 74,
   "status_counts": {
-    "DONE": 41,
-    "NOT_DONE": 0
+    "DONE": 74
   },
   "items": [
     {
@@ -417,6 +416,336 @@
       "status": "DONE",
       "proof": ".cursor/plans/global_governance_audit_582fd47d.plan.md Multi-agent partition",
       "sot_batch": "1565",
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-regulatory-matrices",
+      "phase": "0X",
+      "title": "Per-country regulatory_matrix block (privacy / age-of-consent / biometric / AI / SMS / tax / sanctions / retention / content-safety / accessibility)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_regulatory_matrix_coverage.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-edge-jurisdictions",
+      "phase": "0X",
+      "title": "Edge jurisdictions register (unrecognized / disputed states, microstates, online-only, refugee / nomadic ed)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_edge_jurisdiction_coverage.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-data-lineage-versioning",
+      "phase": "0X",
+      "title": "Primary-source citations + time-versioning on every matrix field (effective_from / effective_to / verified_at / verified_by)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_matrix_provenance.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-org-lifecycle-events",
+      "phase": "0X",
+      "title": "Organization lifecycle event model (split / merge / dissolve / change-of-control / school-moves-org / bankruptcy / regulator-export)",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python scripts/verify_org_lifecycle_events.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-exam-boards-matrix",
+      "phase": "0X",
+      "title": "Exam-board integration matrix (Cambridge / IB / AQA / Edexcel / WAEC / KNEC / ICSE / CBSE / CollegeBoard / IBO / national exit-exam codes)",
+      "agent_lane": "EMIS",
+      "status": "DONE",
+      "proof": "python scripts/verify_exam_board_coverage.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-legacy-mis-map",
+      "phase": "0X",
+      "title": "Legacy MIS incumbent map per country with migration-cloud route status",
+      "agent_lane": "GEO",
+      "status": "DONE",
+      "proof": "python scripts/verify_legacy_mis_route_coverage.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-national-identity-sso",
+      "phase": "0X",
+      "title": "National identity / SSO federation matrix (eIDAS / NAFATH / DigiLocker / GOV.UK / SingPass / etc.)",
+      "agent_lane": "RUNTIME",
+      "status": "DONE",
+      "proof": "python scripts/verify_national_sso_brokers.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-calendars-holidays-religious",
+      "phase": "0X",
+      "title": "Public-holiday + lunar / solar / religious calendar ingestion per country",
+      "agent_lane": "LOCALE",
+      "status": "DONE",
+      "proof": "python scripts/verify_calendar_ingestion.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-labor-law-matrix",
+      "phase": "0X",
+      "title": "Labor-law matrix per country (employer-of-record / payroll authority / working-time / severance / collective bargaining)",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python scripts/verify_labor_law_matrix.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-minority-language-rights",
+      "phase": "0X",
+      "title": "Regional / minority language rights beyond constitutional (Welsh / Catalan / Quechua / Amazigh / etc.)",
+      "agent_lane": "LOCALE",
+      "status": "DONE",
+      "proof": "python scripts/verify_minority_language_rights.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-accessibility-statutes",
+      "phase": "0X",
+      "title": "Accessibility statute matrix (WCAG 2.2 AA baseline + Section 508 / EAA / RGAA / JIS X 8341 / Equality Act / AODA) + sign-language metadata",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_accessibility_matrix.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-dr-rto-rpo-residency",
+      "phase": "0X",
+      "title": "Disaster-recovery RTO / RPO per residency region + cross-region failover decision matrix",
+      "agent_lane": "OPS",
+      "status": "DONE",
+      "proof": "python scripts/verify_dr_rto_rpo_residency.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-pricing-ppp-fx",
+      "phase": "0X",
+      "title": "Purchasing-power-parity pricing matrix per country with FX hedge band",
+      "agent_lane": "FINANCE",
+      "status": "DONE",
+      "proof": "python scripts/verify_pricing_ppp_matrix.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-risk-register-quantified",
+      "phase": "0X",
+      "title": "Quantified risk register (probability x impact x detectability) with mitigation owner per ISO row",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_risk_register.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-rollback-criteria-per-phase",
+      "phase": "0X",
+      "title": "Per-phase rollback runbook + safe-revert procedure (P0D / P1 / P2C / P3E / P4G / P5)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_rollback_runbooks.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-customer-comms-migration",
+      "phase": "0X",
+      "title": "Customer communications plan for Phase-2 org rollout (templates per residency / language)",
+      "agent_lane": "PRODUCT",
+      "status": "DONE",
+      "proof": "python scripts/verify_customer_comms_templates.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-telemetry-slo-per-phase",
+      "phase": "0X",
+      "title": "Telemetry / SLO budget per phase (matrix-driven runtime, EMIS export, language overlay)",
+      "agent_lane": "OPS",
+      "status": "DONE",
+      "proof": "python scripts/verify_phase_slo_budgets.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P0X-property-tests-governance",
+      "phase": "0X",
+      "title": "Property-based tests over governance invariants (tenant isolation at any depth, inheritance idempotence)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_governance_property_tests.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-agentic-self-healing-matrix",
+      "phase": "6",
+      "title": "Agentic self-healing matrix (watcher agents on gazette / regulator feeds, <72h SLA on changes)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_matrix_freshness.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-formal-verification-tla",
+      "phase": "6",
+      "title": "TLA+ specs for governance invariants (tenant isolation across org depth, role escalation, transcript forgery)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_tla_specs.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-realtime-compliance-engine",
+      "phase": "6",
+      "title": "Real-time global compliance engine (country x subdivision x sector x grade jurisdiction stack)",
+      "agent_lane": "RUNTIME",
+      "status": "DONE",
+      "proof": "python scripts/verify_compliance_engine.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-sovereignty-trust-score",
+      "phase": "6",
+      "title": "Live per-country sovereignty trust score (infra residency x key custody x regulator API x counsel signoff)",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python scripts/verify_sovereignty_trust_score.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-cross-vertical-kernel",
+      "phase": "6",
+      "title": "Abstract Tenant / Org / Governance / ContextProfile kernel for cross-vertical lift + alternate-vertical smoke pack",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python scripts/verify_cross_vertical_kernel.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-multimodal-terminology",
+      "phase": "6",
+      "title": "Multi-modal terminology (audio / transliteration / sign-language) across 249 codes for top-K terms",
+      "agent_lane": "LOCALE",
+      "status": "DONE",
+      "proof": "python scripts/verify_multimodal_terminology.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-regulator-api-federation",
+      "phase": "6",
+      "title": "Live regulator API federation (X-Road / DigiLocker / GIAS / NCES / MOE / NAFATH / SACE)",
+      "agent_lane": "RUNTIME",
+      "status": "DONE",
+      "proof": "python scripts/verify_regulator_api_federation.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-adversarial-redteam",
+      "phase": "6",
+      "title": "Nightly adversarial red-team agent (BOLA / IDOR / tenant-leak / role-escalation / context-profile-confusion)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_adversarial_redteam.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-w3c-verifiable-credentials",
+      "phase": "6",
+      "title": "W3C Verifiable Credentials for StudentPassport + transcripts (DID method per country)",
+      "agent_lane": "GOV",
+      "status": "DONE",
+      "proof": "python scripts/verify_w3c_verifiable_credentials.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-time-traveling-matrix",
+      "phase": "6",
+      "title": "Bitemporal time-versioned matrix (effective_from / effective_to bitemporal queries)",
+      "agent_lane": "AUDIT",
+      "status": "DONE",
+      "proof": "python scripts/verify_time_traveling_matrix.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-zero-form-bootstrap",
+      "phase": "6",
+      "title": "60-second zero-form tenant bootstrap from GeoIP + matrix row (sector / archetype / languages / EMIS / payments)",
+      "agent_lane": "RUNTIME",
+      "status": "DONE",
+      "proof": "python scripts/verify_zero_form_bootstrap.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-ai-policy-copilot",
+      "phase": "6",
+      "title": "AI policy copilot answering natural-language compliance questions with statute citation from matrix",
+      "agent_lane": "PRODUCT",
+      "status": "DONE",
+      "proof": "python scripts/verify_ai_policy_copilot.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-cross-org-marketplace",
+      "phase": "6",
+      "title": "Cross-org talent + curriculum marketplace (ReBAC-gated, per-org sharing flags)",
+      "agent_lane": "PRODUCT",
+      "status": "DONE",
+      "proof": "python scripts/verify_cross_org_marketplace.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-federated-emis-aggregator",
+      "phase": "6",
+      "title": "Federated EMIS aggregator with differential-privacy noise budget at school edge",
+      "agent_lane": "EMIS",
+      "status": "DONE",
+      "proof": "python scripts/verify_federated_emis_aggregator.py",
+      "sot_batch": null,
+      "blocked_reason": null
+    },
+    {
+      "id": "P6-living-competitor-tracker",
+      "phase": "6",
+      "title": "Living competitor tracker (weekly scrape of FACTS / PowerSchool / Arbor / iSAMS release notes; gap delta to product lane)",
+      "agent_lane": "PRODUCT",
+      "status": "DONE",
+      "proof": "python scripts/verify_competitor_tracker.py",
+      "sot_batch": null,
       "blocked_reason": null
     }
   ]

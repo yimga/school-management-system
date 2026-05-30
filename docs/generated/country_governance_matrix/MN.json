@@ -26,7 +26,7 @@
     "school",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Mongolia statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Mongolia statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -41,7 +41,7 @@
   "official_languages": [
     {
       "iso639": "mn",
-      "label_native": "Монгол",
+      "label_native": "\u041c\u043e\u043d\u0433\u043e\u043b",
       "label_en": "Mongolian",
       "role": "official",
       "script": "Latn",
@@ -53,23 +53,23 @@
   ],
   "local_terminology": {
     "teacher": {
-      "mn": "Teacher / Багш",
+      "mn": "Teacher / \u0411\u0430\u0433\u0448",
       "en": "Teacher"
     },
     "principal": {
-      "mn": "Principal / Захирал",
+      "mn": "Principal / \u0417\u0430\u0445\u0438\u0440\u0430\u043b",
       "en": "Principal"
     },
     "term": {
-      "mn": "Semester / Хичээлийн жил",
+      "mn": "Semester / \u0425\u0438\u0447\u044d\u044d\u043b\u0438\u0439\u043d \u0436\u0438\u043b",
       "en": "Term"
     },
     "report_card": {
-      "mn": "Report Card / Дүнгийн хуудас",
+      "mn": "Report Card / \u0414\u04af\u043d\u0433\u0438\u0439\u043d \u0445\u0443\u0443\u0434\u0430\u0441",
       "en": "Report card"
     },
     "grade_level": {
-      "mn": "Grade / Анги",
+      "mn": "Grade / \u0410\u043d\u0433\u0438",
       "en": "Grade level"
     },
     "student": {
@@ -91,23 +91,23 @@
     "school_type_labels": [
       {
         "code": "kindergarten",
-        "label": "Kindergarten / Цэцэрлэг"
+        "label": "Kindergarten / \u0426\u044d\u0446\u044d\u0440\u043b\u044d\u0433"
       },
       {
         "code": "primary",
-        "label": "Primary / Бага сургууль"
+        "label": "Primary / \u0411\u0430\u0433\u0430 \u0441\u0443\u0440\u0433\u0443\u0443\u043b\u044c"
       },
       {
         "code": "lower-sec",
-        "label": "Lower Secondary / Дунд сургууль"
+        "label": "Lower Secondary / \u0414\u0443\u043d\u0434 \u0441\u0443\u0440\u0433\u0443\u0443\u043b\u044c"
       },
       {
         "code": "upper-sec",
-        "label": "Upper Secondary / Бүрэн дунд сургууль"
+        "label": "Upper Secondary / \u0411\u04af\u0440\u044d\u043d \u0434\u0443\u043d\u0434 \u0441\u0443\u0440\u0433\u0443\u0443\u043b\u044c"
       },
       {
         "code": "university",
-        "label": "University / Их сургууль"
+        "label": "University / \u0418\u0445 \u0441\u0443\u0440\u0433\u0443\u0443\u043b\u044c"
       }
     ]
   },
@@ -116,7 +116,7 @@
   "phone_country_code": "+976",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "2 Semesters (Mongolian); Terms: Нэгдүгээр хичээлийн жил, Хоёрдугаар хичээлийн жил; Year starts month 9",
+  "calendar_notes": "2 Semesters (Mongolian); Terms: \u041d\u044d\u0433\u0434\u04af\u0433\u044d\u044d\u0440 \u0445\u0438\u0447\u044d\u044d\u043b\u0438\u0439\u043d \u0436\u0438\u043b, \u0425\u043e\u0451\u0440\u0434\u0443\u0433\u0430\u0430\u0440 \u0445\u0438\u0447\u044d\u044d\u043b\u0438\u0439\u043d \u0436\u0438\u043b; Year starts month 9",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -131,5 +131,100 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Asia/Ulaanbaatar"
+  "timezone": "Asia/Ulaanbaatar",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "generic_no_specific_statute_documented"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "MN"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

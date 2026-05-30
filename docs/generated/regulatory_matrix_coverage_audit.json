@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-05-29T23:39:48.503357+00:00",
+  "verdict": "REGULATORY_MATRIX_COVERAGE_PASS",
+  "shard_total": 249,
+  "finding_count": 0,
+  "coverage_per_key": {
+    "student_privacy_regimes": 249,
+    "age_of_digital_consent": 249,
+    "biometric_data_rule": 249,
+    "ai_regulation": 249,
+    "sms_telecom_rule": 249,
+    "tax_reporting_obligations": 249,
+    "sanctions_status": 249,
+    "records_retention_years": 249,
+    "content_safety_regime": 249,
+    "accessibility_statute": 249
+  },
+  "failures": []
+}

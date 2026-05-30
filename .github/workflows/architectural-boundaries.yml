@@ -347,6 +347,26 @@ jobs:
         run: |
           python scripts/scan_locale_coverage.py --compare
 
+  world-engine-i18n-ci:
+    name: "World Engine: i18n catalog freshness + compile"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Install GNU gettext (compilemessages secondary check)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq gettext
+      - name: Run World Engine i18n CI verifier
+        # World Engine §11: committed django.po must match scan; polib compile path green.
+        run: python scripts/verify_world_engine_i18n_ci.py
+
   service-worker-version:
     name: "PWA: service-worker CACHE_VERSION shape + monotonicity"
     runs-on: ubuntu-latest
@@ -462,6 +482,40 @@ jobs:
           python scripts/verify_school_operating_modes.py
           python scripts/verify_global_operational_blind_spots.py --granular-ops
           python scripts/verify_governance_doc_truth.py
+          python scripts/verify_regulatory_matrix_coverage.py --json
+          python scripts/verify_edge_jurisdiction_coverage.py --json
+          python scripts/verify_matrix_provenance.py --json
+          python scripts/verify_org_lifecycle_events.py --json
+          python scripts/verify_exam_board_coverage.py --json
+          python scripts/verify_legacy_mis_route_coverage.py --json
+          python scripts/verify_national_sso_brokers.py --json
+          python scripts/verify_calendar_ingestion.py --json
+          python scripts/verify_labor_law_matrix.py --json
+          python scripts/verify_minority_language_rights.py --json
+          python scripts/verify_accessibility_matrix.py --json
+          python scripts/verify_dr_rto_rpo_residency.py --json
+          python scripts/verify_pricing_ppp_matrix.py --json
+          python scripts/verify_risk_register.py --json
+          python scripts/verify_rollback_runbooks.py --json
+          python scripts/verify_customer_comms_templates.py --json
+          python scripts/verify_phase_slo_budgets.py --json
+          python scripts/verify_governance_property_tests.py --json
+          python scripts/verify_matrix_freshness.py --json
+          python scripts/verify_tla_specs.py --json
+          python scripts/verify_compliance_engine.py --json
+          python scripts/verify_sovereignty_trust_score.py --json
+          python scripts/verify_cross_vertical_kernel.py --json
+          python scripts/verify_multimodal_terminology.py --json
+          python scripts/verify_regulator_api_federation.py --json
+          python scripts/verify_adversarial_redteam.py --json
+          python scripts/verify_w3c_verifiable_credentials.py --json
+          python scripts/verify_time_traveling_matrix.py --json
+          python scripts/verify_zero_form_bootstrap.py --json
+          python scripts/verify_ai_policy_copilot.py --json
+          python scripts/verify_cross_org_marketplace.py --json
+          python scripts/verify_federated_emis_aggregator.py --json
+          python scripts/verify_competitor_tracker.py --json
+          python -m unittest discover -s apps/governance/turbo/tests -t .
           python scripts/verify_global_governance_plan_completion.py --strict --json
           python scripts/verify_doc_plan_density_discipline.py
           python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_group_console apps.interop.tests.test_transfer_apply apps.billing.tests.test_group_consolidation emis.tests.test_org_aggregate apps.people.tests.test_staff_compliance apps.schools.tests.test_governance_matrix_runtime apps.governance.tests.test_prompt_shaping_terminology apps.finance.tests.test_org_fx_rollup apps.schools.tests.test_context_profiles.ContextProfileServiceTests apps.registries.tests.test_seed_iso3166_subdivisions apps.governance.tests.test_models apps.siteconfig.tests.test_country_language_overlay_regression

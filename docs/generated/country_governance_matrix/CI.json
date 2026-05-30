@@ -1,7 +1,7 @@
 {
   "iso_alpha2": "CI",
   "iso_alpha3": "CIV",
-  "name_en": "Côte d'Ivoire",
+  "name_en": "C\u00f4te d'Ivoire",
   "sovereign_state": true,
   "territory": false,
   "continent": "Africa",
@@ -14,7 +14,7 @@
       "level": 1,
       "label_en": "National ministry",
       "label_local": {
-        "fr": "Ministère de l'Éducation Nationale et de l'Alphabétisation"
+        "fr": "Minist\u00e8re de l'\u00c9ducation Nationale et de l'Alphab\u00e9tisation"
       }
     },
     {
@@ -26,16 +26,16 @@
     },
     {
       "level": 3,
-      "label_en": "Département",
+      "label_en": "D\u00e9partement",
       "label_local": {
-        "fr": "Département"
+        "fr": "D\u00e9partement"
       }
     },
     {
       "level": 4,
       "label_en": "School",
       "label_local": {
-        "fr": "Établissement scolaire"
+        "fr": "\u00c9tablissement scolaire"
       }
     }
   ],
@@ -53,7 +53,7 @@
     "region",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Côte d'Ivoire statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 C\u00f4te d'Ivoire statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -68,7 +68,7 @@
   "official_languages": [
     {
       "iso639": "fr",
-      "label_native": "Français",
+      "label_native": "Fran\u00e7ais",
       "label_en": "French",
       "role": "official",
       "script": "Latn",
@@ -113,7 +113,7 @@
         "level": 1,
         "label_en": "National ministry",
         "label_local": {
-          "fr": "Ministère de l'Éducation Nationale et de l'Alphabétisation"
+          "fr": "Minist\u00e8re de l'\u00c9ducation Nationale et de l'Alphab\u00e9tisation"
         }
       },
       {
@@ -125,35 +125,35 @@
       },
       {
         "level": 3,
-        "label_en": "Département",
+        "label_en": "D\u00e9partement",
         "label_local": {
-          "fr": "Département"
+          "fr": "D\u00e9partement"
         }
       },
       {
         "level": 4,
         "label_en": "School",
         "label_local": {
-          "fr": "Établissement scolaire"
+          "fr": "\u00c9tablissement scolaire"
         }
       }
     ],
     "school_type_labels": [
       {
         "code": "maternelle",
-        "label": "École Maternelle"
+        "label": "\u00c9cole Maternelle"
       },
       {
         "code": "primaire",
-        "label": "École Primaire (CP1-CM2)"
+        "label": "\u00c9cole Primaire (CP1-CM2)"
       },
       {
         "code": "college",
-        "label": "Collège (6e-3e / BEPC)"
+        "label": "Coll\u00e8ge (6e-3e / BEPC)"
       },
       {
         "code": "lycee",
-        "label": "Lycée (2nde-Tle / Bac)"
+        "label": "Lyc\u00e9e (2nde-Tle / Bac)"
       },
       {
         "code": "technique",
@@ -161,11 +161,11 @@
       },
       {
         "code": "international",
-        "label": "École Internationale"
+        "label": "\u00c9cole Internationale"
       },
       {
         "code": "universite",
-        "label": "Université"
+        "label": "Universit\u00e9"
       }
     ]
   },
@@ -174,7 +174,7 @@
   "phone_country_code": "",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "3 Trimestres (Ivoirien); Terms: 1er Trimestre, 2ème Trimestre, 3ème Trimestre; Year starts month 9",
+  "calendar_notes": "3 Trimestres (Ivoirien); Terms: 1er Trimestre, 2\u00e8me Trimestre, 3\u00e8me Trimestre; Year starts month 9",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -189,5 +189,100 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Africa/Abidjan"
+  "timezone": "Africa/Abidjan",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "generic_no_specific_statute_documented"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "CI"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

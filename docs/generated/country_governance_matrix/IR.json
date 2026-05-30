@@ -26,7 +26,7 @@
     "school",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Iran, Islamic Republic of statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Iran, Islamic Republic of statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -41,7 +41,7 @@
   "official_languages": [
     {
       "iso639": "fa",
-      "label_native": "فارسی",
+      "label_native": "\u0641\u0627\u0631\u0633\u06cc",
       "label_en": "Persian",
       "role": "official",
       "script": "Latn",
@@ -53,23 +53,23 @@
   ],
   "local_terminology": {
     "teacher": {
-      "fa": "Teacher / معلم",
+      "fa": "Teacher / \u0645\u0639\u0644\u0645",
       "en": "Teacher"
     },
     "principal": {
-      "fa": "Principal / مدیر",
+      "fa": "Principal / \u0645\u062f\u06cc\u0631",
       "en": "Principal"
     },
     "term": {
-      "fa": "Semester / نیمسال",
+      "fa": "Semester / \u0646\u06cc\u0645\u0633\u0627\u0644",
       "en": "Term"
     },
     "report_card": {
-      "fa": "Report Card / کارنامه",
+      "fa": "Report Card / \u06a9\u0627\u0631\u0646\u0627\u0645\u0647",
       "en": "Report card"
     },
     "grade_level": {
-      "fa": "Grade / پایه",
+      "fa": "Grade / \u067e\u0627\u06cc\u0647",
       "en": "Grade level"
     },
     "student": {
@@ -91,23 +91,23 @@
     "school_type_labels": [
       {
         "code": "preschool",
-        "label": "Preschool / پیش‌دبستانی"
+        "label": "Preschool / \u067e\u06cc\u0634\u200c\u062f\u0628\u0633\u062a\u0627\u0646\u06cc"
       },
       {
         "code": "primary",
-        "label": "Primary / دبستان"
+        "label": "Primary / \u062f\u0628\u0633\u062a\u0627\u0646"
       },
       {
         "code": "lower-sec",
-        "label": "Lower Secondary / دوره اول متوسطه"
+        "label": "Lower Secondary / \u062f\u0648\u0631\u0647 \u0627\u0648\u0644 \u0645\u062a\u0648\u0633\u0637\u0647"
       },
       {
         "code": "upper-sec",
-        "label": "Upper Secondary / دوره دوم متوسطه"
+        "label": "Upper Secondary / \u062f\u0648\u0631\u0647 \u062f\u0648\u0645 \u0645\u062a\u0648\u0633\u0637\u0647"
       },
       {
         "code": "university",
-        "label": "University / دانشگاه"
+        "label": "University / \u062f\u0627\u0646\u0634\u06af\u0627\u0647"
       }
     ]
   },
@@ -116,7 +116,7 @@
   "phone_country_code": "+98",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "2 Semesters (Solar Hijri / Persian); Terms: نیمسال اول (Mehr-Bahman), نیمسال دوم (Bahman-Khordad); Year starts month 9",
+  "calendar_notes": "2 Semesters (Solar Hijri / Persian); Terms: \u0646\u06cc\u0645\u0633\u0627\u0644 \u0627\u0648\u0644 (Mehr-Bahman), \u0646\u06cc\u0645\u0633\u0627\u0644 \u062f\u0648\u0645 (Bahman-Khordad); Year starts month 9",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -131,5 +131,105 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Asia/Tehran"
+  "timezone": "Asia/Tehran",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "generic_no_specific_statute_documented"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "comprehensive_or_targeted_regime",
+      "regimes": [
+        "OFAC",
+        "EU",
+        "UN",
+        "UK_OFSI"
+      ],
+      "onboarding_block": true
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "IR"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

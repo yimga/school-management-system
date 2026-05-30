@@ -27,7 +27,7 @@
     "state",
     "federal"
   ],
-  "statutory_framework_ref": "Ministry of Education — Vanuatu statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Vanuatu statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -51,7 +51,7 @@
     },
     {
       "iso639": "fr",
-      "label_native": "Français",
+      "label_native": "Fran\u00e7ais",
       "label_en": "French",
       "role": "education_medium",
       "script": "Latn",
@@ -106,11 +106,11 @@
       },
       {
         "code": "primary",
-        "label": "Primary School / École primaire"
+        "label": "Primary School / \u00c9cole primaire"
       },
       {
         "code": "secondary",
-        "label": "Secondary / Collège / Lycée"
+        "label": "Secondary / Coll\u00e8ge / Lyc\u00e9e"
       },
       {
         "code": "tvet",
@@ -127,7 +127,7 @@
   "phone_country_code": "",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "3 Terms (Vanuatu — Jan-Dec; Anglophone + Francophone streams); Terms: Term 1 / Trimestre 1, Term 2 / Trimestre 2, Term 3 / Trimestre 3; Year starts month 1",
+  "calendar_notes": "3 Terms (Vanuatu \u2014 Jan-Dec; Anglophone + Francophone streams); Terms: Term 1 / Trimestre 1, Term 2 / Trimestre 2, Term 3 / Trimestre 3; Year starts month 1",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -142,5 +142,100 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Pacific/Efate"
+  "timezone": "Pacific/Efate",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "generic_no_specific_statute_documented"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "VU"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

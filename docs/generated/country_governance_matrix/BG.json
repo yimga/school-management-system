@@ -27,7 +27,7 @@
     "authority",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Bulgaria statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Bulgaria statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -42,7 +42,7 @@
   "official_languages": [
     {
       "iso639": "bg",
-      "label_native": "Български",
+      "label_native": "\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u0438",
       "label_en": "Bulgarian",
       "role": "official",
       "script": "Latn",
@@ -54,23 +54,23 @@
   ],
   "local_terminology": {
     "teacher": {
-      "bg": "Учител",
+      "bg": "\u0423\u0447\u0438\u0442\u0435\u043b",
       "en": "Teacher"
     },
     "principal": {
-      "bg": "Директор",
+      "bg": "\u0414\u0438\u0440\u0435\u043a\u0442\u043e\u0440",
       "en": "Principal"
     },
     "term": {
-      "bg": "Срок",
+      "bg": "\u0421\u0440\u043e\u043a",
       "en": "Term"
     },
     "report_card": {
-      "bg": "Бележник / Удостоверение",
+      "bg": "\u0411\u0435\u043b\u0435\u0436\u043d\u0438\u043a / \u0423\u0434\u043e\u0441\u0442\u043e\u0432\u0435\u0440\u0435\u043d\u0438\u0435",
       "en": "Report card"
     },
     "grade_level": {
-      "bg": "Клас",
+      "bg": "\u041a\u043b\u0430\u0441",
       "en": "Grade level"
     },
     "student": {
@@ -92,23 +92,23 @@
     "school_type_labels": [
       {
         "code": "detska-gradina",
-        "label": "Детска градина"
+        "label": "\u0414\u0435\u0442\u0441\u043a\u0430 \u0433\u0440\u0430\u0434\u0438\u043d\u0430"
       },
       {
         "code": "nachalno",
-        "label": "Начално училище"
+        "label": "\u041d\u0430\u0447\u0430\u043b\u043d\u043e \u0443\u0447\u0438\u043b\u0438\u0449\u0435"
       },
       {
         "code": "progimnaziya",
-        "label": "Прогимназия"
+        "label": "\u041f\u0440\u043e\u0433\u0438\u043c\u043d\u0430\u0437\u0438\u044f"
       },
       {
         "code": "gimnaziya",
-        "label": "Гимназия"
+        "label": "\u0413\u0438\u043c\u043d\u0430\u0437\u0438\u044f"
       },
       {
         "code": "universitet",
-        "label": "Университет"
+        "label": "\u0423\u043d\u0438\u0432\u0435\u0440\u0441\u0438\u0442\u0435\u0442"
       }
     ]
   },
@@ -117,7 +117,7 @@
   "phone_country_code": "",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "2 Срока (Български); Terms: I Срок, II Срок; Year starts month 9",
+  "calendar_notes": "2 \u0421\u0440\u043e\u043a\u0430 (\u0411\u044a\u043b\u0433\u0430\u0440\u0441\u043a\u0438); Terms: I \u0421\u0440\u043e\u043a, II \u0421\u0440\u043e\u043a; Year starts month 9",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -132,5 +132,102 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Europe/Sofia"
+  "timezone": "Europe/Sofia",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "GDPR"
+    ],
+    "age_of_digital_consent": 14,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "EU_AI_Act_2024",
+      "ed_tech_risk_class": "varies_high_risk_when_admissions_or_assessment",
+      "citation": "Regulation (EU) 2024/1689"
+    },
+    "sms_telecom_rule": {
+      "regime": "ePrivacy_Directive_2002_58_EC",
+      "opt_in": "express",
+      "citation": "Directive 2002/58/EC"
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "DSA",
+      "citation": "Regulation (EU) 2022/2065"
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [
+        "EAA_2025"
+      ],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "BG"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

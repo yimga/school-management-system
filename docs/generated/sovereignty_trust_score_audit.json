@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-05-30T00:03:13.834334+00:00",
+  "verdict": "SOVEREIGNTY_TRUST_SCORE_PASS",
+  "finding_count": 0,
+  "runtime_health": {
+    "contract_id": "P6-sovereignty-trust-score",
+    "healthy": true,
+    "sample": "AD",
+    "sample_score": 55
+  },
+  "tests_run": 3,
+  "tests_failed": 0,
+  "failures": []
+}

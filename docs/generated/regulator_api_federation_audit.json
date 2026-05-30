@@ -1,0 +1,21 @@
+{
+  "generated_at": "2026-05-30T00:03:15.749686+00:00",
+  "verdict": "REGULATOR_API_FEDERATION_PASS",
+  "finding_count": 0,
+  "runtime_health": {
+    "contract_id": "P6-regulator-api-federation",
+    "healthy": true,
+    "supported_countries": [
+      "EE",
+      "GB",
+      "IN",
+      "SA",
+      "SG",
+      "US",
+      "ZA"
+    ]
+  },
+  "tests_run": 4,
+  "tests_failed": 0,
+  "failures": []
+}

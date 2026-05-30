@@ -20,7 +20,7 @@
     "school",
     "parent_sovereign"
   ],
-  "statutory_framework_ref": "Ministry of Education — Macao statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Macao statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": false,
@@ -36,7 +36,7 @@
   "official_languages": [
     {
       "iso639": "zh-hant",
-      "label_native": "繁體中文",
+      "label_native": "\u7e41\u9ad4\u4e2d\u6587",
       "label_en": "zh-hant",
       "role": "official",
       "script": "Latn",
@@ -44,7 +44,7 @@
     },
     {
       "iso639": "pt",
-      "label_native": "Português",
+      "label_native": "Portugu\u00eas",
       "label_en": "Portuguese",
       "role": "official",
       "script": "Latn",
@@ -57,23 +57,23 @@
   ],
   "local_terminology": {
     "teacher": {
-      "zh-hant": "Teacher / Professor / 老師",
+      "zh-hant": "Teacher / Professor / \u8001\u5e2b",
       "en": "Teacher"
     },
     "principal": {
-      "zh-hant": "Principal / Director / 校長",
+      "zh-hant": "Principal / Director / \u6821\u9577",
       "en": "Principal"
     },
     "term": {
-      "zh-hant": "Term / Período / 學期",
+      "zh-hant": "Term / Per\u00edodo / \u5b78\u671f",
       "en": "Term"
     },
     "report_card": {
-      "zh-hant": "Report Card / Boletim / 成績表",
+      "zh-hant": "Report Card / Boletim / \u6210\u7e3e\u8868",
       "en": "Report card"
     },
     "grade_level": {
-      "zh-hant": "Grade / Ano / 年級",
+      "zh-hant": "Grade / Ano / \u5e74\u7d1a",
       "en": "Grade level"
     },
     "student": {
@@ -89,23 +89,23 @@
     "school_type_labels": [
       {
         "code": "preschool",
-        "label": "Pre-escolar / 幼兒教育"
+        "label": "Pre-escolar / \u5e7c\u5152\u6559\u80b2"
       },
       {
         "code": "primary",
-        "label": "Primário / 小學教育"
+        "label": "Prim\u00e1rio / \u5c0f\u5b78\u6559\u80b2"
       },
       {
         "code": "secondary",
-        "label": "Secundário / 中學教育"
+        "label": "Secund\u00e1rio / \u4e2d\u5b78\u6559\u80b2"
       },
       {
         "code": "vocational",
-        "label": "Técnico-Profissional / 技術教育"
+        "label": "T\u00e9cnico-Profissional / \u6280\u8853\u6559\u80b2"
       },
       {
         "code": "university",
-        "label": "Universidade / 大學"
+        "label": "Universidade / \u5927\u5b78"
       }
     ]
   },
@@ -114,7 +114,7 @@
   "phone_country_code": "+853",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "3 Terms (Macao, Portuguese-Chinese); Terms: 1º Período / 第一學期, 2º Período / 第二學期, 3º Período / 第三學期; Year starts month 9",
+  "calendar_notes": "3 Terms (Macao, Portuguese-Chinese); Terms: 1\u00ba Per\u00edodo / \u7b2c\u4e00\u5b78\u671f, 2\u00ba Per\u00edodo / \u7b2c\u4e8c\u5b78\u671f, 3\u00ba Per\u00edodo / \u7b2c\u4e09\u5b78\u671f; Year starts month 9",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -129,5 +129,100 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Asia/Macau"
+  "timezone": "Asia/Macau",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "generic_no_specific_statute_documented"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap_territory",
+    "iso_alpha2_ref": "MO"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": false,
+    "territory": true,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

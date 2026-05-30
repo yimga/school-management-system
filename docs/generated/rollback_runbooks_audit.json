@@ -1,0 +1,7 @@
+{
+  "generated_at": "2026-05-29T23:39:52.117929+00:00",
+  "verdict": "ROLLBACK_RUNBOOKS_PASS",
+  "scope_total": 6,
+  "finding_count": 0,
+  "failures": []
+}

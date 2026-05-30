@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-05-30T00:03:16.449795+00:00",
+  "verdict": "ADVERSARIAL_REDTEAM_PASS",
+  "finding_count": 0,
+  "runtime_health": {
+    "contract_id": "P6-adversarial-redteam",
+    "healthy": true,
+    "result": {
+      "computed_at": "2026-05-30T00:03:16.444363+00:00",
+      "probe_count": 4,
+      "failed_count": 0,
+      "high_severity_failures": [],
+      "findings": [
+        {
+          "probe": "bola_cross_tenant",
+          "severity": "high",
+          "finding": "ok"
+        },
+        {
+          "probe": "role_escalation_context_profile",
+          "severity": "high",
+          "finding": "ok"
+        },
+        {
+          "probe": "org_bypass_inherit_map",
+          "severity": "medium",
+          "finding": "ok"
+        },
+        {
+          "probe": "w3c_vc_forgery",
+          "severity": "high",
+          "finding": "ok"
+        }
+      ]
+    }
+  },
+  "tests_run": 2,
+  "tests_failed": 0,
+  "failures": []
+}

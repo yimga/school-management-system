@@ -27,7 +27,7 @@
     "district",
     "state"
   ],
-  "statutory_framework_ref": "Ministry of Education — Brazil statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Brazil statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -42,7 +42,7 @@
   "official_languages": [
     {
       "iso639": "pt",
-      "label_native": "Português",
+      "label_native": "Portugu\u00eas",
       "label_en": "Portuguese",
       "role": "official",
       "script": "Latn",
@@ -70,7 +70,7 @@
       "en": "Report card"
     },
     "grade_level": {
-      "pt": "Ano / Série",
+      "pt": "Ano / S\u00e9rie",
       "en": "Grade level"
     },
     "student": {
@@ -92,7 +92,7 @@
     "school_type_labels": [
       {
         "code": "infantil",
-        "label": "Educação Infantil"
+        "label": "Educa\u00e7\u00e3o Infantil"
       },
       {
         "code": "fund-1",
@@ -104,11 +104,11 @@
       },
       {
         "code": "medio",
-        "label": "Ensino Médio"
+        "label": "Ensino M\u00e9dio"
       },
       {
         "code": "tecnico",
-        "label": "Ensino Técnico"
+        "label": "Ensino T\u00e9cnico"
       },
       {
         "code": "superior",
@@ -121,7 +121,7 @@
   "phone_country_code": "+55",
   "postal_label": "CEP",
   "grading_scale_family": "generic",
-  "calendar_notes": "4 Bimestres; Terms: 1º Bimestre, 2º Bimestre, 3º Bimestre, 4º Bimestre; Year starts month 2",
+  "calendar_notes": "4 Bimestres; Terms: 1\u00ba Bimestre, 2\u00ba Bimestre, 3\u00ba Bimestre, 4\u00ba Bimestre; Year starts month 2",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -136,5 +136,102 @@
     "integrations"
   ],
   "currency": "BRL",
-  "timezone": "America/Sao_Paulo"
+  "timezone": "America/Sao_Paulo",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "LGPD"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 60,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": [
+        "Libras"
+      ]
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "BR"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

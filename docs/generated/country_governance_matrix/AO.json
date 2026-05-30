@@ -14,21 +14,21 @@
       "level": 1,
       "label_en": "National ministry",
       "label_local": {
-        "pt": "Ministério da Educação"
+        "pt": "Minist\u00e9rio da Educa\u00e7\u00e3o"
       }
     },
     {
       "level": 2,
       "label_en": "Province",
       "label_local": {
-        "pt": "Província"
+        "pt": "Prov\u00edncia"
       }
     },
     {
       "level": 3,
       "label_en": "Municipality",
       "label_local": {
-        "pt": "Município"
+        "pt": "Munic\u00edpio"
       }
     },
     {
@@ -51,7 +51,7 @@
     "province",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Angola statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Angola statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -66,7 +66,7 @@
   "official_languages": [
     {
       "iso639": "pt",
-      "label_native": "Português",
+      "label_native": "Portugu\u00eas",
       "label_en": "Portuguese",
       "role": "official",
       "script": "Latn",
@@ -111,21 +111,21 @@
         "level": 1,
         "label_en": "National ministry",
         "label_local": {
-          "pt": "Ministério da Educação"
+          "pt": "Minist\u00e9rio da Educa\u00e7\u00e3o"
         }
       },
       {
         "level": 2,
         "label_en": "Province",
         "label_local": {
-          "pt": "Província"
+          "pt": "Prov\u00edncia"
         }
       },
       {
         "level": 3,
         "label_en": "Municipality",
         "label_local": {
-          "pt": "Município"
+          "pt": "Munic\u00edpio"
         }
       },
       {
@@ -139,23 +139,23 @@
     "school_type_labels": [
       {
         "code": "pre-escolar",
-        "label": "Pré-escolar"
+        "label": "Pr\u00e9-escolar"
       },
       {
         "code": "primario",
-        "label": "Ensino Primário (1-6)"
+        "label": "Ensino Prim\u00e1rio (1-6)"
       },
       {
         "code": "i-ciclo-sec",
-        "label": "Secundário I Ciclo (7-9)"
+        "label": "Secund\u00e1rio I Ciclo (7-9)"
       },
       {
         "code": "ii-ciclo-sec",
-        "label": "Secundário II Ciclo / Médio (10-13)"
+        "label": "Secund\u00e1rio II Ciclo / M\u00e9dio (10-13)"
       },
       {
         "code": "tecnico",
-        "label": "Ensino Técnico-Profissional"
+        "label": "Ensino T\u00e9cnico-Profissional"
       },
       {
         "code": "universidade",
@@ -168,7 +168,7 @@
   "phone_country_code": "+244",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "3 Trimestres (Angolano); Terms: 1º Trimestre, 2º Trimestre, 3º Trimestre; Year starts month 2",
+  "calendar_notes": "3 Trimestres (Angolano); Terms: 1\u00ba Trimestre, 2\u00ba Trimestre, 3\u00ba Trimestre; Year starts month 2",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -183,5 +183,100 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Africa/Luanda"
+  "timezone": "Africa/Luanda",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "generic_no_specific_statute_documented"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "AO"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

@@ -27,7 +27,7 @@
     "authority",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Luxembourg statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Luxembourg statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -44,7 +44,7 @@
   "official_languages": [
     {
       "iso639": "fr",
-      "label_native": "Français",
+      "label_native": "Fran\u00e7ais",
       "label_en": "French",
       "role": "education_medium",
       "script": "Latn",
@@ -60,7 +60,7 @@
     },
     {
       "iso639": "lb",
-      "label_native": "Lëtzebuergesch",
+      "label_native": "L\u00ebtzebuergesch",
       "label_en": "Luxembourgish",
       "role": "official",
       "script": "Latn",
@@ -112,7 +112,7 @@
     "school_type_labels": [
       {
         "code": "spillschoul",
-        "label": "Spillschoul / École préscolaire"
+        "label": "Spillschoul / \u00c9cole pr\u00e9scolaire"
       },
       {
         "code": "fondamental",
@@ -120,11 +120,11 @@
       },
       {
         "code": "secondaire",
-        "label": "Enseignement secondaire / Lycée"
+        "label": "Enseignement secondaire / Lyc\u00e9e"
       },
       {
         "code": "universite",
-        "label": "Université du Luxembourg"
+        "label": "Universit\u00e9 du Luxembourg"
       }
     ]
   },
@@ -148,5 +148,102 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Europe/Luxembourg"
+  "timezone": "Europe/Luxembourg",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "GDPR"
+    ],
+    "age_of_digital_consent": 16,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "EU_AI_Act_2024",
+      "ed_tech_risk_class": "varies_high_risk_when_admissions_or_assessment",
+      "citation": "Regulation (EU) 2024/1689"
+    },
+    "sms_telecom_rule": {
+      "regime": "ePrivacy_Directive_2002_58_EC",
+      "opt_in": "express",
+      "citation": "Directive 2002/58/EC"
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "no_restriction_documented",
+      "regimes": [],
+      "onboarding_block": false
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "DSA",
+      "citation": "Regulation (EU) 2022/2065"
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [
+        "EAA_2025"
+      ],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "LU"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

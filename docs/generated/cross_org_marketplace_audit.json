@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-05-30T00:03:19.533317+00:00",
+  "verdict": "CROSS_ORG_MARKETPLACE_PASS",
+  "finding_count": 0,
+  "runtime_health": {
+    "contract_id": "P6-cross-org-marketplace",
+    "healthy": true,
+    "isolated_visible": 1,
+    "after_consent_visible": 2
+  },
+  "tests_run": 3,
+  "tests_failed": 0,
+  "failures": []
+}

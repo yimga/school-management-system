@@ -26,7 +26,7 @@
     "school",
     "ministry"
   ],
-  "statutory_framework_ref": "Ministry of Education — Korea, Democratic People's Republic of statutory reporting (matrix default).",
+  "statutory_framework_ref": "Ministry of Education \u2014 Korea, Democratic People's Republic of statutory reporting (matrix default).",
   "education_pack_tier": "tier1_native",
   "deep_layers": {
     "mc_profile": true,
@@ -41,7 +41,7 @@
   "official_languages": [
     {
       "iso639": "ko",
-      "label_native": "조선말",
+      "label_native": "\uc870\uc120\ub9d0",
       "label_en": "Korean",
       "role": "official",
       "script": "Latn",
@@ -53,23 +53,23 @@
   ],
   "local_terminology": {
     "teacher": {
-      "ko": "Teacher / 교원",
+      "ko": "Teacher / \uad50\uc6d0",
       "en": "Teacher"
     },
     "principal": {
-      "ko": "Principal / 교장",
+      "ko": "Principal / \uad50\uc7a5",
       "en": "Principal"
     },
     "term": {
-      "ko": "Semester / 학기",
+      "ko": "Semester / \ud559\uae30",
       "en": "Term"
     },
     "report_card": {
-      "ko": "Report Card / 성적표",
+      "ko": "Report Card / \uc131\uc801\ud45c",
       "en": "Report card"
     },
     "grade_level": {
-      "ko": "Grade / 학년",
+      "ko": "Grade / \ud559\ub144",
       "en": "Grade level"
     },
     "student": {
@@ -91,23 +91,23 @@
     "school_type_labels": [
       {
         "code": "nursery",
-        "label": "Nursery / 탁아소"
+        "label": "Nursery / \ud0c1\uc544\uc18c"
       },
       {
         "code": "kindergarten",
-        "label": "Kindergarten / 유치원"
+        "label": "Kindergarten / \uc720\uce58\uc6d0"
       },
       {
         "code": "primary",
-        "label": "Primary / 소학교"
+        "label": "Primary / \uc18c\ud559\uad50"
       },
       {
         "code": "secondary",
-        "label": "Secondary / 중학교"
+        "label": "Secondary / \uc911\ud559\uad50"
       },
       {
         "code": "university",
-        "label": "University / 대학"
+        "label": "University / \ub300\ud559"
       }
     ]
   },
@@ -116,7 +116,7 @@
   "phone_country_code": "",
   "postal_label": "Postal code",
   "grading_scale_family": "generic",
-  "calendar_notes": "2 Semesters (DPRK); Terms: 제1학기, 제2학기; Year starts month 4",
+  "calendar_notes": "2 Semesters (DPRK); Terms: \uc81c1\ud559\uae30, \uc81c2\ud559\uae30; Year starts month 4",
   "terminology_source": "seed_pack",
   "locale_catalog_keys": [],
   "customer_risks": [],
@@ -131,5 +131,105 @@
     "integrations"
   ],
   "currency": "USD",
-  "timezone": "Asia/Pyongyang"
+  "timezone": "Asia/Pyongyang",
+  "regulatory_matrix": {
+    "student_privacy_regimes": [
+      "generic_no_specific_statute_documented"
+    ],
+    "age_of_digital_consent": 13,
+    "biometric_data_rule": "parental_consent",
+    "ai_regulation": {
+      "regime": "no_dedicated_statute_documented",
+      "ed_tech_risk_class": "unspecified",
+      "citation": null
+    },
+    "sms_telecom_rule": {
+      "regime": "no_dedicated_statute_documented",
+      "opt_in": "unspecified",
+      "citation": null
+    },
+    "tax_reporting_obligations": [],
+    "sanctions_status": {
+      "status": "comprehensive_or_targeted_regime",
+      "regimes": [
+        "OFAC",
+        "EU",
+        "UN",
+        "UK_OFSI"
+      ],
+      "onboarding_block": true
+    },
+    "records_retention_years": {
+      "transcript_years": 30,
+      "attendance_years": 5,
+      "financial_years": 7,
+      "safeguarding_years": 25
+    },
+    "content_safety_regime": {
+      "regime": "no_dedicated_statute_documented",
+      "citation": null
+    },
+    "accessibility_statute": {
+      "platform_baseline": "WCAG_2_2_AA",
+      "local_statutes": [],
+      "sign_languages": []
+    }
+  },
+  "provenance": {
+    "source": {
+      "type": "matrix_skeleton_seed_v1",
+      "citation_required_for_promotion": true,
+      "notes": "Phase 0X requires every material claim to carry a primary-source citation before P0D close."
+    },
+    "effective_from": null,
+    "effective_to": null,
+    "verified_at": null,
+    "verified_by": "agent:bootstrap",
+    "iso_alpha2_ref": "KP"
+  },
+  "edge_jurisdiction_flags": {
+    "sovereign_state": true,
+    "territory": false,
+    "disputed_recognition": false,
+    "online_only_virtual_school_supported": true,
+    "refugee_nomadic_ed_supported": true,
+    "antarctica_research_only": false,
+    "disputed_regions": []
+  },
+  "labor_law": {
+    "employer_of_record_options": [
+      "school",
+      "district",
+      "state",
+      "org",
+      "peo"
+    ],
+    "payroll_authority": "school",
+    "working_time_rule": "country_specific_citation_required",
+    "severance_formula": "country_specific_citation_required",
+    "collective_bargaining_presence": "unspecified",
+    "cross_school_employment_allowed": true,
+    "non_compete_enforceable": null
+  },
+  "dr_rto_rpo": {
+    "rto_minutes": 240,
+    "rpo_minutes": 60,
+    "cross_region_failover_allowed": true,
+    "counsel_signed_continuity_table": "external_required",
+    "residency_label": "metadata_only_until_physical_pinning_lands"
+  },
+  "pricing_band": {
+    "ppp_band": "default_universal_band_until_research_complete",
+    "fx_hedge_band_pct": 5,
+    "local_currency_required": false
+  },
+  "risk_signals": {
+    "top_risks": [],
+    "next_review_due": null
+  },
+  "exam_boards": [],
+  "legacy_mis_incumbents": [],
+  "national_identity_brokers": [],
+  "calendar_sources": [],
+  "regional_languages": []
 }

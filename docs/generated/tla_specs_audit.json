@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-05-30T00:03:12.471293+00:00",
+  "verdict": "TLA_SPECS_PASS",
+  "finding_count": 0,
+  "runtime_health": {
+    "contract_id": "P6-formal-verification-tla",
+    "healthy": true,
+    "missing": [],
+    "spec_count": 4
+  },
+  "tests_run": 2,
+  "tests_failed": 0,
+  "failures": []
+}

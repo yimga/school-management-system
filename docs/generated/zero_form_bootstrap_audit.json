@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-05-30T00:03:18.528157+00:00",
+  "verdict": "ZERO_FORM_BOOTSTRAP_PASS",
+  "finding_count": 0,
+  "runtime_health": {
+    "contract_id": "P6-zero-form-bootstrap",
+    "healthy": true,
+    "sample": "AD"
+  },
+  "tests_run": 2,
+  "tests_failed": 0,
+  "failures": []
+}
