@@ -562,6 +562,8 @@ urlpatterns = [
     path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
     path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),
     path("roster/v1p2/academic-sessions/", _oneroster.academic_sessions, name="api-roster-v1p2-academic-sessions"),
+    # v4.00.71 — single-academicSession detail endpoint per spec § 4.13.
+    path("roster/v1p2/academic-sessions/<str:sourced_id>/", _oneroster.academic_session_detail, name="api-roster-v1p2-academic-session-detail"),
     # v4.00.59 — OneRoster v1.2 demographics endpoints (read-only).
     # v4.00.60 — POST/PUT write coverage (order matters: write routes BEFORE
     # the <str:sourced_id> catch-all so they don't get swallowed).

@@ -14125,6 +14125,262 @@ COUNTRY_LOCALIZATION["GR-C"] = _v4_00_70_subdivision(
 
 
 # ---------------------------------------------------------------------------
+# v4.00.71 (2026-05-29) — +14 Tier-1 subdivisions:
+#   AE-DU Dubai, AE-AZ Abu Dhabi, IL-TA Tel Aviv, JO-AM Amman,
+#   EG-MN Minya, MA-CAS Casablanca, DZ-16 Algiers,
+#   NG-OG Ogun, NG-AN Anambra, BR-DF Distrito Federal,
+#   KE-30 Nairobi, GH-AA Greater Accra,
+#   UG-101 Kampala, TZ-02 Dar es Salaam.
+# ---------------------------------------------------------------------------
+
+def _v4_00_71_subdivision(code, calendar_code, calendar_label, term_count, term_names,
+                          ay_start_month, schools, levels, terminology):
+    return {
+        "calendar_system": {"code": calendar_code, "label": calendar_label,
+                            "term_count": term_count, "term_names": list(term_names),
+                            "week_start": 1, "academic_year_starts_month": ay_start_month},
+        "school_types": list(schools), "education_levels": list(levels),
+        "terminology": dict(terminology),
+    }
+
+# Dubai (AE-DU).
+COUNTRY_LOCALIZATION["AE-DU"] = _v4_00_71_subdivision(
+    "AE-DU", "aedu-3-term", "3-term (Dubai / KHDA)", 3,
+    ["Term 1", "Term 2", "Term 3"], 9,
+    [
+        {"code":"kg","label":"KG 1-2",                "glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+        {"code":"primary","label":"Primary (1-6)",    "glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+        {"code":"middle","label":"Middle (7-9)",      "glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+        {"code":"high","label":"High (10-12) + IB/IGCSE/MOE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+        {"code":"university","label":"AUD + Zayed + AUS + Dubai Heriot-Watt","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"aedu-1","label":"Grade 1","order":1},
+     {"code":"aedu-6","label":"Grade 6","order":6},
+     {"code":"aedu-9","label":"Grade 9","order":9},
+     {"code":"aedu-12","label":"Grade 12 + IB/IGCSE","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+# Abu Dhabi (AE-AZ).
+COUNTRY_LOCALIZATION["AE-AZ"] = _v4_00_71_subdivision(
+    "AE-AZ", "aeaz-3-term", "3-term (Abu Dhabi / ADEK)", 3,
+    ["Term 1", "Term 2", "Term 3"], 9,
+    [
+        {"code":"kg","label":"KG 1-2","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+        {"code":"primary","label":"Primary (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+        {"code":"middle","label":"Middle (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+        {"code":"high","label":"High (10-12) + IB/IGCSE/MOE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+        {"code":"university","label":"UAE U + Khalifa + NYU Abu Dhabi + Sorbonne AD","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"aeaz-1","label":"Grade 1","order":1},
+     {"code":"aeaz-6","label":"Grade 6","order":6},
+     {"code":"aeaz-9","label":"Grade 9","order":9},
+     {"code":"aeaz-12","label":"Grade 12 + IB/IGCSE","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+# Tel Aviv (IL-TA).
+COUNTRY_LOCALIZATION["IL-TA"] = _v4_00_71_subdivision(
+    "IL-TA", "ilta-2-sem", "2-sem (Tel Aviv / Ministry)", 2,
+    ["Semester A", "Semester B"], 9,
+    [
+        {"code":"gan","label":"Gan Yeladim","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+        {"code":"yesodi","label":"Beit Sefer Yesodi (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+        {"code":"hativat","label":"Hativat Beinayim (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+        {"code":"tichon","label":"Tichon (10-12) + Bagrut","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+        {"code":"universita","label":"TAU + IDC + Bar-Ilan","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"ilta-1","label":"Kita Aleph","order":1},
+     {"code":"ilta-6","label":"Kita Vav","order":6},
+     {"code":"ilta-9","label":"Kita Tet","order":9},
+     {"code":"ilta-12","label":"Kita Yud-Bet + Bagrut","order":12}],
+    {"teacher":"Moreh","principal":"Menahel","term":"Semester","report_card":"Te'udah","grade_level":"Kita"})
+
+# Amman (JO-AM).
+COUNTRY_LOCALIZATION["JO-AM"] = _v4_00_71_subdivision(
+    "JO-AM", "joam-2-sem", "2-semester (Amman / MoE)", 2,
+    ["First semester", "Second semester"], 9,
+    [
+        {"code":"rawda","label":"Rawda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+        {"code":"asasiya","label":"Asasiya (1-10)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-15"},
+        {"code":"thanawiya","label":"Thanawiya (11-12) + Tawjihi","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+        {"code":"university","label":"University of Jordan + JUST + GJU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"joam-1","label":"Year 1","order":1},
+     {"code":"joam-10","label":"Year 10","order":10},
+     {"code":"joam-12","label":"Year 12 + Tawjihi","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+# Minya (EG-MN).
+COUNTRY_LOCALIZATION["EG-MN"] = _v4_00_71_subdivision(
+    "EG-MN", "egmn-2-sem", "2-semester (Minya / Ministry)", 2,
+    ["First semester", "Second semester"], 9,
+    [
+        {"code":"rawda","label":"Rawda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-6"},
+        {"code":"ibtidai","label":"Ibtidai (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+        {"code":"edady","label":"Edady (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+        {"code":"thanawi","label":"Thanawi (10-12) + Thanawiya Amma","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+        {"code":"gameaa","label":"Minya U + Deraya U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"egmn-1","label":"Year 1","order":1},
+     {"code":"egmn-6","label":"Year 6","order":6},
+     {"code":"egmn-9","label":"Year 9","order":9},
+     {"code":"egmn-12","label":"Thanawiya Amma","order":12}],
+    {"teacher":"Mu'allim","principal":"Nazir","term":"Fasl Dirasi","report_card":"Shahada","grade_level":"Saff"})
+
+# Casablanca (MA-CAS — note ISO is MA-CAS = Grand Casablanca region equivalent).
+COUNTRY_LOCALIZATION["MA-CAS"] = _v4_00_71_subdivision(
+    "MA-CAS", "macas-2-sem", "2-sem (Casablanca / MEN)", 2,
+    ["Premier semestre", "Deuxième semestre"], 9,
+    [
+        {"code":"maternelle","label":"Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+        {"code":"primaire","label":"École Primaire (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+        {"code":"college","label":"Collège (7-9) + BEPC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+        {"code":"lycee","label":"Lycée (10-12) + Baccalauréat","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+        {"code":"universite","label":"Hassan II + UIC + Mundiapolis","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"macas-1","label":"1ère AP","order":1},
+     {"code":"macas-6","label":"6ème AP","order":6},
+     {"code":"macas-9","label":"3ème Collège + BEPC","order":9},
+     {"code":"macas-12","label":"Bac","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Semestre","report_card":"Bulletin","grade_level":"Saff"})
+
+# Algiers (DZ-16).
+COUNTRY_LOCALIZATION["DZ-16"] = _v4_00_71_subdivision(
+    "DZ-16", "dz16-3-trim", "3-trim (Alger / MEN)", 3,
+    ["Premier trimestre", "Deuxième trimestre", "Troisième trimestre"], 9,
+    [
+        {"code":"maternelle","label":"Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+        {"code":"primaire","label":"École Primaire (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+        {"code":"college","label":"CEM (6-9) + BEM","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+        {"code":"lycee","label":"Lycée (10-12) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+        {"code":"universite","label":"USTHB + Alger 1 + ENSA","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"dz16-1","label":"1ère AP","order":1},
+     {"code":"dz16-5","label":"5ème AP","order":5},
+     {"code":"dz16-9","label":"4ème CEM + BEM","order":9},
+     {"code":"dz16-12","label":"3ème AS + Bac","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Trimestre","report_card":"Bulletin","grade_level":"Saff"})
+
+# Ogun (NG-OG).
+COUNTRY_LOCALIZATION["NG-OG"] = _v4_00_71_subdivision(
+    "NG-OG", "ngog-3-term", "3-term (Ogun / WAEC)", 3,
+    ["First term", "Second term", "Third term"], 9,
+    [
+        {"code":"nursery","label":"Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+        {"code":"primary","label":"Primary (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+        {"code":"jss","label":"JSS 1-3","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+        {"code":"sss","label":"SSS 1-3 + WAEC/NECO","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+        {"code":"university","label":"OOU + FUNAAB + Babcock + Covenant","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"ngog-1","label":"Primary 1","order":1},
+     {"code":"ngog-6","label":"Primary 6","order":6},
+     {"code":"ngog-9","label":"JSS 3","order":9},
+     {"code":"ngog-12","label":"SSS 3 + WAEC","order":12}],
+    {"teacher":"Mr/Mrs","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Anambra (NG-AN).
+COUNTRY_LOCALIZATION["NG-AN"] = _v4_00_71_subdivision(
+    "NG-AN", "ngan-3-term", "3-term (Anambra / WAEC)", 3,
+    ["First term", "Second term", "Third term"], 9,
+    [
+        {"code":"nursery","label":"Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+        {"code":"primary","label":"Primary (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+        {"code":"jss","label":"JSS 1-3","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+        {"code":"sss","label":"SSS 1-3 + WAEC/NECO","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+        {"code":"university","label":"UNIZIK + NAU + Madonna + Tansian","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"ngan-1","label":"Primary 1","order":1},
+     {"code":"ngan-6","label":"Primary 6","order":6},
+     {"code":"ngan-9","label":"JSS 3","order":9},
+     {"code":"ngan-12","label":"SSS 3 + WAEC","order":12}],
+    {"teacher":"Mr/Mrs","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Brasília Distrito Federal (BR-DF).
+COUNTRY_LOCALIZATION["BR-DF"] = _v4_00_71_subdivision(
+    "BR-DF", "brdf-2-sem", "2-sem (DF / MEC)", 2,
+    ["1º semestre", "2º semestre"], 2,
+    [
+        {"code":"infantil","label":"Educação Infantil","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+        {"code":"fundamental_i","label":"Ensino Fundamental I (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+        {"code":"fundamental_ii","label":"Ensino Fundamental II (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+        {"code":"medio","label":"Ensino Médio (1-3) + ENEM","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+        {"code":"universidade","label":"UnB + UCB + IESB","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"brdf-1","label":"1º Fundamental","order":1},
+     {"code":"brdf-5","label":"5º Fundamental","order":5},
+     {"code":"brdf-9","label":"9º Fundamental","order":9},
+     {"code":"brdf-12","label":"3º Médio (ENEM)","order":12}],
+    {"teacher":"Professor","principal":"Diretor","term":"Semestre","report_card":"Boletim","grade_level":"Ano"})
+
+# Nairobi (KE-30).
+COUNTRY_LOCALIZATION["KE-30"] = _v4_00_71_subdivision(
+    "KE-30", "ke30-3-term", "3-term (Nairobi / KICD)", 3,
+    ["Term 1", "Term 2", "Term 3"], 1,
+    [
+        {"code":"pp","label":"Pre-Primary (PP1-PP2)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+        {"code":"primary","label":"Primary (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+        {"code":"jss","label":"Junior Secondary (Gr 7-9) + KCSE prep","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+        {"code":"sss","label":"Senior Secondary (Gr 10-12) + KCSE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+        {"code":"university","label":"UoN + JKUAT + Strathmore + USIU + KU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"ke30-1","label":"Grade 1","order":1},
+     {"code":"ke30-6","label":"Grade 6","order":6},
+     {"code":"ke30-9","label":"Grade 9","order":9},
+     {"code":"ke30-12","label":"Grade 12 + KCSE","order":12}],
+    {"teacher":"Mwalimu","principal":"Mwalimu Mkuu","term":"Term","report_card":"Report","grade_level":"Darasa"})
+
+# Greater Accra (GH-AA).
+COUNTRY_LOCALIZATION["GH-AA"] = _v4_00_71_subdivision(
+    "GH-AA", "ghaa-3-term", "3-term (Greater Accra / GES)", 3,
+    ["Term 1", "Term 2", "Term 3"], 9,
+    [
+        {"code":"kg","label":"KG 1-2","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+        {"code":"primary","label":"Primary (P1-P6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+        {"code":"jhs","label":"JHS 1-3 + BECE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+        {"code":"shs","label":"SHS 1-3 + WASSCE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+        {"code":"university","label":"UG Legon + KNUST + Ashesi + GIMPA","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"},
+    ],
+    [{"code":"ghaa-1","label":"P1","order":1},
+     {"code":"ghaa-6","label":"P6","order":6},
+     {"code":"ghaa-9","label":"JHS 3 + BECE","order":9},
+     {"code":"ghaa-12","label":"SHS 3 + WASSCE","order":12}],
+    {"teacher":"Teacher","principal":"Headteacher","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Kampala (UG-101).
+COUNTRY_LOCALIZATION["UG-101"] = _v4_00_71_subdivision(
+    "UG-101", "ug101-3-term", "3-term (Kampala / MoES)", 3,
+    ["Term 1", "Term 2", "Term 3"], 2,
+    [
+        {"code":"nursery","label":"Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+        {"code":"primary","label":"Primary (P1-P7) + PLE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+        {"code":"oss","label":"Secondary O-level (S1-S4) + UCE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-16"},
+        {"code":"ass","label":"Secondary A-level (S5-S6) + UACE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"17-18"},
+        {"code":"university","label":"Makerere + Mbarara + IUEA + UCU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"},
+    ],
+    [{"code":"ug101-1","label":"P1","order":1},
+     {"code":"ug101-7","label":"P7 + PLE","order":7},
+     {"code":"ug101-11","label":"S4 + UCE","order":11},
+     {"code":"ug101-13","label":"S6 + UACE","order":13}],
+    {"teacher":"Teacher","principal":"Head Teacher","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Dar es Salaam (TZ-02).
+COUNTRY_LOCALIZATION["TZ-02"] = _v4_00_71_subdivision(
+    "TZ-02", "tz02-2-sem", "2-semester (Dar es Salaam / NECTA)", 2,
+    ["First semester", "Second semester"], 1,
+    [
+        {"code":"darasa_la_chekechea","label":"Chekechea (kindergarten)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-6"},
+        {"code":"primary","label":"Primary (Std 1-7) + PSLE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-13"},
+        {"code":"oss","label":"Secondary O-level (Form 1-4) + CSEE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"14-17"},
+        {"code":"ass","label":"Secondary A-level (Form 5-6) + ACSEE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"18-19"},
+        {"code":"university","label":"UDSM + Ardhi + IFM + Hubert Kairuki","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"},
+    ],
+    [{"code":"tz02-1","label":"Standard 1","order":1},
+     {"code":"tz02-7","label":"Standard 7 + PSLE","order":7},
+     {"code":"tz02-11","label":"Form 4 + CSEE","order":11},
+     {"code":"tz02-13","label":"Form 6 + ACSEE","order":13}],
+    {"teacher":"Mwalimu","principal":"Mwalimu Mkuu","term":"Muhula","report_card":"Ripoti","grade_level":"Darasa"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

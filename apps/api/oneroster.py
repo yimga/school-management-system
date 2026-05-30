@@ -185,15 +185,26 @@ def _iter_classes() -> Iterable[dict[str, Any]]:
 
 
 def _iter_academic_sessions() -> Iterable[dict[str, Any]]:
+    """v4.00.71 — Enriched projection: startDate / endDate / schoolYear /
+    parentSourcedId per OneRoster v1.2 § 4.13 AcademicSession resource."""
     try:
         from apps.academics.models import AcademicYear  # adjust if model name differs
         qs = AcademicYear.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
         for y in qs[:200]:
+            start = getattr(y, "start_date", None) or getattr(y, "starts_on", None)
+            end = getattr(y, "end_date", None) or getattr(y, "ends_on", None)
+            school_year = getattr(y, "school_year", "") or getattr(y, "label", "") or getattr(y, "name", "") or ""
+            parent = getattr(y, "parent", None)
+            parent_id = str(getattr(parent, "pk", "")) if parent is not None else ""
             yield {
                 "sourcedId": str(y.pk),
                 "status": "active",
                 "title": getattr(y, "name", "") or "",
                 "type": "schoolYear",
+                "startDate": start.isoformat() if hasattr(start, "isoformat") else (str(start) if start else ""),
+                "endDate": end.isoformat() if hasattr(end, "isoformat") else (str(end) if end else ""),
+                "schoolYear": str(school_year or "")[:32],
+                "parentSourcedId": parent_id,
             }
     except Exception as exc:  # noqa: BLE001
         logger.debug("oneroster sessions: academic year model not iterable: %s", exc)
@@ -283,3 +294,16 @@ def academic_sessions(request):
     items = list(_iter_academic_sessions())
     page, meta = _paginate(request, items)
     return _envelope("academicSessions", page, meta)
+
+
+@require_http_methods(["GET"])
+def academic_session_detail(request, sourced_id: str):
+    """v4.00.71 — Per-spec § 4.13 single-academicSession GET."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    for s in _iter_academic_sessions():
+        if s["sourcedId"] == str(sourced_id):
+            return JsonResponse({"academicSession": s})
+    return JsonResponse({"error": "academic_session_not_found",
+                         "sourcedId": str(sourced_id)}, status=404)

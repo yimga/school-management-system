@@ -230,6 +230,43 @@ def _safe_provider(raw: str) -> str:
 _LAST_ACTION_RING: list[dict] = []
 _LAST_ACTION_RING_CAP = 200
 
+# v4.00.71 — Cumulative retention sweep counters.
+#
+# Each successful retention sweep (preview OR force-purge) bumps these
+# counters so operators have a quick-glance "how much have we purged
+# this month" gauge. Process-lifetime only — persistent rollup lives in
+# the LMSDiagActionAudit table; this is the fast hot-cache.
+_RETENTION_SWEEP_COUNTERS: dict[str, int] = {
+    "previews_count": 0,
+    "purges_count": 0,
+    "rows_considered_total": 0,
+    "rows_deleted_total": 0,
+}
+
+
+def get_retention_sweep_counters() -> dict[str, int]:
+    """Return a snapshot copy of the cumulative retention counters."""
+    return dict(_RETENTION_SWEEP_COUNTERS)
+
+
+def reset_retention_sweep_counters() -> None:
+    """Test-only helper. Tenant-isolation-allow: process-singleton-counter-reset."""
+    for k in list(_RETENTION_SWEEP_COUNTERS.keys()):
+        _RETENTION_SWEEP_COUNTERS[k] = 0
+
+
+def _bump_retention_sweep_counter(*, kind: str, considered: int, deleted: int) -> None:
+    """``kind`` is 'preview' or 'purge'. NEVER raises."""
+    try:
+        if kind == "preview":
+            _RETENTION_SWEEP_COUNTERS["previews_count"] += 1
+        elif kind == "purge":
+            _RETENTION_SWEEP_COUNTERS["purges_count"] += 1
+        _RETENTION_SWEEP_COUNTERS["rows_considered_total"] += int(considered or 0)
+        _RETENTION_SWEEP_COUNTERS["rows_deleted_total"] += int(deleted or 0)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("retention counters bump failed: %s", exc)
+
 # v4.00.61 — DB persistence beyond worker lifetime. Each force-refresh /
 # force-rotate click is mirrored to LMSPushGradeAudit with
 # course_id="_diag_action" (matches the established _health_check /
@@ -917,6 +954,13 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
             status=503,
         )
 
+    # v4.00.71 — Bump cumulative preview counter (operator dashboard).
+    _bump_retention_sweep_counter(
+        kind="preview",
+        considered=int(out.get("considered") or 0),
+        deleted=0,  # preview never deletes
+    )
+
     # v4.00.66 — Mint a force-purge token only when the sweep produced a
     # real cutoff (i.e. years > 0 and the table has a row to purge). For
     # retain_forever / errored shapes the token is empty and the HTML
@@ -1030,6 +1074,12 @@ def lms_diagnostics_retention_purge(request: HttpRequest):
         "years": out.get("years", years),
         "token_reason": reason,
     }
+    # v4.00.71 — Bump cumulative purge counter.
+    _bump_retention_sweep_counter(
+        kind="purge",
+        considered=int(summary["considered"] or 0),
+        deleted=int(summary["deleted"] or 0),
+    )
     # Wire into v4.00.61 action-history ring so the purge appears in
     # the operator audit trail alongside force-refresh / force-rotate clicks.
     try:
