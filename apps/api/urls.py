@@ -558,6 +558,10 @@ urlpatterns = [
     path("roster/v1p2/orgs/<str:sourced_id>/", _oneroster.org_detail, name="api-roster-v1p2-org-detail"),
     path("roster/v1p2/schools/", _oneroster.schools, name="api-roster-v1p2-schools"),
     path("roster/v1p2/users/", _oneroster.users, name="api-roster-v1p2-users"),
+    # v4.00.82 Wave 14 T2 — delta surface per spec § 4.13.4 (?modifiedSince=<ISO>
+    # returns active + tombstone rows). Registered BEFORE the
+    # `users/<str:sourced_id>/` catch-all so the literal "delta" segment wins.
+    path("roster/v1p2/users/delta/", _oneroster.users_delta_v1p2, name="api-roster-v1p2-users-delta"),
     path("roster/v1p2/students/", _oneroster.students, name="api-roster-v1p2-students"),
     path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
     # v4.00.77 — staff convenience endpoint (users w/ administrator/staff role).

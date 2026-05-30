@@ -15814,6 +15814,153 @@ COUNTRY_LOCALIZATION["PE-LIM"] = _v4_00_81("PE-LIM","pelim-3-trim","3-trimestre 
 
 
 # ---------------------------------------------------------------------------
+# v4.00.82 (2026-05-30) — +14 subdivisions: RU oblasts/republics (RU-MOS
+#   Moscow Oblast, RU-VLG Volgograd, RU-TA Tatarstan, RU-BA Bashkortostan)
+#   + PL regions (PL-MA Małopolska, PL-WP Wielkopolska) + CZ-72 Olomouc
+#   + AT-3 Niederösterreich + AT-7 Tirol + HU-PE Pest + RO-B Bucharest
+#   + BG-22 Sofia + RS-00 Belgrade + HR-21 Zagreb (Croatia).
+# ---------------------------------------------------------------------------
+def _v4_00_82(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# Moscow Oblast (RU-MOS — different from RU-MOW city).
+COUNTRY_LOCALIZATION["RU-MOS"] = _v4_00_82("RU-MOS","rumos-2-sem","2-semester (Moscow Oblast)",2,["First semester","Second semester"],9,
+    [{"code":"detsky_sad","label":"Detsky sad","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"nachalnaya","label":"Nachalnaya shkola (Cl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"osnovnaya","label":"Osnovnaya shkola (Cl 5-9) + OGE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"srednyaya","label":"Srednyaya shkola (Cl 10-11) + EGE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"MGU + MGIMO + Bauman + MFTI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"rumos-1","label":"Klass 1","order":1},{"code":"rumos-9","label":"Klass 9 + OGE","order":9},{"code":"rumos-11","label":"Klass 11 + EGE","order":11}],
+    {"teacher":"Uchitel","principal":"Direktor","term":"Polugodie","report_card":"Tabel","grade_level":"Klass"})
+
+# Volgograd (RU-VLG).
+COUNTRY_LOCALIZATION["RU-VLG"] = _v4_00_82("RU-VLG","ruvlg-2-sem","2-semester (Volgograd)",2,["First semester","Second semester"],9,
+    [{"code":"detsky_sad","label":"Detsky sad","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"nachalnaya","label":"Nachalnaya shkola (Cl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"osnovnaya","label":"Osnovnaya shkola (Cl 5-9) + OGE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"srednyaya","label":"Srednyaya shkola (Cl 10-11) + EGE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"VolGU + VolGTU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ruvlg-1","label":"Klass 1","order":1},{"code":"ruvlg-11","label":"Klass 11 + EGE","order":11}],
+    {"teacher":"Uchitel","principal":"Direktor","term":"Polugodie","report_card":"Tabel","grade_level":"Klass"})
+
+# Tatarstan (RU-TA).
+COUNTRY_LOCALIZATION["RU-TA"] = _v4_00_82("RU-TA","ruta-2-sem","2-semester (Tatarstan / Kazan)",2,["First semester","Second semester"],9,
+    [{"code":"balalar_bagchasi","label":"Balalar bagchasi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"bashlangich","label":"Bashlangich mektep (Cl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"urtanchirak","label":"Urtanchirak mektep (Cl 5-9) + OGE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"jogary","label":"Jogary mektep (Cl 10-11) + EGE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"KFU + KAI + KGEU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ruta-1","label":"Klass 1","order":1},{"code":"ruta-11","label":"Klass 11 + EGE","order":11}],
+    {"teacher":"Ukytuchy","principal":"Director","term":"Polugodie","report_card":"Tabel","grade_level":"Klass"})
+
+# Bashkortostan (RU-BA).
+COUNTRY_LOCALIZATION["RU-BA"] = _v4_00_82("RU-BA","ruba-2-sem","2-semester (Bashkortostan / Ufa)",2,["First semester","Second semester"],9,
+    [{"code":"baqsa","label":"Baqsa","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"bashlangis","label":"Bashlangis maktap (Cl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"urta","label":"Urta maktap (Cl 5-9) + OGE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"yugary","label":"Yugary maktap (Cl 10-11) + EGE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"BashGU + UGNTU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ruba-1","label":"Klass 1","order":1},{"code":"ruba-11","label":"Klass 11 + EGE","order":11}],
+    {"teacher":"Uqytysy","principal":"Direktor","term":"Polugodie","report_card":"Tabel","grade_level":"Klass"})
+
+# Małopolska — Krakow (PL-MA).
+COUNTRY_LOCALIZATION["PL-MA"] = _v4_00_82("PL-MA","plma-2-sem","2-semester (Małopolskie / Kraków)",2,["I semestr","II semestr"],9,
+    [{"code":"przedszkole","label":"Przedszkole","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"podstawowa","label":"Szkoła podstawowa (Kl 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-14"},
+     {"code":"liceum","label":"Liceum (Kl 1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"UJ + AGH + PK Krakow + UEK","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"plma-1","label":"Klasa 1","order":1},{"code":"plma-12","label":"Liceum 4 + Matura","order":12}],
+    {"teacher":"Nauczyciel","principal":"Dyrektor","term":"Semestr","report_card":"Świadectwo","grade_level":"Klasa"})
+
+# Wielkopolska — Poznań (PL-WP).
+COUNTRY_LOCALIZATION["PL-WP"] = _v4_00_82("PL-WP","plwp-2-sem","2-semester (Wielkopolskie / Poznań)",2,["I semestr","II semestr"],9,
+    [{"code":"przedszkole","label":"Przedszkole","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"podstawowa","label":"Szkoła podstawowa (Kl 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-14"},
+     {"code":"liceum","label":"Liceum (Kl 1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"UAM + PUT + UMP Poznań","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"plwp-1","label":"Klasa 1","order":1},{"code":"plwp-12","label":"Liceum 4 + Matura","order":12}],
+    {"teacher":"Nauczyciel","principal":"Dyrektor","term":"Semestr","report_card":"Świadectwo","grade_level":"Klasa"})
+
+# Olomouc (CZ-72).
+COUNTRY_LOCALIZATION["CZ-72"] = _v4_00_82("CZ-72","cz72-2-sem","2-semester (Olomoucký kraj)",2,["I. pololetí","II. pololetí"],9,
+    [{"code":"materska","label":"Mateřská škola","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"zakladni","label":"Základní škola (Tř 1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"stredni","label":"Střední (Tř 1-4) + Maturita","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"UP Olomouc + VŠB-TUO","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"cz72-1","label":"Třída 1","order":1},{"code":"cz72-13","label":"Maturita","order":13}],
+    {"teacher":"Učitel","principal":"Ředitel","term":"Pololetí","report_card":"Vysvědčení","grade_level":"Třída"})
+
+# Niederösterreich (AT-3).
+COUNTRY_LOCALIZATION["AT-3"] = _v4_00_82("AT-3","at3-2-sem","2-semester (Niederösterreich / Matura)",2,["1. Semester","2. Semester"],9,
+    [{"code":"kindergarten","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"volksschule","label":"Volksschule (Kl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"mittelschule","label":"Mittelschule (Kl 5-8)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-13"},
+     {"code":"gymnasium","label":"Gymnasium (Kl 5-12) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"10-17"},
+     {"code":"university","label":"BOKU + FH Krems + Donau-Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"at3-1","label":"Klasse 1","order":1},{"code":"at3-12","label":"Klasse 12 + Matura","order":12}],
+    {"teacher":"Lehrer","principal":"Direktor","term":"Semester","report_card":"Zeugnis","grade_level":"Klasse"})
+
+# Tirol (AT-7).
+COUNTRY_LOCALIZATION["AT-7"] = _v4_00_82("AT-7","at7-2-sem","2-semester (Tirol / Innsbruck Matura)",2,["1. Semester","2. Semester"],9,
+    [{"code":"kindergarten","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"volksschule","label":"Volksschule (Kl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"mittelschule","label":"Mittelschule (Kl 5-8)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-13"},
+     {"code":"gymnasium","label":"Gymnasium (Kl 5-12) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"10-17"},
+     {"code":"university","label":"Univ Innsbruck + MUI + MCI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"at7-1","label":"Klasse 1","order":1},{"code":"at7-12","label":"Klasse 12 + Matura","order":12}],
+    {"teacher":"Lehrer","principal":"Direktor","term":"Semester","report_card":"Zeugnis","grade_level":"Klasse"})
+
+# Pest (HU-PE).
+COUNTRY_LOCALIZATION["HU-PE"] = _v4_00_82("HU-PE","hupe-2-sem","2-semester (Pest megye / Budapest)",2,["I. félév","II. félév"],9,
+    [{"code":"ovoda","label":"Óvoda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"altalanos","label":"Általános iskola (Évf 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"kozepiskola","label":"Középiskola (Évf 9-12) + Érettségi","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"university","label":"ELTE + BME + Corvinus + SZTE","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"hupe-1","label":"1. évf","order":1},{"code":"hupe-12","label":"12. évf + Érettségi","order":12}],
+    {"teacher":"Tanár","principal":"Igazgató","term":"Félév","report_card":"Bizonyítvány","grade_level":"Évfolyam"})
+
+# Bucharest (RO-B).
+COUNTRY_LOCALIZATION["RO-B"] = _v4_00_82("RO-B","rob-2-sem","2-semester (București / Bacalaureat)",2,["Semestrul I","Semestrul II"],9,
+    [{"code":"gradinita","label":"Grădiniță","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"primar","label":"Învățământ primar (Cl 0-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"gimnaziu","label":"Gimnaziu (Cl 5-8) + EN","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"liceu","label":"Liceu (Cl 9-12) + Bacalaureat","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"UB + UPB + ASE + UMF","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"rob-1","label":"Clasa 1","order":1},{"code":"rob-12","label":"Clasa 12 + Bacalaureat","order":12}],
+    {"teacher":"Profesor","principal":"Director","term":"Semestru","report_card":"Foaie matricolă","grade_level":"Clasa"})
+
+# Sofia city (BG-22).
+COUNTRY_LOCALIZATION["BG-22"] = _v4_00_82("BG-22","bg22-2-sem","2-semester (Sofia / Matura)",2,["Първи срок","Втори срок"],9,
+    [{"code":"detska","label":"Детска градина","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"nachalna","label":"Начален етап (Кл 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"prog","label":"Прогимназиален етап (Кл 5-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"gimnaziya","label":"Гимназия (Кл 8-12) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"university","label":"SU + TU-Sofia + UNSS + MU-Sofia","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"bg22-1","label":"Клас 1","order":1},{"code":"bg22-12","label":"Клас 12 + Matura","order":12}],
+    {"teacher":"Учител","principal":"Директор","term":"Срок","report_card":"Свидетелство","grade_level":"Клас"})
+
+# Belgrade (RS-00).
+COUNTRY_LOCALIZATION["RS-00"] = _v4_00_82("RS-00","rs00-2-sem","2-semester (Beograd / Matura)",2,["Prvo polugodište","Drugo polugodište"],9,
+    [{"code":"vrtic","label":"Vrtić","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"osnovna","label":"Osnovna škola (Razred 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-14"},
+     {"code":"srednja","label":"Srednja škola (Razred 1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"BG + ETF + FON Belgrade","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"rs00-1","label":"Razred 1","order":1},{"code":"rs00-12","label":"Razred 12 + Matura","order":12}],
+    {"teacher":"Nastavnik","principal":"Direktor","term":"Polugodište","report_card":"Svedočanstvo","grade_level":"Razred"})
+
+# Zagreb (HR-21).
+COUNTRY_LOCALIZATION["HR-21"] = _v4_00_82("HR-21","hr21-2-sem","2-semester (Zagreb / Matura)",2,["Prvo polugodište","Drugo polugodište"],9,
+    [{"code":"vrtic","label":"Vrtić","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"osnovna","label":"Osnovna škola (Razred 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-14"},
+     {"code":"srednja","label":"Srednja škola (Razred 1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"Univ Zagreb + RIT-Croatia + FER","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"hr21-1","label":"Razred 1","order":1},{"code":"hr21-12","label":"Razred 12 + Matura","order":12}],
+    {"teacher":"Nastavnik","principal":"Ravnatelj","term":"Polugodište","report_card":"Svjedodžba","grade_level":"Razred"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

@@ -78,6 +78,8 @@ _DEMOGRAPHIC_OVERRIDE_FIELDS = (
     "preferredLastName",  # v4.00.80
     "previousLastName",  # v4.00.81
     "previousMiddleName",  # v4.00.81
+    "gradeLevels",  # v4.00.82
+    "subjectCodes",  # v4.00.82
 )
 
 
@@ -87,10 +89,13 @@ def _set_demographic_overrides(sid: str, payload: dict[str, Any]) -> None:
         kept: dict[str, str] = {}
         for k in _DEMOGRAPHIC_OVERRIDE_FIELDS:
             if k in payload:
-                # v4.00.79: cap widened 64->120 to accommodate longer tribal
-                # affiliation names ("Confederated Tribes of the Coos Lower
-                # Umpqua and Siuslaw Indians" = 65 chars).
-                kept[k] = str(payload.get(k) or "")[:120]
+                val = payload.get(k)
+                # v4.00.82: list/tuple values get comma-joined for clean
+                # readback (gradeLevels=[09,10,11,12] -> "09,10,11,12").
+                if isinstance(val, (list, tuple)):
+                    val = ",".join(str(s).strip() for s in val if str(s).strip())
+                # v4.00.79: cap widened 64->120 for tribal affiliation names.
+                kept[k] = str(val or "")[:120]
         if kept:
             _DEMOGRAPHIC_OVERRIDES[sid] = kept
             if len(_DEMOGRAPHIC_OVERRIDES) > _DEMOGRAPHIC_OVERRIDES_CAP:
@@ -457,6 +462,12 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_previous_names(inner)
     if err is not None:
         return None, err
+    err = _validate_grade_levels(inner)
+    if err is not None:
+        return None, err
+    err = _validate_subject_codes(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -821,6 +832,111 @@ def _validate_previous_names(inner: dict[str, Any]):
                 {"error": "bad_previous_name",
                  "reason": "control_chars",
                  "field": field},
+                status=400,
+            )
+    return None
+
+
+# v4.00.82 — Demographics POST/PUT `gradeLevels` array (CEDS grade levels).
+#
+# CEDS grade-level vocab: IT (infant/toddler), PK (pre-K), KG (kindergarten),
+# 01..12 (grades 1-12), 13 (grade 13 — common in UK/CA), PS (post-secondary),
+# UG (ungraded), AE (adult ed). Accept comma-separated string OR JSON array.
+# Empty input = explicit clear.
+_GRADE_LEVEL_VOCAB = frozenset((
+    "IT", "PK", "KG",
+    "01", "02", "03", "04", "05", "06",
+    "07", "08", "09", "10", "11", "12", "13",
+    "PS", "UG", "AE",
+))
+_GRADE_LEVELS_MAX_ITEMS = 13
+
+
+def _validate_grade_levels(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "gradeLevels" not in inner:
+        return None
+    raw = inner.get("gradeLevels")
+    if raw is None or raw == "" or raw == []:
+        return None  # explicit clear
+    if isinstance(raw, str):
+        items = [s.strip().upper() for s in raw.split(",") if s.strip()]
+    elif isinstance(raw, (list, tuple)):
+        items = [str(s).strip().upper() for s in raw if str(s).strip()]
+    else:
+        return JsonResponse(
+            {"error": "bad_grade_levels",
+             "reason": "expected_list_or_csv"},
+            status=400,
+        )
+    if len(items) > _GRADE_LEVELS_MAX_ITEMS:
+        return JsonResponse(
+            {"error": "bad_grade_levels",
+             "reason": "too_many_items",
+             "received_count": len(items),
+             "max_count": _GRADE_LEVELS_MAX_ITEMS},
+            status=400,
+        )
+    for level in items:
+        if level not in _GRADE_LEVEL_VOCAB:
+            return JsonResponse(
+                {"error": "bad_grade_levels",
+                 "reason": "value_not_in_ceds_vocab",
+                 "received": level[:8],
+                 "allowed_sample": sorted(_GRADE_LEVEL_VOCAB)[:6] + ["..."]},
+                status=400,
+            )
+    return None
+
+
+# v4.00.82 — Demographics POST/PUT `subjectCodes` array (SCED course-area codes).
+#
+# SCED 4-digit course codes (e.g. "01001" English/Language Arts, "02001"
+# Math/Algebra). Free-form here: cap length per code at 20 chars (CEDS
+# allows extended codes); cap array at 30 items; reject control chars.
+_SUBJECT_CODE_MAX_LEN = 20
+_SUBJECT_CODES_MAX_ITEMS = 30
+_SUBJECT_CODE_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_subject_codes(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "subjectCodes" not in inner:
+        return None
+    raw = inner.get("subjectCodes")
+    if raw is None or raw == "" or raw == []:
+        return None  # explicit clear
+    if isinstance(raw, str):
+        items = [s.strip() for s in raw.split(",") if s.strip()]
+    elif isinstance(raw, (list, tuple)):
+        items = [str(s).strip() for s in raw if str(s).strip()]
+    else:
+        return JsonResponse(
+            {"error": "bad_subject_codes",
+             "reason": "expected_list_or_csv"},
+            status=400,
+        )
+    if len(items) > _SUBJECT_CODES_MAX_ITEMS:
+        return JsonResponse(
+            {"error": "bad_subject_codes",
+             "reason": "too_many_items",
+             "received_count": len(items),
+             "max_count": _SUBJECT_CODES_MAX_ITEMS},
+            status=400,
+        )
+    for code in items:
+        if len(code) > _SUBJECT_CODE_MAX_LEN:
+            return JsonResponse(
+                {"error": "bad_subject_codes",
+                 "reason": "code_too_long",
+                 "received_length": len(code),
+                 "max_length": _SUBJECT_CODE_MAX_LEN},
+                status=400,
+            )
+        if _SUBJECT_CODE_CONTROL_RE.search(code):
+            return JsonResponse(
+                {"error": "bad_subject_codes",
+                 "reason": "control_chars"},
                 status=400,
             )
     return None

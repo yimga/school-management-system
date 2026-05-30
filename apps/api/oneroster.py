@@ -488,3 +488,172 @@ def academic_session_detail(request, sourced_id: str):
             return JsonResponse({"academicSession": s})
     return JsonResponse({"error": "academic_session_not_found",
                          "sourcedId": str(sourced_id)}, status=404)
+
+
+# ----- v4.00.82 Wave 14 T2: delta endpoint w/ tombstones ------------------
+
+
+def _parse_modified_since(raw: str):
+    """Parse an ISO-8601 timestamp from the ``?modifiedSince=`` query param.
+
+    Accepts the same shapes as v4.00.62 ``_parse_window_iso``:
+    ``YYYY-MM-DD``, ``YYYY-MM-DDTHH:MM:SS``, trailing ``Z`` or ``+00:00``,
+    naive (UTC-assumed).  Returns a tz-aware ``datetime`` on success, or
+    ``None`` on unparseable input.
+    """
+    from datetime import datetime, timezone
+
+    if not raw:
+        return None
+    text = str(raw).strip()
+    if not text:
+        return None
+    # Accept trailing Z as UTC.
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    # Date-only shorthand.
+    try:
+        if len(text) == 10 and text[4] == "-" and text[7] == "-":
+            dt = datetime.strptime(text, "%Y-%m-%d")
+            return dt.replace(tzinfo=timezone.utc)
+    except (ValueError, TypeError):
+        pass
+    try:
+        dt = datetime.fromisoformat(text)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except (ValueError, TypeError):
+        return None
+
+
+def _iter_users_delta(modified_since):
+    """v4.00.82 — Iterate User rows with ``dateLastModified`` projected from
+    the best-available timestamp on AbstractUser (``last_login`` falls back
+    to ``date_joined``).  Yields two streams: active rows where
+    ``dateLastModified > modified_since`` and tombstone rows where the user
+    has been soft-deleted (``is_active=False``) since that moment.
+
+    Tombstone honesty note:
+      The Django AbstractUser model exposes ``is_active`` as a hard boolean
+      but does NOT carry a dedicated "deactivated_at" column.  We synthesize
+      tombstones by treating ``is_active=False`` rows as soft-deletes and
+      use ``last_login`` (falling back to ``date_joined``) as the
+      best-available proxy for ``dateLastModified``.  Hard deletes (rows
+      removed via ``Model.delete()``) leave no audit trail and CANNOT
+      produce tombstones — this is a known spec limitation per IMS v1.2
+      § 4.13.4 and is documented here rather than faked.
+    """
+    try:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        qs = User.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+        for u in qs[:1000]:
+            # Best-available modification anchor on AbstractUser.
+            anchor = getattr(u, "last_login", None) or getattr(u, "date_joined", None)
+            if anchor is not None and hasattr(anchor, "isoformat"):
+                anchor_iso = anchor.isoformat()
+            else:
+                anchor_iso = ""
+            # Filter: only emit rows changed AFTER modified_since.
+            if modified_since is not None and anchor is not None:
+                try:
+                    if anchor <= modified_since:
+                        continue
+                except TypeError:
+                    # Naive vs tz-aware compare — coerce to UTC.
+                    from datetime import timezone as _tz
+                    a = anchor if anchor.tzinfo else anchor.replace(tzinfo=_tz.utc)
+                    if a <= modified_since:
+                        continue
+            is_active = bool(getattr(u, "is_active", True))
+            if not is_active:
+                # Tombstone projection per IMS v1.2 § 4.13.4 — minimal shape
+                # so consumers can flip their local mirror without leaking
+                # PII of a deactivated row.
+                yield {
+                    "sourcedId": str(u.pk),
+                    "status": "tobedeleted",
+                    "dateLastModified": anchor_iso,
+                }
+                continue
+            # Active row — full projection, mirrors _iter_users + dateLastModified.
+            role = "student"
+            raw_role = str(getattr(u, "role", "") or "").lower()
+            if "teacher" in raw_role:
+                role = "teacher"
+            elif "admin" in raw_role or getattr(u, "is_staff", False):
+                role = "administrator"
+            yield {
+                "sourcedId": str(u.pk),
+                "status": "active",
+                "dateLastModified": anchor_iso,
+                "username": getattr(u, "username", "") or "",
+                "givenName": getattr(u, "first_name", "") or "",
+                "familyName": getattr(u, "last_name", "") or "",
+                "email": getattr(u, "email", "") or "",
+                "role": role,
+            }
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oneroster users delta: user model not iterable: %s", exc)
+
+
+@require_http_methods(["GET"])
+def users_delta_v1p2(request):
+    """v4.00.82 Wave 14 T2 — Delta surface per OneRoster v1.2 § 4.13.4
+    ("Pagination and updates").
+
+    Required: ``?modifiedSince=<ISO>``.  Returns both:
+      * Active rows where ``dateLastModified > modifiedSince`` (added or
+        modified since the client's last sync).
+      * Tombstone rows ``{sourcedId, status:"tobedeleted", dateLastModified}``
+        for users whose ``is_active`` flag flipped to ``False`` since that
+        moment.
+
+    Optional: ``?limit=`` / ``?offset=`` paginate the combined stream.
+
+    Honest deferred:
+      Hard deletes (``Model.delete()``) leave no audit trail on the
+      AbstractUser table and CANNOT produce tombstones — this is a known
+      spec limitation. The tombstone half is synthesized from
+      ``is_active=False`` rows using ``last_login`` / ``date_joined`` as
+      the modification anchor.  When the project later adds a dedicated
+      soft-delete column the filter narrows automatically.
+
+    Response headers:
+      ``X-Total-Count``: active + tombstone combined (before pagination).
+      ``X-Active-Count``: active rows that passed the modifiedSince filter.
+      ``X-Tombstone-Count``: tombstone rows that passed the filter.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+
+    raw_since = (request.GET.get("modifiedSince") or "").strip()
+    if not raw_since:
+        return JsonResponse(
+            {"error": "missing_param", "param": "modifiedSince"},
+            status=400,
+        )
+    modified_since = _parse_modified_since(raw_since)
+    if modified_since is None:
+        return JsonResponse(
+            {
+                "error": "bad_modified_since",
+                "param": "modifiedSince",
+                "value": raw_since,
+            },
+            status=400,
+        )
+
+    items = list(_iter_users_delta(modified_since))
+    active_count = sum(1 for it in items if it.get("status") == "active")
+    tombstone_count = sum(1 for it in items if it.get("status") == "tobedeleted")
+    page, meta = _paginate(request, items)
+    resp = JsonResponse({"users": page})
+    resp["X-Total-Count"] = str(meta["totalCount"])
+    resp["X-Limit"] = str(meta["limit"])
+    resp["X-Offset"] = str(meta["offset"])
+    resp["X-Active-Count"] = str(active_count)
+    resp["X-Tombstone-Count"] = str(tombstone_count)
+    return resp

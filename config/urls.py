@@ -1697,6 +1697,22 @@ urlpatterns = [
     path("help/", lambda request: redirect("public_support_hub"), name="manager_help"),
 ]
 
+# v4.00.82 Wave 14 T4 — Parallel Prometheus scrape endpoint for the LMS
+# OAuth metrics module (apps.integrations_marketplace.lms_oauth_metrics).
+# Lives ALONGSIDE the v3.39.0 /metrics/ endpoint (separate scrape job
+# per the wiring-decision note in the module).
+from apps.integrations_marketplace.views_oauth_metrics import (  # noqa: E402
+    lms_oauth_metrics_text,
+)
+
+urlpatterns += [
+    path(
+        "lms-oauth-metrics/",
+        lms_oauth_metrics_text,
+        name="metrics-lms-oauth-text",
+    ),
+]
+
 # v3.39.0 Agent 4 — Prometheus scrape endpoint (lazy include).
 if _OBSERVABILITY_PROM_BACKEND:
     from apps.observability.views_metrics import PrometheusMetricsView  # noqa: E402

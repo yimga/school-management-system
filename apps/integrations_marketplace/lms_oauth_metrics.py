@@ -70,3 +70,90 @@ def reset_oauth_metrics() -> None:
     """Test-only helper. tenant-isolation-allow: process-singleton-metrics-reset."""
     with _LOCK:
         _OAUTH_METRICS.clear()
+
+
+# v4.00.82 — Prometheus text-exposition export.
+#
+# Returns the OpenMetrics 0.0.4 text format documented at
+# https://prometheus.io/docs/instrumenting/exposition_formats/.
+# Metric names follow ``rmc_lms_oauth_refresh_*`` convention so they
+# coexist cleanly with the platform's other Prometheus surface
+# (apps.observability.metrics, v3.39.0).
+#
+# WIRING DECISION: ``apps.observability.views_metrics.PrometheusMetricsView``
+# already serves ``/metrics/`` via ``prometheus_client.generate_latest()``
+# against the default ``prometheus_client`` registry. Cross-registry
+# mixing (registering our singletons into that registry from a separate
+# module) is fragile across process restarts / test isolation, so v4.00.82
+# parks our LMS OAuth metrics on a PARALLEL endpoint
+# (``/lms-oauth-metrics/``, URL name ``metrics-lms-oauth-text``) per the
+# Wave 14 docket's "safer path" guidance. The existing scrape view is
+# untouched. Operators add a second Prometheus scrape job pointing at the
+# new endpoint.
+#
+# Snapshot shape note: v4.00.77's ``get_oauth_metrics_snapshot()`` uses
+# the keys ``attempts`` / ``ok`` / ``failed`` (NOT ``successes`` /
+# ``failures``). The Prometheus metric NAMES still follow the
+# canonical ``_successes_total`` / ``_failures_total`` convention so
+# downstream dashboards read naturally — only the dict-key extraction
+# is mapped.
+_PROM_NAMESPACE = "rmc_lms_oauth"
+
+
+def render_prometheus_metrics() -> str:
+    """Return the LMS OAuth metrics in Prometheus text-exposition format.
+
+    Never raises — returns a comment-only string on failure so the
+    /metrics/ endpoint can serve it without a 500.
+    """
+    try:
+        snap = get_oauth_metrics_snapshot()
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oauth metrics snapshot for prom export failed: %s", exc)
+        return (
+            "# HELP rmc_lms_oauth_snapshot_error 1 = snapshot failed\n"
+            "# TYPE rmc_lms_oauth_snapshot_error gauge\n"
+            "rmc_lms_oauth_snapshot_error 1\n"
+        )
+
+    lines: list[str] = []
+    # Attempts counter (cumulative since process start / last reset).
+    lines.append(
+        "# HELP rmc_lms_oauth_refresh_attempts_total OAuth refresh attempts by provider."
+    )
+    lines.append("# TYPE rmc_lms_oauth_refresh_attempts_total counter")
+    for provider, row in sorted(snap.items()):
+        attempts = int(row.get("attempts", 0))
+        lines.append(
+            f'rmc_lms_oauth_refresh_attempts_total{{provider="{_escape_label(provider)}"}} {attempts}'
+        )
+
+    # Successes — v4.00.77 snapshot exposes this as the "ok" key.
+    lines.append(
+        "# HELP rmc_lms_oauth_refresh_successes_total OAuth refresh successes by provider."
+    )
+    lines.append("# TYPE rmc_lms_oauth_refresh_successes_total counter")
+    for provider, row in sorted(snap.items()):
+        successes = int(row.get("ok", row.get("successes", 0)))
+        lines.append(
+            f'rmc_lms_oauth_refresh_successes_total{{provider="{_escape_label(provider)}"}} {successes}'
+        )
+
+    # Failures — v4.00.77 snapshot exposes this as the "failed" key.
+    lines.append(
+        "# HELP rmc_lms_oauth_refresh_failures_total OAuth refresh failures by provider."
+    )
+    lines.append("# TYPE rmc_lms_oauth_refresh_failures_total counter")
+    for provider, row in sorted(snap.items()):
+        failures = int(row.get("failed", row.get("failures", 0)))
+        lines.append(
+            f'rmc_lms_oauth_refresh_failures_total{{provider="{_escape_label(provider)}"}} {failures}'
+        )
+
+    return "\n".join(lines) + "\n"
+
+
+def _escape_label(value: str) -> str:
+    """Escape a Prometheus label value per text-exposition spec
+    (backslash, double-quote, newline)."""
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
