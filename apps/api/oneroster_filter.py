@@ -25,10 +25,18 @@ otherwise have to repeat the same field across OR chains. Empty list
 ``IN()`` is fail-safe (always-False — set membership with no elements
 matches nothing).
 
+v4.00.84 — Added SQL-style ``field IS NULL`` and ``field IS NOT NULL``
+predicates. Per IMS spec § 4.13 a field is NULL when it is either Python
+``None`` OR the empty string ``""`` (absent + cleared are equivalent).
+The ``IS`` / ``NULL`` keywords are matched case-insensitively at the
+tokenizer (operator-friendly — URLs in the wild lowercase routinely).
+
   expression ::= term ( OR term )*
   term       ::= factor ( AND factor )*
   factor     ::= 'NOT' factor | predicate | '(' expression ')'
   predicate  ::= field comparison_op 'value'
+                 | field 'IS' 'NULL'
+                 | field 'IS' 'NOT' 'NULL'
                  | field 'IN' '(' 'value' (',' 'value')* ')'
 
 The ``~`` operator is "contains" (case-insensitive substring match).
@@ -63,13 +71,14 @@ logger = logging.getLogger(__name__)
 _COMPARISON_OPS = ("!=", ">=", "<=", "=", ">", "<", "~")
 
 # Tokenizer regex: match either a single-quoted string (with backslash escape),
-# an AND/OR keyword (case-sensitive per spec), a comparison op, parens (v4.00.67),
-# or a bare ident.
+# an AND/OR/NOT/IN keyword (case-sensitive per spec for AND/OR; NOT/IN/IS/NULL
+# are also matched case-insensitively below so URL-shaped expressions work in
+# the wild), a comparison op, parens (v4.00.67), or a bare ident.
 _TOKEN_RE = re.compile(
     r"""
     \s+                                    # whitespace (consumed but skipped)
     | '(?:\\.|[^'\\])*'                    # single-quoted string literal
-    | \b(?:AND|OR|NOT|IN)\b                # boolean keyword + IN (v4.00.69)
+    | \b(?:AND|OR|NOT|IN|IS|NULL)\b        # boolean keyword + IN (v4.00.69) + IS/NULL (v4.00.84)
     | !=|>=|<=|[=<>~]                      # comparison op
     | [(),]                                # parens (v4.00.67) + comma (v4.00.69)
     | [A-Za-z_][A-Za-z0-9_.]*              # identifier (field name)
@@ -77,9 +86,21 @@ _TOKEN_RE = re.compile(
     re.VERBOSE,
 )
 
+# v4.00.84 — Keywords that are case-insensitive at the parser level. Tokens
+# matching one of these (after .upper()) are normalized to the canonical
+# uppercase form before parser dispatch. AND/OR remain case-sensitive per
+# spec § 4.13 (already-existing behaviour, unchanged).
+_CI_KEYWORDS = frozenset({"NOT", "IN", "IS", "NULL"})
+
 
 def _tokenize(expr: str) -> list[str]:
-    """Lex into tokens; whitespace dropped, quoted strings preserved with quotes."""
+    """Lex into tokens; whitespace dropped, quoted strings preserved with quotes.
+
+    Case-insensitive keywords (NOT/IN/IS/NULL) are normalized to upper-case
+    so downstream parser comparisons can use a single canonical form. AND/OR
+    are NOT normalized — they're already matched case-sensitively by the
+    tokenizer regex per IMS spec § 4.13.
+    """
     out = []
     pos = 0
     while pos < len(expr):
@@ -90,6 +111,12 @@ def _tokenize(expr: str) -> list[str]:
         pos = m.end()
         if tok.strip() == "":
             continue
+        # v4.00.84 — Normalize case-insensitive keywords so the parser can
+        # compare against the canonical UPPER form. A bareword that upper-
+        # cases to a known keyword (e.g. ``is`` -> ``IS``) is treated as
+        # that keyword regardless of input casing.
+        if tok.upper() in _CI_KEYWORDS:
+            tok = tok.upper()
         out.append(tok)
     return out
 
@@ -151,12 +178,17 @@ class _ParseError(Exception):
 class _Parser:
     """v4.00.67 — Recursive-descent parser with paren support.
     v4.00.68 — Added NOT unary operator (tighter precedence than AND/OR).
+    v4.00.69 — Added ``field IN(...)`` list-membership predicate.
+    v4.00.84 — Added ``field IS NULL`` and ``field IS NOT NULL`` predicates.
 
     Grammar:
       expression ::= term ( OR term )*
       term       ::= factor ( AND factor )*
       factor     ::= 'NOT' factor | predicate | '(' expression ')'
       predicate  ::= field comparison_op 'value'
+                   | field 'IS' 'NULL'
+                   | field 'IS' 'NOT' 'NULL'
+                   | field 'IN' '(' 'value' (',' 'value')* ')'
     """
 
     def __init__(self, tokens: list[str]):
@@ -212,12 +244,15 @@ class _Parser:
         if self.pos + 2 >= len(self.tokens) + 1:
             raise _ParseError("truncated_predicate")
         field = self._consume()
-        if field in ("AND", "OR", "NOT", "IN", "(", ")", ",") or field in _COMPARISON_OPS:
+        if field in ("AND", "OR", "NOT", "IN", "IS", "NULL", "(", ")", ",") or field in _COMPARISON_OPS:
             raise _ParseError(f"expected_field_got_{field!r}")
         op = self._consume()
         # v4.00.69 — Special-case IN(list-of-literals).
         if op == "IN":
             return self._parse_in_list(field)
+        # v4.00.84 — Special-case ``IS NULL`` / ``IS NOT NULL``.
+        if op == "IS":
+            return self._parse_is_null(field)
         if op not in _COMPARISON_OPS:
             raise _ParseError(f"expected_comparison_op_got_{op!r}")
         lit_tok = self._consume()
@@ -225,6 +260,37 @@ class _Parser:
             raise _ParseError(f"expected_quoted_literal_got_{lit_tok!r}")
         lit = _unquote_literal(lit_tok)
         return _make_pred(field, op, lit)
+
+    def _parse_is_null(self, field: str) -> Callable[[dict], bool]:
+        """v4.00.84 — Parse ``IS NULL`` or ``IS NOT NULL`` after the field token.
+
+        Per IMS Roster Service spec § 4.13, NULL is equivalent to both
+        Python ``None`` AND the empty string ``""`` — absent and explicitly
+        cleared values are treated identically.
+
+        Tokens already consumed: field, 'IS'. Now expect either:
+          - 'NULL'                  -> truthy when row is null/empty
+          - 'NOT' 'NULL'            -> complement
+        """
+        nxt = self._peek()
+        if nxt == "NULL":
+            self._consume()
+            def is_null(row: dict, field=field) -> bool:
+                v = row.get(field)
+                return v is None or v == ""
+            return is_null
+        if nxt == "NOT":
+            self._consume()
+            if self._peek() != "NULL":
+                raise _ParseError(
+                    f"expected_NULL_after_IS_NOT_got_{self._peek()!r}"
+                )
+            self._consume()
+            def is_not_null(row: dict, field=field) -> bool:
+                v = row.get(field)
+                return not (v is None or v == "")
+            return is_not_null
+        raise _ParseError(f"expected_NULL_or_NOT_after_IS_got_{nxt!r}")
 
     def _parse_in_list(self, field: str) -> Callable[[dict], bool]:
         """v4.00.69 — Parse `IN('a','b','c')` -> set-membership predicate.

@@ -219,3 +219,90 @@ def decode_pki_bundle_csv(blob: bytes) -> str:
     """Inverse of render_pki_bundle_csv — returns the CSV text. Helper
     for tests + operators who downloaded the file."""
     return gzip.decompress(blob).decode("utf-8")
+
+
+# v4.00.84 — Import + validate counterparts to build/export.
+
+class PKIBundleImportError(Exception):
+    """Raised when a bundle import cannot proceed."""
+
+
+def import_pki_bundle(blob: bytes | str) -> dict:
+    """Reverse of build_lms_pki_bundle()+json.dumps. Accepts either
+    bytes (utf-8 JSON) or a str.
+
+    Raises PKIBundleImportError on:
+      - Non-JSON input
+      - JSON that is not a dict
+      - Missing required top-level keys (providers, schema_version)
+    """
+    if isinstance(blob, bytes):
+        try:
+            text = blob.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise PKIBundleImportError(f"bad_encoding: {exc}") from exc
+    elif isinstance(blob, str):
+        text = blob
+    else:
+        raise PKIBundleImportError("expected_bytes_or_str")
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise PKIBundleImportError(f"bad_json: {exc.msg}") from exc
+    if not isinstance(parsed, dict):
+        raise PKIBundleImportError("not_a_dict")
+    for required in ("providers", "schema_version"):
+        if required not in parsed:
+            raise PKIBundleImportError(f"missing_required_key:{required}")
+    return parsed
+
+
+def validate_pki_bundle(bundle: dict, *, expected_fingerprint: str | None = None) -> dict:
+    """Structural + (optional) tamper validation. Returns
+    {"ok": bool, "issues": [str, ...], "fingerprint": str}.
+    NEVER raises.
+
+    Issues collected:
+      - missing_required_key:<name>
+      - bad_type:<name>
+      - provider_missing_slug
+      - provider_invalid_label
+      - schema_version_drift (if expected_fingerprint passed and current
+        bundle fingerprint doesn't match)
+      - fingerprint_mismatch:expected=<e>,actual=<a> (if expected_fingerprint
+        given and doesn't match)
+    """
+    issues: list[str] = []
+    fp = ""
+    try:
+        if not isinstance(bundle, dict):
+            return {"ok": False, "issues": ["not_a_dict"], "fingerprint": ""}
+        for required in ("providers", "schema_version", "beats_in_use"):
+            if required not in bundle:
+                issues.append(f"missing_required_key:{required}")
+        if "providers" in bundle and not isinstance(bundle["providers"], list):
+            issues.append("bad_type:providers")
+        for prov in bundle.get("providers", []):
+            if not isinstance(prov, dict):
+                issues.append("bad_type:provider_row")
+                continue
+            if not prov.get("slug"):
+                issues.append("provider_missing_slug")
+            label = prov.get("label", "")
+            if not isinstance(label, str) or not label.strip():
+                issues.append("provider_invalid_label")
+        try:
+            fp = bundle_fingerprint(bundle)
+        except Exception as exc:  # noqa: BLE001
+            issues.append(f"fingerprint_error:{type(exc).__name__}")
+        if expected_fingerprint is not None and fp and expected_fingerprint != fp:
+            issues.append(f"fingerprint_mismatch:expected={expected_fingerprint},actual={fp}")
+    except Exception as exc:  # noqa: BLE001
+        issues.append(f"validation_error:{type(exc).__name__}")
+    return {"ok": len(issues) == 0, "issues": issues, "fingerprint": fp}
+
+
+def export_pki_bundle_json(bundle: dict) -> bytes:
+    """Canonical JSON serialization for round-trip safety. Same shape as
+    bundle_fingerprint() uses internally — sort_keys + compact separators."""
+    return json.dumps(bundle, sort_keys=True, separators=(",", ":")).encode("utf-8")

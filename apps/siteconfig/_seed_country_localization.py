@@ -16093,6 +16093,113 @@ COUNTRY_LOCALIZATION["EC-P"] = _v4_00_83("EC-P","ecp-2-sem","2-semester (Pichinc
 
 
 # ---------------------------------------------------------------------------
+# v4.00.84 (2026-05-30) — +14 subdivisions: JP rest (JP-24 Mie, JP-26 Kyoto,
+#   JP-27 Osaka, JP-33 Okayama, JP-35 Yamaguchi, JP-38 Ehime) + CN-HE Hebei
+#   + KR-26 Busan + KR-31 Ulsan + ID-JK Jakarta + PH-CDO Cagayan de Oro
+#   + TH-83 Phuket + MM-06 Yangon Region + LK-1 Western (Colombo).
+# ---------------------------------------------------------------------------
+def _v4_00_84(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# Compact JP bulk: 6 prefectures all use standard 3-term primary/chu/kou ladder.
+_jp_84_specs = (
+    ("JP-24","Mie","Mie Univ"),
+    ("JP-26","Kyoto / Daigaku Nyushi","Kyoto Univ + Doshisha + Ritsumeikan + KUFS"),
+    ("JP-27","Osaka / Daigaku Nyushi","Osaka Univ + Kyoto Univ + Osaka Pref + Osaka City Univ + Kansai Univ"),
+    ("JP-33","Okayama","Okayama Univ + Kawasaki Med"),
+    ("JP-35","Yamaguchi","Yamaguchi Univ"),
+    ("JP-38","Ehime","Ehime Univ + Matsuyama Univ"),
+)
+for _c, _lbl, _uni in _jp_84_specs:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_84(_c, _slug + "-3-term", f"3-term ({_lbl})", 3, ["1st term","2nd term","3rd term"], 4,
+        [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"university","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Grade 1","order":1},{"code":_slug+"-9","label":"Grade 9","order":9},{"code":_slug+"-12","label":"Grade 12","order":12}],
+        {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+del _jp_84_specs, _c, _lbl, _uni, _slug
+
+# Hebei (CN-HE).
+COUNTRY_LOCALIZATION["CN-HE"] = _v4_00_84("CN-HE","cnhe-2-sem","2-semester (Hebei / Shijiazhuang Gaokao)",2,["First semester","Second semester"],9,
+    [{"code":"youeryuan","label":"Yòu'éryuán","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"xiaoxue","label":"Xiǎoxué (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chuzhong","label":"Chūzhōng (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"gaozhong","label":"Gāozhōng (Gr 10-12) + Gaokao","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"daxue","label":"Hebei Univ + HEBUT + Yanshan Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cnhe-1","label":"Grade 1","order":1},{"code":"cnhe-12","label":"Grade 12 + Gaokao","order":12}],
+    {"teacher":"Lǎoshī","principal":"Xiàozhǎng","term":"Xuéqī","report_card":"Chéngjī dān","grade_level":"Niánjí"})
+
+# KR-26 Busan, KR-31 Ulsan.
+for _c, _ko in (("KR-26","Busan / Suneung"), ("KR-31","Ulsan / Suneung")):
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_84(_c, _slug + "-2-sem", f"2-semester ({_ko})", 2, ["First semester","Second semester"], 3,
+        [{"code":"yuchiwon","label":"Yuchiwon","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"chodeunghakgyo","label":"Chodeunghakgyo (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"junghakgyo","label":"Junghakgyo (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"godeunghakgyo","label":"Godeunghakgyo (Gr 10-12) + Suneung","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"university","label":("PNU + KAIST + UNIST" if _c == "KR-31" else "PNU + Korea Maritime + PKNU"),"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Grade 1","order":1},{"code":_slug+"-12","label":"Grade 12 + Suneung","order":12}],
+        {"teacher":"Seonsaeng","principal":"Gyojang","term":"Hakgi","report_card":"Seongjeokpyo","grade_level":"Hangnyeon"})
+del _c, _ko, _slug
+
+# ID-JK Jakarta.
+COUNTRY_LOCALIZATION["ID-JK"] = _v4_00_84("ID-JK","idjk-2-sem","2-semester (DKI Jakarta / SBMPTN)",2,["Semester 1","Semester 2"],7,
+    [{"code":"paud","label":"PAUD","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"sd","label":"SD (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-12"},
+     {"code":"smp","label":"SMP (7-9) + USBN","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-15"},
+     {"code":"sma","label":"SMA (10-12) + UTBK/SNBT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"perguruan","label":"UI + ITB Jakarta + Trisakti + Binus + Atma Jaya","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"idjk-1","label":"SD 1","order":1},{"code":"idjk-9","label":"SMP 3","order":9},{"code":"idjk-12","label":"SMA 3 + SNBT","order":12}],
+    {"teacher":"Guru","principal":"Kepala sekolah","term":"Semester","report_card":"Rapor","grade_level":"Kelas"})
+
+# PH-CDO Misamis Oriental (Cagayan de Oro).
+COUNTRY_LOCALIZATION["PH-CDO"] = _v4_00_84("PH-CDO","phcdo-2-sem","2-semester (Cagayan de Oro)",2,["1st semester","2nd semester"],8,
+    [{"code":"daycare","label":"Daycare","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"kinder","label":"Kindergarten + Gr 1-6","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-11"},
+     {"code":"junior_hs","label":"Junior HS (7-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"senior_hs","label":"Senior HS (11-12) + GASTPE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"USTP + Xavier Univ + Capitol Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"phcdo-k","label":"Kindergarten","order":0},{"code":"phcdo-6","label":"Grade 6","order":6},{"code":"phcdo-12","label":"Grade 12","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Semester","report_card":"Report Card","grade_level":"Grade"})
+
+# TH-83 Phuket.
+COUNTRY_LOCALIZATION["TH-83"] = _v4_00_84("TH-83","th83-2-sem","2-semester (Phuket / GAT-PAT)",2,["ภาคต้น","ภาคปลาย"],5,
+    [{"code":"anuban","label":"Anuban","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"prathom","label":"Prathom (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"matthayom_ton","label":"Matthayom 1-3","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"matthayom_plai","label":"Matthayom 4-6 + GAT-PAT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"udom","label":"PSU Phuket + Phuket Rajabhat","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"th83-1","label":"Prathom 1","order":1},{"code":"th83-12","label":"Matthayom 6 + GAT-PAT","order":12}],
+    {"teacher":"Kru","principal":"Pho amnuai kan","term":"Phak rian","report_card":"Bai sadaeng phon","grade_level":"Chan rian"})
+
+# MM-06 Yangon Region (Myanmar).
+COUNTRY_LOCALIZATION["MM-06"] = _v4_00_84("MM-06","mm06-3-term","3-term (Yangon Region)",3,["Term 1","Term 2","Term 3"],6,
+    [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Gr 1-5) + KG","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"middle","label":"Middle (Gr 6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"high","label":"High (Gr 10-11) + Matric","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"university","label":"Univ of Yangon + Yangon Tech Univ + IMU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"mm06-1","label":"Grade 1","order":1},{"code":"mm06-11","label":"Grade 11 + Matric","order":11}],
+    {"teacher":"Hsayar","principal":"Hsayar gyi","term":"Term","report_card":"Report","grade_level":"Grade"})
+
+# LK-1 Western (Colombo).
+COUNTRY_LOCALIZATION["LK-1"] = _v4_00_84("LK-1","lk1-3-term","3-term (Western / Colombo / GCE)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Yr 1-5) + Yr 5 Scholarship","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"junior","label":"Junior Sec (Yr 6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"oal","label":"OL (Yr 10-11) + GCE O/L","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"aal","label":"AL (Yr 12-13) + GCE A/L","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"17-18"},
+     {"code":"university","label":"Univ of Colombo + Univ of Moratuwa + UoP","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"lk1-1","label":"Year 1","order":1},{"code":"lk1-11","label":"Year 11 + O/L","order":11},{"code":"lk1-13","label":"Year 13 + A/L","order":13}],
+    {"teacher":"Guruwarayek","principal":"Vidyalayadhipathi","term":"Term","report_card":"Vartha Pothak","grade_level":"Pelantiya"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
