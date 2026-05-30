@@ -102,6 +102,7 @@ from apps.api import oneroster_demographics as _oneroster_demographics
 # v4.00.92 Wave 25 C4 — OAuth2 client_credentials grant (RFC 6749 § 4.4).
 from apps.api import oneroster_oauth2_token as _oneroster_oauth2_token
 from apps.api import oneroster_oauth2_discovery as _oneroster_oauth2_discovery
+from apps.api import oneroster_oauth2_introspection as _oneroster_oauth2_introspection
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
     api_import_error_resolver,
@@ -570,6 +571,14 @@ urlpatterns = [
         ".well-known/oauth-authorization-server",
         _oneroster_oauth2_discovery.oauth2_authorization_server_metadata_view,
         name="api-oauth2-authorization-server-metadata",
+    ),
+    # v4.00.92 Wave 25 follow-up — RFC 7662 OAuth 2.0 Token Introspection.
+    # Caller authenticates via their own Bearer; body carries the token
+    # under examination. Inactive responses leak no info per § 2.2.
+    path(  # rbac-allow: oauth2-introspection-resource-server-authentication-required
+        "roster/v1p2/oauth/introspect/",
+        _oneroster_oauth2_introspection.oneroster_introspection_endpoint,
+        name="api-roster-v1p2-oauth-introspect",
     ),
     # v4.00.36: OneRoster v1.2 read-only Rostering endpoints (wedge 44)
     path("roster/v1p2/orgs/", _oneroster.orgs, name="api-roster-v1p2-orgs"),
