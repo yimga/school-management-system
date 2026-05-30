@@ -48,6 +48,10 @@ PROVIDER_BLACKBOARD = "blackboard"
 PROVIDER_POWERSCHOOL = "powerschool"
 PROVIDER_SAKAI = "sakai"
 PROVIDER_ITSLEARNING = "itslearning"
+# v4.00.91 Studio-OS-10X W1 — 3 new scaffold-tier connectors.
+PROVIDER_MS_TEAMS_EDU = "ms_teams_edu"
+PROVIDER_CLEVER = "clever"
+PROVIDER_CLASSLINK = "classlink"
 
 
 # Canonical platform-wide list.
@@ -62,6 +66,9 @@ SUPPORTED_LMS_PROVIDERS = frozenset({
     PROVIDER_POWERSCHOOL,
     PROVIDER_SAKAI,
     PROVIDER_ITSLEARNING,
+    PROVIDER_MS_TEAMS_EDU,
+    PROVIDER_CLEVER,
+    PROVIDER_CLASSLINK,
 })
 
 # Providers whose OAuth refresh flow is wired in ``lms_token_refresh.py``.
@@ -78,15 +85,21 @@ OAUTH_READY_LMS_PROVIDERS = frozenset({
     PROVIDER_GOOGLE_LEGACY_ALIAS,
     PROVIDER_SCHOOLOGY,
     PROVIDER_BRIGHTSPACE_D2L,
+    # v4.00.91 Studio-OS-10X W1 Pillar B1-B4 — 4 scaffold promotions.
+    PROVIDER_BLACKBOARD,
+    PROVIDER_POWERSCHOOL,
+    PROVIDER_SAKAI,
+    PROVIDER_ITSLEARNING,
 })
 
 # Providers w/ adapter stubs only — DO NOT attempt OAuth exchange. The
 # diagnostics UI surfaces these as "Scaffold (coming soon)" pills.
 SCAFFOLD_LMS_PROVIDERS = frozenset({
-    PROVIDER_BLACKBOARD,
-    PROVIDER_POWERSCHOOL,
-    PROVIDER_SAKAI,
-    PROVIDER_ITSLEARNING,
+    # v4.00.91 Studio-OS-10X W1 Pillar B1-B4 — promoted to OAUTH_READY.
+    # PROVIDER_BLACKBOARD, PROVIDER_POWERSCHOOL, PROVIDER_SAKAI, PROVIDER_ITSLEARNING removed from this set.
+    PROVIDER_MS_TEAMS_EDU,  # v4.00.91 Studio-OS-10X W1 Pillar B8
+    PROVIDER_CLEVER,         # v4.00.91 Studio-OS-10X W1 Pillar B9
+    PROVIDER_CLASSLINK,      # v4.00.91 Studio-OS-10X W1 Pillar B10
 })
 
 # v4.00.88: Providers whose full OAuth + push_grade live-outbound paths have

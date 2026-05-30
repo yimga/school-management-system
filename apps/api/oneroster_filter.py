@@ -87,7 +87,7 @@ _TOKEN_RE = re.compile(
     r"""
     \s+                                    # whitespace (consumed but skipped)
     | '(?:\\.|[^'\\])*'                    # single-quoted string literal
-    | \b(?:AND|OR|NOT|IN|IS|NULL|LIKE)\b   # boolean keyword + IN (v4.00.69) + IS/NULL (v4.00.84) + LIKE (v4.00.85)
+    | \b(?:AND|OR|NOT|IN|IS|NULL|LIKE|BETWEEN)\b  # boolean keyword + IN (v4.00.69) + IS/NULL (v4.00.84) + LIKE (v4.00.85) + BETWEEN (v4.00.91 W1 Pillar D4)
     | !=|>=|<=|[=<>~]                      # comparison op
     | [(),]                                # parens (v4.00.67) + comma (v4.00.69)
     | [A-Za-z_][A-Za-z0-9_.]*              # identifier (field name)
@@ -99,7 +99,7 @@ _TOKEN_RE = re.compile(
 # matching one of these (after .upper()) are normalized to the canonical
 # uppercase form before parser dispatch. AND/OR remain case-sensitive per
 # spec § 4.13 (already-existing behaviour, unchanged).
-_CI_KEYWORDS = frozenset({"NOT", "IN", "IS", "NULL", "LIKE"})
+_CI_KEYWORDS = frozenset({"NOT", "IN", "IS", "NULL", "LIKE", "BETWEEN"})
 
 
 def _tokenize(expr: str) -> list[str]:
@@ -292,7 +292,7 @@ class _Parser:
         if self.pos + 2 >= len(self.tokens) + 1:
             raise _ParseError("truncated_predicate")
         field = self._consume()
-        if field in ("AND", "OR", "NOT", "IN", "IS", "NULL", "LIKE", "(", ")", ",") or field in _COMPARISON_OPS:
+        if field in ("AND", "OR", "NOT", "IN", "IS", "NULL", "LIKE", "BETWEEN", "(", ")", ",") or field in _COMPARISON_OPS:
             raise _ParseError(f"expected_field_got_{field!r}")
         op = self._consume()
         # v4.00.69 — Special-case IN(list-of-literals).
@@ -304,8 +304,29 @@ class _Parser:
         # v4.00.85 — Special-case ``LIKE 'pattern'``.
         if op == "LIKE":
             return self._parse_like(field)
+        # v4.00.91 W1 Pillar D4 — Special-case ``BETWEEN 'lo' AND 'hi'``.
+        if op == "BETWEEN":
+            return self._parse_between(field)
         if op not in _COMPARISON_OPS:
             raise _ParseError(f"expected_comparison_op_got_{op!r}")
+        # v4.00.91 W1 Pillar D5 — Mixed-context NULL shorthand. Operators
+        # using SQL-style ``field=NULL`` / ``field!=NULL`` (bareword NULL,
+        # not the quoted literal ``'NULL'``) get rewritten to the canonical
+        # IS NULL / IS NOT NULL predicate. This matches both `None` rows
+        # AND empty-string rows (same semantics as v4.00.84 IS NULL).
+        # The string literal ``'NULL'`` (quoted) keeps its old behavior:
+        # it matches a row whose value is the literal text "NULL".
+        if self._peek() == "NULL" and op in ("=", "!="):
+            self._consume()
+            if op == "=":
+                def is_null_eq(row: dict, field=field) -> bool:
+                    v = row.get(field)
+                    return v is None or v == ""
+                return is_null_eq
+            def is_not_null_neq(row: dict, field=field) -> bool:
+                v = row.get(field)
+                return not (v is None or v == "")
+            return is_not_null_neq
         lit_tok = self._consume()
         if not (lit_tok.startswith("'") and lit_tok.endswith("'")):
             raise _ParseError(f"expected_quoted_literal_got_{lit_tok!r}")
@@ -329,6 +350,47 @@ class _Parser:
             )
         pattern = _unquote_literal(lit_tok)
         return _make_like_pred(field, pattern)
+
+    def _parse_between(self, field: str) -> Callable[[dict], bool]:
+        """v4.00.91 W1 Pillar D4 — Parse ``BETWEEN 'lo' AND 'hi'`` after the field.
+
+        Tokens already consumed: field, 'BETWEEN'. Now expect:
+          quoted-literal 'AND' quoted-literal
+
+        Range is inclusive on both ends (matches SQL semantics). Numeric
+        comparison is tried first (so ``score BETWEEN '70' AND '90'`` works
+        on int score columns); falls back to string comparison if either
+        bound is non-numeric. NULL/empty field values are excluded from
+        the range (consistent with v4.00.84 IS NULL semantics — NULL is
+        neither in any range nor out of any range, defaults to "excluded").
+        """
+        if self._at_end():
+            raise _ParseError("expected_quoted_literal_after_BETWEEN")
+        lo_tok = self._consume()
+        if not (lo_tok.startswith("'") and lo_tok.endswith("'")):
+            raise _ParseError(f"expected_quoted_literal_after_BETWEEN_got_{lo_tok!r}")
+        if self._peek() != "AND":
+            raise _ParseError(f"expected_AND_after_BETWEEN_lo_got_{self._peek()!r}")
+        self._consume()
+        if self._at_end():
+            raise _ParseError("expected_quoted_literal_after_BETWEEN_AND")
+        hi_tok = self._consume()
+        if not (hi_tok.startswith("'") and hi_tok.endswith("'")):
+            raise _ParseError(f"expected_quoted_literal_after_BETWEEN_AND_got_{hi_tok!r}")
+        lo = _unquote_literal(lo_tok)
+        hi = _unquote_literal(hi_tok)
+        def between(row: dict, field=field, lo=lo, hi=hi) -> bool:
+            v = row.get(field)
+            if v is None or v == "":
+                return False
+            ok_row, num_row = _try_float(v)
+            ok_lo, num_lo = _try_float(lo)
+            ok_hi, num_hi = _try_float(hi)
+            if ok_row and ok_lo and ok_hi:
+                return num_lo <= num_row <= num_hi
+            sv = str(v)
+            return lo <= sv <= hi
+        return between
 
     def _parse_is_null(self, field: str) -> Callable[[dict], bool]:
         """v4.00.84 — Parse ``IS NULL`` or ``IS NOT NULL`` after the field token.

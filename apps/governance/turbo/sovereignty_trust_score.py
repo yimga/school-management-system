@@ -17,14 +17,19 @@ REPO = Path(__file__).resolve().parents[3]
 SHARD_DIR = REPO / "docs" / "generated" / "country_governance_matrix"
 
 WEIGHTS: dict[str, int] = {
-    "infra_residency": 25,
-    "key_custody": 15,
-    "regulator_api_uptime_90d": 15,
-    "counsel_signoff_fresh": 15,
+    "infra_residency": 22,
+    "key_custody": 12,
+    "regulator_api_uptime_90d": 12,
+    "counsel_signoff_fresh": 12,
     "incident_history_90d_clean": 15,
     "regulatory_matrix_complete": 10,
-    "statute_citation_fresh": 5,
+    "statute_citation_fresh": 4,
+    # v4.00.91 Studio-OS-10X W1 Pillar C14 — 3 new weighted signals.
+    "data_residency_attestation_present": 4,
+    "subprocessor_list_published": 4,
+    "breach_notification_window_hours_le_72": 5,
 }
+assert sum(WEIGHTS.values()) == 100, "sovereignty trust score weights must sum to 100"
 
 
 def _signal_regulatory_matrix_complete(row: dict[str, Any]) -> int:
@@ -55,6 +60,28 @@ def _signal_infra_residency(row: dict[str, Any]) -> int:
     return int(WEIGHTS["infra_residency"] * 0.4)
 
 
+def _signal_data_residency_attestation(row: dict[str, Any]) -> int:
+    prov = row.get("provenance") or {}
+    if prov.get("verified_at") and str(prov.get("verified_by") or "").startswith(("counsel:", "auditor:")):
+        return WEIGHTS["data_residency_attestation_present"]
+    return 0
+
+
+def _signal_subprocessor_list_published(row: dict[str, Any]) -> int:
+    block = row.get("regulatory_matrix") or {}
+    sub = block.get("subprocessor_disclosure") or {}
+    return WEIGHTS["subprocessor_list_published"] if sub.get("published_url") else 0
+
+
+def _signal_breach_notification_window(row: dict[str, Any]) -> int:
+    block = row.get("regulatory_matrix") or {}
+    breach = block.get("breach_notification") or {}
+    hours = breach.get("statutory_hours")
+    if isinstance(hours, int) and 0 < hours <= 72:
+        return WEIGHTS["breach_notification_window_hours_le_72"]
+    return 0
+
+
 def _default_partial(weight_key: str, fraction: float = 0.5) -> int:
     return int(round(WEIGHTS[weight_key] * fraction))
 
@@ -72,6 +99,9 @@ def compute_score(iso_alpha2: str) -> dict[str, Any]:
         "incident_history_90d_clean": WEIGHTS["incident_history_90d_clean"],
         "regulatory_matrix_complete": _signal_regulatory_matrix_complete(row),
         "statute_citation_fresh": _signal_statute_citation_fresh(row),
+        "data_residency_attestation_present": _signal_data_residency_attestation(row),
+        "subprocessor_list_published": _signal_subprocessor_list_published(row),
+        "breach_notification_window_hours_le_72": _signal_breach_notification_window(row),
     }
     score = sum(signals.values())
     tier = (

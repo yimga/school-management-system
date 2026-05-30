@@ -129,3 +129,22 @@ def push_grade(
         "scaffold": True,
         "reason": "scaffold_no_outbound_http",
     }
+
+
+# ---------------------------------------------------------------------------
+# v4.00.91 Studio-OS-10X W1 Pillar B3 — Promotion to OAUTH_READY tier.
+# Live outbound gated behind RMC_SAKAI_OAUTH_LIVE_OUTBOUND env.
+# ---------------------------------------------------------------------------
+IS_SCAFFOLD = False  # B3 promotion v4.00.91
+
+from apps.integrations_marketplace.lms_oauth_ready_helpers import make_oauth_ready_helpers as _make
+_helpers = _make(
+    provider_slug="sakai",
+    live_env_var="RMC_SAKAI_OAUTH_LIVE_OUTBOUND",
+    token_url=DEFAULT_TOKEN_URL_SUFFIX,
+    grade_push_path_builder=lambda c, a, s: f"/direct/gradebook/{c}/{a}/{s}",
+    grade_push_method="POST",
+)
+exchange_authorization_code_for_token = _helpers["exchange"]
+refresh_access_token = _helpers["refresh"]
+push_grade_live = _helpers["push_grade_live"]

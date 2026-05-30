@@ -16624,6 +16624,261 @@ del _caribbean_88, _c, _lbl, _uni, _asm, _exit, _slug
 
 
 # ---------------------------------------------------------------------------
+# v4.00.91 (2026-05-30) Studio OS 10X Wave 1 (Pillar C) — +12 subdivisions.
+#   Mexico (5): MX-CMX Ciudad de México, MX-GUA Guanajuato, MX-PUE Puebla,
+#               MX-CHP Chiapas, MX-OAX Oaxaca
+#   Brazil (3): BR-AM Amazonas, BR-GO Goiás, BR-SC Santa Catarina
+#   Africa (3): ZA-FS Free State, ZA-NC Northern Cape, NG-FC Federal Capital Territory (Abuja)
+#   Other (1):  VE-D Distrito Capital (Caracas)
+# Pattern mirrors the v4.00.88 compact-wave block: factory + tuple + for-loop.
+# ---------------------------------------------------------------------------
+def _v4_00_91(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# Mexican states — 3-term SEP cycle (Aug-Jun), bachillerato + universidad exits.
+_mx_91 = (
+    ("MX-CMX","Ciudad de México","UNAM + IPN + UAM + ITAM",8,"6-18","Bachillerato"),
+    ("MX-GUA","Guanajuato","Univ de Guanajuato + Tec NM León",8,"6-18","Bachillerato"),
+    ("MX-PUE","Puebla","BUAP + UDLAP + UPAEP",8,"6-18","Bachillerato"),
+    ("MX-CHP","Chiapas","UNACH + UNICACH + UPCH",8,"6-18","Bachillerato"),
+    ("MX-OAX","Oaxaca","UABJO + Tec NM Oaxaca + UNSIS",8,"6-18","Bachillerato"),
+)
+for _c, _lbl, _uni, _asm, _ages, _exit in _mx_91:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_91(_c, _slug + "-3-trim", f"3-trim ({_lbl})", 3,
+        ["Primer Trimestre","Segundo Trimestre","Tercer Trimestre"], _asm,
+        [{"code":"preescolar","label":"Preescolar","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primaria","label":"Primaria","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"secundaria","label":"Secundaria","glyph":"\U0001F4DA","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"preparatoria","label":f"Preparatoria + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"universidad","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Grado 1","order":1},{"code":_slug+"-12","label":f"Grado 12 + {_exit}","order":12}],
+        {"teacher":"Maestro/a","principal":"Director/a","term":"Trimestre","report_card":"Boleta","grade_level":"Grado"})
+del _mx_91, _c, _lbl, _uni, _asm, _ages, _exit, _slug
+
+# Brazilian states — 4-bimester ENEM-target cycle.
+_br_91 = (
+    ("BR-AM","Amazonas","UFAM + UEA + Univ Nilton Lins",2,"6-18","ENEM"),
+    ("BR-GO","Goiás","UFG + UEG + PUC-Goiás",2,"6-18","ENEM"),
+    ("BR-SC","Santa Catarina","UFSC + UDESC + UNIVALI",2,"6-18","ENEM"),
+)
+for _c, _lbl, _uni, _asm, _ages, _exit in _br_91:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_91(_c, _slug + "-4-bim", f"4-bim ({_lbl})", 4,
+        ["1º Bimestre","2º Bimestre","3º Bimestre","4º Bimestre"], _asm,
+        [{"code":"educacao_infantil","label":"Educação Infantil","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+         {"code":"fundamental_1","label":"Fundamental Anos Iniciais","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+         {"code":"fundamental_2","label":"Fundamental Anos Finais","glyph":"\U0001F4DA","primary_sector":"secondary","typical_ages":"11-14"},
+         {"code":"medio","label":f"Ensino Médio + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"superior","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"1º Ano","order":1},{"code":_slug+"-12","label":f"3ª Série Médio + {_exit}","order":12}],
+        {"teacher":"Professor/a","principal":"Diretor/a","term":"Bimestre","report_card":"Boletim","grade_level":"Ano"})
+del _br_91, _c, _lbl, _uni, _asm, _ages, _exit, _slug
+
+# Southern African + Venezuela — 3-term CAPS / national cycle.
+_safr_ve_91 = (
+    ("ZA-FS","Free State / Bloemfontein","Univ of the Free State + CUT",1,"6-18","NSC"),
+    ("ZA-NC","Northern Cape / Kimberley","Sol Plaatje Univ + NCRTVET",1,"6-18","NSC"),
+    ("NG-FC","Federal Capital Territory (Abuja)","Univ of Abuja + NDA + Baze Univ",9,"6-18","WAEC SSCE"),
+    ("VE-D","Distrito Capital (Caracas)","UCV + USB + UCAB + UNIMET",9,"6-17","Bachillerato"),
+)
+for _c, _lbl, _uni, _asm, _ages, _exit in _safr_ve_91:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_91(_c, _slug + "-3-term", f"3-term ({_lbl})", 3,
+        ["Term 1","Term 2","Term 3"], _asm,
+        [{"code":"preschool","label":"Pre-school","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primary","label":"Primary","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"secondary","label":f"Secondary + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+         {"code":"university","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Grade 1","order":1},{"code":_slug+"-12","label":f"Grade 12 + {_exit}","order":12}],
+        {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Grade"})
+del _safr_ve_91, _c, _lbl, _uni, _asm, _ages, _exit, _slug
+
+
+# ---------------------------------------------------------------------------
+# v4.00.92 (2026-05-30) Studio OS 10X Wave 2 (Pillar C) — +12 Mexican states.
+# ---------------------------------------------------------------------------
+def _v4_00_92(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+_mx_92 = (
+    ("MX-CHH","Chihuahua","UACH + Tec NM Chihuahua + UACJ",8,"Bachillerato"),
+    ("MX-TAB","Tabasco","UJAT + Tec NM Villahermosa",8,"Bachillerato"),
+    ("MX-VER","Veracruz","UV + Tec NM Veracruz + UPAV",8,"Bachillerato"),
+    ("MX-MOR","Morelos","UAEM + Tec NM Zacatepec",8,"Bachillerato"),
+    ("MX-QUE","Querétaro","UAQ + Tec NM Querétaro",8,"Bachillerato"),
+    ("MX-COA","Coahuila","UAdeC + Tec NM Saltillo + UA del Norte",8,"Bachillerato"),
+    ("MX-DGO","Durango","UJED + Tec NM Durango",8,"Bachillerato"),
+    ("MX-AGU","Aguascalientes","UAA + Tec NM Aguascalientes",8,"Bachillerato"),
+    ("MX-NAY","Nayarit","UAN + Tec NM Tepic",8,"Bachillerato"),
+    ("MX-COL","Colima","UCOL + Tec NM Colima",8,"Bachillerato"),
+    ("MX-CAM","Campeche","UAC + Tec NM Campeche",8,"Bachillerato"),
+    ("MX-YUC","Yucatán","UADY + Tec NM Mérida + Anáhuac Mayab",8,"Bachillerato"),
+)
+for _c, _lbl, _uni, _asm, _exit in _mx_92:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_92(_c, _slug+"-3-trim", f"3-trim ({_lbl})", 3,
+        ["Primer Trimestre","Segundo Trimestre","Tercer Trimestre"], _asm,
+        [{"code":"preescolar","label":"Preescolar","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primaria","label":"Primaria","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"secundaria","label":"Secundaria","glyph":"\U0001F4DA","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"preparatoria","label":f"Preparatoria + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"universidad","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Grado 1","order":1},{"code":_slug+"-12","label":f"Grado 12 + {_exit}","order":12}],
+        {"teacher":"Maestro/a","principal":"Director/a","term":"Trimestre","report_card":"Boleta","grade_level":"Grado"})
+del _mx_92, _c, _lbl, _uni, _asm, _exit, _slug
+
+
+# ---------------------------------------------------------------------------
+# v4.00.93 (2026-05-30) Studio OS 10X Wave 3 (Pillar C) — +3 MX + +9 Brazilian states.
+# ---------------------------------------------------------------------------
+def _v4_00_93(code, calc, label, tc, terms, asm, schools, levels, term):
+    return _v4_00_92(code, calc, label, tc, terms, asm, schools, levels, term)
+
+_mx_93 = (
+    ("MX-BCS","Baja California Sur","UABCS + Tec NM La Paz",8,"Bachillerato"),
+    ("MX-ZAC","Zacatecas","UAZ + Tec NM Zacatecas",8,"Bachillerato"),
+    ("MX-TLA","Tlaxcala","UATx + Tec NM Tlaxcala",8,"Bachillerato"),
+)
+for _c, _lbl, _uni, _asm, _exit in _mx_93:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_93(_c, _slug+"-3-trim", f"3-trim ({_lbl})", 3,
+        ["Primer Trimestre","Segundo Trimestre","Tercer Trimestre"], _asm,
+        [{"code":"preescolar","label":"Preescolar","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primaria","label":"Primaria","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"secundaria","label":"Secundaria","glyph":"\U0001F4DA","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"preparatoria","label":f"Preparatoria + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"universidad","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Grado 1","order":1},{"code":_slug+"-12","label":f"Grado 12 + {_exit}","order":12}],
+        {"teacher":"Maestro/a","principal":"Director/a","term":"Trimestre","report_card":"Boleta","grade_level":"Grado"})
+del _mx_93, _c, _lbl, _uni, _asm, _exit, _slug
+
+_br_93 = (
+    ("BR-MA","Maranhão","UFMA + UEMA + Univ. Ceuma",2,"ENEM"),
+    ("BR-PI","Piauí","UFPI + UESPI + Univ. Estácio Teresina",2,"ENEM"),
+    ("BR-AL","Alagoas","UFAL + UNEAL",2,"ENEM"),
+    ("BR-SE","Sergipe","UFS + Tiradentes",2,"ENEM"),
+    ("BR-PB","Paraíba","UFPB + UEPB + IFPB",2,"ENEM"),
+    ("BR-RN","Rio Grande do Norte","UFRN + UERN + Potiguar",2,"ENEM"),
+    ("BR-AP","Amapá","UNIFAP + UEAP",2,"ENEM"),
+    ("BR-RR","Roraima","UFRR + UERR",2,"ENEM"),
+    ("BR-RO","Rondônia","UNIR + UNIRON",2,"ENEM"),
+)
+for _c, _lbl, _uni, _asm, _exit in _br_93:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_93(_c, _slug+"-4-bim", f"4-bim ({_lbl})", 4,
+        ["1º Bimestre","2º Bimestre","3º Bimestre","4º Bimestre"], _asm,
+        [{"code":"educacao_infantil","label":"Educação Infantil","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+         {"code":"fundamental_1","label":"Fundamental Anos Iniciais","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+         {"code":"fundamental_2","label":"Fundamental Anos Finais","glyph":"\U0001F4DA","primary_sector":"secondary","typical_ages":"11-14"},
+         {"code":"medio","label":f"Ensino Médio + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"superior","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"1º Ano","order":1},{"code":_slug+"-12","label":f"3ª Série Médio + {_exit}","order":12}],
+        {"teacher":"Professor/a","principal":"Diretor/a","term":"Bimestre","report_card":"Boletim","grade_level":"Ano"})
+del _br_93, _c, _lbl, _uni, _asm, _exit, _slug
+
+
+# ---------------------------------------------------------------------------
+# v4.00.94 (2026-05-30) Studio OS 10X Wave 4 (Pillar C) — +4 BR + +2 ZA + +6 NG.
+# ---------------------------------------------------------------------------
+def _v4_00_94(code, calc, label, tc, terms, asm, schools, levels, term):
+    return _v4_00_92(code, calc, label, tc, terms, asm, schools, levels, term)
+
+_br_94 = (
+    ("BR-AC","Acre","UFAC + IFAC",2,"ENEM"),
+    ("BR-TO","Tocantins","UFT + Univ. Católica Tocantins",2,"ENEM"),
+    ("BR-MT","Mato Grosso","UFMT + UNEMAT",2,"ENEM"),
+    ("BR-MS","Mato Grosso do Sul","UFMS + UEMS",2,"ENEM"),
+)
+for _c, _lbl, _uni, _asm, _exit in _br_94:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_94(_c, _slug+"-4-bim", f"4-bim ({_lbl})", 4,
+        ["1º Bimestre","2º Bimestre","3º Bimestre","4º Bimestre"], _asm,
+        [{"code":"educacao_infantil","label":"Educação Infantil","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+         {"code":"fundamental","label":"Fundamental","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+         {"code":"medio","label":f"Ensino Médio + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"superior","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"1º Ano","order":1},{"code":_slug+"-12","label":f"3ª Série + {_exit}","order":12}],
+        {"teacher":"Professor/a","principal":"Diretor/a","term":"Bimestre","report_card":"Boletim","grade_level":"Ano"})
+del _br_94, _c, _lbl, _uni, _asm, _exit, _slug
+
+_safr_ng_94 = (
+    ("ZA-LP","Limpopo / Polokwane","Univ of Limpopo + Univ of Venda",1,"NSC"),
+    ("ZA-NW","North West / Mahikeng","NWU + Vaal Univ of Tech",1,"NSC"),
+    ("NG-BY","Bayelsa / Yenagoa","Niger Delta Univ + FUO Otuoke",9,"WAEC SSCE"),
+    ("NG-RV","Rivers / Port Harcourt","Univ of Port Harcourt + Rivers State Univ",9,"WAEC SSCE"),
+    ("NG-KW","Kwara / Ilorin","Univ of Ilorin + Kwara State Univ",9,"WAEC SSCE"),
+    ("NG-OS","Osun / Osogbo","Obafemi Awolowo Univ + Bowen Univ",9,"WAEC SSCE"),
+    ("NG-EK","Ekiti / Ado-Ekiti","EKSU + AFE Babalola Univ",9,"WAEC SSCE"),
+    ("NG-PL","Plateau / Jos","Univ of Jos + Plateau State Univ",9,"WAEC SSCE"),
+)
+for _c, _lbl, _uni, _asm, _exit in _safr_ng_94:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_94(_c, _slug+"-3-term", f"3-term ({_lbl})", 3,
+        ["Term 1","Term 2","Term 3"], _asm,
+        [{"code":"preschool","label":"Pre-school","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primary","label":"Primary","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"secondary","label":f"Secondary + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+         {"code":"university","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Grade 1","order":1},{"code":_slug+"-12","label":f"Grade 12 + {_exit}","order":12}],
+        {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Grade"})
+del _safr_ng_94, _c, _lbl, _uni, _asm, _exit, _slug
+
+
+# ---------------------------------------------------------------------------
+# v4.00.95 (2026-05-30) Studio OS 10X Wave 5 (Pillar C) — +9 KR + +3 JP subdivisions.
+# ---------------------------------------------------------------------------
+def _v4_00_95(code, calc, label, tc, terms, asm, schools, levels, term):
+    return _v4_00_92(code, calc, label, tc, terms, asm, schools, levels, term)
+
+_kr_95 = (
+    ("KR-32","Gangwon-do","Gangwon Nat'l Univ + Hallym",2,"Suneung"),
+    ("KR-33","Chungcheongbuk-do","Chungbuk Nat'l Univ",2,"Suneung"),
+    ("KR-34","Chungcheongnam-do","Chungnam Nat'l Univ + Hanseo",2,"Suneung"),
+    ("KR-35","Jeollabuk-do","Jeonbuk Nat'l Univ + Wonkwang",2,"Suneung"),
+    ("KR-36","Jeollanam-do","Chonnam Nat'l Univ + Mokpo",2,"Suneung"),
+    ("KR-37","Gyeongsangbuk-do","Kyungpook Nat'l Univ + Yeungnam",2,"Suneung"),
+    ("KR-38","Gyeongsangnam-do","Pusan Nat'l Univ + Gyeongnam Nat'l",2,"Suneung"),
+    ("KR-39","Sejong","Korea Univ Sejong + Hongik Sejong",2,"Suneung"),
+    ("KR-40","Ulsan","Univ of Ulsan + UNIST",2,"Suneung"),
+)
+for _c, _lbl, _uni, _asm, _exit in _kr_95:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_95(_c, _slug+"-2-sem", f"2-sem ({_lbl})", 2,
+        ["1학기","2학기"], _asm,
+        [{"code":"early_childhood","label":"Yoochiwon","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"chodeunghakgyo","label":"Chodeunghakgyo","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"junghakgyo","label":"Junghakgyo","glyph":"\U0001F4DA","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"godeunghakgyo","label":f"Godeunghakgyo + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"daehakgyo","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"1학년","order":1},{"code":_slug+"-12","label":f"12학년 + {_exit}","order":12}],
+        {"teacher":"선생님","principal":"교장","term":"학기","report_card":"성적표","grade_level":"학년"})
+del _kr_95, _c, _lbl, _uni, _asm, _exit, _slug
+
+_jp_95 = (
+    ("JP-36","Tokushima","Tokushima Univ + Naruto Univ of Edu",3,"Daigaku Nyushi"),
+    ("JP-41","Saga","Saga Univ + Nishi-Kyushu Univ",3,"Daigaku Nyushi"),
+    ("JP-42","Nagasaki","Nagasaki Univ + Univ of Nagasaki",3,"Daigaku Nyushi"),
+)
+for _c, _lbl, _uni, _asm, _exit in _jp_95:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_95(_c, _slug+"-3-term-jp", f"3-term ({_lbl})", 3,
+        ["1学期","2学期","3学期"], _asm,
+        [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"shogakko","label":"Shōgakkō","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"chugakko","label":"Chūgakkō","glyph":"\U0001F4DA","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"kotogakko","label":f"Kōtōgakkō + {_exit}","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"daigaku","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"小1","order":1},{"code":_slug+"-12","label":f"高3 + {_exit}","order":12}],
+        {"teacher":"先生","principal":"校長","term":"学期","report_card":"通知表","grade_level":"学年"})
+del _jp_95, _c, _lbl, _uni, _asm, _exit, _slug
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

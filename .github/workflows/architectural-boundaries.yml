@@ -520,6 +520,28 @@ jobs:
           python scripts/verify_doc_plan_density_discipline.py
           python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_group_console apps.interop.tests.test_transfer_apply apps.billing.tests.test_group_consolidation emis.tests.test_org_aggregate apps.people.tests.test_staff_compliance apps.schools.tests.test_governance_matrix_runtime apps.governance.tests.test_prompt_shaping_terminology apps.finance.tests.test_org_fx_rollup apps.schools.tests.test_context_profiles.ContextProfileServiceTests apps.registries.tests.test_seed_iso3166_subdivisions apps.governance.tests.test_models apps.siteconfig.tests.test_country_language_overlay_regression
 
+  studio-os-10x-completion:
+    name: "Studio OS 10X program closure (5-wave sweep gate)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: beta/school-management-system
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Run Studio OS 10X program closure gate (Wave 1-5, --strict — register must be 100% DONE)
+        run: |
+          python scripts/smoke_studio_os_10x_w1.py
+          python scripts/smoke_studio_os_10x_all_waves.py
+          python scripts/verify_studio_os_10x_completion.py --strict --json
+
   ai-engine-room:
     name: "AI engine room completeness (tiers 1-5)"
     runs-on: ubuntu-latest

@@ -144,3 +144,25 @@ def push_grade(
         "scaffold": True,
         "reason": "scaffold_no_outbound_http",
     }
+
+
+# ---------------------------------------------------------------------------
+# v4.00.91 Studio-OS-10X W1 Pillar B1 — Promotion to OAUTH_READY tier.
+# Adds exchange_authorization_code_for_token / refresh_access_token /
+# push_grade_live following the v4.00.83 Schoology pattern. Live outbound
+# gated behind RMC_BLACKBOARD_OAUTH_LIVE_OUTBOUND env. Dry-run mode returns
+# the intended HTTP request shape under ``would_send``.
+# ---------------------------------------------------------------------------
+IS_SCAFFOLD = False  # B1 promotion v4.00.91
+
+from apps.integrations_marketplace.lms_oauth_ready_helpers import make_oauth_ready_helpers as _make
+_helpers = _make(
+    provider_slug="blackboard",
+    live_env_var="RMC_BLACKBOARD_OAUTH_LIVE_OUTBOUND",
+    token_url=DEFAULT_TOKEN_URL_SUFFIX,
+    grade_push_path_builder=lambda c, a, s: f"/learn/api/public/v2/courses/{c}/gradebook/columns/{a}/users/{s}",
+    grade_push_method="PATCH",
+)
+exchange_authorization_code_for_token = _helpers["exchange"]
+refresh_access_token = _helpers["refresh"]
+push_grade_live = _helpers["push_grade_live"]

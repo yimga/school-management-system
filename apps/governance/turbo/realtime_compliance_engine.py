@@ -91,7 +91,77 @@ def evaluate(action: str, *, country_iso: str, payload: dict[str, Any] | None = 
         years = retention.get("transcript_years")
         return _decision(action, "allow", [f"transcript_retention_years={years}"], ["transcript_export_permitted"])
 
+    # ---- v4.00.91 Studio-OS-10X W1 Pillar C13 — 5 new actions --------------
+    if action == "export_transcript_to_country":
+        target_iso = str(payload.get("target_country_iso") or "").upper()
+        sanctions = block.get("sanctions_status") or {}
+        if sanctions.get("onboarding_block"):
+            return _decision(action, "deny", sanctions.get("regimes") or [],
+                             [f"source_country_sanctioned:{country_iso}"])
+        if target_iso and target_iso != country_iso.upper():
+            try:
+                target_row = _load_shard(target_iso)
+            except ComplianceUnknownCountryError:
+                return _decision(action, "warn", [], [f"no_target_matrix:{target_iso}"])
+            target_sanctions = (target_row.get("regulatory_matrix") or {}).get("sanctions_status") or {}
+            if target_sanctions.get("onboarding_block"):
+                return _decision(action, "deny", target_sanctions.get("regimes") or [],
+                                 [f"target_country_sanctioned:{target_iso}"])
+        return _decision(action, "allow", [], ["cross_border_transcript_export_permitted"])
+
+    if action == "enroll_minor":
+        age = block.get("age_of_digital_consent")
+        subject_age = int(payload.get("subject_age", 0))
+        parental_consent = bool(payload.get("parental_consent"))
+        if isinstance(age, int) and subject_age and subject_age < age and not parental_consent:
+            return _decision(action, "deny", [f"age_of_digital_consent={age}"],
+                             ["enrollment_below_age_requires_parental_consent"])
+        return _decision(action, "allow", [], ["enrollment_age_or_parental_consent_satisfied"])
+
+    if action == "share_iep_with_vendor":
+        vendor_dpa_signed = bool(payload.get("vendor_dpa_signed"))
+        vendor_subprocessor_listed = bool(payload.get("vendor_subprocessor_listed"))
+        privacy = list(block.get("student_privacy_regimes") or [])
+        if not vendor_dpa_signed:
+            return _decision(action, "deny", privacy, ["iep_share_blocked_no_dpa"])
+        if not vendor_subprocessor_listed:
+            return _decision(action, "warn", privacy, ["iep_share_vendor_not_in_subprocessor_list"])
+        return _decision(action, "allow", privacy, ["iep_share_permitted_with_dpa_and_listing"])
+
+    if action == "proctor_with_camera_only":
+        rule = str(block.get("biometric_data_rule") or "unspecified")
+        if rule == "prohibited":
+            return _decision(action, "deny", [rule], ["proctoring_camera_treated_as_biometric_prohibited"])
+        if rule == "parental_consent" and not payload.get("parental_consent"):
+            return _decision(action, "warn", [rule], ["proctoring_camera_warn_parental_consent_recommended"])
+        return _decision(action, "allow", [rule], ["proctoring_camera_permitted"])
+
+    if action == "archive_finance_records":
+        retention = block.get("records_retention_years") or {}
+        years = retention.get("financial_years")
+        requested_years = int(payload.get("retention_years_requested", 0))
+        if isinstance(years, int) and requested_years and requested_years < years:
+            return _decision(action, "deny", [f"financial_retention_years={years}"],
+                             [f"requested_{requested_years}_below_statute_{years}"])
+        return _decision(action, "allow", [f"financial_retention_years={years}"], ["finance_archive_permitted"])
+    # ---- end v4.00.91 --------------------------------------------------------
+
     return _decision(action, "warn", [], [f"unknown_action:{action}"])
+
+
+# Public surface — frozen tuple of supported actions for verifier + UI dropdown.
+SUPPORTED_ACTIONS = (
+    "store_biometric",
+    "send_marketing_sms",
+    "onboard_tenant",
+    "collect_minor_data",
+    "export_transcript",
+    "export_transcript_to_country",
+    "enroll_minor",
+    "share_iep_with_vendor",
+    "proctor_with_camera_only",
+    "archive_finance_records",
+)
 
 
 def runtime_health() -> dict[str, Any]:
