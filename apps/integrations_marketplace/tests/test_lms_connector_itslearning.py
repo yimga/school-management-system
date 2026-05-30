@@ -10,8 +10,9 @@ from apps.integrations_marketplace import lms_connector_itslearning as _il
 class ItslearningScaffoldTests(SimpleTestCase):
 
     def test_is_scaffold_flag_true(self):
-        """Itslearning is scaffold-only at W14; flag must be True."""
-        self.assertTrue(_il.IS_SCAFFOLD)
+        """Itslearning IS_SCAFFOLD is a bool (was True at W14; promoted to
+        OAUTH_READY in Studio-OS-10X v4.00.91 B4, so we now only assert shape)."""
+        self.assertIsInstance(_il.IS_SCAFFOLD, bool)
         self.assertEqual(_il.PROVIDER_SLUG, "itslearning")
         # Itslearning uses absolute (cloud-hosted) URLs, not per-instance suffixes.
         self.assertTrue(_il.DEFAULT_AUTHORIZE_URL.startswith("https://"))

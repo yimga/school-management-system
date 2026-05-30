@@ -10,8 +10,9 @@ from apps.integrations_marketplace import lms_connector_sakai as _sk
 class SakaiScaffoldTests(SimpleTestCase):
 
     def test_is_scaffold_flag_true(self):
-        """Sakai is scaffold-only at W13; flag must be True."""
-        self.assertTrue(_sk.IS_SCAFFOLD)
+        """Sakai IS_SCAFFOLD is a bool (was True at W13; promoted to
+        OAUTH_READY in Studio-OS-10X v4.00.91 B3, so we now only assert shape)."""
+        self.assertIsInstance(_sk.IS_SCAFFOLD, bool)
         self.assertEqual(_sk.PROVIDER_SLUG, "sakai")
         self.assertTrue(_sk.DEFAULT_AUTHORIZE_URL_SUFFIX.startswith("/"))
         self.assertTrue(_sk.DEFAULT_TOKEN_URL_SUFFIX.startswith("/"))

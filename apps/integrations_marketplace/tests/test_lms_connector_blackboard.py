@@ -16,8 +16,9 @@ from apps.integrations_marketplace import lms_connector_blackboard as _bb
 class BlackboardScaffoldTests(SimpleTestCase):
 
     def test_is_scaffold_flag_true(self):
-        """Blackboard is a scaffold-only adapter at W11; flag must be True."""
-        self.assertTrue(_bb.IS_SCAFFOLD)
+        """Blackboard IS_SCAFFOLD is a bool (was True at W11; promoted to
+        OAUTH_READY in Studio-OS-10X v4.00.91 B1, so we now only assert shape)."""
+        self.assertIsInstance(_bb.IS_SCAFFOLD, bool)
         # Stable provider slug + endpoint suffixes are exported for the
         # operator UI to render the "Scaffold (coming soon)" pill.
         self.assertEqual(_bb.PROVIDER_SLUG, "blackboard")

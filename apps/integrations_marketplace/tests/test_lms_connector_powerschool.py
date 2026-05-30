@@ -10,8 +10,9 @@ from apps.integrations_marketplace import lms_connector_powerschool as _ps
 class PowerSchoolScaffoldTests(SimpleTestCase):
 
     def test_is_scaffold_flag_true(self):
-        """PowerSchool is scaffold-only at W12; flag must be True."""
-        self.assertTrue(_ps.IS_SCAFFOLD)
+        """PowerSchool IS_SCAFFOLD is a bool (was True at W12; promoted to
+        OAUTH_READY in Studio-OS-10X v4.00.91 B2, so we now only assert shape)."""
+        self.assertIsInstance(_ps.IS_SCAFFOLD, bool)
         self.assertEqual(_ps.PROVIDER_SLUG, "powerschool")
         self.assertTrue(_ps.DEFAULT_AUTHORIZE_URL_SUFFIX.startswith("/"))
         self.assertTrue(_ps.DEFAULT_TOKEN_URL_SUFFIX.startswith("/"))
