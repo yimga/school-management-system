@@ -16200,6 +16200,149 @@ COUNTRY_LOCALIZATION["LK-1"] = _v4_00_84("LK-1","lk1-3-term","3-term (Western / 
 
 
 # ---------------------------------------------------------------------------
+# v4.00.85 (2026-05-30) — +14 subdivisions: SE Europe (SI-061 Ljubljana,
+#   SK-BL Bratislava, ME-21 Podgorica, BA-BIH Sarajevo) + Caribbean
+#   (CU-03 Havana, DO-01 Distrito Nacional, HT-OU Ouest) + S America
+#   (BO-LP La Paz, PY-ASU Asunción, VE-A Distrito Capital) + Central
+#   Asia (KG-GB Bishkek, TJ-DU Dushanbe) + PG-NCD Port Moresby + AF-KAB.
+# ---------------------------------------------------------------------------
+def _v4_00_85(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# SI-061 Ljubljana.
+COUNTRY_LOCALIZATION["SI-061"] = _v4_00_85("SI-061","si061-2-sem","2-semester (Ljubljana / Matura)",2,["Prvo ocenjevalno obdobje","Drugo ocenjevalno obdobje"],9,
+    [{"code":"vrtec","label":"Vrtec","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"osnovna","label":"Osnovna šola (Razred 1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"srednja","label":"Srednja šola (Letnik 1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"Univerza v Ljubljani + FRI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"si061-1","label":"Razred 1","order":1},{"code":"si061-12","label":"Letnik 4 + Matura","order":12}],
+    {"teacher":"Učitelj","principal":"Ravnatelj","term":"Ocenjevalno obdobje","report_card":"Spričevalo","grade_level":"Razred"})
+
+# SK-BL Bratislava.
+COUNTRY_LOCALIZATION["SK-BL"] = _v4_00_85("SK-BL","skbl-2-sem","2-semester (Bratislavský kraj / Maturita)",2,["I. polrok","II. polrok"],9,
+    [{"code":"materska","label":"Materská škola","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"zakladna","label":"Základná škola (Roč 1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"stredna","label":"Stredná škola (Roč 1-4) + Maturita","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"UK Bratislava + STU + Ekonomická univerzita","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"skbl-1","label":"Ročník 1","order":1},{"code":"skbl-13","label":"Maturita","order":13}],
+    {"teacher":"Učiteľ","principal":"Riaditeľ","term":"Polrok","report_card":"Vysvedčenie","grade_level":"Ročník"})
+
+# ME-21 Podgorica.
+COUNTRY_LOCALIZATION["ME-21"] = _v4_00_85("ME-21","me21-2-sem","2-semester (Podgorica / Matura)",2,["Prvo polugodište","Drugo polugodište"],9,
+    [{"code":"vrtic","label":"Vrtić","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"osnovna","label":"Osnovna škola (Razred 1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"srednja","label":"Srednja škola (Razred 1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"Univerzitet Crne Gore","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"me21-1","label":"Razred 1","order":1},{"code":"me21-12","label":"Razred 12 + Matura","order":12}],
+    {"teacher":"Nastavnik","principal":"Direktor","term":"Polugodište","report_card":"Svjedočanstvo","grade_level":"Razred"})
+
+# BA-BIH Sarajevo (Federation of Bosnia and Herzegovina).
+COUNTRY_LOCALIZATION["BA-BIH"] = _v4_00_85("BA-BIH","babih-2-sem","2-semester (Sarajevo / Matura)",2,["Prvo polugodište","Drugo polugodište"],9,
+    [{"code":"vrtic","label":"Vrtić","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"osnovna","label":"Osnovna škola (Razred 1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"srednja","label":"Srednja škola (Razred 1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"Univerzitet u Sarajevu + IUS","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"babih-1","label":"Razred 1","order":1},{"code":"babih-12","label":"Razred 12 + Matura","order":12}],
+    {"teacher":"Nastavnik","principal":"Direktor","term":"Polugodište","report_card":"Svjedodžba","grade_level":"Razred"})
+
+# CU-03 Havana.
+COUNTRY_LOCALIZATION["CU-03"] = _v4_00_85("CU-03","cu03-3-trim","3-trimestre (La Habana / Pre-Universitario)",3,["I trimestre","II trimestre","III trimestre"],9,
+    [{"code":"circulo_infantil","label":"Círculo Infantil","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Primaria (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secundaria","label":"Secundaria Básica (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"preuniversitario","label":"Preuniversitario (10-12) + Examen Nacional","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"superior","label":"Universidad de La Habana + UTH + ISDi","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cu03-1","label":"1º Primaria","order":1},{"code":"cu03-12","label":"12º Pre-Uni + Examen","order":12}],
+    {"teacher":"Profesor","principal":"Director","term":"Trimestre","report_card":"Boleta","grade_level":"Grado"})
+
+# DO-01 Distrito Nacional (Santo Domingo).
+COUNTRY_LOCALIZATION["DO-01"] = _v4_00_85("DO-01","do01-2-sem","2-semester (Distrito Nacional / PISA)",2,["1er semestre","2do semestre"],8,
+    [{"code":"inicial","label":"Educación Inicial","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"basica","label":"Básica (1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"media","label":"Media (1-4) + Pruebas Nacionales + Bachillerato","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"superior","label":"UASD + PUCMM + INTEC + UNIBE","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"do01-1","label":"1º Básica","order":1},{"code":"do01-12","label":"4º Media + Bachiller","order":12}],
+    {"teacher":"Profesor","principal":"Director","term":"Semestre","report_card":"Reporte","grade_level":"Grado"})
+
+# HT-OU Ouest (Port-au-Prince).
+COUNTRY_LOCALIZATION["HT-OU"] = _v4_00_85("HT-OU","htou-3-trim","3-trimestre (Ouest / Port-au-Prince)",3,["1er trimestre","2e trimestre","3e trimestre"],9,
+    [{"code":"prescolaire","label":"Préscolaire","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"fondamental","label":"Fondamental (1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"secondaire","label":"Secondaire (Nouveau Secondaire 1-4) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"superieur","label":"Université d'État + Quisqueya","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"htou-1","label":"1ère AF","order":1},{"code":"htou-13","label":"NS4 + Bac","order":13}],
+    {"teacher":"Mèt / Profesè","principal":"Direktè","term":"Trimès","report_card":"Bilten","grade_level":"Klas"})
+
+# BO-LP La Paz.
+COUNTRY_LOCALIZATION["BO-LP"] = _v4_00_85("BO-LP","bolp-3-trim","3-trimestre (La Paz / Bachiller)",3,["I trimestre","II trimestre","III trimestre"],2,
+    [{"code":"inicial","label":"Educación Inicial","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Primaria Comunitaria (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secundaria","label":"Secundaria Comunitaria (1-6) + Bachiller","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+     {"code":"superior","label":"UMSA + UCB + Univ Privada Boliviana","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"bolp-1","label":"1º Primaria","order":1},{"code":"bolp-12","label":"6º Secundaria + Bachiller","order":12}],
+    {"teacher":"Maestro","principal":"Director","term":"Trimestre","report_card":"Libreta","grade_level":"Curso"})
+
+# PY-ASU Asunción.
+COUNTRY_LOCALIZATION["PY-ASU"] = _v4_00_85("PY-ASU","pyasu-2-sem","2-semester (Asunción / Bachiller)",2,["1er semestre","2do semestre"],2,
+    [{"code":"inicial","label":"Educación Inicial","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"escolar","label":"Educación Escolar Básica (1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"media","label":"Educación Media (1-3) + Bachiller","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"superior","label":"UNA + UCA Asunción + Univ del Pacífico","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"pyasu-1","label":"1º EEB","order":1},{"code":"pyasu-12","label":"3º Media + Bachiller","order":12}],
+    {"teacher":"Profesor / Mbo'ehára","principal":"Director","term":"Semestre","report_card":"Boletín","grade_level":"Grado"})
+
+# VE-A Distrito Capital (Caracas).
+COUNTRY_LOCALIZATION["VE-A"] = _v4_00_85("VE-A","vea-3-lapso","3-lapso (Caracas / Bachiller)",3,["1er lapso","2do lapso","3er lapso"],9,
+    [{"code":"inicial","label":"Educación Inicial","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Primaria (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"media","label":"Media General (1-5) + Bachiller","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-16"},
+     {"code":"superior","label":"UCV + USB + UCAB + UNIMET","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"vea-1","label":"1º Primaria","order":1},{"code":"vea-11","label":"5º Media + Bachiller","order":11}],
+    {"teacher":"Profesor","principal":"Director","term":"Lapso","report_card":"Boletín","grade_level":"Grado"})
+
+# KG-GB Bishkek city (KG-B is Chuy region; KG-GB is Bishkek city per ISO).
+COUNTRY_LOCALIZATION["KG-GB"] = _v4_00_85("KG-GB","kggb-2-sem","2-semester (Bishkek / ORT)",2,["First semester","Second semester"],9,
+    [{"code":"baldyrgan","label":"Baldyrgan baxchasy","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"bashtalgych","label":"Bashtalgych mektep (Cl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"negizgi","label":"Negizgi mektep (Cl 5-9) + ORT","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"orto","label":"Orto mektep (Cl 10-11) + ORT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"KNU + AUCA + KSMA","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"kggb-1","label":"Klass 1","order":1},{"code":"kggb-11","label":"Klass 11 + ORT","order":11}],
+    {"teacher":"Mugalim","principal":"Direktor","term":"Semestr","report_card":"Tabel","grade_level":"Klass"})
+
+# TJ-DU Dushanbe.
+COUNTRY_LOCALIZATION["TJ-DU"] = _v4_00_85("TJ-DU","tjdu-2-sem","2-semester (Dushanbe / EKT)",2,["First semester","Second semester"],9,
+    [{"code":"kudakiston","label":"Kudakiston","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"ibtidoy","label":"Ibtidoyi (Cl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"asosiy","label":"Asosiy (Cl 5-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"miyona","label":"Miyona (Cl 10-11) + EKT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"TNU + TPMI + RTSU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"tjdu-1","label":"Sinf 1","order":1},{"code":"tjdu-11","label":"Sinf 11 + EKT","order":11}],
+    {"teacher":"Muallim","principal":"Director","term":"Semestr","report_card":"Tabel","grade_level":"Sinf"})
+
+# PG-NCD Port Moresby.
+COUNTRY_LOCALIZATION["PG-NCD"] = _v4_00_85("PG-NCD","pgncd-3-term","3-term (NCD / Port Moresby)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"elementary","label":"Elementary E1-E2","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"6-7"},
+     {"code":"primary","label":"Primary (Gr 3-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"8-13"},
+     {"code":"secondary","label":"Secondary (Gr 9-12) + PNG SSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"university","label":"UPNG + Pacific Adventist Univ + Divine Word","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"pgncd-e1","label":"Elementary 1","order":0},{"code":"pgncd-12","label":"Grade 12 + SSC","order":12}],
+    {"teacher":"Teacher","principal":"Headmaster","term":"Term","report_card":"Report","grade_level":"Grade"})
+
+# AF-KAB Kabul.
+COUNTRY_LOCALIZATION["AF-KAB"] = _v4_00_85("AF-KAB","afkab-2-sem","2-semester (Kabul / Bakaloria)",2,["Awal hees","Dohum hees"],3,
+    [{"code":"kudakistan","label":"Kudakistan","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"ibtidayee","label":"Ibtidayee (Cl 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-12"},
+     {"code":"mutawasitah","label":"Mutawasitah (Cl 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-15"},
+     {"code":"liseh","label":"Liseh (Cl 10-12) + Bakaloria / Kankor","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"Kabul Univ + KPU + AUAF (pre-2021 active)","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"afkab-1","label":"Sinf 1","order":1},{"code":"afkab-12","label":"Sinf 12 + Bakaloria","order":12}],
+    {"teacher":"Mu'alim","principal":"Mudir","term":"Hees","report_card":"Karnameh","grade_level":"Sinf"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

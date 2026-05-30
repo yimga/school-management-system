@@ -31,6 +31,14 @@ predicates. Per IMS spec § 4.13 a field is NULL when it is either Python
 The ``IS`` / ``NULL`` keywords are matched case-insensitively at the
 tokenizer (operator-friendly — URLs in the wild lowercase routinely).
 
+v4.00.85 — Added SQL-style ``field LIKE '<pattern>'`` predicate with the
+two standard wildcards ``%`` (zero-or-more chars) and ``_`` (single
+char). The pattern is compiled to an anchored case-INSENSITIVE regex
+per the IMS Roster Service spec § 4.13 contract for LIKE matching.
+Regex specials in the user pattern are escaped before the wildcards
+are expanded, so ``LIKE '50%'`` matches the literal ``50%`` prefix
+without the ``%`` triggering greedy regex semantics.
+
   expression ::= term ( OR term )*
   term       ::= factor ( AND factor )*
   factor     ::= 'NOT' factor | predicate | '(' expression ')'
@@ -38,6 +46,7 @@ tokenizer (operator-friendly — URLs in the wild lowercase routinely).
                  | field 'IS' 'NULL'
                  | field 'IS' 'NOT' 'NULL'
                  | field 'IN' '(' 'value' (',' 'value')* ')'
+                 | field 'LIKE' 'value'
 
 The ``~`` operator is "contains" (case-insensitive substring match).
 String literals are single-quoted; escape an embedded ``'`` with ``\\'``.
@@ -78,7 +87,7 @@ _TOKEN_RE = re.compile(
     r"""
     \s+                                    # whitespace (consumed but skipped)
     | '(?:\\.|[^'\\])*'                    # single-quoted string literal
-    | \b(?:AND|OR|NOT|IN|IS|NULL)\b        # boolean keyword + IN (v4.00.69) + IS/NULL (v4.00.84)
+    | \b(?:AND|OR|NOT|IN|IS|NULL|LIKE)\b   # boolean keyword + IN (v4.00.69) + IS/NULL (v4.00.84) + LIKE (v4.00.85)
     | !=|>=|<=|[=<>~]                      # comparison op
     | [(),]                                # parens (v4.00.67) + comma (v4.00.69)
     | [A-Za-z_][A-Za-z0-9_.]*              # identifier (field name)
@@ -90,7 +99,7 @@ _TOKEN_RE = re.compile(
 # matching one of these (after .upper()) are normalized to the canonical
 # uppercase form before parser dispatch. AND/OR remain case-sensitive per
 # spec § 4.13 (already-existing behaviour, unchanged).
-_CI_KEYWORDS = frozenset({"NOT", "IN", "IS", "NULL"})
+_CI_KEYWORDS = frozenset({"NOT", "IN", "IS", "NULL", "LIKE"})
 
 
 def _tokenize(expr: str) -> list[str]:
@@ -168,6 +177,42 @@ def _make_pred(field: str, op: str, lit: str) -> Callable[[dict], bool]:
     return pred
 
 
+def _compile_like_pattern(pattern: str) -> "re.Pattern[str]":
+    """v4.00.85 — Translate a SQL-LIKE pattern to an anchored regex.
+
+    Wildcards:
+      - ``%`` -> ``.*`` (zero-or-more chars)
+      - ``_`` -> ``.``  (single char)
+
+    All other regex specials are escaped first via ``re.escape`` so a
+    literal ``50%`` matches ``50<anything>``; the leading ``50`` is
+    literal because ``5`` and ``0`` aren't regex specials. The escaped
+    form of ``%`` from ``re.escape`` is ``%`` itself (it's not a regex
+    metachar) on Py3.7+ — but to defend against older Python versions
+    that escape it as ``\\%`` we tolerate both before doing the swap.
+
+    Returned regex is anchored on BOTH ends and case-INSENSITIVE per
+    the IMS Roster Service spec § 4.13 LIKE contract.
+    """
+    escaped = re.escape(pattern)
+    # Older Python ``re.escape`` may emit ``\\%`` / ``\\_``; modern (3.7+)
+    # emits ``%`` / ``_`` unchanged. Handle both so we work on all hosts.
+    escaped = escaped.replace(r"\%", ".*").replace("%", ".*")
+    escaped = escaped.replace(r"\_", ".").replace("_", ".")
+    return re.compile(r"\A" + escaped + r"\Z", re.IGNORECASE | re.DOTALL)
+
+
+def _make_like_pred(field: str, pattern: str) -> Callable[[dict], bool]:
+    """v4.00.85 — Build a closure that matches the row value against the
+    LIKE pattern. NULL/missing field values are treated as the empty
+    string (consistent with v4.00.84 IS NULL semantics)."""
+    compiled = _compile_like_pattern(pattern)
+    def pred(row: dict, field=field, compiled=compiled) -> bool:
+        v = row.get(field)
+        return bool(compiled.match("" if v is None else str(v)))
+    return pred
+
+
 _ALWAYS_TRUE: Callable[[dict], bool] = lambda _row: True  # noqa: E731
 
 
@@ -180,6 +225,8 @@ class _Parser:
     v4.00.68 — Added NOT unary operator (tighter precedence than AND/OR).
     v4.00.69 — Added ``field IN(...)`` list-membership predicate.
     v4.00.84 — Added ``field IS NULL`` and ``field IS NOT NULL`` predicates.
+    v4.00.85 — Added ``field LIKE '<pattern>'`` predicate with ``%`` / ``_``
+    wildcards (case-INSENSITIVE per spec).
 
     Grammar:
       expression ::= term ( OR term )*
@@ -189,6 +236,7 @@ class _Parser:
                    | field 'IS' 'NULL'
                    | field 'IS' 'NOT' 'NULL'
                    | field 'IN' '(' 'value' (',' 'value')* ')'
+                   | field 'LIKE' 'value'
     """
 
     def __init__(self, tokens: list[str]):
@@ -244,7 +292,7 @@ class _Parser:
         if self.pos + 2 >= len(self.tokens) + 1:
             raise _ParseError("truncated_predicate")
         field = self._consume()
-        if field in ("AND", "OR", "NOT", "IN", "IS", "NULL", "(", ")", ",") or field in _COMPARISON_OPS:
+        if field in ("AND", "OR", "NOT", "IN", "IS", "NULL", "LIKE", "(", ")", ",") or field in _COMPARISON_OPS:
             raise _ParseError(f"expected_field_got_{field!r}")
         op = self._consume()
         # v4.00.69 — Special-case IN(list-of-literals).
@@ -253,6 +301,9 @@ class _Parser:
         # v4.00.84 — Special-case ``IS NULL`` / ``IS NOT NULL``.
         if op == "IS":
             return self._parse_is_null(field)
+        # v4.00.85 — Special-case ``LIKE 'pattern'``.
+        if op == "LIKE":
+            return self._parse_like(field)
         if op not in _COMPARISON_OPS:
             raise _ParseError(f"expected_comparison_op_got_{op!r}")
         lit_tok = self._consume()
@@ -260,6 +311,24 @@ class _Parser:
             raise _ParseError(f"expected_quoted_literal_got_{lit_tok!r}")
         lit = _unquote_literal(lit_tok)
         return _make_pred(field, op, lit)
+
+    def _parse_like(self, field: str) -> Callable[[dict], bool]:
+        """v4.00.85 — Parse ``LIKE 'pattern'`` after the field token.
+
+        Tokens already consumed: field, 'LIKE'. Now expect a single-
+        quoted literal containing the LIKE pattern. An unquoted /
+        missing literal raises so the outer ``parse_filter`` falls back
+        to the always-True callable (fail-safe).
+        """
+        if self._at_end():
+            raise _ParseError("expected_quoted_literal_after_LIKE")
+        lit_tok = self._consume()
+        if not (lit_tok.startswith("'") and lit_tok.endswith("'")):
+            raise _ParseError(
+                f"expected_quoted_literal_after_LIKE_got_{lit_tok!r}"
+            )
+        pattern = _unquote_literal(lit_tok)
+        return _make_like_pred(field, pattern)
 
     def _parse_is_null(self, field: str) -> Callable[[dict], bool]:
         """v4.00.84 — Parse ``IS NULL`` or ``IS NOT NULL`` after the field token.

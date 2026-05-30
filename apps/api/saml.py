@@ -972,8 +972,12 @@ def _resolve_saml_attr_map() -> dict:
     return out
 
 
-def _extract_saml_attr(attrs: dict, priority: tuple) -> str:
-    """Walk the priority list, return first non-empty stripped value."""
+def _extract_saml_attr(attrs: dict, priority) -> str:
+    """Walk the priority list, return first non-empty stripped value.
+
+    ``priority`` may be a tuple OR a list (v4.00.85 per-tenant merged maps
+    return lists; the historical resolver returns tuples). Both iterate.
+    """
     for key in priority:
         val = attrs.get(key, "")
         if val and str(val).strip():
@@ -981,17 +985,133 @@ def _extract_saml_attr(attrs: dict, priority: tuple) -> str:
     return ""
 
 
-def _provision_user_from_saml(name_id: str, attrs: dict) -> tuple:
+# ---------------------------------------------------------------------------
+# v4.00.85 — Per-tenant attribute mapping override.
+#
+# Env: RMC_SAML_TENANT_ATTR_MAP_OVERRIDES (JSON dict). Schema:
+#   {
+#     "<tenant_schema>": {
+#       "first_name": ["custom.GivenName", "user.firstName"],
+#       "last_name": ["custom.SurName"],
+#       "email": ["custom.PrimaryEmail"]
+#     }
+#   }
+#
+# When the tenant has an override, that override is PREPENDED to the
+# default keys list (defaults still consulted as fallback). NEVER
+# replaced entirely — defaults remain safety net.
+# ---------------------------------------------------------------------------
+
+
+def _resolve_per_tenant_attr_overrides() -> dict:
+    """Read RMC_SAML_TENANT_ATTR_MAP_OVERRIDES env.
+
+    Returns ``{}`` on absence or bad JSON. Each tenant's mapping is
+    normalized to ``{field_name: [key, ...]}`` — string values are coerced
+    to single-element lists, ints/strings in lists are kept as strings,
+    anything else is dropped silently. NEVER raises.
+    """
+    try:
+        import json
+        raw = (
+            getattr(settings, "RMC_SAML_TENANT_ATTR_MAP_OVERRIDES", None)
+            if hasattr(settings, "RMC_SAML_TENANT_ATTR_MAP_OVERRIDES")
+            else os.environ.get("RMC_SAML_TENANT_ATTR_MAP_OVERRIDES", "")
+        )
+        if raw is None or str(raw).strip() == "":
+            return {}
+        parsed = json.loads(str(raw))
+        if not isinstance(parsed, dict):
+            return {}
+        out: dict = {}
+        for tenant, mapping in parsed.items():
+            if not isinstance(tenant, str) or not isinstance(mapping, dict):
+                continue
+            normalized: dict = {}
+            for field, keys in mapping.items():
+                if not isinstance(field, str):
+                    continue
+                if isinstance(keys, str):
+                    normalized[field] = [keys] if keys else []
+                elif isinstance(keys, list):
+                    normalized[field] = [str(k) for k in keys if isinstance(k, (str, int)) and str(k) != ""]
+            if normalized:
+                out[tenant] = normalized
+        return out
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def resolve_saml_attr_map_for_tenant(tenant_schema: str) -> dict:
+    """Return the effective attribute mapping for ``tenant_schema``.
+
+    Per-tenant override keys are PREPENDED to the default keys list
+    (defaults remain as fallback safety net). Empty override lists are
+    treated as "no override" — defaults are preserved untouched.
+
+    NEVER raises — bad env values fall back to the global resolved map.
+    """
+    try:
+        base = _resolve_saml_attr_map()
+    except Exception:  # noqa: BLE001
+        base = {field: tuple(default) for field, default in _DEFAULT_SAML_ATTR_MAP.items()}
+    if not tenant_schema:
+        return base
+    overrides = _resolve_per_tenant_attr_overrides().get(tenant_schema, {})
+    if not overrides:
+        return base
+    merged: dict = {}
+    for field, default_keys in base.items():
+        per_tenant = overrides.get(field, [])
+        if not per_tenant:
+            # Empty override for this field → keep defaults untouched
+            merged[field] = default_keys
+            continue
+        seen: set = set()
+        ordered: list = []
+        for k in list(per_tenant) + list(default_keys):
+            if k not in seen:
+                seen.add(k)
+                ordered.append(k)
+        merged[field] = ordered
+    return merged
+
+
+def per_tenant_saml_attr_overrides_summary() -> dict:
+    """URL-leak-safe summary. Counts only, never raw claim names.
+
+    Returns ``{configured: bool, tenant_count: int, tenants_sample: list[str]}``.
+    Tenant schema names ARE returned (they aren't claim secrets) but raw
+    claim names / override key lists are deliberately omitted.
+    """
+    overrides = _resolve_per_tenant_attr_overrides()
+    return {
+        "configured": bool(overrides),
+        "tenant_count": len(overrides),
+        "tenants_sample": sorted(overrides.keys())[:6],
+    }
+
+
+def _provision_user_from_saml(name_id: str, attrs: dict, tenant_schema: str = "") -> tuple:
     """Get-or-create User by email (NameID often *is* the email). Returns
     ``(user, created)``.
 
     v4.00.66 — Attribute lookup now routes through the operator-configurable
     map (RMC_SAML_ATTR_FIRST_NAME / _LAST_NAME / _EMAIL). Defaults preserve
     v4.00.45 behavior so unconfigured deployments keep working.
+
+    v4.00.85 — Optional ``tenant_schema`` arg routes through
+    ``resolve_saml_attr_map_for_tenant`` so per-tenant overrides
+    (RMC_SAML_TENANT_ATTR_MAP_OVERRIDES) are honored. When unset, falls
+    back to the global ``_resolve_saml_attr_map()`` — zero behavior drift
+    for existing callers.
     """
     from django.contrib.auth import get_user_model
 
-    attr_map = _resolve_saml_attr_map()
+    if tenant_schema:
+        attr_map = resolve_saml_attr_map_for_tenant(tenant_schema)
+    else:
+        attr_map = _resolve_saml_attr_map()
 
     UserModel = get_user_model()
     email_raw = _extract_saml_attr(attrs, attr_map["email"])
@@ -1113,8 +1233,25 @@ def acs(request):
                     status=401,
                 )
 
+    # v4.00.85 — Best-effort per-tenant attr-map routing. If the request
+    # carries a tenant context (django-tenants style ``request.tenant``),
+    # surface its ``schema_name`` so RMC_SAML_TENANT_ATTR_MAP_OVERRIDES can
+    # prepend custom claims for that tenant. Absent/broken tenant context
+    # falls back to the global resolver — zero drift for non-tenanted callers.
+    _saml_tenant_schema = ""
     try:
-        user, created = _provision_user_from_saml(name_id, parsed.get("attributes") or {})
+        _t = getattr(request, "tenant", None)
+        if _t is not None:
+            _saml_tenant_schema = str(getattr(_t, "schema_name", "") or "")
+    except Exception:  # noqa: BLE001
+        _saml_tenant_schema = ""
+
+    try:
+        user, created = _provision_user_from_saml(
+            name_id,
+            parsed.get("attributes") or {},
+            tenant_schema=_saml_tenant_schema,
+        )
     except Exception as exc:  # noqa: BLE001
         return JsonResponse({"success": False, "stage": "provision_failed", "detail": str(exc)}, status=500)
 
@@ -2327,7 +2464,24 @@ def resolve_idp_target_for_email(email: str) -> str:
 
     Falls back to the default IdP target when the domain isn't mapped
     OR the email is empty / malformed.
+
+    v4.00.85 — Precedence:
+      1. Multi-IdP registry exact-domain match (RMC_SAML_MULTI_IDP_REGISTRY)
+      2. Multi-IdP registry wildcard-suffix match
+      3. v4.00.74 _hrd_mapping (URL-only HRD mapping)
+      4. Default _idp_sso_url() single-IdP env
+
+    Returning the registry's ``sso_url`` when set ensures multi-IdP-aware
+    deployments route to the right tenant; single-IdP deployments preserve
+    pre-v4.00.85 behavior unchanged (registry empty → HRD → env fallback).
     """
+    # v4.00.85 — multi-IdP registry takes precedence when configured.
+    rec = resolve_multi_idp_record(email or "")
+    if rec and isinstance(rec, dict):
+        sso = str(rec.get("sso_url") or "").strip()
+        if sso:
+            return sso
+
     if not email or "@" not in email:
         return _idp_sso_url()
     domain = email.rsplit("@", 1)[1].strip().lower()
@@ -2341,6 +2495,130 @@ def resolve_idp_target_for_email(email: str) -> str:
         if key.startswith("*.") and domain.endswith(key[1:]):
             return target
     return _idp_sso_url()
+
+
+# ---------------------------------------------------------------------------
+# v4.00.85 — Multi-IdP federation registry.
+#
+# Extends the v4.00.74 _hrd_mapping (which was URL-only, single value per
+# domain) with a RICHER per-domain record: label, sso_url, entity_id,
+# cert_pem_b64, attribute_map_override. Districts running multiple IdPs
+# (e.g. one Okta tenant for staff, one Azure AD for students) can map
+# each email domain to the right tenant + its specific signing cert + its
+# specific attribute map.
+#
+# Env: RMC_SAML_MULTI_IDP_REGISTRY (JSON dict). Schema:
+#   {
+#     "school.edu": {
+#       "label": "Acme Okta SSO",
+#       "sso_url": "https://acme.okta.com/app/...",
+#       "entity_id": "https://acme.okta.com/exk...",
+#       "cert_pem_b64": "<armorless-b64>",
+#       "attribute_map_override": {"email": "user.email",
+#                                  "firstName": "user.firstName"}
+#     },
+#     "*.staff.school.edu": {...}
+#   }
+#
+# Wildcard suffix matching mirrors v4.00.74 _hrd_mapping pattern. Exact
+# matches WIN over wildcard matches (most-specific first).
+#
+# Honest deferred: per-IdP cert validation (using cert_pem_b64 from the
+# registry rather than the global RMC_SAML_IDP_CERT_PEM) is left to a
+# future wave. v4.00.85 surfaces the field on the record so callers can
+# read it, but the v4.00.57 c14n verifier still reads the global cert.
+# ---------------------------------------------------------------------------
+
+
+def resolve_multi_idp_record(email: str) -> dict | None:
+    """v4.00.85 — Return the IdP record for ``email`` based on the multi-IdP
+    registry, OR ``None`` if no match (caller falls back to single-IdP path).
+
+    Match order:
+      1. Exact domain match — winner record is annotated
+         ``match_type="exact"``, ``matched_domain=<domain>``.
+      2. Wildcard suffix match (key shape ``"*.suffix"``) — annotated
+         ``match_type="wildcard_suffix"``, ``matched_domain=<key>`` (the
+         pattern itself, useful for operator dashboards).
+
+    Returns a SHALLOW COPY of the registry record so callers cannot mutate
+    the parsed env. NEVER raises — bad env / bad JSON / non-dict shapes
+    silently return None so the caller falls back cleanly.
+    """
+    try:
+        import json
+        import os
+        raw = os.environ.get("RMC_SAML_MULTI_IDP_REGISTRY", "")
+        if not raw:
+            return None
+        parsed = json.loads(raw)
+        if not isinstance(parsed, dict):
+            return None
+        # Extract domain
+        if "@" not in (email or ""):
+            return None
+        domain = email.split("@", 1)[1].strip().lower()
+        if not domain:
+            return None
+        # Exact match wins
+        if domain in parsed and isinstance(parsed[domain], dict):
+            rec = dict(parsed[domain])
+            rec["matched_domain"] = domain
+            rec["match_type"] = "exact"
+            return rec
+        # Wildcard suffix match
+        for key, val in parsed.items():
+            if not isinstance(key, str) or not key.startswith("*."):
+                continue
+            suffix = key[1:].lower()  # ".staff.school.edu"
+            if domain.endswith(suffix) and isinstance(val, dict):
+                rec = dict(val)
+                rec["matched_domain"] = key
+                rec["match_type"] = "wildcard_suffix"
+                return rec
+        return None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def multi_idp_registry_summary() -> dict:
+    """v4.00.85 — URL-leak-safe summary for operator dashboards.
+
+    Reports COUNTS by match type + sample domains (cap 6 per category).
+    NEVER includes raw ``sso_url`` / ``cert_pem_b64`` / ``entity_id`` —
+    the summary is safe to log + render on the diagnostics page.
+
+    Shapes:
+      * env unset           → {configured: False, entries: 0,
+                               exact_domains: [], wildcard_patterns: []}
+      * env set OK          → {configured: True, entries: N,
+                               exact_domains: [...], wildcard_patterns: [...]}
+      * env JSON-not-dict   → {configured: False, error: "registry_not_dict"}
+      * env malformed JSON  → {configured: False, error: "registry_parse_failure"}
+    NEVER raises.
+    """
+    try:
+        import json
+        import os
+        raw = os.environ.get("RMC_SAML_MULTI_IDP_REGISTRY", "")
+        if not raw:
+            return {"configured": False, "entries": 0,
+                    "exact_domains": [], "wildcard_patterns": []}
+        parsed = json.loads(raw)
+        if not isinstance(parsed, dict):
+            return {"configured": False, "error": "registry_not_dict"}
+        exacts = sorted(k for k in parsed.keys()
+                        if isinstance(k, str) and not k.startswith("*."))[:6]
+        wildcards = sorted(k for k in parsed.keys()
+                           if isinstance(k, str) and k.startswith("*."))[:6]
+        return {
+            "configured": True,
+            "entries": len(parsed),
+            "exact_domains": exacts,
+            "wildcard_patterns": wildcards,
+        }
+    except Exception:  # noqa: BLE001
+        return {"configured": False, "error": "registry_parse_failure"}
 
 
 def hrd_mapping_summary() -> dict:
