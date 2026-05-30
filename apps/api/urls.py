@@ -588,6 +588,12 @@ urlpatterns = [
     # registered BEFORE the <str:sourced_id> catch-all.
     path("roster/v1p2/results/", _oneroster_results.results_list_v1p2_roster, name="api-roster-v1p2-results"),
     path("roster/v1p2/results/<str:sourced_id>/", _oneroster_results.result_detail_v1p2_roster, name="api-roster-v1p2-result-detail"),
+    # v4.00.81 Wave 13 T2 — ScoreScales GET (list + detail) per Result Service
+    # spec § 4.13 on the Roster Service path. Synthesizes 4 standard scales
+    # (letter A-F, percent 0-100, pass/fail, rubric 4-point). Specific paths
+    # registered BEFORE the <str:sourced_id> catch-all.
+    path("roster/v1p2/scoreScales/", _oneroster_results.score_scales_list_v1p2_roster, name="api-roster-v1p2-score-scales"),
+    path("roster/v1p2/scoreScales/<str:sourced_id>/", _oneroster_results.score_scale_detail_v1p2_roster, name="api-roster-v1p2-score-scale-detail"),
     # v4.00.59 — OneRoster v1.2 demographics endpoints (read-only).
     # v4.00.60 — POST/PUT write coverage (order matters: write routes BEFORE
     # the <str:sourced_id> catch-all so they don't get swallowed).

@@ -76,6 +76,8 @@ _DEMOGRAPHIC_OVERRIDE_FIELDS = (
     "tribalAffiliation",  # v4.00.79
     "preferredFirstName",  # v4.00.80
     "preferredLastName",  # v4.00.80
+    "previousLastName",  # v4.00.81
+    "previousMiddleName",  # v4.00.81
 )
 
 
@@ -452,6 +454,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_preferred_names(inner)
     if err is not None:
         return None, err
+    err = _validate_previous_names(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -776,6 +781,44 @@ def _validate_preferred_names(inner: dict[str, Any]):
         if _PREFERRED_NAME_CONTROL_RE.search(raw):
             return JsonResponse(
                 {"error": "bad_preferred_name",
+                 "reason": "control_chars",
+                 "field": field},
+                status=400,
+            )
+    return None
+
+
+# v4.00.81 — Demographics POST/PUT `previousLastName` + `previousMiddleName`.
+#
+# OneRoster v1.2 carries optional previousLastName + previousMiddleName for
+# name-change tracking (legal change post-marriage, post-divorce, gender
+# transition, adoption, etc.). No backing column; override-ring routed.
+# 80-char cap matches preferred names + middleName + User column widths.
+_PREVIOUS_NAME_MAX_LEN = 80
+_PREVIOUS_NAME_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_previous_names(inner: dict[str, Any]):
+    """Validate both previousLastName + previousMiddleName in one pass.
+    Returns None on accept; JsonResponse(400) on first failure."""
+    for field in ("previousLastName", "previousMiddleName"):
+        if field not in inner:
+            continue
+        raw = str(inner.get(field) or "")
+        if not raw:
+            continue  # explicit clear
+        if len(raw) > _PREVIOUS_NAME_MAX_LEN:
+            return JsonResponse(
+                {"error": "bad_previous_name",
+                 "reason": "too_long",
+                 "field": field,
+                 "received_length": len(raw),
+                 "max_length": _PREVIOUS_NAME_MAX_LEN},
+                status=400,
+            )
+        if _PREVIOUS_NAME_CONTROL_RE.search(raw):
+            return JsonResponse(
+                {"error": "bad_previous_name",
                  "reason": "control_chars",
                  "field": field},
                 status=400,

@@ -3108,3 +3108,167 @@ def result_detail_v1p2_roster(request: HttpRequest, sourced_id: str):
         if item["sourcedId"] == sourced_id:
             return JsonResponse({"result": item})
     return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.81 Wave 13 T2 — OneRoster v1.2 Result Service /scoreScales/ GET
+# (Roster Service path) per IMS Result Service spec § 4.13.
+#
+# Data source: there is no dedicated ``ScoreScale`` model in this codebase
+# (``apps.evals.models.GradingScale`` is school-tenant-scoped + uses a
+# different schema). The Wave 13 T2 surface synthesizes a fixed set of
+# standard grading scales (letter A-F, percent 0-100, pass/fail, rubric
+# 4-point) — these are the four scales OneRoster partners overwhelmingly
+# expect at any LMS integration point. Stable synthetic sourcedId
+# = SHA-256("scoreScale:<tenant>:<slug>")[:16].
+#
+# NAMING NOTE: the existing module has no prior /scoreScales/ binding, but
+# the views are nonetheless suffixed ``_v1p2_roster`` to mirror the Wave
+# 11/12 T2 naming convention (``categories_list_v1p2_roster`` /
+# ``results_list_v1p2_roster``).
+# ---------------------------------------------------------------------------
+
+
+_DEFAULT_SCORE_SCALES: tuple[dict[str, Any], ...] = (
+    {
+        "slug": "letter-a-f",
+        "title": "Letter A-F",
+        "type": "categorical",
+        "scoreValues": [
+            {"score": "A", "scoreNumeric": 95.0, "scoreLabel": "Excellent"},
+            {"score": "B", "scoreNumeric": 85.0, "scoreLabel": "Good"},
+            {"score": "C", "scoreNumeric": 75.0, "scoreLabel": "Satisfactory"},
+            {"score": "D", "scoreNumeric": 65.0, "scoreLabel": "Pass"},
+            {"score": "F", "scoreNumeric": 0.0,  "scoreLabel": "Fail"},
+        ],
+    },
+    {
+        "slug": "percent-0-100",
+        "title": "Percent 0-100",
+        "type": "continuous",
+        "scoreValues": [
+            {"score": "100", "scoreNumeric": 100.0, "scoreLabel": "Maximum"},
+            {"score": "90",  "scoreNumeric": 90.0,  "scoreLabel": "Distinction"},
+            {"score": "80",  "scoreNumeric": 80.0,  "scoreLabel": "Merit"},
+            {"score": "70",  "scoreNumeric": 70.0,  "scoreLabel": "Credit"},
+            {"score": "60",  "scoreNumeric": 60.0,  "scoreLabel": "Pass"},
+            {"score": "50",  "scoreNumeric": 50.0,  "scoreLabel": "Threshold"},
+            {"score": "0",   "scoreNumeric": 0.0,   "scoreLabel": "Minimum"},
+        ],
+    },
+    {
+        "slug": "pass-fail",
+        "title": "Pass/Fail",
+        "type": "categorical",
+        "scoreValues": [
+            {"score": "P", "scoreNumeric": 100.0, "scoreLabel": "Pass"},
+            {"score": "F", "scoreNumeric": 0.0,   "scoreLabel": "Fail"},
+        ],
+    },
+    {
+        "slug": "rubric-4",
+        "title": "Rubric 4-point",
+        "type": "categorical",
+        "scoreValues": [
+            {"score": "4", "scoreNumeric": 100.0, "scoreLabel": "Exemplary"},
+            {"score": "3", "scoreNumeric": 75.0,  "scoreLabel": "Proficient"},
+            {"score": "2", "scoreNumeric": 50.0,  "scoreLabel": "Developing"},
+            {"score": "1", "scoreNumeric": 25.0,  "scoreLabel": "Beginning"},
+        ],
+    },
+)
+
+_ALLOWED_SCORE_SCALE_TYPES = {"categorical", "continuous"}
+
+
+def _synth_score_scale_sourced_id(tenant_schema: str, slug: str) -> str:
+    import hashlib
+    raw = f"scoreScale:{tenant_schema}:{slug}".encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()[:16]
+
+
+def _build_score_scales_v1p2_roster(tenant_schema: str) -> list[dict[str, Any]]:
+    """Synthesize the ScoreScales collection for the Roster Service projection.
+
+    Returns the 4 default scales (letter A-F, percent 0-100, pass/fail,
+    rubric 4-point) projected into the IMS v1.2 ScoreScale shape. The
+    sourcedId is a deterministic SHA-256[:16] of ``scoreScale:<tenant>:<slug>``
+    for stability across calls.
+    """
+    from django.utils import timezone as _tz
+    now_iso = _tz.now().isoformat()
+
+    out: list[dict[str, Any]] = []
+    for seed in _DEFAULT_SCORE_SCALES:
+        slug = seed["slug"]
+        out.append({
+            "sourcedId": _synth_score_scale_sourced_id(tenant_schema, slug),
+            "status": "active",
+            "dateLastModified": now_iso,
+            "title": seed["title"],
+            "type": seed["type"],
+            "scoreValues": [dict(v) for v in seed["scoreValues"]],
+        })
+    return out
+
+
+@require_http_methods(["GET"])
+def score_scales_list_v1p2_roster(request: HttpRequest):
+    """v4.00.81 Wave 13 T2 — GET /api/roster/v1p2/scoreScales/ per spec § 4.13.
+
+    Query params:
+      ?title=<str>     case-insensitive substring filter on title
+      ?type=<str>      exact-match filter (categorical|continuous)
+      ?limit=N         default 100, capped at 500
+      ?offset=N        default 0
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+
+    tenant_schema = _resolve_tenant_schema(request)
+    items = _build_score_scales_v1p2_roster(tenant_schema)
+
+    title_q = (request.GET.get("title") or "").strip().lower()
+    if title_q:
+        items = [it for it in items if title_q in (it.get("title") or "").lower()]
+
+    type_q = (request.GET.get("type") or "").strip().lower()
+    if type_q:
+        if type_q not in _ALLOWED_SCORE_SCALE_TYPES:
+            return JsonResponse({"error": "bad_type", "value": type_q,
+                                 "allowed": sorted(_ALLOWED_SCORE_SCALE_TYPES)}, status=400)
+        items = [it for it in items if (it.get("type") or "").lower() == type_q]
+
+    total = len(items)
+
+    try:
+        limit = int(request.GET.get("limit") or 100)
+    except (ValueError, TypeError):
+        limit = 100
+    try:
+        offset = int(request.GET.get("offset") or 0)
+    except (ValueError, TypeError):
+        offset = 0
+    limit = max(1, min(500, limit))
+    offset = max(0, offset)
+    page = items[offset:offset + limit]
+
+    resp = JsonResponse({"scoreScales": page})
+    resp["X-Total-Count"] = str(total)
+    resp["X-Limit"] = str(limit)
+    resp["X-Offset"] = str(offset)
+    return resp
+
+
+@require_http_methods(["GET"])
+def score_scale_detail_v1p2_roster(request: HttpRequest, sourced_id: str):
+    """v4.00.81 Wave 13 T2 — GET /api/roster/v1p2/scoreScales/<sourced_id>/."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    tenant_schema = _resolve_tenant_schema(request)
+    for item in _build_score_scales_v1p2_roster(tenant_schema):
+        if item["sourcedId"] == sourced_id:
+            return JsonResponse({"scoreScale": item})
+    return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)

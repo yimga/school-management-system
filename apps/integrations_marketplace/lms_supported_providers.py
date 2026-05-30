@@ -46,6 +46,7 @@ PROVIDER_SCHOOLOGY = "schoology"
 PROVIDER_BRIGHTSPACE_D2L = "d2l_brightspace"
 PROVIDER_BLACKBOARD = "blackboard"
 PROVIDER_POWERSCHOOL = "powerschool"
+PROVIDER_SAKAI = "sakai"
 
 
 # Canonical platform-wide list.
@@ -58,6 +59,7 @@ SUPPORTED_LMS_PROVIDERS = frozenset({
     PROVIDER_BRIGHTSPACE_D2L,
     PROVIDER_BLACKBOARD,
     PROVIDER_POWERSCHOOL,
+    PROVIDER_SAKAI,
 })
 
 # Providers whose OAuth refresh flow is wired in ``lms_token_refresh.py``.
@@ -75,6 +77,7 @@ SCAFFOLD_LMS_PROVIDERS = frozenset({
     PROVIDER_BRIGHTSPACE_D2L,
     PROVIDER_BLACKBOARD,
     PROVIDER_POWERSCHOOL,
+    PROVIDER_SAKAI,
 })
 
 
@@ -111,6 +114,7 @@ def canonical_lms_provider_label(provider: str) -> str:
         PROVIDER_BRIGHTSPACE_D2L: "Brightspace (D2L)",
         PROVIDER_BLACKBOARD: "Blackboard Learn",
         PROVIDER_POWERSCHOOL: "PowerSchool Learning",
+        PROVIDER_SAKAI: "Sakai",
     }.get(p, p or "unknown")
 
 
@@ -124,6 +128,7 @@ def lms_provider_rollup_order() -> tuple[str, ...]:
         PROVIDER_BRIGHTSPACE_D2L,
         PROVIDER_BLACKBOARD,
         PROVIDER_POWERSCHOOL,
+        PROVIDER_SAKAI,
     )
 
 
