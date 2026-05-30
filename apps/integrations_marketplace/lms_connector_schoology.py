@@ -464,13 +464,90 @@ def exchange_authorization_code_for_token(*, code: str, client_id: str,
     # Audit success — token-hash for correlation, NEVER raw token.
     _at_hash = _short_hash(str(body.get("access_token") or ""))
     _rt_hash = _short_hash(str(body.get("refresh_token") or ""))
-    _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
-                  ok=True, http_status=status, reason="ok",
-                  tenant_schema=tenant_schema,
-                  payload_summary={"http_status": status,
-                                   "access_token_hash": _at_hash,
-                                   "refresh_token_hash": _rt_hash,
-                                   "expires_in": body.get("expires_in")})
+
+    # v4.00.91 Wave 24 — H2: redirect_uri post-exchange consistency check.
+    # If the upstream echoed a redirect_uri (some do, some don't), validate
+    # scheme/host/path against the one we sent. On mismatch we downgrade the
+    # result to ok=False with reason="redirect_uri_mismatch" and surface the
+    # sub-reason in the audit payload.
+    from apps.integrations_marketplace.oauth_live_path_helpers import (
+        validate_redirect_uri_consistency as _validate_redirect_uri,
+        compare_scopes as _compare_scopes,
+        track_refresh_token_issuance as _track_rt_issuance,
+    )
+    _redir_ok, _redir_reason = _validate_redirect_uri(
+        requested_uri=redirect_uri, response_metadata=body,
+    )
+    # v4.00.91 Wave 24 — H3: scope-mismatch detection (audit-only; never
+    # fails the request because granted < requested is sometimes legitimate
+    # downscoping per W20 OAuth scope downscoper).
+    _scope_cmp = _compare_scopes(
+        requested_scopes=DEFAULT_SCOPES,
+        granted_scopes=body.get("scope") or "",
+    )
+
+    if not _redir_ok:
+        # Downgrade the response — operator still gets the token hashes in
+        # the audit but the result dict signals the redirect mismatch so
+        # calling code refuses to persist the access_token.
+        body["ok"] = False
+        body["reason"] = "redirect_uri_mismatch"
+        body["redirect_uri_mismatch_sub_reason"] = _redir_reason
+        body["scope_match"] = _scope_cmp.get("match", True)
+        if not _scope_cmp.get("match", True):
+            body["scope_missing"] = _scope_cmp.get("missing", [])
+            body["scope_extra"] = _scope_cmp.get("extra", [])
+        _record_audit(
+            action="oauth_exchange", provider=PROVIDER_SLUG,
+            ok=False, http_status=status,
+            reason="redirect_uri_mismatch",
+            tenant_schema=tenant_schema,
+            payload_summary={
+                "http_status": status,
+                "access_token_hash": _at_hash,
+                "refresh_token_hash": _rt_hash,
+                "expires_in": body.get("expires_in"),
+                "redirect_uri_used_hash": _short_hash(redirect_uri),
+                "redirect_uri_mismatch_sub_reason": _redir_reason,
+                "scope_match": _scope_cmp.get("match", True),
+                "scope_missing": _scope_cmp.get("missing", []),
+                "scope_extra": _scope_cmp.get("extra", []),
+            },
+        )
+        return body
+
+    body["scope_match"] = _scope_cmp.get("match", True)
+    if not _scope_cmp.get("match", True):
+        body["scope_missing"] = _scope_cmp.get("missing", [])
+        body["scope_extra"] = _scope_cmp.get("extra", [])
+
+    # v4.00.91 Wave 24 — H1: track issuance of the new refresh_token (hash
+    # ONLY) in the per-provider ring buffer so future calls can detect
+    # rotation + reuse-of-rotated-token attempts.
+    if _rt_hash:
+        _track_rt_issuance(
+            provider=PROVIDER_SLUG,
+            tenant_schema=tenant_schema,
+            refresh_token_hash=_rt_hash,
+            issued_at_iso=body.get("issued_at_iso") or "",
+            expires_in_seconds=int(body.get("expires_in") or 0),
+        )
+
+    _record_audit(
+        action="oauth_exchange", provider=PROVIDER_SLUG,
+        ok=True, http_status=status, reason="ok",
+        tenant_schema=tenant_schema,
+        payload_summary={
+            "http_status": status,
+            "access_token_hash": _at_hash,
+            "refresh_token_hash": _rt_hash,
+            "expires_in": body.get("expires_in"),
+            "redirect_uri_used_hash": _short_hash(redirect_uri),
+            "scope_match": _scope_cmp.get("match", True),
+            "scope_missing": _scope_cmp.get("missing", []),
+            "scope_extra": _scope_cmp.get("extra", []),
+        },
+    )
     return body
 
 
@@ -586,13 +663,72 @@ def refresh_access_token(*, refresh_token: str, client_id: str,
                     _dt.now(_tz.utc).replace(microsecond=0).isoformat())
     _at_hash = _short_hash(str(body.get("access_token") or ""))
     _rt_hash = _short_hash(str(body.get("refresh_token") or ""))
-    _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
-                  ok=True, http_status=status, reason="ok",
-                  tenant_schema=tenant_schema,
-                  payload_summary={"http_status": status,
-                                   "access_token_hash": _at_hash,
-                                   "refresh_token_hash": _rt_hash,
-                                   "expires_in": body.get("expires_in")})
+
+    # v4.00.91 Wave 24 — H1 + H3 wiring on refresh path.
+    from apps.integrations_marketplace.oauth_live_path_helpers import (
+        compare_scopes as _compare_scopes,
+        mark_refresh_token_rotated as _mark_rotated,
+        track_refresh_token_issuance as _track_rt_issuance,
+    )
+
+    # H1: hash the OLD refresh token (input) for the rotation audit row.
+    _old_rt_hash = _short_hash(str(refresh_token or ""))
+    _rotated_flag = False
+    if _rt_hash and _rt_hash != _old_rt_hash:
+        # Upstream issued a NEW refresh token — mark the old hash as
+        # rotated so future replay attempts can be flagged.
+        _rotated_flag = _mark_rotated(
+            provider=PROVIDER_SLUG, refresh_token_hash=_old_rt_hash,
+        )
+        # Track the NEW refresh token so the NEXT rotation can detect it.
+        _track_rt_issuance(
+            provider=PROVIDER_SLUG,
+            tenant_schema=tenant_schema,
+            refresh_token_hash=_rt_hash,
+            issued_at_iso=body.get("issued_at_iso") or "",
+            expires_in_seconds=int(body.get("expires_in") or 0),
+        )
+        # Surface the rotation in a DEDICATED audit row so operators can
+        # spot the rotation event independently of the broader oauth_refresh
+        # row. NEVER includes raw tokens — hashes only.
+        _record_audit(
+            action="refresh_token_rotation", provider=PROVIDER_SLUG,
+            ok=True, http_status=status, reason="ok",
+            tenant_schema=tenant_schema,
+            payload_summary={
+                "old_refresh_token_hash": _old_rt_hash,
+                "new_refresh_token_hash": _rt_hash,
+                "old_marked_rotated": _rotated_flag,
+                "expires_in": body.get("expires_in"),
+            },
+        )
+
+    # H3: scope compare (audit-only).
+    _scope_cmp = _compare_scopes(
+        requested_scopes=DEFAULT_SCOPES,
+        granted_scopes=body.get("scope") or "",
+    )
+    body["scope_match"] = _scope_cmp.get("match", True)
+    if not _scope_cmp.get("match", True):
+        body["scope_missing"] = _scope_cmp.get("missing", [])
+        body["scope_extra"] = _scope_cmp.get("extra", [])
+
+    _record_audit(
+        action="oauth_refresh", provider=PROVIDER_SLUG,
+        ok=True, http_status=status, reason="ok",
+        tenant_schema=tenant_schema,
+        payload_summary={
+            "http_status": status,
+            "access_token_hash": _at_hash,
+            "refresh_token_hash": _rt_hash,
+            "old_refresh_token_hash": _old_rt_hash,
+            "old_marked_rotated": _rotated_flag,
+            "expires_in": body.get("expires_in"),
+            "scope_match": _scope_cmp.get("match", True),
+            "scope_missing": _scope_cmp.get("missing", []),
+            "scope_extra": _scope_cmp.get("extra", []),
+        },
+    )
     return body
 
 

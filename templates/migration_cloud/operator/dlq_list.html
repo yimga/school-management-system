@@ -4,46 +4,46 @@
 {% block page_title %}{{ page_title|default:"Webhook Dead Letter Queue" }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--operator-dlq" id="main" data-rmc-scroll-policy="paginate">
+<main class="rmc-page rmc-page--operator-dlq" id="main" data-rmc-scroll-policy="paginate" aria-labelledby="dlq-page-heading">
   <header class="rmc-page__header">
-    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}">{% trans "← Back to delivery log" %}</a>
-    <h1 class="rmc-h1">{% trans "Webhook Dead Letter Queue" %}</h1>
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}" aria-label="{% trans 'Back to webhook delivery log' %}">{% trans "← Back to delivery log" %}</a>
+    <h1 class="rmc-h1" id="dlq-page-heading">{% trans "Webhook Dead Letter Queue" %}</h1>
     <p class="rmc-lede">
       {% trans "Webhook deliveries that exhausted their retry budget. Replay an entry to re-attempt outbound delivery." %}
     </p>
   </header>
 
-  <nav class="rmc-segmented" aria-label="{% trans 'Filter by status' %}">
-    <a href="?format=html&amp;status=pending" class="rmc-segmented-item{% if status_filter == 'pending' %} is-active{% endif %}" data-rmc-dlq-segment="pending">{% trans "Pending" %}</a>
-    <a href="?format=html&amp;status=replayed" class="rmc-segmented-item{% if status_filter == 'replayed' %} is-active{% endif %}" data-rmc-dlq-segment="replayed">{% trans "Replayed" %}</a>
-    <a href="?format=html&amp;status=expired" class="rmc-segmented-item{% if status_filter == 'expired' %} is-active{% endif %}" data-rmc-dlq-segment="expired">{% trans "Expired" %}</a>
-    <a href="?format=html&amp;status=discarded" class="rmc-segmented-item{% if status_filter == 'discarded' %} is-active{% endif %}" data-rmc-dlq-segment="discarded">{% trans "Discarded" %}</a>
+  <nav class="rmc-segmented" role="tablist" aria-label="{% trans 'Filter by status' %}">
+    <a href="?format=html&amp;status=pending" role="tab" aria-selected="{% if status_filter == 'pending' %}true{% else %}false{% endif %}" class="rmc-segmented-item{% if status_filter == 'pending' %} is-active{% endif %}" data-rmc-dlq-segment="pending">{% trans "Pending" %}</a>
+    <a href="?format=html&amp;status=replayed" role="tab" aria-selected="{% if status_filter == 'replayed' %}true{% else %}false{% endif %}" class="rmc-segmented-item{% if status_filter == 'replayed' %} is-active{% endif %}" data-rmc-dlq-segment="replayed">{% trans "Replayed" %}</a>
+    <a href="?format=html&amp;status=expired" role="tab" aria-selected="{% if status_filter == 'expired' %}true{% else %}false{% endif %}" class="rmc-segmented-item{% if status_filter == 'expired' %} is-active{% endif %}" data-rmc-dlq-segment="expired">{% trans "Expired" %}</a>
+    <a href="?format=html&amp;status=discarded" role="tab" aria-selected="{% if status_filter == 'discarded' %}true{% else %}false{% endif %}" class="rmc-segmented-item{% if status_filter == 'discarded' %} is-active{% endif %}" data-rmc-dlq-segment="discarded">{% trans "Discarded" %}</a>
   </nav>
 
-  <p class="rmc-lede rmc-muted" data-rmc-dlq-row-count="{{ row_count }}">
+  <p class="rmc-lede rmc-muted" data-rmc-dlq-row-count="{{ row_count }}" role="status" aria-live="polite">
     {% blocktrans count counter=row_count %}{{ counter }} row{% plural %}{{ counter }} rows{% endblocktrans %}
     {% trans "in status" %} <code class="rmc-kbd">{{ status_filter }}</code>
   </p>
 
   {% if rows %}
-  <table class="rmc-data-table rmc-data-table--dlq" data-rmc-dlq-table="1">
+  <table class="rmc-data-table rmc-data-table--dlq" data-rmc-dlq-table="1" aria-label="{% blocktrans %}Dead-letter queue entries in {{ status_filter }} status{% endblocktrans %}">
     <thead>
       <tr>
-        <th>{% trans "ID" %}</th>
-        <th>{% trans "Provider" %}</th>
-        <th>{% trans "Event type" %}</th>
-        <th>{% trans "Attempts" %}</th>
-        <th>{% trans "Last error" %}</th>
-        <th>{% trans "Payload bytes" %}</th>
-        <th>{% trans "Created" %}</th>
-        <th>{% trans "Expires" %}</th>
-        <th>{% trans "Action" %}</th>
+        <th scope="col">{% trans "ID" %}</th>
+        <th scope="col">{% trans "Provider" %}</th>
+        <th scope="col">{% trans "Event type" %}</th>
+        <th scope="col">{% trans "Attempts" %}</th>
+        <th scope="col">{% trans "Last error" %}</th>
+        <th scope="col">{% trans "Payload bytes" %}</th>
+        <th scope="col">{% trans "Created" %}</th>
+        <th scope="col">{% trans "Expires" %}</th>
+        <th scope="col">{% trans "Action" %}</th>
       </tr>
     </thead>
     <tbody>
       {% for row in rows %}
       <tr>
-        <td>{{ row.id }}</td>
+        <th scope="row">{{ row.id }}</th>
         <td><code class="rmc-kbd">{{ row.provider }}</code></td>
         <td><code class="rmc-kbd">{{ row.event_type }}</code></td>
         <td>{{ row.attempt_count }}</td>
@@ -55,10 +55,10 @@
           {% if status_filter == "pending" %}
             <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_dlq_replay' dlq_id=row.id %}{% else %}{% url 'migration_cloud_super:migration_cloud_dlq_replay' dlq_id=row.id %}{% endif %}" class="rmc-form--inline">
               {% csrf_token %}
-              <button type="submit" class="rmc-btn rmc-btn--ghost rmc-btn--sm" data-rmc-dlq-replay-btn="{{ row.id }}">{% trans "Replay" %}</button>
+              <button type="submit" class="rmc-btn rmc-btn--ghost rmc-btn--sm" data-rmc-dlq-replay-btn="{{ row.id }}" aria-label="{% blocktrans %}Replay dead-letter row {{ row.id }}{% endblocktrans %}">{% trans "Replay" %}</button>
             </form>
           {% else %}
-            <span class="rmc-pill rmc-pill--muted" data-rmc-dlq-status="{{ row.status }}">{{ row.status|default:status_filter }}</span>
+            <span class="rmc-pill rmc-pill--muted" data-rmc-dlq-status="{{ row.status }}" aria-label="{% blocktrans %}Status: {{ row.status }}{% endblocktrans %}">{{ row.status|default:status_filter }}</span>
           {% endif %}
         </td>
       </tr>
@@ -66,7 +66,7 @@
     </tbody>
   </table>
   {% else %}
-  <div class="rmc-empty" data-rmc-dlq-empty="1">
+  <div class="rmc-empty" data-rmc-dlq-empty="1" role="status" aria-live="polite">
     <h2 class="rmc-h2">{% trans "Queue is healthy" %}</h2>
     <p>{% blocktrans %}No {{ status_filter }} dead-letter rows.{% endblocktrans %}</p>
   </div>
