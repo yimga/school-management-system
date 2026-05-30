@@ -15197,6 +15197,151 @@ COUNTRY_LOCALIZATION["AL-TR"] = _v4_00_77("AL-TR","altr-2-sem","2-sem (Tirana)",
 
 
 # ---------------------------------------------------------------------------
+# v4.00.78 (2026-05-29) — +14 subdivisions: CA-ON Ontario, CA-QC Québec,
+#   CA-BC British Columbia, US-OH Ohio (refresh), US-TX (refresh) +
+#   Pacific/Caribbean/Africa rest: KI-G Gilbert, TV-FUN Funafuti,
+#   FJ-C Central, WS-AA Apia, JM-09 Kingston, TT-POS Port of Spain,
+#   BB-13 Bridgetown, BS-NP Nassau, IS-1 Capital (Reykjavík).
+# ---------------------------------------------------------------------------
+def _v4_00_78(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# Ontario (CA-ON).
+COUNTRY_LOCALIZATION["CA-ON"] = _v4_00_78("CA-ON","caon-2-sem","2-semester (Ontario / EQAO)",2,["Semester 1","Semester 2"],9,
+    [{"code":"kindergarten","label":"Kindergarten (JK-SK)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"elementary","label":"Elementary (Gr 1-8) + EQAO","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"secondary","label":"Secondary (Gr 9-12) + OSSD","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"university","label":"UofT + Waterloo + McMaster + Western + Queen's","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"caon-1","label":"Grade 1","order":1},{"code":"caon-6","label":"Grade 6","order":6},{"code":"caon-12","label":"Grade 12 + OSSD","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Semester","report_card":"Report Card","grade_level":"Grade"})
+
+# Québec (CA-QC).
+COUNTRY_LOCALIZATION["CA-QC"] = _v4_00_78("CA-QC","caqc-3-trim","3-trimestre (Québec / MEES)",3,["Premier trimestre","Deuxième trimestre","Troisième trimestre"],8,
+    [{"code":"maternelle","label":"Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"primaire","label":"Primaire (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secondaire","label":"Secondaire (1-5) + Diplôme","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-16"},
+     {"code":"cegep","label":"CÉGEP (1-2) + DEC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"17-18"},
+     {"code":"universite","label":"UdeM + McGill + Laval + Concordia + UQAM","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"caqc-1","label":"1ère Primaire","order":1},{"code":"caqc-6","label":"6e Primaire","order":6},{"code":"caqc-11","label":"5e Secondaire + Diplôme","order":11},{"code":"caqc-13","label":"CÉGEP + DEC","order":13}],
+    {"teacher":"Enseignant","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Année"})
+
+# British Columbia (CA-BC).
+COUNTRY_LOCALIZATION["CA-BC"] = _v4_00_78("CA-BC","cabc-3-term","3-term (British Columbia / FSA)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"early_learning","label":"Early Learning","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"elementary","label":"Elementary (K-Gr 7) + FSA","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-12"},
+     {"code":"middle","label":"Middle (Gr 8-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-14"},
+     {"code":"secondary","label":"Secondary (Gr 10-12) + Dogwood","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UBC + SFU + UVic + BCIT","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cabc-k","label":"Kindergarten","order":0},{"code":"cabc-7","label":"Grade 7 + FSA","order":7},{"code":"cabc-12","label":"Grade 12 + Dogwood","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report Card","grade_level":"Grade"})
+
+# Gilbert Islands (KI-G — Tarawa).
+COUNTRY_LOCALIZATION["KI-G"] = _v4_00_78("KI-G","kig-3-term","3-term (Gilbert Islands / Tarawa)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Yr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"junior","label":"Junior Secondary (Yr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"senior","label":"Senior Secondary (Yr 10-13) + KSSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"USP Tarawa Campus","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"kig-1","label":"Year 1","order":1},{"code":"kig-9","label":"Year 9","order":9},{"code":"kig-13","label":"Year 13 + KSSC","order":13}],
+    {"teacher":"Tia n reirei","principal":"Tia n tau","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Funafuti (TV-FUN).
+COUNTRY_LOCALIZATION["TV-FUN"] = _v4_00_78("TV-FUN","tvfun-3-term","3-term (Funafuti)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Yr 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"secondary","label":"Secondary (Yr 9-13) + PSSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"university","label":"USP Funafuti Campus","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"tvfun-1","label":"Year 1","order":1},{"code":"tvfun-8","label":"Year 8","order":8},{"code":"tvfun-13","label":"Year 13 + PSSC","order":13}],
+    {"teacher":"Faiakoga","principal":"Pule","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Central Division (FJ-C — Fiji).
+COUNTRY_LOCALIZATION["FJ-C"] = _v4_00_78("FJ-C","fjc-3-term","3-term (Central Division)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"kindergarten","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Yr 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"secondary","label":"Secondary (Yr 9-13) + FY13","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"university","label":"USP + FNU + Univ of Fiji","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"fjc-1","label":"Year 1","order":1},{"code":"fjc-8","label":"Year 8","order":8},{"code":"fjc-13","label":"Year 13 + FY13","order":13}],
+    {"teacher":"Vakatavuli","principal":"Vakailoma","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Apia (WS-AA — Samoa).
+COUNTRY_LOCALIZATION["WS-AA"] = _v4_00_78("WS-AA","wsaa-3-term","3-term (Apia)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"aoga","label":"A'oga Amata","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Yr 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"secondary","label":"Secondary (Yr 9-13) + SSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"university","label":"NUS + USP Alafua","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"wsaa-1","label":"Year 1","order":1},{"code":"wsaa-8","label":"Year 8","order":8},{"code":"wsaa-13","label":"Year 13 + SSC","order":13}],
+    {"teacher":"Faiaoga","principal":"Pule","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Kingston (JM-09 — Jamaica, Kingston parish).
+COUNTRY_LOCALIZATION["JM-09"] = _v4_00_78("JM-09","jm09-3-term","3-term (Kingston)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"basic","label":"Basic School","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Gr 1-6) + PEP","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secondary","label":"Secondary (Gr 7-13) + CSEC/CAPE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-18"},
+     {"code":"university","label":"UWI Mona + UTech + Northern Caribbean","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jm09-1","label":"Grade 1","order":1},{"code":"jm09-6","label":"Grade 6 + PEP","order":6},{"code":"jm09-11","label":"Grade 11 + CSEC","order":11},{"code":"jm09-13","label":"Grade 13 + CAPE","order":13}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Grade"})
+
+# Port of Spain (TT-POS — Trinidad).
+COUNTRY_LOCALIZATION["TT-POS"] = _v4_00_78("TT-POS","ttpos-3-term","3-term (Port of Spain)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"early_childhood","label":"ECCE","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Std 1-5) + SEA","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-11"},
+     {"code":"secondary","label":"Secondary (Form 1-6) + CSEC/CAPE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-18"},
+     {"code":"university","label":"UWI St Augustine + UTT + COSTAATT","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ttpos-1","label":"Standard 1","order":1},{"code":"ttpos-5","label":"Standard 5 + SEA","order":5},{"code":"ttpos-11","label":"Form 5 + CSEC","order":11},{"code":"ttpos-13","label":"Form 6 + CAPE","order":13}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Standard"})
+
+# Bridgetown (BB-13 — Barbados, Saint Michael parish).
+COUNTRY_LOCALIZATION["BB-13"] = _v4_00_78("BB-13","bb13-3-term","3-term (Bridgetown / Saint Michael)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"early_childhood","label":"Pre-school","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Cl 1-6) + BSSEE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-11"},
+     {"code":"secondary","label":"Secondary (Form 1-6) + CSEC/CAPE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"11-18"},
+     {"code":"university","label":"UWI Cave Hill + SBCC","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"bb13-1","label":"Class 1","order":1},{"code":"bb13-6","label":"Class 6 + BSSEE","order":6},{"code":"bb13-11","label":"Form 5 + CSEC","order":11},{"code":"bb13-13","label":"Form 6 + CAPE","order":13}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Nassau (BS-NP — Bahamas, New Providence).
+COUNTRY_LOCALIZATION["BS-NP"] = _v4_00_78("BS-NP","bsnp-3-term","3-term (Nassau / New Providence)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"preschool","label":"Pre-school","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Gr 1-6) + GLAT","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-11"},
+     {"code":"junior","label":"Junior High (Gr 7-9) + BJC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"senior","label":"Senior High (Gr 10-12) + BGCSE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UB + BTC","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"bsnp-1","label":"Grade 1","order":1},{"code":"bsnp-9","label":"Grade 9 + BJC","order":9},{"code":"bsnp-12","label":"Grade 12 + BGCSE","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Grade"})
+
+# Reykjavík (IS-1 — Iceland, Capital Region).
+COUNTRY_LOCALIZATION["IS-1"] = _v4_00_78("IS-1","is1-2-term","2-term (Capital Region)",2,["Haustönn","Vorönn"],8,
+    [{"code":"leikskoli","label":"Leikskóli","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"1-5"},
+     {"code":"grunnskoli","label":"Grunnskóli (1-10) + Samrýmt próf","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-15"},
+     {"code":"framhaldsskoli","label":"Framhaldsskóli (11-13) + Stúdentspróf","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"haskoli","label":"HÍ + HR + LBHÍ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"is1-1","label":"Bekkur 1","order":1},{"code":"is1-10","label":"Bekkur 10","order":10},{"code":"is1-13","label":"Stúdentspróf","order":13}],
+    {"teacher":"Kennari","principal":"Skólastjóri","term":"Önn","report_card":"Vitnisburður","grade_level":"Bekkur"})
+
+# Suriname — Paramaribo (SR-PM).
+COUNTRY_LOCALIZATION["SR-PM"] = _v4_00_78("SR-PM","srpm-2-sem","2-semester (Paramaribo)",2,["1ste semester","2de semester"],10,
+    [{"code":"kleuterschool","label":"Kleuterschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"glo","label":"GLO (1-6) + GLO-toets","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"mulo","label":"MULO (7-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"havo_vwo","label":"HAVO/VWO + Eindexamen","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universiteit","label":"AdeKUS + IGSR","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"srpm-1","label":"GLO 1","order":1},{"code":"srpm-6","label":"GLO 6","order":6},{"code":"srpm-12","label":"VWO 6 + Eindexamen","order":12}],
+    {"teacher":"Leraar","principal":"Hoofd","term":"Semester","report_card":"Rapport","grade_level":"Klas"})
+
+# Cyprus — Nicosia (CY-04).
+COUNTRY_LOCALIZATION["CY-04"] = _v4_00_78("CY-04","cy04-3-term","3-term (Nicosia)",3,["First trimester","Second trimester","Third trimester"],9,
+    [{"code":"prodimotiki","label":"Prodimotiki","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"dimotiki","label":"Dimotiki (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"gymnasio","label":"Gymnasio (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"lykeio","label":"Lykeio (10-12) + Panhellenic Exams","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"panepistimio","label":"UCY + CUT + UNIC + Frederick","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cy04-1","label":"Year 1","order":1},{"code":"cy04-9","label":"Year 9","order":9},{"code":"cy04-12","label":"Year 12 + Panhellenic","order":12}],
+    {"teacher":"Daskalos","principal":"Diefthyntis","term":"Trimino","report_card":"Elegxos","grade_level":"Etos"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

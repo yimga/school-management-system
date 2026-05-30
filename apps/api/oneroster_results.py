@@ -93,6 +93,20 @@ def line_items_list(request: HttpRequest):
     if gate is not None:
         return gate
     items = list(_iter_line_items())
+    # v4.00.78 — ?since=<iso>&before=<iso> window filter on dateLastModified
+    # for incremental sync. The projection populates dateLastModified
+    # (lower-cased ISO string) so a simple string comparison works.
+    since = (request.GET.get("since") or "").strip()
+    before = (request.GET.get("before") or "").strip()
+    if since:
+        items = [it for it in items if (it.get("dateLastModified") or "") >= since]
+    if before:
+        items = [it for it in items if (it.get("dateLastModified") or "") <= before]
+    # v4.00.78 — ?classSourcedId= filter for the common "give me line items
+    # for this class" pattern.
+    class_filter = (request.GET.get("classSourcedId") or "").strip()
+    if class_filter:
+        items = [it for it in items if it.get("classSourcedId") == class_filter]
     page, meta = _paginate(request, items)
     return _envelope("lineItems", page, meta)
 

@@ -437,6 +437,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_gender_identity(inner)
     if err is not None:
         return None, err
+    err = _validate_suffix_and_title(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -581,6 +584,49 @@ def _validate_state_of_birth_abbreviation(inner: dict[str, Any]):
              "note": f"must match a known {country}-<subdivision> entry in COUNTRY_LOCALIZATION SOT"},
             status=400,
         )
+    return None
+
+
+# v4.00.78 — Demographics POST/PUT `suffix` + `title` free-text validation.
+#
+# Both fields are User name suffixes / titles (Jr/Sr/III, Dr/Prof/Mr/etc.).
+# They're free-text per OneRoster v1.2 but the backing User columns are
+# CharField(max_length=20). Validation mirrors v4.00.76 middleName (length
+# cap + control-char rejection) for consistency.
+#
+# Closed vocab is intentionally NOT enforced — the spec leaves these as
+# free-text and we don't want to false-reject legitimate cultural variants
+# (e.g. "Dato'", "von", "bin"). Just protect the column width + control-char
+# blast radius.
+_SUFFIX_TITLE_MAX_LEN = 20
+_SUFFIX_TITLE_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_suffix_and_title(inner: dict[str, Any]):
+    """Validate both suffix + title in one pass. Returns None on accept;
+    JsonResponse(400) on the first failure."""
+    for field in ("suffix", "title"):
+        if field not in inner:
+            continue
+        raw = str(inner.get(field) or "")
+        if not raw:
+            continue  # explicit clear
+        if len(raw) > _SUFFIX_TITLE_MAX_LEN:
+            return JsonResponse(
+                {"error": "bad_name_metadata",
+                 "reason": "too_long",
+                 "field": field,
+                 "received_length": len(raw),
+                 "max_length": _SUFFIX_TITLE_MAX_LEN},
+                status=400,
+            )
+        if _SUFFIX_TITLE_CONTROL_RE.search(raw):
+            return JsonResponse(
+                {"error": "bad_name_metadata",
+                 "reason": "control_chars",
+                 "field": field},
+                status=400,
+            )
     return None
 
 

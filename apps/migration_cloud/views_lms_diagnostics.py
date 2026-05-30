@@ -268,6 +268,68 @@ def _bump_retention_sweep_counter(*, kind: str, considered: int, deleted: int) -
         logger.debug("retention counters bump failed: %s", exc)
 
 
+def build_audit_row_export_packet(*, limit: int = 5000,
+                                    provider: str = "",
+                                    action: str = "",
+                                    since=None, before=None) -> dict:
+    """v4.00.78 — Build a comprehensive audit-row export packet for
+    compliance / DSAR / counsel-request use.
+
+    Reads the durable snapshot (LMSDiagActionAudit canonical + legacy
+    LMSPushGradeAudit fallback), filters by provider/action/window, and
+    returns ``{generated_at, filters, alarms, rollup_by_action,
+    rollup_by_provider, retention_counters, entry_count, entries}``.
+
+    The packet is intentionally JSON-serializable so it can be persisted
+    to S3 / handed to counsel directly. NEVER raises.
+    """
+    try:
+        entries = get_last_action_snapshot(limit=max(1, min(20000, limit)),
+                                           since=since, before=before, durable=True)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("audit export snapshot failed: %s", exc)
+        entries = []
+    filtered = []
+    for evt in entries:
+        if provider and str(evt.get("provider") or "").lower() != provider.lower():
+            continue
+        if action and str(evt.get("action") or "").lower() != action.lower():
+            continue
+        filtered.append(evt)
+    rollup_action: dict[str, dict[str, int]] = {}
+    rollup_provider: dict[str, dict] = {}
+    for evt in filtered:
+        a = str(evt.get("action") or "unknown")
+        bucket = rollup_action.setdefault(a, {"count": 0, "ok_total": 0,
+                                              "failed_total": 0, "considered_total": 0})
+        bucket["count"] += 1
+        bucket["ok_total"] += int(evt.get("ok") or 0)
+        bucket["failed_total"] += int(evt.get("failed") or 0)
+        bucket["considered_total"] += int(evt.get("considered") or 0)
+        p = str(evt.get("provider") or "unknown")
+        pb = rollup_provider.setdefault(p, {"count": 0, "ok_total": 0,
+                                            "failed_total": 0})
+        pb["count"] += 1
+        pb["ok_total"] += int(evt.get("ok") or 0)
+        pb["failed_total"] += int(evt.get("failed") or 0)
+    return {
+        "generated_at": timezone.now().isoformat(),
+        "filters": {
+            "limit": limit,
+            "provider": provider or "",
+            "action": action or "",
+            "since": since.isoformat() if since else "",
+            "before": before.isoformat() if before else "",
+        },
+        "alarms": compute_diagnostics_alarms(limit=limit),
+        "rollup_by_action": rollup_action,
+        "rollup_by_provider": rollup_provider,
+        "retention_counters": get_retention_sweep_counters(),
+        "entry_count": len(filtered),
+        "entries": filtered,
+    }
+
+
 def compute_diagnostics_alarms(*, success_floor_pct: float = 80.0,
                                 min_actions: int = 5,
                                 limit: int = 500) -> list[dict]:
