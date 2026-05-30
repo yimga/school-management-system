@@ -15069,6 +15069,134 @@ COUNTRY_LOCALIZATION["HU-BU"] = _v4_00_76("HU-BU","hubu-2-sem","2-sem (Budapest)
 
 
 # ---------------------------------------------------------------------------
+# v4.00.77 (2026-05-29) — +14 subdivisions: RU-SPE St. Petersburg,
+#   RU-SVE Sverdlovsk, RU-NVS Novosibirsk, UA-46 Lviv, UA-32 Kyivska,
+#   BY-HM Minsk, KZ-ALA Almaty, UZ-TK Tashkent, AM-ER Yerevan,
+#   AZ-BA Baku, GE-TB Tbilisi, MD-CU Chișinău, MK-85 Skopje,
+#   AL-TR Tirana.
+# ---------------------------------------------------------------------------
+def _v4_00_77(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+def _ru_block(code, label, names, calc):
+    return _v4_00_77(code, calc, label, 2, ["I semestr", "II semestr"], 9,
+        [{"code":"detsky_sad","label":"Detsky Sad","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+         {"code":"nachalnaya","label":"Nachalnaya (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+         {"code":"srednyaya","label":"Srednyaya (5-9) + OGE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+         {"code":"polnaya","label":"Polnaya (10-11) + EGE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+         {"code":"universitet","label":names,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":f"{code.lower().replace('-','')}-1","label":"Klass 1","order":1},
+         {"code":f"{code.lower().replace('-','')}-9","label":"Klass 9 + OGE","order":9},
+         {"code":f"{code.lower().replace('-','')}-11","label":"Klass 11 + EGE","order":11}],
+        {"teacher":"Uchitel","principal":"Direktor","term":"Semestr","report_card":"Tabel","grade_level":"Klass"})
+
+COUNTRY_LOCALIZATION["RU-SPE"] = _ru_block("RU-SPE", "2-sem (St. Petersburg)", "SPbU + ITMO + LETI + Polytech", "ruspe-2-sem")
+COUNTRY_LOCALIZATION["RU-SVE"] = _ru_block("RU-SVE", "2-sem (Sverdlovsk)", "UrFU + USTU + USU", "rusve-2-sem")
+COUNTRY_LOCALIZATION["RU-NVS"] = _ru_block("RU-NVS", "2-sem (Novosibirsk)", "NSU + NSTU + Akademgorodok", "runvs-2-sem")
+
+COUNTRY_LOCALIZATION["UA-46"] = _v4_00_77("UA-46","ua46-2-sem","2-semester (Lviv)",2,["Перший семестр","Другий семестр"],9,
+    [{"code":"dyt_sadok","label":"Dyt. Sadok","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"pochatkova","label":"Pochatkova Shkola (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"bazova","label":"Bazova (5-9) + DPA","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-14"},
+     {"code":"starsha","label":"Starsha Shkola (10-11) + ZNO","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"universytet","label":"LNU Ivan Franko + Lviv Polytechnic + UCU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"ua46-1","label":"Class 1","order":1},{"code":"ua46-9","label":"Class 9","order":9},{"code":"ua46-11","label":"Class 11 + ZNO","order":11}],
+    {"teacher":"Vchytel","principal":"Dyrektor","term":"Semestr","report_card":"Tabel","grade_level":"Klas"})
+
+COUNTRY_LOCALIZATION["UA-32"] = _v4_00_77("UA-32","ua32-2-sem","2-semester (Kyivska oblast)",2,["Перший семестр","Другий семестр"],9,
+    [{"code":"dyt_sadok","label":"Dyt. Sadok","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"pochatkova","label":"Pochatkova Shkola (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"bazova","label":"Bazova (5-9) + DPA","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-14"},
+     {"code":"starsha","label":"Starsha Shkola (10-11) + ZNO","glyph":"\U0001F3393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"universytet","label":"NUBiP + Bila Tserkva Agrarna","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"ua32-1","label":"Class 1","order":1},{"code":"ua32-9","label":"Class 9","order":9},{"code":"ua32-11","label":"Class 11 + ZNO","order":11}],
+    {"teacher":"Vchytel","principal":"Dyrektor","term":"Semestr","report_card":"Tabel","grade_level":"Klas"})
+
+COUNTRY_LOCALIZATION["BY-HM"] = _v4_00_77("BY-HM","byhm-2-sem","2-semester (Minsk)",2,["Pershy semestr","Druhi semestr"],9,
+    [{"code":"dzitsachy_sad","label":"Dzitsachy Sad","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"pachatkovaya","label":"Pachatkovaya Shkola (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"bazavaja","label":"Bazavaja (5-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-14"},
+     {"code":"sredniaja","label":"Sredniaja (10-11) + CT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"univesityet","label":"BSU + BSUIR + BNTU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"byhm-1","label":"Class 1","order":1},{"code":"byhm-9","label":"Class 9","order":9},{"code":"byhm-11","label":"Class 11 + CT","order":11}],
+    {"teacher":"Nastavnik","principal":"Dyrektar","term":"Semestr","report_card":"Tabel","grade_level":"Klas"})
+
+COUNTRY_LOCALIZATION["KZ-ALA"] = _v4_00_77("KZ-ALA","kzala-2-sem","2-sem (Almaty)",2,["First semester","Second semester"],9,
+    [{"code":"balabaqsha","label":"Balabaqsha","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"bastapky","label":"Bastapky Mektep (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"negizgi","label":"Negizgi (5-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-14"},
+     {"code":"orta","label":"Orta (10-11) + ENT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"university","label":"al-Farabi + KazNTU + Nazarbayev U + KIMEP","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"kzala-1","label":"Class 1","order":1},{"code":"kzala-9","label":"Class 9","order":9},{"code":"kzala-11","label":"Class 11 + ENT","order":11}],
+    {"teacher":"Mughalim","principal":"Direktor","term":"Tokhsan","report_card":"Tabel","grade_level":"Synyp"})
+
+COUNTRY_LOCALIZATION["UZ-TK"] = _v4_00_77("UZ-TK","uztk-2-sem","2-sem (Tashkent)",2,["Birinchi semestr","Ikkinchi semestr"],9,
+    [{"code":"bogcha","label":"Bog'cha","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"boshlangich","label":"Boshlang'ich (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"asosiy","label":"Asosiy umumiy (5-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"akademik","label":"Akademik litsey (10-11) + DTM","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"universitet","label":"NUUz + TUIT + INHA U Tashkent + WIUT","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"uztk-1","label":"Sinf 1","order":1},{"code":"uztk-9","label":"Sinf 9","order":9},{"code":"uztk-11","label":"Sinf 11 + DTM","order":11}],
+    {"teacher":"O'qituvchi","principal":"Direktor","term":"Semestr","report_card":"Tabel","grade_level":"Sinf"})
+
+COUNTRY_LOCALIZATION["AM-ER"] = _v4_00_77("AM-ER","amer-2-sem","2-sem (Yerevan)",2,["First semester","Second semester"],9,
+    [{"code":"mankakan","label":"Mankakan","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"tarrakan","label":"Tarrakan (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"hima","label":"Himnakan (5-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-14"},
+     {"code":"avag","label":"Avag (10-12) + Hetazotutyun","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"hamalsaran","label":"YSU + AUA + Polytechnic","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"amer-1","label":"Class 1","order":1},{"code":"amer-9","label":"Class 9","order":9},{"code":"amer-12","label":"Class 12","order":12}],
+    {"teacher":"Usucich","principal":"Tnoren","term":"Semestr","report_card":"Tegekagir","grade_level":"Dasaran"})
+
+COUNTRY_LOCALIZATION["AZ-BA"] = _v4_00_77("AZ-BA","azba-2-sem","2-sem (Baku)",2,["Birinci yarımil","İkinci yarımil"],9,
+    [{"code":"usaq_baghchasi","label":"Uşaq bağçası","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"ibtidai","label":"İbtidai (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"esas","label":"Əsas tə (5-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-14"},
+     {"code":"tam_orta","label":"Tam orta (10-11) + DİM","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-16"},
+     {"code":"universitet","label":"BSU + Khazar + ADA + AzTU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"azba-1","label":"Sinif 1","order":1},{"code":"azba-9","label":"Sinif 9","order":9},{"code":"azba-11","label":"Sinif 11 + DİM","order":11}],
+    {"teacher":"Müəllim","principal":"Direktor","term":"Yarımil","report_card":"Tabel","grade_level":"Sinif"})
+
+COUNTRY_LOCALIZATION["GE-TB"] = _v4_00_77("GE-TB","getb-2-sem","2-sem (Tbilisi)",2,["First semester","Second semester"],9,
+    [{"code":"bagi","label":"Bagi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"dawyebiti","label":"Dawyebiti (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"saskolo","label":"Saskolo (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"sashualo","label":"Sashualo (10-12) + Erovnuli","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"universiteti","label":"TSU + Ilia State + Free U + Caucasus U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"getb-1","label":"Class 1","order":1},{"code":"getb-9","label":"Class 9","order":9},{"code":"getb-12","label":"Class 12 + Erovnuli","order":12}],
+    {"teacher":"Maswavlebeli","principal":"Direktori","term":"Semestri","report_card":"Tabel","grade_level":"Klasi"})
+
+COUNTRY_LOCALIZATION["MD-CU"] = _v4_00_77("MD-CU","mdcu-2-sem","2-sem (Chișinău)",2,["Primul semestru","Al doilea semestru"],9,
+    [{"code":"gradinita","label":"Grădiniță","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"primar","label":"Primar (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-10"},
+     {"code":"gimnazial","label":"Gimnazial (5-9) + EFG","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"liceal","label":"Liceal (10-12) + Bacalaureat","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitate","label":"USM + UTM + ASEM","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"mdcu-1","label":"Clasa 1","order":1},{"code":"mdcu-9","label":"Clasa 9 + EFG","order":9},{"code":"mdcu-12","label":"Clasa 12 + Bac","order":12}],
+    {"teacher":"Învățător","principal":"Director","term":"Semestru","report_card":"Tabel","grade_level":"Clasă"})
+
+COUNTRY_LOCALIZATION["MK-85"] = _v4_00_77("MK-85","mk85-2-sem","2-sem (Skopje)",2,["First semester","Second semester"],9,
+    [{"code":"gradinka","label":"Gradinka","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"osnovno_1_5","label":"Osnovno (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"osnovno_6_9","label":"Osnovno (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"sredno","label":"Sredno Obrazovanie (10-13) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"univerzitet","label":"Ss. Cyril & Methodius U + SEEU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"mk85-1","label":"Class 1","order":1},{"code":"mk85-9","label":"Class 9","order":9},{"code":"mk85-13","label":"Class 13 + Matura","order":13}],
+    {"teacher":"Nastavnik","principal":"Direktor","term":"Semestar","report_card":"Svidetelstvo","grade_level":"Klas"})
+
+COUNTRY_LOCALIZATION["AL-TR"] = _v4_00_77("AL-TR","altr-2-sem","2-sem (Tirana)",2,["Semestri i parë","Semestri i dytë"],9,
+    [{"code":"kopshti","label":"Kopshti","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"fillor","label":"Fillor (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"i_mesem","label":"I Mesëm i Ulët (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"i_lartë","label":"I Lartë (10-12) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"universiteti","label":"UT + UNYT + Polis","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"altr-1","label":"Class 1","order":1},{"code":"altr-9","label":"Class 9","order":9},{"code":"altr-12","label":"Class 12 + Matura","order":12}],
+    {"teacher":"Mësues","principal":"Drejtor","term":"Semestër","report_card":"Dëftesë","grade_level":"Klasë"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

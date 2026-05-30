@@ -434,6 +434,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_middle_name(inner)
     if err is not None:
         return None, err
+    err = _validate_gender_identity(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -578,6 +581,67 @@ def _validate_state_of_birth_abbreviation(inner: dict[str, Any]):
              "note": f"must match a known {country}-<subdivision> entry in COUNTRY_LOCALIZATION SOT"},
             status=400,
         )
+    return None
+
+
+# v4.00.77 — Demographics POST/PUT `genderIdentity` extended vocabulary.
+#
+# OneRoster v1.2 spec sex enum (v4.00.65) is the binary-ish {male,female,
+# other} vocabulary. The genderIdentity field is the v1.2 spec's extended
+# identity vocabulary — overlaps but is NOT the same. Per CDE 2026:
+#   male, female, non_binary, transgender_male, transgender_female,
+#   prefer_not_to_say, prefer_to_self_describe
+# When ``prefer_to_self_describe`` is supplied, the caller may include
+# ``genderIdentityDescription`` (free text, max 80 chars, no control
+# chars). Other values must NOT include the description field — defended
+# locally to avoid "self_describe + description" stealth combos.
+GENDER_IDENTITY_VOCAB = frozenset((
+    "male", "female", "non_binary",
+    "transgender_male", "transgender_female",
+    "prefer_not_to_say", "prefer_to_self_describe",
+))
+_GENDER_IDENTITY_DESC_MAX_LEN = 80
+_GENDER_IDENTITY_DESC_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_gender_identity(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "genderIdentity" not in inner:
+        return None
+    raw = str(inner.get("genderIdentity") or "").strip().lower()
+    if not raw:
+        return None  # explicit clear
+    if raw not in GENDER_IDENTITY_VOCAB:
+        return JsonResponse(
+            {"error": "bad_gender_identity",
+             "reason": "value_not_in_vocab",
+             "received": str(inner.get("genderIdentity") or "")[:32],
+             "allowed": sorted(GENDER_IDENTITY_VOCAB)},
+            status=400,
+        )
+    desc = str(inner.get("genderIdentityDescription") or "")
+    if desc:
+        if raw != "prefer_to_self_describe":
+            return JsonResponse(
+                {"error": "bad_gender_identity",
+                 "reason": "description_requires_self_describe",
+                 "note": "genderIdentityDescription is only valid when genderIdentity=prefer_to_self_describe"},
+                status=400,
+            )
+        if len(desc) > _GENDER_IDENTITY_DESC_MAX_LEN:
+            return JsonResponse(
+                {"error": "bad_gender_identity",
+                 "reason": "description_too_long",
+                 "received_length": len(desc),
+                 "max_length": _GENDER_IDENTITY_DESC_MAX_LEN},
+                status=400,
+            )
+        if _GENDER_IDENTITY_DESC_CONTROL_RE.search(desc):
+            return JsonResponse(
+                {"error": "bad_gender_identity",
+                 "reason": "description_control_chars"},
+                status=400,
+            )
     return None
 
 

@@ -560,6 +560,8 @@ urlpatterns = [
     path("roster/v1p2/users/", _oneroster.users, name="api-roster-v1p2-users"),
     path("roster/v1p2/students/", _oneroster.students, name="api-roster-v1p2-students"),
     path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
+    # v4.00.77 — staff convenience endpoint (users w/ administrator/staff role).
+    path("roster/v1p2/staff/", _oneroster.staff, name="api-roster-v1p2-staff"),
     path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),
     # v4.00.75 — single-class detail endpoint per spec § 4.13.
     path("roster/v1p2/classes/<str:sourced_id>/", _oneroster.class_detail, name="api-roster-v1p2-class-detail"),

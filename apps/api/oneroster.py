@@ -315,6 +315,20 @@ def students(request):
 
 
 @require_http_methods(["GET"])
+def staff(request):
+    """v4.00.77 — Convenience endpoint for users where role==administrator
+    (or staff equivalent). Per OneRoster v1.2 § 4.13 the term ``staff``
+    aggregates administrators + non-teaching support roles.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = [u for u in _iter_users() if u["role"] in ("administrator", "staff")]
+    page, meta = _paginate(request, items)
+    return _envelope("staff", page, meta)
+
+
+@require_http_methods(["GET"])
 def teachers(request):
     gate = _gate(request)
     if gate is not None:

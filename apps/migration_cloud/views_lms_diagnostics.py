@@ -268,6 +268,49 @@ def _bump_retention_sweep_counter(*, kind: str, considered: int, deleted: int) -
         logger.debug("retention counters bump failed: %s", exc)
 
 
+def compute_diagnostics_alarms(*, success_floor_pct: float = 80.0,
+                                min_actions: int = 5,
+                                limit: int = 500) -> list[dict]:
+    """v4.00.77 — Return the list of providers whose success rate dipped
+    below ``success_floor_pct`` over the last ``limit`` actions.
+
+    Skips providers with fewer than ``min_actions`` actions (not enough
+    data to alert on — noise floor).
+
+    Returns ``[{provider, success_rate_pct, total_actions, threshold_pct,
+    severity}]`` sorted by severity desc (worst first). NEVER raises.
+    """
+    rollup = diagnostics_health_rollup_by_provider(limit=limit)
+    out: list[dict] = []
+    for provider, bucket in rollup.items():
+        if bucket.get("total_actions", 0) < min_actions:
+            continue
+        rate = float(bucket.get("success_rate_pct") or 0.0)
+        if rate >= success_floor_pct:
+            continue
+        # Severity classification — 4 tiers.
+        if rate < 50.0:
+            severity = "critical"
+        elif rate < 70.0:
+            severity = "high"
+        elif rate < 80.0:
+            severity = "warning"
+        else:
+            severity = "info"
+        out.append({
+            "provider": provider,
+            "success_rate_pct": rate,
+            "total_actions": bucket["total_actions"],
+            "threshold_pct": success_floor_pct,
+            "severity": severity,
+        })
+    # Worst first.
+    _SEVERITY_RANK = {"critical": 0, "high": 1, "warning": 2, "info": 3}
+    out.sort(key=lambda r: (_SEVERITY_RANK.get(r["severity"], 9),
+                            r["success_rate_pct"]))
+    return out
+
+
 def diagnostics_health_rollup_by_provider(*, limit: int = 500) -> dict[str, dict]:
     """v4.00.75 — Health rollup keyed by provider.
 
