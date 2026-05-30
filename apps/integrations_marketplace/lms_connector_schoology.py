@@ -196,8 +196,15 @@ DEFAULT_REFRESH_URL = DEFAULT_TOKEN_URL
 
 # Retry / backoff constants (v4.00.89). Retried statuses are transient
 # upstream-layer failures only — 4xx errors stay terminal (caller fault).
+# v4.00.90 — 429 added (rate-limit) but only when Retry-After header is
+# present + parseable. Without that signal we'd retry blind into the
+# same rate-limit ceiling.
 _RETRY_HTTP_STATUSES = frozenset({502, 503, 504})
+_RETRY_RATE_LIMIT_STATUS = 429
 _RETRY_BACKOFF_CAP_SECONDS = 8.0
+# Cap Retry-After honoring so a hostile/buggy upstream can't pin us in
+# sleep() for hours. 60s aligns with most LMS rate-limit windows.
+_RETRY_AFTER_CAP_SECONDS = 60.0
 
 
 def _live_outbound_enabled() -> bool:
@@ -313,6 +320,22 @@ def _retry_with_backoff(call: Callable[[], Any], *,
             delay = min(base_delay * (2 ** attempt), _RETRY_BACKOFF_CAP_SECONDS)
             _time.sleep(delay)
             continue
+        # v4.00.90 — 429 with Retry-After header. Honor the upstream's
+        # backoff hint (capped) but bail without retrying if absent.
+        if status == _RETRY_RATE_LIMIT_STATUS and attempt + 1 < max_attempts:
+            from apps.integrations_marketplace.oauth_live_path_helpers import (
+                parse_retry_after as _parse_retry_after,
+            )
+            ra = None
+            headers = getattr(resp, "headers", None)
+            if headers is not None:
+                try:
+                    ra = _parse_retry_after(headers.get("Retry-After"))
+                except Exception:  # noqa: BLE001
+                    ra = None
+            if ra is not None:
+                _time.sleep(min(ra, _RETRY_AFTER_CAP_SECONDS))
+                continue
         return resp
     # Defensive — should be unreachable. raise the last exception we saw.
     if last_exc is not None:
@@ -394,13 +417,28 @@ def exchange_authorization_code_for_token(*, code: str, client_id: str,
 
     status = getattr(resp, "status_code", 0)
     if not (200 <= status < 300):
-        logger.warning("schoology token exchange http_%s", status)
+        # v4.00.90 — Decode RFC-6749 § 5.2 error body when present so the
+        # operator gets a stable taxonomy (invalid_grant vs invalid_client
+        # vs unauthorized_client) instead of just "upstream_error / 400".
+        from apps.integrations_marketplace.oauth_live_path_helpers import (
+            decode_oauth2_error_response as _decode_err,
+        )
+        try:
+            err_body = resp.json()
+        except Exception:  # noqa: BLE001
+            err_body = None
+        decoded = _decode_err(err_body)
+        logger.warning("schoology token exchange http_%s code=%s",
+                       status, decoded.get("error_code"))
         result = {"dry_run": False, "ok": False, "reason": "upstream_error",
-                  "http_status": status}
+                  "http_status": status,
+                  "oauth_error_code": decoded.get("error_code"),
+                  "oauth_error_description": decoded.get("error_description")}
         _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
                       ok=False, http_status=status, reason="upstream_error",
                       tenant_schema=tenant_schema,
-                      payload_summary={"http_status": status})
+                      payload_summary={"http_status": status,
+                                       "oauth_error_code": decoded.get("error_code")})
         return result
 
     try:
@@ -417,6 +455,12 @@ def exchange_authorization_code_for_token(*, code: str, client_id: str,
 
     body["dry_run"] = False
     body["ok"] = True
+    # v4.00.90 — Issue timestamp lets operators wire is_token_expired() on
+    # the background refresh sweep. ISO-8601 UTC, no fractional seconds
+    # for log-friendliness.
+    from datetime import datetime as _dt, timezone as _tz
+    body.setdefault("issued_at_iso",
+                    _dt.now(_tz.utc).replace(microsecond=0).isoformat())
     # Audit success — token-hash for correlation, NEVER raw token.
     _at_hash = _short_hash(str(body.get("access_token") or ""))
     _rt_hash = _short_hash(str(body.get("refresh_token") or ""))
@@ -501,13 +545,26 @@ def refresh_access_token(*, refresh_token: str, client_id: str,
 
     status = getattr(resp, "status_code", 0)
     if not (200 <= status < 300):
-        logger.warning("schoology token refresh http_%s", status)
+        # v4.00.90 — RFC-6749 § 5.2 error decode mirrors exchange path.
+        from apps.integrations_marketplace.oauth_live_path_helpers import (
+            decode_oauth2_error_response as _decode_err,
+        )
+        try:
+            err_body = resp.json()
+        except Exception:  # noqa: BLE001
+            err_body = None
+        decoded = _decode_err(err_body)
+        logger.warning("schoology token refresh http_%s code=%s",
+                       status, decoded.get("error_code"))
         result = {"dry_run": False, "ok": False, "reason": "upstream_error",
-                  "http_status": status}
+                  "http_status": status,
+                  "oauth_error_code": decoded.get("error_code"),
+                  "oauth_error_description": decoded.get("error_description")}
         _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
                       ok=False, http_status=status, reason="upstream_error",
                       tenant_schema=tenant_schema,
-                      payload_summary={"http_status": status})
+                      payload_summary={"http_status": status,
+                                       "oauth_error_code": decoded.get("error_code")})
         return result
 
     try:
@@ -524,6 +581,9 @@ def refresh_access_token(*, refresh_token: str, client_id: str,
 
     body["dry_run"] = False
     body["ok"] = True
+    from datetime import datetime as _dt, timezone as _tz
+    body.setdefault("issued_at_iso",
+                    _dt.now(_tz.utc).replace(microsecond=0).isoformat())
     _at_hash = _short_hash(str(body.get("access_token") or ""))
     _rt_hash = _short_hash(str(body.get("refresh_token") or ""))
     _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
