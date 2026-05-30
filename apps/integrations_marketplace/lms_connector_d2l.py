@@ -110,13 +110,53 @@ def refresh_token(*, refresh_token: str, client_id: str, client_secret: str) -> 
 
 
 def push_grade(*, base_url: str, access_token: str, course_id: str,
-               user_id: str, score: float, max_score: float) -> dict:
-    """Honest-stub push grade. Real wiring requires Brightspace
-    GradeObjects + GradeValues endpoints + ``GET /d2l/api/le/<version>/orgUnit/<id>``
-    pre-flight to confirm the orgUnit's grading scheme."""
-    logger.info("d2l_brightspace.push_grade: scaffold call (not wired)")
+               user_id: str, score: float, max_score: float,
+               grade_object_id: str = "", api_version: str = "1.66",
+               comment: str = "") -> dict:
+    """v4.00.76 — Honest-stub. Real wiring requires Brightspace GradeObjects
+    + GradeValues endpoints + a pre-flight ``GET /d2l/api/le/<version>/orgUnit/<id>``
+    to confirm the orgUnit's grading scheme.
+
+    Returns the intended request shape under ``would_send`` so caller code
+    can unit-test payload assembly without hitting the network. Local
+    validation mirrors v4.00.75 Schoology push_grade so callers can rely
+    on identical error reason taxonomy across providers.
+    """
+    if not course_id or not user_id:
+        return {"ok": False, "reason": "missing_required_field",
+                "provider": PROVIDER_SLUG, "field": "course_id_or_user_id"}
+    try:
+        s = float(score)
+        m = float(max_score)
+    except (ValueError, TypeError):
+        return {"ok": False, "reason": "score_not_numeric",
+                "provider": PROVIDER_SLUG}
+    if s < 0 or m <= 0:
+        return {"ok": False, "reason": "score_out_of_range",
+                "provider": PROVIDER_SLUG, "score": s, "max_score": m}
+    if s > m:
+        return {"ok": False, "reason": "score_exceeds_max",
+                "provider": PROVIDER_SLUG, "score": s, "max_score": m}
+
+    # Brightspace API: PUT /d2l/api/le/<ver>/<orgUnitId>/grades/<gradeObjId>/values/<userId>
+    endpoint = (
+        f"{base_url.rstrip('/')}/d2l/api/le/{api_version}/{course_id}"
+        f"/grades/{grade_object_id or 'unknown'}/values/{user_id}"
+    )
+    payload_shape = {
+        "endpoint": endpoint,
+        "method": "PUT",
+        "body": {
+            "GradeObjectType": 1,  # 1 = Numeric grade per Brightspace docs
+            "PointsNumerator": s,
+            "PointsDenominator": m,
+            "Comments": {"Content": comment, "Type": "Text"} if comment else None,
+        },
+    }
+    logger.info("d2l_brightspace.push_grade: scaffold call (would send %s)", endpoint)
     return {"ok": False, "reason": "scaffold_not_wired",
-            "provider": PROVIDER_SLUG, "course_id": course_id, "user_id": user_id}
+            "provider": PROVIDER_SLUG, "course_id": course_id, "user_id": user_id,
+            "would_send": payload_shape}
 
 
 def pull_courses(*, base_url: str, access_token: str) -> list[dict]:

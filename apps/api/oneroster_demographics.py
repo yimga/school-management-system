@@ -431,6 +431,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_race_ethnicity_bool_flags(inner)
     if err is not None:
         return None, err
+    err = _validate_middle_name(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -573,6 +576,43 @@ def _validate_state_of_birth_abbreviation(inner: dict[str, Any]):
              "received": raw,
              "country": country,
              "note": f"must match a known {country}-<subdivision> entry in COUNTRY_LOCALIZATION SOT"},
+            status=400,
+        )
+    return None
+
+
+# v4.00.76 — Demographics POST/PUT `middleName` length + character-set validation.
+#
+# OneRoster v1.2 doesn't define a length cap on middleName, but the
+# downstream User row carries CharField(max_length=80) — anything longer
+# silently truncates, which is a data-loss bug.
+#
+# Same control-character defense as cityOfBirth (v4.00.68); 80-char cap
+# matches the User.middle_name column. Empty allowed (explicit clear).
+_MIDDLE_NAME_MAX_LEN = 80
+_MIDDLE_NAME_CONTROL_CHAR_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_middle_name(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "middleName" not in inner:
+        return None
+    raw = str(inner.get("middleName") or "")
+    if not raw:
+        return None  # explicit clear
+    if len(raw) > _MIDDLE_NAME_MAX_LEN:
+        return JsonResponse(
+            {"error": "bad_middle_name",
+             "reason": "too_long",
+             "received_length": len(raw),
+             "max_length": _MIDDLE_NAME_MAX_LEN},
+            status=400,
+        )
+    if _MIDDLE_NAME_CONTROL_CHAR_RE.search(raw):
+        return JsonResponse(
+            {"error": "bad_middle_name",
+             "reason": "control_chars",
+             "note": "control characters (U+0000-U+001F, U+007F-U+009F) are rejected"},
             status=400,
         )
     return None

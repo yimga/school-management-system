@@ -349,6 +349,69 @@ def academic_sessions(request):
     return _envelope("academicSessions", page, meta)
 
 
+def _iter_enrollments() -> Iterable[dict[str, Any]]:
+    """v4.00.76 — Project enrollments from any model with the typical
+    student-class-role triple. Falls through silently when the model is
+    not configured. Returns OneRoster v1.2 Enrollment shape:
+    ``sourcedId, status, role, classSourcedId, schoolSourcedId, userSourcedId,
+    beginDate, endDate``.
+    """
+    # Try a few common model names; project supports varied schemas.
+    candidates = [
+        ("apps.academics.models", "Enrollment"),
+        ("apps.academics.models", "ClassEnrollment"),
+        ("apps.academics.models", "StudentClassroom"),
+    ]
+    for module_path, class_name in candidates:
+        try:
+            mod = __import__(module_path, fromlist=[class_name])
+            Model = getattr(mod, class_name, None)
+            if Model is None:
+                continue
+            qs = Model.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+            for r in qs[:1000]:
+                user = getattr(r, "student", None) or getattr(r, "user", None)
+                klass = getattr(r, "classroom", None) or getattr(r, "klass", None) or getattr(r, "course", None)
+                school = getattr(r, "school", None)
+                begin = getattr(r, "start_date", None) or getattr(r, "begins_on", None)
+                end = getattr(r, "end_date", None) or getattr(r, "ends_on", None)
+                yield {
+                    "sourcedId": str(r.pk),
+                    "status": "active",
+                    "role": "student",
+                    "userSourcedId": str(getattr(user, "pk", "")) if user else "",
+                    "classSourcedId": str(getattr(klass, "pk", "")) if klass else "",
+                    "schoolSourcedId": str(getattr(school, "pk", "")) if school else "",
+                    "beginDate": begin.isoformat() if hasattr(begin, "isoformat") else (str(begin) if begin else ""),
+                    "endDate": end.isoformat() if hasattr(end, "isoformat") else (str(end) if end else ""),
+                }
+            return
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("oneroster enrollments: %s.%s not iterable: %s", module_path, class_name, exc)
+            continue
+
+
+@require_http_methods(["GET"])
+def enrollments(request):
+    """v4.00.76 — GET /api/roster/v1p2/enrollments/ per spec § 4.13.
+
+    ``?since=<iso>&before=<iso>`` window filter (when the upstream Enrollment
+    rows expose ``start_date`` / ``end_date`` columns).
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = list(_iter_enrollments())
+    since = (request.GET.get("since") or "").strip()
+    before = (request.GET.get("before") or "").strip()
+    if since:
+        items = [it for it in items if (it.get("beginDate") or "") >= since]
+    if before:
+        items = [it for it in items if (it.get("beginDate") or "") <= before]
+    page, meta = _paginate(request, items)
+    return _envelope("enrollments", page, meta)
+
+
 @require_http_methods(["GET"])
 def class_detail(request, sourced_id: str):
     """v4.00.75 — Per-spec § 4.13 single-class GET."""

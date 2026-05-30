@@ -572,6 +572,8 @@ urlpatterns = [
     path("roster/v1p2/grading-periods/", _oneroster.grading_periods, name="api-roster-v1p2-grading-periods"),
     # v4.00.74 — courses GET endpoint per spec § 4.13.
     path("roster/v1p2/courses/", _oneroster.courses, name="api-roster-v1p2-courses"),
+    # v4.00.76 — enrollments GET endpoint per spec § 4.13.
+    path("roster/v1p2/enrollments/", _oneroster.enrollments, name="api-roster-v1p2-enrollments"),
     # v4.00.59 — OneRoster v1.2 demographics endpoints (read-only).
     # v4.00.60 — POST/PUT write coverage (order matters: write routes BEFORE
     # the <str:sourced_id> catch-all so they don't get swallowed).

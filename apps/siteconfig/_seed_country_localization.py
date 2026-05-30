@@ -14937,6 +14937,138 @@ COUNTRY_LOCALIZATION["ES-CT"] = _v4_00_75("ES-CT","esct-3-trim","3-trim (Catalun
 
 
 # ---------------------------------------------------------------------------
+# v4.00.76 (2026-05-29) — +14 subdivisions: SE-AB Stockholm,
+#   SE-O Västra Götaland, NO-03 Oslo, NO-46 Vestland, DK-84 Capital,
+#   FI-18 Uusimaa, IE-D Dublin, GB-SCT Scotland, GB-WLS Wales,
+#   GB-NIR Northern Ireland, PL-MZ Mazowieckie, CZ-10 Prague,
+#   AT-9 Vienna, HU-BU Budapest.
+# ---------------------------------------------------------------------------
+def _v4_00_76(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+COUNTRY_LOCALIZATION["SE-AB"] = _v4_00_76("SE-AB","seab-2-term","2-term (Stockholm)",2,["Höstterminen","Vårterminen"],8,
+    [{"code":"forskola","label":"Förskola","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"1-5"},
+     {"code":"grundskola","label":"Grundskola (Yr 1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-15"},
+     {"code":"gymnasium","label":"Gymnasium (Yr 1-3) + Studentexamen","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitet","label":"KTH + KI + SU + HHS","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"seab-1","label":"Year 1","order":1},{"code":"seab-9","label":"Year 9","order":9},{"code":"seab-12","label":"Year 12 + Studentexamen","order":12}],
+    {"teacher":"Lärare","principal":"Rektor","term":"Termin","report_card":"Betyg","grade_level":"Årskurs"})
+
+COUNTRY_LOCALIZATION["SE-O"] = _v4_00_76("SE-O","seo-2-term","2-term (Västra Götaland)",2,["Höstterminen","Vårterminen"],8,
+    [{"code":"forskola","label":"Förskola","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"1-5"},
+     {"code":"grundskola","label":"Grundskola (Yr 1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-15"},
+     {"code":"gymnasium","label":"Gymnasium (Yr 1-3) + Studentexamen","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitet","label":"Göteborg + Chalmers","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"seo-1","label":"Year 1","order":1},{"code":"seo-9","label":"Year 9","order":9},{"code":"seo-12","label":"Year 12","order":12}],
+    {"teacher":"Lärare","principal":"Rektor","term":"Termin","report_card":"Betyg","grade_level":"Årskurs"})
+
+COUNTRY_LOCALIZATION["NO-03"] = _v4_00_76("NO-03","no03-2-term","2-term (Oslo)",2,["Høstsemester","Vårsemester"],8,
+    [{"code":"barnehage","label":"Barnehage","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"1-5"},
+     {"code":"barneskole","label":"Barneskole (1-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"ungdomsskole","label":"Ungdomsskole (8-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-15"},
+     {"code":"vgs","label":"Vgs (11-13) + Eksamen","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitet","label":"UiO + OsloMet + BI + NHH","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"no03-1","label":"Year 1","order":1},{"code":"no03-10","label":"Year 10","order":10},{"code":"no03-13","label":"Year 13 + Eksamen","order":13}],
+    {"teacher":"Lærer","principal":"Rektor","term":"Termin","report_card":"Karakter","grade_level":"Trinn"})
+
+COUNTRY_LOCALIZATION["NO-46"] = _v4_00_76("NO-46","no46-2-term","2-term (Vestland)",2,["Høstsemester","Vårsemester"],8,
+    [{"code":"barnehage","label":"Barnehage","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"1-5"},
+     {"code":"barneskole","label":"Barneskole (1-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"ungdomsskole","label":"Ungdomsskole (8-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-15"},
+     {"code":"vgs","label":"Vgs (11-13) + Eksamen","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitet","label":"UiB + NHH Bergen + Vestlandet","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"no46-1","label":"Year 1","order":1},{"code":"no46-10","label":"Year 10","order":10},{"code":"no46-13","label":"Year 13 + Eksamen","order":13}],
+    {"teacher":"Lærer","principal":"Rektor","term":"Termin","report_card":"Karakter","grade_level":"Trinn"})
+
+COUNTRY_LOCALIZATION["DK-84"] = _v4_00_76("DK-84","dk84-2-term","2-term (Hovedstaden)",2,["Efterår","Forår"],8,
+    [{"code":"dagtilbud","label":"Dagtilbud","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"folkeskole","label":"Folkeskole (0-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-15"},
+     {"code":"gymnasium","label":"Gymnasium / STX-HHX-HTX-HF + Studentereksamen","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitet","label":"KU + DTU + CBS + ITU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"dk84-0","label":"Klasse 0","order":0},{"code":"dk84-9","label":"Klasse 9","order":9},{"code":"dk84-12","label":"Studentereksamen","order":12}],
+    {"teacher":"Lærer","principal":"Skoleleder","term":"Semester","report_card":"Karakter","grade_level":"Klassetrin"})
+
+COUNTRY_LOCALIZATION["FI-18"] = _v4_00_76("FI-18","fi18-2-term","2-term (Uusimaa)",2,["Syyslukukausi","Kevätlukukausi"],8,
+    [{"code":"varhaiskasvatus","label":"Varhaiskasvatus","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"1-6"},
+     {"code":"peruskoulu","label":"Peruskoulu (1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-15"},
+     {"code":"lukio","label":"Lukio (10-12) + Ylioppilas","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"yliopisto","label":"Helsinki + Aalto + Hanken","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"fi18-1","label":"Luokka 1","order":1},{"code":"fi18-9","label":"Luokka 9","order":9},{"code":"fi18-12","label":"Lukio 3 + Ylioppilas","order":12}],
+    {"teacher":"Opettaja","principal":"Rehtori","term":"Lukukausi","report_card":"Todistus","grade_level":"Luokka"})
+
+COUNTRY_LOCALIZATION["IE-D"] = _v4_00_76("IE-D","ied-3-term","3-term (Dublin)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"preschool","label":"Pre-school","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Yr 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"4-12"},
+     {"code":"junior_cycle","label":"Junior Cycle (1-3) + Junior Cert","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"senior_cycle","label":"Senior Cycle (5-6) + Leaving Cert","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"TCD + UCD + DCU + RCSI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ied-1","label":"Junior Infants","order":0},{"code":"ied-8","label":"6th Class","order":8},{"code":"ied-11","label":"Junior Cert","order":11},{"code":"ied-13","label":"Leaving Cert","order":13}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Class"})
+
+COUNTRY_LOCALIZATION["GB-SCT"] = _v4_00_76("GB-SCT","gbsct-3-term","3-term (Scotland)",3,["Autumn","Spring","Summer"],8,
+    [{"code":"nursery","label":"Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-4"},
+     {"code":"primary","label":"Primary (P1-P7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-11"},
+     {"code":"secondary_bge","label":"Secondary BGE (S1-S3)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"secondary_senior","label":"Senior Phase (S4-S6) + Highers / Advanced Highers","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Edinburgh + Glasgow + St Andrews + Strathclyde","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"gbsct-p1","label":"Primary 1","order":1},{"code":"gbsct-p7","label":"Primary 7","order":7},{"code":"gbsct-s4","label":"S4 + Nationals","order":10},{"code":"gbsct-s6","label":"S6 + Adv Highers","order":13}],
+    {"teacher":"Teacher","principal":"Headteacher","term":"Term","report_card":"Report","grade_level":"Year"})
+
+COUNTRY_LOCALIZATION["GB-WLS"] = _v4_00_76("GB-WLS","gbwls-3-term","3-term (Wales)",3,["Autumn","Spring","Summer"],9,
+    [{"code":"nursery","label":"Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-4"},
+     {"code":"primary","label":"Primary (Yr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-11"},
+     {"code":"secondary","label":"Secondary (Yr 7-11) + GCSE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-16"},
+     {"code":"sixth_form","label":"Sixth Form (Yr 12-13) + A-level","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"Cardiff + Swansea + Aberystwyth + Bangor","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"gbwls-1","label":"Year 1","order":1},{"code":"gbwls-6","label":"Year 6","order":6},{"code":"gbwls-11","label":"Year 11 + GCSE","order":11},{"code":"gbwls-13","label":"Year 13 + A-level","order":13}],
+    {"teacher":"Teacher","principal":"Headteacher","term":"Term","report_card":"Report","grade_level":"Year"})
+
+COUNTRY_LOCALIZATION["GB-NIR"] = _v4_00_76("GB-NIR","gbnir-3-term","3-term (Northern Ireland)",3,["Autumn","Spring","Summer"],9,
+    [{"code":"nursery","label":"Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-4"},
+     {"code":"primary","label":"Primary (P1-P7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"4-11"},
+     {"code":"post_primary","label":"Post-Primary (Y8-Y12) + GCSE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-16"},
+     {"code":"sixth_form","label":"Sixth Form (Y13-Y14) + A-level","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"QUB + Ulster + Stranmillis","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"gbnir-p1","label":"P1","order":1},{"code":"gbnir-p7","label":"P7","order":7},{"code":"gbnir-y12","label":"Y12 + GCSE","order":12},{"code":"gbnir-y14","label":"Y14 + A-level","order":14}],
+    {"teacher":"Teacher","principal":"Headteacher","term":"Term","report_card":"Report","grade_level":"Year"})
+
+COUNTRY_LOCALIZATION["PL-MZ"] = _v4_00_76("PL-MZ","plmz-2-sem","2-sem (Mazowieckie)",2,["Pierwszy semestr","Drugi semestr"],9,
+    [{"code":"przedszkole","label":"Przedszkole","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"podstawowa","label":"Szkoła Podstawowa (1-8) + Egz. ósmoklasisty","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"liceum","label":"Liceum (1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"uniwersytet","label":"UW + PW + SGH + WAT","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"plmz-1","label":"Klasa 1","order":1},{"code":"plmz-8","label":"Klasa 8 + Egz","order":8},{"code":"plmz-12","label":"Liceum 4 + Matura","order":12}],
+    {"teacher":"Nauczyciel","principal":"Dyrektor","term":"Semestr","report_card":"Świadectwo","grade_level":"Klasa"})
+
+COUNTRY_LOCALIZATION["CZ-10"] = _v4_00_76("CZ-10","cz10-2-sem","2-sem (Prague)",2,["První pololetí","Druhé pololetí"],9,
+    [{"code":"materska","label":"Mateřská škola","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"zakladni","label":"Základní škola (1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"stredni","label":"Střední škola (1-4) + Maturita","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"univerzita","label":"UK + ČVUT + VŠE + VUT","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"cz10-1","label":"Class 1","order":1},{"code":"cz10-9","label":"Class 9","order":9},{"code":"cz10-13","label":"Maturita","order":13}],
+    {"teacher":"Učitel","principal":"Ředitel","term":"Pololetí","report_card":"Vysvědčení","grade_level":"Třída"})
+
+COUNTRY_LOCALIZATION["AT-9"] = _v4_00_76("AT-9","at9-2-sem","2-sem (Wien)",2,["Wintersemester","Sommersemester"],9,
+    [{"code":"kindergarten","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"volksschule","label":"Volksschule (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"mittelschule","label":"Mittelschule (5-8)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-13"},
+     {"code":"oberstufe","label":"Oberstufe / Gymnasium + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"universitaet","label":"Universität Wien + TU Wien + WU + BOKU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"at9-1","label":"Klasse 1","order":1},{"code":"at9-8","label":"Klasse 8","order":8},{"code":"at9-12","label":"Matura","order":12}],
+    {"teacher":"Lehrer","principal":"Direktor","term":"Semester","report_card":"Zeugnis","grade_level":"Klasse"})
+
+COUNTRY_LOCALIZATION["HU-BU"] = _v4_00_76("HU-BU","hubu-2-sem","2-sem (Budapest)",2,["Első félév","Második félév"],9,
+    [{"code":"ovoda","label":"Óvoda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"altalanos","label":"Általános iskola (1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"kozepiskola","label":"Középiskola (9-12) + Érettségi","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"egyetem","label":"ELTE + BME + Corvinus + SOTE","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"hubu-1","label":"Class 1","order":1},{"code":"hubu-8","label":"Class 8","order":8},{"code":"hubu-12","label":"Érettségi","order":12}],
+    {"teacher":"Tanár","principal":"Igazgató","term":"Félév","report_card":"Bizonyítvány","grade_level":"Osztály"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
