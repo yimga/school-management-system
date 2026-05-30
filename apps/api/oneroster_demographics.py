@@ -603,6 +603,7 @@ RACE_ETHNICITY_BOOL_FIELDS = frozenset((
     "blackOrAfricanAmerican",             # v4.00.71
     "hispanicOrLatinoEthnicity",          # v4.00.72
     "nativeHawaiianOrOtherPacificIslander",  # v4.00.73
+    "white",                              # v4.00.74
 ))
 _TRUE_STRINGS = frozenset(("true", "yes", "1", "y", "t"))
 _FALSE_STRINGS = frozenset(("false", "no", "0", "n", "f"))

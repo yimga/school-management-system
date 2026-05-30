@@ -184,6 +184,41 @@ def _iter_classes() -> Iterable[dict[str, Any]]:
         logger.debug("oneroster classes: classroom model not iterable: %s", exc)
 
 
+def _iter_courses() -> Iterable[dict[str, Any]]:
+    """v4.00.74 — Project distinct course shapes from the Classroom model
+    (when the project has a separate Course model, swap the import).
+    Returns OneRoster v1.2 Course resource shape: ``sourcedId, status,
+    title, courseCode, grades, subjects, schoolYearSourcedId``.
+    """
+    try:
+        from apps.academics.models import Classroom
+        qs = Classroom.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
+        seen: set[str] = set()
+        for c in qs[:1000]:
+            code = (getattr(c, "course_code", "")
+                    or getattr(c, "code", "")
+                    or getattr(c, "name", "")
+                    or str(c.pk))
+            if code in seen:
+                continue
+            seen.add(code)
+            grade = getattr(c, "grade_level", "") or getattr(c, "grade", "") or ""
+            subject = getattr(c, "subject", "") or ""
+            year = getattr(c, "academic_year", None)
+            year_id = str(getattr(year, "pk", "")) if year is not None else ""
+            yield {
+                "sourcedId": str(c.pk),
+                "status": "active",
+                "title": getattr(c, "name", "") or "",
+                "courseCode": str(code),
+                "grades": [str(grade)] if grade else [],
+                "subjects": [str(subject)] if subject else [],
+                "schoolYearSourcedId": year_id,
+            }
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oneroster courses: classroom model not iterable: %s", exc)
+
+
 def _iter_academic_sessions() -> Iterable[dict[str, Any]]:
     """v4.00.71 — Enriched projection: startDate / endDate / schoolYear /
     parentSourcedId per OneRoster v1.2 § 4.13 AcademicSession resource."""
@@ -299,6 +334,17 @@ def academic_sessions(request):
         items = [it for it in items if it.get("type") == wanted_type]
     page, meta = _paginate(request, items)
     return _envelope("academicSessions", page, meta)
+
+
+@require_http_methods(["GET"])
+def courses(request):
+    """v4.00.74 — GET /api/roster/v1p2/courses/ per spec § 4.13 Course resource."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = list(_iter_courses())
+    page, meta = _paginate(request, items)
+    return _envelope("courses", page, meta)
 
 
 @require_http_methods(["GET"])

@@ -2282,6 +2282,81 @@ def resolve_saml_login_initiator(request, *, next_url: str = "") -> dict:
     }
 
 
+# ---------------------------------------------------------------------------
+# v4.00.74 — SAML Home Realm Discovery (HRD) per-domain config.
+#
+# When the operator has multiple IdPs (one per email domain — e.g. the
+# district uses Okta and partner schools use Azure AD), the SSO button
+# can't ship a single IdP URL. HRD lets the platform inspect the entered
+# email domain, look up the matching IdP, and route the AuthnRequest to
+# the right tenant.
+#
+# Config shape (env / settings):
+#   ``RMC_SAML_HRD_MAPPING`` — JSON string ``{"school.edu":
+#     "https://okta.school.edu/...", "partner.edu":
+#     "https://login.partner.edu/..."}``
+#
+# Lookup is case-insensitive on the domain. Empty mapping disables HRD;
+# falls back to the default ``RMC_SAML_IDP_SSO_URL``.
+# ---------------------------------------------------------------------------
+
+
+def _hrd_mapping() -> dict[str, str]:
+    """Return the configured HRD mapping. Empty dict on missing/malformed env."""
+    raw = (
+        getattr(settings, "RMC_SAML_HRD_MAPPING", "")
+        or os.environ.get("RMC_SAML_HRD_MAPPING", "")
+        or ""
+    )
+    if not raw:
+        return {}
+    try:
+        import json as _json_mod
+        parsed = _json_mod.loads(raw)
+    except (ValueError, TypeError) as exc:
+        logger.warning("saml HRD mapping malformed: %s", exc)
+        return {}
+    if not isinstance(parsed, dict):
+        return {}
+    return {str(k).lower(): str(v) for k, v in parsed.items()
+            if isinstance(k, str) and isinstance(v, str)}
+
+
+def resolve_idp_target_for_email(email: str) -> str:
+    """v4.00.74 — Pick the IdP target for the supplied email's domain.
+
+    Falls back to the default IdP target when the domain isn't mapped
+    OR the email is empty / malformed.
+    """
+    if not email or "@" not in email:
+        return _idp_sso_url()
+    domain = email.rsplit("@", 1)[1].strip().lower()
+    if not domain:
+        return _idp_sso_url()
+    mapping = _hrd_mapping()
+    if domain in mapping:
+        return mapping[domain]
+    # Wildcard suffix support — *.school.edu also matches sub.school.edu.
+    for key, target in mapping.items():
+        if key.startswith("*.") and domain.endswith(key[1:]):
+            return target
+    return _idp_sso_url()
+
+
+def hrd_mapping_summary() -> dict:
+    """Operator-facing summary — counts + sample of mapped domains.
+    NEVER returns raw IdP URLs (defense vs config leak)."""
+    mapping = _hrd_mapping()
+    domains = sorted(mapping.keys())
+    return {
+        "mapped_domain_count": len(domains),
+        "domains_sample": domains[:10],
+        "wildcard_count": sum(1 for d in domains if d.startswith("*.")),
+        "configured": bool(mapping),
+        "fallback_idp_set": bool(_idp_sso_url()),
+    }
+
+
 def login_initiator_context(request) -> dict:
     """Django context-processor — exposes ``{{ saml_login_initiator }}``
     to every template. Safe to wire in TEMPLATES.OPTIONS.context_processors;

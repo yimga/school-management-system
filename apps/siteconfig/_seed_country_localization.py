@@ -14659,6 +14659,143 @@ COUNTRY_LOCALIZATION["NP-3"] = _v4_00_73("NP-3","np3-2-sem","2-sem (Bagmati / Ka
 
 
 # ---------------------------------------------------------------------------
+# v4.00.74 (2026-05-29) — +14 Tier-1 subdivisions:
+#   QA-DA Doha, SA-01 Riyadh, KW-KU Capital, BH-13 Capital,
+#   OM-MA Muscat, LB-BA Beirut, IR-23 Tehran, IQ-BG Baghdad,
+#   TR-35 İzmir, TR-16 Bursa, IL-D South District,
+#   MG-T Antananarivo, MU-PL Port Louis, BD-D Dhaka.
+# ---------------------------------------------------------------------------
+def _v4_00_74(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+COUNTRY_LOCALIZATION["QA-DA"] = _v4_00_74("QA-DA","qada-3-term","3-term (Doha / MoEHE)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"kg","label":"KG 1-2","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"primary","label":"Primary (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"preparatory","label":"Preparatory (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"secondary","label":"Secondary (10-12) + Thanawiya","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Qatar U + HBKU + Education City","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"qada-1","label":"Grade 1","order":1},{"code":"qada-6","label":"Grade 6","order":6},{"code":"qada-9","label":"Grade 9","order":9},{"code":"qada-12","label":"Grade 12 + Thanawiya","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["SA-01"] = _v4_00_74("SA-01","sa01-2-sem","2-semester (Riyadh / MoE)",2,["First semester","Second semester"],8,
+    [{"code":"riyad","label":"Riyad Atfal","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-6"},
+     {"code":"ibtidai","label":"Ibtidai (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"mutawassit","label":"Mutawassit (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"thanawi","label":"Thanawi (10-12) + Tawjihi","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"KSU + KAUST + Imam Mohammad + Princess Nourah","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"sa01-1","label":"Year 1","order":1},{"code":"sa01-6","label":"Year 6","order":6},{"code":"sa01-9","label":"Year 9","order":9},{"code":"sa01-12","label":"Tawjihi","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl Dirasi","report_card":"Shahada","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["KW-KU"] = _v4_00_74("KW-KU","kwku-2-sem","2-sem (Capital)",2,["First semester","Second semester"],9,
+    [{"code":"rawda","label":"Rawda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"ibtidai","label":"Ibtidai (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"mutawassit","label":"Mutawassit (6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"thanawi","label":"Thanawi (10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"KU + GUST + AUK","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"kwku-1","label":"Year 1","order":1},{"code":"kwku-5","label":"Year 5","order":5},{"code":"kwku-9","label":"Year 9","order":9},{"code":"kwku-12","label":"Year 12","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["BH-13"] = _v4_00_74("BH-13","bh13-2-sem","2-sem (Capital)",2,["First semester","Second semester"],9,
+    [{"code":"rawda","label":"Rawda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"ibtidai","label":"Ibtidai (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"edady","label":"Edady (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"thanawi","label":"Thanawi (10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UoB + AGU + RCSI Bahrain","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"bh13-1","label":"Year 1","order":1},{"code":"bh13-6","label":"Year 6","order":6},{"code":"bh13-9","label":"Year 9","order":9},{"code":"bh13-12","label":"Year 12","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["OM-MA"] = _v4_00_74("OM-MA","omma-2-sem","2-sem (Muscat)",2,["First semester","Second semester"],9,
+    [{"code":"rawda","label":"Rawda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"asasi","label":"Asasi (1-10)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-15"},
+     {"code":"thanawi","label":"Thanawi (11-12) + Tawjihi","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"SQU + GUtech + Sohar U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"omma-1","label":"Year 1","order":1},{"code":"omma-10","label":"Year 10","order":10},{"code":"omma-12","label":"Year 12 + Tawjihi","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["LB-BA"] = _v4_00_74("LB-BA","lbba-3-term","3-term (Beirut)",3,["First term","Second term","Third term"],9,
+    [{"code":"hadana","label":"Hadana / Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"ibtidai","label":"Ibtidai (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"mutawassit","label":"Mutawassit (7-9) + Brevet","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"thanawi","label":"Thanawi (10-12) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"AUB + USJ + LAU + LU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"lbba-1","label":"Year 1","order":1},{"code":"lbba-6","label":"Year 6","order":6},{"code":"lbba-9","label":"Year 9 + Brevet","order":9},{"code":"lbba-12","label":"Year 12 + Bac","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["IR-23"] = _v4_00_74("IR-23","ir23-3-trim","3-trim (Tehran)",3,["First trimester","Second trimester","Third trimester"],9,
+    [{"code":"pishdabestan","label":"Pishdabestan","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"5"},
+     {"code":"dabestan","label":"Dabestan (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"motevaseteh1","label":"Motevaseteh I (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"motevaseteh2","label":"Motevaseteh II (10-12) + Konkur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"daneshgah","label":"UT + Sharif + AUT + IUT + Shahid Beheshti","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ir23-1","label":"Year 1","order":1},{"code":"ir23-6","label":"Year 6","order":6},{"code":"ir23-9","label":"Year 9","order":9},{"code":"ir23-12","label":"Year 12 + Konkur","order":12}],
+    {"teacher":"Moallem","principal":"Modir","term":"Sehmaheh","report_card":"Karname","grade_level":"Pâye"})
+
+COUNTRY_LOCALIZATION["IQ-BG"] = _v4_00_74("IQ-BG","iqbg-2-sem","2-sem (Baghdad)",2,["First semester","Second semester"],9,
+    [{"code":"rawda","label":"Rawda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"ibtidai","label":"Ibtidai (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"mutawassit","label":"Mutawassit (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"i'dadi","label":"I'dadi (10-12) + Bakaloriya","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Baghdad U + Nahrain + AUI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"iqbg-1","label":"Year 1","order":1},{"code":"iqbg-6","label":"Year 6","order":6},{"code":"iqbg-9","label":"Year 9","order":9},{"code":"iqbg-12","label":"Bakaloriya","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Fasl","report_card":"Shahada","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["TR-35"] = _v4_00_74("TR-35","tr35-2-sem","2-semester (İzmir / MEB)",2,["Birinci dönem","İkinci dönem"],9,
+    [{"code":"anaokulu","label":"Anaokulu","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"ilkokul","label":"İlkokul (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"ortaokul","label":"Ortaokul (5-8) + LGS","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-13"},
+     {"code":"lise","label":"Lise (9-12) + YKS/TYT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"universite","label":"Ege + DEU + İYTE + Yaşar","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"tr35-1","label":"1. sınıf","order":1},{"code":"tr35-4","label":"4. sınıf","order":4},{"code":"tr35-8","label":"8. sınıf + LGS","order":8},{"code":"tr35-12","label":"12. sınıf + YKS","order":12}],
+    {"teacher":"Öğretmen","principal":"Müdür","term":"Dönem","report_card":"Karne","grade_level":"Sınıf"})
+
+COUNTRY_LOCALIZATION["TR-16"] = _v4_00_74("TR-16","tr16-2-sem","2-semester (Bursa / MEB)",2,["Birinci dönem","İkinci dönem"],9,
+    [{"code":"anaokulu","label":"Anaokulu","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"ilkokul","label":"İlkokul (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"ortaokul","label":"Ortaokul (5-8) + LGS","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-13"},
+     {"code":"lise","label":"Lise (9-12) + YKS/TYT","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"universite","label":"Uludağ + BTÜ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"tr16-1","label":"1. sınıf","order":1},{"code":"tr16-4","label":"4. sınıf","order":4},{"code":"tr16-8","label":"8. sınıf + LGS","order":8},{"code":"tr16-12","label":"12. sınıf + YKS","order":12}],
+    {"teacher":"Öğretmen","principal":"Müdür","term":"Dönem","report_card":"Karne","grade_level":"Sınıf"})
+
+COUNTRY_LOCALIZATION["IL-D"] = _v4_00_74("IL-D","ild-2-sem","2-sem (South District)",2,["Semester A","Semester B"],9,
+    [{"code":"gan","label":"Gan Yeladim","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"yesodi","label":"Beit Sefer Yesodi (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"hativat","label":"Hativat Beinayim (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"tichon","label":"Tichon (10-12) + Bagrut","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"universita","label":"BGU + Ariel","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ild-1","label":"Kita Aleph","order":1},{"code":"ild-6","label":"Kita Vav","order":6},{"code":"ild-9","label":"Kita Tet","order":9},{"code":"ild-12","label":"Bagrut","order":12}],
+    {"teacher":"Moreh","principal":"Menahel","term":"Semester","report_card":"Te'udah","grade_level":"Kita"})
+
+COUNTRY_LOCALIZATION["MG-T"] = _v4_00_74("MG-T","mgt-3-trim","3-trim (Antananarivo)",3,["Premier trimestre","Deuxième trimestre","Troisième trimestre"],10,
+    [{"code":"maternelle","label":"École Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaire","label":"Primaire (T1-T5) + CEPE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"college","label":"Collège (T6-T9) + BEPC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"lycee","label":"Lycée (T10-T13) + Baccalauréat","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"universite","label":"U Antananarivo + ESPA","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"mgt-1","label":"T1","order":1},{"code":"mgt-5","label":"T5 + CEPE","order":5},{"code":"mgt-9","label":"T9 + BEPC","order":9},{"code":"mgt-13","label":"T13 + Bac","order":13}],
+    {"teacher":"Mpampianatra","principal":"Talen-tsekoly","term":"Telovolana","report_card":"Bulletin","grade_level":"Kilasy"})
+
+COUNTRY_LOCALIZATION["MU-PL"] = _v4_00_74("MU-PL","mupl-3-term","3-term (Port Louis)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"preprimary","label":"Pre-primary","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Std 1-6) + PSAC","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secondary","label":"Secondary (Gr 7-13) + SC/HSC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-18"},
+     {"code":"university","label":"UoM + UTM + MIE + Open U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"mupl-1","label":"Standard 1","order":1},{"code":"mupl-6","label":"Standard 6 + PSAC","order":6},{"code":"mupl-11","label":"Grade 11 + SC","order":11},{"code":"mupl-13","label":"Grade 13 + HSC","order":13}],
+    {"teacher":"Mister","principal":"Head","term":"Term","report_card":"Report","grade_level":"Grade"})
+
+COUNTRY_LOCALIZATION["BD-D"] = _v4_00_74("BD-D","bdd-2-sem","2-sem (Dhaka)",2,["First semester","Second semester"],1,
+    [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (1-5) + PSC","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"secondary","label":"Secondary (6-10) + JSC + SSC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-15"},
+     {"code":"higher_secondary","label":"Higher Sec (11-12) + HSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"DU + BUET + Brac + NSU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"bdd-1","label":"Class 1","order":1},{"code":"bdd-5","label":"Class 5 + PSC","order":5},{"code":"bdd-10","label":"Class 10 + SSC","order":10},{"code":"bdd-12","label":"HSC","order":12}],
+    {"teacher":"Shikkhok","principal":"Pradhan Shikkhok","term":"Term","report_card":"Report","grade_level":"Class"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
