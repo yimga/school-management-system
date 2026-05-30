@@ -4,7 +4,7 @@
 {% block extrahead %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/next-action-strip.css' %}">
-{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
@@ -64,7 +64,7 @@
   <section class="mb-3" data-rmc-ux-section="one-next-action">
   {% include "components/next_action_strip.html" %}
   </section>
-  {# v3.59.x Wave 11 Agent X (2026-05-22): glow page header + eyebrow per v8 200x preview. #}
+  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): glow page header + eyebrow per v8 200x preview. {% endcomment %}
   <header class="rmc-page-header-glow mb-4">
     <span class="rmc-page-eyebrow">{% trans "Platform operators" %}</span>
     <h1 class="h3 mb-1">{% trans "Platform Command Center" %}</h1>
@@ -87,7 +87,7 @@
   </header>
   <!-- rmc-ux-above-fold-end -->
 
-  {# v3.59.x Wave 11 Agent X (2026-05-22): system-pulse KPI cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. #}
+  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): system-pulse KPI cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. {% endcomment %}
   <section class="mb-4 rmc-reveal" data-rmc-ux-section="system-pulse" aria-label="{% trans 'System pulse' %}">
   <h2 class="h6 text-uppercase text-muted mb-3 rmc-page-eyebrow">{% trans "System pulse" %}</h2>
   <div class="row g-3 mb-2 rmc-reveal-stagger">
@@ -123,7 +123,7 @@
   </div>
   </section>
 
-  {# v3.59.x Wave 11 Agent X (2026-05-22): growth-activation KPI cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. #}
+  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): growth-activation KPI cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. {% endcomment %}
   <section class="mb-4 rmc-reveal" data-rmc-ux-section="growth-activation">
   <h2 class="h6 text-uppercase text-muted mb-3 rmc-page-eyebrow">{% trans "Growth and activation" %}</h2>
   <div class="row g-3 mb-4 rmc-reveal-stagger" data-rmc-business-value="1">
@@ -237,7 +237,7 @@
   <section class="mb-4 rmc-reveal" data-rmc-founder-sales-dashboard="1">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
       <h2 class="h5 mb-0">{% trans "Sales command center" %}</h2>
-      {# Strict mode: single primary CTA lives in header toolbar — avoid duplicate pipeline buttons here. #}
+      {% comment %} Strict mode: single primary CTA lives in header toolbar — avoid duplicate pipeline buttons here. {% endcomment %}
       {% if not rmc_conversion_single_action_enforced|default:False %}
       <a class="btn btn-sm btn-primary" href="{{ sales_pipeline_url }}">{% trans "Open Kanban pipeline" %}</a>
       {% endif %}

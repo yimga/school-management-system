@@ -2,18 +2,6 @@
   "version": 1,
   "history": [
     {
-      "recorded_at": "2026-04-08T18:23:50.847226+00:00",
-      "counts": {
-        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
-        "cursor_execute_apps_config_py_excl_migrations": 16,
-        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
-        "print_calls_apps_py_excl_migrations_tests_management": 0,
-        "print_calls_scripts_py": 821,
-        "site_settings_refs_apps_py_excl_migrations": 2,
-        "site_settings_refs_apps_py_excl_migrations_tests": 2
-      }
-    },
-    {
       "recorded_at": "2026-04-09T12:04:33.718372+00:00",
       "counts": {
         "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
@@ -467,6 +455,126 @@
         "print_calls_scripts_py": 2961,
         "site_settings_refs_apps_py_excl_migrations": 195,
         "site_settings_refs_apps_py_excl_migrations_tests": 147
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T20:23:57.339585+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 93,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3025,
+        "site_settings_refs_apps_py_excl_migrations": 195,
+        "site_settings_refs_apps_py_excl_migrations_tests": 147
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T21:19:08.644131+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 96,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3028,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T21:27:07.741211+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 98,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3028,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T21:31:26.722086+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 100,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3028,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T21:46:12.245153+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 100,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3029,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T21:54:20.930302+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 100,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3030,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T23:24:54.170685+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 100,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3033,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T23:30:25.980510+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 100,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3034,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
+      }
+    },
+    {
+      "recorded_at": "2026-05-29T23:40:32.209424+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 100,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3035,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
+      }
+    },
+    {
+      "recorded_at": "2026-05-30T12:26:30.098377+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 102,
+        "cursor_execute_apps_config_py_excl_migrations": 40,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3545,
+        "site_settings_refs_apps_py_excl_migrations": 192,
+        "site_settings_refs_apps_py_excl_migrations_tests": 144
       }
     }
   ]

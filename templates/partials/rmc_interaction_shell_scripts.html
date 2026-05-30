@@ -1,4 +1,4 @@
 {% load static %}
-{# Toast + platform interaction guard — load on every authenticated / operator shell. #}
+{% comment %} Toast + platform interaction guard — load on every authenticated / operator shell. {% endcomment %}
 {% include 'components/toast_notifications.html' %}
 <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>

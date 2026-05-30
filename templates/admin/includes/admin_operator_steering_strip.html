@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Unified dismissible steering: operator path + outcome deck + changelist CP hints + bridged super links. #}
+{% comment %} Unified dismissible steering: operator path + outcome deck + changelist CP hints + bridged super links. {% endcomment %}
 {% if is_manager_host %}
 {% with has_outcome=admin_outcome_deck has_hint=admin_steering_hint has_paired=RMC_OPERATOR_PAIRED_LINKS %}
 <div id="rmc-admin-steering-strip"

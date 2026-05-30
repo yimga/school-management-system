@@ -76,9 +76,12 @@
       <button type="submit" class="btn btn-outline-secondary">{% trans "Search" %}</button>
     </div>
   </form>
+  <div class="d-flex flex-wrap align-items-center gap-3 mb-3 py-2 border-bottom">
+    <span class="text-muted small"><strong>{{ entities_total|default:0 }}</strong> {% trans "entities" %}</span>
+  </div>
   <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
-      <table class="table table-family table-hover mb-0" aria-label="Metadata catalog entities and field impact">
+      <table class="table table-family table-hover mb-0 rmc-data-table" data-rmc-scroll-policy="paginate" aria-label="Metadata catalog entities and field impact">
         <thead>
           <tr>
             <th scope="col">{% trans "Entity" %}</th>
@@ -97,7 +100,7 @@
             <td class="text-end">{{ ent.sample_deps }}</td>
             <td>—</td>
           </tr>
-          {% for f in ent.fields.all|slice:":10" %}
+          {% for f in ent.field_preview %}
           <tr class="table-secondary">
             <td colspan="2" class="ps-4"><code>{{ f.field_name }}</code> — {{ f.label|default:"" }}</td>
             <td class="text-end">—</td>
@@ -105,8 +108,28 @@
             <td><a href="{% url 'super:metadata_catalog_field_impact' entity_code=ent.code field_name=f.field_name %}" class="btn btn-sm btn-outline-secondary">{% trans "Impact" %}</a></td>
           </tr>
           {% empty %}
+          {% if not ent.fields_overflow_count %}
           <tr class="table-secondary"><td colspan="5" class="ps-4 text-secondary">{% trans "No fields." %}</td></tr>
+          {% endif %}
           {% endfor %}
+          {% if ent.fields_overflow_count %}
+          <tr class="table-secondary">
+            <td colspan="5" class="ps-4">
+              <details>
+                <summary class="small">{% blocktrans count counter=ent.fields_overflow_count %}Show {{ counter }} more field{% plural %}Show {{ counter }} more fields{% endblocktrans %}</summary>
+                <ul class="list-unstyled small mb-0 mt-2">
+                  {% for f in ent.fields_overflow %}
+                  <li class="d-flex flex-wrap align-items-center gap-2 py-1 border-top">
+                    <span><code>{{ f.field_name }}</code> — {{ f.label|default:"" }}</span>
+                    <span class="text-muted">{% blocktrans with n=f.dependencies.all|length %}{{ n }} usage refs{% endblocktrans %}</span>
+                    <a href="{% url 'super:metadata_catalog_field_impact' entity_code=ent.code field_name=f.field_name %}" class="btn btn-sm btn-outline-secondary ms-auto">{% trans "Impact" %}</a>
+                  </li>
+                  {% endfor %}
+                </ul>
+              </details>
+            </td>
+          </tr>
+          {% endif %}
           {% empty %}
           <tr><td colspan="5" class="text-secondary">{% trans "No entities. Run: python manage.py seed_entity_catalog" %}</td></tr>
           {% endfor %}
@@ -114,6 +137,7 @@
       </table>
     </div>
   </div>
+  {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
   </div>
 </div>
 {% endblock %}

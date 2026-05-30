@@ -17,7 +17,7 @@ Status for each item from the World Engine execution directive (§11 and §9). U
 | Error pages (403/404/500 manager = platform branding) | Done | Handlers pass request; base.html PUBLIC_BRAND_MODE. |
 | CDN | Doc | WORLD_ENGINE_SCALE_OPERATIONS. |
 | WebSocket (Redis Pub/Sub) | Doc | WORLD_ENGINE_SCALE_OPERATIONS; Channels optional. |
-| i18n (makemessages; wrap hardcoded strings) | Test | locale/en/LC_MESSAGES; django.po present. Run: `python manage.py makemessages -l en` then `compilemessages` (requires GNU gettext). New strings in _() / {% trans %}. |
+| i18n (makemessages; wrap hardcoded strings) | Done | `sync_i18n_catalog --compile` (polib, no gettext required); CI: `verify_world_engine_i18n_ci.py` + `scan_locale_coverage.py --compare`; pre-deploy: `verify_i18n_catalog_fresh.py`. |
 | Scale & HA (10M students, 6 continents) | Verify | Ongoing; architecture and ops doc. |
 
 ## Cache key audit (tenant-scoped vs global)
@@ -30,8 +30,8 @@ Status for each item from the World Engine execution directive (§11 and §9). U
 
 - **Locale path:** `locale/` (LOCALE_PATHS in settings). Create `locale/<lang>/LC_MESSAGES/` for each language.
 - **Extract strings:** `python manage.py makemessages -l en` (requires GNU gettext: `msguniq`, `xgettext`). Add `-a` to update existing .po.
-- **Compile:** `python manage.py compilemessages` (produces .mo from .po).
-- **CI:** Add steps to run makemessages and compilemessages when i18n files or code change.
+- **Compile:** `python manage.py sync_i18n_catalog --compile` (polib `.mo`, no msgfmt) or `python manage.py compilemessages` when GNU gettext is installed.
+- **CI:** `python scripts/verify_world_engine_i18n_ci.py` → **WORLD_ENGINE_I18N_CI_PASS** (architectural-boundaries job `world-engine-i18n-ci` + smoke pre-deploy gate); `scan_locale_coverage.py --compare` for per-locale regression.
 
 ## Tests (World Engine Completion + Sovereign AI plan)
 

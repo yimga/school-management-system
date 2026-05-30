@@ -51,7 +51,7 @@ MARKETING_CONTENT_DIR = os.path.join(
 )
 # Single source of truth: Platform / Solutions / Why RunMyCampus / Pricing /
 # Resources / More render before the persistent Book demo CTA.
-MARKETING_NAVBAR_VISIBLE_COUNT = 6
+MARKETING_NAVBAR_VISIBLE_COUNT = 7
 
 _MARKETING_PAGE_TYPE_TEMPLATES: dict[str, str] = {
     "pricing": "marketing/pages/type_pricing.html",
@@ -579,6 +579,7 @@ def _marketing_navbar_primary() -> list[dict]:
             resources_children.append({"label": x["label"], "path": x["path"]})
 
     pricing_path = p("marketing_pricing", "/pricing/")
+    storefront_path = p("marketing_intent_homepage", "/storefront/")
     why_path = p("marketing_why_switch", "/why-switch/")
     trust_path = p("marketing_trust_dedicated", "/trust/")
     security_packet = p("marketing_security_packet_request", "/security-packet/")
@@ -669,6 +670,7 @@ def _marketing_navbar_primary() -> list[dict]:
             "path": why_path,
             "mega_columns": why_mega_columns,
         },
+        {"label": "Experience", "path": storefront_path},
         {"label": "Pricing", "path": pricing_path},
         {
             "label": "Resources",
@@ -3163,6 +3165,14 @@ def marketing_funnel_dashboard(request):
         for r in channel_qs
     ]
 
+    from django.core.paginator import Paginator
+
+    channel_paginator = Paginator(channel_breakdown, 20)
+    channel_page_obj = channel_paginator.get_page(request.GET.get("page") or 1)
+    channel_q = request.GET.copy()
+    channel_q.pop("page", None)
+    channel_pagination_extra_query = channel_q.urlencode()
+
     growth_snapshot = build_growth_funnel_snapshot(days=30)
 
     base_ctx = _marketing_base_context(request)
@@ -3174,7 +3184,9 @@ def marketing_funnel_dashboard(request):
         "activation": activation,
         "last7": last7_map,
         "last30": last30_map,
-        "channel_breakdown": channel_breakdown,
+        "channel_breakdown": list(channel_page_obj.object_list),
+        "channel_page_obj": channel_page_obj,
+        "channel_pagination_extra_query": channel_pagination_extra_query,
         "growth": growth_snapshot,
     }
     return render(request, "schools/marketing_funnel_dashboard.html", ctx)

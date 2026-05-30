@@ -1,7 +1,7 @@
 {% load i18n %}
-{# v3.54 (2026-05-21, Agent 3): Automation cockpit overview. #}
-{# Summary tiles + simulation preview + dependency graph + workflow health. #}
-{# Every value reads defensively via |default so missing context never breaks render. #}
+{% comment %} v3.54 (2026-05-21, Agent 3): Automation cockpit overview. {% endcomment %}
+{% comment %} Summary tiles + simulation preview + dependency graph + workflow health. {% endcomment %}
+{% comment %} Every value reads defensively via |default so missing context never breaks render. {% endcomment %}
 <section class="rmc-automation-cockpit" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" aria-labelledby="rmc-automation-cockpit-title">
   <header class="rmc-automation-cockpit__header">
     <div>

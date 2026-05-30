@@ -45,7 +45,7 @@
        data-rmc-copilot-rail
        data-rmc-copilot-active-tab="chat"{% if rmc_copilot_page_help_url %} data-rmc-help-center-url="{{ rmc_copilot_page_help_url }}"{% endif %}>
   <div class="lx-copilot">
-    {# Collapsed state — 44px vertical icon rail. Each icon routes to a tab. #}
+    {% comment %} Collapsed state — 44px vertical icon rail. Each icon routes to a tab. {% endcomment %}
     <div class="lx-copilot__collapsed">
       <button class="lx-copilot__toggle" type="button"
               data-rmc-copilot-toggle data-rmc-copilot-tab="chat"
@@ -86,7 +86,7 @@
       <div class="lx-copilot__kbd" aria-hidden="true">⌘ K</div>
     </div>
 
-    {# Expanded state — 360px panel with header, insight, thread, input. #}
+    {% comment %} Expanded state — 360px panel with header, insight, thread, input. {% endcomment %}
     <div class="lx-copilot__expanded">
       <div class="lx-copilot__header">
         <div class="lx-copilot__title">
@@ -114,7 +114,7 @@
         </div>
       </div>
 
-      {# Tab strip — flips with [data-rmc-copilot-active-tab] on the rail. #}
+      {% comment %} Tab strip — flips with [data-rmc-copilot-active-tab] on the rail. {% endcomment %}
       <nav class="lx-copilot__tabs" role="tablist" aria-label="{% trans 'Copilot sections' %}">
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="chat"  role="tab">{% trans 'Chat' %}</button>
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="lens" role="tab">{% trans 'Lens' %}</button>
@@ -125,9 +125,7 @@
         <button type="button" class="lx-copilot__tab" data-rmc-copilot-tab="context" role="tab">{% trans 'Context' %}</button>
       </nav>
 
-      {# v4.00.18 — always-visible quick-stats strip. Hydrated by the services
-         bridge via [data-rmc-copilot-rail-quickstat]; SSR defaults below
-         degrade gracefully when context_processors haven't populated. #}
+      {% comment %} v4.00.18 copilot quick-stats strip (SSR + bridge hydration). {% endcomment %}
       <div class="lx-copilot__quickstats" role="group" aria-label="{% trans 'At a glance' %}">
         <a class="lx-copilot__quickstat" href="{% url 'accounts:user_messages' %}"
            data-rmc-copilot-rail-quickstat="messages"
@@ -204,7 +202,7 @@
         {% endif %}
       </div>
 
-      {# Context Lens — mirrors the active table row + compare pins + playbooks. #}
+      {% comment %} Context Lens — mirrors the active table row + compare pins + playbooks. {% endcomment %}
       <div class="lx-copilot__pane lx-copilot__pane--lens" data-rmc-copilot-pane="lens">
         {% include "partials/copilot_lens_root_inner.html" %}
       </div>
@@ -213,18 +211,16 @@
          (services bridge) hydrates from /studio/copilot/rail/context/. {% endcomment %}
       <div class="lx-copilot__pane" data-rmc-copilot-pane="actions">
         <ul class="lx-copilot__actions-list" data-rmc-copilot-rail-actions-list>
-          {# Populated server-side via the services bridge; falls back to suggestions above. #}
+          {% comment %} Populated server-side via the services bridge; falls back to suggestions above. {% endcomment %}
         </ul>
       </div>
 
-      {# Threads pane — recent threads (server-rendered or "no threads yet" empty state). #}
+      {% comment %} Threads pane — recent threads (server-rendered or "no threads yet" empty state). {% endcomment %}
       <div class="lx-copilot__pane" data-rmc-copilot-pane="threads">
         <p class="lx-copilot__threads-empty">{% trans 'Recent threads will appear here once you have chatted with the copilot.' %}</p>
       </div>
 
-      {# v4.00.18 — Shortcuts pane. Pinned destinations + frequent actions.
-         Server-rendered defaults are role-aware; the services bridge can
-         POST custom pins via data-rmc-copilot-rail-shortcuts-list. #}
+      {% comment %} v4.00.18 copilot shortcuts pane (role-aware pinned destinations). {% endcomment %}
       <div class="lx-copilot__pane lx-copilot__pane--shortcuts" data-rmc-copilot-pane="shortcuts">
         <div class="lx-copilot__pane-head">
           <span class="lx-copilot__pane-title">{% trans 'Pinned' %}</span>
@@ -273,7 +269,7 @@
         </div>
       </div>
 
-      {# v4.00.18 — Today pane. Agenda for today + due items + quick add. #}
+      {% comment %} v4.00.18 — Today pane. Agenda for today + due items + quick add. {% endcomment %}
       <div class="lx-copilot__pane lx-copilot__pane--today" data-rmc-copilot-pane="today">
         <div class="lx-copilot__pane-head">
           <span class="lx-copilot__pane-title">{% trans 'Agenda' %}</span>
@@ -304,10 +300,7 @@
         </form>
       </div>
 
-      {# v4.00.23 — Context pane. Per-page personality + key metrics +
-         AI explainer slot. Reads data-rmc-page-domain from <html>; the
-         rmc-copilot-personality.js bridge updates the metric tiles and
-         explainer paragraph from rmc_page_personality template context. #}
+      {% comment %} v4.00.23 copilot context pane (page personality + metrics). {% endcomment %}
       <div class="lx-copilot__pane lx-copilot__pane--context" data-rmc-copilot-pane="context">
         <div class="lx-copilot__context-eyebrow">
           <span class="lx-copilot__context-glyph" data-rmc-copilot-rail-context-glyph aria-hidden="true">◈</span>
@@ -320,8 +313,7 @@
           {% firstof rmc_page_personality.description _("Open the Context tab on any page to see what RunMyCampus knows about it — key metrics, recent activity, what most operators do here.") %}
         </p>
 
-        {# Domain key-metrics — 2-up tiles, hydrated by the services bridge
-           or rendered server-side via rmc_page_personality.metrics. #}
+        {% comment %} Domain key-metrics tiles (SSR or bridge hydration). {% endcomment %}
         {% if rmc_page_personality.metrics %}
         <div class="lx-copilot__context-metrics" role="group" aria-label="{% trans 'Page metrics' %}">
           {% for metric in rmc_page_personality.metrics %}
@@ -334,9 +326,7 @@
         </div>
         {% endif %}
 
-        {# Top common operator actions for this page-class. Reduces clicks
-           by surfacing the path of greatest action — operator no longer
-           hunts through nav for "the thing they always do here". #}
+        {% comment %} Common operator actions for this page-class. {% endcomment %}
         {% if rmc_page_personality.common_actions %}
         <div class="lx-copilot__pane-head lx-copilot__pane-head--secondary">
           <span class="lx-copilot__pane-title">{% trans 'Common here' %}</span>
@@ -353,8 +343,7 @@
         </ul>
         {% endif %}
 
-        {# Recent activity for this page-class (last 5 changes the user or
-           team made on this surface). Hydrated client-side. #}
+        {% comment %} Recent activity on this surface (client hydration). {% endcomment %}
         <div class="lx-copilot__pane-head lx-copilot__pane-head--secondary">
           <span class="lx-copilot__pane-title">{% trans 'Recent on this surface' %}</span>
         </div>

@@ -23,7 +23,7 @@
   <script src="{% static 'js/theme-preference-bootstrap.js' %}"></script>
   {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
   <script src="{% static 'js/rmc-reveal.js' %}"></script>
-  {# v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. #}
+  {% comment %} v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. {% endcomment %}
   <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
@@ -36,7 +36,7 @@
   <title>{% block title %}{% if PUBLIC_BRAND_MODE %}{{ PUBLIC_BRAND_NAME }}{% else %}RunMyCampus{% endif %}{% endblock %}</title>
   <link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon-bell.svg' %}{% endif %}" type="image/svg+xml">
 
-  {# Self-hosted Source Serif 4 (latin 400/600/700) — bundled in marketing-critical.min.css via marketing-fonts.css #}
+  {% comment %} Self-hosted Source Serif 4 (latin 400/600/700) — bundled in marketing-critical.min.css via marketing-fonts.css {% endcomment %}
   <link rel="preload" href="{% static 'marketing/fonts/source-serif-4/source-serif-4-latin-600-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
 
   {% block extrahead %}{% endblock %}
@@ -45,9 +45,11 @@
   <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="css/accessibility.css" %}
-  {# v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer (deferred). #}
+  {% comment %} v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer (deferred). {% endcomment %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="css/design-tokens-personality.css" %}
-  {% include "partials/rmc_platform_chrome_styles.html" %}
+  {% comment %} Marketing uses editorial CSS only — not operator platform chrome (scroll contract / OS-grade). {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-back-to-top.css' %}">
   {% if request.user.is_authenticated %}{% include "partials/rmc_security_posture_layout_styles.html" %}{% endif %}
   <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-critical.min.css' %}">
@@ -55,15 +57,15 @@
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-enhanced.min.css" %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-page-personality.css" %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-personality-viz.css" %}
-  {# v3.62.10 Wave 9 local-first: marketing band (deferred — keeps blocking stylesheet count ≤5). #}
+  {% comment %} v3.62.10 Wave 9 local-first: marketing band (deferred — keeps blocking stylesheet count ≤5). {% endcomment %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/rmc-mkt-local-first-band.css" %}
   {% block extrastyle %}{% endblock %}
 </head>
-{# data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. #}
+{% comment %} data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. {% endcomment %}
 <body class="{% block body_class %}marketing-surface{% endblock %}{% if LANGUAGE_BIDI or is_rtl %} bidi-rtl{% else %} bidi-ltr{% endif %}" data-rmc-cp-scroll="document" data-rmc-premium-shell="marketing" data-rmc-page-purpose="public-story" data-rmc-page-personality="{{ rmc_page_personality|default:'marketing' }}"{% block body_extra_attrs %} data-mkt-edition="editorial" data-mkt-section="{% with s=marketing_page_slug|default:'platform' %}{% if 'platform' in s or 'sis' in s or 'admissions' in s or 'attendance' in s or 'fees' in s or 'grading' in s or 'parent-portal' in s or 'teacher-portal' in s or 'student-portal' in s or 'communications' in s or 'analytics' in s or 'workflows' in s or 'offline' in s or 'security' in s %}platform{% elif 'solutions' in s or 'for-private' in s or 'for-school' in s or 'k12' in s or 'international' in s or 'multi-campus' in s or 'faith' in s or 'payments-readiness' in s %}solutions{% elif 'pricing' in s %}pricing{% elif 'resources' in s or 'developer' in s or 'blog' in s or 'guides' in s or 'case-studies' in s or 'help-center' in s or 'product-tour' in s %}resources{% elif 'trust' in s or 'compliance' in s %}trust{% elif 'migrate' in s or 'migration' in s %}migrate{% elif 'compare' in s %}compare{% elif 'company' in s or 'about' in s or 'contact' in s or 'demo' in s %}company{% else %}platform{% endif %}{% endwith %}"{% endblock %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
-  {# Public marketing: no tenant launch splash (avoids CLS + wasted paint on cold acquisition traffic). #}
+  {% comment %} Public marketing: no tenant launch splash (avoids CLS + wasted paint on cold acquisition traffic). {% endcomment %}
   <a href="#main-content" class="mkt-skip-link">{% trans "Skip to main content" %}</a>
-  {# Wave 9 (v3.62.10) local-first marketing band above header; hidden without country signal. #}
+  {% comment %} Wave 9 (v3.62.10) local-first marketing band above header; hidden without country signal. {% endcomment %}
   {% if marketing_local.country_code and marketing_local.is_resolved %}
   {% include 'marketing/_local_first_band.html' %}
   {% endif %}
@@ -88,7 +90,7 @@
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
   {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
   <script src="{% static 'marketing/js/marketing-shell.js' %}" defer></script>
-  {# v3.62.10 Wave 9 local-first: dismissible country-greeting band. #}
+  {% comment %} v3.62.10 Wave 9 local-first: dismissible country-greeting band. {% endcomment %}
   <script src="{% static 'marketing/js/rmc-mkt-local-first-band.js' %}" defer></script>
   <script src="{% static 'marketing/js/marketing-motion.js' %}" defer></script>
   <script src="{% static 'marketing/js/theme-toggle.js' %}" defer></script>

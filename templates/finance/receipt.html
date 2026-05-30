@@ -19,7 +19,7 @@
     </style>
   </head>
   <body class="rmc-print-v2" data-page-archetype="record-detail">
-    {# v3.57.7 (2026-05-22): civic brand block per rmc-print-v2 grammar. #}
+    {% comment %} v3.57.7 (2026-05-22): civic brand block per rmc-print-v2 grammar. {% endcomment %}
     {% trans "Receipt" as report_title %}
     {% include "partials/rmc_print_v2_brand_block.html" with report_title=report_title report_subtitle=payment.reference|default:payment.id report_meta_left=payment.paid_at|format_date report_meta_right=school %}
 

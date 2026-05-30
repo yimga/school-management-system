@@ -46,7 +46,7 @@
     </div>
     {% endif %}
   </div>
-  {# Pass 9 platform-wide: per-record audit drill-down. #}
+  {% comment %} Pass 9 platform-wide: per-record audit drill-down. {% endcomment %}
   {% if classroom %}{% recent_activity_for "Classroom" classroom.pk %}{% endif %}
 </div>
 {% endblock %}

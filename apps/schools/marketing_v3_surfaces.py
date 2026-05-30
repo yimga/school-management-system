@@ -325,6 +325,7 @@ def marketing_navbar_verb_primary() -> list[dict]:
     comm_path = _p("marketing_communicate_hub", "/communicate/")
     grow_path = _p("marketing_grow_hub", "/grow/")
     pricing_path = _p("marketing_pricing", "/pricing/")
+    storefront_path = _p("marketing_intent_homepage", "/storefront/")
     why_path = _p("marketing_why_switch", "/why-switch/")
 
     run_mega = [
@@ -386,6 +387,7 @@ def marketing_navbar_verb_primary() -> list[dict]:
         {"label": _("Pay"), "path": pay_path, "mega_columns": pay_mega},
         {"label": _("Communicate"), "path": comm_path, "mega_columns": comm_mega},
         {"label": _("Grow"), "path": grow_path, "mega_columns": grow_mega},
+        {"label": _("Experience"), "path": storefront_path},
         {"label": _("Pricing"), "path": pricing_path},
         {"label": _("Why RunMyCampus"), "path": why_path},
     ]

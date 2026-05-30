@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load terminology_tags %}
 {% load region_format %}
-{# Section 15.1: Single academic year immutable transcript (read-only). #}
+{% comment %} Section 15.1: Single academic year immutable transcript (read-only). {% endcomment %}
 {% block title %}Transcript {{ snapshot.academic_year_name|default:transcript.academic_year.name }} — {{ student.get_full_name }}{% endblock %}
 {% block content %}
 <div class="container-fluid py-3">

@@ -4,7 +4,7 @@
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/studio-mode-rail.css' %}">
-{# v3.54 (2026-05-21): Automation cockpit per-section CSS (Agent 3 ownership). #}
+{% comment %} v3.54 (2026-05-21): Automation cockpit per-section CSS (Agent 3 ownership). {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/studio-automation-cockpit.css' %}">
 {% endblock %}
 

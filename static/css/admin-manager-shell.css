@@ -546,8 +546,8 @@ body.admin-manager-shell .admin-sidebar-section-heading {
    and a collapsible activity ticker — without sacrificing legibility
    below the lg breakpoint.
 
-   Operator can override with [data-rmc-admin-density="comfortable"]
-   on <html> via the density toggle in the operator menu.
+   Luxury baseline: comfortable density is default (`data-rmc-admin-density="comfortable"`).
+   Compact compression applies only when the operator opts in via the density toggle.
    ================================================================= */
 
 /* ── Multi-column fieldset on wide screens ──

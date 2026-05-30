@@ -9,7 +9,7 @@
   with their own descriptive h1. The fallback only covers direct backend_base rendering.
 {% endcomment %}
 <h1 class="visually-hidden">{% block backend_base_fallback_h1 %}{% trans "Backend" %}{% endblock %}</h1>
-{# Impersonation strip: portal_base page-wrap (1025) so all portal/backend children inherit without duplicating blocks. #}
+{% comment %} Impersonation strip: portal_base page-wrap (1025) so all portal/backend children inherit without duplicating blocks. {% endcomment %}
 {% block backend_main %}{% endblock %}
 {% endblock %}
 

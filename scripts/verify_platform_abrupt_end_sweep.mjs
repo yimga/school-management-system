@@ -26,6 +26,13 @@
 import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const {
+  loginManager,
+  AUTH_STATE_PATH,
+} = require('../tests/e2e/helpers/manager-login');
 
 const LOG = path.join(process.cwd(), 'debug-7911e1.log');
 const SESSION = '7911e1';
@@ -39,7 +46,7 @@ const TENANT_BASE =
   process.env.TENANT_BASE_URL || `http://${TENANT_HOST}:${PORT}`;
 const USE_TENANT_SUBDOMAIN =
   (process.env.USE_TENANT_SUBDOMAIN || '1').toLowerCase() !== '0';
-const AUTH = path.join(process.cwd(), 'artifacts/manager-playwright-auth.json');
+const AUTH = AUTH_STATE_PATH;
 const HOST_RULES =
   process.env.PLAYWRIGHT_HOST_RULES || `MAP ${HOST} 127.0.0.1`;
 const ROUTES_JSON = path.join(
@@ -347,22 +354,6 @@ function sweepPageInBrowser(scrollRootSel) {
   };
 }
 
-async function loginManager(page) {
-  await page.goto('/authentication/login/', { waitUntil: 'domcontentloaded', timeout: 60000 });
-  const role = page.locator('select[name="role"]');
-  if (await role.count()) await role.selectOption('staff');
-  await page.locator('input[name="username"]').fill(
-    process.env.VISUAL_QA_USERNAME || 'visualqa_admin'
-  );
-  await page.locator('input[name="password"]').fill(
-    process.env.VISUAL_QA_PASSWORD || 'VisualQaPass123!'
-  );
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForURL((u) => !/\/authentication\/login\/?$/i.test(u.pathname), {
-    timeout: 90000,
-  });
-}
-
 async function loginTenant(page) {
   const loginUrl = USE_TENANT_SUBDOMAIN
     ? '/authentication/login/'
@@ -400,7 +391,9 @@ async function main() {
     storageState: fs.existsSync(AUTH) ? AUTH : undefined,
   });
   const mgrPage = await mgrCtx.newPage();
-  if (!fs.existsSync(AUTH)) await loginManager(mgrPage);
+  if (!fs.existsSync(AUTH)) {
+    await loginManager(mgrPage);
+  }
 
   for (const s of managerSurfaces) {
     try {
@@ -424,7 +417,7 @@ async function main() {
       }
       await mgrPage.waitForTimeout(1200);
       let audit = await mgrPage.evaluate(sweepPageInBrowser, s.scrollRoot || null);
-      if (/\/authentication\/login/.test(audit.path)) {
+      if (/\/authentication\/(login|mfa\/verify)/.test(audit.path)) {
         await loginManager(mgrPage);
         await gotoWithRetries(mgrPage, s.url);
         await mgrPage.waitForTimeout(1200);

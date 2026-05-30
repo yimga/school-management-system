@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-20T12:15:27.559073+00:00",
-  "files_scanned": 1208,
-  "unpaginated_for_loop_files": 581,
-  "overflow_hidden_files": 27,
-  "rigid_width_files": 79,
+  "generated_at": "2026-05-29T21:03:41.253154+00:00",
+  "files_scanned": 1540,
+  "unpaginated_for_loop_files": 739,
+  "overflow_hidden_files": 44,
+  "rigid_width_files": 117,
   "priority_unpaginated": [
     {
       "path": "templates/schools/marketing_landing.html",
@@ -186,89 +186,236 @@
       ]
     },
     {
+      "path": "templates/siteconfig/super/cockpit_configure.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 71,
+          "iterable": "footer_fields"
+        },
+        {
+          "line": 93,
+          "iterable": "community_fields"
+        },
+        {
+          "line": 115,
+          "iterable": "newsletter_fields"
+        },
+        {
+          "line": 138,
+          "iterable": "front_office_fields"
+        },
+        {
+          "line": 161,
+          "iterable": "tenant_v3_extended_fields"
+        },
+        {
+          "line": 184,
+          "iterable": "lesson_of_day_fields"
+        },
+        {
+          "line": 208,
+          "iterable": "ai_study_buddy_fields"
+        },
+        {
+          "line": 232,
+          "iterable": "teacher_spotlight_fields"
+        },
+        {
+          "line": 256,
+          "iterable": "upcoming_events_fields"
+        },
+        {
+          "line": 287,
+          "iterable": "today_snapshot_fields"
+        },
+        {
+          "line": 311,
+          "iterable": "quick_actions_grid_fields"
+        },
+        {
+          "line": 335,
+          "iterable": "activity_timeline_fields"
+        },
+        {
+          "line": 359,
+          "iterable": "achievements_card_fields"
+        },
+        {
+          "line": 383,
+          "iterable": "live_world_map_fields"
+        },
+        {
+          "line": 407,
+          "iterable": "audit_feed_fields"
+        },
+        {
+          "line": 438,
+          "iterable": "forecast_lane_fields"
+        },
+        {
+          "line": 462,
+          "iterable": "slo_clocks_fields"
+        },
+        {
+          "line": 486,
+          "iterable": "trust_nutrition_fields"
+        },
+        {
+          "line": 510,
+          "iterable": "parent_teacher_thread_fields"
+        },
+        {
+          "line": 534,
+          "iterable": "financial_timeline_fields"
+        },
+        {
+          "line": 568,
+          "iterable": "operator_presence_fields"
+        },
+        {
+          "line": 592,
+          "iterable": "operator_notebook_fields"
+        },
+        {
+          "line": 626,
+          "iterable": "tenant_heatmap_fields"
+        },
+        {
+          "line": 650,
+          "iterable": "revenue_waterfall_fields"
+        },
+        {
+          "line": 674,
+          "iterable": "realtime_presence_fields"
+        },
+        {
+          "line": 698,
+          "iterable": "calendar_weather_fields"
+        },
+        {
+          "line": 732,
+          "iterable": "workspace_context_tenant_fields"
+        },
+        {
+          "line": 756,
+          "iterable": "activity_ticker_fields"
+        },
+        {
+          "line": 780,
+          "iterable": "gradebook_trend_fields"
+        },
+        {
+          "line": 804,
+          "iterable": "attendance_heatmap_fields"
+        },
+        {
+          "line": 828,
+          "iterable": "life_event_timeline_fields"
+        },
+        {
+          "line": 861,
+          "iterable": "ai_copilot_rail_fields"
+        },
+        {
+          "line": 900,
+          "iterable": "sibling_compare_fields"
+        },
+        {
+          "line": 942,
+          "iterable": "trust_pillars_alerts_fields"
+        },
+        {
+          "line": 986,
+          "iterable": "signup_form_fields"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
       "path": "templates/accounts/backend_dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 182,
+          "line": 227,
           "iterable": "primary_ctas"
         },
         {
-          "line": 200,
+          "line": 245,
           "iterable": "primary_ctas"
         },
         {
-          "line": 222,
+          "line": 267,
           "iterable": "insight_anomaly_cards"
         },
         {
-          "line": 248,
+          "line": 293,
           "iterable": "insight_anomaly_cards"
         },
         {
-          "line": 280,
+          "line": 325,
           "iterable": "overview_cards"
         },
         {
-          "line": 306,
+          "line": 351,
           "iterable": "overview_cards"
         },
         {
-          "line": 323,
+          "line": 368,
           "iterable": "kpi_strip_cards"
         },
         {
-          "line": 326,
+          "line": 371,
           "iterable": "overview_cards"
         },
         {
-          "line": 347,
+          "line": 392,
           "iterable": "kpi_strip_cards"
         },
         {
-          "line": 364,
+          "line": 409,
           "iterable": "kpi_strip_cards"
         },
         {
-          "line": 378,
+          "line": 423,
           "iterable": "kpi_strip_cards"
         },
         {
-          "line": 425,
+          "line": 470,
           "iterable": "role_home_focus_areas"
         },
         {
-          "line": 455,
+          "line": 500,
           "iterable": "role_home_supporting_actions"
         },
         {
-          "line": 492,
+          "line": 537,
           "iterable": "role_home_supporting_actions"
         },
         {
-          "line": 509,
+          "line": 554,
           "iterable": "role_home_supporting_actions"
         },
         {
-          "line": 535,
+          "line": 580,
           "iterable": "role_home_destinations"
         },
         {
-          "line": 575,
+          "line": 620,
           "iterable": "admin_portal"
         },
         {
-          "line": 581,
+          "line": 626,
           "iterable": "admin_portal"
         },
         {
-          "line": 587,
+          "line": 632,
           "iterable": "admin_portal"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 309,
+          "line": 354,
           "match": "max-width:6rem"
         }
       ]
@@ -370,68 +517,194 @@
       "path": "templates/analytics/dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 49,
+          "line": 53,
           "iterable": "finance_request_notifications"
         },
         {
-          "line": 188,
+          "line": 192,
           "iterable": "years"
         },
         {
-          "line": 196,
+          "line": 200,
           "iterable": "terms"
         },
         {
-          "line": 205,
+          "line": 209,
           "iterable": "classrooms"
         },
         {
-          "line": 214,
+          "line": 218,
           "iterable": "specialties"
         },
         {
-          "line": 253,
+          "line": 257,
           "iterable": "terms"
         },
         {
-          "line": 261,
+          "line": 265,
           "iterable": "terms"
         },
         {
-          "line": 383,
+          "line": 387,
           "iterable": "class_rankings"
         },
         {
-          "line": 416,
+          "line": 420,
           "iterable": "top_class_students"
         },
         {
-          "line": 449,
+          "line": 453,
           "iterable": "top_school_students"
         },
         {
-          "line": 483,
+          "line": 487,
           "iterable": "top_annual_class"
         },
         {
-          "line": 516,
+          "line": 520,
           "iterable": "top_annual_school"
         },
         {
-          "line": 550,
+          "line": 554,
           "iterable": "weak_subjects"
         },
         {
-          "line": 582,
+          "line": 587,
           "iterable": "improvements"
         },
         {
-          "line": 620,
+          "line": 625,
           "iterable": "teacher_stats"
         },
         {
-          "line": 655,
+          "line": 660,
           "iterable": "specialty_rates"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/customersuccess/guided_onboarding.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 96,
+          "iterable": "steps"
+        },
+        {
+          "line": 175,
+          "iterable": "onboarding_steps"
+        },
+        {
+          "line": 228,
+          "iterable": "launch_blockers"
+        },
+        {
+          "line": 247,
+          "iterable": "launch_checklist"
+        },
+        {
+          "line": 273,
+          "iterable": "launch_orchestration"
+        },
+        {
+          "line": 320,
+          "iterable": "preview_cards"
+        },
+        {
+          "line": 344,
+          "iterable": "preview_workspace"
+        },
+        {
+          "line": 355,
+          "iterable": "preview_workspace"
+        },
+        {
+          "line": 393,
+          "iterable": "blueprint_rankings"
+        },
+        {
+          "line": 416,
+          "iterable": "recommended_starter_stack"
+        },
+        {
+          "line": 431,
+          "iterable": "data_path_choices"
+        },
+        {
+          "line": 456,
+          "iterable": "role_previews"
+        },
+        {
+          "line": 464,
+          "iterable": "preview"
+        },
+        {
+          "line": 490,
+          "iterable": "recommendations"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/schools/super_dashboard.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 142,
+          "iterable": "operator_super_dashboard_links"
+        },
+        {
+          "line": 203,
+          "iterable": "next_best_actions"
+        },
+        {
+          "line": 344,
+          "iterable": "platform_health_cards"
+        },
+        {
+          "line": 405,
+          "iterable": "health_schema_stats"
+        },
+        {
+          "line": 429,
+          "iterable": "health_top_tables"
+        },
+        {
+          "line": 498,
+          "iterable": "country_rollup"
+        },
+        {
+          "line": 518,
+          "iterable": "billing_model_breakdown"
+        },
+        {
+          "line": 584,
+          "iterable": "schools"
+        },
+        {
+          "line": 639,
+          "iterable": "school"
+        },
+        {
+          "line": 666,
+          "iterable": "peer_operators"
+        },
+        {
+          "line": 711,
+          "iterable": "workstream_cards"
+        },
+        {
+          "line": 732,
+          "iterable": "readiness_cards"
+        },
+        {
+          "line": 750,
+          "iterable": "tenant_risk_rows"
+        },
+        {
+          "line": 772,
+          "iterable": "recent_schools"
         }
       ],
       "overflow_hidden": [],
@@ -497,118 +770,59 @@
       "rigid_width": []
     },
     {
-      "path": "templates/customersuccess/guided_onboarding.html",
+      "path": "templates/admin/index_superadmin.html",
       "unpaginated_for_loops": [
         {
-          "line": 96,
-          "iterable": "steps"
+          "line": 51,
+          "iterable": "admin_catalog_section_nav_items"
+        },
+        {
+          "line": 79,
+          "iterable": "admin_index_kpis"
+        },
+        {
+          "line": 98,
+          "iterable": "admin_catalog"
+        },
+        {
+          "line": 108,
+          "iterable": "admin_catalog"
+        },
+        {
+          "line": 109,
+          "iterable": "section"
+        },
+        {
+          "line": 109,
+          "iterable": "app"
+        },
+        {
+          "line": 116,
+          "iterable": "section"
+        },
+        {
+          "line": 132,
+          "iterable": "admin_catalog"
+        },
+        {
+          "line": 133,
+          "iterable": "section"
+        },
+        {
+          "line": 133,
+          "iterable": "app"
+        },
+        {
+          "line": 139,
+          "iterable": "section"
+        },
+        {
+          "line": 140,
+          "iterable": "app"
         },
         {
           "line": 153,
-          "iterable": "launch_blockers"
-        },
-        {
-          "line": 172,
-          "iterable": "launch_checklist"
-        },
-        {
-          "line": 198,
-          "iterable": "launch_orchestration"
-        },
-        {
-          "line": 245,
-          "iterable": "preview_cards"
-        },
-        {
-          "line": 269,
-          "iterable": "preview_workspace"
-        },
-        {
-          "line": 280,
-          "iterable": "preview_workspace"
-        },
-        {
-          "line": 318,
-          "iterable": "blueprint_rankings"
-        },
-        {
-          "line": 341,
-          "iterable": "recommended_starter_stack"
-        },
-        {
-          "line": 356,
-          "iterable": "data_path_choices"
-        },
-        {
-          "line": 381,
-          "iterable": "role_previews"
-        },
-        {
-          "line": 389,
-          "iterable": "preview"
-        },
-        {
-          "line": 415,
-          "iterable": "recommendations"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_dashboard.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 85,
-          "iterable": "operator_super_dashboard_links"
-        },
-        {
-          "line": 146,
-          "iterable": "next_best_actions"
-        },
-        {
-          "line": 287,
-          "iterable": "platform_health_cards"
-        },
-        {
-          "line": 348,
-          "iterable": "health_schema_stats"
-        },
-        {
-          "line": 372,
-          "iterable": "health_top_tables"
-        },
-        {
-          "line": 441,
-          "iterable": "country_rollup"
-        },
-        {
-          "line": 461,
-          "iterable": "billing_model_breakdown"
-        },
-        {
-          "line": 520,
-          "iterable": "schools"
-        },
-        {
-          "line": 575,
-          "iterable": "school"
-        },
-        {
-          "line": 634,
-          "iterable": "workstream_cards"
-        },
-        {
-          "line": 653,
-          "iterable": "readiness_cards"
-        },
-        {
-          "line": 671,
-          "iterable": "tenant_risk_rows"
-        },
-        {
-          "line": 693,
-          "iterable": "recent_schools"
+          "iterable": "app_list"
         }
       ],
       "overflow_hidden": [],
@@ -618,78 +832,78 @@
       "path": "templates/schools/super_security_hub.html",
       "unpaginated_for_loops": [
         {
-          "line": 32,
+          "line": 34,
           "iterable": "governance_risk_groups"
         },
         {
-          "line": 49,
+          "line": 51,
           "iterable": "verifier_cards"
         },
         {
-          "line": 72,
+          "line": 75,
           "iterable": "impersonation_rows"
         },
         {
-          "line": 144,
+          "line": 147,
           "iterable": "security_events"
         },
         {
-          "line": 167,
+          "line": 170,
           "iterable": "suspicious_security_events"
         },
         {
-          "line": 189,
+          "line": 192,
           "iterable": "perm_events"
         },
         {
-          "line": 211,
+          "line": 214,
           "iterable": "access_denied_events"
         },
         {
-          "line": 233,
+          "line": 236,
           "iterable": "approval_events"
         },
         {
-          "line": 255,
+          "line": 259,
           "iterable": "export_timeline_rows"
         },
         {
-          "line": 283,
+          "line": 287,
           "iterable": "session_rows"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 77,
+          "line": 80,
           "match": "max-width: 8rem"
         },
         {
-          "line": 79,
+          "line": 82,
           "match": "max-width: 10rem"
         },
         {
-          "line": 193,
+          "line": 196,
           "match": "max-width: 8rem"
         },
         {
-          "line": 214,
+          "line": 217,
           "match": "max-width: 8rem"
         },
         {
-          "line": 236,
+          "line": 239,
           "match": "max-width: 8rem"
         },
         {
-          "line": 258,
+          "line": 262,
           "match": "max-width: 6rem"
         },
         {
-          "line": 259,
+          "line": 263,
           "match": "max-width: 6rem"
         },
         {
-          "line": 260,
+          "line": 264,
           "match": "max-width: 8rem"
         }
       ]
@@ -738,42 +952,85 @@
       "rigid_width": []
     },
     {
+      "path": "templates/schools/super_create_school_wizard.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 52,
+          "iterable": "wizard_steps_meta"
+        },
+        {
+          "line": 132,
+          "iterable": "countries"
+        },
+        {
+          "line": 141,
+          "iterable": "cities"
+        },
+        {
+          "line": 176,
+          "iterable": "education_levels"
+        },
+        {
+          "line": 185,
+          "iterable": "sector_types_14_22"
+        },
+        {
+          "line": 193,
+          "iterable": "education_system_types"
+        },
+        {
+          "line": 203,
+          "iterable": "education_templates_standard"
+        },
+        {
+          "line": 208,
+          "iterable": "education_profiles"
+        },
+        {
+          "line": 217,
+          "iterable": "education_profiles"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
       "path": "templates/teacher/dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 36,
+          "line": 77,
           "iterable": "teacher_fast_workflows"
         },
         {
-          "line": 47,
+          "line": 88,
           "iterable": "teacher_fast_workflows"
         },
         {
-          "line": 108,
+          "line": 152,
           "iterable": "staff_badges"
         },
         {
-          "line": 365,
+          "line": 414,
           "iterable": "teacher_followup_items"
         },
         {
-          "line": 405,
+          "line": 454,
           "iterable": "teacher_deadline_items"
         },
         {
-          "line": 486,
+          "line": 535,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 488,
+          "line": 537,
           "iterable": "level"
         },
         {
-          "line": 513,
+          "line": 562,
           "iterable": "org_chain"
         },
         {
-          "line": 546,
+          "line": 595,
           "iterable": "workflow_summary"
         }
       ],
@@ -784,89 +1041,50 @@
       "path": "templates/accounts/profile.html",
       "unpaginated_for_loops": [
         {
-          "line": 125,
+          "line": 137,
           "iterable": "staff_badges"
         },
         {
-          "line": 144,
+          "line": 156,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 146,
+          "line": 158,
           "iterable": "level"
         },
         {
-          "line": 172,
+          "line": 184,
           "iterable": "org_chain"
         },
         {
-          "line": 192,
+          "line": 204,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 209,
+          "line": 221,
           "iterable": "approved_syllabi"
         },
         {
-          "line": 245,
+          "line": 257,
           "iterable": "parent_children_tree"
         },
         {
-          "line": 305,
+          "line": 317,
           "iterable": "admin_context"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 42,
+          "line": 78,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 19,
+          "line": 20,
           "match": "max-width:380px"
         }
       ]
-    },
-    {
-      "path": "templates/admin/admin_dashboard.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 91,
-          "iterable": "header_actions"
-        },
-        {
-          "line": 105,
-          "iterable": "dashboard_kpi_cards"
-        },
-        {
-          "line": 136,
-          "iterable": "failed_logins_by_role"
-        },
-        {
-          "line": 171,
-          "iterable": "pending_approvals_list"
-        },
-        {
-          "line": 199,
-          "iterable": "finance_inbox_preview"
-        },
-        {
-          "line": 244,
-          "iterable": "admin_control_links"
-        },
-        {
-          "line": 273,
-          "iterable": "settings_change_log"
-        },
-        {
-          "line": 296,
-          "iterable": "dashboard_widget_telemetry"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
     },
     {
       "path": "templates/marketing/marketing_header.html",
@@ -911,75 +1129,36 @@
       "path": "templates/schools/super_command_center.html",
       "unpaginated_for_loops": [
         {
-          "line": 30,
+          "line": 31,
           "iterable": "operator_command_center_links"
         },
         {
-          "line": 113,
+          "line": 99,
           "iterable": "pending_schools"
         },
         {
-          "line": 137,
+          "line": 123,
           "iterable": "trial_schools"
         },
         {
-          "line": 161,
+          "line": 147,
           "iterable": "provisioning_breach_rows"
         },
         {
-          "line": 185,
+          "line": 171,
           "iterable": "stale_support"
         },
         {
-          "line": 209,
+          "line": 195,
           "iterable": "platform_incidents"
         },
         {
-          "line": 233,
+          "line": 219,
           "iterable": "billing_watchlist"
         },
         {
-          "line": 257,
+          "line": 243,
           "iterable": "risk_rows"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_create_school_wizard.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 123,
-          "iterable": "countries"
-        },
-        {
-          "line": 145,
-          "iterable": "cities"
-        },
-        {
-          "line": 172,
-          "iterable": "education_levels"
-        },
-        {
-          "line": 182,
-          "iterable": "sector_types_14_22"
-        },
-        {
-          "line": 191,
-          "iterable": "education_system_types"
-        },
-        {
-          "line": 202,
-          "iterable": "education_templates_standard"
-        },
-        {
-          "line": 207,
-          "iterable": "education_profiles"
-        },
-        {
-          "line": 217,
-          "iterable": "education_profiles"
         }
       ],
       "overflow_hidden": [],
@@ -1025,50 +1204,6 @@
       "rigid_width": []
     },
     {
-      "path": "templates/studio_os/shell.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 6,
-          "iterable": "studio_modes"
-        },
-        {
-          "line": 38,
-          "iterable": "studio_modes"
-        },
-        {
-          "line": 69,
-          "iterable": "studio_modes"
-        },
-        {
-          "line": 132,
-          "iterable": "studio_role_preview_entries"
-        },
-        {
-          "line": 142,
-          "iterable": "studio_recommendations"
-        },
-        {
-          "line": 175,
-          "iterable": "studio_version_history"
-        },
-        {
-          "line": 246,
-          "iterable": "studio_bottom_bar_actions"
-        },
-        {
-          "line": 257,
-          "iterable": "studio_command_palette_entries"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 30,
-          "match": "max-width: 16rem"
-        }
-      ]
-    },
-    {
       "path": "templates/migration_cloud/intake_new.html",
       "unpaginated_for_loops": [
         {
@@ -1096,7 +1231,7 @@
           "iterable": "pipeline_steps"
         },
         {
-          "line": 426,
+          "line": 428,
           "iterable": "upload_guardrails"
         }
       ],
@@ -1107,31 +1242,31 @@
       "path": "templates/parent/dashboard.html",
       "unpaginated_for_loops": [
         {
-          "line": 49,
+          "line": 100,
           "iterable": "portal_quick_actions"
         },
         {
-          "line": 175,
+          "line": 229,
           "iterable": "links"
         },
         {
-          "line": 323,
+          "line": 379,
           "iterable": "workflow_summary"
         },
         {
-          "line": 338,
+          "line": 395,
           "iterable": "parent_upcoming_events"
         },
         {
-          "line": 367,
+          "line": 424,
           "iterable": "guardian_students_for_switcher"
         },
         {
-          "line": 377,
+          "line": 436,
           "iterable": "child_cards"
         },
         {
-          "line": 391,
+          "line": 451,
           "iterable": "card"
         }
       ],
@@ -1150,23 +1285,23 @@
           "iterable": "queued_actions"
         },
         {
-          "line": 171,
+          "line": 176,
           "iterable": "syncing_actions"
         },
         {
-          "line": 203,
+          "line": 213,
           "iterable": "failed_actions"
         },
         {
-          "line": 236,
+          "line": 251,
           "iterable": "conflict_actions"
         },
         {
-          "line": 271,
+          "line": 291,
           "iterable": "synced_actions"
         },
         {
-          "line": 302,
+          "line": 327,
           "iterable": "offline_actions"
         }
       ],
@@ -1212,31 +1347,31 @@
       "path": "templates/schools/partials/manager_help_center_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 23,
+          "line": 24,
           "iterable": "engage_actions"
         },
         {
-          "line": 103,
+          "line": 121,
           "iterable": "recent_features"
         },
         {
-          "line": 181,
+          "line": 199,
           "iterable": "signals"
         },
         {
-          "line": 208,
+          "line": 226,
           "iterable": "signals"
         },
         {
-          "line": 224,
+          "line": 242,
           "iterable": "signals"
         },
         {
-          "line": 238,
+          "line": 256,
           "iterable": "help_sections"
         },
         {
-          "line": 245,
+          "line": 263,
           "iterable": "section"
         }
       ],
@@ -1247,7 +1382,7 @@
       "path": "templates/schools/super_migration_cloud.html",
       "unpaginated_for_loops": [
         {
-          "line": 38,
+          "line": 39,
           "iterable": "operator_migration_cloud_links"
         },
         {
@@ -1271,7 +1406,7 @@
           "iterable": "preview"
         },
         {
-          "line": 252,
+          "line": 253,
           "iterable": "recent_runs"
         }
       ],
@@ -1282,31 +1417,31 @@
       "path": "templates/schools/super_playbook_operator_hub.html",
       "unpaginated_for_loops": [
         {
-          "line": 62,
+          "line": 63,
           "iterable": "operator_links"
         },
         {
-          "line": 80,
+          "line": 81,
           "iterable": "playbook_log_status_choices"
         },
         {
-          "line": 87,
+          "line": 88,
           "iterable": "playbook_log_execution_type_choices"
         },
         {
-          "line": 97,
+          "line": 98,
           "iterable": "playbook_slug_filter_links"
         },
         {
-          "line": 111,
+          "line": 112,
           "iterable": "migration_playbooks"
         },
         {
-          "line": 140,
+          "line": 141,
           "iterable": "recent_logs"
         },
         {
-          "line": 149,
+          "line": 150,
           "iterable": "log"
         }
       ],
@@ -1317,36 +1452,76 @@
       "path": "templates/studio_os/partials/launch_studio_overview_body.html",
       "unpaginated_for_loops": [
         {
-          "line": 28,
+          "line": 38,
           "iterable": "launch_payload"
         },
         {
-          "line": 42,
+          "line": 52,
           "iterable": "launch_payload"
         },
         {
-          "line": 50,
+          "line": 60,
           "iterable": "launch_payload"
         },
         {
-          "line": 66,
+          "line": 76,
           "iterable": "launch_payload"
         },
         {
-          "line": 83,
+          "line": 93,
           "iterable": "launch_role_previews"
         },
         {
-          "line": 112,
+          "line": 122,
           "iterable": "launch_payload"
         },
         {
-          "line": 125,
+          "line": 135,
           "iterable": "launch_payload"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": []
+    },
+    {
+      "path": "templates/studio_os/shell.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 6,
+          "iterable": "studio_modes"
+        },
+        {
+          "line": 53,
+          "iterable": "studio_modes"
+        },
+        {
+          "line": 131,
+          "iterable": "studio_role_preview_entries"
+        },
+        {
+          "line": 141,
+          "iterable": "studio_recommendations"
+        },
+        {
+          "line": 174,
+          "iterable": "studio_version_history"
+        },
+        {
+          "line": 278,
+          "iterable": "studio_bottom_bar_actions"
+        },
+        {
+          "line": 289,
+          "iterable": "studio_command_palette_entries"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 45,
+          "match": "max-width: 16rem"
+        }
+      ]
     },
     {
       "path": "templates/widgets/parent_dashboard_widgets.html",
@@ -1415,38 +1590,229 @@
       "rigid_width": []
     },
     {
+      "path": "templates/components/dashboard_footer.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 44,
+          "iterable": "trust_pillars"
+        },
+        {
+          "line": 63,
+          "iterable": "app_badges"
+        },
+        {
+          "line": 76,
+          "iterable": "social"
+        },
+        {
+          "line": 88,
+          "iterable": "contacts"
+        },
+        {
+          "line": 117,
+          "iterable": "legal_links"
+        },
+        {
+          "line": 122,
+          "iterable": "SITE"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
       "path": "templates/finance/invoice_detail.html",
       "unpaginated_for_loops": [
         {
-          "line": 141,
+          "line": 155,
           "iterable": "simple_payment_flow"
         },
         {
-          "line": 146,
+          "line": 160,
           "iterable": "simple_payment_flow"
         },
         {
-          "line": 166,
+          "line": 180,
           "iterable": "offline_payment_intents"
         },
         {
-          "line": 218,
+          "line": 232,
           "iterable": "reminder_logs"
         },
         {
-          "line": 353,
+          "line": 372,
           "iterable": "payment_proof_uploads"
         },
         {
-          "line": 411,
+          "line": 430,
           "iterable": "invoice"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 147,
+          "line": 161,
           "match": "min-width: 140px"
+        }
+      ]
+    },
+    {
+      "path": "templates/partials/cockpit/_activity_ticker.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 66,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 74,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 95,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 102,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 127,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 134,
+          "iterable": "cockpit"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/people/backend_student_list.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 23,
+          "iterable": "student_status_breakdown"
+        },
+        {
+          "line": 26,
+          "iterable": "student_status_breakdown"
+        },
+        {
+          "line": 48,
+          "iterable": "years"
+        },
+        {
+          "line": 57,
+          "iterable": "classrooms"
+        },
+        {
+          "line": 103,
+          "iterable": "students"
+        },
+        {
+          "line": 130,
+          "iterable": "student"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/schools/mat_group_hub/edit.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 38,
+          "iterable": "form"
+        },
+        {
+          "line": 48,
+          "iterable": "form"
+        },
+        {
+          "line": 53,
+          "iterable": "form"
+        },
+        {
+          "line": 58,
+          "iterable": "form"
+        },
+        {
+          "line": 63,
+          "iterable": "form"
+        },
+        {
+          "line": 73,
+          "iterable": "form"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/schools/signup_school.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 40,
+          "iterable": "cockpit"
+        },
+        {
+          "line": 132,
+          "iterable": "signup_countries"
+        },
+        {
+          "line": 168,
+          "iterable": "country_pack"
+        },
+        {
+          "line": 199,
+          "iterable": "india_state_options"
+        },
+        {
+          "line": 230,
+          "iterable": "country_pack"
+        },
+        {
+          "line": 277,
+          "iterable": "country_pack"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": []
+    },
+    {
+      "path": "templates/siteconfig/tenant_studio_hub.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 103,
+          "iterable": "launch_blockers"
+        },
+        {
+          "line": 112,
+          "iterable": "proactive_tenant_suggestions"
+        },
+        {
+          "line": 138,
+          "iterable": "coach_quick_actions"
+        },
+        {
+          "line": 163,
+          "iterable": "launch_rail"
+        },
+        {
+          "line": 178,
+          "iterable": "launch_lanes"
+        },
+        {
+          "line": 208,
+          "iterable": "health_recommendations"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 10,
+          "match": "max-width: 56rem"
         }
       ]
     },
@@ -1458,23 +1824,23 @@
           "iterable": "studio_modes"
         },
         {
-          "line": 111,
+          "line": 115,
           "iterable": "studio_role_preview_entries"
         },
         {
-          "line": 121,
+          "line": 125,
           "iterable": "studio_recommendations"
         },
         {
-          "line": 154,
+          "line": 158,
           "iterable": "studio_version_history"
         },
         {
-          "line": 224,
+          "line": 228,
           "iterable": "studio_bottom_bar_actions"
         },
         {
-          "line": 235,
+          "line": 239,
           "iterable": "studio_command_palette_entries"
         }
       ],
@@ -1485,30 +1851,30 @@
       "path": "templates/accounts/rollover_year.html",
       "unpaginated_for_loops": [
         {
-          "line": 33,
+          "line": 45,
           "iterable": "years"
         },
         {
-          "line": 42,
+          "line": 54,
           "iterable": "years"
         },
         {
-          "line": 70,
+          "line": 82,
           "iterable": "checklist"
         },
         {
-          "line": 131,
+          "line": 143,
           "iterable": "rows"
         },
         {
-          "line": 141,
+          "line": 153,
           "iterable": "target_classrooms"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 139,
+          "line": 151,
           "match": "min-width:160px"
         }
       ]
@@ -1568,226 +1934,31 @@
       "rigid_width": []
     },
     {
-      "path": "templates/migration_cloud/super/health.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 58,
-          "iterable": "webhooks"
-        },
-        {
-          "line": 89,
-          "iterable": "maa_signs"
-        },
-        {
-          "line": 124,
-          "iterable": "uploads"
-        },
-        {
-          "line": 156,
-          "iterable": "keypairs"
-        },
-        {
-          "line": 196,
-          "iterable": "scanners"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_education_systems.html",
+      "path": "templates/lifecycle/rapid_create.html",
       "unpaginated_for_loops": [
         {
           "line": 25,
-          "iterable": "sector_list"
+          "iterable": "errors"
         },
         {
-          "line": 54,
-          "iterable": "support_by_sector"
+          "line": 65,
+          "iterable": "country_pack"
         },
         {
-          "line": 66,
-          "iterable": "s"
+          "line": 85,
+          "iterable": "country_pack"
         },
         {
-          "line": 98,
-          "iterable": "sector_filtered_links"
+          "line": 105,
+          "iterable": "country_pack"
         },
         {
-          "line": 108,
-          "iterable": "sector_filtered_links"
+          "line": 132,
+          "iterable": "india_state_options"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_phase_b_snapshot_diff.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 54,
-          "iterable": "operator_phase_b_links"
-        },
-        {
-          "line": 78,
-          "iterable": "domain_rows"
-        },
-        {
-          "line": 112,
-          "iterable": "key_detail"
-        },
-        {
-          "line": 116,
-          "iterable": "key_detail"
-        },
-        {
-          "line": 120,
-          "iterable": "key_detail"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/siteconfig/feature_control_panel_content.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 78,
-          "iterable": "categories"
-        },
-        {
-          "line": 121,
-          "iterable": "weather_countries"
-        },
-        {
-          "line": 138,
-          "iterable": "weather_cities"
-        },
-        {
-          "line": 174,
-          "iterable": "categories"
-        },
-        {
-          "line": 194,
-          "iterable": "cat"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 4,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/siteconfig/partials/console_domains_hub_manager_body.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 45,
-          "iterable": "domains"
-        },
-        {
-          "line": 51,
-          "iterable": "domain"
-        },
-        {
-          "line": 70,
-          "iterable": "platform_config"
-        },
-        {
-          "line": 71,
-          "iterable": "card"
-        },
-        {
-          "line": 86,
-          "iterable": "operational_links"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/siteconfig/template_gallery.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 19,
-          "iterable": "impact_bundle"
-        },
-        {
-          "line": 29,
-          "iterable": "impact_bundle"
-        },
-        {
-          "line": 51,
-          "iterable": "impact_bundle"
-        },
-        {
-          "line": 58,
-          "iterable": "impact_bundle"
-        },
-        {
-          "line": 70,
-          "iterable": "templates"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/widgets/teacher_dashboard_widgets.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 13,
-          "iterable": "widget_data"
-        },
-        {
-          "line": 40,
-          "iterable": "widget_data"
-        },
-        {
-          "line": 51,
-          "iterable": "widget_data"
-        },
-        {
-          "line": 82,
-          "iterable": "widget_data"
-        },
-        {
-          "line": 102,
-          "iterable": "widget_data"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/analytics/deadlines.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 22,
-          "iterable": "years"
-        },
-        {
-          "line": 30,
-          "iterable": "terms"
-        },
-        {
-          "line": 52,
-          "iterable": "classrooms"
-        },
-        {
-          "line": 80,
-          "iterable": "deadlines"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 76,
-          "match": "width:120px"
-        }
-      ]
     }
   ],
   "priority_overflow": [
@@ -1976,27 +2147,22 @@
       "rigid_width": []
     },
     {
-      "path": "templates/accounts/mfa_setup.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 103,
-          "iterable": "backup_tokens"
-        },
-        {
-          "line": 121,
-          "iterable": "passkeys"
-        }
-      ],
+      "path": "templates/accounts/email/legacy_setup_link.html",
+      "unpaginated_for_loops": [],
       "overflow_hidden": [
         {
-          "line": 20,
+          "line": 14,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 65,
-          "match": "max-width:240px"
+          "line": 14,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 34,
+          "match": "max-width:600px"
         }
       ]
     },
@@ -2004,70 +2170,50 @@
       "path": "templates/accounts/profile.html",
       "unpaginated_for_loops": [
         {
-          "line": 125,
+          "line": 137,
           "iterable": "staff_badges"
         },
         {
-          "line": 144,
+          "line": 156,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 146,
+          "line": 158,
           "iterable": "level"
         },
         {
-          "line": 172,
+          "line": 184,
           "iterable": "org_chain"
         },
         {
-          "line": 192,
+          "line": 204,
           "iterable": "teacher_org_tree"
         },
         {
-          "line": 209,
+          "line": 221,
           "iterable": "approved_syllabi"
         },
         {
-          "line": 245,
+          "line": 257,
           "iterable": "parent_children_tree"
         },
         {
-          "line": 305,
+          "line": 317,
           "iterable": "admin_context"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 42,
+          "line": 78,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 19,
+          "line": 20,
           "match": "max-width:380px"
         }
       ]
-    },
-    {
-      "path": "templates/admin/app_list.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 139,
-          "iterable": "app_list"
-        },
-        {
-          "line": 171,
-          "iterable": "app"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 170,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
     },
     {
       "path": "templates/admin/sidebar_inner.html",
@@ -2081,7 +2227,7 @@
       "rigid_width": []
     },
     {
-      "path": "templates/marketing/security_packet_request.html",
+      "path": "templates/emails/fee_reminder.html",
       "unpaginated_for_loops": [],
       "overflow_hidden": [
         {
@@ -2091,8 +2237,217 @@
       ],
       "rigid_width": [
         {
+          "line": 22,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 56,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/password_reset.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 19,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 19,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 51,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/report_ready_en.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 21,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 21,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 53,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/report_ready_fr.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 21,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 21,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 53,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/report_ready_ha.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 21,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 21,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 53,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/report_ready_pid.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 21,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 21,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 53,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/report_ready_sw.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 21,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 21,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 53,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/report_ready_yo.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 21,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 21,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 53,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/emails/welcome.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 20,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 20,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 50,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/marketing/security_packet_request.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 23,
+          "iterable": "jurisdiction_choices"
+        },
+        {
+          "line": 59,
+          "iterable": "jurisdiction_choices"
+        }
+      ],
+      "overflow_hidden": [
+        {
+          "line": 34,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
           "line": 5,
           "match": "max-width: 40rem"
+        }
+      ]
+    },
+    {
+      "path": "templates/migration_cloud/email/maa_v2_resign_request.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 14,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 14,
+          "match": "max-width:640px"
+        },
+        {
+          "line": 34,
+          "match": "max-width:640px"
         }
       ]
     },
@@ -2128,14 +2483,54 @@
       "unpaginated_for_loops": [],
       "overflow_hidden": [
         {
-          "line": 12,
+          "line": 13,
           "match": "overflow: hidden"
         }
       ],
       "rigid_width": [
         {
-          "line": 12,
+          "line": 13,
           "match": "max-width: 22rem"
+        }
+      ]
+    },
+    {
+      "path": "templates/portal/email/forum_reply_notification.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 15,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 15,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 37,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/portal/email/help_north_star_report.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 14,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 14,
+          "match": "max-width:680px"
+        },
+        {
+          "line": 35,
+          "match": "max-width:680px"
         }
       ]
     },
@@ -2164,21 +2559,61 @@
       "path": "templates/reports/term_report_cameroon_modern.html",
       "unpaginated_for_loops": [
         {
-          "line": 121,
+          "line": 123,
           "iterable": "rows"
         },
         {
-          "line": 162,
+          "line": 164,
           "iterable": "sequence_cues"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 40,
+          "line": 41,
           "match": "overflow:hidden"
         }
       ],
       "rigid_width": []
+    },
+    {
+      "path": "templates/schoolops/email/locale/en/low_meal_balance.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 13,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 13,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 34,
+          "match": "max-width:600px"
+        }
+      ]
+    },
+    {
+      "path": "templates/schoolops/email/low_meal_balance.html",
+      "unpaginated_for_loops": [],
+      "overflow_hidden": [
+        {
+          "line": 15,
+          "match": "overflow:hidden"
+        }
+      ],
+      "rigid_width": [
+        {
+          "line": 15,
+          "match": "max-width:600px"
+        },
+        {
+          "line": 46,
+          "match": "max-width:600px"
+        }
+      ]
     },
     {
       "path": "templates/schools/custom_domain_wizard.html",
@@ -2200,213 +2635,25 @@
       "path": "templates/schools/super_backlog_unlock_center.html",
       "unpaginated_for_loops": [
         {
-          "line": 115,
+          "line": 112,
           "iterable": "evaluation_sections"
         },
         {
-          "line": 124,
+          "line": 121,
           "iterable": "sec"
         },
         {
-          "line": 152,
+          "line": 149,
           "iterable": "item"
         },
         {
-          "line": 186,
+          "line": 183,
           "iterable": "recent_unlock_events"
         }
       ],
       "overflow_hidden": [
         {
-          "line": 123,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_country_multipliers_list.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 52,
-          "iterable": "multipliers"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 37,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_feature_toggles_list.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 50,
-          "iterable": "definitions"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 34,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_grading_list.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 52,
-          "iterable": "grading_scales"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 38,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_regions_list.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 53,
-          "iterable": "regions"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 37,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/schools/super_site_settings_list.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 44,
-          "iterable": "site_settings_list"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 31,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/siteconfig/feature_control_panel_content.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 78,
-          "iterable": "categories"
-        },
-        {
-          "line": 121,
-          "iterable": "weather_countries"
-        },
-        {
-          "line": 138,
-          "iterable": "weather_cities"
-        },
-        {
-          "line": 174,
-          "iterable": "categories"
-        },
-        {
-          "line": 194,
-          "iterable": "cat"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 4,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/siteconfig/partials/configuration_control_center_operator_model.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 8,
-          "iterable": "operator_control_model"
-        },
-        {
-          "line": 18,
-          "iterable": "step"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 7,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/siteconfig/partials/mock_reportcard_preview.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 21,
-          "iterable": "styles"
-        },
-        {
-          "line": 37,
-          "iterable": "preview_students"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 56,
-          "match": "overflow: hidden"
-        }
-      ],
-      "rigid_width": [
-        {
-          "line": 58,
-          "match": "max-width: 920px"
-        },
-        {
-          "line": 59,
-          "match": "max-width: 430px"
-        }
-      ]
-    },
-    {
-      "path": "templates/siteconfig/request_custom_requirement.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 48,
-          "iterable": "recent_tickets"
-        }
-      ],
-      "overflow_hidden": [
-        {
-          "line": 10,
-          "match": "overflow-hidden"
-        }
-      ],
-      "rigid_width": []
-    },
-    {
-      "path": "templates/unfold/helpers/welcomemsg.html",
-      "unpaginated_for_loops": [],
-      "overflow_hidden": [
-        {
-          "line": 19,
+          "line": 120,
           "match": "overflow-hidden"
         }
       ],
@@ -2714,78 +2961,78 @@
       "path": "templates/schools/super_security_hub.html",
       "unpaginated_for_loops": [
         {
-          "line": 32,
+          "line": 34,
           "iterable": "governance_risk_groups"
         },
         {
-          "line": 49,
+          "line": 51,
           "iterable": "verifier_cards"
         },
         {
-          "line": 72,
+          "line": 75,
           "iterable": "impersonation_rows"
         },
         {
-          "line": 144,
+          "line": 147,
           "iterable": "security_events"
         },
         {
-          "line": 167,
+          "line": 170,
           "iterable": "suspicious_security_events"
         },
         {
-          "line": 189,
+          "line": 192,
           "iterable": "perm_events"
         },
         {
-          "line": 211,
+          "line": 214,
           "iterable": "access_denied_events"
         },
         {
-          "line": 233,
+          "line": 236,
           "iterable": "approval_events"
         },
         {
-          "line": 255,
+          "line": 259,
           "iterable": "export_timeline_rows"
         },
         {
-          "line": 283,
+          "line": 287,
           "iterable": "session_rows"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 77,
+          "line": 80,
           "match": "max-width: 8rem"
         },
         {
-          "line": 79,
+          "line": 82,
           "match": "max-width: 10rem"
         },
         {
-          "line": 193,
+          "line": 196,
           "match": "max-width: 8rem"
         },
         {
-          "line": 214,
+          "line": 217,
           "match": "max-width: 8rem"
         },
         {
-          "line": 236,
+          "line": 239,
           "match": "max-width: 8rem"
         },
         {
-          "line": 258,
+          "line": 262,
           "match": "max-width: 6rem"
         },
         {
-          "line": 259,
+          "line": 263,
           "match": "max-width: 6rem"
         },
         {
-          "line": 260,
+          "line": 264,
           "match": "max-width: 8rem"
         }
       ]
@@ -2878,7 +3125,7 @@
       "path": "templates/siteconfig/bulk_letters.html",
       "unpaginated_for_loops": [
         {
-          "line": 62,
+          "line": 63,
           "iterable": "classroom_list"
         }
       ],
@@ -2905,8 +3152,44 @@
           "match": "max-width: 12rem"
         },
         {
-          "line": 60,
+          "line": 61,
           "match": "max-width: 22rem"
+        }
+      ]
+    },
+    {
+      "path": "templates/super/integrations/lms_audit_index.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 83,
+          "iterable": "rows"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 5,
+          "match": "max-width: 1280px"
+        },
+        {
+          "line": 41,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 44,
+          "match": "min-width: 110px"
+        },
+        {
+          "line": 51,
+          "match": "min-width: 200px"
+        },
+        {
+          "line": 54,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 57,
+          "match": "min-width: 130px"
         }
       ]
     },
@@ -3138,30 +3421,30 @@
           "iterable": "grade_approval_requests"
         },
         {
-          "line": 261,
+          "line": 265,
           "iterable": "students"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 252,
-          "match": "width:110px"
-        },
-        {
-          "line": 253,
-          "match": "width:110px"
-        },
-        {
-          "line": 254,
-          "match": "width:110px"
-        },
-        {
-          "line": 255,
-          "match": "width:110px"
-        },
-        {
           "line": 256,
+          "match": "width:110px"
+        },
+        {
+          "line": 257,
+          "match": "width:110px"
+        },
+        {
+          "line": 258,
+          "match": "width:110px"
+        },
+        {
+          "line": 259,
+          "match": "width:110px"
+        },
+        {
+          "line": 260,
           "match": "width:110px"
         }
       ]
@@ -3172,19 +3455,19 @@
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 107,
+          "line": 115,
           "match": "max-width:479px"
         },
         {
-          "line": 229,
+          "line": 237,
           "match": "max-width:768px"
         },
         {
-          "line": 252,
+          "line": 260,
           "match": "max-width:767px"
         },
         {
-          "line": 258,
+          "line": 266,
           "match": "min-width:769px"
         }
       ]
@@ -3214,6 +3497,62 @@
         {
           "line": 19,
           "match": "max-width: 12rem"
+        }
+      ]
+    },
+    {
+      "path": "templates/super/integrations/idempotency_audit.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 67,
+          "iterable": "events"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 5,
+          "match": "max-width: 1280px"
+        },
+        {
+          "line": 36,
+          "match": "min-width: 280px"
+        },
+        {
+          "line": 39,
+          "match": "min-width: 110px"
+        },
+        {
+          "line": 47,
+          "match": "min-width: 200px"
+        }
+      ]
+    },
+    {
+      "path": "templates/super/sso/bindings_index.html",
+      "unpaginated_for_loops": [
+        {
+          "line": 63,
+          "iterable": "rows"
+        }
+      ],
+      "overflow_hidden": [],
+      "rigid_width": [
+        {
+          "line": 5,
+          "match": "max-width: 1200px"
+        },
+        {
+          "line": 20,
+          "match": "min-width: 120px"
+        },
+        {
+          "line": 28,
+          "match": "min-width: 160px"
+        },
+        {
+          "line": 31,
+          "match": "min-width: 200px"
         }
       ]
     },
@@ -3270,97 +3609,30 @@
       ]
     },
     {
-      "path": "templates/finance/split_allocation.html",
-      "unpaginated_for_loops": [],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 57,
-          "match": "width: 180px"
-        },
-        {
-          "line": 74,
-          "match": "width: 140px"
-        }
-      ]
-    },
-    {
-      "path": "templates/marketplace/app_catalog.html",
+      "path": "templates/siteconfig/public_status.html",
       "unpaginated_for_loops": [
         {
-          "line": 104,
-          "iterable": "listings"
+          "line": 94,
+          "iterable": "active"
         },
         {
-          "line": 160,
-          "iterable": "listing"
-        },
-        {
-          "line": 196,
-          "iterable": "schools"
+          "line": 111,
+          "iterable": "recently_resolved"
         }
       ],
       "overflow_hidden": [],
       "rigid_width": [
         {
-          "line": 100,
-          "match": "max-width: 320px"
+          "line": 24,
+          "match": "max-width: 50rem"
         },
         {
-          "line": 194,
-          "match": "min-width: 220px"
-        }
-      ]
-    },
-    {
-      "path": "templates/marketplace/blueprint_marketplace.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 64,
-          "iterable": "packs"
+          "line": 31,
+          "match": "width: 0.55rem"
         },
         {
-          "line": 79,
-          "iterable": "schools"
-        },
-        {
-          "line": 91,
-          "iterable": "schools"
-        },
-        {
-          "line": 132,
-          "iterable": "data"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 77,
-          "match": "min-width: 180px"
-        },
-        {
-          "line": 89,
-          "match": "min-width: 180px"
-        }
-      ]
-    },
-    {
-      "path": "templates/schools/super_sync_repair.html",
-      "unpaginated_for_loops": [
-        {
-          "line": 29,
-          "iterable": "conflicts"
-        }
-      ],
-      "overflow_hidden": [],
-      "rigid_width": [
-        {
-          "line": 35,
-          "match": "max-width:280px"
-        },
-        {
-          "line": 36,
-          "match": "max-width:280px"
+          "line": 45,
+          "match": "min-width: 7.5rem"
         }
       ]
     }

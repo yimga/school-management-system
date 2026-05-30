@@ -1,6 +1,6 @@
 {% load static i18n %}
 {% load terminology_tags %}
-{# Enhanced user dropdown menu — i18n-wrapped 2026-05-12. #}
+{% comment %} Enhanced user dropdown menu — i18n-wrapped 2026-05-12. {% endcomment %}
 {% firstof NOTIFICATIONS_UNREAD_COUNT unread_notifications_count 0 as rmc_unread_count %}
 <div class="user-dropdown-wrapper" data-rmc-shell-viewport-safe="1">
   <div class="dropdown">
@@ -26,7 +26,7 @@
         {% comment %} Improvement A (2026-05-12): AI health micro-dot on the avatar so degraded
            mode is visible without opening the copilot. Driven by /api/ai/health/. {% endcomment %}
         <span class="user-avatar-ai-pulse" data-rmc-user-ai-pulse aria-hidden="true" title="{% trans 'AI status' %}"></span>
-        {# Improvement B (2026-05-12): unread notification badge (server-rendered). #}
+        {% comment %} Improvement B (2026-05-12): unread notification badge (server-rendered). {% endcomment %}
         {% with unread_count=rmc_unread_count|default:0|add:0 %}
           {% if unread_count %}
             <span class="user-avatar-unread" aria-label="{% blocktrans count counter=unread_count %}{{ counter }} unread notification{% plural %}{{ counter }} unread notifications{% endblocktrans %}">

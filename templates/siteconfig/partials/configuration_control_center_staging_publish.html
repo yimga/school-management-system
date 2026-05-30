@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Staging / publish / rollback — shared tenant + control-plane CCC. #}
+{% comment %} Staging / publish / rollback — shared tenant + control-plane CCC. {% endcomment %}
 {% if ccc_publish_staging_hint or ccc_staging_links %}
 <section class="mb-4" role="region" aria-labelledby="ccc-staging-heading" data-ccc-staging-strip="true">
   <h2 id="ccc-staging-heading" class="h6 {% if ccc_outcome_compact %}text-uppercase text-muted{% else %}text-uppercase text-secondary{% endif %} mb-2">{% trans "Staging & publish" %}</h2>

@@ -1,3 +1,3 @@
-{# Shared portal frame: outer wrap + row start (998). Sidebar + main remain in portal_base for block structure. #}
+{% comment %} Shared portal frame: outer wrap + row start (998). Sidebar + main remain in portal_base for block structure. {% endcomment %}
     <div class="container-fluid px-3 py-2 portal-layout-wrap" data-rmc-authenticated-shell="{{ rmc_shell.portal_wrap_authenticated_shell|default:'tenant-portal' }}" data-rmc-os-shell="{{ rmc_os_shell.surface_kind|default:'tenant-portal' }}" data-rmc-os-role="{{ rmc_os_shell.role_cluster|default:'other' }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}"{% if rmc_os_shell.nav_job_clusters %} data-rmc-os-nav-groups="{{ rmc_os_shell.nav_job_clusters|join:' ' }}"{% endif %}>
       <div class="row g-3 portal-layout-row">

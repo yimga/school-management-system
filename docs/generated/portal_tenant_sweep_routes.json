@@ -592,6 +592,13 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/authentication/backend/students/bulk/status/",
+      "inner": "/authentication/backend/students/bulk/status/",
+      "name": "backend_student_bulk_status",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/authentication/backend/students/create/",
       "inner": "/authentication/backend/students/create/",
       "name": "backend_student_create",
@@ -851,6 +858,20 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/authentication/password_reset/",
+      "inner": "/authentication/password_reset/",
+      "name": "password_reset",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/password_reset/done/",
+      "inner": "/authentication/password_reset/done/",
+      "name": "password_reset_done",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/authentication/profile/",
       "inner": "/authentication/profile/",
       "name": "user_profile",
@@ -973,6 +994,20 @@
       "path": "/t/demo-school/authentication/redirect/",
       "inner": "/authentication/redirect/",
       "name": "redirect",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/reset/",
+      "inner": "/authentication/reset/",
+      "name": "password_reset_confirm",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/authentication/reset/done/",
+      "inner": "/authentication/reset/done/",
+      "name": "password_reset_complete",
       "slug": "demo-school",
       "sweep": true
     },
@@ -1117,6 +1152,13 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/portal/ai/stream/",
+      "inner": "/portal/ai/stream/",
+      "name": "ai_stream",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/portal/attendance/seating-chart/",
       "inner": "/portal/attendance/seating-chart/",
       "name": "seating_chart",
@@ -1208,9 +1250,44 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/portal/configure/ai-line-intents/",
+      "inner": "/portal/configure/ai-line-intents/",
+      "name": "ai_line_intents",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/configure/ai-line-intents/save/",
+      "inner": "/portal/configure/ai-line-intents/save/",
+      "name": "ai_line_intents_save",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/configure/institution-type/",
+      "inner": "/portal/configure/institution-type/",
+      "name": "institution_type_assign",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/configure/institution-type/save/",
+      "inner": "/portal/configure/institution-type/save/",
+      "name": "institution_type_save",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/portal/configure/offboarding/export-and-close/",
       "inner": "/portal/configure/offboarding/export-and-close/",
       "name": "lifecycle_dsar_export_and_close",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
+      "path": "/t/demo-school/portal/configure/privacy/data-export/",
+      "inner": "/portal/configure/privacy/data-export/",
+      "name": "tenant_gdpr_data_export",
       "slug": "demo-school",
       "sweep": true
     },
@@ -1323,83 +1400,6 @@
       "path": "/t/demo-school/portal/offline/sync-queue/",
       "inner": "/portal/offline/sync-queue/",
       "name": "offline_sync_queue",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/",
-      "inner": "/portal/parent/",
-      "name": "parent_dashboard",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/attendance-discipline/",
-      "inner": "/portal/parent/attendance-discipline/",
-      "name": "parent_attendance_discipline",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/child/id/",
-      "inner": "/portal/parent/child/id/",
-      "name": "child_digital_id",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/claim-invite/",
-      "inner": "/portal/parent/claim-invite/",
-      "name": "claim_invite",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/contact-school/",
-      "inner": "/portal/parent/contact-school/",
-      "name": "parent_contact_school",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/feed/",
-      "inner": "/portal/parent/feed/",
-      "name": "parent_feed",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/finance/",
-      "inner": "/portal/parent/finance/",
-      "name": "parent_finance",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/link-child/",
-      "inner": "/portal/parent/link-child/",
-      "name": "link_child",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/link-child/legacy/",
-      "inner": "/portal/parent/link-child/legacy/",
-      "name": "link_child_legacy",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/medal-case/",
-      "inner": "/portal/parent/medal-case/",
-      "name": "parent_medal_case",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/parent/performance/",
-      "inner": "/portal/parent/performance/",
-      "name": "parent_performance",
       "slug": "demo-school",
       "sweep": true
     }

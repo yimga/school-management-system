@@ -1,18 +1,308 @@
 {
-  "generatedAt": "2026-05-29T12:08:17.061Z",
-  "sweepTier": "tenant",
-  "managerBase": "http://manager.runmycampus.com:8000",
-  "tenantBase": "http://gilead-school.runmycampus.com:8000",
+  "generatedAt": "2026-05-30T14:39:14.196Z",
+  "sweepTier": "operator",
+  "managerBase": "http://manager.runmycampus.com:8020",
+  "tenantBase": "http://demo-school.runmycampus.com:8020",
   "useTenantSubdomain": true,
-  "managerPlanned": 0,
+  "managerPlanned": 41,
   "tenantPlanned": 0,
-  "managerTested": 0,
+  "managerTested": 41,
   "tenantTested": 0,
-  "resultsCount": 0,
-  "passed": 0,
+  "resultsCount": 41,
+  "passed": 40,
   "failed": 0,
-  "skipped": 0,
-  "infraSkipped": 0,
+  "skipped": 40,
+  "infraSkipped": 40,
   "failedUrls": [],
-  "results": []
+  "results": [
+    {
+      "surface": "manager",
+      "url": "/configuration/",
+      "ok": false,
+      "failures": [
+        "exception"
+      ],
+      "error": "Error: Manager login failed for visualqa_admin at http://manager.runmycampus.com:8020/authentication/mfa/verify/. Page text: \n    \n\n  \n    \n\n\n  \n  \n  \n  \n  \n  \n  \n  \n  \n\n\n    RunMyCampus\n    Between the bells\n  \n\n\n    \n\nSkip to main content\n\n    \n\n  \n\n\n  \n  \n  \n  \n  \n  \n  \n  \n  \n\n\n\n\n    \n    \n\n\n\n    \n    \n      \n      \n        \n\n\n  \n    \n      \n\n\n  \n    \n      \n "
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/blueprints/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/blueprints/apply/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/blueprints/impact/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/blueprints/installations/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/blueprints/installations/rollback/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/blueprints/preview/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/change-requests/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/change-requests/apply/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/change-requests/approve/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/change-requests/cancel/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/change-requests/reject/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/change-requests/schedule/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/dashboard-packs/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/dashboard-packs/apply/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/dashboard-packs/impact/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/dashboard-packs/preview/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/dashboard-packs/simulate/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/experience-templates/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/experience-templates/apply/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/experience-templates/impact/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/experience-templates/preview/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/experience-templates/simulate/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/pack-installations/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/pack-installations/rollback/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/policy-bundles/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/policy-bundles/apply/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/policy-bundles/impact/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/policy-bundles/preview/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/policy-bundles/simulate/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/registries/health/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/workflow-packs/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/workflow-packs/apply/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/workflow-packs/impact/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/workflow-packs/preview/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/workflow-packs/simulate/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/schools/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/schools/bulk-create/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/schools/clone/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/schools/migration-intent/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/schools/rapid/",
+      "ok": true,
+      "skipped": "infra_or_redirect",
+      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+    }
+  ]
 }

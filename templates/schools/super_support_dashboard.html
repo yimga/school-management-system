@@ -100,7 +100,7 @@
         <button type="submit" class="btn btn-sm btn-primary">{% trans "Filter" %}</button>
       </form>
     </div>
-    {# v4.00.37 — bulk-action toolbar (assign-me, in-progress, resolve, escalate); listener below. #}
+    {% comment %} v4.00.37 — bulk-action toolbar (assign-me, in-progress, resolve, escalate); listener below. {% endcomment %}
     {% include "components/_bulk_actions_toolbar.html" with bulk_table_id="support-queue-table" bulk_actions=support_bulk_actions %}
     <div class="px-3 py-2 small text-muted d-flex flex-wrap gap-2" data-rmc-support-keyboard-hints>
       <span><kbd>j</kbd>/<kbd>k</kbd> {% trans "next/prev ticket" %}</span>
@@ -118,7 +118,7 @@
   </div>
 </div>
 {% include "partials/rmc_htmx_self_host.html" %}
-{# v4.00.37 — bulk action POST + keyboard navigation for the operator queue. #}
+{% comment %} v4.00.37 — bulk action POST + keyboard navigation for the operator queue. {% endcomment %}
 <script nonce="{{ csp_nonce }}">
 (function () {
   "use strict";

@@ -56,7 +56,6 @@ def evaluate(action: str, *, country_iso: str, payload: dict[str, Any] | None = 
 
     block = row.get("regulatory_matrix") or {}
     citations: list[str] = []
-    reasons: list[str] = []
 
     if action == "store_biometric":
         rule = str(block.get("biometric_data_rule") or "unspecified")

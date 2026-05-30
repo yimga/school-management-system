@@ -29,7 +29,7 @@
   {% endif %}
   <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
-      <table class="table table-family table-hover mb-0">
+      <table class="table table-family table-hover mb-0 table-sm rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
         <caption class="visually-hidden">{% trans "Blueprint Packs" %}</caption>
         <thead>
           <tr>
@@ -58,6 +58,6 @@
       </table>
     </div>
   </div>
-  {% include "components/pagination.html" %}
+  {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
 </div>
 {% endblock %}

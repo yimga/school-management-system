@@ -8,12 +8,12 @@
 {% block extrastyle %}
 {{ block.super }}
 {% include "studio_os/partials/shell_extrastyle.html" %}
-{# v3.53.0 (2026-05-21): Studio OS Mission Cockpit chrome (additive). #}
+{% comment %} v3.53.0 (2026-05-21): Studio OS Mission Cockpit chrome (additive). {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
 <link rel="stylesheet" href="{% static 'css/studio-os-cockpit.css' %}">
-{# v3.53.1 (2026-05-21): Persistent AI presence on the cockpit rail. #}
+{% comment %} v3.53.1 (2026-05-21): Persistent AI presence on the cockpit rail. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-copilot-rail.css' %}">
-{# v3.54.0 (2026-05-21): Overview command cockpit (rendered when current_mode is None) #}
+{% comment %} v3.54.0 (2026-05-21): Overview command cockpit (rendered when current_mode is None) {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/studio-overview-cockpit.css' %}">
 {% comment %} v3.59.2 (2026-05-22): Studio OS canvas-body 200x polish — Source Serif 4 headers,
    glass cards, indigo gradient CTAs, density floor. Scoped via [data-studio-os-surface]. {% endcomment %}
@@ -28,7 +28,7 @@
 {% block content %}
 <div class="container-fluid py-2 px-0 px-md-2 rmc-shell-content-grid" data-rmc-page="studio-os" data-rmc-studio-workspace="1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-layout="{{ rmc_shell.layout_token|default:'studio-os' }}" data-shell-host="{{ rmc_shell.shell_data_studio_host|default:'tenant' }}" data-rmc-nav-family="{{ rmc_shell.nav_family }}" data-studio-os-surface="tenant-shell" data-rmc-shell-content-grid="1">
   <a href="#studio-canvas" class="visually-hidden-focusable btn btn-sm btn-outline-primary position-absolute top-0 start-0 m-2 px-3 py-2 rounded z-1" style="z-index: 1060;">{% trans "Skip to Studio content" %}</a>
-  {# On manager host Studio uses shell_control_plane → control_plane_base (8-pill nav there). Tenant: no PRIMARY nav. #}
+  {% comment %} On manager host Studio uses shell_control_plane → control_plane_base (8-pill nav there). Tenant: no PRIMARY nav. {% endcomment %}
   <div class="ds-action-bar d-flex align-items-center gap-2 mb-3 flex-wrap" role="toolbar" aria-label="{% trans 'Studio toolbar' %}" data-rmc-studio-toolbar="1" data-tour="studio-toolbar">
     {% if rmc_conversion_single_action_enforced|default:False %}
     <a href="{% url 'studio_os:experience' %}" class="btn btn-sm btn-primary" data-task="studio_os" data-task-step="studio:open-experience">{% trans "Open Experience" %}</a>

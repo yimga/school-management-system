@@ -535,14 +535,10 @@ def import_entity_catalog_bundle(
     return summary
 
 
-def get_metadata_catalog_entity_rows(
-    get_params: Any,
-    *,
-    max_entities: int = 200,
-) -> tuple[list[EntityCatalogEntry], str]:
+def metadata_catalog_queryset(get_params: Any):
     """
-    Read-only entity/field rows for control-plane metadata catalog UIs (search + field counts + usage ref counts).
-    ``get_params`` is typically ``request.GET`` (supports ``q``, ``entity``, ``lifecycle``).
+    Filtered queryset for control-plane metadata catalog (no slice).
+    ``get_params`` supports ``q``, ``entity``, ``lifecycle``.
     """
     from django.db.models import Q
 
@@ -565,10 +561,39 @@ def get_metadata_catalog_entity_rows(
             | Q(name__icontains=q)
             | Q(description__icontains=q)
         )
-    entities: list[EntityCatalogEntry] = list(qs[:max_entities])
+    return qs
+
+
+METADATA_CATALOG_FIELD_PREVIEW = 10
+
+
+def annotate_metadata_catalog_entities(
+    entities: list[EntityCatalogEntry],
+) -> list[EntityCatalogEntry]:
     for ent in entities:
-        ent.field_count = ent.fields.count()
+        fields = list(ent.fields.all())
+        ent.field_count = len(fields)
+        ent.field_preview = fields[:METADATA_CATALOG_FIELD_PREVIEW]
+        ent.fields_overflow = fields[METADATA_CATALOG_FIELD_PREVIEW:]
+        ent.fields_overflow_count = len(ent.fields_overflow)
         ent.sample_deps = MetadataDependency.objects.filter(field__entity=ent).count()
+    return entities
+
+
+def get_metadata_catalog_entity_rows(
+    get_params: Any,
+    *,
+    max_entities: int = 200,
+) -> tuple[list[EntityCatalogEntry], str]:
+    """
+    Read-only entity/field rows for control-plane metadata catalog UIs (search + field counts + usage ref counts).
+    ``get_params`` is typically ``request.GET`` (supports ``q``, ``entity``, ``lifecycle``).
+    """
+    q = (get_params.get("q") or "").strip() if hasattr(get_params, "get") else ""
+    entity_code = (get_params.get("entity") or "").strip() if hasattr(get_params, "get") else ""
+
+    entities = list(metadata_catalog_queryset(get_params)[:max_entities])
+    annotate_metadata_catalog_entities(entities)
     query_display = q or entity_code
     return entities, query_display
 

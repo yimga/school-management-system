@@ -76,7 +76,7 @@
     </div>
   </form>
 
-  {# Recent notes — collapsed by default. Renders client-side from localStorage. #}
+  {% comment %} Recent notes — collapsed by default. Renders client-side from localStorage. {% endcomment %}
   <section class="lx-notebook__history"
            data-rmc-notebook-history
            data-rmc-notebook-history-state="collapsed"
@@ -88,7 +88,7 @@
       <span class="lx-notebook__history-count" data-rmc-notebook-history-count>0</span>
     </div>
     <ol class="lx-notebook__history-list" data-rmc-notebook-history-list>
-      {# Populated client-side. Each <li> has an inline-block timestamp + clipped body. #}
+      {% comment %} Populated client-side. Each <li> has an inline-block timestamp + clipped body. {% endcomment %}
     </ol>
     <p class="lx-notebook__history-empty" data-rmc-notebook-history-empty>
       {% trans "Your saved notes will appear here. They stay on this device unless a save endpoint is configured." %}

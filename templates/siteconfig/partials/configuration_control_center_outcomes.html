@@ -1,6 +1,6 @@
 {% load i18n %}
-{# Shared by manager (control plane) and tenant portal Configuration Control Center hubs. #}
-{# Use ccc_outcome_compact (not context "compact") for one consistent chrome split. #}
+{% comment %} Shared by manager (control plane) and tenant portal Configuration Control Center hubs. {% endcomment %}
+{% comment %} Use ccc_outcome_compact (not context "compact") for one consistent chrome split. {% endcomment %}
 {% if why_enabled_summary %}
 <section class="mb-4 {% if ccc_outcome_compact %}py-2{% endif %}" role="region" aria-labelledby="ccc-why-heading">
   <h2 id="ccc-why-heading" class="rmc-type-eyebrow mb-2">{% trans "Why enabled?" %}</h2>

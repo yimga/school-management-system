@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Primary + optional custom HTML. Strict mode: at most one btn-primary in this bar. #}
+{% comment %} Primary + optional custom HTML. Strict mode: at most one btn-primary in this bar. {% endcomment %}
 <div class="rmc-os-action-bar rmc-horizontal-nav-rail rmc-horizontal-nav-rail--actions mb-3" data-rmc-os-action-bar="1" role="toolbar" aria-label="{% trans 'Page actions' %}">
   {% if primary_url and primary_label %}
   <a href="{{ primary_url }}"

@@ -315,7 +315,7 @@
              href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:maa_v2_promotion_dashboard' %}{% else %}{% url 'migration_cloud_super:maa_v2_promotion_dashboard' %}{% endif %}">
             {% trans "Drill in →" %}
           </a>
-          {# v3.40.0 Agent 15 — counsel-activate link surfaces only while v2.0 is still DRAFT. #}
+          {% comment %} v3.40.0 Agent 15 — counsel-activate link surfaces only while v2.0 is still DRAFT. {% endcomment %}
           {% if sec.active_version == "v1.0" and sec.v2_draft %}
           <a class="rmc-btn rmc-btn--ghost rmc-btn--sm"
              href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:maa_counsel_activate' %}{% else %}{% url 'migration_cloud_super:maa_counsel_activate' %}{% endif %}">

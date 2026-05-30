@@ -50,7 +50,7 @@
    Safe to include unconditionally — every render path falls through to no
    output when its data isn't present. {% endcomment %}
 
-{# Auth shells / anonymous: render nothing. Login/signup never get a ticker. #}
+{% comment %} Auth shells / anonymous: render nothing. Login/signup never get a ticker. {% endcomment %}
 {% if request.user.is_authenticated %}
 {% if request.public_host_kind == 'manager' %}
 {% comment %} ----- Manager / operator host branch ----- {% endcomment %}
@@ -70,7 +70,7 @@
         {% if card.timestamp %}<span class="rmc-cockpit-ticker__event-time">· {{ card.timestamp }}</span>{% endif %}
       </span>
       {% endfor %}
-      {# Duplicate track for seamless infinite scroll — keyframe slides -50% #}
+      {% comment %} Duplicate track for seamless infinite scroll — keyframe slides -50% {% endcomment %}
       {% for card in cockpit.activity_ticker.cards %}
       <span class="rmc-cockpit-ticker__event rmc-cockpit-ticker__event--{{ card.severity|default:'info' }}" aria-hidden="true">
         {% if card.icon %}<span class="rmc-cockpit-ticker__event-icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
@@ -85,7 +85,7 @@
 {% endif %}
 {% endwith %}
 {% elif cockpit.activity_feed.enabled and cockpit.activity_feed.events %}
-{# v3.55.0 legacy compat (manager only). #}
+{% comment %} v3.55.0 legacy compat (manager only). {% endcomment %}
 <div class="cp-live-strip" aria-label="{% trans 'Live operator activity' %}" data-rmc-cp-live-strip="1">
 <div class="rmc-cockpit-ticker cp-activity-ticker" role="region" aria-label="{% trans 'Live platform activity' %}"
      {% if cockpit.activity_feed.scroll_seconds %}style="--rmc-cockpit-ticker-seconds: {{ cockpit.activity_feed.scroll_seconds }}s;"{% endif %}>

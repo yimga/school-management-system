@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.urls import NoReverseMatch, reverse
@@ -38,10 +39,17 @@ def group_console(request: HttpRequest) -> HttpResponse:
         )
 
     context = build_group_console_context(school, request.user)
+    members = context.get("member_schools") or []
+    page_obj = Paginator(members, 20).get_page(request.GET.get("page") or 1)
+    q = request.GET.copy()
+    q.pop("page", None)
     context.update(
         {
             "page_title": "Group Console",
             "school": school,
+            "member_schools": list(page_obj.object_list),
+            "page_obj": page_obj,
+            "pagination_extra_query": q.urlencode(),
             "upgrade_wizard_url": reverse("siteconfig:group_console_upgrade"),
             "hierarchy_url": _safe_reverse("siteconfig:school_group_hierarchy"),
         }

@@ -7,14 +7,17 @@ this lookup precedence:
   2. Env RMC_LMS_RETENTION_<TABLE>_YEARS
   3. Default 7 years (FERPA)
 
-Pattern: dev DB via ``config.settings`` (mirror Wave 12 T4 DLQ pattern —
-``config.settings_test`` runs in-memory SQLite which on Windows takes
-5+ minutes to spin up the full migration history; not acceptable for
-a per-target smoke).
+Pattern: in-memory SQLite via ``config.settings_test`` (mirrors the
+Wave 11 T4 DLQ approach in spirit — isolated, never touches the dev/prod
+DB). We do NOT run the full ``migrate`` history (845 migrations would
+take 5+ minutes on Windows); instead we create JUST the
+``TenantRetentionOverride`` table via Django's schema editor. The
+model's CRUD path + resolver helper exercise the same SQL as the real
+migration 0006 would produce.
 
 Cases:
 
-  1. Model imports + DB-reachable (verify resolver default)
+  1. Model imports + table created (schema_editor)
   2. resolve_retention_years(acme, lms_diag_action_audit) -> 7 (default)
   3. Env RMC_LMS_RETENTION_DIAG_ACTION_AUDIT_YEARS=3 -> resolver returns 3
   4. set_tenant_retention_override(acme, ..., 10, "NY state law", "admin1") -> row
@@ -29,7 +32,7 @@ Cases:
 import os
 import sys
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings_test")
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _PROJECT_ROOT = os.path.dirname(_HERE)
@@ -60,8 +63,10 @@ print("=" * 70)
 
 
 # --------------------------------------------------------------------------
-# Case 1: Model imports + table reachable (migration 0006 applied on dev DB)
+# Case 1: Model imports + table created in memory.
 # --------------------------------------------------------------------------
+from django.db import connection  # noqa: E402
+
 from apps.integrations_marketplace.models import TenantRetentionOverride  # noqa: E402
 from apps.integrations_marketplace.lms_retention_resolver import (  # noqa: E402
     DEFAULT_RETENTION_YEARS,
@@ -69,13 +74,21 @@ from apps.integrations_marketplace.lms_retention_resolver import (  # noqa: E402
     set_tenant_retention_override,
 )
 
-# Clean up any prior smoke fixtures so re-runs stay idempotent.
-TenantRetentionOverride.objects.filter(
-    tenant_schema__in=["smoke_acme", "smoke_other_tenant"],
-).delete()
+# Create just the table we need — full migrate would take 5+ minutes.
+with connection.schema_editor() as schema_editor:
+    schema_editor.create_model(TenantRetentionOverride)
 
 assert DEFAULT_RETENTION_YEARS == 7, DEFAULT_RETENTION_YEARS
-_ok(f"model imports + DEFAULT_RETENTION_YEARS={DEFAULT_RETENTION_YEARS}")
+
+# Sanity-check the table exists.
+with connection.cursor() as c:
+    c.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND "
+        "name='integrations_marketplace_tenantretentionoverride'"
+    )
+    found = c.fetchone()
+assert found is not None, "table was not created"
+_ok(f"model imports + table created + DEFAULT_RETENTION_YEARS={DEFAULT_RETENTION_YEARS}")
 
 
 # --------------------------------------------------------------------------
@@ -100,7 +113,7 @@ _ok(f"resolve (env=3, no override) -> {years}")
 
 
 # --------------------------------------------------------------------------
-# Case 4: set_tenant_retention_override creates a row
+# Case 4: set_tenant_retention_override creates a row.
 # Clear env first so this case isolates the override path on the way in.
 # --------------------------------------------------------------------------
 os.environ.pop(_ENV_KEY, None)
@@ -142,8 +155,8 @@ _ok(f"resolve (override=10, env=3) -> {years} [override wins]")
 
 
 # --------------------------------------------------------------------------
-# Case 7: Other tenant -> falls through override to env (3)
-# (Different tenant with no override, env still set to 3.)
+# Case 7: Other tenant -> falls through override to env (3) when env set,
+# and to default 7 when env not set.
 # --------------------------------------------------------------------------
 years = resolve_retention_years(
     tenant_schema="smoke_other_tenant", target_table="lms_diag_action_audit",
@@ -151,7 +164,6 @@ years = resolve_retention_years(
 assert years == 3, f"other tenant should hit env=3, got {years}"
 _ok(f"resolve (other tenant, env=3) -> {years}")
 
-# Now clear the env -> other tenant gets default 7
 os.environ.pop(_ENV_KEY, None)
 years = resolve_retention_years(
     tenant_schema="smoke_other_tenant", target_table="lms_diag_action_audit",
@@ -174,7 +186,6 @@ assert row_again.pk == row.pk, (
     f"expected same row updated, got pk={row_again.pk} vs original {row.pk}"
 )
 assert row_again.retention_years == 5
-# Verify only one row exists for (tenant, table)
 count = TenantRetentionOverride.objects.filter(
     tenant_schema="smoke_acme", target_table="lms_diag_action_audit",
 ).count()
@@ -240,12 +251,6 @@ last = TenantRetentionOverride.objects.get(
 )
 assert last.retention_years == 12, last.retention_years
 _ok(f"UniqueConstraint enforced: 1 row per (tenant, table) after 4 sets")
-
-
-# Cleanup smoke fixtures from the dev DB so re-runs stay idempotent.
-TenantRetentionOverride.objects.filter(
-    tenant_schema__in=["smoke_acme", "smoke_other_tenant"],
-).delete()
 
 
 print("=" * 70)

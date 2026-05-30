@@ -1,7 +1,7 @@
 {% load i18n %}
-{# v3.54 (2026-05-21, Agent 3): workspace canvas. #}
-{# Environment banner always renders before pane dispatch. #}
-{# Overview is the full cockpit; other panes retain prior behavior. #}
+{% comment %} v3.54 (2026-05-21, Agent 3): workspace canvas. {% endcomment %}
+{% comment %} Environment banner always renders before pane dispatch. {% endcomment %}
+{% comment %} Overview is the full cockpit; other panes retain prior behavior. {% endcomment %}
 {% if automation_environment %}
   {% include "studio_os/partials/automation_environment_banner.html" %}
 {% endif %}

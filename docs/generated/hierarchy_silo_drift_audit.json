@@ -1,8 +1,13 @@
 {
-  "generated_at": "2026-05-29T13:46:53.389760+00:00",
+  "generated_at": "2026-05-29T20:41:18.395035+00:00",
   "verdict": "HIERARCHY_SILO_DRIFT_PASS",
   "finding_count": 0,
   "drift_rows": [
+    {
+      "silo": "mat_groups",
+      "status": "organization_derived",
+      "note": "resolve_mat_groups_payload merges Organization + legacy JSON"
+    },
     {
       "silo": "organization",
       "status": "implemented",
@@ -10,5 +15,5 @@
     }
   ],
   "failures": [],
-  "note": "parent_school + mat_groups + Organization documented; mat_groups JSON not yet derived from Organization"
+  "note": "parent_school + mat_groups + Organization unified; mat_groups derives from Organization when group mode on"
 }

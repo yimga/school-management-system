@@ -68,11 +68,11 @@
         <i class="bi bi-search me-2"></i>No features match your search. Try different keywords.
       </div>
 
-      {# v2.63 (Wave A1): segmented category tabs replace the 3-col grid that #}
-      {# dumped all ~9 categories side-by-side. Show one category at a time #}
-      {# (collapses page from ~2500px to ~300px). "All categories" stays as a #}
-      {# disclosure for power users who need the full view. Search across all #}
-      {# categories still filters across hidden tabs. #}
+      {% comment %} v2.63 (Wave A1): segmented category tabs replace the 3-col grid that {% endcomment %}
+      {% comment %} dumped all ~9 categories side-by-side. Show one category at a time {% endcomment %}
+      {% comment %} (collapses page from ~2500px to ~300px). "All categories" stays as a {% endcomment %}
+      {% comment %} disclosure for power users who need the full view. Search across all {% endcomment %}
+      {% comment %} categories still filters across hidden tabs. {% endcomment %}
       {% if categories %}
       <nav class="rmc-segmented rmc-segmented--scrollable mb-3 feature-cat-tabs" role="tablist" aria-label="{% trans 'Feature categories' %}" data-feature-cat-tabs="1">
         {% for cat in categories %}

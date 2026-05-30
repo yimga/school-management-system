@@ -1,5 +1,5 @@
 {% load unfold i18n admin_urls unfold %}
-{# Override: use SVG/emoji so sidebar toggle never shows "dock_to_right" when Material Symbols font 404s on production. #}
+{% comment %} Override: use SVG/emoji so sidebar toggle never shows "dock_to_right" when Material Symbols font 404s on production. {% endcomment %}
 <div class="flex flex-row grow font-semibold items-center min-w-0 mr-3">
     {% if is_nav_sidebar_enabled %}
         <span class="cursor-pointer flex flex-row items-center" aria-label="{% trans 'Toggle sidebar' %}">

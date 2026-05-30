@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Shared Phase 1 chrome: same Context drawer on control_plane_base and manager /admin/. #}
+{% comment %} Shared Phase 1 chrome: same Context drawer on control_plane_base and manager /admin/. {% endcomment %}
 <button type="button" class="btn btn-sm btn-outline-light cp-context-drawer-toggle position-fixed bottom-0 end-0 m-3 d-none d-md-inline-flex align-items-center gap-1" data-bs-toggle="offcanvas" data-bs-target="#cpContextDrawer" aria-controls="cpContextDrawer" title="{% trans 'Page context & shortcuts' %}">
   <i class="bi bi-layout-sidebar-reverse" aria-hidden="true"></i><span class="d-none d-lg-inline">{% trans "Context" %}</span>
 </button>

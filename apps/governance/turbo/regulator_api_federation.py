@@ -11,7 +11,7 @@ the broker is provisioned in a residency region.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from typing import Any
 
 LOGGER = logging.getLogger(__name__)
 

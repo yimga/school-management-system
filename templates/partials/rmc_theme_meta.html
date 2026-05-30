@@ -7,7 +7,7 @@
 {% if SITE.brand_gradient_end %}<meta name="rmc-brand-gradient-end" content="{{ SITE.brand_gradient_end }}">{% endif %}
 {% if SITE.brand_gradient_angle %}<meta name="rmc-brand-gradient-angle" content="{{ SITE.brand_gradient_angle }}">{% endif %}
 
-{# v2.42 (2026-05-15): warm-bright aesthetic configurability via 7-layer cascade. #}
+{% comment %} v2.42 (2026-05-15): warm-bright aesthetic configurability via 7-layer cascade. {% endcomment %}
 <meta name="rmc-aesthetic-profile" content="{{ SITE.aesthetic_profile|default:'warm-bright' }}">
 {% if SITE.aesthetic_surface_bg %}<meta name="rmc-aesthetic-surface-bg" content="{{ SITE.aesthetic_surface_bg }}">{% endif %}
 {% if SITE.aesthetic_surface_canvas %}<meta name="rmc-aesthetic-surface-canvas" content="{{ SITE.aesthetic_surface_canvas }}">{% endif %}
@@ -31,7 +31,7 @@
 {% if SITE_LOGO_URL %}
   <meta name="rmc-site-logo" content="{{ SITE_LOGO_URL }}">
 {% endif %}
-{# Apple touch icons (180/152/120) for high-DPI home-screen pinning. #}
+{% comment %} Apple touch icons (180/152/120) for high-DPI home-screen pinning. {% endcomment %}
 {% if SITE_APPLE_TOUCH_ICON_URL %}
   <link rel="apple-touch-icon" sizes="180x180" href="{{ SITE_APPLE_TOUCH_ICON_URL }}">
 {% elif SITE_LOGO_URL %}
@@ -44,7 +44,7 @@
   <meta name="color-scheme" content="light dark">
   <meta name="supported-color-schemes" content="light dark">
 {% endwith %}
-{# Wave A — G1: tenant lexicon overrides (only non-default keys). #}
+{% comment %} Wave A — G1: tenant lexicon overrides (only non-default keys). {% endcomment %}
 {% include "partials/rmc_lexicon_meta.html" %}
 {% comment %} v3.59.x Wave 11 Agent W: operator theme-personality overrides. MUST land
    AFTER design-tokens-personality.css so the cascade override wins. The

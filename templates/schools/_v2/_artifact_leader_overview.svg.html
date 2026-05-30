@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Leader overview artifact — a school-at-a-glance dashboard. #}
+{% comment %} Leader overview artifact — a school-at-a-glance dashboard. {% endcomment %}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" role="img" aria-labelledby="leader-overview-title">
   <title id="leader-overview-title">{% trans "School-leader overview showing today's attendance, fees, behavior incidents, and staffing for Cedar Ridge Academy" %}</title>
 
@@ -24,14 +24,14 @@
     </filter>
   </defs>
 
-  {# Window frame #}
+  {% comment %} Window frame {% endcomment %}
   <rect x="0" y="0" width="560" height="360" rx="16" fill="url(#window-grad)" stroke="#E5E1D8" stroke-width="1"/>
 
-  {# Header bar #}
+  {% comment %} Header bar {% endcomment %}
   <rect x="0" y="0" width="560" height="44" rx="16" fill="url(#header-grad)"/>
   <rect x="0" y="34" width="560" height="10" fill="url(#header-grad)"/>
   <line x1="0" y1="44" x2="560" y2="44" stroke="#E5E1D8"/>
-  {# Window controls #}
+  {% comment %} Window controls {% endcomment %}
   <g transform="translate(20 22)">
     <circle cx="0"  cy="0" r="5" fill="#F87171"/>
     <circle cx="14" cy="0" r="5" fill="#FBBF24"/>
@@ -39,22 +39,22 @@
   </g>
   <text x="280" y="28" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#4B5563" text-anchor="middle">Cedar Ridge Academy · Today</text>
 
-  {# Greeting row #}
+  {% comment %} Greeting row {% endcomment %}
   <g font-family="Inter, system-ui, sans-serif" fill="#1F2937">
     <text x="28" y="82" font-family="Source Serif 4, Iowan Old Style, serif" font-size="24" font-weight="500" letter-spacing="-0.015em">{% trans "Good morning, Olu" %}</text>
     <text x="28" y="104" font-size="12" fill="#6B7280">{% trans "Tuesday · 18 March · 942 of 1,002 students expected" %}</text>
   </g>
 
-  {# Live indicator #}
+  {% comment %} Live indicator {% endcomment %}
   <g transform="translate(520 80)">
     <circle cx="0" cy="0" r="4" fill="#22C55E"/>
     <circle cx="0" cy="0" r="6" fill="none" stroke="#22C55E" stroke-opacity="0.3" stroke-width="2"/>
     <text x="-12" y="4" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="500" fill="#166534" text-anchor="end">LIVE</text>
   </g>
 
-  {# KPI tiles — 4 in a row, refined #}
+  {% comment %} KPI tiles — 4 in a row, refined {% endcomment %}
   <g font-family="Inter, system-ui, sans-serif">
-    {# Tile 1 — Attendance with mini bar chart #}
+    {% comment %} Tile 1 — Attendance with mini bar chart {% endcomment %}
     <g transform="translate(28 132)" filter="url(#leader-shadow)">
       <rect width="124" height="104" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
       <text x="16" y="24" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">ATTENDANCE</text>
@@ -63,7 +63,7 @@
         <path d="M 0 8 L 4 0 L 8 4" fill="none" stroke="#166534" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       </g>
       <text x="86" y="46" font-size="10" font-weight="500" fill="#166534">+2.1%</text>
-      {# Mini sparkbars #}
+      {% comment %} Mini sparkbars {% endcomment %}
       <g transform="translate(16 70)">
         <rect x="0"  y="14" width="8" height="6"  rx="1" fill="#E5E1D8"/>
         <rect x="12" y="10" width="8" height="10" rx="1" fill="#E5E1D8"/>
@@ -75,7 +75,7 @@
       </g>
     </g>
 
-    {# Tile 2 — Outstanding fees #}
+    {% comment %} Tile 2 — Outstanding fees {% endcomment %}
     <g transform="translate(164 132)" filter="url(#leader-shadow)">
       <rect width="124" height="104" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
       <text x="16" y="24" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">OUTSTANDING</text>
@@ -88,7 +88,7 @@
       <text x="16" y="96" font-size="9" fill="#9CA3AF">{% trans "92% collected" %}</text>
     </g>
 
-    {# Tile 3 — Incidents with severity dots #}
+    {% comment %} Tile 3 — Incidents with severity dots {% endcomment %}
     <g transform="translate(300 132)" filter="url(#leader-shadow)">
       <rect width="124" height="104" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
       <text x="16" y="24" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">INCIDENTS</text>
@@ -102,7 +102,7 @@
       <text x="16" y="94" font-size="10" font-weight="500" fill="#C2410C">{% trans "Open Year 9 case →" %}</text>
     </g>
 
-    {# Tile 4 — Staff in #}
+    {% comment %} Tile 4 — Staff in {% endcomment %}
     <g transform="translate(436 132)" filter="url(#leader-shadow)">
       <rect width="96" height="104" rx="12" fill="#FFFFFF" stroke="#E5E1D8"/>
       <text x="12" y="24" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">STAFF IN</text>
@@ -112,11 +112,11 @@
     </g>
   </g>
 
-  {# Bottom row — quick actions / day at a glance #}
+  {% comment %} Bottom row — quick actions / day at a glance {% endcomment %}
   <g transform="translate(28 256)" font-family="Inter, system-ui, sans-serif" filter="url(#leader-shadow)">
     <rect width="504" height="80" rx="12" fill="#FAF7F2" stroke="#E5E1D8"/>
     <text x="20" y="22" font-size="10" font-weight="600" fill="#6B7280" letter-spacing="0.06em">UPCOMING TODAY</text>
-    {# Three event chips #}
+    {% comment %} Three event chips {% endcomment %}
     <g transform="translate(20 36)">
       <rect width="146" height="32" rx="8" fill="#FFFFFF" stroke="#E5E1D8"/>
       <circle cx="14" cy="16" r="4" fill="#C2410C"/>

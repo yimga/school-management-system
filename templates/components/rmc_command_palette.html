@@ -107,11 +107,6 @@
     }
   ]
 }</script>
-{# v4.00.28 — page-aware augmenter. Runs BEFORE the palette boots so the
-   "Page actions" group lands at the top of the data block. Reads
-   data-rmc-page-domain from <html> (set by admin-quickaction.js) and
-   injects 4-7 quick actions matched to the current domain (Finance →
-   new invoice/outstanding/payment runs; People → add student/import
-   roster; etc.). Insert-only — never modifies existing items. #}
+{% comment %} Page-aware command palette augmenter loaded after cmdk JSON bootstrap. {% endcomment %}
 <script src="{% static 'js/rmc-command-palette-page-aware.js' %}"></script>
 <script src="{% static 'js/rmc-command-palette.js' %}"></script>

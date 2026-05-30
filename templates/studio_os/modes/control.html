@@ -3,7 +3,7 @@
 
 {% block extrastyle %}
 {{ block.super }}
-{# v3.54 (2026-05-21): governance cockpit grammar (.rmc-control-* classes). #}
+{% comment %} v3.54 (2026-05-21): governance cockpit grammar (.rmc-control-* classes). {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/studio-control-cockpit.css' %}">
 {% endblock %}
 

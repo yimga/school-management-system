@@ -8,9 +8,10 @@ attendance, results, staff headcount.
 **Tenant isolation is preserved.** This module never executes a cross-tenant
 queryset. Instead:
 
-1. The MAT registry is a Python-shaped config stored in the *operator*
-   SiteSettings (control plane, not any single tenant) under
-   ``cockpit_payload["mat_groups"]``. No new DB table, no new migration.
+1. The MAT registry is built from ``Organization`` + group-member ``School`` rows
+   when schools opt into group mode (Phase 6). Legacy operator
+   ``cockpit_payload["mat_groups"]`` JSON still fills gaps for groups not yet
+   backed by Organization rows.
 2. The aggregator iterates the member tenant slugs and runs the metric
    provider *once per tenant scope* (each query is naturally tenant-scoped
    via Django's tenant routing), then sums in Python.
@@ -141,12 +142,21 @@ def parse_mat_registry(raw: Any) -> tuple[MATGroup, ...]:
 
 
 def load_registry_from_operator_settings() -> tuple[MATGroup, ...]:
-    """Pull the registry from the operator-side ``SiteSettings``. Returns ()
-    when unavailable or unconfigured. Fail-open."""
+    """Pull the effective MAT registry (Organization-derived + legacy JSON).
+
+    Organization-backed groups take precedence over ``cockpit_payload`` entries
+    with the same ``group_id``. Returns () when unavailable or unconfigured.
+    Fail-open."""
+    try:
+        from apps.governance.mat_groups_sync import resolve_mat_groups_payload
+
+        raw = resolve_mat_groups_payload()
+        return parse_mat_registry(raw)
+    except Exception:  # noqa: BLE001
+        pass
     try:
         from apps.platform_runtime.helpers import get_platform_site_settings_record
 
-        # The operator/control-plane SiteSettings is the *singleton* (school=None).
         ss = get_platform_site_settings_record(create=False)
     except Exception:  # noqa: BLE001
         return ()

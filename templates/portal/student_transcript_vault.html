@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n terminology_tags %}
-{# Wave 13 (v3.62.17): "Student" name → tenant lexicon; the rest of the page #}
-{# (transcript / vault terminology) stays generic since it's a credential domain. #}
+{% comment %} Wave 13 (v3.62.17): "Student" name → tenant lexicon; the rest of the page {% endcomment %}
+{% comment %} (transcript / vault terminology) stays generic since it's a credential domain. {% endcomment %}
 {% term "student" capitalize=True as student_sg %}
 
 {% block title %}{% trans "Transcript vault" %} · {{ student.first_name }} {{ student.last_name }}{% endblock %}

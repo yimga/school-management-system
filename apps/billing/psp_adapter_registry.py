@@ -20,6 +20,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+PSP_REGION_GLOBAL = "global"
+"""Registry sentinel: adapter applies to every routing region."""
+
 
 @dataclass(frozen=True)
 class PSPRow:

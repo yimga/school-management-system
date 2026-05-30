@@ -1,4 +1,4 @@
-{# layouts/base.html tenant bootstrap: shared django-messages chrome + help link (manager vs KB). #}
+{% comment %} layouts/base.html tenant bootstrap: shared django-messages chrome + help link (manager vs KB). {% endcomment %}
 {% load i18n %}
 {% if request.public_host_kind == 'manager' %}
   {% url 'manager_help_center' as help_center_url %}

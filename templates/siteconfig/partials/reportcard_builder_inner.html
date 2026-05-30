@@ -1,7 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% load terminology_tags %}
-{# Full builder UI: portal page or Output Studio native (POST → siteconfig:reportcard_builder). #}
+{% comment %} Full builder UI: portal page or Output Studio native (POST → siteconfig:reportcard_builder). {% endcomment %}
 <div class="reportcard-builder-root{% if studio_output_native %} studio-output-native-pane{% endif %}" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-shell-surface="reportcard-builder" data-cp-evidence-surface="reportcard-builder"{% if studio_output_native %} data-studio-output-native="builder"{% endif %}>
   <div class="card shadow-sm mb-3 ds-card">
     <div class="card-body py-3">

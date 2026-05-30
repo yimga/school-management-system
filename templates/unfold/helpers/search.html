@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Override: use SVG so "manage_search" never shows as text when Material Symbols font 404s on production. #}
+{% comment %} Override: use SVG so "manage_search" never shows as text when Material Symbols font 404s on production. {% endcomment %}
 {% if sidebar_show_search %}
     {% if sidebar_command_search %}
         <div class="mb-2.5 mx-3 relative" x-on:click="$dispatch('opencommand')">

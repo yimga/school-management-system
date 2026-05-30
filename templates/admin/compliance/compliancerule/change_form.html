@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block form_before %}
-  {# P3: tenant admin escape hatch — product shells for operators who land on raw ModelAdmin. #}
+  {% comment %} P3: tenant admin escape hatch — product shells for operators who land on raw ModelAdmin. {% endcomment %}
   <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="compliance-rule-cp-escape-heading">
     <h2 id="compliance-rule-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% trans "Product control plane" %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Governance and console workflows live outside this form." %}</p>

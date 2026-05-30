@@ -38,6 +38,8 @@ The parser is at [apps/schools/mat_group_hub.py:parse_mat_registry](beta/school-
 
 **Phase 2 (global governance):** Optional `apps/governance.Organization` FK on `School` complements this operator registry — MAT hub remains the control-plane rollup surface; member schools with `governance_operating_mode=group_member` link to an `Organization` when customers opt into the org overlay.
 
+**Phase 6 (2026-05-29):** When schools bind to an `Organization` in group mode, the effective registry is built live via `apps/governance/mat_groups_sync.py` (`resolve_mat_groups_payload()`). Legacy `cockpit_payload["mat_groups"]` JSON still fills gaps for groups not yet backed by Organization rows. To migrate existing JSON / `parent_school` trees into Organization rows, run `python manage.py backfill_organizations_from_hierarchy` (dry-run) then `--apply` on the target environment.
+
 ## Tenant isolation
 
 The aggregator NEVER runs a cross-tenant queryset. Instead:

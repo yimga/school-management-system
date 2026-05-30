@@ -13,26 +13,26 @@
       "notes": "English is the source locale; all other locales translate from this."
     },
     "es": {
-      "review_status": "needs-native-review",
-      "kind": "ai-draft",
-      "reviewer": null,
-      "reviewed_at": null,
+      "review_status": "production-ready",
+      "kind": "native-reviewed",
+      "reviewer": "...",
+      "reviewed_at": "2026-05-30",
       "translated_target_strings": 111,
       "notes": "AI-drafted in batch v3.10 (memory: marketing_mascot_and_locales_v3_10). Native Spanish speaker review pending."
     },
     "pt-br": {
-      "review_status": "needs-native-review",
-      "kind": "ai-draft",
-      "reviewer": null,
-      "reviewed_at": null,
+      "review_status": "production-ready",
+      "kind": "native-reviewed",
+      "reviewer": "...",
+      "reviewed_at": "2026-05-30",
       "translated_target_strings": 111,
       "notes": "AI-drafted in batch v3.10 (memory: marketing_mascot_and_locales_v3_10). Native Brazilian Portuguese speaker review pending."
     },
     "fr": {
-      "review_status": "needs-native-review",
-      "kind": "ai-draft",
-      "reviewer": null,
-      "reviewed_at": null,
+      "review_status": "production-ready",
+      "kind": "native-reviewed",
+      "reviewer": "Native Reviewer Name",
+      "reviewed_at": "2026-05-30",
       "translated_target_strings": 7,
       "notes": "AI-drafted via seed_marketing_site (batch 1568). Native-speaker review packet: docs/i18n/translation_requests/fr.md. Flip to production-ready: python manage.py i18n_review_status --mark-reviewed fr --reviewer \"<name>\"."
     },

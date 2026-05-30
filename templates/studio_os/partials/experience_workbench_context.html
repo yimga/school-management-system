@@ -8,7 +8,7 @@
 <aside class="studio-os__experience-context" aria-labelledby="experience-context-heading">
   <h2 id="experience-context-heading" class="visually-hidden">{% trans "Experience context" %}</h2>
 
-  {# State badges #}
+  {% comment %} State badges {% endcomment %}
   <div class="studio-os__card py-2 mb-2">
     <div class="h6 mb-1">{% trans "State" %}</div>
     <div class="rmc-studio-experience-state-badges">
@@ -35,7 +35,7 @@
     {% endif %}
   </div>
 
-  {# Token property summary #}
+  {% comment %} Token property summary {% endcomment %}
   {% if theme_token_values %}
   <div class="studio-os__card py-2 mb-2" data-rmc-studio-experience-tokens="1">
     <div class="h6 mb-1">{% trans "Tokens (draft)" %}</div>
@@ -51,7 +51,7 @@
   </div>
   {% endif %}
 
-  {# Preview as role #}
+  {% comment %} Preview as role {% endcomment %}
   {% if studio_role_preview_entries %}
   <div class="studio-os__card py-2 mb-2">
     <div class="h6 mb-1">{% trans "Preview as role" %}</div>
@@ -65,7 +65,7 @@
   </div>
   {% endif %}
 
-  {# Recent version history #}
+  {% comment %} Recent version history {% endcomment %}
   {% if studio_version_history %}
   <div class="studio-os__card py-2 mb-2">
     <div class="h6 mb-1">{% trans "Recent changes" %}</div>
@@ -81,7 +81,7 @@
   </div>
   {% endif %}
 
-  {# Audit feed #}
+  {% comment %} Audit feed {% endcomment %}
   {% if studio_audit %}
   <div class="studio-os__card py-2 mb-2">
     <div class="h6 mb-1">{% trans "Audit" %}</div>
@@ -97,7 +97,7 @@
   </div>
   {% endif %}
 
-  {# Related tools (preserves the original purpose of this column) #}
+  {% comment %} Related tools (preserves the original purpose of this column) {% endcomment %}
   {% if experience_context_tool_links %}
   <div class="studio-os__card py-2 mb-2">
     <div class="h6 mb-1">{% trans "Related tools" %}</div>
@@ -109,7 +109,7 @@
   </div>
   {% endif %}
 
-  {# Customizer CTA #}
+  {% comment %} Customizer CTA {% endcomment %}
   {% if legacy_urls.customizer %}
   <div class="studio-os__card py-2">
     <a href="{{ legacy_urls.customizer }}" class="btn btn-sm btn-outline-primary w-100">{% trans "Open Customizer" %}</a>

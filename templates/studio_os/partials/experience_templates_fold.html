@@ -1,12 +1,12 @@
 {% load i18n %}
-{# Studio OS Experience-section Template Marketplace fold (Wave B-3, batch 1401). #}
-{# Context contract (set by apps/studio_os/views.py::studio_shell on mode=experience): #}
-{#   experience_template_overlays              = list[ {key, category, layout_family_name, detail_url, ...} ] #}
-{#   experience_template_marketplace_urls.browse        = str (empty on hosts without tenant URL graph) #}
-{#   experience_template_marketplace_urls.ai_recommend  = str #}
-{# Fold renders only on hosts that mount template_marketplace urls (tenant subdomains). #}
-{# On manager host the URLs resolve to "" and the fold renders nothing — operators use #}
-{# the /configuration/experience-templates/ operator catalog instead. #}
+{% comment %} Studio OS Experience-section Template Marketplace fold (Wave B-3, batch 1401). {% endcomment %}
+{% comment %} Context contract (set by apps/studio_os/views.py::studio_shell on mode=experience): {% endcomment %}
+{% comment %} experience_template_overlays              = list[ {key, category, layout_family_name, detail_url, ...} ] {% endcomment %}
+{% comment %} experience_template_marketplace_urls.browse        = str (empty on hosts without tenant URL graph) {% endcomment %}
+{% comment %} experience_template_marketplace_urls.ai_recommend  = str {% endcomment %}
+{% comment %} Fold renders only on hosts that mount template_marketplace urls (tenant subdomains). {% endcomment %}
+{% comment %} On manager host the URLs resolve to "" and the fold renders nothing — operators use {% endcomment %}
+{% comment %} the /configuration/experience-templates/ operator catalog instead. {% endcomment %}
 
 {% if experience_template_marketplace_urls.browse %}
 <section class="rmc-studio-experience-templates-fold" data-page-marker="rmc-studio-experience-templates-fold">

@@ -15,7 +15,7 @@ semantic elements are preferred when an equivalent role exists.
   {% if platform_status_strip and platform_status_strip.show %}
     {% include "portal/partials/platform_status_strip.html" %}
   {% endif %}
-  {# Reserved slot for payment readiness banners (pages may inject visible content here later). #}
+  {% comment %} Reserved slot for payment readiness banners (pages may inject visible content here later). {% endcomment %}
   <div data-rmc-payment-readiness-slot="1" class="rmc-os-payment-readiness-slot"></div>
   {% if request.user.is_authenticated %}
     {% include "components/offline_sync_status_bar.html" %}

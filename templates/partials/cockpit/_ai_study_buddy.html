@@ -18,7 +18,7 @@ PII safety:
 {% endcomment %}
 {% if cockpit.ai_study_buddy.enabled %}
 {% with sb=cockpit.ai_study_buddy %}
-{# a8-wire-pending: real AI gateway call replaces the stub here #}
+{% comment %} a8-wire-pending: real AI gateway call replaces the stub here {% endcomment %}
 <section class="tp-ai-buddy" aria-label="{{ sb.label }}" data-rmc-tp-ai-buddy data-rmc-cockpit-section="ai_study_buddy">
   <div class="tp-ai-buddy__head">
     <span class="tp-ai-buddy__avatar" aria-hidden="true">★</span>

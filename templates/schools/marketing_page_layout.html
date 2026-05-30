@@ -15,7 +15,7 @@
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ seo_title|default:"RunMyCampus" }}</h1>
 <section class="py-2 py-lg-3">
   <div class="page-stack mkt-personality-shell mkt-personality-shell--{{ marketing_personality_id|default:'platform-hub' }}{% block marketing_page_stack_class %}{% endblock %}">
-    {# v2.37 — hero figure adoption; renders for the 7 known surfaces only. #}
+    {% comment %} v2.37 — hero figure adoption; renders for the 7 known surfaces only. {% endcomment %}
     {% if page.slug == "platform" or page.slug == "solutions" or page.slug == "pricing" or page.slug == "why-switch" or page.slug == "why" or page.slug == "migrate" or page.slug == "trust" %}
       {% include "components/marketing_hero_image.html" with hero_slug=page.slug priority=True %}
     {% endif %}

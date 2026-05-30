@@ -1,5 +1,5 @@
 {% load i18n %}
-{# v3.59.x Wave 11 Agent X (2026-05-22): every metric in the world-class summary strip adopts `.rmc-stat-card--mono` for the v8 200x mono-pill count treatment. Propagates across all callers. #}
+{% comment %} v3.59.x Wave 11 Agent X (2026-05-22): every metric in the world-class summary strip adopts `.rmc-stat-card--mono` for the v8 200x mono-pill count treatment. Propagates across all callers. {% endcomment %}
 <section class="rmc-wcx-summary-strip" data-world-class-summary-strip="1" aria-label="{% trans 'Command summary' %}">
   <article class="rmc-wcx-metric rmc-stat-card--mono"><span class="rmc-wcx-metric__label">{% trans "Readiness" %}</span><strong class="rmc-wcx-metric__value rmc-stat-card__count--mono">{{ readiness|default_if_none:"—" }}</strong><span class="rmc-wcx-card__meta">{{ readiness_label|default_if_none:_("Awaiting proof") }}</span></article>
   <article class="rmc-wcx-metric rmc-stat-card--mono"><span class="rmc-wcx-metric__label">{% trans "Risk" %}</span><strong class="rmc-wcx-metric__value rmc-stat-card__count--mono">{{ risk|default_if_none:"—" }}</strong><span class="rmc-wcx-card__meta">{{ risk_label|default_if_none:_("Awaiting assessment") }}</span></article>

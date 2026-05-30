@@ -35,7 +35,7 @@
     </div>
   </header>
 
-  {# Summary row #}
+  {% comment %} Summary row {% endcomment %}
   <div class="row g-3 mb-4">
     <div class="col-md-3">
       <div class="card h-100"><div class="card-body p-3">
@@ -63,7 +63,7 @@
     </div>
   </div>
 
-  {# Global state row #}
+  {% comment %} Global state row {% endcomment %}
   <section class="card mb-4">
     <header class="card-header"><h2 class="h6 mb-0 fw-bold">{% trans "Global state" %}</h2></header>
     <div class="card-body">
@@ -93,7 +93,7 @@
     </div>
   </section>
 
-  {# Helper module health row #}
+  {% comment %} Helper module health row {% endcomment %}
   <section class="card mb-4">
     <header class="card-header"><h2 class="h6 mb-0 fw-bold">{% trans "Helper modules" %}</h2></header>
     <div class="table-responsive">
@@ -118,7 +118,7 @@
     </div>
   </section>
 
-  {# Per-group section tables #}
+  {% comment %} Per-group section tables {% endcomment %}
   {% for group_label, group_sections in section_groups %}
   <section class="card mb-4">
     <header class="card-header"><h2 class="h6 mb-0 fw-bold">{{ group_label }}</h2></header>

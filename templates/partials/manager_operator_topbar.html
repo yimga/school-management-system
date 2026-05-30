@@ -1,5 +1,5 @@
 {% load i18n static %}
-{# Manager operator header — platform brand, command search, utility cluster (one control row). #}
+{% comment %} Manager operator header — platform brand, command search, utility cluster (one control row). {% endcomment %}
 <header class="rmc-platform-header rmc-control-plane-chrome__top" role="banner" data-rmc-platform-header="manager">
   <nav class="navbar navbar-expand-lg navbar-dark cp-navbar cp-navbar--surface statement-header flex-shrink-0 w-100" data-rmc-shell-header="control-plane" data-shell-nav-bridge="manager-operator" aria-label="{% trans 'Platform manager header' %}">
     <div class="container-fluid px-3 rmc-platform-header__inner">
@@ -68,12 +68,7 @@
             <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" id="cpShowShortcutsHelp" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
               <i class="bi bi-command" aria-hidden="true"></i>
             </button>
-            {# v4.00.24 — Studio chip removed from manager header per UX
-               directive. Studio is reachable from the Workspace dropdown
-               and the command palette (Ctrl+K → studio); keeping it in
-               the topbar was forcing the row to stretch on lg viewports
-               and competing with the weather/date/operator-presence pills
-               for space. #}
+            {% comment %} v4.00.24 Studio chip removed from manager header (Workspace + Cmd+K). {% endcomment %}
             {% if not rmc_shell.manager_header_hide_config_chip %}
             <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-lg-inline-flex" title="{% trans 'Configuration Control Center' %}" data-rmc-header-config-chip="1">
               <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>

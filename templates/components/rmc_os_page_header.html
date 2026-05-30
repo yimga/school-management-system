@@ -6,8 +6,8 @@
    `page_provides_own_h1 = True` (via context processor or per-view) to
    suppress this redundant chrome. v2.64.1's B1 only handled Studio Control
    via a block override; this gate generalizes the dedup. {% endcomment %}
-{% if page_provides_own_h1 %}{# suppress workspace header #}{% else %}
-{# Operational center mode: pass os_center_key, center_eyebrow, center_title, center_purpose (optional status_badge_*). #}
+{% if page_provides_own_h1 %}{% comment %} suppress workspace header {% endcomment %}{% else %}
+{% comment %} Operational center mode: pass os_center_key, center_eyebrow, center_title, center_purpose (optional status_badge_*). {% endcomment %}
 {% if os_center_key or center_title %}
 <div class="rmc-os-page-header rmc-os-page-header--operational-center rounded-2 border px-3 py-2 mb-2 bg-body-tertiary bg-opacity-10"
      data-rmc-os-page-header="1"
@@ -36,7 +36,7 @@
   </div>
 </div>
 {% else %}
-{# Default workspace strip (portal / control plane chrome). #}
+{% comment %} Default workspace strip (portal / control plane chrome). {% endcomment %}
 <div class="rmc-os-page-header rounded-2 border px-3 py-2 mb-2 bg-body-tertiary bg-opacity-10" data-rmc-os-page-header="1" data-rmc-page-purpose="{{ rmc_os_header_title|default:page_title|default:_('Operations') }}" data-rmc-os-page="{{ rmc_os_shell.page_slug|default:'workspace' }}">
   <div class="rmc-os-page-header__context min-w-0">
     <div class="text-muted text-uppercase small fw-semibold mb-1" style="letter-spacing:0.05em;">{% trans "RunMyCampus workspace" %}</div>
@@ -50,4 +50,4 @@
   </div>
 </div>
 {% endif %}
-{% endif %}{# end page_provides_own_h1 #}
+{% endif %}{% comment %} end page_provides_own_h1 {% endcomment %}

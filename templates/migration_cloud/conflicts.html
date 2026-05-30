@@ -4,7 +4,7 @@
 {% block page_title %}{{ page_title }}{% endblock %}
 
 {% block cp_shell_page %}
-<main class="rmc-page rmc-page--migration-cloud-conflicts" id="main">
+<main class="rmc-page rmc-page--migration-cloud-conflicts" id="main" data-rmc-scroll-policy="paginate">
   <header class="rmc-page__header">
     <a class="rmc-back"
        href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:bundle_detail' bundle_id=bundle.pk %}{% else %}{% url 'migration_cloud_super:bundle_detail' bundle_id=bundle.pk %}{% endif %}">
@@ -17,7 +17,7 @@
   </header>
 
   <section class="rmc-card">
-    <h2 class="rmc-h2">{% trans "Pending review" %} <span class="rmc-muted">({{ pending|length }})</span></h2>
+    <h2 class="rmc-h2">{% trans "Pending review" %} <span class="rmc-muted">({{ pending_count|default:pending|length }})</span></h2>
     {% if not pending %}
       <p class="rmc-empty">{% trans "No pending conflicts. The apply step will overwrite cleanly." %}</p>
     {% else %}
@@ -56,6 +56,7 @@ incoming: {{ c.incoming_values }}</pre>
           {% endfor %}
         </tbody>
       </table>
+      {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
     {% endif %}
   </section>
 
@@ -67,6 +68,17 @@ incoming: {{ c.incoming_values }}</pre>
         <li><code>{{ c.canonical_model }}#{{ c.canonical_pk }}</code> → <strong>{{ c.resolution }}</strong></li>
       {% endfor %}
     </ul>
+    {% if resolved_page_obj.paginator.num_pages > 1 %}
+    <nav class="rmc-pagination mt-3" aria-label="{% trans 'Resolved conflicts pagination' %}">
+      {% if resolved_page_obj.has_previous %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?resolved_page={{ resolved_page_obj.previous_page_number }}{% if resolved_pagination_extra_query %}&amp;{{ resolved_pagination_extra_query }}{% endif %}">{% trans "← Previous" %}</a>
+      {% endif %}
+      <span class="rmc-pagination__page">{% blocktrans with cur=resolved_page_obj.number total=resolved_page_obj.paginator.num_pages %}Page {{ cur }} of {{ total }}{% endblocktrans %}</span>
+      {% if resolved_page_obj.has_next %}
+      <a class="rmc-btn rmc-btn--ghost rmc-btn--sm" href="?resolved_page={{ resolved_page_obj.next_page_number }}{% if resolved_pagination_extra_query %}&amp;{{ resolved_pagination_extra_query }}{% endif %}">{% trans "Next →" %}</a>
+      {% endif %}
+    </nav>
+    {% endif %}
   </section>
   {% endif %}
 </main>

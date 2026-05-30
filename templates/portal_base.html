@@ -20,36 +20,36 @@
     <script src="{% static 'js/rmc-campus-switcher.js' %}" defer></script>
     {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
     <script src="{% static 'js/rmc-reveal.js' %}"></script>
-    {# v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. #}
+    {% comment %} v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. {% endcomment %}
     <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
-    {# v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. #}
+    {% comment %} v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. {% endcomment %}
     <script src="{% static 'js/rmc-command-bar.js' %}"></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
-    {# v3.55.2 (2026-05-21): parent testimonial auto-rotation (community band). #}
+    {% comment %} v3.55.2 (2026-05-21): parent testimonial auto-rotation (community band). {% endcomment %}
     <script src="{% static 'js/_pages/rmc-testimonial-rotate.js' %}" defer></script>
-    {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime. No-op on pages without [data-rmc-sparkline-points]. #}
+    {% comment %} v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime. No-op on pages without [data-rmc-sparkline-points]. {% endcomment %}
     <script src="{% static 'js/_pages/rmc-data-viz.js' %}" defer></script>
     {% include "partials/rmc_shortcuts_i18n.html" %}
     <script src="{% static 'js/rmc-shortcuts-registry.js' %}" defer></script>
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
     <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
-    {# v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). #}
+    {% comment %} v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). {% endcomment %}
     <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
-    {# v4.00.14: CRDT client library exposing window.rmcCRDT for offline ops. #}
+    {% comment %} v4.00.14: CRDT client library exposing window.rmcCRDT for offline ops. {% endcomment %}
     <script src="{% static 'js/rmc-crdt-client.js' %}" defer></script>
-    {# v4.00.33: country-aware admissions intake form auto-renderer; no-op when no opted-in container. #}
+    {% comment %} v4.00.33: country-aware admissions intake form auto-renderer; no-op when no opted-in container. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-admissions-intake.css' %}">
     <script src="{% static 'js/rmc-admissions-intake.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
-    {# Critical-read KB route signatures: /kb/article/ /kb/search /kb/category/ path === "/kb" kb-article kb-search kb-category kb-home kb-hub #}
+    {% comment %} Critical-read KB route signatures: /kb/article/ /kb/search /kb/category/ path === "/kb" kb-article kb-search kb-category kb-home kb-hub {% endcomment %}
     <script src="{% static 'js/kb-route-signature.js' %}"></script>
     <title>{% block title %}{{ rmc_shell.portal_default_document_title|default:_("Portal") }}{% endblock %}</title>
     <link rel="icon" href="{% if SITE_FAVICON_URL %}{{ SITE_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon.png' %}{% endif %}" type="image/png">
     {% if not SITE_FAVICON_URL %}<link rel="icon" href="{% static 'images/runmycampus-icon-bell.svg' %}" type="image/svg+xml" sizes="32x32">{% endif %}
-    {# Wave 6 web: installable surface + home-screen hint (native store apps = external). #}
+    {% comment %} Wave 6 web: installable surface + home-screen hint (native store apps = external). {% endcomment %}
     {% comment %} v2.58 (2026-05-15) — per-tenant manifest. Pulls name/theme/
        icons from the active tenant's SiteSettings via apps/siteconfig/
        views_manifest.py — replaces the static manifest-portal.json file. {% endcomment %}
@@ -64,39 +64,39 @@
        BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
-    {# v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. #}
+    {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
-    {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
+    {% comment %} v2.53 (2026-05-15): platform-wide cool-apple polish. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-chrome-variants.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
-    {# v3.55.0 (2026-05-21): civic 4-tier centered footer (tenant + manager dark variant). #}
+    {% comment %} v3.55.0 (2026-05-21): civic 4-tier centered footer (tenant + manager dark variant). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
-    {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
+    {% comment %} v3.58.2 (2026-05-22): platform-wide vertical-density spec. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
     {% comment %} v3.59.2 (2026-05-22): tenant portal .rmc-app-shell grid bridge — applies the
        static-chrome + canvas-scroll contract to the existing Bootstrap row/col
        portal layout without rewriting the template tree. Scoped to tenant pages. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/portal-app-shell-bridge.css' %}">
-    {# v3.55.2 (2026-05-21): tenant canvas community band + newsletter signup band. #}
+    {% comment %} v3.55.2 (2026-05-21): tenant canvas community band + newsletter signup band. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-canvas-100x.css' %}">
-    {# v3.62.8 (2026-05-22): tenant portal v3 100x header (frosted tp-header + ticker row). #}
+    {% comment %} v3.62.8 (2026-05-22): tenant portal v3 100x header (frosted tp-header + ticker row). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-header-100x.css' %}">
     {% if tp_v3_tenant_shell %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-v3-100x-role-home.css' %}">
     {% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
-    {# v3.56.0 (2026-05-21): tenant per-role dashboard v2 (today snapshot + quick actions + events + activity + achievements + spotlight + child context). #}
+    {% comment %} v3.56.0 (2026-05-21): tenant per-role dashboard v2 (today snapshot + quick actions + events + activity + achievements + spotlight + child context). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-calendar-weather-dashboard.css' %}">
-    {# v3.57.0 (2026-05-21): canonical pagination + print v2 civic + email civic grammar (adoption wave). #}
+    {% comment %} v3.57.0 (2026-05-21): canonical pagination + print v2 civic + email civic grammar (adoption wave). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
-    {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives (heatmap/sparkline/waterfall/status-pill/alert-banner/stat-card/trend/chart-palette). #}
+    {% comment %} v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives (heatmap/sparkline/waterfall/status-pill/alert-banner/stat-card/trend/chart-palette). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-data-viz.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
     <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
@@ -147,7 +147,7 @@
     <link rel="stylesheet" href="{% static 'css/card-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
     <link rel="stylesheet" href="{% static 'css/chart-rules.css' %}">
-    {# theme-everywhere-dark.css retired 2026-05-12 — author labeled "temporary bridge"; replaced by theme-visibility-guard.css #}
+    {% comment %} theme-everywhere-dark.css retired 2026-05-12 — author labeled "temporary bridge"; replaced by theme-visibility-guard.css {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/theme-visibility-guard.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <link rel="stylesheet" href="{% static 'css/tooltips.css' %}">
@@ -168,7 +168,7 @@
        section nav, progressive-disclosure collapse, Console/Configure switcher. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
-    {# Phase R (2026-05-12): print grammar for report cards / transcripts / invoices. #}
+    {% comment %} Phase R (2026-05-12): print grammar for report cards / transcripts / invoices. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
     {% comment %} Pass B: platform-wide aesthetic discipline — same card grammar / type rhythm / empty-state
        hygiene that the manager surface uses, so portal + backend look like one product. {% endcomment %}
@@ -224,7 +224,7 @@
     </style>
     {% endif %}
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
-    {# v3.53.0 (2026-05-21): signature motion + command bar styles. #}
+    {% comment %} v3.53.0 (2026-05-21): signature motion + command bar styles. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard-topology-shell.css' %}">
@@ -255,7 +255,7 @@
             {% include "partials/manager_operator_topbar.html" %}
           </div>
           {% block portal_shell_header_ticker %}
-            {# cp-live-strip: manager portal bridge live activity row #}
+            {% comment %} cp-live-strip: manager portal bridge live activity row {% endcomment %}
             {% include "partials/cockpit/_activity_ticker.html" %}
           {% endblock %}
           {% if PRIMARY_CONTROL_PLANE_NAV %}
@@ -579,7 +579,7 @@
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/portal-sidebar.js' %}"></script>
     <script src="{% static 'js/portal-resize-keyboard.js' %}" defer></script>
-    {# Pass 11.B: forward uncaught errors + SW errors to /api/observability/client-event/. #}
+    {% comment %} Pass 11.B: forward uncaught errors + SW errors to /api/observability/client-event/. {% endcomment %}
     <script src="{% static 'js/sentry-browser-bridge.js' %}" defer></script>
 
     <!-- React and TanStack Query (self-hosted, no CDN) -->
@@ -701,10 +701,10 @@
     }</script>
     <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
     
-    {# Floating Back to top - visible after scrolling down #}
+    {% comment %} Floating Back to top - visible after scrolling down {% endcomment %}
     {% include 'components/back_to_top.html' %}
 
-    {# Messages chathead: staff/teacher only (RBAC); parents use Contact School. Hidden on v3 tenant shell (header + ⌘K). #}
+    {% comment %} Messages chathead: staff/teacher only (RBAC); parents use Contact School. Hidden on v3 tenant shell (header + ⌘K). {% endcomment %}
     {% if request.user.is_authenticated and request.user.role != 'PARENT' and not tp_v3_tenant_shell %}
     <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="{% trans 'Open Messages' %}" title="{% trans 'Messages' %}">
       <i class="bi bi-chat-dots-fill"></i>
@@ -730,18 +730,18 @@
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
       <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
       {% include "partials/rmc_isomorphic_grid_boot.html" %}
-      {# Phase K (2026-05-12): density toggle for .rmc-data-table tables. #}
+      {% comment %} Phase K (2026-05-12): density toggle for .rmc-data-table tables. {% endcomment %}
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
       {% include "partials/portal_row_detail_drawer_bundle.html" %}
-      {# Phase N (2026-05-12): deterministic avatar gradients. #}
+      {% comment %} Phase N (2026-05-12): deterministic avatar gradients. {% endcomment %}
       <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
-      {# Phase Q (2026-05-12): dirty-state form detection + sticky save bar. #}
+      {% comment %} Phase Q (2026-05-12): dirty-state form detection + sticky save bar. {% endcomment %}
       <script src="{% static 'js/rmc-form-dirty.js' %}" defer></script>
-      {# v2.46 (2026-05-15): one-click filter forms via [data-rmc-autosubmit]. #}
+      {% comment %} v2.46 (2026-05-15): one-click filter forms via [data-rmc-autosubmit]. {% endcomment %}
       <script src="{% static 'js/rmc-autosubmit.js' %}" defer></script>
-      {# v2.47 (2026-05-15): inline drawer collapse/expand toggle. #}
+      {% comment %} v2.47 (2026-05-15): inline drawer collapse/expand toggle. {% endcomment %}
       <script src="{% static 'js/rmc-acx-drawer-toggle.js' %}" defer></script>
-      {# Phase W (2026-05-12): subtle haptic feedback for success/warning/error. #}
+      {% comment %} Phase W (2026-05-12): subtle haptic feedback for success/warning/error. {% endcomment %}
       <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
       <script src="{% static 'js/rmc-copilot-context-lens.js' %}" defer></script>
       <script src="{% static 'js/rmc-list-bulk-select.js' %}" defer></script>
@@ -753,7 +753,7 @@
     {% if not request.user.is_authenticated %}
       {% include "partials/rmc_platform_chrome_scripts.html" %}
     {% endif %}
-    {# Phase 14: Toast + interaction guard (showToast + RMCInteractionGuard app-wide) #}
+    {% comment %} Phase 14: Toast + interaction guard (showToast + RMCInteractionGuard app-wide) {% endcomment %}
     {% include 'components/toast_notifications.html' %}
     {% include "partials/rmc_notification_corner_boot.html" %}
     <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
@@ -761,10 +761,10 @@
     <script src="{% static 'js/rmc-surface-overlay-guard.js' %}"></script>
     {% endif %}
     <script src="{% static 'js/rmc-dashboard-widget-boundary.js' %}" defer></script>
-    {# S5: Help tooltips — data-tooltip and runmycampusTooltips #}
+    {% comment %} S5: Help tooltips — data-tooltip and runmycampusTooltips {% endcomment %}
     <script src="{% static 'js/tooltips.js' %}"></script>
 
-    {# Main Footer with Accreditation and Support #}
+    {% comment %} Main Footer with Accreditation and Support {% endcomment %}
     <div data-rmc-shell-footer="portal">
       {% if request.public_host_kind == 'manager' and SHOW_MANAGER_CORPORATE_FOOTER %}
       <div class="rmc-footer-notebook-anchor" data-rmc-footer-notebook-anchor>
@@ -799,7 +799,7 @@
     {% include 'components/rum_beacon.html' %}
 
     {% if SITE and SITE.is_preview %}
-    {# preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); rules folded into design-system-unified.css #}
+    {% comment %} preview-highlights.css retired 2026-05-12 (pass 2 css cleanup); rules folded into design-system-unified.css {% endcomment %}
     <script nonce="{{ csp_nonce }}" type="application/json" id="rmc-preview-labels">{
       "default": "{% trans 'Your changes affect this area' %}",
       "dismiss": "{% trans 'Dismiss highlights' %}"
@@ -812,16 +812,16 @@
     {% if request.user.is_authenticated %}
     {% include "partials/rmc_assist_dock_labels.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
-    {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
+    {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% include "partials/rmc_command_bar.html" %}
     {% endif %}
-    {# v3.61.2 (2026-05-22): Lifecycle concierge — hidden on v3 100x role homes (hero + cockpit own onboarding). #}
+    {% comment %} v3.61.2 (2026-05-22): Lifecycle concierge — hidden on v3 100x role homes (hero + cockpit own onboarding). {% endcomment %}
     {% if lifecycle_concierge_enabled and not tp_v3_tenant_shell %}
     <link rel="stylesheet" href="{% static 'css/rmc-lifecycle-concierge.css' %}">
     <script src="{% static 'js/_pages/rmc-lifecycle-concierge.js' %}" defer></script>
     {% include "lifecycle/concierge_modal.html" %}
     {% endif %}
-    {# v4.00.37: universal "Report issue" chip — auto-attaches URL + role + browser context. #}
+    {% comment %} v4.00.37: universal "Report issue" chip — auto-attaches URL + role + browser context. {% endcomment %}
     {% include "partials/rmc_support_quick_create.html" %}
   </body>
 </html>

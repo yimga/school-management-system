@@ -14,7 +14,7 @@
   </div>
 
   <div class="rmc-settings-layout">
-    {# Left rail — Apple Settings-app pattern. #}
+    {% comment %} Left rail — Apple Settings-app pattern. {% endcomment %}
     <aside class="rmc-settings-rail" aria-label="{% trans 'Settings categories' %}">
       <form method="get" class="rmc-settings-search">
         <i class="bi bi-search" aria-hidden="true"></i>
@@ -34,7 +34,7 @@
       </nav>
     </aside>
 
-    {# Right content — each category is an anchor section with entries. #}
+    {% comment %} Right content — each category is an anchor section with entries. {% endcomment %}
     <main class="rmc-settings-pane" data-rmc-settings-pane="1">
       {% for c in categories %}
         <section id="cat-{{ c.slug }}" class="rmc-settings-section rmc-reveal" data-rmc-section-anchor data-rmc-cat="{{ c.slug }}" data-rmc-search-target="{{ c.label }}">

@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "batch": "1199",
+  "recorded_at": "2026-05-29T20:53:53Z",
+  "local_head_sha": "b5f42b2527e8ecf3618b649d8fdf85edb520c93d",
+  "evidence_status": "repo_complete",
+  "local_vs_deployed_parity": "repo_local_certified",
+  "hosted_commit_sha": null,
+  "hosted_verified_live": false,
+  "classification": "REPO_LOCAL_PARITY_CERTIFIED",
+  "verdict": "RENDER PARITY PARTIAL \u2014 repo-local matrix green; hosted SHA uncertified (set RENDER_PARITY_BASE_URL + MANAGER_PARITY_BASE_URL)",
+  "notes": [
+    "Probe hosted /-/version/ with operator env URLs"
+  ]
+}

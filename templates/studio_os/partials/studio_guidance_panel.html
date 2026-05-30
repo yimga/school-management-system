@@ -38,7 +38,7 @@
       </dl>
       {% endif %}
 
-      {# v3.54.0 (2026-05-21): primary/secondary actions + preview link. #}
+      {% comment %} v3.54.0 (2026-05-21): primary/secondary actions + preview link. {% endcomment %}
       {% if studio_guidance.primary_action or studio_guidance.secondary_action or studio_guidance.preview_url %}
       <div class="rmc-studio-guidance__actions" role="group" aria-label="{% trans 'Guidance actions' %}">
         {% if studio_guidance.primary_action and studio_guidance.primary_action.url %}
@@ -59,7 +59,7 @@
       </div>
       {% endif %}
 
-      {# v3.54.0 (2026-05-21): blocker pill — surfaces what is stopping the operator. #}
+      {% comment %} v3.54.0 (2026-05-21): blocker pill — surfaces what is stopping the operator. {% endcomment %}
       {% if studio_guidance.blocker %}
       <div class="rmc-studio-guidance__blocker mt-2" role="status">
         <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>

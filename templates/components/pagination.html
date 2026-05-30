@@ -7,7 +7,7 @@ Optional: show_page_size - if true, show page size selector (20, 50, 100).
 Optional: page_size, page_size_options - current value and list e.g. [20, 50, 100].
 {% endcomment %}
 {% if page_obj and page_obj.paginator.num_pages > 1 %}
-{% with extra=pagination_extra_query|default:"" %}
+{% with extra=pagination_extra_query|default:"" pq=page_query_param|default:"page" %}
 {% comment %} v3.57.7 (2026-05-22): layered rmc-pagination* classes alongside Bootstrap
    .pagination markup so rmc-pagination-grammar.css (loaded after bootstrap
    per the v3.57.1 shell wiring) wins on conflicting properties without
@@ -32,10 +32,10 @@ Optional: page_size, page_size_options - current value and list e.g. [20, 50, 10
     <ul class="pagination rmc-pagination__list pagination-sm mb-0 flex-wrap justify-content-center">
       {% if page_obj.has_previous %}
       <li class="page-item">
-        <a class="page-link rmc-pagination__link ds-btn" href="?page=1{% if extra %}&{{ extra }}{% endif %}" aria-label="First">First</a>
+        <a class="page-link rmc-pagination__link ds-btn" href="?{{ pq }}=1{% if extra %}&{{ extra }}{% endif %}" aria-label="First">First</a>
       </li>
       <li class="page-item">
-        <a class="page-link rmc-pagination__link ds-btn" href="?page={{ page_obj.previous_page_number }}{% if extra %}&{{ extra }}{% endif %}" aria-label="Previous">Prev</a>
+        <a class="page-link rmc-pagination__link ds-btn" href="?{{ pq }}={{ page_obj.previous_page_number }}{% if extra %}&{{ extra }}{% endif %}" aria-label="Previous">Prev</a>
       </li>
       {% endif %}
 
@@ -45,13 +45,13 @@ Optional: page_size, page_size_options - current value and list e.g. [20, 50, 10
           {% if p == page_obj.number %}
           <span class="page-link rmc-pagination__link is-active" aria-current="page">{{ p }}</span>
           {% else %}
-          <a class="page-link rmc-pagination__link ds-btn" href="?page={{ p }}{% if extra %}&{{ extra }}{% endif %}">{{ p }}</a>
+          <a class="page-link rmc-pagination__link ds-btn" href="?{{ pq }}={{ p }}{% if extra %}&{{ extra }}{% endif %}">{{ p }}</a>
           {% endif %}
         </li>
         {% endfor %}
       {% else %}
         {% if page_obj.number > 3 %}
-        <li class="page-item"><a class="page-link rmc-pagination__link ds-btn" href="?page=1{% if extra %}&{{ extra }}{% endif %}">1</a></li>
+        <li class="page-item"><a class="page-link rmc-pagination__link ds-btn" href="?{{ pq }}=1{% if extra %}&{{ extra }}{% endif %}">1</a></li>
         {% if page_obj.number > 4 %}<li class="page-item disabled"><span class="page-link rmc-pagination__gap" aria-hidden="true">…</span></li>{% endif %}
         {% endif %}
         {% for p in page_obj.paginator.page_range %}
@@ -60,23 +60,23 @@ Optional: page_size, page_size_options - current value and list e.g. [20, 50, 10
             {% if p == page_obj.number %}
             <span class="page-link rmc-pagination__link is-active" aria-current="page">{{ p }}</span>
             {% else %}
-            <a class="page-link rmc-pagination__link ds-btn" href="?page={{ p }}{% if extra %}&{{ extra }}{% endif %}">{{ p }}</a>
+            <a class="page-link rmc-pagination__link ds-btn" href="?{{ pq }}={{ p }}{% if extra %}&{{ extra }}{% endif %}">{{ p }}</a>
             {% endif %}
           </li>
           {% endif %}
         {% endfor %}
         {% if page_obj.number < page_obj.paginator.num_pages|add:"-2" %}
         {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}<li class="page-item disabled"><span class="page-link rmc-pagination__gap" aria-hidden="true">…</span></li>{% endif %}
-        <li class="page-item"><a class="page-link rmc-pagination__link ds-btn" href="?page={{ page_obj.paginator.num_pages }}{% if extra %}&{{ extra }}{% endif %}">{{ page_obj.paginator.num_pages }}</a></li>
+        <li class="page-item"><a class="page-link rmc-pagination__link ds-btn" href="?{{ pq }}={{ page_obj.paginator.num_pages }}{% if extra %}&{{ extra }}{% endif %}">{{ page_obj.paginator.num_pages }}</a></li>
         {% endif %}
       {% endif %}
 
       {% if page_obj.has_next %}
       <li class="page-item">
-        <a class="page-link rmc-pagination__link ds-btn" href="?page={{ page_obj.next_page_number }}{% if extra %}&{{ extra }}{% endif %}" aria-label="Next">Next</a>
+        <a class="page-link rmc-pagination__link ds-btn" href="?{{ pq }}={{ page_obj.next_page_number }}{% if extra %}&{{ extra }}{% endif %}" aria-label="Next">Next</a>
       </li>
       <li class="page-item">
-        <a class="page-link rmc-pagination__link ds-btn" href="?page={{ page_obj.paginator.num_pages }}{% if extra %}&{{ extra }}{% endif %}" aria-label="Last">Last</a>
+        <a class="page-link rmc-pagination__link ds-btn" href="?{{ pq }}={{ page_obj.paginator.num_pages }}{% if extra %}&{{ extra }}{% endif %}" aria-label="Last">Last</a>
       </li>
       {% endif %}
     </ul>

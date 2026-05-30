@@ -4,7 +4,7 @@
 {% block page_title %}{{ page_title|default:"Signup flow diagnostics" }}{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
-{# Page-level CSS — control-plane-tokenized; literals carry off-token-allow markers. #}
+{% comment %} Page-level CSS — control-plane-tokenized; literals carry off-token-allow markers. {% endcomment %}
 <style nonce="{{ request.csp_nonce|default:'' }}">
 /* off-token-allow: operator-signup-diagnostics-grid-utility */
 .rmc-signup-diag__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(20rem,1fr));gap:1rem;margin-top:1rem;}

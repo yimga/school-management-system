@@ -13,7 +13,7 @@
 
   <div data-page-header="1" class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3 d-print-none">
     <div>
-      {# Aesthetic-v2 page-header grammar. Styled by patterns.css. #}
+      {% comment %} Aesthetic-v2 page-header grammar. Styled by patterns.css. {% endcomment %}
       <div class="eyebrow">{% trans "Daily attendance" %}</div>
       {% term "teacher" capitalize=True as teacher_sg %}
       <h1 class="page-h1 mb-0">{% blocktrans with t=teacher_sg %}{{ t }} attendance{% endblocktrans %}</h1>

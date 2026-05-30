@@ -4,7 +4,7 @@
 {% block title %}{% trans "Security & trust" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
-{# trust-hub-doc-anchors: NORTH_STAR_TRUST_AND_OPS.md THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md (verify_phase9_security_trust_conformance) #}
+{% comment %} trust-hub-doc-anchors: NORTH_STAR_TRUST_AND_OPS.md THREAT_MODEL_AI_WEBHOOKS_EXPORTS.md (verify_phase9_security_trust_conformance) {% endcomment %}
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-decision-engine="surface">
 {% phase8_dashboard_declaration "accounts/security_trust_hub.html" %}
   <h1 class="h4 mb-1">{% trans "Security & trust" %}</h1>

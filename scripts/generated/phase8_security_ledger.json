@@ -112,6 +112,17 @@
       "replay_protection": "id_token_nonce_state",
       "verdict": "keep"
     },
+    "apps/api/oneroster.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "bearer_token_oneroster",
+      "expected_count": 1,
+      "last_reviewed": "2026-05-30",
+      "notes": "OneRoster v1.2 users bulk POST (v4.00.83); Idempotency-Key + Bearer auth; 207 per-row semantics.",
+      "owner": "interop_oneroster",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "idempotency_key_header",
+      "verdict": "keep"
+    },
     "apps/api/oneroster_csv_importer.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "bearer_token_oneroster",
@@ -123,12 +134,23 @@
       "replay_protection": "token_auth_only",
       "verdict": "keep"
     },
+    "apps/api/oneroster_demographics.py": {
+      "audit_logging": "manual_review_required",
+      "auth_model": "bearer_token_oneroster",
+      "expected_count": 2,
+      "last_reviewed": "2026-05-29",
+      "notes": "OneRoster v1.2 Demographics POST/PUT write endpoints (v4.00.60); machine Bearer auth.",
+      "owner": "interop_oneroster",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "token_auth_only",
+      "verdict": "keep"
+    },
     "apps/api/oneroster_results.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "bearer_token_oneroster",
-      "expected_count": 29,
+      "expected_count": 31,
       "last_reviewed": "2026-05-29",
-      "notes": "OneRoster grade/results read API surface; machine client Bearer auth.",
+      "notes": "OneRoster grade/results/classGroup API surface; machine client Bearer auth (v4.00.57 classGroup dispatch + bulk delete).",
       "owner": "interop_oneroster",
       "rate_limiting": "manual_review_required",
       "replay_protection": "token_auth_only",
@@ -159,9 +181,9 @@
     "apps/api/saml.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "signed_saml_assertion",
-      "expected_count": 1,
-      "last_reviewed": "2026-05-29",
-      "notes": "SAML SP ACS callback under apps/api; IdP POST without CSRF.",
+      "expected_count": 5,
+      "last_reviewed": "2026-05-30",
+      "notes": "SAML SP ACS + IdP SLO POST (sls_idp) + SP-initiated SLO start/callback + SP-initiated SSO login_start (v4.00.67); IdP/browser POST without CSRF.",
       "owner": "identity_access",
       "rate_limiting": "not_applicable",
       "replay_protection": "idp_assertion_validity_window",
@@ -366,7 +388,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-05-29T19:30:39.871500+00:00",
+  "generated_at": "2026-05-30T11:57:08.789640+00:00",
   "raw_sql": {
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,
@@ -477,7 +499,7 @@
   },
   "summary": {
     "allow_any_files": 4,
-    "csrf_exempt_files": 29,
+    "csrf_exempt_files": 31,
     "raw_sql_files": 20
   }
 }

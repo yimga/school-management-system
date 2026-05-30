@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load i18n terminology_tags %}
-{# Wave 13 (v3.62.17): "parent" → "guardian" / "kaakaako" / "وَلِيُّ أَمْر" per #}
-{# tenant lexicon; "student" → "child" / "ward" / "learner" per region. #}
+{% comment %} Wave 13 (v3.62.17): "parent" → "guardian" / "kaakaako" / "وَلِيُّ أَمْر" per {% endcomment %}
+{% comment %} tenant lexicon; "student" → "child" / "ward" / "learner" per region. {% endcomment %}
 {% term "parent" capitalize=True as parent_sg %}
 {% term "parent" plural=True capitalize=True as parent_pl %}
 {% term "student" plural=True as student_pl_lc %}

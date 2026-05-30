@@ -29,6 +29,6 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-{# FormDraftSave.init is called by static/js/_pages/requests__access_denied.js after the library loads. #}
+{% comment %} FormDraftSave.init is called by static/js/_pages/requests__access_denied.js after the library loads. {% endcomment %}
 <script src="{% static 'js/_pages/requests__access_denied.js' %}"></script>
 {% endblock %}

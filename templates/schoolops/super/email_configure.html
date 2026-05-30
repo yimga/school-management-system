@@ -63,10 +63,10 @@
     <div role="alert" class="rmc-form-errors">{{ form.non_field_errors }}</div>
     {% endif %}
 
-    {# v3.58.x Wave 9 Agent M — split the form into two visible fieldsets: #}
-    {# SMTP fields up top, Provider Webhooks below. We iterate the bound  #}
-    {# form by field name lookup so the SMTP block excludes the 4 webhook #}
-    {# secret fields and the Webhook block contains ONLY those four.     #}
+    {% comment %} v3.58.x Wave 9 Agent M — split the form into two visible fieldsets: {% endcomment %}
+    {% comment %} SMTP fields up top, Provider Webhooks below. We iterate the bound {% endcomment %}
+    {% comment %} form by field name lookup so the SMTP block excludes the 4 webhook {% endcomment %}
+    {% comment %} secret fields and the Webhook block contains ONLY those four. {% endcomment %}
     <fieldset class="rmc-email-config__fieldset">
       <legend>{% trans "SMTP server" %}</legend>
       {% for field in form %}

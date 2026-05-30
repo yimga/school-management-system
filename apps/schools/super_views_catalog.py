@@ -7,11 +7,25 @@ Extracted from super_views.py to reduce file size.
 from django.shortcuts import render, get_object_or_404
 from django.urls import NoReverseMatch, reverse
 
+from .super_views_config import _paginate_queryset
 from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 from apps.platform_runtime.operator_identity import (
     PLATFORM_SCOPE_TENANT_READ,
     require_platform_scope,
 )
+
+_CATALOG_PAGE_SIZE = 20
+
+
+def _pagination_extra_query(request) -> str:
+    q = request.GET.copy()
+    q.pop("page", None)
+    return q.urlencode()
+
+
+def _sector_badges(sectors_raw, wedge_codes) -> list[str]:
+    sectors = sectors_raw or []
+    return [s for s in sectors if s in wedge_codes]
 
 
 @require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
@@ -27,12 +41,16 @@ def super_workflow_packs_catalog(request):
         qs = qs.filter(
             Q(recommended_sectors__contains=primary_sector) | Q(recommended_sectors=[])
         )
-    packs = list(
-        qs.values("id", "code", "name", "family", "version", "recommended_sectors")
+    page_obj = _paginate_queryset(
+        request,
+        qs.values("id", "code", "name", "family", "version", "recommended_sectors"),
+        per_page=_CATALOG_PAGE_SIZE,
     )
+    packs = [dict(p) for p in page_obj.object_list]
     for p in packs:
-        sectors = p.get("recommended_sectors") or []
-        p["sector_badges"] = [s for s in sectors if s in WEDGE_14_22_SECTOR_CODES]
+        p["sector_badges"] = _sector_badges(
+            p.get("recommended_sectors"), WEDGE_14_22_SECTOR_CODES
+        )
     try:
         admin_url = reverse("admin:siteconfig_workflowpack_changelist")
     except NoReverseMatch:
@@ -42,6 +60,8 @@ def super_workflow_packs_catalog(request):
         "schools/super_workflow_packs.html",
         {
             "packs": packs,
+            "page_obj": page_obj,
+            "pagination_extra_query": _pagination_extra_query(request),
             "admin_url": admin_url,
             "dashboard_url": reverse("super:dashboard"),
             "primary_sector_filter": primary_sector,
@@ -63,12 +83,16 @@ def super_dashboard_packs_catalog(request):
         qs = qs.filter(
             Q(recommended_sectors__contains=primary_sector) | Q(recommended_sectors=[])
         )
-    packs = list(
-        qs.values("id", "code", "name", "family", "version", "recommended_sectors")
+    page_obj = _paginate_queryset(
+        request,
+        qs.values("id", "code", "name", "family", "version", "recommended_sectors"),
+        per_page=_CATALOG_PAGE_SIZE,
     )
+    packs = [dict(p) for p in page_obj.object_list]
     for p in packs:
-        sectors = p.get("recommended_sectors") or []
-        p["sector_badges"] = [s for s in sectors if s in WEDGE_14_22_SECTOR_CODES]
+        p["sector_badges"] = _sector_badges(
+            p.get("recommended_sectors"), WEDGE_14_22_SECTOR_CODES
+        )
     try:
         admin_url = reverse("admin:siteconfig_dashboardpack_changelist")
     except NoReverseMatch:
@@ -78,6 +102,8 @@ def super_dashboard_packs_catalog(request):
         "schools/super_dashboard_packs.html",
         {
             "packs": packs,
+            "page_obj": page_obj,
+            "pagination_extra_query": _pagination_extra_query(request),
             "admin_url": admin_url,
             "dashboard_url": reverse("super:dashboard"),
             "primary_sector_filter": primary_sector,
@@ -109,7 +135,8 @@ def super_blueprints_catalog(request):
             Q(supported_education_system_types__contains=primary_sector)
             | Q(supported_education_system_types=[])
         )
-    packs = list(
+    page_obj = _paginate_queryset(
+        request,
         qs.values(
             "id",
             "slug",
@@ -118,8 +145,10 @@ def super_blueprints_catalog(request):
             "category",
             "version",
             "supported_education_system_types",
-        )
+        ),
+        per_page=_CATALOG_PAGE_SIZE,
     )
+    packs = [dict(p) for p in page_obj.object_list]
     for p in packs:
         try:
             p["admin_url"] = reverse(
@@ -128,14 +157,16 @@ def super_blueprints_catalog(request):
             )
         except NoReverseMatch:
             p["admin_url"] = None
-        # Badge: list sector codes this pack recommends/supports (wedge 14–22)
-        sectors = p.get("supported_education_system_types") or []
-        p["sector_badges"] = [s for s in sectors if s in WEDGE_14_22_SECTOR_CODES]
+        p["sector_badges"] = _sector_badges(
+            p.get("supported_education_system_types"), WEDGE_14_22_SECTOR_CODES
+        )
     return render(
         request,
         "schools/super_blueprints_catalog.html",
         {
             "packs": packs,
+            "page_obj": page_obj,
+            "pagination_extra_query": _pagination_extra_query(request),
             "dashboard_url": reverse("super:dashboard"),
             "primary_sector_filter": primary_sector,
             "sector_choices": WEDGE_14_22_SECTOR_CODES,
@@ -148,13 +179,16 @@ def super_policies_catalog(request):
     """Phase 3: Control-plane policy bundle catalog."""
     from apps.policies.models import PolicyBundle
 
-    bundles = list(
+    qs = (
         # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-        PolicyBundle.objects.filter(is_active=True)
-        .order_by("country_scope", "name")
-        .values("id", "code", "name", "country_scope", "version", "precedence_weight")[
-            :200
-        ]
+        PolicyBundle.objects.filter(is_active=True).order_by("country_scope", "name")
+    )
+    page_obj = _paginate_queryset(
+        request,
+        qs.values(
+            "id", "code", "name", "country_scope", "version", "precedence_weight"
+        ),
+        per_page=_CATALOG_PAGE_SIZE,
     )
     try:
         from config.admin import admin_site
@@ -162,6 +196,7 @@ def super_policies_catalog(request):
         admin_site_to_use = admin_site
     except (AttributeError, ImportError):
         from django.contrib.admin.sites import site as admin_site_to_use
+    bundles = [dict(b) for b in page_obj.object_list]
     for b in bundles:
         try:
             b["admin_url"] = reverse(
@@ -174,8 +209,10 @@ def super_policies_catalog(request):
         "schools/super_policies_catalog.html",
         {
             "bundles": bundles,
+            "page_obj": page_obj,
+            "pagination_extra_query": _pagination_extra_query(request),
             "dashboard_url": reverse("super:dashboard"),
-            "bundles_total": len(bundles),
+            "bundles_total": page_obj.paginator.count,
         },
     )
 
@@ -265,10 +302,22 @@ def super_registries_overview(request):
 def super_metadata_catalog(request):
     """Metadata catalog: entity/field search (metadata app) + platform catalog (schema, experience, runtime, registry)."""
     entities: list = []
+    page_obj = None
+    pagination_extra_query = ""
+    query = request.GET.get("q", "").strip() or request.GET.get("entity", "").strip()
     try:
-        from apps.metadata.services import get_metadata_catalog_entity_rows
+        from apps.metadata.services import (
+            annotate_metadata_catalog_entities,
+            metadata_catalog_queryset,
+        )
 
-        entities, _ = get_metadata_catalog_entity_rows(request.GET, max_entities=200)
+        page_obj = _paginate_queryset(
+            request,
+            metadata_catalog_queryset(request.GET),
+            per_page=_CATALOG_PAGE_SIZE,
+        )
+        entities = annotate_metadata_catalog_entities(list(page_obj.object_list))
+        pagination_extra_query = _pagination_extra_query(request)
     except CONTROL_PLANE_METRIC_FAILURES:
         pass
 
@@ -285,8 +334,10 @@ def super_metadata_catalog(request):
         "schools/super_metadata_catalog.html",
         {
             "entities": entities,
-            "query": request.GET.get("q", "").strip()
-            or request.GET.get("entity", "").strip(),
+            "page_obj": page_obj,
+            "pagination_extra_query": pagination_extra_query,
+            "entities_total": page_obj.paginator.count if page_obj else len(entities),
+            "query": query,
             "platform_catalog": platform_catalog,
             "dashboard_url": reverse("super:dashboard"),
         },
@@ -304,18 +355,22 @@ def super_metadata_catalog_field_impact(request, entity_code, field_name):
 
     entity = get_object_or_404(EntityCatalogEntry, code=entity_code)
     field = get_object_or_404(FieldCatalogEntry, entity=entity, field_name=field_name)
-    deps = (
+    deps_qs = (
         MetadataDependency.objects.filter(field=field)
         .select_related("field")
         .order_by("consumer_type", "consumer_code")
     )
+    page_obj = _paginate_queryset(request, deps_qs, per_page=_CATALOG_PAGE_SIZE)
     return render(
         request,
         "schools/super_metadata_catalog_field_impact.html",
         {
             "entity": entity,
             "field": field,
-            "dependencies": deps,
+            "dependencies": list(page_obj.object_list),
+            "page_obj": page_obj,
+            "pagination_extra_query": _pagination_extra_query(request),
+            "dependencies_total": page_obj.paginator.count,
             "dashboard_url": reverse("super:dashboard"),
             "catalog_url": reverse("super:metadata_catalog"),
         },

@@ -9,10 +9,9 @@
  * mechanically sound. No bloated padding. No round friendly card frames.
  * Razor-thin separators. Tabular numerics. Mono-glyph icons.
  *
- * Activation: this layer is OPT-IN via [data-rmc-os-grade="1"] on <html>
- * (or absent attribute means default-off for safety). Set by default for
- * authenticated manager + admin shells via the v4.00.26 bootstrap. Users
- * can flip it via window.rmcOsGrade.toggle().
+ * Activation: OPT-IN ONLY via [data-rmc-os-grade="1"] on <html>. Luxury
+ * chrome is the platform baseline (default-off). Enable with
+ * localStorage["rmc-os-grade"] = "on" or window.rmcOsGrade.set(true).
  *
  * Tokens this layer introduces:
  *   --rmc-os-hairline       — 1px hairline color (default --hairline-strong)

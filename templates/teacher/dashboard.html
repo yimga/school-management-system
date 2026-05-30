@@ -15,9 +15,9 @@
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-workspace-canvas.css' %}">
-{# Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. #}
+{% comment %} Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. {% endcomment %}
 <script src="{% static 'js/_pages/teacher__dashboard.js' %}"></script>
-{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
@@ -37,7 +37,7 @@
    primitive so teachers can fold sections they don't need. State persists per-section
    via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
 <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="teacher">
-  {# v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. #}
+  {% comment %} v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. {% endcomment %}
   {% include "partials/cockpit/_year_progress.html" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="teacher__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="teacher__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
@@ -65,7 +65,7 @@
        (line 88) is the single H1 for this page. It also owns the chip rail and
        the "today's classes" decision zone. {% endcomment %}
     {% if teacher_fast_workflows %}
-    {# v3.59.x Wave 11 Agent X (2026-05-22): fast-workflows grouping adopts `.rmc-app-section--glass` per v8 200x preview. #}
+    {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): fast-workflows grouping adopts `.rmc-app-section--glass` per v8 200x preview. {% endcomment %}
     <section class="card border-0 shadow-sm rmc-app-section--glass mb-3 p-3" data-teacher-fast-workflows="1" data-tour="teacher-fast-workflows" aria-label="{% trans 'Fast workflows' %}">
       {% if rmc_conversion_single_action_enforced|default:False %}
       <details class="rmc-conversion-more-actions border rounded px-2 py-2">
@@ -97,7 +97,7 @@
     {% url 'academics:teacher_syllabus_hub' as teacher_syllabus_url %}
     {% url 'portal:teacher_attendance' as teacher_attendance_url %}
 
-    {# Phase G follow-through (2026-05-12): section nav for 593L teacher dashboard. #}
+    {% comment %} Phase G follow-through (2026-05-12): section nav for 593L teacher dashboard. {% endcomment %}
     <nav class="rmc-section-nav rmc-section-nav--inline mb-2" data-tour="teacher-section-nav" aria-label="{% trans 'Teaching dashboard sections' %}" data-rmc-section-nav-curated="1">
       <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
       <div class="rmc-surface-subnav" role="list">
@@ -136,14 +136,14 @@
         {% endif %}
       </div>
     </section>
-    {# v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside tdm-hero — additive, preserves existing wiring. #}
+    {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside tdm-hero — additive, preserves existing wiring. {% endcomment %}
     <section id="teacher-today" data-rmc-section-anchor class="tdm-hero rmc-page-header-glow card-glass rmc-reveal" data-decision-zone="headline" data-rmc-ux-section="today-plan" data-tour="teacher-today" aria-label="{% trans 'Teaching plan for today' %}">
       <div class="tdm-hero__text">
         <p class="tdm-eyebrow rmc-page-eyebrow">{% term "teacher" capitalize=True %} {% trans "workspace" %}</p>
         {% comment %} Pass 8: previously hardcoded "Good afternoon" regardless of the user's local time.
            Use the same neutral "Welcome back" greeting as parent/admin dashboards until a
            time-of-day greeting helper is wired through the context processor. {% endcomment %}
-        {# v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.rmc-page-header-glow strong` gradient-text rule. #}
+        {% comment %} v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.rmc-page-header-glow strong` gradient-text rule. {% endcomment %}
         <h1>{% blocktrans with name=request.user.get_full_name|default:request.user.username|default:"" %}Welcome back, <strong>{{ name }}</strong>.{% endblocktrans %}</h1>
         <p class="tdm-subtitle">{% trans "Here's an overview of your classes for today." %}</p>
         <div class="tdm-hero__chips">
@@ -215,7 +215,7 @@
         <div class="col-12 col-md-6 col-lg-3 rmc-reveal" data-rmc-kpi="classes-today">
           <div class="kpi tdm-stat card-glass purple">
             <div class="d-flex align-items-start justify-content-between gap-2">
-              {# Wave 12: tenant-lexicon "Classes today" — reads as the tenant's classroom term (e.g. "Cours" in FR, "வகுப்புகள்" in TA). #}
+              {% comment %} Wave 12: tenant-lexicon "Classes today" — reads as the tenant's classroom term (e.g. "Cours" in FR, "வகுப்புகள்" in TA). {% endcomment %}
               {% term "classroom" plural=True capitalize=True as classroom_pl_t %}
               <span class="label tdm-stat-label">{% blocktrans with t=classroom_pl_t %}{{ t }} today{% endblocktrans %}</span>
               <span class="kpi-icon" aria-hidden="true"><i class="bi bi-mortarboard"></i></span>

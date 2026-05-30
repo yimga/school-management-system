@@ -1,5 +1,5 @@
 {% load unfold %}
-{# Override: logo + title live in sidebar_inner (single row). Here only mobile close + dropdown for a cleaner sidebar. #}
+{% comment %} Override: logo + title live in sidebar_inner (single row). Here only mobile close + dropdown for a cleaner sidebar. {% endcomment %}
 <div class="border-b border-base-200 flex gap-2 items-center min-h-[48px] py-2 mb-3 dark:border-base-800 px-3 {% element_classes 'navigation_header' %}" {% if site_dropdown %}x-data="{ openDropdown: false }"{% endif %}>
     <div class="grow min-w-0"></div>
     <span class="block cursor-pointer h-[18px] xl:hidden shrink-0 hover:text-base-700 dark:hover:text-base-200 inline-flex items-center" x-on:click="sidebarMobileOpen = !sidebarMobileOpen" x-on:keydown.enter.prevent="sidebarMobileOpen = !sidebarMobileOpen" x-on:keydown.space.prevent="sidebarMobileOpen = !sidebarMobileOpen" role="button" tabindex="0" aria-label="Close menu">

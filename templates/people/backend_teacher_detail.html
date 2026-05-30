@@ -27,7 +27,7 @@
       </div>
     </div>
   </div>
-  {# Pass 9 platform-wide: per-record audit drill-down — SOC 2 + FERPA staff traceability. #}
+  {% comment %} Pass 9 platform-wide: per-record audit drill-down — SOC 2 + FERPA staff traceability. {% endcomment %}
   {% if teacher %}{% recent_activity_for "TeacherProfile" teacher.pk %}{% endif %}
 </div>
 {% endblock %}

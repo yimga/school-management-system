@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Shared Start + Guided setup — single nav model for /admin/ and /super/ (batch 1499). #}
+{% comment %} Shared Start + Guided setup — single nav model for /admin/ and /super/ (batch 1499). {% endcomment %}
 {% for group in MANAGER_UNIFIED_SIDEBAR_GROUPS %}
   {% if group.label %}
   <details class="cp-sidebar__group cp-sidebar__group--unified{% if group.expanded %} cp-sidebar__group--expanded{% endif %}"

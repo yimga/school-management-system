@@ -78,13 +78,8 @@ jobs:
           RUN_BACKLOG_UNLOCK_EVAL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '1' || '0' }}
         run: bash scripts/pre_deploy_gate.sh
 
-      - name: i18n (makemessages + compilemessages)
-        run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq gettext > /dev/null 2>&1 || true
-          if command -v xgettext > /dev/null 2>&1; then
-            python manage.py makemessages -l en -a --no-obsolete --no-wrap 2>/dev/null || true
-            python manage.py compilemessages 2>/dev/null || true
-          fi
+      - name: World Engine i18n CI (catalog freshness + compile)
+        run: python scripts/verify_world_engine_i18n_ci.py
 
       - name: Upload visual QA artifacts
         if: always()

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-29T20:12:18.330107+00:00",
+  "generated_at": "2026-05-30T12:36:06.164309+00:00",
   "pass": true,
-  "templates_scanned": 1388,
+  "templates_scanned": 1391,
   "rows": [
     {
       "check_id": "forbid_bundle_templates_control_plane_skeleton.html",
@@ -361,7 +361,7 @@
       "check_id": "sweep_non_marketing_no_bundle",
       "description": "No non-marketing template includes corporate_footer_bundle.html",
       "status": "PASS",
-      "proof": "1388 templates scanned"
+      "proof": "1391 templates scanned"
     },
     {
       "check_id": "sweep_non_marketing_no_mkt_command",

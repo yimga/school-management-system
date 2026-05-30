@@ -43757,3 +43757,242 @@ msgstr ""
 
 msgid "rotation"
 msgstr ""
+
+msgid "Fresh"
+msgstr ""
+
+msgid "Idempotency-Key audit"
+msgstr ""
+
+msgid ""
+"In-process ring buffer of recent Result Service Idempotency-Key events. "
+"Operational visibility into which keys were freshly handled vs replayed from"
+" cache. Not a forensic record."
+msgstr ""
+
+msgid ""
+"No events recorded yet. The ring populates as Idempotency-Key writes hit the"
+" Result Service."
+msgstr ""
+
+msgid "OneRoster Idempotency-Key audit"
+msgstr ""
+
+msgid "Replayed"
+msgstr ""
+
+msgid "Replayed?"
+msgstr ""
+
+msgid "Time (UTC)"
+msgstr ""
+
+msgid "Total events"
+msgstr ""
+
+msgid "fresh"
+msgstr ""
+
+msgid "fresh only"
+msgstr ""
+
+msgid "replayed"
+msgstr ""
+
+msgid "replayed only"
+msgstr ""
+
+msgid "Force refresh"
+msgstr ""
+
+msgid "Force rotate"
+msgstr ""
+
+msgid "Last action"
+msgstr ""
+
+msgid "Resolved conflicts pagination"
+msgstr ""
+
+msgid "entities"
+msgstr ""
+
+msgid "references"
+msgstr ""
+
+msgid ""
+"Show {{ counter }} more field{% plural %}Show {{ counter }} more fields"
+msgstr ""
+
+msgid "{{ n }} usage refs"
+msgstr ""
+
+msgid "Actor (hash)"
+msgstr ""
+
+msgid "Auto-pruned (24h)"
+msgstr ""
+
+msgid "Considered"
+msgstr ""
+
+msgid "Last action history"
+msgstr ""
+
+msgid ""
+"No diagnostic actions recorded yet. Click 'Force refresh' or 'Force rotate' "
+"above to populate."
+msgstr ""
+
+msgid "Prune dry (24h)"
+msgstr ""
+
+msgid "Prune dry-run (24h)"
+msgstr ""
+
+msgid "Pruned (24h)"
+msgstr ""
+
+msgid "Timestamp"
+msgstr ""
+
+msgid "Totals across the ring:"
+msgstr ""
+
+msgid "for just the last-action ring."
+msgstr ""
+
+msgid "for the same data, or"
+msgstr ""
+
+msgid "ring buffer, cap 200, newest first"
+msgstr ""
+
+msgid "Actually deleted"
+msgstr ""
+
+msgid "Audit row is written to action-history."
+msgstr ""
+
+msgid "Confirm purge"
+msgstr ""
+
+msgid "Confirm purge — actually delete"
+msgstr ""
+
+msgid "Deleted"
+msgstr ""
+
+msgid "Diag-action retention preview"
+msgstr ""
+
+msgid "Forecast different windows"
+msgstr ""
+
+msgid ""
+"Forecasts what the next LMSDiagActionAudit retention sweep would purge — "
+"without actually deleting anything. Reuses the same cutoff math the Celery "
+"beat uses, so preview and real-sweep semantics stay identical."
+msgstr ""
+
+msgid "LMS diag-action retention preview"
+msgstr ""
+
+msgid ""
+"Permanently delete {{ counter }} row older than the cutoff above.{% plural "
+"%}Permanently delete {{ counter }} rows older than the cutoff above."
+msgstr ""
+
+msgid "Preview only — nothing was deleted."
+msgstr ""
+
+msgid "Purge complete."
+msgstr ""
+
+msgid "Retention years"
+msgstr ""
+
+msgid "Sweep parameters"
+msgstr ""
+
+msgid "This token is valid for"
+msgstr ""
+
+msgid ""
+"Use ?years=&lt;N&gt; to override the retention window for the forecast. The "
+"real Celery beat reads RMC_LMS_DIAG_ACTION_RETENTION_YEARS (default 7y "
+"FERPA)."
+msgstr ""
+
+msgid "Would delete"
+msgstr ""
+
+msgid "back to LMS diagnostics"
+msgstr ""
+
+msgid "cutoff_iso"
+msgstr ""
+
+msgid "dry_run"
+msgstr ""
+
+msgid "retain forever"
+msgstr ""
+
+msgid "skipped"
+msgstr ""
+
+msgid "years_override"
+msgstr ""
+
+msgid "After total"
+msgstr ""
+
+msgid "Before total"
+msgstr ""
+
+msgid "CSV (sparkline + summary)"
+msgstr ""
+
+msgid "Row distribution by week"
+msgstr ""
+
+msgid "cutoff"
+msgstr ""
+
+msgid ""
+"{{ weeks }} weeks before cutoff and {{ weeks }} weeks after. Bars left of "
+"the divider would purge; bars right of the divider would be kept."
+msgstr ""
+
+msgid "Discarded"
+msgstr ""
+
+msgid "Filter by status"
+msgstr ""
+
+msgid "No {{ status_filter }} dead-letter rows."
+msgstr ""
+
+msgid "Payload bytes"
+msgstr ""
+
+msgid "Queue is healthy"
+msgstr ""
+
+msgid "Webhook Dead Letter Queue"
+msgstr ""
+
+msgid ""
+"Webhook deliveries that exhausted their retry budget. Replay an entry to re-"
+"attempt outbound delivery."
+msgstr ""
+
+msgid "in status"
+msgstr ""
+
+msgid "{{ counter }} row{% plural %}{{ counter }} rows"
+msgstr ""
+
+msgid "← Back to delivery log"
+msgstr ""

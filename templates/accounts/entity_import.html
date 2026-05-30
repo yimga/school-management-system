@@ -1,7 +1,7 @@
 {% extends "backend_base.html" %}
 {% load static i18n workflow_guidance_tags terminology_tags %}
-{# Wave 13 (v3.62.17): CSV column docs use {% term %} so an IN-HI tenant sees #}
-{# "विद्यार्थी CSV" / "अभिभावक CSV" in the help text. #}
+{% comment %} Wave 13 (v3.62.17): CSV column docs use {% term %} so an IN-HI tenant sees {% endcomment %}
+{% comment %} "विद्यार्थी CSV" / "अभिभावक CSV" in the help text. {% endcomment %}
 {% term "student" plural=True capitalize=True as student_pl %}
 {% term "guardian" plural=True capitalize=True as guardian_pl %}
 
@@ -33,7 +33,7 @@
     </div>
   </div>
 
-  {# W2-3: Empty state + Download sample / Column guide #}
+  {% comment %} W2-3: Empty state + Download sample / Column guide {% endcomment %}
   <div class="alert alert-info mb-3">
     <strong>{% trans "First time?" %}</strong>
     <a href="{% static 'samples/entity_students_sample.csv' %}" download class="alert-link">{% trans "Download sample" %}</a>

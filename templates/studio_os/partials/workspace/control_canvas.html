@@ -10,7 +10,7 @@ Cockpit additions are additive on top of the existing in-shell control panel
 path — the v3.33 inline feature-control surface is preserved verbatim.
 {% endcomment %}
 
-{# ---- Existing inline feature control panel (v3.33 contract — preserved) ---- #}
+{% comment %} ---- Existing inline feature control panel (v3.33 contract — preserved) ---- {% endcomment %}
 {% if control_panel_html %}
 <div class="studio-os__control-in-shell" id="control-panel-wrap">{{ control_panel_html|safe }}</div>
 {% endif %}
@@ -32,12 +32,12 @@ path — the v3.33 inline feature-control surface is preserved verbatim.
 </div>
 {% endif %}
 
-{# ---- v3.54 governance cockpit grid (additive) ---- #}
+{% comment %} ---- v3.54 governance cockpit grid (additive) ---- {% endcomment %}
 <section class="rmc-control-cockpit"
          data-rmc-control-cockpit="governance"
          aria-label="{% trans 'Governance cockpit' %}">
 
-  {# Tile 1 — Audit summary #}
+  {% comment %} Tile 1 — Audit summary {% endcomment %}
   <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-audit">
     <header class="rmc-control-cockpit__tile-head">
       <h3 id="rmc-control-tile-audit" class="rmc-control-cockpit__tile-title">
@@ -85,7 +85,7 @@ path — the v3.33 inline feature-control surface is preserved verbatim.
     </footer>
   </article>
 
-  {# Tile 2 — Risk state (honest empty state when no risk engine wired) #}
+  {% comment %} Tile 2 — Risk state (honest empty state when no risk engine wired) {% endcomment %}
   <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-risk">
     <header class="rmc-control-cockpit__tile-head">
       <h3 id="rmc-control-tile-risk" class="rmc-control-cockpit__tile-title">
@@ -123,7 +123,7 @@ path — the v3.33 inline feature-control surface is preserved verbatim.
     </div>
   </article>
 
-  {# Tile 3 — Permission overview #}
+  {% comment %} Tile 3 — Permission overview {% endcomment %}
   <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-perms">
     <header class="rmc-control-cockpit__tile-head">
       <h3 id="rmc-control-tile-perms" class="rmc-control-cockpit__tile-title">
@@ -147,7 +147,7 @@ path — the v3.33 inline feature-control surface is preserved verbatim.
     </footer>
   </article>
 
-  {# Tile 4 — Dependency graph teaser #}
+  {% comment %} Tile 4 — Dependency graph teaser {% endcomment %}
   <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-dep">
     <header class="rmc-control-cockpit__tile-head">
       <h3 id="rmc-control-tile-dep" class="rmc-control-cockpit__tile-title">
@@ -177,7 +177,7 @@ path — the v3.33 inline feature-control surface is preserved verbatim.
     </footer>
   </article>
 
-  {# Tile 5 — Feature flag bridge (links OUT, never duplicates) #}
+  {% comment %} Tile 5 — Feature flag bridge (links OUT, never duplicates) {% endcomment %}
   <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-flags">
     <header class="rmc-control-cockpit__tile-head">
       <h3 id="rmc-control-tile-flags" class="rmc-control-cockpit__tile-title">
@@ -208,7 +208,7 @@ path — the v3.33 inline feature-control surface is preserved verbatim.
     </footer>
   </article>
 
-  {# Tile 6 — Rollback control (gated + confirm pattern) #}
+  {% comment %} Tile 6 — Rollback control (gated + confirm pattern) {% endcomment %}
   <article class="rmc-control-cockpit__tile" aria-labelledby="rmc-control-tile-rollback">
     <header class="rmc-control-cockpit__tile-head">
       <h3 id="rmc-control-tile-rollback" class="rmc-control-cockpit__tile-title">
@@ -240,5 +240,5 @@ path — the v3.33 inline feature-control surface is preserved verbatim.
 
 </section>
 
-{# ---- Governance preview pane (uses studio_control_impact data when present) ---- #}
+{% comment %} ---- Governance preview pane (uses studio_control_impact data when present) ---- {% endcomment %}
 {% include "studio_os/partials/control_governance_preview_pane.html" %}

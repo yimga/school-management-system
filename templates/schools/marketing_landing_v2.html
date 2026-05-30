@@ -35,14 +35,14 @@
   {% if v2_preview %}<meta name="robots" content="noindex, nofollow">{% endif %}
 {% endblock %}
 
-{# Body editorial flag + section signature come from the base default; we just inherit them. #}
+{% comment %} Body editorial flag + section signature come from the base default; we just inherit them. {% endcomment %}
 
 {% block marketing_main_extra_classes %}container-fluid px-0 py-0{% endblock %}
 
 {% block content %}
 <div data-mkt-edition="editorial" data-mkt-schoolhouse="true" data-mkt-personality="home" class="mkt-edt-root mkt-v3-root mkt-personality-shell mkt-personality-shell--home" id="mkt-edt-root" data-marketing-tour-context="marketing_home">
 
-  {# ───────── 1. HERO ───────── #}
+  {% comment %} ───────── 1. HERO ───────── {% endcomment %}
   <section class="mkt-edt-section mkt-edt-hero mkt-edt-hero--edge" aria-labelledby="hero-headline" data-tour="mkt-hero">
     <div class="mkt-edt-hero__grid mkt-edt-container--edge">
       <div class="mkt-edt-hero__copy rmc-arrival">
@@ -130,7 +130,7 @@
 
   <hr class="mkt-edt-rule">
 
-  {# ───────── 2.5  "WHAT CHANGES" — ROI PANEL ───────── #}
+  {% comment %} ───────── 2.5  "WHAT CHANGES" — ROI PANEL ───────── {% endcomment %}
   <section class="mkt-edt-section mkt-edt-roi mkt-edt-roi--edge rmc-reveal" aria-labelledby="roi-headline" data-mkt-reveal data-tour="mkt-roi">
     <div class="mkt-edt-container mkt-edt-container--wide">
       <header class="mkt-edt-roi__intro">
@@ -178,7 +178,7 @@
     <span class="mkt-section-divider__mark">{% include "components/_bell_clock_mark.html" with size=24 filled_segments=3 accessible_label="" %}</span>
   </div>
 
-  {# ───────── 2.97  60-SECOND PRODUCT WALKTHROUGH ───────── #}
+  {% comment %} ───────── 2.97  60-SECOND PRODUCT WALKTHROUGH ───────── {% endcomment %}
   <section class="mkt-edt-section mkt-edt-walkthrough mkt-edt-walkthrough--edge mkt-v3-cinematic rmc-reveal" aria-labelledby="walkthrough-headline" data-mkt-reveal data-mkt-section="walkthrough" data-tour="mkt-walkthrough">
     <div class="mkt-edt-container mkt-edt-container--wide">
       <header class="mkt-edt-walkthrough__intro">
@@ -254,7 +254,7 @@
 
   <hr class="mkt-edt-rule">
 
-  {# ───────── 2.75  GEOGRAPHIC MOMENT — WORLD MAP (full-bleed) ───────── #}
+  {% comment %} ───────── 2.75  GEOGRAPHIC MOMENT — WORLD MAP (full-bleed) ───────── {% endcomment %}
   <section class="mkt-edt-section mkt-edt-globe mkt-edt-globe--fullbleed mkt-v3-cinematic rmc-reveal" aria-labelledby="globe-headline" data-mkt-reveal data-mkt-section="global">
     <div class="mkt-edt-container">
       <header class="mkt-edt-globe__intro">
@@ -265,7 +265,7 @@
         <p class="mkt-edt-lead">
           {% trans "Run on local time, in the right language, with the academic structure your country actually uses. No forks. No regional plug-ins. One platform that bends to each campus." %}
         </p>
-        {# Phase 4 — bell-clock scale signal: live-count signal, not a static stat. #}
+        {% comment %} Phase 4 — bell-clock scale signal: live-count signal, not a static stat. {% endcomment %}
         <p class="mkt-scale-signal" aria-label="{% trans 'Platform scale' %}">
           <span class="mkt-scale-signal__mark" aria-hidden="true">{% include "components/_bell_clock_mark.html" with size=16 filled_segments=4 accessible_label="" %}</span>
           <span>{% blocktrans %}Running across <span class="mkt-scale-signal__count">{{ marketing_scale_school_count|default:"40+" }}</span> schools in <span class="mkt-scale-signal__count">{{ marketing_scale_country_count|default:"12" }}</span> countries{% endblocktrans %}</span>
@@ -296,7 +296,7 @@
 
 
 
-  {# ───────── 3. SWITCHING MOMENT ───────── #}
+  {% comment %} ───────── 3. SWITCHING MOMENT ───────── {% endcomment %}
   <section class="mkt-edt-section mkt-edt-switching rmc-reveal" aria-labelledby="switching-headline" data-mkt-reveal>
     <div class="mkt-edt-container-narrow mkt-edt-switching__inner">
       <p class="mkt-edt-eyebrow">{% trans "Coming from somewhere else?" %}</p>
@@ -317,7 +317,7 @@
 
   <hr class="mkt-edt-rule">
 
-  {# ───────── 3.25  ASYMMETRIC COMPARE: LEGACY vs. RUNMYCAMPUS ───────── #}
+  {% comment %} ───────── 3.25  ASYMMETRIC COMPARE: LEGACY vs. RUNMYCAMPUS ───────── {% endcomment %}
   <section class="mkt-edt-section mkt-edt-compare rmc-reveal" aria-labelledby="compare-headline" data-mkt-reveal>
     <div class="mkt-edt-container mkt-edt-compare__inner">
       <header class="mkt-edt-compare__intro">
@@ -339,7 +339,7 @@
     <span class="mkt-section-divider__mark">{% include "components/_bell_clock_mark.html" with size=24 filled_segments=5 accessible_label="" %}</span>
   </div>
 
-  {# ───────── 4. PRICING TEASER ───────── #}
+  {% comment %} ───────── 4. PRICING TEASER ───────── {% endcomment %}
   <section class="mkt-edt-section rmc-reveal" aria-labelledby="pricing-headline" data-mkt-reveal data-tour="mkt-pricing">
     <div class="mkt-edt-container">
       <header class="mkt-edt-pricing__intro">
@@ -450,7 +450,7 @@
 
   <hr class="mkt-edt-rule">
 
-  {# ───────── 5. CLOSE CTA ───────── #}
+  {% comment %} ───────── 5. CLOSE CTA ───────── {% endcomment %}
   <section class="mkt-edt-section mkt-edt-close rmc-reveal" aria-labelledby="close-headline">
     <div class="mkt-edt-container-narrow mkt-edt-close__inner mkt-edt-close__inner--with-advisor">
       <div class="mkt-edt-close__figure mkt-advisor-figure mkt-advisor-figure--muted" aria-hidden="true">

@@ -441,7 +441,7 @@
 </form>
 {% endif %}
 
-{# Pass 9: per-record audit drill-down — SOC 2 + FERPA financial-access traceability. #}
+{% comment %} Pass 9: per-record audit drill-down — SOC 2 + FERPA financial-access traceability. {% endcomment %}
 {% if invoice %}{% recent_activity_for "Invoice" invoice.pk %}{% endif %}
 </div>
 {% endblock %}

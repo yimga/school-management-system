@@ -18,7 +18,7 @@
 {% endblock %}
 
 {% block cp_content %}
-<div class="container-fluid py-2" data-page-archetype="catalog">
+<div class="container-fluid py-2" data-page-archetype="catalog" data-rmc-scroll-policy="paginate">
   {% include "studio_os/components/page_header.html" with title=_("Workflow Packs") subtitle=_("Assignable process packs (admissions, fee approval, grade publish, etc.). Filter by sector (Wedges 14–22).") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   {% if sector_choices %}
   <p class="small text-muted mb-2">{% trans "Filter by sector:" %}
@@ -30,7 +30,7 @@
   {% endif %}
   <div class="card shadow-sm border-secondary">
     <div class="card-body p-0">
-      <table class="table table-family table-hover mb-0">
+      <table class="table table-family table-hover mb-0 rmc-data-table">
         <caption class="visually-hidden">{% trans "Workflow Packs" %}</caption>
         <thead>
           <tr><th>{% trans "Code" %}</th><th>{% trans "Name" %}</th><th>{% trans "Family" %}</th><th>{% trans "Sector" %}</th><th>{% trans "Version" %}</th></tr>
@@ -51,5 +51,6 @@
       </table>
     </div>
   </div>
+  {% include "components/pagination.html" with page_obj=page_obj pagination_extra_query=pagination_extra_query %}
 </div>
 {% endblock %}

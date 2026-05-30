@@ -202,6 +202,6 @@
 
 {% block extrajs %}
 <script src="{% static 'js/form-draft-save.js' %}"></script>
-{# FormDraftSave.init is called by the page script after the library loads. #}
+{% comment %} FormDraftSave.init is called by the page script after the library loads. {% endcomment %}
 <script src="{% static 'js/_pages/parent__link_child.js' %}"></script>
 {% endblock %}

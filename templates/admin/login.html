@@ -59,7 +59,7 @@
         {% translate "Log in" %}
       {% endcomponent %}
 
-      {# password_reset_url resolved in RunMyCampusAdminSite.login (admin:password_reset or unfold fallback) #}
+      {% comment %} password_reset_url resolved in RunMyCampusAdminSite.login (admin:password_reset or unfold fallback) {% endcomment %}
       {% if password_reset_url %}
         {% component "unfold/components/button.html" with href=password_reset_url variant="secondary" class="password-reset-link w-full" %}
           {% translate "Forgotten your password or username?" %}

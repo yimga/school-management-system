@@ -4,7 +4,7 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
-  {# v3.57.1 (2026-05-21): PWA install-prompt chrome (admin backoffice). #}
+  {% comment %} v3.57.1 (2026-05-21): PWA install-prompt chrome (admin backoffice). {% endcomment %}
   <meta name="theme-color" content="#0b0b0b">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,6 +19,23 @@
   template owns the <html> tag (third-party), so we toggle the attribute here.
   {% endcomment %}
   <script nonce="{{ csp_nonce }}">document.documentElement.setAttribute('data-rmc-aesthetic','cool-apple');
+    (function () {
+      try {
+        if (localStorage.getItem('rmc-os-grade') === 'on') {
+          document.documentElement.setAttribute('data-rmc-os-grade', '1');
+        } else {
+          document.documentElement.removeAttribute('data-rmc-os-grade');
+        }
+        var density = localStorage.getItem('rmc-admin-density');
+        document.documentElement.setAttribute(
+          'data-rmc-admin-density',
+          density === 'compact' ? 'compact' : 'comfortable'
+        );
+      } catch (e) {
+        document.documentElement.setAttribute('data-rmc-admin-density', 'comfortable');
+        document.documentElement.removeAttribute('data-rmc-os-grade');
+      }
+    })();
     // v2.6 viewport-fit=cover parity — Unfold's skeleton.html owns the viewport
     // meta; patch it here so safe-area-inset utilities behave on notched devices.
     (function(){var m=document.querySelector('meta[name="viewport"]');if(m&&!/viewport-fit/.test(m.getAttribute('content')||'')){m.setAttribute('content',(m.getAttribute('content')||'width=device-width, initial-scale=1')+', viewport-fit=cover');}})();
@@ -33,9 +50,9 @@
   <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
   {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
   <script src="{% static 'js/rmc-reveal.js' %}"></script>
-  {# v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. #}
+  {% comment %} v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. {% endcomment %}
   <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
-  {# v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. #}
+  {% comment %} v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. {% endcomment %}
   <script src="{% static 'js/rmc-command-bar.js' %}"></script>
   <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
   <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
@@ -45,7 +62,7 @@
   <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
   <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
   <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
-  {# v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). #}
+  {% comment %} v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). {% endcomment %}
   <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
   {% if is_manager_host %}
@@ -58,10 +75,10 @@
      BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
-  {# v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. #}
+  {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
-  {# v2.53 (2026-05-15): platform-wide cool-apple polish. #}
+  {% comment %} v2.53 (2026-05-15): platform-wide cool-apple polish. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens-luxury.css' %}">
   <link rel="stylesheet" href="{% static 'css/patterns.css' %}">
@@ -96,7 +113,7 @@
   <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
   <link rel="stylesheet" href="{% static 'css/phase2-admin-bundle.css' %}">
-  {# Phase G (2026-05-12): platform-wide long-page grammar. #}
+  {% comment %} Phase G (2026-05-12): platform-wide long-page grammar. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-cp-parity.css' %}">
   {% include "partials/rmc_platform_chrome_styles.html" %}
@@ -137,14 +154,14 @@
   <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/control-plane-skeleton-root.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
-  {# v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). #}
+  {% comment %} v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
-  {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
+  {% comment %} v3.58.2 (2026-05-22): platform-wide vertical-density spec. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-surface-spacing-contract.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
-  {# v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic + admin mirror cockpit (adoption wave). #}
+  {% comment %} v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic + admin mirror cockpit (adoption wave). {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-mirror.css' %}">
@@ -157,7 +174,7 @@
   <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
   <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
-  {# v3.53.0 (2026-05-21): signature motion + command bar styles. #}
+  {% comment %} v3.53.0 (2026-05-21): signature motion + command bar styles. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
   {% if not is_manager_host %}
@@ -165,7 +182,7 @@
   {% endif %}
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
-  {# Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). #}
+  {% comment %} Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). {% endcomment %}
   <style id="admin-brand-resolved-tokens">
     :root {
       --brand-success: {{ ADMIN_RESOLVED_SUCCESS|default:"#22c55e" }};
@@ -179,7 +196,7 @@
   {{ block.super }}
   <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
   {% if is_manager_host %}<link rel="icon" href="{% if PUBLIC_BRAND_FAVICON_URL %}{{ PUBLIC_BRAND_FAVICON_URL }}{% else %}{% static 'images/runmycampus-icon-bell.svg' %}{% endif %}" type="image/svg+xml">{% elif SITE_FAVICON_URL %}<link rel="icon" href="{{ SITE_FAVICON_URL }}" type="image/x-icon">{% endif %}
-  {# Configuration Engine: premium shell on all hosts – manager gets navy/gold, tenant gets same UX with school theme #}
+  {% comment %} Configuration Engine: premium shell on all hosts – manager gets navy/gold, tenant gets same UX with school theme {% endcomment %}
   <script nonce="{{ csp_nonce }}">
     (function () {
       var h = document.documentElement;
@@ -285,7 +302,7 @@
       </div>
     </div>
   {% endif %}
-    {# The logo background is handled by CSS above. #}
+    {% comment %} The logo background is handled by CSS above. {% endcomment %}
 {% endblock %}
 
 {% block nav-global %}
@@ -317,14 +334,14 @@
      bottom-right floating button. {% endcomment %}
   {% include "partials/help_contextual_drawer.html" %}
   {% include 'components/toast_notifications.html' %}
-  {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
+  {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
   {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}
   <script src="{% static 'js/rmc-interaction-guard.js' %}" defer></script>
   <script src="{% static 'js/rmc-surface-overlay-guard.js' %}"></script>
   {% if is_manager_host %}
   <script src="{% static 'js/rmc-admin-v1-200x.js' %}" defer></script>
   {% endif %}
-  {# Phase G: ⌘K command palette on the admin shell too. #}
+  {% comment %} Phase G: ⌘K command palette on the admin shell too. {% endcomment %}
   {% if request.user.is_authenticated %}
     {% include 'components/rmc_command_palette.html' %}
     {% include "partials/rmc_assist_dock_labels.html" %}
@@ -336,7 +353,7 @@
     <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-dirty.js' %}" defer></script>
     <script src="{% static 'js/rmc-autosubmit.js' %}" defer></script>
-    {# v2.47: inline drawer collapse/expand toggle. #}
+    {% comment %} v2.47: inline drawer collapse/expand toggle. {% endcomment %}
     <script src="{% static 'js/rmc-acx-drawer-toggle.js' %}" defer></script>
     <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
     {% include "partials/rmc_platform_chrome_scripts.html" %}
@@ -503,7 +520,7 @@
     });
   })();
   </script>
-  {# Phase 1: Bootstrap bundle required for offcanvas Context drawer (data-bs-toggle) — Unfold does not ship it. #}
+  {% comment %} Phase 1: Bootstrap bundle required for offcanvas Context drawer (data-bs-toggle) — Unfold does not ship it. {% endcomment %}
   {% if is_manager_host %}
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}

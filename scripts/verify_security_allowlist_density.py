@@ -27,9 +27,10 @@ ROOT = Path(__file__).resolve().parent.parent
 # surfaces, Migration Cloud public API docs, and tracked root manifest growth;
 # embedded classification lints still enforce exact path/count parity.
 # tracked_root: repo-root file allowlist for mega-file / tree gates (shrink-only).
+# 2026-05-29: batch 1578 final audit — OneRoster Demographics module (apps/api/oneroster_demographics.py).
 MAX_COUNTS: dict[str, tuple[str, int]] = {
     "raw_sql_allowlist.json": ("files", 20),
-    "csrf_exempt_allowlist.json": ("files", 29),
+    "csrf_exempt_allowlist.json": ("files", 31),
     "allow_any_allowlist.json": ("files", 4),
     "broad_except_allowlist.json": ("allowed_counts", 189),
     "tracked_root_allowlist.json": ("allowed", 34),

@@ -4,8 +4,8 @@
 {% block page_title %}{{ page_title|default:"Email delivery health" }}{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
-{# Page-level CSS — values are control-plane-tokenized; literals below are #}
-{# intentionally controlled, off-token-allow: operator-dashboard-card-spacing. #}
+{% comment %} Page-level CSS — values are control-plane-tokenized; literals below are {% endcomment %}
+{% comment %} intentionally controlled, off-token-allow: operator-dashboard-card-spacing. {% endcomment %}
 <style nonce="{{ request.csp_nonce|default:'' }}">
 /* off-token-allow: operator-email-health-card-grid-utility */
 .rmc-email-health__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1rem;margin-top:1rem;}
@@ -236,8 +236,8 @@
   });
 })();
 </script>
-{# v3.58.x Wave 9 Agent M — SSE live counters. Idempotent via dataset flag #}
-{# so HTMX / Turbo partial swap-ins don't re-arm a second EventSource. #}
+{% comment %} v3.58.x Wave 9 Agent M — SSE live counters. Idempotent via dataset flag {% endcomment %}
+{% comment %} so HTMX / Turbo partial swap-ins don't re-arm a second EventSource. {% endcomment %}
 <script nonce="{{ request.csp_nonce|default:'' }}">
 (function(){
   var root = document.body;

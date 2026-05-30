@@ -4,7 +4,7 @@
 {% block form_before %}
   <div id="site-settings-unsaved-indicator" class="hidden rounded-lg border px-3 py-1.5 text-sm font-medium shadow-sm bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 mb-4" role="status" aria-live="polite">{% trans "Unsaved changes" %}</div>
   <span id="site-settings-preview-url" data-url="{% url 'siteconfig:preview_from_form' %}" class="hidden" aria-hidden="true"></span>
-  {# P3: SiteSettings is tenant_admin-only; `super:` URLs are not in tenant urlconf — link siteconfig + Studio surfaces that resolve on school hosts. #}
+  {% comment %} P3: SiteSettings is tenant_admin-only; `super:` URLs are not in tenant urlconf — link siteconfig + Studio surfaces that resolve on school hosts. {% endcomment %}
   <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="site-settings-cp-escape-heading">
     <h2 id="site-settings-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% trans "Product control plane" %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Guided workflows live outside this form. Use this page when you need every advanced field." %}</p>
@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block field_sets %}
-  {# Phase 1.2: Vertical sidebar -- render each tab fieldset as a section; sidebar links scroll to section and set active. #}
+  {% comment %} Phase 1.2: Vertical sidebar -- render each tab fieldset as a section; sidebar links scroll to section and set active. {% endcomment %}
   {% with has_conditional_display=adminform.model_admin.conditional_fields %}
     {% for fieldset in adminform %}
       {% if "tab" in fieldset.classes %}
@@ -43,7 +43,7 @@
 
 {% block after_field_sets %}
   {{ block.super }}
-  {# Phase 1.2: Vertical sidebar navigation + sessionStorage + mobile dropdown #}
+  {% comment %} Phase 1.2: Vertical sidebar navigation + sessionStorage + mobile dropdown {% endcomment %}
   <script>
   (function() {
     var STORAGE_KEY = 'site_settings_active_section';
@@ -291,7 +291,7 @@
     }
   })();
   </script>
-  {# Phase 6.4: Inline tooltip for complex toggle - finance_notify_guardians_new_invoice #}
+  {% comment %} Phase 6.4: Inline tooltip for complex toggle - finance_notify_guardians_new_invoice {% endcomment %}
   <script>
   (function() {
     var row = document.querySelector('.field-finance_notify_guardians_new_invoice');

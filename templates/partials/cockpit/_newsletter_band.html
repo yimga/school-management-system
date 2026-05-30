@@ -35,7 +35,7 @@ Security:
           method="post"
           autocomplete="off">
       {% if n.submit_url|slice:":1" == "/" %}
-        {# In-platform endpoint — include CSRF. External endpoints (mailchimp etc) do NOT get the CSRF token. #}
+        {% comment %} In-platform endpoint — include CSRF. External endpoints (mailchimp etc) do NOT get the CSRF token. {% endcomment %}
         {% csrf_token %}
       {% endif %}
       <input type="email"

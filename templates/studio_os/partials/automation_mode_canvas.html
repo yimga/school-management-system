@@ -1,7 +1,7 @@
 {% load i18n %}
-{# v3.54 (2026-05-21, Agent 3): mode canvas dispatcher. #}
-{# Tenant shells use workspace_layout; manager host gets the legacy two-pane. #}
-{# Either path loads the environment banner so scope is always visible. #}
+{% comment %} v3.54 (2026-05-21, Agent 3): mode canvas dispatcher. {% endcomment %}
+{% comment %} Tenant shells use workspace_layout; manager host gets the legacy two-pane. {% endcomment %}
+{% comment %} Either path loads the environment banner so scope is always visible. {% endcomment %}
 {% if automation_left_rail and request.public_host_kind != 'manager' %}
 {% include "studio_os/components/workspace_layout.html" with workspace_mode="automation" workspace_aria_label=_("Automation") workspace_rail_template="studio_os/partials/workspace/automation_rail.html" workspace_canvas_template="studio_os/partials/workspace/automation_canvas.html" %}
 {% else %}

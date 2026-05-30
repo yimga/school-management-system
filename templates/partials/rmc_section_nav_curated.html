@@ -1,6 +1,6 @@
 {% load i18n %}
-{# Curated in-page section jumps — pass section_nav_items: [{id, label}, ...] #}
-{# Default: static inline subnav (no sticky, no details pill). Opt-in legacy TOC: section_nav_mode="toc" #}
+{% comment %} Curated in-page section jumps — pass section_nav_items: [{id, label}, ...] {% endcomment %}
+{% comment %} Default: static inline subnav (no sticky, no details pill). Opt-in legacy TOC: section_nav_mode="toc" {% endcomment %}
 {% if section_nav_items %}
   {% if section_nav_mode == "toc" %}
 <nav

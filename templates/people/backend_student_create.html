@@ -3,10 +3,10 @@
 {% load static %}
 {% load region_format %}
 {% load terminology_tags %}
-{# Backend UI: distinct from /admin; uses portal backend light theme. #}
-{# Wave 13 (v3.62.17): lexicon adoption — header + subtitle + back-link #}
-{# use {% term %} so "Student" reads as the tenant's term (e.g. "Eleve" in #}
-{# FR, "विद्यार्थी" in IN-HI, "Ward" in PK). #}
+{% comment %} Backend UI: distinct from /admin; uses portal backend light theme. {% endcomment %}
+{% comment %} Wave 13 (v3.62.17): lexicon adoption — header + subtitle + back-link {% endcomment %}
+{% comment %} use {% term %} so "Student" reads as the tenant's term (e.g. "Eleve" in {% endcomment %}
+{% comment %} FR, "विद्यार्थी" in IN-HI, "Ward" in PK). {% endcomment %}
 {% term "student" capitalize=True as student_sg %}
 {% term "student" plural=True as student_pl_lc %}
 {% term "student" plural=True capitalize=True as student_pl %}

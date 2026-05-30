@@ -29,9 +29,9 @@ backend-shell dashboard-page-backend
    landing extends backend_base so we link explicitly. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-canvas-100x.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
-{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
-{# v4.00.12: shared resumable-wizards banner styles (also used by tenant_wizard_index). #}
+{% comment %} v4.00.12: shared resumable-wizards banner styles (also used by tenant_wizard_index). {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-wizard-index.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <!-- Include navigation bridge styles -->
@@ -76,7 +76,7 @@ backend-shell dashboard-page-backend
      primitive so school admins can fold sections they don't need. State persists per-section
      via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
   <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="backend-admin">
-    {# v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. #}
+    {% comment %} v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. {% endcomment %}
     {% include "partials/cockpit/_year_progress.html" %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="backend__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
     {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="backend__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
@@ -97,7 +97,7 @@ backend-shell dashboard-page-backend
   </div>
 
   {% if backend_show_legacy_dashboard %}
-  {# 1012: Same breadcrumb chrome as portal_base; actions DRY via backend_portal_breadcrumb_actions (no nested blocks). #}
+  {% comment %} 1012: Same breadcrumb chrome as portal_base; actions DRY via backend_portal_breadcrumb_actions (no nested blocks). {% endcomment %}
   {% include "partials/shell_chrome_breadcrumb_row_open.html" with shell_chrome_breadcrumb_surface=rmc_shell.tenant_portal_breadcrumb_surface %}
   {% include "partials/breadcrumbs.html" %}
   {% include "partials/shell_chrome_breadcrumb_row_between_primary_and_actions.html" %}
@@ -117,7 +117,7 @@ backend-shell dashboard-page-backend
     </nav>
   </div>
 
-  {# Optional: load status strip via HTMX so initial render does not wait on this data #}
+  {% comment %} Optional: load status strip via HTMX so initial render does not wait on this data {% endcomment %}
   <div class="backend-dashboard-content ui-premium-surface" data-decision-engine="surface" data-shell-surface="backend-dashboard" data-rmc-blueprint-surface="1101" data-rmc-component-audit="1" data-rmc-ux-role-dashboard="school-command-center" data-rmc-zero-click="1">
   {% include "partials/shell_chrome_backend_operational_status_load.html" %}
 
@@ -136,8 +136,8 @@ backend-shell dashboard-page-backend
   {% url 'siteconfig:scheduled_reports_delivery_hub' as backend_controls_url %}
   {% url 'school_configuration_center_canonical' as backend_school_config_url %}
   {% if not backend_school_config_url %}{% url 'school_configuration_center' as backend_school_config_url %}{% endif %}
-  {# data-page-header #}{# ds-action-bar #}
-  {# v3.59.x Wave 11 Agent X (2026-05-22): eyebrow added for v8 200x preview parity. #}
+  {% comment %} data-page-header {% endcomment %}{% comment %} ds-action-bar {% endcomment %}
+  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): eyebrow added for v8 200x preview parity. {% endcomment %}
   {% include "partials/luxury_major_audit_contract.html" with eyebrow=_("School operators") title=_("School Command Center") subtitle=_("What is happening, what needs attention, and your next step — without hunting through cards.") primary_url=backend_workflow_url primary_label=_("Workflow center") secondary_url=backend_reports_url secondary_label=_("Reports") %}
   <!-- rmc-ux-above-fold-end -->
 
@@ -1000,7 +1000,7 @@ backend-shell dashboard-page-backend
     </aside>
     {% endif %}
   </div>
-  {# v3.99.24: promoted cockpit widgets land here (data-widget-id ensures drag/hide/undo apply) #}
+  {% comment %} v3.99.24: promoted cockpit widgets land here (data-widget-id ensures drag/hide/undo apply) {% endcomment %}
   {% include "partials/cockpit/_promoted_dashboard_widgets.html" %}
   </details>
   {{ command_palette|json_script:"backend-command-palette-data" }}

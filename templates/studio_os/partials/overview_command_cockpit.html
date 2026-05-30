@@ -24,7 +24,7 @@
 {% endcomment %}
 <div class="rmc-overview-cockpit" data-rmc-overview-cockpit="1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 
-  {# ---------- 1. Mission hero — "Next best action" ---------- #}
+  {% comment %} ---------- 1. Mission hero — "Next best action" ---------- {% endcomment %}
   {% if studio_recommendations %}
   {% with nba=studio_recommendations.0 %}
   <section class="rmc-overview-hero" aria-labelledby="rmc-overview-hero-title" data-rmc-overview-hero="1">
@@ -57,7 +57,7 @@
   </section>
   {% endif %}
 
-  {# ---------- 2. Mode-card grid ---------- #}
+  {% comment %} ---------- 2. Mode-card grid ---------- {% endcomment %}
   <section aria-labelledby="rmc-overview-modes-heading" data-rmc-overview-modes="1">
     <h2 id="rmc-overview-modes-heading" class="visually-hidden">{% trans "Studio work modes" %}</h2>
     <div class="rmc-overview-mode-grid">
@@ -87,11 +87,11 @@
     </div>
   </section>
 
-  {# ---------- 3. Triptych: Readiness | Recently edited | Live previews ---------- #}
+  {% comment %} ---------- 3. Triptych: Readiness | Recently edited | Live previews ---------- {% endcomment %}
   <section class="rmc-overview-triptych" aria-labelledby="rmc-overview-triptych-heading" data-rmc-overview-triptych="1">
     <h2 id="rmc-overview-triptych-heading" class="visually-hidden">{% trans "Studio readiness, recent activity, and live previews" %}</h2>
 
-    {# ---- Card A: Launch readiness ---- #}
+    {% comment %} ---- Card A: Launch readiness ---- {% endcomment %}
     <article class="rmc-overview-card" data-rmc-overview-card="readiness">
       <h3 class="rmc-overview-card__title">{% trans "Launch readiness" %}</h3>
       {% if launch_health_summary %}
@@ -109,7 +109,7 @@
       {% endif %}
     </article>
 
-    {# ---- Card B: Recently edited ---- #}
+    {% comment %} ---- Card B: Recently edited ---- {% endcomment %}
     <article class="rmc-overview-card" data-rmc-overview-card="recent-activity">
       <h3 class="rmc-overview-card__title">{% trans "Recently edited" %}</h3>
       {% if studio_activity_feed %}
@@ -127,7 +127,7 @@
       {% endif %}
     </article>
 
-    {# ---- Card C: Live previews ---- #}
+    {% comment %} ---- Card C: Live previews ---- {% endcomment %}
     <article class="rmc-overview-card" data-rmc-overview-card="live-previews">
       <h3 class="rmc-overview-card__title">{% trans "Live previews" %}</h3>
       {% if studio_role_preview_entries %}
@@ -145,7 +145,7 @@
     </article>
   </section>
 
-  {# ---------- 4. Operational hubs action rail ---------- #}
+  {% comment %} ---------- 4. Operational hubs action rail ---------- {% endcomment %}
   {% if legacy_urls.approval_hub or legacy_urls.workflow_center or legacy_urls.import_hub or legacy_urls.document_library or legacy_urls.report_library or legacy_urls.rbac or legacy_urls.feature_control or legacy_urls.communication_groups %}
   <section aria-labelledby="rmc-overview-hubs-heading" data-rmc-overview-hubs="1">
     <h2 id="rmc-overview-hubs-heading" class="h6 mb-2">{% trans "Operational hubs" %}</h2>

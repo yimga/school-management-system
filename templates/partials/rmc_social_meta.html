@@ -35,7 +35,7 @@
 <meta property="og:site_name" content="{{ SITE.site_name|default:'RunMyCampus' }}">
 {% if request.LANGUAGE_CODE %}<meta property="og:locale" content="{{ request.LANGUAGE_CODE }}">{% endif %}
 
-{# Twitter / X cards #}
+{% comment %} Twitter / X cards {% endcomment %}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ og_title|default:SITE.site_name|default:'RunMyCampus' }}">
 {% if og_description or seo_description or SITE.meta_description %}
@@ -53,7 +53,7 @@
 {% endif %}
 {% if twitter_creator %}<meta name="twitter:creator" content="{{ twitter_creator }}">{% endif %}
 
-{# Hreflang: per-locale alternate URLs via hreflang_entries or LANGUAGES fallback. #}
+{% comment %} Hreflang: per-locale alternate URLs via hreflang_entries or LANGUAGES fallback. {% endcomment %}
 {% if hreflang_entries %}
   {% for entry in hreflang_entries %}
   <link rel="alternate" hreflang="{{ entry.hreflang }}" href="{{ entry.href }}">

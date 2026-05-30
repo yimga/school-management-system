@@ -24,7 +24,7 @@
 
 {% block coltype %}{% endblock %}
 
-{# Manager uses platform topbar (not Unfold header) — render add/tools in-page. #}
+{% comment %} Manager uses platform topbar (not Unfold header) — render add/tools in-page. {% endcomment %}
 {% block nav-global-side %}
     {% if not is_manager_host %}
         {% block object-tools %}

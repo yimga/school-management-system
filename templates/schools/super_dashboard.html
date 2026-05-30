@@ -14,7 +14,7 @@
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
-{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-calendar-weather-dashboard.css' %}">
 {% endblock %}
@@ -133,7 +133,7 @@
     {% include "components/world_class_product_moment_card.html" with title=_("Proof Ledger") outcome=_("Local proof and pending live parity stay separate so buyers see honest readiness.") status=_("Local only") action_url="/docs/generated/live_browser_ux_certification_report.md" action_label=_("View proof") %}
   </section>
   {% if operator_super_dashboard_links %}
-  {# v3.59.x Wave 11 Agent X (2026-05-22): operator-curated grouping adopts `.rmc-app-section--glass` per v8 200x preview. #}
+  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): operator-curated grouping adopts `.rmc-app-section--glass` per v8 200x preview. {% endcomment %}
   <div id="cmd-curated" data-rmc-section-anchor class="card shadow-sm border-0 page-family-content-card rmc-app-section--glass mb-3">
     <div class="card-header bg-dark text-light">{% trans "Operator curated links" %}</div>
     <div class="card-body">
@@ -792,7 +792,7 @@
 {% block extrajs %}
 {{ block.super }}
 <script src="{% static 'js/manager-control-plane.js' %}"></script>
-{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section runtime. #}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section runtime. {% endcomment %}
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <script type="application/json" id="page-data-schools__super_dashboard-1">{
   "var_super_dashboard_layout_url_escapejs": "{{ super_dashboard_layout_url|escapejs|escapejs }}"

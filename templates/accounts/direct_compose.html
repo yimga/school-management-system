@@ -33,7 +33,7 @@
           <div class="mb-3">
             <label for="body" class="form-label">Message</label>
             <textarea name="body" id="body" class="form-control" rows="5" required placeholder="Type your message..."></textarea>
-            {# Pass 13.D: AI draft button — only renders when AI_TEACHER_COMMS entitlement is on. #}
+            {% comment %} Pass 13.D: AI draft button — only renders when AI_TEACHER_COMMS entitlement is on. {% endcomment %}
             {% include "portal/partials/ai_draft_inline.html" with textarea_id="body" draft_endpoint=ai_teacher_comms_endpoint intent_value=ai_teacher_comms_intent entitlement_ok=ai_teacher_comms_enabled|default:False %}
           </div>
           <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Send</button>

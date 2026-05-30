@@ -1,5 +1,5 @@
 {% load i18n %}
-{# 1025: Shared tenant/control-plane impersonation notice (session-backed). #}
+{% comment %} 1025: Shared tenant/control-plane impersonation notice (session-backed). {% endcomment %}
 {% if request.session.impersonation %}
 <div
   class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 mb-0 rounded-0 border-0 border-bottom"

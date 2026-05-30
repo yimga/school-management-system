@@ -40,7 +40,7 @@ fallback so the page is always actionable.
   </header>
 
   {% if selected_vendor %}
-  {# Vendor confirmation chip — operator already picked one during onboarding. #}
+  {% comment %} Vendor confirmation chip — operator already picked one during onboarding. {% endcomment %}
   <div class="omig-vendor-chip" role="status" aria-label="{% trans 'Selected source platform' %}">
     <span class="omig-vendor-chip__monogram ovendor-tile__monogram--{{ selected_vendor.palette }}" aria-hidden="true">{{ selected_vendor.monogram }}</span>
     <div>

@@ -1,6 +1,6 @@
 {% load i18n %}
-{# luxury_ui_audit: page header marker + action-bar substring + ds-btn on primary CTAs. #}
-{# v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` so the shared luxury page-header inherits the v8 200x preview glow + tracked eyebrow on every caller. Existing classes preserved (border-bottom intentionally kept for surfaces that depend on it). #}
+{% comment %} luxury_ui_audit: page header marker + action-bar substring + ds-btn on primary CTAs. {% endcomment %}
+{% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` so the shared luxury page-header inherits the v8 200x preview glow + tracked eyebrow on every caller. Existing classes preserved (border-bottom intentionally kept for surfaces that depend on it). {% endcomment %}
 <header class="luxury-major-contract rmc-page-header-glow mb-3 pb-2 border-bottom border-secondary border-opacity-10" data-page-header="1" data-luxury-major-contract="1">
   {% if eyebrow %}<span class="rmc-page-eyebrow">{{ eyebrow }}</span>{% endif %}
   <h1 class="h4 mb-1 text-body">{{ title }}</h1>

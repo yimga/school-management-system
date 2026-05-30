@@ -29,6 +29,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -771,9 +772,14 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
     """Show one bundle's profile / classification / mapping / reconciliation surfaces."""
 
     template_name = "migration_cloud/bundle_detail.html"
+    _ARTIFACTS_PAGE_SIZE = 20
 
     def get(self, request, bundle_id: int, shell: str = "super"):
         bundle = _tenant_scoped_bundle(request, bundle_id, shell)
+        artifacts_qs = bundle.artifacts.all().order_by("path_within_bundle")
+        artifacts_page_obj = Paginator(
+            artifacts_qs, self._ARTIFACTS_PAGE_SIZE
+        ).get_page(request.GET.get("artifact_page") or 1)
         per_artifact_domain = (
             (bundle.discovery_summary or {}).get("per_artifact_domain") or {}
         )
@@ -785,7 +791,8 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
             {
                 "shell": shell,
                 "bundle": bundle,
-                "artifacts": bundle.artifacts.all(),
+                "artifacts": list(artifacts_page_obj.object_list),
+                "artifacts_page_obj": artifacts_page_obj,
                 "per_artifact_domain": per_artifact_domain,
                 "per_artifact_mappings": per_artifact_mappings,
                 "reconciliation": bundle.reconciliation_summary or {},
@@ -1879,17 +1886,35 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
     """
 
     template_name = "migration_cloud/conflicts.html"
+    _CONFLICTS_PAGE_SIZE = 20
 
     def get(self, request, bundle_id: int, shell: str = "super"):
         bundle = _tenant_scoped_bundle(request, bundle_id, shell)
-        pending_qs = bundle.conflicts.filter(resolution=ConflictResolution.PENDING)
-        pending = list(pending_qs.order_by("-created_at")[:200])
+        pending_qs = bundle.conflicts.filter(resolution=ConflictResolution.PENDING).order_by(
+            "-created_at"
+        )
+        resolved_qs = bundle.conflicts.exclude(
+            resolution=ConflictResolution.PENDING
+        ).order_by("-resolved_at")
+        pending_page_obj = Paginator(pending_qs, self._CONFLICTS_PAGE_SIZE).get_page(
+            request.GET.get("page") or 1
+        )
+        resolved_page_obj = Paginator(resolved_qs, self._CONFLICTS_PAGE_SIZE).get_page(
+            request.GET.get("resolved_page") or 1
+        )
+        pending = list(pending_page_obj.object_list)
         pending_count = pending_qs.count()
-        resolved = list(bundle.conflicts.exclude(resolution=ConflictResolution.PENDING).order_by("-resolved_at")[:50])
+        resolved = list(resolved_page_obj.object_list)
+        pending_extra = request.GET.copy()
+        pending_extra.pop("page", None)
+        resolved_extra = request.GET.copy()
+        resolved_extra.pop("resolved_page", None)
         if request.GET.get("format") == "json":
             return JsonResponse({
                 "bundle_id": bundle.pk,
                 "pending_count": pending_count,
+                "page": pending_page_obj.number,
+                "num_pages": pending_page_obj.paginator.num_pages,
                 "pending": [
                     {
                         "id": c.pk,
@@ -1909,7 +1934,12 @@ class MigrationCloudConflictsView(LoginRequiredMixin, View):
                 "shell": shell,
                 "bundle": bundle,
                 "pending": pending,
+                "pending_count": pending_count,
+                "page_obj": pending_page_obj,
+                "pagination_extra_query": pending_extra.urlencode(),
                 "resolved": resolved,
+                "resolved_page_obj": resolved_page_obj,
+                "resolved_pagination_extra_query": resolved_extra.urlencode(),
                 "page_title": f"Conflict review — {bundle.label or bundle.idempotency_key}",
             },
         )

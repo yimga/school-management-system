@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "batch": "1175",
+  "school_slug": "gilead-school",
+  "recorded_at": "2026-05-29T20:53:53Z",
+  "evidence_status": "repo_complete",
+  "defect_backlog_path": "var\\evidence\\geos-99\\pilot\\gilead-school\\defect_backlog.json",
+  "dashboard_route": "platform_runtime:pilot_defect_dashboard",
+  "scorecard_slot": 2,
+  "notes": "Repo intake scaffold; flip to verified_live after slot-2 pilot feedback is filed."
+}

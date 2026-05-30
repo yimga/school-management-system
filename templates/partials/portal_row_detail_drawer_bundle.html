@@ -1,5 +1,5 @@
 {% load static %}
-{# Row-detail drawer chrome — include once per template with data-rmc-row-detail tables. #}
+{% comment %} Row-detail drawer chrome — include once per template with data-rmc-row-detail tables. {% endcomment %}
 {% include "partials/portal_row_detail_drawer.html" %}
 <link rel="stylesheet" href="{% static 'css/rmc-portal-row-detail-drawer.css' %}">
 <script src="{% static 'js/rmc-portal-row-detail-drawer.js' %}" nonce="{{ csp_nonce }}"></script>

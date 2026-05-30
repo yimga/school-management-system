@@ -132,6 +132,12 @@ def main() -> int:
     views = (REPO / "apps/schools/marketing_views.py").read_text(encoding="utf-8")
     if "def marketing_personality_page" not in views:
         findings.append("marketing_views.py missing marketing_personality_page")
+    if "marketing_intent_homepage" not in views:
+        findings.append("marketing_views.py missing marketing_intent_homepage nav wiring")
+
+    verb_nav = (REPO / "apps/schools/marketing_v3_surfaces.py").read_text(encoding="utf-8")
+    if "marketing_intent_homepage" not in verb_nav:
+        findings.append("marketing_v3_surfaces.py missing storefront nav link")
 
     inventory = REPO / "apps/schools/marketing_url_inventory.py"
     if inventory.is_file():

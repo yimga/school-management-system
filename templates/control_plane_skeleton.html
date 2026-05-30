@@ -1,6 +1,6 @@
 {% load i18n static workflow_guidance_tags %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane" data-rmc-isomorphic-template="operator-control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-rmc-admin-density="comfortable" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane" data-rmc-isomorphic-template="operator-control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -20,9 +20,9 @@
     <script src="{% static 'js/rmc-shell-polish.js' %}" defer></script>
     {% comment %} Loaded synchronously so it sets data-rmc-reveal-armed on <html> before first paint — prevents flash-of-visible-then-hidden when CSS arms the opacity:0 reveal state. {% endcomment %}
     <script src="{% static 'js/rmc-reveal.js' %}"></script>
-    {# v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. #}
+    {% comment %} v3.62.5 Wave 2 local-first — window.RMCLocalization for date/money widgets. {% endcomment %}
     <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
-    {# v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. #}
+    {% comment %} v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. {% endcomment %}
     <script src="{% static 'js/rmc-command-bar.js' %}"></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
@@ -33,12 +33,12 @@
     <script src="{% static 'js/rmc-kbd-cheatsheet.js' %}" defer></script>
     <script src="{% static 'js/rmc-shortcuts-runtime.js' %}" defer></script>
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
-    {# v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). #}
+    {% comment %} v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). {% endcomment %}
     <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
     <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
     <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
     <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
-    {# v3.57.1 (2026-05-21): PWA install-prompt chrome (manager/control plane). #}
+    {% comment %} v3.57.1 (2026-05-21): PWA install-prompt chrome (manager/control plane). {% endcomment %}
     <meta name="theme-color" content="#0b0b0b">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -57,11 +57,11 @@
     {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
-    {# v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. #}
+    {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
-    {# v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). #}
+    {% comment %} v2.53 (2026-05-15): platform-wide cool-apple polish (Apple elev/material/focus/typography). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-ai-guided-assistant-card.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cool-apple-polish.css' %}">
@@ -86,14 +86,14 @@
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
     <link rel="stylesheet" href="{% static 'css/north-star-touch-targets.css' %}">
     <link rel="stylesheet" href="{% static 'css/mobile-luxury-surfaces.css' %}">
-    {# platform-fluid-everywhere.css retired 2026-05-12 — clamp() typography now in design-tokens.css #}
+    {% comment %} platform-fluid-everywhere.css retired 2026-05-12 — clamp() typography now in design-tokens.css {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/dashboard-responsive.css' %}">
     <link rel="stylesheet" href="{% static 'css/accessibility.css' %}">
     <link rel="stylesheet" href="{% static 'css/header-no-spillage.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-horizontal-nav-rail.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
-    {# Phase H: overflow containment for this shell is enforced in control-plane-skeleton-root.css (overflow-x: clip on html/body). #}
+    {% comment %} Phase H: overflow containment for this shell is enforced in control-plane-skeleton-root.css (overflow-x: clip on html/body). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/control-plane-skeleton-root.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
@@ -103,7 +103,7 @@
     {% include "partials/rmc_platform_chrome_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-account-security-chip.css' %}">
     <link rel="stylesheet" href="{% static 'css/ultra-luxury-ui-system.css' %}">
-    {# Phase G (2026-05-12): platform-wide long-page grammar. #}
+    {% comment %} Phase G (2026-05-12): platform-wide long-page grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-bell-clock-product.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print.css' %}" media="print">
@@ -111,7 +111,7 @@
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}">
-    {# v3.53.0 (2026-05-21): signature motion + command bar styles. #}
+    {% comment %} v3.53.0 (2026-05-21): signature motion + command bar styles. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-signature-motion.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-command-bar.css' %}">
     {% comment %} v3.55.0 (2026-05-21): Platform-wide app-shell — grid layout + own-scroll canvas + static header/sidebar.
@@ -130,13 +130,13 @@
        revenue waterfall, audit feed, trust nutrition, SLO clocks, operator presence).
        Loaded LAST among cockpit sheets so 200x rules win where they refine v7. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
-    {# v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic layer (adoption wave). #}
+    {% comment %} v3.57.0 (2026-05-21): canonical pagination grammar + print v2 civic layer (adoption wave). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-pagination-grammar.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-print-v2.css' %}" media="print,screen">
     {% comment %} v3.58.x Wave 10 (2026-05-22): trust pillars alerts feed — closes v8 200x preview gap.
        Loaded AFTER rmc-cp-200x.css so .lx-trust-pillars composes with shared .lx-card chrome. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-trust-pillars.css' %}">
-    {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives library — composes with v7/200x cards. #}
+    {% comment %} v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives library — composes with v7/200x cards. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-data-viz.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
     {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
@@ -144,10 +144,10 @@
     {% block extrastyle %}{% endblock %}
     {% if SHOW_MANAGER_CORPORATE_FOOTER %}
     <link rel="stylesheet" href="{% static 'css/rmc-footer-surfaces.css' %}">
-    {# v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). #}
+    {% comment %} v3.55.0 (2026-05-21): civic 4-tier centered footer (manager dark variant). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
-    {# v3.58.2 (2026-05-22): platform-wide vertical-density spec. #}
+    {% comment %} v3.58.2 (2026-05-22): platform-wide vertical-density spec. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-vertical-density-platform.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-corporate-footer.css' %}">
@@ -188,16 +188,16 @@
              personality — the shell only carries universal chrome (header / sidebar / copilot
              rail / operator notebook / footer). Each section's `enabled` flag is preserved
              at the landing template include site. {% endcomment %}
-          {# Legacy block: pages extending skeleton directly render here. #}
+          {% comment %} Legacy block: pages extending skeleton directly render here. {% endcomment %}
           {% block cp_shell_page %}{% endblock %}
-          {# New shell-aware block: cleaner adoption for shell-native pages. #}
+          {% comment %} New shell-aware block: cleaner adoption for shell-native pages. {% endcomment %}
           {% block cp_shell_canvas_body %}{% endblock %}
-          {# v3.57.10 (2026-05-22): landing template fills this block with its dashboard sections. #}
+          {% comment %} v3.57.10 (2026-05-22): landing template fills this block with its dashboard sections. {% endcomment %}
           {% block cp_shell_landing_sections %}{% endblock %}
         </div>
       </div>
       {% include "partials/cockpit/_pulse_drill_sheet.html" %}
-      {# v3.55.0+ (2026-05-21): 200x Element 1 — AI Copilot rail (grid col 3). Self-gates on cockpit.ai_copilot_rail.enabled. #}
+      {% comment %} v3.55.0+ (2026-05-21): 200x Element 1 — AI Copilot rail (grid col 3). Self-gates on cockpit.ai_copilot_rail.enabled. {% endcomment %}
       {% include "partials/cockpit/_ai_copilot_rail.html" %}
       {% comment %} v3.55.0: footer is a sibling grid child (row 3), NOT inside the canvas.
          This pins it to the viewport bottom alongside the static header. {% endcomment %}
@@ -236,7 +236,7 @@
       <script src="{% static 'js/rmc-avatar-seed.js' %}" defer></script>
       <script src="{% static 'js/rmc-form-dirty.js' %}" defer></script>
       <script src="{% static 'js/rmc-autosubmit.js' %}" defer></script>
-      {# v2.47: inline drawer collapse/expand toggle. #}
+      {% comment %} v2.47: inline drawer collapse/expand toggle. {% endcomment %}
       <script src="{% static 'js/rmc-acx-drawer-toggle.js' %}" defer></script>
       <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
     {% endif %}
@@ -251,19 +251,19 @@
     {% comment %} v3.55.0 (2026-05-21): App-shell runtime — anchor-scroll retarget + modal portal + scroll helper.
        Loaded AFTER Bootstrap so the show.bs.modal / show.bs.offcanvas listeners are bound after BS init. {% endcomment %}
     <script src="{% static 'js/_pages/rmc-app-shell.js' %}" defer></script>
-    {# v3.55.0+ (2026-05-21): AI Copilot rail expand/collapse + Cmd/Ctrl+K focus. #}
+    {% comment %} v3.55.0+ (2026-05-21): AI Copilot rail expand/collapse + Cmd/Ctrl+K focus. {% endcomment %}
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
-    {# v3.99.15: Copilot services bridge + contextual lens (list row sync). #}
+    {% comment %} v3.99.15: Copilot services bridge + contextual lens (list row sync). {% endcomment %}
     <script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
     <script src="{% static 'js/rmc-copilot-context-lens.js' %}" defer></script>
     <script src="{% static 'js/rmc-list-bulk-select.js' %}" defer></script>
-    {# v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. #}
+    {% comment %} v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. {% endcomment %}
     <script src="{% static 'js/_pages/rmc-data-viz.js' %}" defer></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     {% include "partials/rmc_tour_bootstrap.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
-    {# v3.53.0 (2026-05-21): Universal Command Bar overlay. #}
+    {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}
     {% block extrajs %}{% endblock %}
   </body>

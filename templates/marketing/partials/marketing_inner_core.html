@@ -58,7 +58,7 @@
       {% endif %}
       <form method="post" action="{% url 'marketing_contact_submit' %}" class="row g-3" data-form-name="contact">
         {% csrf_token %}
-        {# Honeypot — visually hidden, off-tabbing; bots that auto-fill every input get silently dropped server-side. #}
+        {% comment %} Honeypot — visually hidden, off-tabbing; bots that auto-fill every input get silently dropped server-side. {% endcomment %}
         <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
           <label for="contact-website-url">{% trans "Leave this field empty" %}</label>
           <input type="text" id="contact-website-url" name="website_url" tabindex="-1" autocomplete="off">
@@ -200,7 +200,7 @@
         {% endif %}
         <form method="post" action="{% url 'marketing_book_demo_submit' %}" class="row g-3" data-form-name="demo">
           {% csrf_token %}
-          {# Honeypot — visually hidden, off-tabbing; bots that auto-fill every input get silently dropped server-side. #}
+          {% comment %} Honeypot — visually hidden, off-tabbing; bots that auto-fill every input get silently dropped server-side. {% endcomment %}
           <div aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">
             <label for="demo-website-url">{% trans "Leave this field empty" %}</label>
             <input type="text" id="demo-website-url" name="website_url" tabindex="-1" autocomplete="off">

@@ -63,7 +63,7 @@
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
                 <div>
-                  {# Aesthetic-v2 eyebrow + page-h1 grammar. Styled by patterns.css. #}
+                  {% comment %} Aesthetic-v2 eyebrow + page-h1 grammar. Styled by patterns.css. {% endcomment %}
                   <div class="eyebrow mb-1">{% trans "Staff & admin access" %}</div>
                   <h1 class="page-h1 h5 mb-0">{% trans "Secure sign in" %}</h1>
                 </div>
@@ -95,9 +95,9 @@
                   <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
                 </div>
                 {% endif %}
-                {# v4.00.68 — SAML LoginInitiator surface. Renders only when the operator #}
-                {# has configured RMC_SAML_IDP_SSO_URL; safe no-op otherwise. The button #}
-                {# carries ?next= through via the prebuilt start_url (open-redirect-safe). #}
+                {% comment %} v4.00.68 — SAML LoginInitiator surface. Renders only when the operator {% endcomment %}
+                {% comment %} has configured RMC_SAML_IDP_SSO_URL; safe no-op otherwise. The button {% endcomment %}
+                {% comment %} carries ?next= through via the prebuilt start_url (open-redirect-safe). {% endcomment %}
                 {% if saml_login_initiator.available %}
                 <div class="mb-3" id="saml-login-initiator" data-rmc-saml-sso-block="1">
                   <a href="{{ saml_login_initiator.start_url }}" class="btn btn-outline-primary w-100 mb-2" data-rmc-saml-sso-button="1" rel="nofollow">

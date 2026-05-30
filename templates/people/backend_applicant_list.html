@@ -14,7 +14,7 @@
       {% include "studio_os/components/page_header.html" with title=_("Applicants") subtitle=_("Admissions funnel: leads and applications.") action_url=add_url action_text=_("Add applicant") %}
       <p class="mb-3"><a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% blocktrans with t=student_pl_lc %}Back to {{ t }}{% endblocktrans %}</a></p>
 
-      {# v4.00.12 — 5-column stage breakdown using rmc-five-col primitive. #}
+      {% comment %} v4.00.12 — 5-column stage breakdown using rmc-five-col primitive. {% endcomment %}
       {% if stage_breakdown %}
       <section class="rmc-five-col mb-3" aria-label="{% trans 'Applicants by stage' %}">
         <div class="rmc-five-col__head" role="row">

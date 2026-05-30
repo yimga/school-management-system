@@ -17,7 +17,7 @@ Parameters:
     <div class="rmc-waterfall__col">
       <div class="rmc-waterfall__value">{{ col.value|default:"—" }}</div>
       <div class="rmc-waterfall__bar rmc-waterfall__bar--{{ col.tone|default:'total' }}"
-           style="--waterfall-bar-height: {{ col.height_px|default:80 }}px;"{# inline-style-allow: dataviz-dynamic-height #}>
+           style="--waterfall-bar-height: {{ col.height_px|default:80 }}px;"{% comment %} inline-style-allow: dataviz-dynamic-height {% endcomment %}>
       </div>
       <div class="rmc-waterfall__label">{{ col.label }}</div>
     </div>

@@ -27,7 +27,7 @@
             {% endfor %}
           </div>
           {% else %}
-          {# Pass 8 Wave 3: canonical empty-state. #}
+          {% comment %} Pass 8 Wave 3: canonical empty-state. {% endcomment %}
           {% include "components/dashboard_empty_state.html" with icon="bi-stars" title=_("No draft narratives") message=_("Create achievement events for students to generate AI-drafted messages parents can read. You'll review each draft before it sends.") %}
           {% endif %}
         </div>

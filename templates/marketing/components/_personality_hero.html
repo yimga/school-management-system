@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Personality hero band — pass headline, subheadline, eyebrow (optional), extra_class #}
+{% comment %} Personality hero band — pass headline, subheadline, eyebrow (optional), extra_class {% endcomment %}
 <header class="mkt-personality-hero mkt-edt-container rmc-reveal{% if extra_class %} {{ extra_class }}{% endif %}" data-mkt-reveal>
   <p class="mkt-personality-hero__eyebrow mkt-v3-eyebrow">
     {% if eyebrow %}{{ eyebrow }}{% elif marketing_personality %}{{ marketing_personality.label }}{% endif %}

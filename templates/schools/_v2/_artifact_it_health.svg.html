@@ -1,5 +1,5 @@
 {% load i18n %}
-{# IT &amp; ops health artifact — service status. #}
+{% comment %} IT &amp; ops health artifact — service status. {% endcomment %}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" role="img" aria-labelledby="it-health-title">
   <title id="it-health-title">{% trans "IT operations health view showing tenant uptime, single sign-on, payments, and recent admin activity" %}</title>
 
@@ -35,11 +35,11 @@
   </g>
   <text x="280" y="28" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#4B5563" text-anchor="middle">System · Health</text>
 
-  {# Title row with live indicator #}
+  {% comment %} Title row with live indicator {% endcomment %}
   <g font-family="Inter, system-ui, sans-serif" fill="#1F2937">
     <text x="28" y="84" font-family="Source Serif 4, Iowan Old Style, serif" font-size="24" font-weight="500" letter-spacing="-0.015em">{% trans "All systems quiet" %}</text>
     <text x="28" y="104" font-size="11" fill="#6B7280">{% trans "Last 30 days · zero incidents · zero pages" %}</text>
-    {# Live pulse #}
+    {% comment %} Live pulse {% endcomment %}
     <g transform="translate(516 80)">
       <circle cx="0" cy="0" r="5" fill="url(#it-good)"/>
       <circle cx="0" cy="0" r="9" fill="none" stroke="#22C55E" stroke-opacity="0.25" stroke-width="2"/>
@@ -47,7 +47,7 @@
     </g>
   </g>
 
-  {# Service rows with mini sparklines #}
+  {% comment %} Service rows with mini sparklines {% endcomment %}
   <g font-family="Inter, system-ui, sans-serif" fill="#1F2937">
 
     <g transform="translate(28 132)" filter="url(#it-shadow)">
@@ -55,7 +55,7 @@
       <circle cx="24" cy="24" r="6" fill="url(#it-good)"/>
       <text x="46" y="22" font-size="13" font-weight="500">{% trans "Tenant uptime" %}</text>
       <text x="46" y="38" font-size="10" fill="#9CA3AF">{% trans "rolling 90 days · across 47 schools" %}</text>
-      {# Sparkline #}
+      {% comment %} Sparkline {% endcomment %}
       <g transform="translate(320 18)">
         <path d="M 0 12 L 16 10 L 32 14 L 48 8 L 64 12 L 80 6 L 96 10 L 112 4" stroke="#166534" stroke-width="1.2" fill="none" stroke-linecap="round"/>
       </g>

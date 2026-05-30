@@ -65,7 +65,7 @@
   <form method="post" action="{{ theme_personality_url }}" novalidate>
     {% csrf_token %}
 
-    {# ---- Per-archetype accents ------------------------------------------ #}
+    {% comment %} ---- Per-archetype accents ------------------------------------------ {% endcomment %}
     <fieldset class="border rounded-3 p-3 mb-4" data-personality-block="accents">
       <legend class="h6 px-2 fw-bold">{% trans "Per-archetype accents" %}</legend>
       <p class="small text-muted mb-3">
@@ -89,7 +89,7 @@
       </div>
     </fieldset>
 
-    {# ---- Status palette -------------------------------------------------- #}
+    {% comment %} ---- Status palette -------------------------------------------------- {% endcomment %}
     <fieldset class="border rounded-3 p-3 mb-4" data-personality-block="status">
       <legend class="h6 px-2 fw-bold">{% trans "Status palette" %}</legend>
       <p class="small text-muted mb-3">
@@ -112,7 +112,7 @@
       </div>
     </fieldset>
 
-    {# ---- Heatmap palette ------------------------------------------------- #}
+    {% comment %} ---- Heatmap palette ------------------------------------------------- {% endcomment %}
     <fieldset class="border rounded-3 p-3 mb-4" data-personality-block="heatmap">
       <legend class="h6 px-2 fw-bold">{% trans "Heatmap palette" %}</legend>
       <p class="small text-muted mb-3">
@@ -135,7 +135,7 @@
       </div>
     </fieldset>
 
-    {# ---- Chart series ---------------------------------------------------- #}
+    {% comment %} ---- Chart series ---------------------------------------------------- {% endcomment %}
     <fieldset class="border rounded-3 p-3 mb-4" data-personality-block="chart-series">
       <legend class="h6 px-2 fw-bold">{% trans "Chart series" %}</legend>
       <p class="small text-muted mb-3">
@@ -158,7 +158,7 @@
       </div>
     </fieldset>
 
-    {# ---- Preview toggle + submit ---------------------------------------- #}
+    {% comment %} ---- Preview toggle + submit ---------------------------------------- {% endcomment %}
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
       <div class="form-check">
         {{ form.enable_live_preview }}
@@ -175,7 +175,7 @@
     </div>
   </form>
 
-  {# ---- Live preview panel ---------------------------------------------- #}
+  {% comment %} ---- Live preview panel ---------------------------------------------- {% endcomment %}
   <section class="border rounded-3 p-3 mb-4" data-personality-block="preview" aria-labelledby="rmc-personality-preview-h">
     <header class="d-flex justify-content-between align-items-baseline mb-3">
       <h2 id="rmc-personality-preview-h" class="h6 fw-bold mb-0">{% trans "Live preview" %}</h2>
@@ -207,7 +207,7 @@
   </section>
 </div>
 
-{# CSP-safe sync between <input type="color"> picker and the hex CharField. #}
+{% comment %} CSP-safe sync between <input type="color"> picker and the hex CharField. {% endcomment %}
 <script nonce="{{ csp_nonce }}">
   (function () {
     // Pair every color picker with its sibling hex input via data-rmc-color-pair.

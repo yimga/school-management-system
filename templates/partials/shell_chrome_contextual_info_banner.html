@@ -1,5 +1,5 @@
 {% load i18n %}
-{# 1031: Optional info / status banner with primary copy + optional action (portal + backend). #}
+{% comment %} 1031: Optional info / status banner with primary copy + optional action (portal + backend). {% endcomment %}
 {% if chrome_banner_title or chrome_banner_body %}
 <div
   class="alert alert-{{ chrome_banner_level|default:'info' }} d-flex align-items-start gap-2 {% if chrome_banner_mb %}{{ chrome_banner_mb }}{% else %}mb-3{% endif %}"

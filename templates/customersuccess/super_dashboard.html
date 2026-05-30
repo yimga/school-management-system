@@ -4,7 +4,7 @@
 {% block cp_title %}Customer Success{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
-{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 {% endblock %}
 {% block extrajs %}
@@ -28,7 +28,7 @@
    so operators can fold the section. State persists per-section via localStorage. {% endcomment %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Platform pulse") key="cs_super__platform_pulse" include_partial="partials/cockpit/_platform_pulse.html" chrome="section" %}
 
-{# v3.58.10: 8 remaining manager 200x panels — landing-peer parity with super_dashboard.html. #}
+{% comment %} v3.58.10: 8 remaining manager 200x panels — landing-peer parity with super_dashboard.html. {% endcomment %}
 {% include "partials/cockpit/_operator_presence.html" %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Live world map") key="cs_super__live_world_map" include_partial="partials/cockpit/_live_world_map.html" chrome="section" %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Forecast lane") key="cs_super__forecast_lane" include_partial="partials/cockpit/_forecast_lane.html" chrome="section" %}
@@ -46,7 +46,7 @@
   {% phase8_dashboard_declaration "customersuccess/super_dashboard.html" %}
   {% include "studio_os/components/page_header.html" with eyebrow="Customer Success · 11.3 + 11.4" title="Benchmark & Customer Success" subtitle="Section 11.3 Benchmark intelligence • 11.4 Customer success (health, risk alerts, interventions, workflow failures)." action_url=dashboard_url action_text="Back to dashboard" %}
 
-  {# v3.59.x Wave 11 Agent X (2026-05-22): KPI strip stat cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. #}
+  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): KPI strip stat cards adopt `.rmc-stat-card--mono` + count pill per v8 200x preview. {% endcomment %}
   <div class="row g-3 mb-4 rmc-reveal-stagger">
     <div class="col-md-3 rmc-reveal">
       <div class="card border-0 shadow-sm rmc-stat-card--mono">
@@ -85,7 +85,7 @@
   <details class="de-secondary-collapsible mb-2">
   <summary>{% trans "Expand alert, workflow, and health tables" %}</summary>
   <div class="row g-3 rmc-reveal-stagger">
-    {# v3.59.x Wave 11 Agent X (2026-05-22): grouped tables adopt `.rmc-app-section--glass` for v8 200x preview parity. #}
+    {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): grouped tables adopt `.rmc-app-section--glass` for v8 200x preview parity. {% endcomment %}
     <div class="col-lg-6 rmc-reveal">
       <div class="card border-0 shadow-sm rmc-app-section--glass">
         <div class="card-header">Risk alerts</div>

@@ -1,7 +1,7 @@
 {% load i18n terminology_tags %}
-{# Shared main body: Workflow Center (full backend page + Studio embed). #}
-{# Wave 13 (v3.62.17): badge counters use {% term %} so FR sees "Salles de classe" / #}
-{# "Élèves" / "Enseignants" and IN-HI sees "कक्षाएं" / "विद्यार्थी" / "शिक्षक". #}
+{% comment %} Shared main body: Workflow Center (full backend page + Studio embed). {% endcomment %}
+{% comment %} Wave 13 (v3.62.17): badge counters use {% term %} so FR sees "Salles de classe" / {% endcomment %}
+{% comment %} "Élèves" / "Enseignants" and IN-HI sees "कक्षाएं" / "विद्यार्थी" / "शिक्षक". {% endcomment %}
 {% term "classroom" plural=True capitalize=True as classroom_pl %}
 {% term "student" plural=True capitalize=True as student_pl %}
 {% term "teacher" plural=True capitalize=True as teacher_pl %}

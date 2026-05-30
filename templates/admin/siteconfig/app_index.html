@@ -1,7 +1,7 @@
 {% extends "admin/app_index.html" %}
 {% load i18n %}
 
-{# Platform backoffice: Configuration Control Center (siteconfig) app index — point to /super/ before per-model links. #}
+{% comment %} Platform backoffice: Configuration Control Center (siteconfig) app index — point to /super/ before per-model links. {% endcomment %}
 {% block content %}
 {% if is_manager_host %}
 <div class="mb-4 mx-4 p-4 rounded-lg border text-sm max-w-5xl"

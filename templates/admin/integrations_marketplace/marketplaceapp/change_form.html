@@ -2,7 +2,7 @@
 {% load i18n unfold %}
 
 {% block form_before %}
-  {# P3: MarketplaceApp is platform-admin; link control-plane shells (batch 29 #353). #}
+  {% comment %} P3: MarketplaceApp is platform-admin; link control-plane shells (batch 29 #353). {% endcomment %}
   <section class="mb-5 rounded-lg border border-base-200 dark:border-base-700 bg-base-50 dark:bg-base-900/30 px-4 py-3" role="region" aria-labelledby="marketplace-app-cp-escape-heading">
     <h2 id="marketplace-app-cp-escape-heading" class="text-sm font-semibold text-base-900 dark:text-base-100 mb-1">{% trans "Product control plane" %}</h2>
     <p class="text-xs text-base-600 dark:text-base-400 mb-3">{% trans "Catalog apps span tenant installs and review workflows. Use operator hubs when you need cross-tenant views instead of raw manifest JSON." %}</p>

@@ -175,6 +175,7 @@
         {% endfor %}
       </tbody>
     </table>
+    {% include "components/pagination.html" with page_obj=artifacts_page_obj page_query_param="artifact_page" %}
   </section>
 
   <section id="discovery" class="rmc-card rmc-reveal">

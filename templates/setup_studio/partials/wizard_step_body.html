@@ -1,2 +1,4 @@
-{# Renders one of 18 input-type partials based on step.input_type. #}
-{% include "setup_studio/inputs/"|add:step.input_type|add:".html" %}
+{% comment %} Renders one of 18 input-type partials based on step.input_type. {% endcomment %}
+{% with input_partial="setup_studio/inputs/"|add:step.input_type|add:".html" %}
+{% include input_partial %}
+{% endwith %}

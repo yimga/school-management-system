@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-28T00:00:00Z",
+  "generated_at": "2026-05-29T00:00:00Z",
   "classification": "BLOCKED_EXTERNAL_AND_LANE2",
   "honesty_note": "Repo-complete stubs and evidence scaffolds are not the same as §11.4 DONE or §12 category-defining scores.",
   "batches": {

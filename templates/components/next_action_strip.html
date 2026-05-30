@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Global next-action strip — data from apps.platform_runtime.action_engine via system_actions_context #}
+{% comment %} Global next-action strip — data from apps.platform_runtime.action_engine via system_actions_context {% endcomment %}
 {% with strict=rmc_conversion_single_action_enforced|default:False %}
 {% if rmc_system_actions_available and rmc_system_actions %}
 <section class="rmc-next-action-strip" data-rmc-next-action-strip="1" data-rmc-next-action-strict="{% if strict %}1{% else %}0{% endif %}" aria-label="{% trans 'What to do next' %}">
@@ -53,7 +53,7 @@
   </div>
 </section>
 {% elif request.user.is_authenticated %}
-{# No engine rows (e.g. URL resolution failed): still avoid a dead-end — one primary link; strict mode never adds a second chip. #}
+{% comment %} No engine rows (e.g. URL resolution failed): still avoid a dead-end — one primary link; strict mode never adds a second chip. {% endcomment %}
 <section class="rmc-next-action-strip rmc-next-action-strip--fallback" data-rmc-next-action-strip="1" data-rmc-next-action-fallback="1" data-rmc-next-action-strict="{% if strict %}1{% else %}0{% endif %}" aria-label="{% trans 'What to do next' %}">
   <div class="rmc-nas-inner">
     <div class="rmc-nas-heading">

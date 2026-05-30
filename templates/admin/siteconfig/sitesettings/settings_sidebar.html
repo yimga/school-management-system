@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Vertical sidebar for Site Settings (Phase 1.2). Phase 6.3: Smart Search above nav. #}
+{% comment %} Vertical sidebar for Site Settings (Phase 1.2). Phase 6.3: Smart Search above nav. {% endcomment %}
 <aside id="site-settings-sidebar" class="site-settings-sidebar flex-shrink-0 w-56 hidden lg:block" aria-label="{% trans 'Settings sections' %}">
   <div class="site-settings-search-wrap mb-2">
     <label for="site-settings-search" class="visually-hidden">{% trans "Search settings" %}</label>
@@ -32,7 +32,7 @@
     {% endfor %}
   </nav>
 </aside>
-{# Mobile: sections dropdown (shown on small screens). Phase 9.5: ARIA nav region. #}
+{% comment %} Mobile: sections dropdown (shown on small screens). Phase 9.5: ARIA nav region. {% endcomment %}
 <div class="site-settings-mobile-nav lg:hidden mb-4" data-settings-mobile-nav role="region" aria-label="{% trans 'Settings sections' %}">
   <button type="button"
           class="site-settings-mobile-trigger inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium"

@@ -106,7 +106,7 @@
     {% blocktrans %}This view is audit-logged. Each load creates an AuditLog.VIEW row keyed to your user account so the FERPA evidence trail covers reads as well as writes.{% endblocktrans %}
   </p>
 
-  {# Pass 9 platform-wide: per-record audit drill-down. #}
+  {% comment %} Pass 9 platform-wide: per-record audit drill-down. {% endcomment %}
   {% if disclosure %}{% recent_activity_for "FerpaDisclosure" disclosure.pk %}{% endif %}
 </div>
 {% endblock %}

@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-operational-center-frame.css' %}">
 <link rel="stylesheet" href="{% static 'css/rmc-surface-spacing-contract.css' %}">
-{# Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). #}
+{% comment %} Pass B: platform-wide aesthetic discipline (card grammar, type rhythm, empty-state hygiene). {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
 {% comment %} Pass A: manager-specific polish (card surfaces, studio toolbar, rail, sidebar).
    Loaded last so it wins specificity ties without needing !important everywhere. {% endcomment %}
@@ -43,7 +43,7 @@
       {% include "partials/manager_operator_topbar.html" %}
     </div>
     {% block cp_shell_header_ticker %}
-    {# cp-live-strip: v8 200x live activity row (DOM from _activity_ticker.html) #}
+    {% comment %} cp-live-strip: v8 200x live activity row (DOM from _activity_ticker.html) {% endcomment %}
       {% include "partials/cockpit/_activity_ticker.html" %}
     {% endblock %}
   </div>
@@ -122,13 +122,13 @@
     <div class="cp-page-body" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
     {% block cp_content %}<h1 class="visually-hidden">{% trans "Control plane" %}</h1>{% endblock %}
     </div>
-    {% block cp_sticky_action_bar %}{# Page-level sticky actions (override in child templates) #}{% endblock %}
+    {% block cp_sticky_action_bar %}{% comment %} Page-level sticky actions (override in child templates) {% endcomment %}{% endblock %}
   </main>
 </div>
 {% endblock %}
 
 {% block cp_shell_after %}
-{# Mobile sidebar (offcanvas) — same nav as desktop #}
+{% comment %} Mobile sidebar (offcanvas) — same nav as desktop {% endcomment %}
 <div class="offcanvas offcanvas-start d-lg-none cp-sidebar-offcanvas cp-sidebar-offcanvas--surface" tabindex="-1" id="cpSidebarOffcanvas" aria-labelledby="cpSidebarOffcanvasLabel">
   <div class="offcanvas-header border-secondary">
     <h5 class="offcanvas-title text-white" id="cpSidebarOffcanvasLabel">{% trans "Menu" %}</h5>

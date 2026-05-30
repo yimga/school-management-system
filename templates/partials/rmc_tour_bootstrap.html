@@ -1,7 +1,7 @@
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/rmc-tour.css' %}">
 {% include "partials/rmc_tour_i18n.html" %}
-{# Resolve tour APIs defensively — the `siteconfig` namespace is loaded on tenant/manager urlconfs but not on `config.public_urls`. Onboarding pages render under public_urls, so we must not crash if these URLs are unreachable. #}
+{% comment %} Resolve tour APIs defensively — the `siteconfig` namespace is loaded on tenant/manager urlconfs but not on `config.public_urls`. Onboarding pages render under public_urls, so we must not crash if these URLs are unreachable. {% endcomment %}
 {% url 'siteconfig:tour_steps_api' as tour_steps_api_url %}
 {% url 'siteconfig:tour_analytics_api' as tour_analytics_api_url %}
 {% if tour_steps_api_url and tour_analytics_api_url %}

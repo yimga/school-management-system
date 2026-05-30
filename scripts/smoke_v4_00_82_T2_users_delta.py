@@ -134,10 +134,11 @@ resp = oneroster.users_delta_v1p2(req)
 assert resp.status_code == 200, resp.status_code
 print("[T2-8] ISO Z suffix accepted -> 200 OK")
 
-# Bonus: ISO with +00:00 offset is accepted
-req = _bearer(rf.get("/api/roster/v1p2/users/delta/?modifiedSince=2020-01-01T00:00:00+00:00"))
+# Bonus: ISO with +00:00 offset is accepted (URL-encode + as %2B per RFC 3986;
+# raw + in a query string is decoded to a space by Django QueryDict).
+req = _bearer(rf.get("/api/roster/v1p2/users/delta/?modifiedSince=2020-01-01T00:00:00%2B00:00"))
 resp = oneroster.users_delta_v1p2(req)
 assert resp.status_code == 200, resp.status_code
-print("[T2-9] ISO +00:00 offset accepted -> 200 OK")
+print("[T2-9] ISO +00:00 offset accepted (URL-encoded) -> 200 OK")
 
 print("ALL T2 CASES OK")

@@ -1,5 +1,5 @@
 {% load i18n static %}
-{# v4.00.37 — Universal "Report issue" chip booted from every tenant shell. #}
+{% comment %} v4.00.37 — Universal "Report issue" chip booted from every tenant shell. {% endcomment %}
 {% if request.user.is_authenticated %}
 <link rel="stylesheet" href="{% static 'css/rmc-support-quick-create.css' %}">
 <script nonce="{{ csp_nonce }}" id="rmc-support-quick-create-config" type="application/json">

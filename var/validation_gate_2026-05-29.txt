@@ -1,0 +1,517 @@
+--- Secrets hygiene: no tracked .env / .env.local in git ---
+OK: No forbidden env files tracked in git.
+OK: Secrets hygiene: no tracked .env / .env.local in git
+
+--- Repo hygiene: conflict markers, backup files (pre-deploy parity) ---
+check_repo_hygiene: No conflict markers or backup files found.
+OK: Repo hygiene: conflict markers, backup files (pre-deploy parity)
+
+--- Root clutter: tracked repo-root files allowlist (pre-deploy parity) ---
+check_root_clutter: tracked repo-root files match the allowlist.
+OK: Root clutter: tracked repo-root files allowlist (pre-deploy parity)
+
+--- Django system check (pre-deploy parity) ---
+DEBUG 2026-05-29 19:04:33,182 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- ollama auto-discover: using http://127.0.0.1:11434 (candidates=3)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\portal\apps.py", line 33, in ready
+    health = probe_ai_provider_reachable()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\portal\ai_provider.py", line 503, in probe_ai_provider_reachable
+    status = get_ai_provider_status()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\portal\ai_provider.py", line 416, in get_ai_provider_status
+    conn = resolve_ollama_connection()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\portal\ai_provider.py", line 286, in resolve_ollama_connection
+    logger.debug(
+Message: 'ollama auto-discover: using %s (candidates=%s)'
+Arguments: ('http://127.0.0.1:11434', 3)
+INFO 2026-05-29 19:04:33,897 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- AI startup: live cloud AI (profile=online, provider=litellm)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\portal\apps.py", line 38, in ready
+    log_ai_startup_posture(health=health, conn=conn)
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\portal\ai_provider.py", line 331, in log_ai_startup_posture
+    logger.info(
+Message: 'AI startup: live cloud AI (profile=%s, provider=litellm)'
+Arguments: ('online',)
+WARNING 2026-05-29 19:04:33,945 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\communication\apps.py", line 31, in ready
+    assert_dkim_configured()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\communication\email_signing.py", line 175, in assert_dkim_configured
+    logger.warning(msg)
+Message: "email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain."
+Arguments: ()
+DEBUG 2026-05-29 19:04:33,978 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.intake: signal handlers registered (passive)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\migration_cloud\apps.py", line 17, in ready
+    signals_intake.register_signal_handlers()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\migration_cloud\signals_intake.py", line 196, in register_signal_handlers
+    logger.debug("migration_cloud.intake: signal handlers registered (passive)")
+Message: 'migration_cloud.intake: signal handlers registered (passive)'
+Arguments: ()
+INFO 2026-05-29 19:04:33,984 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\migration_cloud\apps.py", line 28, in ready
+    tasks_smoke_archival.register_smoke_archival_signal()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\migration_cloud\tasks_smoke_archival.py", line 182, in register_smoke_archival_signal
+    logger.info(
+Message: 'migration_cloud.tasks_smoke_archival: task_postrun signal wired'
+Arguments: ()
+INFO 2026-05-29 19:04:34,043 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\integrations_marketplace\apps.py", line 117, in ready
+    warn_if_oauth_callback_base_url_missing()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\integrations_marketplace\startup_checks.py", line 116, in warn_if_oauth_callback_base_url_missing
+    logger.info(msg)
+Message: "integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+Arguments: ()
+INFO 2026-05-29 19:04:35,451 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- wizard registry: loaded 36 wizards
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 420, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 464, in execute
+    output = self.handle(*args, **options)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\commands\check.py", line 81, in handle
+    self.check(
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 496, in check
+    all_issues = checks.run_checks(
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\checks\registry.py", line 89, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\checks\urls.py", line 136, in check_custom_error_handlers
+    handler = resolver.resolve_error_handler(status_code)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 732, in resolve_error_handler
+    callback = getattr(self.urlconf_module, "handler%s" % view_type, None)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 711, in urlconf_module
+    return import_module(self.urlconf_name)
+  File "C:\Python314\Lib\importlib\__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\urls.py", line 582, in <module>
+    path("", include(("apps.setup_studio.urls", "setup_studio"), namespace="setup_studio")),
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\conf.py", line 39, in include
+    urlconf_module = import_module(urlconf_module)
+  File "C:\Python314\Lib\importlib\__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\setup_studio\urls.py", line 21, in <module>
+    from apps.setup_studio.wizard_views import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\setup_studio\wizard_views.py", line 30, in <module>
+    from apps.setup_studio import (
+  File "<frozen importlib._bootstrap>", line 1426, in _handle_fromlist
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\setup_studio\wizard_engine.py", line 507, in <module>
+    load_wizard_registry()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\setup_studio\wizard_engine.py", line 306, in load_wizard_registry
+    logger.info("wizard registry: loaded %d wizards", len(WIZARD_REGISTRY))
+Message: 'wizard registry: loaded %d wizards'
+Arguments: (36,)
+DEBUG 2026-05-29 19:04:37,450 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.001) SELECT "siteconfig_webhooksubscription"."id", "siteconfig_webhooksubscription"."school_id", "siteconfig_webhooksubscription"."event_type", "siteconfig_webhooksubscription"."target_url", "siteconfig_webhooksubscription"."secret", "siteconfig_webhooksubscription"."is_active", "siteconfig_webhooksubscription"."created_at", "siteconfig_webhooksubscription"."updated_at", "schools_school"."id", "schools_school"."slug", "schools_school"."name", "schools_school"."subdomain", "schools_school"."sub_system", "schools_school"."default_region_id", "schools_school"."country_code", "schools_school"."data_region", "schools_school"."subdivision_id", "schools_school"."timezone", "schools_school"."default_language", "schools_school"."settings", "schools_school"."features", "schools_school"."logo_url", "schools_school"."wallpaper_url", "schools_school"."primary_color", "schools_school"."accent_color", "schools_school"."is_active", "schools_school"."deleted_at", "schools_school"."parent_school_id", "schools_school"."organization_id", "schools_school"."governance_operating_mode", "schools_school"."hierarchy_path", "schools_school"."custom_domain", "schools_school"."custom_domain_verified", "schools_school"."theme_choice", "schools_school"."theme_pack_id", "schools_school"."plan_id", "schools_school"."default_workflow_slug", "schools_school"."default_dashboard_slug", "schools_school"."addons", "schools_school"."report_platform_bundle_slug", "schools_school"."school_type", "schools_school"."billing_type", "schools_school"."trial_end_date", "schools_school"."waiver_note", "schools_school"."created_at", "schools_school"."updated_at", "schools_school"."is_approved", "schools_school"."last_activity", "schools_school"."is_frozen", "schools_school"."frozen_reason", "schools_school"."compliance_region", "schools_school"."branding_metadata", "schools_school"."primary_sector", "schools_school"."primary_language", "schools_school"."regional_cluster", "schools_school"."dedicated_db_alias", "schools_school"."impersonation_consent_granted_at", "schools_school"."impersonation_consent_granted_by_id", "schools_school"."impersonation_dual_control", "schools_school"."charter_authorizer_code", "schools_school"."ib_programmes", "schools_school"."faith_tradition_code" FROM "siteconfig_webhooksubscription" INNER JOIN "schools_school" ON ("siteconfig_webhooksubscription"."school_id" = "schools_school"."id") ORDER BY "siteconfig_webhooksubscription"."school_id" ASC, "siteconfig_webhooksubscription"."target_url" ASC, "siteconfig_webhooksubscription"."secret" ASC, "siteconfig_webhooksubscription"."event_type" ASC; args=(); alias=default
+DEBUG 2026-05-29 19:04:37,452 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.001) SELECT "events_webhooksubscription"."id", "events_webhooksubscription"."school_id", "events_webhooksubscription"."url", "events_webhooksubscription"."event_types", "events_webhooksubscription"."secret", "events_webhooksubscription"."is_active", "events_webhooksubscription"."description", "events_webhooksubscription"."created_at", "events_webhooksubscription"."updated_at" FROM "events_webhooksubscription" ORDER BY "events_webhooksubscription"."school_id" ASC, "events_webhooksubscription"."url" ASC, "events_webhooksubscription"."secret" ASC; args=(); alias=default
+System check identified no issues (0 silenced).
+OK: Django system check (pre-deploy parity)
+
+--- Migrations: no model changes without migrations (pre-deploy parity) ---
+WARNING 2026-05-29 19:04:43,858 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain.
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\communication\apps.py", line 31, in ready
+    assert_dkim_configured()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\communication\email_signing.py", line 175, in assert_dkim_configured
+    logger.warning(msg)
+Message: "email signing: backend='django.core.mail.backends.console.EmailBackend' does NOT sign DKIM (Django console (dev)). Outbound mail is spoofable. Switch to an anymail backend (Mailgun / SendGrid / Postmark / SES / ...) and publish DKIM + SPF + DMARC TXT records on the sending domain."
+Arguments: ()
+DEBUG 2026-05-29 19:04:43,889 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.intake: signal handlers registered (passive)
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\migration_cloud\apps.py", line 17, in ready
+    signals_intake.register_signal_handlers()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\migration_cloud\signals_intake.py", line 196, in register_signal_handlers
+    logger.debug("migration_cloud.intake: signal handlers registered (passive)")
+Message: 'migration_cloud.intake: signal handlers registered (passive)'
+Arguments: ()
+INFO 2026-05-29 19:04:43,898 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- migration_cloud.tasks_smoke_archival: task_postrun signal wired
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\migration_cloud\apps.py", line 28, in ready
+    tasks_smoke_archival.register_smoke_archival_signal()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\migration_cloud\tasks_smoke_archival.py", line 182, in register_smoke_archival_signal
+    logger.info(
+Message: 'migration_cloud.tasks_smoke_archival: task_postrun signal wired'
+Arguments: ()
+INFO 2026-05-29 19:04:43,944 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 416, in execute
+    django.setup()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\apps\registry.py", line 124, in populate
+    app_config.ready()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\integrations_marketplace\apps.py", line 117, in ready
+    warn_if_oauth_callback_base_url_missing()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\integrations_marketplace\startup_checks.py", line 116, in warn_if_oauth_callback_base_url_missing
+    logger.info(msg)
+Message: "integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
+Arguments: ()
+INFO 2026-05-29 19:04:45,139 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- wizard registry: loaded 36 wizards
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Python314\Lib\logging\handlers.py", line 80, in emit
+    self.doRollover()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Python314\Lib\logging\handlers.py", line 185, in doRollover
+    self.rotate(self.baseFilename, dfn)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\logging\handlers.py", line 121, in rotate
+    os.rename(source, dest)
+    ~~~~~~~~~^^^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log' -> 'C:\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\logs\\django.log.1'
+Call stack:
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 8, in <module>
+    main()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\manage.py", line 6, in main
+    execute_from_command_line(sys.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 420, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 461, in execute
+    self.check(**check_kwargs)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\management\base.py", line 496, in check
+    all_issues = checks.run_checks(
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\checks\registry.py", line 89, in run_checks
+    new_errors = check(app_configs=app_configs, databases=databases)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\core\checks\urls.py", line 136, in check_custom_error_handlers
+    handler = resolver.resolve_error_handler(status_code)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 732, in resolve_error_handler
+    callback = getattr(self.urlconf_module, "handler%s" % view_type, None)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\utils\functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\resolvers.py", line 711, in urlconf_module
+    return import_module(self.urlconf_name)
+  File "C:\Python314\Lib\importlib\__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\config\urls.py", line 582, in <module>
+    path("", include(("apps.setup_studio.urls", "setup_studio"), namespace="setup_studio")),
+  File "C:\Users\yimga\AppData\Roaming\Python\Python314\site-packages\django\urls\conf.py", line 39, in include
+    urlconf_module = import_module(urlconf_module)
+  File "C:\Python314\Lib\importlib\__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1398, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\setup_studio\urls.py", line 21, in <module>
+    from apps.setup_studio.wizard_views import (
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\setup_studio\wizard_views.py", line 30, in <module>
+    from apps.setup_studio import (
+  File "<frozen importlib._bootstrap>", line 1426, in _handle_fromlist
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1371, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1342, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 938, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\setup_studio\wizard_engine.py", line 507, in <module>
+    load_wizard_registry()
+  File "C:\Users\yimga\Documents\HY_DOC_MAINPC\Docs for Others_Friends_family\Gilead Tech High\beta\school-management-system\apps\setup_studio\wizard_engine.py", line 306, in load_wizard_registry
+    logger.info("wizard registry: loaded %d wizards", len(WIZARD_REGISTRY))
+Message: 'wizard registry: loaded %d wizards'
+Arguments: (36,)
+DEBUG 2026-05-29 19:04:46,583 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.001) SELECT "siteconfig_webhooksubscription"."id", "siteconfig_webhooksubscription"."school_id", "siteconfig_webhooksubscription"."event_type", "siteconfig_webhooksubscription"."target_url", "siteconfig_webhooksubscription"."secret", "siteconfig_webhooksubscription"."is_active", "siteconfig_webhooksubscription"."created_at", "siteconfig_webhooksubscription"."updated_at", "schools_school"."id", "schools_school"."slug", "schools_school"."name", "schools_school"."subdomain", "schools_school"."sub_system", "schools_school"."default_region_id", "schools_school"."country_code", "schools_school"."data_region", "schools_school"."subdivision_id", "schools_school"."timezone", "schools_school"."default_language", "schools_school"."settings", "schools_school"."features", "schools_school"."logo_url", "schools_school"."wallpaper_url", "schools_school"."primary_color", "schools_school"."accent_color", "schools_school"."is_active", "schools_school"."deleted_at", "schools_school"."parent_school_id", "schools_school"."organization_id", "schools_school"."governance_operating_mode", "schools_school"."hierarchy_path", "schools_school"."custom_domain", "schools_school"."custom_domain_verified", "schools_school"."theme_choice", "schools_school"."theme_pack_id", "schools_school"."plan_id", "schools_school"."default_workflow_slug", "schools_school"."default_dashboard_slug", "schools_school"."addons", "schools_school"."report_platform_bundle_slug", "schools_school"."school_type", "schools_school"."billing_type", "schools_school"."trial_end_date", "schools_school"."waiver_note", "schools_school"."created_at", "schools_school"."updated_at", "schools_school"."is_approved", "schools_school"."last_activity", "schools_school"."is_frozen", "schools_school"."frozen_reason", "schools_school"."compliance_region", "schools_school"."branding_metadata", "schools_school"."primary_sector", "schools_school"."primary_language", "schools_school"."regional_cluster", "schools_school"."dedicated_db_alias", "schools_school"."impersonation_consent_granted_at", "schools_school"."impersonation_consent_granted_by_id", "schools_school"."impersonation_dual_control", "schools_school"."charter_authorizer_code", "schools_school"."ib_programmes", "schools_school"."faith_tradition_code" FROM "siteconfig_webhooksubscription" INNER JOIN "schools_school" ON ("siteconfig_webhooksubscription"."school_id" = "schools_school"."id") ORDER BY "siteconfig_webhooksubscription"."school_id" ASC, "siteconfig_webhooksubscription"."target_url" ASC, "siteconfig_webhooksubscription"."secret" ASC, "siteconfig_webhooksubscription"."event_type" ASC; args=(); alias=default
+DEBUG 2026-05-29 19:04:46,585 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.000) SELECT "events_webhooksubscription"."id", "events_webhooksubscription"."school_id", "events_webhooksubscription"."url", "events_webhooksubscription"."event_types", "events_webhooksubscription"."secret", "events_webhooksubscription"."is_active", "events_webhooksubscription"."description", "events_webhooksubscription"."created_at", "events_webhooksubscription"."updated_at" FROM "events_webhooksubscription" ORDER BY "events_webhooksubscription"."school_id" ASC, "events_webhooksubscription"."url" ASC, "events_webhooksubscription"."secret" ASC; args=(); alias=default
+DEBUG 2026-05-29 19:04:49,998 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.001) 
+            SELECT name, type FROM sqlite_master
+            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'
+            ORDER BY name; args=None; alias=default
+DEBUG 2026-05-29 19:04:50,003 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.002) SELECT "django_migrations"."id", "django_migrations"."app", "django_migrations"."name", "django_migrations"."applied" FROM "django_migrations"; args=(); alias=default
+Migrations for 'integrations_marketplace':
+  apps\integrations_marketplace\migrations\0005_rename_integration_action_diag_idx_integration_action_1104f7_idx_and_more.py
+    ~ Rename index integration_action_diag_idx on lmsdiagactionaudit to integration_action_1104f7_idx
+    ~ Rename index integration_prov_diag_idx on lmsdiagactionaudit to integration_provide_8af337_idx
+FAILED: Migrations: no model changes without migrations (pre-deploy parity)

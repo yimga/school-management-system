@@ -85,7 +85,7 @@
       <small>{% trans "Email needs verification. SMS / Slack / Discord auto-confirm at subscribe time." %}</small>
     </form>
 
-    {# v4.00.49 — link to monthly history aggregation #}
+    {% comment %} v4.00.49 — link to monthly history aggregation {% endcomment %}
     <p class="history-link"><a href="{% url 'public_status_history' %}">{% trans "Past months: incident history & MTTR" %} →</a></p>
 
     {% if active %}

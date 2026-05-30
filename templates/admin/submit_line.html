@@ -120,10 +120,7 @@
     </div>
 </div>
 
-{# v4.00.19 — single-instance enforcement. Removes any duplicates that
-   appeared in the DOM (HTMX swap, double-include from a custom change_form,
-   or paginated inline footer). Idempotent: runs at parse, no-ops if there
-   was only ever one. #}
+{% comment %} v4.00.19 sticky submit row dedup script (HTMX/double-include safe). {% endcomment %}
 <script>
 (function () {
   try {

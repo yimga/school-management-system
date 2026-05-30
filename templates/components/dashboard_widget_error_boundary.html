@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Isolated failure shell for one dashboard widget/chart — rest of cockpit stays live. #}
+{% comment %} Isolated failure shell for one dashboard widget/chart — rest of cockpit stays live. {% endcomment %}
 <div
   class="rmc-dashboard-widget-boundary"
   data-dashboard-widget="{{ widget_id|default:'panel' }}"

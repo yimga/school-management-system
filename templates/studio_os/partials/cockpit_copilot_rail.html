@@ -21,7 +21,7 @@
 {% endcomment %}
 <aside class="rmc-cockpit__rail" role="complementary" aria-label="{% trans 'Studio co-pilot rail' %}" data-rmc-cockpit-region="rail">
 
-  {# ---- Section 1: Context strip (server-rendered, JS overrides on hydrate) ---- #}
+  {% comment %} ---- Section 1: Context strip (server-rendered, JS overrides on hydrate) ---- {% endcomment %}
   <div class="rmc-cockpit__rail-section rmc-copilot-rail__section" data-rmc-copilot-rail-context="1">
     <div class="rmc-cockpit__rail-section-title">{% trans "Co-pilot" %}</div>
     <div class="rmc-copilot-rail__context-strip" data-rmc-copilot-rail-context-strip="1">
@@ -36,8 +36,8 @@
         <span aria-hidden="true">●</span>
         <span data-rmc-copilot-rail-posture-label="1">{% trans "Checking..." %}</span>
       </span>
-      {# v3.54.0 (2026-05-21): Operator/tenant badge — makes the host kind explicit. #}
-      {# tenant-isolation-allow: copilot-rail-host-kind-explicit-mode-indicator #}
+      {% comment %} v3.54.0 (2026-05-21): Operator/tenant badge — makes the host kind explicit. {% endcomment %}
+      {% comment %} tenant-isolation-allow: copilot-rail-host-kind-explicit-mode-indicator {% endcomment %}
       <span class="rmc-copilot-rail__mode-badge" data-rmc-host-kind="{{ request.public_host_kind|default:'tenant' }}" aria-label="{% if request.public_host_kind == 'manager' %}{% trans 'Operator host' %}{% else %}{% trans 'Tenant host' %}{% endif %}">
         {% if request.public_host_kind == 'manager' %}{% trans "Operator" %}{% else %}{% trans "Tenant" %}{% endif %}
       </span>
@@ -49,14 +49,14 @@
     {% endif %}
   </div>
 
-  {# ---- Section 2: Insights pulse (cloud-first; rules fallback) ---- #}
+  {% comment %} ---- Section 2: Insights pulse (cloud-first; rules fallback) ---- {% endcomment %}
   <div class="rmc-cockpit__rail-section rmc-copilot-rail__section" data-rmc-copilot-rail-insights="1">
     <div class="rmc-cockpit__rail-section-title">
       {% trans "Insights" %}
       <span class="rmc-copilot-rail__insights-source" data-rmc-copilot-rail-insights-source="1" aria-hidden="true"></span>
     </div>
     <ul class="rmc-copilot-rail__insights-list" data-rmc-copilot-rail-insights-list="1" aria-live="polite">
-      {# Server-rendered skeleton — three rows so the panel keeps its height before hydrate. #}
+      {% comment %} Server-rendered skeleton — three rows so the panel keeps its height before hydrate. {% endcomment %}
       <li class="rmc-copilot-rail__insight rmc-copilot-rail__insight--skeleton" data-rmc-copilot-rail-insight-skeleton="1">
         <div class="rmc-copilot-rail__skeleton-line rmc-copilot-rail__skeleton-line--title"></div>
         <div class="rmc-copilot-rail__skeleton-line"></div>
@@ -72,7 +72,7 @@
     </ul>
   </div>
 
-  {# ---- Section 3: Quick actions (registry passthrough, surface-filtered) ---- #}
+  {% comment %} ---- Section 3: Quick actions (registry passthrough, surface-filtered) ---- {% endcomment %}
   <div class="rmc-cockpit__rail-section rmc-copilot-rail__section" data-rmc-copilot-rail-actions="1">
     <div class="rmc-cockpit__rail-section-title">{% trans "Quick actions" %}</div>
     <ul class="rmc-copilot-rail__actions-list" data-rmc-copilot-rail-actions-list="1">
@@ -106,7 +106,7 @@
     </ul>
   </div>
 
-  {# ---- Legacy "Suggested next" tail — keeps batch-pre-v3.53.1 behaviour. ---- #}
+  {% comment %} ---- Legacy "Suggested next" tail — keeps batch-pre-v3.53.1 behaviour. ---- {% endcomment %}
   {% if studio_recommendations %}
   <div class="rmc-cockpit__rail-section">
     <div class="rmc-cockpit__rail-section-title">{% trans "Suggested next" %}</div>
@@ -118,7 +118,7 @@
   </div>
   {% endif %}
 
-  {# v3.54.0 (2026-05-21): Preview shortcuts microlist — opens role previews in new tabs. #}
+  {% comment %} v3.54.0 (2026-05-21): Preview shortcuts microlist — opens role previews in new tabs. {% endcomment %}
   {% if studio_role_preview_entries %}
   <div class="rmc-cockpit__rail-section" data-rmc-copilot-rail-previews="1">
     <div class="rmc-cockpit__rail-section-title">{% trans "Preview as" %}</div>
@@ -132,7 +132,7 @@
   </div>
   {% endif %}
 
-  {# ---- Endpoint hooks (JS reads these). ---- #}
+  {% comment %} ---- Endpoint hooks (JS reads these). ---- {% endcomment %}
   <span hidden data-rmc-copilot-rail-endpoints
         data-context-url="{% url 'studio_os:copilot_rail_context' %}"
         data-insights-url="{% url 'studio_os:copilot_rail_insights' %}"

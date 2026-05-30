@@ -80,9 +80,9 @@
   "var_teacherattendance_present": "{{ TeacherAttendance.PRESENT|escapejs }}"
 }</script><script src="{% static 'js/_pages/portal__roll_call_teacher-1.js' %}"></script>
   <script src="{% static 'js/form-draft-save.js' %}"></script>
-  {# FormDraftSave.init is called by the page script after the library loads. #}
+  {% comment %} FormDraftSave.init is called by the page script after the library loads. {% endcomment %}
   <script src="{% static 'js/_pages/portal__roll_call_teacher.js' %}"></script>
-  {# v4.00.8: progressive WAL enhancement now also covers teacher attendance. #}
+  {% comment %} v4.00.8: progressive WAL enhancement now also covers teacher attendance. {% endcomment %}
   <script src="{% static 'js/_pages/rmc-attendance-wal-enhance.js' %}" defer></script>
   {% include "partials/portal_row_detail_drawer_bundle.html" %}
 {% endblock %}

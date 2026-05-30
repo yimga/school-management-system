@@ -26,7 +26,7 @@
     </div>
   </div>
 
-  {# Severity counters — Apple Mail-style filter pill row #}
+  {% comment %} Severity counters — Apple Mail-style filter pill row {% endcomment %}
   <div class="d-flex flex-wrap align-items-center gap-2 mb-3" role="group" aria-label="{% trans 'Severity summary' %}">
     <span class="badge text-bg-danger">
       {% blocktrans count counter=counts.blocker %}{{ counter }} blocker{% plural %}{{ counter }} blockers{% endblocktrans %}

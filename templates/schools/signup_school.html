@@ -3,12 +3,12 @@
 {% block title %}{{ cockpit.signup_form.heading|default:_("Start your school workspace") }}{% endblock %}
 
 {% block extrastyle %}{{ block.super }}
-{# Wave L7 (v3.61.8 — 2026-05-22): signup 2.0 — school-type cards + done-page polish. #}
+{% comment %} Wave L7 (v3.61.8 — 2026-05-22): signup 2.0 — school-type cards + done-page polish. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-signup-v2.css' %}">
 {% endblock %}
 
 {% block extrahead %}{{ block.super }}
-{# v3.62.2 — Wave 1 local-first: country-adaptive card re-renderer. #}
+{% comment %} v3.62.2 — Wave 1 local-first: country-adaptive card re-renderer. {% endcomment %}
 <script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
 {% endblock %}
 
@@ -61,7 +61,7 @@
       {% csrf_token %}
       {% if signup_ref == 'demo' %}<input type="hidden" name="signup_ref" value="demo" data-rmc-signup-ref-preserve="1">{% endif %}
 
-      {# ---- School name ---------------------------------------------- #}
+      {% comment %} ---- School name ---------------------------------------------- {% endcomment %}
       <div class="mb-3 rmc-signup-field" data-rmc-signup-field="name">
         <label for="name" class="form-label rmc-signup-field__label">
           <span class="rmc-signup-field__label-text">{% trans "School name" %}</span>
@@ -76,7 +76,7 @@
                autofocus>
       </div>
 
-      {# ---- Web address (slug) — live URL pill --------------------- #}
+      {% comment %} ---- Web address (slug) — live URL pill --------------------- {% endcomment %}
       <div class="mb-3 rmc-signup-field" data-rmc-signup-field="slug">
         <label for="slug" class="form-label rmc-signup-field__label">
           <span class="rmc-signup-field__label-text">{% trans "Web address" %}</span>
@@ -98,7 +98,7 @@
         <div class="form-text rmc-signup-field__hint">{% trans "Your school workspace lives at this URL. You can connect a custom domain later." %}</div>
       </div>
 
-      {# ---- Admin email --------------------------------------------- #}
+      {% comment %} ---- Admin email --------------------------------------------- {% endcomment %}
       <div class="mb-3 rmc-signup-field" data-rmc-signup-field="email">
         <label for="email" class="form-label rmc-signup-field__label">
           <span class="rmc-signup-field__label-text">{% trans "Admin email" %}</span>
@@ -113,7 +113,7 @@
         <div class="form-text rmc-signup-field__hint">{% trans "We'll send a verification link here. This becomes your sign-in." %}</div>
       </div>
 
-      {# ---- Country + Calendar row --------------------------------- #}
+      {% comment %} ---- Country + Calendar row --------------------------------- {% endcomment %}
       <div class="row g-3 mb-4">
         <div class="col-sm-6">
           <label for="country_code" class="form-label rmc-signup-field__label">
@@ -121,10 +121,10 @@
             <span class="rmc-signup-field__optional">({% trans "optional" %})</span>
           </label>
           {% if signup_countries %}
-            {# v3.58.x Wave 9: GlobalGeoCatalog-backed dropdown. Each #}
-            {# option carries data-rmc-signup-country-tz / -curriculum #}
-            {# so the rmc-signup-form.js handler can auto-suggest the #}
-            {# timezone and term_preset when the operator picks a country. #}
+            {% comment %} v3.58.x Wave 9: GlobalGeoCatalog-backed dropdown. Each {% endcomment %}
+            {% comment %} option carries data-rmc-signup-country-tz / -curriculum {% endcomment %}
+            {% comment %} so the rmc-signup-form.js handler can auto-suggest the {% endcomment %}
+            {% comment %} timezone and term_preset when the operator picks a country. {% endcomment %}
             <select name="country_code" id="country_code"
                     class="form-select rmc-signup-input"
                     data-rmc-signup-country="1">
@@ -323,7 +323,7 @@
         <div class="form-text rmc-signup-field__hint">{% trans "We'll draft a Migration Cloud bundle so it's ready on day one. You can change this later." %}</div>
       </div>
 
-      {# v3.59.x Wave 11 Agent X (2026-05-22): primary signup CTA upgraded to `.rmc-cta--gradient-indigo` per v8 200x preview. #}
+      {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): primary signup CTA upgraded to `.rmc-cta--gradient-indigo` per v8 200x preview. {% endcomment %}
       <button type="submit"
               class="btn btn-primary rmc-signup-submit rmc-cta--gradient-indigo"
               data-rmc-signup-submit="1">
@@ -346,5 +346,5 @@
   <a class="btn btn-sm btn-light" href="{{ marketing_demo_tenant_url }}"><i class="bi bi-arrow-left me-1" aria-hidden="true"></i>{% trans "Return to demo tenant" %}</a>
 </div>
 {% endif %}
-{% endif %}{# /cockpit.signup_form.enabled #}
+{% endif %}{% comment %} /cockpit.signup_form.enabled {% endcomment %}
 {% endblock %}

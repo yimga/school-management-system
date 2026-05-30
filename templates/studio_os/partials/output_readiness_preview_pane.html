@@ -19,7 +19,7 @@ Owner: Agent 4 (Output). Only consumes existing vars; views.py is a
 coordinator-task to wire output_readiness_summary as a single SOT.
 {% endcomment %}
 
-{# Derive honest counts via filters; no Python required. #}
+{% comment %} Derive honest counts via filters; no Python required. {% endcomment %}
 {% with graph=output_dependency_graph|default_if_none:'' summary=output_readiness_summary|default_if_none:'' %}
 {% with packs_total=graph|length %}
 <section class="rmc-output-cockpit"
@@ -59,7 +59,7 @@ coordinator-task to wire output_readiness_summary as a single SOT.
   </header>
 
   <ul class="rmc-output-tiles" role="list">
-    {# Reports / packs tile — real source: output_dependency_graph (or summary) #}
+    {% comment %} Reports / packs tile — real source: output_dependency_graph (or summary) {% endcomment %}
     <li class="rmc-output-tile" data-output-tile="reports">
       <p class="rmc-output-tile__eyebrow">{% trans "Reports & packs" %}</p>
       <p class="rmc-output-tile__label">{% trans "Active report packs" %}</p>
@@ -94,7 +94,7 @@ coordinator-task to wire output_readiness_summary as a single SOT.
       </div>
     </li>
 
-    {# Documents tile — real source: output_doc_library.stats #}
+    {% comment %} Documents tile — real source: output_doc_library.stats {% endcomment %}
     {% if output_doc_library and output_doc_library.stats %}
     <li class="rmc-output-tile" data-output-tile="documents">
       <p class="rmc-output-tile__eyebrow">{% trans "Documents" %}</p>
@@ -137,7 +137,7 @@ coordinator-task to wire output_readiness_summary as a single SOT.
     </li>
     {% endif %}
 
-    {# Report cards tile — entry point only #}
+    {% comment %} Report cards tile — entry point only {% endcomment %}
     <li class="rmc-output-tile" data-output-tile="builder">
       <p class="rmc-output-tile__eyebrow">{% trans "Report cards" %}</p>
       <p class="rmc-output-tile__label">{% trans "Builder & styles" %}</p>
@@ -166,7 +166,7 @@ coordinator-task to wire output_readiness_summary as a single SOT.
       </div>
     </li>
 
-    {# Credentials tile — entry point #}
+    {% comment %} Credentials tile — entry point {% endcomment %}
     <li class="rmc-output-tile" data-output-tile="credentials">
       <p class="rmc-output-tile__eyebrow">{% trans "Credentials" %}</p>
       <p class="rmc-output-tile__label">{% trans "IDs & certificates" %}</p>
@@ -182,7 +182,7 @@ coordinator-task to wire output_readiness_summary as a single SOT.
       </div>
     </li>
 
-    {# Branding inheritance tile — entry point #}
+    {% comment %} Branding inheritance tile — entry point {% endcomment %}
     <li class="rmc-output-tile" data-output-tile="branding">
       <p class="rmc-output-tile__eyebrow">{% trans "Branding" %}</p>
       <p class="rmc-output-tile__label">{% trans "Theme → output chain" %}</p>
@@ -199,7 +199,7 @@ coordinator-task to wire output_readiness_summary as a single SOT.
     </li>
   </ul>
 
-  {# Per-output preview list — driven by pack_preview_cards (already tenant-safe). #}
+  {% comment %} Per-output preview list — driven by pack_preview_cards (already tenant-safe). {% endcomment %}
   {% if output_pack_preview_cards %}
   <div class="min-w-0" data-rmc-output-previews="1">
     <h3 class="rmc-output-cockpit__title h6 mb-2">{% trans "Next best action — per output" %}</h3>

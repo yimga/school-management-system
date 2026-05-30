@@ -1,7 +1,7 @@
 {% extends "portal_base.html" %}
 {% load static i18n region_format glocal_tags %}
 {% load terminology_tags %}
-{# Refactor: workflow (grouped downloads), semantics (dl/section/aria), consistency (spacing, borders), fix messaging→contact_school, responsive actions. See docs/REFACTOR_PARENT_RESULTS_CHANGES.md #}
+{% comment %} Refactor: workflow (grouped downloads), semantics (dl/section/aria), consistency (spacing, borders), fix messaging→contact_school, responsive actions. See docs/REFACTOR_PARENT_RESULTS_CHANGES.md {% endcomment %}
 {% block title %}{% trans "Results" %} — {{ student.student_code }}{% endblock %}
 
 {% block extrastyle %}
@@ -12,10 +12,10 @@
 
 {% block content %}
 <div class="report-card-print-wrapper results-page" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
-  {# ----- Page header: title + actions (fewer clicks via grouped Download) ----- #}
+  {% comment %} ----- Page header: title + actions (fewer clicks via grouped Download) ----- {% endcomment %}
   <header class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-end gap-3 mb-4 no-print">
     <div>
-      {# Aesthetic-v2 page-header grammar. Styled by patterns.css. #}
+      {% comment %} Aesthetic-v2 page-header grammar. Styled by patterns.css. {% endcomment %}
       <div class="eyebrow">{% blocktrans with code=student.student_code %}Student · {{ code }}{% endblocktrans %}</div>
       <div class="d-flex align-items-center gap-2">
         <h1 class="page-h1 h4 mb-0 fw-semibold">{% trans "Results" %}</h1>
@@ -59,7 +59,7 @@
     </div>
   </header>
 
-  {# ----- Student context (single card, semantic list) ----- #}
+  {% comment %} ----- Student context (single card, semantic list) ----- {% endcomment %}
   <section class="card mb-3 results-student-card" aria-labelledby="student-info-heading">
     <div class="card-body py-3">
       <h2 id="student-info-heading" class="visually-hidden">{% term "student" capitalize=True %} {% trans "information" %}</h2>

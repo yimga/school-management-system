@@ -10,9 +10,9 @@
 <link rel="stylesheet" href="{% static 'css/dashboard-auto-grid.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-unified.css' %}">
 <link rel="stylesheet" href="{% static 'css/dashboard-layout-controls.css' %}">
-{# Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. #}
+{% comment %} Retired 2026-05-12 (pass 3 css cleanup): dashboard-premium-compact.css — folded into dashboard-theme-sync.css. {% endcomment %}
 <script src="{% static 'js/_pages/parent__dashboard.js' %}"></script>
-{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 <link rel="stylesheet" href="{% static 'css/rmc-tenant-dashboard-v2.css' %}">
@@ -46,7 +46,7 @@
    primitive so families can fold sections they don't need. State persists per-section
    via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
 <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="parent">
-  {# v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. #}
+  {% comment %} v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. {% endcomment %}
   {% include "partials/cockpit/_year_progress.html" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="parent__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="parent__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
@@ -165,7 +165,7 @@
         <p class="text-muted mb-4">
           {% trans "Link your child's account to view their progress, attendance, and school updates." %}
         </p>
-        {# v3.59.x Wave 11 Agent X (2026-05-22): primary parent-onboarding CTA upgraded to gradient indigo per v8 200x preview. #}
+        {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): primary parent-onboarding CTA upgraded to gradient indigo per v8 200x preview. {% endcomment %}
         {% if rmc_conversion_single_action_enforced|default:False %}
         <div class="d-flex flex-column flex-md-row gap-3 justify-content-center align-items-center">
           <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg rmc-cta--gradient-indigo" data-rmc-parent-onboarding-primary="1">
@@ -206,12 +206,12 @@
     {% endif %}
 
     <!-- Header -->
-    {# v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside existing parent-dashboard-header classes — additive, preserves all existing wiring. #}
+    {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` alongside existing parent-dashboard-header classes — additive, preserves all existing wiring. {% endcomment %}
     <header class="parent-dashboard-header rmc-page-header-glow" aria-labelledby="parent-dashboard-title" data-decision-zone="headline" data-tour="parent-header">
       <div class="dashboard-header">
         <div class="dashboard-title">
           <span class="dashboard-eyebrow rmc-page-eyebrow">{% trans "Family Home" %}</span>
-          {# v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.rmc-page-header-glow strong` gradient-text rule. #}
+          {% comment %} v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.rmc-page-header-glow strong` gradient-text rule. {% endcomment %}
           <h1 id="parent-dashboard-title">{% trans "Welcome back" %}{% if request.user %}, <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>{% endif %}</h1>
           <p>{% trans "Your children, school status, and the next step to take — in one calm view." %}</p>
         </div>
@@ -261,7 +261,7 @@
     {% url 'portal:parent_finance' as parent_finance_url %}
     {% url 'portal:parent_contact_school' as parent_contact_url %}
     {% url 'portal:claim_invite' as parent_claim_invite_url %}
-    {# Phase G follow-through (2026-05-12): section nav for 614L parent dashboard. #}
+    {% comment %} Phase G follow-through (2026-05-12): section nav for 614L parent dashboard. {% endcomment %}
     <nav class="rmc-section-nav rmc-section-nav--inline mb-2" aria-label="{% trans 'Family dashboard sections' %}" data-rmc-section-nav-curated="1">
       <span class="rmc-section-nav__inline-label">{% trans "Jump to" %}</span>
       <div class="rmc-surface-subnav" role="list">
@@ -386,7 +386,7 @@
     </section>
 
     {% if parent_upcoming_events %}
-    {# v3.59.x Wave 11 Agent X (2026-05-22): upcoming-school grouping adopts `.rmc-app-section--glass` per v8 200x preview. #}
+    {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): upcoming-school grouping adopts `.rmc-app-section--glass` per v8 200x preview. {% endcomment %}
     <section class="mb-3 rmc-reveal" aria-labelledby="parent-upcoming-school-heading">
       <div class="card border-0 shadow-sm rmc-app-section--glass">
         <div class="card-body py-3">
@@ -427,7 +427,7 @@
           </div>
           {% endif %}
           <div class="section-title d-flex flex-wrap align-items-center justify-content-between gap-2">
-            {# Wave 12: "My Children" reads as "My <tenant-student-term-plural>". #}
+            {% comment %} Wave 12: "My Children" reads as "My <tenant-student-term-plural>". {% endcomment %}
             {% term "student" plural=True capitalize=True as student_pl_h %}
             <h2 id="children-heading" class="h6 mb-0"><i class="bi bi-people-fill"></i> {% blocktrans with t=student_pl_h %}My {{ t }}{% endblocktrans %} {% if links %}({{ links|length }}){% endif %}</h2>
             <a href="{% url 'portal:parent_medal_case' %}" class="btn btn-sm btn-outline-primary">{% trans "Medal case" %}</a>

@@ -22,6 +22,6 @@ fallback shows an empty SVG (graceful degradation — no visual break).
        viewBox="0 0 {{ width|default:120 }} {{ height|default:32 }}"
        preserveAspectRatio="none"
        aria-hidden="true">
-    {# JS renders the path; this empty SVG is the SSR fallback. #}
+    {% comment %} JS renders the path; this empty SVG is the SSR fallback. {% endcomment %}
   </svg>
 </div>

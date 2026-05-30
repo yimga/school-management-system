@@ -145,31 +145,23 @@
   // Apply BEFORE first paint when possible.
   try { applyPageDomain(); } catch (e) {}
 
-  /* v4.00.26 — OS-grade density bootstrap.
-     Auto-enables [data-rmc-os-grade="1"] on <html> for manager + admin
-     shells (when the body carries .admin-manager-shell / .control-plane-shell).
-     Operator opt-out via localStorage["rmc-os-grade"] = "off".
-     Public API: window.rmcOsGrade.{get,set,toggle}. */
+  /* v4.00.26 — OS-grade density bootstrap (opt-in only).
+     Luxury chrome is the platform baseline; enable only when the operator
+     explicitly opts in via localStorage["rmc-os-grade"] = "on" or
+     window.rmcOsGrade.set(true). Public API: window.rmcOsGrade.{get,set,toggle}. */
   function applyOsGrade() {
     var html = document.documentElement;
-    if (html.getAttribute("data-rmc-os-grade")) return;
     try {
-      var stored = localStorage.getItem("rmc-os-grade");
-      if (stored === "off") return;
-      if (stored === "on") {
+      if (localStorage.getItem("rmc-os-grade") === "on") {
         html.setAttribute("data-rmc-os-grade", "1");
         return;
       }
     } catch (e) {}
-    // Default-on for the two ops surfaces.
-    var b = document.body;
-    if (b && (b.classList.contains("admin-manager-shell") ||
-              b.classList.contains("control-plane-shell"))) {
-      html.setAttribute("data-rmc-os-grade", "1");
-    }
+    html.removeAttribute("data-rmc-os-grade");
   }
 
   function ensureCommandRail() {
+    if (document.documentElement.getAttribute("data-rmc-os-grade") !== "1") return;
     if (document.querySelector(".rmc-os-command-rail")) return;
     var rail = document.createElement("div");
     rail.className = "rmc-os-command-rail";
@@ -235,19 +227,21 @@
   };
 
   /* v4.00.20 — scroll-aware ticker collapse + density-toggle persistence.
-     Sets [data-rmc-scrolled="1"] on <html> once the user scrolls past 64px;
-     CSS in admin-manager-shell.css uses that to collapse the LIVE ticker
-     into a 4px strip. The density toggle reads localStorage on init and
-     mirrors to data-rmc-admin-density on <html>. */
+     Luxury baseline: comfortable admin density unless operator opts into compact.
+     Mirrors to data-rmc-admin-density on <html>. */
   function initShellEnhancements() {
     var html = document.documentElement;
 
     try {
       var stored = localStorage.getItem("rmc-admin-density");
-      if (stored === "comfortable" || stored === "compact") {
-        html.setAttribute("data-rmc-admin-density", stored);
+      if (stored === "compact") {
+        html.setAttribute("data-rmc-admin-density", "compact");
+      } else {
+        html.setAttribute("data-rmc-admin-density", "comfortable");
       }
-    } catch (e) {}
+    } catch (e) {
+      html.setAttribute("data-rmc-admin-density", "comfortable");
+    }
 
     var scrolledTicking = false;
     function applyScrolled() {
@@ -265,7 +259,7 @@
 
     // Public toggle hook so a menu button can flip density.
     window.rmcAdminDensity = {
-      get: function () { return html.getAttribute("data-rmc-admin-density") || "compact"; },
+      get: function () { return html.getAttribute("data-rmc-admin-density") || "comfortable"; },
       set: function (mode) {
         if (mode !== "comfortable" && mode !== "compact") return;
         html.setAttribute("data-rmc-admin-density", mode);

@@ -1,6 +1,6 @@
 {% extends "backend_base.html" %}
 {% load i18n static region_format tenant_hook terminology_tags glocal_tags %}
-{# Backend UI: distinct from /admin; uses portal backend light theme. #}
+{% comment %} Backend UI: distinct from /admin; uses portal backend light theme. {% endcomment %}
 {% comment %}Wave 11 (v3.62.10 — 2026-05-22): lexicon adoption. "Students" reads as
    the tenant's term for student (e.g. "Élèves" in FR, "Alumnos" in ES,
    "विद्यार्थी" in HI, "Talaba" in TZ Swahili).{% endcomment %}
@@ -16,7 +16,7 @@
       {% blocktrans asvar student_add_text with t=student_sg %}Add {{ t }}{% endblocktrans %}
       {% include "studio_os/components/page_header.html" with title=student_pl subtitle=_("Manage student records") action_url=create_url action_text=student_add_text %}
 
-      {# v4.00.13 — 5-column status breakdown using rmc-five-col primitive. #}
+      {% comment %} v4.00.13 — 5-column status breakdown using rmc-five-col primitive. {% endcomment %}
       {% if student_status_breakdown %}
       <section class="rmc-five-col mb-3" aria-label="{% trans 'Students by status' %}">
         <div class="rmc-five-col__head" role="row">

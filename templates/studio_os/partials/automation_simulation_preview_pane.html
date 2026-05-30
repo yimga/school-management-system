@@ -1,7 +1,7 @@
 {% load i18n %}
-{# v3.54 (2026-05-21, Agent 3): Simulation preview pane. #}
-{# Honest empty state when no simulation has been run. Never fabricates results. #}
-{# CTA routes to apps.automation:visual_workflow_simulate when URL resolves. #}
+{% comment %} v3.54 (2026-05-21, Agent 3): Simulation preview pane. {% endcomment %}
+{% comment %} Honest empty state when no simulation has been run. Never fabricates results. {% endcomment %}
+{% comment %} CTA routes to apps.automation:visual_workflow_simulate when URL resolves. {% endcomment %}
 <section class="rmc-automation-simulation"
          data-rmc-automation-simulation-pane="1"
          aria-labelledby="rmc-automation-simulation-title"
@@ -27,8 +27,8 @@
   </p>
 
   {% if automation_simulation_preview %}
-  {# Coordinator note: shell context populates automation_simulation_preview when wired. #}
-  {# Today this branch is dormant until coordinator surfaces the context var. #}
+  {% comment %} Coordinator note: shell context populates automation_simulation_preview when wired. {% endcomment %}
+  {% comment %} Today this branch is dormant until coordinator surfaces the context var. {% endcomment %}
   <dl class="rmc-automation-simulation__row">
     <dt>{% trans "Trigger" %}</dt>
     <dd>{{ automation_simulation_preview.trigger_label|default:_("—") }}</dd>

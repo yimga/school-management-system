@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Teacher attendance artifact — morning roll for Year 5B. #}
+{% comment %} Teacher attendance artifact — morning roll for Year 5B. {% endcomment %}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 360" role="img" aria-labelledby="teacher-attendance-title">
   <title id="teacher-attendance-title">{% trans "A teacher's morning roll for Year 5B with one absence flagged for follow-up" %}</title>
 
@@ -20,7 +20,7 @@
     </filter>
   </defs>
 
-  {# Window frame #}
+  {% comment %} Window frame {% endcomment %}
   <rect x="0" y="0" width="560" height="360" rx="16" fill="url(#ta-window-grad)" stroke="#E5E1D8"/>
   <rect x="0" y="0" width="560" height="44" rx="16" fill="url(#ta-header-grad)"/>
   <rect x="0" y="34" width="560" height="10" fill="url(#ta-header-grad)"/>
@@ -32,11 +32,11 @@
   </g>
   <text x="280" y="28" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#4B5563" text-anchor="middle">Year 5B · Morning roll · Tuesday</text>
 
-  {# Title + count #}
+  {% comment %} Title + count {% endcomment %}
   <g font-family="Inter, system-ui, sans-serif" fill="#1F2937">
     <text x="28" y="82" font-family="Source Serif 4, Iowan Old Style, serif" font-size="22" font-weight="500" letter-spacing="-0.015em">{% trans "Marking the register" %}</text>
     <text x="28" y="104" font-size="11" fill="#6B7280">{% trans "8:32 — 9:00 a.m. · auto-saved" %}</text>
-    {# Progress chip #}
+    {% comment %} Progress chip {% endcomment %}
     <g transform="translate(420 76)">
       <rect width="112" height="32" rx="8" fill="#FAF7F2" stroke="#E5E1D8"/>
       <text x="14" y="20" font-size="12" font-weight="600" fill="#1F2937">21 / 24</text>
@@ -45,7 +45,7 @@
     </g>
   </g>
 
-  {# Column headers #}
+  {% comment %} Column headers {% endcomment %}
   <g font-family="Inter, system-ui, sans-serif" font-size="9" font-weight="600" fill="#6B7280" letter-spacing="0.08em">
     <text x="28"  y="138">STUDENT</text>
     <text x="320" y="138">STATUS</text>
@@ -54,9 +54,9 @@
   </g>
   <line x1="28" y1="146" x2="532" y2="146" stroke="#E5E1D8"/>
 
-  {# Rows #}
+  {% comment %} Rows {% endcomment %}
   <g font-family="Inter, system-ui, sans-serif" font-size="13" fill="#1F2937">
-    {# Maya Chen #}
+    {% comment %} Maya Chen {% endcomment %}
     <g transform="translate(0 168)">
       <circle cx="40" cy="-4" r="11" fill="#FED7AA"/>
       <text x="40" y="0" font-size="11" font-weight="600" fill="#9A3412" text-anchor="middle">MC</text>
@@ -67,7 +67,7 @@
     </g>
     <line x1="28" y1="184" x2="532" y2="184" stroke="#F2EDE4"/>
 
-    {# Daniel Okeke #}
+    {% comment %} Daniel Okeke {% endcomment %}
     <g transform="translate(0 206)">
       <circle cx="40" cy="-4" r="11" fill="#BBF7D0"/>
       <text x="40" y="0" font-size="11" font-weight="600" fill="#166534" text-anchor="middle">DO</text>
@@ -78,7 +78,7 @@
     </g>
     <line x1="28" y1="222" x2="532" y2="222" stroke="#F2EDE4"/>
 
-    {# Priya Shah — Late #}
+    {% comment %} Priya Shah — Late {% endcomment %}
     <g transform="translate(0 244)">
       <circle cx="40" cy="-4" r="11" fill="#FDE68A"/>
       <text x="40" y="0" font-size="11" font-weight="600" fill="#92400E" text-anchor="middle">PS</text>
@@ -89,7 +89,7 @@
     </g>
     <line x1="28" y1="260" x2="532" y2="260" stroke="#F2EDE4"/>
 
-    {# Aisha Khan — Absent, highlighted #}
+    {% comment %} Aisha Khan — Absent, highlighted {% endcomment %}
     <rect x="12" y="266" width="536" height="34" rx="8" fill="#FEF3E7"/>
     <g transform="translate(0 286)">
       <circle cx="40" cy="-4" r="11" fill="#FED7AA"/>
@@ -105,7 +105,7 @@
     </g>
     <line x1="28" y1="306" x2="532" y2="306" stroke="#F2EDE4"/>
 
-    {# Tom Williams #}
+    {% comment %} Tom Williams {% endcomment %}
     <g transform="translate(0 326)">
       <circle cx="40" cy="-4" r="11" fill="#E5E1D8"/>
       <text x="40" y="0" font-size="11" font-weight="600" fill="#4B5563" text-anchor="middle">TW</text>

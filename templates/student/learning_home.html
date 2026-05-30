@@ -1,14 +1,14 @@
 {% extends "portal_base.html" %}
 {% load static i18n phase8_tags terminology_tags %}
-{# Wave 13 (v3.62.17): "Student" reads as tenant's term — "Learner" in CBC #}
-{# Kenya, "Pupil" in UK independent, "विद्यार्थी" in IN-HI, "Ward" in PK. #}
+{% comment %} Wave 13 (v3.62.17): "Student" reads as tenant's term — "Learner" in CBC {% endcomment %}
+{% comment %} Kenya, "Pupil" in UK independent, "विद्यार्थी" in IN-HI, "Ward" in PK. {% endcomment %}
 {% term "student" capitalize=True as student_sg %}
 {% block title %}{% blocktrans with t=student_sg %}{{ t }} home{% endblocktrans %}{% endblock %}
 {% block body_extra_class %}dashboard-page-student{% endblock %}
 {% block extrastyle %}
 {{ block.super }}
 <link rel="stylesheet" href="{% static 'css/decision-engine-surface.css' %}">
-{# v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. #}
+{% comment %} v3.58.x Wave 10 Agent T (2026-05-22): collapsable-section primitive. {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-collapsable.css' %}">
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
@@ -20,7 +20,7 @@
    primitive so students can fold sections they don't need. State persists per-section
    via localStorage. Inner partials keep their cockpit.<section>.enabled self-gate. {% endcomment %}
 <div class="tp-dashboard-cockpit" data-rmc-tp-dashboard-cockpit="student">
-  {# v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. #}
+  {% comment %} v3.59.x Wave A (2026-05-22): year-progress strip sits above the cockpit sections per v3 100x preview. {% endcomment %}
   {% include "partials/cockpit/_year_progress.html" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Today snapshot") key="student__today_snapshot" include_partial="partials/cockpit/_today_snapshot.html" chrome="section" %}
   {% include "partials/cockpit/_collapsable_section.html" with title=_("Quick actions") key="student__quick_actions_grid" include_partial="partials/cockpit/_quick_actions_grid.html" chrome="section" %}
@@ -43,11 +43,11 @@
 </div>
 <div class="container-lg py-3" data-page-archetype="role-home" data-rmc-student-learning-home="1" data-rmc-page="student-portal" data-task="student_home" data-task-step="student:dashboard">
   {% phase8_dashboard_declaration "student/learning_home.html" %}
-  {# Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. #}
-  {# v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` for v8 200x preview parity. #}
+  {% comment %} Aesthetic-v2 page header (eyebrow + page-h1 + page-sub). Styled by patterns.css. {% endcomment %}
+  {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): adopt `.rmc-page-header-glow` + `.rmc-page-eyebrow` for v8 200x preview parity. {% endcomment %}
   <header class="rmc-page-header rmc-page-header-glow mb-3" data-rmc-aesthetic-page-header="student" data-tour="student-header">
     <div class="eyebrow rmc-page-eyebrow">{% trans "My learning" %}</div>
-    {# v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.page-h1 strong` gradient-text rule. #}
+    {% comment %} v3.59.x Wave A (2026-05-22): wrap dynamic name in <strong> for `.page-h1 strong` gradient-text rule. {% endcomment %}
     <h1 class="page-h1" data-rmc-injected-h1="1">{% blocktrans with name=request.user.first_name|default:student_sg %}Hi <strong>{{ name }}</strong>.{% endblocktrans %}</h1>
     <p class="page-sub">{% trans "Your priorities for today." %}</p>
   </header>

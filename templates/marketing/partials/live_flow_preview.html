@@ -28,7 +28,7 @@
         </div>
       </div>
     </div>
-    {# Segmented step controls — not WCAG tab widgets (avoid tablist without role="tab"). #}
+    {% comment %} Segmented step controls — not WCAG tab widgets (avoid tablist without role="tab"). {% endcomment %}
     <div class="mkt-live-tabs" role="group" aria-label="{% trans 'Demo steps' %}">
       <button type="button" data-goto="admission" class="is-active">1. {% trans "Admit" %}</button>
       <button type="button" data-goto="roster">2. {% trans "Roster" %}</button>

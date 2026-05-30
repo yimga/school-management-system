@@ -27,7 +27,7 @@
   </div>
   {% endif %}
 
-  {# ---- Current infrastructure state ---- #}
+  {% comment %} ---- Current infrastructure state ---- {% endcomment %}
   {% if current_blueprint_reference %}
   <section class="rmc-launch-section" aria-labelledby="rmc-launch-infra-current-title">
     <h3 id="rmc-launch-infra-current-title" class="rmc-launch-section__title h6">
@@ -58,7 +58,7 @@
   </div>
   {% endif %}
 
-  {# ---- Template picker ---- #}
+  {% comment %} ---- Template picker ---- {% endcomment %}
   <section class="rmc-launch-section" aria-labelledby="rmc-launch-infra-template-title">
     <h3 id="rmc-launch-infra-template-title" class="rmc-launch-section__title h6">
       <i class="bi bi-collection" aria-hidden="true"></i>
@@ -84,7 +84,7 @@
     </div>
   </section>
 
-  {# ---- Preview result + diff ---- #}
+  {% comment %} ---- Preview result + diff ---- {% endcomment %}
   <section id="studio-infra-result" class="rmc-launch-section" hidden aria-labelledby="rmc-launch-infra-preview-title">
     <h3 id="rmc-launch-infra-preview-title" class="rmc-launch-section__title h6">
       <i class="bi bi-bar-chart-steps" aria-hidden="true"></i>
@@ -107,7 +107,7 @@
     <p class="rmc-launch-section__meta mb-0" id="studio-infra-apply-note"></p>
   </section>
 
-  {# ---- Honest apply: operator-only / platform-governed ---- #}
+  {% comment %} ---- Honest apply: operator-only / platform-governed ---- {% endcomment %}
   <section class="rmc-launch-section" aria-labelledby="rmc-launch-infra-apply-title">
     <h3 id="rmc-launch-infra-apply-title" class="rmc-launch-section__title h6">
       <i class="bi bi-shield-lock" aria-hidden="true"></i>

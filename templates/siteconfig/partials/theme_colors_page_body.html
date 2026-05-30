@@ -128,7 +128,7 @@
     </div>
 
     <div class="theme-experience-grid">
-      {# Left: Color & harmony tools #}
+      {% comment %} Left: Color & harmony tools {% endcomment %}
       <div class="theme-experience-left">
         <div class="theme-revert-row mb-2">
           <button type="button" id="theme-revert-to-saved" class="btn btn-outline-secondary btn-sm">
@@ -141,13 +141,13 @@
         {% include "admin/components/admin_dashboard_palette_selector.html" %}
       </div>
 
-      {# Right: Theme & Experience form (no spill) + preview + actions at end #}
+      {% comment %} Right: Theme & Experience form (no spill) + preview + actions at end {% endcomment %}
       <div class="theme-experience-right">
         <div class="card border theme-experience-form-card">
           <div class="card-body py-1 theme-experience-form-body">
             <h2 class="h6 mb-1">{% trans "Theme & Experience settings" %}</h2>
 
-            {# Color fields #}
+            {% comment %} Color fields {% endcomment %}
             <div class="row g-1 mb-1">
               <div class="col-6 col-md-4"><div class="mb-0">{{ form.primary_color.label_tag }}{{ form.primary_color }}{% if form.primary_color.errors %}<div class="invalid-feedback d-block">{{ form.primary_color.errors.0 }}</div>{% endif %}</div></div>
               <div class="col-6 col-md-4"><div class="mb-0">{{ form.accent_color.label_tag }}{{ form.accent_color }}{% if form.accent_color.errors %}<div class="invalid-feedback d-block">{{ form.accent_color.errors.0 }}</div>{% endif %}</div></div>
@@ -159,7 +159,7 @@
             </div>
 
             <p class="small text-muted mb-1">{% trans "Changing theme packs or high-impact colors requires: Live preview → then tick Confirm and publish → then Save." %}</p>
-            {# Theme + checkboxes in one row #}
+            {% comment %} Theme + checkboxes in one row {% endcomment %}
             <div class="row g-1 mb-1">
               <div class="col-md-3"><div class="mb-0">{{ form.theme_brightness.label_tag }}{{ form.theme_brightness }}</div></div>
               <div class="col-md-3"><div class="mb-0">{{ form.backend_console_theme.label_tag }}{{ form.backend_console_theme }}</div><small class="text-muted">{% trans "If the selected Admin theme pack has a console theme set, it overrides this." %}</small></div>
@@ -211,21 +211,21 @@
                 <small class="text-muted">{% trans "When enabled, theme changes save without live preview confirmation. Use only in low-risk environments." %}</small>
               </div>
             </div>
-            {# Per-role portal themes #}
+            {% comment %} Per-role portal themes {% endcomment %}
             <div class="row g-1 mb-1 border-top pt-1 mt-1">
               <div class="col-12"><strong class="small">{% trans "Per-role portal themes (optional)" %}</strong></div>
               <div class="col-md-6"><div class="mb-0">{{ form.teacher_theme_pack.label_tag }}{{ form.teacher_theme_pack }}</div><small class="text-muted">{% trans "Leave blank to use Portal theme for teachers." %}</small></div>
               <div class="col-md-6"><div class="mb-0">{{ form.parent_theme_pack.label_tag }}{{ form.parent_theme_pack }}</div><small class="text-muted">{% trans "Leave blank to use Portal theme for parents." %}</small></div>
             </div>
 
-            {# Typography #}
+            {% comment %} Typography {% endcomment %}
             <div class="row g-1 mb-1">
               <div class="col-6"><div class="mb-0">{{ form.secondary_font.label_tag }}{{ form.secondary_font }}</div></div>
               <div class="col-6"><div class="mb-0">{{ form.base_font_size.label_tag }}{{ form.base_font_size }}</div></div>
               <div class="col-12"><input type="hidden" name="use_secondary_font_for_headings__present" value="1"><div class="form-check mb-0">{{ form.use_secondary_font_for_headings }}<label class="form-check-label" for="id_use_secondary_font_for_headings">{{ form.use_secondary_font_for_headings.label }}</label></div></div>
             </div>
 
-            {# Dashboard & reports #}
+            {% comment %} Dashboard & reports {% endcomment %}
             <div class="row g-1 mb-1">
               <div class="col-6"><div class="mb-0">{{ form.default_dashboard_view.label_tag }}{{ form.default_dashboard_view }}</div></div>
               <div class="col-6"><div class="mb-0">{{ form.default_refresh_rate.label_tag }}{{ form.default_refresh_rate }}</div></div>
@@ -237,11 +237,11 @@
             <div class="mb-0">{{ form.default_widgets_per_role.label_tag }}{{ form.default_widgets_per_role }}</div>
           </div>
         </div>
-        {# Small screen preview: centered, fits column, no spill #}
+        {% comment %} Small screen preview: centered, fits column, no spill {% endcomment %}
         <div class="theme-experience-preview-wrap mt-1">
           {% include "admin/components/theme_preview_section.html" %}
         </div>
-        {# Page ends here: Back, Live preview, Save (right after Ephemeral note) #}
+        {% comment %} Page ends here: Back, Live preview, Save (right after Ephemeral note) {% endcomment %}
         <div class="theme-experience-actions mt-1 pt-1 border-top">
           {% if back_url %}
           <a href="{{ back_url }}" class="btn btn-outline-secondary btn-sm">

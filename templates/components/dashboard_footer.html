@@ -11,7 +11,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
   <div class="rmc-civic-footer__inner">
 
     {% if PUBLIC_BRAND_MODE %}
-      {# Minimal platform-only mode (white-label resellers) #}
+      {% comment %} Minimal platform-only mode (white-label resellers) {% endcomment %}
       <div class="rmc-civic-footer__brand">
         <strong>{{ PUBLIC_BRAND_NAME }}</strong>
       </div>
@@ -22,7 +22,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
       </div>
     {% else %}
 
-      {# Tier 1 — brand wordmark + motto + est. (single inline row) #}
+      {% comment %} Tier 1 — brand wordmark + motto + est. (single inline row) {% endcomment %}
       <div class="rmc-civic-footer__brand">
         <strong>{{ cockpit.footer.brand.wordmark|default:SITE.company_name|default:SITE.site_name|default:"School" }}</strong>
         {% with footer_motto=cockpit.footer.brand.motto|default:SITE.footer_motto %}
@@ -36,21 +36,21 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
         </span>
       </div>
 
-      {# Tier 2 — trust pillars + language switcher + app badges + social #}
+      {% comment %} Tier 2 — trust pillars + language switcher + app badges + social {% endcomment %}
       <div class="rmc-civic-footer__strip">
-        {# Trust pillars #}
+        {% comment %} Trust pillars {% endcomment %}
         {% with trust_pillars=cockpit.footer.trust_pillars %}
           {% if trust_pillars %}
             {% for pillar in trust_pillars %}
               <span class="rmc-civic-footer__pill{% if pillar.tone == 'secure' %} rmc-civic-footer__pill--secure{% elif pillar.tone == 'cert' %} rmc-civic-footer__pill--cert{% endif %}">{{ pillar.label }}</span>
             {% endfor %}
           {% else %}
-            {# Default trust pillar when nothing is configured #}
+            {% comment %} Default trust pillar when nothing is configured {% endcomment %}
             <span class="rmc-civic-footer__pill rmc-civic-footer__pill--secure">🔒 FERPA · ISO 27001 · WCAG 2.1 AA</span>
           {% endif %}
         {% endwith %}
 
-        {# Language switcher #}
+        {% comment %} Language switcher {% endcomment %}
         {% if cockpit.footer.language.has_switcher or LANGUAGES %}
           <button type="button" class="rmc-civic-footer__lang" aria-haspopup="listbox" aria-label="{% trans 'Change language' %}" data-rmc-lang-switcher>
             🌐 {% firstof cockpit.footer.language.label current_language_name "English" %}
@@ -58,7 +58,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
           </button>
         {% endif %}
 
-        {# App badges #}
+        {% comment %} App badges {% endcomment %}
         {% with app_badges=cockpit.footer.app_badges %}
           {% for badge in app_badges %}
             <a href="{{ badge.url|default:'#' }}" class="rmc-civic-footer__appbadge" aria-label="{{ badge.label }}"{% if badge.url %} target="_blank" rel="noopener noreferrer"{% endif %}>
@@ -67,7 +67,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
           {% endfor %}
         {% endwith %}
 
-        {# Divider + social #}
+        {% comment %} Divider + social {% endcomment %}
         {% with social=cockpit.footer.social %}
           {% if social %}
             <span class="rmc-civic-footer__divider" aria-hidden="true"></span>
@@ -81,7 +81,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
         {% endwith %}
       </div>
 
-      {# Tier 3 — contacts + social-proof stat #}
+      {% comment %} Tier 3 — contacts + social-proof stat {% endcomment %}
       <div class="rmc-civic-footer__contacts">
         {% with contacts=cockpit.footer.contacts %}
           {% if contacts %}
@@ -89,7 +89,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
               <span class="rmc-civic-footer__contact">{{ c.glyph|default:"·" }}{% if c.href %} <a href="{{ c.href }}">{{ c.value }}</a>{% else %} {{ c.value }}{% endif %}</span>
             {% endfor %}
           {% else %}
-            {# Fall back to SITE-model contact info #}
+            {% comment %} Fall back to SITE-model contact info {% endcomment %}
             {% if SITE.company_phone %}<span class="rmc-civic-footer__contact">📞 <a href="tel:{{ SITE.company_phone }}">{{ SITE.company_phone }}</a></span>{% endif %}
             {% if SITE.company_email %}<span class="rmc-civic-footer__contact">📧 <a href="mailto:{{ SITE.company_email }}">{{ SITE.company_email }}</a></span>{% endif %}
             {% if SITE.company_address %}<span class="rmc-civic-footer__contact">📍 {{ SITE.company_address }}</span>{% endif %}
@@ -105,7 +105,7 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
         {% endwith %}
       </div>
 
-      {# Tier 4 — single-line legal #}
+      {% comment %} Tier 4 — single-line legal {% endcomment %}
       <div class="rmc-civic-footer__legal">
         <span class="rmc-civic-footer__legal-copy">&copy; {% now "Y" %} {{ cockpit.footer.copyright_holder|default:SITE.company_name|default:SITE.site_name|default:"School" }}</span>
         {% if request.public_host_kind != 'manager' %}

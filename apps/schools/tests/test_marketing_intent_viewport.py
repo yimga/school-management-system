@@ -90,3 +90,13 @@ class MarketingIntentViewportTests(SimpleTestCase):
 
         geo = build_geo_context(_Req())
         self.assertTrue(geo.get("apm_image"))
+
+    def test_intent_homepage_optin_gate(self):
+        proc = subprocess.run(
+            [sys.executable, str(REPO / "scripts/verify_marketing_intent_homepage_optin.py")],
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr or proc.stdout)
+        self.assertIn("MARKETING_INTENT_HOMEPAGE_OPTIN_PASS", proc.stdout)

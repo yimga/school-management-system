@@ -122,7 +122,7 @@ Mirrors the Wave 13 CountryRegistry admin change_form side-by-side layout
           {% endif %}
         </fieldset>
 
-        {# Hidden cockpit_payload field; form.clean() repopulates this. #}
+        {% comment %} Hidden cockpit_payload field; form.clean() repopulates this. {% endcomment %}
         {{ form.cockpit_payload }}
 
         <div class="d-flex gap-2 mt-3">

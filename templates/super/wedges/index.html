@@ -45,7 +45,7 @@
            autocomplete="off" />
   </section>
 
-  {# Render the wedges grouped by tier — explicit nested loop because by_tier is a dict keyed by tier code. #}
+  {% comment %} Render the wedges grouped by tier — explicit nested loop because by_tier is a dict keyed by tier code. {% endcomment %}
   {% for tier_code, tier_meta in tiers.items %}
     <section class="rmc-tier-block" data-rmc-tier="{{ tier_code }}" style="margin-bottom: 28px;">
       <h2 style="font-size: 1.15rem; margin: 0 0 10px; letter-spacing: -0.01em;">

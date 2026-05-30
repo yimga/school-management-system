@@ -120,7 +120,7 @@
     {% endwith %}
   </div>
 
-  {# Pass 9: per-record audit drill-down for FERPA read-access traceability. #}
+  {% comment %} Pass 9: per-record audit drill-down for FERPA read-access traceability. {% endcomment %}
   {% recent_activity_for "StudentProfile" student.pk %}
 </div>
 {% endblock %}

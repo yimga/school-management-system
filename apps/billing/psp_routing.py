@@ -30,7 +30,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Sequence
 
-from .psp_adapter_registry import PSP_REGISTER, PSPRow
+from .psp_adapter_registry import PSP_REGISTER, PSPRow, PSP_REGION_GLOBAL
 
 
 # Country → region buckets. Used as a soft signal in routing only;
@@ -75,7 +75,7 @@ class PSPCandidate:
 
 
 def _country_region(country_code: str) -> str:
-    return _COUNTRY_REGION_HINT.get((country_code or "").upper(), "global")
+    return _COUNTRY_REGION_HINT.get((country_code or "").upper(), PSP_REGION_GLOBAL)
 
 
 _STATUS_SCORE = {"live": 1000, "in_progress": 100, "planned": 1}
@@ -103,7 +103,7 @@ def rank_psps(
         currency_match = (
             bool(currency) and currency in {c.upper() for c in psp.settlement_currencies}
         )
-        region_match = (region == psp.region) or (psp.region == "global")
+        region_match = psp.region in {region, PSP_REGION_GLOBAL}
         score = _STATUS_SCORE.get(psp.adapter_status, 0)
         if cap_match:
             score += 500

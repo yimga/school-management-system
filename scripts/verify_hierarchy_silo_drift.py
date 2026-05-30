@@ -51,6 +51,18 @@ def main() -> int:
     if not has_mat:
         failures.append("mat_group hub references not found")
 
+    gov_sync = REPO / "apps" / "governance" / "mat_groups_sync.py"
+    if not gov_sync.is_file():
+        failures.append("apps/governance/mat_groups_sync.py missing (Phase 6 org-derived mat_groups)")
+    else:
+        drift_rows.append(
+            {
+                "silo": "mat_groups",
+                "status": "organization_derived",
+                "note": "resolve_mat_groups_payload merges Organization + legacy JSON",
+            }
+        )
+
     gov_app = REPO / "apps" / "governance"
     hierarchy_text = (REPO / "apps" / "schools" / "hierarchy_helpers.py").read_text(encoding="utf-8")
     if gov_app.is_dir():
@@ -68,7 +80,7 @@ def main() -> int:
         "finding_count": len(failures),
         "drift_rows": drift_rows,
         "failures": failures,
-        "note": "parent_school + mat_groups + Organization documented; mat_groups JSON not yet derived from Organization",
+        "note": "parent_school + mat_groups + Organization unified; mat_groups derives from Organization when group mode on",
     }
     if args.write:
         OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -80,7 +92,7 @@ def main() -> int:
             print(f"  - {line}", file=sys.stderr)
         return 1
 
-    print("verify_hierarchy_silo_drift: PASS (Organization layer shipped; mat_groups sync deferred)")
+    print("verify_hierarchy_silo_drift: PASS (Organization-derived mat_groups + legacy JSON merge)")
     return 0
 
 

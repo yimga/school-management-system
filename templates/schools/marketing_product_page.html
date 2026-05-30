@@ -26,7 +26,7 @@
     <div id="mkt-product-scroll-fill" class="mkt-scroll-progress-fill"></div>
   </div>
 
-  {# 1. Hero — outcome-focused, developer-centric claim #}
+  {% comment %} 1. Hero — outcome-focused, developer-centric claim {% endcomment %}
   <section id="mkt-product-hero" class="mkt-product-hero" tabindex="-1" data-chapter="1">
     <div class="mkt-product-hero-inner">
       <div class="mkt-product-hero-copy">
@@ -55,7 +55,7 @@
     </div>
   </section>
 
-  {# 2. Micro-demos — scroll-driven, one outcome per frame #}
+  {% comment %} 2. Micro-demos — scroll-driven, one outcome per frame {% endcomment %}
   {% if product_visualization_slides %}
   <section id="mkt-product-demos" class="mkt-product-section mkt-product-demos mkt-reveal rmc-reveal" aria-label="{% trans 'Product in action' %}" data-chapter="2">
     <div class="mkt-product-section-inner">
@@ -80,7 +80,7 @@
   </section>
   {% endif %}
 
-  {# 3. Pinned chapter — Studio OS / Control Plane (narrative + sticky visual) #}
+  {% comment %} 3. Pinned chapter — Studio OS / Control Plane (narrative + sticky visual) {% endcomment %}
   <section id="mkt-product-studio" class="mkt-product-section mkt-chapter-pinned mkt-reveal rmc-reveal" aria-label="{% trans 'Studio OS' %}" data-chapter="3">
     <div class="mkt-product-section-inner">
       <div class="mkt-chapter-copy">
@@ -103,7 +103,7 @@
     </div>
   </section>
 
-  {# 4. Migration / developer — outcome-focused copy #}
+  {% comment %} 4. Migration / developer — outcome-focused copy {% endcomment %}
   <section id="mkt-product-migration" class="mkt-product-section mkt-reveal rmc-reveal" aria-label="{% trans 'Migration and APIs' %}" data-chapter="4">
     <div class="mkt-product-section-inner">
       <h2 class="mkt-product-section-heading">{% trans "Built for operators who ship" %}</h2>
@@ -126,7 +126,7 @@
     </div>
   </section>
 
-  {# 5. Outcomes strip — numbers and trust #}
+  {% comment %} 5. Outcomes strip — numbers and trust {% endcomment %}
   {% if page_extras.metrics %}
   <section id="mkt-product-outcomes" class="mkt-product-section mkt-product-outcomes-strip mkt-reveal rmc-reveal" aria-label="{% trans 'Outcomes' %}" data-chapter="5">
     <div class="mkt-product-section-inner">
@@ -144,7 +144,7 @@
   </section>
   {% endif %}
 
-  {# 6. Platform surface map — segments from page #}
+  {% comment %} 6. Platform surface map — segments from page {% endcomment %}
   {% if page.segments %}
   <section id="mkt-product-capabilities" class="mkt-product-section mkt-reveal rmc-reveal" aria-label="{% trans 'Platform surface map' %}" data-chapter="6">
     <div class="mkt-product-section-inner">
@@ -162,7 +162,7 @@
   </section>
   {% endif %}
 
-  {# 7. Final CTA #}
+  {% comment %} 7. Final CTA {% endcomment %}
   <section id="mkt-product-final-cta" class="mkt-product-final-cta mkt-reveal rmc-reveal" aria-label="{% trans 'Get started' %}">
     <h2 class="mkt-product-section-heading">{% trans "Run your campus on one platform" %}</h2>
     <p class="mkt-product-section-lead">{% trans "Book a walkthrough to map rollout, integrations, and honest payment posture for your campuses." %}</p>
@@ -171,9 +171,9 @@
       <a href="{% url 'global_login_discovery' %}" class="btn btn-outline-light mkt-cta-focus">{% trans "Login" %}</a>
     </div>
   </section>
-    </div>{# /.mkt-product-story-content #}
+    </div>{% comment %} /.mkt-product-story-content {% endcomment %}
 
-  {# Pinned product frame: one sticky visual that updates per chapter (GAP.1) #}
+  {% comment %} Pinned product frame: one sticky visual that updates per chapter (GAP.1) {% endcomment %}
   <aside id="mkt-product-pinned-frame" class="mkt-product-pinned-frame rmc-reveal" aria-label="{% trans 'Product visual by section' %}" data-active-chapter="1">
     <div class="mkt-product-pinned-panel active" data-chapter="1">
       {% if hero_dashboard_image_url %}
@@ -212,7 +212,7 @@
       <img src="{% static 'images/marketing/platform-diagram-marketing.svg' %}" alt="{% trans 'Platform surface map' %}" width="600" height="338" loading="lazy" decoding="async">
     </div>
   </aside>
-  </div>{# /.mkt-product-story-inner #}
+  </div>{% comment %} /.mkt-product-story-inner {% endcomment %}
 </div>
 <script src="{% static 'marketing/js/marketing-scroll-core.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-product-scroll.js' %}" defer></script>

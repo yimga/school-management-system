@@ -1,18 +1,11 @@
 {% load i18n %}
-{% comment %} Phase L (2026-05-12) + v2.29 (2026-05-15): platform-wide empty-state component.
-   Usage:
-     {% include "components/rmc_empty_state.html" with
-        illustration="no_data"     {# v2.29: SVG illustration, falls back to icon #}
-        icon="bi-people"            {# Bootstrap icon if no illustration #}
-        title="No students yet"
-        message="Add your first student to start tracking attendance and grades."
-        primary_label="Add student"
-        primary_url=add_student_url
-        secondary_label="Bulk import"
-        secondary_url=bulk_import_url %}
-   illustration options: no_data, no_results, connection_lost, permission, first_run, inbox
-   When illustration is set, the SVG renders in place of the icon.
-   All variables optional; icon defaults to bi-inbox. {% endcomment %}
+{% comment %}
+Phase L + v2.29: platform-wide empty-state component.
+Include with illustration, icon, title, message, primary_label, primary_url,
+secondary_label, secondary_url. Illustration options: no_data, no_results,
+connection_lost, permission, first_run, inbox. When illustration is set, SVG
+renders in place of the icon. All variables optional; icon defaults to bi-inbox.
+{% endcomment %}
 <div class="rmc-empty" role="status" aria-live="polite">
   <div class="rmc-empty__icon rmc-empty__illustration-slot" aria-hidden="true">
     {% if illustration == "no_data" %}{% include "components/illustrations/_empty_no_data.html" %}

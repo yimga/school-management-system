@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block extrahead %}{{ block.super }}
-{# v3.62.2 Wave 1 local-first — adapter re-renders country-driven cards. #}
+{% comment %} v3.62.2 Wave 1 local-first — adapter re-renders country-driven cards. {% endcomment %}
 <script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
 {% endblock %}
 
@@ -27,7 +27,7 @@
   {% endif %}
 
   <div class="row g-3">
-    {# ---- Left column: template-driven create form ---- #}
+    {% comment %} ---- Left column: template-driven create form ---- {% endcomment %}
     <div class="col-lg-8">
       <form method="post" class="card border-0 shadow-sm rmc-rapid-create__form">
         {% csrf_token %}
@@ -170,7 +170,7 @@
       </form>
     </div>
 
-    {# ---- Right column: 1-click demo + speed cues ---- #}
+    {% comment %} ---- Right column: 1-click demo + speed cues ---- {% endcomment %}
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm rmc-rapid-create__sidebar mb-3">
         <div class="card-body">

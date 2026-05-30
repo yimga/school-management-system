@@ -45,6 +45,11 @@ THIRD_PARTY_TEMPLATE_PREFIXES = (
     "debug_toolbar/",
 )
 
+# django-unfold static assets ship inside the package, not under project static/.
+THIRD_PARTY_STATIC_PREFIXES = (
+    "unfold/",
+)
+
 
 def iter_templates() -> list[Path]:
     out: list[Path] = []
@@ -260,6 +265,8 @@ def find_missing_refs(text: str) -> list[tuple[int, str]]:
     for m in STATIC_RE.finditer(text):
         path = m.group(1)
         if "{" in path or "}" in path:
+            continue
+        if any(path.startswith(prefix) for prefix in THIRD_PARTY_STATIC_PREFIXES):
             continue
         candidate = STATIC_ROOT / path
         if not candidate.exists():

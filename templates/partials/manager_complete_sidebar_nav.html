@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Single manager sidebar tree — Start + Guided + CP groups + admin catalog (batch 1500). #}
+{% comment %} Single manager sidebar tree — Start + Guided + CP groups + admin catalog (batch 1500). {% endcomment %}
 {% for group in MANAGER_COMPLETE_SIDEBAR_NAV %}
   {% if group.label and group.items %}
   <details class="cp-sidebar__group cp-sidebar__group--complete{% if group.expanded %} cp-sidebar__group--expanded{% endif %}"

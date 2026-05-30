@@ -268,7 +268,7 @@ class WebhookDeadLetterReplayView(View):
         try:
             from apps.integrations_marketplace.models import WebhookDeadLetter
             from apps.integrations_marketplace import webhook_dead_letter as _dlq
-        except Exception as exc:  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             logger.exception(
                 "migration_cloud_operator_dlq_replay_import_failed dlq_id=%s",
                 dlq_id,

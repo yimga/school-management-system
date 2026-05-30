@@ -1,3 +1,3 @@
 {% load static %}
-{# Self-hosted Chart.js (no CDN). Pin: unfold bundle matches chart.js@4.x UMD. #}
+{% comment %} Self-hosted Chart.js (no CDN). Pin: unfold bundle matches chart.js@4.x UMD. {% endcomment %}
 <script src="{% static 'unfold/js/chart/chart.js' %}" nonce="{{ csp_nonce }}"></script>

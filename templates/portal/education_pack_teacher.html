@@ -1,8 +1,8 @@
 {% extends "portal_base.html" %}
 {% load i18n static terminology_tags %}
-{# lesson outline draft: rmc-lesson-outline-draft.js #}
-{# Wave 13 (v3.62.17): lexicon adoption so "Teacher" / "Student" / "Parent" #}
-{# read as the tenant's term (e.g. "Tuteur" in FR, "Educator" in CBC-KE). #}
+{% comment %} lesson outline draft: rmc-lesson-outline-draft.js {% endcomment %}
+{% comment %} Wave 13 (v3.62.17): lexicon adoption so "Teacher" / "Student" / "Parent" {% endcomment %}
+{% comment %} read as the tenant's term (e.g. "Tuteur" in FR, "Educator" in CBC-KE). {% endcomment %}
 {% term "teacher" capitalize=True as teacher_sg %}
 {% term "student" plural=True as student_pl_lc %}
 {% term "parent" plural=True as parent_pl_lc %}

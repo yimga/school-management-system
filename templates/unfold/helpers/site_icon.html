@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Override: when no site_icon image, use SVG so "settings" never shows as text when Material Symbols font 404s. #}
+{% comment %} Override: when no site_icon image, use SVG so "settings" never shows as text when Material Symbols font 404s. {% endcomment %}
 {% if site_icon %}
     <div class="shrink-0">
         <{% if site_dropdown %}span{% else %}a href="{% url "admin:index" %}"{% endif %}>

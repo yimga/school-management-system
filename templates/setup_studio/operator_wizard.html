@@ -3,7 +3,7 @@
 
 {% block title %}{{ wizard_label }} · {% trans "Setup Studio" %}{% endblock %}
 
-{# v4.00.13: opt-in viewport-lock (matches tenant_wizard.html). #}
+{% comment %} v4.00.13: opt-in viewport-lock (matches tenant_wizard.html). {% endcomment %}
 {% block body_extra_class %}rmc-wizard-shell-viewport-locked{% endblock %}
 
 {% block extrastyle %}

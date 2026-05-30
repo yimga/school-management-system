@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Canonical bell-clock brand mark — do not hand-roll SVG elsewhere (scan_bell_clock_consistency). #}
+{% comment %} Canonical bell-clock brand mark — do not hand-roll SVG elsewhere (scan_bell_clock_consistency). {% endcomment %}
 <svg class="mkt-bell-clock-mark{% if extra_class %} {{ extra_class }}{% endif %}"
      width="{{ size|default:32 }}"
      height="{{ size|default:32 }}"

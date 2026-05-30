@@ -27,6 +27,7 @@ class MarketingNavContractTests(SimpleTestCase):
                 "Platform",
                 "Solutions",
                 "Why RunMyCampus",
+                "Experience",
                 "Pricing",
                 "Resources",
                 "More",
@@ -60,6 +61,26 @@ class MarketingNavContractTests(SimpleTestCase):
         )
         column_titles = [col["title"] for col in sol["mega_columns"]]
         self.assertEqual(column_titles, ["School models", "Networks & communities"])
+
+    def test_primary_nav_includes_storefront_link(self):
+        from django.urls import reverse
+
+        from apps.schools.marketing_v3_surfaces import (
+            marketing_navbar_verb_primary,
+            marketing_verb_nav_enabled,
+        )
+
+        storefront = reverse("marketing_intent_homepage")
+
+        def _flat_top_level_paths(items: list[dict]) -> list[str]:
+            return [str(item.get("path") or "") for item in items if item.get("path")]
+
+        legacy_paths = _flat_top_level_paths(_marketing_navbar_primary())
+        self.assertIn(storefront, legacy_paths)
+
+        if marketing_verb_nav_enabled():
+            verb_paths = _flat_top_level_paths(marketing_navbar_verb_primary())
+            self.assertIn(storefront, verb_paths)
 
     def test_topical_nav_featured_is_bounded_and_subset_of_full(self):
         full = _topical_nav()

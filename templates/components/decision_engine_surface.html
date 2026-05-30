@@ -1,5 +1,5 @@
 {% load i18n %}
-{# Phase 7 — Decision engine layout: headline → metrics → queue → next actions → activity #}
+{% comment %} Phase 7 — Decision engine layout: headline → metrics → queue → next actions → activity {% endcomment %}
 <section class="decision-engine-surface" data-decision-engine="surface" aria-label="{% trans 'Operating summary' %}">
   <div class="de-headline" data-decision-zone="headline">
     {% if de_eyebrow %}<p class="de-eyebrow">{{ de_eyebrow }}</p>{% endif %}
