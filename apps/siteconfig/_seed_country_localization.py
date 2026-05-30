@@ -16343,6 +16343,158 @@ COUNTRY_LOCALIZATION["AF-KAB"] = _v4_00_85("AF-KAB","afkab-2-sem","2-semester (K
 
 
 # ---------------------------------------------------------------------------
+# v4.00.86 (2026-05-30) — +14 subdivisions: S Asia (NP-BA Bagmati,
+#   BT-15 Thimphu, MN-1 Ulaanbaatar) + Southern Africa (NA-KH Khomas,
+#   ZW-MA Manicaland, ZA-WC Western Cape, ZA-GP Gauteng) + West/Central
+#   Africa (NE-8 Niamey, ML-BKO Bamako, CI-AB Abidjan, CM-LT Littoral,
+#   CG-BZV Brazzaville, CD-KN Kinshasa, SD-KH Khartoum).
+# ---------------------------------------------------------------------------
+def _v4_00_86(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# NP-BA Bagmati Province (Nepal).
+COUNTRY_LOCALIZATION["NP-BA"] = _v4_00_86("NP-BA","npba-2-sem","2-semester (Bagmati / Kathmandu / SEE)",2,["First semester","Second semester"],4,
+    [{"code":"montessori","label":"Montessori","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Cl 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"lower_secondary","label":"Lower Secondary (Cl 6-8) + Basic Level","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"secondary","label":"Secondary (Cl 9-10) + SEE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"plus_two","label":"+2 (Cl 11-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"TU + KU + Pokhara Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"npba-1","label":"Class 1","order":1},{"code":"npba-10","label":"Class 10 + SEE","order":10},{"code":"npba-12","label":"+2 final","order":12}],
+    {"teacher":"Shikshak","principal":"Pradhan adhyapak","term":"Semester","report_card":"Marks Sheet","grade_level":"Class"})
+
+# BT-15 Thimphu (Bhutan).
+COUNTRY_LOCALIZATION["BT-15"] = _v4_00_86("BT-15","bt15-3-term","3-term (Thimphu / BCSE)",3,["Term 1","Term 2","Term 3"],2,
+    [{"code":"ecdc","label":"ECDC","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (PP-Cl 6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-11"},
+     {"code":"lower_secondary","label":"Lower Sec (Cl 7-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"12-13"},
+     {"code":"middle_secondary","label":"Middle Sec (Cl 9-10) + BCSE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"higher_secondary","label":"Higher Sec (Cl 11-12) + BHSEC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"Royal Univ of Bhutan + Khesar Gyalpo Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"bt15-pp","label":"Pre-Primary","order":0},{"code":"bt15-10","label":"Class 10 + BCSE","order":10},{"code":"bt15-12","label":"Class 12 + BHSEC","order":12}],
+    {"teacher":"Lopen","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# MN-1 Ulaanbaatar.
+COUNTRY_LOCALIZATION["MN-1"] = _v4_00_86("MN-1","mn1-2-sem","2-semester (Ulaanbaatar)",2,["First semester","Second semester"],9,
+    [{"code":"tsetserleg","label":"Tsetserleg","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"bagsh","label":"Bagsh angiin sürguul (Cl 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"dund","label":"Dund surguul (Cl 6-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"akademiin","label":"Akademiin lits (Cl 10-12) + EMS","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"NUM + MUST + AcadSci","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"mn1-1","label":"Anggi 1","order":1},{"code":"mn1-12","label":"Anggi 12 + EMS","order":12}],
+    {"teacher":"Bagsh","principal":"Zakhirol","term":"Semestr","report_card":"Demnel","grade_level":"Anggi"})
+
+# NA-KH Khomas (Windhoek).
+COUNTRY_LOCALIZATION["NA-KH"] = _v4_00_86("NA-KH","nakh-3-term","3-term (Khomas / Windhoek / NSSC)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"preprimary","label":"Pre-primary","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Gr 1-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"junior_secondary","label":"Junior Secondary (Gr 8-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-14"},
+     {"code":"senior_secondary","label":"Senior Secondary (Gr 10-12) + NSSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UNAM + NUST + IUM","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"nakh-1","label":"Grade 1","order":1},{"code":"nakh-12","label":"Grade 12 + NSSC","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report Card","grade_level":"Grade"})
+
+# ZW-MA Manicaland.
+COUNTRY_LOCALIZATION["ZW-MA"] = _v4_00_86("ZW-MA","zwma-3-term","3-term (Manicaland / ZIMSEC)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"creche","label":"Crèche","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Gr 1-7) + Gr 7 Exam","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"o_level","label":"O Level (Form 1-4) + ZIMSEC O/L","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"13-16"},
+     {"code":"a_level","label":"A Level (Form 5-6) + ZIMSEC A/L","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"17-18"},
+     {"code":"university","label":"Africa Univ + Manicaland State","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"zwma-1","label":"Grade 1","order":1},{"code":"zwma-11","label":"Form 4 + O/L","order":11},{"code":"zwma-13","label":"Form 6 + A/L","order":13}],
+    {"teacher":"Mudzidzisi","principal":"Mukuru wechikoro","term":"Term","report_card":"Report","grade_level":"Form"})
+
+# ZA-WC Western Cape.
+COUNTRY_LOCALIZATION["ZA-WC"] = _v4_00_86("ZA-WC","zawc-3-term","3-term (Western Cape / Cape Town / NSC)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"foundation","label":"Foundation (Gr R)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"5-6"},
+     {"code":"primary","label":"Primary (Gr 1-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-13"},
+     {"code":"high","label":"High School (Gr 8-12) + NSC Matric","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"university","label":"UCT + Stellenbosch + UWC + CPUT","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"zawc-r","label":"Grade R","order":0},{"code":"zawc-12","label":"Grade 12 + NSC","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report Card","grade_level":"Grade"})
+
+# ZA-GP Gauteng (Johannesburg/Pretoria).
+COUNTRY_LOCALIZATION["ZA-GP"] = _v4_00_86("ZA-GP","zagp-3-term","3-term (Gauteng / Johannesburg / NSC)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"foundation","label":"Foundation (Gr R)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"5-6"},
+     {"code":"primary","label":"Primary (Gr 1-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-13"},
+     {"code":"high","label":"High School (Gr 8-12) + NSC Matric","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"university","label":"Wits + UJ + UP + Tshwane Univ Tech","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"zagp-r","label":"Grade R","order":0},{"code":"zagp-12","label":"Grade 12 + NSC","order":12}],
+    {"teacher":"Teacher / Tichara","principal":"Principal","term":"Term","report_card":"Report Card","grade_level":"Grade"})
+
+# NE-8 Niamey.
+COUNTRY_LOCALIZATION["NE-8"] = _v4_00_86("NE-8","ne8-3-trim","3-trimestre (Niamey / Bac)",3,["1er trimestre","2e trimestre","3e trimestre"],10,
+    [{"code":"prescolaire","label":"Préscolaire","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaire","label":"Primaire (CI-CM2)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"college","label":"Collège (6e-3e) + BEPC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"lycee","label":"Lycée (2nde-Tle) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"Univ Abdou Moumouni","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"ne8-ci","label":"CI","order":1},{"code":"ne8-3e","label":"3e + BEPC","order":9},{"code":"ne8-tle","label":"Tle + Bac","order":12}],
+    {"teacher":"Maître / Professeur","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Classe"})
+
+# ML-BKO Bamako.
+COUNTRY_LOCALIZATION["ML-BKO"] = _v4_00_86("ML-BKO","mlbko-3-trim","3-trimestre (Bamako / Bac)",3,["1er trimestre","2e trimestre","3e trimestre"],10,
+    [{"code":"prescolaire","label":"Préscolaire","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"fondamental1","label":"Fondamental 1er cycle (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-12"},
+     {"code":"fondamental2","label":"Fondamental 2e cycle (7-9) + DEF","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-15"},
+     {"code":"secondaire","label":"Secondaire (Lycée 10-12) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"USTTB + Univ des Lettres Bamako","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"mlbko-1","label":"1ère AF","order":1},{"code":"mlbko-9","label":"9e + DEF","order":9},{"code":"mlbko-12","label":"Tle + Bac","order":12}],
+    {"teacher":"Karamoko / Professeur","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Classe"})
+
+# CI-AB Abidjan.
+COUNTRY_LOCALIZATION["CI-AB"] = _v4_00_86("CI-AB","ciab-3-trim","3-trimestre (Abidjan / Bac)",3,["1er trimestre","2e trimestre","3e trimestre"],9,
+    [{"code":"prescolaire","label":"Préscolaire","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaire","label":"Primaire (CP1-CM2) + CEPE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"college","label":"Collège (6e-3e) + BEPC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"lycee","label":"Lycée (2nde-Tle) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"UFHB + INPHB + Univ Nangui Abrogoua","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"ciab-cp1","label":"CP1","order":1},{"code":"ciab-3e","label":"3e + BEPC","order":9},{"code":"ciab-tle","label":"Tle + Bac","order":12}],
+    {"teacher":"Maître / Professeur","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Classe"})
+
+# CM-LT Littoral (Douala).
+COUNTRY_LOCALIZATION["CM-LT"] = _v4_00_86("CM-LT","cmlt-3-trim","3-trimestre (Littoral / Douala / Bac)",3,["1er trimestre","2e trimestre","3e trimestre"],9,
+    [{"code":"maternelle","label":"École maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaire","label":"Primaire (SIL-CM2) + CEP","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"college","label":"Collège (6e-3e) + BEPC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"lycee","label":"Lycée (2nde-Tle) + Bac / GCE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"Univ de Douala + IUT","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"cmlt-1","label":"SIL","order":1},{"code":"cmlt-9","label":"3e + BEPC","order":9},{"code":"cmlt-12","label":"Tle + Bac","order":12}],
+    {"teacher":"Maître / Professeur","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Classe"})
+
+# CG-BZV Brazzaville.
+COUNTRY_LOCALIZATION["CG-BZV"] = _v4_00_86("CG-BZV","cgbzv-3-trim","3-trimestre (Brazzaville / Bac)",3,["1er trimestre","2e trimestre","3e trimestre"],10,
+    [{"code":"maternelle","label":"École maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaire","label":"Primaire (CP1-CM2) + CEPE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"college","label":"Collège (6e-3e) + BEPC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"lycee","label":"Lycée (2nde-Tle) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"university","label":"Univ Marien Ngouabi","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"cgbzv-cp1","label":"CP1","order":1},{"code":"cgbzv-3e","label":"3e + BEPC","order":9},{"code":"cgbzv-tle","label":"Tle + Bac","order":12}],
+    {"teacher":"Maître / Professeur","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Classe"})
+
+# CD-KN Kinshasa.
+COUNTRY_LOCALIZATION["CD-KN"] = _v4_00_86("CD-KN","cdkn-3-trim","3-trimestre (Kinshasa / Examen d'État)",3,["1er trimestre","2e trimestre","3e trimestre"],9,
+    [{"code":"maternelle","label":"École maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaire","label":"Primaire (1-6) + TENAFEP","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secondaire_inf","label":"Secondaire inf (1-2 d'humanités)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-13"},
+     {"code":"secondaire_sup","label":"Secondaire sup (3-6 d'humanités) + Examen d'État","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"university","label":"UNIKIN + UPN + ISTA","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"cdkn-1","label":"1ère primaire","order":1},{"code":"cdkn-12","label":"6e humanités + Examen d'État","order":12}],
+    {"teacher":"Mwalimu / Professeur","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Classe"})
+
+# SD-KH Khartoum.
+COUNTRY_LOCALIZATION["SD-KH"] = _v4_00_86("SD-KH","sdkh-2-sem","2-semester (Khartoum / Sudanese Cert)",2,["First semester","Second semester"],9,
+    [{"code":"rawda","label":"Rawda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"basic","label":"Basic (Cl 1-8) + Basic Cert","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"secondary","label":"Secondary (Cl 1-3) + Sudanese Certificate","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-16"},
+     {"code":"university","label":"Univ of Khartoum + SUST","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"sdkh-1","label":"Class 1","order":1},{"code":"sdkh-11","label":"Sec 3 + Sudanese Cert","order":11}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Term","report_card":"Report Card","grade_level":"Class"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

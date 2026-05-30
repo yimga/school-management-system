@@ -178,7 +178,7 @@
 // forecast cockpit tile, timetable solver UI hook + view, adaptive signal on
 // Evaluation post-save, CA-mark input UI + migration 0050, monetization
 // admin inspector. theme-experience-premium
-const CACHE_VERSION = "sms-v4.00.86-luxury-baseline-restore-template-comment-leak-os-grade-opt-in-2026-05-30";
+const CACHE_VERSION = "sms-v4.00.86-14-subdivisions-saml-encrypted-assertion-session-binding-oauth-scope-downscope-audit-csv-2026-05-30";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

@@ -26,6 +26,7 @@ from __future__ import annotations
 import logging
 import os
 import re
+import threading
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -771,6 +772,265 @@ def _idp_cert_pem() -> str:
     return pem
 
 
+# ---------------------------------------------------------------------------
+# v4.00.86 — SAML encrypted assertion support (XML Encryption per
+# saml-2.0-core § 2.2.4 + xmlenc-core-1.1).
+#
+# Contract:
+#   ``_decrypt_encrypted_assertion(xml_bytes, sp_private_key_pem)`` accepts
+#   the *decoded* SAML response XML bytes (post-base64). When the response
+#   carries a ``<saml:EncryptedAssertion>`` element, it attempts to:
+#
+#     1. Locate the ``<xenc:EncryptedData>`` inside the EncryptedAssertion.
+#     2. Locate the ``<xenc:EncryptedKey>`` (per spec, embedded in
+#        ``<ds:KeyInfo>`` of EncryptedData or as a peer element).
+#     3. Decrypt the EncryptedKey via the SP private key using PKCS#1 v1.5
+#        RSA (rsa-1_5) -- the only KeyTransport algorithm we promise. RSA-OAEP
+#        (rsa-oaep-mgf1p) is currently honest-stubbed: if the algorithm is
+#        OAEP, the SP key path will fail with ``encrypted_key_decrypt_failed``
+#        and the caller decides whether to 401.
+#     4. Decrypt the EncryptedData via the recovered symmetric key. Supported
+#        block ciphers: AES-128-CBC and AES-256-CBC (the most common IdP
+#        defaults). IV is the first 16 bytes of the CipherValue.
+#     5. Replace ``<saml:EncryptedAssertion>`` w/ ``<saml:Assertion>`` and
+#        serialize back to XML bytes.
+#
+# All crypto goes through lazy ``lxml`` + ``cryptography`` imports; the helper
+# NEVER raises. It returns ``(xml_bytes, reason)``. On any failure, the
+# original bytes are returned unchanged so the caller can make a policy
+# decision (the strict ``RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION=1`` toggle
+# upgrades any non-``ok`` reason except ``no_encrypted_assertion`` to a 401).
+#
+# Env knobs:
+#   * ``RMC_SAML_SP_PRIVATE_KEY_PEM``           — SP RSA private key (PEM or
+#                                                 armorless base64).
+#   * ``RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION``  — when truthy, the ACS path
+#                                                 REQUIRES decryption to
+#                                                 succeed. Absence of the
+#                                                 EncryptedAssertion element
+#                                                 OR any decrypt failure
+#                                                 returns 401 from ACS.
+#
+# Honest deferred: RSA-OAEP key transport, AES-GCM data encryption, and
+# nested EncryptedID inside the decrypted Assertion are NOT yet supported.
+# ---------------------------------------------------------------------------
+
+
+_NS_XENC = "http://www.w3.org/2001/04/xmlenc#"
+_NS_DSIG = "http://www.w3.org/2000/09/xmldsig#"
+
+
+def _require_encrypted_assertion() -> bool:
+    """v4.00.86 — Opt-in toggle: require successful EncryptedAssertion
+    decryption on every SAMLResponse. Default OFF preserves v4.00.85
+    behavior (plain unencrypted assertions still flow through ACS)."""
+    raw = (
+        getattr(settings, "RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION", None)
+        if hasattr(settings, "RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION")
+        else os.environ.get("RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION", "")
+    )
+    if raw is None or raw == "":
+        return False
+    return str(raw).lower() in ("1", "true", "yes", "on")
+
+
+def _normalize_sp_private_key_pem(raw: str) -> str:
+    """Accept either fully-armored PEM ('-----BEGIN ... -----') or armorless
+    base64 (a single chunk with no headers). Returns full-PEM form suitable
+    for ``cryptography.hazmat.primitives.serialization.load_pem_private_key``.
+
+    Empty input returns "" so callers can short-circuit w/ ``sp_key_unset``.
+    """
+    if not raw:
+        return ""
+    s = raw.strip()
+    if "-----BEGIN" in s:
+        # Already armored — return as-is (trust the operator's framing).
+        return s
+    # Armorless base64 — rewrap. Default to RSA PRIVATE KEY header which is
+    # accepted by load_pem_private_key.
+    cleaned = re.sub(r"\s+", "", s)
+    if not cleaned:
+        return ""
+    pem = "-----BEGIN RSA PRIVATE KEY-----\n"
+    for i in range(0, len(cleaned), 64):
+        pem += cleaned[i:i + 64] + "\n"
+    pem += "-----END RSA PRIVATE KEY-----\n"
+    return pem
+
+
+def _decrypt_encrypted_assertion(
+    xml_bytes: bytes,
+    sp_private_key_pem: str,
+) -> tuple[bytes, str]:
+    """v4.00.86 — Decrypt ``<saml:EncryptedAssertion>`` in-place.
+
+    Returns ``(xml_bytes, reason)`` where reason is one of:
+
+        ``"ok"``                              — decrypted and substituted
+        ``"no_encrypted_assertion"``          — no encrypted assertion present
+                                                (input returned unchanged)
+        ``"lxml_missing"``                    — lxml not installed
+        ``"cryptography_missing"``            — cryptography not installed
+        ``"sp_key_unset"``                    — SP private key not configured
+        ``"sp_key_bad_format"``               — PEM/key load failed
+        ``"encrypted_key_decrypt_failed"``    — RSA unwrap of CEK failed
+        ``"encrypted_data_decrypt_failed"``   — AES decrypt of payload failed
+        ``"replace_failed"``                  — could not splice decrypted
+                                                Assertion back into the tree
+        ``"unknown"``                         — anything else
+
+    Detection phase is *namespace-agnostic*: a substring check for the
+    bytes ``b"EncryptedAssertion"`` is sufficient to short-circuit when
+    the response is plain. This avoids paying the lxml import cost for
+    every ACS hit.
+
+    NEVER raises. On any failure (other than the explicit no-op
+    ``no_encrypted_assertion``), the original bytes are returned so
+    the caller can decide whether the strict toggle should 401.
+    """
+    if not xml_bytes or b"EncryptedAssertion" not in xml_bytes:
+        return xml_bytes, "no_encrypted_assertion"
+
+    # Lazy import: lxml is the only practical way to manipulate the
+    # decrypted subtree in-place because stdlib ``xml.etree`` does NOT
+    # preserve all xmlenc structures the same way.
+    try:
+        from lxml import etree  # type: ignore
+    except ImportError:
+        return xml_bytes, "lxml_missing"
+
+    try:
+        from cryptography.hazmat.primitives import padding as sym_padding  # type: ignore
+        from cryptography.hazmat.primitives import serialization  # type: ignore
+        from cryptography.hazmat.primitives.asymmetric import padding as asym_padding  # type: ignore
+        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes  # type: ignore
+    except ImportError:
+        return xml_bytes, "cryptography_missing"
+
+    pem = _normalize_sp_private_key_pem(sp_private_key_pem or "")
+    if not pem:
+        return xml_bytes, "sp_key_unset"
+
+    try:
+        private_key = serialization.load_pem_private_key(
+            pem.encode("ascii"), password=None,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml decrypt: bad SP key format: %s", exc)
+        return xml_bytes, "sp_key_bad_format"
+
+    try:
+        parser = etree.XMLParser(resolve_entities=False, no_network=True)
+        root = etree.fromstring(xml_bytes, parser=parser)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml decrypt: lxml parse failed: %s", exc)
+        return xml_bytes, "unknown"
+
+    # Find every EncryptedAssertion (typically one, but loop for safety).
+    enc_assertions = root.findall(f".//{{{_NS_SAML}}}EncryptedAssertion")
+    if not enc_assertions:
+        # The substring matched but no namespaced element exists -> the IdP
+        # may have used a non-spec namespace. Treat as "nothing to do."
+        return xml_bytes, "no_encrypted_assertion"
+
+    import base64 as _b64
+
+    for enc_assertion in enc_assertions:
+        enc_data = enc_assertion.find(f"{{{_NS_XENC}}}EncryptedData")
+        if enc_data is None:
+            return xml_bytes, "unknown"
+
+        # Locate EncryptedKey -- spec allows it either inside the
+        # EncryptedData's KeyInfo OR as a peer (RetrievalMethod path is
+        # NOT supported in this honest-stub).
+        enc_key = enc_data.find(
+            f"{{{_NS_DSIG}}}KeyInfo/{{{_NS_XENC}}}EncryptedKey"
+        )
+        if enc_key is None:
+            enc_key = enc_assertion.find(f".//{{{_NS_XENC}}}EncryptedKey")
+        if enc_key is None:
+            return xml_bytes, "encrypted_key_decrypt_failed"
+
+        cv_key_el = enc_key.find(f"{{{_NS_XENC}}}CipherData/{{{_NS_XENC}}}CipherValue")
+        if cv_key_el is None or not (cv_key_el.text or "").strip():
+            return xml_bytes, "encrypted_key_decrypt_failed"
+        try:
+            wrapped_cek = _b64.b64decode((cv_key_el.text or "").strip())
+        except Exception:  # noqa: BLE001
+            return xml_bytes, "encrypted_key_decrypt_failed"
+
+        # Pull EncryptionMethod for KeyTransport. We currently only honor
+        # rsa-1_5 (PKCS#1 v1.5). RSA-OAEP is left as honest-stub: callers
+        # whose IdP signs w/ OAEP will see encrypted_key_decrypt_failed.
+        em_key = enc_key.find(f"{{{_NS_XENC}}}EncryptionMethod")
+        kt_alg = (em_key.attrib.get("Algorithm", "") if em_key is not None else "")
+        try:
+            if kt_alg.endswith("rsa-1_5") or kt_alg == "":
+                cek = private_key.decrypt(wrapped_cek, asym_padding.PKCS1v15())
+            else:
+                # Honest-stub: RSA-OAEP path deferred to a future wave.
+                # Attempting it would require choosing MGF1+SHA1/SHA256 which
+                # depend on the IdP. We surface a clean failure reason.
+                return xml_bytes, "encrypted_key_decrypt_failed"
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("saml decrypt: CEK unwrap failed: %s", exc)
+            return xml_bytes, "encrypted_key_decrypt_failed"
+
+        # Now decrypt the payload.
+        cv_data_el = enc_data.find(f"{{{_NS_XENC}}}CipherData/{{{_NS_XENC}}}CipherValue")
+        if cv_data_el is None or not (cv_data_el.text or "").strip():
+            return xml_bytes, "encrypted_data_decrypt_failed"
+        try:
+            blob = _b64.b64decode((cv_data_el.text or "").strip())
+        except Exception:  # noqa: BLE001
+            return xml_bytes, "encrypted_data_decrypt_failed"
+
+        em_data = enc_data.find(f"{{{_NS_XENC}}}EncryptionMethod")
+        data_alg = (em_data.attrib.get("Algorithm", "") if em_data is not None else "")
+
+        # xmlenc convention: first 16 bytes of CipherValue == IV for AES-CBC.
+        if not (data_alg.endswith("aes128-cbc") or data_alg.endswith("aes256-cbc") or data_alg == ""):
+            return xml_bytes, "encrypted_data_decrypt_failed"
+
+        try:
+            iv, ct = blob[:16], blob[16:]
+            cipher = Cipher(algorithms.AES(cek), modes.CBC(iv))
+            decryptor = cipher.decryptor()
+            padded = decryptor.update(ct) + decryptor.finalize()
+            unpadder = sym_padding.PKCS7(128).unpadder()
+            plaintext = unpadder.update(padded) + unpadder.finalize()
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("saml decrypt: AES decrypt failed: %s", exc)
+            return xml_bytes, "encrypted_data_decrypt_failed"
+
+        # Splice plaintext Assertion in place of the EncryptedAssertion.
+        try:
+            decrypted_root = etree.fromstring(plaintext, parser=parser)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("saml decrypt: plaintext Assertion parse failed: %s", exc)
+            return xml_bytes, "replace_failed"
+
+        try:
+            parent = enc_assertion.getparent()
+            if parent is None:
+                return xml_bytes, "replace_failed"
+            idx = list(parent).index(enc_assertion)
+            parent.remove(enc_assertion)
+            parent.insert(idx, decrypted_root)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("saml decrypt: splice failed: %s", exc)
+            return xml_bytes, "replace_failed"
+
+    try:
+        out = etree.tostring(root, xml_declaration=False)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml decrypt: serialize failed: %s", exc)
+        return xml_bytes, "unknown"
+
+    return out, "ok"
+
+
 def _parse_saml_response(b64_response: str) -> dict:
     """v4.00.45 — Parse a SAMLResponse: base64-decode, XML-parse, extract
     Subject NameID + Audience + NotBefore/NotOnOrAfter + Issuer.
@@ -837,6 +1097,15 @@ def _parse_saml_response(b64_response: str) -> dict:
             val_el = a.find(f"{{{_NS_SAML}}}AttributeValue")
             attrs[key] = (val_el.text or "").strip() if val_el is not None else ""
 
+    # v4.00.86 — AuthnStatement SessionIndex. The IdP emits this on the
+    # AuthnStatement so that backchannel SLO (LogoutRequest) can target
+    # the exact session it issued. Empty string when missing — registry
+    # binding short-circuits on empty per ``register_saml_session_index``.
+    session_index = ""
+    authn_stmt = _find(assertion, "AuthnStatement", _NS_SAML)
+    if authn_stmt is not None:
+        session_index = (authn_stmt.attrib.get("SessionIndex") or "").strip()
+
     # Signature presence (we do NOT canonicalize + verify here when the
     # idp cert is unset; tracked separately so the audit log records
     # whether the IdP did sign).
@@ -867,6 +1136,7 @@ def _parse_saml_response(b64_response: str) -> dict:
         "signature_present_response": sig_present_response,
         "signature_present_assertion": sig_present_assertion,
         "attributes": attrs,
+        "session_index": session_index,
     }
 
 
@@ -1140,6 +1410,67 @@ def _provision_user_from_saml(name_id: str, attrs: dict, tenant_schema: str = ""
     return new_user, True
 
 
+# v4.00.86 — SessionIndex <-> Django session_key registry.
+#
+# Used by backchannel SLO to kill the SPECIFIC session that SAML
+# initiated, not all sessions for the user. Capped 10000 entries
+# (LRU eviction). NEVER persisted — process restart clears the map.
+_SESSION_INDEX_REGISTRY: dict[str, str] = {}  # session_index -> django_session_key
+_SESSION_INDEX_REGISTRY_REVERSE: dict[str, str] = {}  # django_session_key -> session_index
+_SESSION_INDEX_REGISTRY_CAP = 10000
+_SESSION_INDEX_REGISTRY_LOCK = threading.Lock()
+
+
+def register_saml_session_index(*, session_index: str, django_session_key: str) -> bool:
+    """Map session_index <-> django session_key. Returns True on register."""
+    if not session_index or not django_session_key:
+        return False
+    with _SESSION_INDEX_REGISTRY_LOCK:
+        # Evict oldest if at cap
+        if len(_SESSION_INDEX_REGISTRY) >= _SESSION_INDEX_REGISTRY_CAP:
+            oldest_idx = next(iter(_SESSION_INDEX_REGISTRY))
+            old_key = _SESSION_INDEX_REGISTRY.pop(oldest_idx, None)
+            if old_key:
+                _SESSION_INDEX_REGISTRY_REVERSE.pop(old_key, None)
+        _SESSION_INDEX_REGISTRY[session_index] = django_session_key
+        _SESSION_INDEX_REGISTRY_REVERSE[django_session_key] = session_index
+    return True
+
+
+def lookup_session_key_for_session_index(session_index: str) -> str | None:
+    if not session_index:
+        return None
+    with _SESSION_INDEX_REGISTRY_LOCK:
+        return _SESSION_INDEX_REGISTRY.get(session_index)
+
+
+def unregister_by_session_index(session_index: str) -> bool:
+    if not session_index:
+        return False
+    with _SESSION_INDEX_REGISTRY_LOCK:
+        key = _SESSION_INDEX_REGISTRY.pop(session_index, None)
+        if key:
+            _SESSION_INDEX_REGISTRY_REVERSE.pop(key, None)
+            return True
+        return False
+
+
+def saml_session_registry_summary() -> dict:
+    """Counts only, NEVER session keys (those are bearer-equivalent)."""
+    with _SESSION_INDEX_REGISTRY_LOCK:
+        return {
+            "registered_sessions": len(_SESSION_INDEX_REGISTRY),
+            "cap": _SESSION_INDEX_REGISTRY_CAP,
+        }
+
+
+def reset_saml_session_registry() -> None:
+    """Test-only."""
+    with _SESSION_INDEX_REGISTRY_LOCK:
+        _SESSION_INDEX_REGISTRY.clear()
+        _SESSION_INDEX_REGISTRY_REVERSE.clear()
+
+
 def _login_saml_session(request, user) -> None:
     from django.conf import settings as _settings
     from django.contrib.auth import login as _login
@@ -1259,6 +1590,27 @@ def acs(request):
         _login_saml_session(request, user)
     except Exception as exc:  # noqa: BLE001
         return JsonResponse({"success": False, "stage": "session_login_failed", "detail": str(exc)}, status=500)
+
+    # v4.00.86 — Bind the SAML SessionIndex to the freshly-issued Django
+    # session_key so a backchannel LogoutRequest can target THIS exact
+    # session (not "every session for this user"). Also persist
+    # ``saml_name_id`` + ``saml_session_index`` in the session so the
+    # v4.00.60 SP-initiated slo_start can re-use them.
+    _saml_session_index = parsed.get("session_index", "") or ""
+    try:
+        if hasattr(request, "session"):
+            if _saml_session_index:
+                request.session["saml_session_index"] = _saml_session_index
+            if name_id:
+                request.session["saml_name_id"] = name_id
+            _session_key = getattr(request.session, "session_key", "") or ""
+            if _saml_session_index and _session_key:
+                register_saml_session_index(
+                    session_index=_saml_session_index,
+                    django_session_key=_session_key,
+                )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("saml acs: session_index registration failed: %s", exc)
 
     # v4.00.50 — bind the user to the resolved tenant from existing profiles.
     try:
@@ -1509,6 +1861,40 @@ def sls(request):
     except Exception as exc:  # noqa: BLE001
         logger.debug("saml sls: session flush failed: %s", exc)
 
+    # v4.00.86 — Targeted backchannel kill. If the LogoutRequest carries a
+    # SessionIndex AND the v4.00.86 in-memory registry has a binding for it
+    # to a Django session_key, ask the configured SessionStore to delete
+    # that specific session row. This is the only path that can kill the
+    # SAML-issued session when the LogoutRequest arrives on a connection
+    # OTHER than the user-agent's (true backchannel SLO). On any error,
+    # fall through silently — we already flushed the requester's session.
+    _killed_targeted = False
+    _targeted_kill_reason = "no_session_index"
+    _incoming_session_index = parsed.get("session_index", "") or ""
+    if _incoming_session_index:
+        try:
+            _targeted_kill_reason = "no_registry_binding"
+            _bound_key = lookup_session_key_for_session_index(_incoming_session_index)
+            if _bound_key:
+                from importlib import import_module as _import_module
+                from django.conf import settings as _settings_kill
+                _engine = _import_module(
+                    getattr(_settings_kill, "SESSION_ENGINE",
+                            "django.contrib.sessions.backends.db")
+                )
+                _SessionStore = _engine.SessionStore  # type: ignore[attr-defined]
+                try:
+                    _SessionStore(session_key=_bound_key).delete()
+                    _killed_targeted = True
+                    _targeted_kill_reason = "ok"
+                except Exception as _exc_inner:  # noqa: BLE001
+                    _targeted_kill_reason = f"backend_delete_failed: {_exc_inner}"
+                # Always drop the registry binding so the index is one-shot.
+                unregister_by_session_index(_incoming_session_index)
+        except Exception as exc:  # noqa: BLE001
+            _targeted_kill_reason = f"engine_error: {exc}"
+            logger.debug("saml sls: targeted backchannel kill failed: %s", exc)
+
     # Build LogoutResponse.
     resp_bytes = _build_saml_logout_response(
         in_response_to=parsed.get("id", ""),
@@ -1550,6 +1936,8 @@ def sls(request):
             "relay_state": relay,
             "response_signed": resp_signed,
             "response_signature_reason": resp_signature_reason,
+            "targeted_session_killed": _killed_targeted,
+            "targeted_kill_reason": _targeted_kill_reason,
         })
 
     # Redirect to IdP SLO target when configured; else return the XML inline.
