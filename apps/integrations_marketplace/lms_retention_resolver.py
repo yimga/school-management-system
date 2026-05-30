@@ -54,17 +54,34 @@ def resolve_retention_years(*, tenant_schema: str, target_table: str) -> int:
 
 
 def set_tenant_retention_override(*, tenant_schema: str, target_table: str, retention_years: int, reason: str = "", set_by_actor_id: str = "") -> object | None:
-    """Create or update a TenantRetentionOverride. Returns the row, or None on failure."""
+    """Create or update a TenantRetentionOverride. Returns the row, or None on failure.
+
+    v4.00.87: after a successful write, defensively emit a retention-floor
+    escalation alert if the override sits below the regulatory floor. The
+    alert emission NEVER breaks the override write (broad try/except)."""
     try:
         from apps.integrations_marketplace.models import TenantRetentionOverride
+        clamped_years = max(0, int(retention_years))
         row, _created = TenantRetentionOverride.objects.update_or_create(
             tenant_schema=tenant_schema[:64], target_table=target_table[:64],
             defaults={
-                "retention_years": max(0, int(retention_years)),
+                "retention_years": clamped_years,
                 "reason": (reason or "")[:256],
                 "set_by_actor_id": (set_by_actor_id or "")[:64],
             },
         )
+        # v4.00.87: defensive alert emission on below-floor override writes.
+        try:
+            from apps.integrations_marketplace.retention_escalation_alerts import (
+                check_override_below_floor,
+            )
+            check_override_below_floor(
+                tenant_schema=tenant_schema[:64],
+                target_table=target_table[:64],
+                retention_years=clamped_years,
+            )
+        except Exception as alert_exc:  # noqa: BLE001
+            logger.debug("retention floor alert emission failed: %s", alert_exc)
         return row
     except Exception as exc:  # noqa: BLE001
         logger.warning("tenant retention override write failed: %s", exc)

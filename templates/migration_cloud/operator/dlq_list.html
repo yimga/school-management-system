@@ -1,0 +1,75 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block page_title %}{{ page_title|default:"Webhook Dead Letter Queue" }}{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page rmc-page--operator-dlq" id="main" data-rmc-scroll-policy="paginate">
+  <header class="rmc-page__header">
+    <a class="rmc-back" href="{% if shell == 'portal' %}{% url 'migration_cloud_portal:operator_webhook_delivery_log' %}{% else %}{% url 'migration_cloud_super:operator_webhook_delivery_log' %}{% endif %}">{% trans "← Back to delivery log" %}</a>
+    <h1 class="rmc-h1">{% trans "Webhook Dead Letter Queue" %}</h1>
+    <p class="rmc-lede">
+      {% trans "Webhook deliveries that exhausted their retry budget. Replay an entry to re-attempt outbound delivery." %}
+    </p>
+  </header>
+
+  <nav class="rmc-segmented" aria-label="{% trans 'Filter by status' %}">
+    <a href="?format=html&amp;status=pending" class="rmc-segmented-item{% if status_filter == 'pending' %} is-active{% endif %}" data-rmc-dlq-segment="pending">{% trans "Pending" %}</a>
+    <a href="?format=html&amp;status=replayed" class="rmc-segmented-item{% if status_filter == 'replayed' %} is-active{% endif %}" data-rmc-dlq-segment="replayed">{% trans "Replayed" %}</a>
+    <a href="?format=html&amp;status=expired" class="rmc-segmented-item{% if status_filter == 'expired' %} is-active{% endif %}" data-rmc-dlq-segment="expired">{% trans "Expired" %}</a>
+    <a href="?format=html&amp;status=discarded" class="rmc-segmented-item{% if status_filter == 'discarded' %} is-active{% endif %}" data-rmc-dlq-segment="discarded">{% trans "Discarded" %}</a>
+  </nav>
+
+  <p class="rmc-lede rmc-muted" data-rmc-dlq-row-count="{{ row_count }}">
+    {% blocktrans count counter=row_count %}{{ counter }} row{% plural %}{{ counter }} rows{% endblocktrans %}
+    {% trans "in status" %} <code class="rmc-kbd">{{ status_filter }}</code>
+  </p>
+
+  {% if rows %}
+  <table class="rmc-data-table rmc-data-table--dlq" data-rmc-dlq-table="1">
+    <thead>
+      <tr>
+        <th>{% trans "ID" %}</th>
+        <th>{% trans "Provider" %}</th>
+        <th>{% trans "Event type" %}</th>
+        <th>{% trans "Attempts" %}</th>
+        <th>{% trans "Last error" %}</th>
+        <th>{% trans "Payload bytes" %}</th>
+        <th>{% trans "Created" %}</th>
+        <th>{% trans "Expires" %}</th>
+        <th>{% trans "Action" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td>{{ row.id }}</td>
+        <td><code class="rmc-kbd">{{ row.provider }}</code></td>
+        <td><code class="rmc-kbd">{{ row.event_type }}</code></td>
+        <td>{{ row.attempt_count }}</td>
+        <td>{{ row.last_error_reason|truncatechars:80|default:"—" }}</td>
+        <td>{{ row.payload_bytes_length }}</td>
+        <td>{{ row.created_at|default:"—" }}</td>
+        <td>{{ row.expires_at|default:"—" }}</td>
+        <td>
+          {% if status_filter == "pending" %}
+            <form method="post" action="{% if shell == 'portal' %}{% url 'migration_cloud_portal:migration_cloud_dlq_replay' dlq_id=row.id %}{% else %}{% url 'migration_cloud_super:migration_cloud_dlq_replay' dlq_id=row.id %}{% endif %}" class="rmc-form--inline">
+              {% csrf_token %}
+              <button type="submit" class="rmc-btn rmc-btn--ghost rmc-btn--sm" data-rmc-dlq-replay-btn="{{ row.id }}">{% trans "Replay" %}</button>
+            </form>
+          {% else %}
+            <span class="rmc-pill rmc-pill--muted" data-rmc-dlq-status="{{ row.status }}">{{ row.status|default:status_filter }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="rmc-empty" data-rmc-dlq-empty="1">
+    <h2 class="rmc-h2">{% trans "Queue is healthy" %}</h2>
+    <p>{% blocktrans %}No {{ status_filter }} dead-letter rows.{% endblocktrans %}</p>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

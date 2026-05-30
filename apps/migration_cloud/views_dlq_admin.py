@@ -49,6 +49,7 @@ import logging
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views import View
 
@@ -89,7 +90,16 @@ def _dlq_row_for_listing(row) -> dict:
 # rbac-allow: super-staff-webhook-dlq-list
 @method_decorator(staff_member_required, name="dispatch")
 class WebhookDeadLetterListView(View):
-    """GET — list up to 100 pending DLQ rows for operator triage."""
+    """GET — list up to 100 pending DLQ rows for operator triage.
+
+    Default response shape is JSON. When ``?format=html`` is set, renders
+    the human-readable operator triage template
+    ``migration_cloud/operator/dlq_list.html`` (v4.00.87 Wave 19 T5).
+    The JSON shape is unchanged for back-compat with v4.00.80 Wave 12 T4
+    callers.
+    """
+
+    template_name = "migration_cloud/operator/dlq_list.html"
 
     def get(self, request, *args, **kwargs):
         from apps.integrations_marketplace import webhook_dead_letter as _dlq
@@ -99,16 +109,32 @@ class WebhookDeadLetterListView(View):
         if status_filter not in ("pending", "replayed", "expired", "discarded"):
             status_filter = "pending"
         rows = _dlq.list_due(status=status_filter, limit=LIST_PAGE_LIMIT)
-        body = {
-            "rows": [_dlq_row_for_listing(r) for r in rows],
-            "count": len(rows),
-            "status_filter": status_filter,
-            "limit": LIST_PAGE_LIMIT,
-        }
+        serializable = [_dlq_row_for_listing(r) for r in rows]
         logger.info(
             "migration_cloud_operator_dlq_list user_id=%s status=%s count=%s",
             getattr(request.user, "pk", None), status_filter, len(rows),
         )
+
+        # v4.00.87 Wave 19 T5 — human-readable operator triage UI.
+        # The JSON shape MUST stay default to preserve v4.00.80 Wave 12 T4
+        # callers (smoke + tests + any external runbook tooling).
+        if (request.GET.get("format") or "").strip() == "html":
+            context = {
+                "page_title": "Webhook dead letter queue",
+                "shell": kwargs.get("shell", "super"),
+                "rows": serializable,
+                "status_filter": status_filter,
+                "row_count": len(serializable),
+                "limit": LIST_PAGE_LIMIT,
+            }
+            return render(request, self.template_name, context)
+
+        body = {
+            "rows": serializable,
+            "count": len(rows),
+            "status_filter": status_filter,
+            "limit": LIST_PAGE_LIMIT,
+        }
         return JsonResponse(body, status=200)
 
 

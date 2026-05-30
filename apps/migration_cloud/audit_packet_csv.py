@@ -95,3 +95,91 @@ def render_audit_packet_csv(packet: dict) -> bytes:
 def decode_audit_packet_csv(blob: bytes) -> str:
     """Inverse of :func:`render_audit_packet_csv` — returns the CSV text."""
     return gzip.decompress(blob).decode("utf-8")
+
+
+# v4.00.87 — JSONL (newline-delimited JSON) streaming export.
+#
+# Each line is a JSON object — easier to stream into log aggregators
+# (Splunk, Datadog) than CSV. First line is the packet metadata
+# envelope; subsequent lines are entries one per row.
+
+import json
+
+
+def render_audit_packet_jsonl(packet: dict) -> bytes:
+    """Return packet entries as gzipped JSONL bytes.
+    First line: {"_envelope": True, "generated_at": ..., "filters": {...}, "row_count": N}
+    Subsequent lines: one JSON object per entry."""
+    entries = packet.get("entries", []) or []
+    lines: list[str] = []
+    envelope = {
+        "_envelope": True,
+        "generated_at": packet.get("generated_at", ""),
+        "filters": packet.get("filters", {}),
+        "row_count": len(entries),
+    }
+    lines.append(json.dumps(envelope, sort_keys=True, separators=(",", ":")))
+    for row in entries:
+        # Truncate detail to 1024 chars
+        out_row = dict(row)
+        detail = out_row.get("detail", "")
+        if detail and len(detail) > 1024:
+            out_row["detail"] = detail[:1024]
+        lines.append(json.dumps(out_row, sort_keys=True, separators=(",", ":"), default=str))
+    text = "\n".join(lines) + "\n"
+    out_buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=out_buf, mode="wb", mtime=0) as gz:
+        gz.write(text.encode("utf-8"))
+    return out_buf.getvalue()
+
+
+def decode_audit_packet_jsonl(blob: bytes) -> list[dict]:
+    """Return the parsed JSONL records list (envelope first)."""
+    text = gzip.decompress(blob).decode("utf-8")
+    return [json.loads(line) for line in text.split("\n") if line.strip()]
+
+
+# v4.00.87 — Tenant-isolated HMAC signature for tamper-evident packets.
+#
+# When counsel receives a packet, they need to verify it came from the
+# tenant that says it did. HMAC-SHA256 keyed by tenant-isolated derived
+# secret. The "tenant-isolated" part means we derive per-tenant keys
+# from a platform root + tenant_schema so one tenant's leaked key can't
+# forge another tenant's packets.
+
+import hmac
+import hashlib
+import os
+
+
+_PLATFORM_ROOT_ENV = "RMC_AUDIT_PACKET_SIGNING_ROOT"
+_DEFAULT_ROOT_FOR_TEST = "v4-00-87-default-fallback-root-DO-NOT-USE-IN-PROD"
+
+
+def _derive_tenant_hmac_key(*, tenant_schema: str) -> bytes:
+    """HKDF-lite: HMAC(root, tenant_schema) -> per-tenant key bytes."""
+    root = os.environ.get(_PLATFORM_ROOT_ENV, _DEFAULT_ROOT_FOR_TEST)
+    return hmac.new(
+        root.encode("utf-8"),
+        f"tenant:{tenant_schema or ''}".encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+
+
+def sign_audit_packet(packet: dict, *, tenant_schema: str) -> str:
+    """Return hex HMAC-SHA256 over canonical JSON of packet, using
+    per-tenant derived key."""
+    canonical = json.dumps(packet, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    key = _derive_tenant_hmac_key(tenant_schema=tenant_schema)
+    return hmac.new(key, canonical, hashlib.sha256).hexdigest()
+
+
+def verify_audit_packet_signature(packet: dict, *, tenant_schema: str, expected_signature: str) -> dict:
+    """Constant-time signature verification. Returns
+    {"ok": bool, "computed": "<hex>"}. Never raises."""
+    try:
+        computed = sign_audit_packet(packet, tenant_schema=tenant_schema)
+        ok = hmac.compare_digest(computed, str(expected_signature or ""))
+        return {"ok": ok, "computed": computed}
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "computed": "", "error": type(exc).__name__}

@@ -1047,10 +1047,21 @@ def _parse_saml_response(b64_response: str) -> dict:
     except (ValueError, TypeError) as exc:
         return {"error": f"bad_base64: {exc}"}
 
+    # v4.00.86 — Attempt EncryptedAssertion decrypt BEFORE XML parse / signature
+    # check. The helper short-circuits w/ ``no_encrypted_assertion`` when the
+    # response is plain (substring check, no lxml import cost). On any failure
+    # it returns the original bytes unchanged; the ACS handler decides whether
+    # to 401 based on RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION. The decrypted
+    # Assertion still flows through the existing v4.00.65 signature_present_*
+    # checks — decryption does NOT bypass signature verification.
+    decoded, decrypt_reason = _decrypt_encrypted_assertion(
+        decoded, _sp_private_key_pem(),
+    )
+
     try:
         root = ET.fromstring(decoded)
     except ET.ParseError as exc:
-        return {"error": f"bad_xml: {exc}"}
+        return {"error": f"bad_xml: {exc}", "decrypt_reason": decrypt_reason}
 
     def _find(parent, tag, ns):
         return parent.find(f"{{{ns}}}{tag}")
@@ -1068,6 +1079,7 @@ def _parse_saml_response(b64_response: str) -> dict:
             "error": "missing_assertion",
             "status_code": status_code,
             "in_response_to": root.attrib.get("InResponseTo", ""),
+            "decrypt_reason": decrypt_reason,
         }
 
     issuer_el = _find(assertion, "Issuer", _NS_SAML)
@@ -1135,6 +1147,7 @@ def _parse_saml_response(b64_response: str) -> dict:
         "signature_present": sig_present,
         "signature_present_response": sig_present_response,
         "signature_present_assertion": sig_present_assertion,
+        "decrypt_reason": decrypt_reason,
         "attributes": attrs,
         "session_index": session_index,
     }
@@ -1508,6 +1521,31 @@ def acs(request):
     parsed = _parse_saml_response(raw)
     if parsed.get("error"):
         return JsonResponse({"success": False, "stage": "parse_failed", "error": parsed["error"]}, status=400)
+
+    # v4.00.86 — STRICT EncryptedAssertion requirement. When
+    # RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION=1, the inner <saml:EncryptedAssertion>
+    # MUST be present AND must decrypt successfully via the SP private key.
+    # Plain (non-encrypted) responses are rejected, AND any decrypt failure
+    # (lxml/cryptography missing, sp_key_unset/bad_format, RSA/AES failures,
+    # splice failures) is treated as a hard 401. This runs BEFORE signature
+    # validation so the existing v4.00.65 signature_present_* checks then
+    # apply against the *decrypted* Assertion subtree.
+    if _require_encrypted_assertion():
+        _decrypt_reason = parsed.get("decrypt_reason", "")
+        if _decrypt_reason == "no_encrypted_assertion":
+            return JsonResponse(
+                {"success": False,
+                 "stage": "encrypted_assertion_required_but_missing",
+                 "decrypt_reason": _decrypt_reason},
+                status=401,
+            )
+        if _decrypt_reason and _decrypt_reason != "ok":
+            return JsonResponse(
+                {"success": False,
+                 "stage": "encrypted_assertion_decrypt_failed",
+                 "decrypt_reason": _decrypt_reason},
+                status=401,
+            )
 
     expected_status = "urn:oasis:names:tc:SAML:2.0:status:Success"
     status_code = parsed.get("status_code", "")

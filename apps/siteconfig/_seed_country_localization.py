@@ -16495,6 +16495,79 @@ COUNTRY_LOCALIZATION["SD-KH"] = _v4_00_86("SD-KH","sdkh-2-sem","2-semester (Khar
 
 
 # ---------------------------------------------------------------------------
+# v4.00.87 (2026-05-30) — +14 subdivisions: Africa east/west (ET-OR Oromia,
+#   ET-AM Amhara, UG-111 Lira, GH-AH Ashanti, KE-46 Kisumu) + smaller
+#   Africa nations (LR-MO Monrovia, SL-W Freetown, BJ-LI Cotonou,
+#   TG-M Lomé, BF-CEN Ouagadougou, KM-G Moroni, DJ-DJ Djibouti,
+#   SO-BN Mogadishu, SS-EC South Sudan).
+# ---------------------------------------------------------------------------
+def _v4_00_87(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# Compact bulk: Africa Anglophone (3-term WAEC/equivalent ladder).
+_anglophone_87 = (
+    ("ET-OR","Oromia / Ethiopian Sec Cert","Adama Sci Tech + Haramaya",1,9),
+    ("ET-AM","Amhara / Bahir Dar","Bahir Dar Univ + Univ of Gondar",1,9),
+    ("UG-111","Lira / UNEB","Lira Univ + Gulu Univ",1,9),
+    ("GH-AH","Ashanti / WASSCE","KNUST + KAAF + AAMUSTED",1,9),
+    ("KE-46","Kisumu / KCSE","Maseno Univ + JKUAT",1,9),
+    ("LR-MO","Monrovia / WASSCE","Univ of Liberia + AME Univ",1,9),
+    ("SL-W","Freetown / WASSCE","FBC + Njala Univ",1,9),
+)
+for _c, _lbl, _uni, _w, _asm in _anglophone_87:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_87(_c, _slug + "-3-term", f"3-term ({_lbl})", 3, ["Term 1","Term 2","Term 3"], _asm,
+        [{"code":"nursery","label":"Nursery","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primary","label":"Primary","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"jss","label":"Junior Secondary","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+         {"code":"sss","label":"Senior Secondary / Form","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+         {"code":"university","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+        [{"code":_slug+"-1","label":"Primary 1","order":1},{"code":_slug+"-12","label":"Senior 3 / Form 4","order":12}],
+        {"teacher":"Teacher","principal":"Head Teacher","term":"Term","report_card":"Report Card","grade_level":"Class"})
+del _anglophone_87, _c, _lbl, _uni, _w, _asm, _slug
+
+# Francophone bulk (3-trimestre / Bac).
+_francophone_87 = (
+    ("BJ-LI","Cotonou / Bac","Univ d'Abomey-Calavi",10),
+    ("TG-M","Lomé / Bac","Univ de Lomé + Univ de Kara",9),
+    ("BF-CEN","Ouagadougou / Bac","Univ Joseph Ki-Zerbo + Univ Ouaga 2",10),
+    ("KM-G","Moroni / Bac","Univ des Comores",9),
+    ("DJ-DJ","Djibouti / Bac","Univ de Djibouti",9),
+)
+for _c, _lbl, _uni, _asm in _francophone_87:
+    _slug = _c.lower().replace("-","")
+    COUNTRY_LOCALIZATION[_c] = _v4_00_87(_c, _slug + "-3-trim", f"3-trimestre ({_lbl})", 3, ["1er trimestre","2e trimestre","3e trimestre"], _asm,
+        [{"code":"maternelle","label":"Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+         {"code":"primaire","label":"Primaire (CP1-CM2)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+         {"code":"college","label":"Collège (6e-3e) + BEPC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+         {"code":"lycee","label":"Lycée (2nde-Tle) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+         {"code":"university","label":_uni,"glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+        [{"code":_slug+"-cp1","label":"CP1","order":1},{"code":_slug+"-tle","label":"Tle + Bac","order":12}],
+        {"teacher":"Maître / Professeur","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Classe"})
+del _francophone_87, _c, _lbl, _uni, _asm, _slug
+
+# SO-BN Banaadir / Mogadishu (Arabic-Somali curriculum).
+COUNTRY_LOCALIZATION["SO-BN"] = _v4_00_87("SO-BN","sobn-2-sem","2-semester (Banaadir / Mogadishu / SNSE)",2,["First semester","Second semester"],9,
+    [{"code":"dugsi","label":"Dugsi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Hoosaad (Cl 1-8) + Primary Cert","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"secondary","label":"Sare (Cl 1-4) + SNSE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"university","label":"Mogadishu Univ + Benadir Univ + SIMAD","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"sobn-1","label":"Cl 1","order":1},{"code":"sobn-12","label":"Cl 12 + SNSE","order":12}],
+    {"teacher":"Macalin","principal":"Maamulaha","term":"Semestar","report_card":"Warbixin","grade_level":"Fasal"})
+
+# SS-EC Eastern Equatoria (South Sudan).
+COUNTRY_LOCALIZATION["SS-EC"] = _v4_00_87("SS-EC","ssec-3-term","3-term (Eastern Equatoria / CSE)",3,["Term 1","Term 2","Term 3"],2,
+    [{"code":"preprimary","label":"Pre-Primary","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (P1-P8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-13"},
+     {"code":"secondary","label":"Secondary (S1-S4) + CSE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-17"},
+     {"code":"university","label":"Univ of Juba + Catholic Univ of S Sudan","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"ssec-p1","label":"P1","order":1},{"code":"ssec-s4","label":"S4 + CSE","order":12}],
+    {"teacher":"Teacher","principal":"Headteacher","term":"Term","report_card":"Report","grade_level":"Class"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
