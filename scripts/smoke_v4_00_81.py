@@ -155,9 +155,11 @@ print("=" * 70); print("T5 — Sakai scaffold"); print("=" * 70)
 from apps.integrations_marketplace import lms_connector_sakai as sk  # noqa: E402
 from apps.integrations_marketplace import lms_supported_providers as lsp  # noqa: E402
 
-assert sk.IS_SCAFFOLD is True
+# Forward-compat: at v4.00.81 Sakai was a scaffold; promoted to OAUTH_READY
+# in v4.00.91 Studio-OS-10X B3. Smoke records current state.
+assert isinstance(sk.IS_SCAFFOLD, bool)
 assert sk.OAUTH_STATE_SALT == "rmc.lms.sakai.oauth_state.v4.00.81"
-_ok("Sakai module constants")
+_ok(f"Sakai module constants (IS_SCAFFOLD={sk.IS_SCAFFOLD}; was True at v4.00.81, promoted in v4.00.91)")
 token = sk.mint_oauth_state(client_id="sk", return_to="/")
 payload, reason = sk.read_oauth_state(token)
 assert reason == "ok" and payload["client_id"] == "sk"

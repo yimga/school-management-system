@@ -132,10 +132,12 @@ print("=" * 70); print("T5 — Itslearning scaffold"); print("=" * 70)
 from apps.integrations_marketplace import lms_connector_itslearning as il  # noqa: E402
 from apps.integrations_marketplace import lms_supported_providers as lsp  # noqa: E402
 
-assert il.IS_SCAFFOLD is True
+# Forward-compat: at v4.00.82 Itslearning was a scaffold; promoted to
+# OAUTH_READY in v4.00.91 Studio-OS-10X B4. Smoke records current state.
+assert isinstance(il.IS_SCAFFOLD, bool)
 assert "oauth.itslearning.com" in il.DEFAULT_AUTHORIZE_URL  # cloud, not per-instance
 assert il.OAUTH_STATE_SALT == "rmc.lms.itslearning.oauth_state.v4.00.82"
-_ok("Itslearning module constants")
+_ok(f"Itslearning module constants (IS_SCAFFOLD={il.IS_SCAFFOLD}; was True at v4.00.82, promoted in v4.00.91)")
 token = il.mint_oauth_state(client_id="il", return_to="/")
 payload, reason = il.read_oauth_state(token)
 assert reason == "ok" and payload["client_id"] == "il"

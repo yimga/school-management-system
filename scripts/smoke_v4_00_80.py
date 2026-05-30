@@ -180,13 +180,15 @@ print("=" * 70)
 from apps.integrations_marketplace import lms_connector_powerschool as ps  # noqa: E402
 from apps.integrations_marketplace import lms_supported_providers as lsp  # noqa: E402
 
-assert ps.IS_SCAFFOLD is True
+# Forward-compat: at v4.00.80 PowerSchool was a scaffold; promoted to
+# OAUTH_READY in v4.00.91 Studio-OS-10X B2. Smoke records current state.
+assert isinstance(ps.IS_SCAFFOLD, bool)
 assert ps.DEFAULT_AUTHORIZE_URL_SUFFIX == "/oauth/authorize"
 assert ps.DEFAULT_TOKEN_URL_SUFFIX == "/oauth/token"
 assert "rest:read" in ps.DEFAULT_SCOPES
 assert "rest:write" in ps.DEFAULT_SCOPES
 assert ps.OAUTH_STATE_SALT == "rmc.lms.powerschool.oauth_state.v4.00.80"
-_ok("PowerSchool module constants OK")
+_ok(f"PowerSchool module constants OK (IS_SCAFFOLD={ps.IS_SCAFFOLD}; was True at v4.00.80, promoted in v4.00.91)")
 
 token = ps.mint_oauth_state(client_id="psk1", return_to="/r")
 payload, reason = ps.read_oauth_state(token)

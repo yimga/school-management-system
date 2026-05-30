@@ -240,12 +240,15 @@ from apps.integrations_marketplace import lms_connector_blackboard as bb  # noqa
 from apps.integrations_marketplace import lms_supported_providers as lsp  # noqa: E402
 
 # Case: module surface
-assert bb.IS_SCAFFOLD is True
+# Forward-compat: at v4.00.79 Blackboard was a scaffold (IS_SCAFFOLD=True).
+# Promoted to OAUTH_READY in v4.00.91 Studio-OS-10X B1. Smoke now records
+# the current value rather than pinning to wave-time scaffold state.
+assert isinstance(bb.IS_SCAFFOLD, bool)
 assert bb.DEFAULT_AUTHORIZE_URL_SUFFIX == "/learn/api/public/v1/oauth2/authorizationcode"
 assert bb.DEFAULT_TOKEN_URL_SUFFIX == "/learn/api/public/v1/oauth2/token"
 assert "read" in bb.DEFAULT_SCOPES and "write" in bb.DEFAULT_SCOPES
 assert bb.OAUTH_STATE_SALT == "rmc.lms.blackboard.oauth_state.v4.00.79"
-_ok("Blackboard module constants OK")
+_ok(f"Blackboard module constants OK (IS_SCAFFOLD={bb.IS_SCAFFOLD}; was True at v4.00.79, promoted to OAUTH_READY in v4.00.91)")
 
 # Case: mint -> read round-trip
 token = bb.mint_oauth_state(client_id="abc", return_to="/return-here")
