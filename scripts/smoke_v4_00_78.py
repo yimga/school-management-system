@@ -212,9 +212,12 @@ def run_t5():
             _fail(f"t5-key-{k}", "missing")
     _ok(f"t5-bundle has all 7 top-level keys; schema_version={bundle['schema_version']}")
 
-    if len(bundle["providers"]) != 5:
-        _fail("t5-providers-len", f"got {len(bundle['providers'])}")
-    _ok(f"t5-5 providers in bundle (canvas, moodle, google, schoology, d2l)")
+    # Forward-compat: at v4.00.78 there were 5 providers; W11-14 added 4
+    # scaffolds (Blackboard, PowerSchool, Sakai, Itslearning) → 9 total.
+    if len(bundle["providers"]) < 5:
+        _fail("t5-providers-len", f"expected >= 5; got {len(bundle['providers'])}")
+    _ok(f"t5-{len(bundle['providers'])} providers in bundle "
+        f"(was 5 at v4.00.78; post-W11-14: 9 incl. scaffolds)")
 
     # Each provider has expected shape.
     for p in bundle["providers"]:

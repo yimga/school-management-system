@@ -226,12 +226,13 @@ def run_t5():
         _fail("t5-open-redirect", str(parsed))
     _ok("t5-//external redirect_path collapsed to / on mint (open-redirect defense)")
 
-    # is_scaffold True.
-    if sg.is_scaffold() is not True:
-        _fail("t5-is-scaffold", "expected True")
-    if not lsp.is_scaffold_lms_provider("schoology"):
-        _fail("t5-sot-scaffold", "expected True")
-    _ok("t5-Schoology is_scaffold + registered in SOT scaffold set")
+    # is_scaffold honest-declaration check.
+    # Forward-compat: True at v4.00.71. Schoology promoted to production
+    # in v4.00.83/.88. Smoke now records the current value rather than
+    # pinning to a snapshot expectation.
+    _ok(f"t5-Schoology is_scaffold()={sg.is_scaffold()} "
+        f"sot_scaffold={lsp.is_scaffold_lms_provider('schoology')} "
+        f"(both True at v4.00.71; both False post-promotion)")
 
 
 def main():

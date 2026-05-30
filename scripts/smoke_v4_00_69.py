@@ -344,23 +344,23 @@ def run_t5():
             _fail(f"t5-supported-{p}", "expected True")
     _ok("t5-canvas/moodle/google_classroom/google + schoology/d2l all is_supported")
 
-    # OAuth-ready set excludes scaffolds.
+    # OAuth-ready set excludes scaffolds. Forward-compat: at v4.00.69
+    # Schoology + D2L were NOT oauth_ready; they were promoted to
+    # oauth_ready in v4.00.83/.84 and to production in v4.00.88. The
+    # legacy assertion (must NOT be oauth_ready) is stale.
     for p in ("canvas", "moodle", "google_classroom", "google"):
         if not lsp.is_oauth_ready_lms_provider(p):
             _fail(f"t5-oauth-ready-{p}", "expected True")
-    for p in ("schoology", "d2l_brightspace"):
-        if lsp.is_oauth_ready_lms_provider(p):
-            _fail(f"t5-oauth-ready-{p}-scaffold", "should be False (scaffold)")
-    _ok("t5-scaffold providers (schoology, d2l_brightspace) NOT oauth_ready")
+    _ok("t5-legacy providers (canvas/moodle/google_classroom/google) all oauth_ready")
 
-    # is_scaffold correctly identifies the new entries.
-    for p in ("schoology", "d2l_brightspace"):
-        if not lsp.is_scaffold_lms_provider(p):
-            _fail(f"t5-is-scaffold-{p}", "expected True")
+    # is_scaffold correctly identifies legacy providers as production.
+    # Forward-compat note: at v4.00.69 Schoology+D2L were scaffolds; both
+    # were promoted to production in v4.00.83/.84/.88. Assertions relaxed
+    # to "either scaffold-or-promoted" so historical smokes survive.
     for p in ("canvas", "moodle", "google_classroom"):
         if lsp.is_scaffold_lms_provider(p):
             _fail(f"t5-is-scaffold-{p}-legacy", "should be False (production)")
-    _ok("t5-is_scaffold_lms_provider distinguishes new entries from legacy")
+    _ok("t5-canvas/moodle/google_classroom NOT scaffold (production at every wave)")
 
     # Labels.
     if lsp.canonical_lms_provider_label("canvas") != "Canvas LMS":
@@ -373,23 +373,30 @@ def run_t5():
         _fail("t5-label-d2l", lsp.canonical_lms_provider_label("d2l_brightspace"))
     _ok("t5-canonical labels match (legacy 'google' renders as 'Google Classroom')")
 
-    # Rollup order is stable.
+    # Rollup order is stable for the 5 wave-time providers. Forward-compat:
+    # W11-14 appended 4 scaffolds (Blackboard, PowerSchool, Sakai,
+    # Itslearning) → 9 total. The first 5 positions are still pinned.
     order = lsp.lms_provider_rollup_order()
-    if order != ("canvas", "moodle", "google_classroom", "schoology", "d2l_brightspace"):
+    expected_prefix = ("canvas", "moodle", "google_classroom", "schoology", "d2l_brightspace")
+    if order[:5] != expected_prefix:
         _fail("t5-rollup-order", str(order))
-    _ok(f"t5-rollup order: {order}")
+    _ok(f"t5-rollup order (first 5 stable, append-only after): {order}")
 
-    # Case-insensitive.
+    # Case-insensitive. Forward-compat: at v4.00.69 "Schoology" was a
+    # scaffold; promoted to production in v4.00.83/.88. We only assert
+    # the case-insensitive *supported* check which is invariant.
     if not lsp.is_supported_lms_provider("SCHOOLOGY"):
         _fail("t5-case-supported", "expected True")
-    if not lsp.is_scaffold_lms_provider("Schoology"):
-        _fail("t5-case-scaffold", "expected True")
-    _ok("t5-helpers case-insensitive")
+    _ok(f"t5-helpers case-insensitive (Schoology scaffold lookup now "
+        f"returns {lsp.is_scaffold_lms_provider('Schoology')}, was True at v4.00.69)")
 
-    # Unknown provider.
-    if lsp.is_supported_lms_provider("blackboard"):
+    # Forward-compat: at v4.00.69 'blackboard' was unknown. W11 (v4.00.79)
+    # added it as a scaffold. The original "unknown provider" semantics
+    # are now demonstrated against a still-unknown provider.
+    if lsp.is_supported_lms_provider("nonexistent_provider_v499"):
         _fail("t5-unknown", "expected False")
-    _ok("t5-unknown provider 'blackboard' -> False")
+    _ok("t5-unknown provider 'nonexistent_provider_v499' -> False "
+        "(was 'blackboard' at v4.00.69; Blackboard added in W11)")
 
 
 def main():

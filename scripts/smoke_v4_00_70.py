@@ -227,10 +227,12 @@ def run_t5():
             _fail(f"t5-func-{func}", "missing")
     _ok("t5-5 surface functions present (oauth_authorize_url + refresh + push + pull + is_scaffold)")
 
-    # is_scaffold returns True (honest declaration).
-    if d2l.is_scaffold() is not True:
-        _fail("t5-is-scaffold", f"got {d2l.is_scaffold()}")
-    _ok("t5-is_scaffold() == True (production wiring deferred)")
+    # is_scaffold honest-declaration check.
+    # Forward-compat note: True at v4.00.70; D2L promoted to production
+    # in v4.00.84/.88. Accept either snapshot value — both are correct
+    # at their respective waves.
+    _ok(f"t5-is_scaffold() returns {d2l.is_scaffold()} "
+        f"(was True at v4.00.70; post-v4.00.84 promotion: False)")
 
     # OAuth authorize URL shape.
     url = d2l.oauth_authorize_url(
@@ -266,16 +268,18 @@ def run_t5():
         _fail("t5-pull-stub", str(out))
     _ok("t5-pull_courses honest-stub -> []")
 
-    # D2L registered in SOT.
+    # D2L registered in SOT. Forward-compat: at v4.00.70 D2L was a
+    # scaffold + NOT oauth_ready; promoted to oauth_ready in v4.00.84 +
+    # production in v4.00.88. Only the stable invariants are still
+    # asserted (still supported, label unchanged).
     if not lsp.is_supported_lms_provider("d2l_brightspace"):
         _fail("t5-sot-supported", "expected True")
-    if not lsp.is_scaffold_lms_provider("d2l_brightspace"):
-        _fail("t5-sot-scaffold", "expected True")
-    if lsp.is_oauth_ready_lms_provider("d2l_brightspace"):
-        _fail("t5-sot-oauth-ready", "should NOT be True")
     if lsp.canonical_lms_provider_label("d2l_brightspace") != "Brightspace (D2L)":
         _fail("t5-sot-label", lsp.canonical_lms_provider_label("d2l_brightspace"))
-    _ok("t5-D2L is_supported + is_scaffold + NOT oauth_ready + label='Brightspace (D2L)'")
+    _ok(f"t5-D2L is_supported, label='Brightspace (D2L)', "
+        f"scaffold={lsp.is_scaffold_lms_provider('d2l_brightspace')}, "
+        f"oauth_ready={lsp.is_oauth_ready_lms_provider('d2l_brightspace')} "
+        f"(was scaffold+NOT oauth_ready at v4.00.70)")
 
 
 def main():

@@ -70,9 +70,14 @@ def run_t3():
     from apps.api import oneroster_demographics as odm
     if "white" not in odm.RACE_ETHNICITY_BOOL_FIELDS:
         _fail("t3-registered", "missing")
-    if len(odm.RACE_ETHNICITY_BOOL_FIELDS) != 6:
-        _fail("t3-count", f"expected 6; got {len(odm.RACE_ETHNICITY_BOOL_FIELDS)}")
-    _ok(f"t3-6 race/ethnicity flags now: {sorted(odm.RACE_ETHNICITY_BOOL_FIELDS)}")
+    # Forward-compat: at v4.00.74 there were 6 race flags; v4.00.75 added
+    # the 7th (demographicRaceTwoOrMoreRaces) completing the federal vocab.
+    # Relaxed: at least 6 must be present.
+    if len(odm.RACE_ETHNICITY_BOOL_FIELDS) < 6:
+        _fail("t3-count", f"expected >= 6; got {len(odm.RACE_ETHNICITY_BOOL_FIELDS)}")
+    _ok(f"t3-{len(odm.RACE_ETHNICITY_BOOL_FIELDS)} race/ethnicity flags now: "
+        f"{sorted(odm.RACE_ETHNICITY_BOOL_FIELDS)} "
+        f"(was 6 at v4.00.74; v4.00.75 added 7th completing federal vocab)")
 
     for v in (True, False, "true", "no", "1", "0", ""):
         err = odm._validate_race_ethnicity_bool_flags({"white": v})
