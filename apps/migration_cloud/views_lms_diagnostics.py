@@ -622,7 +622,9 @@ def _retention_purge_sparkline(*, cutoff_dt, now=None) -> dict:
     weeks = _RETENTION_SPARKLINE_WEEKS_PER_SIDE
     if cutoff_dt is None:
         return {"buckets": [], "max_count": 0, "weeks_per_side": weeks,
-                "before_total": 0, "after_total": 0}
+                "before_total": 0, "after_total": 0,
+                "percentile_bands": {"p25": 0, "p25_y": 0, "p50": 0, "p50_y": 0,
+                                     "p75": 0, "p75_y": 0, "nonzero_count": 0}}
 
     # Anchor each bucket to the start of a week (Monday 00:00 UTC).
     window_start = cutoff_dt - timedelta(weeks=weeks)
@@ -633,7 +635,9 @@ def _retention_purge_sparkline(*, cutoff_dt, now=None) -> dict:
     except Exception as exc:  # noqa: BLE001
         logger.debug("retention sparkline: model unavailable: %s", exc)
         return {"buckets": [], "max_count": 0, "weeks_per_side": weeks,
-                "before_total": 0, "after_total": 0}
+                "before_total": 0, "after_total": 0,
+                "percentile_bands": {"p25": 0, "p25_y": 0, "p50": 0, "p50_y": 0,
+                                     "p75": 0, "p75_y": 0, "nonzero_count": 0}}
 
     buckets = []
     for i in range(weeks * 2):
@@ -666,6 +670,27 @@ def _retention_purge_sparkline(*, cutoff_dt, now=None) -> dict:
         b["x"] = idx * 12
         b["bar_h"] = bar_h
         b["bar_y"] = chart_top_pad + (chart_h - bar_h)
+    # v4.00.69 — Percentile bands (p25/p50/p75) over the non-zero bucket
+    # counts. Operator overlay catches "this purge is hitting an unusual
+    # spike" before it lands. Bands computed on non-zero counts only so a
+    # mostly-empty window doesn't compress all three percentiles to 0.
+    nonzero = sorted(b["count"] for b in buckets if b["count"] > 0)
+    if nonzero:
+        def _pct(p):
+            idx = max(0, min(len(nonzero) - 1, int(p * len(nonzero) / 100)))
+            return nonzero[idx]
+        p25 = _pct(25)
+        p50 = _pct(50)
+        p75 = _pct(75)
+    else:
+        p25 = p50 = p75 = 0
+    # Pre-compute the SVG y-coords for each band so the template just
+    # renders `<line y="{p25_y}" ...>`.
+    def _band_y(value):
+        if not max_count:
+            return chart_top_pad + chart_h
+        h = int((value / max_count) * chart_h)
+        return chart_top_pad + (chart_h - h)
     return {
         "buckets": buckets,
         "max_count": max_count,
@@ -677,6 +702,12 @@ def _retention_purge_sparkline(*, cutoff_dt, now=None) -> dict:
         "viewbox_width": 288,
         "viewbox_height": 60,
         "divider_x": 144,
+        "percentile_bands": {
+            "p25": p25, "p25_y": _band_y(p25),
+            "p50": p50, "p50_y": _band_y(p50),
+            "p75": p75, "p75_y": _band_y(p75),
+            "nonzero_count": len(nonzero),
+        },
     }
 
 
@@ -720,6 +751,11 @@ def _retention_preview_csv_response(*, retention: dict, sparkline: dict):
     writer.writerow(["#summary", "weeks_per_side", weeks_per_side])
     writer.writerow(["#summary", "window_start_iso", window_start_iso])
     writer.writerow(["#summary", "window_end_iso", window_end_iso])
+    # v4.00.69 — Percentile bands surfaced in CSV summary too.
+    bands = sparkline.get("percentile_bands") or {}
+    writer.writerow(["#summary", "p25", int(bands.get("p25") or 0)])
+    writer.writerow(["#summary", "p50", int(bands.get("p50") or 0)])
+    writer.writerow(["#summary", "p75", int(bands.get("p75") or 0)])
     writer.writerow([])
     writer.writerow(["week_start_iso", "side", "count", "x", "bar_h", "bar_y"])
 

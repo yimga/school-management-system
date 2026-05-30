@@ -425,6 +425,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_city_of_birth(inner)
     if err is not None:
         return None, err
+    err = _validate_country_of_citizenship(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -569,6 +572,81 @@ def _validate_state_of_birth_abbreviation(inner: dict[str, Any]):
              "note": f"must match a known {country}-<subdivision> entry in COUNTRY_LOCALIZATION SOT"},
             status=400,
         )
+    return None
+
+
+# v4.00.69 — Demographics POST/PUT `countryOfCitizenship` multi-value.
+#
+# Per OneRoster v1.2, ``countryOfCitizenship`` carries one OR more ISO 3166-1
+# alpha-2 codes (dual citizens are common). We accept the field as either:
+#   * a comma-separated string (``"US,NG,GB"``) — common from caller code
+#     that doesn't want to build a list
+#   * a JSON list (``["US", "NG", "GB"]``) — strict v1.2 shape
+# Each code is validated independently against the same SOT
+# ``_resolve_iso_3166_alpha2_codes()`` walk used by ``countryOfBirthCode``.
+# A single bad code rejects the whole field with the bad value echoed.
+#
+# Failure classes:
+#   * bad_shape: a code is not 2 letters (regex check)
+#   * not_in_iso_3166_1_alpha_2: well-shaped but not a known country code
+#   * too_many_values: > 5 codes (typo guard — no real person holds more)
+# Empty string / empty list allowed (explicit clear). All comparisons are
+# case-insensitive (codes uppercased before SOT lookup).
+_COUNTRY_OF_CITIZENSHIP_MAX_VALUES = 5
+
+
+def _normalize_citizenship_list(raw: Any) -> list[str]:
+    """Coerce the input shape (string CSV or JSON list) to a list of upper-cased
+    codes. Returns [] when the input is empty / None.
+    """
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        out = []
+        for item in raw:
+            s = str(item or "").strip().upper()
+            if s:
+                out.append(s)
+        return out
+    s = str(raw or "").strip()
+    if not s:
+        return []
+    return [piece.strip().upper() for piece in s.split(",") if piece.strip()]
+
+
+def _validate_country_of_citizenship(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "countryOfCitizenship" not in inner:
+        return None
+    codes = _normalize_citizenship_list(inner.get("countryOfCitizenship"))
+    if not codes:
+        return None  # explicit clear allowed
+    if len(codes) > _COUNTRY_OF_CITIZENSHIP_MAX_VALUES:
+        return JsonResponse(
+            {"error": "bad_country_of_citizenship",
+             "reason": "too_many_values",
+             "received_count": len(codes),
+             "max_values": _COUNTRY_OF_CITIZENSHIP_MAX_VALUES},
+            status=400,
+        )
+    allow = _resolve_iso_3166_alpha2_codes()
+    for code in codes:
+        if not _COUNTRY_OF_BIRTH_CODE_RE.match(code):
+            return JsonResponse(
+                {"error": "bad_country_of_citizenship",
+                 "reason": "bad_shape",
+                 "received": code[:32],
+                 "note": "each code must be a 2-letter ISO 3166-1 alpha-2 value"},
+                status=400,
+            )
+        if allow and code not in allow:
+            return JsonResponse(
+                {"error": "bad_country_of_citizenship",
+                 "reason": "not_in_iso_3166_1_alpha_2",
+                 "received": code,
+                 "note": "must match a 2-letter ISO 3166-1 code from COUNTRY_LOCALIZATION SOT"},
+                status=400,
+            )
     return None
 
 

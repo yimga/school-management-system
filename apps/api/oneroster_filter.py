@@ -19,10 +19,17 @@ Double negation (``NOT NOT x``) is permitted. NOT binds to a single factor
 (predicate or parenthesized expression), so ``NOT (a OR b)`` flips the
 whole group. Lex-time keyword (case-sensitive per spec section 4.13).
 
+v4.00.69 — Added ``field IN('a','b','c')`` list operator. This is sugar for
+``field='a' OR field='b' OR field='c'`` — practical for ?filter= URLs that
+otherwise have to repeat the same field across OR chains. Empty list
+``IN()`` is fail-safe (always-False — set membership with no elements
+matches nothing).
+
   expression ::= term ( OR term )*
   term       ::= factor ( AND factor )*
   factor     ::= 'NOT' factor | predicate | '(' expression ')'
   predicate  ::= field comparison_op 'value'
+                 | field 'IN' '(' 'value' (',' 'value')* ')'
 
 The ``~`` operator is "contains" (case-insensitive substring match).
 String literals are single-quoted; escape an embedded ``'`` with ``\\'``.
@@ -62,9 +69,9 @@ _TOKEN_RE = re.compile(
     r"""
     \s+                                    # whitespace (consumed but skipped)
     | '(?:\\.|[^'\\])*'                    # single-quoted string literal
-    | \b(?:AND|OR|NOT)\b                   # boolean keyword (NOT added v4.00.68)
+    | \b(?:AND|OR|NOT|IN)\b                # boolean keyword + IN (v4.00.69)
     | !=|>=|<=|[=<>~]                      # comparison op
-    | [()]                                 # v4.00.67 parens for grouping
+    | [(),]                                # parens (v4.00.67) + comma (v4.00.69)
     | [A-Za-z_][A-Za-z0-9_.]*              # identifier (field name)
     """,
     re.VERBOSE,
@@ -205,9 +212,12 @@ class _Parser:
         if self.pos + 2 >= len(self.tokens) + 1:
             raise _ParseError("truncated_predicate")
         field = self._consume()
-        if field in ("AND", "OR", "NOT", "(", ")") or field in _COMPARISON_OPS:
+        if field in ("AND", "OR", "NOT", "IN", "(", ")", ",") or field in _COMPARISON_OPS:
             raise _ParseError(f"expected_field_got_{field!r}")
         op = self._consume()
+        # v4.00.69 — Special-case IN(list-of-literals).
+        if op == "IN":
+            return self._parse_in_list(field)
         if op not in _COMPARISON_OPS:
             raise _ParseError(f"expected_comparison_op_got_{op!r}")
         lit_tok = self._consume()
@@ -215,6 +225,38 @@ class _Parser:
             raise _ParseError(f"expected_quoted_literal_got_{lit_tok!r}")
         lit = _unquote_literal(lit_tok)
         return _make_pred(field, op, lit)
+
+    def _parse_in_list(self, field: str) -> Callable[[dict], bool]:
+        """v4.00.69 — Parse `IN('a','b','c')` -> set-membership predicate.
+
+        Empty list `IN()` is allowed and always-False (set with no members).
+        Tokens consumed: '(' literal (',' literal)* ')'.
+        """
+        if self._peek() != "(":
+            raise _ParseError(f"expected_open_paren_after_IN_got_{self._peek()!r}")
+        self._consume()  # eat '('
+        lits: list[str] = []
+        # Handle empty `IN()` shortcut.
+        if self._peek() == ")":
+            self._consume()
+            return lambda _row: False
+        while True:
+            tok = self._consume()
+            if not (tok.startswith("'") and tok.endswith("'")):
+                raise _ParseError(f"expected_quoted_literal_in_IN_list_got_{tok!r}")
+            lits.append(_unquote_literal(tok))
+            nxt = self._peek()
+            if nxt == ",":
+                self._consume()
+                continue
+            if nxt == ")":
+                self._consume()
+                break
+            raise _ParseError(f"expected_comma_or_close_paren_got_{nxt!r}")
+        lit_set = frozenset(lits)
+        def pred(row: dict, field=field, lit_set=lit_set) -> bool:
+            return str(row.get(field) or "") in lit_set
+        return pred
 
 
 def parse_filter(expr: str) -> Callable[[dict], bool]:

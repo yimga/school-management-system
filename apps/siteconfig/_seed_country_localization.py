@@ -13569,6 +13569,310 @@ COUNTRY_LOCALIZATION["PH-CEB"] = {
 
 
 # ---------------------------------------------------------------------------
+# v4.00.69 (2026-05-29) — +14 Tier-1 subdivisions:
+#   JP-03 Iwate, JP-05 Akita, JP-06 Yamagata, JP-07 Fukushima,
+#   KR-27 Daegu (canonical ISO code, distinct from prior KR-31 entry),
+#   TW-NTPC New Taipei, CN-XJ Xinjiang, CN-TJ Tianjin,
+#   MX-MEX Estado de México, CL-AI Aysén, CO-CUN Cundinamarca,
+#   BR-ES Espírito Santo, IN-MH Maharashtra, IN-KA Karnataka.
+# ---------------------------------------------------------------------------
+
+# Iwate (JP-03) — Tohoku 3-gakki + Iwate U + Iwate Medical U.
+COUNTRY_LOCALIZATION["JP-03"] = {
+    "calendar_system": {"code": "jp03-3-gakki", "label": "3-gakki (Iwate)",
+        "term_count": 3, "term_names": ["1-gakki", "2-gakki", "3-gakki"],
+        "week_start": 1, "academic_year_starts_month": 4},
+    "school_types": [
+        {"code": "youchien",  "label": "Youchien",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",  "label": "Shogakko (1-6)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",  "label": "Chugakko (7-9)",            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko", "label": "Kotogakko (10-12)",         "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "daigaku",   "label": "Iwate U + Iwate Medical U", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp03-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp03-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp03-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp03-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {"teacher": "Sensei", "principal": "Kocho", "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen"},
+}
+
+# Akita (JP-05) — Akita 3-gakki + Akita U + Akita Prefectural U.
+COUNTRY_LOCALIZATION["JP-05"] = {
+    "calendar_system": {"code": "jp05-3-gakki", "label": "3-gakki (Akita)",
+        "term_count": 3, "term_names": ["1-gakki", "2-gakki", "3-gakki"],
+        "week_start": 1, "academic_year_starts_month": 4},
+    "school_types": [
+        {"code": "youchien",  "label": "Youchien",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",  "label": "Shogakko (1-6)",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",  "label": "Chugakko (7-9)",                 "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko", "label": "Kotogakko (10-12)",              "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "daigaku",   "label": "Akita U + Akita Prefectural U",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp05-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp05-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp05-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp05-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {"teacher": "Sensei", "principal": "Kocho", "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen"},
+}
+
+# Yamagata (JP-06) — Tohoku + Yamagata U + Tohoku U of Art & Design.
+COUNTRY_LOCALIZATION["JP-06"] = {
+    "calendar_system": {"code": "jp06-3-gakki", "label": "3-gakki (Yamagata)",
+        "term_count": 3, "term_names": ["1-gakki", "2-gakki", "3-gakki"],
+        "week_start": 1, "academic_year_starts_month": 4},
+    "school_types": [
+        {"code": "youchien",  "label": "Youchien",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",  "label": "Shogakko (1-6)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",  "label": "Chugakko (7-9)",                    "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko", "label": "Kotogakko (10-12)",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "daigaku",   "label": "Yamagata U + Tohoku U of A&D",      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp06-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp06-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp06-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp06-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {"teacher": "Sensei", "principal": "Kocho", "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen"},
+}
+
+# Fukushima (JP-07) — Tohoku + Fukushima U + Fukushima Medical U.
+COUNTRY_LOCALIZATION["JP-07"] = {
+    "calendar_system": {"code": "jp07-3-gakki", "label": "3-gakki (Fukushima)",
+        "term_count": 3, "term_names": ["1-gakki", "2-gakki", "3-gakki"],
+        "week_start": 1, "academic_year_starts_month": 4},
+    "school_types": [
+        {"code": "youchien",  "label": "Youchien",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",  "label": "Shogakko (1-6)",                        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",  "label": "Chugakko (7-9)",                        "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko", "label": "Kotogakko (10-12)",                     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "daigaku",   "label": "Fukushima U + Fukushima Medical U",     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp07-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp07-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp07-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp07-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {"teacher": "Sensei", "principal": "Kocho", "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen"},
+}
+
+# Daegu (KR-27) — canonical ISO 3166-2:KR code (KNU + KMU + DGU + DGIST + Yeungnam).
+COUNTRY_LOCALIZATION["KR-27"] = {
+    "calendar_system": {"code": "kr27-2-hakgi", "label": "2-hakgi (Daegu)",
+        "term_count": 2, "term_names": ["1-hakgi (spring)", "2-hakgi (fall)"],
+        "week_start": 1, "academic_year_starts_month": 3},
+    "school_types": [
+        {"code": "yuchiwon",     "label": "Yuchiwon",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeunghakgyo", "label": "Chodeunghakgyo (1-6)",            "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "junghakgyo",   "label": "Junghakgyo (7-9)",                  "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "godeunghakgyo", "label": "Godeunghakgyo (10-12) + Suneung",  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "daehakgyo",    "label": "KNU + KMU + DGU + DGIST + Yeungnam","glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr27-1",  "label": "Grade 1 (Chodeunghakgyo)", "order": 1},
+        {"code": "kr27-6",  "label": "Grade 6 (Chodeunghakgyo)", "order": 6},
+        {"code": "kr27-9",  "label": "Grade 3 (Junghakgyo)",     "order": 9},
+        {"code": "kr27-12", "label": "Grade 3 (Godeunghakgyo)",  "order": 12},
+    ],
+    "terminology": {"teacher": "Seonsaengnim", "principal": "Gyojang", "term": "Hakgi", "report_card": "Seongjeokpyo", "grade_level": "Hangnyeon"},
+}
+
+# New Taipei (TW-NWT — ISO code; NTPC alias) — Tamkang + NTU Hsinchuang campus + NTPU + NTOU.
+COUNTRY_LOCALIZATION["TW-NWT"] = {
+    "calendar_system": {"code": "twnwt-2-sem", "label": "2-sem (New Taipei / MOE)",
+        "term_count": 2, "term_names": ["Fall semester", "Spring semester"],
+        "week_start": 1, "academic_year_starts_month": 9},
+    "school_types": [
+        {"code": "youeryuan",   "label": "Youeryuan",                           "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "guoxiao",     "label": "Guoxiao (1-6)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "guozhong",    "label": "Guozhong (7-9)",                      "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",    "label": "Gaozhong (10-12) + GSAT",             "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "daxue",       "label": "Tamkang + NTPU + NTOU + Aletheia",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "twnwt-1",  "label": "Grade 1 (Guoxiao)",   "order": 1},
+        {"code": "twnwt-6",  "label": "Grade 6 (Guoxiao)",   "order": 6},
+        {"code": "twnwt-9",  "label": "Grade 3 (Guozhong)",  "order": 9},
+        {"code": "twnwt-12", "label": "Grade 3 (Gaozhong)",  "order": 12},
+    ],
+    "terminology": {"teacher": "Laoshi", "principal": "Xiaozhang", "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji"},
+}
+
+# Xinjiang (CN-XJ) — XJU + Shihezi U + Tarim U + Xinjiang Normal U.
+COUNTRY_LOCALIZATION["CN-XJ"] = {
+    "calendar_system": {"code": "cnxj-2-sem", "label": "2-sem (Xinjiang / MOE)",
+        "term_count": 2, "term_names": ["Autumn semester", "Spring semester"],
+        "week_start": 1, "academic_year_starts_month": 9},
+    "school_types": [
+        {"code": "youeryuan",   "label": "Youeryuan",                                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "xiaoxue",     "label": "Xiaoxue (1-6)",                             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",    "label": "Chuzhong (7-9)",                            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",    "label": "Gaozhong (10-12) + Gaokao",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "daxue",       "label": "XJU + Shihezi U + Tarim U + Xinjiang NU",   "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnxj-1",  "label": "Year 1 (Xiaoxue)",         "order": 1},
+        {"code": "cnxj-6",  "label": "Year 6 (Xiaoxue)",         "order": 6},
+        {"code": "cnxj-9",  "label": "Year 3 (Chuzhong)",        "order": 9},
+        {"code": "cnxj-12", "label": "Year 3 (Gaozhong + Gaokao)", "order": 12},
+    ],
+    "terminology": {"teacher": "Laoshi", "principal": "Xiaozhang", "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji"},
+}
+
+# Tianjin (CN-TJ) — Nankai + Tianjin U + TJUT + TNU + TUST.
+COUNTRY_LOCALIZATION["CN-TJ"] = {
+    "calendar_system": {"code": "cntj-2-sem", "label": "2-sem (Tianjin / MOE)",
+        "term_count": 2, "term_names": ["Autumn semester", "Spring semester"],
+        "week_start": 1, "academic_year_starts_month": 9},
+    "school_types": [
+        {"code": "youeryuan",   "label": "Youeryuan",                                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "xiaoxue",     "label": "Xiaoxue (1-6)",                             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",    "label": "Chuzhong (7-9)",                            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",    "label": "Gaozhong (10-12) + Gaokao",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "daxue",       "label": "Nankai + Tianjin U + TJUT + TNU + TUST",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cntj-1",  "label": "Year 1 (Xiaoxue)",         "order": 1},
+        {"code": "cntj-6",  "label": "Year 6 (Xiaoxue)",         "order": 6},
+        {"code": "cntj-9",  "label": "Year 3 (Chuzhong)",        "order": 9},
+        {"code": "cntj-12", "label": "Year 3 (Gaozhong + Gaokao)", "order": 12},
+    ],
+    "terminology": {"teacher": "Laoshi", "principal": "Xiaozhang", "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji"},
+}
+
+# Estado de México (MX-MEX) — UAEMex + Tec Estado de Mexico + UNAM Acatlán.
+COUNTRY_LOCALIZATION["MX-MEX"] = {
+    "calendar_system": {"code": "mxmex-2-sem", "label": "2-sem (Estado de México / SEP)",
+        "term_count": 2, "term_names": ["Primer semestre", "Segundo semestre"],
+        "week_start": 1, "academic_year_starts_month": 8},
+    "school_types": [
+        {"code": "preescolar", "label": "Preescolar",                                 "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primaria",   "label": "Primaria (1-6)",                             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "secundaria", "label": "Secundaria (1-3)",                           "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "preparatoria", "label": "Preparatoria (1-3) + EXANI-II",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "universidad", "label": "UAEMex + Tec EdoMex + UNAM Acatlán",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "mxmex-1",  "label": "1° Primaria",                "order": 1},
+        {"code": "mxmex-6",  "label": "6° Primaria",                "order": 6},
+        {"code": "mxmex-9",  "label": "3° Secundaria",              "order": 9},
+        {"code": "mxmex-12", "label": "3° Preparatoria + EXANI-II", "order": 12},
+    ],
+    "terminology": {"teacher": "Maestro", "principal": "Director", "term": "Semestre", "report_card": "Boleta", "grade_level": "Grado"},
+}
+
+# Aysén (CL-AI) — UACh Aysén campus + Centro de Investigación Patagonia.
+COUNTRY_LOCALIZATION["CL-AI"] = {
+    "calendar_system": {"code": "clai-2-sem", "label": "2-sem (Aysén / MINEDUC)",
+        "term_count": 2, "term_names": ["Primer semestre", "Segundo semestre"],
+        "week_start": 1, "academic_year_starts_month": 3},
+    "school_types": [
+        {"code": "parvulario",  "label": "Educación Parvularia",                    "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "basica",      "label": "Enseñanza Básica (1-8)",                  "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "media",       "label": "Enseñanza Media (1-4) + PAES",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-17"},
+        {"code": "universidad", "label": "UACh Aysén + Centro Patagonia",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "clai-1",  "label": "1° Básico",        "order": 1},
+        {"code": "clai-8",  "label": "8° Básico",        "order": 8},
+        {"code": "clai-12", "label": "4° Medio (PAES)",  "order": 12},
+    ],
+    "terminology": {"teacher": "Profesor", "principal": "Director", "term": "Semestre", "report_card": "Informe de notas", "grade_level": "Curso"},
+}
+
+# Cundinamarca (CO-CUN) — UPTC + UDEC + Universidad Sabana.
+COUNTRY_LOCALIZATION["CO-CUN"] = {
+    "calendar_system": {"code": "cocun-2-sem", "label": "2-sem (Cundinamarca / MEN)",
+        "term_count": 2, "term_names": ["Primer semestre", "Segundo semestre"],
+        "week_start": 1, "academic_year_starts_month": 1},
+    "school_types": [
+        {"code": "preescolar", "label": "Preescolar",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primaria",   "label": "Básica Primaria (1-5)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "secundaria", "label": "Básica Secundaria (6-9)",                   "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "media",      "label": "Educación Media (10-11) + Saber 11",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "universidad", "label": "UPTC + UDEC + Universidad Sabana",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cocun-1",  "label": "1° Primaria",         "order": 1},
+        {"code": "cocun-5",  "label": "5° Primaria",         "order": 5},
+        {"code": "cocun-9",  "label": "9° Básica Secundaria", "order": 9},
+        {"code": "cocun-11", "label": "11° Media (Saber 11)", "order": 11},
+    ],
+    "terminology": {"teacher": "Profesor", "principal": "Rector", "term": "Semestre", "report_card": "Boletín", "grade_level": "Grado"},
+}
+
+# Espírito Santo (BR-ES) — UFES + IFES + UVV + FAESA.
+COUNTRY_LOCALIZATION["BR-ES"] = {
+    "calendar_system": {"code": "bres-2-sem", "label": "2-sem (Espírito Santo / MEC)",
+        "term_count": 2, "term_names": ["1º semestre", "2º semestre"],
+        "week_start": 1, "academic_year_starts_month": 2},
+    "school_types": [
+        {"code": "ed_infantil",  "label": "Educação Infantil",                         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "fundamental_i", "label": "Ensino Fundamental I (1-5)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "fundamental_ii", "label": "Ensino Fundamental II (6-9)",              "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "medio",         "label": "Ensino Médio (1-3) + ENEM",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "universidade",  "label": "UFES + IFES + UVV + FAESA",                "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "bres-1",  "label": "1º Fundamental",  "order": 1},
+        {"code": "bres-5",  "label": "5º Fundamental",  "order": 5},
+        {"code": "bres-9",  "label": "9º Fundamental",  "order": 9},
+        {"code": "bres-12", "label": "3º Médio (ENEM)", "order": 12},
+    ],
+    "terminology": {"teacher": "Professor", "principal": "Diretor", "term": "Semestre", "report_card": "Boletim", "grade_level": "Ano"},
+}
+
+# Maharashtra (IN-MH) — IIT Bombay + TIFR + ICT + Mumbai U + Pune U + SPPU.
+COUNTRY_LOCALIZATION["IN-MH"] = {
+    "calendar_system": {"code": "inmh-2-sem", "label": "2-sem (Maharashtra / MSBSHSE)",
+        "term_count": 2, "term_names": ["First term", "Second term"],
+        "week_start": 1, "academic_year_starts_month": 6},
+    "school_types": [
+        {"code": "anganwadi",  "label": "Anganwadi / Balwadi",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Primary School (1-4)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-9"},
+        {"code": "upper_primary", "label": "Upper Primary (5-7)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "10-12"},
+        {"code": "secondary",  "label": "Secondary (8-10) + SSC",                     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "13-15"},
+        {"code": "hsc",        "label": "Higher Secondary (11-12) + HSC + JEE/NEET",  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "university", "label": "IIT Bombay + TIFR + ICT + MU + SPPU",        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "inmh-1",  "label": "Class 1",       "order": 1},
+        {"code": "inmh-7",  "label": "Class 7",       "order": 7},
+        {"code": "inmh-10", "label": "Class 10 + SSC", "order": 10},
+        {"code": "inmh-12", "label": "Class 12 + HSC", "order": 12},
+    ],
+    "terminology": {"teacher": "Shikshak", "principal": "Mukhyadhyapak", "term": "Satr", "report_card": "Pragati Patrak", "grade_level": "Iyatta"},
+}
+
+# Karnataka (IN-KA) — IISc + IIM-B + Bangalore U + Mysore U + Manipal.
+COUNTRY_LOCALIZATION["IN-KA"] = {
+    "calendar_system": {"code": "inka-2-sem", "label": "2-sem (Karnataka / KSEEB)",
+        "term_count": 2, "term_names": ["First term", "Second term"],
+        "week_start": 1, "academic_year_starts_month": 6},
+    "school_types": [
+        {"code": "anganwadi",  "label": "Anganwadi",                                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",    "label": "Lower Primary (1-5)",                        "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "upper_primary", "label": "Higher Primary (6-7)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "11-12"},
+        {"code": "secondary",  "label": "Secondary (8-10) + SSLC",                    "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "13-15"},
+        {"code": "puc",        "label": "PUC I-II (11-12) + JEE/NEET/CET",            "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-17"},
+        {"code": "university", "label": "IISc + IIM-B + BU + Mysore U + Manipal",     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "inka-1",  "label": "Class 1",         "order": 1},
+        {"code": "inka-7",  "label": "Class 7",         "order": 7},
+        {"code": "inka-10", "label": "Class 10 + SSLC", "order": 10},
+        {"code": "inka-12", "label": "PUC II",          "order": 12},
+    ],
+    "terminology": {"teacher": "Shikshakaru", "principal": "Mukhyopadhyaya", "term": "Avadhi", "report_card": "Pragati Patra", "grade_level": "Taragati"},
+}
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
