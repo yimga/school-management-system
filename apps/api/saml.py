@@ -344,6 +344,21 @@ def _verify_saml_signature_c14n(b64_response: str, idp_cert_b64: str) -> tuple[b
     if root.find(ns_dsig) is None and root.find(f".//{ns_dsig}") is None:
         return False, "signature_missing"
 
+    # v4.00.91 — H4: policy gate on every <ds:SignatureMethod> in the
+    # response. Reject the c14n verify call BEFORE signxml runs if ANY
+    # signature element declares a non-allowed algorithm (default rejects
+    # rsa-sha1). This is cheap (single XPath walk) + defends against the
+    # downgrade case where signxml itself doesn't enforce a policy ceiling.
+    _sig_method_xpath = (
+        ".//{http://www.w3.org/2000/09/xmldsig#}SignedInfo"
+        "/{http://www.w3.org/2000/09/xmldsig#}SignatureMethod"
+    )
+    for _sm in root.findall(_sig_method_xpath):
+        _alg = (_sm.attrib.get("Algorithm") or "").strip()
+        _ok, _reason = _is_signature_algorithm_allowed(_alg)
+        if not _ok:
+            return False, _reason
+
     # Rebuild the IdP cert PEM from the b64 we already stripped of armor.
     pem = "-----BEGIN CERTIFICATE-----\n"
     for i in range(0, len(idp_cert_b64), 64):
@@ -649,6 +664,11 @@ def _build_redirect_signed_url(
 
 _SIG_ALG_URI_TO_HASH = {
     "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256": "sha256",
+    # v4.00.91 — extended for H4 policy compatibility (SHA-384/SHA-512
+    # were always valid xmldsig-more URIs; we previously only mapped
+    # SHA-256 + SHA-1 because no IdP in our test matrix emitted them).
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384": "sha384",
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512": "sha512",
     "http://www.w3.org/2000/09/xmldsig#rsa-sha1": "sha1",
 }
 
@@ -691,6 +711,13 @@ def _verify_saml_redirect_signature(
     if not signature_b64:
         return False, "signature_missing"
 
+    # v4.00.91 — H4: signature-algorithm policy gate. Reject rsa-sha1 by
+    # default; allow only when the operator has explicitly opted in via
+    # RMC_SAML_ALLOW_RSA_SHA1=1. Unknown algorithm URIs always reject.
+    _alg_allowed, _alg_reason = _is_signature_algorithm_allowed(sig_alg_uri or "")
+    if not _alg_allowed:
+        return False, _alg_reason
+
     hash_name = _SIG_ALG_URI_TO_HASH.get(sig_alg_uri or "")
     if hash_name is None:
         return False, "unsupported_alg"
@@ -729,7 +756,16 @@ def _verify_saml_redirect_signature(
     parts.append(("SigAlg", sig_alg_uri))
     canonical = _ulib.urlencode(parts).encode("ascii")
 
-    hash_alg = hashes.SHA256() if hash_name == "sha256" else hashes.SHA1()
+    # v4.00.91 — map SHA-384/SHA-512 too (H4 policy admits them); fall back
+    # to SHA-1 only when the alg gate above already allowed it via env.
+    if hash_name == "sha256":
+        hash_alg = hashes.SHA256()
+    elif hash_name == "sha384":
+        hash_alg = hashes.SHA384()
+    elif hash_name == "sha512":
+        hash_alg = hashes.SHA512()
+    else:
+        hash_alg = hashes.SHA1()
     try:
         pub.verify(signature_bytes, canonical, padding.PKCS1v15(), hash_alg)
         return True, "ok"
@@ -1082,6 +1118,17 @@ def _parse_saml_response(b64_response: str) -> dict:
             "decrypt_reason": decrypt_reason,
         }
 
+    # v4.00.91 — H6: assertion-ID replay defense BEFORE signature
+    # verification (cheap rejection). The Assertion@ID is REQUIRED per
+    # saml-2.0-core § 2.3.3. We surface the registration result on the
+    # parsed dict so the ACS view can decide whether to 401 — the parser
+    # itself stays side-effect-free from an HTTP perspective.
+    assertion_id = (assertion.attrib.get("ID") or "").strip()
+    replay_ok = True
+    replay_reason = "disabled"
+    if _replay_defense_enabled():
+        replay_ok, replay_reason = _register_assertion_id(assertion_id)
+
     issuer_el = _find(assertion, "Issuer", _NS_SAML)
     issuer = (issuer_el.text or "").strip() if issuer_el is not None else ""
 
@@ -1150,6 +1197,10 @@ def _parse_saml_response(b64_response: str) -> dict:
         "decrypt_reason": decrypt_reason,
         "attributes": attrs,
         "session_index": session_index,
+        # v4.00.91 — H6 replay-defense outcome surfaced to ACS view.
+        "assertion_id": assertion_id,
+        "replay_ok": replay_ok,
+        "replay_reason": replay_reason,
     }
 
 
@@ -1178,22 +1229,18 @@ def _require_assertion_signature() -> bool:
 
 
 def _within_validity_window(not_before: str, not_on_or_after: str) -> bool:
-    """RFC 3339 / ISO 8601 timestamp check against now()."""
-    from datetime import datetime, timezone
+    """v4.00.45 / v4.00.91 — RFC 3339 / ISO 8601 timestamp check.
 
-    now = datetime.now(timezone.utc)
-    try:
-        if not_before:
-            nb = datetime.fromisoformat(not_before.replace("Z", "+00:00"))
-            if now < nb:
-                return False
-        if not_on_or_after:
-            na = datetime.fromisoformat(not_on_or_after.replace("Z", "+00:00"))
-            if now >= na:
-                return False
-    except ValueError:
-        return False
-    return True
+    v4.00.91 delegates to ``_is_within_validity_window`` so the clock-skew
+    tolerance (H5) applies to every caller without behavioral surprises.
+    Returns ``True`` when the assertion is within the (skew-widened)
+    validity window, ``False`` otherwise.
+    """
+    ok, _reason = _is_within_validity_window(
+        not_before_iso=not_before,
+        not_on_or_after_iso=not_on_or_after,
+    )
+    return ok
 
 
 # ---------------------------------------------------------------------------
@@ -1522,6 +1569,18 @@ def acs(request):
     if parsed.get("error"):
         return JsonResponse({"success": False, "stage": "parse_failed", "error": parsed["error"]}, status=400)
 
+    # v4.00.91 — H6: assertion-ID one-time-use replay defense (cheap
+    # rejection — runs BEFORE signature verification per spec hardening
+    # guidance). The cache registration already happened inside
+    # _parse_saml_response; we just surface the outcome here.
+    if not parsed.get("replay_ok", True):
+        return JsonResponse(
+            {"success": False,
+             "stage": "assertion_replay_detected",
+             "replay_reason": parsed.get("replay_reason", "replay_detected")},
+            status=401,
+        )
+
     # v4.00.86 — STRICT EncryptedAssertion requirement. When
     # RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION=1, the inner <saml:EncryptedAssertion>
     # MUST be present AND must decrypt successfully via the SP private key.
@@ -1561,8 +1620,23 @@ def acs(request):
     if audience and expected_audience and audience != expected_audience:
         return JsonResponse({"success": False, "stage": "audience_mismatch", "expected": expected_audience, "received": audience}, status=401)
 
-    if not _within_validity_window(parsed.get("not_before", ""), parsed.get("not_on_or_after", "")):
-        return JsonResponse({"success": False, "stage": "validity_window_failed", "not_before": parsed.get("not_before", ""), "not_on_or_after": parsed.get("not_on_or_after", "")}, status=401)
+    # v4.00.91 — H5: validity-window check w/ clock-skew tolerance. The
+    # helper widens the window by +/- RMC_SAML_CLOCK_SKEW_SECONDS (default
+    # 300, clamped to [0, 3600]) so NTP drift between SP and IdP can't
+    # 401 a valid login that's a few seconds beyond the spec edge.
+    _vw_ok, _vw_reason = _is_within_validity_window(
+        not_before_iso=parsed.get("not_before", ""),
+        not_on_or_after_iso=parsed.get("not_on_or_after", ""),
+    )
+    if not _vw_ok:
+        return JsonResponse(
+            {"success": False,
+             "stage": "validity_window_failed",
+             "reason": _vw_reason,
+             "not_before": parsed.get("not_before", ""),
+             "not_on_or_after": parsed.get("not_on_or_after", "")},
+            status=401,
+        )
 
     if _require_signature() and _idp_cert_b64() and not parsed.get("signature_present"):
         return JsonResponse({"success": False, "stage": "signature_required_but_missing"}, status=401)
@@ -3076,3 +3150,292 @@ def login_initiator_context(request) -> dict:
     except Exception as exc:  # noqa: BLE001
         logger.debug("login_initiator_context failed: %s", exc)
         return {"saml_login_initiator": {"available": False, "label": "", "start_url": ""}}
+
+
+# ---------------------------------------------------------------------------
+# v4.00.91 — Wave 24 SAML 2.0 security hardening.
+#
+# Closes 3 audit gaps the 22-wave SAML roll-up surfaced:
+#
+#   H4 — RSA-SHA1 rejection (configurable).
+#        Default policy now REJECTS the deprecated rsa-sha1 signature
+#        algorithm. Legacy IdPs still on SHA-1 can opt in via env. This
+#        applies to BOTH inbound Redirect-binding signatures (verified by
+#        ``_verify_saml_redirect_signature``) AND inbound POST-binding
+#        c14n signatures (verified by ``_verify_saml_signature_c14n``).
+#
+#        Env: ``RMC_SAML_ALLOW_RSA_SHA1`` (default ``"0"`` = reject).
+#
+#   H5 — Clock-skew tolerance on Conditions/@NotBefore + @NotOnOrAfter.
+#        Pre-v4.00.91 the window check used strict ``now >= NotOnOrAfter``
+#        which rejected assertions seconds beyond expiry — a normal NTP
+#        drift between SP and IdP would 401 valid logins. New behavior
+#        widens the window by ``[-skew, +skew]`` seconds on each side.
+#
+#        Env: ``RMC_SAML_CLOCK_SKEW_SECONDS`` (default ``"300"`` = 5 min,
+#        clamped to [0, 3600]).
+#
+#   H6 — Assertion-ID one-time-use cache (replay defense).
+#        Most IdPs emit a unique ``<saml:Assertion ID="…">`` per login.
+#        Replaying the same SAMLResponse (e.g. stolen from a logged
+#        proxy) re-uses that ID. We now reject the second-and-subsequent
+#        sighting of an Assertion ID inside its validity window via an
+#        in-process LRU cache. The cache is cheap (dict + lock) and
+#        evicts in batches of 100 when capped at 10000.
+#
+#        Env: ``RMC_SAML_REPLAY_DEFENSE_ENABLED`` (default ``"1"`` = on,
+#        set to ``"0"`` to bypass — for prod IdPs that intentionally
+#        re-broadcast the same Assertion ID across redirect-binding
+#        retransmissions).
+#
+# Quality bar this block honors:
+#   * Env reads happen at function-call time, not module load, so test
+#     env mutations take effect immediately.
+#   * Never log assertion content / NameID / attribute statements / IDs.
+#     The replay-defense cache stores assertion IDs only because the ID
+#     is structurally a UUID-style opaque token — it is NOT PII and is
+#     specifically designed to be logged + correlated by spec.
+#   * Lock-protected mutations on the cache (``threading.Lock``).
+#   * No new runtime dependencies.
+# ---------------------------------------------------------------------------
+
+
+# ---- H4: signature algorithm policy --------------------------------------
+
+# Full signature-algorithm URI registry per
+# https://www.w3.org/TR/xmldsig-core1/ and xmldsig-more.
+_SAML_SIG_ALG_REGISTRY = {
+    "http://www.w3.org/2000/09/xmldsig#rsa-sha1": "rsa-sha1",
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256": "rsa-sha256",
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384": "rsa-sha384",
+    "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512": "rsa-sha512",
+    "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256": "ecdsa-sha256",
+}
+
+
+def _allow_rsa_sha1() -> bool:
+    """v4.00.91 — opt-in toggle for the deprecated rsa-sha1 signature alg.
+
+    Default ``False`` (reject). Env ``RMC_SAML_ALLOW_RSA_SHA1=1`` allows it
+    so operators bridging to legacy on-prem IdPs (older Shibboleth / ADFS)
+    can keep the channel open until the IdP rotates to SHA-256.
+
+    Read at call time so test env mutations take immediate effect.
+    """
+    raw = (
+        getattr(settings, "RMC_SAML_ALLOW_RSA_SHA1", None)
+        if hasattr(settings, "RMC_SAML_ALLOW_RSA_SHA1")
+        else os.environ.get("RMC_SAML_ALLOW_RSA_SHA1", "")
+    )
+    if raw is None or raw == "":
+        return False
+    return str(raw).lower() in ("1", "true", "yes", "on")
+
+
+def _is_signature_algorithm_allowed(alg_uri: str) -> tuple[bool, str]:
+    """v4.00.91 — Policy check on a SAML / XML-DSig signature-algorithm URI.
+
+    Returns ``(allowed, reason)`` where reason is one of:
+
+        ``"ok"``                          — modern algorithm (sha256+)
+        ``"legacy_sha1_allowed_by_env"``  — rsa-sha1 + env opt-in
+        ``"rsa_sha1_rejected_by_policy"`` — rsa-sha1 + env default
+        ``"unknown_signature_algorithm"`` — URI not in our registry
+
+    Empty / None URI is treated as ``unknown_signature_algorithm`` —
+    callers should reject before processing.
+    NEVER raises.
+    """
+    if not alg_uri:
+        return False, "unknown_signature_algorithm"
+    family = _SAML_SIG_ALG_REGISTRY.get(alg_uri)
+    if family is None:
+        return False, "unknown_signature_algorithm"
+    if family == "rsa-sha1":
+        if _allow_rsa_sha1():
+            return True, "legacy_sha1_allowed_by_env"
+        return False, "rsa_sha1_rejected_by_policy"
+    # rsa-sha256 / rsa-sha384 / rsa-sha512 / ecdsa-sha256
+    return True, "ok"
+
+
+# ---- H5: clock-skew tolerance --------------------------------------------
+
+
+def _clock_skew_seconds() -> int:
+    """v4.00.91 — Operator-tunable clock-skew tolerance in seconds.
+
+    Default 300 (5 min — matches the SAML Web SSO Profile recommendation
+    for relying parties). Clamped to ``[0, 3600]`` so a typo in the env
+    can't widen the window past the security ceiling.
+
+    Read at call time so test env mutations take immediate effect.
+    """
+    raw = (
+        getattr(settings, "RMC_SAML_CLOCK_SKEW_SECONDS", None)
+        if hasattr(settings, "RMC_SAML_CLOCK_SKEW_SECONDS")
+        else os.environ.get("RMC_SAML_CLOCK_SKEW_SECONDS", "")
+    )
+    if raw is None or raw == "":
+        return 300
+    try:
+        n = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return 300
+    if n < 0:
+        return 0
+    if n > 3600:
+        return 3600
+    return n
+
+
+def _is_within_validity_window(
+    *,
+    not_before_iso: str,
+    not_on_or_after_iso: str,
+    now=None,
+    skew_seconds=None,
+) -> tuple[bool, str]:
+    """v4.00.91 — Validity-window check w/ symmetric clock-skew tolerance.
+
+    The original v4.00.45 ``_within_validity_window`` returned a bare
+    ``bool`` w/ zero skew — a brittle posture for distributed clocks. This
+    helper:
+
+        * Returns ``(True, "ok")`` when ``(now - skew) >= NotBefore`` AND
+          ``(now + skew) < NotOnOrAfter``.
+        * Returns ``(False, "not_yet_valid")`` when too early.
+        * Returns ``(False, "expired")`` when too late.
+        * Returns ``(False, "malformed_iso")`` when either timestamp fails
+          ``datetime.fromisoformat`` parsing.
+        * Returns ``(True, "ok_no_constraint")`` when both args are empty —
+          the SAML spec allows an Assertion without a Conditions block
+          (the IdP is asserting no validity window).
+
+    ``now`` defaults to ``datetime.now(timezone.utc)``; passed in by tests.
+    ``skew_seconds`` defaults to ``_clock_skew_seconds()`` env read.
+    NEVER raises.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    if not not_before_iso and not not_on_or_after_iso:
+        return True, "ok_no_constraint"
+
+    if now is None:
+        now = datetime.now(timezone.utc)
+    if skew_seconds is None:
+        skew_seconds = _clock_skew_seconds()
+    skew = timedelta(seconds=int(skew_seconds))
+
+    try:
+        if not_before_iso:
+            nb = datetime.fromisoformat(not_before_iso.replace("Z", "+00:00"))
+            # Reject when (now + skew) < NotBefore. Equivalently:
+            # (now - (-skew)) < NotBefore — i.e. we widen the early edge.
+            if (now + skew) < nb:
+                return False, "not_yet_valid"
+        if not_on_or_after_iso:
+            na = datetime.fromisoformat(not_on_or_after_iso.replace("Z", "+00:00"))
+            # Reject when (now - skew) >= NotOnOrAfter. We widen the late
+            # edge so an expired-by-seconds assertion still validates if
+            # within tolerance.
+            if (now - skew) >= na:
+                return False, "expired"
+    except (ValueError, TypeError):
+        return False, "malformed_iso"
+    return True, "ok"
+
+
+# ---- H6: assertion-ID one-time-use cache ---------------------------------
+
+# In-process LRU map: assertion-ID -> first-seen-epoch-seconds.
+# This is intentionally in-process (NOT Redis / DB) because the SAML
+# AssertionID validity window is short (Conditions/@NotOnOrAfter is
+# typically 5-15 min from issuance) and we evict on a 24h TTL anyway.
+# A cluster of N SPs accepting the same SAMLResponse independently is
+# a corner case — IdPs target a single SP per request via Destination
+# attribute, and load balancers in front of the SP usually sticky-route
+# on session cookies AFTER the ACS hit, so the same ACS instance
+# generally re-receives any replay.
+_ASSERTION_ID_CACHE: dict[str, float] = {}
+_ASSERTION_ID_CACHE_LOCK = threading.Lock()
+_ASSERTION_ID_CACHE_MAX = 10000
+_ASSERTION_ID_CACHE_EVICT_BATCH = 100
+_ASSERTION_ID_TTL_SECONDS = 24 * 60 * 60  # 24h
+
+
+def _replay_defense_enabled() -> bool:
+    """v4.00.91 — Master toggle for assertion-ID replay defense.
+
+    Default ``True``. Set ``RMC_SAML_REPLAY_DEFENSE_ENABLED=0`` to bypass
+    (for prod IdPs that intentionally re-use Assertion IDs across
+    redirect-binding rebroadcasts — uncommon but spec-permitted in some
+    federation profiles).
+
+    Read at call time so test env mutations take immediate effect.
+    """
+    raw = (
+        getattr(settings, "RMC_SAML_REPLAY_DEFENSE_ENABLED", None)
+        if hasattr(settings, "RMC_SAML_REPLAY_DEFENSE_ENABLED")
+        else os.environ.get("RMC_SAML_REPLAY_DEFENSE_ENABLED", "")
+    )
+    if raw is None or raw == "":
+        return True
+    return str(raw).lower() not in ("0", "false", "no", "off")
+
+
+def _register_assertion_id(assertion_id: str) -> tuple[bool, str]:
+    """v4.00.91 — Register an assertion ID for one-time use.
+
+    Returns ``(True, "first_seen")`` when the ID is new (and adds it to
+    the cache); returns ``(False, "replay_detected")`` when the ID has
+    been seen within the TTL window.
+
+    Empty / missing assertion ID returns ``(True, "missing_id_skipped")``
+    — the caller's SAML parser already rejects assertions without an ID
+    upstream (per saml-2.0-core § 2.3.3 the ID attribute is REQUIRED), so
+    this is a defense-in-depth no-op rather than a soft pass.
+
+    Cap-aware: when the cache hits ``_ASSERTION_ID_CACHE_MAX`` entries on
+    a write, the oldest 100 (by first-seen-epoch) are evicted in one pass.
+
+    Thread-safe via ``_ASSERTION_ID_CACHE_LOCK``.
+    NEVER raises.
+    """
+    if not assertion_id:
+        return True, "missing_id_skipped"
+
+    import time as _time
+    now_epoch = _time.time()
+    ttl_cutoff = now_epoch - _ASSERTION_ID_TTL_SECONDS
+
+    with _ASSERTION_ID_CACHE_LOCK:
+        # TTL sweep on the queried ID — if its prior sighting is older
+        # than 24h, treat as a fresh first-seen. This keeps long-running
+        # processes from accumulating dead entries indefinitely.
+        prior = _ASSERTION_ID_CACHE.get(assertion_id)
+        if prior is not None and prior >= ttl_cutoff:
+            return False, "replay_detected"
+
+        # Cap enforcement BEFORE write so the new entry always lands.
+        if len(_ASSERTION_ID_CACHE) >= _ASSERTION_ID_CACHE_MAX:
+            # Evict the oldest batch in one pass.
+            items = sorted(_ASSERTION_ID_CACHE.items(), key=lambda kv: kv[1])
+            for k, _ts in items[:_ASSERTION_ID_CACHE_EVICT_BATCH]:
+                _ASSERTION_ID_CACHE.pop(k, None)
+
+        _ASSERTION_ID_CACHE[assertion_id] = now_epoch
+        return True, "first_seen"
+
+
+def _clear_assertion_id_cache() -> int:
+    """v4.00.91 — Test-only helper to flush the replay-defense cache.
+
+    Returns the count of entries cleared. Thread-safe.
+    NEVER raises.
+    """
+    with _ASSERTION_ID_CACHE_LOCK:
+        n = len(_ASSERTION_ID_CACHE)
+        _ASSERTION_ID_CACHE.clear()
+        return n
+
