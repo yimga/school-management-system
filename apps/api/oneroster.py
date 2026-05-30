@@ -170,15 +170,28 @@ def _iter_users() -> Iterable[dict[str, Any]]:
 
 
 def _iter_classes() -> Iterable[dict[str, Any]]:
+    """v4.00.75 — Enriched projection: courseSourcedId + termSourcedIds +
+    schoolSourcedId + grades per OneRoster v1.2 Class resource."""
     try:
         from apps.academics.models import Classroom  # adjust if model name differs
         qs = Classroom.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
         for c in qs[:1000]:
+            course = getattr(c, "course", None)
+            course_id = str(getattr(course, "pk", "")) if course is not None else str(c.pk)
+            school = getattr(c, "school", None)
+            school_id = str(getattr(school, "pk", "")) if school is not None else ""
+            term = getattr(c, "term", None) or getattr(c, "academic_year", None)
+            term_ids = [str(getattr(term, "pk", ""))] if term is not None else []
+            grade = getattr(c, "grade_level", "") or getattr(c, "grade", "") or ""
             yield {
                 "sourcedId": str(c.pk),
                 "status": "active",
                 "title": getattr(c, "name", "") or "",
                 "classType": "scheduled",
+                "courseSourcedId": course_id,
+                "schoolSourcedId": school_id,
+                "termSourcedIds": term_ids,
+                "grades": [str(grade)] if grade else [],
             }
     except Exception as exc:  # noqa: BLE001
         logger.debug("oneroster classes: classroom model not iterable: %s", exc)
@@ -334,6 +347,18 @@ def academic_sessions(request):
         items = [it for it in items if it.get("type") == wanted_type]
     page, meta = _paginate(request, items)
     return _envelope("academicSessions", page, meta)
+
+
+@require_http_methods(["GET"])
+def class_detail(request, sourced_id: str):
+    """v4.00.75 — Per-spec § 4.13 single-class GET."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    for c in _iter_classes():
+        if c["sourcedId"] == str(sourced_id):
+            return JsonResponse({"class": c})
+    return JsonResponse({"error": "class_not_found", "sourcedId": str(sourced_id)}, status=404)
 
 
 @require_http_methods(["GET"])

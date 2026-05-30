@@ -268,6 +268,40 @@ def _bump_retention_sweep_counter(*, kind: str, considered: int, deleted: int) -
         logger.debug("retention counters bump failed: %s", exc)
 
 
+def diagnostics_health_rollup_by_provider(*, limit: int = 500) -> dict[str, dict]:
+    """v4.00.75 — Health rollup keyed by provider.
+
+    Returns ``{provider: {total_actions, ok_total, failed_total,
+    success_rate_pct, latest_action_iso, latest_action_name}}`` so the
+    operator dashboard can render a per-provider health card.
+    """
+    out: dict[str, dict] = {}
+    try:
+        snap = get_last_action_snapshot(limit=limit, durable=True)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("health rollup snapshot failed: %s", exc)
+        return out
+    for evt in snap:
+        provider = str(evt.get("provider") or "unknown")
+        bucket = out.setdefault(provider, {
+            "total_actions": 0, "ok_total": 0, "failed_total": 0,
+            "latest_action_iso": "", "latest_action_name": "",
+        })
+        bucket["total_actions"] += 1
+        bucket["ok_total"] += int(evt.get("ok") or 0)
+        bucket["failed_total"] += int(evt.get("failed") or 0)
+        ts = str(evt.get("ts_iso") or "")
+        if ts > bucket["latest_action_iso"]:
+            bucket["latest_action_iso"] = ts
+            bucket["latest_action_name"] = str(evt.get("action") or "")
+    for provider, bucket in out.items():
+        total_ops = bucket["ok_total"] + bucket["failed_total"]
+        bucket["success_rate_pct"] = (
+            round(100.0 * bucket["ok_total"] / total_ops, 2) if total_ops else 0.0
+        )
+    return out
+
+
 def build_diagnostics_forensic_export(*, since=None, before=None,
                                        provider: str = "", action: str = "",
                                        limit: int = 2000) -> dict:

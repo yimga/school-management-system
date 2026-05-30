@@ -14796,6 +14796,147 @@ COUNTRY_LOCALIZATION["BD-D"] = _v4_00_74("BD-D","bdd-2-sem","2-sem (Dhaka)",2,["
 
 
 # ---------------------------------------------------------------------------
+# v4.00.75 (2026-05-29) — +14 Tier-1 subdivisions:
+#   DE-BE Berlin, DE-HE Hesse, DE-RP Rhineland-Palatinate,
+#   NL-NH North Holland, BE-BRU Brussels-Capital,
+#   AU-NSW New South Wales, AU-VIC Victoria,
+#   NZ-AUK Auckland, NZ-WGN Wellington,
+#   IT-LIG Liguria, IT-PUG Apulia,
+#   FR-IDF Île-de-France, FR-PAC Provence-Alpes-Côte d'Azur,
+#   ES-CT Catalonia.
+# ---------------------------------------------------------------------------
+def _v4_00_75(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+COUNTRY_LOCALIZATION["DE-BE"] = _v4_00_75("DE-BE","debe-2-hj","2-Halbjahre (Berlin)",2,["1. Halbjahr","2. Halbjahr"],8,
+    [{"code":"kita","label":"Kita","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"grundschule","label":"Grundschule (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"sekundarschule","label":"Sekundarschule (7-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"gymnasium","label":"Gymnasium (11-13) + Abitur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitaet","label":"HU Berlin + TU Berlin + FU Berlin + Charité","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"debe-1","label":"Klasse 1","order":1},{"code":"debe-6","label":"Klasse 6","order":6},{"code":"debe-10","label":"Klasse 10","order":10},{"code":"debe-13","label":"Klasse 13 + Abitur","order":13}],
+    {"teacher":"Lehrer","principal":"Schulleiter","term":"Halbjahr","report_card":"Zeugnis","grade_level":"Klasse"})
+
+COUNTRY_LOCALIZATION["DE-HE"] = _v4_00_75("DE-HE","dehe-2-hj","2-Halbjahre (Hessen)",2,["1. Halbjahr","2. Halbjahr"],8,
+    [{"code":"kita","label":"Kita","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"grundschule","label":"Grundschule (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"sekundarschule","label":"Sekundarschule (5-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-15"},
+     {"code":"gymnasium","label":"Gymnasium (11-12) + Abitur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitaet","label":"Goethe + TU Darmstadt + Marburg","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"dehe-1","label":"Klasse 1","order":1},{"code":"dehe-4","label":"Klasse 4","order":4},{"code":"dehe-10","label":"Klasse 10","order":10},{"code":"dehe-12","label":"Klasse 12 + Abitur","order":12}],
+    {"teacher":"Lehrer","principal":"Schulleiter","term":"Halbjahr","report_card":"Zeugnis","grade_level":"Klasse"})
+
+COUNTRY_LOCALIZATION["DE-RP"] = _v4_00_75("DE-RP","derp-2-hj","2-Halbjahre (Rheinland-Pfalz)",2,["1. Halbjahr","2. Halbjahr"],8,
+    [{"code":"kita","label":"Kita","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"grundschule","label":"Grundschule (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"sekundarschule","label":"Realschule plus (5-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-15"},
+     {"code":"gymnasium","label":"Gymnasium (11-13) + Abitur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitaet","label":"JGU Mainz + Trier","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"derp-1","label":"Klasse 1","order":1},{"code":"derp-4","label":"Klasse 4","order":4},{"code":"derp-10","label":"Klasse 10","order":10},{"code":"derp-13","label":"Klasse 13 + Abitur","order":13}],
+    {"teacher":"Lehrer","principal":"Schulleiter","term":"Halbjahr","report_card":"Zeugnis","grade_level":"Klasse"})
+
+COUNTRY_LOCALIZATION["NL-NH"] = _v4_00_75("NL-NH","nlnh-2-sem","2-semester (Noord-Holland)",2,["Eerste semester","Tweede semester"],8,
+    [{"code":"peuterschool","label":"Peuterschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"basisschool","label":"Basisschool (Gr 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"4-12"},
+     {"code":"vmbo","label":"VMBO (12-16)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-16"},
+     {"code":"havo_vwo","label":"HAVO/VWO + Eindexamen","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-18"},
+     {"code":"universiteit","label":"UvA + VU + UvU + Amsterdam UMC","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"nlnh-1","label":"Groep 1","order":1},{"code":"nlnh-8","label":"Groep 8","order":8},{"code":"nlnh-12","label":"VWO 6 + Eindexamen","order":12}],
+    {"teacher":"Leraar","principal":"Schoolleider","term":"Semester","report_card":"Rapport","grade_level":"Groep"})
+
+COUNTRY_LOCALIZATION["BE-BRU"] = _v4_00_75("BE-BRU","bebru-3-trim","3-trim (Bruxelles-Capitale)",3,["Premier trimestre","Deuxième trimestre","Troisième trimestre"],9,
+    [{"code":"maternelle","label":"École Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaire","label":"École Primaire (1-6) + CEB","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secondaire","label":"Secondaire (1-6) + CESS","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+     {"code":"universite","label":"ULB + VUB + KU Leuven Brussels + USL-B","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"bebru-1","label":"1ère Primaire","order":1},{"code":"bebru-6","label":"6e Primaire + CEB","order":6},{"code":"bebru-12","label":"6e Secondaire + CESS","order":12}],
+    {"teacher":"Enseignant","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Année"})
+
+COUNTRY_LOCALIZATION["AU-NSW"] = _v4_00_75("AU-NSW","aunsw-4-term","4-term (New South Wales)",4,["Term 1","Term 2","Term 3","Term 4"],1,
+    [{"code":"preschool","label":"Preschool","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"primary","label":"Primary (K-Yr 6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-12"},
+     {"code":"secondary","label":"Secondary (Yr 7-10) + RoSA","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"senior_secondary","label":"Senior Sec (Yr 11-12) + HSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"UNSW + USyd + Macquarie + UTS","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"aunsw-k","label":"Kindergarten","order":0},{"code":"aunsw-6","label":"Year 6","order":6},{"code":"aunsw-10","label":"Year 10 + RoSA","order":10},{"code":"aunsw-12","label":"Year 12 + HSC","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Year"})
+
+COUNTRY_LOCALIZATION["AU-VIC"] = _v4_00_75("AU-VIC","auvic-4-term","4-term (Victoria)",4,["Term 1","Term 2","Term 3","Term 4"],1,
+    [{"code":"preschool","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"primary","label":"Primary (Prep-Yr 6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-12"},
+     {"code":"secondary","label":"Secondary (Yr 7-10) + VCE prep","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"senior_secondary","label":"Senior Sec (Yr 11-12) + VCE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"Melbourne + Monash + RMIT + Deakin","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"auvic-p","label":"Prep","order":0},{"code":"auvic-6","label":"Year 6","order":6},{"code":"auvic-10","label":"Year 10","order":10},{"code":"auvic-12","label":"Year 12 + VCE","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Year"})
+
+COUNTRY_LOCALIZATION["NZ-AUK"] = _v4_00_75("NZ-AUK","nzauk-4-term","4-term (Auckland)",4,["Term 1","Term 2","Term 3","Term 4"],1,
+    [{"code":"ece","label":"Early Childhood Education","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Yr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"intermediate","label":"Intermediate (Yr 7-8)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-12"},
+     {"code":"secondary","label":"Secondary (Yr 9-13) + NCEA","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"13-17"},
+     {"code":"university","label":"UoA + AUT + Massey","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"nzauk-1","label":"Year 1","order":1},{"code":"nzauk-8","label":"Year 8","order":8},{"code":"nzauk-13","label":"Year 13 + NCEA L3","order":13}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Year"})
+
+COUNTRY_LOCALIZATION["NZ-WGN"] = _v4_00_75("NZ-WGN","nzwgn-4-term","4-term (Wellington)",4,["Term 1","Term 2","Term 3","Term 4"],1,
+    [{"code":"ece","label":"Early Childhood Education","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Yr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"intermediate","label":"Intermediate (Yr 7-8)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-12"},
+     {"code":"secondary","label":"Secondary (Yr 9-13) + NCEA","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"13-17"},
+     {"code":"university","label":"Victoria U Wgn + Massey Wgn","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"nzwgn-1","label":"Year 1","order":1},{"code":"nzwgn-8","label":"Year 8","order":8},{"code":"nzwgn-13","label":"Year 13 + NCEA L3","order":13}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Year"})
+
+COUNTRY_LOCALIZATION["IT-LIG"] = _v4_00_75("IT-LIG","itlig-2-sem","2-sem (Liguria / MIUR)",2,["I Quadrimestre","II Quadrimestre"],9,
+    [{"code":"scuola_infanzia","label":"Scuola dell'Infanzia","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Scuola Primaria (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"media","label":"Scuola Secondaria I (6-8)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-13"},
+     {"code":"superiore","label":"Scuola Secondaria II + Maturità","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"universita","label":"UniGenova + IIT Genova","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"itlig-5","label":"5ª Primaria","order":5},{"code":"itlig-8","label":"3ª Media","order":9},{"code":"itlig-13","label":"5ª Superiore + Maturità","order":13}],
+    {"teacher":"Insegnante","principal":"Dirigente Scolastico","term":"Quadrimestre","report_card":"Pagella","grade_level":"Anno"})
+
+COUNTRY_LOCALIZATION["IT-PUG"] = _v4_00_75("IT-PUG","itpug-2-sem","2-sem (Puglia / MIUR)",2,["I Quadrimestre","II Quadrimestre"],9,
+    [{"code":"scuola_infanzia","label":"Scuola dell'Infanzia","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Scuola Primaria (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"media","label":"Scuola Secondaria I (6-8)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-13"},
+     {"code":"superiore","label":"Scuola Secondaria II + Maturità","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-18"},
+     {"code":"universita","label":"UniBa + Politecnico Bari + UniSalento","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"itpug-5","label":"5ª Primaria","order":5},{"code":"itpug-8","label":"3ª Media","order":9},{"code":"itpug-13","label":"5ª Superiore + Maturità","order":13}],
+    {"teacher":"Insegnante","principal":"Dirigente Scolastico","term":"Quadrimestre","report_card":"Pagella","grade_level":"Anno"})
+
+COUNTRY_LOCALIZATION["FR-IDF"] = _v4_00_75("FR-IDF","fridf-3-trim","3-trim (Île-de-France)",3,["Premier trimestre","Deuxième trimestre","Troisième trimestre"],9,
+    [{"code":"maternelle","label":"École Maternelle (PS-GS)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"elementaire","label":"École Élémentaire (CP-CM2)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"college","label":"Collège (6e-3e) + Brevet","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"lycee","label":"Lycée (2nde-Term) + Baccalauréat","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"universite","label":"Sorbonne + Sciences Po + Polytechnique + HEC","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"fridf-1","label":"CP","order":1},{"code":"fridf-5","label":"CM2","order":5},{"code":"fridf-9","label":"3e + Brevet","order":9},{"code":"fridf-12","label":"Terminale + Bac","order":12}],
+    {"teacher":"Professeur","principal":"Proviseur","term":"Trimestre","report_card":"Bulletin","grade_level":"Niveau"})
+
+COUNTRY_LOCALIZATION["FR-PAC"] = _v4_00_75("FR-PAC","frpac-3-trim","3-trim (Provence-Alpes-Côte d'Azur)",3,["Premier trimestre","Deuxième trimestre","Troisième trimestre"],9,
+    [{"code":"maternelle","label":"École Maternelle (PS-GS)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"elementaire","label":"École Élémentaire (CP-CM2)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"college","label":"Collège (6e-3e) + Brevet","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"11-14"},
+     {"code":"lycee","label":"Lycée (2nde-Term) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"universite","label":"Aix-Marseille + Nice + Avignon + Toulon","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"frpac-1","label":"CP","order":1},{"code":"frpac-5","label":"CM2","order":5},{"code":"frpac-9","label":"3e + Brevet","order":9},{"code":"frpac-12","label":"Terminale + Bac","order":12}],
+    {"teacher":"Professeur","principal":"Proviseur","term":"Trimestre","report_card":"Bulletin","grade_level":"Niveau"})
+
+COUNTRY_LOCALIZATION["ES-CT"] = _v4_00_75("ES-CT","esct-3-trim","3-trim (Catalunya / Generalitat)",3,["Primer trimestre","Segon trimestre","Tercer trimestre"],9,
+    [{"code":"infantil","label":"Educació Infantil (0-6)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Educació Primària (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"eso","label":"ESO (1-4)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-16"},
+     {"code":"batxillerat","label":"Batxillerat (1-2) + PAU","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-18"},
+     {"code":"universitat","label":"UB + UAB + UPC + UPF + URV","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"esct-1","label":"1r Primària","order":1},{"code":"esct-6","label":"6è Primària","order":6},{"code":"esct-10","label":"4t ESO","order":10},{"code":"esct-12","label":"2n Batxillerat + PAU","order":12}],
+    {"teacher":"Professor","principal":"Director","term":"Trimestre","report_card":"Butlletí","grade_level":"Curs"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

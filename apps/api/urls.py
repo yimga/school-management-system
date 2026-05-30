@@ -561,6 +561,8 @@ urlpatterns = [
     path("roster/v1p2/students/", _oneroster.students, name="api-roster-v1p2-students"),
     path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
     path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),
+    # v4.00.75 — single-class detail endpoint per spec § 4.13.
+    path("roster/v1p2/classes/<str:sourced_id>/", _oneroster.class_detail, name="api-roster-v1p2-class-detail"),
     path("roster/v1p2/academic-sessions/", _oneroster.academic_sessions, name="api-roster-v1p2-academic-sessions"),
     # v4.00.71 — single-academicSession detail endpoint per spec § 4.13.
     path("roster/v1p2/academic-sessions/<str:sourced_id>/", _oneroster.academic_session_detail, name="api-roster-v1p2-academic-session-detail"),

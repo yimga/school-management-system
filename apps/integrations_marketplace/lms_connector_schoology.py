@@ -104,11 +104,56 @@ def refresh_token(*, refresh_token: str, client_id: str, client_secret: str) -> 
 
 
 def push_grade(*, base_url: str, access_token: str, course_id: str,
-               user_id: str, score: float, max_score: float) -> dict:
-    """Honest-stub. Real wiring will POST to /sections/<id>/grades."""
-    logger.info("schoology.push_grade: scaffold call (not wired)")
+               user_id: str, score: float, max_score: float,
+               assignment_id: str = "", grade_id: str = "",
+               comment: str = "") -> dict:
+    """v4.00.75 — Honest-stub. Real wiring will POST to
+    ``/sections/<id>/grades`` per Schoology REST API. This stub returns
+    the *intended request shape* under ``would_send`` so calling code can
+    unit-test their payload assembly without hitting the network.
+
+    Validates inputs locally so operators get fast feedback on bad data:
+      * score / max_score must be numeric and non-negative
+      * score must not exceed max_score
+      * course_id, user_id must be non-empty
+    """
+    # Local-only validation — surfaces operator bugs early.
+    if not course_id or not user_id:
+        return {"ok": False, "reason": "missing_required_field",
+                "provider": PROVIDER_SLUG, "field": "course_id_or_user_id"}
+    try:
+        s = float(score)
+        m = float(max_score)
+    except (ValueError, TypeError):
+        return {"ok": False, "reason": "score_not_numeric",
+                "provider": PROVIDER_SLUG}
+    if s < 0 or m <= 0:
+        return {"ok": False, "reason": "score_out_of_range",
+                "provider": PROVIDER_SLUG, "score": s, "max_score": m}
+    if s > m:
+        return {"ok": False, "reason": "score_exceeds_max",
+                "provider": PROVIDER_SLUG, "score": s, "max_score": m}
+
+    payload_shape = {
+        "endpoint": f"{base_url.rstrip('/')}/sections/{course_id}/grades",
+        "method": "PUT",
+        "body": {
+            "grades": {
+                "grade": [{
+                    "enrollment_id": user_id,
+                    "assignment_id": assignment_id,
+                    "grade_id": grade_id,
+                    "grade": s,
+                    "max_points": m,
+                    "comment": comment,
+                }]
+            }
+        },
+    }
+    logger.info("schoology.push_grade: scaffold call (would send %s)", payload_shape["endpoint"])
     return {"ok": False, "reason": "scaffold_not_wired",
-            "provider": PROVIDER_SLUG, "course_id": course_id, "user_id": user_id}
+            "provider": PROVIDER_SLUG, "course_id": course_id, "user_id": user_id,
+            "would_send": payload_shape}
 
 
 def pull_courses(*, base_url: str, access_token: str) -> list[dict]:

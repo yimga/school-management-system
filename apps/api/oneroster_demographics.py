@@ -598,12 +598,13 @@ def _validate_state_of_birth_abbreviation(inner: dict[str, Any]):
 # Reject:
 #   * anything else -> 400 bad_race_ethnicity_flag w/ field + received echo
 RACE_ETHNICITY_BOOL_FIELDS = frozenset((
-    "americanIndianOrAlaskaNative",       # v4.00.70
-    "asian",                              # v4.00.71
-    "blackOrAfricanAmerican",             # v4.00.71
-    "hispanicOrLatinoEthnicity",          # v4.00.72
-    "nativeHawaiianOrOtherPacificIslander",  # v4.00.73
-    "white",                              # v4.00.74
+    "americanIndianOrAlaskaNative",         # v4.00.70
+    "asian",                                # v4.00.71
+    "blackOrAfricanAmerican",               # v4.00.71
+    "hispanicOrLatinoEthnicity",            # v4.00.72
+    "nativeHawaiianOrOtherPacificIslander", # v4.00.73
+    "white",                                # v4.00.74
+    "demographicRaceTwoOrMoreRaces",        # v4.00.75 (complete set)
 ))
 _TRUE_STRINGS = frozenset(("true", "yes", "1", "y", "t"))
 _FALSE_STRINGS = frozenset(("false", "no", "0", "n", "f"))
