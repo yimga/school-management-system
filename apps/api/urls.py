@@ -576,6 +576,12 @@ urlpatterns = [
     path("roster/v1p2/courses/", _oneroster.courses, name="api-roster-v1p2-courses"),
     # v4.00.76 — enrollments GET endpoint per spec § 4.13.
     path("roster/v1p2/enrollments/", _oneroster.enrollments, name="api-roster-v1p2-enrollments"),
+    # v4.00.79 Wave 11 T2 — Categories GET (list + detail) per Result Service
+    # spec § 4.13.6 on the Roster Service path. Synthesizes from LineItem
+    # category strings unioned with the 6 seed types so the surface is non-empty.
+    # Specific paths registered BEFORE the <str:sourced_id> catch-all.
+    path("roster/v1p2/categories/", _oneroster_results.categories_list_v1p2_roster, name="api-roster-v1p2-categories"),
+    path("roster/v1p2/categories/<str:sourced_id>/", _oneroster_results.category_detail_v1p2_roster, name="api-roster-v1p2-category-detail"),
     # v4.00.59 — OneRoster v1.2 demographics endpoints (read-only).
     # v4.00.60 — POST/PUT write coverage (order matters: write routes BEFORE
     # the <str:sourced_id> catch-all so they don't get swallowed).

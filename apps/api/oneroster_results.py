@@ -2708,3 +2708,223 @@ def gradebook_entries_csv(request: HttpRequest, class_sourced_id: str):
     resp["Content-Disposition"] = f'attachment; filename="gradebook-{safe_class_id}.csv"'
     resp["X-OneRoster-Entity"] = "gradebook-entries-csv"
     return resp
+
+
+# ---------------------------------------------------------------------------
+# v4.00.79 Wave 11 T2 — OneRoster v1.2 Roster Service Categories endpoint.
+#
+# Spec: IMS Result Service § 4.13.6 surfaces Categories as a first-class
+# entity (sourcedId / status / dateLastModified / title). The repo already
+# has a Result-Service-path variant at /api/roster/results/v1p2/categories/
+# (``categories_list`` above) backed by 6 seed types + runtime override map
+# with full POST/PUT/DELETE coverage.
+#
+# This Wave 11 T2 endpoint exposes the spec-compliant Roster-Service-path
+# projection at /api/roster/v1p2/categories/ with:
+#   - ?since=ISO / ?before=ISO window filter on dateLastModified
+#   - ?title= case-insensitive substring filter
+#   - ?limit=N (default 100, max 500) + ?offset=N
+#   - X-Total-Count header echoing the pre-pagination count
+#   - 400 on malformed since/before
+#   - 404 on detail miss
+#
+# Data source: no dedicated Category model exists. We synthesize from
+# distinct LineItem ``category`` strings (currently always "summative" in
+# the projection) UNIONED with the 6 seed types so the response is rich
+# even before any line items exist. Synthetic sourcedId is
+# SHA-256("cat:<tenant_schema>:<title>")[:16]. Status is always "active"
+# (no soft-delete model). dateLastModified = max(LineItem.date_last_modified)
+# over matching rows; fall back to timezone.now().isoformat().
+#
+# NAMING NOTE: this file already has top-level ``categories_list`` /
+# ``category_detail`` from v4.00.47 wired to the Result-Service URL. To
+# avoid collision the new Wave 11 T2 views are suffixed ``_v1p2_roster``.
+# ---------------------------------------------------------------------------
+
+
+def _resolve_tenant_schema(request: HttpRequest) -> str:
+    """Best-effort tenant-schema resolver for synthetic sourcedId stability.
+
+    Tries (in order): request.tenant.schema_name (django-tenants),
+    request.session.get('schema_name'), and falls back to "public".
+    """
+    try:
+        tenant = getattr(request, "tenant", None)
+        if tenant is not None:
+            name = getattr(tenant, "schema_name", "") or ""
+            if name:
+                return name
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        sess = getattr(request, "session", None)
+        if sess is not None:
+            name = sess.get("schema_name") or ""
+            if name:
+                return name
+    except Exception:  # noqa: BLE001
+        pass
+    return "public"
+
+
+def _synth_category_sourced_id(tenant_schema: str, title: str) -> str:
+    import hashlib
+    return hashlib.sha256(f"cat:{tenant_schema}:{title}".encode("utf-8")).hexdigest()[:16]
+
+
+def _parse_iso_window(raw: str):
+    """Parse ?since=/?before= ISO date(time). Returns (ok, value_or_err).
+
+    Accepts YYYY-MM-DD or full ISO-8601 strings (with optional ``Z`` or
+    ``+00:00`` tz suffix). Returns the raw string on success so downstream
+    can do simple lexical comparison against ``dateLastModified``.
+    """
+    if not raw:
+        return True, ""
+    s = raw.strip()
+    if not s:
+        return True, ""
+    # Accept Z suffix as +00:00 for parse-only validation.
+    probe = s.replace("Z", "+00:00") if s.endswith("Z") else s
+    try:
+        from datetime import datetime, date
+        # Try datetime first, then date-only.
+        try:
+            datetime.fromisoformat(probe)
+        except (ValueError, TypeError):
+            date.fromisoformat(probe[:10])
+    except (ValueError, TypeError):
+        return False, "bad_iso"
+    return True, s
+
+
+def _iter_category_titles_from_line_items() -> Iterable[tuple[str, str]]:
+    """Walk LineItems and yield (title, date_last_modified_iso) tuples.
+
+    The projection currently exposes ``category`` as the title and the
+    repo-wide convention treats ``date_last_modified`` on the underlying
+    Classroom as the LineItem's mtime. Missing fields fall back to "".
+    """
+    try:
+        from apps.academics.models import Classroom
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("v4.00.79 T2 categories: Classroom unavailable: %s", exc)
+        return
+    qs = Classroom.objects.all()  # tenant-isolation-allow: result-service-platform-scope-bearer-auth-required
+    for c in qs[:1000]:
+        # The static projection always uses "summative" — keep that contract
+        # but also surface any explicit ``category`` attribute when present.
+        title = (getattr(c, "category", None) or "summative") or ""
+        title = str(title).strip()
+        if not title:
+            continue
+        mtime = getattr(c, "date_last_modified", None) or getattr(c, "updated_at", None)
+        try:
+            iso = mtime.isoformat() if mtime else ""
+        except Exception:  # noqa: BLE001
+            iso = ""
+        yield title, iso
+
+
+def _build_categories_v1p2_roster(tenant_schema: str) -> list[dict[str, Any]]:
+    """Synthesize the Categories collection for the Roster Service projection.
+
+    Merges the 6 seed types (always present so the surface is non-empty)
+    with any distinct ``category`` titles discovered on LineItems, picking
+    the latest ``dateLastModified`` per title. sourcedId is a deterministic
+    SHA-256[:16] of ``cat:<tenant>:<title>`` for stability across calls.
+    """
+    from django.utils import timezone as _tz
+    now_iso = _tz.now().isoformat()
+
+    by_title: dict[str, str] = {}
+    # Seed 6 built-in categories first.
+    for seed in _CATEGORIES:
+        t = str(seed.get("title") or "").strip()
+        if t and t not in by_title:
+            by_title[t] = now_iso
+    # Merge LineItem-derived titles + pick MAX(dateLastModified).
+    for t, iso in _iter_category_titles_from_line_items():
+        prior = by_title.get(t, "")
+        if not prior or (iso and iso > prior):
+            by_title[t] = iso or now_iso
+
+    out: list[dict[str, Any]] = []
+    for title in sorted(by_title.keys()):
+        out.append({
+            "sourcedId": _synth_category_sourced_id(tenant_schema, title),
+            "status": "active",
+            "dateLastModified": by_title[title] or now_iso,
+            "title": title,
+        })
+    return out
+
+
+@require_http_methods(["GET"])
+def categories_list_v1p2_roster(request: HttpRequest):
+    """v4.00.79 T2 — GET /api/roster/v1p2/categories/ per spec § 4.13.6.
+
+    Query params:
+      ?since=ISO       window filter (dateLastModified >= since)
+      ?before=ISO      window filter (dateLastModified <= before)
+      ?title=<str>     case-insensitive substring filter on title
+      ?limit=N         default 100, capped at 500
+      ?offset=N        default 0
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+
+    since_raw = (request.GET.get("since") or "").strip()
+    before_raw = (request.GET.get("before") or "").strip()
+    ok_since, since_val = _parse_iso_window(since_raw)
+    if not ok_since:
+        return JsonResponse({"error": "bad_since", "value": since_raw}, status=400)
+    ok_before, before_val = _parse_iso_window(before_raw)
+    if not ok_before:
+        return JsonResponse({"error": "bad_before", "value": before_raw}, status=400)
+
+    tenant_schema = _resolve_tenant_schema(request)
+    items = _build_categories_v1p2_roster(tenant_schema)
+
+    if since_val:
+        items = [it for it in items if (it.get("dateLastModified") or "") >= since_val]
+    if before_val:
+        items = [it for it in items if (it.get("dateLastModified") or "") <= before_val]
+
+    title_q = (request.GET.get("title") or "").strip().lower()
+    if title_q:
+        items = [it for it in items if title_q in (it.get("title") or "").lower()]
+
+    total = len(items)
+
+    try:
+        limit = int(request.GET.get("limit") or 100)
+    except (ValueError, TypeError):
+        limit = 100
+    try:
+        offset = int(request.GET.get("offset") or 0)
+    except (ValueError, TypeError):
+        offset = 0
+    limit = max(1, min(500, limit))
+    offset = max(0, offset)
+    page = items[offset:offset + limit]
+
+    resp = JsonResponse({"categories": page})
+    resp["X-Total-Count"] = str(total)
+    resp["X-Limit"] = str(limit)
+    resp["X-Offset"] = str(offset)
+    return resp
+
+
+@require_http_methods(["GET"])
+def category_detail_v1p2_roster(request: HttpRequest, sourced_id: str):
+    """v4.00.79 T2 — GET /api/roster/v1p2/categories/<sourced_id>/."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    tenant_schema = _resolve_tenant_schema(request)
+    for item in _build_categories_v1p2_roster(tenant_schema):
+        if item["sourcedId"] == sourced_id:
+            return JsonResponse({"category": item})
+    return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)

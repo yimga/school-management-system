@@ -44,6 +44,7 @@ PROVIDER_GOOGLE_CLASSROOM = "google_classroom"
 PROVIDER_GOOGLE_LEGACY_ALIAS = "google"
 PROVIDER_SCHOOLOGY = "schoology"
 PROVIDER_BRIGHTSPACE_D2L = "d2l_brightspace"
+PROVIDER_BLACKBOARD = "blackboard"
 
 
 # Canonical platform-wide list.
@@ -54,6 +55,7 @@ SUPPORTED_LMS_PROVIDERS = frozenset({
     PROVIDER_GOOGLE_LEGACY_ALIAS,
     PROVIDER_SCHOOLOGY,
     PROVIDER_BRIGHTSPACE_D2L,
+    PROVIDER_BLACKBOARD,
 })
 
 # Providers whose OAuth refresh flow is wired in ``lms_token_refresh.py``.
@@ -69,6 +71,7 @@ OAUTH_READY_LMS_PROVIDERS = frozenset({
 SCAFFOLD_LMS_PROVIDERS = frozenset({
     PROVIDER_SCHOOLOGY,
     PROVIDER_BRIGHTSPACE_D2L,
+    PROVIDER_BLACKBOARD,
 })
 
 
@@ -103,6 +106,7 @@ def canonical_lms_provider_label(provider: str) -> str:
         PROVIDER_GOOGLE_LEGACY_ALIAS: "Google Classroom",
         PROVIDER_SCHOOLOGY: "Schoology",
         PROVIDER_BRIGHTSPACE_D2L: "Brightspace (D2L)",
+        PROVIDER_BLACKBOARD: "Blackboard Learn",
     }.get(p, p or "unknown")
 
 
@@ -114,6 +118,7 @@ def lms_provider_rollup_order() -> tuple[str, ...]:
         PROVIDER_GOOGLE_CLASSROOM,
         PROVIDER_SCHOOLOGY,
         PROVIDER_BRIGHTSPACE_D2L,
+        PROVIDER_BLACKBOARD,
     )
 
 

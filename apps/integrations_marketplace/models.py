@@ -138,3 +138,6 @@ from .models_lms_audit import LMSPushGradeAudit  # noqa: E402,F401
 # v4.00.62 — dedicated LMS diagnostics action-audit log (cleans up the
 # v4.00.61 reuse of LMSPushGradeAudit with course_id="_diag_action").
 from .models_lms_diag_action_audit import LMSDiagActionAudit  # noqa: E402,F401
+
+# v4.00.79 — WebhookDeadLetter persistence (DLQ for webhook retry FSM).
+from .models_webhook_dead_letter import WebhookDeadLetter  # noqa: E402,F401

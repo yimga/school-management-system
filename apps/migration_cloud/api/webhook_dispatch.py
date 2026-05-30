@@ -477,6 +477,24 @@ def _deliver_one(row) -> bool:
             row.status = WebhookDeliveryStatus.EXHAUSTED
             row.next_retry_at = None
             sub.last_delivery_status = "exhausted"
+            # v4.00.79 — park exhausted delivery in WebhookDeadLetter for
+            # operator-driven replay (helper is defensive; DLQ failure
+            # never breaks the delivery loop).
+            try:
+                from apps.integrations_marketplace import webhook_dead_letter as _dlq
+                _dlq.enqueue_dead_letter(
+                    provider="migration_cloud",
+                    event_type=row.event_type,
+                    payload=payload_bytes,
+                    reason=err or f"http_{status_code}",
+                    tenant_schema=getattr(getattr(sub, "tenant", None), "schema_name", ""),
+                    attempt_count=row.attempt_count,
+                )
+            except Exception as _dlq_exc:  # noqa: BLE001
+                logger.warning(
+                    "migration_cloud_webhook_dlq_enqueue_failed sub_id=%s delivery_id=%s exc=%s",
+                    sub.pk, row.pk, _dlq_exc,
+                )
         else:
             row.status = WebhookDeliveryStatus.PENDING
             row.next_retry_at = timezone.now() + RETRY_SCHEDULE[row.attempt_count - 1]

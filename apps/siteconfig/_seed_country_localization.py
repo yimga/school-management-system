@@ -15342,6 +15342,165 @@ COUNTRY_LOCALIZATION["CY-04"] = _v4_00_78("CY-04","cy04-3-term","3-term (Nicosia
 
 
 # ---------------------------------------------------------------------------
+# v4.00.79 (2026-05-30) — +14 subdivisions: CN-HK Hong Kong SAR (HKDSE),
+#   CN-MO Macao SAR (DSEDJ) + IN south states (IN-TG Telangana, IN-TN Tamil
+#   Nadu, IN-AP Andhra Pradesh, IN-KL Kerala) + JP minor prefectures
+#   (JP-31 Tottori, JP-32 Shimane, JP-37 Kagawa) + DE remaining Länder
+#   (DE-SL Saarland, DE-SH Schleswig-Holstein, DE-HH Hamburg,
+#   DE-BW Baden-Württemberg, DE-NW Nordrhein-Westfalen).
+# ---------------------------------------------------------------------------
+def _v4_00_79(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# Hong Kong SAR (CN-HK).
+COUNTRY_LOCALIZATION["CN-HK"] = _v4_00_79("CN-HK","cnhk-3-term","3-term (Hong Kong SAR / HKDSE)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"kindergarten","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (P1-P6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secondary","label":"Secondary (S1-S6) + HKDSE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+     {"code":"university","label":"HKU + CUHK + HKUST + CityU + PolyU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cnhk-p1","label":"Primary 1","order":1},{"code":"cnhk-p6","label":"Primary 6","order":6},{"code":"cnhk-s6","label":"Secondary 6 + HKDSE","order":12}],
+    {"teacher":"Teacher","principal":"Principal","term":"Term","report_card":"Report Card","grade_level":"Form"})
+
+# Macao SAR (CN-MO).
+COUNTRY_LOCALIZATION["CN-MO"] = _v4_00_79("CN-MO","cnmo-3-term","3-term (Macao SAR / DSEDJ)",3,["Term 1","Term 2","Term 3"],9,
+    [{"code":"infantil","label":"Educação Infantil","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primario","label":"Ensino Primário (P1-P6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secundario","label":"Ensino Secundário (S1-S6)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+     {"code":"university","label":"UM + IPM + USJ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cnmo-p1","label":"Primário 1","order":1},{"code":"cnmo-s6","label":"Secundário 6","order":12}],
+    {"teacher":"Professor","principal":"Diretor","term":"Trimestre","report_card":"Boletim","grade_level":"Ano"})
+
+# Telangana (IN-TG).
+COUNTRY_LOCALIZATION["IN-TG"] = _v4_00_79("IN-TG","intg-2-sem","2-semester (Telangana / TS SSC)",2,["Semester 1","Semester 2"],6,
+    [{"code":"anganwadi","label":"Anganwadi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Cl 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"upper_primary","label":"Upper Primary (Cl 6-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"secondary","label":"Secondary (Cl 9-10) + SSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"intermediate","label":"Intermediate (Cl 11-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"OU + JNTUH + UoH","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"intg-1","label":"Class 1","order":1},{"code":"intg-10","label":"Class 10 + SSC","order":10},{"code":"intg-12","label":"Intermediate + EAMCET","order":12}],
+    {"teacher":"Adyapakudu","principal":"Pradhanopadhayayudu","term":"Semester","report_card":"Marks Memo","grade_level":"Class"})
+
+# Tamil Nadu (IN-TN).
+COUNTRY_LOCALIZATION["IN-TN"] = _v4_00_79("IN-TN","intn-2-sem","2-semester (Tamil Nadu / TN SSLC)",2,["Term 1","Term 2"],6,
+    [{"code":"balwadi","label":"Balwadi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Std 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"upper_primary","label":"Upper Primary (Std 6-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"secondary","label":"Secondary (Std 9-10) + SSLC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"hsc","label":"HSC (Std 11-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"Anna + IIT-M + Madras + Loyola","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"intn-1","label":"Standard 1","order":1},{"code":"intn-10","label":"Standard 10 + SSLC","order":10},{"code":"intn-12","label":"Standard 12 + HSC","order":12}],
+    {"teacher":"Aasiriyar","principal":"Thalaimai aasiriyar","term":"Term","report_card":"Marks Sheet","grade_level":"Standard"})
+
+# Andhra Pradesh (IN-AP).
+COUNTRY_LOCALIZATION["IN-AP"] = _v4_00_79("IN-AP","inap-2-sem","2-semester (Andhra Pradesh / AP SSC)",2,["Semester 1","Semester 2"],6,
+    [{"code":"anganwadi","label":"Anganwadi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Cl 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"upper_primary","label":"Upper Primary (Cl 6-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"secondary","label":"Secondary (Cl 9-10) + SSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"intermediate","label":"Intermediate (Cl 11-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"AU + SVU + NIT-AP","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"inap-1","label":"Class 1","order":1},{"code":"inap-10","label":"Class 10 + SSC","order":10},{"code":"inap-12","label":"Intermediate + EAMCET","order":12}],
+    {"teacher":"Upadhyayudu","principal":"Pradhanopadhayayudu","term":"Semester","report_card":"Marks Memo","grade_level":"Class"})
+
+# Kerala (IN-KL).
+COUNTRY_LOCALIZATION["IN-KL"] = _v4_00_79("IN-KL","inkl-2-sem","2-semester (Kerala / KEAM)",2,["First terminal","Annual"],6,
+    [{"code":"anganwadi","label":"Anganwadi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"lower_primary","label":"Lower Primary (Std 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-9"},
+     {"code":"upper_primary","label":"Upper Primary (Std 5-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"10-12"},
+     {"code":"high_school","label":"High School (Std 8-10) + SSLC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"13-15"},
+     {"code":"plus_two","label":"Plus Two (Std 11-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"CUSAT + IIT-PKD + IIST + Kerala Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"inkl-1","label":"Standard 1","order":1},{"code":"inkl-10","label":"Standard 10 + SSLC","order":10},{"code":"inkl-12","label":"Plus Two + KEAM","order":12}],
+    {"teacher":"Adhyapakan","principal":"Pradhana adhyapakan","term":"Terminal","report_card":"Marks List","grade_level":"Standard"})
+
+# Tottori (JP-31).
+COUNTRY_LOCALIZATION["JP-31"] = _v4_00_79("JP-31","jp31-3-term","3-term (Tottori)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Tottori Univ + Kankyo Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp31-1","label":"Grade 1","order":1},{"code":"jp31-9","label":"Grade 9","order":9},{"code":"jp31-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# Shimane (JP-32).
+COUNTRY_LOCALIZATION["JP-32"] = _v4_00_79("JP-32","jp32-3-term","3-term (Shimane)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Shimane Univ + Matsue Higashi","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp32-1","label":"Grade 1","order":1},{"code":"jp32-9","label":"Grade 9","order":9},{"code":"jp32-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# Kagawa (JP-37).
+COUNTRY_LOCALIZATION["JP-37"] = _v4_00_79("JP-37","jp37-3-term","3-term (Kagawa)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Kagawa Univ + Shikoku Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp37-1","label":"Grade 1","order":1},{"code":"jp37-9","label":"Grade 9","order":9},{"code":"jp37-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# Saarland (DE-SL).
+COUNTRY_LOCALIZATION["DE-SL"] = _v4_00_79("DE-SL","desl-2-sem","2-semester (Saarland / Abitur)",2,["1. Halbjahr","2. Halbjahr"],8,
+    [{"code":"kindergarten","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"grundschule","label":"Grundschule (Kl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"gemeinschaft","label":"Gemeinschaftsschule (Kl 5-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-15"},
+     {"code":"gymnasium","label":"Gymnasium (Kl 5-12) + Abitur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"10-17"},
+     {"code":"university","label":"UdS + HTW Saar","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"desl-1","label":"Klasse 1","order":1},{"code":"desl-10","label":"Klasse 10 + MSA","order":10},{"code":"desl-12","label":"Klasse 12 + Abitur","order":12}],
+    {"teacher":"Lehrer","principal":"Schulleiter","term":"Halbjahr","report_card":"Zeugnis","grade_level":"Klasse"})
+
+# Schleswig-Holstein (DE-SH).
+COUNTRY_LOCALIZATION["DE-SH"] = _v4_00_79("DE-SH","desh-2-sem","2-semester (Schleswig-Holstein / Abitur)",2,["1. Halbjahr","2. Halbjahr"],8,
+    [{"code":"kindergarten","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"grundschule","label":"Grundschule (Kl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"gemeinschaft","label":"Gemeinschaftsschule (Kl 5-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-15"},
+     {"code":"gymnasium","label":"Gymnasium (Kl 5-13) + Abitur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"10-18"},
+     {"code":"university","label":"CAU + Univ Lübeck + Europa-Univ Flensburg","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"desh-1","label":"Klasse 1","order":1},{"code":"desh-10","label":"Klasse 10 + MSA","order":10},{"code":"desh-13","label":"Klasse 13 + Abitur","order":13}],
+    {"teacher":"Lehrer","principal":"Schulleiter","term":"Halbjahr","report_card":"Zeugnis","grade_level":"Klasse"})
+
+# Hamburg (DE-HH).
+COUNTRY_LOCALIZATION["DE-HH"] = _v4_00_79("DE-HH","dehh-2-sem","2-semester (Hamburg / Abitur)",2,["1. Halbjahr","2. Halbjahr"],8,
+    [{"code":"kita","label":"Kita","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"grundschule","label":"Grundschule (Kl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"stadtteilschule","label":"Stadtteilschule (Kl 5-13)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-18"},
+     {"code":"gymnasium","label":"Gymnasium (Kl 5-12) + Abitur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"10-17"},
+     {"code":"university","label":"UHH + HCU + TUHH + HSU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"dehh-1","label":"Klasse 1","order":1},{"code":"dehh-10","label":"Klasse 10 + MSA","order":10},{"code":"dehh-12","label":"Klasse 12 + Abitur","order":12}],
+    {"teacher":"Lehrer","principal":"Schulleiter","term":"Halbjahr","report_card":"Zeugnis","grade_level":"Klasse"})
+
+# Baden-Württemberg (DE-BW).
+COUNTRY_LOCALIZATION["DE-BW"] = _v4_00_79("DE-BW","debw-2-sem","2-semester (Baden-Württemberg / Abitur)",2,["1. Halbjahr","2. Halbjahr"],9,
+    [{"code":"kindergarten","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"grundschule","label":"Grundschule (Kl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"werkrealschule","label":"Werkrealschule (Kl 5-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-15"},
+     {"code":"realschule","label":"Realschule (Kl 5-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-15"},
+     {"code":"gymnasium","label":"Gymnasium (Kl 5-12) + Abitur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"10-17"},
+     {"code":"university","label":"Uni Heidelberg + Uni Freiburg + KIT + Uni Tübingen + Uni Stuttgart","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"debw-1","label":"Klasse 1","order":1},{"code":"debw-10","label":"Klasse 10 + MSA","order":10},{"code":"debw-12","label":"Klasse 12 + Abitur","order":12}],
+    {"teacher":"Lehrer","principal":"Schulleiter","term":"Halbjahr","report_card":"Zeugnis","grade_level":"Klasse"})
+
+# Nordrhein-Westfalen (DE-NW).
+COUNTRY_LOCALIZATION["DE-NW"] = _v4_00_79("DE-NW","denw-2-sem","2-semester (Nordrhein-Westfalen / Abitur)",2,["1. Halbjahr","2. Halbjahr"],8,
+    [{"code":"kita","label":"Kita","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"grundschule","label":"Grundschule (Kl 1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"hauptschule","label":"Hauptschule (Kl 5-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-15"},
+     {"code":"realschule","label":"Realschule (Kl 5-10)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-15"},
+     {"code":"gesamtschule","label":"Gesamtschule (Kl 5-13)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"10-18"},
+     {"code":"gymnasium","label":"Gymnasium (Kl 5-12) + Abitur","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"10-17"},
+     {"code":"university","label":"RWTH Aachen + Uni Köln + Uni Bonn + Uni Münster + Uni Dortmund","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"denw-1","label":"Klasse 1","order":1},{"code":"denw-10","label":"Klasse 10 + MSA","order":10},{"code":"denw-12","label":"Klasse 12 + Abitur","order":12}],
+    {"teacher":"Lehrer","principal":"Schulleiter","term":"Halbjahr","report_card":"Zeugnis","grade_level":"Klasse"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

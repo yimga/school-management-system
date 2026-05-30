@@ -73,6 +73,7 @@ _DEMOGRAPHIC_OVERRIDE_FIELDS = (
     "countryOfBirthCode",
     "stateOfBirthAbbreviation",
     "publicSchoolResidenceStatus",
+    "tribalAffiliation",  # v4.00.79
 )
 
 
@@ -82,7 +83,10 @@ def _set_demographic_overrides(sid: str, payload: dict[str, Any]) -> None:
         kept: dict[str, str] = {}
         for k in _DEMOGRAPHIC_OVERRIDE_FIELDS:
             if k in payload:
-                kept[k] = str(payload.get(k) or "")[:64]
+                # v4.00.79: cap widened 64->120 to accommodate longer tribal
+                # affiliation names ("Confederated Tribes of the Coos Lower
+                # Umpqua and Siuslaw Indians" = 65 chars).
+                kept[k] = str(payload.get(k) or "")[:120]
         if kept:
             _DEMOGRAPHIC_OVERRIDES[sid] = kept
             if len(_DEMOGRAPHIC_OVERRIDES) > _DEMOGRAPHIC_OVERRIDES_CAP:
@@ -440,6 +444,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_suffix_and_title(inner)
     if err is not None:
         return None, err
+    err = _validate_tribal_affiliation(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -688,6 +695,46 @@ def _validate_gender_identity(inner: dict[str, Any]):
                  "reason": "description_control_chars"},
                 status=400,
             )
+    return None
+
+
+# v4.00.79 — Demographics POST/PUT `tribalAffiliation` validation.
+#
+# OneRoster v1.2 spec Demographics.tribalAffiliation is a free-text field
+# referencing federally-recognized tribal nation membership (e.g. "Navajo
+# Nation", "Cherokee Nation", "Confederated Tribes of Grand Ronde").
+#
+# Closed vocab is intentionally NOT enforced — 574 federally-recognized
+# tribes plus state-recognized + self-identifying communities means any
+# closed enum would false-reject. Same defensive shape as cityOfBirth /
+# middleName / suffix+title: length cap + control-char rejection. Cap
+# matches the StudentProfile.tribal_affiliation column width (120 chars)
+# when present; falls back to override ring otherwise.
+_TRIBAL_AFFILIATION_MAX_LEN = 120
+_TRIBAL_AFFILIATION_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_tribal_affiliation(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "tribalAffiliation" not in inner:
+        return None
+    raw = str(inner.get("tribalAffiliation") or "")
+    if not raw:
+        return None  # explicit clear
+    if len(raw) > _TRIBAL_AFFILIATION_MAX_LEN:
+        return JsonResponse(
+            {"error": "bad_tribal_affiliation",
+             "reason": "too_long",
+             "received_length": len(raw),
+             "max_length": _TRIBAL_AFFILIATION_MAX_LEN},
+            status=400,
+        )
+    if _TRIBAL_AFFILIATION_CONTROL_RE.search(raw):
+        return JsonResponse(
+            {"error": "bad_tribal_affiliation",
+             "reason": "control_chars"},
+            status=400,
+        )
     return None
 
 
