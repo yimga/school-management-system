@@ -428,6 +428,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_country_of_citizenship(inner)
     if err is not None:
         return None, err
+    err = _validate_race_ethnicity_bool_flags(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -572,6 +575,65 @@ def _validate_state_of_birth_abbreviation(inner: dict[str, Any]):
              "note": f"must match a known {country}-<subdivision> entry in COUNTRY_LOCALIZATION SOT"},
             status=400,
         )
+    return None
+
+
+# v4.00.70 — Demographics POST/PUT race / ethnicity boolean-flag validation.
+#
+# OneRoster v1.2 Demographics carries 7 boolean race / ethnicity flags
+# (the CDE / federal data-collection set):
+#   americanIndianOrAlaskaNative, asian, blackOrAfricanAmerican,
+#   hispanicOrLatinoEthnicity, nativeHawaiianOrOtherPacificIslander,
+#   white, demographicRaceTwoOrMoreRaces
+# Wave v4.00.70 introduces the validator framework + lights up the first
+# flag (americanIndianOrAlaskaNative). Subsequent waves wire the other six
+# behind the same validator — adding each field to RACE_ETHNICITY_BOOL_FIELDS
+# is the entire integration point.
+#
+# Accept shapes:
+#   * literal bools True / False
+#   * strings "true" / "false" / "yes" / "no" / "1" / "0" / "y" / "n"
+#     (case-insensitive — accommodates form-encoded callers)
+#   * empty string ("") is explicit clear
+# Reject:
+#   * anything else -> 400 bad_race_ethnicity_flag w/ field + received echo
+RACE_ETHNICITY_BOOL_FIELDS = frozenset(("americanIndianOrAlaskaNative",))
+_TRUE_STRINGS = frozenset(("true", "yes", "1", "y", "t"))
+_FALSE_STRINGS = frozenset(("false", "no", "0", "n", "f"))
+
+
+def _coerce_boolish(value: Any) -> tuple[bool, Any]:
+    """Return ``(ok, coerced_bool)``. ``ok=False`` means the value was
+    neither a bool nor a recognized truthy/falsey string."""
+    if isinstance(value, bool):
+        return True, value
+    if value is None:
+        return True, False
+    s = str(value).strip().lower()
+    if s == "":
+        return True, False  # explicit clear
+    if s in _TRUE_STRINGS:
+        return True, True
+    if s in _FALSE_STRINGS:
+        return True, False
+    return False, None
+
+
+def _validate_race_ethnicity_bool_flags(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    for field in RACE_ETHNICITY_BOOL_FIELDS:
+        if field not in inner:
+            continue
+        ok, _coerced = _coerce_boolish(inner.get(field))
+        if not ok:
+            return JsonResponse(
+                {"error": "bad_race_ethnicity_flag",
+                 "reason": "not_boolish",
+                 "field": field,
+                 "received": str(inner.get(field) or "")[:32],
+                 "note": "expected bool or one of true/false/yes/no/1/0"},
+                status=400,
+            )
     return None
 
 

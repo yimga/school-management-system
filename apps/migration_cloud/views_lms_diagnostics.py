@@ -18,6 +18,7 @@ monitors via ``?format=json``.
 """
 from __future__ import annotations
 
+import json as _json
 import logging
 from datetime import timedelta
 
@@ -787,6 +788,55 @@ def _retention_preview_csv_response(*, retention: dict, sparkline: dict):
     return resp
 
 
+def _retention_preview_jsonl_response(*, retention: dict, sparkline: dict):
+    """v4.00.70 — Newline-delimited JSON export of the retention preview.
+
+    Line 1: ``{"kind": "summary", ...retention scalars + sparkline totals}``
+    Lines 2-25: one ``{"kind": "bucket", ...bucket fields}`` per sparkline bucket.
+    Headers carry the bucket count + before/after totals.
+    NOT gzipped (operators tend to pipe NDJSON straight to jq).
+    """
+    import io
+    from django.http import HttpResponse
+
+    text_buf = io.StringIO()
+    bands = sparkline.get("percentile_bands") or {}
+    summary = {
+        "kind": "summary",
+        "years": int(retention.get("years") or 0),
+        "cutoff_iso": str(retention.get("cutoff_iso") or ""),
+        "considered": int(retention.get("considered") or 0),
+        "before_total": int(sparkline.get("before_total") or 0),
+        "after_total": int(sparkline.get("after_total") or 0),
+        "weeks_per_side": int(sparkline.get("weeks_per_side") or 0),
+        "window_start_iso": str(sparkline.get("window_start_iso") or ""),
+        "window_end_iso": str(sparkline.get("window_end_iso") or ""),
+        "max_count": int(sparkline.get("max_count") or 0),
+        "p25": int(bands.get("p25") or 0),
+        "p50": int(bands.get("p50") or 0),
+        "p75": int(bands.get("p75") or 0),
+    }
+    text_buf.write(_json.dumps(summary, separators=(",", ":")) + "\n")
+    for b in sparkline.get("buckets") or []:
+        text_buf.write(_json.dumps({
+            "kind": "bucket",
+            "week_start_iso": b.get("week_start_iso", ""),
+            "side": b.get("side", ""),
+            "count": int(b.get("count") or 0),
+        }, separators=(",", ":")) + "\n")
+
+    body = text_buf.getvalue().encode("utf-8")
+    today = timezone.now().strftime("%Y-%m-%d")
+    fname = f"lms_diag_retention_preview_{today}.jsonl"
+    resp = HttpResponse(body, content_type="application/x-ndjson; charset=utf-8")
+    resp["Content-Disposition"] = f'attachment; filename="{fname}"'
+    resp["Content-Length"] = str(len(body))
+    resp["X-Retention-Sparkline-Bucket-Count"] = str(len(sparkline.get("buckets") or []))
+    resp["X-Retention-Before-Total"] = str(summary["before_total"])
+    resp["X-Retention-After-Total"] = str(summary["after_total"])
+    return resp
+
+
 def _make_retention_purge_token(*, years: int, cutoff_iso: str) -> str:
     from django.core.signing import TimestampSigner
     signer = TimestampSigner(salt=_RETENTION_PURGE_TOKEN_SALT)
@@ -900,6 +950,12 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
     # then transitions into the by-week bucket rows.
     if fmt == "csv":
         return _retention_preview_csv_response(
+            retention=out, sparkline=sparkline,
+        )
+    # v4.00.70 — ?format=jsonl emits NDJSON: summary as line 1, then one
+    # bucket per line. Easy to feed to operator command-line tools.
+    if fmt == "jsonl":
+        return _retention_preview_jsonl_response(
             retention=out, sparkline=sparkline,
         )
 

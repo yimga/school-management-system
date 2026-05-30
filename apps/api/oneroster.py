@@ -108,16 +108,37 @@ def _gate(request: HttpRequest) -> JsonResponse | None:
 
 
 def _iter_orgs() -> Iterable[dict[str, Any]]:
+    """v4.00.70 — Enriched projection: parentSourcedId + metadata block w/
+    subdivisionCode (ISO 3166-2 hint when present on the School row)."""
     try:
         from apps.schools.models import School
         qs = School.objects.all()  # tenant-isolation-allow: roster-cross-tenant-explicit-platform-scope
         for s in qs[:1000]:
+            parent_id = ""
+            parent = getattr(s, "parent_org", None) or getattr(s, "parent", None)
+            if parent is not None and hasattr(parent, "pk"):
+                parent_id = str(parent.pk)
+            subdivision = (
+                getattr(s, "iso_3166_2_code", "")
+                or getattr(s, "subdivision_code", "")
+                or ""
+            )
+            country = (
+                getattr(s, "iso_3166_1_alpha_2", "")
+                or getattr(s, "country_code", "")
+                or ""
+            )
             yield {
                 "sourcedId": str(s.pk),
                 "status": "active",
                 "type": "school",
                 "name": getattr(s, "name", "") or "",
                 "identifier": getattr(s, "slug", "") or str(s.pk),
+                "parentSourcedId": parent_id,
+                "metadata": {
+                    "subdivisionCode": str(subdivision or "")[:8],
+                    "countryCode": str(country or "")[:2],
+                },
             }
     except Exception as exc:  # noqa: BLE001
         logger.debug("oneroster orgs: school model not available: %s", exc)
@@ -189,6 +210,19 @@ def orgs(request):
     items = list(_iter_orgs())
     page, meta = _paginate(request, items)
     return _envelope("orgs", page, meta)
+
+
+@require_http_methods(["GET"])
+def org_detail(request, sourced_id: str):
+    """v4.00.70 — Per-spec § 4.13 single-org GET. 404 when not found,
+    bearer-gated like the collection endpoint."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    for o in _iter_orgs():
+        if o["sourcedId"] == str(sourced_id):
+            return JsonResponse({"org": o})
+    return JsonResponse({"error": "org_not_found", "sourcedId": str(sourced_id)}, status=404)
 
 
 @require_http_methods(["GET"])

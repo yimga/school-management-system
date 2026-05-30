@@ -13873,6 +13873,258 @@ COUNTRY_LOCALIZATION["IN-KA"] = {
 
 
 # ---------------------------------------------------------------------------
+# v4.00.70 (2026-05-29) — +14 Tier-1 subdivisions:
+#   PE-CUS Cusco, AR-T Tucumán, EG-GIZ Giza,
+#   NG-AB Abia, NG-KD Kaduna, NG-RI Rivers,
+#   ZA-EC Eastern Cape, ZA-MP Mpumalanga,
+#   IT-CAM Campania, IT-VEN Veneto,
+#   ES-AN Andalusia, FR-OCC Occitanie, FR-NAQ Nouvelle-Aquitaine,
+#   GR-C West Greece.
+# ---------------------------------------------------------------------------
+
+def _v4_00_70_subdivision(code, calendar_code, calendar_label, term_count, term_names,
+                          ay_start_month, schools, levels, terminology):
+    return {
+        "calendar_system": {"code": calendar_code, "label": calendar_label,
+                            "term_count": term_count, "term_names": list(term_names),
+                            "week_start": 1, "academic_year_starts_month": ay_start_month},
+        "school_types": list(schools),
+        "education_levels": list(levels),
+        "terminology": dict(terminology),
+    }
+
+# Cusco (PE-CUS) — UNSAAC + Universidad Andina del Cusco.
+COUNTRY_LOCALIZATION["PE-CUS"] = _v4_00_70_subdivision(
+    "PE-CUS", "pecus-2-sem", "2-sem (Cusco / MINEDU)", 2,
+    ["Primer semestre", "Segundo semestre"], 3,
+    [
+        {"code": "inicial",   "label": "Educación Inicial",            "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primaria",  "label": "Primaria (1-6)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "secundaria","label": "Secundaria (1-5) + EBR",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "universidad","label":"UNSAAC + Andina del Cusco",    "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    [{"code":"pecus-1","label":"1° Primaria","order":1},
+     {"code":"pecus-6","label":"6° Primaria","order":6},
+     {"code":"pecus-11","label":"5° Secundaria","order":11}],
+    {"teacher":"Docente","principal":"Director","term":"Semestre","report_card":"Libreta","grade_level":"Grado"})
+
+# Tucumán (AR-T) — UNT + UTN-FRT + USP-T.
+COUNTRY_LOCALIZATION["AR-T"] = _v4_00_70_subdivision(
+    "AR-T", "art-2-cuat", "2-cuatrimestres (Tucumán)", 2,
+    ["Primer cuatrimestre", "Segundo cuatrimestre"], 3,
+    [
+        {"code": "jardin",      "label": "Jardín de Infantes",     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primario",    "label": "Nivel Primario (1-6)",   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "secundario",  "label": "Nivel Secundario (1-6)", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "12-17"},
+        {"code": "universidad", "label": "UNT + UTN-FRT + USP-T",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    [{"code":"art-1","label":"1° Primario","order":1},
+     {"code":"art-6","label":"6° Primario","order":6},
+     {"code":"art-12","label":"6° Secundario","order":12}],
+    {"teacher":"Docente","principal":"Director","term":"Cuatrimestre","report_card":"Boletín","grade_level":"Año"})
+
+# Giza (EG-GIZ) — Cairo U Giza + GUC main + Pharos Smart Village.
+COUNTRY_LOCALIZATION["EG-GIZ"] = _v4_00_70_subdivision(
+    "EG-GIZ", "eggiz-2-sem", "2-semester (Giza / Ministry of Ed)", 2,
+    ["First semester", "Second semester"], 9,
+    [
+        {"code": "rawda",       "label": "Rawda (kindergarten)",      "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-6"},
+        {"code": "ibtidai",     "label": "Ibtidai (1-6)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "edady",       "label": "Edady (7-9)",               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "thanawi",     "label": "Thanawi (10-12) + Thanawiya Amma", "glyph": "\U0001F393", "primary_sector": "secondary","typical_ages": "15-18"},
+        {"code": "gameaa",      "label": "Cairo U Giza + GUC + Pharos","glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    [{"code":"eggiz-1","label":"Year 1 (Ibtidai)","order":1},
+     {"code":"eggiz-6","label":"Year 6 (Ibtidai)","order":6},
+     {"code":"eggiz-9","label":"Year 3 (Edady)","order":9},
+     {"code":"eggiz-12","label":"Thanawiya Amma","order":12}],
+    {"teacher":"Mu'allim","principal":"Nazir","term":"Fasl Dirasi","report_card":"Shahada","grade_level":"Saff"})
+
+# Abia (NG-AB) — Abia State U + Michael Okpara U of Ag.
+COUNTRY_LOCALIZATION["NG-AB"] = _v4_00_70_subdivision(
+    "NG-AB", "ngab-3-term", "3-term (Abia / WAEC)", 3,
+    ["First term", "Second term", "Third term"], 9,
+    [
+        {"code": "nursery",  "label": "Nursery",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",  "label": "Primary (1-6)",                          "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "jss",      "label": "JSS 1-3",                                "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "sss",      "label": "SSS 1-3 + WAEC/NECO",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "university","label":"Abia State U + Michael Okpara U of Ag",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    [{"code":"ngab-1","label":"Primary 1","order":1},
+     {"code":"ngab-6","label":"Primary 6","order":6},
+     {"code":"ngab-9","label":"JSS 3","order":9},
+     {"code":"ngab-12","label":"SSS 3 + WAEC","order":12}],
+    {"teacher":"Mallam","principal":"Head Teacher","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Kaduna (NG-KD) — ABU Zaria + Kaduna State U + NDA.
+COUNTRY_LOCALIZATION["NG-KD"] = _v4_00_70_subdivision(
+    "NG-KD", "ngkd-3-term", "3-term (Kaduna / WAEC)", 3,
+    ["First term", "Second term", "Third term"], 9,
+    [
+        {"code": "nursery",  "label": "Nursery",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",  "label": "Primary (1-6)",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "jss",      "label": "JSS 1-3",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "sss",      "label": "SSS 1-3 + WAEC/NECO",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "university","label":"ABU Zaria + Kaduna State U + NDA","glyph": "\U0001F3DB", "primary_sector": "higher_ed",     "typical_ages": "18+"},
+    ],
+    [{"code":"ngkd-1","label":"Primary 1","order":1},
+     {"code":"ngkd-6","label":"Primary 6","order":6},
+     {"code":"ngkd-9","label":"JSS 3","order":9},
+     {"code":"ngkd-12","label":"SSS 3 + WAEC","order":12}],
+    {"teacher":"Mallam","principal":"Head Teacher","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Rivers (NG-RI) — Uniport + RSU + Pamo U Medical Sciences.
+COUNTRY_LOCALIZATION["NG-RI"] = _v4_00_70_subdivision(
+    "NG-RI", "ngri-3-term", "3-term (Rivers / WAEC)", 3,
+    ["First term", "Second term", "Third term"], 9,
+    [
+        {"code": "nursery",  "label": "Nursery",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primary",  "label": "Primary (1-6)",                 "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "jss",      "label": "JSS 1-3",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "sss",      "label": "SSS 1-3 + WAEC/NECO",           "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "university","label":"Uniport + RSU + Pamo Medical",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    [{"code":"ngri-1","label":"Primary 1","order":1},
+     {"code":"ngri-6","label":"Primary 6","order":6},
+     {"code":"ngri-9","label":"JSS 3","order":9},
+     {"code":"ngri-12","label":"SSS 3 + WAEC","order":12}],
+    {"teacher":"Mallam","principal":"Head Teacher","term":"Term","report_card":"Report","grade_level":"Class"})
+
+# Eastern Cape (ZA-EC) — Rhodes U + Walter Sisulu U + Fort Hare.
+COUNTRY_LOCALIZATION["ZA-EC"] = _v4_00_70_subdivision(
+    "ZA-EC", "zaec-4-term", "4-term (Eastern Cape / DBE)", 4,
+    ["Term 1", "Term 2", "Term 3", "Term 4"], 1,
+    [
+        {"code": "preschool","label": "Pre-school / Grade R",          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "5"},
+        {"code": "primary",  "label": "Primary (Gr 1-7)",              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "secondary","label": "Secondary (Gr 8-12) + Matric",  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "university","label":"Rhodes + Walter Sisulu + Fort Hare","glyph":"\U0001F3DB","primary_sector": "higher_ed",     "typical_ages": "18+"},
+    ],
+    [{"code":"zaec-1","label":"Grade 1","order":1},
+     {"code":"zaec-7","label":"Grade 7","order":7},
+     {"code":"zaec-12","label":"Grade 12 + Matric","order":12}],
+    {"teacher":"Educator","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Grade"})
+
+# Mpumalanga (ZA-MP) — University of Mpumalanga + Tshwane North TVET.
+COUNTRY_LOCALIZATION["ZA-MP"] = _v4_00_70_subdivision(
+    "ZA-MP", "zamp-4-term", "4-term (Mpumalanga / DBE)", 4,
+    ["Term 1", "Term 2", "Term 3", "Term 4"], 1,
+    [
+        {"code": "preschool","label": "Pre-school / Grade R",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "5"},
+        {"code": "primary",  "label": "Primary (Gr 1-7)",                    "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-13"},
+        {"code": "secondary","label": "Secondary (Gr 8-12) + Matric",        "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "13-18"},
+        {"code": "university","label":"University of Mpumalanga + Tshwane TVET","glyph":"\U0001F3DB","primary_sector": "higher_ed",     "typical_ages": "18+"},
+    ],
+    [{"code":"zamp-1","label":"Grade 1","order":1},
+     {"code":"zamp-7","label":"Grade 7","order":7},
+     {"code":"zamp-12","label":"Grade 12 + Matric","order":12}],
+    {"teacher":"Educator","principal":"Principal","term":"Term","report_card":"Report","grade_level":"Grade"})
+
+# Campania (IT-CAM) — Federico II + UNINA + Vanvitelli + UNISA + Suor Orsola.
+COUNTRY_LOCALIZATION["IT-CAM"] = _v4_00_70_subdivision(
+    "IT-CAM", "itcam-2-sem", "2-sem (Campania / MIUR)", 2,
+    ["I Quadrimestre", "II Quadrimestre"], 9,
+    [
+        {"code": "scuola_infanzia", "label": "Scuola dell'Infanzia",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primaria",        "label": "Scuola Primaria (1-5)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "media",           "label": "Scuola Secondaria I (6-8)",           "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "superiore",       "label": "Scuola Secondaria II + Maturità",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "universita",      "label": "Federico II + UNINA + Vanvitelli + UNISA","glyph":"\U0001F3DB","primary_sector": "higher_ed", "typical_ages": "18+"},
+    ],
+    [{"code":"itcam-inf","label":"Scuola Infanzia","order":0},
+     {"code":"itcam-5","label":"5ª Primaria","order":5},
+     {"code":"itcam-8","label":"3ª Media","order":9},
+     {"code":"itcam-13","label":"5ª Superiore (Maturità)","order":13}],
+    {"teacher":"Insegnante","principal":"Dirigente Scolastico","term":"Quadrimestre","report_card":"Pagella","grade_level":"Anno"})
+
+# Veneto (IT-VEN) — Padova + Ca' Foscari Venezia + Verona + Iuav.
+COUNTRY_LOCALIZATION["IT-VEN"] = _v4_00_70_subdivision(
+    "IT-VEN", "itven-2-sem", "2-sem (Veneto / MIUR)", 2,
+    ["I Quadrimestre", "II Quadrimestre"], 9,
+    [
+        {"code": "scuola_infanzia", "label": "Scuola dell'Infanzia",                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primaria",        "label": "Scuola Primaria (1-5)",               "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "media",           "label": "Scuola Secondaria I (6-8)",           "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "superiore",       "label": "Scuola Secondaria II + Maturità",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "universita",      "label": "Padova + Ca' Foscari + Verona + Iuav","glyph": "\U0001F3DB", "primary_sector": "higher_ed",     "typical_ages": "18+"},
+    ],
+    [{"code":"itven-inf","label":"Scuola Infanzia","order":0},
+     {"code":"itven-5","label":"5ª Primaria","order":5},
+     {"code":"itven-8","label":"3ª Media","order":9},
+     {"code":"itven-13","label":"5ª Superiore (Maturità)","order":13}],
+    {"teacher":"Insegnante","principal":"Dirigente Scolastico","term":"Quadrimestre","report_card":"Pagella","grade_level":"Anno"})
+
+# Andalucía (ES-AN) — Universidad de Sevilla + Granada + Málaga + Córdoba + Cádiz + Almería.
+COUNTRY_LOCALIZATION["ES-AN"] = _v4_00_70_subdivision(
+    "ES-AN", "esan-3-trim", "3-trim (Andalucía / Junta)", 3,
+    ["Primer trimestre", "Segundo trimestre", "Tercer trimestre"], 9,
+    [
+        {"code": "infantil", "label": "Educación Infantil (0-6)",                   "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primaria", "label": "Educación Primaria (1-6)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "eso",      "label": "ESO (1-4) + Título ESO",                     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-16"},
+        {"code": "bach",     "label": "Bachillerato (1-2) + EBAU/EvAU",             "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "16-18"},
+        {"code": "universidad","label":"Sevilla + Granada + Málaga + Córdoba + Cádiz","glyph":"\U0001F3DB","primary_sector": "higher_ed",     "typical_ages": "18+"},
+    ],
+    [{"code":"esan-1","label":"1° Primaria","order":1},
+     {"code":"esan-6","label":"6° Primaria","order":6},
+     {"code":"esan-10","label":"4° ESO + Título","order":10},
+     {"code":"esan-12","label":"2° Bach + EBAU","order":12}],
+    {"teacher":"Profesor","principal":"Director","term":"Trimestre","report_card":"Boletín","grade_level":"Curso"})
+
+# Occitanie (FR-OCC) — Toulouse Capitole + Montpellier + Paul Valéry + INP Toulouse.
+COUNTRY_LOCALIZATION["FR-OCC"] = _v4_00_70_subdivision(
+    "FR-OCC", "frocc-3-trim", "3-trim (Occitanie / EN)", 3,
+    ["Premier trimestre", "Deuxième trimestre", "Troisième trimestre"], 9,
+    [
+        {"code": "maternelle", "label": "École Maternelle (PS-GS)",               "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementaire","label": "École Élémentaire (CP-CM2)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "college",    "label": "Collège (6e-3e) + Brevet",               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "lycee",      "label": "Lycée (2nde-Term) + Baccalauréat",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "universite", "label": "Toulouse Capitole + Montpellier + INP",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    [{"code":"frocc-1","label":"CP","order":1},
+     {"code":"frocc-5","label":"CM2","order":5},
+     {"code":"frocc-9","label":"3e + Brevet","order":9},
+     {"code":"frocc-12","label":"Terminale + Bac","order":12}],
+    {"teacher":"Professeur","principal":"Proviseur","term":"Trimestre","report_card":"Bulletin","grade_level":"Niveau"})
+
+# Nouvelle-Aquitaine (FR-NAQ) — Bordeaux + Pau + La Rochelle + Limoges + Poitiers.
+COUNTRY_LOCALIZATION["FR-NAQ"] = _v4_00_70_subdivision(
+    "FR-NAQ", "frnaq-3-trim", "3-trim (Nouvelle-Aquitaine / EN)", 3,
+    ["Premier trimestre", "Deuxième trimestre", "Troisième trimestre"], 9,
+    [
+        {"code": "maternelle", "label": "École Maternelle (PS-GS)",               "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "elementaire","label": "École Élémentaire (CP-CM2)",             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "college",    "label": "Collège (6e-3e) + Brevet",               "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-14"},
+        {"code": "lycee",      "label": "Lycée (2nde-Term) + Baccalauréat",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "universite", "label": "Bordeaux + Pau + La Rochelle + Limoges + Poitiers", "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "18+"},
+    ],
+    [{"code":"frnaq-1","label":"CP","order":1},
+     {"code":"frnaq-5","label":"CM2","order":5},
+     {"code":"frnaq-9","label":"3e + Brevet","order":9},
+     {"code":"frnaq-12","label":"Terminale + Bac","order":12}],
+    {"teacher":"Professeur","principal":"Proviseur","term":"Trimestre","report_card":"Bulletin","grade_level":"Niveau"})
+
+# West Greece (GR-C) — Patras U + Hellenic Open + TEI Western Greece.
+COUNTRY_LOCALIZATION["GR-C"] = _v4_00_70_subdivision(
+    "GR-C", "grc-2-sem", "2-sem (West Greece / Ypep)", 2,
+    ["First semester", "Second semester"], 9,
+    [
+        {"code": "nipiagogeio","label": "Nipiagogeio (kindergarten)",         "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "dimotiko",   "label": "Dimotiko (1-6)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "gymnasio",   "label": "Gymnasio (7-9)",                     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "lykeio",     "label": "Lykeio (10-12) + Panhellenic Exams", "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "panepistimio","label":"Patras U + Hellenic Open",           "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    [{"code":"grc-1","label":"Year 1 (Dimotiko)","order":1},
+     {"code":"grc-6","label":"Year 6 (Dimotiko)","order":6},
+     {"code":"grc-9","label":"Year 3 (Gymnasio)","order":9},
+     {"code":"grc-12","label":"Year 3 Lykeio + Panhellenic","order":12}],
+    {"teacher":"Daskalos","principal":"Diefthyntis","term":"Examino","report_card":"Elegxos","grade_level":"Etos"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

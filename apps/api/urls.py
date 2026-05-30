@@ -554,6 +554,8 @@ urlpatterns = [
     path("super/wedges/<int:wedge_id>/", api_wedge_detail, name="super-wedge-detail"),
     # v4.00.36: OneRoster v1.2 read-only Rostering endpoints (wedge 44)
     path("roster/v1p2/orgs/", _oneroster.orgs, name="api-roster-v1p2-orgs"),
+    # v4.00.70 — single-org detail endpoint per spec § 4.13.
+    path("roster/v1p2/orgs/<str:sourced_id>/", _oneroster.org_detail, name="api-roster-v1p2-org-detail"),
     path("roster/v1p2/schools/", _oneroster.schools, name="api-roster-v1p2-schools"),
     path("roster/v1p2/users/", _oneroster.users, name="api-roster-v1p2-users"),
     path("roster/v1p2/students/", _oneroster.students, name="api-roster-v1p2-students"),
