@@ -1,0 +1,159 @@
+{% extends "control_plane_skeleton.html" %}
+{% load static %}
+
+{% block title %}LTI 1.3 tool registration · RunMyCampus{% endblock %}
+
+{% block content %}
+<div class="rmc-page-shell" data-rmc-page="lti-tool-registration">
+  <header class="rmc-page-header">
+    <h1 class="rmc-h1">LTI 1.3 tool registration</h1>
+    <p class="rmc-page-sub">
+      Onboard external tools (Khan, Quizlet, Kahoot…) as LTI 1.3 platforms.
+    </p>
+  </header>
+
+  {% if view_mode == "list" %}
+    <section class="rmc-section" data-rmc-section="lti-tool-list">
+      <div class="rmc-section-head">
+        <h2 class="rmc-h2">Registered tools ({{ rows|length }})</h2>
+        <a class="rmc-btn rmc-btn-primary" href="{{ register_url }}"
+           data-rmc-action="lti-tool-register">Register new tool</a>
+      </div>
+
+      {% if rows %}
+        <table class="rmc-data-table" data-rmc-table="lti-tools">
+          <thead>
+            <tr>
+              <th scope="col">Tool</th>
+              <th scope="col">Client ID</th>
+              <th scope="col">Deployment</th>
+              <th scope="col">Scopes</th>
+              <th scope="col">School</th>
+              <th scope="col">Status</th>
+              <th scope="col">&nbsp;</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in rows %}
+              <tr>
+                <td>{{ row.tool_name }}</td>
+                <td><code>{{ row.client_id|truncatechars:32 }}</code></td>
+                <td><code>{{ row.deployment_id|truncatechars:16 }}</code></td>
+                <td>{{ row.scopes|length }}</td>
+                <td>{{ row.school }}</td>
+                <td>
+                  {% if row.is_active %}
+                    <span class="rmc-pill rmc-pill-ok">Active</span>
+                  {% else %}
+                    <span class="rmc-pill rmc-pill-muted">Inactive</span>
+                  {% endif %}
+                </td>
+                <td><a href="{{ row.detail_url }}">Details</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="rmc-empty" data-rmc-empty="lti-tools">
+          No LTI 1.3 tools registered yet.
+          <a href="{{ register_url }}">Register the first one.</a>
+        </div>
+      {% endif %}
+    </section>
+
+  {% elif view_mode == "create" %}
+    <section class="rmc-section" data-rmc-section="lti-tool-form">
+      <h2 class="rmc-h2">Register a new LTI 1.3 tool</h2>
+      <form method="post" class="rmc-form" data-rmc-form="lti-tool-register"
+            novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="rmc-alert rmc-alert-error">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+        {% for field in form %}
+          <div class="rmc-field" data-rmc-field="{{ field.name }}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+              <small class="rmc-help">{{ field.help_text }}</small>
+            {% endif %}
+            {% if field.errors %}
+              <div class="rmc-field-error">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+        <div class="rmc-form-actions">
+          <button type="submit" class="rmc-btn rmc-btn-primary">
+            Register tool
+          </button>
+          <a href="{{ list_url }}" class="rmc-btn rmc-btn-ghost">Cancel</a>
+        </div>
+      </form>
+    </section>
+
+  {% elif view_mode == "result" %}
+    <section class="rmc-section" data-rmc-section="lti-tool-result"
+             data-rmc-once-only="1">
+      <div class="rmc-alert rmc-alert-ok">
+        <strong>Tool registered.</strong>
+        Integration #{{ integration_id }} ({{ tool_name }}).
+      </div>
+      <div class="rmc-callout rmc-callout-warn"
+           data-rmc-callout="one-time-secret">
+        <h3>Tool secret (shown once)</h3>
+        <p>
+          Copy this value to your tool now. RunMyCampus only stores its
+          SHA-256 hash — it cannot be recovered if lost.
+        </p>
+        <pre class="rmc-code" data-rmc-once-secret>{{ one_time_secret }}</pre>
+      </div>
+      <p>
+        <a class="rmc-btn rmc-btn-primary" href="{{ detail_url }}">
+          View details
+        </a>
+        <a class="rmc-btn rmc-btn-ghost" href="{{ list_url }}">
+          Back to list
+        </a>
+      </p>
+    </section>
+
+  {% elif view_mode == "detail" %}
+    <section class="rmc-section" data-rmc-section="lti-tool-detail">
+      <h2 class="rmc-h2">{{ cfg.tool_name|default:integration.service_name }}</h2>
+      <dl class="rmc-deflist">
+        <dt>Integration ID</dt><dd>#{{ integration.id }}</dd>
+        <dt>Client ID</dt><dd><code>{{ integration.client_id }}</code></dd>
+        <dt>Platform iss</dt><dd>{{ cfg.platform_id }}</dd>
+        <dt>Deployment ID</dt><dd><code>{{ cfg.deployment_id }}</code></dd>
+        <dt>Tool JWKS URL</dt><dd>{{ cfg.tool_jwks_url }}</dd>
+        <dt>OIDC login URL</dt><dd>{{ cfg.tool_oidc_login_url }}</dd>
+        <dt>Redirect URIs</dt>
+        <dd>
+          <ul>
+            {% for uri in cfg.tool_redirect_uris %}
+              <li><code>{{ uri }}</code></li>
+            {% endfor %}
+          </ul>
+        </dd>
+        <dt>Permitted scopes</dt>
+        <dd>
+          <ul>
+            {% for s in scopes %}
+              <li><code>{{ s }}</code></li>
+            {% endfor %}
+          </ul>
+        </dd>
+        <dt>Description</dt><dd>{{ cfg.tool_description|default:"—" }}</dd>
+        <dt>Registered at</dt><dd>{{ cfg.registered_at }}</dd>
+      </dl>
+      <p>
+        <a class="rmc-btn rmc-btn-ghost" href="{{ list_url }}">
+          Back to list
+        </a>
+      </p>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

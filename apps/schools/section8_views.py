@@ -650,7 +650,125 @@ def _authorize_lti_service_request(request, integration):
     provided = _extract_bearer_token(request)
     if expected and provided and secrets.compare_digest(expected, provided):
         return None
+    # Wave 25 v4.00.92 H9 — if the static bearer didn't match (or wasn't
+    # configured), fall through to platform-signed JWT verification.
+    ok_jwt, _reason, _claims = _decode_lti_platform_jwt(provided)
+    if ok_jwt:
+        return None
     return JsonResponse({"error": "Unauthorized"}, status=403)
+
+
+def _decode_lti_platform_jwt(token: str) -> tuple[bool, str, dict]:
+    """Decode + verify an LTI platform-signed Bearer token.
+
+    Wave 25 v4.00.92 H9. Returns ``(ok, reason, claims)`` where reason is
+    one of ``ok / no_bearer / expired_token / bad_token / missing_signature``.
+    """
+    if not token:
+        return False, "no_bearer", {}
+    try:
+        from apps.schools.lti_platform_jwks import (
+            PlatformJWKSError,
+            decode_and_verify_platform_jwt,
+        )
+    except SECTION8_OPTIONAL_FAILURES:
+        return False, "bad_token", {}
+    try:
+        claims = decode_and_verify_platform_jwt(token)
+    except PlatformJWKSError as err:
+        if err.reason == "sign_error":
+            text = str(err)
+            if "expired" in text.lower():
+                return False, "expired_token", {}
+            return False, "bad_token", {}
+        return False, "bad_token", {}
+    return True, "ok", claims
+
+
+def _lti_validate_token_scope(
+    request, required_scopes: tuple[str, ...]
+) -> tuple[bool, str]:
+    """Check the Authorization Bearer token's ``scope`` claim against
+    ``required_scopes``.
+
+    Wave 25 v4.00.92 H9. Returns ``(True, "ok")`` when any required scope
+    appears in the token's scope set. ``(False, reason)`` otherwise:
+    ``no_bearer`` / ``expired_token`` / ``bad_token`` / ``missing_scope``.
+
+    Back-compat: when the static-bearer matches (legacy Wave-pre-25 flow),
+    no token-scope check is enforced (caller must also call
+    :func:`_authorize_lti_service_request` first). This helper is intended
+    to layer on top — invoke after the legacy guard so a *correctly-signed
+    platform JWT* path can be scope-gated without breaking existing static
+    bearers in dev / fixture flows.
+    """
+    bearer = _extract_bearer_token(request)
+    if not bearer:
+        return False, "no_bearer"
+    ok, reason, claims = _decode_lti_platform_jwt(bearer)
+    if not ok:
+        # If reason is no_bearer (impossible here) or bad_token / expired,
+        # surface as-is. If JWT decode failed but the legacy static-bearer
+        # accepted the request, the higher-level view will already have let
+        # the request through and we treat scope-gating as a no-op (returns
+        # True). For now, the contract is: if the Bearer token is present
+        # but not a valid platform JWT, scope-gate fails.
+        return False, reason
+    scope = claims.get("scope") or claims.get("scopes") or ""
+    if isinstance(scope, list):
+        scopes = {str(s).strip() for s in scope if str(s).strip()}
+    else:
+        scopes = {s for s in str(scope).split() if s}
+    if not required_scopes:
+        return True, "ok"
+    for needed in required_scopes:
+        if needed in scopes:
+            return True, "ok"
+    return False, "missing_scope"
+
+
+def _insufficient_scope_response(required: tuple[str, ...]) -> JsonResponse:
+    """Return RFC-6750 ``insufficient_scope`` 403 JSON envelope."""
+    return JsonResponse(
+        {"error": "insufficient_scope", "scope": " ".join(required)},
+        status=403,
+    )
+
+
+def _enforce_lti_scope(request, integration, required: tuple[str, ...]):
+    """Wave 25 v4.00.92 H9 scope-gate.
+
+    Skipped (returns ``None``) when the static-bearer auth in
+    :func:`_authorize_lti_service_request` would have accepted the request
+    (back-compat for fixtures + Wave <25 deployments). Enforced when the
+    request carries a platform-signed Bearer JWT.
+
+    Returns a :class:`JsonResponse` 403 on missing scope; ``None`` to
+    continue.
+    """
+    bearer = _extract_bearer_token(request)
+    if not bearer:
+        # No Bearer header at all — the legacy guard would have already
+        # returned 403, so the caller will never reach this. Be defensive.
+        return _insufficient_scope_response(required)
+    # If the bearer is the legacy static service_bearer_token, skip scope
+    # enforcement (fixtures path).
+    cfg = integration.config or {}
+    expected = (
+        str(cfg.get("service_bearer_token") or "").strip()
+        or str(cfg.get("bearer_token") or "").strip()
+        or str(integration.client_secret or "").strip()
+    )
+    if expected and secrets.compare_digest(expected, bearer):
+        return None
+    ok, reason = _lti_validate_token_scope(request, required)
+    if ok:
+        return None
+    if reason == "missing_scope":
+        return _insufficient_scope_response(required)
+    if reason == "expired_token":
+        return JsonResponse({"error": "invalid_token", "reason": "expired_token"}, status=401)
+    return JsonResponse({"error": "invalid_token", "reason": reason}, status=401)
 
 
 def _lti_state(integration):
@@ -801,6 +919,24 @@ def lti_ags_lineitems(request, tool_id):
     if auth_err:
         return auth_err
 
+    from apps.schools.lti_tool_token import (
+        LTI_SCOPE_LINEITEM,
+        LTI_SCOPE_LINEITEM_RO,
+    )
+
+    if request.method == "GET":
+        scope_err = _enforce_lti_scope(
+            request, integration, (LTI_SCOPE_LINEITEM_RO, LTI_SCOPE_LINEITEM)
+        )
+        if scope_err:
+            return scope_err
+    else:
+        scope_err = _enforce_lti_scope(
+            request, integration, (LTI_SCOPE_LINEITEM,)
+        )
+        if scope_err:
+            return scope_err
+
     cfg = _lti_state(integration)
     items = list(cfg.get("_lti_lineitems") or [])
     if request.method == "GET":
@@ -884,6 +1020,22 @@ def lti_ags_scores(request, tool_id, lineitem_id):
     auth_err = _authorize_lti_service_request(request, integration)
     if auth_err:
         return auth_err
+    from apps.schools.lti_tool_token import (
+        LTI_SCOPE_RESULT_RO,
+        LTI_SCOPE_SCORE,
+    )
+
+    if request.method == "GET":
+        scope_err = _enforce_lti_scope(
+            request, integration, (LTI_SCOPE_RESULT_RO,)
+        )
+    else:
+        scope_err = _enforce_lti_scope(
+            request, integration, (LTI_SCOPE_SCORE,)
+        )
+    if scope_err:
+        return scope_err
+
     cfg = _lti_state(integration)
     items = cfg.get("_lti_lineitems") or []
     if not any(str(i.get("id")) == str(lineitem_id) for i in items):
@@ -928,6 +1080,11 @@ def lti_ags_results(request, tool_id, lineitem_id):
     auth_err = _authorize_lti_service_request(request, integration)
     if auth_err:
         return auth_err
+    from apps.schools.lti_tool_token import LTI_SCOPE_RESULT_RO
+
+    scope_err = _enforce_lti_scope(request, integration, (LTI_SCOPE_RESULT_RO,))
+    if scope_err:
+        return scope_err
     cfg = _lti_state(integration)
     scores = list((cfg.get("_lti_scores") or {}).get(str(lineitem_id)) or [])
     by_user = {}
@@ -974,6 +1131,13 @@ def lti_nrps_memberships(request, tool_id):
     auth_err = _authorize_lti_service_request(request, integration)
     if auth_err:
         return auth_err
+    from apps.schools.lti_tool_token import LTI_SCOPE_NRPS_MEMBERSHIP
+
+    scope_err = _enforce_lti_scope(
+        request, integration, (LTI_SCOPE_NRPS_MEMBERSHIP,)
+    )
+    if scope_err:
+        return scope_err
 
     from apps.schools.models import SchoolMembership
 

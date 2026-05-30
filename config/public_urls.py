@@ -1289,5 +1289,58 @@ urlpatterns = [
     ),
 ]
 
+# Wave 25 v4.00.92 — LTI 1.3 infrastructure (H7 + H8 + H10).
+# These MUST land in public_urls (not just config.urls) because the host
+# router sends `testserver` / base-domain / .well-known/ traffic here.
+# We PREPEND them so the trailing 2-segment regional catch-all
+# (``<language_code>/<country_code>/``) doesn't swallow them.
+from apps.schools.lti_platform_jwks import (  # noqa: E402
+    lti_platform_jwks_view as _lti_platform_jwks_view,
+)
+from apps.schools.lti_tool_admin import (  # noqa: E402
+    LTIToolRegistrationCreateView as _LTIToolRegistrationCreateView,
+    LTIToolRegistrationDetailView as _LTIToolRegistrationDetailView,
+    LTIToolRegistrationListView as _LTIToolRegistrationListView,
+)
+from apps.schools.lti_tool_token import (  # noqa: E402
+    lti_tool_token_endpoint as _lti_tool_token_endpoint,
+)
+
+_LTI_WAVE25_URLPATTERNS = [
+    # H10 — Public JWKS endpoint (well-known + alias)
+    path(
+        ".well-known/jwks.json",
+        _lti_platform_jwks_view,
+        name="lti_platform_jwks_well_known",
+    ),
+    path("lti/jwks/", _lti_platform_jwks_view, name="lti_platform_jwks"),
+    # H8 — LTI tool token endpoint (RFC 6749 § 4.4 client_credentials)
+    path(
+        "lti/auth/token/",
+        _lti_tool_token_endpoint,
+        name="lti_tool_token_endpoint",
+    ),
+    # H7 — Tool registration admin UI
+    path(
+        "super/lti/tools/",
+        _LTIToolRegistrationListView.as_view(),
+        name="lti_tool_registration_list",
+    ),
+    path(
+        "super/lti/tools/register/",
+        _LTIToolRegistrationCreateView.as_view(),
+        name="lti_tool_registration_create",
+    ),
+    path(
+        "super/lti/tools/<int:pk>/",
+        _LTIToolRegistrationDetailView.as_view(),
+        name="lti_tool_registration_detail",
+    ),
+]
+
+# PREPEND so the Wave 25 routes resolve before the 2-segment regional
+# marketing catch-all swallows them.
+urlpatterns = _LTI_WAVE25_URLPATTERNS + urlpatterns
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

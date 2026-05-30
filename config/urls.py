@@ -682,6 +682,11 @@ urlpatterns = [
         "requests/", include(("apps.requests.urls", "requests"), namespace="requests")
     ),
     path("", include(("apps.feedback.urls", "feedback"), namespace="feedback")),
+    # v4.00.91: assist dock registry endpoints (Wave A: introspection only).
+    path(
+        "assist-dock/",
+        include(("apps.assist_dock.urls", "assist_dock"), namespace="assist_dock"),
+    ),
     path(
         "super/feedback/",
         include(("apps.feedback.operator_urls", "feedback_operator"), namespace="feedback_operator"),
@@ -1696,6 +1701,55 @@ urlpatterns = [
     # Resolve name for templates that link to operator help (manager host uses config.manager_urls; root needs name for tests/shared templates)
     path("help/", lambda request: redirect("public_support_hub"), name="manager_help"),
 ]
+
+# Wave 25 v4.00.92 — LTI 1.3 infrastructure (H7 + H8 + H10).
+from apps.schools.lti_platform_jwks import (  # noqa: E402
+    lti_platform_jwks_view,
+)
+from apps.schools.lti_tool_admin import (  # noqa: E402
+    LTIToolRegistrationCreateView,
+    LTIToolRegistrationDetailView,
+    LTIToolRegistrationListView,
+)
+from apps.schools.lti_tool_token import (  # noqa: E402
+    lti_tool_token_endpoint,
+)
+
+_WAVE25_LTI_PATTERNS = [
+    # H10 — Public JWKS endpoint (well-known + alias)
+    path(
+        ".well-known/jwks.json",
+        lti_platform_jwks_view,
+        name="lti_platform_jwks_well_known",
+    ),
+    path("lti/jwks/", lti_platform_jwks_view, name="lti_platform_jwks"),
+    # H8 — LTI tool token endpoint (RFC 6749 § 4.4 client_credentials)
+    path(
+        "lti/auth/token/",
+        lti_tool_token_endpoint,
+        name="lti_tool_token_endpoint",
+    ),
+    # H7 — Tool registration admin UI
+    path(
+        "super/lti/tools/",
+        LTIToolRegistrationListView.as_view(),
+        name="lti_tool_registration_list",
+    ),
+    path(
+        "super/lti/tools/register/",
+        LTIToolRegistrationCreateView.as_view(),
+        name="lti_tool_registration_create",
+    ),
+    path(
+        "super/lti/tools/<int:pk>/",
+        LTIToolRegistrationDetailView.as_view(),
+        name="lti_tool_registration_detail",
+    ),
+]
+
+# PREPEND so the Wave 25 routes resolve before the 2-segment
+# ``<language_code>/<country_code>/`` regional landing swallows them.
+urlpatterns = _WAVE25_LTI_PATTERNS + urlpatterns
 
 # v4.00.82 Wave 14 T4 — Parallel Prometheus scrape endpoint for the LMS
 # OAuth metrics module (apps.integrations_marketplace.lms_oauth_metrics).
