@@ -21,6 +21,7 @@ from . import (
     views_audit_admin,
     views_command_center,
     views_connectors,
+    views_dlq_admin,
     views_dsar_admin,
     views_health,
     views_lms_diagnostics,
@@ -108,6 +109,11 @@ urlpatterns = [
     path("operator/webhooks/deliveries/<int:delivery_id>/replay/", views_webhook_admin.WebhookDeliveryReplayView.as_view(), name="operator_webhook_delivery_replay"),  # rbac-allow: super-staff-webhook-manual-replay
     # v3.39.0 Agent 2 — operator-side subscription deactivate (soft-delete) + emit reserved audit event.
     path("operator/webhooks/<int:sub_id>/deactivate/", views_webhook_admin.MigrationCloudWebhookDeactivateView.as_view(), name="operator_webhook_deactivate"),  # rbac-allow: super-staff-webhook-subscription-deactivate
+    # v4.00.80 Wave 12 T4 — Staff-only operator surface for WebhookDeadLetter triage + replay.
+    # Mounted under the same /operator/ namespace as the webhook admin
+    # views so the operator shell only needs to authorize one tree.
+    path("operator/dlq/", views_dlq_admin.WebhookDeadLetterListView.as_view(), name="migration_cloud_dlq_list"),  # rbac-allow: super-staff-webhook-dlq-list
+    path("operator/dlq/<int:dlq_id>/replay/", views_dlq_admin.WebhookDeadLetterReplayView.as_view(), name="migration_cloud_dlq_replay"),  # rbac-allow: super-staff-webhook-dlq-manual-replay
     # v3.35.0 Agent 3 — MAA v2.0 promotion-readiness operator dashboard.
     path("maa-v2-promotion/", views_maa_promotion.MAA_V2_PromotionDashboardView.as_view(), name="maa_v2_promotion_dashboard"),  # rbac-allow: super-staff-view-maa-promotion-status
     # v3.40.0 Agent 15 — MAA v2.0 counsel-activate UI (operator GET + POST flip).

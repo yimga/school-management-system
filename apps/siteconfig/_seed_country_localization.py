@@ -15501,6 +15501,162 @@ COUNTRY_LOCALIZATION["DE-NW"] = _v4_00_79("DE-NW","denw-2-sem","2-semester (Nord
 
 
 # ---------------------------------------------------------------------------
+# v4.00.80 (2026-05-30) — +14 subdivisions: JP-13 Tokyo (huge gap closer)
+#   + CN inner provinces (CN-XZ Tibet, CN-HA Henan) + IN east/central states
+#   (IN-OD Odisha, IN-CT Chhattisgarh, IN-JH Jharkhand, IN-AS Assam)
+#   + JP Kanto prefectures (JP-09 Tochigi, JP-10 Gunma, JP-11 Saitama)
+#   + BR major states (BR-MG Minas Gerais, BR-RJ Rio de Janeiro)
+#   + EU (PL-DS Lower Silesia, PT-15 Setúbal).
+# ---------------------------------------------------------------------------
+def _v4_00_80(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {"calendar_system": {"code": calc, "label": label, "term_count": tc, "term_names": list(terms),
+            "week_start": 1, "academic_year_starts_month": asm},
+            "school_types": list(schools), "education_levels": list(levels), "terminology": dict(term)}
+
+# Tokyo (JP-13) — overdue.
+COUNTRY_LOCALIZATION["JP-13"] = _v4_00_80("JP-13","jp13-3-term","3-term (Tokyo / Daigaku Nyushi)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12) + 共通テスト","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UTokyo + Waseda + Keio + TIT + Hitotsubashi + Tokyo Tech","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp13-1","label":"Grade 1","order":1},{"code":"jp13-9","label":"Grade 9","order":9},{"code":"jp13-12","label":"Grade 12 + 共通テスト","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# Tibet AR (CN-XZ).
+COUNTRY_LOCALIZATION["CN-XZ"] = _v4_00_80("CN-XZ","cnxz-2-sem","2-semester (Tibet AR / Gaokao)",2,["First semester","Second semester"],9,
+    [{"code":"youeryuan","label":"Yòu'éryuán","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"xiaoxue","label":"Xiǎoxué (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chuzhong","label":"Chūzhōng (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"gaozhong","label":"Gāozhōng (Gr 10-12) + Gaokao","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"daxue","label":"Tibet Univ + Tibet Inst","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cnxz-1","label":"Grade 1","order":1},{"code":"cnxz-9","label":"Grade 9","order":9},{"code":"cnxz-12","label":"Grade 12 + Gaokao","order":12}],
+    {"teacher":"Lǎoshī","principal":"Xiàozhǎng","term":"Xuéqī","report_card":"Chéngjī dān","grade_level":"Niánjí"})
+
+# Henan (CN-HA).
+COUNTRY_LOCALIZATION["CN-HA"] = _v4_00_80("CN-HA","cnha-2-sem","2-semester (Henan / Gaokao)",2,["First semester","Second semester"],9,
+    [{"code":"youeryuan","label":"Yòu'éryuán","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"xiaoxue","label":"Xiǎoxué (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chuzhong","label":"Chūzhōng (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"gaozhong","label":"Gāozhōng (Gr 10-12) + Gaokao","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"daxue","label":"Zhengzhou Univ + Henan Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"cnha-1","label":"Grade 1","order":1},{"code":"cnha-9","label":"Grade 9","order":9},{"code":"cnha-12","label":"Grade 12 + Gaokao","order":12}],
+    {"teacher":"Lǎoshī","principal":"Xiàozhǎng","term":"Xuéqī","report_card":"Chéngjī dān","grade_level":"Niánjí"})
+
+# Odisha (IN-OD).
+COUNTRY_LOCALIZATION["IN-OD"] = _v4_00_80("IN-OD","inod-2-sem","2-semester (Odisha / BSE)",2,["Semester 1","Semester 2"],6,
+    [{"code":"anganwadi","label":"Anganwadi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Cl 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"upper_primary","label":"Upper Primary (Cl 6-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"high_school","label":"High School (Cl 9-10) + HSC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"hsc","label":"+2 (Cl 11-12) + CHSE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"Utkal + NIT-RKL + IIT-BBS","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"inod-1","label":"Class 1","order":1},{"code":"inod-10","label":"Class 10 + HSC","order":10},{"code":"inod-12","label":"+2 + CHSE","order":12}],
+    {"teacher":"Shikhyaka","principal":"Pradhan","term":"Semester","report_card":"Marks Sheet","grade_level":"Class"})
+
+# Chhattisgarh (IN-CT).
+COUNTRY_LOCALIZATION["IN-CT"] = _v4_00_80("IN-CT","inct-2-sem","2-semester (Chhattisgarh / CGBSE)",2,["Semester 1","Semester 2"],6,
+    [{"code":"anganwadi","label":"Anganwadi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Cl 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"upper_primary","label":"Upper Primary (Cl 6-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"high_school","label":"High School (Cl 9-10) + Board","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"hsc","label":"Higher Secondary (Cl 11-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"IIT-BSP + Pt. R. S. Univ + NIT Raipur","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"inct-1","label":"Class 1","order":1},{"code":"inct-10","label":"Class 10","order":10},{"code":"inct-12","label":"Class 12","order":12}],
+    {"teacher":"Shikshak","principal":"Pradhanachary","term":"Semester","report_card":"Marks Sheet","grade_level":"Class"})
+
+# Jharkhand (IN-JH).
+COUNTRY_LOCALIZATION["IN-JH"] = _v4_00_80("IN-JH","injh-2-sem","2-semester (Jharkhand / JAC)",2,["Semester 1","Semester 2"],6,
+    [{"code":"anganwadi","label":"Anganwadi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Cl 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"upper_primary","label":"Upper Primary (Cl 6-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"secondary","label":"Secondary (Cl 9-10) + Matric","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"intermediate","label":"Intermediate (Cl 11-12) + JAC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"IIT-Dhanbad + BIT Mesra + Ranchi Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"injh-1","label":"Class 1","order":1},{"code":"injh-10","label":"Class 10 + Matric","order":10},{"code":"injh-12","label":"Class 12 + JAC","order":12}],
+    {"teacher":"Adhyapak","principal":"Pradhanacharya","term":"Semester","report_card":"Marks Sheet","grade_level":"Class"})
+
+# Assam (IN-AS).
+COUNTRY_LOCALIZATION["IN-AS"] = _v4_00_80("IN-AS","inas-2-sem","2-semester (Assam / SEBA)",2,["First terminal","Annual"],6,
+    [{"code":"anganwadi","label":"Anganwadi","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"lower_primary","label":"Lower Primary (Cl 1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"5-10"},
+     {"code":"upper_primary","label":"Upper Primary (Cl 6-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-13"},
+     {"code":"secondary","label":"Secondary (Cl 9-10) + HSLC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"14-15"},
+     {"code":"higher_secondary","label":"Higher Secondary (Cl 11-12) + AHSEC","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"Gauhati Univ + IIT-G + Tezpur Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"inas-1","label":"Class 1","order":1},{"code":"inas-10","label":"Class 10 + HSLC","order":10},{"code":"inas-12","label":"Class 12 + AHSEC","order":12}],
+    {"teacher":"Xikkhok","principal":"Adhyaksha","term":"Terminal","report_card":"Marks Sheet","grade_level":"Class"})
+
+# Tochigi (JP-09).
+COUNTRY_LOCALIZATION["JP-09"] = _v4_00_80("JP-09","jp09-3-term","3-term (Tochigi)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Utsunomiya Univ + Sano Univ","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp09-1","label":"Grade 1","order":1},{"code":"jp09-9","label":"Grade 9","order":9},{"code":"jp09-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# Gunma (JP-10).
+COUNTRY_LOCALIZATION["JP-10"] = _v4_00_80("JP-10","jp10-3-term","3-term (Gunma)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Gunma Univ + Takasaki City","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp10-1","label":"Grade 1","order":1},{"code":"jp10-9","label":"Grade 9","order":9},{"code":"jp10-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# Saitama (JP-11).
+COUNTRY_LOCALIZATION["JP-11"] = _v4_00_80("JP-11","jp11-3-term","3-term (Saitama)",3,["1st term","2nd term","3rd term"],4,
+    [{"code":"yochien","label":"Yōchien","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"shogakko","label":"Shōgakkō (Gr 1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"chugakko","label":"Chūgakkō (Gr 7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"koukou","label":"Kōkō (Gr 10-12)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"Saitama Univ + Bunkyo Gakuin","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"jp11-1","label":"Grade 1","order":1},{"code":"jp11-9","label":"Grade 9","order":9},{"code":"jp11-12","label":"Grade 12","order":12}],
+    {"teacher":"Sensei","principal":"Kōchō","term":"Gakki","report_card":"Tsuchihyō","grade_level":"Gakunen"})
+
+# Minas Gerais (BR-MG).
+COUNTRY_LOCALIZATION["BR-MG"] = _v4_00_80("BR-MG","brmg-2-sem","2-semester (Minas Gerais / ENEM)",2,["1º semestre","2º semestre"],2,
+    [{"code":"infantil","label":"Educação Infantil","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"0-5"},
+     {"code":"fundamental","label":"Fundamental (1-9)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"medio","label":"Médio (1-3) + ENEM","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"superior","label":"UFMG + PUC-MG + UFV + UFOP + UFLA","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"brmg-1","label":"1º ano EF","order":1},{"code":"brmg-9","label":"9º ano EF","order":9},{"code":"brmg-12","label":"3º ano EM + ENEM","order":12}],
+    {"teacher":"Professor","principal":"Diretor","term":"Semestre","report_card":"Boletim","grade_level":"Ano"})
+
+# Rio de Janeiro (BR-RJ).
+COUNTRY_LOCALIZATION["BR-RJ"] = _v4_00_80("BR-RJ","brrj-2-sem","2-semester (Rio de Janeiro / ENEM)",2,["1º semestre","2º semestre"],2,
+    [{"code":"infantil","label":"Educação Infantil","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"0-5"},
+     {"code":"fundamental","label":"Fundamental (1-9) + SAEB","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-14"},
+     {"code":"medio","label":"Médio (1-3) + ENEM","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"superior","label":"UFRJ + UERJ + PUC-Rio + UFF + UNIRIO","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"brrj-1","label":"1º ano EF","order":1},{"code":"brrj-9","label":"9º ano EF","order":9},{"code":"brrj-12","label":"3º ano EM + ENEM","order":12}],
+    {"teacher":"Professor","principal":"Diretor","term":"Semestre","report_card":"Boletim","grade_level":"Ano"})
+
+# Lower Silesia (PL-DS).
+COUNTRY_LOCALIZATION["PL-DS"] = _v4_00_80("PL-DS","plds-2-sem","2-semester (Dolnośląskie / Wrocław)",2,["I semestr","II semestr"],9,
+    [{"code":"przedszkole","label":"Przedszkole","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-6"},
+     {"code":"podstawowa","label":"Szkoła podstawowa (Kl 1-8)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-14"},
+     {"code":"liceum","label":"Liceum (Kl 1-4) + Matura","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"PWr + UWr + UM Wrocław","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"plds-1","label":"Klasa 1","order":1},{"code":"plds-8","label":"Klasa 8","order":8},{"code":"plds-12","label":"Liceum 4 + Matura","order":12}],
+    {"teacher":"Nauczyciel","principal":"Dyrektor","term":"Semestr","report_card":"Świadectwo","grade_level":"Klasa"})
+
+# Setúbal (PT-15).
+COUNTRY_LOCALIZATION["PT-15"] = _v4_00_80("PT-15","pt15-3-term","3-term (Setúbal)",3,["Primeiro período","Segundo período","Terceiro período"],9,
+    [{"code":"prescolar","label":"Pré-escolar","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"basico1","label":"Ensino Básico 1º Ciclo (1-4)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-9"},
+     {"code":"basico2","label":"Ensino Básico 2º Ciclo (5-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"10-11"},
+     {"code":"basico3","label":"Ensino Básico 3º Ciclo (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"secundario","label":"Secundário (10-12) + Exames Nacionais","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"ISP Setúbal + Univ Évora satellite","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"pt15-1","label":"1º ano","order":1},{"code":"pt15-9","label":"9º ano","order":9},{"code":"pt15-12","label":"12º ano + Exames","order":12}],
+    {"teacher":"Professor","principal":"Diretor","term":"Período","report_card":"Avaliação","grade_level":"Ano"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

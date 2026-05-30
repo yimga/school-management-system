@@ -74,6 +74,8 @@ _DEMOGRAPHIC_OVERRIDE_FIELDS = (
     "stateOfBirthAbbreviation",
     "publicSchoolResidenceStatus",
     "tribalAffiliation",  # v4.00.79
+    "preferredFirstName",  # v4.00.80
+    "preferredLastName",  # v4.00.80
 )
 
 
@@ -447,6 +449,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_tribal_affiliation(inner)
     if err is not None:
         return None, err
+    err = _validate_preferred_names(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -735,6 +740,46 @@ def _validate_tribal_affiliation(inner: dict[str, Any]):
              "reason": "control_chars"},
             status=400,
         )
+    return None
+
+
+# v4.00.80 — Demographics POST/PUT `preferredFirstName` / `preferredLastName`.
+#
+# OneRoster v1.2 spec carries optional preferredFirstName + preferredLastName
+# for "the name the user wishes to be called" (legal "Robert" -> preferred
+# "Bob"; "María Cristina" -> "Cristina"). No backing column on
+# StudentProfile / User; routed to the override ring. Same defensive shape
+# as middleName / suffix+title: 80-char cap matches User.first_name /
+# User.last_name column width, control-char rejection.
+_PREFERRED_NAME_MAX_LEN = 80
+_PREFERRED_NAME_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_preferred_names(inner: dict[str, Any]):
+    """Validate both preferredFirstName + preferredLastName in one pass.
+    Returns None on accept; JsonResponse(400) on first failure."""
+    for field in ("preferredFirstName", "preferredLastName"):
+        if field not in inner:
+            continue
+        raw = str(inner.get(field) or "")
+        if not raw:
+            continue  # explicit clear
+        if len(raw) > _PREFERRED_NAME_MAX_LEN:
+            return JsonResponse(
+                {"error": "bad_preferred_name",
+                 "reason": "too_long",
+                 "field": field,
+                 "received_length": len(raw),
+                 "max_length": _PREFERRED_NAME_MAX_LEN},
+                status=400,
+            )
+        if _PREFERRED_NAME_CONTROL_RE.search(raw):
+            return JsonResponse(
+                {"error": "bad_preferred_name",
+                 "reason": "control_chars",
+                 "field": field},
+                status=400,
+            )
     return None
 
 

@@ -2928,3 +2928,183 @@ def category_detail_v1p2_roster(request: HttpRequest, sourced_id: str):
         if item["sourcedId"] == sourced_id:
             return JsonResponse({"category": item})
     return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.80 Wave 12 T2 — OneRoster v1.2 Result Service /results/ GET (Roster
+# Service path) per IMS Result Service spec § 4.13.
+#
+# Data source: there is no dedicated "Result" / "StudentLineItemResult" model
+# in this codebase — the closest analogue is ``apps.evals.Evaluation`` (one
+# row per student × subject_assignment × term). Each Evaluation row already
+# projects through ``_eval_to_result`` for the legacy Result-Service path;
+# the Wave 12 T2 surface projects the SAME backing rows into the IMS v1.2
+# Result shape on the Roster-Service path, with a stable synthetic
+# sourcedId = SHA-256("result:<tenant>:<student_id>:<lineitem_id>")[:16].
+#
+# NAMING NOTE: the file already binds ``results_list`` / ``result_detail``
+# from v4.00.39 to the legacy Result-Service URL. To avoid collision the
+# new Wave 12 T2 views are suffixed ``_v1p2_roster`` — mirrors the Wave 11
+# T2 categories rename pattern.
+# ---------------------------------------------------------------------------
+
+
+def _synth_result_sourced_id(tenant_schema: str, student_id: str, lineitem_id: str) -> str:
+    import hashlib
+    raw = f"result:{tenant_schema}:{student_id}:{lineitem_id}".encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()[:16]
+
+
+def _eval_score_status(e) -> str:
+    """Map an Evaluation row to an IMS v1.2 ``scoreStatus`` enum value.
+
+    Values (per spec): ``fully graded`` | ``exempt`` | ``not submitted`` |
+    ``partially graded`` | ``submitted``. We pick based on which score
+    component(s) are populated.
+    """
+    final = getattr(e, "final_score", None)
+    if final is not None:
+        return "fully graded"
+    exam = getattr(e, "exam_score", None)
+    seq1 = getattr(e, "seq1_score", None)
+    seq2 = getattr(e, "seq2_score", None)
+    populated = [v for v in (exam, seq1, seq2) if v is not None]
+    if populated:
+        return "partially graded"
+    return "not submitted"
+
+
+def _eval_to_result_v1p2(e, tenant_schema: str, request: HttpRequest) -> dict[str, Any]:
+    """Project an Evaluation row into the IMS v1.2 Result schema."""
+    sa = getattr(e, "subject_assignment", None)
+    classroom_id = getattr(sa, "classroom_id", "") if sa is not None else ""
+    lineitem_id = f"li-{classroom_id}" if classroom_id else ""
+    student_id = str(getattr(e, "student_id", "") or "")
+    score = getattr(e, "final_score", None)
+    if score is None:
+        score = getattr(e, "exam_score", None)
+    try:
+        score_val = float(score) if score is not None else None  # money-float-allow: oneroster-score-is-not-money
+    except (ValueError, TypeError):
+        score_val = None
+    mtime = getattr(e, "updated_at", None)
+    try:
+        mtime_iso = mtime.isoformat() if mtime else ""
+    except Exception:  # noqa: BLE001
+        mtime_iso = ""
+    sid = _synth_result_sourced_id(tenant_schema, student_id, lineitem_id)
+    # Build self-referential hrefs using the request's host so partners can
+    # follow links without hardcoding the deployment URL.
+    try:
+        base = request.build_absolute_uri("/")[:-1]
+    except Exception:  # noqa: BLE001
+        base = ""
+    return {
+        "sourcedId": sid,
+        "status": "active",
+        "dateLastModified": mtime_iso,
+        "metadata": {},
+        "score": score_val,
+        "scoreStatus": _eval_score_status(e),
+        "scoreDate": mtime_iso,
+        "comment": str(getattr(e, "remarks", "") or ""),
+        "lineItem": {
+            "sourcedId": lineitem_id,
+            "href": f"{base}/api/roster/v1p2/lineItems/{lineitem_id}/" if lineitem_id else "",
+        },
+        "student": {
+            "sourcedId": student_id,
+            "href": f"{base}/api/roster/v1p2/students/{student_id}/" if student_id else "",
+        },
+    }
+
+
+def _iter_results_v1p2(request: HttpRequest, tenant_schema: str) -> Iterable[dict[str, Any]]:
+    try:
+        from apps.evals.models import Evaluation
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("v4.00.80 T2 results: Evaluation unavailable: %s", exc)
+        return
+    qs = Evaluation.objects.all().order_by("-updated_at")[:1000]  # tenant-isolation-allow: result-service-platform-scope-bearer-auth-required
+    for e in qs:
+        yield _eval_to_result_v1p2(e, tenant_schema, request)
+
+
+@require_http_methods(["GET"])
+def results_list_v1p2_roster(request: HttpRequest):
+    """v4.00.80 Wave 12 T2 — GET /api/roster/v1p2/results/ per spec § 4.13.
+
+    Query params:
+      ?since=ISO              window filter (dateLastModified >= since)
+      ?before=ISO             window filter (dateLastModified <= before)
+      ?studentSourcedId=<pk>  filter by student pk
+      ?lineItemSourcedId=<id> filter by lineitem sourcedId (e.g. ``li-42``)
+      ?limit=N                default 100, capped at 500
+      ?offset=N               default 0
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+
+    since_raw = (request.GET.get("since") or "").strip()
+    before_raw = (request.GET.get("before") or "").strip()
+    ok_since, since_val = _parse_iso_window(since_raw)
+    if not ok_since:
+        return JsonResponse({"error": "bad_since", "value": since_raw}, status=400)
+    ok_before, before_val = _parse_iso_window(before_raw)
+    if not ok_before:
+        return JsonResponse({"error": "bad_before", "value": before_raw}, status=400)
+
+    tenant_schema = _resolve_tenant_schema(request)
+    items = list(_iter_results_v1p2(request, tenant_schema))
+
+    if since_val:
+        items = [it for it in items if (it.get("dateLastModified") or "") >= since_val]
+    if before_val:
+        items = [it for it in items if (it.get("dateLastModified") or "") <= before_val]
+
+    student_q = (request.GET.get("studentSourcedId") or "").strip()
+    if student_q:
+        items = [
+            it for it in items
+            if (it.get("student") or {}).get("sourcedId") == student_q
+        ]
+    lineitem_q = (request.GET.get("lineItemSourcedId") or "").strip()
+    if lineitem_q:
+        items = [
+            it for it in items
+            if (it.get("lineItem") or {}).get("sourcedId") == lineitem_q
+        ]
+
+    total = len(items)
+
+    try:
+        limit = int(request.GET.get("limit") or 100)
+    except (ValueError, TypeError):
+        limit = 100
+    try:
+        offset = int(request.GET.get("offset") or 0)
+    except (ValueError, TypeError):
+        offset = 0
+    limit = max(1, min(500, limit))
+    offset = max(0, offset)
+    page = items[offset:offset + limit]
+
+    resp = JsonResponse({"results": page})
+    resp["X-Total-Count"] = str(total)
+    resp["X-Limit"] = str(limit)
+    resp["X-Offset"] = str(offset)
+    return resp
+
+
+@require_http_methods(["GET"])
+def result_detail_v1p2_roster(request: HttpRequest, sourced_id: str):
+    """v4.00.80 Wave 12 T2 — GET /api/roster/v1p2/results/<sourced_id>/."""
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    tenant_schema = _resolve_tenant_schema(request)
+    for item in _iter_results_v1p2(request, tenant_schema):
+        if item["sourcedId"] == sourced_id:
+            return JsonResponse({"result": item})
+    return JsonResponse({"error": "not_found", "sourcedId": sourced_id}, status=404)

@@ -582,6 +582,12 @@ urlpatterns = [
     # Specific paths registered BEFORE the <str:sourced_id> catch-all.
     path("roster/v1p2/categories/", _oneroster_results.categories_list_v1p2_roster, name="api-roster-v1p2-categories"),
     path("roster/v1p2/categories/<str:sourced_id>/", _oneroster_results.category_detail_v1p2_roster, name="api-roster-v1p2-category-detail"),
+    # v4.00.80 Wave 12 T2 — Results GET (list + detail) per Result Service
+    # spec § 4.13 on the Roster Service path. Synthesizes from Evaluation
+    # rows projected into the IMS v1.2 Result schema. Specific paths
+    # registered BEFORE the <str:sourced_id> catch-all.
+    path("roster/v1p2/results/", _oneroster_results.results_list_v1p2_roster, name="api-roster-v1p2-results"),
+    path("roster/v1p2/results/<str:sourced_id>/", _oneroster_results.result_detail_v1p2_roster, name="api-roster-v1p2-result-detail"),
     # v4.00.59 — OneRoster v1.2 demographics endpoints (read-only).
     # v4.00.60 — POST/PUT write coverage (order matters: write routes BEFORE
     # the <str:sourced_id> catch-all so they don't get swallowed).
