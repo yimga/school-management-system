@@ -20,8 +20,17 @@ def downscope_for_operation(*, provider: str, operation: str, default_scopes: tu
       - "manage_users"   -> need full default scopes (no downscope)
 
     Returns intersection of (operation's required scope keywords)
-    with (default_scopes). Empty intersection -> returns full default
-    (safe fallback).
+    with (default_scopes). A scope string matches if ANY of its
+    keyword aliases is present (case-insensitive substring). This
+    accommodates both "write"-named scopes (generic OAuth providers)
+    AND Canvas-style URL scopes which encode the HTTP verb
+    (``url:POST|/api/v1/...``).
+
+    Keyword aliases:
+      write -> {"write", "post", "put", "delete", "patch"}
+      read  -> {"read", "get"}
+
+    Empty intersection -> returns full default (safe fallback).
     """
     if not default_scopes:
         return tuple()
@@ -31,13 +40,16 @@ def downscope_for_operation(*, provider: str, operation: str, default_scopes: tu
     write_ops = {"push_grade", "update_assignment", "create_assignment", "delete_assignment"}
     read_ops = {"read_roster", "read_attendance", "read_grades", "read_courses"}
     if op_lower in write_ops:
-        keyword = "write"
+        keywords = ("write", "post", "put", "delete", "patch")
     elif op_lower in read_ops:
-        keyword = "read"
+        keywords = ("read", "get")
     else:
         # Unknown operation -> default scope (no downscope, safe)
         return tuple(default_scopes)
-    matched = tuple(s for s in default_scopes if keyword in s.lower())
+    matched = tuple(
+        s for s in default_scopes
+        if any(k in s.lower() for k in keywords)
+    )
     return matched or tuple(default_scopes)
 
 

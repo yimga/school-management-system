@@ -172,9 +172,13 @@ def is_scaffold() -> bool:
 
 # ---------------------------------------------------------------------------
 # v4.00.83 — Live OAuth code-exchange (gated behind env flag).
+# v4.00.89 — Audit-hook + refresh-token flow + retry-with-backoff.
 # ---------------------------------------------------------------------------
+import hashlib as _hashlib
 import os
 import logging
+import time as _time
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -183,23 +187,166 @@ LIVE_OUTBOUND_ENV = "RMC_SCHOOLOGY_OAUTH_LIVE_OUTBOUND"
 # Default OAuth scopes — Schoology splits read/write at the consent screen.
 DEFAULT_SCOPES = ("read", "write")
 
+# Schoology refresh-token endpoint. Schoology's OAuth1 long-lived semantics
+# do NOT publish a public OAuth2 /refresh endpoint; the partner-test surface
+# accepts grant_type=refresh_token on the same token URL. We default to the
+# same DEFAULT_TOKEN_URL but expose token_url= as an override so operators
+# can point at a different /oauth/refresh path if their tenant has one.
+DEFAULT_REFRESH_URL = DEFAULT_TOKEN_URL
+
+# Retry / backoff constants (v4.00.89). Retried statuses are transient
+# upstream-layer failures only — 4xx errors stay terminal (caller fault).
+_RETRY_HTTP_STATUSES = frozenset({502, 503, 504})
+_RETRY_BACKOFF_CAP_SECONDS = 8.0
+
 
 def _live_outbound_enabled() -> bool:
     return os.environ.get(LIVE_OUTBOUND_ENV, "") in ("1", "true", "yes", "on")
 
 
-def exchange_authorization_code_for_token(*, code: str, client_id: str, client_secret: str, redirect_uri: str, token_url: str = DEFAULT_TOKEN_URL, timeout: int = 15) -> dict:
+def _short_hash(value: str) -> str:
+    """SHA-256[:12] of arbitrary string — used for token correlation in
+    audit rows WITHOUT leaking the underlying secret. Empty input -> ""."""
+    if not value:
+        return ""
+    return _hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
+
+
+def _record_audit(*, action: str, provider: str, ok: bool,
+                  http_status: int = 0, reason: str = "",
+                  tenant_schema: str = "",
+                  payload_summary: dict | None = None) -> None:
+    """v4.00.89 — Persist an audit row for an OAuth exchange / push_grade
+    invocation. Wraps the existing ``LMSDiagActionAudit`` SOT model so we
+    don't fork audit storage.
+
+    NEVER raises — DB unavailability degrades silently (logged at DEBUG).
+    NEVER logs ``client_secret`` / ``access_token`` / ``refresh_token`` /
+    ``code`` / ``password`` — caller-supplied ``payload_summary`` is best-
+    effort scrubbed in case operator passed a forbidden key by mistake.
+    """
+    # Best-effort scrub — the four reason-string keys are the canonical
+    # secrets we never persist, and we also guard against a caller passing
+    # in any ``password``-class identifier.
+    _FORBIDDEN_KEYS = (
+        "client_secret", "access_token", "refresh_token", "code",
+        "password", "passwd", "pwd", "api_key", "apikey", "private_key",
+        "signature_text",
+    )
+    safe_summary: dict[str, Any] = {}
+    if payload_summary:
+        for k, v in payload_summary.items():
+            k_lc = str(k).lower()
+            if any(bad in k_lc for bad in _FORBIDDEN_KEYS):
+                continue
+            safe_summary[str(k)] = v
+    try:
+        from apps.integrations_marketplace.models import LMSDiagActionAudit
+        # Build an actor_hash from tenant_schema so cross-tenant operator
+        # ops can be correlated without leaking the schema name verbatim.
+        actor_hash = _short_hash(tenant_schema) if tenant_schema else ""
+        LMSDiagActionAudit.objects.create(  # tenant-isolation-allow: lms-oauth-outbound-audit-platform-scope-staff-only
+            action=action[:32],
+            provider=provider[:24],
+            actor_hash=actor_hash,
+            actor_user_id="",
+            considered=int(http_status or 0),
+            ok_count=1 if ok else 0,
+            failed_count=0 if ok else 1,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("schoology._record_audit DB persist failed: %s",
+                     type(exc).__name__)
+    # Structured INFO log — reason taxonomy surfaced for operator tail -f.
+    # NEVER includes any secret-class value (payload_summary already scrubbed).
+    try:
+        logger.info(
+            "lms_oauth_audit provider=%s action=%s ok=%s http=%s reason=%s "
+            "tenant_hash=%s summary_keys=%s",
+            provider, action, ok, http_status, reason,
+            _short_hash(tenant_schema), sorted(safe_summary.keys()),
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _retry_with_backoff(call: Callable[[], Any], *,
+                        max_attempts: int = 3,
+                        base_delay: float = 1.0) -> Any:
+    """v4.00.89 — Call ``call()`` up to ``max_attempts`` times with
+    exponential backoff (1s, 2s, 4s, capped at 8s).
+
+    Retries on:
+      * ``requests.Timeout`` / ``requests.ConnectionError`` (network)
+      * HTTP responses whose ``.status_code`` is in {502, 503, 504}
+
+    Does NOT retry on:
+      * 4xx responses (caller fault — re-asking won't help)
+      * 2xx responses (success — return immediately)
+      * Any non-network exception (programmer error / validation)
+
+    Returns whatever ``call()`` returns on its final attempt, or re-raises
+    the last network exception if all attempts exhausted.
+    """
+    try:
+        import requests  # noqa: F401  (only needed for exception types)
+        _Timeout = requests.Timeout
+        _ConnErr = requests.ConnectionError
+    except ImportError:
+        # No requests lib -> nothing transient to catch. Single-shot call.
+        return call()
+
+    last_exc: BaseException | None = None
+    for attempt in range(max(1, int(max_attempts))):
+        try:
+            resp = call()
+        except (_Timeout, _ConnErr) as exc:
+            last_exc = exc
+            if attempt + 1 >= max_attempts:
+                raise
+            delay = min(base_delay * (2 ** attempt), _RETRY_BACKOFF_CAP_SECONDS)
+            _time.sleep(delay)
+            continue
+        # Inspect status code — retry transient 5xx, return everything else.
+        status = getattr(resp, "status_code", None)
+        if status in _RETRY_HTTP_STATUSES and attempt + 1 < max_attempts:
+            delay = min(base_delay * (2 ** attempt), _RETRY_BACKOFF_CAP_SECONDS)
+            _time.sleep(delay)
+            continue
+        return resp
+    # Defensive — should be unreachable. raise the last exception we saw.
+    if last_exc is not None:
+        raise last_exc
+    return None
+
+
+def exchange_authorization_code_for_token(*, code: str, client_id: str,
+                                          client_secret: str,
+                                          redirect_uri: str,
+                                          token_url: str = DEFAULT_TOKEN_URL,
+                                          timeout: int = 15,
+                                          tenant_schema: str = "") -> dict:
     """Exchange an OAuth authorization code for an access token.
 
     When LIVE_OUTBOUND_ENV is unset (default), returns a dry-run dict that
     looks like a Schoology success response — useful for testing the
     plumbing without hitting prod.
 
-    On real outbound: returns the upstream JSON OR raises an exception if
-    the upstream returned non-2xx. Caller MUST handle exceptions.
+    On real outbound: returns the upstream JSON OR a structured error dict
+    if the upstream returned non-2xx / network error. NEVER raises.
 
     NEVER logs client_secret / access_token / refresh_token (PII guard).
     """
+    # Local validation first — short-circuits w/ validation_error audit.
+    if not code or not client_id or not client_secret or not redirect_uri:
+        result = {"dry_run": False, "ok": False, "reason": "validation_error",
+                  "missing_field": True}
+        _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="validation_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"missing_field": True})
+        return result
+
     if not _live_outbound_enabled():
         return {
             "access_token": "dry-run-access-token",
@@ -208,15 +355,17 @@ def exchange_authorization_code_for_token(*, code: str, client_id: str, client_s
             "token_type": "Bearer",
             "scope": " ".join(DEFAULT_SCOPES) if DEFAULT_SCOPES else "",
             "dry_run": True,
+            "ok": False,
             "reason": "live_outbound_disabled_env_unset",
+            "target_url": token_url,
         }
     try:
         import requests
     except ImportError:
         return {"dry_run": False, "ok": False, "reason": "requests_lib_missing"}
 
-    try:
-        resp = requests.post(
+    def _do_post() -> Any:
+        return requests.post(
             token_url,
             data={
                 "grant_type": "authorization_code",
@@ -228,33 +377,181 @@ def exchange_authorization_code_for_token(*, code: str, client_id: str, client_s
             headers={"Accept": "application/json"},
             timeout=timeout,
         )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("schoology token exchange network error: %s", type(exc).__name__)
-        return {"dry_run": False, "ok": False, "reason": "network_error", "exc_type": type(exc).__name__}
 
-    if not (200 <= resp.status_code < 300):
-        logger.warning("schoology token exchange http_%s", resp.status_code)
-        return {"dry_run": False, "ok": False, "reason": "http_error", "http_status": resp.status_code}
+    try:
+        resp = _retry_with_backoff(_do_post)
+    except Exception as exc:  # noqa: BLE001
+        # Token-class strings NEVER logged here — only exception class.
+        logger.warning("schoology token exchange network error: %s",
+                       type(exc).__name__)
+        result = {"dry_run": False, "ok": False, "reason": "network_error",
+                  "exc_type": type(exc).__name__}
+        _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="network_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"exc_type": type(exc).__name__})
+        return result
+
+    status = getattr(resp, "status_code", 0)
+    if not (200 <= status < 300):
+        logger.warning("schoology token exchange http_%s", status)
+        result = {"dry_run": False, "ok": False, "reason": "upstream_error",
+                  "http_status": status}
+        _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status})
+        return result
 
     try:
         body = resp.json()
     except Exception:  # noqa: BLE001
-        return {"dry_run": False, "ok": False, "reason": "json_parse_error", "http_status": resp.status_code}
+        result = {"dry_run": False, "ok": False, "reason": "upstream_error",
+                  "http_status": status, "detail": "json_parse_error"}
+        _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status,
+                                       "detail": "json_parse_error"})
+        return result
 
     body["dry_run"] = False
     body["ok"] = True
+    # Audit success — token-hash for correlation, NEVER raw token.
+    _at_hash = _short_hash(str(body.get("access_token") or ""))
+    _rt_hash = _short_hash(str(body.get("refresh_token") or ""))
+    _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                  ok=True, http_status=status, reason="ok",
+                  tenant_schema=tenant_schema,
+                  payload_summary={"http_status": status,
+                                   "access_token_hash": _at_hash,
+                                   "refresh_token_hash": _rt_hash,
+                                   "expires_in": body.get("expires_in")})
     return body
 
 
-def push_grade_live(*, access_token: str, section_id: str, assignment_id: str, student_id: str, score: float, max_score: float, comment: str = "", api_base: str = "https://api.schoology.com/v1", timeout: int = 15) -> dict:
+def refresh_access_token(*, refresh_token: str, client_id: str,
+                         client_secret: str,
+                         token_url: str = DEFAULT_REFRESH_URL,
+                         timeout: int = 15,
+                         tenant_schema: str = "") -> dict:
+    """v4.00.89 — Refresh an OAuth access token using a refresh-token grant.
+
+    Same env-gate + dry-run pattern as ``exchange_authorization_code_for_token``.
+
+    Schoology technicality: the public Developer API uses OAuth1
+    long-lived tokens (no native refresh) but the partner test surface
+    accepts ``grant_type=refresh_token`` on the same token URL. Operators
+    can override ``token_url=`` if their tenant publishes a dedicated
+    ``/oauth/refresh`` endpoint.
+
+    NEVER logs ``client_secret`` / ``refresh_token`` (token_hash only).
+    """
+    if not refresh_token or not client_id or not client_secret:
+        result = {"dry_run": False, "ok": False, "reason": "validation_error",
+                  "missing_field": True}
+        _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="validation_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"missing_field": True})
+        return result
+
+    if not _live_outbound_enabled():
+        return {
+            "access_token": "dry-run-refreshed-access-token",
+            "refresh_token": "dry-run-refreshed-refresh-token",
+            "expires_in": 3600,
+            "token_type": "Bearer",
+            "scope": " ".join(DEFAULT_SCOPES) if DEFAULT_SCOPES else "",
+            "dry_run": True,
+            "ok": False,
+            "reason": "live_outbound_disabled_env_unset",
+            "target_url": token_url,
+        }
+    try:
+        import requests
+    except ImportError:
+        return {"dry_run": False, "ok": False, "reason": "requests_lib_missing"}
+
+    def _do_post() -> Any:
+        return requests.post(
+            token_url,
+            data={
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": client_id,
+                "client_secret": client_secret,
+            },
+            headers={"Accept": "application/json"},
+            timeout=timeout,
+        )
+
+    try:
+        resp = _retry_with_backoff(_do_post)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("schoology token refresh network error: %s",
+                       type(exc).__name__)
+        result = {"dry_run": False, "ok": False, "reason": "network_error",
+                  "exc_type": type(exc).__name__}
+        _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="network_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"exc_type": type(exc).__name__})
+        return result
+
+    status = getattr(resp, "status_code", 0)
+    if not (200 <= status < 300):
+        logger.warning("schoology token refresh http_%s", status)
+        result = {"dry_run": False, "ok": False, "reason": "upstream_error",
+                  "http_status": status}
+        _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status})
+        return result
+
+    try:
+        body = resp.json()
+    except Exception:  # noqa: BLE001
+        result = {"dry_run": False, "ok": False, "reason": "upstream_error",
+                  "http_status": status, "detail": "json_parse_error"}
+        _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status,
+                                       "detail": "json_parse_error"})
+        return result
+
+    body["dry_run"] = False
+    body["ok"] = True
+    _at_hash = _short_hash(str(body.get("access_token") or ""))
+    _rt_hash = _short_hash(str(body.get("refresh_token") or ""))
+    _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                  ok=True, http_status=status, reason="ok",
+                  tenant_schema=tenant_schema,
+                  payload_summary={"http_status": status,
+                                   "access_token_hash": _at_hash,
+                                   "refresh_token_hash": _rt_hash,
+                                   "expires_in": body.get("expires_in")})
+    return body
+
+
+def push_grade_live(*, access_token: str, section_id: str,
+                    assignment_id: str, student_id: str,
+                    score: float, max_score: float, comment: str = "",
+                    api_base: str = "https://api.schoology.com/v1",
+                    timeout: int = 15,
+                    tenant_schema: str = "") -> dict:
     """REAL outbound push_grade. Gated behind LIVE_OUTBOUND_ENV. Returns
     upstream JSON on success, structured error dict on failure. NEVER raises."""
+    target = f"{api_base}/sections/{section_id}/grades"
     if not _live_outbound_enabled():
         return {
             "ok": False,
             "dry_run": True,
             "reason": "live_outbound_disabled_env_unset",
-            "would_target": f"{api_base}/sections/{section_id}/grades",
+            "would_target": target,
+            "target_url": target,
         }
     try:
         import requests
@@ -278,20 +575,48 @@ def push_grade_live(*, access_token: str, section_id: str, assignment_id: str, s
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
+
+    def _do_put() -> Any:
+        return requests.put(target, json=payload, headers=headers,
+                            timeout=timeout)
+
     try:
-        resp = requests.put(
-            f"{api_base}/sections/{section_id}/grades",
-            json=payload,
-            headers=headers,
-            timeout=timeout,
-        )
+        resp = _retry_with_backoff(_do_put)
     except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "dry_run": False, "reason": "network_error", "exc_type": type(exc).__name__}
+        result = {"ok": False, "dry_run": False, "reason": "network_error",
+                  "exc_type": type(exc).__name__}
+        _record_audit(action="push_grade_live", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="network_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"exc_type": type(exc).__name__,
+                                       "section_id": section_id,
+                                       "assignment_id": assignment_id})
+        return result
 
-    if not (200 <= resp.status_code < 300):
-        return {"ok": False, "dry_run": False, "reason": "http_error", "http_status": resp.status_code}
+    status = getattr(resp, "status_code", 0)
+    if not (200 <= status < 300):
+        result = {"ok": False, "dry_run": False, "reason": "upstream_error",
+                  "http_status": status}
+        _record_audit(action="push_grade_live", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status,
+                                       "section_id": section_id,
+                                       "assignment_id": assignment_id})
+        return result
 
     try:
-        return {"ok": True, "dry_run": False, "http_status": resp.status_code, "upstream": resp.json()}
+        upstream_body = resp.json()
     except Exception:  # noqa: BLE001
-        return {"ok": True, "dry_run": False, "http_status": resp.status_code}
+        upstream_body = None
+    result = {"ok": True, "dry_run": False, "http_status": status}
+    if upstream_body is not None:
+        result["upstream"] = upstream_body
+    _record_audit(action="push_grade_live", provider=PROVIDER_SLUG,
+                  ok=True, http_status=status, reason="ok",
+                  tenant_schema=tenant_schema,
+                  payload_summary={"http_status": status,
+                                   "section_id": section_id,
+                                   "assignment_id": assignment_id,
+                                   "student_id_hash": _short_hash(student_id)})
+    return result

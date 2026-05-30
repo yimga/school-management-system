@@ -49,8 +49,14 @@ class LMSDiagActionAudit(models.Model):
         app_label = "integrations_marketplace"
         ordering = ("-created_at",)
         indexes = [
-            models.Index(fields=["action", "created_at"]),
-            models.Index(fields=["provider", "created_at"]),
+            models.Index(
+                fields=["action", "created_at"],
+                name="integration_action_diag_idx",
+            ),
+            models.Index(
+                fields=["provider", "created_at"],
+                name="integration_prov_diag_idx",
+            ),
         ]
         verbose_name = "LMS diag action audit"
         verbose_name_plural = "LMS diag action audits"

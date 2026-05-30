@@ -178,9 +178,13 @@ def is_scaffold() -> bool:
 
 # ---------------------------------------------------------------------------
 # v4.00.84 — Live OAuth code-exchange + push_grade_live (gated behind env flag).
+# v4.00.89 — Audit-hook + refresh-token flow + retry-with-backoff.
 # ---------------------------------------------------------------------------
+import hashlib as _hashlib
 import os
 import logging
+import time as _time
+from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -190,24 +194,133 @@ LIVE_OUTBOUND_ENV = "RMC_D2L_OAUTH_LIVE_OUTBOUND"
 # new minor versions of the LE (Learning Environment) product API.
 _DEFAULT_API_VERSION = "1.46"
 
+# Retry / backoff constants (v4.00.89).
+_RETRY_HTTP_STATUSES = frozenset({502, 503, 504})
+_RETRY_BACKOFF_CAP_SECONDS = 8.0
+
 
 def _live_outbound_enabled() -> bool:
     return os.environ.get(LIVE_OUTBOUND_ENV, "") in ("1", "true", "yes", "on")
 
 
-def exchange_authorization_code_for_token(*, code: str, client_id: str, client_secret: str, redirect_uri: str, token_url: str = DEFAULT_TOKEN_URL, timeout: int = 15) -> dict:
+def _short_hash(value: str) -> str:
+    """SHA-256[:12] of arbitrary string — used for token correlation in
+    audit rows WITHOUT leaking the underlying secret. Empty input -> ""."""
+    if not value:
+        return ""
+    return _hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
+
+
+def _record_audit(*, action: str, provider: str, ok: bool,
+                  http_status: int = 0, reason: str = "",
+                  tenant_schema: str = "",
+                  payload_summary: dict | None = None) -> None:
+    """v4.00.89 — Persist an audit row for an OAuth exchange / push_grade
+    invocation. Wraps the existing ``LMSDiagActionAudit`` SOT model so we
+    don't fork audit storage. NEVER raises. NEVER logs secret-class fields."""
+    _FORBIDDEN_KEYS = (
+        "client_secret", "access_token", "refresh_token", "code",
+        "password", "passwd", "pwd", "api_key", "apikey", "private_key",
+        "signature_text",
+    )
+    safe_summary: dict[str, Any] = {}
+    if payload_summary:
+        for k, v in payload_summary.items():
+            k_lc = str(k).lower()
+            if any(bad in k_lc for bad in _FORBIDDEN_KEYS):
+                continue
+            safe_summary[str(k)] = v
+    try:
+        from apps.integrations_marketplace.models import LMSDiagActionAudit
+        actor_hash = _short_hash(tenant_schema) if tenant_schema else ""
+        LMSDiagActionAudit.objects.create(  # tenant-isolation-allow: lms-oauth-outbound-audit-platform-scope-staff-only
+            action=action[:32],
+            provider=provider[:24],
+            actor_hash=actor_hash,
+            actor_user_id="",
+            considered=int(http_status or 0),
+            ok_count=1 if ok else 0,
+            failed_count=0 if ok else 1,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("d2l_brightspace._record_audit DB persist failed: %s",
+                     type(exc).__name__)
+    try:
+        logger.info(
+            "lms_oauth_audit provider=%s action=%s ok=%s http=%s reason=%s "
+            "tenant_hash=%s summary_keys=%s",
+            provider, action, ok, http_status, reason,
+            _short_hash(tenant_schema), sorted(safe_summary.keys()),
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _retry_with_backoff(call: Callable[[], Any], *,
+                        max_attempts: int = 3,
+                        base_delay: float = 1.0) -> Any:
+    """v4.00.89 — Same semantics as the Schoology helper (duplicated by
+    design — small enough to avoid forking a shared module).
+
+    Retries on ``requests.Timeout`` / ``requests.ConnectionError`` and
+    HTTP 502/503/504. Exponential backoff: 1s, 2s, 4s (capped at 8s).
+    Does NOT retry on 4xx, 2xx, or non-network exceptions.
+    """
+    try:
+        import requests
+        _Timeout = requests.Timeout
+        _ConnErr = requests.ConnectionError
+    except ImportError:
+        return call()
+
+    last_exc: BaseException | None = None
+    for attempt in range(max(1, int(max_attempts))):
+        try:
+            resp = call()
+        except (_Timeout, _ConnErr) as exc:
+            last_exc = exc
+            if attempt + 1 >= max_attempts:
+                raise
+            delay = min(base_delay * (2 ** attempt), _RETRY_BACKOFF_CAP_SECONDS)
+            _time.sleep(delay)
+            continue
+        status = getattr(resp, "status_code", None)
+        if status in _RETRY_HTTP_STATUSES and attempt + 1 < max_attempts:
+            delay = min(base_delay * (2 ** attempt), _RETRY_BACKOFF_CAP_SECONDS)
+            _time.sleep(delay)
+            continue
+        return resp
+    if last_exc is not None:
+        raise last_exc
+    return None
+
+
+def exchange_authorization_code_for_token(*, code: str, client_id: str,
+                                          client_secret: str,
+                                          redirect_uri: str,
+                                          token_url: str = DEFAULT_TOKEN_URL,
+                                          timeout: int = 15,
+                                          tenant_schema: str = "") -> dict:
     """Exchange an OAuth authorization code for an access token against
     Brightspace's ``/core/connect/token`` endpoint.
 
     When LIVE_OUTBOUND_ENV is unset (default), returns a dry-run dict that
-    looks like a Brightspace success response — useful for testing the
-    plumbing without hitting prod.
+    looks like a Brightspace success response.
 
     On real outbound: returns the upstream JSON OR a structured error dict
     if the upstream returned non-2xx / network error. NEVER raises.
 
     NEVER logs client_secret / access_token / refresh_token (PII guard).
     """
+    if not code or not client_id or not client_secret or not redirect_uri:
+        result = {"dry_run": False, "ok": False, "reason": "validation_error",
+                  "missing_field": True}
+        _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="validation_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"missing_field": True})
+        return result
+
     if not _live_outbound_enabled():
         return {
             "access_token": "dry-run-access-token",
@@ -216,15 +329,17 @@ def exchange_authorization_code_for_token(*, code: str, client_id: str, client_s
             "token_type": "Bearer",
             "scope": " ".join(DEFAULT_SCOPES) if DEFAULT_SCOPES else "",
             "dry_run": True,
+            "ok": False,
             "reason": "live_outbound_disabled_env_unset",
+            "target_url": token_url,
         }
     try:
         import requests
     except ImportError:
         return {"dry_run": False, "ok": False, "reason": "requests_lib_missing"}
 
-    try:
-        resp = requests.post(
+    def _do_post() -> Any:
+        return requests.post(
             token_url,
             data={
                 "grant_type": "authorization_code",
@@ -236,25 +351,167 @@ def exchange_authorization_code_for_token(*, code: str, client_id: str, client_s
             headers={"Accept": "application/json"},
             timeout=timeout,
         )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("d2l_brightspace token exchange network error: %s", type(exc).__name__)
-        return {"dry_run": False, "ok": False, "reason": "network_error", "exc_type": type(exc).__name__}
 
-    if not (200 <= resp.status_code < 300):
-        logger.warning("d2l_brightspace token exchange http_%s", resp.status_code)
-        return {"dry_run": False, "ok": False, "reason": "http_error", "http_status": resp.status_code}
+    try:
+        resp = _retry_with_backoff(_do_post)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("d2l_brightspace token exchange network error: %s",
+                       type(exc).__name__)
+        result = {"dry_run": False, "ok": False, "reason": "network_error",
+                  "exc_type": type(exc).__name__}
+        _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="network_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"exc_type": type(exc).__name__})
+        return result
+
+    status = getattr(resp, "status_code", 0)
+    if not (200 <= status < 300):
+        logger.warning("d2l_brightspace token exchange http_%s", status)
+        result = {"dry_run": False, "ok": False, "reason": "upstream_error",
+                  "http_status": status}
+        _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status})
+        return result
 
     try:
         body = resp.json()
     except Exception:  # noqa: BLE001
-        return {"dry_run": False, "ok": False, "reason": "json_parse_error", "http_status": resp.status_code}
+        result = {"dry_run": False, "ok": False, "reason": "upstream_error",
+                  "http_status": status, "detail": "json_parse_error"}
+        _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status,
+                                       "detail": "json_parse_error"})
+        return result
 
     body["dry_run"] = False
     body["ok"] = True
+    _at_hash = _short_hash(str(body.get("access_token") or ""))
+    _rt_hash = _short_hash(str(body.get("refresh_token") or ""))
+    _record_audit(action="oauth_exchange", provider=PROVIDER_SLUG,
+                  ok=True, http_status=status, reason="ok",
+                  tenant_schema=tenant_schema,
+                  payload_summary={"http_status": status,
+                                   "access_token_hash": _at_hash,
+                                   "refresh_token_hash": _rt_hash,
+                                   "expires_in": body.get("expires_in")})
     return body
 
 
-def push_grade_live(*, access_token: str, org_unit_id: str, grade_object_id: str, user_id: str, score: float, max_score: float, comment: str = "", api_base: str = "https://your-tenant.brightspace.com", api_version: str = _DEFAULT_API_VERSION, timeout: int = 15) -> dict:
+def refresh_access_token(*, refresh_token: str, client_id: str,
+                         client_secret: str,
+                         token_url: str = DEFAULT_TOKEN_URL,
+                         timeout: int = 15,
+                         tenant_schema: str = "") -> dict:
+    """v4.00.89 — Refresh a D2L Brightspace OAuth access token.
+
+    Same env-gate + dry-run pattern as
+    ``exchange_authorization_code_for_token``. POSTs
+    ``grant_type=refresh_token&refresh_token=<rt>&client_id=<id>&client_secret=<secret>``
+    to ``/d2l/auth/api/token`` (mapped onto ``DEFAULT_TOKEN_URL`` by default —
+    Brightspace's identity service publishes both paths against the same
+    upstream). NEVER logs client_secret / refresh_token.
+    """
+    if not refresh_token or not client_id or not client_secret:
+        result = {"dry_run": False, "ok": False, "reason": "validation_error",
+                  "missing_field": True}
+        _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="validation_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"missing_field": True})
+        return result
+
+    if not _live_outbound_enabled():
+        return {
+            "access_token": "dry-run-refreshed-access-token",
+            "refresh_token": "dry-run-refreshed-refresh-token",
+            "expires_in": 3600,
+            "token_type": "Bearer",
+            "scope": " ".join(DEFAULT_SCOPES) if DEFAULT_SCOPES else "",
+            "dry_run": True,
+            "ok": False,
+            "reason": "live_outbound_disabled_env_unset",
+            "target_url": token_url,
+        }
+    try:
+        import requests
+    except ImportError:
+        return {"dry_run": False, "ok": False, "reason": "requests_lib_missing"}
+
+    def _do_post() -> Any:
+        return requests.post(
+            token_url,
+            data={
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+                "client_id": client_id,
+                "client_secret": client_secret,
+            },
+            headers={"Accept": "application/json"},
+            timeout=timeout,
+        )
+
+    try:
+        resp = _retry_with_backoff(_do_post)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("d2l_brightspace token refresh network error: %s",
+                       type(exc).__name__)
+        result = {"dry_run": False, "ok": False, "reason": "network_error",
+                  "exc_type": type(exc).__name__}
+        _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="network_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"exc_type": type(exc).__name__})
+        return result
+
+    status = getattr(resp, "status_code", 0)
+    if not (200 <= status < 300):
+        logger.warning("d2l_brightspace token refresh http_%s", status)
+        result = {"dry_run": False, "ok": False, "reason": "upstream_error",
+                  "http_status": status}
+        _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status})
+        return result
+
+    try:
+        body = resp.json()
+    except Exception:  # noqa: BLE001
+        result = {"dry_run": False, "ok": False, "reason": "upstream_error",
+                  "http_status": status, "detail": "json_parse_error"}
+        _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status,
+                                       "detail": "json_parse_error"})
+        return result
+
+    body["dry_run"] = False
+    body["ok"] = True
+    _at_hash = _short_hash(str(body.get("access_token") or ""))
+    _rt_hash = _short_hash(str(body.get("refresh_token") or ""))
+    _record_audit(action="oauth_refresh", provider=PROVIDER_SLUG,
+                  ok=True, http_status=status, reason="ok",
+                  tenant_schema=tenant_schema,
+                  payload_summary={"http_status": status,
+                                   "access_token_hash": _at_hash,
+                                   "refresh_token_hash": _rt_hash,
+                                   "expires_in": body.get("expires_in")})
+    return body
+
+
+def push_grade_live(*, access_token: str, org_unit_id: str,
+                    grade_object_id: str, user_id: str,
+                    score: float, max_score: float, comment: str = "",
+                    api_base: str = "https://your-tenant.brightspace.com",
+                    api_version: str = _DEFAULT_API_VERSION,
+                    timeout: int = 15,
+                    tenant_schema: str = "") -> dict:
     """REAL outbound push_grade against D2L Brightspace's
     ``PUT /d2l/api/le/<ver>/<orgUnit>/grades/<gradeObj>/values/<user>``
     endpoint. Gated behind LIVE_OUTBOUND_ENV. Returns upstream JSON on
@@ -269,6 +526,7 @@ def push_grade_live(*, access_token: str, org_unit_id: str, grade_object_id: str
             "dry_run": True,
             "reason": "live_outbound_disabled_env_unset",
             "would_target": target,
+            "target_url": target,
         }
     try:
         import requests
@@ -284,20 +542,48 @@ def push_grade_live(*, access_token: str, org_unit_id: str, grade_object_id: str
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
+
+    def _do_put() -> Any:
+        return requests.put(target, json=payload, headers=headers,
+                            timeout=timeout)
+
     try:
-        resp = requests.put(
-            target,
-            json=payload,
-            headers=headers,
-            timeout=timeout,
-        )
+        resp = _retry_with_backoff(_do_put)
     except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "dry_run": False, "reason": "network_error", "exc_type": type(exc).__name__}
+        result = {"ok": False, "dry_run": False, "reason": "network_error",
+                  "exc_type": type(exc).__name__}
+        _record_audit(action="push_grade_live", provider=PROVIDER_SLUG,
+                      ok=False, http_status=0, reason="network_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"exc_type": type(exc).__name__,
+                                       "org_unit_id": org_unit_id,
+                                       "grade_object_id": grade_object_id})
+        return result
 
-    if not (200 <= resp.status_code < 300):
-        return {"ok": False, "dry_run": False, "reason": "http_error", "http_status": resp.status_code}
+    status = getattr(resp, "status_code", 0)
+    if not (200 <= status < 300):
+        result = {"ok": False, "dry_run": False, "reason": "upstream_error",
+                  "http_status": status}
+        _record_audit(action="push_grade_live", provider=PROVIDER_SLUG,
+                      ok=False, http_status=status, reason="upstream_error",
+                      tenant_schema=tenant_schema,
+                      payload_summary={"http_status": status,
+                                       "org_unit_id": org_unit_id,
+                                       "grade_object_id": grade_object_id})
+        return result
 
     try:
-        return {"ok": True, "dry_run": False, "http_status": resp.status_code, "upstream": resp.json()}
+        upstream_body = resp.json()
     except Exception:  # noqa: BLE001
-        return {"ok": True, "dry_run": False, "http_status": resp.status_code}
+        upstream_body = None
+    result = {"ok": True, "dry_run": False, "http_status": status}
+    if upstream_body is not None:
+        result["upstream"] = upstream_body
+    _record_audit(action="push_grade_live", provider=PROVIDER_SLUG,
+                  ok=True, http_status=status, reason="ok",
+                  tenant_schema=tenant_schema,
+                  payload_summary={"http_status": status,
+                                   "org_unit_id": org_unit_id,
+                                   "grade_object_id": grade_object_id,
+                                   "user_id_hash": _short_hash(user_id)})
+    return result
