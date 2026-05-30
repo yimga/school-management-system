@@ -83,6 +83,12 @@ _DEMOGRAPHIC_OVERRIDE_FIELDS = (
     "englishLearnerStatus",  # v4.00.88 T2
     "economicallyDisadvantagedStatus",  # v4.00.88 T2
     "familySituation",  # v4.00.88 T2
+    # v4.00.91 Studio-OS-10X W1 Pillar D6-D10 — 5 new demographics fields
+    "militaryConnectedStatus",  # vocab: not_military_connected/active_duty/national_guard/reserve/prefer_not_to_say
+    "parentInArmedForcesStatus",  # vocab: same as above
+    "householdGuardianRelationship",  # vocab: birth_parent/legal_guardian/foster_parent/stepparent/grandparent/other_relative/unrelated_caretaker
+    "stateAttributeWaiver",  # boolean: "true"/"false"/"" (explicit clear)
+    "accommodationsStatus",  # vocab: none/iep/504_plan/ell_services/gt_services/title_1
 )
 
 
@@ -206,60 +212,22 @@ def _demographic_from_student(s) -> dict[str, Any]:
 
 
 # v4.00.65 — OneRoster v1.2 Roster Service spec § 4.13 ?sort=/?orderBy=.
-#
-# Spec text: "sort - Identifies the field to sort the returned objects by.
-# orderBy - Identifies the sort order: 'asc' (default) or 'desc'."
-#
-# We allow sorting by any top-level field of the projected record. Unknown
-# fields no-op (no order change). Bad orderBy values fall back to 'asc'.
-# Empty string short-circuits to no-op (operator-facing surface — don't 400).
+# v4.00.92 Wave 25 M1 — helpers moved to ``oneroster_query_helpers`` so the
+# 6 main GET endpoints (orgs / schools / users / classes / courses /
+# enrollments) can reuse them. The private aliases below preserve the
+# legacy import surface for existing callers (notably ``oneroster_results``
+# which imports the underscore-prefixed names).
+from apps.api.oneroster_query_helpers import (  # noqa: E402  (intentional re-export)
+    apply_fields_mask as _apply_fields_mask,
+    apply_sort as _apply_sort,
+    parse_fields_mask as _parse_fields_mask,
+)
+
+# Back-compat: legacy module-level constants used to tune the helpers in
+# this file. They are now sourced from the helpers module's frozen tuples
+# so a single SOT exists. Kept here so import-by-name still resolves.
 _SORT_ALLOW_DESC = frozenset(("desc", "DESC"))
-
-
-def _apply_sort(items: list[dict[str, Any]], sort_field: str, order_by: str) -> list[dict[str, Any]]:
-    """Sort items in-place per OneRoster v1.2 spec § 4.13 (sort + orderBy)."""
-    field = (sort_field or "").strip()
-    if not field:
-        return items
-    direction = (order_by or "").strip()
-    reverse = direction in _SORT_ALLOW_DESC
-    # Guard against TypeError when the field is missing/None on some rows —
-    # coerce to empty string so sort is total. We do NOT 400 on unknown
-    # field per the operator-facing-surface contract.
-    return sorted(items, key=lambda r: (r.get(field) or ""), reverse=reverse)
-
-
-# v4.00.64 — OneRoster v1.2 Roster Service spec § 4.13 ?fields= field-mask.
-# Returns only the fields listed in the comma-separated query parameter,
-# plus ``sourcedId`` which is always preserved (clients use it as the
-# record key). Unknown fields are silently dropped. Empty/missing param
-# means "no mask" — return the full record.
-#
-# Spec text: "fields - Identifies the fields of the resource that are to
-# be returned in the response. This is a comma-separated list of fields."
-#
-# Operator-facing semantics:
-#   ?fields=sex,birthDate          → returns {sourcedId, sex, birthDate}
-#   ?fields=                       → no mask, full record
-#   ?fields=bogus                  → returns {sourcedId} only
-#   ?fields=sourcedId              → returns {sourcedId} (no-op explicit)
 _FIELDS_MASK_PIN = ("sourcedId",)
-
-
-def _parse_fields_mask(raw: str) -> tuple[str, ...] | None:
-    """Return parsed mask tuple or None when no mask is active."""
-    raw = (raw or "").strip()
-    if not raw:
-        return None
-    return tuple(p.strip() for p in raw.split(",") if p.strip())
-
-
-def _apply_fields_mask(rec: dict[str, Any], mask: tuple[str, ...] | None) -> dict[str, Any]:
-    """Return a record with only the requested fields (plus sourcedId)."""
-    if mask is None:
-        return rec
-    keep = set(mask) | set(_FIELDS_MASK_PIN)
-    return {k: v for k, v in rec.items() if k in keep}
 
 
 def _iter_demographics() -> Iterable[dict[str, Any]]:
@@ -478,6 +446,22 @@ def _parse_demographic_payload(body_bytes: bytes):
     if err is not None:
         return None, err
     err = _validate_family_situation(inner)
+    if err is not None:
+        return None, err
+    # v4.00.91 Studio-OS-10X W1 Pillar D6-D10
+    err = _validate_military_connected_status(inner)
+    if err is not None:
+        return None, err
+    err = _validate_parent_in_armed_forces_status(inner)
+    if err is not None:
+        return None, err
+    err = _validate_household_guardian_relationship(inner)
+    if err is not None:
+        return None, err
+    err = _validate_state_attribute_waiver(inner)
+    if err is not None:
+        return None, err
+    err = _validate_accommodations_status(inner)
     if err is not None:
         return None, err
     return inner, None
@@ -1007,6 +991,92 @@ def _validate_family_situation(inner):
                              "received_length": len(raw), "max_length": _FAMILY_SITUATION_MAX_LEN}, status=400)
     if _FAMILY_SITUATION_CONTROL_RE.search(raw):
         return JsonResponse({"error": "bad_family_situation", "reason": "control_chars"}, status=400)
+    return None
+
+
+# v4.00.91 Studio-OS-10X W1 Pillar D6-D10 — 5 new demographic vocab/boolean fields.
+# All accept empty string as explicit clear. Closed-vocab fields follow the
+# `_validate_english_learner_status` pattern; the boolean follows the same
+# permissive parser used elsewhere ("true" / "false" / "1" / "0" / "yes" / "no").
+MILITARY_CONNECTED_VOCAB = frozenset((
+    "not_military_connected", "active_duty", "national_guard", "reserve", "prefer_not_to_say",
+))
+HOUSEHOLD_GUARDIAN_VOCAB = frozenset((
+    "birth_parent", "legal_guardian", "foster_parent", "stepparent",
+    "grandparent", "other_relative", "unrelated_caretaker",
+))
+ACCOMMODATIONS_STATUS_VOCAB = frozenset((
+    "none", "iep", "504_plan", "ell_services", "gt_services", "title_1",
+))
+_BOOLEAN_TRUE_TOKENS = frozenset(("true", "1", "yes"))
+_BOOLEAN_FALSE_TOKENS = frozenset(("false", "0", "no"))
+
+
+def _validate_military_connected_status(inner):
+    if "militaryConnectedStatus" not in inner:
+        return None
+    raw = str(inner.get("militaryConnectedStatus") or "").strip().lower()
+    if not raw:
+        return None
+    if raw not in MILITARY_CONNECTED_VOCAB:
+        return JsonResponse({"error": "bad_military_connected_status", "reason": "value_not_in_vocab",
+                             "received": str(inner.get("militaryConnectedStatus"))[:32],
+                             "allowed": sorted(MILITARY_CONNECTED_VOCAB)}, status=400)
+    return None
+
+
+def _validate_parent_in_armed_forces_status(inner):
+    if "parentInArmedForcesStatus" not in inner:
+        return None
+    raw = str(inner.get("parentInArmedForcesStatus") or "").strip().lower()
+    if not raw:
+        return None
+    if raw not in MILITARY_CONNECTED_VOCAB:
+        return JsonResponse({"error": "bad_parent_in_armed_forces_status", "reason": "value_not_in_vocab",
+                             "received": str(inner.get("parentInArmedForcesStatus"))[:32],
+                             "allowed": sorted(MILITARY_CONNECTED_VOCAB)}, status=400)
+    return None
+
+
+def _validate_household_guardian_relationship(inner):
+    if "householdGuardianRelationship" not in inner:
+        return None
+    raw = str(inner.get("householdGuardianRelationship") or "").strip().lower()
+    if not raw:
+        return None
+    if raw not in HOUSEHOLD_GUARDIAN_VOCAB:
+        return JsonResponse({"error": "bad_household_guardian_relationship", "reason": "value_not_in_vocab",
+                             "received": str(inner.get("householdGuardianRelationship"))[:32],
+                             "allowed": sorted(HOUSEHOLD_GUARDIAN_VOCAB)}, status=400)
+    return None
+
+
+def _validate_state_attribute_waiver(inner):
+    if "stateAttributeWaiver" not in inner:
+        return None
+    val = inner.get("stateAttributeWaiver")
+    if isinstance(val, bool):
+        return None
+    raw = str(val or "").strip().lower()
+    if not raw:
+        return None
+    if raw not in _BOOLEAN_TRUE_TOKENS and raw not in _BOOLEAN_FALSE_TOKENS:
+        return JsonResponse({"error": "bad_state_attribute_waiver", "reason": "value_not_boolean",
+                             "received": str(val)[:16],
+                             "allowed": sorted(_BOOLEAN_TRUE_TOKENS | _BOOLEAN_FALSE_TOKENS)}, status=400)
+    return None
+
+
+def _validate_accommodations_status(inner):
+    if "accommodationsStatus" not in inner:
+        return None
+    raw = str(inner.get("accommodationsStatus") or "").strip().lower()
+    if not raw:
+        return None
+    if raw not in ACCOMMODATIONS_STATUS_VOCAB:
+        return JsonResponse({"error": "bad_accommodations_status", "reason": "value_not_in_vocab",
+                             "received": str(inner.get("accommodationsStatus"))[:32],
+                             "allowed": sorted(ACCOMMODATIONS_STATUS_VOCAB)}, status=400)
     return None
 
 

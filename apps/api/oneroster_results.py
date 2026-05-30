@@ -756,6 +756,54 @@ _CATEGORIES: list[dict[str, Any]] = [
 ]
 
 
+# v4.00.92 Wave 25 M3 — 8 IMS-standard category codes per OneRoster v1.2
+# Appendix D (Result Service category vocabulary). Surface them via the
+# Roster Service path projection ``_build_ims_standard_categories`` so
+# /categories/ on the v1p2 Roster path returns a complete, deterministic
+# set every time (the v4.00.79 T2 surface ALSO unions LineItem-derived
+# categories on top — IMS standards always present).
+#
+# sourcedId is SHA-256("ims-category:<code>")[:16] (deterministic, tenant-
+# independent — IMS codes are platform-global per Appendix D). status =
+# "active". title = title-cased code (Assignment / Assessment / etc).
+_IMS_STANDARD_CATEGORY_CODES: tuple[str, ...] = (
+    "assignment",
+    "assessment",
+    "participation",
+    "homework",
+    "quiz",
+    "test",
+    "exam",
+    "final",
+)
+
+
+def _ims_category_sourced_id(code: str) -> str:
+    """SHA-256[:16] of ``ims-category:<code>`` per Wave 25 M3 contract."""
+    import hashlib
+    h = hashlib.sha256()
+    h.update(f"ims-category:{code}".encode("utf-8"))
+    return h.hexdigest()[:16]
+
+
+def _build_ims_standard_categories() -> list[dict[str, Any]]:
+    """Return the 8 IMS-standard categories per OneRoster v1.2 Appendix D.
+
+    Deterministic sourcedId + ``status="active"`` + title-cased title.
+    Type matches the IMS spec code so the row round-trips through the
+    existing ``_ALLOWED_CATEGORY_TYPES`` (which already includes all 8).
+    """
+    return [
+        {
+            "sourcedId": _ims_category_sourced_id(code),
+            "status": "active",
+            "title": code.title(),
+            "type": code,
+        }
+        for code in _IMS_STANDARD_CATEGORY_CODES
+    ]
+
+
 def _iter_grading_periods() -> Iterable[dict[str, Any]]:
     """Build GradingPeriod records from ``apps.academics.models.Term``."""
     try:
@@ -1048,6 +1096,8 @@ _CATEGORY_TOMBSTONES: set[str] = set()
 _ALLOWED_CATEGORY_TYPES = {
     "summative", "formative", "homework", "practice",
     "participation", "attendance", "project", "exam", "lab", "other",
+    # v4.00.92 Wave 25 M3 — IMS-standard codes per OneRoster v1.2 Appendix D.
+    "assignment", "assessment", "quiz", "test", "final",
 }
 
 
@@ -2838,34 +2888,54 @@ def _iter_category_titles_from_line_items() -> Iterable[tuple[str, str]]:
 def _build_categories_v1p2_roster(tenant_schema: str) -> list[dict[str, Any]]:
     """Synthesize the Categories collection for the Roster Service projection.
 
-    Merges the 6 seed types (always present so the surface is non-empty)
-    with any distinct ``category`` titles discovered on LineItems, picking
-    the latest ``dateLastModified`` per title. sourcedId is a deterministic
-    SHA-256[:16] of ``cat:<tenant>:<title>`` for stability across calls.
+    v4.00.92 Wave 25 M3 — ALWAYS prepends the 8 IMS-standard category codes
+    per OneRoster v1.2 Appendix D (assignment / assessment / participation
+    / homework / quiz / test / exam / final). Their sourcedIds are
+    deterministic SHA-256[:16] of ``ims-category:<code>`` (tenant-
+    independent — IMS codes are platform-global per Appendix D).
+
+    Merges the 6 legacy seed types (always present so the surface is
+    non-empty) with any distinct ``category`` titles discovered on
+    LineItems, picking the latest ``dateLastModified`` per title.
+    Legacy seed sourcedId is deterministic SHA-256[:16] of
+    ``cat:<tenant>:<title>`` for stability across calls.
     """
     from django.utils import timezone as _tz
     now_iso = _tz.now().isoformat()
 
+    out: list[dict[str, Any]] = []
+    seen_sourced_ids: set[str] = set()
+
+    # IMS-standard categories first — fixed order matching the spec § Appendix D.
+    for row in _build_ims_standard_categories():
+        item = dict(row)
+        item["dateLastModified"] = now_iso
+        out.append(item)
+        seen_sourced_ids.add(item["sourcedId"])
+
+    # Legacy seed-title path (back-compat for any client that was relying on
+    # the pre-Wave-25 titles + tenant-scoped sourcedIds).
     by_title: dict[str, str] = {}
-    # Seed 6 built-in categories first.
     for seed in _CATEGORIES:
         t = str(seed.get("title") or "").strip()
         if t and t not in by_title:
             by_title[t] = now_iso
-    # Merge LineItem-derived titles + pick MAX(dateLastModified).
     for t, iso in _iter_category_titles_from_line_items():
         prior = by_title.get(t, "")
         if not prior or (iso and iso > prior):
             by_title[t] = iso or now_iso
 
-    out: list[dict[str, Any]] = []
     for title in sorted(by_title.keys()):
+        sid = _synth_category_sourced_id(tenant_schema, title)
+        if sid in seen_sourced_ids:
+            continue
         out.append({
-            "sourcedId": _synth_category_sourced_id(tenant_schema, title),
+            "sourcedId": sid,
             "status": "active",
             "dateLastModified": by_title[title] or now_iso,
             "title": title,
         })
+        seen_sourced_ids.add(sid)
     return out
 
 
@@ -3222,9 +3292,15 @@ def _synth_score_scale_sourced_id(tenant_schema: str, slug: str) -> str:
 def _build_score_scales_v1p2_roster(tenant_schema: str) -> list[dict[str, Any]]:
     """Synthesize the ScoreScales collection for the Roster Service projection.
 
-    Returns the 4 default scales (letter A-F, percent 0-100, pass/fail,
-    rubric 4-point) projected into the IMS v1.2 ScoreScale shape. The
-    sourcedId is a deterministic SHA-256[:16] of ``scoreScale:<tenant>:<slug>``
+    v4.00.92 Wave 25 M3 — Returns the 4 default scales (letter A-F,
+    percent 0-100, pass/fail, rubric 4-point) projected into the IMS v1.2
+    ScoreScale shape with FULL ``scoreScaleValues`` arrays per spec.
+    Each scoreScaleValue carries a ``scoreItem`` sub-object (the IMS-
+    canonical container for the {score, minimumScore, value} triple),
+    plus the legacy flat ``scoreValues`` mirror is preserved for back-
+    compat with v4.00.81 callers.
+
+    sourcedId is deterministic SHA-256[:16] of ``scoreScale:<tenant>:<slug>``
     for stability across calls.
     """
     from django.utils import timezone as _tz
@@ -3233,12 +3309,37 @@ def _build_score_scales_v1p2_roster(tenant_schema: str) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for seed in _DEFAULT_SCORE_SCALES:
         slug = seed["slug"]
+        # Build full scoreScaleValues array per IMS v1.2 spec.
+        # Shape: [{sourcedId, status, scoreItem: {score, minimumScore, value}}, ...]
+        # Each value's sourcedId is deterministic SHA-256[:16] of the
+        # scale-slug + score-symbol so customers can correlate across syncs.
+        import hashlib as _hl
+        score_scale_values: list[dict[str, Any]] = []
+        for v in seed["scoreValues"]:
+            score_symbol = str(v["score"])
+            score_numeric = float(v["scoreNumeric"])
+            value_sid_raw = f"scoreScale:{tenant_schema}:{slug}:{score_symbol}".encode("utf-8")
+            value_sid = _hl.sha256(value_sid_raw).hexdigest()[:16]
+            score_scale_values.append({
+                "sourcedId": value_sid,
+                "status": "active",
+                "dateLastModified": now_iso,
+                "scoreItem": {
+                    "score": score_symbol,
+                    "scoreLabel": str(v.get("scoreLabel") or ""),
+                    "minimumScore": score_numeric,
+                    "value": score_numeric,
+                },
+            })
         out.append({
             "sourcedId": _synth_score_scale_sourced_id(tenant_schema, slug),
             "status": "active",
             "dateLastModified": now_iso,
             "title": seed["title"],
             "type": seed["type"],
+            # IMS-canonical key (Wave 25 M3 addition).
+            "scoreScaleValues": score_scale_values,
+            # Back-compat flat mirror — preserved verbatim from v4.00.81.
             "scoreValues": [dict(v) for v in seed["scoreValues"]],
         })
     return out

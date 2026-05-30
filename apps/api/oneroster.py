@@ -55,20 +55,49 @@ def _expected_token() -> str:
 
 
 def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
-    """Bearer-token check. Returns (ok, error_code)."""
+    """Bearer-token check. Returns (ok, error_code).
+
+    v4.00.92 Wave 25 C4 — extended to accept BOTH:
+      * the legacy static env Bearer in ``RMC_ONEROSTER_ACCESS_TOKEN``
+        (back-compat for existing integrations);
+      * OAuth2-issued Bearer tokens minted by
+        :mod:`apps.api.oneroster_oauth2_token` (RFC 6749 § 4.4 client
+        credentials grant). The decoded payload is stashed on the request
+        as ``_oneroster_oauth2`` so downstream views can check scopes.
+
+    Validation order: static env first (cheap constant-time compare),
+    then OAuth2 (TimestampSigner.unsign). On both miss → ``invalid_token``.
+    """
     header = request.META.get("HTTP_AUTHORIZATION", "") or ""
     if not header.lower().startswith("bearer "):
         return False, "missing_bearer"
     submitted = header[7:].strip()
+    if not submitted:
+        return False, "invalid_token"
     expected = _expected_token()
+    # Legacy static env Bearer wins when configured + matches.
+    if expected and hmac.compare_digest(submitted, expected):
+        return True, None
+    # OAuth2 client_credentials path.
+    try:
+        from apps.api.oneroster_oauth2_token import decode_oauth2_bearer_token
+        ok, payload = decode_oauth2_bearer_token(submitted)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("oneroster oauth2 decode failed: %s", exc)
+        ok, payload = False, None
+    if ok and payload is not None:
+        # Attach so per-endpoint scope checks (future) can read it.
+        try:
+            setattr(request, "_oneroster_oauth2", payload)
+        except Exception:  # noqa: BLE001
+            pass
+        return True, None
     if not expected:
-        # Soft-allow when no token is configured — useful for dev. Production
-        # must set the env variable; log a one-time warning here.
+        # Dev-mode soft-allow ONLY when neither path produced a token —
+        # preserves the historical "no env -> open" behavior.
         logger.info("oneroster: no RMC_ONEROSTER_ACCESS_TOKEN configured (dev mode)")
         return True, None
-    if not submitted or not hmac.compare_digest(submitted, expected):
-        return False, "invalid_token"
-    return True, None
+    return False, "invalid_token"
 
 
 def _paginate(request: HttpRequest, items: list[Any]) -> tuple[list[Any], dict[str, int]]:
@@ -106,6 +135,84 @@ def _gate(request: HttpRequest) -> JsonResponse | None:
     resp = JsonResponse({"error": err or "unauthorized"}, status=401)
     resp["WWW-Authenticate"] = 'Bearer realm="OneRoster v1.2"'
     return resp
+
+
+# ---------------------------------------------------------------------------
+# v4.00.92 Wave 25 M1 + M2 — shared GET/HEAD pipeline for the 6 main
+# collection list endpoints (orgs / schools / users / classes / courses /
+# enrollments). Every collection view delegates to ``_collection_get`` so
+# ?filter / ?sort / ?fields / pagination all share a single SOT, and the
+# ``_head_supported`` wrapper computes X-Total-Count for HEAD verbs from
+# the SAME projection function (no logic duplication per spec § 4.13).
+# ---------------------------------------------------------------------------
+
+
+def _empty_response_with_total_count(
+    projection: "callable",
+    request: HttpRequest,
+) -> JsonResponse:
+    """Build a HEAD-verb response: 200 + X-Total-Count + empty body.
+
+    Reuses the GET projection so HEAD and GET always agree on the count.
+    The filter pipeline runs so ``?filter=`` is honored even on HEAD.
+    """
+    from apps.api.oneroster_query_helpers import total_count_for
+    items = list(projection())
+    total = total_count_for(request, items)
+    resp = JsonResponse({}, status=200)
+    resp["X-Total-Count"] = str(total)
+    # Empty body for HEAD per RFC 7231 § 4.3.2.
+    resp.content = b""
+    return resp
+
+
+def _head_supported(view_func):
+    """Decorator: route HEAD to an empty-body + X-Total-Count response.
+
+    The wrapped view is expected to follow the OneRoster collection
+    convention — accept ``request`` and return a JSON envelope of the
+    queried collection. When HEAD is requested, we re-run only the
+    projection callable carried on the function as ``_projection_attr``.
+    """
+    def wrapped(request, *args, **kwargs):
+        if request.method == "HEAD":
+            # Auth gate still applies on HEAD.
+            gate = _gate(request)
+            if gate is not None:
+                return gate
+            projection = getattr(view_func, "_projection", None)
+            if projection is None:
+                # Fall back to GET → strip body. This works because
+                # JsonResponse + content="" honors X-Total-Count headers.
+                resp = view_func(request, *args, **kwargs)
+                if hasattr(resp, "content"):
+                    resp.content = b""
+                return resp
+            return _empty_response_with_total_count(projection, request)
+        return view_func(request, *args, **kwargs)
+    wrapped.__name__ = view_func.__name__
+    wrapped.__doc__ = view_func.__doc__
+    # Mirror the projection attribute so the wrapper is introspectable.
+    if hasattr(view_func, "_projection"):
+        wrapped._projection = view_func._projection
+    return wrapped
+
+
+def _collection_get(
+    request: HttpRequest,
+    envelope_key: str,
+    projection: "callable",
+) -> JsonResponse:
+    """Apply the canonical OneRoster v1.2 query pipeline to a collection.
+
+    Pipeline: filter -> sort -> fields-mask -> pagination. Returns the
+    standard envelope ``{<key>: [...], totalCount, limit, offset}`` plus
+    the ``X-Total-Count`` / ``X-Limit`` / ``X-Offset`` mirror headers.
+    """
+    from apps.api.oneroster_query_helpers import apply_pipeline
+    items = list(projection())
+    page, meta = apply_pipeline(request, items)
+    return _envelope(envelope_key, page, meta)
 
 
 # ----- data adapters ------------------------------------------------------
@@ -265,14 +372,19 @@ def _iter_academic_sessions() -> Iterable[dict[str, Any]]:
 # ----- endpoints ----------------------------------------------------------
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "HEAD"])
 def orgs(request):
+    """v4.00.92 Wave 25 M1+M2 — GET honors ?filter/?sort/?fields; HEAD returns
+    X-Total-Count with empty body."""
+    if request.method == "HEAD":
+        gate = _gate(request)
+        if gate is not None:
+            return gate
+        return _empty_response_with_total_count(_iter_orgs, request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = list(_iter_orgs())
-    page, meta = _paginate(request, items)
-    return _envelope("orgs", page, meta)
+    return _collection_get(request, "orgs", _iter_orgs)
 
 
 @require_http_methods(["GET"])
@@ -288,24 +400,37 @@ def org_detail(request, sourced_id: str):
     return JsonResponse({"error": "org_not_found", "sourcedId": str(sourced_id)}, status=404)
 
 
-@require_http_methods(["GET"])
+def _iter_schools():
+    """Projection wrapper used by both GET and HEAD on /schools/."""
+    return (o for o in _iter_orgs() if o.get("type") == "school")
+
+
+@require_http_methods(["GET", "HEAD"])
 def schools(request):
+    """v4.00.92 Wave 25 M1+M2 — full query pipeline + HEAD support."""
+    if request.method == "HEAD":
+        gate = _gate(request)
+        if gate is not None:
+            return gate
+        return _empty_response_with_total_count(_iter_schools, request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = [o for o in _iter_orgs() if o["type"] == "school"]
-    page, meta = _paginate(request, items)
-    return _envelope("schools", page, meta)
+    return _collection_get(request, "schools", _iter_schools)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "HEAD"])
 def users(request):
+    """v4.00.92 Wave 25 M1+M2 — full query pipeline + HEAD support."""
+    if request.method == "HEAD":
+        gate = _gate(request)
+        if gate is not None:
+            return gate
+        return _empty_response_with_total_count(_iter_users, request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = list(_iter_users())
-    page, meta = _paginate(request, items)
-    return _envelope("users", page, meta)
+    return _collection_get(request, "users", _iter_users)
 
 
 @require_http_methods(["GET"])
@@ -342,14 +467,18 @@ def teachers(request):
     return _envelope("teachers", page, meta)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "HEAD"])
 def classes(request):
+    """v4.00.92 Wave 25 M1+M2 — full query pipeline + HEAD support."""
+    if request.method == "HEAD":
+        gate = _gate(request)
+        if gate is not None:
+            return gate
+        return _empty_response_with_total_count(_iter_classes, request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = list(_iter_classes())
-    page, meta = _paginate(request, items)
-    return _envelope("classes", page, meta)
+    return _collection_get(request, "classes", _iter_classes)
 
 
 @require_http_methods(["GET"])
@@ -409,25 +538,42 @@ def _iter_enrollments() -> Iterable[dict[str, Any]]:
             continue
 
 
-@require_http_methods(["GET"])
+def _iter_enrollments_with_window(request: HttpRequest):
+    """Projection wrapper applying the pre-existing ?since/?before window.
+
+    Used by both GET and HEAD so the count + page agree on the filter
+    surface (v4.00.76 ?since/?before is preserved alongside the v4.00.92
+    ?filter / ?sort / ?fields pipeline).
+    """
+    since = (request.GET.get("since") or "").strip()
+    before = (request.GET.get("before") or "").strip()
+    for it in _iter_enrollments():
+        bd = it.get("beginDate") or ""
+        if since and bd < since:
+            continue
+        if before and bd > before:
+            continue
+        yield it
+
+
+@require_http_methods(["GET", "HEAD"])
 def enrollments(request):
     """v4.00.76 — GET /api/roster/v1p2/enrollments/ per spec § 4.13.
 
     ``?since=<iso>&before=<iso>`` window filter (when the upstream Enrollment
     rows expose ``start_date`` / ``end_date`` columns).
+    v4.00.92 Wave 25 M1+M2 — also honors ?filter / ?sort / ?fields and HEAD.
     """
+    projection = lambda: _iter_enrollments_with_window(request)
+    if request.method == "HEAD":
+        gate = _gate(request)
+        if gate is not None:
+            return gate
+        return _empty_response_with_total_count(projection, request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = list(_iter_enrollments())
-    since = (request.GET.get("since") or "").strip()
-    before = (request.GET.get("before") or "").strip()
-    if since:
-        items = [it for it in items if (it.get("beginDate") or "") >= since]
-    if before:
-        items = [it for it in items if (it.get("beginDate") or "") <= before]
-    page, meta = _paginate(request, items)
-    return _envelope("enrollments", page, meta)
+    return _collection_get(request, "enrollments", projection)
 
 
 @require_http_methods(["GET"])
@@ -442,15 +588,19 @@ def class_detail(request, sourced_id: str):
     return JsonResponse({"error": "class_not_found", "sourcedId": str(sourced_id)}, status=404)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "HEAD"])
 def courses(request):
-    """v4.00.74 — GET /api/roster/v1p2/courses/ per spec § 4.13 Course resource."""
+    """v4.00.74 — GET /api/roster/v1p2/courses/ per spec § 4.13 Course resource.
+    v4.00.92 Wave 25 M1+M2 — full query pipeline + HEAD support."""
+    if request.method == "HEAD":
+        gate = _gate(request)
+        if gate is not None:
+            return gate
+        return _empty_response_with_total_count(_iter_courses, request)
     gate = _gate(request)
     if gate is not None:
         return gate
-    items = list(_iter_courses())
-    page, meta = _paginate(request, items)
-    return _envelope("courses", page, meta)
+    return _collection_get(request, "courses", _iter_courses)
 
 
 @require_http_methods(["GET"])

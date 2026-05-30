@@ -99,6 +99,8 @@ from apps.api import oneroster_csv_importer as _oneroster_csv
 from apps.api import oneroster_writes as _oneroster_writes
 from apps.api import oneroster_results as _oneroster_results
 from apps.api import oneroster_demographics as _oneroster_demographics
+# v4.00.92 Wave 25 C4 — OAuth2 client_credentials grant (RFC 6749 § 4.4).
+from apps.api import oneroster_oauth2_token as _oneroster_oauth2_token
 from apps.portal.views_ai_product import (
     api_smart_settings_assistant,
     api_import_error_resolver,
@@ -552,6 +554,13 @@ urlpatterns = [
     # v4.00.35: wedge registry JSON API
     path("super/wedges/", api_wedge_list, name="super-wedge-list"),
     path("super/wedges/<int:wedge_id>/", api_wedge_detail, name="super-wedge-detail"),
+    # v4.00.92 Wave 25 C4 — OneRoster v1.2 OAuth2 client_credentials grant
+    # (RFC 6749 § 4.4). POST /api/roster/v1p2/oauth/token/ form-encoded.
+    path(  # rbac-allow: OAuth2 client_credentials grant — client_id+client_secret in body
+        "roster/v1p2/oauth/token/",
+        _oneroster_oauth2_token.oneroster_token_endpoint,
+        name="api-roster-v1p2-oauth-token",
+    ),
     # v4.00.36: OneRoster v1.2 read-only Rostering endpoints (wedge 44)
     path("roster/v1p2/orgs/", _oneroster.orgs, name="api-roster-v1p2-orgs"),
     # v4.00.70 — single-org detail endpoint per spec § 4.13.
