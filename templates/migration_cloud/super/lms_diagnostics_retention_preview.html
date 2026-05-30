@@ -77,6 +77,35 @@
     </table>
   </section>
 
+  {# v4.00.67 — Sparkline showing 24 weeks of row distribution straddling #}
+  {# the cutoff. Left half = would-purge (before cutoff); right half = kept. #}
+  {% if sparkline.buckets %}
+  <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
+    <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;">{% trans "Row distribution by week" %}</h2>
+    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;">
+      {% blocktrans with weeks=sparkline.weeks_per_side %}{{ weeks }} weeks before cutoff and {{ weeks }} weeks after. Bars left of the divider would purge; bars right of the divider would be kept.{% endblocktrans %}
+      <strong style="color:var(--text-primary);">{% trans "Before total" %}:</strong> <code>{{ sparkline.before_total }}</code> ·
+      <strong style="color:var(--text-primary);">{% trans "After total" %}:</strong> <code>{{ sparkline.after_total }}</code>
+    </p>
+    <svg viewBox="0 0 {{ sparkline.viewbox_width }} {{ sparkline.viewbox_height }}" preserveAspectRatio="none" style="width:100%;max-width:720px;height:80px;display:block;border:1px solid var(--hairline);border-radius:6px;background:var(--surface-bg);">
+      {% for b in sparkline.buckets %}
+        <rect x="{{ b.x }}" y="{{ b.bar_y }}" width="10" height="{{ b.bar_h }}"
+              fill="{% if b.side == 'before' %}var(--text-primary){% else %}var(--text-secondary){% endif %}"
+              opacity="0.75">
+          <title>{{ b.week_start_iso }} ({{ b.side }}): {{ b.count }} rows</title>
+        </rect>
+      {% endfor %}
+      {# Divider line at center between before/after halves #}
+      <line x1="{{ sparkline.divider_x }}" y1="0" x2="{{ sparkline.divider_x }}" y2="{{ sparkline.viewbox_height }}" stroke="var(--text-primary)" stroke-width="0.5" stroke-dasharray="2,2" opacity="0.6"/>
+    </svg>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-top:4px;">
+      <span>← {{ sparkline.window_start_iso|slice:":10" }}</span>
+      <span>{% trans "cutoff" %}</span>
+      <span>{{ sparkline.window_end_iso|slice:":10" }} →</span>
+    </div>
+  </section>
+  {% endif %}
+
   <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
     <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;">{% trans "Forecast different windows" %}</h2>
     <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:13px;">

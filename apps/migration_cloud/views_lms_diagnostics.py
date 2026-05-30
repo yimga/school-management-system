@@ -596,6 +596,89 @@ def _action_history_csv_response(*, limit: int, since=None, before=None):
 _RETENTION_PURGE_TOKEN_SALT = "rmc.lms_diag_action.retention_purge.v4.00.66"
 _RETENTION_PURGE_TOKEN_TTL_SECONDS = 300  # 5min
 
+# v4.00.67 — Retention preview sparkline by-week.
+#
+# Buckets LMSDiagActionAudit rows by ISO-week relative to the sweep cutoff
+# so the operator can see distribution skew before clicking purge. The
+# 24-week window (12 weeks behind + 12 weeks ahead of cutoff) is wide
+# enough to show whether the would-purge population is steady-state vs
+# an unusual spike at the edge of the retention window.
+_RETENTION_SPARKLINE_WEEKS_PER_SIDE = 12
+
+
+def _retention_purge_sparkline(*, cutoff_dt, now=None) -> dict:
+    """Return ``{buckets, max_count, weeks_per_side, before_total,
+    after_total}`` for the preview UI sparkline.
+
+    ``buckets`` is a list of 24 dicts each carrying
+    ``{week_start_iso, count, side}`` where side ∈ ``before|after`` —
+    operator sees the would-purge population on the left of the divider
+    and the kept population on the right.
+    NEVER raises — DB errors return an empty sparkline shape.
+    """
+    from django.utils import timezone as _tz
+    from datetime import timedelta
+    now = now or _tz.now()
+    weeks = _RETENTION_SPARKLINE_WEEKS_PER_SIDE
+    if cutoff_dt is None:
+        return {"buckets": [], "max_count": 0, "weeks_per_side": weeks,
+                "before_total": 0, "after_total": 0}
+
+    # Anchor each bucket to the start of a week (Monday 00:00 UTC).
+    window_start = cutoff_dt - timedelta(weeks=weeks)
+    window_end = cutoff_dt + timedelta(weeks=weeks)
+
+    try:
+        from apps.integrations_marketplace.models import LMSDiagActionAudit
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("retention sparkline: model unavailable: %s", exc)
+        return {"buckets": [], "max_count": 0, "weeks_per_side": weeks,
+                "before_total": 0, "after_total": 0}
+
+    buckets = []
+    for i in range(weeks * 2):
+        bucket_start = window_start + timedelta(weeks=i)
+        bucket_end = bucket_start + timedelta(weeks=1)
+        side = "before" if bucket_end <= cutoff_dt else "after"
+        try:
+            cnt = LMSDiagActionAudit.objects.filter(  # tenant-isolation-allow: retention-preview-sparkline-platform-scope
+                created_at__gte=bucket_start,
+                created_at__lt=bucket_end,
+            ).count()
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("retention sparkline: bucket count failed: %s", exc)
+            cnt = 0
+        buckets.append({
+            "week_start_iso": bucket_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "count": cnt,
+            "side": side,
+        })
+
+    max_count = max((b["count"] for b in buckets), default=0)
+    before_total = sum(b["count"] for b in buckets if b["side"] == "before")
+    after_total = sum(b["count"] for b in buckets if b["side"] == "after")
+    # Pre-compute SVG bar geometry so the template stays arithmetic-free.
+    # viewBox is 288x60; bars are 10 wide, 12 apart.
+    chart_h = 56
+    chart_top_pad = 2
+    for idx, b in enumerate(buckets):
+        bar_h = int((b["count"] / max_count) * chart_h) if max_count else 0
+        b["x"] = idx * 12
+        b["bar_h"] = bar_h
+        b["bar_y"] = chart_top_pad + (chart_h - bar_h)
+    return {
+        "buckets": buckets,
+        "max_count": max_count,
+        "weeks_per_side": weeks,
+        "before_total": before_total,
+        "after_total": after_total,
+        "window_start_iso": window_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "window_end_iso": window_end.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "viewbox_width": 288,
+        "viewbox_height": 60,
+        "divider_x": 144,
+    }
+
 
 def _make_retention_purge_token(*, years: int, cutoff_iso: str) -> str:
     from django.core.signing import TimestampSigner
@@ -688,6 +771,11 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
             cutoff_iso=str(out.get("cutoff_iso") or ""),
         )
 
+    # v4.00.67 — Sparkline showing 24 weeks of row distribution around the
+    # cutoff so operator sees skew before purging.
+    cutoff_dt = _parse_window_iso(out.get("cutoff_iso") or "")
+    sparkline = _retention_purge_sparkline(cutoff_dt=cutoff_dt)
+
     fmt = (request.GET.get("format") or "").strip().lower()
     if fmt == "json":
         return JsonResponse({
@@ -696,6 +784,7 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
             "retention": out,
             "purge_token": purge_token,
             "purge_token_ttl_seconds": _RETENTION_PURGE_TOKEN_TTL_SECONDS,
+            "sparkline": sparkline,
             "note": "preview only — nothing was deleted",
         })
 
@@ -708,6 +797,7 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
             "years_override": years,
             "purge_token": purge_token,
             "purge_token_ttl_seconds": _RETENTION_PURGE_TOKEN_TTL_SECONDS,
+            "sparkline": sparkline,
             "note": "preview only — nothing was deleted",
         },
     )

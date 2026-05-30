@@ -1952,3 +1952,250 @@ def slo_callback(request):
     target = relay if (relay.startswith("/") and not relay.startswith("//")) else "/"
     from django.http import HttpResponseRedirect
     return HttpResponseRedirect(target)
+
+
+# ---------------------------------------------------------------------------
+# v4.00.67 — SAML SP-initiated SSO.
+#
+# Counterpart to v4.00.46 ``acs`` (IdP-sent AuthnResponse): SP-initiated
+# means the LOGIN ORIGINATES at the SP side. User clicks "Sign in with
+# SAML" in our app; we build an AuthnRequest, deliver it to the IdP via
+# HTTP-Redirect (default) or HTTP-POST binding, and the IdP redirects
+# the user-agent back to ``/sso/saml/acs/`` with the SAMLResponse.
+#
+# Reuses v4.00.62's ``_build_redirect_signed_url`` for the Redirect-binding
+# signature path AND v4.00.61's ``_sign_saml_logout_request`` lookalike
+# pattern (XML-DSig embedded ``<ds:Signature>``) for POST binding —
+# operators who already configured RMC_SAML_SP_SIGN_LOGOUT=1 get
+# AuthnRequest signing FOR FREE.
+#
+# Endpoint:
+#   * GET  /sso/saml/login/start/   — builds the AuthnRequest, returns
+#                                     302 to IdP (Redirect binding) OR
+#                                     auto-submit HTML form (POST binding)
+# ---------------------------------------------------------------------------
+
+
+def _idp_sso_url() -> str:
+    """v4.00.67 — Return the IdP's SSO redirect target.
+
+    Honors ``RMC_SAML_IDP_SSO_URL`` env / setting; empty when unset.
+    """
+    val = (
+        getattr(settings, "RMC_SAML_IDP_SSO_URL", None)
+        if hasattr(settings, "RMC_SAML_IDP_SSO_URL")
+        else os.environ.get("RMC_SAML_IDP_SSO_URL", "")
+    )
+    return (val or "").strip()
+
+
+def _build_saml_authn_request(
+    *,
+    sp_entity_id: str,
+    acs_url: str,
+    idp_target: str,
+    force_authn: bool = False,
+    is_passive: bool = False,
+    name_id_format: str = "",
+) -> bytes:
+    """v4.00.67 — Build a minimal SAML 2.0 AuthnRequest XML for SP-initiated SSO.
+
+    AuthnRequest carries: Issuer (this SP), AssertionConsumerServiceURL
+    (where the IdP should POST the response), optional NameIDPolicy.
+    Returns raw bytes ready for base64 encoding (POST binding) or
+    deflate+base64 (Redirect binding).
+
+    Not signed by us at the XML level — signing is the caller's
+    responsibility via ``_sign_saml_logout_request``-pattern signer or
+    via ``_build_redirect_signed_url`` for Redirect binding.
+    """
+    from datetime import datetime, timezone
+    import uuid
+    from django.utils.html import escape as _escape
+
+    issue_instant = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    req_id = f"_rmc-ar-{uuid.uuid4().hex}"
+
+    dest_attr = f' Destination="{_escape(idp_target)}"' if idp_target else ""
+    acs_attr = f' AssertionConsumerServiceURL="{_escape(acs_url)}"' if acs_url else ""
+    force_attr = ' ForceAuthn="true"' if force_authn else ""
+    passive_attr = ' IsPassive="true"' if is_passive else ""
+
+    name_id_policy = ""
+    if name_id_format:
+        name_id_policy = (
+            f'<samlp:NameIDPolicy Format="{_escape(name_id_format)}" AllowCreate="true"/>'
+        )
+
+    xml = (
+        f'<samlp:AuthnRequest xmlns:samlp="{_NS_SAMLP}" '
+        f'xmlns:saml="{_NS_SAML}" '
+        f'ID="{req_id}" Version="2.0" IssueInstant="{issue_instant}"'
+        f' ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"'
+        f'{dest_attr}{acs_attr}{force_attr}{passive_attr}>'
+        f'<saml:Issuer>{_escape(sp_entity_id)}</saml:Issuer>'
+        f'{name_id_policy}'
+        f'</samlp:AuthnRequest>'
+    )
+    return xml.encode("utf-8")
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def login_start(request):
+    """v4.00.67 — SP-initiated SSO start.
+
+    Builds an AuthnRequest targeting the IdP. By default uses the
+    HTTP-Redirect binding (302 to IdP w/ deflated SAMLRequest in the URL).
+    ``?binding=post`` switches to HTTP-POST (auto-submit form).
+
+    Inputs (all optional):
+      * ``?next=`` — preserved across the round-trip as RelayState
+        (must start with "/" — open-redirect defense)
+      * ``?force_authn=1`` — ForceAuthn="true" attribute (re-auth even
+        if the IdP session is alive)
+      * ``?passive=1`` — IsPassive="true" (no IdP UI; fails fast if
+        the IdP session is missing)
+      * ``?name_id_format=<URI>`` — override the requested NameIDPolicy
+      * ``?format=json`` — returns assembled shape for headless smoke
+
+    Returns 503 idp_sso_target_missing when ``RMC_SAML_IDP_SSO_URL`` unset.
+    """
+    import base64 as _b64
+
+    idp_target = _idp_sso_url()
+    sp_entity_id = _entity_id() or "rmc-sp"
+    acs_url = f"{_base_url(request)}/sso/saml/acs/"
+    relay = (request.GET.get("next") or request.GET.get("RelayState") or "").strip()
+    # Open-redirect defense: relay must be a server-relative path.
+    if relay and (not relay.startswith("/") or relay.startswith("//")):
+        relay = ""
+
+    force_authn = (request.GET.get("force_authn") or "").strip() in ("1", "true", "yes")
+    is_passive = (request.GET.get("passive") or "").strip() in ("1", "true", "yes")
+    name_id_format = (request.GET.get("name_id_format") or "").strip()
+
+    req_bytes = _build_saml_authn_request(
+        sp_entity_id=sp_entity_id,
+        acs_url=acs_url,
+        idp_target=idp_target,
+        force_authn=force_authn,
+        is_passive=is_passive,
+        name_id_format=name_id_format,
+    )
+
+    # v4.00.67 — opt-in signing reuses v4.00.61 RMC_SAML_SP_SIGN_LOGOUT
+    # env (operators who configured signing for logout get login signing
+    # for free). Same strict-mode 503 contract.
+    signature_reason = "unsigned"
+    signed = False
+    if _sp_sign_logout_enabled():
+        # Reuse the LogoutRequest signer — XML-DSig enveloped signing
+        # is structurally identical for AuthnRequest, just operates on
+        # a different root element. The sign helper doesn't inspect the
+        # root local-name; it canonicalizes the whole tree.
+        signed_bytes, signature_reason = _sign_saml_logout_request(req_bytes)
+        if signature_reason == "ok":
+            req_bytes = signed_bytes
+            signed = True
+        elif _require_signature_strict():
+            return JsonResponse({
+                "success": False,
+                "stage": "sp_signer_unavailable",
+                "reason": signature_reason,
+            }, status=503)
+        else:
+            logger.warning(
+                "saml login_start: signing requested but %s - emitting unsigned",
+                signature_reason,
+            )
+
+    binding = (request.GET.get("binding") or "redirect").strip().lower()
+    if binding not in ("post", "redirect"):
+        binding = "redirect"
+
+    payload_b64 = _b64.b64encode(req_bytes).decode("ascii")
+
+    # Redirect binding: deflate-then-base64. SAML spec requires raw deflate.
+    import zlib as _zlib
+    redirect_b64 = ""
+    if binding == "redirect":
+        compressor = _zlib.compressobj(level=9, wbits=-15)
+        deflated = compressor.compress(req_bytes) + compressor.flush()
+        redirect_b64 = _b64.b64encode(deflated).decode("ascii")
+
+    redirect_url = ""
+    redirect_sig_reason = "unsigned"
+    if binding == "redirect" and idp_target:
+        if _sp_sign_logout_enabled():
+            redirect_url, redirect_sig_reason = _build_redirect_signed_url(
+                idp_target=idp_target,
+                saml_request_b64=redirect_b64,
+                relay_state=relay,
+            )
+            if redirect_sig_reason != "ok" and _require_signature_strict():
+                return JsonResponse({
+                    "success": False,
+                    "stage": "sp_signer_unavailable_redirect",
+                    "reason": redirect_sig_reason,
+                    "binding": "HTTP-Redirect",
+                }, status=503)
+        else:
+            import urllib.parse as _ulib
+            parts = [("SAMLRequest", redirect_b64)]
+            if relay:
+                parts.append(("RelayState", relay))
+            sep = "&" if "?" in idp_target else "?"
+            redirect_url = f"{idp_target}{sep}{_ulib.urlencode(parts)}"
+
+    if (request.GET.get("format") or "").lower() == "json":
+        body = {
+            "success": True,
+            "stage": "authn_request_built",
+            "sp_entity_id": sp_entity_id,
+            "acs_url": acs_url,
+            "idp_target": idp_target,
+            "force_authn": force_authn,
+            "is_passive": is_passive,
+            "name_id_format": name_id_format,
+            "binding": "HTTP-Redirect" if binding == "redirect" else "HTTP-POST",
+            "relay_state": relay,
+            "authn_request_b64": payload_b64,
+            "signed": signed if binding == "post" else (redirect_sig_reason == "ok"),
+            "signature_reason": signature_reason if binding == "post" else redirect_sig_reason,
+        }
+        if binding == "redirect":
+            body["saml_request_deflated_b64"] = redirect_b64
+            body["redirect_url"] = redirect_url
+        return JsonResponse(body)
+
+    if not idp_target:
+        return JsonResponse({
+            "success": False,
+            "stage": "idp_sso_target_missing",
+            "error": "RMC_SAML_IDP_SSO_URL not configured",
+        }, status=503)
+
+    if binding == "redirect":
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(redirect_url)
+
+    from django.utils.html import escape as _escape
+    action_esc = _escape(idp_target)
+    payload_esc = _escape(payload_b64)
+    relay_html = (
+        f'<input type="hidden" name="RelayState" value="{_escape(relay)}">' if relay else ""
+    )
+    html = (
+        "<!DOCTYPE html><html><head>"
+        "<meta charset=\"utf-8\">"
+        "<title>SAML sign-in</title></head><body>"
+        f"<form id=\"sso-start-form\" method=\"post\" action=\"{action_esc}\">"
+        f"<input type=\"hidden\" name=\"SAMLRequest\" value=\"{payload_esc}\">"
+        f"{relay_html}"
+        "<noscript><button type=\"submit\">Continue sign-in</button></noscript>"
+        "</form>"
+        "<script>document.getElementById('sso-start-form').submit();</script>"
+        "</body></html>"
+    )
+    return HttpResponse(html, content_type="text/html; charset=utf-8")

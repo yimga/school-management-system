@@ -7,6 +7,17 @@ Spec grammar (verbatim from the v1.2 PDF):
   logical_op    ::= 'AND' | 'OR'
   comparison_op ::= '=' | '!=' | '>' | '>=' | '<' | '<=' | '~'
 
+v4.00.67 — Extended to support parenthesized nesting (real-world customers
+ship ``(a OR b) AND c`` and similar expressions even though the v1.2 PDF
+grammar is technically flat). The extension is conservative: parens
+override the AND > OR precedence; outside parens the spec contract is
+preserved unchanged.
+
+  expression ::= term ( OR term )*
+  term       ::= factor ( AND factor )*
+  factor     ::= predicate | '(' expression ')'
+  predicate  ::= field comparison_op 'value'
+
 The ``~`` operator is "contains" (case-insensitive substring match).
 String literals are single-quoted; escape an embedded ``'`` with ``\\'``.
 Field names are bare identifiers. AND has higher precedence than OR.
@@ -39,13 +50,15 @@ logger = logging.getLogger(__name__)
 _COMPARISON_OPS = ("!=", ">=", "<=", "=", ">", "<", "~")
 
 # Tokenizer regex: match either a single-quoted string (with backslash escape),
-# an AND/OR keyword (case-sensitive per spec), a comparison op, or a bare ident.
+# an AND/OR keyword (case-sensitive per spec), a comparison op, parens (v4.00.67),
+# or a bare ident.
 _TOKEN_RE = re.compile(
     r"""
     \s+                                    # whitespace (consumed but skipped)
     | '(?:\\.|[^'\\])*'                    # single-quoted string literal
     | \b(?:AND|OR)\b                       # boolean keyword
     | !=|>=|<=|[=<>~]                      # comparison op
+    | [()]                                 # v4.00.67 parens for grouping
     | [A-Za-z_][A-Za-z0-9_.]*              # identifier (field name)
     """,
     re.VERBOSE,
@@ -118,6 +131,79 @@ def _make_pred(field: str, op: str, lit: str) -> Callable[[dict], bool]:
 _ALWAYS_TRUE: Callable[[dict], bool] = lambda _row: True  # noqa: E731
 
 
+class _ParseError(Exception):
+    """Internal — surfaced to the caller as always-True (fail-safe)."""
+
+
+class _Parser:
+    """v4.00.67 — Recursive-descent parser with paren support.
+
+    Grammar:
+      expression ::= term ( OR term )*
+      term       ::= factor ( AND factor )*
+      factor     ::= predicate | '(' expression ')'
+      predicate  ::= field comparison_op 'value'
+    """
+
+    def __init__(self, tokens: list[str]):
+        self.tokens = tokens
+        self.pos = 0
+
+    def _peek(self) -> str:
+        return self.tokens[self.pos] if self.pos < len(self.tokens) else ""
+
+    def _consume(self) -> str:
+        tok = self._peek()
+        self.pos += 1
+        return tok
+
+    def _at_end(self) -> bool:
+        return self.pos >= len(self.tokens)
+
+    def parse_expression(self) -> Callable[[dict], bool]:
+        left = self.parse_term()
+        while self._peek() == "OR":
+            self._consume()
+            right = self.parse_term()
+            l, r = left, right
+            left = lambda row, l=l, r=r: l(row) or r(row)  # noqa: E731
+        return left
+
+    def parse_term(self) -> Callable[[dict], bool]:
+        left = self.parse_factor()
+        while self._peek() == "AND":
+            self._consume()
+            right = self.parse_factor()
+            l, r = left, right
+            left = lambda row, l=l, r=r: l(row) and r(row)  # noqa: E731
+        return left
+
+    def parse_factor(self) -> Callable[[dict], bool]:
+        if self._peek() == "(":
+            self._consume()
+            inner = self.parse_expression()
+            if self._peek() != ")":
+                raise _ParseError("unbalanced_parens")
+            self._consume()
+            return inner
+        return self.parse_predicate()
+
+    def parse_predicate(self) -> Callable[[dict], bool]:
+        if self.pos + 2 >= len(self.tokens) + 1:
+            raise _ParseError("truncated_predicate")
+        field = self._consume()
+        if field in ("AND", "OR", "(", ")") or field in _COMPARISON_OPS:
+            raise _ParseError(f"expected_field_got_{field!r}")
+        op = self._consume()
+        if op not in _COMPARISON_OPS:
+            raise _ParseError(f"expected_comparison_op_got_{op!r}")
+        lit_tok = self._consume()
+        if not (lit_tok.startswith("'") and lit_tok.endswith("'")):
+            raise _ParseError(f"expected_quoted_literal_got_{lit_tok!r}")
+        lit = _unquote_literal(lit_tok)
+        return _make_pred(field, op, lit)
+
+
 def parse_filter(expr: str) -> Callable[[dict], bool]:
     """Parse a filter expression. Returns the always-True callable on
     empty / unparseable input (operator-facing surface — don't 400)."""
@@ -130,61 +216,19 @@ def parse_filter(expr: str) -> Callable[[dict], bool]:
         logger.debug("oneroster filter: un-lex-able expr=%r", expr)
         return _ALWAYS_TRUE
 
-    # Parse predicates separated by AND / OR. Build flat list:
-    # [pred, op, pred, op, ...]
-    items: list = []
-    i = 0
-    while i < len(tokens):
-        # predicate: field comparison_op 'value'
-        if i + 2 >= len(tokens):
-            logger.debug("oneroster filter: trailing tokens at %r", tokens[i:])
-            return _ALWAYS_TRUE
-        field, op, lit_tok = tokens[i], tokens[i + 1], tokens[i + 2]
-        if op not in _COMPARISON_OPS:
-            logger.debug("oneroster filter: expected comparison op, got %r", op)
-            return _ALWAYS_TRUE
-        if not (lit_tok.startswith("'") and lit_tok.endswith("'")):
-            logger.debug("oneroster filter: expected quoted literal, got %r", lit_tok)
-            return _ALWAYS_TRUE
-        lit = _unquote_literal(lit_tok)
-        items.append(_make_pred(field, op, lit))
-        i += 3
-        if i < len(tokens):
-            kw = tokens[i]
-            if kw not in ("AND", "OR"):
-                logger.debug("oneroster filter: expected AND/OR, got %r", kw)
-                return _ALWAYS_TRUE
-            items.append(kw)
-            i += 1
-
-    if not items:
+    parser = _Parser(tokens)
+    try:
+        evaluator = parser.parse_expression()
+    except _ParseError as exc:
+        logger.debug("oneroster filter: parse failed (%s) for expr=%r", exc, expr)
+        return _ALWAYS_TRUE
+    except (IndexError, ValueError) as exc:
+        logger.debug("oneroster filter: parser raised %s for expr=%r", exc, expr)
         return _ALWAYS_TRUE
 
-    # Apply AND precedence first: collapse runs of preds joined by AND
-    # into a single AND-group, then OR the groups together.
-    or_groups: list[list[Callable]] = [[]]
-    j = 0
-    while j < len(items):
-        node = items[j]
-        if callable(node):
-            or_groups[-1].append(node)
-            j += 1
-            continue
-        # node is "AND" or "OR"
-        if node == "AND":
-            j += 1
-            continue
-        # OR — start a new group
-        or_groups.append([])
-        j += 1
-
-    def evaluator(row: dict) -> bool:
-        for group in or_groups:
-            if not group:
-                continue
-            if all(p(row) for p in group):
-                return True
-        return False
+    if not parser._at_end():
+        logger.debug("oneroster filter: trailing tokens after parse: %r", tokens[parser.pos:])
+        return _ALWAYS_TRUE
 
     return evaluator
 

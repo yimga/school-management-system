@@ -419,6 +419,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_country_of_birth_code(inner)
     if err is not None:
         return None, err
+    err = _validate_state_of_birth_abbreviation(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -475,6 +478,92 @@ def _validate_country_of_birth_code(inner: dict[str, Any]):
              "reason": "not_in_iso_3166_1_alpha_2",
              "received": code,
              "note": "must match a 2-letter ISO 3166-1 code from COUNTRY_LOCALIZATION SOT"},
+            status=400,
+        )
+    return None
+
+
+# v4.00.67 — Demographics POST/PUT `stateOfBirthAbbreviation` ISO 3166-2
+# subdivision validation, SCOPED to `countryOfBirthCode`.
+#
+# Spec semantics: `stateOfBirthAbbreviation` is the subdivision portion of
+# the ISO 3166-2 code (the part after the dash). E.g. for someone born in
+# California, USA: countryOfBirthCode="US" + stateOfBirthAbbreviation="CA".
+# The COUNTRY_LOCALIZATION SOT carries entries keyed `<COUNTRY>-<SUB>`
+# (e.g. `US-CA`, `JP-13`); we walk the SOT scoped to the requested
+# country and accept only known subdivisions.
+#
+# Without a country: shape check only (1-3 alphanumeric chars). Caller
+# pattern in the wild is to send country+state together, so the missing-
+# country case is permissive — operators sometimes send subdivision
+# without country during partial updates.
+#
+# Empty string allowed (explicit clear). Reasons:
+#   * bad_shape: regex didn't match
+#   * not_in_iso_3166_2: well-shaped but not a known subdivision of the
+#                       supplied country
+_STATE_OF_BIRTH_ABBR_RE = re.compile(r"^[A-Za-z0-9]{1,3}$")
+
+
+def _resolve_iso_3166_2_subdivisions(country: str) -> frozenset:
+    """Walk COUNTRY_LOCALIZATION keys looking for ``<country>-<subdivision>``
+    entries. Returns the subdivision-suffix set (case preserved as-stored).
+    """
+    if not country:
+        return frozenset()
+    try:
+        from apps.siteconfig._seed_country_localization import COUNTRY_LOCALIZATION
+    except Exception:  # noqa: BLE001
+        return frozenset()
+    prefix = f"{country}-"
+    out = set()
+    for k in COUNTRY_LOCALIZATION.keys():
+        if isinstance(k, str) and k.startswith(prefix):
+            tail = k[len(prefix):]
+            if tail:
+                out.add(tail)
+    return frozenset(out)
+
+
+def _validate_state_of_birth_abbreviation(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "stateOfBirthAbbreviation" not in inner:
+        return None
+    raw = str(inner.get("stateOfBirthAbbreviation") or "").strip()
+    if not raw:
+        return None  # explicit clear
+    if not _STATE_OF_BIRTH_ABBR_RE.match(raw):
+        return JsonResponse(
+            {"error": "bad_state_of_birth_abbreviation",
+             "reason": "bad_shape",
+             "received": raw[:32],
+             "note": "expected 1-3 alphanumeric chars (ISO 3166-2 subdivision suffix)"},
+            status=400,
+        )
+
+    # Scope to the supplied countryOfBirthCode when present in the same body.
+    country = str(inner.get("countryOfBirthCode") or "").strip().upper()
+    if not country:
+        # No country to scope against — shape check passed, accept.
+        return None
+
+    allow = _resolve_iso_3166_2_subdivisions(country)
+    if not allow:
+        # SOT carries no subdivisions for this country (e.g. tiny island
+        # nations). Shape-only is the best we can do — accept.
+        return None
+
+    # Compare case-insensitively because the SOT keys preserve casing
+    # (e.g. US-CA vs JP-13 vs MX-CDMX). We do not auto-uppercase here.
+    received_upper = raw.upper()
+    allow_upper = {s.upper() for s in allow}
+    if received_upper not in allow_upper:
+        return JsonResponse(
+            {"error": "bad_state_of_birth_abbreviation",
+             "reason": "not_in_iso_3166_2",
+             "received": raw,
+             "country": country,
+             "note": f"must match a known {country}-<subdivision> entry in COUNTRY_LOCALIZATION SOT"},
             status=400,
         )
     return None

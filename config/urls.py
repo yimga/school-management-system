@@ -554,6 +554,8 @@ urlpatterns = [
     path("sso/saml/sls/idp/", __import__("apps.api.saml", fromlist=["sls_idp"]).sls_idp, name="sso_saml_sls_idp"),
     # v4.00.60 — SP-initiated SLO: start (build LogoutRequest, POST to IdP) + callback (parse LogoutResponse).
     path("sso/saml/slo/start/", __import__("apps.api.saml", fromlist=["slo_start"]).slo_start, name="sso_saml_slo_start"),
+    # v4.00.67 — SP-initiated SSO: build AuthnRequest, redirect (or POST) to IdP. Counterpart to v4.00.46 acs.
+    path("sso/saml/login/start/", __import__("apps.api.saml", fromlist=["login_start"]).login_start, name="sso_saml_login_start"),
     path("sso/saml/slo/callback/", __import__("apps.api.saml", fromlist=["slo_callback"]).slo_callback, name="sso_saml_slo_callback"),
     # v4.00.39 — SCIM 2.0 provisioning (wedge 45 item 2). Routed at platform
     # root so IdP SCIM endpoint configs stay stable.

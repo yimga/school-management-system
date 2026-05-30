@@ -12798,6 +12798,396 @@ COUNTRY_LOCALIZATION["VN-HN"] = {
 
 
 # ---------------------------------------------------------------------------
+# v4.00.67 (2026-05-29) — +14 Tier-1 subdivisions:
+#   JP-29 Nara, JP-30 Wakayama,
+#   CN-YN Yunnan, CN-GX Guangxi, CN-SX Shanxi, CN-SN Shaanxi,
+#   KR-49 Jeju,
+#   PT-11 Lisboa, PT-13 Porto,
+#   GR-A1 Attica (Athens), GR-B Central Macedonia (Thessaloniki),
+#   EG-C Cairo, EG-ALX Alexandria,
+#   IT-LAZ Lazio (Rome).
+# ---------------------------------------------------------------------------
+
+# Nara (JP-29) — Kansai 3-gakki + Nara U + NAIST + Nara Women's U + Tezukayama.
+COUNTRY_LOCALIZATION["JP-29"] = {
+    "calendar_system": {
+        "code": "jp29-3-gakki", "label": "3-gakki (Nara)",
+        "term_count": 3, "term_names": ["1-gakki", "2-gakki", "3-gakki"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",   "label": "Shogakko (1-6)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",   "label": "Chugakko (7-9)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko",  "label": "Kotogakko (10-12)",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "senshu",     "label": "Senshu-gakko (vocational)",             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "daigaku",    "label": "NAIST + Nara U + Nara Women's U + Tezukayama", "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp29-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp29-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp29-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp29-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei", "principal": "Kocho",
+        "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen",
+    },
+}
+
+# Wakayama (JP-30) — Kansai 2-gakki + Wakayama U + Wakayama Medical U.
+COUNTRY_LOCALIZATION["JP-30"] = {
+    "calendar_system": {
+        "code": "jp30-2-gakki", "label": "2-gakki (Wakayama)",
+        "term_count": 2, "term_names": ["Mae-ki", "Ato-ki"],
+        "week_start": 1, "academic_year_starts_month": 4,
+    },
+    "school_types": [
+        {"code": "youchien",   "label": "Youchien",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "shogakko",   "label": "Shogakko (1-6)",                       "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chugakko",   "label": "Chugakko (7-9)",                       "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "kotogakko",  "label": "Kotogakko (10-12)",                    "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "senshu",     "label": "Senshu-gakko (vocational)",             "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "18+"},
+        {"code": "daigaku",    "label": "Wakayama U + Wakayama Medical U",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "jp30-1",  "label": "Year 1 (Shogakko)",  "order": 1},
+        {"code": "jp30-6",  "label": "Year 6 (Shogakko)",  "order": 6},
+        {"code": "jp30-9",  "label": "Year 3 (Chugakko)",  "order": 9},
+        {"code": "jp30-12", "label": "Year 3 (Kotogakko)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Sensei", "principal": "Kocho",
+        "term": "Gakki", "report_card": "Tsuchihyou", "grade_level": "Nen",
+    },
+}
+
+# Yunnan (CN-YN) — Yunnan U + Kunming U of Sci & Tech + YNNU + Yunnan Minzu.
+COUNTRY_LOCALIZATION["CN-YN"] = {
+    "calendar_system": {
+        "code": "cnyn-2-sem", "label": "2-sem (Yunnan)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                             "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                            "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                  "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                    "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "Yunnan U + KUST + YNNU + Yunnan Minzu",      "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnyn-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cnyn-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cnyn-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cnyn-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Guangxi (CN-GX) — Guangxi U + Guangxi NU + Guangxi Minzu + GLUT.
+COUNTRY_LOCALIZATION["CN-GX"] = {
+    "calendar_system": {
+        "code": "cngx-2-sem", "label": "2-sem (Guangxi)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                           "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "Guangxi U + GXNU + Guangxi Minzu + GLUT",  "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cngx-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cngx-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cngx-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cngx-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Shanxi (CN-SX) — Shanxi U + Taiyuan U of Tech + Shanxi Normal + Shanxi Medical.
+COUNTRY_LOCALIZATION["CN-SX"] = {
+    "calendar_system": {
+        "code": "cnsx-2-sem", "label": "2-sem (Shanxi)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                           "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "Shanxi U + TYUT + SXNU + SXMU",            "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnsx-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cnsx-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cnsx-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cnsx-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Shaanxi (CN-SN) — Xi'an Jiaotong U + NPU + Xidian U + Northwest U + Shaanxi NU.
+COUNTRY_LOCALIZATION["CN-SN"] = {
+    "calendar_system": {
+        "code": "cnsn-2-sem", "label": "2-sem (Shaanxi)",
+        "term_count": 2, "term_names": ["上学期", "下学期"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "youeryuan",    "label": "Youeryuan",                                "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",      "label": "Xiaoxue (1-6)",                           "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",     "label": "Chuzhong (7-9)",                          "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "gaozhong",     "label": "Gaozhong (10-12, Gaokao)",                "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "zhongzhuan",   "label": "Zhongzhuan (vocational)",                  "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "16+"},
+        {"code": "daxue",        "label": "XJTU + NPU + Xidian + NWU + SNNU",         "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "cnsn-1",  "label": "Year 1 (Xiaoxue)",  "order": 1},
+        {"code": "cnsn-6",  "label": "Year 6 (Xiaoxue)",  "order": 6},
+        {"code": "cnsn-9",  "label": "Year 3 (Chuzhong)", "order": 9},
+        {"code": "cnsn-12", "label": "Year 3 (Gaozhong)", "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Laoshi", "principal": "Xiaozhang",
+        "term": "Xueqi", "report_card": "Chengjidan", "grade_level": "Nianji",
+    },
+}
+
+# Jeju (KR-49) — Jeju National U + Jeju Tourism College + Cheju Halla U.
+COUNTRY_LOCALIZATION["KR-49"] = {
+    "calendar_system": {
+        "code": "kr49-2-sem", "label": "2-sem (Jeju Special Self-Governing Province)",
+        "term_count": 2, "term_names": ["1학기", "2학기"],
+        "week_start": 1, "academic_year_starts_month": 3,
+    },
+    "school_types": [
+        {"code": "yuchiwon",   "label": "Yuchiwon",                              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "chodeung",   "label": "Chodeung Hakkyo (1-6)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "jung",       "label": "Junghakgyo (7-9)",                     "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "godeung",    "label": "Godeunghakgyo (10-12, Suneung)",       "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "vocational", "label": "Maeisteo / Specialized Vocational HS", "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-18"},
+        {"code": "daehakgyo",  "label": "Jeju NU + Jeju Tourism + Cheju Halla", "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "kr49-1",  "label": "Year 1 (Chodeung)", "order": 1},
+        {"code": "kr49-6",  "label": "Year 6 (Chodeung)", "order": 6},
+        {"code": "kr49-9",  "label": "Year 3 (Jung)",     "order": 9},
+        {"code": "kr49-12", "label": "Year 3 (Godeung)",  "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Seonsaengnim", "principal": "Gyojang",
+        "term": "Hakgi", "report_card": "Seongjeokpyo", "grade_level": "Hangnyeon",
+    },
+}
+
+# Lisboa (PT-11) — U of Lisbon + ISCTE-IUL + Nova U Lisbon + ISEG.
+COUNTRY_LOCALIZATION["PT-11"] = {
+    "calendar_system": {
+        "code": "pt11-2-sem", "label": "2-sem (DGE Lisboa)",
+        "term_count": 2, "term_names": ["1º Semestre", "2º Semestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "creche",       "label": "Creche / Pré-escolar",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-5"},
+        {"code": "basico_1c",    "label": "Ensino Básico 1º Ciclo (1-4)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-9"},
+        {"code": "basico_23c",   "label": "Ensino Básico 2º-3º Ciclo (5-9)",             "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "10-14"},
+        {"code": "secundario",   "label": "Ensino Secundário (10-12) + Exames Nacionais","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "profissional", "label": "Curso Profissional (CEF / EFA)",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "universidade", "label": "UL + ISCTE-IUL + Nova U Lisbon + ISEG",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "pt11-pre", "label": "Pré-escolar",        "order": 0},
+        {"code": "pt11-4",   "label": "4º ano (1º ciclo)",  "order": 4},
+        {"code": "pt11-9",   "label": "9º ano (3º ciclo)",  "order": 9},
+        {"code": "pt11-12",  "label": "12º ano (Exames)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor(a)", "principal": "Diretor(a)",
+        "term": "Semestre", "report_card": "Pauta", "grade_level": "Ano",
+    },
+}
+
+# Porto (PT-13) — U of Porto + Catholic U + ISEP + Portuguese Catholic U.
+COUNTRY_LOCALIZATION["PT-13"] = {
+    "calendar_system": {
+        "code": "pt13-2-sem", "label": "2-sem (DGE Porto)",
+        "term_count": 2, "term_names": ["1º Semestre", "2º Semestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "creche",       "label": "Creche / Pré-escolar",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "0-5"},
+        {"code": "basico_1c",    "label": "Ensino Básico 1º Ciclo (1-4)",                "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-9"},
+        {"code": "basico_23c",   "label": "Ensino Básico 2º-3º Ciclo (5-9)",             "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "10-14"},
+        {"code": "secundario",   "label": "Ensino Secundário (10-12) + Exames Nacionais","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "profissional", "label": "Curso Profissional (CEF / EFA)",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "universidade", "label": "U Porto + UCP + ISEP",                        "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "pt13-pre", "label": "Pré-escolar",        "order": 0},
+        {"code": "pt13-4",   "label": "4º ano (1º ciclo)",  "order": 4},
+        {"code": "pt13-9",   "label": "9º ano (3º ciclo)",  "order": 9},
+        {"code": "pt13-12",  "label": "12º ano (Exames)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Professor(a)", "principal": "Diretor(a)",
+        "term": "Semestre", "report_card": "Pauta", "grade_level": "Ano",
+    },
+}
+
+# Attica (GR-A1) — NKUA + NTUA + UoA Athens + Panteion + Harokopio.
+COUNTRY_LOCALIZATION["GR-A1"] = {
+    "calendar_system": {
+        "code": "gra1-2-sem", "label": "2-sem (Greek Ministry of Education)",
+        "term_count": 2, "term_names": ["Α' Εξάμηνο", "Β' Εξάμηνο"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "nipiagogio",    "label": "Νηπιαγωγείο (kindergarten)",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "dimotiko",      "label": "Δημοτικό (1-6)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "gymnasio",      "label": "Γυμνάσιο (7-9)",                              "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "lykeio",        "label": "Λύκειο (10-12) + Πανελλήνιες",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "iek",           "label": "ΙΕΚ / ΕΠΑΛ (vocational)",                      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "panepistimio",  "label": "NKUA + NTUA + Panteion + Harokopio",          "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "gra1-pre", "label": "Νηπιαγωγείο",         "order": 0},
+        {"code": "gra1-6",   "label": "Στ' Δημοτικού",       "order": 6},
+        {"code": "gra1-9",   "label": "Γ' Γυμνασίου",        "order": 9},
+        {"code": "gra1-12",  "label": "Γ' Λυκείου (Παν.)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Δάσκαλος / Καθηγητής", "principal": "Διευθυντής",
+        "term": "Εξάμηνο", "report_card": "Έλεγχος", "grade_level": "Τάξη",
+    },
+}
+
+# Central Macedonia (GR-B) — AUTH + UoM + IHU Thessaloniki + Mihail Vass.
+COUNTRY_LOCALIZATION["GR-B"] = {
+    "calendar_system": {
+        "code": "grb-2-sem", "label": "2-sem (Greek Ministry of Education)",
+        "term_count": 2, "term_names": ["Α' Εξάμηνο", "Β' Εξάμηνο"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "nipiagogio",    "label": "Νηπιαγωγείο (kindergarten)",                  "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "dimotiko",      "label": "Δημοτικό (1-6)",                              "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "gymnasio",      "label": "Γυμνάσιο (7-9)",                              "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-15"},
+        {"code": "lykeio",        "label": "Λύκειο (10-12) + Πανελλήνιες",                 "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-18"},
+        {"code": "iek",           "label": "ΙΕΚ / ΕΠΑΛ (vocational)",                      "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15+"},
+        {"code": "panepistimio",  "label": "AUTH + UoM + IHU + Mihail Vass",              "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "grb-pre", "label": "Νηπιαγωγείο",         "order": 0},
+        {"code": "grb-6",   "label": "Στ' Δημοτικού",       "order": 6},
+        {"code": "grb-9",   "label": "Γ' Γυμνασίου",        "order": 9},
+        {"code": "grb-12",  "label": "Γ' Λυκείου (Παν.)",    "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Δάσκαλος / Καθηγητής", "principal": "Διευθυντής",
+        "term": "Εξάμηνο", "report_card": "Έλεγχος", "grade_level": "Τάξη",
+    },
+}
+
+# Cairo (EG-C) — Cairo U + AUC + Ain Shams + Helwan + GUC + Al-Azhar.
+COUNTRY_LOCALIZATION["EG-C"] = {
+    "calendar_system": {
+        "code": "egc-2-sem", "label": "2-sem (Egyptian Ministry of Education)",
+        "term_count": 2, "term_names": ["الفصل الدراسي الأول", "الفصل الدراسي الثاني"],
+        "week_start": 6, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "rawda",         "label": "Rawda (kindergarten)",                          "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "ibtidaiya",     "label": "Ibtida'iya (Primary 1-6)",                      "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "iadadiya",      "label": "I'dadiya (Preparatory 7-9)",                    "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "thanawiya",     "label": "Thanawiya 'Amma (10-12, Thanawiya Amma exam)",   "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "fanniya",       "label": "Thanawiya Fanniya (technical secondary)",        "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-17"},
+        {"code": "jamia",         "label": "Cairo U + AUC + Ain Shams + Helwan + GUC + Al-Azhar", "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "egc-r",   "label": "Rawda",                  "order": 0},
+        {"code": "egc-6",   "label": "Grade 6 (Ibtida'iya)",   "order": 6},
+        {"code": "egc-9",   "label": "Grade 9 (I'dadiya)",     "order": 9},
+        {"code": "egc-12",  "label": "Grade 12 (Thanawiya)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mu'allim", "principal": "Nazir",
+        "term": "Fasl Dirasi", "report_card": "Shahada", "grade_level": "Saff",
+    },
+}
+
+# Alexandria (EG-ALX) — Alexandria U + Pharos U + AAST + Arab Academy.
+COUNTRY_LOCALIZATION["EG-ALX"] = {
+    "calendar_system": {
+        "code": "egalx-2-sem", "label": "2-sem (Egyptian Ministry of Education)",
+        "term_count": 2, "term_names": ["الفصل الدراسي الأول", "الفصل الدراسي الثاني"],
+        "week_start": 6, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "rawda",         "label": "Rawda (kindergarten)",                       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "4-5"},
+        {"code": "ibtidaiya",     "label": "Ibtida'iya (Primary 1-6)",                   "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-11"},
+        {"code": "iadadiya",      "label": "I'dadiya (Preparatory 7-9)",                 "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "12-14"},
+        {"code": "thanawiya",     "label": "Thanawiya 'Amma (10-12, Thanawiya Amma exam)","glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "15-17"},
+        {"code": "fanniya",       "label": "Thanawiya Fanniya (technical secondary)",     "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "15-17"},
+        {"code": "jamia",         "label": "Alexandria U + Pharos U + AAST",              "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "17+"},
+    ],
+    "education_levels": [
+        {"code": "egalx-r",  "label": "Rawda",                  "order": 0},
+        {"code": "egalx-6",  "label": "Grade 6 (Ibtida'iya)",   "order": 6},
+        {"code": "egalx-9",  "label": "Grade 9 (I'dadiya)",     "order": 9},
+        {"code": "egalx-12", "label": "Grade 12 (Thanawiya)",   "order": 12},
+    ],
+    "terminology": {
+        "teacher": "Mu'allim", "principal": "Nazir",
+        "term": "Fasl Dirasi", "report_card": "Shahada", "grade_level": "Saff",
+    },
+}
+
+# Lazio (IT-LAZ) — Sapienza + Roma Tre + Tor Vergata + LUISS + UCSC Roma.
+COUNTRY_LOCALIZATION["IT-LAZ"] = {
+    "calendar_system": {
+        "code": "itlaz-2-sem", "label": "2-sem (Lazio / MIUR)",
+        "term_count": 2, "term_names": ["I Quadrimestre", "II Quadrimestre"],
+        "week_start": 1, "academic_year_starts_month": 9,
+    },
+    "school_types": [
+        {"code": "scuola_infanzia",  "label": "Scuola dell'Infanzia",                     "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-5"},
+        {"code": "primaria",         "label": "Scuola Primaria (1-5)",                     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-10"},
+        {"code": "media",            "label": "Scuola Secondaria I (6-8)",                  "glyph": "\U0001F3EB", "primary_sector": "secondary",       "typical_ages": "11-13"},
+        {"code": "superiore",        "label": "Scuola Secondaria II (9-13) + Maturità",     "glyph": "\U0001F393", "primary_sector": "secondary",       "typical_ages": "14-18"},
+        {"code": "professionale",    "label": "Istituto Professionale / IeFP",              "glyph": "\U0001F527", "primary_sector": "vocational",      "typical_ages": "14+"},
+        {"code": "universita",       "label": "Sapienza + Roma Tre + Tor Vergata + LUISS + UCSC", "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "18+"},
+    ],
+    "education_levels": [
+        {"code": "itlaz-inf", "label": "Scuola dell'Infanzia",   "order": 0},
+        {"code": "itlaz-5",   "label": "5ª Primaria",             "order": 5},
+        {"code": "itlaz-8",   "label": "3ª Media (Esame)",        "order": 9},
+        {"code": "itlaz-13",  "label": "5ª Superiore (Maturità)", "order": 13},
+    ],
+    "terminology": {
+        "teacher": "Insegnante", "principal": "Dirigente Scolastico",
+        "term": "Quadrimestre", "report_card": "Pagella", "grade_level": "Anno",
+    },
+}
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,
