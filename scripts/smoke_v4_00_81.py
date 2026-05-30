@@ -168,11 +168,10 @@ g = sk.push_grade(student_external_id="s1", course_external_id="c1",
                   assignment_external_id="a1", score=80.0, max_score=100.0)
 assert g["scaffold"] is True and g["target_method"] == "PUT"
 _ok("Sakai push_grade scaffold shape")
+# Forward-compat: Sakai promoted to OAUTH_READY in v4.00.91 B3.
 assert "sakai" in lsp.SUPPORTED_LMS_PROVIDERS
-assert "sakai" in lsp.SCAFFOLD_LMS_PROVIDERS
-assert "sakai" not in lsp.OAUTH_READY_LMS_PROVIDERS
 assert lsp.canonical_lms_provider_label("sakai") == "Sakai"
-_ok("Sakai registered in SOT")
+_ok(f"Sakai SOT: supported, scaffold={('sakai' in lsp.SCAFFOLD_LMS_PROVIDERS)}, oauth_ready={('sakai' in lsp.OAUTH_READY_LMS_PROVIDERS)} (was scaffold-only at v4.00.81; promoted in v4.00.91 B3)")
 
 
 print("=" * 70)

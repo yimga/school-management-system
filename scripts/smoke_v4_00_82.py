@@ -146,11 +146,10 @@ g = il.push_grade(student_external_id="s1", course_external_id="c1",
                   assignment_external_id="a1", score=88.0, max_score=100.0)
 assert g["scaffold"] is True and g["target_method"] == "POST"
 _ok("Itslearning push_grade scaffold shape")
+# Forward-compat: Itslearning promoted to OAUTH_READY in v4.00.91 B4.
 assert "itslearning" in lsp.SUPPORTED_LMS_PROVIDERS
-assert "itslearning" in lsp.SCAFFOLD_LMS_PROVIDERS
-assert "itslearning" not in lsp.OAUTH_READY_LMS_PROVIDERS
 assert lsp.canonical_lms_provider_label("itslearning") == "Itslearning"
-_ok("Itslearning registered in SOT")
+_ok(f"Itslearning SOT: supported, scaffold={('itslearning' in lsp.SCAFFOLD_LMS_PROVIDERS)}, oauth_ready={('itslearning' in lsp.OAUTH_READY_LMS_PROVIDERS)} (was scaffold-only at v4.00.82; promoted in v4.00.91 B4)")
 
 
 # T2 + T4 placeholders — covered by their per-target smokes

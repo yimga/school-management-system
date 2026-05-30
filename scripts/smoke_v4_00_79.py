@@ -281,12 +281,19 @@ assert bad["reason"] == "missing_field"
 _ok("Blackboard push_grade missing student_external_id -> missing_field")
 
 # Case: SOT registration
+# Forward-compat: at v4.00.79 Blackboard was in SCAFFOLD + NOT in
+# OAUTH_READY. Promoted to OAUTH_READY in v4.00.91 B1 (moved out of
+# SCAFFOLD). Stable invariants: still SUPPORTED + label unchanged +
+# still in rollup_order.
 assert "blackboard" in lsp.SUPPORTED_LMS_PROVIDERS
-assert "blackboard" in lsp.SCAFFOLD_LMS_PROVIDERS
-assert "blackboard" not in lsp.OAUTH_READY_LMS_PROVIDERS
 assert lsp.canonical_lms_provider_label("blackboard") == "Blackboard Learn"
 assert "blackboard" in lsp.lms_provider_rollup_order()
-_ok("Blackboard registered in SOT: supported + scaffold (not oauth-ready)")
+_ok(
+    f"Blackboard registered in SOT: supported + "
+    f"scaffold={('blackboard' in lsp.SCAFFOLD_LMS_PROVIDERS)} + "
+    f"oauth_ready={('blackboard' in lsp.OAUTH_READY_LMS_PROVIDERS)} "
+    "(was scaffold-not-oauth-ready at v4.00.79; promoted in v4.00.91 B1)"
+)
 
 # Case: rollup card includes Blackboard
 cards = lsp.lms_provider_rollup_card()

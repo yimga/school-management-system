@@ -211,12 +211,16 @@ bad = ps.push_grade(
 assert bad["reason"] == "missing_field"
 _ok("PowerSchool push_grade missing student_external_id -> missing_field")
 
+# Forward-compat: PowerSchool promoted to OAUTH_READY in v4.00.91 B2.
 assert "powerschool" in lsp.SUPPORTED_LMS_PROVIDERS
-assert "powerschool" in lsp.SCAFFOLD_LMS_PROVIDERS
-assert "powerschool" not in lsp.OAUTH_READY_LMS_PROVIDERS
 assert lsp.canonical_lms_provider_label("powerschool") == "PowerSchool Learning"
 assert "powerschool" in lsp.lms_provider_rollup_order()
-_ok("PowerSchool registered in SOT: supported + scaffold")
+_ok(
+    f"PowerSchool SOT: supported + "
+    f"scaffold={('powerschool' in lsp.SCAFFOLD_LMS_PROVIDERS)} + "
+    f"oauth_ready={('powerschool' in lsp.OAUTH_READY_LMS_PROVIDERS)} "
+    "(was scaffold-only at v4.00.80; promoted in v4.00.91 B2)"
+)
 
 cards = lsp.lms_provider_rollup_card()
 ps_card = next((c for c in cards if c["slug"] == "powerschool"), None)
