@@ -44,6 +44,10 @@ DEFAULT_SCOPES = (
 PROVIDER_SLUG = "d2l_brightspace"
 PROVIDER_LABEL = "Brightspace (D2L)"
 
+# v4.00.72 — OAuth state mint TimestampSigner salt + TTL.
+OAUTH_STATE_SALT = "rmc.lms.d2l_brightspace.oauth_state.v4.00.72"
+OAUTH_STATE_TTL_SECONDS = 600  # 10 min
+
 
 def oauth_authorize_url(
     *,
@@ -64,6 +68,38 @@ def oauth_authorize_url(
     ])
     sep = "&" if "?" in authorize_url else "?"
     return f"{authorize_url}{sep}{qs}"
+
+
+def mint_oauth_state(*, tenant_slug: str, user_pk: str | int,
+                      redirect_path: str = "/") -> str:
+    """v4.00.72 — Mint a CSRF-safe OAuth state signed w/ TimestampSigner.
+    Payload format: ``"<tenant_slug>:<user_pk>:<redirect_path>"``.
+    Open-redirect defense: redirect_path must start with "/" not "//".
+    """
+    from django.core.signing import TimestampSigner
+    signer = TimestampSigner(salt=OAUTH_STATE_SALT)
+    safe_redirect = redirect_path if redirect_path.startswith("/") and not redirect_path.startswith("//") else "/"
+    payload = f"{tenant_slug}:{user_pk}:{safe_redirect}"
+    return signer.sign(payload)
+
+
+def read_oauth_state(raw: str):
+    """v4.00.72 — Return ``(parsed_dict_or_None, reason)``. 5-state taxonomy."""
+    from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
+    signer = TimestampSigner(salt=OAUTH_STATE_SALT)
+    if not raw:
+        return None, "missing_token"
+    try:
+        payload = signer.unsign(raw, max_age=OAUTH_STATE_TTL_SECONDS)
+    except SignatureExpired:
+        return None, "expired_token"
+    except BadSignature:
+        return None, "bad_token"
+    parts = payload.split(":", 2)
+    if len(parts) != 3:
+        return None, "malformed_payload"
+    return {"tenant_slug": parts[0], "user_pk": parts[1],
+            "redirect_path": parts[2]}, "ok"
 
 
 def refresh_token(*, refresh_token: str, client_id: str, client_secret: str) -> dict:

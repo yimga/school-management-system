@@ -267,6 +267,29 @@ def _bump_retention_sweep_counter(*, kind: str, considered: int, deleted: int) -
     except Exception as exc:  # noqa: BLE001
         logger.debug("retention counters bump failed: %s", exc)
 
+
+def action_history_rollup_by_action(*, limit: int = 200) -> dict[str, dict[str, int]]:
+    """v4.00.72 — Roll up the last-action history ring by action name.
+
+    Returns ``{action_name: {count, ok_total, failed_total, considered_total}}``.
+    Empty when the ring is empty. NEVER raises.
+    """
+    out: dict[str, dict[str, int]] = {}
+    try:
+        snap = get_last_action_snapshot(limit=limit, durable=True)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("action_history_rollup_by_action: snapshot failed: %s", exc)
+        return out
+    for evt in snap:
+        action = str(evt.get("action") or "unknown")
+        bucket = out.setdefault(action, {"count": 0, "ok_total": 0,
+                                        "failed_total": 0, "considered_total": 0})
+        bucket["count"] += 1
+        bucket["ok_total"] += int(evt.get("ok") or 0)
+        bucket["failed_total"] += int(evt.get("failed") or 0)
+        bucket["considered_total"] += int(evt.get("considered") or 0)
+    return out
+
 # v4.00.61 — DB persistence beyond worker lifetime. Each force-refresh /
 # force-rotate click is mirrored to LMSPushGradeAudit with
 # course_id="_diag_action" (matches the established _health_check /

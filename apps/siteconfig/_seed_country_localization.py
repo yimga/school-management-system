@@ -14381,6 +14381,145 @@ COUNTRY_LOCALIZATION["TZ-02"] = _v4_00_71_subdivision(
 
 
 # ---------------------------------------------------------------------------
+# v4.00.72 (2026-05-29) — +14 subdivisions: PE-LAL La Libertad,
+#   PE-AQP Arequipa, AR-N Neuquén, AR-Z Santa Cruz, EG-LX Luxor,
+#   ET-AA Addis Ababa, MA-RBA Rabat-Salé-Kénitra, SN-DK Dakar,
+#   ZW-HA Harare, ZM-08 Lusaka, BW-GA Gaborone, MZ-MPM Maputo City,
+#   NA-WI Windhoek/Khomas, RW-01 Kigali.
+# ---------------------------------------------------------------------------
+
+def _v4_00_72(code, calc, label, tc, terms, asm, schools, levels, term):
+    return {
+        "calendar_system": {"code": calc, "label": label, "term_count": tc,
+                            "term_names": list(terms), "week_start": 1,
+                            "academic_year_starts_month": asm},
+        "school_types": list(schools), "education_levels": list(levels),
+        "terminology": dict(term),
+    }
+
+COUNTRY_LOCALIZATION["PE-LAL"] = _v4_00_72("PE-LAL","pelal-2-sem","2-sem (La Libertad)",2,["Primer semestre","Segundo semestre"],3,
+    [{"code":"inicial","label":"Inicial","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Primaria (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secundaria","label":"Secundaria (1-5)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-16"},
+     {"code":"universidad","label":"UNT + UPAO + UCV Trujillo","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"pelal-1","label":"1° Primaria","order":1},{"code":"pelal-6","label":"6° Primaria","order":6},{"code":"pelal-11","label":"5° Secundaria","order":11}],
+    {"teacher":"Docente","principal":"Director","term":"Semestre","report_card":"Libreta","grade_level":"Grado"})
+
+COUNTRY_LOCALIZATION["PE-AQP"] = _v4_00_72("PE-AQP","peaqp-2-sem","2-sem (Arequipa)",2,["Primer semestre","Segundo semestre"],3,
+    [{"code":"inicial","label":"Inicial","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaria","label":"Primaria (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secundaria","label":"Secundaria (1-5)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-16"},
+     {"code":"universidad","label":"UNSA + UCSP + UNINA Arequipa","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"17+"}],
+    [{"code":"peaqp-1","label":"1° Primaria","order":1},{"code":"peaqp-6","label":"6° Primaria","order":6},{"code":"peaqp-11","label":"5° Secundaria","order":11}],
+    {"teacher":"Docente","principal":"Director","term":"Semestre","report_card":"Libreta","grade_level":"Grado"})
+
+COUNTRY_LOCALIZATION["AR-N"] = _v4_00_72("AR-N","arn-2-cuat","2-cuat (Neuquén)",2,["Primer cuatrimestre","Segundo cuatrimestre"],3,
+    [{"code":"jardin","label":"Jardín","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primario","label":"Primario (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secundario","label":"Secundario (1-6)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+     {"code":"universidad","label":"UNCo + UCASAL Neuquén","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"arn-1","label":"1° Primario","order":1},{"code":"arn-6","label":"6° Primario","order":6},{"code":"arn-12","label":"6° Secundario","order":12}],
+    {"teacher":"Docente","principal":"Director","term":"Cuatrimestre","report_card":"Boletín","grade_level":"Año"})
+
+COUNTRY_LOCALIZATION["AR-Z"] = _v4_00_72("AR-Z","arz-2-cuat","2-cuat (Santa Cruz)",2,["Primer cuatrimestre","Segundo cuatrimestre"],3,
+    [{"code":"jardin","label":"Jardín","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primario","label":"Primario (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"secundario","label":"Secundario (1-6)","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"12-17"},
+     {"code":"universidad","label":"UNPA + UTN-FRSC","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"arz-1","label":"1° Primario","order":1},{"code":"arz-6","label":"6° Primario","order":6},{"code":"arz-12","label":"6° Secundario","order":12}],
+    {"teacher":"Docente","principal":"Director","term":"Cuatrimestre","report_card":"Boletín","grade_level":"Año"})
+
+COUNTRY_LOCALIZATION["EG-LX"] = _v4_00_72("EG-LX","eglx-2-sem","2-sem (Luxor)",2,["First semester","Second semester"],9,
+    [{"code":"rawda","label":"Rawda","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-6"},
+     {"code":"ibtidai","label":"Ibtidai (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"edady","label":"Edady (7-9)","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-15"},
+     {"code":"thanawi","label":"Thanawi + Thanawiya Amma","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"gameaa","label":"Luxor U + South Valley U","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"eglx-1","label":"Year 1","order":1},{"code":"eglx-6","label":"Year 6","order":6},{"code":"eglx-9","label":"Year 9","order":9},{"code":"eglx-12","label":"Thanawiya Amma","order":12}],
+    {"teacher":"Mu'allim","principal":"Nazir","term":"Fasl Dirasi","report_card":"Shahada","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["ET-AA"] = _v4_00_72("ET-AA","etaa-2-sem","2-sem (Addis Ababa)",2,["First semester","Second semester"],9,
+    [{"code":"kg","label":"Kindergarten","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-6"},
+     {"code":"primary","label":"Primary (1-8) + 8th Nat'l Exam","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"7-14"},
+     {"code":"secondary","label":"Secondary (9-12) + EHEECE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-18"},
+     {"code":"university","label":"AAU + ASTU + AAiT + St. Paul","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"etaa-1","label":"Grade 1","order":1},{"code":"etaa-8","label":"Grade 8 + Nat'l Exam","order":8},{"code":"etaa-12","label":"Grade 12 + EHEECE","order":12}],
+    {"teacher":"Astemari","principal":"Directer","term":"Semester","report_card":"Mizgeb","grade_level":"Gerade"})
+
+COUNTRY_LOCALIZATION["MA-RBA"] = _v4_00_72("MA-RBA","marba-2-sem","2-sem (Rabat-Salé-Kénitra)",2,["Premier semestre","Deuxième semestre"],9,
+    [{"code":"maternelle","label":"Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primaire","label":"Primaire (1-6)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"college","label":"Collège (7-9) + BEPC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"lycee","label":"Lycée (10-12) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"universite","label":"UM5 + ENSIAS + EMI","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"marba-1","label":"1ère AP","order":1},{"code":"marba-6","label":"6ème AP","order":6},{"code":"marba-9","label":"3ème Collège","order":9},{"code":"marba-12","label":"Bac","order":12}],
+    {"teacher":"Mu'allim","principal":"Mudir","term":"Semestre","report_card":"Bulletin","grade_level":"Saff"})
+
+COUNTRY_LOCALIZATION["SN-DK"] = _v4_00_72("SN-DK","sndk-3-trim","3-trim (Dakar)",3,["Premier trimestre","Deuxième trimestre","Troisième trimestre"],10,
+    [{"code":"maternelle","label":"Maternelle","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"elementaire","label":"Élémentaire (CI-CM2) + CFEE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"college","label":"Collège (6e-3e) + BFEM","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"lycee","label":"Lycée (2nde-Terminale) + Bac","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"universite","label":"UCAD + ESP + IAM","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"sndk-1","label":"CI","order":1},{"code":"sndk-5","label":"CM2 + CFEE","order":5},{"code":"sndk-9","label":"3e + BFEM","order":9},{"code":"sndk-12","label":"Terminale + Bac","order":12}],
+    {"teacher":"Maître","principal":"Directeur","term":"Trimestre","report_card":"Bulletin","grade_level":"Niveau"})
+
+COUNTRY_LOCALIZATION["ZW-HA"] = _v4_00_72("ZW-HA","zwha-3-term","3-term (Harare)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"ecd","label":"ECD A-B","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Gr 1-7) + Gr 7 exam","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"oss","label":"Secondary O-level (Form 1-4) + ZIMSEC O","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-16"},
+     {"code":"ass","label":"Secondary A-level (Form 5-6) + ZIMSEC A","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"17-18"},
+     {"code":"university","label":"UZ + HIT + Bindura + WUA","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"19+"}],
+    [{"code":"zwha-1","label":"Grade 1","order":1},{"code":"zwha-7","label":"Grade 7","order":7},{"code":"zwha-11","label":"Form 4 + O-level","order":11},{"code":"zwha-13","label":"Form 6 + A-level","order":13}],
+    {"teacher":"Teacher","principal":"Head","term":"Term","report_card":"Report","grade_level":"Form"})
+
+COUNTRY_LOCALIZATION["ZM-08"] = _v4_00_72("ZM-08","zm08-3-term","3-term (Lusaka)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"preschool","label":"Pre-school","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (Gr 1-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"junior_secondary","label":"Junior Sec (Gr 8-9) + Gr 9 exam","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-14"},
+     {"code":"senior_secondary","label":"Senior Sec (Gr 10-12) + ECZ","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UNZA + CBU + Cavendish","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"zm08-1","label":"Grade 1","order":1},{"code":"zm08-7","label":"Grade 7","order":7},{"code":"zm08-9","label":"Grade 9","order":9},{"code":"zm08-12","label":"Grade 12 + ECZ","order":12}],
+    {"teacher":"Teacher","principal":"Head","term":"Term","report_card":"Report","grade_level":"Class"})
+
+COUNTRY_LOCALIZATION["BW-GA"] = _v4_00_72("BW-GA","bwga-3-term","3-term (Gaborone)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"preprimary","label":"Pre-primary","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"4-5"},
+     {"code":"primary","label":"Primary (Std 1-7) + PSLE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"junior_secondary","label":"Junior Sec (Form 1-3) + JCE","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-15"},
+     {"code":"senior_secondary","label":"Senior Sec (Form 4-5) + BGCSE","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"16-17"},
+     {"code":"university","label":"UB + BIUST + BAC","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"bwga-1","label":"Standard 1","order":1},{"code":"bwga-7","label":"Standard 7 + PSLE","order":7},{"code":"bwga-10","label":"Form 3 + JCE","order":10},{"code":"bwga-12","label":"Form 5 + BGCSE","order":12}],
+    {"teacher":"Teacher","principal":"Head","term":"Term","report_card":"Report","grade_level":"Standard"})
+
+COUNTRY_LOCALIZATION["MZ-MPM"] = _v4_00_72("MZ-MPM","mzmpm-2-sem","2-sem (Maputo City)",2,["1º trimestre","2º trimestre"],2,
+    [{"code":"preescolar","label":"Pré-Escolar","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"ep1","label":"EP1 (1-5)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-10"},
+     {"code":"ep2","label":"EP2 (6-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"11-12"},
+     {"code":"esg","label":"ESG (8-12) + Exames Nacionais","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"13-17"},
+     {"code":"universidade","label":"UEM + UP + ISCTEM + ISPU","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"mzmpm-1","label":"Classe 1","order":1},{"code":"mzmpm-7","label":"Classe 7","order":7},{"code":"mzmpm-12","label":"Classe 12","order":12}],
+    {"teacher":"Professor","principal":"Diretor","term":"Trimestre","report_card":"Boletim","grade_level":"Classe"})
+
+COUNTRY_LOCALIZATION["NA-WI"] = _v4_00_72("NA-WI","nawi-4-term","4-term (Windhoek/Khomas)",4,["Term 1","Term 2","Term 3","Term 4"],1,
+    [{"code":"preprimary","label":"Pre-primary","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"5"},
+     {"code":"primary","label":"Primary (Gr 1-7)","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-12"},
+     {"code":"junior_secondary","label":"Junior Sec (Gr 8-9) + JSC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"13-14"},
+     {"code":"senior_secondary","label":"Senior Sec (Gr 10-12) + NSSCO/NSSCAS","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UNAM + NUST + IUM","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"nawi-1","label":"Grade 1","order":1},{"code":"nawi-7","label":"Grade 7","order":7},{"code":"nawi-10","label":"Grade 10 + JSC","order":10},{"code":"nawi-12","label":"Grade 12 + NSSC","order":12}],
+    {"teacher":"Teacher","principal":"Head","term":"Term","report_card":"Report","grade_level":"Grade"})
+
+COUNTRY_LOCALIZATION["RW-01"] = _v4_00_72("RW-01","rw01-3-term","3-term (Kigali)",3,["Term 1","Term 2","Term 3"],1,
+    [{"code":"nursery","label":"Nursery (NS1-NS3)","glyph":"\U0001F9F8","primary_sector":"early_childhood","typical_ages":"3-5"},
+     {"code":"primary","label":"Primary (P1-P6) + PLE","glyph":"\U0001F3EB","primary_sector":"primary","typical_ages":"6-11"},
+     {"code":"o_level","label":"O-level (S1-S3) + NEC","glyph":"\U0001F3EB","primary_sector":"secondary","typical_ages":"12-14"},
+     {"code":"a_level","label":"A-level (S4-S6) + REB","glyph":"\U0001F393","primary_sector":"secondary","typical_ages":"15-17"},
+     {"code":"university","label":"UR + ULK + AUCA","glyph":"\U0001F3DB","primary_sector":"higher_ed","typical_ages":"18+"}],
+    [{"code":"rw01-1","label":"P1","order":1},{"code":"rw01-6","label":"P6 + PLE","order":6},{"code":"rw01-9","label":"S3 + NEC","order":9},{"code":"rw01-12","label":"S6 + REB","order":12}],
+    {"teacher":"Mwarimu","principal":"Mukuru","term":"Term","report_card":"Report","grade_level":"Class"})
+
+
+# ---------------------------------------------------------------------------
 # v4.00.30 (2026-05-29) — Re-fold `languages` after Tier-1 patch blocks.
 #
 # v4.00.28/29 assign full COUNTRY_LOCALIZATION dicts without `languages`,

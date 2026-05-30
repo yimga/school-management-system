@@ -292,8 +292,27 @@ def academic_sessions(request):
     if gate is not None:
         return gate
     items = list(_iter_academic_sessions())
+    # v4.00.72 — ?type=<value> subtype filter per spec § 4.13.
+    # Common values: schoolYear / term / gradingPeriod / semester.
+    wanted_type = (request.GET.get("type") or "").strip()
+    if wanted_type:
+        items = [it for it in items if it.get("type") == wanted_type]
     page, meta = _paginate(request, items)
     return _envelope("academicSessions", page, meta)
+
+
+@require_http_methods(["GET"])
+def terms(request):
+    """v4.00.72 — Convenience endpoint for academicSessions where type==term.
+
+    Equivalent to ``GET /academic-sessions/?type=term`` per spec § 4.13.
+    """
+    gate = _gate(request)
+    if gate is not None:
+        return gate
+    items = [s for s in _iter_academic_sessions() if s.get("type") == "term"]
+    page, meta = _paginate(request, items)
+    return _envelope("terms", page, meta)
 
 
 @require_http_methods(["GET"])
