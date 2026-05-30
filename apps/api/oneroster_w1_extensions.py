@@ -212,10 +212,18 @@ def staff_delta(request: HttpRequest) -> HttpResponse:
         for e in qs:
             sid = f"staff-{getattr(e, 'pk', '')}"
             if getattr(e, "is_active", True):
+                # Use the row's own updated_at for ETag stability (v4.00.91 W1 D11)
+                upd = getattr(e, "updated_at", None) or getattr(e, "modified_at", None)
+                dlm = ""
+                if upd is not None:
+                    try:
+                        dlm = upd.isoformat()
+                    except Exception:  # noqa: BLE001
+                        dlm = ""
                 rows.append({
                     "sourcedId": sid,
                     "status": "active",
-                    "dateLastModified": datetime.now(timezone.utc).isoformat(),
+                    "dateLastModified": dlm,
                     "role": getattr(e, "role_code", "staff"),
                 })
             else:
@@ -250,10 +258,18 @@ def demographics_delta(request: HttpRequest) -> HttpResponse:
         for s in qs:
             sid = f"demo-{getattr(s, 'pk', '')}"
             if getattr(s, "is_active", True):
+                # Use the row's own updated_at for ETag stability (v4.00.91 W1 D12)
+                upd = getattr(s, "updated_at", None) or getattr(s, "modified_at", None)
+                dlm = ""
+                if upd is not None:
+                    try:
+                        dlm = upd.isoformat()
+                    except Exception:  # noqa: BLE001
+                        dlm = ""
                 rows.append({
                     "sourcedId": sid,
                     "status": "active",
-                    "dateLastModified": datetime.now(timezone.utc).isoformat(),
+                    "dateLastModified": dlm,
                 })
             else:
                 tombstones.append(sid)
