@@ -13,14 +13,20 @@ grammar is technically flat). The extension is conservative: parens
 override the AND > OR precedence; outside parens the spec contract is
 preserved unchanged.
 
+v4.00.68 — Added unary ``NOT`` operator with the highest precedence (tighter
+than AND/OR; loose enough that ``NOT a AND b`` parses as ``(NOT a) AND b``).
+Double negation (``NOT NOT x``) is permitted. NOT binds to a single factor
+(predicate or parenthesized expression), so ``NOT (a OR b)`` flips the
+whole group. Lex-time keyword (case-sensitive per spec section 4.13).
+
   expression ::= term ( OR term )*
   term       ::= factor ( AND factor )*
-  factor     ::= predicate | '(' expression ')'
+  factor     ::= 'NOT' factor | predicate | '(' expression ')'
   predicate  ::= field comparison_op 'value'
 
 The ``~`` operator is "contains" (case-insensitive substring match).
 String literals are single-quoted; escape an embedded ``'`` with ``\\'``.
-Field names are bare identifiers. AND has higher precedence than OR.
+Field names are bare identifiers. NOT > AND > OR precedence.
 
 Implementation contract:
 
@@ -56,7 +62,7 @@ _TOKEN_RE = re.compile(
     r"""
     \s+                                    # whitespace (consumed but skipped)
     | '(?:\\.|[^'\\])*'                    # single-quoted string literal
-    | \b(?:AND|OR)\b                       # boolean keyword
+    | \b(?:AND|OR|NOT)\b                   # boolean keyword (NOT added v4.00.68)
     | !=|>=|<=|[=<>~]                      # comparison op
     | [()]                                 # v4.00.67 parens for grouping
     | [A-Za-z_][A-Za-z0-9_.]*              # identifier (field name)
@@ -137,11 +143,12 @@ class _ParseError(Exception):
 
 class _Parser:
     """v4.00.67 — Recursive-descent parser with paren support.
+    v4.00.68 — Added NOT unary operator (tighter precedence than AND/OR).
 
     Grammar:
       expression ::= term ( OR term )*
       term       ::= factor ( AND factor )*
-      factor     ::= predicate | '(' expression ')'
+      factor     ::= 'NOT' factor | predicate | '(' expression ')'
       predicate  ::= field comparison_op 'value'
     """
 
@@ -179,6 +186,12 @@ class _Parser:
         return left
 
     def parse_factor(self) -> Callable[[dict], bool]:
+        # v4.00.68 — Unary NOT: highest precedence, binds to a single factor.
+        # Double-negation works because parse_factor recurses on itself.
+        if self._peek() == "NOT":
+            self._consume()
+            inner = self.parse_factor()
+            return lambda row, inner=inner: not inner(row)
         if self._peek() == "(":
             self._consume()
             inner = self.parse_expression()
@@ -192,7 +205,7 @@ class _Parser:
         if self.pos + 2 >= len(self.tokens) + 1:
             raise _ParseError("truncated_predicate")
         field = self._consume()
-        if field in ("AND", "OR", "(", ")") or field in _COMPARISON_OPS:
+        if field in ("AND", "OR", "NOT", "(", ")") or field in _COMPARISON_OPS:
             raise _ParseError(f"expected_field_got_{field!r}")
         op = self._consume()
         if op not in _COMPARISON_OPS:

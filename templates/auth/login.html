@@ -95,6 +95,17 @@
                   <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
                 </div>
                 {% endif %}
+                {# v4.00.68 — SAML LoginInitiator surface. Renders only when the operator #}
+                {# has configured RMC_SAML_IDP_SSO_URL; safe no-op otherwise. The button #}
+                {# carries ?next= through via the prebuilt start_url (open-redirect-safe). #}
+                {% if saml_login_initiator.available %}
+                <div class="mb-3" id="saml-login-initiator" data-rmc-saml-sso-block="1">
+                  <a href="{{ saml_login_initiator.start_url }}" class="btn btn-outline-primary w-100 mb-2" data-rmc-saml-sso-button="1" rel="nofollow">
+                    {{ saml_login_initiator.label }}
+                  </a>
+                  <p class="small text-muted text-center my-2">{% trans "— or sign in with username —" %}</p>
+                </div>
+                {% endif %}
                 <div class="mb-3">
                   <label class="form-label" for="login-username">{% trans "Username" %}</label>
                   <input id="login-username" class="form-control" type="text" name="username" autocomplete="username" value="{{ request.POST.username|default:'' }}" placeholder="{{ LOGIN_EMAIL_PLACEHOLDER|default:'School Email' }}" required autofocus>

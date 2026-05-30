@@ -2199,3 +2199,101 @@ def login_start(request):
         "</body></html>"
     )
     return HttpResponse(html, content_type="text/html; charset=utf-8")
+
+
+# ---------------------------------------------------------------------------
+# v4.00.68 — SAML LoginInitiator UX surface.
+#
+# The v4.00.67 ``login_start`` view is the workhorse of SP-initiated SSO,
+# but operators expect a single button on /portal/login/ that just works
+# — not an unlinked URL. This block ships:
+#
+#   * ``resolve_saml_login_initiator(request, *, next_url="") -> dict``
+#       The shape rendered into the login template:
+#         {available, label, start_url, idp_target, force_authn, passive,
+#          binding}
+#       ``available`` is True iff the IdP target is configured (the only
+#       way the button could actually work). ``label`` is operator-facing
+#       and tenant-configurable via ``RMC_SAML_LOGIN_BUTTON_LABEL`` env
+#       (default "Sign in with SSO"). ``start_url`` is the prebuilt query
+#       string the button POSTs/GETs to — already carries ?next= so the
+#       template doesn't have to.
+#
+#   * ``login_initiator_context(request) -> dict``
+#       Django context-processor returning ``{saml_login_initiator: ...}``.
+#       Wire it into TEMPLATES.OPTIONS.context_processors if the operator
+#       wants every login page to surface SSO automatically.
+#
+# Open-redirect defense matches login_start exactly: ?next= values that
+# don't start with "/" or that start with "//" are dropped.
+# ---------------------------------------------------------------------------
+
+
+_LOGIN_BUTTON_LABEL_DEFAULT = "Sign in with SSO"
+
+
+def _saml_login_button_label() -> str:
+    val = (
+        getattr(settings, "RMC_SAML_LOGIN_BUTTON_LABEL", "")
+        or os.environ.get("RMC_SAML_LOGIN_BUTTON_LABEL", "")
+        or _LOGIN_BUTTON_LABEL_DEFAULT
+    )
+    return str(val).strip() or _LOGIN_BUTTON_LABEL_DEFAULT
+
+
+def _sanitize_next_url(raw: str) -> str:
+    """Mirror login_start's open-redirect defense exactly."""
+    raw = (raw or "").strip()
+    if not raw:
+        return ""
+    if not raw.startswith("/") or raw.startswith("//"):
+        return ""
+    return raw
+
+
+def resolve_saml_login_initiator(request, *, next_url: str = "") -> dict:
+    """Return the shape the /portal/login/ template needs to render the
+    SSO button. ``available`` gates the whole block off when the operator
+    hasn't configured the IdP target.
+    """
+    from django.urls import reverse, NoReverseMatch
+    import urllib.parse as _ulib
+
+    idp_target = _idp_sso_url()
+    safe_next = _sanitize_next_url(next_url)
+    try:
+        base_url = reverse("sso_saml_login_start")
+    except NoReverseMatch:
+        base_url = "/sso/saml/login/start/"
+
+    qs = {}
+    if safe_next:
+        qs["next"] = safe_next
+    start_url = base_url + (("?" + _ulib.urlencode(qs)) if qs else "")
+
+    return {
+        "available": bool(idp_target),
+        "label": _saml_login_button_label(),
+        "start_url": start_url,
+        "idp_target": idp_target,
+        "force_authn": False,
+        "passive": False,
+        "binding": "HTTP-Redirect",
+    }
+
+
+def login_initiator_context(request) -> dict:
+    """Django context-processor — exposes ``{{ saml_login_initiator }}``
+    to every template. Safe to wire in TEMPLATES.OPTIONS.context_processors;
+    NEVER raises (returns ``{available: False}`` on any failure).
+    """
+    try:
+        next_url = (
+            request.GET.get("next")
+            or getattr(request, "POST", {}).get("next", "")
+            or ""
+        )
+        return {"saml_login_initiator": resolve_saml_login_initiator(request, next_url=next_url)}
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("login_initiator_context failed: %s", exc)
+        return {"saml_login_initiator": {"available": False, "label": "", "start_url": ""}}

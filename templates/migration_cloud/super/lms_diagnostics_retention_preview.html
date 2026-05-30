@@ -153,6 +153,8 @@
   <footer style="font-size:12px;color:var(--text-secondary);margin-top:12px;">
     <span>{{ note }}</span> ·
     <a href="?format=json{% if years_override is not None %}&amp;years={{ years_override }}{% endif %}">{% trans "JSON" %}</a> ·
+    {# v4.00.68 — CSV gzip export of the sparkline histogram + retention summary. #}
+    <a href="?format=csv{% if years_override is not None %}&amp;years={{ years_override }}{% endif %}" data-rmc-retention-sparkline-csv="1">{% trans "CSV (sparkline + summary)" %}</a> ·
     <a href="{% url 'migration_cloud_super:migration_cloud_lms_diagnostics' %}">&larr; {% trans "back to LMS diagnostics" %}</a>
   </footer>
 </main>

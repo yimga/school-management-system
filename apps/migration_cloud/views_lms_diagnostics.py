@@ -680,6 +680,77 @@ def _retention_purge_sparkline(*, cutoff_dt, now=None) -> dict:
     }
 
 
+def _retention_preview_csv_response(*, retention: dict, sparkline: dict):
+    """v4.00.68 — gzip-compressed CSV export of the retention preview's
+    sparkline histogram.
+
+    Layout:
+      * ``#summary`` block (commented header rows) carries the retention
+        scalar — years, cutoff_iso, considered, before_total, after_total,
+        weeks_per_side, window_start_iso, window_end_iso.
+      * Blank line.
+      * Header row: ``week_start_iso, side, count, x, bar_h, bar_y``
+      * 24 bucket rows (12 before + 12 after).
+      * Empty buckets shape (cutoff_dt=None) emits the summary + header
+        + zero data rows.
+    """
+    import csv
+    import gzip
+    import io
+    from django.http import HttpResponse
+
+    text_buf = io.StringIO()
+    writer = csv.writer(text_buf, quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
+
+    cutoff_iso = str(retention.get("cutoff_iso") or "")
+    years = int(retention.get("years") or 0)
+    considered = int(retention.get("considered") or 0)
+    before_total = int(sparkline.get("before_total") or 0)
+    after_total = int(sparkline.get("after_total") or 0)
+    weeks_per_side = int(sparkline.get("weeks_per_side") or 0)
+    window_start_iso = str(sparkline.get("window_start_iso") or "")
+    window_end_iso = str(sparkline.get("window_end_iso") or "")
+
+    writer.writerow(["#summary", "key", "value"])
+    writer.writerow(["#summary", "years", years])
+    writer.writerow(["#summary", "cutoff_iso", cutoff_iso])
+    writer.writerow(["#summary", "considered", considered])
+    writer.writerow(["#summary", "before_total", before_total])
+    writer.writerow(["#summary", "after_total", after_total])
+    writer.writerow(["#summary", "weeks_per_side", weeks_per_side])
+    writer.writerow(["#summary", "window_start_iso", window_start_iso])
+    writer.writerow(["#summary", "window_end_iso", window_end_iso])
+    writer.writerow([])
+    writer.writerow(["week_start_iso", "side", "count", "x", "bar_h", "bar_y"])
+
+    for b in sparkline.get("buckets") or []:
+        writer.writerow([
+            b.get("week_start_iso", ""),
+            b.get("side", ""),
+            int(b.get("count") or 0),
+            int(b.get("x") or 0),
+            int(b.get("bar_h") or 0),
+            int(b.get("bar_y") or 0),
+        ])
+
+    raw = text_buf.getvalue().encode("utf-8")
+    gz_buf = io.BytesIO()
+    with gzip.GzipFile(fileobj=gz_buf, mode="wb", mtime=0) as gz:
+        gz.write(raw)
+    gz_bytes = gz_buf.getvalue()
+
+    today = timezone.now().strftime("%Y-%m-%d")
+    fname = f"lms_diag_retention_preview_{today}.csv.gz"
+    resp = HttpResponse(gz_bytes, content_type="text/csv")
+    resp["Content-Encoding"] = "gzip"
+    resp["Content-Disposition"] = f'attachment; filename="{fname}"'
+    resp["Content-Length"] = str(len(gz_bytes))
+    resp["X-Retention-Sparkline-Bucket-Count"] = str(len(sparkline.get("buckets") or []))
+    resp["X-Retention-Before-Total"] = str(before_total)
+    resp["X-Retention-After-Total"] = str(after_total)
+    return resp
+
+
 def _make_retention_purge_token(*, years: int, cutoff_iso: str) -> str:
     from django.core.signing import TimestampSigner
     signer = TimestampSigner(salt=_RETENTION_PURGE_TOKEN_SALT)
@@ -787,6 +858,14 @@ def lms_diagnostics_retention_preview(request: HttpRequest):
             "sparkline": sparkline,
             "note": "preview only — nothing was deleted",
         })
+    # v4.00.68 — ?format=csv exports the sparkline histogram as a
+    # gzip-compressed RFC-4180 CSV so operators can paste it into a sheet
+    # or feed it to a downstream tool. The CSV opens with a #summary block
+    # then transitions into the by-week bucket rows.
+    if fmt == "csv":
+        return _retention_preview_csv_response(
+            retention=out, sparkline=sparkline,
+        )
 
     return render(
         request,

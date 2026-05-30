@@ -422,6 +422,9 @@ def _parse_demographic_payload(body_bytes: bytes):
     err = _validate_state_of_birth_abbreviation(inner)
     if err is not None:
         return None, err
+    err = _validate_city_of_birth(inner)
+    if err is not None:
+        return None, err
     return inner, None
 
 
@@ -564,6 +567,55 @@ def _validate_state_of_birth_abbreviation(inner: dict[str, Any]):
              "received": raw,
              "country": country,
              "note": f"must match a known {country}-<subdivision> entry in COUNTRY_LOCALIZATION SOT"},
+            status=400,
+        )
+    return None
+
+
+# v4.00.68 — Demographics POST/PUT `cityOfBirth` length + character-set
+# validation.
+#
+# OneRoster v1.2 Demographic.cityOfBirth is free-text (the spec carries no
+# length cap and no character-class restriction). Real-world callers ship
+# everything from "Lagos" to multi-line addresses to control-character
+# garbage from copy-paste-from-Excel mistakes — both of which corrupt the
+# downstream StudentProfile.place_of_birth field (CharField(max_length=120)).
+#
+# Failure classes:
+#   * too_long: > 120 chars (matches the DB column width — write-path already
+#     truncates to 120 silently; we make the rejection explicit so the
+#     operator notices the data loss)
+#   * control_chars: contains C0/C1 control chars (tab/newline/etc.) — these
+#     break the diagnostic UI and the CSV export
+#
+# Empty string is allowed (explicit clear). Sex-character classes (unicode
+# letters / spaces / dashes / dots / commas / apostrophes / parens / digits)
+# are accepted because city names worldwide include all of these (e.g.
+# "St. John's", "Stratford-upon-Avon", "São Paulo", "Washington, D.C.").
+_CITY_OF_BIRTH_MAX_LEN = 120
+_CITY_OF_BIRTH_CONTROL_CHAR_RE = re.compile(r"[\x00-\x1f\x7f-\x9f]")
+
+
+def _validate_city_of_birth(inner: dict[str, Any]):
+    """Return None on accept; JsonResponse(400) on reject."""
+    if "cityOfBirth" not in inner:
+        return None
+    raw = str(inner.get("cityOfBirth") or "")
+    if not raw:
+        return None  # explicit clear allowed
+    if len(raw) > _CITY_OF_BIRTH_MAX_LEN:
+        return JsonResponse(
+            {"error": "bad_city_of_birth",
+             "reason": "too_long",
+             "received_length": len(raw),
+             "max_length": _CITY_OF_BIRTH_MAX_LEN},
+            status=400,
+        )
+    if _CITY_OF_BIRTH_CONTROL_CHAR_RE.search(raw):
+        return JsonResponse(
+            {"error": "bad_city_of_birth",
+             "reason": "control_chars",
+             "note": "control characters (U+0000-U+001F, U+007F-U+009F) are rejected"},
             status=400,
         )
     return None
