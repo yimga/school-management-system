@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% comment %}
+  Lux Workspace demo surface.
+  Mounts <PremiumUIOrchestratorProvider> + <PremiumWorkspaceOrchestrator>
+  + <CustomKeyboardShortcutBus> + <GlobalCommandConsole> into one node.
+
+  Wire-up contract for the mount node (data-* attributes are SOT for hydration):
+    data-rmc-lux-workspace          (presence) marks the mount point
+    data-initial-tier               FINANCIAL_LEDGER | ACADEMIC_MATRIX | OPERATOR_SHELL
+    data-students                   JSON-encoded list of student seeds (optional)
+    data-simulate-async-ms          ms to keep the SkeletalShell on screen (optional)
+
+  CSS bundle: static/css/lux-workspace.css
+  JS entry:   built from src/apps/luxWorkspace/mount.tsx via vite.analytics.config.ts
+{% endcomment %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/lux-workspace.css' %}">
+{% endblock %}
+
+{% block content %}
+  {% if lux_i18n_json %}
+    <script type="application/json" data-rmc-lux-i18n>{{ lux_i18n_json|safe }}</script>
+  {% endif %}
+  <div
+    data-rmc-lux-workspace
+    data-initial-tier="{{ initial_tier|default:'FINANCIAL_LEDGER' }}"
+    data-students='{{ student_seeds_json|default:"[]"|safe }}'
+    data-simulate-async-ms="{{ simulate_async_ms|default:0 }}"
+  ></div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{% static 'js/dist/lux-workspace.mount.js' %}"></script>
+{% endblock %}

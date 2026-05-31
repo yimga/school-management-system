@@ -1,0 +1,1151 @@
+/*
+ * lux-workspace.css — Apple-grade luxury workspace surface.
+ * BEM namespace: rmc-lux-*
+ * Theming: CSS variables; mirrors src/lib/luxWorkspace/registry.json.
+ * Spring curve cubic-bezier(0.16, 1, 0.3, 1) per the mandate.
+ *
+ * Why: the spec calls for spatial-personality mapping across financial /
+ * academic / operator workspaces. Each tier shifts canvas, accent line,
+ * neon state, and skeleton tint so visual sameness is structurally banned.
+ */
+
+:root {
+  --lux-spring-curve: cubic-bezier(0.16, 1, 0.3, 1);
+  --lux-transition-duration: 400ms;
+  --lux-min-touch-target: 48px;
+
+  --lux-canvas-base: #08090b;
+  --lux-canvas-deep: #050608;
+  --lux-canvas-elev: #0e0f12;
+  --lux-canvas-elev-2: #161719;
+  --lux-border-thin: rgba(255, 255, 255, 0.06);
+  --lux-border-mid: rgba(255, 255, 255, 0.1);
+  --lux-border-strong: rgba(255, 255, 255, 0.16);
+  --lux-text-primary: rgba(255, 255, 255, 0.96);
+  --lux-text-secondary: rgba(255, 255, 255, 0.62);
+  --lux-text-muted: rgba(255, 255, 255, 0.4);
+  --lux-text-dim: rgba(255, 255, 255, 0.26);
+
+  --lux-accent-emerald: #34d399;
+  --lux-accent-emerald-soft: rgba(52, 211, 153, 0.14);
+  --lux-accent-azure: #60a5fa;
+  --lux-accent-azure-soft: rgba(96, 165, 250, 0.14);
+  --lux-accent-indigo: #818cf8;
+  --lux-accent-indigo-soft: rgba(129, 140, 248, 0.14);
+  --lux-accent-amber: #fbbf24;
+  --lux-accent-amber-soft: rgba(251, 191, 36, 0.14);
+  --lux-accent-rose: #fb7185;
+  --lux-accent-rose-soft: rgba(251, 113, 133, 0.14);
+
+  --lux-shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.32);
+  --lux-shadow-elev: 0 12px 48px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.32);
+  --lux-shadow-rail: inset -1px 0 0 var(--lux-border-thin);
+
+  --lux-tier-financial: var(--lux-accent-emerald);
+  --lux-tier-financial-soft: var(--lux-accent-emerald-soft);
+  --lux-tier-academic: var(--lux-accent-azure);
+  --lux-tier-academic-soft: var(--lux-accent-azure-soft);
+  --lux-tier-operator: var(--lux-accent-indigo);
+  --lux-tier-operator-soft: var(--lux-accent-indigo-soft);
+
+  --lux-tier-accent: var(--lux-tier-financial);
+  --lux-tier-accent-soft: var(--lux-tier-financial-soft);
+  --lux-tier-canvas: var(--lux-canvas-base);
+
+  --lux-radius-sm: 6px;
+  --lux-radius: 10px;
+  --lux-radius-lg: 14px;
+  --lux-radius-xl: 20px;
+
+  --lux-font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo,
+    Consolas, monospace;
+  --lux-font-display: "Inter", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", system-ui, sans-serif;
+}
+
+[data-lux-tier="FINANCIAL_LEDGER"] {
+  --lux-tier-accent: var(--lux-tier-financial);
+  --lux-tier-accent-soft: var(--lux-tier-financial-soft);
+  --lux-tier-canvas: #07090a;
+}
+
+[data-lux-tier="ACADEMIC_MATRIX"] {
+  --lux-tier-accent: var(--lux-tier-academic);
+  --lux-tier-accent-soft: var(--lux-tier-academic-soft);
+  --lux-tier-canvas: #08090c;
+}
+
+[data-lux-tier="OPERATOR_SHELL"] {
+  --lux-tier-accent: var(--lux-tier-operator);
+  --lux-tier-accent-soft: var(--lux-tier-operator-soft);
+  --lux-tier-canvas: #08090a;
+}
+
+.rmc-lux-root {
+  color: var(--lux-text-primary);
+  font-family: var(--lux-font-display);
+  background: var(--lux-tier-canvas);
+  min-height: 100%;
+  transition: background-color var(--lux-transition-duration) var(--lux-spring-curve);
+}
+
+/* ============================================================
+ * Shell — Persistent rail + main canvas
+ * ============================================================ */
+
+.rmc-lux-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+  background: var(--lux-tier-canvas);
+}
+
+.rmc-lux-shell__rail {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.25rem 0.75rem;
+  background: var(--lux-canvas-deep);
+  box-shadow: var(--lux-shadow-rail);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.rmc-lux-shell__rail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.rmc-lux-shell__rail-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--lux-radius);
+  color: var(--lux-text-secondary);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  text-align: start;
+  min-height: var(--lux-min-touch-target);
+  transition:
+    background-color 220ms var(--lux-spring-curve),
+    color 220ms var(--lux-spring-curve),
+    border-color 220ms var(--lux-spring-curve),
+    transform 220ms var(--lux-spring-curve);
+}
+
+.rmc-lux-shell__rail-btn:hover {
+  color: var(--lux-text-primary);
+  background: var(--lux-canvas-elev);
+  border-color: var(--lux-border-thin);
+}
+
+.rmc-lux-shell__rail-btn:focus-visible {
+  outline: none;
+  border-color: var(--lux-rail-accent, var(--lux-tier-accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lux-rail-accent, var(--lux-tier-accent)) 22%, transparent);
+}
+
+.rmc-lux-shell__rail-btn.is-active {
+  color: var(--lux-text-primary);
+  background: color-mix(in srgb, var(--lux-rail-accent, var(--lux-tier-accent)) 8%, var(--lux-canvas-elev));
+  border-color: color-mix(in srgb, var(--lux-rail-accent, var(--lux-tier-accent)) 24%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--lux-rail-accent, var(--lux-tier-accent)) 14%, transparent);
+}
+
+.rmc-lux-shell__rail-glyph {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--lux-radius-sm);
+  font-family: var(--lux-font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: var(--lux-canvas-elev-2);
+  color: var(--lux-rail-accent, var(--lux-tier-accent));
+}
+
+.rmc-lux-shell__rail-label {
+  flex: 1;
+}
+
+.rmc-lux-shell__version {
+  font-family: var(--lux-font-mono);
+  font-size: 0.65rem;
+  color: var(--lux-text-dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rmc-lux-shell__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rmc-lux-shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--lux-border-thin);
+  background: color-mix(in srgb, var(--lux-canvas-deep) 86%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.rmc-lux-shell__title {
+  margin: 0;
+  font-family: var(--lux-font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lux-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.rmc-lux-shell__title-sigil {
+  color: var(--lux-tier-accent);
+  font-weight: 700;
+}
+
+.rmc-lux-shell__header-aside {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rmc-lux-shell__hint {
+  color: var(--lux-text-muted);
+  font-size: 0.74rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.rmc-lux-shell__hint kbd,
+.rmc-lux-shell__console-toggle {
+  font-family: var(--lux-font-mono);
+  font-size: 0.7rem;
+  padding: 0.18rem 0.4rem;
+  border-radius: var(--lux-radius-sm);
+  border: 1px solid var(--lux-border-mid);
+  background: var(--lux-canvas-elev);
+  color: var(--lux-text-secondary);
+}
+
+.rmc-lux-shell__console-toggle {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.4rem 0.65rem;
+  min-height: var(--lux-min-touch-target);
+  transition: color 220ms var(--lux-spring-curve),
+    border-color 220ms var(--lux-spring-curve);
+}
+
+.rmc-lux-shell__console-toggle:hover,
+.rmc-lux-shell__console-toggle:focus-visible {
+  color: var(--lux-text-primary);
+  border-color: var(--lux-tier-accent);
+  outline: none;
+}
+
+.rmc-lux-shell__canvas {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  overflow: auto;
+}
+
+/* tier-specific canvas rhythm */
+.rmc-lux-shell__main[data-lux-spatial="MONOLITHIC_SPLIT_PANE"] .rmc-lux-shell__canvas {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 1.25rem;
+}
+
+.rmc-lux-shell__main[data-lux-spatial="DENSE_FLUID_GRID"] .rmc-lux-shell__canvas {
+  padding: 1rem 1.5rem;
+}
+
+.rmc-lux-shell__main[data-lux-spatial="COLLAPSIBLE_TREE"] .rmc-lux-shell__canvas {
+  font-family: var(--lux-font-mono);
+}
+
+/* ============================================================
+ * Intro card (default canvas content)
+ * ============================================================ */
+
+.rmc-lux-intro {
+  position: relative;
+  border: 1px solid var(--lux-border-thin);
+  border-radius: var(--lux-radius-lg);
+  padding: 2rem 2.25rem;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lux-tier-accent) 4%, var(--lux-canvas-elev)) 0%,
+    var(--lux-canvas-elev) 100%
+  );
+  overflow: hidden;
+}
+
+.rmc-lux-intro__band {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--lux-tier-accent);
+  box-shadow: 0 0 24px var(--lux-tier-accent);
+}
+
+.rmc-lux-intro__heading {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--lux-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.rmc-lux-intro__summary {
+  margin: 0 0 1.5rem 0;
+  color: var(--lux-text-secondary);
+  font-size: 0.86rem;
+  max-width: 56ch;
+}
+
+.rmc-lux-intro__shortcuts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.65rem;
+}
+
+.rmc-lux-intro__shortcut {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--lux-border-thin);
+  border-radius: var(--lux-radius);
+  background: var(--lux-canvas-elev-2);
+}
+
+.rmc-lux-intro__shortcut dt {
+  margin: 0;
+}
+
+.rmc-lux-intro__shortcut dt kbd {
+  font-family: var(--lux-font-mono);
+  font-weight: 600;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--lux-tier-accent) 18%, var(--lux-canvas-deep));
+  color: var(--lux-text-primary);
+  border: 1px solid color-mix(in srgb, var(--lux-tier-accent) 32%, transparent);
+}
+
+.rmc-lux-intro__shortcut dd {
+  margin: 0;
+  font-family: var(--lux-font-mono);
+  font-size: 0.7rem;
+  color: var(--lux-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+ * Interactive card (PremiumInteractiveContainer)
+ * ============================================================ */
+
+.rmc-lux-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid var(--lux-border-thin);
+  background: transparent;
+  transition: background-color var(--lux-transition-duration) var(--lux-spring-curve);
+}
+
+.rmc-lux-card--comfortable {
+  padding: 1.05rem 1.4rem;
+}
+
+.rmc-lux-card--compact {
+  padding: 0.65rem 1rem;
+}
+
+.rmc-lux-card--spacious {
+  padding: 1.45rem 1.75rem;
+}
+
+.rmc-lux-card:hover {
+  background: color-mix(in srgb, var(--lux-canvas-elev) 60%, transparent);
+}
+
+.rmc-lux-card:focus-within {
+  background: color-mix(in srgb, var(--lux-tier-accent) 4%, var(--lux-canvas-elev));
+  box-shadow: inset 3px 0 0 var(--lux-tier-accent);
+}
+
+.rmc-lux-card__hit {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  color: transparent;
+}
+
+.rmc-lux-card__hit:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--lux-tier-accent);
+  border-radius: var(--lux-radius);
+}
+
+.rmc-lux-card__body {
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.rmc-lux-card__body > * {
+  pointer-events: auto;
+}
+
+.rmc-lux-card__strip {
+  position: absolute;
+  z-index: 20;
+  inset-block-start: 50%;
+  inset-inline-end: 1rem;
+  transform: translateY(-50%) translateX(0.5rem);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 280ms var(--lux-spring-curve),
+    transform 320ms var(--lux-spring-curve);
+}
+
+.rmc-lux-card:hover .rmc-lux-card__strip,
+.rmc-lux-card:focus-within .rmc-lux-card__strip,
+.rmc-lux-card__strip:hover,
+.rmc-lux-card__strip:focus-within {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  pointer-events: auto;
+}
+
+/* ============================================================
+ * Quick action button
+ * ============================================================ */
+
+.rmc-lux-quick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--lux-text-secondary);
+  background: var(--lux-canvas-deep);
+  border: 1px solid var(--lux-border-mid);
+  border-radius: var(--lux-radius);
+  cursor: pointer;
+  min-height: 36px;
+  transition:
+    color 200ms var(--lux-spring-curve),
+    border-color 200ms var(--lux-spring-curve),
+    background-color 200ms var(--lux-spring-curve);
+}
+
+.rmc-lux-quick:hover,
+.rmc-lux-quick:focus-visible {
+  color: var(--lux-text-primary);
+  border-color: var(--lux-tier-accent);
+  background: color-mix(in srgb, var(--lux-tier-accent) 7%, var(--lux-canvas-deep));
+  outline: none;
+}
+
+.rmc-lux-quick--success {
+  color: var(--lux-accent-emerald);
+  border-color: color-mix(in srgb, var(--lux-accent-emerald) 28%, transparent);
+}
+
+.rmc-lux-quick--danger {
+  color: var(--lux-accent-rose);
+  border-color: color-mix(in srgb, var(--lux-accent-rose) 28%, transparent);
+}
+
+.rmc-lux-quick__icon {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+
+.rmc-lux-quick__label {
+  white-space: nowrap;
+}
+
+.rmc-lux-quick__kbd {
+  font-family: var(--lux-font-mono);
+  font-size: 0.6rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  background: var(--lux-canvas-elev-2);
+  color: var(--lux-text-muted);
+  border: 1px solid var(--lux-border-thin);
+}
+
+/* ============================================================
+ * Student card content
+ * ============================================================ */
+
+.rmc-lux-student {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding-inline-end: 12rem; /* leave space for hover strip */
+}
+
+.rmc-lux-student__avatar {
+  position: relative;
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--lux-radius);
+  background: var(--lux-canvas-elev-2);
+  border: 1px solid var(--lux-border-mid);
+  align-items: center;
+  justify-content: center;
+  font-family: var(--lux-font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--lux-text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.rmc-lux-student__avatar-pip {
+  position: absolute;
+  inset-block-end: -2px;
+  inset-inline-end: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--lux-canvas-deep);
+}
+
+.rmc-lux-student__avatar-pip--paid {
+  background: var(--lux-accent-emerald);
+}
+
+.rmc-lux-student__avatar-pip--overdue {
+  background: var(--lux-accent-rose);
+}
+
+.rmc-lux-student__avatar-pip--pending {
+  background: var(--lux-accent-amber);
+}
+
+.rmc-lux-student__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.rmc-lux-student__name {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--lux-text-primary);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rmc-lux-student__cycle {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--lux-text-muted);
+  letter-spacing: 0.01em;
+}
+
+.rmc-lux-student__stats {
+  display: flex;
+  gap: 1.75rem;
+  margin: 0;
+}
+
+.rmc-lux-student__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.rmc-lux-student__stat dt {
+  margin: 0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lux-text-dim);
+}
+
+.rmc-lux-student__stat dd {
+  margin: 0;
+  font-family: var(--lux-font-mono);
+  font-size: 0.78rem;
+  color: var(--lux-text-secondary);
+}
+
+/* Status chips */
+.rmc-lux-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--lux-radius-sm);
+  font-family: var(--lux-font-mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.rmc-lux-status--paid {
+  color: var(--lux-accent-emerald);
+  background: var(--lux-accent-emerald-soft);
+  border-color: color-mix(in srgb, var(--lux-accent-emerald) 24%, transparent);
+}
+
+.rmc-lux-status--overdue {
+  color: var(--lux-accent-rose);
+  background: var(--lux-accent-rose-soft);
+  border-color: color-mix(in srgb, var(--lux-accent-rose) 24%, transparent);
+}
+
+.rmc-lux-status--pending {
+  color: var(--lux-accent-amber);
+  background: var(--lux-accent-amber-soft);
+  border-color: color-mix(in srgb, var(--lux-accent-amber) 24%, transparent);
+}
+
+/* ============================================================
+ * Glass sheet overlay
+ * ============================================================ */
+
+.rmc-lux-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rmc-lux-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--lux-canvas-deep) 70%, transparent);
+  backdrop-filter: blur(8px);
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: default;
+  animation: rmc-lux-fade-in 240ms var(--lux-spring-curve);
+}
+
+.rmc-lux-sheet__panel {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: min(100%, 540px);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lux-tier-accent) 4%, var(--lux-canvas-elev)) 0%,
+    var(--lux-canvas-elev) 100%
+  );
+  border-inline-start: 1px solid var(--lux-border-mid);
+  box-shadow: var(--lux-shadow-elev);
+  display: flex;
+  flex-direction: column;
+  animation: rmc-lux-slide-in 360ms var(--lux-spring-curve);
+}
+
+.rmc-lux-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--lux-border-thin);
+}
+
+.rmc-lux-sheet__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--lux-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.rmc-lux-sheet__close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--lux-border-mid);
+  background: var(--lux-canvas-deep);
+  color: var(--lux-text-secondary);
+  border-radius: var(--lux-radius-sm);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  transition:
+    color 200ms var(--lux-spring-curve),
+    border-color 200ms var(--lux-spring-curve);
+}
+
+.rmc-lux-sheet__close:hover,
+.rmc-lux-sheet__close:focus-visible {
+  color: var(--lux-text-primary);
+  border-color: var(--lux-tier-accent);
+  outline: none;
+}
+
+.rmc-lux-sheet__body {
+  flex: 1;
+  overflow: auto;
+  padding: 1.5rem 1.75rem;
+}
+
+.rmc-lux-sheet__section {
+  border: 1px solid var(--lux-border-thin);
+  border-radius: var(--lux-radius);
+  padding: 1.1rem 1.25rem;
+  background: var(--lux-canvas-deep);
+}
+
+.rmc-lux-sheet__section-label {
+  margin: 0 0 0.4rem 0;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lux-text-muted);
+}
+
+.rmc-lux-sheet__row {
+  margin: 0.35rem 0;
+  font-size: 0.84rem;
+  color: var(--lux-text-secondary);
+}
+
+.rmc-lux-sheet__code {
+  font-family: var(--lux-font-mono);
+  font-size: 0.78rem;
+  background: var(--lux-canvas-elev-2);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  color: var(--lux-tier-accent);
+}
+
+/* ============================================================
+ * Global command console
+ * ============================================================ */
+
+.rmc-lux-console {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-block-start: 12vh;
+}
+
+.rmc-lux-console__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--lux-canvas-deep) 70%, transparent);
+  backdrop-filter: blur(12px);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: default;
+  animation: rmc-lux-fade-in 220ms var(--lux-spring-curve);
+}
+
+.rmc-lux-console__panel {
+  position: relative;
+  z-index: 1;
+  width: min(92vw, 640px);
+  background: linear-gradient(180deg, var(--lux-canvas-elev) 0%, var(--lux-canvas-deep) 100%);
+  border: 1px solid var(--lux-border-mid);
+  border-radius: var(--lux-radius-lg);
+  box-shadow: var(--lux-shadow-elev);
+  overflow: hidden;
+  animation: rmc-lux-rise-in 280ms var(--lux-spring-curve);
+}
+
+.rmc-lux-console__inputbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--lux-border-thin);
+}
+
+.rmc-lux-console__prompt {
+  font-family: var(--lux-font-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--lux-tier-accent);
+  letter-spacing: 0.05em;
+}
+
+.rmc-lux-console__input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: var(--lux-text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.rmc-lux-console__input::placeholder {
+  color: var(--lux-text-muted);
+}
+
+.rmc-lux-console__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem 0;
+  max-height: 50vh;
+  overflow: auto;
+}
+
+.rmc-lux-console__empty {
+  padding: 1rem 1.25rem;
+  font-size: 0.82rem;
+  color: var(--lux-text-muted);
+}
+
+.rmc-lux-console__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.84rem;
+  color: var(--lux-text-secondary);
+  border-inline-start: 2px solid transparent;
+  cursor: pointer;
+}
+
+.rmc-lux-console__item:hover,
+.rmc-lux-console__item.is-active {
+  color: var(--lux-text-primary);
+  background: color-mix(in srgb, var(--lux-tier-accent) 8%, transparent);
+  border-inline-start-color: var(--lux-tier-accent);
+}
+
+.rmc-lux-console__item.is-global .rmc-lux-console__item-hint {
+  color: var(--lux-tier-accent);
+}
+
+.rmc-lux-console__item-label {
+  font-family: var(--lux-font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.rmc-lux-console__item-hint {
+  font-size: 0.7rem;
+  color: var(--lux-text-muted);
+}
+
+.rmc-lux-console__item-kbd {
+  font-family: var(--lux-font-mono);
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--lux-canvas-deep);
+  border: 1px solid var(--lux-border-mid);
+  color: var(--lux-text-secondary);
+}
+
+/* ============================================================
+ * Skeletal shell — loading layer
+ * ============================================================ */
+
+.rmc-lux-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.rmc-lux-skeleton--grid-cell {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.5rem;
+}
+
+.rmc-lux-skeleton--chip {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.rmc-lux-skeleton__item {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--lux-radius);
+  background: var(--lux-canvas-elev);
+  border: 1px solid var(--lux-border-thin);
+}
+
+.rmc-lux-skeleton__item--row {
+  height: 56px;
+}
+
+.rmc-lux-skeleton__item--card {
+  height: 130px;
+}
+
+.rmc-lux-skeleton__item--grid-cell {
+  height: 48px;
+}
+
+.rmc-lux-skeleton__item--tree-node {
+  height: 32px;
+  border-radius: var(--lux-radius-sm);
+}
+
+.rmc-lux-skeleton__item--chip {
+  height: 22px;
+  width: 72px;
+  border-radius: var(--lux-radius-sm);
+}
+
+.rmc-lux-skeleton__item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--lux-tier-accent) 12%, transparent) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: rmc-lux-shimmer 1400ms infinite var(--lux-spring-curve);
+}
+
+/* ============================================================
+ * Keyframes
+ * ============================================================ */
+
+@keyframes rmc-lux-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes rmc-lux-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rmc-lux-rise-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes rmc-lux-slide-in {
+  from { transform: translateX(24px); opacity: 0.4; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ============================================================
+ * Reduced motion — strip animations
+ * ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-lux-root,
+  .rmc-lux-shell__rail-btn,
+  .rmc-lux-card,
+  .rmc-lux-card__strip,
+  .rmc-lux-quick,
+  .rmc-lux-skeleton__item::after,
+  .rmc-lux-sheet__panel,
+  .rmc-lux-sheet__backdrop,
+  .rmc-lux-console__backdrop,
+  .rmc-lux-console__panel {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+  .rmc-lux-card__strip {
+    transform: translateY(-50%) translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================================
+ * Touch targets — enforce >= --lux-min-touch-target on coarse
+ * ============================================================ */
+
+@media (pointer: coarse) {
+  .rmc-lux-quick {
+    min-height: var(--lux-min-touch-target);
+    padding-inline: 0.95rem;
+  }
+  .rmc-lux-card__strip {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+/* ============================================================
+ * Error boundary fallback
+ * ============================================================ */
+
+.rmc-lux-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+}
+
+.rmc-lux-error__panel {
+  max-width: 480px;
+  padding: 1.75rem;
+  border: 1px solid color-mix(in srgb, var(--lux-accent-rose) 28%, transparent);
+  border-radius: var(--lux-radius-lg);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--lux-accent-rose) 6%, var(--lux-canvas-elev)) 0%,
+    var(--lux-canvas-elev) 100%);
+}
+
+.rmc-lux-error__title {
+  margin: 0 0 0.5rem 0;
+  color: var(--lux-accent-rose);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.rmc-lux-error__message {
+  margin: 0 0 1rem 0;
+  font-family: var(--lux-font-mono);
+  font-size: 0.78rem;
+  color: var(--lux-text-secondary);
+  white-space: pre-wrap;
+}
+
+/* ============================================================
+ * Network status channel
+ * ============================================================ */
+
+.rmc-lux-netstatus {
+  position: fixed;
+  inset-block-end: 1.25rem;
+  inset-inline-end: 1.25rem;
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  background: var(--lux-canvas-elev);
+  border: 1px solid var(--lux-border-mid);
+  color: var(--lux-text-secondary);
+  font-size: 0.78rem;
+  box-shadow: var(--lux-shadow-soft);
+  animation: rmc-lux-rise-in 280ms var(--lux-spring-curve);
+}
+
+.rmc-lux-netstatus__pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.rmc-lux-netstatus--offline {
+  border-color: color-mix(in srgb, var(--lux-accent-rose) 32%, transparent);
+}
+
+.rmc-lux-netstatus--offline .rmc-lux-netstatus__pip {
+  background: var(--lux-accent-rose);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--lux-accent-rose) 16%, transparent);
+}
+
+.rmc-lux-netstatus--reconnecting {
+  border-color: color-mix(in srgb, var(--lux-accent-amber) 32%, transparent);
+}
+
+.rmc-lux-netstatus--reconnecting .rmc-lux-netstatus__pip {
+  background: var(--lux-accent-amber);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--lux-accent-amber) 16%, transparent);
+  animation: rmc-lux-pulse 1200ms var(--lux-spring-curve) infinite;
+}
+
+@keyframes rmc-lux-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.6; }
+}
+
+/* ============================================================
+ * Narrow viewports — collapse rail into top strip
+ * ============================================================ */
+
+@media (max-width: 720px) {
+  .rmc-lux-shell {
+    grid-template-columns: 1fr;
+  }
+  .rmc-lux-shell__rail {
+    flex-direction: row;
+    height: auto;
+    position: sticky;
+    width: 100%;
+    padding: 0.65rem 0.85rem;
+    box-shadow: 0 1px 0 var(--lux-border-thin);
+  }
+  .rmc-lux-shell__rail-list {
+    flex-direction: row;
+    gap: 0.35rem;
+    overflow: auto;
+    flex: 1;
+  }
+  .rmc-lux-shell__rail-foot {
+    display: none;
+  }
+  .rmc-lux-shell__canvas {
+    padding: 1rem;
+  }
+  .rmc-lux-student {
+    padding-inline-end: 1rem;
+  }
+}

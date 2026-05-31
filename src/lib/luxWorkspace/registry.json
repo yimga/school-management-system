@@ -1,0 +1,83 @@
+{
+  "$schema_version": "lux-workspace.v1",
+  "$generated_by": "src/lib/luxWorkspace/registry.json",
+  "spring_curve": "cubic-bezier(0.16, 1, 0.3, 1)",
+  "transition_duration_ms": 400,
+  "min_touch_target_px": 48,
+  "global_shortcuts": {
+    "Mod+k": "OPEN_COMMAND_CONSOLE",
+    "Mod+/": "OPEN_KEYBOARD_HELP",
+    "Escape": "CLOSE_TOP_OVERLAY"
+  },
+  "tiers": {
+    "FINANCIAL_LEDGER": {
+      "label": "Financial Ledger",
+      "personality_summary": "Precision, density, absolute financial clarity.",
+      "spatial_structure": "MONOLITHIC_SPLIT_PANE",
+      "theme_personality": {
+        "base_background": "bg-neutral-950",
+        "surface_container": "bg-neutral-900/30",
+        "border_treatment": "border-neutral-900/60",
+        "neon_accent_state": "text-emerald-400",
+        "accent_border_glow": "border-l-emerald-500",
+        "glow_matrix_rgba": "rgba(16,185,129,0.04)",
+        "css_var_token": "--lux-tier-financial"
+      },
+      "keyboard_shortcuts_bus": {
+        "i": "SPAWN_CONTEXTUAL_INVOICE_PANEL",
+        "r": "TRIGGER_DOUBLE_ENTRY_RECONCILIATION",
+        "b": "FLUSH_BATCH_MOBILE_MONEY_QUEUES"
+      },
+      "progressive_disclosure_rules": {
+        "initial_reveal_depth": "SURFACE_LEDGER_CARD",
+        "nested_slide_sheet_profile": "FINANCIAL_AUDIT_TIMELINE"
+      }
+    },
+    "ACADEMIC_MATRIX": {
+      "label": "Academic Matrix",
+      "personality_summary": "Fluidity, multi-dimensional tracking, metric grouping.",
+      "spatial_structure": "DENSE_FLUID_GRID",
+      "theme_personality": {
+        "base_background": "bg-zinc-950",
+        "surface_container": "bg-zinc-900/40",
+        "border_treatment": "border-zinc-900/60",
+        "neon_accent_state": "text-blue-400",
+        "accent_border_glow": "border-l-blue-500",
+        "glow_matrix_rgba": "rgba(59,130,246,0.04)",
+        "css_var_token": "--lux-tier-academic"
+      },
+      "keyboard_shortcuts_bus": {
+        "s": "ACTIVATE_INLINE_CELL_SCORE_OVERRIDE",
+        "c": "COMPUTE_RELATIVE_PERCENTILE_DEVIATIONS",
+        "p": "SUMMON_LITELLM_PARENT_ALERT_COMPOSER"
+      },
+      "progressive_disclosure_rules": {
+        "initial_reveal_depth": "HIGH_DENSITY_GRID_CELL",
+        "nested_slide_sheet_profile": "STUDENT_HYBRID_TRANSCRIPT"
+      }
+    },
+    "OPERATOR_SHELL": {
+      "label": "Operator Shell",
+      "personality_summary": "Deep utility, multi-tenant monitoring, raw computing metrics.",
+      "spatial_structure": "COLLAPSIBLE_TREE",
+      "theme_personality": {
+        "base_background": "bg-stone-950",
+        "surface_container": "bg-stone-900/50",
+        "border_treatment": "border-stone-900/70",
+        "neon_accent_state": "text-indigo-400",
+        "accent_border_glow": "border-l-indigo-500",
+        "glow_matrix_rgba": "rgba(99,102,241,0.04)",
+        "css_var_token": "--lux-tier-operator"
+      },
+      "keyboard_shortcuts_bus": {
+        "l": "TOGGLE_TERMINAL_SYSTEM_LOGS",
+        "f": "TRIGGER_CIRCUIT_BREAKER_FAILOVER_TEST",
+        "t": "INSPECT_LITELLM_TOKEN_METRICS"
+      },
+      "progressive_disclosure_rules": {
+        "initial_reveal_depth": "INFRASTRUCTURE_TREE_NODE",
+        "nested_slide_sheet_profile": "TENANT_METADATA_KERNEL"
+      }
+    }
+  }
+}
