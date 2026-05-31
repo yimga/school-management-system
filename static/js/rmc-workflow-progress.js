@@ -429,26 +429,35 @@
 
     if (adopted) {
       adopted.addEventListener("click", toggleCard);
-      var closeBtn = card.querySelector(".rmc-wfp-card__close");
-      if (closeBtn) closeBtn.addEventListener("click", toggleCard);
-      document.addEventListener("keydown", onKeydown);
-      connectStream();
-      return;
-    }
-
-    // Park the chip into the assist-dock host if it exists; otherwise float bottom-right.
-    var dock = document.querySelector('[data-rmc-assist-dock-host],[data-rmc-assist-dock="mounted"]');
-    if (dock) {
-      dock.appendChild(chip);
     } else {
-      chip.style.position = "fixed";
-      chip.style.right = "1rem";
-      chip.style.bottom = "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)";
-      chip.style.zIndex = "10465";
-      document.body.appendChild(chip);
+      // Park the chip into the assist-dock host if it exists; otherwise float bottom-right.
+      var dock = document.querySelector('[data-rmc-assist-dock-host],[data-rmc-assist-dock="mounted"]');
+      if (dock) {
+        dock.appendChild(chip);
+      } else {
+        chip.style.position = "fixed";
+        chip.style.right = "1rem";
+        chip.style.bottom = "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)";
+        chip.style.zIndex = "10465";
+        document.body.appendChild(chip);
+      }
+      chip.addEventListener("click", toggleCard);
+      // The dock may finish painting AFTER us; if its labeled `workflow-progress`
+      // slot chip appears later, re-adopt it and drop the floating duplicate.
+      document.addEventListener("rmc-assist-dock-mounted", function onDockReady() {
+        document.removeEventListener("rmc-assist-dock-mounted", onDockReady);
+        var slot = document.querySelector('[data-rmc-assist-slot-id="workflow-progress"]');
+        if (!slot || slot.id === "rmc-wfp-chip") return;
+        chip.removeEventListener("click", toggleCard);
+        if (chip.parentNode) chip.parentNode.removeChild(chip);
+        var late = adoptRegisteredSlotChip();
+        if (late) {
+          late.addEventListener("click", toggleCard);
+          updateChip();
+        }
+      });
     }
 
-    chip.addEventListener("click", toggleCard);
     var closeBtn = card.querySelector(".rmc-wfp-card__close");
     if (closeBtn) closeBtn.addEventListener("click", toggleCard);
     document.addEventListener("keydown", onKeydown);
