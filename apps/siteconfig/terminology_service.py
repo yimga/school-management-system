@@ -404,6 +404,52 @@ def matrix_institution_vocabulary(country_code: str | None) -> dict[str, Any]:
     return out
 
 
+def academic_structure_breadcrumb(school: Any, *, limit: int = 16) -> list[dict[str, str]]:
+    """
+    Active academic structure nodes for operator chrome (Phase 3C extension).
+
+    Complements ``matrix_institution_vocabulary`` — country-level labels plus
+    tenant-specific cycle/cohort/leaf trail from ``AcademicStructureNode``.
+    """
+    if school is None:
+        return []
+    try:
+        from apps.academics.academic_structure import AcademicStructureNode
+    except ImportError:
+        return []
+
+    cap = max(1, min(int(limit), 32))
+    qs = (
+        AcademicStructureNode.objects.filter(school=school, is_active=True)
+        .order_by("sort_order", "local_label")[:cap]
+    )
+    trail: list[dict[str, str]] = []
+    for node in qs:
+        trail.append(
+            {
+                "id": str(node.id),
+                "label": str(node.local_label or ""),
+                "node_type": str(node.node_type or ""),
+            }
+        )
+    return trail
+
+
+def matrix_institution_vocabulary_with_structure(
+    country_code: str | None,
+    school: Any = None,
+    *,
+    breadcrumb_limit: int = 16,
+) -> dict[str, Any]:
+    """Matrix vocabulary plus optional tenant academic-structure breadcrumb."""
+    out = matrix_institution_vocabulary(country_code)
+    if school is not None:
+        crumb = academic_structure_breadcrumb(school, limit=breadcrumb_limit)
+        if crumb:
+            out["academic_structure_breadcrumb"] = crumb
+    return out
+
+
 __all__ = [
     "DEFAULT_TERMINOLOGY",
     "TERMINOLOGY_KEYS",
@@ -414,7 +460,9 @@ __all__ = [
     "get_report_label",
     "get_term_label",
     "lexicon_payload",
+    "academic_structure_breadcrumb",
     "matrix_institution_vocabulary",
+    "matrix_institution_vocabulary_with_structure",
     "resolve_all_terms",
     "resolve_term",
 ]

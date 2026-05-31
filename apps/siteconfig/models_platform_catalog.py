@@ -780,6 +780,7 @@ class CustomNuance(models.Model):
         ("grade_weight", "Grade weighting"),
         ("attendance_alert", "Attendance alerts"),
         ("fee_discount", "Fee discount eligibility"),
+        ("report_card_avg", "Report card weighted average"),
         ("generic", "Generic (custom)"),
     ]
 

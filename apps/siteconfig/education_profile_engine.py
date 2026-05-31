@@ -272,6 +272,43 @@ def build_profile_defaults(region: RegionConfig, sub_system: str) -> dict[str, A
     )
     override = (COUNTRY_PACK_OVERRIDES.get(region.code, {}) or {}).get(sub, {})
 
+    if not override:
+        try:
+            from apps.governance.academic_pack_bridge import resolve_grading_preset_key
+            from apps.siteconfig.education_dna import EDUCATION_DNA_CURRICULUMS
+
+            from apps.siteconfig.global_catalog import GlobalGeoCatalog
+
+            alpha2 = GlobalGeoCatalog.alpha2_for_country(str(region.code or ""))
+            preset_key = resolve_grading_preset_key(alpha2 or str(region.code or ""))
+            dna = EDUCATION_DNA_CURRICULUMS.get(preset_key) or {}
+            grading = dna.get("grading") if isinstance(dna.get("grading"), dict) else {}
+            if grading.get("type") == "numeric" and grading.get("max") == 20:
+                override = {
+                    "grading_scale": "0-20",
+                    "config": {"grading_logic": "numeric_0_20", "grading_preset_key": preset_key},
+                }
+            elif grading.get("type") == "standard_score":
+                override = {
+                    "grading_scale": "0-100",
+                    "config": {
+                        "grading_logic": "standard_score",
+                        "grading_preset_key": preset_key,
+                        "ranking_mode": grading.get("ranking_mode", "standard_score_t"),
+                    },
+                }
+            elif preset_key in ("british_igcse", "west_african_waec"):
+                override = {
+                    "grading_scale": "letter",
+                    "config": {"grading_logic": "alphanumeric", "grading_preset_key": preset_key},
+                }
+            else:
+                override = {
+                    "config": {"grading_preset_key": preset_key},
+                }
+        except (ImportError, AttributeError, TypeError, ValueError):
+            override = {}
+
     name = str(override.get("name") or f"{country_name} Education Pack ({sub})")
     term_labels = override.get(
         "term_labels",

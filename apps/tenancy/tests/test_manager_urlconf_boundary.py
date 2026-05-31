@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.urls import resolve, set_urlconf
+from django.urls import resolve, reverse, set_urlconf
 
 from apps.accounts.models import User
 
@@ -44,6 +44,10 @@ class ManagerUrlconfBoundaryTests(TestCase):
         response = self.client.get("/finance/", HTTP_HOST="manager.runmycampus.com")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/")
+
+    def test_manager_public_status_reverse_is_available_in_manager_urlconf(self):
+        url = reverse("public_status", urlconf="config.manager_urls")
+        self.assertEqual(url, "/status/")
 
     def test_manager_search_api_returns_control_plane_results(self):
         self.client.force_login(self.user)

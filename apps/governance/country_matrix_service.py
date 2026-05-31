@@ -179,13 +179,22 @@ def signup_governance_defaults(country_code: str | None) -> dict[str, Any]:
     if not isinstance(admin_levels, list):
         admin_levels = []
 
+    from apps.governance.academic_pack_bridge import resolve_academic_pack_context
+
+    pack_ctx = resolve_academic_pack_context(iso)
     return {
         "matrix_iso": iso,
         "operating_mode": "standalone",
         "governance_archetype": str(row.get("governance_archetype") or "single_org_multi_site"),
         "admin_level_labels": admin_levels,
         "employer_model": str(row.get("employer_model") or ""),
-        "education_pack_tier": str(row.get("education_pack_tier") or ""),
+        "education_pack_tier": str(row.get("education_pack_tier") or pack_ctx.get("education_pack_tier_live") or ""),
+        "education_pack_tier_live": pack_ctx.get("education_pack_tier_live") or "",
+        "pack_source": pack_ctx.get("pack_source") or "",
+        "pack_tier_aligned": bool(pack_ctx.get("pack_tier_aligned")),
+        "grading_preset_key": pack_ctx.get("grading_preset_key") or "",
+        "supports_multi_shift": bool(pack_ctx.get("supports_multi_shift")),
+        "exam_boards": pack_ctx.get("exam_boards") or [],
         "governance_inherit": {},
     }
 

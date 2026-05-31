@@ -6,6 +6,7 @@ Phase 1.2: Complete Evaluation Module
 
 from __future__ import annotations
 
+import statistics
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -175,6 +176,19 @@ def _compute_rankings(
         if avg is not None:
             aggregates.append((student, avg))
 
+    ranking_mode = _resolve_ranking_mode(term, classroom)
+    if ranking_mode == "standard_score_t" and len(aggregates) > 1:
+        scores = [avg for _, avg in aggregates]
+        mean = statistics.mean(scores)
+        stdev = statistics.pstdev(scores) or 1.0
+        aggregates = [
+            (
+                student,
+                round(50.0 + 10.0 * ((avg - mean) / stdev), 2),
+            )
+            for student, avg in aggregates
+        ]
+
     # Sort by average (descending), then by name, then by ID for stability
     aggregates.sort(key=lambda x: (-x[1], x[0].last_name, x[0].first_name, x[0].id))
 
@@ -258,6 +272,26 @@ def _compute_student_average(
         return 0.0
 
     return total_weighted / total_coef
+
+
+def _resolve_ranking_mode(term: Term, classroom: Optional[Classroom]) -> str:
+    school = getattr(classroom, "school", None) or getattr(term, "school", None)
+    if school is None:
+        return "average"
+    try:
+        from apps.policies.resolver import get_effective_policy
+        from apps.registries.grade_scale_resolver import resolve_grade_scale_for_tenant
+
+        policy = get_effective_policy(school)
+        preset = (policy.get("grading") or {}).get("preset_key")
+        if preset == "east_asia_competitive":
+            return "standard_score_t"
+        scale = resolve_grade_scale_for_tenant(school)
+        if scale and isinstance(scale.metadata, dict):
+            return str(scale.metadata.get("ranking_mode") or "average")
+    except (ImportError, AttributeError, TypeError, ValueError):
+        pass
+    return "average"
 
 
 def get_class_ranking(

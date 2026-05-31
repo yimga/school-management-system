@@ -1,5 +1,25 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Global academic OS kernel residuals batch 1586 (2026-05-30)
+
+**A. Claim:** §11.4 batch 1586 — close 1585 residuals (POST initialize, PolicyBundle grading JSON-Logic, terminology breadcrumb).
+
+**B. Shipped:** `structural_options_initialize_runtime`; `grading_nuance_templates` + resolver/policy nuance path; `academic_structure_breadcrumb`; `report_card_avg` CustomNuance choice.
+
+**C. Proof:** initialize **2/2**, grading nuance **4/4**, breadcrumb **2/2** Django tests.
+
+**D. SOT:** batch **1586** **DONE**. **E. Honest:** Phase 4E PostgreSQL EXCLUDE spike still deferred per mandate.
+
+## Slice — Global academic OS kernel batch 1585 (2026-05-30)
+
+**A. Claim:** §11.4 batch 1585 — wire country pack + matrix into academic structure, grading registry, scheduling shifts, and runtime APIs (evolutionary; no `structural_components` greenfield).
+
+**B. Shipped:** `academic_pack_bridge.py`; `AcademicStructureNode` + `0053` migration; `structure_provisioning` + schools `tasks` hook; `InstructionShift` + conflict scoping; `structural-options` + `grading-matrix` runtime; verifiers + tests; integration map + matrix tier reconcile `_source` fix.
+
+**C. Proof:** `verify_global_academic_kernel_assumptions --strict` PASS; `verify_grading_scale_registry_coverage --strict` PASS; **22/22** Django tests on kernel modules.
+
+**D. SOT:** batch **1585** **DONE**. **E. Honest:** POST initialize + JSON-Logic policy templates remain follow-ups; production migrate required.
+
 ## Slice — Platform no-exception audit batch 1584 (2026-05-30)
 
 **A. Claim:** §11.4 batch 1584 — full `verify_phases_3_11_gates.py` green + supplemental platform audits; fix every mechanical failure (no exceptions).

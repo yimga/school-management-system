@@ -599,6 +599,44 @@ def ensure_grade_scale_seed() -> None:
             "family": "binary",
             "sort_order": 50,
         },
+        {
+            "code": "NUMERIC_1_5",
+            "name": "1-5 scale (Post-Soviet)",
+            "family": "numeric",
+            "sort_order": 60,
+            "range_definition": {"min": 1, "max": 5, "pass_threshold": 3},
+            "metadata": {"ranking_mode": "average", "governance_archetype": "europe-eastern"},
+        },
+        {
+            "code": "WAEC_LETTER",
+            "name": "WAEC letter bands",
+            "family": "letter",
+            "sort_order": 70,
+            "metadata": {
+                "ranking_mode": "average",
+                "boundary_map": [
+                    {"grade": "A1", "min": 75, "max": 100},
+                    {"grade": "B2", "min": 70, "max": 74.99},
+                    {"grade": "C6", "min": 50, "max": 69.99},
+                    {"grade": "F9", "min": 0, "max": 49.99},
+                ],
+            },
+        },
+        {
+            "code": "STANDARD_SCORE_T",
+            "name": "T-score (East Asia)",
+            "family": "standard_score",
+            "sort_order": 80,
+            "range_definition": {"min": 0, "max": 100},
+            "metadata": {"ranking_mode": "standard_score_t"},
+        },
+        {
+            "code": "QUALITATIVE_PD",
+            "name": "Qualitative descriptors",
+            "family": "qualitative",
+            "sort_order": 90,
+            "metadata": {"ranking_mode": "average"},
+        },
     ]
     for row in defaults:
         GradeScaleRegistry.objects.update_or_create(
@@ -607,6 +645,7 @@ def ensure_grade_scale_seed() -> None:
                 "name": row["name"],
                 "family": row.get("family", ""),
                 "range_definition": row.get("range_definition", {}),
+                "metadata": row.get("metadata", {}),
                 "sort_order": row.get("sort_order", 0),
                 "is_active": True,
             },

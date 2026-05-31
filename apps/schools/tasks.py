@@ -790,6 +790,58 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             },
         )
 
+        try:
+            from apps.academics.structure_provisioning import (
+                provision_academic_structure_for_school,
+            )
+
+            school_settings = getattr(school, "settings", None) or {}
+            raw_types = ""
+            if isinstance(school_settings, dict):
+                raw_types = str(
+                    school_settings.get("school_type")
+                    or school_settings.get("school_type_raw")
+                    or ""
+                ).strip()
+            school_type_codes = [
+                t.strip()
+                for t in raw_types.replace(",", "|").split("|")
+                if t.strip()
+            ]
+            structure_payload = provision_academic_structure_for_school(
+                school,
+                school_type_codes=school_type_codes or None,
+                academic_year=ay,
+            )
+            try:
+                from apps.policies.grading_nuance_templates import (
+                    sync_grading_nuance_from_policy,
+                )
+
+                sync_grading_nuance_from_policy(school)
+            except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+                logger.debug(
+                    "Grading nuance sync skipped during provisioning for %s",
+                    school_id,
+                )
+            _record_school_event(
+                school,
+                event_type="ACADEMIC_STRUCTURE_READY",
+                status="SUCCESS",
+                message="Academic structure nodes provisioned from country pack.",
+                payload=structure_payload,
+            )
+        except (
+            ImportError,
+            AttributeError,
+            TypeError,
+            ValueError,
+            DatabaseError,
+        ):
+            logger.exception(
+                "Academic structure provisioning failed for school %s", school_id
+            )
+
         # Optional: seed default subjects. Subject name is unique per school (school_id, name).
         subject_created = 0
         if not Subject.objects.filter(school=school).exists():

@@ -60,6 +60,9 @@ HOOK_REGISTRY = {
         "scores_by_subject",
         "coefficients",
         "scale_max",
+        "weighted_sum",
+        "coefficient_total",
+        "value",
     ],  # regional grading (e.g. Cameroon coefficient)
     "generic": ["value"],  # minimal for custom hooks
 }
@@ -213,6 +216,26 @@ def _run_with_timeout(
     return result[0]
 
 
+def _logic_from_policy(school, hook_point: str) -> dict[str, Any] | None:
+    """PolicyBundle / resolver grading templates (JSON-Logic only)."""
+    if school is None:
+        return None
+    try:
+        from apps.policies.resolver import get_effective_policy
+
+        policy = get_effective_policy(school)
+        grading = policy.get("grading") if isinstance(policy.get("grading"), dict) else {}
+        templates = grading.get("nuance_templates") if isinstance(grading.get("nuance_templates"), dict) else {}
+        spec = templates.get(hook_point)
+        if isinstance(spec, dict):
+            logic = spec.get("logic_data")
+            if isinstance(logic, dict):
+                return logic
+    except (ImportError, AttributeError, TypeError, ValueError):
+        return None
+    return None
+
+
 def apply_nuance(school, hook_point: str, context: dict[str, Any]) -> Any:
     """
     Load active CustomNuance for (school, hook_point), scrub context to allowed keys,
@@ -227,9 +250,14 @@ def apply_nuance(school, hook_point: str, context: dict[str, Any]) -> Any:
         hook_point=hook_point,
         is_active=True,
     ).first()
-    if not nuance or not nuance.logic_data:
+    logic_data = None
+    if nuance and nuance.logic_data:
+        logic_data = nuance.logic_data
+    if logic_data is None:
+        logic_data = _logic_from_policy(school, hook_point)
+    if not logic_data:
         return None
-    return _run_with_timeout(nuance.logic_data, scrubbed)
+    return _run_with_timeout(logic_data, scrubbed)
 
 
 def verify_nuance_safety(

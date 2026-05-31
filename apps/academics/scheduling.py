@@ -57,6 +57,29 @@ class Room(models.Model):
         return f"{self.name} ({self.room_type})"
 
 
+class InstructionShift(models.Model):
+    """School-day shift (e.g. Latin American turno) — partitions room/teacher booking."""
+
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.CASCADE,
+        related_name="instruction_shifts",
+    )
+    code = models.SlugField(max_length=32)
+    label = models.CharField(max_length=80)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["school_id", "sort_order", "code"]
+        unique_together = [("school", "code")]
+        verbose_name = "Instruction shift"
+        verbose_name_plural = "Instruction shifts"
+
+    def __str__(self):
+        return f"{self.label} ({self.code})"
+
+
 class TimeSlot(models.Model):
     """Predefined time slots for scheduling"""
 
@@ -124,6 +147,14 @@ class Schedule(models.Model):
         "academics.AcademicYear", on_delete=models.CASCADE
     )
     term = models.ForeignKey("academics.Term", on_delete=models.CASCADE)
+    shift = models.ForeignKey(
+        InstructionShift,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="schedules",
+        help_text="When set, room conflicts apply within this shift only.",
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="DRAFT")
     generated_at = models.DateTimeField(auto_now_add=True)
     published_at = models.DateTimeField(null=True, blank=True)
@@ -185,25 +216,31 @@ class ScheduleEntry(models.Model):
         """Validate no conflicts"""
         if self.pk is None:  # Only for new entries
             # Check teacher conflict
-            teacher_conflict = ScheduleEntry.objects.filter(
-                schedule=self.schedule,
+            teacher_qs = ScheduleEntry.objects.filter(
+                schedule__term=self.schedule.term,
                 teacher=self.teacher,
                 time_slot=self.time_slot,
                 is_cancelled=False,
-            ).exists()
+            )
+            if self.schedule.shift_id:
+                teacher_qs = teacher_qs.filter(schedule__shift_id=self.schedule.shift_id)
+            teacher_conflict = teacher_qs.exists()
 
             if teacher_conflict:
                 raise ValidationError(
                     f"Teacher {self.teacher.username} is already scheduled for {self.time_slot.slot_name}"
                 )
 
-            # Check room conflict
-            room_conflict = ScheduleEntry.objects.filter(
-                schedule=self.schedule,
+            # Check room conflict (scoped by shift when configured)
+            room_qs = ScheduleEntry.objects.filter(
+                schedule__term=self.schedule.term,
                 room=self.room,
                 time_slot=self.time_slot,
                 is_cancelled=False,
-            ).exists()
+            )
+            if self.schedule.shift_id:
+                room_qs = room_qs.filter(schedule__shift_id=self.schedule.shift_id)
+            room_conflict = room_qs.exists()
 
             if room_conflict:
                 raise ValidationError(

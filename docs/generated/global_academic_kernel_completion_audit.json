@@ -1,0 +1,62 @@
+{
+  "verdict": "GLOBAL_ACADEMIC_KERNEL_COMPLETION_PASS",
+  "finding_count": 0,
+  "checks": [
+    {
+      "id": "apps/governance/academic_pack_bridge.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/academics/academic_structure.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/academics/structure_provisioning.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/policies/grading_nuance_templates.py",
+      "status": "PASS"
+    },
+    {
+      "id": "scripts/verify_global_academic_kernel_assumptions.py",
+      "status": "PASS"
+    },
+    {
+      "id": "scripts/verify_grading_scale_registry_coverage.py",
+      "status": "PASS"
+    },
+    {
+      "id": "url:api_v1:runtime-structural-options",
+      "status": "PASS"
+    },
+    {
+      "id": "url:api_v1:runtime-structural-options-initialize",
+      "status": "PASS"
+    },
+    {
+      "id": "url:api_v1:runtime-grading-matrix",
+      "status": "PASS"
+    },
+    {
+      "id": "academics.AcademicStructureNode",
+      "status": "PASS"
+    },
+    {
+      "id": "academics.InstructionShift",
+      "status": "PASS"
+    },
+    {
+      "id": "provisioning_event_type",
+      "status": "PASS"
+    }
+  ],
+  "findings": [],
+  "documented_honest_gaps": [
+    "onboarding_step_catalog: no dedicated academic-structure-confirm step",
+    "scheduling_solver: shift dimension not propagated to CP-SAT solver",
+    "phase_4e: PostgreSQL EXCLUDE gist migration path not documented",
+    "verify_global_academic_kernel_assumptions: no AST school.settings grading scan",
+    "tier1_burndown: dissection ledger skeleton\u2192verified is operator cadence"
+  ]
+}

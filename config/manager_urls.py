@@ -745,6 +745,7 @@ urlpatterns = [
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_status, name="status"),
+    path("status/", obs_views.public_status, name="public_status"),
     path("find/", find_school, name="find_school"),
     path("discover/", global_login_discovery, name="global_login_discovery"),
     path("api/health/", obs_views.api_health, name="api_health"),

@@ -12,6 +12,7 @@ isolated from environment-specific middleware ordering.
 
 from __future__ import annotations
 
+import uuid
 from types import SimpleNamespace
 from unittest import mock
 
@@ -23,6 +24,7 @@ from apps.api.runtime_endpoints import (
     runtime_defaults_snapshot,
     school_calendar_runtime,
     site_settings_snapshot,
+    structural_options_runtime,
 )
 
 
@@ -58,6 +60,14 @@ class RuntimeEndpointHeaderContractTests(SimpleTestCase):
             mock.patch("apps.academics.models.AcademicTerm.objects", _mocked_manager_empty()),
             mock.patch("apps.platform_runtime.models.RuntimeDefaults.objects", _mocked_manager_empty()),
             mock.patch("apps.siteconfig.models.SiteSettings.objects", _mocked_manager_empty()),
+            mock.patch(
+                "apps.policies.resolver.get_effective_policy",
+                return_value={"grading": {"preset_key": "american"}},
+            ),
+            mock.patch(
+                "apps.registries.grade_scale_resolver.resolve_grade_scale_for_tenant",
+                return_value=None,
+            ),
         ]
         for p in self._patches:
             try:
@@ -69,7 +79,10 @@ class RuntimeEndpointHeaderContractTests(SimpleTestCase):
 
     def _request(self, path: str):
         request = self.factory.get(path)
+        school_id = uuid.uuid4()
         request.school = SimpleNamespace(
+            id=school_id,
+            pk=school_id,
             slug="acme-school",
             subdomain="acme",
             settings={
@@ -111,8 +124,15 @@ class RuntimeEndpointHeaderContractTests(SimpleTestCase):
         for viewport in ("A", "B", "C"):
             factory = RequestFactory(HTTP_X_RMC_VIEWPORT=viewport)
             request = factory.get("/api/v1/runtime/calendar")
-            request.school = SimpleNamespace(slug="acme-school", subdomain="acme",
-                                             settings={}, features={})
+            sid = uuid.uuid4()
+            request.school = SimpleNamespace(
+                id=sid,
+                pk=sid,
+                slug="acme-school",
+                subdomain="acme",
+                settings={},
+                features={},
+            )
             response = school_calendar_runtime(request)
             self.assertIn(f"v={viewport}", response["Surrogate-Key"])
 
@@ -132,10 +152,30 @@ class RuntimeEndpointHeaderContractTests(SimpleTestCase):
 
     def test_grading_matrix_projects_school_settings(self):
         request = self._request("/api/v1/runtime/grading-matrix")
-        response = grading_matrix_runtime(request)
+        with mock.patch(
+            "apps.policies.resolver.get_effective_policy",
+            return_value={"grading": {"preset_key": "west_african_waec"}},
+        ), mock.patch(
+            "apps.registries.grade_scale_resolver.resolve_grade_scale_for_tenant",
+            return_value=None,
+        ):
+            response = grading_matrix_runtime(request)
         body = response.content.decode("utf-8")
-        self.assertIn('"passing_threshold":60', body)
+        self.assertIn('"preset_key":"west_african_waec"', body)
         self.assertIn('"scale"', body)
+
+    def test_structural_options_returns_country_pack(self):
+        request = RequestFactory(HTTP_X_RMC_VIEWPORT="A").get(
+            "/api/v1/runtime/structural-options?country=CM"
+        )
+        request.school = None
+        response = structural_options_runtime(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Surrogate-Key", response)
+        body = response.content.decode("utf-8")
+        self.assertIn('"country_code":"CM"', body)
+        self.assertIn('"school_types"', body)
+        self.assertIn('"grading_preset_key"', body)
 
     def test_feature_flags_projects_school_features(self):
         request = self._request("/api/v1/runtime/feature-flags")

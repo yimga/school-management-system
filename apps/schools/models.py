@@ -790,6 +790,10 @@ class SchoolProvisioningEvent(models.Model):
         STARTED = "STARTED", "Started"
         PROFILE_APPLIED = "PROFILE_APPLIED", "Profile Applied"
         ACADEMIC_YEAR_READY = "ACADEMIC_YEAR_READY", "Academic Year Ready"
+        ACADEMIC_STRUCTURE_READY = (
+            "ACADEMIC_STRUCTURE_READY",
+            "Academic Structure Ready",
+        )
         SUBJECTS_READY = "SUBJECTS_READY", "Subjects Ready"
         BLUEPRINT_TEMPLATE_RECORDED = (
             "BLUEPRINT_TEMPLATE_RECORDED",

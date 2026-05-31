@@ -32,6 +32,8 @@ from apps.api.runtime_endpoints import (
     runtime_defaults_snapshot,
     school_calendar_runtime,
     site_settings_snapshot,
+    structural_options_initialize_runtime,
+    structural_options_runtime,
 )
 
 app_name = "api_v1"
@@ -50,6 +52,12 @@ urlpatterns = [
     path("runtime/defaults", runtime_defaults_snapshot, name="runtime-defaults"),
     path("runtime/site-settings", site_settings_snapshot, name="runtime-site-settings"),
     path("runtime/feature-flags", feature_flags_runtime, name="runtime-feature-flags"),
+    path("runtime/structural-options", structural_options_runtime, name="runtime-structural-options"),
+    path(
+        "runtime/structural-options/initialize",
+        structural_options_initialize_runtime,
+        name="runtime-structural-options-initialize",
+    ),
     # Pass 12: public webhook event-type catalog backed by apps.events.catalog.
     path(
         "webhooks/event-types/",

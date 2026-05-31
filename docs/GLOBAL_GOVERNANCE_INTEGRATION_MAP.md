@@ -11,11 +11,18 @@ Links the country governance matrix to existing RunMyCampus localization and rep
 | Dissection ledger | `docs/generated/country_dissection_ledger.json` | Wave progress (`skeleton` → `verified`) |
 | Completion register | `docs/generated/global_governance_completion_register.json` | Program checklist |
 
-## Runtime consumers (target wiring)
+## Runtime consumers (wired — global academic OS kernel, batch 1585)
 
-| Matrix field | Existing service | Phase |
-|--------------|------------------|-------|
-| `education_pack_tier` | `apps/siteconfig/country_localization_service.py::resolve_country_pack` | 0C sync, 3A runtime |
+| Matrix / pack field | Consumer | Status |
+|---------------------|----------|--------|
+| `education_pack_tier` + live `_source` | `apps/governance/academic_pack_bridge.py`, `scripts/verify_global_academic_kernel_assumptions.py`, `scripts/reconcile_matrix_tier_to_live_registry.py` | **wired** |
+| `school_types`, `education_levels` | `apps/academics/structure_provisioning.py`, `GET /api/v1/runtime/structural-options` | **wired** |
+| `grading_preset_key` | `apps/governance/country_matrix_service.py::signup_governance_defaults`, `apps/policies/resolver.py`, `apps/siteconfig/education_profile_engine.py` | **wired** |
+| `supports_multi_shift` | `structural-options` runtime + `apps/academics/scheduling.py::InstructionShift` | **wired** |
+| Grade scale families | `apps/registries/services.py::ensure_grade_scale_seed`, `scripts/verify_grading_scale_registry_coverage.py` | **wired** |
+| Grading JSON-Logic templates | `apps/policies/grading_nuance_templates.py` → `get_effective_policy` + `CustomNuance` sync | **wired** |
+| Academic structure breadcrumb | `apps/siteconfig/terminology_service.py::academic_structure_breadcrumb` | **wired** |
+| Structure provision API | `POST /api/v1/runtime/structural-options/initialize` | **wired** |
 | `official_languages` | `apps/siteconfig/_seed_country_languages.py` | 0C |
 | `local_terminology` | `apps/siteconfig/terminology_service.py` | 0C, 3C |
 | `name_order`, formats | `apps/siteconfig/country_formats_service.py` | 0C |
@@ -40,4 +47,6 @@ python scripts/verify_country_governance_matrix.py --allow-skeleton
 python scripts/verify_country_dissection_ledger.py --allow-skeleton
 python scripts/verify_country_layer_consistency.py --allow-skeleton
 python scripts/verify_global_governance_plan_completion.py --phase-max 0A
+python scripts/verify_global_academic_kernel_assumptions.py --strict --write
+python scripts/verify_grading_scale_registry_coverage.py --strict --write
 ```

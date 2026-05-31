@@ -1,0 +1,10 @@
+{
+  "verdict": "GLOBAL_ACADEMIC_KERNEL_PASS",
+  "finding_count": 0,
+  "tier_counts": {
+    "tier1_native": 247,
+    "tier1_regional_clone": 0,
+    "generic_fallback": 2
+  },
+  "findings": []
+}

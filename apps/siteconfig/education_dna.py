@@ -56,6 +56,16 @@ EDUCATION_DNA_CURRICULUMS = {
         "weighting": "Summative",
         "terminology": {"teacher": "Teacher", "grade": "Grade", "average": "Predicted"},
     },
+    "east_asia_competitive": {
+        "terms": ["Term 1", "Term 2"],
+        "grading": {
+            "type": "standard_score",
+            "scale_max": 100,
+            "ranking_mode": "standard_score_t",
+        },
+        "weighting": {"CA": 0.3, "Exam": 0.7},
+        "terminology": {"teacher": "Teacher", "grade": "Score", "average": "Mean"},
+    },
 }
 
 # Map uppercase template codes (API/super_views) to EDUCATION_DNA_CURRICULUMS keys.
@@ -66,6 +76,7 @@ EDUCATION_DNA_CODE_ALIASES = {
     "VOCATIONAL": "vocational",
     "AMERICAN": "american",
     "IB": "ib",
+    "EAST_ASIA": "east_asia_competitive",
 }
 
 

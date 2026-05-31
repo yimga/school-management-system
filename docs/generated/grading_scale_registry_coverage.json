@@ -1,0 +1,16 @@
+{
+  "verdict": "GRADING_SCALE_REGISTRY_PASS",
+  "required": [
+    "0-20",
+    "0-100",
+    "GPA_4",
+    "LETTER",
+    "PASS_FAIL",
+    "NUMERIC_1_5",
+    "WAEC_LETTER",
+    "STANDARD_SCORE_T",
+    "QUALITATIVE_PD"
+  ],
+  "missing": [],
+  "finding_count": 0
+}

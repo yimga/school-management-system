@@ -36,8 +36,10 @@ def _expected_tier(alpha2: str) -> str:
     if alpha2 in seed.COUNTRY_LOCALIZATION:
         return "tier1_native"
     pack = resolve_country_pack(alpha2)
-    source = str(pack.get("_pack_source") or pack.get("pack_source") or "")
-    if "regional" in source:
+    source = str(pack.get("_source") or pack.get("_pack_source") or "")
+    if source.startswith("country:"):
+        return "tier1_native"
+    if source.startswith("regional:") and source not in ("regional:generic", ""):
         return "tier1_regional_clone"
     return "generic_fallback"
 

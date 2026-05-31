@@ -198,6 +198,54 @@ def invalidate_all_tenant_policy_caches() -> None:
         )
 
 
+def _merge_education_registry_into_policy(out: Dict[str, Any], school) -> None:
+    """Levels 4–6: expose tenant M2M education registries + matrix grading preset in policy."""
+    if school is None:
+        return
+    try:
+        from apps.siteconfig.global_catalog import GlobalGeoCatalog
+        from apps.governance.academic_pack_bridge import resolve_academic_pack_context
+
+        iso = GlobalGeoCatalog.alpha2_for_country(
+            getattr(school, "country_code", None)
+            or getattr(getattr(school, "default_region", None), "code", None)
+        )
+        ctx = resolve_academic_pack_context(iso)
+        out.setdefault("education_structure", {})
+        if isinstance(out["education_structure"], dict):
+            out["education_structure"].update(
+                {
+                    "pack_source": ctx.get("pack_source"),
+                    "education_pack_tier": ctx.get("education_pack_tier_live"),
+                    "grading_preset_key": ctx.get("grading_preset_key"),
+                    "supports_multi_shift": ctx.get("supports_multi_shift"),
+                }
+            )
+        level_codes = list(
+            school.education_levels.filter(is_active=True)
+            .order_by("sort_order")
+            .values_list("code", flat=True)
+        )
+        system_codes = list(
+            school.education_system_types.filter(is_active=True)
+            .order_by("sort_order")
+            .values_list("code", flat=True)
+        )
+        out["education_levels"] = level_codes
+        out["education_system_types"] = system_codes
+        out.setdefault("grading", {})
+        if isinstance(out["grading"], dict) and ctx.get("grading_preset_key"):
+            out["grading"]["preset_key"] = ctx["grading_preset_key"]
+            try:
+                from apps.policies.grading_nuance_templates import attach_grading_nuance_to_policy
+
+                attach_grading_nuance_to_policy(out, ctx["grading_preset_key"])
+            except (ImportError, AttributeError, TypeError, ValueError):
+                pass
+    except _POLICY_MERGE_ERRORS as e:
+        logger.debug("Education registry policy merge skipped: %s", e)
+
+
 def _merge_sector_defaults_into_policy(out: Dict[str, Any], school) -> None:
     """Wedge 14–22: Apply sector-driven policy defaults. Tenant overrides still win (merged later)."""
     sector = (getattr(school, "primary_sector", None) or "").strip().upper()
@@ -389,6 +437,7 @@ def get_effective_policy(
                         if key in (
                             "terminology",
                             "grading",
+                            "nuance_hooks",
                             "grade_approval",
                             "workflows",
                             "features",
@@ -486,6 +535,8 @@ def get_effective_policy(
 
     # Wedge 14–22: sector-driven policy defaults (before tenant overrides so tenant can override)
     _merge_sector_defaults_into_policy(out, school)
+
+    _merge_education_registry_into_policy(out, school)
 
     # Tenant overrides from School.settings (JSON)
     settings = getattr(school, "settings", None)
