@@ -1,0 +1,16 @@
+Payment failed — please update your billing details
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+We were unable to charge the card on file for {{ school_name|default:"your school" }}.
+
+Failure reason:  {{ failure_code|default:"(unspecified)" }}
+Amount:          {{ amount|default:"(unspecified)" }}
+
+To keep your subscription active, please update your billing details
+at: {{ billing_url|default:"(URL not captured)" }}
+
+We will retry automatically over the next 5 days. If we cannot recover
+the payment, your subscription will be paused until the issue is resolved.
+
+— The RunMyCampus billing team

@@ -243,9 +243,21 @@ def heartbeat(run: Any) -> None:
         logger.warning("workflow_tracker_heartbeat_failed run_id=%s", getattr(run, "pk", "-"))
 
 
-def finalize_run(run: Any, *, status: str, error: Optional[Exception] = None) -> None:
+def finalize_run(
+    run: Any,
+    *,
+    status: str,
+    error: Optional[Exception] = None,
+    email_on_failure: bool = False,
+) -> None:
     """Mark a run as succeeded / failed / cancelled. Computes
-    ``suggested_remediation`` from the auto-fix matcher on failure."""
+    ``suggested_remediation`` from the auto-fix matcher on failure.
+
+    When ``email_on_failure=True`` and ``status='failed'``, publishes
+    ``workflow.run.failed`` through the event bus so the platform email
+    matrix routes an operator alert. Best-effort — never raises out of
+    the finalize path.
+    """
 
     if run is None or getattr(run, "pk", None) is None:
         return
@@ -257,6 +269,7 @@ def finalize_run(run: Any, *, status: str, error: Optional[Exception] = None) ->
             "ended_at": timezone.now(),
             "last_heartbeat_at": timezone.now(),
         }
+        suggested = {}
         if status == "failed" and error is not None:
             from apps.platform_runtime.workflow_auto_fix import suggest_remediation
 
@@ -266,17 +279,40 @@ def finalize_run(run: Any, *, status: str, error: Optional[Exception] = None) ->
                 "message": error_text,
             }
             try:
-                update_fields["suggested_remediation"] = suggest_remediation(
+                suggested = suggest_remediation(
                     error_type=type(error).__name__,
                     error_message=error_text,
                     workflow_key=getattr(run, "workflow_key", ""),
                 )
             except Exception:
-                update_fields["suggested_remediation"] = {
+                suggested = {
                     "verdict": "no_match",
                     "human_action": "Inspect the workflow run detail for raw error.",
                 }
+            update_fields["suggested_remediation"] = suggested
         WorkflowRun.objects.filter(pk=run.pk).update(**update_fields)
+
+        # v4.00.98 Phase 6 — opt-in operator email when a workflow fails.
+        if status == "failed" and email_on_failure:
+            try:
+                from apps.platform_runtime.event_bus import publish_event
+
+                publish_event(
+                    "workflow.run.failed",
+                    {
+                        "run_id": run.pk,
+                        "workflow_key": getattr(run, "workflow_key", ""),
+                        "workflow_label": getattr(run, "workflow_label", ""),
+                        "tenant_schema": getattr(run, "tenant_schema", ""),
+                        "error_type": type(error).__name__ if error else "",
+                        "error_message": str(error)[:400] if error else "",
+                        "suggested_remediation_text": (suggested or {}).get("human_action", ""),
+                    },
+                    strict_catalog=True,
+                    source="workflow_tracker.finalize_run",
+                )
+            except Exception:
+                logger.warning("workflow_tracker_email_on_failure_publish_failed", exc_info=True)
     except Exception:
         logger.exception("workflow_tracker_finalize_failed run_id=%s", getattr(run, "pk", "-"))
 
@@ -369,6 +405,7 @@ def track_workflow(
     expected_duration_seconds: int = _DEFAULT_EXPECTED_DURATION,
     request_kwarg: str = "request",
     payload_resolver: Optional[Callable[..., dict]] = None,
+    email_on_failure: bool = False,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator wrapping a callable. Creates a WorkflowRun, finalizes on
     return / exception.
@@ -380,6 +417,11 @@ def track_workflow(
     ``payload_resolver`` (optional) receives the wrapped callable's args/kwargs
     and returns a dict to persist as ``payload_summary``. Errors in the
     resolver are swallowed.
+
+    ``email_on_failure`` (default False) — when True, a failed run also
+    publishes ``workflow.run.failed`` through the platform event bus so
+    the email matrix routes an operator alert. Opt-in per workflow so noisy
+    workflows don't flood the operator inbox.
     """
 
     def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
@@ -410,11 +452,13 @@ def track_workflow(
             try:
                 result = fn(*args, **kwargs)
             except Exception as exc:
-                finalize_run(run, status="failed", error=exc)
+                finalize_run(run, status="failed", error=exc, email_on_failure=email_on_failure)
                 raise
             finalize_run(run, status="succeeded")
             return result
 
+        # Expose the flag for testing / introspection.
+        wrapper.email_on_failure = email_on_failure  # type: ignore[attr-defined]
         return wrapper
 
     return decorator

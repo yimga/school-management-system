@@ -1,0 +1,17 @@
+Your RunMyCampus account has been quiet
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+It's been about two months since anyone from {{ school_name|default:"your school" }}
+last signed in. We wanted to check in:
+
+  * Were we not the right fit?
+  * Is there something we can fix?
+  * Do you need help importing data or setting up integrations?
+
+A quick reply (even one sentence) will help us understand. If you'd
+prefer to come back on your own: {{ portal_url|default:"https://manager.runmycampus.com/" }}
+
+To stop these reminders: {{ unsubscribe_url|default:"(URL not captured)" }}
+
+— The RunMyCampus team

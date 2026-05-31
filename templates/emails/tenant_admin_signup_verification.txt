@@ -1,0 +1,12 @@
+Welcome to RunMyCampus
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+Thanks for signing up {{ school_name|default:"your school" }}. To complete your signup, click the
+link below to verify your email address:
+
+  {{ verification_url|default:"(URL not captured)" }}
+
+This link expires in 48 hours. If you didn't sign up, ignore this email.
+
+— The RunMyCampus team

@@ -2195,3 +2195,11 @@ from .models_workflow_run import (  # noqa: E402,F401
     WorkflowStep,
     WorkflowStepStatus,
 )
+from .models_newsletter import (  # noqa: E402,F401
+    NewsletterSubscription,
+    NewsletterSubscriptionStatus,
+)
+from .models_reactivation import (  # noqa: E402,F401
+    TenantReactivationAttempt,
+    TenantReactivationCadence,
+)

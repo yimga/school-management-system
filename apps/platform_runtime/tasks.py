@@ -262,3 +262,123 @@ def process_offline_queues_due(
         totals["conflicts"] += int(summary.get("conflicts") or 0)
         totals["processed"] += int(summary.get("processed") or 0)
     return totals
+
+
+
+@shared_task(name="platform_runtime.tenant_reactivation_sweep")
+def tenant_reactivation_sweep_task() -> dict:
+    """v4.00.98 Phase 4 — daily reactivation sweep entrypoint for Celery beat.
+
+    Mirrors `manage.py run_tenant_reactivation_sweep --apply`. Never raises;
+    captures the engine summary so beat can record the outcome.
+    """
+    try:
+        from apps.platform_runtime.reactivation_engine import run_reactivation_sweep
+
+        return run_reactivation_sweep(dry_run=False, limit_per_cadence=200)
+    except Exception as exc:
+        return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
+
+
+@shared_task(name="platform_runtime.signup_verification_stale_sweep")
+def signup_verification_stale_sweep_task() -> dict:
+    """v4.00.98 Phase 5 — fire operator alert + tenant reminder when a
+    signup verification email has been unclicked for >24h. Best-effort."""
+    try:
+        from datetime import timedelta as _td
+        from django.utils import timezone as _tz
+
+        from apps.schools.models import SignupVerification
+        from apps.platform_runtime.event_bus import publish_event
+
+        cutoff_old = _tz.now() - _td(hours=24)
+        cutoff_max = _tz.now() - _td(days=7)
+        # tenant-isolation-allow: platform-signup-stale-sweep-no-tenant-scope
+        rows = list(
+            SignupVerification.objects.filter(
+                verified_at__isnull=True,
+                created_at__lt=cutoff_old,
+                created_at__gte=cutoff_max,
+            ).select_related("school")[:500]
+        )
+        fired = 0
+        for v in rows:
+            try:
+                school = getattr(v, "school", None)
+                age_hours = int((_tz.now() - v.created_at).total_seconds() / 3600)
+                payload = {
+                    "school_id": str(getattr(school, "pk", "")),
+                    "school_name": getattr(school, "name", ""),
+                    "admin_email": v.email,
+                    "age_hours": age_hours,
+                    "created_at": v.created_at.isoformat(),
+                }
+                publish_event(
+                    "tenant.signup.verification_stale",
+                    payload,
+                    school_id=str(getattr(school, "pk", "")),
+                    strict_catalog=True,
+                    source="platform_runtime.signup_verification_stale_sweep",
+                )
+                fired += 1
+            except Exception:
+                continue
+        return {"ok": True, "fired": fired, "scanned": len(rows)}
+    except Exception as exc:
+        return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
+
+
+@shared_task(name="platform_runtime.workflow_stuck_alert_sweep")
+def workflow_stuck_alert_sweep_task() -> dict:
+    """v4.00.98 Phase 6 — find RUNNING WorkflowRun rows past their expected
+    heartbeat window and publish workflow.run.stuck. Cool-down handled by
+    the email matrix (60 min per (event_type, recipient))."""
+    try:
+        from datetime import timedelta as _td
+        from django.utils import timezone as _tz
+
+        from apps.platform_runtime.models import WorkflowRun
+        from apps.platform_runtime.event_bus import publish_event
+
+        now = _tz.now()
+        # Scan only rows where status=running AND last_heartbeat is at least
+        # 1.5 × the smallest reasonable expected duration ago.
+        candidates = list(
+            # tenant-isolation-allow: platform-workflow-stuck-no-tenant-scope
+            WorkflowRun.objects.filter(
+                status="running",
+                last_heartbeat_at__lt=now - _td(seconds=30),
+            ).order_by("-last_heartbeat_at")[:500]
+        )
+        published = 0
+        for run in candidates:
+            try:
+                expected = max(int(run.expected_duration_seconds or 30), 5)
+                threshold = _td(seconds=expected * 1.5)
+                if (now - run.last_heartbeat_at) <= threshold:
+                    continue
+                publish_event(
+                    "workflow.run.stuck",
+                    {
+                        "run_id": run.pk,
+                        "workflow_key": run.workflow_key,
+                        "workflow_label": run.workflow_label,
+                        "tenant_schema": run.tenant_schema,
+                        "current_step_name": run.current_step_name,
+                        "current_step_ordinal": run.current_step_ordinal,
+                        "total_steps": run.total_steps,
+                        "started_at": run.started_at.isoformat() if run.started_at else "",
+                        "last_heartbeat_at": run.last_heartbeat_at.isoformat() if run.last_heartbeat_at else "",
+                        "expected_duration_seconds": expected,
+                    },
+                    strict_catalog=True,
+                    source="platform_runtime.workflow_stuck_alert_sweep",
+                )
+                # Flip the row so the SSE chip reflects stuck visually.
+                WorkflowRun.objects.filter(pk=run.pk).update(status="stuck")
+                published += 1
+            except Exception:
+                continue
+        return {"ok": True, "scanned": len(candidates), "published": published}
+    except Exception as exc:
+        return {"ok": False, "reason": f"exception:{type(exc).__name__}"}

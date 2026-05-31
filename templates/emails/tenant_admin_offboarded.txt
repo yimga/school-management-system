@@ -1,0 +1,16 @@
+Your RunMyCampus tenant has been offboarded
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+This is your confirmation that the RunMyCampus tenant
+"{{ school_name|default:"(unknown)" }}" has been offboarded.
+
+What this means:
+  * Login is disabled effective immediately
+  * Data is retained for 30 days per the retention policy then purged
+  * You can request an export via support during the 30-day window
+
+If you want to reverse this, reply within 7 days and we will restore
+access. After 7 days, restoration is not possible.
+
+— The RunMyCampus team

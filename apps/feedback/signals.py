@@ -10,7 +10,8 @@ import logging
 from typing import Iterable
 
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
+# v4.00.98 Phase 7 — reliability-layer compat wrapper.
+from apps.schoolops.email_compat import send_mail
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 

@@ -1,0 +1,13 @@
+Confirm your RunMyCampus newsletter signup
+
+Hi,
+
+You're one click away from getting the RunMyCampus newsletter. Confirm
+your subscription:
+
+  {{ verification_url|default:"(URL not captured)" }}
+
+This link expires in 7 days. If you didn't sign up, ignore this email
+and you won't hear from us again.
+
+— The RunMyCampus team

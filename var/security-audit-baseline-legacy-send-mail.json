@@ -1,0 +1,192 @@
+{
+  "scanner": "scan_legacy_send_mail.py",
+  "finding_count": 37,
+  "generated_at": "v4.00.98-phase7",
+  "findings": [
+    {
+      "file": "apps/accounts/tasks.py",
+      "line": 62,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/accounts/tasks.py",
+      "line": 474,
+      "snippet": "from django.core.mail import mail_admins"
+    },
+    {
+      "file": "apps/accounts/views_delegation.py",
+      "line": 73,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/communication/notification_service.py",
+      "line": 15,
+      "snippet": "from django.core.mail import send_mail as django_send_mail"
+    },
+    {
+      "file": "apps/compliance/alerts.py",
+      "line": 16,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/evals/notifications.py",
+      "line": 11,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/feedback/notification_services.py",
+      "line": 32,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/finance/notifications.py",
+      "line": 102,
+      "snippet": "from django.core.mail import EmailMessage"
+    },
+    {
+      "file": "apps/finance/notifications.py",
+      "line": 174,
+      "snippet": "from django.core.mail import EmailMessage"
+    },
+    {
+      "file": "apps/finance/tasks.py",
+      "line": 15,
+      "snippet": "from django.core.mail import EmailMessage"
+    },
+    {
+      "file": "apps/finance/views_access.py",
+      "line": 21,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/lifecycle/tasks_stall_watch.py",
+      "line": 143,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/marketplace/publisher_signup.py",
+      "line": 165,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/migration_cloud/alerts.py",
+      "line": 244,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/migration_cloud/signals_intake.py",
+      "line": 29,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/migration_cloud/views_guardian_consent_admin.py",
+      "line": 38,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/people/people_management.py",
+      "line": 322,
+      "snippet": "from django.core.mail import send_mass_mail"
+    },
+    {
+      "file": "apps/people/views_backend.py",
+      "line": 170,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/portal/forum_notifications.py",
+      "line": 8,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/portal/help_north_star_report.py",
+      "line": 69,
+      "snippet": "from django.core.mail import EmailMultiAlternatives"
+    },
+    {
+      "file": "apps/reports/bi_services.py",
+      "line": 381,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/reports/views.py",
+      "line": 5,
+      "snippet": "from django.core.mail import EmailMessage"
+    },
+    {
+      "file": "apps/schools/signup_views.py",
+      "line": 19,
+      "snippet": "from django.core.mail import send_mail  # noqa: F401 \u2014 retained for legacy callsites"
+    },
+    {
+      "file": "apps/schools/welcome_email.py",
+      "line": 14,
+      "snippet": "from django.core.mail import EmailMessage"
+    },
+    {
+      "file": "apps/siteconfig/notifications_public_status.py",
+      "line": 8,
+      "snippet": "* EMAIL uses ``django.core.mail.send_mail`` (existing path)."
+    },
+    {
+      "file": "apps/siteconfig/notifications_public_status.py",
+      "line": 66,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/siteconfig/tasks.py",
+      "line": 75,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/siteconfig/views_public_status.py",
+      "line": 177,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/reports/management/commands/generate_regional_reports.py",
+      "line": 7,
+      "snippet": "from django.core.mail import EmailMessage"
+    },
+    {
+      "file": "apps/reports/management/commands/send_scheduled_reports.py",
+      "line": 12,
+      "snippet": "from django.core.mail import EmailMessage"
+    },
+    {
+      "file": "apps/migration_cloud/management/commands/maa_v2_resign_campaign.py",
+      "line": 61,
+      "snippet": "from django.core.mail import send_mail"
+    },
+    {
+      "file": "apps/migration_cloud/management/commands/verify_audit_chain.py",
+      "line": 42,
+      "snippet": ":func:`django.core.mail.send_mail`. The body carries ONLY"
+    },
+    {
+      "file": "apps/migration_cloud/management/commands/verify_audit_chain.py",
+      "line": 63,
+      "snippet": "# Test seams patch either this module attribute or django.core.mail.send_mail."
+    },
+    {
+      "file": "apps/migration_cloud/management/commands/verify_audit_chain.py",
+      "line": 443,
+      "snippet": "from django.core.mail import send_mail as django_send_mail"
+    },
+    {
+      "file": "apps/analytics/management/commands/send_risk_digest.py",
+      "line": 26,
+      "snippet": "from django.core.mail import EmailMessage"
+    },
+    {
+      "file": "apps/accounts/legacy_hashes/key_rotation_task.py",
+      "line": 90,
+      "snippet": "from django.core.mail import send_mail  # local: optional in CI"
+    },
+    {
+      "file": "apps/accounts/legacy_hashes/sunset_task.py",
+      "line": 51,
+      "snippet": "from django.core.mail import EmailMultiAlternatives"
+    }
+  ]
+}

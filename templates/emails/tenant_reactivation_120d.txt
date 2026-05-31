@@ -1,0 +1,16 @@
+Final reactivation reminder
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+It's been four months since {{ school_name|default:"your school" }} last
+signed in. This will be our last reactivation message — we don't want
+to keep emailing you if you've moved on.
+
+If you do want to come back: {{ portal_url|default:"https://manager.runmycampus.com/" }}
+
+If you'd like to formally close the account (or request a data export
+before we do): reply to this email.
+
+Otherwise, you'll stop hearing from us after this message.
+
+— The RunMyCampus team

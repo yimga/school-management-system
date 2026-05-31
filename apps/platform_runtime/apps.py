@@ -65,3 +65,18 @@ class PlatformRuntimeConfig(AppConfig):
                 "Workflow Progress assist-dock slot not registered at Django ready",
                 exc_info=True,
             )
+        try:
+            from apps.platform_runtime.platform_email_matrix import (
+                register_email_matrix_event_subscriber,
+            )
+            from apps.platform_runtime.platform_email_matrix_defaults import (
+                _register_default_email_rows,
+            )
+
+            _register_default_email_rows()
+            register_email_matrix_event_subscriber()
+        except Exception:
+            logger.debug(
+                "Platform email matrix not registered at Django ready",
+                exc_info=True,
+            )

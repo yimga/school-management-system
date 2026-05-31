@@ -166,12 +166,17 @@ def call(provider: str, op: str, **kwargs: Any) -> dict[str, Any]:
     except Exception:
         run = None
 
+    # v4.00.98 Phase 6 — OAuth exchange + push_grade_live failures should
+    # operator-alert. Other ops are noisy (pull_courses ping) so they don't.
+    _critical_ops = {"exchange_authorization_code_for_token", "push_grade_live", "refresh_access_token"}
+    _email_on_failure = op_norm in _critical_ops
+
     try:
         result = fn(**kwargs)
     except Exception as exc:
         if run is not None:
             try:
-                finalize_run(run, status="failed", error=exc)
+                finalize_run(run, status="failed", error=exc, email_on_failure=_email_on_failure)
             except Exception:
                 pass
         raise

@@ -417,6 +417,67 @@ EVENT_CATALOG = {
         "description": "Synthetic event for event-bus unit tests",
         "payload": ["msg"],
     },
+    # ── v4.00.98 Platform Email Matrix events ─────────────────────────────
+    "tenant.signup.created": {
+        "description": "A new school signed up via the public form.",
+        "payload": ["school_id", "school_name", "country_code", "subdomain", "admin_email"],
+    },
+    "tenant.signup.verification_sent": {
+        "description": "Double-opt-in verification email sent for tenant signup.",
+        "payload": ["school_id", "admin_email", "verification_url"],
+    },
+    "tenant.signup.verification_stale": {
+        "description": "Signup verification not clicked within 24h.",
+        "payload": ["school_id", "admin_email", "age_hours"],
+    },
+    "tenant.signup.completed": {
+        "description": "Signup verified + provisioning complete; tenant active.",
+        "payload": ["school_id", "school_name", "admin_email", "portal_url"],
+    },
+    "tenant.offboarding.confirmed": {
+        "description": "Tenant offboarding completed.",
+        "payload": ["school_id", "school_name", "admin_email"],
+    },
+    "tenant.payment.failed": {
+        "description": "Tenant payment attempt failed.",
+        "payload": ["school_id", "admin_email", "failure_code", "amount"],
+    },
+    "tenant.subscription.expiring_soon": {
+        "description": "Tenant subscription expires within the warning window.",
+        "payload": ["school_id", "admin_email", "days_until", "renewal_url"],
+    },
+    "tenant.reactivation.30d": {
+        "description": "Reactivation cadence: 30 days inactive.",
+        "payload": ["school_id", "admin_email", "school_name"],
+    },
+    "tenant.reactivation.60d": {
+        "description": "Reactivation cadence: 60 days inactive.",
+        "payload": ["school_id", "admin_email", "school_name"],
+    },
+    "tenant.reactivation.90d": {
+        "description": "Reactivation cadence: 90 days inactive.",
+        "payload": ["school_id", "admin_email", "school_name"],
+    },
+    "tenant.reactivation.120d": {
+        "description": "Reactivation cadence: 120 days inactive (final).",
+        "payload": ["school_id", "admin_email", "school_name"],
+    },
+    "workflow.run.failed": {
+        "description": "WorkflowRun terminated with status=failed and email_on_failure was set.",
+        "payload": ["run_id", "workflow_key", "workflow_label", "error_type", "error_message", "tenant_schema"],
+    },
+    "workflow.run.stuck": {
+        "description": "WorkflowRun heartbeat exceeded expected duration; flagged stuck.",
+        "payload": ["run_id", "workflow_key", "workflow_label", "tenant_schema", "current_step_name"],
+    },
+    "newsletter.subscription.verify": {
+        "description": "Newsletter signup double-opt-in verification email.",
+        "payload": ["to", "verification_url"],
+    },
+    "newsletter.subscription.confirmed": {
+        "description": "Newsletter subscription confirmed.",
+        "payload": ["to", "unsubscribe_url"],
+    },
 }
 
 

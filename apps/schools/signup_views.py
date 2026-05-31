@@ -731,6 +731,28 @@ def signup_school(request: HttpRequest):
     base_domain = (getattr(settings, "MULTI_TENANT_BASE_DOMAIN", "") or "").strip().lower()
     if base_domain:
         workspace_url = f"https://{subdomain}.{base_domain}"
+    # v4.00.98 Phase 5 — publish tenant.signup.created so the email matrix
+    # fans out an operator alert + a tenant verification mail. Best-effort —
+    # the signup view must never fail because the bus is slow.
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+
+        publish_event(
+            "tenant.signup.created",
+            {
+                "school_id": str(getattr(school, "pk", "")),
+                "school_name": name,
+                "country_code": country_code,
+                "subdomain": subdomain,
+                "admin_email": email,
+            },
+            school_id=str(getattr(school, "pk", "")),
+            strict_catalog=True,
+            source="schools.signup_school",
+        )
+    except Exception:
+        logger.warning("signup_school_publish_event_failed", exc_info=True)
+
     return render(
         request,
         "schools/signup_school_done.html",
@@ -1185,6 +1207,30 @@ def verify_signup(request: HttpRequest):
         record_marketing_funnel_event("activation", request, school=school)
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
+
+    # v4.00.98 Phase 5 — fan out tenant.signup.completed through the matrix.
+    # Sends the welcome email to the tenant admin. Best-effort.
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+        from django.conf import settings as _dj_settings
+
+        portal_url = (
+            f"https://manager.{getattr(_dj_settings, 'MULTI_TENANT_BASE_DOMAIN', 'runmycampus.com')}/"
+        )
+        publish_event(
+            "tenant.signup.completed",
+            {
+                "school_id": str(school.pk),
+                "school_name": getattr(school, "name", ""),
+                "admin_email": verification.email,
+                "portal_url": portal_url,
+            },
+            school_id=str(school.pk),
+            strict_catalog=True,
+            source="schools.verify_signup",
+        )
+    except Exception:
+        logger.warning("verify_signup_publish_event_failed", exc_info=True)
 
     # v3.58.x Wave 9 Agent K — route provisioning through the canonical
     # ``dispatch_provision_school`` so it queues via Celery when the

@@ -7,7 +7,9 @@ import logging
 import re
 
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
+# v4.00.98 Phase 7 — migrated to the reliability-layer compat wrapper.
+# Same signature; failures now audited + retried via EmailDeliveryEvent.
+from apps.schoolops.email_compat import send_mail
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,

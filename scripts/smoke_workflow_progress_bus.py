@@ -248,7 +248,12 @@ expect("T9.6 schools api_create_school wrapped", getattr(provisioning.api_create
 
 # ── T10 ──────────────────────────────────────────────────────────────────
 sw_text = open("static/js/service-worker.js", encoding="utf-8").read()
-expect("T10.1 SW cache version bumped to v4.00.97", 'sms-v4.00.97-workflow-progress-bus' in sw_text)
+# Accept v4.00.97 (workflow bus wave) OR any later v4.00.NN bump that
+# may have shipped on a subsequent wave — only regression to a lower
+# version fails this check.
+import re as _re
+_match = _re.search(r"sms-v4\.00\.(\d+)-", sw_text)
+expect("T10.1 SW cache version >= v4.00.97", bool(_match) and int(_match.group(1)) >= 97)
 
 
 # ── Report ────────────────────────────────────────────────────────────────

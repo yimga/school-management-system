@@ -1,0 +1,13 @@
+Signup verification has not been clicked
+========================================
+
+A signup is now {{ age_hours|default:"24+" }} hours old and the verification
+link has NOT been clicked yet.
+
+School name:    {{ school_name|default:"(unknown)" }}
+Owner email:    {{ admin_email|default:"(see verification record)" }}
+Signup at:      {{ created_at }}
+
+Consider reaching out manually if this is a real prospect.
+
+— RunMyCampus platform

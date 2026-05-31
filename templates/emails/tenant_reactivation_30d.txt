@@ -1,0 +1,17 @@
+We miss you at RunMyCampus
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+We haven't seen anyone from {{ school_name|default:"your school" }} sign in
+for a few weeks. Is everything OK?
+
+Common reasons we hear:
+  * "We're between terms — we'll be back soon"
+  * "We're using the offline workflow"
+  * "We need help with X" — reply to this email, we'll get on it
+
+Come back: {{ portal_url|default:"https://manager.runmycampus.com/" }}
+
+To stop these gentle reminders: {{ unsubscribe_url|default:"(URL not captured)" }}
+
+— The RunMyCampus team

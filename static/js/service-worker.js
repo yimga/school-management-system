@@ -178,7 +178,7 @@
 // forecast cockpit tile, timetable solver UI hook + view, adaptive signal on
 // Evaluation post-save, CA-mark input UI + migration 0050, monetization
 // admin inspector. theme-experience-premium
-const CACHE_VERSION = "sms-v4.00.97-workflow-progress-bus-platform-wide-2026-05-30";
+const CACHE_VERSION = "sms-v4.01.00-platform-email-infrastructure-7-phase-2026-05-30";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -768,7 +768,8 @@ async function fetchFreshCsrfToken(origin) {
   /** Offline foundational: pull a fresh X-CSRFToken before replaying.
    *  The csrftoken cookie may have rotated while POSTs were queued. */
   try {
-    const res = await fetch(origin + "/api/csrf-token/", {
+    const csrfPath = (OFFLINE_CONFIG && OFFLINE_CONFIG.csrfTokenUrl) || "/api/csrf-token/";
+    const res = await fetch(origin + csrfPath, {
       method: "GET",
       credentials: "include",
       headers: { "Accept": "application/json" },

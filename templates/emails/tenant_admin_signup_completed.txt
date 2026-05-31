@@ -1,0 +1,15 @@
+Welcome to RunMyCampus, {{ school_name|default:"your school" }}!
+
+Your school is now provisioned and ready to go.
+
+Sign in at: {{ portal_url|default:"https://manager.runmycampus.com/" }}
+
+A few things to do first:
+  * Invite your staff
+  * Customize your school brand (logo, colors)
+  * Connect your SIS via the Integrations marketplace
+  * Configure billing + payment processor
+
+If you need help, reply to this email and our team will get back to you.
+
+— The RunMyCampus team

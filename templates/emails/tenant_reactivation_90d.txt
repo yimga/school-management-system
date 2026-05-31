@@ -1,0 +1,23 @@
+Coming back to RunMyCampus? Here's what's new.
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+It's been three months since {{ school_name|default:"your school" }} last
+signed in. Since then, we shipped:
+
+  * Real-time workflow progress (every backend operation now reports
+    live status + suggested fixes if it gets stuck)
+  * OneRoster v1.2 + OAuth2 spec completeness
+  * 13-provider LMS integrations marketplace (Canvas, Schoology, D2L,
+    Blackboard, PowerSchool, Sakai, Itslearning, MS Teams Edu, Clever,
+    ClassLink, and 3 more)
+  * Multi-IdP SAML 2.0 single sign-on with replay defense
+
+Want a 15-minute tour of what's new? Reply to this email and we'll
+schedule it.
+
+Or come back any time: {{ portal_url|default:"https://manager.runmycampus.com/" }}
+
+To stop these reminders: {{ unsubscribe_url|default:"(URL not captured)" }}
+
+— The RunMyCampus team

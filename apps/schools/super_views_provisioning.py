@@ -50,6 +50,7 @@ from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
     "tenant_school_create",
     steps=("validate", "create_row", "enqueue_provision"),
     expected_duration_seconds=45,
+    email_on_failure=True,
 )
 def api_create_school(request):
     """

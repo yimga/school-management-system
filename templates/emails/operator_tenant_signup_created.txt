@@ -1,0 +1,14 @@
+New school signup on RunMyCampus
+================================
+
+A new school has signed up.
+
+School name:    {{ school_name|default:"(unknown)" }}
+Country:        {{ country_code|default:"(unspecified)" }}
+Subdomain:      {{ subdomain|default:"(pending)" }}
+Owner email:    {{ admin_email|default:"(see verification record)" }}
+Created at:     {{ generated_at }}
+
+Inspect the tenant: {{ tenant_360_url|default:"(no URL captured)" }}
+
+— RunMyCampus platform

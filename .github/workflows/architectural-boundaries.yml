@@ -562,6 +562,53 @@ jobs:
         run: |
           python scripts/smoke_workflow_progress_bus.py
 
+  email-infrastructure:
+    name: "Email infrastructure 7-phase gate (v4.00.98)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: beta/school-management-system
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Phase 1 — reliability layer
+        run: python scripts/smoke_email_infrastructure_phase1.py
+      - name: Phase 2 — Platform Email Matrix SOT
+        run: python scripts/smoke_email_infrastructure_phase2.py
+      - name: Phase 3 — Newsletter double-opt-in
+        run: python scripts/smoke_email_infrastructure_phase3.py
+      - name: Phase 4 — Tenant reactivation engine
+        run: python scripts/smoke_email_infrastructure_phase4.py
+      - name: Phase 5 — Platform-event wiring
+        run: python scripts/smoke_email_infrastructure_phase5.py
+      - name: Phase 6 — Workflow bus email integration
+        run: python scripts/smoke_email_infrastructure_phase6.py
+      - name: Phase 7 — Legacy send_mail compat + scanner
+        run: python scripts/smoke_email_infrastructure_phase7.py
+
+  legacy-send-mail-scan:
+    name: "Legacy send_mail scan (v4.00.98 Phase 7)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    defaults:
+      run:
+        working-directory: beta/school-management-system
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run legacy send_mail scanner (--strict, baseline 37)
+        run: python scripts/scan_legacy_send_mail.py --strict --json
+
   ai-engine-room:
     name: "AI engine room completeness (tiers 1-5)"
     runs-on: ubuntu-latest

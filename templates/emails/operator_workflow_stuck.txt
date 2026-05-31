@@ -1,0 +1,19 @@
+Workflow run STUCK
+==================
+
+A platform workflow run has not heartbeat past its expected duration.
+
+Workflow:       {{ workflow_label|default:workflow_key }}
+Run ID:         {{ run_id|default:"(unknown)" }}
+Tenant:         {{ tenant_schema|default:"(operator)" }}
+Current step:   {{ current_step_name|default:"(unknown)" }} ({{ current_step_ordinal|default:0 }} / {{ total_steps|default:0 }})
+Started at:     {{ started_at|default:"(unknown)" }}
+Last heartbeat: {{ last_heartbeat_at|default:"(unknown)" }}
+Expected duration: {{ expected_duration_seconds|default:0 }}s
+
+If this is a real stall, click into the run detail and either Apply the
+suggested remediation or cancel the run.
+
+Inspect the run: {{ run_detail_url|default:"(URL not captured)" }}
+
+— RunMyCampus Workflow Progress Bus

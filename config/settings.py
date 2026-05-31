@@ -462,6 +462,7 @@ TEMPLATES = [
                 "apps.lifecycle.context_processors.lifecycle_readiness",  # 360 unified score + concierge gate (Wave L3)
                 "apps.feedback.context_processors.support_links",  # Host-aware help / feature / contact URLs
                 "apps.siteconfig.context_processors.ai_copilot_settings",  # AI Copilot API key
+                "apps.siteconfig.context_processors.platform_surface_settings",  # Platform URL cascade
                 "apps.policies.context_processors.tenant_policy_context",  # tenant_ctx + global_env (Policy Registry)
                 "apps.platform_runtime.context_processors.click_tracking_context",
                 "apps.platform_runtime.context_processors.rum_ingest_context",
@@ -1484,6 +1485,39 @@ CELERY_BEAT_SCHEDULE = {
         "task": "wal_stream.drain_fanout",
         "schedule": 30.0,
         "options": {"expires": 60},
+    },
+    # v4.00.98 Phase 4 — daily tenant reactivation sweep at 09:00 UTC.
+    # Walks the 4-cadence ladder (30/60/90/120 days inactive) and emails
+    # eligible tenant admins. Idempotent via TenantReactivationAttempt
+    # unique (school_id, cadence) constraint. Safe to also run from cron
+    # via `manage.py run_tenant_reactivation_sweep --apply`.
+    "platform-runtime-tenant-reactivation-sweep": {
+        "task": "platform_runtime.tenant_reactivation_sweep",
+        "schedule": (
+            _celery_crontab(hour=9, minute=0)
+            if _celery_crontab is not None else 86400.0
+        ),
+        "options": {"expires": 3600},
+    },
+    # v4.00.98 Phase 5 — hourly sweep for signups whose verification email
+    # has been unclicked >24h. Publishes tenant.signup.verification_stale
+    # which the email matrix routes to the operator inbox (cooldown 24h
+    # per tenant so operators get at most one ping per signup).
+    "platform-runtime-signup-verification-stale": {
+        "task": "platform_runtime.signup_verification_stale_sweep",
+        "schedule": (
+            _celery_crontab(minute=15)
+            if _celery_crontab is not None else 3600.0
+        ),
+        "options": {"expires": 600},
+    },
+    # v4.00.98 Phase 6 — every 5 minutes, scan WorkflowRun rows where
+    # last_heartbeat_at exceeded expected_duration × 1.5 and publish
+    # workflow.run.stuck. Matrix cooldown blocks duplicate alerts.
+    "platform-runtime-workflow-stuck-sweep": {
+        "task": "platform_runtime.workflow_stuck_alert_sweep",
+        "schedule": 300.0,
+        "options": {"expires": 240},
     },
     # Unified Wizard Framework — refresh SetupProgress.recommendations for every active school.
     # Runs Mondays 04:00 UTC. Handler is apps.setup_studio.wizard_ai.refresh_setup_recommendations,

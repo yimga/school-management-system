@@ -1,0 +1,11 @@
+Your RunMyCampus subscription is expiring
+
+Hi{% if admin_name %} {{ admin_name }}{% endif %},
+
+Your subscription for {{ school_name|default:"your school" }} expires in
+{{ days_until|default:"a few" }} day(s). Renew now to keep your school's
+data and integrations active without interruption.
+
+Renew here: {{ renewal_url|default:"(URL not captured)" }}
+
+— The RunMyCampus team

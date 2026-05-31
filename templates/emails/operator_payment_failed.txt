@@ -1,0 +1,13 @@
+Payment failed on RunMyCampus
+=============================
+
+A tenant's payment attempt has failed.
+
+School:         {{ school_name|default:"(unknown)" }}
+Failure code:   {{ failure_code|default:"(unspecified)" }}
+Amount:         {{ amount|default:"(unspecified)" }}
+Attempted at:   {{ generated_at }}
+
+Open the billing dashboard to triage.
+
+— RunMyCampus platform

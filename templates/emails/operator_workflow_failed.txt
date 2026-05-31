@@ -1,0 +1,19 @@
+Workflow run failed
+===================
+
+A platform workflow run terminated in FAILED state.
+
+Workflow:       {{ workflow_label|default:workflow_key }}
+Run ID:         {{ run_id|default:"(unknown)" }}
+Tenant:         {{ tenant_schema|default:"(operator)" }}
+Error type:     {{ error_type|default:"(none captured)" }}
+Error message:  {{ error_message|default:"(none captured)" }}
+Started at:     {{ started_at|default:"(unknown)" }}
+Ended at:       {{ generated_at }}
+
+Suggested remediation:
+{{ suggested_remediation_text|default:"(none — open the run detail to inspect)" }}
+
+Inspect the run: {{ run_detail_url|default:"(URL not captured)" }}
+
+— RunMyCampus Workflow Progress Bus

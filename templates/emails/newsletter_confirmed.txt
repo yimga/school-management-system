@@ -1,0 +1,9 @@
+Welcome to the RunMyCampus newsletter
+
+You're in. We'll send you the occasional update — new features, school-
+ops insights, conference invites. No spam.
+
+You can unsubscribe any time:
+  {{ unsubscribe_url|default:"(URL not captured)" }}
+
+— The RunMyCampus team

@@ -16,6 +16,11 @@ from apps.platform_runtime.views_workflow_progress import (
     run_detail_view as workflow_progress_run_detail_view,
     stream_view as workflow_progress_stream_view,
 )
+from apps.platform_runtime.views_newsletter import (
+    newsletter_confirm_view,
+    newsletter_subscribe_view,
+    newsletter_unsubscribe_view,
+)
 
 urlpatterns = [
     path(
@@ -78,5 +83,21 @@ urlpatterns = [
         "workflow-progress/apply-fix/<int:run_id>/",
         workflow_progress_apply_fix_view,
         name="workflow_progress_apply_fix",
+    ),
+    # Newsletter subscription (v4.00.98 Phase 3).
+    path(
+        "newsletter/subscribe/",
+        newsletter_subscribe_view,
+        name="newsletter_subscribe",
+    ),
+    path(
+        "newsletter/confirm/<str:token>/",
+        newsletter_confirm_view,
+        name="newsletter_confirm",
+    ),
+    path(
+        "newsletter/unsubscribe/<str:token>/",
+        newsletter_unsubscribe_view,
+        name="newsletter_unsubscribe",
     ),
 ]
