@@ -40,13 +40,26 @@ def newsletter_subscribe_view(request):
 
     from apps.platform_runtime.newsletter_service import request_subscription
 
-    if request.content_type and request.content_type.startswith("application/json"):
+    is_json = bool(
+        request.content_type and request.content_type.startswith("application/json")
+    )
+    wants_json = is_json or "application/json" in request.META.get("HTTP_ACCEPT", "")
+
+    if is_json:
         try:
             body = json.loads(request.body.decode("utf-8") or "{}")
         except Exception:
             return JsonResponse({"ok": False, "reason": "invalid_json"}, status=400)
     else:
         body = {k: v for k, v in request.POST.items()}
+
+    if str(body.get("website_url") or "").strip():
+        result = {"ok": True, "reason": "ignored"}
+        return (
+            JsonResponse(result, status=200)
+            if wants_json
+            else _render_subscribe_html(ok=True, reason="ignored")
+        )
 
     email = str(body.get("email") or "").strip()
     source = str(body.get("source") or "marketing_signup")[:64]
@@ -62,7 +75,39 @@ def newsletter_subscribe_view(request):
         utm_medium=utm_medium,
         utm_campaign=utm_campaign,
     )
-    return JsonResponse(result, status=200 if result.get("ok") else 400)
+    if wants_json:
+        return JsonResponse(result, status=200 if result.get("ok") else 400)
+    return _render_subscribe_html(
+        ok=bool(result.get("ok")),
+        reason=str(result.get("reason") or ""),
+        email=email,
+    )
+
+
+def _render_subscribe_html(*, ok: bool, reason: str = "", email: str = "") -> HttpResponse:
+    """Render a small HTML page for non-JS form posts."""
+
+    from django.utils.html import escape
+
+    if ok:
+        body = (
+            "<!doctype html><html><head><meta charset=\"utf-8\">"
+            "<title>Check your email</title></head>"
+            "<body style=\"font-family:system-ui,sans-serif;max-width:520px;margin:48px auto;padding:24px\">"
+            "<h1 style=\"margin:0 0 .5rem\">Check your email</h1>"
+            f"<p>We sent a confirmation link to <strong>{escape(email)}</strong>. "
+            "Click it to finish subscribing.</p>"
+            "<p style=\"color:#777;font-size:14px;margin-top:24px\">— The RunMyCampus team</p>"
+            "</body></html>"
+        )
+        return HttpResponse(body, content_type="text/html")
+    return HttpResponse(
+        "<!doctype html><html><body style=\"font-family:system-ui;max-width:520px;margin:48px auto;padding:24px\">"
+        f"<h1>Couldn't subscribe</h1><p>Reason: {escape(reason or 'unknown')}</p>"
+        "<p>Please return to the signup form and try again.</p></body></html>",
+        content_type="text/html",
+        status=400,
+    )
 
 
 @require_GET
