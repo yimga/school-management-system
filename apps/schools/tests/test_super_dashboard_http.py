@@ -4,10 +4,11 @@ import os
 from unittest.mock import patch
 
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.schools.tests.manager_client import bind_manager_session
 from apps.platform_runtime.models import PlatformOperatorSuperDashboardLink
 
 
@@ -48,6 +49,12 @@ class SuperDashboardHttpTests(TestCase):
 
     def tearDown(self):
         self.env.stop()
+
+    def test_dashboard_post_redirects_to_get_without_full_render(self):
+        url = reverse("super:dashboard") + "?month=2026-05"
+        response = self.client.post(url, HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("month=2026-05", response["Location"])
 
     def test_dashboard_phase_h_skip_link_targets_main(self):
         url = reverse("super:dashboard")

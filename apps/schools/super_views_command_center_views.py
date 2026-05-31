@@ -5,6 +5,7 @@ Mission control / command center HTML views (BR-12 split from super_views).
 from __future__ import annotations
 
 from django.db.models import Count
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -12,8 +13,10 @@ from apps.platform_runtime.models import PlatformOperatorCommandCenterLink
 from apps.siteconfig.models_feature_controls import GlobalSupportTicket
 
 from .models import School
-from .super_views_command_center_data import build_command_center_data
-from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
+from .super_dashboard_cache import (
+    get_cached_command_center_data,
+    get_cached_platform_health,
+)
 from .super_views_helpers import safe_platform_incidents_url
 from apps.platform_runtime.operator_identity import (
     PLATFORM_SCOPE_TENANT_READ,
@@ -26,7 +29,9 @@ def super_command_center(request):
     """
     Phase 3 mission-control surface combining approvals, billing, support, and risk posture.
     """
-    command_center = build_command_center_data()
+    if request.method == "POST":
+        return HttpResponseRedirect(request.get_full_path() or reverse("super:command_center"))
+    command_center = get_cached_command_center_data()
     pending_schools = list(
         School.objects.filter(is_approved=False)
         .order_by("-created_at")
@@ -74,12 +79,15 @@ def super_command_center(request):
 @require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_command_center_v2(request):
     """Operational queue drill-down for the manager control plane."""
+    if request.method == "POST":
+        return HttpResponseRedirect(
+            request.get_full_path() or reverse("super:command_center")
+        )
     from apps.billing.models import TenantSubscription
     from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
     from apps.observability.models import PlatformIncident
-    from apps.observability.monitoring import SystemHealthMonitor
 
-    command_center = build_command_center_data()
+    command_center = get_cached_command_center_data()
     pending_schools = list(
         School.objects.filter(is_approved=False)
         .order_by("-created_at")
@@ -119,14 +127,7 @@ def super_command_center_v2(request):
         .order_by("-updated_at", "school__name")[:20]
     )
     webhook_stack = legacy_webhook_sync_snapshot()
-    try:
-        platform_health = SystemHealthMonitor.get_comprehensive_health()
-    except CONTROL_PLANE_METRIC_FAILURES:
-        platform_health = {
-            "overall_status": "warning",
-            "database": {"status": "unhealthy"},
-            "cache": {"status": "unhealthy"},
-        }
+    platform_health = get_cached_platform_health()
 
     school_map = {
         school.id: school

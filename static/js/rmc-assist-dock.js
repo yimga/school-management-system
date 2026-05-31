@@ -377,6 +377,11 @@
 
   var CONTEXT_URL = dockUrl("context", "/assist-dock/context.json");
   var POLL_INTERVAL_MS = 60000; // 60s default; respects visibility state
+  var OUTAGE_BACKOFF_MS = 30000;
+
+  function isPlatformOutageStatus(status) {
+    return !status || (status >= 502 && status <= 504);
+  }
   var HALO_HISTORY_KEY = "rmc_dock_clicks_v1";
   var HALO_HISTORY_TTL_DAYS = 30;
   var HALO_MIN_CLICKS_TO_PROMOTE = 3;
@@ -558,7 +563,10 @@
             stopAuthRealtime();
             return null;
           }
+          if (isPlatformOutageStatus(r.status)) return null;
           if (!r.ok) return null;
+          var ct = (r.headers.get("content-type") || "").toLowerCase();
+          if (ct && ct.indexOf("json") === -1) return null;
           return r.json();
         })
         .then(function (payload) {
@@ -917,6 +925,14 @@
             stopAuthRealtime();
             return;
           }
+          if (isPlatformOutageStatus(r.status)) {
+            try { _sseSource.close(); } catch (_e) {}
+            _sseSource = null;
+            window.setTimeout(function () {
+              if (!_authRealtimeStopped) startSSE();
+            }, OUTAGE_BACKOFF_MS);
+            return;
+          }
           if (_sseErrorCount >= 2) {
             try { _sseSource.close(); } catch (_e) {}
             _sseSource = null;
@@ -925,12 +941,11 @@
           }
         })
         .catch(function () {
-          if (_sseErrorCount >= 2) {
-            try { _sseSource.close(); } catch (_e) {}
-            _sseSource = null;
-            _sseFallbackEngaged = true;
-            startPolling();
-          }
+          try { _sseSource.close(); } catch (_e) {}
+          _sseSource = null;
+          window.setTimeout(function () {
+            if (!_authRealtimeStopped) startSSE();
+          }, OUTAGE_BACKOFF_MS);
         });
     };
     return true;

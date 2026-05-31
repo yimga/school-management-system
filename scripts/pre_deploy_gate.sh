@@ -291,6 +291,9 @@ MULTI_TENANT_TESTS=(
 )
 run_django_tests "${MULTI_TENANT_TESTS[@]}"
 
+echo "[pre_deploy_gate] Render production hot-path audit"
+python scripts/audit_render_production_hotpaths.py
+
 echo "[pre_deploy_gate] Render startup command sanity"
 if ! grep -q "render_start_web.sh" render.yaml; then
   echo "render.yaml must reference scripts/release/render_start_web.sh" >&2

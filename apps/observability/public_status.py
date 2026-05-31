@@ -237,5 +237,7 @@ def public_health(request):
             # Deploy marker: must be render_start_web when using render_start_web.sh.
             "web_start": os.environ.get("RMC_WEB_START_SCRIPT", ""),
             "gunicorn_timeout": os.environ.get("GUNICORN_TIMEOUT", ""),
+            "gunicorn_worker_class": os.environ.get("GUNICORN_WORKER_CLASS", ""),
+            "web_concurrency": os.environ.get("WEB_CONCURRENCY", ""),
         }
     )

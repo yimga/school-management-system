@@ -5,9 +5,11 @@ Super dashboard v1/v2 and layout API (BR-12 split from super_views).
 from __future__ import annotations
 
 import json
+import time
+from pathlib import Path
 
 from django.db.models import Count, Sum
-from django.http import JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, reverse
 
@@ -16,15 +18,15 @@ from apps.platform_runtime.operator_identity import (
     PLATFORM_SCOPE_TENANT_READ,
     require_platform_scope,
 )
-from apps.registries.models import (
-    CountryRegistry,
-    EducationLevelRegistry,
-    EducationSystemTypeRegistry,
-    SubdivisionRegistry,
-)
 from .decision_architecture import get_decision_architecture_for_page
 from .models import School
-from .super_views_command_center_data import build_command_center_data as _build_command_center_data
+from .super_dashboard_cache import (
+    get_cached_command_center_data,
+    get_cached_fleet_registry_metrics,
+    get_cached_health_table_metadata,
+    get_cached_platform_health,
+    get_cached_registry_counts,
+)
 from .super_views_constants import CONTROL_PLANE_METRIC_FAILURES
 from .super_views_dashboard_helpers import (
     get_super_dashboard_section_order,
@@ -43,12 +45,44 @@ from .super_views_helpers import (
 from .super_dashboard_registry import (
     REGISTRY_PAGE_SIZE_OPTIONS,
     build_registry_queryset,
-    compute_fleet_registry_metrics,
     enrich_school_for_registry,
     load_brand_profile_ids,
     load_country_names,
     paginate_registry,
 )
+
+_DEBUG_LOG_PATH = Path(__file__).resolve().parents[2] / "debug-0f968b.log"
+
+
+def _agent_debug_log(
+    hypothesis_id: str, location: str, message: str, data: dict | None = None
+) -> None:
+    import os
+
+    if os.environ.get("RMC_AGENT_DEBUG", "").strip().lower() not in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    ):
+        return
+    # region agent log
+    try:
+        import json as _json
+
+        payload = {
+            "sessionId": "0f968b",
+            "hypothesisId": hypothesis_id,
+            "location": location,
+            "message": message,
+            "data": data or {},
+            "timestamp": int(time.time() * 1000),
+        }
+        with _DEBUG_LOG_PATH.open("a", encoding="utf-8") as fh:
+            fh.write(_json.dumps(payload, default=str) + "\n")
+    except OSError:
+        pass
+    # endregion
 
 
 def _optional_reverse_for_request(request, name: str) -> str:
@@ -94,10 +128,21 @@ def api_super_dashboard_layout(request):
 @require_platform_scope(PLATFORM_SCOPE_TENANT_READ)
 def super_dashboard_v2(request):
     """Mission-control control plane for the manager host."""
+    t0 = time.perf_counter()
+    if request.method == "POST":
+        # Stray POST (browser resubmit) must not rebuild ~600KB HTML on a sync/gthread worker.
+        _agent_debug_log(
+            "H-POST",
+            "super_views_dashboard_surfaces.super_dashboard_v2",
+            "post_redirect_prg",
+            {"path": request.path, "query": request.META.get("QUERY_STRING", "")},
+        )
+        target = request.get_full_path() or reverse("super:dashboard")
+        return HttpResponseRedirect(target)
+
     from apps.billing.models import BillingAccount, TenantSubscription
     from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
     from apps.observability.models import PlatformIncident
-    from apps.observability.monitoring import SystemHealthMonitor
     from apps.siteconfig.models import RevenueSnapshot
 
     first_of_month = parse_month_param(request)
@@ -154,17 +199,9 @@ def super_dashboard_v2(request):
         )
     pending_approval_count = School.objects.filter(is_approved=False).count()
 
-    health_top_tables = []
-    health_schema_stats = []
-    try:
-        from .health_utils import get_top_tables_by_size, get_global_health_stats
+    health_top_tables, health_schema_stats = get_cached_health_table_metadata()
 
-        health_top_tables = get_top_tables_by_size(limit=10)
-        health_schema_stats = get_global_health_stats()
-    except CONTROL_PLANE_METRIC_FAILURES:
-        pass
-
-    command_center = _build_command_center_data()
+    command_center = get_cached_command_center_data()
     platform_incidents = list(
         PlatformIncident.objects.select_related("affected_school")
         .filter(
@@ -211,38 +248,9 @@ def super_dashboard_v2(request):
     ).count()
     billing_account_count = BillingAccount.objects.count()
     webhook_stack = legacy_webhook_sync_snapshot()
-    try:
-        platform_health = SystemHealthMonitor.get_comprehensive_health()
-    except CONTROL_PLANE_METRIC_FAILURES:
-        platform_health = {
-            "overall_status": "warning",
-            "cpu": {"usage_percent": 0.0, "threshold": 80.0, "status": "warning"},
-            "memory": {
-                "usage_percent": 0.0,
-                "used_mb": 0.0,
-                "threshold": 85.0,
-                "status": "warning",
-            },
-            "disk": {
-                "usage_percent": 0.0,
-                "free_gb": 0.0,
-                "threshold": 90.0,
-                "status": "warning",
-            },
-            "database": {"status": "unhealthy", "response_time_ms": 0.0},
-            "cache": {"status": "unhealthy", "type": "unknown"},
-        }
+    platform_health = get_cached_platform_health()
 
-    registry_counts = {
-        "countries": CountryRegistry.objects.filter(is_active=True).count(),
-        "subdivisions": SubdivisionRegistry.objects.filter(is_active=True).count(),
-        "education_levels": EducationLevelRegistry.objects.filter(
-            is_active=True
-        ).count(),
-        "education_system_types": EducationSystemTypeRegistry.objects.filter(
-            is_active=True
-        ).count(),
-    }
+    registry_counts = get_cached_registry_counts()
     churn_risk_lookup = {
         str(row["school"].id): row
         for row in command_center.get("tenant_churn_risk_rows", [])
@@ -258,7 +266,7 @@ def super_dashboard_v2(request):
         for incident in platform_incidents
         if getattr(incident, "affected_school_id", None)
     }
-    fleet_metrics = compute_fleet_registry_metrics(
+    fleet_metrics = get_cached_fleet_registry_metrics(
         incident_school_ids=incident_school_ids,
         churn_risk_school_ids=churn_risk_school_ids,
     )
@@ -592,7 +600,7 @@ def super_dashboard_v2(request):
     from apps.schools.residency_readiness import assess_readiness
 
     data_residency_readiness = assess_readiness()
-    return render(
+    response = render(
         request,
         "schools/super_dashboard.html",
         {
@@ -659,3 +667,14 @@ def super_dashboard_v2(request):
             "data_residency_readiness": data_residency_readiness,
         },
     )
+    _agent_debug_log(
+        "H-LOAD",
+        "super_views_dashboard_surfaces.super_dashboard_v2",
+        "dashboard_render_complete",
+        {
+            "method": request.method,
+            "elapsed_ms": int((time.perf_counter() - t0) * 1000),
+            "registry_total_count": registry_page.paginator.count,
+        },
+    )
+    return response

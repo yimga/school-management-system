@@ -41,9 +41,8 @@ from django.views import View
 logger = logging.getLogger(__name__)
 
 
-# v3.58.x Wave 9 Agent M — SSE stream caps.
+# v3.58.x Wave 9 Agent M — SSE stream caps (WSGI thread must release before health probe).
 _DEFAULT_SSE_HEARTBEAT_SECONDS = 5
-_DEFAULT_SSE_MAX_DURATION_SECONDS = 300  # 5 minutes; operator can re-open
 
 
 # Keys we strip out of the resolved-config dict before rendering. The
@@ -274,7 +273,7 @@ class EmailHealthStreamView(View):
 
     GET ``/super/email/health/stream/`` — returns ``text/event-stream``.
     Each event is a single JSON object on a ``data:`` line. Stream
-    self-closes after 5 minutes (operator can re-open via the
+    self-closes before the WSGI worker timeout (operator can re-open via the
     ``EventSource`` auto-reconnect).
 
     HEARTBEAT cadence configurable via
@@ -290,8 +289,13 @@ class EmailHealthStreamView(View):
     http_method_names = ["get"]
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        from services.sse_wsgi_limits import wsgi_sse_max_duration_seconds
+
         heartbeat = _resolve_sse_heartbeat_seconds()
-        max_duration = _DEFAULT_SSE_MAX_DURATION_SECONDS
+        max_duration = wsgi_sse_max_duration_seconds(
+            env_key="EMAIL_HEALTH_SSE_MAX_SECONDS",
+            default_seconds=25.0,
+        )
 
         try:
             last_event_id = int(request.META.get("HTTP_LAST_EVENT_ID") or 0)

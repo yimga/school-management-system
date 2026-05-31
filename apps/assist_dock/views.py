@@ -26,11 +26,23 @@ from .registry import all_slots, get_slots_for, slots_as_jsonable
 
 logger = logging.getLogger(__name__)
 
-# SSE stream parameters — keep the connection cheap.
-_SSE_TICK_SECONDS = 5            # how often we re-resolve badges
-_SSE_HEARTBEAT_SECONDS = 25      # keep-alive even when nothing changed
-_SSE_MAX_DURATION_SECONDS = 600  # close + let the client reconnect at 10 min
-_SSE_MAX_FRAMES = 240            # absolute fence so a runaway never streams forever
+# SSE stream parameters — keep the connection cheap (must release WSGI threads).
+_SSE_TICK_SECONDS = 5
+_SSE_HEARTBEAT_SECONDS = 25
+
+
+def _sse_max_duration_seconds() -> float:
+    from services.sse_wsgi_limits import wsgi_sse_max_duration_seconds
+
+    return wsgi_sse_max_duration_seconds(
+        env_key="ASSIST_DOCK_SSE_MAX_SECONDS",
+        default_seconds=25.0,
+    )
+
+
+def _sse_max_frames() -> int:
+    duration = _sse_max_duration_seconds()
+    return max(12, int(duration / _SSE_TICK_SECONDS) + 4)
 
 # Cap quick-action count returned per request so a runaway registry never
 # floods the dock chrome.
@@ -151,7 +163,7 @@ def dock_context_stream_view(request):
       * then ``event: badges`` whenever the resolved badge bundle changes
       * sends ``event: heartbeat`` every ``_SSE_HEARTBEAT_SECONDS`` so
         proxies don't kill an idle connection
-      * closes cleanly after ``_SSE_MAX_DURATION_SECONDS`` so the client
+      * closes cleanly before the WSGI worker timeout so the client
         reconnects (EventSource does this automatically)
     """
     surface = _resolve_surface(request)
@@ -196,9 +208,9 @@ def dock_context_stream_view(request):
         frames = 0
         while True:
             now = time.time()
-            if now - started_at > _SSE_MAX_DURATION_SECONDS:
+            if now - started_at > _sse_max_duration_seconds():
                 break
-            if frames > _SSE_MAX_FRAMES:
+            if frames > _sse_max_frames():
                 break
             try:
                 next_badges = resolve_all_badges(

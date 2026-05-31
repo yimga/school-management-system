@@ -303,6 +303,8 @@
   }
 
   function agentDebugLog(hypothesisId, location, message, data) {
+    var host = (window.location && window.location.hostname) || "";
+    if (host !== "localhost" && host !== "127.0.0.1") return;
     // #region agent log
     fetch("http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7", {
       method: "POST",

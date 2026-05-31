@@ -23,6 +23,16 @@ services:
           property: connectionString
       - key: DEBUG
         value: "0"
+      - key: GUNICORN_TIMEOUT
+        value: "120"
+      - key: GUNICORN_WORKER_CLASS
+        value: "gthread"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: GUNICORN_THREADS
+        value: "4"
+      - key: RUN_STARTUP_SCHEMA_CHECK
+        value: "0"
       - key: PYTHON_VERSION
         value: "3.12.3"
       - key: ALLOWED_HOSTS

@@ -211,6 +211,14 @@ expect(
     f"got {_sse_max_duration_seconds()}",
 )
 
+from apps.assist_dock.views import _sse_max_duration_seconds as _assist_sse_max
+
+expect(
+    "T6.7 assist-dock SSE max duration capped for WSGI",
+    _assist_sse_max() <= 60.0,
+    f"got {_assist_sse_max()}",
+)
+
 
 # ── T6b ──────────────────────────────────────────────────────────────────
 from django.contrib.auth.models import AnonymousUser

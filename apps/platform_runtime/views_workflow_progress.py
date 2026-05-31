@@ -36,6 +36,13 @@ _DEBUG_LOG_PATH = Path(__file__).resolve().parents[2] / "debug-0f968b.log"
 
 
 def _agent_debug_log(hypothesis_id: str, location: str, message: str, data: dict | None = None) -> None:
+    if os.environ.get("RMC_AGENT_DEBUG", "").strip().lower() not in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    ):
+        return
     # #region agent log
     try:
         payload = {
@@ -64,20 +71,12 @@ _SSE_RETRY_MILLISECONDS = 2000
 def _sse_max_duration_seconds() -> float:
     """Seconds to hold one SSE connection before a graceful ``bye`` frame."""
 
-    raw = (os.environ.get("WORKFLOW_PROGRESS_SSE_MAX_SECONDS") or "").strip()
-    if raw:
-        try:
-            return max(5.0, min(float(raw), 600.0))
-        except ValueError:
-            pass
-    gunicorn_raw = (os.environ.get("GUNICORN_TIMEOUT") or "").strip()
-    if gunicorn_raw:
-        try:
-            worker_timeout = float(gunicorn_raw)
-            return max(5.0, min(worker_timeout - 5.0, 60.0))
-        except ValueError:
-            pass
-    return 25.0
+    from services.sse_wsgi_limits import wsgi_sse_max_duration_seconds
+
+    return wsgi_sse_max_duration_seconds(
+        env_key="WORKFLOW_PROGRESS_SSE_MAX_SECONDS",
+        default_seconds=25.0,
+    )
 
 
 def _resolve_scope(request) -> tuple[str, str]:

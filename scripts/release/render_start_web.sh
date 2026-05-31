@@ -26,9 +26,12 @@ fi
 
 # Ensure PORT is set for config (Render sets it; default for local)
 export PORT="${PORT:-10000}"
+export WEB_CONCURRENCY="${WEB_CONCURRENCY:-1}"
+export GUNICORN_THREADS="${GUNICORN_THREADS:-4}"
+export GUNICORN_WORKER_CLASS="${GUNICORN_WORKER_CLASS:-gthread}"
 # Surfaced on /health/ — missing value means Render dashboard overrode startCommand.
 export RMC_WEB_START_SCRIPT="render_start_web"
 export GUNICORN_TIMEOUT="${GUNICORN_TIMEOUT:-120}"
-echo "[web-start] starting ${APP_MODULE} via ${CONFIG_FILE} (bind 0.0.0.0:${PORT}, timeout=${GUNICORN_TIMEOUT})"
+echo "[web-start] starting ${APP_MODULE} via ${CONFIG_FILE} (bind 0.0.0.0:${PORT}, workers=${WEB_CONCURRENCY}, threads=${GUNICORN_THREADS}, class=${GUNICORN_WORKER_CLASS}, timeout=${GUNICORN_TIMEOUT})"
 
 exec "${GUNICORN_BIN}" -c "${CONFIG_FILE}" "${APP_MODULE}"
