@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static icon_compat %}
+{% load i18n static icon_compat %}
 
 {% block page_archetype %}kb-category{% endblock %}
 
@@ -18,8 +18,8 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'accounts:redirect' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'kb:kb_home' %}">Knowledge Base</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'accounts:redirect' %}">{% trans "Home" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'kb:kb_home' %}">{% trans "Knowledge Base" %}</a></li>
             <li class="breadcrumb-item active">{{ category.name }}</li>
         </ol>
     </nav>

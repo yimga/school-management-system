@@ -14,7 +14,9 @@
 (function () {
   "use strict";
 
-  var ENDPOINT = "/api/observability/client-event/";
+  function clientEventUrl() {
+    return (window.RMCPlatformSurface && window.RMCPlatformSurface.url("client_event")) || "";
+  }
   var MAX_QUEUE = 16;
   var queue = [];
   var inflight = false;
@@ -33,7 +35,9 @@
     if (inflight || queue.length === 0) return;
     inflight = true;
     var payload = queue.shift();
-    fetch(ENDPOINT, {
+    var endpoint = clientEventUrl();
+    if (!endpoint) return;
+    fetch(endpoint, {
       method: "POST",
       credentials: "same-origin",
       headers: {

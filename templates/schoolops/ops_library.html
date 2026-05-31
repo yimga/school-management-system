@@ -24,7 +24,11 @@
       <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Author" %}</th><th>{% trans "Copies" %}</th></tr></thead>
       <tbody>
         {% for it in items %}<tr><td>{{ it.title }}</td><td>{{ it.author|default:"—" }}</td><td>{{ it.copies_total }}</td></tr>
-        {% empty %}<tr><td colspan="3">{% trans "No items yet." %}</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="3" class="rmc-empty-state rmc-empty-state--row">
+          <i class="bi bi-book rmc-empty-state__icon" aria-hidden="true"></i>
+          <p class="rmc-empty-state__title">{% trans "No titles in the catalog yet" %}</p>
+          <p class="rmc-empty-state__body">{% trans "Add a title using the form above to start tracking copies in the library." %}</p>
+        </td></tr>{% endfor %}
       </tbody>
     </table>
   </div>

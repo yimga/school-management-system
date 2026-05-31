@@ -293,6 +293,16 @@ def ai_copilot_query(request):
             status=503,
         )
     try:
+        from apps.portal.ai_chrome_config import ai_copilot_query_api_enabled_for_request
+
+        if not ai_copilot_query_api_enabled_for_request(request):
+            return JsonResponse(
+                {"success": False, "error": "AI Copilot API is disabled for this tenant."},
+                status=503,
+            )
+    except (AttributeError, ImportError, TypeError, ValueError):
+        pass
+    try:
         data = json.loads(request.body)
         user_query = data.get("query", "").strip()
 

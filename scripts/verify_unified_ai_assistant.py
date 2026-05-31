@@ -19,6 +19,11 @@ def _ok(path: str, needle: str) -> bool:
 def main() -> int:
     checks = [
         # Phase A
+        ("ai-chrome-config-sot", (ROOT / "apps/portal/ai_chrome_config.py").is_file()),
+        ("ai-chrome-page-data", (ROOT / "templates/partials/rmc_ai_chrome_page_data.html").is_file()),
+        ("ai-chrome-no-hardcoding-verifier", (ROOT / "scripts/verify_ai_chrome_no_hardcoding.py").is_file()),
+        ("platform-config-cascade-verifier", (ROOT / "scripts/verify_platform_config_cascade.py").is_file()),
+        ("platform-surface-config-sot", (ROOT / "apps/siteconfig/platform_surface_config.py").is_file()),
         ("surface-context-module", (ROOT / "apps/portal/ai_surface_context.py").is_file()),
         ("gateway-default-path", _ok("apps/portal/views_ai_gateway.py", "build_ai_surface_context")),
         ("copilot-path-prompt", _ok("apps/portal/views_ai_copilot.py", "current_path=surface.get")),

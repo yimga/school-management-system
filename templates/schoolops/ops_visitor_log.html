@@ -41,7 +41,11 @@
             </div>
           </details></td>
         </tr>
-        {% empty %}<tr><td colspan="4">{% trans "No open visits." %}</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="4" class="rmc-empty-state rmc-empty-state--row">
+          <i class="bi bi-person-check rmc-empty-state__icon" aria-hidden="true"></i>
+          <p class="rmc-empty-state__title">{% trans "No visitors on site" %}</p>
+          <p class="rmc-empty-state__body">{% trans "Check in a visitor using the form above to start tracking arrivals." %}</p>
+        </td></tr>{% endfor %}
       </tbody>
     </table>
   </div>
@@ -57,7 +61,11 @@
           <td>{{ v.checked_in_at|date:"Y-m-d H:i" }}</td>
           <td>{% if v.checked_out_at %}{{ v.checked_out_at|date:"Y-m-d H:i" }}{% else %}<span class="text-warning">{% trans "On site" %}</span>{% endif %}</td>
         </tr>
-        {% empty %}<tr><td colspan="3">{% trans "No visits yet." %}</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="3" class="rmc-empty-state rmc-empty-state--row">
+          <i class="bi bi-clock-history rmc-empty-state__icon" aria-hidden="true"></i>
+          <p class="rmc-empty-state__title">{% trans "No visit history yet" %}</p>
+          <p class="rmc-empty-state__body">{% trans "Past check-ins will appear here once visitors begin signing in." %}</p>
+        </td></tr>{% endfor %}
       </tbody>
     </table>
   </div>

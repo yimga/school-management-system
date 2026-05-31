@@ -15,6 +15,7 @@
 {% endblock %}
 
 {% block cp_content %}
+{# table-pagination-allow: runtime-inspector-field-registry bounded-by-RuntimeDefaults-typed-columns #}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#runtime-inspector-main">{% trans "Skip to runtime inspector content" %}</a>
 <div id="runtime-inspector-main" class="container-fluid py-2" tabindex="-1" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1"{% include "schools/partials/decision_architecture_attrs.html" %} data-rmc-scroll-policy="paginate">
   {% include "components/rmc_operational_center_frame.html" with os_center_key="runtime_inspector" center_eyebrow=_("Platform operators") center_title="Runtime inspector" center_purpose="Inspect effective blueprint, active packs, policies, overrides, and compilation trace for a school." primary_url=dashboard_url primary_label="Back to dashboard" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}

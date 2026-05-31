@@ -12,7 +12,14 @@
   async function updateIncidentStatus(button) {
     const incidentId = button.dataset.incidentId;
     const action = button.dataset.action;
-    const response = await fetch(`/api/observability/incidents/${incidentId}/status/`, {
+    const statusUrl =
+      (window.RMCPlatformSurface &&
+        window.RMCPlatformSurface.templated("observability_incident_status", {
+          incident_id: incidentId,
+        })) ||
+      "";
+    if (!statusUrl) return;
+    const response = await fetch(statusUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

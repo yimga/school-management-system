@@ -72,7 +72,13 @@
                 </div>
               </li>
             {% empty %}
-              <li class="list-group-item text-muted">No term rankings yet.</li>
+              <li class="list-group-item">
+                <div class="rmc-empty-state rmc-empty-state--row">
+                  <i class="bi bi-trophy rmc-empty-state__icon" aria-hidden="true"></i>
+                  <p class="rmc-empty-state__title">{% trans "No term rankings yet" %}</p>
+                  <p class="rmc-empty-state__body">{% trans "Rankings appear once the first term's grades are computed." %}</p>
+                </div>
+              </li>
             {% endfor %}
           </ul>
         </div>
@@ -97,7 +103,11 @@
                     <td class="text-end">{{ row.rate|format_number:2 }}%</td>
                   </tr>
                 {% empty %}
-                  <tr><td colspan="2" class="text-muted">No data yet. Data appears after grades are entered.</td></tr>
+                  <tr><td colspan="2" class="rmc-empty-state rmc-empty-state--row">
+                    <i class="bi bi-bar-chart rmc-empty-state__icon" aria-hidden="true"></i>
+                    <p class="rmc-empty-state__title">{% trans "No specialty pass rates yet" %}</p>
+                    <p class="rmc-empty-state__body">{% trans "Rates appear after the first round of grades is entered." %}</p>
+                  </td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -119,7 +129,13 @@
                 <span class="badge bg-warning text-dark">{{ row.average|format_number:2 }}</span>
               </li>
             {% empty %}
-              <li class="list-group-item text-muted">No weak subjects identified.</li>
+              <li class="list-group-item">
+                <div class="rmc-empty-state rmc-empty-state--row">
+                  <i class="bi bi-check2-circle rmc-empty-state__icon" aria-hidden="true"></i>
+                  <p class="rmc-empty-state__title">{% trans "No weak subjects identified" %}</p>
+                  <p class="rmc-empty-state__body">{% trans "Every subject is above the alert threshold — keep it up." %}</p>
+                </div>
+              </li>
             {% endfor %}
           </ul>
         </div>
@@ -144,7 +160,11 @@
                     <td class="text-end">{{ row.delta|format_number:2 }}</td>
                   </tr>
                 {% empty %}
-                  <tr><td colspan="2" class="text-muted">No improvements tracked.</td></tr>
+                  <tr><td colspan="2" class="rmc-empty-state rmc-empty-state--row">
+                    <i class="bi bi-graph-up rmc-empty-state__icon" aria-hidden="true"></i>
+                    <p class="rmc-empty-state__title">{% trans "No improvements tracked yet" %}</p>
+                    <p class="rmc-empty-state__body">{% trans "Term-over-term deltas appear once at least two terms have been graded." %}</p>
+                  </td></tr>
                 {% endfor %}
               </tbody>
             </table>

@@ -1,9 +1,10 @@
-{% extends "control_plane_skeleton.html" %}
+{% extends "control_plane_base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Impersonate" %}{% endblock %}
+{% block cp_title %}{% trans "Impersonate" %}{% endblock %}
+{% block cp_workspace_header %}{% endblock %}
 
-{% block content %}
+{% block cp_content %}
 <section class="rmc-assist-power" data-rmc-assist-power="impersonate">
   <header class="rmc-assist-power__header">
     <h1 class="h3"><i class="bi bi-person-badge" aria-hidden="true"></i> {% trans "Impersonate" %}</h1>

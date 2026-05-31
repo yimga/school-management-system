@@ -30,7 +30,9 @@
         studentStatus.textContent = 'Previewing…';
         try {
           const csv = document.getElementById('studentCsv')?.value;
-          const res = await fetch('/api/entities/students/bulk-preview/', {
+          const previewUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('entity_students_bulk_preview')) || '';
+          if (!previewUrl) return;
+          const res = await fetch(previewUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -66,7 +68,9 @@
         guardianStatus.textContent = 'Previewing…';
         try {
           const csv = document.getElementById('guardianCsv')?.value;
-          const res = await fetch('/api/entities/guardians/bulk-preview/', {
+          const gPreview = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('entity_guardians_bulk_preview')) || '';
+          if (!gPreview) return;
+          const res = await fetch(gPreview, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -106,7 +110,9 @@
         }
         studentStatus.textContent = 'Committing…';
         try {
-          const res = await fetch('/api/entities/students/bulk-commit/', {
+          const commitUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('entity_students_bulk_commit')) || '';
+          if (!commitUrl) return;
+          const res = await fetch(commitUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -132,7 +138,9 @@
         }
         guardianStatus.textContent = 'Committing…';
         try {
-          const res = await fetch('/api/entities/guardians/bulk-commit/', {
+          const gCommit = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('entity_guardians_bulk_commit')) || '';
+          if (!gCommit) return;
+          const res = await fetch(gCommit, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

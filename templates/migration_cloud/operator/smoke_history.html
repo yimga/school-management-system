@@ -47,7 +47,11 @@
         {% endfor %}
       </div>
     {% else %}
-      <p class="rmc-empty">{% trans "No archived smoke runs yet. The nightly Celery task writes to var/smoke-results/ once enabled." %}</p>
+      <div class="rmc-empty-state" role="status" aria-live="polite">
+        <i class="bi bi-graph-up rmc-empty-state__icon" aria-hidden="true"></i>
+        <p class="rmc-empty-state__title">{% trans "No archived smoke runs yet" %}</p>
+        <p class="rmc-empty-state__body">{% trans "The nightly Celery task writes results to var/smoke-results/ once enabled. Trigger a run now to seed the history." %}</p>
+      </div>
     {% endif %}
   </section>
 
@@ -81,7 +85,11 @@
         </tbody>
       </table>
     {% else %}
-      <p class="rmc-empty">{% trans "No runs match the current filter." %}</p>
+      <div class="rmc-empty-state" role="status" aria-live="polite">
+        <i class="bi bi-funnel rmc-empty-state__icon" aria-hidden="true"></i>
+        <p class="rmc-empty-state__title">{% trans "No runs match this filter" %}</p>
+        <p class="rmc-empty-state__body">{% trans "Try widening the status filter — there may be archived runs outside the currently selected scope." %}</p>
+      </div>
     {% endif %}
   </section>
 </main>

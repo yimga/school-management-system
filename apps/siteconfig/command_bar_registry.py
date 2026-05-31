@@ -58,6 +58,8 @@ class CommandAction:
     url: str
     scope: Scope
     role_required: Optional[str] = None
+    confirm: bool = False  # v4.01.06 — palette renders a confirm step before navigating
+    destructive: bool = False  # v4.01.06 — paint the entry in a danger tone; implies confirm
 
     def to_dict(self) -> dict:
         return {
@@ -67,6 +69,8 @@ class CommandAction:
             "url": self.url,
             "scope": self.scope,
             "role_required": self.role_required,
+            "confirm": self.confirm or self.destructive,
+            "destructive": self.destructive,
         }
 
 
@@ -86,7 +90,9 @@ def _safe_reverse(viewname: str) -> str:
 # materialization time (see ``all_registered``), so the catalog can carry
 # entries pointing to optional features without breaking the gate.
 
-_PLATFORM_ACTION_DEFS: tuple[tuple[str, str, str, str, Scope, Optional[str]], ...] = (
+# v4.01.06: tuples accept an optional 7th `confirm` and 8th `destructive` field.
+# `all_registered()` normalizes both shapes so legacy 6-tuples keep working.
+_PLATFORM_ACTION_DEFS: tuple[tuple, ...] = (
     # ---- Navigation: studio + dashboards ----
     ("navigate", "Open Studio overview", "🏠", "studio_os:shell", "tenant_user", None),
     ("navigate", "Studio · Experience", "🎨", "studio_os:experience", "tenant_user", None),
@@ -150,13 +156,34 @@ _PLATFORM_ACTION_DEFS: tuple[tuple[str, str, str, str, Scope, Optional[str]], ..
     # ---- System / blueprints ----
     ("settings", "Get blueprints", "📐", "siteconfig:get_blueprints", "tenant_admin", None),
     ("settings", "Theme experience hub", "✨", "siteconfig:theme_experience_hub", "tenant_admin", None),
+    # ---- v4.01.06: missing top-level destinations (per command-palette audit) ----
+    ("navigate", "Messages", "💬", "accounts:user_messages", "tenant_user", None),
+    ("navigate", "Notifications", "🔔", "accounts:user_notifications", "tenant_user", None),
+    ("navigate", "My profile", "👤", "accounts:user_profile", "tenant_user", None),
+    ("settings", "MFA setup", "🔐", "accounts:mfa_setup", "tenant_user", None),
+    ("navigate", "Knowledge base", "📚", "kb:kb_home", "tenant_user", None),
+    ("health", "Compliance dashboard", "🛂", "compliance:dashboard", "staff", None),
+    ("navigate", "Command center", "🎯", "super:command_center", "staff", None),
+    ("navigate", "Super dashboard", "🏛", "super:dashboard", "staff", None),
+    ("settings", "Console domains hub", "🌐", "siteconfig:console_domains_hub", "staff", None),
+    ("settings", "Toggle preview mode", "👁", "siteconfig:toggle_preview_mode", "staff", None),
+    # ---- v4.01.06: destructive actions with confirm step ----
+    ("settings", "Clear preview state", "🧹", "siteconfig:clear_preview", "staff", None, True, False),
+    ("settings", "Sign out", "🚪", "accounts:logout", "tenant_user", None, True, True),
 )
 
 
 def all_registered() -> list[CommandAction]:
-    """Materialize the full catalog, dropping entries with unresolvable URLs."""
+    """Materialize the full catalog, dropping entries with unresolvable URLs.
+
+    Accepts 6-tuple legacy entries and 8-tuple v4.01.06 entries that carry the
+    additional `confirm` and `destructive` flags.
+    """
     out: list[CommandAction] = []
-    for kind, label, icon, viewname, scope, role_required in _PLATFORM_ACTION_DEFS:
+    for entry in _PLATFORM_ACTION_DEFS:
+        kind, label, icon, viewname, scope, role_required = entry[:6]
+        confirm = entry[6] if len(entry) > 6 else False
+        destructive = entry[7] if len(entry) > 7 else False
         url = _safe_reverse(viewname)
         if not url:
             # Missing URL = action not available in this environment; skip.
@@ -169,6 +196,8 @@ def all_registered() -> list[CommandAction]:
                 url=url,
                 scope=scope,
                 role_required=role_required,
+                confirm=confirm,
+                destructive=destructive,
             )
         )
     return out

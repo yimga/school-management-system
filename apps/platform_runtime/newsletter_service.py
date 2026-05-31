@@ -18,8 +18,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from datetime import datetime, timezone as dt_timezone
-from typing import Optional
 
 from django.conf import settings
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner

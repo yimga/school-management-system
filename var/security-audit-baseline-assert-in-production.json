@@ -16,7 +16,7 @@
   ],
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-29T16:10:32+00:00",
+  "generated_at": "2026-05-31T13:09:20+00:00",
   "rule": "assert statements are stripped under python -O; use explicit raise in production code",
   "scan_dirs": [
     "apps",

@@ -8,9 +8,6 @@ from django.test import SimpleTestCase
 
 from apps.assist_dock.insights import (
     INSIGHT_CRITICAL,
-    INSIGHT_INFO,
-    INSIGHT_TTL_SECONDS,
-    INSIGHT_WARNING,
     MAX_PER_USER,
     Insight,
     clear_insight,

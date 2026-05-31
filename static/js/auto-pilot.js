@@ -44,7 +44,12 @@
     var cfg = getConfig();
     if (!cfg.enabled) return;
     var base = (cfg.baseUrl || '').trim() || '';
-    var url = (base + '/api/offline/prefetch_urls/').replace(/\/+/g, '/');
+    var prefetch = (cfg.offlinePrefetchUrls || '').trim();
+    if (!prefetch && window.RMCPlatformSurface && window.RMCPlatformSurface.url) {
+      prefetch = window.RMCPlatformSurface.url('offline_prefetch_urls');
+    }
+    var url = (prefetch || '').replace(/\/+/g, '/');
+    if (!url) return;
     if (!url.startsWith('http')) url = global.location.origin + (url.startsWith('/') ? url : '/' + url);
     fetch(url, { method: 'GET', credentials: 'same-origin', headers: { Accept: 'application/json' } })
       .then(function (r) { return r.ok ? r.json() : { urls: [] }; })

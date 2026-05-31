@@ -1,308 +1,5736 @@
 {
-  "generatedAt": "2026-05-30T14:39:14.196Z",
-  "sweepTier": "operator",
-  "managerBase": "http://manager.runmycampus.com:8020",
-  "tenantBase": "http://demo-school.runmycampus.com:8020",
+  "generatedAt": "2026-05-31T10:57:05.044Z",
+  "sweepTier": "operator+admin",
+  "managerBase": "http://manager.runmycampus.com:8012",
+  "tenantBase": "http://demo-school.runmycampus.com:8012",
   "useTenantSubdomain": true,
-  "managerPlanned": 41,
-  "tenantPlanned": 0,
-  "managerTested": 41,
+  "managerPlanned": 646,
+  "tenantPlanned": 200,
+  "managerTested": 646,
   "tenantTested": 0,
-  "resultsCount": 41,
-  "passed": 40,
-  "failed": 0,
-  "skipped": 40,
-  "infraSkipped": 40,
-  "failedUrls": [],
+  "resultsCount": 646,
+  "passed": 462,
+  "failed": 184,
+  "skipped": 662,
+  "infraSkipped": 462,
+  "failedUrls": [
+    {
+      "url": "/admin/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/accounts/relationshiptuple/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/accounts/user/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/apicenter/developerapplication/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/apicenter/marketplaceextensionsubmission/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/apicenter/oauthauthorizationcode/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/apicenter/oauthtokenpair/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/automation/automationapprovalqueue/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/automation/automationexecutionlog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/automation/migrationplaybook/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/automation/migrationprofile/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/automation/migrationquarantinerecord/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/automation/migrationrun/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/billingaccount/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/billingprocessorsyncevent/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/entitlement/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/platformbillingprocessorconfig/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/platformledgerentry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/quote/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/revenuesharepayout/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/stripeplanprice/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/tenantsubscription/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/usagecap/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/billing/usagemeter/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/brand_experience/brandprofile/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/brand_experience/brandsettings/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/brand_experience/designtemplate/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/brand_experience/globalbrandregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/brand_experience/platformglobalbranding/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/brand_experience/themepack/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/compliance/auditlog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/global_registries/educationsystemprofile/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/global_registries/province/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/global_registries/systemfeature/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/global_registries/tenantsystem/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/global_registries/weatherlocation/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/appauditlog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/appbillingledger/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/appinstallation/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/appscope/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/appversioncompat/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/capabilityregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/integration/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/marketplaceapp/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/marketplacelisting/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/marketplacereview/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/publisherorganization/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/scopegrant/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/integrations_marketplace/serviceintegration/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/appauditlog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/appbillingledger/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/appinstallation/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/apppermissionscope/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/apprating/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/appscope/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/appversion/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/appversioncompat/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/capabilityregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/marketplaceapp/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/marketplacelisting/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/marketplacereview/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/publisherorganization/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/publishersignuprequest/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/scopegrant/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/webhookdelivery/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/marketplace/webhookendpoint/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/metadata/configmutationauditlog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/metadata/dynamicfielddefinition/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/metadata/dynamicfieldvalue/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/metadata/entitycatalogentry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/migration_cloud/migrationartifact/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/migration_cloud/migrationasset/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/migration_cloud/migrationbundle/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/migration_cloud/migrationconflict/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/migration_cloud/migrationidmapping/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/migration_cloud/migrationprogressevent/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/observability/anomalydetection/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/observability/frictionevent/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/observability/healthcheckalert/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/observability/performancetrace/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/observability/platformincident/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/observability/platformstatusincident/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/observability/systemhealthmetric/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/packages/documentpack/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/packages/experiencepack/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/packages/installedpackage/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/packages/packagechangelog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/packages/packageversion/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/password_change/done/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/eventwebhookdelivery/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/eventwebhooksubscription/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/fleetgovernedchange/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/pilotdefect/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformeventlog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformintegrationwebhookevent/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorcommandcenterlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorinvite/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatormigrationcloudlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatororchestrationworkbenchlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorphaseblink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorplatformhublink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorplaybooklink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorprofile/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorpromotionrequest/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorsuperanalyticsoverviewlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorsuperdashboardlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorsuperschoolslistlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorsupportdashboardlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatortenanthealthlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatortruthhublink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformoperatorworkflowsimulatorlink/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformphasebdomainsnapshot/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/platformreportplatformskudefault/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/platform_runtime/runtimedefaults/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/policies/blueprintcompatibilityrule/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/policies/countryprofile/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/policies/policycompatibilityrule/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/academicterminologyregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/calendarsystemregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/countryregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/currencyregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/documenttyperegistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/educationlevelregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/educationsystemtyperegistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/feecategoryregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/gradescaleregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/institutiontyperegistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/localeregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/subdivisionregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/tenantgradescaleoverride/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/registries/timezoneregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/blueprintcompatibilityrule/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/blueprintpack/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/dashboardlayout/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/dashboardpack/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/dashboardpackassignment/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/dashboardtemplate/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/dashboardwidget/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/formdraft/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/superadmindashboardpreference/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/tenantblueprint/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/workflowpack/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/workflowpackassignment/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/runtime_blueprints/workflowtemplate/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/sales/lead/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/sales/pipelinestage/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/schools/school/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/schools/schoolmembership/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/schools/schoolprovisioningevent/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/schools/tenantapiusage/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/schools/tenantquotalimit/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/aiembeddingstore/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/aigatewaymetric/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/aimodelregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/aipromptregistry/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/billingwaiverauditlog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/blogpost/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/breakglassoverride/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/broadcastcampaign/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/customfeatureticket/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/customizer/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/customnuance/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/featurecontrolaudit/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/featurefragment/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/featuretogglestate/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/featureusageevent/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/globalsupportticket/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/globalsupportticketreply/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/globalsupportticketwebhookendpoint/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/globalsyllabus/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/learningpassport/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/marketingcontent/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/officialreporttemplate/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/pendingnuance/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/platformpulsesnapshot/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/productfeedback/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/regionalaiconfig/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/reportcardstyle/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/reporttemplate/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/revenuesnapshot/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/syncconflict/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/tourstep/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/waiverrequest/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "url": "/admin/siteconfig/workflowrunlog/",
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    }
+  ],
   "results": [
     {
       "surface": "manager",
-      "url": "/configuration/",
+      "url": "/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/academics/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/",
       "ok": false,
       "failures": [
-        "exception"
+        "http_500"
       ],
-      "error": "Error: Manager login failed for visualqa_admin at http://manager.runmycampus.com:8020/authentication/mfa/verify/. Page text: \n    \n\n  \n    \n\n\n  \n  \n  \n  \n  \n  \n  \n  \n  \n\n\n    RunMyCampus\n    Between the bells\n  \n\n\n    \n\nSkip to main content\n\n    \n\n  \n\n\n  \n  \n  \n  \n  \n  \n  \n  \n  \n\n\n\n\n    \n    \n\n\n\n    \n    \n      \n      \n        \n\n\n  \n    \n      \n\n\n  \n    \n      \n "
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/accounts/relationshiptuple/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/accounts/user/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/apicenter/developerapplication/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/apicenter/marketplaceextensionsubmission/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/apicenter/oauthauthorizationcode/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/apicenter/oauthtokenpair/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/automation/automationapprovalqueue/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/automation/automationexecutionlog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/automation/migrationplaybook/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/automation/migrationprofile/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/automation/migrationquarantinerecord/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/automation/migrationrun/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/billingaccount/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/billingprocessorsyncevent/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/entitlement/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/platformbillingprocessorconfig/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/platformledgerentry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/quote/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/revenuesharepayout/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/stripeplanprice/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/tenantsubscription/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/usagecap/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/billing/usagemeter/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/brand_experience/brandprofile/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/brand_experience/brandsettings/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/brand_experience/designtemplate/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/brand_experience/globalbrandregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/brand_experience/platformglobalbranding/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/brand_experience/themepack/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/compliance/auditlog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/global_registries/educationsystemprofile/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/global_registries/province/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/global_registries/systemfeature/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/global_registries/tenantsystem/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/global_registries/weatherlocation/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/appauditlog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/appbillingledger/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/appinstallation/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/appscope/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/appversioncompat/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/capabilityregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/integration/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/marketplaceapp/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/marketplacelisting/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/marketplacereview/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/publisherorganization/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/scopegrant/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/integrations_marketplace/serviceintegration/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/appauditlog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/appbillingledger/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/appinstallation/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/apppermissionscope/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/apprating/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/appscope/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/appversion/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/appversioncompat/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/capabilityregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/marketplaceapp/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/marketplacelisting/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/marketplacereview/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/publisherorganization/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/publishersignuprequest/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/scopegrant/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/webhookdelivery/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/marketplace/webhookendpoint/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/metadata/configmutationauditlog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/metadata/dynamicfielddefinition/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/metadata/dynamicfieldvalue/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/metadata/entitycatalogentry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/migration_cloud/migrationartifact/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/migration_cloud/migrationasset/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/migration_cloud/migrationbundle/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/migration_cloud/migrationconflict/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/migration_cloud/migrationidmapping/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/migration_cloud/migrationprogressevent/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/observability/anomalydetection/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/observability/frictionevent/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/observability/healthcheckalert/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/observability/performancetrace/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/observability/platformincident/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/observability/platformstatusincident/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/observability/systemhealthmetric/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/packages/documentpack/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/packages/experiencepack/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/packages/installedpackage/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/packages/packagechangelog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/packages/packageversion/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/password_change/done/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/eventwebhookdelivery/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/eventwebhooksubscription/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/fleetgovernedchange/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/pilotdefect/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformeventlog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformintegrationwebhookevent/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorcommandcenterlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorinvite/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatormigrationcloudlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatororchestrationworkbenchlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorphaseblink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorplatformhublink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorplaybooklink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorprofile/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorpromotionrequest/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorsuperanalyticsoverviewlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorsuperdashboardlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorsuperschoolslistlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorsupportdashboardlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatortenanthealthlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatortruthhublink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformoperatorworkflowsimulatorlink/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformphasebdomainsnapshot/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/platformreportplatformskudefault/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/platform_runtime/runtimedefaults/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/policies/blueprintcompatibilityrule/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/policies/countryprofile/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/policies/policycompatibilityrule/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/academicterminologyregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/calendarsystemregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/countryregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/currencyregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/documenttyperegistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/educationlevelregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/educationsystemtyperegistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/feecategoryregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/gradescaleregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/institutiontyperegistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/localeregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/subdivisionregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/tenantgradescaleoverride/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/registries/timezoneregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/blueprintcompatibilityrule/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/blueprintpack/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/dashboardlayout/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/dashboardpack/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/dashboardpackassignment/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/dashboardtemplate/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/dashboardwidget/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/formdraft/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/superadmindashboardpreference/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/tenantblueprint/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/workflowpack/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/workflowpackassignment/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/runtime_blueprints/workflowtemplate/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/sales/lead/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/sales/pipelinestage/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/schools/school/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/schools/schoolmembership/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/schools/schoolprovisioningevent/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/schools/tenantapiusage/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/schools/tenantquotalimit/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/aiembeddingstore/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/aigatewaymetric/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/aimodelregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/aipromptregistry/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/billingwaiverauditlog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/blogpost/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/breakglassoverride/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/broadcastcampaign/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/customfeatureticket/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/customizer/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/customnuance/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/featurecontrolaudit/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/featurefragment/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/featuretogglestate/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/featureusageevent/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/globalsupportticket/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/globalsupportticketreply/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/globalsupportticketwebhookendpoint/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/globalsyllabus/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/learningpassport/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/marketingcontent/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/officialreporttemplate/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/pendingnuance/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/platformpulsesnapshot/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/productfeedback/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/regionalaiconfig/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/reportcardstyle/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/reporttemplate/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/revenuesnapshot/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/syncconflict/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/tourstep/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/waiverrequest/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/admin/siteconfig/workflowrunlog/",
+      "ok": false,
+      "failures": [
+        "http_500"
+      ],
+      "error": "HTTP 500"
+    },
+    {
+      "surface": "manager",
+      "url": "/automation/outcomes/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/automation/workflow-template-gallery/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/automation/workflow-template-gallery/dry-run/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/automation/workflows/designer/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/configuration/",
+      "ok": true,
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/blueprints/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/blueprints/apply/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/blueprints/impact/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/blueprints/installations/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/blueprints/installations/rollback/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_404"
     },
     {
       "surface": "manager",
       "url": "/configuration/blueprints/preview/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/change-requests/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/change-requests/apply/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_404"
     },
     {
       "surface": "manager",
       "url": "/configuration/change-requests/approve/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_404"
     },
     {
       "surface": "manager",
       "url": "/configuration/change-requests/cancel/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_404"
     },
     {
       "surface": "manager",
       "url": "/configuration/change-requests/reject/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_404"
     },
     {
       "surface": "manager",
       "url": "/configuration/change-requests/schedule/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_404"
     },
     {
       "surface": "manager",
       "url": "/configuration/dashboard-packs/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/dashboard-packs/apply/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/dashboard-packs/impact/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/dashboard-packs/preview/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/dashboard-packs/simulate/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/experience-templates/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/experience-templates/apply/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/experience-templates/impact/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/experience-templates/preview/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/experience-templates/simulate/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/pack-installations/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/pack-installations/rollback/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_404"
     },
     {
       "surface": "manager",
       "url": "/configuration/policy-bundles/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/policy-bundles/apply/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/policy-bundles/impact/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/policy-bundles/preview/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/policy-bundles/simulate/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/registries/health/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/workflow-packs/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/workflow-packs/apply/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/workflow-packs/impact/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/workflow-packs/preview/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/configuration/workflow-packs/simulate/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/feedback/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/help/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/notifications/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/offline/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/offline/sync/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/sales/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/sales/first-100/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/sales/leads/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/sales/leads/new/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/sales/leads/stage/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/act-as/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/ai-center/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/ai/governance/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/app-sandbox/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/automation/builder/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/billing-stripe/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/billing-stripe/connect/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/billing-stripe/return/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/billing/checkout/start/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/billing/plan/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/billing/portal/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/compliance/exports/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/compliance/exports/download/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/configuration/guided/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/configuration/runtime/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/console/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/console/ai/rag/ingest/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/curriculum/templates/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/customizer/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/customizer/clear-preview/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/dashboard-configuration/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/dashboard-hub/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/dev/mascot/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/domains/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/feature-control/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/feature-control/audit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/feature-control/ledger/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/feature-control/weather-cities/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/feedback-roadmap/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/get-blueprints/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/grading-scales/bands/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/grading-scales/region-scales/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/grading-settings/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/guided-onboarding/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/guided-onboarding/billing-estimate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/guided-onboarding/csv/apply/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/guided-onboarding/csv/dry-run/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/guided-onboarding/execute-launch/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/impersonation-consent/grant/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/impersonation-consent/revoke/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/installed-packages/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/maintenance/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/metadata/config-mutation-audit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/metadata/dynamic-fields/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/metadata/entity-catalog/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/metadata/operator-hub/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/modules/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/onboarding/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/onboarding/step/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/onboarding/step/complete/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/preferences/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/preferences/set-default-view/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/preferences/theme/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/preview-from-form/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/preview/clear/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/preview/toggle/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/regions/comparison/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/regions/validation/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/academic-years-setup/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/builder/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/bulk-letters/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/departments-setup/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/download/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/embed-preview/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/live-preview/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/northstar-ai/draft/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/output-history-evidence/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/preview/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/preview/pdf/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/report-templates-catalog/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/scheduled/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/tenant-schedules-evidence/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/reports/term-publish-status/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/request-custom-requirement/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/request-waiver/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/school-theme/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/schools/group-console/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/schools/group-console/upgrade/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/schools/group-hierarchy/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/studio/day1/act1/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/studio/day1/act1/logo-upload/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/studio/day1/act2/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/studio/day1/act3/lock/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/studio/day1/reset/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/super/configure/cockpit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/super/configure/cockpit/health/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/super/configure/cockpit/previews/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/super/configure/dashboard-defaults/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/super/configure/marketing-voice/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/super/configure/theme-personality/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/support-copilot/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/sync-center/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/sync-center/resolve/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/tag-manager/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/template-gallery/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/theme-colors/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/theme-colors/import-from-url/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/theme-experience/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/theme-experience/builder/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/theme-experience/hub/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/theme/palette/generate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/workflow-gallery/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/zero-ticket/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/zero-ticket/health/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/zero-ticket/permissions/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/siteconfig/zero-ticket/workflows/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/audit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/conflict-detection/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/dependency-graph/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/natural-language-workflow/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/replay-rollback/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/simulation-engine/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/staged-activation/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/visual-builder/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/automation/workflow-health/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/control/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/control/ai-cleanup/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/control/impact/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/control/system-config/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/copilot/rail/context/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/copilot/rail/insights/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/copilot/rail/send-stream/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/copilot/rail/send/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/communication-style-packs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/compare/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/dashboard-visual-packs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/experience-packs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/portal-shell-layouts/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/recommendations/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/school-website-blocks/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/experience/theme-tokens/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/hubs/approvals/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/hubs/import/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/hubs/workflow/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/launch/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/launch/select-plan/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/operator-school/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/output/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/output/branding-inheritance/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/output/dependency-graph/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/output/policy-registry/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/preview/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/publish/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/recommendations/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/rollback/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/save-draft/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/search/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/studio/version-history/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/ai-model-registry/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/fleet-governed-changes/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/global-brand-registry/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/integrations-marketplace/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/marketplace-apps/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/packages/experience-packs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/packages/installed/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/admin-bridge/runtime-defaults/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/advancement/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/advancement/phase2/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-center/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-center/faq-candidates/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-center/friction/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-center/generate-kb/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-center/inventory/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-center/kb-drafts/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-center/query/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-center/settings/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-gateway-console/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ai-model-hub/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/analytics/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/backlog-unlock-center/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/billing-accounts/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/billing/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/blueprints/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/command-center/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/compliance/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/country-multipliers/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/country-multipliers/add/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/country-multipliers/delete/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/country-multipliers/edit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/feature-toggles/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/feature-toggles/add/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/feature-toggles/delete/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/feature-toggles/edit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/grading/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/grading/add/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/grading/delete/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/grading/edit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/plan-addons/add/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/plan-addons/delete/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/plan-addons/edit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/plans/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/plans/add/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/plans/delete/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/plans/edit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/regions/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/regions/add/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/regions/delete/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/regions/edit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/config/site-settings/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/create/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/curriculum-packs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/customer-success/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/dashboard-packs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/district-enterprise/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/education-systems/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/email/configure/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/email/health/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/email/health/probe/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/email/health/stream/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/email/webhook/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/enterprise-security-command-center/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/feature/roadmap/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/feedback/action/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/fleet-governed-changes/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/founder/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/geography/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/global-ai-version/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/global-ai-version/progress/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/group-campuses/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/he-pack/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/health/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/incidents/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/learning-delivery-packs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/lifecycle/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace-governance/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/activate-sandbox/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/apps/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/apps/install-impact-preview/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/blueprints/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/compatibility/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/health/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/incidents/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/package-promote/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/package-rollout/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/publisher/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/publisher/apps/versions/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/publisher/apps/webhooks/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/publisher/apps/webhooks/edit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/publisher/webhooks/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/ratings/reply/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/refresh-installation/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/reviews/action/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/sandbox/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/signups/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/marketplace/signups/decide/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/mat-hub/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/mat-hub/edit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/metadata-catalog/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/metadata-catalog/impact/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration-runs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/advance/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/ai-ask/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/ai-explain/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/ai-narrate-reconciliation/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/ai-plan/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/ai-rebind/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/ai-vendor-from-image/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/apply/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/assets/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/attach-source/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/audit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/bind-school/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/command-center/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/companion/decrypt/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/companion/keypair/rotate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/companion/maa/sign/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/companion/maa/text/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/companion/server-pubkey/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/companion/upload/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/conflicts/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/connect/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/discover/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/discover/mapping/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/discover/validate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/import/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/operator/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/quarantine/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/review/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/connectors/revoke/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/cost-estimate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/csv-diff/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/diff-mode/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/dsar/runbook/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/exception-ack/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/expected-totals/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/feedback/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/guardrail-check/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/handoff-doc/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/health/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/id-map/lookup/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/intake-ai-ask/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/legacy-lockout/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/lms/diagnostics/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/lms/diagnostics/action-history/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/lms/diagnostics/force-refresh/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/lms/diagnostics/force-rotate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/lms/diagnostics/retention-preview/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/lms/diagnostics/retention-purge/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/maa-v2-promotion/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/maa/v2-counsel-activate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/merge/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/new/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/dlq/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/dlq/replay/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/tokens/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/tokens/chain/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/tokens/mint/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/tokens/revoke/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/tokens/rotate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/webhooks/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/webhooks/audit/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/webhooks/deactivate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/webhooks/deliveries/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/webhooks/deliveries/replay/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/webhooks/deliveries/retry/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/operator/webhooks/subscribe/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/preflight/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/profile-suggest/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/progress/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/progress/stream/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/quarantine-waive/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/reconcile/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/registry/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/review/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/rollback/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/rollout/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/runs/rollback/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/sandbox/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/save-profile/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/settings/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/shadow/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/sla-targets/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/smoke/history/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/smoke/trigger/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/template/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/template/picker/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/migration/vendor-write-status/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ministry-report-stubs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/ministry-stub-pdf/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/native-roster-connectors/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/offboarding/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/one-sis-any-lms/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/operator-policy/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/orchestration/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/orchestration/runs/retry/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/phase-b-snapshot-diff/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/platform-operator-hub/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/playbook-operator-hub/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/policies/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/policy-diff/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/policy-diff/apply-to-sandbox/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/product-feedback/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/product-roadmap/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/provisioning/jobs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/pulse/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/registries/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/runtime-inspector/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/runtime-truth-hub/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/schoolops/meal-plan-analytics/",
+      "ok": true,
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/super/schools/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/super/schools/bulk-create/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/super/schools/clone/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/super/schools/migration-intent/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
     },
     {
       "surface": "manager",
       "url": "/super/schools/rapid/",
       "ok": true,
-      "skipped": "infra_or_redirect",
-      "error": "TimeoutError: locator.waitFor: Timeout 60000ms exceeded.\nCall log:\n  - waiting for locator('input[name=\"username\"]') to be visible\n"
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/security/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/security/command-center/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/security/surface/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/signup/diagnostics/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/assign/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/auto-rules/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/auto-rules/save/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/bulk/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/csat/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/on-call/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/on-call/generate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/on-call/save/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/queue/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/support/ticket/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/switch-to-tenant/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/sync-repair/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/team/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/team/invite/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/team/offboard/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/team/promote/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/team/promote/decide/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/team/reactivate/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/team/revoke-sessions/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/team/suspend/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/tenant-health/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/tenants/360/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/tools/governed-query/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/tools/legacy-csv-preview/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/trust/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/trust/platform-events/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/usage/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/voice-of-customer/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/wedge/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/workflow-packs/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/super/workflow-simulator/",
+      "ok": true,
+      "skipped": "http_500"
+    },
+    {
+      "surface": "manager",
+      "url": "/support/",
+      "ok": true,
+      "skipped": "http_500"
     }
   ]
 }

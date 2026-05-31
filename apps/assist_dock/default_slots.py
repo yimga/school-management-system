@@ -31,6 +31,7 @@ register_slot(
         adopt_selector=".ai-copilot-wrapper",
         pinned_default=True,
         order=10,
+        requires_feature="enable_ai_help_assistant",
         shortcut="g a",
         aria_keyshortcuts="g a",
         description=_("Open the AI assistant for this page."),
@@ -81,8 +82,11 @@ register_slot(
         adopt_selector="[data-rmc-page-help]",
         pinned_default=False,
         order=40,
-        shortcut="?",
-        aria_keyshortcuts="?",
+        # `?` chord intentionally omitted — owned globally by the kbd cheatsheet
+        # opener (rmc-shortcuts-runtime.js + rmc-kbd-cheatsheet.js). Publishing
+        # it here too would advertise a chord that races the cheatsheet handler
+        # and silently fails when the chip is hidden. v4.01.03 phantom-shortcut
+        # audit stripped it to keep aria-keyshortcuts honest.
         description=_("Open contextual help for this page."),
     )
 )
@@ -97,8 +101,12 @@ register_slot(
         adopt_selector=".cp-context-drawer-toggle",
         pinned_default=False,
         order=50,
-        shortcut="g c",
-        aria_keyshortcuts="g c",
+        # `g c` chord intentionally omitted — overlaps control-plane Command
+        # Center (control_plane_base-1.js shortcuts['c']) and tenant Configure
+        # (rmc-shortcuts-runtime.js goNav("configure")). Both are real bindings;
+        # publishing the same chord here would let the assist-dock chip win
+        # navigation away from the user's intended destination on one surface
+        # while losing on another. v4.01.03 phantom-shortcut audit stripped it.
         description=_("Open the page context drawer."),
     )
 )

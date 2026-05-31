@@ -41,6 +41,16 @@ on:
       - "beta/school-management-system/var/security-audit-baseline-theme-locked-token-text.json"
       - "beta/school-management-system/scripts/scan_pii_logging_smell.py"
       - "beta/school-management-system/var/security-audit-baseline-pii-logging-smell.json"
+      - "beta/school-management-system/scripts/scan_hardcoded_client_fetch_paths.py"
+      - "beta/school-management-system/var/security-audit-baseline-hardcoded-client-fetch.json"
+      - "beta/school-management-system/scripts/verify_platform_config_cascade.py"
+      - "beta/school-management-system/scripts/verify_ai_chrome_no_hardcoding.py"
+      - "beta/school-management-system/scripts/verify_client_config_cascade.py"
+      - "beta/school-management-system/static/js/**/*.js"
+      - "beta/school-management-system/src/**/*.{js,ts,tsx}"
+      - "beta/school-management-system/apps/siteconfig/platform_surface_config.py"
+      - "beta/school-management-system/apps/assist_dock/client_urls.py"
+      - "beta/school-management-system/apps/portal/ai_chrome_config.py"
       - "beta/school-management-system/scripts/scan_companion_canonical_headers_drift.py"
       - "beta/school-management-system/scripts/scan_wizard_json_schema_drift.py"
       - "beta/school-management-system/scripts/scan_wizard_class_grammar.py"
@@ -685,6 +695,21 @@ jobs:
       - name: Run pii-logging-smell scanner --strict
         run: |
           python scripts/scan_pii_logging_smell.py --strict
+
+  hardcoded-client-fetch:
+    name: "Hardcoded client fetch paths (platform configurability cascade)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run client config cascade verifiers
+        run: |
+          python scripts/verify_client_config_cascade.py
+          python scripts/generate_platform_client_url_catalog.py --check
 
   wizard-json-schema-drift:
     name: "Unified Wizard Framework: JSON schema drift (baseline 0)"

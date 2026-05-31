@@ -140,7 +140,11 @@ def main(argv: list[str] | None = None) -> int:
         )
     if "runmycampus-cp-recent" not in shell_js:
         errors.append("authenticated-shell-manager.js missing cross-surface recent-nav key.")
-    if "/api/search/" not in shell_js:
+    if (
+        "/api/search/" not in shell_js
+        and 'url("search")' not in shell_js
+        and "readPlatformSearchUrl" not in shell_js
+    ):
         errors.append("authenticated-shell-manager.js missing unified search endpoint wiring.")
 
     studio_text = _read(studio_shell)

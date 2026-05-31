@@ -197,10 +197,10 @@
   opacity: 0;
 }
 
-/* Icon-only utility cluster */
+/* Icon-only utility cluster — v4.01.08: removed `.cp-navbar .cp-topbar-theme-toggle`
+   (toggle hoisted to `.rmc-header-theme-chip` in v4.01.07). */
 .rmc-platform-header__icon-btn,
-.cp-navbar .cp-topbar-bell,
-.cp-navbar .cp-topbar-theme-toggle {
+.cp-navbar .cp-topbar-bell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -473,3 +473,69 @@ html[data-resolved-theme="dark"] .mkt-navbar .rmc-brand-mark__title--platform .r
 .mkt-footer-seal__logo {
   object-fit: contain;
 }
+
+/* === Unified header theme + aesthetic chip (v4.01.07) =====================
+   Single SOT for the platform's theme + aesthetic toggle. Hoisted out of
+   components/user_dropdown.html and out of the standalone cp-topbar-theme-toggle
+   button on the manager topbar. Rendered by templates/components/header_theme_chip.html
+   at one consistent anchor per shell (right of notification bell, before
+   user dropdown). Compatibility shim inherits the existing icon-button
+   sizing rules above so visual continuity is preserved.
+*/
+.rmc-header-theme-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: opacity 200ms var(--lux-spring-curve, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+.rmc-header-theme-chip__group {
+  display: inline-flex;
+  align-items: center;
+}
+
+.rmc-header-theme-chip__segmented {
+  height: var(--rmc-header-control-height, 2.375rem);
+  border-radius: var(--rmc-header-control-radius, 999px);
+  overflow: hidden;
+}
+
+.rmc-header-theme-chip__segmented .btn {
+  height: var(--rmc-header-control-height, 2.375rem);
+  min-height: var(--rmc-header-control-height, 2.375rem);
+  padding-inline: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  transition: background-color 180ms var(--lux-spring-curve, cubic-bezier(0.34, 1.56, 0.64, 1)),
+              color 180ms var(--lux-spring-curve, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+.rmc-header-theme-chip__segmented .btn .bi {
+  font-size: 1rem;
+}
+
+/* Manager (dark) header: chip inherits the same overlay rule the legacy
+   cp-topbar-theme-toggle used so visual continuity holds on /super/ + /admin/. */
+[data-rmc-platform-header="manager"] .rmc-header-theme-chip__segmented .btn {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border-color: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
+}
+
+[data-rmc-platform-header="manager"] .rmc-header-theme-chip__segmented .btn:hover,
+[data-rmc-platform-header="manager"] .rmc-header-theme-chip__segmented .btn:focus-visible,
+[data-rmc-platform-header="manager"] .rmc-header-theme-chip__segmented .btn.active {
+  background: rgba(255, 255, 255, 0.14); /* off-token-allow: white-overlay */
+  color: #ffffff; /* off-token-allow: hex-literal-decorative */
+}
+
+/* Hide the aesthetic group on narrow viewports — theme alone is the
+   load-bearing control. Operator can still reach aesthetic via /settings/. */
+@media (max-width: 991.98px) {
+  .rmc-header-theme-chip .rmc-aesthetic-toggle-row {
+    display: none;
+  }
+}
+

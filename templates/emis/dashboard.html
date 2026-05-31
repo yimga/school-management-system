@@ -210,7 +210,9 @@
 <script src="{% static 'js/dashboard-charts-shared.js' %}"></script>
 <script src="{% static 'js/_pages/emis__dashboard-2.js' %}"></script>
 <script type="application/json" id="page-data-emis__dashboard-1">{
-  "url_emis_download": "{% url 'emis:download' 0 %}"
+  "url_emis_download": "{% url 'emis:download' 0 %}",
+  "url_emis_status": "{% url 'emis:api_status' %}",
+  "url_emis_compliance": "{% url 'emis:compliance_info' '__CC__' %}"
 }</script><script src="{% static 'js/_pages/emis__dashboard-1.js' %}"></script>
 
 {% endblock %}

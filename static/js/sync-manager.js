@@ -7,14 +7,16 @@
   'use strict';
 
   var HYDRATE_AFTER_SYNC_KEY = 'sms-hydrate-after-sync';
-  var DEFAULT_HYDRATE_ENDPOINTS = [
-    { url: '/api/entities/students/', store: 'students', normalizer: 'student' },
-    { url: '/api/attendance/', store: 'attendance', normalizer: 'attendance' },
-    { url: '/api/entities/classrooms/', store: 'classrooms', normalizer: 'classroom' },
-  ];
-
   function getConfig() {
     return global.SMS_OFFLINE_CONFIG || {};
+  }
+
+  function getHydrateEndpoints() {
+    var cfg = getConfig();
+    if (cfg.hydrateEndpoints && cfg.hydrateEndpoints.length) {
+      return cfg.hydrateEndpoints;
+    }
+    return [];
   }
 
   /**
@@ -87,7 +89,7 @@
   function getHydrateOptions() {
     var cfg = getConfig();
     var baseUrl = (cfg.baseUrl != null && cfg.baseUrl !== '') ? cfg.baseUrl : '';
-    var list = (cfg.hydrateEndpoints && Array.isArray(cfg.hydrateEndpoints)) ? cfg.hydrateEndpoints : DEFAULT_HYDRATE_ENDPOINTS;
+    var list = getHydrateEndpoints();
     var normalizers = (global.SMSOfflineDB && global.SMSOfflineDB.normalizers) || {};
     var endpoints = list.map(function (ep) {
       var norm = (ep.normalizer && normalizers[ep.normalizer]) || function (x) { return x; };
@@ -144,8 +146,11 @@
    */
   function sendDeltaBatch(items) {
     var cfg = getConfig();
-    var url = (cfg.deltaEndpointUrl || '').trim() || (cfg.baseUrl || '') + '/api/offline/delta/';
-    if (!url || !url.startsWith('http') && !url.startsWith('/')) url = '/api/offline/delta/';
+    var url = (cfg.deltaEndpointUrl || '').trim();
+    if (!url && global.RMCPlatformSurface && global.RMCPlatformSurface.url) {
+      url = global.RMCPlatformSurface.url('offline_delta');
+    }
+    if (!url) return Promise.resolve({ removed_ids: [], failed_count: 0, failed_items: [] });
     return fetch(url, {
       method: 'POST',
       credentials: 'same-origin',

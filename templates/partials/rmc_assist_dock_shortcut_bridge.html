@@ -1,0 +1,20 @@
+{% comment %}
+v4.01.03 — assist dock g-chord → chip click bridge.
+
+Pairs `rmc-assist-dock-shortcut-bridge.js` with the existing assist dock
+templates. The bridge resolves the second key of a `g <key>` chord
+against the `data-rmc-assist-shortcut` attribute that `rmc-assist-dock.js`
+paints on every rendered chip, then programmatically clicks the chip's
+button.
+
+Without this script, every `aria-keyshortcuts="g X"` published by the
+dock chips was advertised-but-unbound — AT users could read the chord
+on the kbd cheatsheet, press it, and get silence. Now they get the
+chip's click handler.
+
+Loaded `defer` like the rest of the dock chrome so the chip nodes exist
+in the DOM before the bridge starts listening. Cheap (~80 lines, no
+deps) — safe to ship on every shell that already loads the dock.
+{% endcomment %}
+{% load static %}
+<script src="{% static 'js/rmc-assist-dock-shortcut-bridge.js' %}" defer></script>

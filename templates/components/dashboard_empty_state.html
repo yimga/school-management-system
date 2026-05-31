@@ -1,4 +1,5 @@
 {% load i18n %}
+{% comment %} DEPRECATED v4.01.06 — migrate callers to {% include "components/rmc_empty_state.html" with title="..." body="..." icon="bi-..." cta_label="..." cta_url="..." %}. Scheduled for retirement v4.02.0. {% endcomment %}
 {% comment %}
 Design-system: empty state = action state (Path-to-10). Never dead-end "nothing here."
 Usage: {% include 'components/dashboard_empty_state.html' with icon='bi-inbox' title='No items' message='...' action_url='...' action_text='...' %}

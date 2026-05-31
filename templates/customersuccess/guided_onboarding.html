@@ -11,8 +11,17 @@
 {% endblock %}
 
 {% block backend_page %}
+{# table-pagination-allow: wizard-step-checklist bounded-by-wizard-step-registry #}
 <div class="container-fluid py-4 setup-studio-shell" data-page-archetype="setup-studio" data-ux-qa-marker="setup-studio">
-  <section class="setup-studio-hero">
+  <nav class="rmc-section-nav mb-3 d-flex flex-wrap gap-1 small" aria-label="{% trans 'On this page' %}" data-rmc-toc>
+    <a href="#section-launch-hero" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Launch hero" %}</a>
+    <a href="#section-progress-rail" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Progress rail" %}</a>
+    <a href="#section-current-task" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Current task" %}</a>
+    <a href="#section-launch-checklist" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Launch checklist" %}</a>
+    <a href="#section-live-previews" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Live previews" %}</a>
+    <a href="#section-recommendations" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Recommendations" %}</a>
+  </nav>
+  <section id="section-launch-hero" class="setup-studio-hero">
     <div class="setup-studio-panel setup-studio-launch">
       <div class="setup-studio-eyebrow">
         <i class="bi bi-rocket-takeoff"></i>
@@ -84,7 +93,7 @@
   {% endif %}
 
   <section class="setup-studio-grid rmc-reveal">
-    <aside class="setup-studio-panel setup-studio-rail rmc-reveal">
+    <aside id="section-progress-rail" class="setup-studio-panel setup-studio-rail rmc-reveal">
       <div class="setup-studio-section-head">
         <div>
           <div class="fw-semibold">{% trans "Progress rail" %}</div>
@@ -108,7 +117,7 @@
       </div>
     </aside>
 
-    <main class="setup-studio-panel setup-studio-center">
+    <main id="section-current-task" class="setup-studio-panel setup-studio-center">
       <div class="setup-studio-section-head">
         <div>
           <div class="fw-semibold">{% trans "Current task" %}</div>
@@ -237,7 +246,7 @@
       </div>
       {% endif %}
 
-      <div class="setup-studio-section-head">
+      <div id="section-launch-checklist" class="setup-studio-section-head">
         <div>
           <div class="fw-semibold">{% trans "Launch checklist" %}</div>
           <div class="setup-studio-muted">{% trans "Every required step mapped to a clear action." %}</div>
@@ -305,7 +314,7 @@
       {% endif %}
     </main>
 
-    <aside class="setup-studio-panel setup-studio-preview rmc-reveal">
+    <aside id="section-live-previews" class="setup-studio-panel setup-studio-preview rmc-reveal">
       <div class="setup-studio-section-head">
         <div>
           <div class="fw-semibold">{% trans "Live previews" %}</div>
@@ -480,7 +489,7 @@
         {% endfor %}
       </div>
 
-      <div class="setup-studio-section-head mt-4">
+      <div id="section-recommendations" class="setup-studio-section-head mt-4">
         <div>
           <div class="fw-semibold">{% trans "Recommendations" %}</div>
           <div class="setup-studio-muted">{% trans "Default choices that compress setup time." %}</div>

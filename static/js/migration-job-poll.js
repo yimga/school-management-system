@@ -102,7 +102,10 @@
       );
       return;
     }
-    fetch("/api/v1/migration-jobs/" + encodeURIComponent(jobId) + "/", {
+    if (!window.RMCPlatformSurface || !window.RMCPlatformSurface.templated) return;
+    var pollUrl = window.RMCPlatformSurface.templated("migration_job_status", { job_id: jobId });
+    if (!pollUrl) return;
+    fetch(pollUrl, {
       credentials: "same-origin",
       headers: { Accept: "application/json" }
     }).then(function (resp) {

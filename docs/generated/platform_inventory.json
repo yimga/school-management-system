@@ -1,30 +1,30 @@
 {
   "baseline_counts": {
     "allow_any": 173,
-    "csrf_exempt": 660,
+    "csrf_exempt": 669,
     "cursor_execute": 405,
-    "except_exception": 2211,
+    "except_exception": 2340,
     "get_solo": 212,
-    "gilead": 16832,
-    "gilead_files": 229,
-    "html_files": 1571,
-    "management_commands": 275,
-    "markdown_files": 1582,
-    "migration_files": 959,
-    "print_calls": 3726,
-    "python_files": 5794,
-    "site_settings": 2430
+    "gilead": 16835,
+    "gilead_files": 230,
+    "html_files": 1588,
+    "management_commands": 278,
+    "markdown_files": 1584,
+    "migration_files": 971,
+    "print_calls": 3986,
+    "python_files": 5958,
+    "site_settings": 2437
   },
   "doc_drift": {
-    "actual_installed_app_count": 53,
-    "documented_app_count": 53,
+    "actual_installed_app_count": 54,
+    "documented_app_count": 54,
     "is_stale": false,
     "legacy_doc": "docs/ALL_MODULES_COMPLETE_LIST.md"
   },
   "largest_python_files": [
     {
-      "bytes": 1206163,
-      "lines": 16642,
+      "bytes": 1224958,
+      "lines": 16897,
       "path": "apps/siteconfig/_seed_country_localization.py"
     },
     {
@@ -38,9 +38,14 @@
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 153895,
-      "lines": 3209,
+      "bytes": 156787,
+      "lines": 3259,
       "path": "config/settings.py"
+    },
+    {
+      "bytes": 144405,
+      "lines": 3441,
+      "path": "apps/api/saml.py"
     },
     {
       "bytes": 143830,
@@ -53,19 +58,14 @@
       "path": "apps/accounts/views.py"
     },
     {
-      "bytes": 135017,
-      "lines": 3317,
+      "bytes": 139254,
+      "lines": 3418,
       "path": "apps/api/oneroster_results.py"
     },
     {
       "bytes": 131340,
       "lines": 3416,
       "path": "apps/evals/views.py"
-    },
-    {
-      "bytes": 129110,
-      "lines": 3078,
-      "path": "apps/api/saml.py"
     },
     {
       "bytes": 119916,
@@ -630,6 +630,11 @@
       "path": "apps/finance/management/commands/verify_bank_deposits.py"
     },
     {
+      "app": "governance",
+      "command": "backfill_organizations_from_hierarchy",
+      "path": "apps/governance/management/commands/backfill_organizations_from_hierarchy.py"
+    },
+    {
       "app": "integrations_marketplace",
       "command": "apply_marketplace_migrations",
       "path": "apps/integrations_marketplace/management/commands/apply_marketplace_migrations.py"
@@ -921,6 +926,11 @@
     },
     {
       "app": "platform_runtime",
+      "command": "run_tenant_reactivation_sweep",
+      "path": "apps/platform_runtime/management/commands/run_tenant_reactivation_sweep.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "seed_dashboard_topology_links",
       "path": "apps/platform_runtime/management/commands/seed_dashboard_topology_links.py"
     },
@@ -1073,6 +1083,11 @@
       "app": "reports",
       "command": "send_scheduled_reports",
       "path": "apps/reports/management/commands/send_scheduled_reports.py"
+    },
+    {
+      "app": "schoolops",
+      "command": "test_email_health",
+      "path": "apps/schoolops/management/commands/test_email_health.py"
     },
     {
       "app": "schools",
@@ -1499,13 +1514,13 @@
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 102,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 106,
     "cursor_execute_apps_config_py_excl_migrations": 40,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 3545,
-    "site_settings_refs_apps_py_excl_migrations": 192,
-    "site_settings_refs_apps_py_excl_migrations_tests": 144
+    "print_calls_scripts_py": 3805,
+    "site_settings_refs_apps_py_excl_migrations": 198,
+    "site_settings_refs_apps_py_excl_migrations_tests": 150
   },
   "site_settings_fields": [
     {

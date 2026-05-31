@@ -1,0 +1,8 @@
+{% load static %}
+{% comment %}
+  SMS offline config island — built by platform_surface_config (no hardcoded hydrate paths).
+{% endcomment %}
+{% if SMS_OFFLINE_CONFIG_JSON %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="sms-offline-config">{{ SMS_OFFLINE_CONFIG_JSON|safe }}</script>
+<script src="{% static 'js/sms-offline-config-loader.js' %}"></script>
+{% endif %}

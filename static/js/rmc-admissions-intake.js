@@ -31,7 +31,12 @@
 (function () {
   "use strict";
 
-  var ENDPOINT = "/api/v1/admissions/intake-schema/";
+  function intakeSchemaUrl() {
+    return (window.RMCPlatformSurface && window.RMCPlatformSurface.url("admissions_intake_schema")) || "";
+  }
+  function applicantScoresUrl() {
+    return (window.RMCPlatformSurface && window.RMCPlatformSurface.url("admissions_applicant_scores")) || "";
+  }
 
   function mountRoot(root) {
     if (!root || root.getAttribute("data-rmc-intake-mounted") === "1") return;
@@ -45,7 +50,9 @@
     var qs = [];
     if (preview) qs.push("country=" + encodeURIComponent(preview));
     if (previewType) qs.push("type=" + encodeURIComponent(previewType));
-    var url = ENDPOINT + (qs.length ? "?" + qs.join("&") : "");
+    var base = intakeSchemaUrl();
+    if (!base) return;
+    var url = base + (qs.length ? (base.indexOf("?") >= 0 ? "&" : "?") + qs.join("&") : "");
 
     fetch(url, {
       credentials: "same-origin",
@@ -174,7 +181,9 @@
         if (navigator.sendBeacon) {
           // sendBeacon doesn't include csrfmiddlewaretoken header, so fall
           // back to keepalive fetch when we need CSRF.
-          fetch("/api/v1/admissions/applicant-scores/", {
+          var scoresUrl = applicantScoresUrl();
+          if (!scoresUrl) return;
+          fetch(scoresUrl, {
             method: "POST",
             credentials: "same-origin",
             body: body,
@@ -182,7 +191,9 @@
             headers: { "X-Requested-With": "XMLHttpRequest" }
           }).catch(function () { /* silent */ });
         } else {
-          fetch("/api/v1/admissions/applicant-scores/", {
+          var scoresUrlFallback = applicantScoresUrl();
+          if (!scoresUrlFallback) return;
+          fetch(scoresUrlFallback, {
             method: "POST",
             credentials: "same-origin",
             body: body,

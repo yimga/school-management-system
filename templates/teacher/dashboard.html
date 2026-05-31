@@ -225,7 +225,7 @@
           </div>
         </div>
         <div class="col-12 col-md-6 col-lg-3 rmc-reveal" data-rmc-kpi="syllabus-progress">
-          <div class="kpi tdm-stat card-glass blue">
+          <div class="kpi tdm-stat card-glass blue" data-rmc-mini-donut data-rmc-mini-donut-tone="{% if widget_data.completion_pct >= 75 %}good{% elif widget_data.completion_pct >= 50 %}warn{% else %}danger{% endif %}" style="--rmc-mini-donut-pct: {{ widget_data.completion_pct|default:0 }};" aria-label="{% blocktrans with pct=widget_data.completion_pct|default:0 %}Syllabus progress {{ pct }}%{% endblocktrans %}">
             <div class="d-flex align-items-start justify-content-between gap-2">
               <span class="label tdm-stat-label">{% trans "Syllabus progress" %}</span>
               <span class="kpi-icon" aria-hidden="true"><i class="bi bi-list-check"></i></span>
@@ -235,7 +235,7 @@
           </div>
         </div>
         <div class="col-12 col-md-6 col-lg-3 rmc-reveal" data-rmc-kpi="attendance-overall">
-          <div class="kpi tdm-stat card-glass teal">
+          <div class="kpi tdm-stat card-glass teal" data-rmc-mini-donut data-rmc-mini-donut-tone="{% if widget_data.attendance.overall >= 90 %}good{% elif widget_data.attendance.overall >= 75 %}warn{% else %}danger{% endif %}" style="--rmc-mini-donut-pct: {{ widget_data.attendance.overall|default:0 }};" aria-label="{% blocktrans with pct=widget_data.attendance.overall|default:0 %}Attendance {{ pct }}% overall{% endblocktrans %}">
             <div class="d-flex align-items-start justify-content-between gap-2">
               <span class="label tdm-stat-label">{% trans_term "Attendance" key="attendance" %}</span>
               <span class="kpi-icon success" aria-hidden="true"><i class="bi bi-people"></i></span>
@@ -465,7 +465,7 @@
               <p class="text-muted small mb-0">{% trans "No pending deadlines." %}</p>
               {% endif %}
               <div class="tdm-action-buttons">
-                <a class="btn btn-primary btn-sm" href="{{ teacher_action_links.enter_marks }}">{% trans "Enter marks" %}</a>
+                <a class="btn btn-outline-primary btn-sm" href="{{ teacher_action_links.enter_marks }}">{% trans "Enter marks" %}</a>
                 <a class="btn btn-outline-secondary btn-sm" href="{{ teacher_action_links.open_timetable }}">{% trans "Open timetable" %}</a>
                 <a class="btn btn-soft btn-sm" href="{{ teacher_action_links.export_list }}">{% trans "Export list" %}</a>
               </div>
@@ -595,7 +595,7 @@
             {% for action in workflow_summary.next_actions %}
             <a class="btn {% if forloop.first %}btn-primary{% else %}btn-outline-secondary{% endif %} btn-sm" href="{{ action.url }}">{{ action.label }}</a>
             {% empty %}
-            <a class="btn btn-primary btn-sm" href="{% url 'portal:teacher_workflow' %}">{% trans "Open workflow" %}</a>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:teacher_workflow' %}">{% trans "Open workflow" %}</a>
             {% endfor %}
           </div>
         </div>
@@ -628,7 +628,7 @@
               {% endfor %}
             {% else %}
             <p class="text-muted small mb-2">{% trans "No tasks for today." %}</p>
-            <a class="btn btn-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Go to marks" %}</a>
+            <a class="btn btn-outline-primary btn-sm" href="{% url 'evals:teacher_marks_entry' %}">{% trans "Go to marks" %}</a>
             <a class="btn btn-outline-secondary btn-sm ms-1" href="{% url 'portal:teacher_attendance' %}">{% trans "Take attendance" %}</a>
             {% endif %}
 

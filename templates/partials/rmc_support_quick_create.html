@@ -4,8 +4,8 @@
 <link rel="stylesheet" href="{% static 'css/rmc-support-quick-create.css' %}">
 <script nonce="{{ csp_nonce }}" id="rmc-support-quick-create-config" type="application/json">
 {
-  "endpoint": "/support/quick-create/",
-  "kbSearchEndpoint": "/api/v1/kb/search/",
+  "endpoint": "{% url 'portal:support_quick_create' %}",
+  "kbSearchEndpoint": "{% url 'portal:kb_search_inline' %}",
   "shortcutHint": "Shift+?",
   "roleLabel": "{{ rmc_shell.role_label|default:request.user.get_role_display|default:'' }}",
   "voiceLocale": "{{ LANGUAGE_CODE|default:'en' }}",

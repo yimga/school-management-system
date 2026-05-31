@@ -1,4 +1,11 @@
 (function () {
+  function readPlatformSearchUrl() {
+    if (window.RMCPlatformSurface && window.RMCPlatformSurface.url) {
+      return window.RMCPlatformSurface.url("search");
+    }
+    return "";
+  }
+
   function ready(fn) {
     if (document.readyState === "loading") {
       document.addEventListener("DOMContentLoaded", fn);
@@ -50,9 +57,12 @@
       results.classList.add("show");
     }
     function search() {
+      var base = readPlatformSearchUrl();
+      if (!base) return;
+      var sep = base.indexOf("?") >= 0 ? "&" : "?";
       var q = String(input.value || "").trim();
       if (!q.length) {
-        fetch("/api/search/?q=", { headers: { Accept: "application/json" } })
+        fetch(base + sep + "q=", { headers: { Accept: "application/json" } })
           .then(function (res) {
             return res.json();
           })
@@ -67,7 +77,7 @@
         results.classList.remove("show");
         return;
       }
-      fetch("/api/search/?q=" + encodeURIComponent(q), {
+      fetch(base + sep + "q=" + encodeURIComponent(q), {
         headers: { Accept: "application/json" },
       })
         .then(function (res) {

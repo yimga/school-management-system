@@ -23,10 +23,12 @@ so a misconfigured slot never breaks page rendering.
 
 from __future__ import annotations
 
+import json
 import logging
 
 from django.utils.translation import gettext_lazy as _
 
+from .client_urls import resolve_assist_dock_client_urls
 from .registry import (
     SURFACE_ADMIN,
     SURFACE_ANY,
@@ -95,25 +97,60 @@ def _resolve_role(request) -> str:
     return "USER"
 
 
+def _effective_feature_flags(request) -> dict:
+    """Tenant flags without forcing a DB read when ``school.settings`` is populated."""
+    try:
+        school = getattr(request, "school", None)
+        if school is not None:
+            raw = getattr(school, "settings", None) or {}
+            if isinstance(raw, dict):
+                nested = raw.get("backend_feature_flags") or {}
+                if isinstance(nested, dict) and nested:
+                    return dict(nested)
+        from apps.portal.ai_chrome_config import _effective_flags
+
+        return dict(_effective_flags(request) or {})
+    except (AttributeError, ImportError, LookupError, TypeError, ValueError):
+        return {}
+
+
+def _dock_labels(flags: dict) -> tuple[str, str, str]:
+    ui = flags.get("assist_dock_ui") if isinstance(flags.get("assist_dock_ui"), dict) else {}
+    expand = str(ui.get("expand_label") or "").strip() or _("More assistants")
+    collapse = str(ui.get("collapse_label") or "").strip() or _("Fewer assistants")
+    toolbar = str(ui.get("toolbar_label") or "").strip() or _("Page assistants")
+    return expand, collapse, toolbar
+
+
 def assist_dock_context(request) -> dict:
     try:
         surface = _resolve_surface(request)
         role = _resolve_role(request)
-        slots = get_slots_for(surface=surface, role=role)
+        flags = _effective_feature_flags(request)
+        slots = get_slots_for(surface=surface, role=role, include_hidden=True)
+        from apps.siteconfig.platform_surface_config import filter_assist_dock_slots
+
+        slots = filter_assist_dock_slots(slots, flags)
         # Wave C: apply per-user preferences (hide / reorder / density / side).
         prefs = _safe_get_prefs(request)
         slots = _safe_apply_prefs(slots, prefs)
+        expand_label, collapse_label, toolbar_label = _dock_labels(flags)
         payload = {
             "surface": surface,
             "role": role,
             "slots": slots_as_jsonable(slots),
-            "expand_label": _("More assistants"),
-            "collapse_label": _("Fewer assistants"),
-            "toolbar_label": _("Page assistants"),
+            "expand_label": expand_label,
+            "collapse_label": collapse_label,
+            "toolbar_label": toolbar_label,
             "version": DOCK_PAYLOAD_VERSION,
             "prefs": prefs,
+            "urls": resolve_assist_dock_client_urls(request),
         }
-        return {"assist_dock": payload}
+        urls = payload.get("urls") or {}
+        return {
+            "assist_dock": payload,
+            "ASSIST_DOCK_URLS_JSON": json.dumps(urls, separators=(",", ":")),
+        }
     except (AttributeError, RuntimeError, ValueError) as exc:
         logger.debug("assist_dock context processor failed: %s", exc)
         return {"assist_dock": {
@@ -125,13 +162,14 @@ def assist_dock_context(request) -> dict:
             "toolbar_label": _("Page assistants"),
             "version": DOCK_PAYLOAD_VERSION,
             "prefs": {},
-        }}
+            "urls": {},
+        }, "ASSIST_DOCK_URLS_JSON": "{}"}
 
 
 def _safe_get_prefs(request) -> dict:
     """Defensive prefs lookup — never raises into the context processor."""
     try:
-        from .models import default_prefs_payload, get_or_default_prefs
+        from .models import get_or_default_prefs
 
         user = getattr(request, "user", None)
         return get_or_default_prefs(user)

@@ -109,6 +109,14 @@ class ResolveRoleTests(SimpleTestCase):
 class ContextProcessorPayloadTests(SimpleTestCase):
     def setUp(self):
         self.rf = RequestFactory()
+        self.flags_patcher = mock.patch(
+            "apps.assist_dock.context_processors._effective_feature_flags",
+            return_value={"enable_ai_help_assistant": True},
+        )
+        self.mock_flags = self.flags_patcher.start()
+
+    def tearDown(self):
+        self.flags_patcher.stop()
 
     def _build_request(self, path="/portal/dashboard/", role="TEACHER", host_kind="tenant"):
         req = self.rf.get(path)
@@ -162,6 +170,13 @@ class ContextProcessorPayloadTests(SimpleTestCase):
         self.assertEqual(ctx["assist_dock"]["role"], "anonymous")
         # Default chips use roles={"*"} so anonymous sees them too.
         self.assertGreaterEqual(len(ctx["assist_dock"]["slots"]), 6)
+
+    def test_ai_copilot_hidden_when_feature_disabled(self):
+        self.mock_flags.return_value = {"enable_ai_help_assistant": False}
+        ctx = assist_dock_context(self._build_request())
+        ids = {s["id"] for s in ctx["assist_dock"]["slots"]}
+        self.assertNotIn("ai-copilot", ids)
+        self.assertIn("messages", ids)
 
     def test_exception_safe(self):
         broken = mock.Mock()

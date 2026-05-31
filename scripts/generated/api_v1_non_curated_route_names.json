@@ -2,7 +2,7 @@
   "version": 1,
   "source": "apps.api.api_v1_manifest.MANIFEST_CURATED_API_V1_URL_NAMES",
   "curated_url_name_count": 38,
-  "snapshot_name_count": 76,
+  "snapshot_name_count": 78,
   "non_curated": [
     "billing-quote-accept",
     "crdt-apply",
@@ -27,6 +27,8 @@
     "runtime-feature-flags",
     "runtime-grading-matrix",
     "runtime-site-settings",
+    "runtime-structural-options",
+    "runtime-structural-options-initialize",
     "scheduler-generate",
     "social-analytics-pulse",
     "social-attribution",

@@ -1,4 +1,5 @@
 {% load i18n %}
+{% comment %} DEPRECATED v4.01.06 — migrate callers to {% include "components/rmc_empty_state.html" with title="..." body="..." icon="bi-..." cta_label="..." cta_url="..." %}. Scheduled for retirement v4.02.0. {% endcomment %}
 <section class="rmc-wcx-empty-state" data-world-class-empty-state="1" aria-labelledby="{{ empty_id|default:'world-class-empty-title' }}">
   <h2 id="{{ empty_id|default:'world-class-empty-title' }}" class="h5">{{ title|default:_("Nothing needs attention") }}</h2>
   <p class="small text-muted">{{ body|default:_("There are no records in this queue. Continue with the next guided action or review the audit trail.") }}</p>

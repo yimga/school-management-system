@@ -149,12 +149,38 @@ def check_service_uses_ai_helpers() -> list[str]:
     return findings
 
 
+def check_send_urls_in_template() -> list[str]:
+    """Send/stream endpoints must be template-resolved, not JS-hardcoded."""
+    findings: list[str] = []
+    for rel in (
+        "templates/partials/cockpit/_ai_copilot_rail.html",
+        "templates/studio_os/partials/cockpit_copilot_rail.html",
+    ):
+        path = REPO_ROOT / rel
+        text = _read(path)
+        if not text:
+            findings.append(f"missing: {rel}")
+            continue
+        if "data-send-url" not in text or "copilot_rail_send" not in text:
+            findings.append(f"{rel}: missing data-send-url from studio_os:copilot_rail_send")
+        if "data-send-stream-url" not in text:
+            findings.append(f"{rel}: missing data-send-stream-url")
+    js_path = REPO_ROOT / "static" / "js" / "_pages" / "rmc-copilot-rail.js"
+    js_text = _read(js_path)
+    if "/studio/copilot/rail/send/" in js_text:
+        findings.append(
+            f"{js_path.relative_to(REPO_ROOT)}: hardcoded studio copilot send path"
+        )
+    return findings
+
+
 def main() -> int:
     all_findings: list[str] = []
     all_findings.extend(check_partial_hooks())
     all_findings.extend(check_shell_wires_assets())
     all_findings.extend(check_js_armed_synchronous())
     all_findings.extend(check_service_uses_ai_helpers())
+    all_findings.extend(check_send_urls_in_template())
     if all_findings:
         for f in all_findings:
             print(f"FAIL: {f}")

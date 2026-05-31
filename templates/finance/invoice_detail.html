@@ -4,6 +4,7 @@
 {% block title %}{% trans "Invoice Detail" %}{% endblock %}
 
 {% block content %}
+{# table-pagination-allow: record-detail-line-items single-invoice-line-rows-and-attachments-naturally-bounded #}
 <div class="rmc-print-v2" data-page-archetype="record-detail" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
 {% comment %} v3.57.7+ (2026-05-21): civic brand block per rmc-print-v2 grammar
    so PDF / print renders of this invoice carry the wordmark + motto + crest
@@ -261,7 +262,7 @@
           <input type="file" class="form-control" name="attachment" accept=".pdf,image/*">
         </div>
         <div class="col-md-4 d-grid">
-          <button class="btn btn-primary" type="submit">{% trans "Save attachment" %}</button>
+          <button class="btn btn-outline-primary" type="submit">{% trans "Save attachment" %}</button>
         </div>
       </div>
       <div class="small text-muted mt-2">{% trans "Useful for signed invoices or external receipts." %}</div>
@@ -340,7 +341,7 @@
             <input type="text" class="form-control" name="notes" placeholder="{% trans 'Additional information' %}">
           </div>
           <div class="col-12">
-            <button type="submit" class="btn btn-primary">{% trans "Upload Receipt" %}</button>
+            <button type="submit" class="btn btn-outline-primary">{% trans "Upload Receipt" %}</button>
             <div class="small text-muted mt-2">
               {% trans "Your receipt will be automatically verified. You'll be notified once verification is complete." %}
             </div>

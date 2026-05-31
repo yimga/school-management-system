@@ -209,8 +209,8 @@ def _country_from_accept_language(request) -> str:
 def _assign_data_residency_or_record_failure(school) -> bool:
     """Assign regulatory data region or record a FAILED audit event.
 
-    v4.00.3 audit (2026-05-28): the prior bare ``except Exception: pass``
-    around the data-residency call masked any assignment failure — the
+    v4.00.3 audit (2026-05-28): the prior catch-all ``pass`` around the
+    data-residency call masked any assignment failure — the
     school stayed ``data_region=None`` with no log, no event, no operator
     signal. For a platform with GDPR / cross-border data-sovereignty
     obligations this is load-bearing: a silently-misassigned school can
@@ -750,7 +750,7 @@ def signup_school(request: HttpRequest):
             strict_catalog=True,
             source="schools.signup_school",
         )
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError):
         logger.warning("signup_school_publish_event_failed", exc_info=True)
 
     return render(
@@ -1229,7 +1229,7 @@ def verify_signup(request: HttpRequest):
             strict_catalog=True,
             source="schools.verify_signup",
         )
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError):
         logger.warning("verify_signup_publish_event_failed", exc_info=True)
 
     # v3.58.x Wave 9 Agent K — route provisioning through the canonical

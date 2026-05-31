@@ -20,7 +20,7 @@ from apps.assist_dock.badges import (
     resolve_badge,
     unregister_badge_resolver,
 )
-from apps.assist_dock.registry import get_slot, get_slots_for
+from apps.assist_dock.registry import get_slot
 
 
 class SnapshotValidationTests(SimpleTestCase):

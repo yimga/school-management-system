@@ -33,7 +33,9 @@
   function postFeedback(accepted, manualCorrection) {
     if (!lastFeedbackMeta) return;
     if (feedbackStatusEl) feedbackStatusEl.textContent = 'Saving feedback...';
-    fetch('/api/ai/feedback/', {
+    var feedbackUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('ai_feedback')) || '';
+    if (!feedbackUrl) return;
+    fetch(feedbackUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
       body: JSON.stringify({
@@ -72,7 +74,9 @@
       resetFeedback();
       resultEl.style.display = 'block';
       resultEl.innerHTML = 'Loading…';
-      fetch('/api/ai/setup-assistant/', {
+      var setupUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('ai_setup_assistant')) || '';
+      if (!setupUrl) return;
+      fetch(setupUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
         body: JSON.stringify({ query: q }),
@@ -90,7 +94,9 @@
       resetFeedback();
       resultEl.style.display = 'block';
       resultEl.innerHTML = 'Loading…';
-      fetch('/api/ai/workflow-draft/', {
+      var draftUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('ai_workflow_draft')) || '';
+      if (!draftUrl) return;
+      fetch(draftUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf() },
         body: JSON.stringify({ description: desc }),

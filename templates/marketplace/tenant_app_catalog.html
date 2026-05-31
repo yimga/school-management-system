@@ -36,7 +36,7 @@
       {% include "components/apple_class_dependency_graph.html" with graph_id="tenant-app-scope-graph" title=_("Permission scope visual") source=_("App") dependency=_("Consent and billing") target=_("School install") %}
     </div>
   </details>
-  <section class="proof-hero">
+  <section id="section-catalog-hero" class="proof-hero">
     <div class="proof-hero-grid">
       <div>
         <div class="proof-kicker"><i class="bi bi-box-seam"></i> {{ school.name }}</div>
@@ -101,7 +101,15 @@
 
   {% include "partials/shell_chrome_marketplace_tenant_ops_strip.html" %}
 
-  <section class="proof-panel">
+  <nav class="rmc-section-nav mb-3 d-flex flex-wrap gap-1 small" aria-label="{% trans 'On this page' %}" data-rmc-toc>
+    <a href="#section-catalog-hero" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Overview" %}</a>
+    <a href="#section-catalog-grid" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "App catalog" %}</a>
+    <a href="#section-install-flow" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Install flow" %}</a>
+    <a href="#section-rollback" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Rollback expectations" %}</a>
+    <a href="#section-interop-hub" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Migration & interoperability" %}</a>
+  </nav>
+
+  <section id="section-catalog-grid" class="proof-panel">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
       <div>
         <h2 class="proof-panel-title">{% trans "App catalog" %}</h2>
@@ -392,7 +400,7 @@
   </section>
 
   <section class="proof-split rmc-reveal">
-    <div class="proof-panel">
+    <div id="section-install-flow" class="proof-panel">
       <h2 class="proof-panel-title">{% trans "What changed in the install flow" %}</h2>
       <div class="proof-flow">
         <div class="proof-step">
@@ -412,7 +420,7 @@
         </div>
       </div>
     </div>
-    <div class="proof-panel">
+    <div id="section-rollback" class="proof-panel">
       <h2 class="proof-panel-title">{% trans "Rollback expectations" %}</h2>
       <ul class="proof-bullet-list">
         <li>{% trans "Sandbox install keeps new capabilities out of live navigation until you activate." %}</li>
@@ -423,7 +431,7 @@
     </div>
   </section>
 
-  <section class="proof-panel mt-4 rmc-reveal" data-phase9-ecosystem-hub>
+  <section id="section-interop-hub" class="proof-panel mt-4 rmc-reveal" data-phase9-ecosystem-hub>
     <h2 class="proof-panel-title">{% trans "Migration & interoperability hub" %}</h2>
     <p class="proof-panel-copy mb-3">{% trans "First-class workflows: move data in, wire connectors, govern packs — without leaving the tenant surface." %}</p>
     <div class="row g-3 rmc-reveal-stagger">

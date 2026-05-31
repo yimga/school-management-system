@@ -46,7 +46,11 @@
           <td>{{ c.period_label|default:"—" }}</td>
           <td>{{ c.notes|default:"—"|truncatechars:60 }}</td>
         </tr>
-        {% empty %}<tr><td colspan="5">{% trans "No records yet." %}</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
+          <i class="bi bi-person-badge rmc-empty-state__icon" aria-hidden="true"></i>
+          <p class="rmc-empty-state__title">{% trans "No cover assignments yet" %}</p>
+          <p class="rmc-empty-state__body">{% trans "Use the form above to record an absent teacher and assign cover for a period or full day." %}</p>
+        </td></tr>{% endfor %}
       </tbody>
     </table>
   </div>

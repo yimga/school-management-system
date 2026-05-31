@@ -29,7 +29,8 @@ WEIGHTS: dict[str, int] = {
     "subprocessor_list_published": 4,
     "breach_notification_window_hours_le_72": 5,
 }
-assert sum(WEIGHTS.values()) == 100, "sovereignty trust score weights must sum to 100"
+if sum(WEIGHTS.values()) != 100:
+    raise RuntimeError("sovereignty trust score weights must sum to 100")
 
 
 def _signal_regulatory_matrix_complete(row: dict[str, Any]) -> int:

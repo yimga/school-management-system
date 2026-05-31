@@ -474,7 +474,11 @@
             }));
           }
           if (pendingCount >= 0 && typeof fetch === 'function') {
-            var metricsUrl = (getConfig().baseUrl || '').replace(/\/+$/, '') + '/api/offline/queue_metrics/';
+            var metricsUrl = (getConfig().offlineQueueMetricsUrl || '').trim();
+            if (!metricsUrl && window.RMCPlatformSurface && window.RMCPlatformSurface.url) {
+              metricsUrl = window.RMCPlatformSurface.url('offline_queue_metrics');
+            }
+            if (!metricsUrl) return;
             if (!metricsUrl.startsWith('http')) metricsUrl = window.location.origin + (metricsUrl.startsWith('/') ? metricsUrl : '/' + metricsUrl);
             fetch(metricsUrl, {
               method: 'POST',
@@ -532,7 +536,12 @@
           syncingViaBatch = false;
           var ids = d.items.map(function (it) { return it.id; }).filter(Boolean);
           var body = JSON.stringify({ items: d.items });
-          fetch('/api/offline/replay_batch/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': (document.querySelector('meta[name="csrf-token"]') || {}).content || '' }, body: body, credentials: 'same-origin' })
+          var replayUrl = (getConfig().offlineReplayBatchUrl || '').trim();
+          if (!replayUrl && window.RMCPlatformSurface && window.RMCPlatformSurface.url) {
+            replayUrl = window.RMCPlatformSurface.url('offline_replay_batch');
+          }
+          if (!replayUrl) return;
+          fetch(replayUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': (document.querySelector('meta[name="csrf-token"]') || {}).content || '' }, body: body, credentials: 'same-origin' })
             .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
             .then(function (r) {
               if (r.ok && r.data && r.data.removed_ids && r.data.removed_ids.length > 0 && navigator.serviceWorker.controller) {

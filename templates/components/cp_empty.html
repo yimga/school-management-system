@@ -1,4 +1,5 @@
 {% load i18n %}
+{% comment %} DEPRECATED v4.01.06 — migrate callers to {% include "components/rmc_empty_state.html" with title="..." body="..." icon="bi-..." cta_label="..." cta_url="..." %}. Scheduled for retirement v4.02.0. {% endcomment %}
 <div class="cp-empty" role="status"{% if cp_empty_id %} id="{{ cp_empty_id }}"{% endif %}>
   <div class="cp-empty__icon" aria-hidden="true">{{ cp_empty_icon|default:"∅" }}</div>
   <div class="cp-empty__title">{{ cp_empty_title|default:_("Nothing here yet") }}</div>

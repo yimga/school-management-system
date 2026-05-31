@@ -13,6 +13,10 @@
     return "";
   }
 
+  function platformUrl(key) {
+    return (window.RMCPlatformSurface && window.RMCPlatformSurface.url(key)) || "";
+  }
+
   async function fetchJson(url, options = {}) {
     const headers = options.headers || {};
     headers["Content-Type"] = "application/json";
@@ -31,40 +35,43 @@
   }
 
   async function fetchSessionClaims() {
-    return fetchJson("/api/session/claims/");
+    return fetchJson(platformUrl("session_claims"));
   }
 
   async function fetchClassrooms() {
-    return fetchJson("/api/entities/classrooms/");
+    return fetchJson(platformUrl("entity_classrooms"));
   }
 
   async function fetchStudents(params = "") {
+    const base = platformUrl("entity_students");
     const qs = params ? `?${params}` : "";
-    return fetchJson(`/api/entities/students/${qs}`);
+    return fetchJson(`${base}${qs}`);
   }
 
   async function updateStudent(id, payload) {
-    return fetchJson(`/api/entities/students/${id}/`, {
+    const base = platformUrl("entity_students");
+    return fetchJson(`${base}${id}/`, {
       method: "PATCH",
       body: JSON.stringify(payload),
     });
   }
 
   async function deleteStudent(id) {
-    return fetchJson(`/api/entities/students/${id}/`, {
+    const base = platformUrl("entity_students");
+    return fetchJson(`${base}${id}/`, {
       method: "DELETE",
     });
   }
 
   async function createStudent(payload) {
-    return fetchJson("/api/entities/students/", {
+    return fetchJson(platformUrl("entity_students"), {
       method: "POST",
       body: JSON.stringify(payload),
     });
   }
 
   async function bulkAssignStudents(payload) {
-    return fetchJson("/api/entities/students/bulk-assign/", {
+    return fetchJson(platformUrl("entity_students_bulk_assign"), {
       method: "POST",
       body: JSON.stringify(payload),
     });

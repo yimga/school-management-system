@@ -20,7 +20,10 @@ function loadCountryInfo() {
   const countryCode = document.getElementById('country_code')?.value;
   const infoDiv = document.getElementById('country-info');
 
-  fetch(`/emis/api/compliance/${countryCode}/`)
+  var complianceTpl = ((window.__RMC_PAGE_DATA__["emis__dashboard-1"] || {})["url_emis_compliance"]) || "";
+  var complianceUrl = complianceTpl ? complianceTpl.replace("__CC__", encodeURIComponent(countryCode || "")) : "";
+  if (!complianceUrl) return;
+  fetch(complianceUrl)
     .then(response => response.json())
     .then(data => {
       if (data.error) {
@@ -42,7 +45,9 @@ function loadCountryInfo() {
 }
 
 function loadRecentExports() {
-  fetch('/emis/api/status/')
+  var statusUrl = ((window.__RMC_PAGE_DATA__["emis__dashboard-1"] || {})["url_emis_status"]) || "";
+  if (!statusUrl) return;
+  fetch(statusUrl)
     .then(response => response.json())
     .then(data => {
       const container = document.getElementById('recent-exports');
@@ -82,14 +87,15 @@ function loadRecentExports() {
 }
 
 function loadStats() {
-  // Load basic stats - in a real implementation, this would come from an API
-  fetch('/api/dashboard/stats/')  // Assuming this endpoint exists
+  var statsUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('admin_dashboard')) || '';
+  if (!statsUrl) return;
+  fetch(statsUrl)
     .then(response => response.json())
     .then(data => {
-      document.getElementById('total-students').textContent = data.students || '-';
-      document.getElementById('total-teachers').textContent = data.teachers || '-';
-      document.getElementById('total-subjects').textContent = data.subjects || '-';
-      document.getElementById('total-classes').textContent = data.classes || '-';
+      document.getElementById('total-students').textContent = data.total_students != null ? data.total_students : '-';
+      document.getElementById('total-teachers').textContent = data.total_teachers != null ? data.total_teachers : '-';
+      document.getElementById('total-subjects').textContent = data.total_subjects != null ? data.total_subjects : '-';
+      document.getElementById('total-classes').textContent = data.total_classes != null ? data.total_classes : '-';
     })
     .catch(error => {
       console.error('Error loading stats:', error);

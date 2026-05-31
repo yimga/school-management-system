@@ -54,13 +54,15 @@
       var id = btn.getAttribute('data-cp-pin-id');
       if (!id) return;
       var isPinned = btn.classList.contains('cp-pin-pinned');
-      fetch('/api/control-plane-preferences/', { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+      var cpPrefs = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('control_plane_preferences')) || '';
+      if (!cpPrefs) return;
+      fetch(cpPrefs, { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           var list = (data && Array.isArray(data.control_plane_pinned_items)) ? data.control_plane_pinned_items : [];
           if (isPinned) list = list.filter(function (x) { return x !== id; });
           else if (list.indexOf(id) === -1) list.push(id);
-          return fetch('/api/control-plane-preferences/', {
+          return fetch(cpPrefs, {
             method: 'PATCH',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken(), 'Accept': 'application/json' },

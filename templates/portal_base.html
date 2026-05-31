@@ -243,7 +243,7 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}portal-sidebar-tone-light{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="{% block body_scroll_policy %}document{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1" data-rmc-back-to-top-policy="always"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1" data-copilot="collapsed"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_endpoint %}{% if ai_copilot_endpoint %} data-ai-copilot-url="{{ ai_copilot_endpoint }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}portal-sidebar-tone-light{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="{% block body_scroll_policy %}document{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1" data-rmc-back-to-top-policy="always"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1" data-copilot="collapsed"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -409,6 +409,10 @@
                  themeToggle / adminMenuDropdown / username / logout buttons that
                  used to live here are now redundant and have been removed.
                  SHOW_HEADER_PROFILE_MENU gate is preserved. {% endcomment %}
+              {% comment %} v4.01.07: unified header theme + aesthetic chip — SOT in
+                 components/header_theme_chip.html. Sits right of the bell / messages
+                 / shell switcher cluster and immediately before the user dropdown. {% endcomment %}
+              {% include "components/header_theme_chip.html" %}
               {% if SHOW_HEADER_PROFILE_MENU and request.user.is_authenticated %}
                 {% include "components/user_dropdown.html" %}
               {% endif %}
@@ -454,7 +458,7 @@
              data-portal-resize-handle="1"></div>
 
         <!-- Sidebar (mobile) -->
-        <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" aria-labelledby="portalSidebarLabel" data-shell-sidebar="portal" data-shell-sidebar-mount="offcanvas">
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" role="dialog" aria-modal="true" aria-labelledby="portalSidebarLabel" data-shell-sidebar="portal" data-shell-sidebar-mount="offcanvas">
           <div class="offcanvas-header">
             <h5 class="offcanvas-title" id="portalSidebarLabel">{% trans "Menu" %}</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{% trans 'Close' %}"></button>
@@ -607,47 +611,7 @@
        rmc-command-palette.js; header search filtering + sidebar resize/collapse
        = static/js/portal-shell-bootstrap.js. {% endcomment %}
 
-    {% comment %}
-    SMS_OFFLINE_CONFIG: emitted as a JSON data island (CSP-safe) and parsed
-    by sms-offline-config-loader.js. Replaces the previous Django-interpolated
-    inline executable script.
-    {% endcomment %}
-    <script nonce="{{ csp_nonce }}" type="application/json" id="sms-offline-config">{
-      "enabled": {{ OFFLINE_ENABLED_FOR_CURRENT_SCHOOL|yesno:"true,false" }},
-      "pwaEnabled": {{ SITE.backend_feature_flags.enable_portal_pwa|default:"1"|yesno:"true,false" }},
-      "formQueueEnabled": {{ SITE.backend_feature_flags.enable_offline_form_queue|default:"1"|yesno:"true,false" }},
-      "attendanceSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_attendance_sync|default:"1"|yesno:"true,false" }},
-      "gradeSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_grade_sync|default:"1"|yesno:"true,false" }},
-      "backgroundSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_background_sync|default:"1"|yesno:"true,false" }},
-      "requestPersistentStorage": {{ SITE.backend_feature_flags.request_persistent_browser_storage|default:"1"|yesno:"true,false" }},
-      "reachabilityUrl": "{% if SITE.backend_feature_flags.reachability_url %}{{ SITE.backend_feature_flags.reachability_url|escapejs }}{% else %}/health/{% endif %}",
-      "hydrate": true,
-      "dripWhenWeak": true,
-      "reduceActivityLowPower": {% if SITE.backend_feature_flags.reduce_activity_low_power %}true{% else %}false{% endif %},
-      "entitySyncEnabled": {% if SITE.backend_feature_flags.offline_entity_sync == False %}false{% else %}true{% endif %},
-      "requestsSyncEnabled": {% if SITE.backend_feature_flags.offline_requests_sync == False %}false{% else %}true{% endif %},
-      "apiSyncEnabled": true,
-      "paymentSyncEnabled": {{ SITE.backend_feature_flags.enable_offline_payment_sync|default:"1"|yesno:"true,false" }},
-      "offlineEnqueueUrl": {% if OFFLINE_API_ENQUEUE_URL %}"{{ OFFLINE_API_ENQUEUE_URL|escapejs }}"{% else %}null{% endif %},
-      "offlineProcessUrl": {% if OFFLINE_API_PROCESS_URL %}"{{ OFFLINE_API_PROCESS_URL|escapejs }}"{% else %}null{% endif %},
-      "offlineConflictsUrl": {% if OFFLINE_CONFLICTS_URL %}"{{ OFFLINE_CONFLICTS_URL|escapejs }}"{% else %}null{% endif %},
-      "offlineTokenMintUrl": {% if OFFLINE_TOKEN_MINT_URL %}"{{ OFFLINE_TOKEN_MINT_URL|escapejs }}"{% else %}null{% endif %},
-      "permissionSnapshotUrl": {% if OFFLINE_PERMISSION_SNAPSHOT_URL %}"{{ OFFLINE_PERMISSION_SNAPSHOT_URL|escapejs }}"{% else %}null{% endif %},
-      "deltaEndpointUrl": {% if OFFLINE_DELTA_URL %}"{{ OFFLINE_DELTA_URL|escapejs }}"{% else %}"/api/offline/delta/"{% endif %},
-      "hydrateEndpoints": [
-        {"url": "/api/entities/students/", "store": "students", "normalizer": "student"},
-        {"url": "/api/attendance/", "store": "attendance", "normalizer": "attendance"},
-        {"url": "/api/entities/classrooms/", "store": "classrooms", "normalizer": "classroom"}
-      ],
-      "hubBaseUrl": "{% if OFFLINE_DELIVERY_CLIENT.hubBaseUrl %}{{ OFFLINE_DELIVERY_CLIENT.hubBaseUrl|escapejs }}{% else %}{{ SITE.backend_feature_flags.hub_base_url|default:""|escapejs }}{% endif %}",
-      "maxQueueItems": {% if OFFLINE_DELIVERY_CLIENT.maxQueueItems %}{{ OFFLINE_DELIVERY_CLIENT.maxQueueItems }}{% else %}500{% endif %},
-      "meshEnabled": {% if OFFLINE_DELIVERY_CLIENT.meshEnabled %}true{% else %}false{% endif %},
-      "deploymentProfile": "{{ RMC_DEPLOYMENT_PROFILE|default:"online"|escapejs }}",
-      "aiNeedsNetwork": {% if RMC_AI_NEEDS_NETWORK %}true{% else %}false{% endif %},
-      "prefetchAtHour": {% if SITE.backend_feature_flags.prefetch_at_hour != None %}{{ SITE.backend_feature_flags.prefetch_at_hour }}{% else %}null{% endif %},
-      "parentPortalShell": {% if "/portal/parent" in request.path or "/parent/dashboard" in request.path %}true{% else %}false{% endif %}
-    }</script>
-    <script src="{% static 'js/sms-offline-config-loader.js' %}"></script>
+    {% include "partials/rmc_sms_offline_config.html" %}
 
     <link rel="stylesheet" href="{% static 'css/dark-mode-safety-net.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
@@ -811,12 +775,16 @@
     {% include "partials/rmc_shortcuts_nav_data.html" %}
     {% include "partials/rmc_tour_bootstrap.html" %}
     {% if request.user.is_authenticated %}
+    {% include "partials/rmc_platform_surface_page_data.html" %}
+    {% include "partials/rmc_ai_chrome_page_data.html" %}
     {% include "partials/rmc_assist_dock_labels.html" %}
     {% comment %} v4.00.91: registry SOT island — JS hydrates chips from this payload. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
     {% comment %} v4.00.97 Wave G2: impersonation banner partial — renders only when active. {% endcomment %}
     {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
+    {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
+    {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% include "partials/rmc_command_bar.html" %}

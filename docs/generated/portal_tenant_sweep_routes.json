@@ -1383,6 +1383,13 @@
       "sweep": true
     },
     {
+      "path": "/t/demo-school/portal/lux-workspace/",
+      "inner": "/portal/lux-workspace/",
+      "name": "lux_workspace_demo",
+      "slug": "demo-school",
+      "sweep": true
+    },
+    {
       "path": "/t/demo-school/portal/migration/status/",
       "inner": "/portal/migration/status/",
       "name": "lifecycle_migration_status",
@@ -1393,13 +1400,6 @@
       "path": "/t/demo-school/portal/offline/conflicts/",
       "inner": "/portal/offline/conflicts/",
       "name": "offline_sync_conflicts",
-      "slug": "demo-school",
-      "sweep": true
-    },
-    {
-      "path": "/t/demo-school/portal/offline/sync-queue/",
-      "inner": "/portal/offline/sync-queue/",
-      "name": "offline_sync_queue",
       "slug": "demo-school",
       "sweep": true
     }

@@ -20,13 +20,15 @@
     var isPinned = this.getAttribute('data-pinned') === 'true';
     if (!id) return;
     btn.disabled = true;
-    fetch('/api/portal-preferences/', { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+    var prefsUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('portal_preferences')) || '';
+    if (!prefsUrl) return;
+    fetch(prefsUrl, { method: 'GET', credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
       .then(function(r) { return r.json(); })
       .then(function(data) {
         var list = data.pinned_sidebar_items || [];
         if (isPinned) list = list.filter(function(x) { return x !== id; });
         else if (list.indexOf(id) === -1) list.push(id);
-        return fetch('/api/portal-preferences/', {
+        return fetch(prefsUrl, {
           method: 'PATCH',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken(), 'Accept': 'application/json' },

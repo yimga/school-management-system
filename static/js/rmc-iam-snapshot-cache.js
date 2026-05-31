@@ -70,7 +70,10 @@
     var c = cfg();
     var u = (c.permissionSnapshotUrl || c.permission_snapshot_url || "").trim();
     if (u) return u;
-    return "/api/offline/permission_snapshot/";
+    if (global.RMCPlatformSurface && global.RMCPlatformSurface.url) {
+      return global.RMCPlatformSurface.url("permission_snapshot");
+    }
+    return "";
   }
 
   function fetchSnapshot() {

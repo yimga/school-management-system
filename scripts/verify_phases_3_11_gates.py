@@ -566,6 +566,10 @@ def main(argv: list[str] | None = None) -> int:
         "SODP: offline config cascade + tenant Studio UI",
     )
     run(
+        [py, _script_path("verify_client_config_cascade.py"), *base_args],
+        "Client config cascade: platform + AI chrome + offline + hardcoded-fetch scan",
+    )
+    run(
         [py, _script_path("verify_tenant_email_delivery_cascade.py"), *base_args],
         "SODP Wave B: tenant email cascade",
     )

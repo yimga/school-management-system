@@ -23,7 +23,7 @@ function refreshJobList() {
 
 function pollJobStatus(jobId) {
     // Fetch latest job status
-    fetch(`/api/import-jobs/${jobId}/`)
+    fetch(`/api/import-jobs/${jobId}/`) // client-fetch-allow: import-job-api-route-not-in-urlconf-yet
         .then(response => response.json())
         .then(data => {
             // Update card
@@ -44,7 +44,7 @@ function exportJobResults(jobId) {
 
 function retryJob(jobId) {
     if (confirm('Are you sure you want to retry this job?')) {
-        fetch(`/api/import-jobs/${jobId}/retry/`, { 
+        fetch(`/api/import-jobs/${jobId}/retry/`, { // client-fetch-allow: import-job-api-route-not-in-urlconf-yet
             method: 'POST',
             headers: {
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value

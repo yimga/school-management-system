@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
 from django.test import SimpleTestCase
 
 from apps.assist_dock import default_slots  # noqa: F401 — seed registry
 from apps.assist_dock.registry import (
-    ALL_SURFACES,
     SOURCE_DOM_ADOPT,
     SOURCE_EXTERNAL,
     SOURCE_REGISTRY,
@@ -76,8 +74,10 @@ class DefaultRegistrySeedTests(SimpleTestCase):
     def test_default_slots_visible_on_all_surfaces(self):
         for surface in (SURFACE_PORTAL, SURFACE_MANAGER, SURFACE_ADMIN):
             visible = {s.id for s in get_slots_for(surface=surface)}
-            # All six legacy chips have surfaces=ALL_SURFACES; should appear.
-            self.assertIn("ai-copilot", visible)
+            # Legacy chips without feature gates appear in the default list.
+            self.assertIn("messages", visible)
+            gated = {s.id for s in get_slots_for(surface=surface, include_hidden=True)}
+            self.assertIn("ai-copilot", gated)
             self.assertIn("messages", visible)
             self.assertIn("back-to-top", visible)
 
@@ -94,10 +94,10 @@ class FilterTests(SimpleTestCase):
     def test_role_star_matches_all_roles(self):
         slot = get_slot("ai-copilot")
         self.assertIn("*", slot.roles)
-        teacher_visible = {s.id for s in get_slots_for(surface=SURFACE_PORTAL, role="TEACHER")}
-        anon_visible = {s.id for s in get_slots_for(surface=SURFACE_PORTAL, role="anonymous")}
-        self.assertIn("ai-copilot", teacher_visible)
-        self.assertIn("ai-copilot", anon_visible)
+        teacher_gated = {s.id for s in get_slots_for(surface=SURFACE_PORTAL, role="TEACHER", include_hidden=True)}
+        anon_gated = {s.id for s in get_slots_for(surface=SURFACE_PORTAL, role="anonymous", include_hidden=True)}
+        self.assertIn("ai-copilot", teacher_gated)
+        self.assertIn("ai-copilot", anon_gated)
 
     def test_specific_role_filter_rejects_non_match(self):
         try:

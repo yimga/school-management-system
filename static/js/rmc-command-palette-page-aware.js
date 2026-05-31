@@ -257,17 +257,31 @@
   // v4.00.30/31 — Reads the cmdk data block once for shared config (locale,
   // ai_line_url, etc.). Falls back to safe defaults so we keep running on
   // older shells that haven't picked up the new fields yet.
+  function readPlatformCmdkUrl() {
+    if (window.RMCPlatformSurface && window.RMCPlatformSurface.url) {
+      return (
+        window.RMCPlatformSurface.url("ai_line_interpret") ||
+        (window.RMCPlatformSurface.read().cmdk || {}).ai_line_url ||
+        ""
+      ).trim();
+    }
+    return "";
+  }
+
   function readCmdkConfig() {
     var node = document.getElementById(DATA_ID);
-    if (!node) return { locale: "", ai_line_url: "/api/v1/ai/line-interpret/" };
+    var fallbackLine = readPlatformCmdkUrl();
+    if (!node) {
+      return { locale: "", ai_line_url: fallbackLine };
+    }
     try {
       var data = JSON.parse(node.textContent || "{}");
       return {
         locale: (data.locale || "").toString(),
-        ai_line_url: data.ai_line_url || "/api/v1/ai/line-interpret/"
+        ai_line_url: (data.ai_line_url || fallbackLine || "").trim()
       };
     } catch (e) {
-      return { locale: "", ai_line_url: "/api/v1/ai/line-interpret/" };
+      return { locale: "", ai_line_url: fallbackLine };
     }
   }
 
@@ -404,7 +418,8 @@
     var list = document.getElementById("rmc-cmdk-list");
     if (!input || !list) return;
     var cfg = readCmdkConfig();
-    var endpoint = cfg.ai_line_url || "/api/v1/ai/line-interpret/";
+    var endpoint = cfg.ai_line_url || readPlatformCmdkUrl();
+    if (!endpoint) return;
     var lastSuggestion = null;
     var t = null;
 

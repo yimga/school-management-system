@@ -1165,11 +1165,17 @@ def build_studio_focus_sidebar(request) -> list[dict]:
     """
     Compact manager sidebar for /studio/* — sole vertical nav on manager Studio.
 
-    Work modes live here only (inner studio-os__rail is suppressed on manager).
-    Control governance links fold into this rail on /studio/control/ instead of
-    a third column inside the canvas.
+    Phase 1 SOT migration (v4.01.04): mode + shortcut items are sourced from
+    `apps.platform_runtime.sidebar_registry`. Dynamic mode-task injection +
+    active-state marking remain here because they depend on request path /
+    studio_os runtime that can't be encoded in a static registry row.
     """
     from django.utils.translation import gettext as _
+
+    from apps.platform_runtime.sidebar_registry import (
+        SHELL_STUDIO_FOCUS,
+        for_shell,
+    )
 
     urlconf = getattr(request, "urlconf", None) or "config.manager_urls"
     path = getattr(request, "path", "") or ""
@@ -1179,81 +1185,24 @@ def build_studio_focus_sidebar(request) -> list[dict]:
         active_mode = manager_studio_mode_from_path(path)
     except (ImportError, AttributeError, TypeError, ValueError):
         active_mode = None
-    mode_specs = [
-        {
-            "id": "studio_overview",
-            "label": _("Studio overview"),
-            "url_name": "studio_os:shell",
-            "icon": "bi-grid-3x3-gap",
-            "nav_section": "modes",
-        },
-        {
-            "id": "studio_experience",
-            "label": _("Experience"),
-            "url_name": "studio_os:experience",
-            "icon": "bi-palette",
-            "nav_section": "modes",
-        },
-        {
-            "id": "studio_automation",
-            "label": _("Automation"),
-            "url_name": "studio_os:automation",
-            "icon": "bi-diagram-3",
-            "nav_section": "modes",
-        },
-        {
-            "id": "studio_output",
-            "label": _("Outputs"),
-            "url_name": "studio_os:output",
-            "icon": "bi-file-earmark-text",
-            "nav_section": "modes",
-        },
-        {
-            "id": "studio_launch",
-            "label": _("Launch"),
-            "url_name": "studio_os:launch",
-            "icon": "bi-rocket-takeoff",
-            "nav_section": "modes",
-        },
-        {
-            "id": "studio_control",
-            "label": _("Control"),
-            "url_name": "studio_os:control",
-            "icon": "bi-sliders",
-            "nav_section": "modes",
-        },
-    ]
-    shortcut_specs = [
-        {
-            "id": "studio_command_center",
-            "label": _("Command center"),
-            "url_name": "super:command_center",
-            "icon": "bi-terminal",
-            "nav_section": "shortcuts",
-        },
-        {
-            "id": "studio_schools",
-            "label": _("Schools"),
-            "url_name": "super:dashboard",
-            "icon": "bi-building",
-            "nav_section": "shortcuts",
-        },
-    ]
 
     items: list[dict] = []
-    for spec in mode_specs:
-        url = _safe_reverse(spec["url_name"], urlconf=urlconf)
-        if url:
-            items.append(
-                {
-                    "id": spec["id"],
-                    "label": spec["label"],
-                    "url": url,
-                    "icon": spec.get("icon", "bi-circle"),
-                    "nav_section": spec.get("nav_section", "modes"),
-                    "section_label": _("Work modes"),
-                }
-            )
+    for nav_item in for_shell(SHELL_STUDIO_FOCUS, ["PROPRIETOR"]):
+        if nav_item.section == "shortcuts" and active_mode:
+            continue  # shortcuts only render when no mode is active
+        url = _safe_reverse(nav_item.url_name, urlconf=urlconf)
+        if not url:
+            continue
+        items.append(
+            {
+                "id": nav_item.key,
+                "label": _(nav_item.label),
+                "url": url,
+                "icon": nav_item.icon or "bi-circle",
+                "nav_section": nav_item.section or "modes",
+                "section_label": _("Platform") if nav_item.section == "shortcuts" else _("Work modes"),
+            }
+        )
 
     try:
         from apps.studio_os.navigation import (
@@ -1265,20 +1214,5 @@ def build_studio_focus_sidebar(request) -> list[dict]:
         append_manager_mode_task_sidebar(request, items)
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
-
-    if not active_mode:
-        for spec in shortcut_specs:
-            url = _safe_reverse(spec["url_name"], urlconf=urlconf)
-            if url:
-                items.append(
-                    {
-                        "id": spec["id"],
-                        "label": spec["label"],
-                        "url": url,
-                        "icon": spec.get("icon", "bi-circle"),
-                        "nav_section": spec.get("nav_section", "shortcuts"),
-                        "section_label": _("Platform"),
-                    }
-                )
 
     return items

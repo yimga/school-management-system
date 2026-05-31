@@ -19,11 +19,21 @@ def main() -> int:
         if not (ROOT / rel).is_file():
             findings.append(f"missing {rel}")
     portal = (ROOT / "templates/portal_base.html").read_text(encoding="utf-8", errors="replace")
-    if "maxQueueItems" not in portal and "OFFLINE_DELIVERY_CLIENT" not in portal:
-        findings.append("portal_base missing maxQueueItems / OFFLINE_DELIVERY_CLIENT")
+    if "rmc_sms_offline_config.html" not in portal:
+        findings.append("portal_base missing rmc_sms_offline_config partial")
+    offline_partial = (ROOT / "templates/partials/rmc_sms_offline_config.html").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    if "SMS_OFFLINE_CONFIG_JSON" not in offline_partial:
+        findings.append("rmc_sms_offline_config missing SMS_OFFLINE_CONFIG_JSON island")
     ctx = (ROOT / "apps/siteconfig/context_processors.py").read_text(encoding="utf-8", errors="replace")
     if "build_client_offline_config" not in ctx:
         findings.append("context_processors missing build_client_offline_config")
+    if "platform_surface_settings" not in ctx:
+        findings.append("context_processors missing platform_surface_settings")
+    psc = (ROOT / "apps/siteconfig/platform_surface_config.py").read_text(encoding="utf-8", errors="replace")
+    if "hydrateEndpoints" not in psc:
+        findings.append("platform_surface_config missing hydrateEndpoints builder")
     if findings:
         print("verify_sovereign_offline_config_cascade: FAIL", file=sys.stderr)
         for item in findings:

@@ -405,12 +405,24 @@
     }, false);
   }
 
-  /* === Send button → POST /studio/copilot/rail/send/ =============== */
+  /* === Send button → POST copilot rail send (URL from template) ===== */
   /* v3.58.5 — Prefer SSE streaming endpoint when fetch+ReadableStream is
      available so the operator sees progressive ink; legacy JSON endpoint
      stays as the fallback. */
-  var SEND_ENDPOINT = "/studio/copilot/rail/send/";
-  var SEND_STREAM_ENDPOINT = "/studio/copilot/rail/send-stream/";
+  function railSendEndpoints() {
+    var chromeEl = document.getElementById("page-data-rmc-ai-chrome");
+    var chromeUrls = {};
+    if (chromeEl && chromeEl.textContent) {
+      try {
+        chromeUrls = (JSON.parse(chromeEl.textContent).urls) || {};
+      } catch (_e) { chromeUrls = {}; }
+    }
+    var node = document.querySelector("[data-rmc-copilot-rail-endpoints]");
+    return {
+      send: (node && node.getAttribute("data-send-url")) || chromeUrls.copilot_rail_send || "",
+      stream: (node && node.getAttribute("data-send-stream-url")) || chromeUrls.copilot_rail_send_stream || "",
+    };
+  }
   var SUPPORTS_FETCH_STREAM = (function () {
     try {
       return typeof ReadableStream === "function"
@@ -510,7 +522,7 @@
     var remainder = "";
     var sawDone = false;
 
-    return fetch(SEND_STREAM_ENDPOINT, {
+    return fetch(railSendEndpoints().stream, {
       method: "POST",
       credentials: "same-origin",
       headers: {
@@ -568,7 +580,7 @@
   }
 
   function sendCopilotMessageJSON(text, mode) {
-    return fetch(SEND_ENDPOINT, {
+    return fetch(railSendEndpoints().send, {
       method: "POST",
       credentials: "same-origin",
       headers: {
@@ -596,6 +608,12 @@
     if (!input) { return; }
     var text = (input.value || "").trim();
     if (!text) { return; }
+    var endpoints = railSendEndpoints();
+    if (!endpoints.send) {
+      appendThreadMessage("ai", "Copilot send endpoint is not configured for this host.");
+      updatePostureFromSendReply("unavailable");
+      return;
+    }
 
     sending = true;
     var sendBtn = document.querySelector(".lx-copilot__send");

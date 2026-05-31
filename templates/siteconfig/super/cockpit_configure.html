@@ -57,12 +57,23 @@
     <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
   {% endif %}
 
+  {% comment %} On-this-page nav — 36 fieldsets need a jump-list so operators don't lose their place. {% endcomment %}
+  <nav class="rmc-section-nav mb-3 d-flex flex-wrap gap-1 small" aria-label="{% trans 'On this page' %}" data-rmc-toc>
+    <a href="#cockpit-footer" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Footer" %}</a>
+    <a href="#cockpit-community-band" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Community" %}</a>
+    <a href="#cockpit-newsletter-band" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Newsletter" %}</a>
+    <a href="#cockpit-front-office-200x" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Front-office 200x" %}</a>
+    <a href="#cockpit-tenant-v3-extended" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Tenant v3 100x" %}</a>
+    <a href="#cockpit-content-blocks" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Content blocks" %}</a>
+    <a href="#cockpit-signup-form" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Signup form" %}</a>
+  </nav>
+
   <form method="post" action="{{ cockpit_configure_url }}" novalidate>
     {% csrf_token %}
     {{ form.cockpit_payload.as_hidden }}
 
     {% comment %} ---- Footer fieldset ------------------------------------------------ {% endcomment %}
-    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="footer">
+    <fieldset id="cockpit-footer" class="border rounded-3 p-3 mb-4" data-cockpit-block="footer">
       <legend class="h6 px-2 fw-bold">{% trans "Footer" %}</legend>
       <p class="small text-muted mb-3">
         {% trans "Civic 4-tier footer — wordmark, motto, trust pillars, language switcher, app badges, social, contacts, stat line, legal links, copyright." %}
@@ -84,7 +95,7 @@
     </fieldset>
 
     {% comment %} ---- Community band fieldset ---------------------------------------- {% endcomment %}
-    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="community-band">
+    <fieldset id="cockpit-community-band" class="border rounded-3 p-3 mb-4" data-cockpit-block="community-band">
       <legend class="h6 px-2 fw-bold">{% trans "Community band" %}</legend>
       <p class="small text-muted mb-3">
         {% trans "Student-of-the-month, parent testimonial rotator, and district map. Master enable + per-sub-block enable + content." %}
@@ -106,7 +117,7 @@
     </fieldset>
 
     {% comment %} ---- Newsletter band fieldset --------------------------------------- {% endcomment %}
-    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="newsletter-band">
+    <fieldset id="cockpit-newsletter-band" class="border rounded-3 p-3 mb-4" data-cockpit-block="newsletter-band">
       <legend class="h6 px-2 fw-bold">{% trans "Newsletter band" %}</legend>
       <p class="small text-muted mb-3">
         {% trans "Gradient signup banner above the footer. Empty submit_url disables CSRF (external service like Mailchimp)." %}
@@ -129,7 +140,7 @@
 
     {% comment %} ---- v3.57.1 Front-office 200x enable toggles ----------------------- {% endcomment %}
     {% if front_office_fields %}
-    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="front-office-200x">
+    <fieldset id="cockpit-front-office-200x" class="border rounded-3 p-3 mb-4" data-cockpit-block="front-office-200x">
       <legend class="h6 px-2 fw-bold">{% trans "Front-office 200x sections" %}</legend>
       <p class="small text-muted mb-3">
         {% trans "Enable/disable the 10 NEW /super/** 200x cockpit sections. Section content uses defaults from cockpit_front_office_200x.py until rich editors land in a follow-up wave." %}
@@ -152,7 +163,7 @@
 
     {% comment %} ---- v3.57.1 Tenant v3 100x enable toggles -------------------------- {% endcomment %}
     {% if tenant_v3_extended_fields %}
-    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="tenant-v3-extended">
+    <fieldset id="cockpit-tenant-v3-extended" class="border rounded-3 p-3 mb-4" data-cockpit-block="tenant-v3-extended">
       <legend class="h6 px-2 fw-bold">{% trans "Tenant v3 100x sections" %}</legend>
       <p class="small text-muted mb-3">
         {% trans "Enable/disable the 10 NEW v3 tenant cockpit sections. Sibling-compare also requires the per-section opt_in flag (privacy gate) before any data renders." %}
@@ -175,6 +186,9 @@
 
     {% comment %} ---- v3.57.2 Lesson of the day rich editor -------------------------- {% endcomment %}
     {% if lesson_of_day_fields %}
+    {% comment %} 30+ content-block fieldsets — anchor sentinel for the on-this-page nav. {% endcomment %}
+    <h2 id="cockpit-content-blocks" class="h5 mt-4 mb-3 fw-bold">{% trans "Content blocks" %}</h2>
+
     <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="lesson-of-day">
       <legend class="h6 px-2 fw-bold">{% trans "Lesson of the day (content)" %}</legend>
       <p class="small text-muted mb-3">
@@ -977,7 +991,7 @@
 
     {% comment %} ---- v3.57.18 Public school-signup form rich editor ---------------- {% endcomment %}
     {% if signup_form_fields %}
-    <fieldset class="border rounded-3 p-3 mb-4" data-cockpit-block="signup-form">
+    <fieldset id="cockpit-signup-form" class="border rounded-3 p-3 mb-4" data-cockpit-block="signup-form">
       <legend class="h6 px-2 fw-bold">{% trans "Public school-signup form (content)" %}</legend>
       <p class="small text-muted mb-3">
         {% trans "Operator-configurable copy + chrome for the marketing-host /signup/ page. Defaults to enabled (front-door section); flip the enable toggle to pause acquisition during incidents. Empty fields fall through to platform defaults; trust-pill lines accept one per line as 'icon | label' (icon defaults to ✓)." %}

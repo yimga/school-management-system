@@ -551,9 +551,9 @@ body.control-plane-shell .cp-header__row--utility .rmc-platform-header__actions 
 body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__icon-btn,
 body.control-plane-shell .cp-header__row--utility .rmc-platform-header__icon-btn,
 body.admin-manager-shell .cp-header__row--utility .cp-topbar-bell,
-body.control-plane-shell .cp-header__row--utility .cp-topbar-bell,
-body.admin-manager-shell .cp-header__row--utility .cp-topbar-theme-toggle,
-body.control-plane-shell .cp-header__row--utility .cp-topbar-theme-toggle {
+body.control-plane-shell .cp-header__row--utility .cp-topbar-bell {
+  /* v4.01.08: .cp-topbar-theme-toggle selectors removed — toggle is now
+     `.rmc-header-theme-chip` (templates/components/header_theme_chip.html). */
   width: 32px !important; /* style-allow: header-rebalance-icon */
   height: 32px !important; /* style-allow: header-rebalance-icon */
   padding: 0 !important; /* style-allow: header-rebalance-icon */

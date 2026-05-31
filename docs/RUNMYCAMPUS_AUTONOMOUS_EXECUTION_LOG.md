@@ -1,5 +1,35 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Platform configurability cascade wave 3 batch 1587 (2026-05-30)
+
+**A. Claim:** §11.4 batch 1587 — close session configurability gaps (assist dock URLs, AI stream, EMIS client paths, wizard telemetry test).
+
+**B. Shipped:** `assist_dock/client_urls.py` + `ASSIST_DOCK_URLS_JSON`; `rmc-assist-dock.js` `dockUrl()`; `ai_chrome_config.urls.ai_stream`; `rmc-ai-stream-bridge.js` page-data reader; EMIS dashboard page-data URLs; `test_wizard_cache_telemetry` RequestFactory fix.
+
+**C. Proof:** **PLATFORM_CONFIG_CASCADE_PASS**; **AI_CHROME_NO_HARDCODING_PASS**; **SOVEREIGN_OFFLINE_CONFIG_CASCADE_PASS**; SW monotonic **v4.00.98**; Django tests wizard + platform_surface + client_urls OK.
+
+**D. SOT:** batch **1587** **DONE**. **E. Honest:** SW offline path-prefix rules unchanged; Playwright abrupt-end external.
+
+## Slice — Client config cascade toolset batch 1588 (2026-05-31)
+
+**A. Claim:** §11.4 batch 1588 — end-to-end configurability toolset (CI bundle, repo-wide fetch scanner, catalog ledger, dashboard API migration).
+
+**B. Shipped:** `verify_client_config_cascade.py`; `scan_hardcoded_client_fetch_paths.py` + baseline; `generate_platform_client_url_catalog.py`; `verify_phases_3_11_gates` + `architectural-boundaries` CI job; `dashboard-available-widgets` URL; platform catalog keys + JS migrations.
+
+**C. Proof:** **CLIENT_CONFIG_CASCADE_PASS**; hardcoded-client-fetch **0**; platform_surface tests **4/4 OK**.
+
+**D. SOT:** batch **1588** **DONE**. **E. Honest:** evals import-job fetch allow-marked; Playwright external.
+
+## Slice — Platform configurability residuals closeout (2026-05-30)
+
+**A. Claim:** Close batch 1587 honest residuals (control plane assist-dock labels, dockUrl fallback policy, verifier shell pairing).
+
+**B. Shipped:** `control_plane_skeleton.html` auth-gated `rmc_assist_dock_labels.html` + dock JS (parity with portal); `dockUrl()` uses path fallbacks only when labels island missing; `verify_platform_config_cascade` asserts assist-dock labels + ai chrome pairing on shells.
+
+**C. Proof:** **PLATFORM_CONFIG_CASCADE_PASS**.
+
+**D. SOT:** batch **1587** residual lines updated. **E. Honest:** Playwright abrupt-end still needs live server.
+
 ## Slice — Global academic OS kernel residuals batch 1586 (2026-05-30)
 
 **A. Claim:** §11.4 batch 1586 — close 1585 residuals (POST initialize, PolicyBundle grading JSON-Logic, terminology breadcrumb).

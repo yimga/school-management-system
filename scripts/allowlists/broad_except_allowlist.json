@@ -53,7 +53,7 @@
     "apps/portal/views_ai_gateway.py": 2,
     "apps/schools/middleware.py": 0,
     "apps/schools/models.py": 0,
-    "apps/schools/signup_views.py": 1,
+    "apps/schools/signup_views.py": 0,
     "apps/schools/tasks.py": 0,
     "apps/schools/super_views.py": 0,
     "apps/schools/domain_sync.py": 0,

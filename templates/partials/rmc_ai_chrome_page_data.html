@@ -1,0 +1,7 @@
+{% comment %}
+  Canonical AI chrome page-data island — URLs, flags, RBAC from ai_chrome_config.
+  Loaded once per authenticated shell; JS must read page-data-rmc-ai-chrome only.
+{% endcomment %}
+{% if request.user.is_authenticated and AI_CHROME_CONFIG_JSON %}
+<script type="application/json" id="page-data-rmc-ai-chrome" nonce="{{ csp_nonce }}">{{ AI_CHROME_CONFIG_JSON|safe }}</script>
+{% endif %}

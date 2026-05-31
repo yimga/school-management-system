@@ -4,6 +4,12 @@
  * CDN-compatible version
  */
 
+function rmcEntityUrl(key, suffix) {
+  var base = (window.RMCPlatformSurface && window.RMCPlatformSurface.url(key)) || "";
+  if (!base) return "";
+  return suffix ? base.replace(/\/?$/, "/") + suffix : base;
+}
+
 window.ReactHooks = {
   // Hook for fetching students (simplified for CDN)
   useStudents: (filters = {}) => {
@@ -16,7 +22,9 @@ window.ReactHooks = {
         try {
           setIsLoading(true);
           const params = new URLSearchParams(filters).toString();
-          const result = await window.ReactHelpers.fetchWithAuth(`/api/entities/students/${params ? '?' + params : ''}`);
+          const studentsUrl = rmcEntityUrl("entity_students", "");
+          if (!studentsUrl) return;
+          const result = await window.ReactHelpers.fetchWithAuth(`${studentsUrl}${params ? '?' + params : ''}`);
           setData(result);
           setError(null);
         } catch (err) {
@@ -42,7 +50,9 @@ window.ReactHooks = {
         try {
           setIsLoading(true);
           const params = new URLSearchParams(filters).toString();
-          const result = await window.ReactHelpers.fetchWithAuth(`/api/entities/teachers/${params ? '?' + params : ''}`);
+          const teachersUrl = rmcEntityUrl("entity_teachers", "");
+          if (!teachersUrl) return;
+          const result = await window.ReactHelpers.fetchWithAuth(`${teachersUrl}${params ? '?' + params : ''}`);
           setData(result);
           setError(null);
         } catch (err) {
@@ -67,7 +77,9 @@ window.ReactHooks = {
       const fetchData = async () => {
         try {
           setIsLoading(true);
-          const result = await window.ReactHelpers.fetchWithAuth('/api/session/claims/');
+          const claimsUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url("session_claims")) || "";
+          if (!claimsUrl) return;
+          const result = await window.ReactHelpers.fetchWithAuth(claimsUrl);
           setData(result);
           setError(null);
         } catch (err) {
@@ -89,7 +101,9 @@ window.ReactHooks = {
     const mutateAsync = async ({ id, data }) => {
       setIsPending(true);
       try {
-        const url = id ? `/api/entities/students/${id}/` : '/api/entities/students/';
+        const base = rmcEntityUrl("entity_students", "");
+        if (!base) throw new Error("entity_students URL not configured");
+        const url = id ? rmcEntityUrl("entity_students", `${id}/`) : base;
         const method = id ? 'PATCH' : 'POST';
         const result = await window.ReactHelpers.fetchWithAuth(url, {
           method,
@@ -111,7 +125,9 @@ window.ReactHooks = {
     const mutateAsync = async ({ id, data }) => {
       setIsPending(true);
       try {
-        const url = id ? `/api/entities/teachers/${id}/` : '/api/entities/teachers/';
+        const base = rmcEntityUrl("entity_teachers", "");
+        if (!base) throw new Error("entity_teachers URL not configured");
+        const url = id ? rmcEntityUrl("entity_teachers", `${id}/`) : base;
         const method = id ? 'PATCH' : 'POST';
         const result = await window.ReactHelpers.fetchWithAuth(url, {
           method,
@@ -133,7 +149,9 @@ window.ReactHooks = {
     const mutateAsync = async (payload) => {
       setIsPending(true);
       try {
-        const result = await window.ReactHelpers.fetchWithAuth('/api/entities/students/bulk-assign/', {
+        const bulkUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url("entity_students_bulk_assign")) || "";
+        if (!bulkUrl) throw new Error("bulk-assign URL not configured");
+        const result = await window.ReactHelpers.fetchWithAuth(bulkUrl, {
           method: 'POST',
           body: JSON.stringify(payload),
         });

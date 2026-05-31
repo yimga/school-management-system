@@ -14,7 +14,6 @@ import logging
 from .badges import (
     BADGE_LEVEL_INFO,
     BADGE_LEVEL_SUCCESS,
-    BADGE_LEVEL_WARNING,
     BadgeSnapshot,
     register_badge_resolver,
 )
@@ -80,7 +79,6 @@ def ai_copilot_badge_resolver(request, *, slot, page_path):  # noqa: ARG001
         from .insights import (
             INSIGHT_CRITICAL,
             INSIGHT_WARNING,
-            count_insights,
             list_insights,
         )
     except (ImportError, RuntimeError):

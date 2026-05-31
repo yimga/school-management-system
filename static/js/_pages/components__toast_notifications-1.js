@@ -35,7 +35,9 @@
 
   function persistToInbox(message, type, opts) {
     try {
-      fetch('/api/v1/notifications/self-capture/', {
+      var captureUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('notifications_self_capture')) || '';
+      if (!captureUrl) return;
+      fetch(captureUrl, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {

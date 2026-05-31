@@ -11,7 +11,10 @@
       return;
     }
     bubble.textContent = '…';
-    fetch('/api/internal/teacher-hover/?teacher_id=' + encodeURIComponent(tid), {
+    var hoverBase = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('teacher_hover')) || '';
+    if (!hoverBase) return;
+    var hoverSep = hoverBase.indexOf('?') >= 0 ? '&' : '?';
+    fetch(hoverBase + hoverSep + 'teacher_id=' + encodeURIComponent(tid), {
       credentials: 'same-origin',
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     })

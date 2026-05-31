@@ -12,12 +12,10 @@ from apps.assist_dock.ai_actions import (
     RESPONSE_MAX_CHARS,
     AIAction,
     actions_as_jsonable,
-    all_actions,
     get_action,
     invoke_action,
     register_action,
     render_prompt,
-    reset_actions_for_tests,
     unregister_action,
 )
 

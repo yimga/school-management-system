@@ -142,7 +142,11 @@
     var key = lang ? (code + "|" + lang) : code;
     if (memo[key]) return Promise.resolve(memo[key]);
     if (inflight[key]) return inflight[key];
-    var url = "/api/v1/localization/" + encodeURIComponent(code) + "/";
+    var url = "";
+    if (window.RMCPlatformSurface && window.RMCPlatformSurface.localizationUrl) {
+      url = window.RMCPlatformSurface.localizationUrl(code);
+    }
+    if (!url) return;
     if (lang) url += "?lang=" + encodeURIComponent(lang);
     var p = fetch(url, {
       credentials: "same-origin",

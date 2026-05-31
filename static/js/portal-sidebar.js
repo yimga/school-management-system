@@ -63,7 +63,9 @@
         if (!id) return;
         var isPinned = btn.classList.contains("sidebar-pin-pinned");
 
-        fetch("/api/portal-preferences/", {
+        var prefsUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url("portal_preferences")) || "";
+        if (!prefsUrl) return;
+        fetch(prefsUrl, {
           method: "GET",
           credentials: "same-origin",
           headers: { Accept: "application/json" },
@@ -81,7 +83,7 @@
               list.push(id);
             }
 
-            return fetch("/api/portal-preferences/", {
+            return fetch(prefsUrl, {
               method: "PATCH",
               credentials: "same-origin",
               headers: {

@@ -22,7 +22,7 @@ class TerminologyStructureBreadcrumbTests(TestCase):
             country_code="CM",
             is_active=True,
         )
-        year = AcademicYear.objects.create(
+        AcademicYear.objects.create(
             school=self.school,
             name="2025/2026",
             start_date=date(2025, 9, 1),

@@ -4602,3 +4602,50 @@ html[data-rmc-reveal-armed] .rmc-reveal--scale.is-revealed {
   background: color-mix(in srgb, var(--school-primary, #4f46e5) 22%, transparent);
   filter: none;
 }
+
+/* ============================================================
+   .rmc-empty-state BEM (v4.01.06, 2026-05-31)
+   ------------------------------------------------------------
+   Canonical empty-state primitive. Consumed by
+   templates/components/rmc_empty_state.html (SOT) AND by raw-
+   <td colspan> codemod sites where including a full partial
+   adds unwanted vertical chrome. The verifier
+   `LUX_EMPTY_STATE_RE` matches both `rmc-empty` and
+   `rmc-empty-state` so legacy callers keep working.
+   Retires: cp_empty.html, tp_empty.html,
+            world_class_empty_state.html,
+            dashboard_empty_state.html (scheduled v4.02.0).
+   ============================================================ */
+.rmc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  border-radius: var(--lux-radius, 12px);
+  background: var(--surface-elevated, var(--lux-canvas-elev));
+  border: 1px solid var(--hairline, var(--lux-border-thin));
+  gap: 0.75rem;
+}
+.rmc-empty-state__icon {
+  font-size: 2.5rem;
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+.rmc-empty-state__title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+.rmc-empty-state__body {
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 32rem;
+}
+.rmc-empty-state__cta {
+  margin-top: 0.5rem;
+}
+.rmc-empty-state--row {
+  padding: 1rem;
+}  /* For inside <td colspan="N"> contexts */

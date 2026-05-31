@@ -17,7 +17,7 @@ that's what most legacy callers check.
 from __future__ import annotations
 
 import logging
-from typing import Any, Iterable, Optional, Union
+from typing import Any, Iterable, Optional
 
 logger = logging.getLogger(__name__)
 

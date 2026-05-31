@@ -1219,17 +1219,17 @@ body.control-plane-shell .cp-navbar.cp-navbar--surface {
 /* ========== Manager platform header — control-row alignment (v3.42.6) ========== */
 /* Wins over rmc-cool-apple-polish for [data-rmc-platform-header="manager"]. */
 
-[data-rmc-platform-header="manager"] .cp-topbar-bell,
-[data-rmc-platform-header="manager"] .cp-topbar-theme-toggle {
+/* v4.01.08: .cp-topbar-theme-toggle selectors removed — toggle hoisted to
+   templates/components/header_theme_chip.html SOT in v4.01.07.  .cp-topbar-bell
+   rules preserved (real element still rendered by manager_operator_topbar.html). */
+[data-rmc-platform-header="manager"] .cp-topbar-bell {
   background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
   border: 1px solid rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
   color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
 }
 
 [data-rmc-platform-header="manager"] .cp-topbar-bell:hover,
-[data-rmc-platform-header="manager"] .cp-topbar-bell:focus-visible,
-[data-rmc-platform-header="manager"] .cp-topbar-theme-toggle:hover,
-[data-rmc-platform-header="manager"] .cp-topbar-theme-toggle:focus-visible {
+[data-rmc-platform-header="manager"] .cp-topbar-bell:focus-visible {
   background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
   color: #ffffff; /* off-token-allow: hex-literal-decorative */
 }

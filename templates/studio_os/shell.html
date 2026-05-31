@@ -2,6 +2,7 @@
 {% load static i18n %}
 {% load terminology_tags %}
 {% load region_format %}
+{% comment %} primary-cta-allow: mode-gated-mutually-exclusive — 5 of the btn-primary buttons (L114-119) are guarded by `{% if current_mode == 'X' %}` with distinct X values, so only one renders at runtime. The verifier's mode-gated collapse handles 2+ but Studio Shell carries the canonical pattern. {% endcomment %}
 
 {% block title %}{% if current_mode %}{% for m in studio_modes %}{% if m.id == current_mode %}{{ m.label }}{% endif %}{% endfor %} – {% endif %}{% trans "Studio" %} · {{ SITE.site_name|default:"Portal" }}{% endblock %}
 

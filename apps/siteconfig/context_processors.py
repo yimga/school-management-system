@@ -1401,124 +1401,79 @@ def language_context(request):
 
 def ai_copilot_settings(request):
     """
-    Context processor for AI Copilot settings.
-    Provides frontend-safe AI visibility flags and RBAC permissions to templates.
-
-    Ensures AI copilot respects role-based access control:
-    - ADMIN/LEADERSHIP: Full system access (analytics, finance, compliance)
-    - TEACHER: Class and grade data access
-    - PARENT: Child-specific data access
-    - Other: General navigation only
+    Context processor for AI Copilot settings (delegates to ``ai_chrome_config`` SOT).
     """
-    # Get user role
-    _user = getattr(request, "user", None)
-    user_role = "USER"
-    if _user and getattr(_user, "is_authenticated", False):
-        user_role = (getattr(_user, "role", "USER") or "").upper()
+    from apps.portal.ai_chrome_config import ai_chrome_config_json, resolve_ai_chrome_config
 
-    admin_roles = {
-        "ADMIN",  # role-string-allow: ai-copilot-rbac-role-set-against-user.role
-        "LEADERSHIP",
-        "PRINCIPAL",
-        "VICE_PRINCIPAL",
-        "DEAN",
-        "IT_ADMIN",
-        "SUPERADMIN",
-    }
-    is_admin_like = False
-    if _user and getattr(_user, "is_authenticated", False):
-        is_admin_like = (
-            getattr(_user, "is_superuser", False)
-            or getattr(_user, "is_staff", False)
-            or user_role in admin_roles
-        )
-        if not is_admin_like:
-            try:
-                from apps.schools.control_plane import user_has_control_plane_access
-
-                is_admin_like = user_has_control_plane_access(_user)
-            except ImportError:
-                pass
-
-    # Determine AI permissions based on role
-    ai_permissions = {
-        "can_access_ai": bool(_user and getattr(_user, "is_authenticated", False)),
-        "can_analyze_data": False,
-        "can_view_financial": False,
-        "can_view_compliance": False,
-        "can_access_grades": False,
-        "can_access_roster": False,
-        "scope": "general",
+    chrome = resolve_ai_chrome_config(request)
+    features = chrome.get("features") or {}
+    return {
+        "AI_CHROME_CONFIG": chrome,
+        "AI_CHROME_CONFIG_JSON": ai_chrome_config_json(request),
+        "AI_BACKEND_ENABLED": bool(features.get("backend_enabled")),
+        "AI_RULES_FALLBACK_ENABLED": bool(features.get("rules_fallback_enabled")),
+        "AI_PROVIDER_NAME": chrome.get("provider_name") or "",
+        "AI_PERMISSIONS": json.dumps(chrome.get("permissions") or {}),
+        "USER_ROLE": chrome.get("user_role") or "USER",
+        "AI_COPILOT_QUERY_URL": (chrome.get("urls") or {}).get("copilot_query") or "",
+        "AI_HEALTH_URL": (chrome.get("urls") or {}).get("health") or "",
     }
 
-    if is_admin_like:
-        ai_permissions.update(
-            {
-                "can_analyze_data": True,
-                "can_view_financial": True,
-                "can_view_compliance": True,
-                "can_access_grades": True,
-                "can_access_roster": True,
-                "scope": "admin",
-            }
-        )
-    elif user_role == "BURSAR":
-        ai_permissions.update(
-            {
-                "can_analyze_data": True,
-                "can_view_financial": True,
-                "scope": "finance",
-            }
-        )
-    elif user_role == "TEACHER":  # role-string-allow: ai-copilot-rbac-compare-against-user.role
-        ai_permissions.update(
-            {
-                "can_access_grades": True,
-                "can_access_roster": True,
-                "scope": "teacher",
-            }
-        )
-    elif user_role == "PARENT":  # role-string-allow: ai-copilot-rbac-compare-against-user.role
-        ai_permissions.update(
-            {
-                "can_access_grades": True,  # Only their child's
-                "can_view_financial": True,  # Only their child's fees
-                "scope": "parent",
-            }
-        )
-    ai_backend_enabled = False
-    ai_provider_name = ""
-    try:
-        from apps.portal.ai_provider import get_public_ai_provider_status
 
-        status = get_public_ai_provider_status(include_health=False)
-        ai_backend_enabled = bool(status.get("has_live_provider")) or bool(
-            status.get("rules_fallback_enabled")
+def platform_surface_settings(request):
+    """Named API URLs + offline JSON island (``platform_surface_config`` SOT)."""
+    from django.conf import settings as django_settings
+
+    from apps.siteconfig.platform_surface_config import (
+        platform_surface_config_json,
+        resolve_platform_surface_config,
+        sms_offline_config_json,
+    )
+
+    site = getattr(request, "site", None)
+    flags_ctx = _resolve_backend_feature_flags(request, site)
+    school = getattr(request, "school", None)
+    offline_delivery: dict = {}
+    if school is not None:
+        from apps.schools.offline_delivery_settings import build_client_offline_config
+
+        deployment = (
+            getattr(django_settings, "RMC_DEPLOYMENT_PROFILE", None) or "online"
+        ).strip().lower()
+        offline_delivery = build_client_offline_config(
+            school,
+            deployment_profile=deployment,
+            feature_flags=flags_ctx,
         )
-        live_kind = status.get("live_provider_kind")
-        if status.get("has_live_provider") and live_kind:
-            ai_provider_name = str(live_kind)
-        elif status.get("rules_fallback_enabled"):
-            ai_provider_name = "rules"
-        else:
-            for provider in status.get("preference", []):
-                provider_cfg = (
-                    status.get("providers", {}).get(provider, {})
-                    if isinstance(status.get("providers"), dict)
-                    else {}
-                )
-                if provider_cfg.get("configured"):
-                    ai_provider_name = provider
-                    break
-    except (AttributeError, ImportError, TypeError, ValueError):
-        ai_backend_enabled = False
-        ai_provider_name = ""
+    if school:
+        try:
+            policy_offline = get_effective_policy(
+                school, user=getattr(request, "user", None), capability="offline_mode"
+            ).get("enabled", False)
+        except OPTIONAL_CONTEXT_ERRORS:
+            policy_offline = False
+    else:
+        policy_offline = True
+    offline_runtime = (
+        site.get_offline_runtime_settings()
+        if site is not None
+        and callable(getattr(site, "get_offline_runtime_settings", None))
+        else {"enable_offline_mode": bool(getattr(site, "enable_offline_mode", False))}
+    )
+    offline_enabled = bool(offline_runtime.get("enable_offline_mode", False)) and bool(
+        policy_offline
+    )
 
     return {
-        "AI_BACKEND_ENABLED": ai_backend_enabled,
-        "AI_PROVIDER_NAME": ai_provider_name,
-        "AI_PERMISSIONS": json.dumps(ai_permissions),
-        "USER_ROLE": user_role,
+        "PLATFORM_SURFACE_CONFIG": resolve_platform_surface_config(request),
+        "PLATFORM_SURFACE_CONFIG_JSON": platform_surface_config_json(request),
+        "SMS_OFFLINE_CONFIG_JSON": sms_offline_config_json(
+            request,
+            site=site,
+            backend_flags=flags_ctx,
+            offline_enabled_for_school=offline_enabled,
+            offline_delivery_client=offline_delivery,
+        ),
     }
 
 

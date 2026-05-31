@@ -13,7 +13,6 @@ Celery worker is down.
 from __future__ import annotations
 
 import json
-import sys
 
 from django.core.management.base import BaseCommand
 

@@ -499,41 +499,9 @@
   box-shadow: 0 0 0 2px rgba(11, 17, 32, 0.85);
 }
 
-.cp-topbar-theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
-  border: 1px solid rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
-  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
-  cursor: pointer;
-  transition: background 140ms var(--ease-apple, cubic-bezier(0.32, 0.72, 0, 1));
-}
-
-.cp-topbar-theme-toggle:hover,
-.cp-topbar-theme-toggle:focus-visible {
-  background: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
-  color: #ffffff; /* off-token-allow: hex-literal-decorative */
-  outline: none;
-}
-
-/* Hide the moon when light is active; hide the sun when dark is active.
-   The icon hierarchy reads "click to switch to the OTHER mode." */
-.cp-topbar-theme-toggle .bi-moon-stars,
-.cp-topbar-theme-toggle .bi-sun-fill {
-  display: none;
-}
-
-[data-resolved-theme="light"] .cp-topbar-theme-toggle .bi-moon-stars {
-  display: inline-block;
-}
-
-[data-resolved-theme="dark"] .cp-topbar-theme-toggle .bi-sun-fill {
-  display: inline-block;
-}
+/* v4.01.08: `.cp-topbar-theme-toggle` rules retired — toggle hoisted to
+   templates/components/header_theme_chip.html SOT in v4.01.07.  See
+   docs/CSS_RETIREMENT_DOCKET.md for the full retirement entry. */
 
 /* ========================================================================== */
 /* CONSOLIDATED TOP CHROME — v2.56                                             */

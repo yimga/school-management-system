@@ -4,7 +4,14 @@
   if(pageDataEl){try{window.__RMC_PAGE_DATA__["accounts__notifications-1"]=JSON.parse(pageDataEl.textContent||"{}")}catch(_e){}}
 async function markAsRead(notifId) {
   try {
-    const response = await fetch(`/api/notifications/${notifId}/read/`, {
+    const readUrl =
+      (window.RMCPlatformSurface &&
+        window.RMCPlatformSurface.templated("notification_read", {
+          notification_id: notifId,
+        })) ||
+      "";
+    if (!readUrl) return;
+    const response = await fetch(readUrl, {
       method: 'POST',
       headers: {
         'X-CSRFToken': ((window.__RMC_PAGE_DATA__["accounts__notifications-1"] || {})["var_csrf_token"]),

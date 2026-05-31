@@ -8,8 +8,8 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'kb:faq_list' %}">FAQ</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">{% trans "Home" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'kb:faq_list' %}">{% trans "FAQ" %}</a></li>
             {% if faq.category %}
             <li class="breadcrumb-item">
                 <a href="{% url 'kb:faq_list' %}?category={{ faq.category.slug }}">
@@ -192,7 +192,7 @@
    to Bootstrap 5 (data-bs-dismiss, .btn-close, .mb-3). The BS4 close button rendered fine
    visually but silently failed to dismiss the modal on a BS5 bundle. {% endcomment %}
 <!-- Report Modal -->
-<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
+<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="reportModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">

@@ -46,7 +46,13 @@
         });
         return html;
       }
-      fetch('/api/activities/?limit=8').then(function(r) { return r.json(); }).then(function(data) {
+      var activitiesUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('activities')) || '';
+      if (!activitiesUrl) {
+        setContent('<li class="text-muted small px-2">No recent activity.</li>');
+        return;
+      }
+      var actSep = activitiesUrl.indexOf('?') >= 0 ? '&' : '?';
+      fetch(activitiesUrl + actSep + 'page=1').then(function(r) { return r.json(); }).then(function(data) {
         setContent(buildItems(data));
       }).catch(function() {
         setContent('<li class="text-muted small px-2">No recent activity.</li>');

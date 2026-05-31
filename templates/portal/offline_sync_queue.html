@@ -5,6 +5,7 @@
 {% block title %}{% trans "Offline sync queue" %} — {{ block.super }}{% endblock %}
 
 {% block content %}
+{# table-pagination-allow: per-user-queue-view-layer-row-cap natural-drain-not-list-view #}
 <div class="container py-4" data-rmc-offline-sync-queue="1" data-rmc-os-center="offline_sync_center" data-task="offline_sync" data-task-step="portal:offline-sync-queue" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   {% trans "Operations" as off_eyebrow %}
   {% trans "Queued offline mutations for this school — process in order; failures stay visible for retry or conflict resolution." as off_purpose %}

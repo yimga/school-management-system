@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block content %}
+{# table-pagination-allow: rbac-role-permission-matrix bounded-by-role-registry-not-pageable #}
 <div id="rbac-page" class="rbac-page professional-page" data-decision-engine="surface">
   {% phase8_dashboard_declaration "accounts/rbac_dashboard.html" %}
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
@@ -280,7 +281,7 @@
   </div>
 
   {% if edit_role_form %}
-  <div class="modal fade" id="editRoleModal" tabindex="-1" aria-labelledby="editRoleModalLabel" aria-describedby="editRoleModalDesc" data-bs-backdrop="static">
+  <div class="modal fade" id="editRoleModal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="editRoleModalLabel" aria-describedby="editRoleModalDesc" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">

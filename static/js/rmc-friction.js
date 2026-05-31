@@ -20,7 +20,10 @@
     return;
   }
 
-  var INGEST_URL = "/api/observability/friction/";
+  function ingestUrl() {
+    return (window.RMCPlatformSurface && window.RMCPlatformSurface.url("friction_ingest")) || "";
+  }
+
   var DWELL_MS = 60_000;
   var VALIDATION_RETRY_THRESHOLD = 3;
   var REPEAT_ERROR_THRESHOLD = 3;
@@ -48,6 +51,8 @@
 
   function report(kind, payload) {
     if (!shouldReport(kind)) return;
+    var endpoint = ingestUrl();
+    if (!endpoint) return;
     try {
       var body = JSON.stringify({
         view_name: getViewName(),
@@ -56,10 +61,10 @@
       });
       // Prefer sendBeacon for pagehide reliability.
       if (kind === "form_abandon" && navigator.sendBeacon) {
-        navigator.sendBeacon(INGEST_URL, new Blob([body], { type: "application/json" }));
+        navigator.sendBeacon(endpoint, new Blob([body], { type: "application/json" }));
         return;
       }
-      fetch(INGEST_URL, {
+      fetch(endpoint, {
         method: "POST",
         credentials: "same-origin",
         headers: {

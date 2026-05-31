@@ -12,6 +12,7 @@
 {% endblock %}
 
 {% block backend_page %}
+{# table-pagination-allow: compliance-dashboard-widget-top-N bounded-by-rule-registry-and-recent-window #}
 <div class="compliance-dashboard" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 {% phase8_dashboard_declaration "compliance/dashboard.html" %}
 {% if phase7_de %}

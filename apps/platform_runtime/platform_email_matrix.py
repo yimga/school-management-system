@@ -29,9 +29,8 @@ to silently skip without raising.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from datetime import timedelta
-from typing import Any, Callable, Iterable
+from dataclasses import dataclass
+from typing import Any, Callable
 
 from django.template import Context, Template
 from django.template.loader import render_to_string

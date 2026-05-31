@@ -25,6 +25,7 @@
   {% if organization_schema_json %}<script type="application/ld+json">{{ organization_schema_json|safe }}</script>{% endif %}
 {% endblock %}
 {% block content %}
+{# table-pagination-allow: marketing-landing-static-comparison-table editorial-not-data-listing #}
 <noscript></noscript>
 <div class="marketing-home mkt-narrative-phase10 mkt-global-os" id="mkt-narrative-root" data-scroll-story="true" data-phase10-marketing-narrative="true" data-marketing-hero-variant="{{ hero_variant|default:'A' }}" data-marketing-cta-variant="{{ marketing_cta_variant|default:'default' }}" data-marketing-experiment="hero={{ hero_variant|default:'A' }};cta={{ marketing_cta_variant|default:'default' }}">
   {% comment %} Skip link lives once on marketing/base_marketing.html (#main-content); duplicate skip targets confuse axe/link-name rules. {% endcomment %}
@@ -48,7 +49,7 @@
     <div class="container d-flex align-items-center justify-content-between gap-2 flex-wrap py-2">
       <span class="text-white small fw-medium">{% trans "Ready to run your campus?" %}</span>
       <div class="d-flex gap-2 flex-wrap justify-content-end">
-        <a href="{% url 'marketing_demo' %}" class="btn btn-sm btn-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+        <a href="{% url 'marketing_demo' %}" class="btn btn-sm btn-outline-light" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
         <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-sm btn-outline-light" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>
         <a href="{% url 'global_login_discovery' %}" class="btn btn-sm btn-link text-white-50 text-decoration-none">{% trans "Login" %}</a>
       </div>
@@ -91,6 +92,18 @@
       </div>
     </div>
   </section>
+
+  <nav class="rmc-section-nav rmc-section-nav--mkt container d-flex flex-wrap gap-1 small py-2" aria-label="{% trans 'On this page' %}" data-rmc-toc>
+    <a href="#hero" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Overview" %}</a>
+    <a href="#problem-statement" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "The pain" %}</a>
+    <a href="#platform-pillars" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Why switch" %}</a>
+    <a href="#data-flow-linkage" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Student journey" %}</a>
+    <a href="#product-pillars" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Product surfaces" %}</a>
+    <a href="#for-your-role" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "By role" %}</a>
+    <a href="#launch-in-minutes" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Global configuration" %}</a>
+    <a href="#security-compliance" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Trust" %}</a>
+    <a href="#final-cta" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Get started" %}</a>
+  </nav>
 
   <section class="container py-5 rmc-reveal" data-world-class-marketing-story="1" aria-labelledby="world-class-product-story-title">
     <div class="rmc-wcx-hero rmc-wcx-surface">
@@ -464,7 +477,7 @@
       {% endfor %}
     </div>
     <p class="text-center mt-3">
-      <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
       <a href="{% url 'marketing_story_pilot_program' %}" class="btn btn-outline-primary ms-2">{% trans "Pilot program" %}</a>
     </p>
   </section>
@@ -486,7 +499,7 @@
       <li class="col-md-3">{% trans "Launch" %}</li>
     </ul>
     <p class="text-center mt-3">
-      <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
       <a href="{% url 'marketing_story_implementation' %}" class="btn btn-outline-primary ms-2">{% trans "Implementation overview" %}</a>
     </p>
   </section>
@@ -619,7 +632,7 @@
       <p class="small text-muted">{% trans "Works with:" %} {{ integrations_strip|join:", " }}</p>
       {% endif %}
       <p class="mt-3">
-        <a href="{% url 'marketing_demo' %}" class="btn btn-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+        <a href="{% url 'marketing_demo' %}" class="btn btn-outline-primary" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
         <a href="{% url 'marketing_app_marketplace' %}" class="btn btn-outline-primary ms-2">{% if app_marketplace_hero %}{{ app_marketplace_hero.cta_label }}{% else %}{% trans "Browse marketplace" %}{% endif %}</a>
       </p>
       {% if partners_list %}
@@ -736,7 +749,7 @@
               <li>{{ bullet }}</li>
             {% endfor %}
           </ul>
-          <a href="{{ plan.cta_path }}" class="btn btn-sm btn-primary">{{ plan.cta_label }}</a>
+          <a href="{{ plan.cta_path }}" class="btn btn-sm btn-outline-primary">{{ plan.cta_label }}</a>
         </article>
       {% endfor %}
     </div>
@@ -797,7 +810,7 @@
   <section id="gated-report" class="mkt-section rmc-reveal" aria-label="{% trans 'Download report' %}">
     <h2 class="mkt-section-heading">{{ gated_report_cta.headline }}</h2>
     <p class="text-center">
-      <a href="{{ gated_report_cta.url }}" class="btn btn-primary">{{ gated_report_cta.cta_label }}</a>
+      <a href="{{ gated_report_cta.url }}" class="btn btn-outline-primary">{{ gated_report_cta.cta_label }}</a>
     </p>
   </section>
   {% endif %}
@@ -902,14 +915,27 @@
     <h2 class="mkt-section-heading">{{ final_cta_headline }}</h2>
     <p class="text-center text-muted mx-auto mb-4" style="max-width:36rem">{% trans "See how RunMyCampus can unify admissions, academics, finance, communication, reporting, and daily operations for your school or network." %}</p>
     <div class="mkt-hero-ctas justify-content-center flex-wrap">
-      <a href="{% url 'marketing_demo' %}" class="btn btn-primary mkt-cta-focus" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
+      <a href="{% url 'marketing_demo' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="demo" data-page="home">{% trans "Book demo" %}</a>
       <a href="{% url 'marketing_resources_product_tour' %}" class="btn btn-outline-light mkt-cta-focus" data-cta="secondary" data-page="home">{% trans "See product tour" %}</a>
     </div>
   </section>
 </div>
+
+{% comment %} Single canonical sticky CTA — appears after hero scrolls out of view.
+   Lets every sectional Book demo CTA stay as outline (no primary competition)
+   while the hero retains the only above-the-fold btn-primary. {% endcomment %}
+<div class="rmc-mkt-sticky-cta" data-rmc-sticky-cta hidden>
+  <div class="rmc-mkt-sticky-cta__inner">
+    <span class="rmc-mkt-sticky-cta__pitch">{% trans "Ready to switch to RunMyCampus?" %}</span>
+    <a href="{% url 'marketing_demo' %}" class="btn btn-primary rmc-mkt-sticky-cta__action" data-cta="demo" data-page="sticky">{% trans "Book demo" %}</a>
+    <button type="button" class="rmc-mkt-sticky-cta__close" aria-label="{% trans 'Dismiss' %}" data-rmc-sticky-cta-close>&times;</button>
+  </div>
+</div>
+
 {% if marketing_analytics_script_url %}<script src="{{ marketing_analytics_script_url }}" defer></script>{% endif %}
 <script src="{% static 'marketing/js/mkt-live-flow.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-scroll-core.js' %}" defer></script>
 <script src="{% static 'marketing/js/marketing-landing-scroll.js' %}" defer></script>
+<script src="{% static 'js/_pages/rmc-marketing-sticky-cta.js' %}" defer></script>
 <script src="{% static 'js/_pages/schools__marketing_landing.js' %}"></script>
 {% endblock %}

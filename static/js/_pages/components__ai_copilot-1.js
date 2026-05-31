@@ -1,27 +1,33 @@
 (function(){
-  var KEY = "components__ai_copilot-1";
-  var pageDataEl = document.getElementById("page-data-" + KEY);
-  window.__RMC_PAGE_DATA__ = window.__RMC_PAGE_DATA__ || {};
-  if (pageDataEl) {
+  function readChromeConfig() {
+    var el = document.getElementById('page-data-rmc-ai-chrome');
+    if (!el || !el.textContent) { return {}; }
     try {
-      window.__RMC_PAGE_DATA__[KEY] = JSON.parse(pageDataEl.textContent || "{}");
+      return JSON.parse(el.textContent);
     } catch (_e) {
-      window.__RMC_PAGE_DATA__[KEY] = {};
+      return {};
     }
   }
-  var DATA = window.__RMC_PAGE_DATA__[KEY] || {};
-document.addEventListener('DOMContentLoaded', function() {
+
+  var CHROME = readChromeConfig();
+  var FEATURES = CHROME.features || {};
+  var URLS = CHROME.urls || {};
+  var UI = CHROME.ui || {};
+
+  document.addEventListener('DOMContentLoaded', function() {
   const wrappers = document.querySelectorAll('.ai-copilot-wrapper');
   if (!wrappers.length) return;
 
-  const AI_BACKEND_ENABLED = (DATA["var_ai_backend_enabled_yesno_true_false"] || "false") === 'true';
-  const AI_PROVIDER_NAME = DATA["var_ai_provider_name_default"] || "";
-  const AI_COPILOT_URL = (document.body && document.body.getAttribute('data-ai-copilot-url')) || '/api/ai-copilot/validate/';
-  let AI_PERMISSIONS = {};
-  try { AI_PERMISSIONS = JSON.parse(DATA["var_ai_permissions_json"] || "{}"); }
-  catch (_e) { AI_PERMISSIONS = {}; }
-  const USER_ROLE = DATA["var_user_role_default_user"] || "USER";
-  const CSRF_TOKEN = DATA["var_csrf_token"] || "";
+  const AI_BACKEND_ENABLED = !!FEATURES.backend_enabled;
+  const AI_RULES_FALLBACK_ENABLED = FEATURES.rules_fallback_enabled !== false;
+  const AI_PROVIDER_NAME = CHROME.provider_name || '';
+  const AI_COPILOT_URL = URLS.copilot_query
+    || (document.body && document.body.getAttribute('data-ai-copilot-url'))
+    || '';
+  const AI_PERMISSIONS = CHROME.permissions || {};
+  const USER_ROLE = CHROME.user_role || 'USER';
+  const OFFLINE_HINT = UI.offline_hint || '';
+  const CSRF_TOKEN = '';
 
   function assistDockMounted() {
     return document.body.getAttribute('data-rmc-assist-dock') === 'mounted';
@@ -73,28 +79,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   const csrfTokenEffective = resolveCsrfToken();
-
-  function buildContextualPrompt(userMessage) {
-    const userRole = USER_ROLE;
-    const userName = DATA["var_request_user_first_name_default_request_user_username"] || "there";
-    let context = `You are an AI assistant for a school management system. `;
-
-    if (userRole === 'ADMIN' || userRole === 'LEADERSHIP') {
-      context += `The user is an administrator named ${userName}. Help them with system analytics, user management, financial summaries, compliance tasks, and administrative operations. `;
-    } else if (userRole === 'TEACHER') {
-      context += `The user is a teacher named ${userName}. Help them with grade entry, class roster information, attendance tracking, student performance insights, and lesson planning. `;
-    } else if (userRole === 'PARENT') {
-      context += `The user is a parent named ${userName}. Help them understand their child's progress, fee payment status, communication with teachers, and school events. Keep all responses focused on their child's information only. `;
-    } else {
-      context += `The user is ${userName}. Help them with general school system navigation and common tasks. `;
-    }
-
-    context += `Keep responses concise (2-3 sentences max), helpful, and professional. 
-    IMPORTANT: Only provide information the user has access to. For queries outside their scope, say you cannot help.
-    User question: ${userMessage}`;
-
-    return context;
-  }
 
   function escapeHtml(text) {
     const div = document.createElement('div');
@@ -186,6 +170,18 @@ document.addEventListener('DOMContentLoaded', function() {
     async function sendMessage(message) {
       if (!message.trim()) return;
 
+      if (!AI_COPILOT_URL) {
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'ai-message';
+        errorMsg.innerHTML = `
+          <div class="ai-message-avatar"><i class="bi bi-robot"></i></div>
+          <div class="ai-message-content">
+            <p class="mb-0 text-danger">${escapeHtml(OFFLINE_HINT || 'AI copilot endpoint is not configured for this host.')}</p>
+          </div>`;
+        body.appendChild(errorMsg);
+        return;
+      }
+
       const userMsg = document.createElement('div');
       userMsg.className = 'ai-message user-message';
       userMsg.innerHTML = `
@@ -217,8 +213,8 @@ document.addEventListener('DOMContentLoaded', function() {
       sendBtn.disabled = true;
 
       try {
-        if (!AI_BACKEND_ENABLED) {
-          throw new Error('AI backend is currently unavailable.');
+        if (!AI_BACKEND_ENABLED && !AI_RULES_FALLBACK_ENABLED) {
+          throw new Error(OFFLINE_HINT || 'AI backend is currently unavailable.');
         }
         const resp = await fetch(AI_COPILOT_URL, {
           method: 'POST',
@@ -253,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="ai-message-content">
               <p class="mb-0 text-danger">
                 <i class="bi ${isDenied ? 'bi-lock' : 'bi-exclamation-triangle'}"></i>
-                <strong>${isDenied ? 'Access Denied' : 'Error'}:</strong> ${errText}
+                <strong>${isDenied ? 'Access Denied' : 'Error'}:</strong> ${escapeHtml(errText)}
               </p>
             </div>
           `;
@@ -262,7 +258,12 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
 
-        const responseText = result.response || 'I captured your request and validated your access. Please try again in a moment.';
+        let responseText = result.response || '';
+        if (!responseText.trim()) {
+          responseText = AI_BACKEND_ENABLED
+            ? 'I captured your request and validated your access. Please try again in a moment.'
+            : 'Guided mode is active — live AI is offline. Try rephrasing your question.';
+        }
         const safeResponse = escapeHtml(responseText).replace(/\n/g, '<br>');
 
         loadingMsg.remove();
@@ -281,8 +282,9 @@ document.addEventListener('DOMContentLoaded', function() {
         body.appendChild(aiMsg);
         body.scrollTop = body.scrollHeight;
       } catch (error) {
-        console.error('AI Error:', error);
         loadingMsg.remove();
+        const errDetail = (error && error.message) ? String(error.message) : '';
+        const userText = errDetail || OFFLINE_HINT || 'Sorry, I encountered an error. Please try again.';
         const errorMsg = document.createElement('div');
         errorMsg.className = 'ai-message';
         errorMsg.innerHTML = `
@@ -292,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <div class="ai-message-content">
             <p class="mb-0 text-danger">
               <i class="bi bi-exclamation-triangle"></i>
-              Sorry, I encountered an error. Please try again.
+              ${escapeHtml(userText)}
             </p>
           </div>
         `;
@@ -305,83 +307,37 @@ document.addEventListener('DOMContentLoaded', function() {
       sendMessage(input.value);
     });
 
-    input.addEventListener('keypress', function(e) {
+    input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendMessage(this.value);
+        sendMessage(input.value);
       }
     });
 
-    quickBtns.forEach(btn => {
+    quickBtns.forEach((btn) => {
       btn.addEventListener('click', function() {
-        const prompt = this.getAttribute('data-prompt');
-        sendMessage(prompt);
+        const prompt = btn.getAttribute('data-prompt') || btn.textContent.trim();
+        if (prompt) {
+          input.value = prompt;
+          sendBtn.disabled = false;
+          sendMessage(prompt);
+        }
       });
     });
 
-    document.addEventListener('click', function(e) {
-      if (!panel.contains(e.target) && !trigger.contains(e.target)) {
-        panel.classList.remove('active');
-        trigger.setAttribute('aria-expanded', 'false');
-        if (window.RMCAssistDock) window.RMCAssistDock.closeAll();
-      }
-    });
-
     document.addEventListener('keydown', function(e) {
-      const isToggleShortcut = (e.key === '/' || e.key === '?') && (e.ctrlKey || e.metaKey) && e.shiftKey;
-      if (isToggleShortcut) {
-        e.preventDefault();
-        trigger.click();
-        return;
-      }
-
-      if (e.key === 'Escape') {
-        if (panel.classList.contains('active')) {
-          panel.classList.remove('active');
-          trigger.setAttribute('aria-expanded', 'false');
-          if (window.RMCAssistDock) window.RMCAssistDock.closeAll();
-          trigger.focus();
-        }
-      }
+      const key = (e.key || '').toLowerCase();
+      if (key !== '?') return;
+      if (!(e.ctrlKey || e.metaKey) || !e.shiftKey) return;
+      e.preventDefault();
+      trigger.click();
     });
 
-    (function handleShortcutHint() {
-      if (!shortcutHint) return;
-      const HINT_KEY = 'ai-shortcut-hint-seen';
-      const seen = localStorage.getItem(HINT_KEY) === '1';
-      if (seen) return;
-
-      const showOnce = () => {
-        if (localStorage.getItem(HINT_KEY) === '1') return;
-        shortcutHint.style.display = 'inline-block';
-        shortcutHint.style.opacity = '1';
-        shortcutHint.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-          shortcutHint.style.opacity = '0';
-          setTimeout(() => {
-            shortcutHint.style.display = 'none';
-            localStorage.setItem(HINT_KEY, '1');
-          }, 350);
-        }, 3000);
-      };
-
-      const onFirstClick = () => {
-        showOnce();
-        trigger.removeEventListener('click', onFirstClick);
-      };
-
-      trigger.addEventListener('click', onFirstClick, { once: true });
-    })();
+    if (shortcutHint) {
+      shortcutHint.textContent = navigator.platform.indexOf('Mac') >= 0
+        ? '⌘⇧?'
+        : 'Ctrl+Shift+?';
+    }
   });
-
-  window.addEventListener('resize', function() {
-    wrappers.forEach((wrapper) => {
-      forceCopilotPosition(wrapper);
-      const panel = wrapper.querySelector('#aiCopilotPanel');
-      if (panel) {
-        forcePanelPosition(panel);
-      }
-    });
   });
-});
 })();

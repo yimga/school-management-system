@@ -94,7 +94,9 @@
   function CRDTClient(opts) {
     opts = opts || {};
     this.actorId = String(opts.actorId || "anon");
-    this.endpoint = String(opts.endpoint || "/api/v1/crdt/apply/");
+    var defaultEndpoint =
+      (window.RMCPlatformSurface && window.RMCPlatformSurface.url("crdt_apply")) || "";
+    this.endpoint = String(opts.endpoint || defaultEndpoint);
     this.autoFlushAt = Math.max(1, opts.autoFlushAt | 0 || 50);
     this._hlc = new HLC(Date.now(), 0, this.actorId);
     this._pending = [];

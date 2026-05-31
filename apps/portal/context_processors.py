@@ -189,5 +189,5 @@ def help_ai_governance(request):
 
     return {
         "show_kb_ai_assistant_panel": ai_assistant_panel_enabled_for_request(request),
-        "parent_student_help_policy": parent_student_help_surface_policy(),
+        "parent_student_help_policy": parent_student_help_surface_policy(request),
     }

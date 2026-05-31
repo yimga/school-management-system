@@ -5,6 +5,7 @@
 {% block cp_title %}{% trans "Platform billing" %}{% endblock %}
 {% block cp_workspace_header %}{% endblock %}
 {% block cp_content %}
+{# table-pagination-allow: billing-dashboard-5-widget-top-N each-tile-is-bounded-summary #}
 {% url 'super:dashboard' as dashboard_url %}
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-decision-engine="surface" data-apple-class-billing-ux="platform" data-rmc-operational-workbench="1" data-rmc-scroll-policy="paginate">
   {% phase8_dashboard_declaration "schools/billing_dashboard.html" %}

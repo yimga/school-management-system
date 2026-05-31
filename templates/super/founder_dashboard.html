@@ -28,6 +28,7 @@
 {% endblock %}
 
 {% block cp_content %}
+{# table-pagination-allow: founder-dashboard-widget-top-N each-tile-is-bounded-summary #}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
 {% comment %} v3.57.18 (2026-05-22): founder landing receives the same cockpit chrome as
    the manager landing (platform_pulse + activity_ticker). Per Agent Y audit, this is

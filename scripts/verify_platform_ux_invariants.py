@@ -50,13 +50,60 @@ ANCHOR_AS_BUTTON_RE = re.compile(
     re.IGNORECASE,
 )
 DIV_AS_BUTTON_RE = re.compile(r"<(?:div|span)\s[^>]*\bonclick=", re.IGNORECASE)
-DIALOG_RE = re.compile(r'class="[^"]*\b(modal|dialog|drawer|sheet|overlay)\b', re.IGNORECASE)
+# Narrowed to actual modal/dialog shells. The previous regex over-fired on:
+#  - <aside class="...drawer..."> static help panels using <details> disclosure
+#  - <div class="...overlay" hidden> loading spinners over an <iframe>
+# Now we require: a real <dialog> tag, Bootstrap modal/offcanvas, or a known
+# project sheet/drawer BEM class.
+DIALOG_RE = re.compile(
+    r'<dialog\b'
+    r'|class="[^"]*\bmodal\s+fade\b'
+    r'|class="[^"]*\bmodal-dialog\b'
+    r'|class="[^"]*\boffcanvas\b'
+    r'|class="[^"]*\brmc-sheet\b'
+    r'|class="[^"]*\brmc-bottom-sheet\b'
+    r'|class="[^"]*\brmc-acx-drawer\b'
+    r'|class="[^"]*\brmc-copilot-context-lens-sheet\b'
+    r'|class="[^"]*\brmc-portal-row-detail-drawer\b'
+    r'|class="[^"]*\brmc-security-posture-modal\b',
+    re.IGNORECASE,
+)
 DIALOG_PROPER_RE = re.compile(r'role="(?:dialog|alertdialog)"', re.IGNORECASE)
 ARIA_MODAL_RE = re.compile(r'aria-modal="true"', re.IGNORECASE)
-TOC_HINT_RE = re.compile(r'data-rmc-toc|class="[^"]*\brmc-lux-toc\b|id="toc"|class="[^"]*\btable-of-contents\b', re.IGNORECASE)
+TOC_HINT_RE = re.compile(
+    r'data-rmc-toc'
+    r'|class="[^"]*\brmc-lux-toc\b'
+    r'|class="[^"]*\brmc-section-nav\b'
+    r'|data-rmc-section-anchor'
+    r'|id="toc"'
+    r'|class="[^"]*\btable-of-contents\b',
+    re.IGNORECASE,
+)
 STICKY_HINT_RE = re.compile(r"position\s*:\s*sticky|class=\"[^\"]*\bsticky\b", re.IGNORECASE)
 SKIP_LINK_RE = re.compile(r'href="#main(-content)?"|\bskip-to-(main|content)\b', re.IGNORECASE)
 KPI_CARD_CLASS_RE = re.compile(r'class="([^"]*\bkpi[^"]*)"', re.IGNORECASE)
+
+# v4.01.05 — page balance + CTA hierarchy invariants.
+# `(?<![\w-])` rejects `btn-outline-primary` matches (hyphen is a word boundary
+# but not a "class-separator"); `(?![\w-])` rejects `btn-primary-soft` etc.
+PRIMARY_BTN_RE = re.compile(r'class="[^"]*(?<![\w-])btn-primary(?![\w-])[^"]*"', re.IGNORECASE)
+SEMANTIC_BTN_RE = re.compile(
+    r'class="[^"]*(?<![\w-])btn-(primary|success|warning|danger|info)(?![\w-])[^"]*"',
+    re.IGNORECASE,
+)
+WEAK_EMPTY_STATE_RE = re.compile(
+    r'>\s*(?:No\s+records?\s+(?:found|available)|No\s+data\s+(?:available|to\s+show|yet)|'
+    r'Nothing\s+to\s+show|There\s+are\s+no|No\s+results?)\b',
+    re.IGNORECASE,
+)
+LUX_EMPTY_STATE_RE = re.compile(r'class="[^"]*\b(?:rmc-empty(?:-state)?|rmc-lux-empty)\b', re.IGNORECASE)
+HARDCODED_YEAR_RE = re.compile(r'(?:&copy;|©|\bCopyright\b)\s*(?:&\w+;|\s)*\s*(20\d\d)\b', re.IGNORECASE)
+TABLE_OPEN_RE = re.compile(r'<table\b', re.IGNORECASE)
+PAGINATION_HINT_RE = re.compile(
+    r'class="[^"]*\b(?:pagination|pager|rmc-pagination|page-link)\b'
+    r'|\{%\s*include\s+["\'][^"\']*pagination',
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -111,7 +158,22 @@ def _scan_template(path: Path) -> list[Finding]:
         or "/_includes/" in rel
     )
 
-    if lines >= VERY_LONG_TEMPLATE_THRESHOLD and not TOC_HINT_RE.search(body):
+    # Shell / scaffold templates wrap content; the content's own TOC is what
+    # matters, not the shell. Skip TOC checks on these but still let other
+    # invariants (a11y, anchor-as-button, etc.) run.
+    looks_like_shell = (
+        rel.endswith("/portal_base.html")
+        or rel.endswith("/control_plane_base.html")
+        or rel.endswith("/control_plane_skeleton.html")
+        or rel.endswith("/admin/base_site.html")
+        or rel.endswith("/admin/base.html")
+        or rel.endswith("/admin/index.html")
+        or rel.endswith("/backend_base.html")
+        or rel == "templates/base.html"
+        or rel.endswith("/marketing/base_marketing.html")
+    )
+
+    if not looks_like_shell and lines >= VERY_LONG_TEMPLATE_THRESHOLD and not TOC_HINT_RE.search(body):
         findings.append(
             Finding(
                 "ERROR",
@@ -120,7 +182,7 @@ def _scan_template(path: Path) -> list[Finding]:
                 f"template is {lines} lines but ships no TOC / on-this-page nav. Wrap sections in <section id data-rmc-toc> or mount <SectionTOC />.",
             )
         )
-    elif lines >= LONG_TEMPLATE_THRESHOLD and not TOC_HINT_RE.search(body) and not looks_like_partial:
+    elif not looks_like_shell and lines >= LONG_TEMPLATE_THRESHOLD and not TOC_HINT_RE.search(body) and not looks_like_partial:
         findings.append(
             Finding(
                 "WARN",
@@ -203,7 +265,94 @@ def _scan_template(path: Path) -> list[Finding]:
                 )
             )
 
-    if TAP_TARGET_BAD_CLASSES.search(body):
+    # v4.01.05 invariants — only fire on real pages, not partials.
+    cta_allow = "primary-cta-allow:" in body
+    semantic_allow = "semantic-btn-allow:" in body
+    if not looks_like_partial and not looks_like_shell and not cta_allow:
+        # Strip Django conditional ternaries that already pick btn-outline-primary
+        # as the else branch — those are correct hierarchical choices, not overload.
+        body_for_cta = re.sub(
+            r"\{%\s*if[^%]+%\}\s*btn-primary\s*\{%\s*else\s*%\}\s*btn-outline-(?:primary|secondary|light|dark)\s*\{%\s*endif\s*%\}",
+            "btn-outline-secondary",
+            body,
+        )
+        # Strip mutually-exclusive mode-gated primaries: `{% if X == 'A' ... %}...btn-primary...{% endif %}`
+        # paired with `{% if X == 'B' ... %}...btn-primary...{% endif %}` etc. — only one renders at
+        # runtime so the page sees 1 effective primary, not N. Pattern match collapses sets of these.
+        mode_gated_primary_re = re.compile(
+            r"\{%\s*if\s+[\w.]+\s*==\s*['\"]\w+['\"][^%]*%\}[^{]*\bbtn-primary\b[^{]*\{%\s*endif\s*%\}",
+            re.IGNORECASE,
+        )
+        mode_gated_matches = mode_gated_primary_re.findall(body_for_cta)
+        if len(mode_gated_matches) >= 2:
+            body_for_cta = mode_gated_primary_re.sub("[[mode-gated]]", body_for_cta, count=len(mode_gated_matches) - 1)
+        primary_count = len(PRIMARY_BTN_RE.findall(body_for_cta))
+        if primary_count >= 4:
+            findings.append(
+                Finding(
+                    "WARN",
+                    "primary-cta-overload",
+                    rel,
+                    f"{primary_count} `.btn-primary` buttons compete for attention — promote ONE, demote the rest to `.btn-outline-*`",
+                )
+            )
+
+        semantic_variants = {m.lower() for m in SEMANTIC_BTN_RE.findall(body)}
+        if not semantic_allow and len({"success", "warning", "danger"} & semantic_variants) >= 2:
+            findings.append(
+                Finding(
+                    "WARN",
+                    "action-bar-semantic-noise",
+                    rel,
+                    f"page mixes &gt;=2 semantic button colors ({sorted(semantic_variants)}) — semantic noise dilutes meaning",
+                )
+            )
+
+        if WEAK_EMPTY_STATE_RE.search(body) and not LUX_EMPTY_STATE_RE.search(body):
+            findings.append(
+                Finding(
+                    "INFO",
+                    "weak-empty-state",
+                    rel,
+                    "literal \"No records found\" / \"No data\" without `.rmc-empty-state` namespace — luxury empty state would lift the feel",
+                )
+            )
+
+        year_match = HARDCODED_YEAR_RE.search(body)
+        if year_match and "{% now" not in body and "{% current_year" not in body:
+            findings.append(
+                Finding(
+                    "WARN",
+                    "hardcoded-copyright-year",
+                    rel,
+                    f"hardcoded © {year_match.group(1)} — use `{{% now \"Y\" %}}` so the footer stays correct forever",
+                )
+            )
+
+        table_pagination_allow = "table-pagination-allow:" in body
+        if (
+            TABLE_OPEN_RE.search(body)
+            and lines >= 300
+            and not PAGINATION_HINT_RE.search(body)
+            and not table_pagination_allow
+        ):
+            findings.append(
+                Finding(
+                    "INFO",
+                    "table-without-pagination",
+                    rel,
+                    f"<table> in a {lines}-line template with no pagination hint — verify the query has a row cap or add a pagination partial",
+                )
+            )
+
+    # Skip third-party admin chrome (Unfold) and the in-content settings sidebar
+    # rail — those are vendor templates we can't safely retouch without rebasing
+    # Unfold. The platform's own templates already pass the rule.
+    looks_like_third_party_chrome = (
+        rel.startswith("templates/unfold/")
+        or rel == "templates/admin/siteconfig/sitesettings/settings_sidebar.html"
+    )
+    if not looks_like_third_party_chrome and TAP_TARGET_BAD_CLASSES.search(body):
         findings.append(
             Finding(
                 "INFO",

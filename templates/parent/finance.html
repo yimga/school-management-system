@@ -14,7 +14,7 @@
   <div class="report-card-print-wrapper" data-page-archetype="record-detail" data-task="parent_payment" data-task-step="finance:page" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2 no-print" data-rmc-parent-finance-toolbar="1">
     {% if rmc_conversion_single_action_enforced|default:False %}
-    <a class="btn btn-sm btn-primary" href="#parent-finance-invoices" data-action="jump-invoices" data-task-step="finance:jump-table">{% trans "Jump to invoices" %}</a>
+    <a class="btn btn-sm btn-outline-primary" href="#parent-finance-invoices" data-action="jump-invoices" data-task-step="finance:jump-table">{% trans "Jump to invoices" %}</a>
     <details class="rmc-conversion-more-actions border rounded px-2 py-1">
       <summary class="btn btn-sm btn-outline-secondary mb-0">{% trans "More" %}</summary>
       <div class="pt-2 d-flex flex-wrap gap-2 align-items-center">
@@ -206,7 +206,7 @@
           </select>
         </div>
         <div class="col-md-2">
-          <button type="submit" class="btn btn-primary btn-sm">{% trans "Apply" %}</button>
+          <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Apply" %}</button>
         </div>
       </div>
     </div>

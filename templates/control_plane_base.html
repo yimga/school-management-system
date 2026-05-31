@@ -129,7 +129,7 @@
 
 {% block cp_shell_after %}
 {% comment %} Mobile sidebar (offcanvas) — same nav as desktop {% endcomment %}
-<div class="offcanvas offcanvas-start d-lg-none cp-sidebar-offcanvas cp-sidebar-offcanvas--surface" tabindex="-1" id="cpSidebarOffcanvas" aria-labelledby="cpSidebarOffcanvasLabel">
+<div class="offcanvas offcanvas-start d-lg-none cp-sidebar-offcanvas cp-sidebar-offcanvas--surface" tabindex="-1" id="cpSidebarOffcanvas" role="dialog" aria-modal="true" aria-labelledby="cpSidebarOffcanvasLabel">
   <div class="offcanvas-header border-secondary">
     <h5 class="offcanvas-title text-white" id="cpSidebarOffcanvasLabel">{% trans "Menu" %}</h5>
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#cpSidebarOffcanvas" aria-label="{% trans 'Close' %}"></button>

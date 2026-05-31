@@ -166,6 +166,13 @@ urlpatterns = [
         "api-center/",
         include(("apps.apicenter.urls", "apicenter"), namespace="apicenter"),
     ),
+    path(
+        "platform-runtime/",
+        include(
+            ("apps.platform_runtime.urls", "platform_runtime"),
+            namespace="platform_runtime",
+        ),
+    ),
     path("discover/", global_login_discovery, name="global_login_discovery"),
     path("find/", find_school, name="find_school"),
     path("verify/", public_verify_hub, name="public_verify_hub"),

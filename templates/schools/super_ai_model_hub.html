@@ -46,7 +46,12 @@
             <td>{{ c.last_health_check_at|default:"—" }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="6">{% trans "No regional configs. Add in Django admin (RegionalAIConfig)." %}</td></tr>
+          <tr><td colspan="6" class="rmc-empty-state rmc-empty-state--row">
+            <i class="bi bi-cpu rmc-empty-state__icon" aria-hidden="true"></i>
+            <p class="rmc-empty-state__title">{% trans "No regional AI configurations yet" %}</p>
+            <p class="rmc-empty-state__body">{% trans "Add a region with its Ollama endpoint, default model, and fallback to begin routing AI traffic." %}</p>
+            <a class="btn btn-sm btn-outline-primary rmc-empty-state__cta" href="/admin/siteconfig/regionalaiconfig/add/">{% trans "Add regional config" %}</a>
+          </td></tr>
           {% endfor %}
         </tbody>
       </table>

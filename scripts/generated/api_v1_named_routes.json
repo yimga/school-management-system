@@ -51,6 +51,8 @@
     "runtime-feature-flags",
     "runtime-grading-matrix",
     "runtime-site-settings",
+    "runtime-structural-options",
+    "runtime-structural-options-initialize",
     "scheduler-generate",
     "scheduler-validate",
     "social-analytics-pulse",

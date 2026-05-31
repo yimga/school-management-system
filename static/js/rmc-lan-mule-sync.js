@@ -11,7 +11,13 @@
   }
 
   async function postBundle(peerBaseUrl, bundleBytes) {
-    const url = (peerBaseUrl || "").replace(/\/$/, "") + "/api/v1/sync/bundle/upload/";
+    const uploadPath =
+      (typeof window !== "undefined" &&
+        window.RMCPlatformSurface &&
+        window.RMCPlatformSurface.url("sync_bundle_upload")) ||
+      "";
+    if (!uploadPath) return;
+    const url = (peerBaseUrl || "").replace(/\/$/, "") + uploadPath;
     const res = await fetch(url, {
       method: "POST",
       credentials: "include",

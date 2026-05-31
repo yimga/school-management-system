@@ -11,7 +11,6 @@ from apps.assist_dock.quick_actions import (
     actions_for,
     register_quick_action,
     reset_actions_for_tests,
-    unregister_quick_action,
 )
 
 

@@ -15,7 +15,12 @@
     <tbody>{% for installation in installations %}<tr>
       <td>{{ installation.blueprint_key }}</td><td>{{ installation.school.name }}</td><td>{{ installation.status }}</td><td>{{ installation.applied_at }}</td><td>{{ installation.audit_ref }}</td>
       <td><a href="{% url 'configuration:blueprint_installation_detail' installation.pk %}">{% trans "Open" %}</a></td>
-    </tr>{% empty %}<tr><td colspan="6">{% trans "No blueprint installations yet." %}</td></tr>{% endfor %}</tbody>
+    </tr>{% empty %}<tr><td colspan="6" class="rmc-empty-state rmc-empty-state--row">
+      <i class="bi bi-layers rmc-empty-state__icon" aria-hidden="true"></i>
+      <p class="rmc-empty-state__title">{% trans "No blueprint installations yet" %}</p>
+      <p class="rmc-empty-state__body">{% trans "Install a blueprint from the marketplace to seed this school with a tested configuration package." %}</p>
+      <a class="btn btn-sm btn-outline-primary rmc-empty-state__cta" href="{% url 'configuration:blueprint_marketplace' %}">{% trans "Open marketplace" %}</a>
+    </td></tr>{% endfor %}</tbody>
   </table></div>
 </section>
 {% endblock %}

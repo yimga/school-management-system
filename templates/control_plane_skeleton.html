@@ -157,7 +157,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </head>
-  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-back-to-top-policy="always" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1" data-rmc-notebook-footer-dock="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% url 'ai_copilot_query' as ai_copilot_cp %}{% if ai_copilot_cp %} data-ai-copilot-url="{{ ai_copilot_cp }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-back-to-top-policy="always" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1" data-rmc-notebook-footer-dock="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -263,11 +263,18 @@
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     {% include "partials/rmc_tour_bootstrap.html" %}
+    {% if request.user.is_authenticated %}
+    {% include "partials/rmc_platform_surface_page_data.html" %}
+    {% include "partials/rmc_ai_chrome_page_data.html" %}
+    {% include "partials/rmc_assist_dock_labels.html" %}
+    {% endif %}
     {% comment %} v4.00.91: registry SOT island for the assist dock. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
     {% comment %} v4.00.97 Wave G2: impersonation banner partial — renders only when active. {% endcomment %}
     {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
+    {% comment %} v4.01.03: g-chord → chip click bridge — bridge no-ops on control-plane surface so existing g-ladder stays authoritative. {% endcomment %}
+    {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}

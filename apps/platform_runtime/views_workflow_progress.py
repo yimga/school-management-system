@@ -23,7 +23,7 @@ import logging
 import time
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 

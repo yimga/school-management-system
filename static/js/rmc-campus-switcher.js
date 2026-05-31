@@ -17,8 +17,9 @@
   }
 
   function initSwitcher(root) {
-    var schoolsUrl = root.getAttribute('data-schools-url') || '/api/v1/me/schools';
-    var switchUrl = root.getAttribute('data-switch-url') || '/api/v1/me/switch-school';
+    var schoolsUrl = root.getAttribute('data-schools-url') || (window.RMCPlatformSurface && window.RMCPlatformSurface.url('me_schools')) || '';
+    var switchUrl = root.getAttribute('data-switch-url') || (window.RMCPlatformSurface && window.RMCPlatformSurface.url('me_switch_school')) || '';
+    if (!schoolsUrl || !switchUrl) return;
     var select = root.querySelector('#rmc-campus-select');
     if (!select) return;
 

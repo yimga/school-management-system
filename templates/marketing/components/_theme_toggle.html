@@ -1,11 +1,7 @@
 {% load i18n %}
-<button type="button"
-        class="mkt-v3-theme-toggle"
-        data-mkt-theme-toggle
-        data-label-dark="{% trans 'Switch to dark mode' %}"
-        data-label-light="{% trans 'Switch to light mode' %}"
-        aria-pressed="false"
-        aria-label="{% trans 'Switch to dark mode' %}">
-  <span aria-hidden="true">◐</span>
-  <span class="visually-hidden">{% trans "Theme" %}</span>
-</button>
+{% comment %}
+  RETIRED v4.01.07 — replaced by templates/components/header_theme_chip.html
+  (single SOT for theme + aesthetic toggle across all 5 shells).
+  Preserved as a no-op so any forgotten {% include %} reference does not 500.
+  Safe to delete once a `grep -r _theme_toggle templates/` confirms zero refs.
+{% endcomment %}

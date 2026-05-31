@@ -36,7 +36,10 @@
       var fd = new FormData();
       fd.set('wizard_key', wizardKey);
       fd.set('event', event);
-      navigator.sendBeacon('/api/wizards/telemetry/cache-event/', fd);
+      var beaconUrl =
+        (window.RMCPlatformSurface && window.RMCPlatformSurface.url('wizard_cache_telemetry')) || '';
+      if (!beaconUrl) return;
+      navigator.sendBeacon(beaconUrl, fd);
     } catch (_e) { /* ignore */ }
   }
 

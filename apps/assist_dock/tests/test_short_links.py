@@ -7,7 +7,6 @@ from unittest import mock
 from django.test import SimpleTestCase
 
 from apps.assist_dock.short_links import (
-    SHORT_LINK_DEFAULT_TTL_HOURS,
     SHORT_LINK_MAX_TTL_HOURS,
     SHORT_LINK_MAX_URL_LEN,
     is_safe_target,
@@ -22,7 +21,6 @@ class TokenTests(SimpleTestCase):
         self.assertGreater(len(token), 8)
         self.assertLessEqual(len(token), 32)
         # urlsafe_b64 chars only.
-        import re
 
         self.assertRegex(token, r"^[A-Za-z0-9_-]+$")
 

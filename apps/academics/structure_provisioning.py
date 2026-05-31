@@ -63,7 +63,6 @@ def provision_academic_structure_for_school(
         for idx, st in enumerate(types):
             code = str(st.get("code") or f"type-{idx}")
             label = str(st.get("label") or code)
-            meta_key = f"pack_school_type:{code}"
             cycle = AcademicStructureNode.objects.filter(
                 school=school,
                 node_type=AcademicStructureNode.NodeType.CYCLE,

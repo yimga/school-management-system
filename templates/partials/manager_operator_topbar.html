@@ -89,12 +89,10 @@
                 {% if attention_school_count %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ attention_school_count }}</span>{% endif %}
               </a>
             {% endif %}
-            {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
-            <button type="button" class="cp-topbar-theme-toggle rmc-platform-header__icon-btn" data-rmc-theme-cycle aria-label="{% trans 'Toggle light and dark mode' %}" title="{% trans 'Toggle theme' %}">
-              <i class="bi bi-moon-stars" aria-hidden="true"></i>
-              <i class="bi bi-sun-fill" aria-hidden="true"></i>
-            </button>
-            {% endif %}
+            {% comment %} v4.01.07: standalone cp-topbar-theme-toggle removed —
+               theme + aesthetic chip is the unified SOT, rendered right of the
+               notification bell and before the user dropdown on every shell. {% endcomment %}
+            {% include "components/header_theme_chip.html" %}
             {% include "components/user_dropdown.html" %}
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>

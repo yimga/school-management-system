@@ -367,9 +367,13 @@
   </div>
   {% url 'studio_os:copilot_rail_context' as copilot_rail_context_url %}
   {% url 'studio_os:copilot_rail_insights' as copilot_rail_insights_url %}
+  {% url 'studio_os:copilot_rail_send' as copilot_rail_send_url %}
+  {% url 'studio_os:copilot_rail_send_stream' as copilot_rail_send_stream_url %}
   <span hidden data-rmc-copilot-rail-endpoints
         data-context-url="{{ copilot_rail_context_url }}"
         data-insights-url="{{ copilot_rail_insights_url }}"
+        data-send-url="{{ copilot_rail_send_url }}"
+        data-send-stream-url="{{ copilot_rail_send_stream_url }}"
         data-current-mode="operator"></span>
 </aside>
 {% endif %}

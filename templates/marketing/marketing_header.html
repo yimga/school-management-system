@@ -101,9 +101,13 @@
         {% if request.user.is_authenticated %}
         {% include "partials/rmc_security_posture_nav_button.html" %}
         {% endif %}
-        {% if not PUBLIC_BRAND_MODE %}
-        {% include "marketing/components/_theme_toggle.html" %}
-        {% endif %}
+        {% comment %} v4.01.07: unified theme + aesthetic chip — SOT in
+           components/header_theme_chip.html. Replaces the prior
+           marketing/components/_theme_toggle.html include so every shell renders
+           the SAME control at the SAME anchor. Partial self-gates on
+           PUBLIC_BRAND_MODE / authenticated so anonymous marketing visitors
+           still see it. {% endcomment %}
+        {% include "components/header_theme_chip.html" %}
         {% include "marketing/components/_marketing_region_affordance.html" %}
         <a class="mkt-status-pill" href="{% url 'status' %}" data-mkt-status aria-label="{% trans 'Platform status' %}" title="{% trans 'Platform status' %}">
           <span class="mkt-status-pill__dot" aria-hidden="true"></span>
@@ -111,8 +115,14 @@
         </a>
         <a class="btn btn-sm btn-outline-light d-none d-lg-inline-flex" href="{% url 'find_school' %}">{% trans "Find campus" %}</a>
         {% if not PUBLIC_BRAND_MODE %}{% include "marketing/components/_language_switcher.html" %}{% endif %}
-        <a class="nav-link mkt-nav-utility py-1 px-2 small" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
-        <a class="btn btn-cta-primary btn-sm" href="{% url 'marketing_demo' %}" data-cta="demo" data-page="header">{% trans "Book demo" %}</a>
+        {% if request.user.is_authenticated %}
+          {% comment %} Returning operator on the marketing surface — surface their avatar
+             so they can jump back into their dashboard without rediscovering the login flow. {% endcomment %}
+          {% include "components/user_dropdown.html" %}
+        {% else %}
+          <a class="nav-link mkt-nav-utility py-1 px-2 small" href="{% url 'global_login_discovery' %}">{% trans "Login" %}</a>
+          <a class="btn btn-cta-primary btn-sm" href="{% url 'marketing_demo' %}" data-cta="demo" data-page="header">{% trans "Book demo" %}</a>
+        {% endif %}
       </div>
     </div>
   </div>

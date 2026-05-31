@@ -44,7 +44,10 @@
         return;
       }
       searchTimeout = setTimeout(function () {
-        fetch('/api/search/?q=' + encodeURIComponent(q) + '&limit=8', { credentials: 'same-origin' })
+        var searchBase = (window.RMCPlatformSurface && window.RMCPlatformSurface.url('search')) || '';
+        if (!searchBase) return;
+        var searchSep = searchBase.indexOf('?') >= 0 ? '&' : '?';
+        fetch(searchBase + searchSep + 'q=' + encodeURIComponent(q) + '&limit=8', { credentials: 'same-origin' })
           .then(function (r) {
             if (!r.ok) throw new Error('Search failed');
             return r.json();

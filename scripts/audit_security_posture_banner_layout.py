@@ -65,6 +65,10 @@ EXTENDS_CP_SKELETON = re.compile(
     r"""extends\s+['"]control_plane_skeleton\.html['"]""",
     re.IGNORECASE,
 )
+EXTENDS_ANY = re.compile(
+    r"""extends\s+['"]([^'"]+)['"]""",
+    re.IGNORECASE,
+)
 DIRECT_BANNER_INCLUDE = re.compile(
     r"""include\s+['"]accounts/partials/_security_posture_banner\.html['"]""",
     re.IGNORECASE,
@@ -73,6 +77,22 @@ DIRECT_BANNER_INCLUDE = re.compile(
 
 def _rel(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
+
+
+def _on_control_plane_base_chain(text: str) -> bool:
+    if EXTENDS_CP_BASE.search(text):
+        return True
+    match = EXTENDS_ANY.search(text)
+    if not match:
+        return False
+    parent_rel = match.group(1).replace("\\", "/")
+    parent_path = TEMPLATES / parent_rel
+    if not parent_path.is_file():
+        parent_path = ROOT / "templates" / parent_rel
+    if not parent_path.is_file():
+        return False
+    parent_text = parent_path.read_text(encoding="utf-8", errors="replace")
+    return bool(EXTENDS_CP_BASE.search(parent_text))
 
 
 def audit_super_template_coverage() -> list[str]:
@@ -93,7 +113,7 @@ def audit_super_template_coverage() -> list[str]:
         text = path.read_text(encoding="utf-8", errors="replace")
         if "{% extends" not in text:
             continue
-        if EXTENDS_CP_BASE.search(text):
+        if _on_control_plane_base_chain(text):
             continue
         if EXTENDS_CP_SKELETON.search(text) and rel in SKELETON_ONLY_EXEMPT:
             continue

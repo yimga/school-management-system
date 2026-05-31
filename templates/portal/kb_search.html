@@ -270,13 +270,11 @@
                     </nav>
                     {% endif %}
                 {% else %}
-                    <!-- No Results -->
-                    <div class="alert alert-info" role="alert">
-                        <i class="bi bi-info-circle"></i>
-                        <strong>No results found</strong> for "{{ query }}"
-                        <p class="mt-2 mb-0">
-                            Try different keywords or browse by category
-                        </p>
+                    {% comment %} v4.01.07: lux empty-state — no results from the user's query. {% endcomment %}
+                    <div class="rmc-empty-state" role="status" aria-live="polite">
+                        <i class="bi bi-search rmc-empty-state__icon" aria-hidden="true"></i>
+                        <p class="rmc-empty-state__title">{% blocktrans with q=query %}No results for "{{ q }}"{% endblocktrans %}</p>
+                        <p class="rmc-empty-state__body">{% trans "Try different keywords, browse by category, or open the AI help assistant for guided answers." %}</p>
                     </div>
 
                     <!-- Suggestions -->

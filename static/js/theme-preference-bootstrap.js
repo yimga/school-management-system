@@ -253,7 +253,9 @@
     if (typeof fetch !== "function") { return; }
     var csrf = readCsrf();
     if (!csrf) { return; }
-    fetch("/api/preferences/theme/", {
+    var themeUrl = (window.RMCPlatformSurface && window.RMCPlatformSurface.url("theme_preference")) || "";
+    if (!themeUrl) return;
+    fetch(themeUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-CSRFToken": csrf },
       credentials: "same-origin",

@@ -34,11 +34,27 @@ def is_parent_or_student_user(request) -> bool:
     return role in ("PARENT", "STUDENT")
 
 
+def _effective_help_flags(request) -> dict:
+    try:
+        school = getattr(request, "school", None)
+        if school is not None:
+            settings_payload = getattr(school, "settings", None) or {}
+            if isinstance(settings_payload, dict):
+                flags = settings_payload.get("backend_feature_flags") or {}
+                if isinstance(flags, dict):
+                    return flags
+        from apps.platform_runtime.helpers import get_effective_flags
+
+        return get_effective_flags(request) or {}
+    except _HELP_FLAG_ERRORS:
+        return {}
+
+
 def ai_assistant_panel_enabled_for_request(request) -> bool:
     """KB AI panel + floating copilot — respects tenant flag + parent/student policy."""
     if not ai_help_enabled_for_request(request):
         return False
-    policy = parent_student_help_surface_policy()
+    policy = parent_student_help_surface_policy(request)
     if is_parent_or_student_user(request) and not policy.get("ai_assistant_panel", False):
         return False
     return True
@@ -48,19 +64,31 @@ def should_redirect_feature_center_for_request(request) -> bool:
     """When True, parent/student feature-center visits should land on help center."""
     if not is_parent_or_student_user(request):
         return False
-    return bool(parent_student_help_surface_policy().get("feature_center_redirect", False))
+    return bool(
+        parent_student_help_surface_policy(request).get("feature_center_redirect", False)
+    )
 
 
-def parent_student_help_surface_policy() -> dict[str, bool]:
+def parent_student_help_surface_policy(request=None) -> dict[str, bool]:
     """
-    Parent/student lanes: reduced AI/deflection by design (batch 1354).
+    Parent/student lanes — tenant-configurable via ``backend_feature_flags``.
 
-    Returns flags consumed by templates/docs — not a hard block on KB browse.
+    Keys (tenant SiteSettings):
+      - parent_student_ai_assistant_panel (default False)
+      - parent_student_support_deflection_on_submit (default True)
+      - parent_student_feature_center_redirect (default True)
     """
+    flags = _effective_help_flags(request) if request is not None else {}
     return {
-        "ai_assistant_panel": False,
-        "support_deflection_on_submit": True,
-        "feature_center_redirect": True,
+        "ai_assistant_panel": bool(
+            flags.get("parent_student_ai_assistant_panel", False)
+        ),
+        "support_deflection_on_submit": bool(
+            flags.get("parent_student_support_deflection_on_submit", True)
+        ),
+        "feature_center_redirect": bool(
+            flags.get("parent_student_feature_center_redirect", True)
+        ),
     }
 
 

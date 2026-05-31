@@ -1,8 +1,7 @@
 // v4.00.9 — Thin bridge from "AI surfaces" to the streaming gateway view.
 //
-// Posts a prompt to /portal/ai/stream/ and hands the streaming response to
-// window.rmcStreamMount.attachFetch so the mount parser can find the first
-// `"component":"<X>"` marker and progressively render the shell skeleton.
+// Posts to the named portal:ai_stream URL from page-data-rmc-ai-chrome and hands
+// the streaming response to window.rmcStreamMount.attachFetch.
 //
 // API surface (window.rmcAIStream):
 //   send(prompt, opts) -> Promise<void>
@@ -25,6 +24,18 @@
     return cookie ? decodeURIComponent(cookie.split("=")[1]) : "";
   }
 
+  function aiStreamUrl() {
+    const el = document.getElementById("page-data-rmc-ai-chrome");
+    if (!el) return "";
+    try {
+      const cfg = JSON.parse(el.textContent || "{}");
+      const u = cfg.urls && cfg.urls.ai_stream;
+      return u && String(u).length ? String(u) : "";
+    } catch (_e) {
+      return "";
+    }
+  }
+
   function currentViewport() {
     const v = document.documentElement.getAttribute("data-rmc-viewport-class");
     return v && /^[ABC]$/.test(v) ? v : "A";
@@ -38,15 +49,19 @@
     if (!window.rmcStreamMount || typeof window.rmcStreamMount.attachFetch !== "function") {
       throw new Error("rmcAIStream.send: rmcStreamMount unavailable");
     }
+    const streamUrl = aiStreamUrl();
+    if (!streamUrl) {
+      throw new Error("rmcAIStream.send: ai_stream URL missing from page-data-rmc-ai-chrome");
+    }
     const viewport = opts.viewport || currentViewport();
-    const response = await fetch("/portal/ai/stream/", {
+    const response = await fetch(streamUrl, {
       method: "POST",
       credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken(),
         "X-RMC-Viewport": viewport,
-        "Accept": "text/event-stream",
+        Accept: "text/event-stream",
       },
       body: JSON.stringify({ prompt }),
     });
@@ -81,17 +96,18 @@
     form.addEventListener("submit", function (ev) {
       const ta = form.querySelector('textarea[name="prompt"], input[name="prompt"]');
       const prompt = (ta && ta.value ? ta.value : "").trim();
-      if (!prompt) return; // let native validation handle empty
-      if (!window.rmcStreamMount) return; // legacy fallback
+      if (!prompt) return;
+      if (!window.rmcStreamMount) return;
       ev.preventDefault();
       send(prompt, {
         onComponent: opts.onComponent,
         onChunkText: opts.onChunkText,
         onComplete: opts.onComplete,
       }).catch(function (err) {
-        // Surface failures with an honest fallback path.
         if (typeof opts.onError === "function") {
-          try { opts.onError(err); } catch {}
+          try {
+            opts.onError(err);
+          } catch (_e) {}
         }
       });
     });

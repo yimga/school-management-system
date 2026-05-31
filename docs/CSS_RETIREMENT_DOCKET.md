@@ -1,6 +1,42 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-30 (v4.00.79 → v4.00.92 — **22-wave Platform Readiness Sweep**: 100-target ISO 3166-2 subdivision expansion (482 → 710), OneRoster v1.2 + Result Service spec coverage, Demographics v1.2 (20 fields), SAML 2.0 SP-initiated SSO + SLO + encrypted assertion + multi-IdP + per-tenant attr overrides, OAuth 2.0 live outbound for Schoology + D2L (production maturity) + RFC-6749 error decoder + 429 Retry-After + token-expiry + refresh-rotation tracking + redirect-uri validation + scope-mismatch detection, SAML SHA1 rejection + clock-skew tolerance + assertion-ID replay cache, OneRoster client_credentials grant + filter/sort/fields wiring + HEAD verb, LTI 1.3 tool registration UI + token endpoint + JWKS + scope enforcement, 11 new Django unit-test files. ~617+ smoke cases green. SW `sms-v4.00.92-platform-readiness-sweep-final-2026-05-30`.)
+**Last updated:** 2026-05-31 (v4.01.08 — orphan `.cp-topbar-theme-toggle` retirement following theme-toggle SOT hoist).
+
+## 2026-05-31 — v4.01.08 — orphan theme-toggle CSS retirement (follow-up to v4.01.07 SOT hoist)
+
+**Status:** SHIPPED. v4.01.07 hoisted the theme + aesthetic toggles out of `templates/components/user_dropdown.html` + the standalone `manager_operator_topbar.html` button into a new SOT partial `templates/components/header_theme_chip.html`. Wave v4.01.08 retires the CSS rules that previously styled the now-removed `.cp-topbar-theme-toggle` button across 4 stylesheets, plus the orphan `marketing/js/theme-toggle.js` script-tag loads in 2 marketing shells.
+
+### CSS rules retired (now `.rmc-header-theme-chip` SOT)
+
+| File | Action |
+|---|---|
+| `static/css/rmc-cool-apple-polish.css` (~35 lines) | full block retired (4 rules: base button, hover/focus, .bi-moon-stars/.bi-sun-fill hide/show, light/dark resolved-theme variants); replaced with one-line breadcrumb pointing at the SOT |
+| `static/css/manager-control-plane.css` (~14 lines) | comma-separated selector lists trimmed (kept `.cp-topbar-bell` rules — real element still rendered) |
+| `static/css/rmc-cp-header-200x.css` (2 selectors) | comma-separated selector list trimmed (kept `.cp-topbar-bell` + `.rmc-platform-header__icon-btn` siblings) |
+| `static/css/rmc-platform-header.css` (1 selector) | comma-separated selector trimmed (kept `.cp-topbar-bell` sibling) — also retained 3 documentation comments that reference the prior class name as historical breadcrumbs |
+
+### JS script-tag loads retired
+
+| File | Action |
+|---|---|
+| `templates/marketing/base_marketing.html` L96 | `<script src="marketing/js/theme-toggle.js">` removed; replaced with retirement breadcrumb comment |
+| `templates/marketing/partials/corporate_footer_bundle.html` L4 | same retirement |
+
+### Honest leave-as-is
+
+- `static/marketing/js/theme-toggle.js` file still present on disk (callers may exist on tenant marketing forks). Marked stale; full deletion deferred to a tree-grep-confirmed wave.
+- `templates/marketing/components/_theme_toggle.html` retained as a no-op shell (1-line comment) — same reasoning.
+- Unfold tenant-host `/admin/` ships its own theme toggle; out of repo scope (third-party).
+
+### Verification
+
+- `audit_template_render_safety.py`: 0/1564 findings
+- `verify_platform_ux_invariants.py --strict --severity error`: EXIT=0
+- Lux verifier: 17/17 ✅
+- Platform SOT tests: 13/13 ✅
+- SW: `sms-v4.01.08-orphan-theme-toggle-css-js-retirement-2026-05-31`
+
+---
 
 ## 2026-05-30 — Platform Readiness Sweep v4.00.79 → v4.00.92 (Waves 11–26)
 

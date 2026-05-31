@@ -28,7 +28,7 @@
     <strong><i class="bi bi-phone me-1" aria-hidden="true"></i>{% trans "Install on your phone" %}</strong>
     <span class="d-block small text-muted">{% trans "Add RunMyCampus to your home screen for faster fee payments and alerts." %}</span>
   </div>
-  <button type="button" class="btn btn-sm btn-primary" id="rmc-pwa-install-btn" hidden>{% trans "Install app" %}</button>
+  <button type="button" class="btn btn-sm btn-outline-primary" id="rmc-pwa-install-btn" hidden>{% trans "Install app" %}</button>
   <span class="small text-muted" id="rmc-pwa-install-hint">{% trans "Use your browser menu → Install app when available." %}</span>
 </section>
 <script src="{% static 'js/rmc-pwa-install-cta.js' %}" defer></script>
@@ -182,7 +182,7 @@
         </div>
         {% else %}
         <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
-          <a href="{% url 'portal:claim_invite' %}" class="btn btn-primary btn-lg rmc-cta--gradient-indigo">
+          <a href="{% url 'portal:claim_invite' %}" class="btn btn-outline-primary btn-lg rmc-cta--gradient-indigo">
             <i class="bi bi-envelope-check me-2"></i>{% trans "I have an invite code" %}
           </a>
           <a href="{% url 'portal:link_child' %}" class="btn btn-outline-primary btn-lg">
@@ -379,7 +379,7 @@
           {% for action in workflow_summary.next_actions %}
           <a class="btn {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm" href="{{ action.url }}">{{ action.label }}</a>
           {% empty %}
-          <a class="btn btn-primary btn-sm" href="{% url 'portal:parent_workflow' %}">{% trans "Open workflow" %}</a>
+          <a class="btn btn-outline-primary btn-sm" href="{% url 'portal:parent_workflow' %}">{% trans "Open workflow" %}</a>
           {% endfor %}
         </div>
       </div>
@@ -481,7 +481,7 @@
                   </div>
                   {% comment %} Pass 8: CTA names the child so a parent with multiple children can scan
                      dashboards quickly. Falls back to "View details" if first_name unavailable. {% endcomment %}
-                  <a href="{% url 'portal:parent_child_results' card.link.student.id %}" class="btn btn-sm btn-primary w-100">{% blocktrans with name=card.link.student.first_name|default:_("details") %}View {{ name }}'s report{% endblocktrans %}</a>
+                  <a href="{% url 'portal:parent_child_results' card.link.student.id %}" class="btn btn-sm btn-outline-primary w-100">{% blocktrans with name=card.link.student.first_name|default:_("details") %}View {{ name }}'s report{% endblocktrans %}</a>
                 </div>
               </div>
             </div>
@@ -520,7 +520,7 @@
                       <li><span>{% trans "Unread messages" %}</span><strong>{{ unread_messages_aggregate|default:0 }}</strong></li>
                     </ul>
                     <div class="child-fill-actions">
-                      <a class="btn btn-sm btn-primary" href="{% url 'portal:parent_contact_school' %}">{% trans "Message school" %}</a>
+                      <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_contact_school' %}">{% trans "Message school" %}</a>
                       <a class="btn btn-sm btn-outline-primary" href="{% url 'portal:parent_child_results' focus_child.link.student.id %}">{% trans "Open results" %}</a>
                     </div>
                   </div>
@@ -633,7 +633,7 @@
               </div>
               {% endif %}
               <div class="d-grid gap-2">
-                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-primary"><i class="bi bi-envelope me-2"></i>{% trans "Message school" %}</a>
+                <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-envelope me-2"></i>{% trans "Message school" %}</a>
                 <a href="{% url 'portal:parent_contact_school' %}" class="btn btn-sm btn-outline-primary">{% trans "Open message center" %}</a>
               </div>
             </div>

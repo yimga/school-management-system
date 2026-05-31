@@ -1,5 +1,5 @@
 {% extends "portal_base.html" %}
-{% load static %}
+{% load i18n static %}
 
 {% block title %}Submit a Question - FAQ{% endblock %}
 
@@ -8,9 +8,9 @@
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'kb:faq_list' %}">FAQ</a></li>
-            <li class="breadcrumb-item active">Submit Question</li>
+            <li class="breadcrumb-item"><a href="{% url 'portal:home' %}">{% trans "Home" %}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'kb:faq_list' %}">{% trans "FAQ" %}</a></li>
+            <li class="breadcrumb-item active">{% trans "Submit Question" %}</li>
         </ol>
     </nav>
 

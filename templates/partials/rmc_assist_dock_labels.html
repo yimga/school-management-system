@@ -11,5 +11,6 @@
   "backToTop": "{% filter escapejs %}{% trans "Back to top" %}{% endfilter %}",
   "close": "{% filter escapejs %}{% trans "Close" %}{% endfilter %}",
   "feedbackTitle": "{% filter escapejs %}{% trans "How is this page?" %}{% endfilter %}",
-  "feedbackHint": "{% filter escapejs %}{% trans "Quick signal for operators — we route by page context." %}{% endfilter %}"
+  "feedbackHint": "{% filter escapejs %}{% trans "Quick signal for operators — we route by page context." %}{% endfilter %}",
+  "urls": {{ ASSIST_DOCK_URLS_JSON|default:"{}"|safe }}
 }</script>

@@ -55,8 +55,12 @@ register_slot(
         href="/assist-dock/share/",
         pinned_default=False,
         order=62,
-        shortcut="g s",
-        aria_keyshortcuts="g s",
+        # `g s` chord intentionally omitted — control_plane_base-1.js binds
+        # `g s` to /super/support/. Letting the assist-dock chip claim the
+        # same chord on the control-plane surface would steal navigation
+        # away from Support; on portal/tenant the chord is unclaimed but
+        # for SOT consistency we keep this off entirely. v4.01.03 phantom
+        # audit (path B).
         description=_("Share this page as PDF / CSV / link."),
     )
 )
@@ -74,8 +78,9 @@ register_slot(
         href="/assist-dock/theme/",
         pinned_default=False,
         order=64,
-        shortcut="g d",
-        aria_keyshortcuts="g d",
+        # `g d` chord intentionally omitted — control_plane_base-1.js binds
+        # `g d` to /super/ (Dashboard). v4.01.03 phantom audit stripped it
+        # to keep the cross-surface chord catalog honest.
         description=_("Toggle light / dark / system theme."),
     )
 )
@@ -94,8 +99,10 @@ register_slot(
         pinned_default=False,
         order=66,
         requires_feature="voice_assist",
-        shortcut="g v",
-        aria_keyshortcuts="g v",
+        # `g v` chord intentionally omitted — chip only renders when the
+        # voice_assist feature flag is on, so the advertised chord would
+        # silently fail for every operator who hasn't opted in. v4.01.03
+        # phantom audit stripped it.
         description=_("Speak a command (off by default)."),
     )
 )
@@ -114,8 +121,10 @@ register_slot(
         href="/assist-dock/inspect/",
         pinned_default=False,
         order=70,
-        shortcut="g i",
-        aria_keyshortcuts="g i",
+        # `g i` chord intentionally omitted — SUPERADMIN-only chip is hidden
+        # for the vast majority of operators, so advertising the chord
+        # platform-wide would publish a phantom on every non-super session.
+        # v4.01.03 phantom audit stripped it.
         description=_("Inspect RBAC + settings for this page."),
     )
 )
@@ -133,8 +142,9 @@ register_slot(
         href="/assist-dock/presence/",
         pinned_default=False,
         order=68,
-        shortcut="g p",
-        aria_keyshortcuts="g p",
+        # `g p` chord intentionally omitted — control_plane_base-1.js binds
+        # `g p` to /super/pulse/. v4.01.03 phantom audit stripped it to
+        # avoid cross-surface chord conflict.
         description=_("See other operators on this page right now."),
     )
 )
@@ -172,8 +182,9 @@ register_slot(
         href="/assist-dock/impersonate/",
         pinned_default=False,
         order=72,
-        shortcut="g x",
-        aria_keyshortcuts="g x",
+        # `g x` chord intentionally omitted — SUPERADMIN-only chip is hidden
+        # for non-super sessions, so the advertised chord would be a phantom
+        # for every regular operator. v4.01.03 phantom audit stripped it.
         description=_("Open the impersonation picker."),
     )
 )

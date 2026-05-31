@@ -1,0 +1,64 @@
+{% load i18n static %}
+{% comment %}
+  Shared theme + aesthetic chip — single source of truth across all 5 shells
+  (portal_base, control_plane via manager_operator_topbar, admin/base,
+  marketing_header, base). Hoisted out of components/user_dropdown.html
+  (lines L120-161 pre-v4.01.07) and out of the standalone
+  `cp-topbar-theme-toggle` button in manager_operator_topbar.html so theme
+  control has ONE render location per shell, ONE include, ONE SOT.
+
+  Contract:
+    - Renders only when authenticated OR when PUBLIC_BRAND_MODE so the
+      marketing surface (anonymous visitors) still gets the chip.
+    - Preserves the JS data-attribute contract read by
+      static/js/rmc-theme-toggle.js — DO NOT rename:
+        data-rmc-theme="light|dark|system"           (per-button)
+        data-rmc-theme-current                       (live label)
+        data-rmc-aesthetic="warm-bright|cool-apple|stone"  (per-button)
+        data-rmc-aesthetic-current                   (live label)
+      and the inline cycle hook used by the legacy topbar button:
+        data-rmc-theme-cycle                          (one-shot cycle)
+    - Sits inside the .rmc-header-theme-chip container so shell CSS can
+      position it consistently (visually right of the notification bell,
+      before the user dropdown).
+{% endcomment %}
+{% if request.user.is_authenticated or PUBLIC_BRAND_MODE %}
+<div class="rmc-header-theme-chip" data-rmc-header-theme-chip="1" role="group" aria-label="{% trans 'Appearance and aesthetic' %}">
+  {% comment %} Theme: Light / Dark / System segmented toggle.
+     Writes to localStorage via window.RMCTheme.set() (theme-preference-bootstrap.js)
+     and lets <html data-theme=...> cascade across every CSS surface. {% endcomment %}
+  <div class="rmc-header-theme-chip__group rmc-theme-toggle-row" role="group" aria-label="{% trans 'Appearance' %}">
+    <span class="visually-hidden" data-rmc-theme-current aria-live="polite"></span>
+    <div class="btn-group btn-group-sm rmc-header-theme-chip__segmented" role="group">
+      <button type="button" class="btn btn-outline-secondary rmc-theme-btn" data-rmc-theme="light" aria-pressed="false" title="{% trans 'Light' %}" aria-label="{% trans 'Light' %}">
+        <i class="bi bi-sun" aria-hidden="true"></i><span class="visually-hidden">{% trans "Light" %}</span>
+      </button>
+      <button type="button" class="btn btn-outline-secondary rmc-theme-btn" data-rmc-theme="dark" aria-pressed="false" title="{% trans 'Dark' %}" aria-label="{% trans 'Dark' %}">
+        <i class="bi bi-moon-stars" aria-hidden="true"></i><span class="visually-hidden">{% trans "Dark" %}</span>
+      </button>
+      <button type="button" class="btn btn-outline-secondary rmc-theme-btn" data-rmc-theme="system" aria-pressed="false" title="{% trans 'System' %}" aria-label="{% trans 'System' %}">
+        <i class="bi bi-laptop" aria-hidden="true"></i><span class="visually-hidden">{% trans "System" %}</span>
+      </button>
+    </div>
+  </div>
+
+  {% comment %} Aesthetic-profile picker — per-user override of the tenant default.
+     Writes to localStorage["runmycampus-aesthetic-preference"] and fires
+     rmc:aesthetic-change; theme-preference-bootstrap.js re-projects
+     data-rmc-aesthetic + --site-aesthetic-* on <html> live. {% endcomment %}
+  <div class="rmc-header-theme-chip__group rmc-aesthetic-toggle-row" role="group" aria-label="{% trans 'Aesthetic' %}">
+    <span class="visually-hidden" data-rmc-aesthetic-current aria-live="polite"></span>
+    <div class="btn-group btn-group-sm rmc-header-theme-chip__segmented" role="group">
+      <button type="button" class="btn btn-outline-secondary rmc-aesthetic-btn" data-rmc-aesthetic="warm-bright" aria-pressed="false" title="{% trans 'Warm Bright — buttermilk + honey, welcoming school feel' %}" aria-label="{% trans 'Warm Bright' %}">
+        <i class="bi bi-sun-fill" aria-hidden="true"></i><span class="visually-hidden">{% trans "Warm Bright" %}</span>
+      </button>
+      <button type="button" class="btn btn-outline-secondary rmc-aesthetic-btn" data-rmc-aesthetic="cool-apple" aria-pressed="false" title="{% trans 'Cool Apple — slate + indigo, quiet-luxury SaaS' %}" aria-label="{% trans 'Cool Apple' %}">
+        <i class="bi bi-apple" aria-hidden="true"></i><span class="visually-hidden">{% trans "Cool Apple" %}</span>
+      </button>
+      <button type="button" class="btn btn-outline-secondary rmc-aesthetic-btn" data-rmc-aesthetic="stone" aria-pressed="false" title="{% trans 'Stone — warm gray, neutral editorial' %}" aria-label="{% trans 'Stone' %}">
+        <i class="bi bi-circle-square" aria-hidden="true"></i><span class="visually-hidden">{% trans "Stone" %}</span>
+      </button>
+    </div>
+  </div>
+</div>
+{% endif %}

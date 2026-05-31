@@ -6,6 +6,19 @@
     return match ? match[1] : '';
   }
 
+  function layoutUrl(page) {
+    const ps = window.RMCPlatformSurface;
+    if (!ps || typeof ps.templated !== 'function') return '';
+    return ps.templated('dashboard_layout', { page: page || '' });
+  }
+
+  function availableWidgetsUrl(page) {
+    const base = window.RMCPlatformSurface && window.RMCPlatformSurface.url('dashboard_available_widgets');
+    if (!base) return '';
+    const sep = base.indexOf('?') >= 0 ? '&' : '?';
+    return base + sep + 'page=' + encodeURIComponent(page || '');
+  }
+
   async function loadSortable() {
     if (window.Sortable) return window.Sortable;
     const localSrc = '/static/js/sortable.min.js';
@@ -459,7 +472,7 @@
       const undoTarget = offerUndo ? preDragSnapshot.slice() : null;
       const itemsPayload = collectLayout(columns);
       const widgetMeta = collectWidgetMeta(columns);
-      fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
+      fetch(layoutUrl(page), { credentials: 'include' })
         .then((r) => (r.ok ? r.json() : null))
         .then((current) => {
           const layout = (current && current.layout) || {};
@@ -471,7 +484,7 @@
             items: itemsPayload.items,
             __settings__: settings,
           };
-          return fetch(`/api/dashboard/layout/${page}/`, {
+          return fetch(layoutUrl(page), {
             method: 'PUT',
             credentials: 'include',
             headers: {
@@ -500,13 +513,13 @@
     };
 
     const resetLayout = () => {
-      fetch(`/api/dashboard/layout/${page}/`, {
+      fetch(layoutUrl(page), {
         method: 'DELETE',
         credentials: 'include',
         headers: { 'X-CSRFToken': getCsrfToken() },
       })
         .then((r) => {
-          if (r && r.ok) return fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' });
+          if (r && r.ok) return fetch(layoutUrl(page), { credentials: 'include' });
           throw new Error('Reset failed');
         })
         .then((r) => (r && r.ok ? r.json() : null))
@@ -561,7 +574,7 @@
           </div>
         `;
       }
-      fetch(`/api/dashboard/available-widgets/?page=${page}`, { credentials: 'include' })
+      fetch(availableWidgetsUrl(page), { credentials: 'include' })
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
           const widgets = (data && data.widgets) || [];
@@ -678,7 +691,7 @@
             btn.addEventListener('click', function () {
               const wid = this.getAttribute('data-add-widget-id');
               if (!wid) return;
-              fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
+              fetch(layoutUrl(page), { credentials: 'include' })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((current) => {
                   const layout = (current && current.layout) || {};
@@ -687,7 +700,7 @@
                   if (requested.indexOf(wid) < 0) requested.push(wid);
                   settings.requested_widget_ids = requested;
                   const payload = { items: (layout.items || []), __settings__: settings };
-                  return fetch(`/api/dashboard/layout/${page}/`, {
+                  return fetch(layoutUrl(page), {
                     method: 'PUT',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
@@ -719,7 +732,7 @@
             btn.addEventListener('click', function () {
               const wid = this.getAttribute('data-cockpit-promote-id');
               if (!wid) return;
-              fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
+              fetch(layoutUrl(page), { credentials: 'include' })
                 .then((r) => (r.ok ? r.json() : null))
                 .then((current) => {
                   const layout = (current && current.layout) || {};
@@ -728,7 +741,7 @@
                   if (promoted.indexOf(wid) < 0) promoted.push(wid);
                   settings.promoted_cockpit_ids = promoted;
                   const payload = { items: (layout.items || []), __settings__: settings };
-                  return fetch(`/api/dashboard/layout/${page}/`, {
+                  return fetch(layoutUrl(page), {
                     method: 'PUT',
                     credentials: 'include',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
@@ -759,7 +772,7 @@
     layoutRoot.parentNode.insertBefore(loader, layoutRoot);
 
     // Load current layout + widget metadata
-    fetch(`/api/dashboard/layout/${page}/`, { credentials: 'include' })
+    fetch(layoutUrl(page), { credentials: 'include' })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         const loader = document.getElementById('dashboard-layout-loading');

@@ -344,6 +344,7 @@
   {% endif %}
   {% comment %} Phase G: ⌘K command palette on the admin shell too. {% endcomment %}
   {% if request.user.is_authenticated %}
+    {% include "partials/rmc_platform_surface_page_data.html" %}
     {% include 'components/rmc_command_palette.html' %}
     {% include "partials/rmc_assist_dock_labels.html" %}
     {% comment %} v4.00.91: registry SOT island. {% endcomment %}
@@ -363,6 +364,8 @@
     <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
     {% include "partials/rmc_platform_chrome_scripts.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
+    {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
+    {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
   {% endif %}
   {% if is_manager_host %}

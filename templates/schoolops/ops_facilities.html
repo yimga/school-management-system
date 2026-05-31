@@ -42,7 +42,11 @@
                   </div>
                 </details></td>
         </tr>
-        {% empty %}<tr><td colspan="5">{% trans "No requests yet." %}</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="5" class="rmc-empty-state rmc-empty-state--row">
+          <i class="bi bi-tools rmc-empty-state__icon" aria-hidden="true"></i>
+          <p class="rmc-empty-state__title">{% trans "No maintenance requests yet" %}</p>
+          <p class="rmc-empty-state__body">{% trans "Submit a new request using the form above to track facilities work and status." %}</p>
+        </td></tr>{% endfor %}
       </tbody>
     </table>
   </div>

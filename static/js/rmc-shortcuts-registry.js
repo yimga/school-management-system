@@ -75,18 +75,11 @@
     { id: "global-shortcuts", keys: ["?"], labelKey: "label.show_all", groupKey: "group.global", group: "Global", surfaces: ["*"] },
     { id: "global-f1", keys: ["F1"], labelKey: "label.show_all", groupKey: "group.global", group: "Global", surfaces: ["*"] },
     { id: "global-esc", keys: ["Esc"], labelKey: "label.close_dialog", groupKey: "group.global", group: "Global", surfaces: ["*"] },
-    {
-      id: "global-report",
-      keys: ["Ctrl", "B"],
-      labelKey: "label.report_problem",
-      groupKey: "group.global",
-      group: "Global",
-      surfaces: ["*"],
-      when: function () {
-        return !!document.querySelector("[data-rmc-feedback], [data-rmc-report-problem], .rmc-feedback-trigger");
-      },
-      showUnavailable: true,
-    },
+    // v4.01.03 phantom-shortcut audit: `Ctrl+B` "Report problem" entry removed.
+    // No keydown handler in `static/js/` actually listened for Ctrl+B and
+    // dispatched the feedback trigger; the cheatsheet would advertise the
+    // chord, AT users would press it, and nothing would happen. Re-add only
+    // after wiring a real handler to `[data-rmc-feedback], [data-rmc-report-problem]`.
     {
       id: "search-cmdk",
       keys: ["Ctrl", "K"],
@@ -196,31 +189,13 @@
       },
       showUnavailable: true,
     },
-    {
-      id: "view-theme",
-      keys: ["Alt", "T"],
-      labelKey: "label.toggle_theme",
-      groupKey: "group.view",
-      group: "View",
-      surfaces: ["portal", "tenant", "marketing"],
-      when: function () {
-        return !!(window.RMCTheme && typeof window.RMCTheme.toggle === "function");
-      },
-      showUnavailable: true,
-    },
-    {
-      id: "mkt-theme",
-      keys: ["T"],
-      labelKey: "label.mkt_theme",
-      groupKey: "group.view",
-      group: "View",
-      surfaces: ["marketing"],
-      when: function () {
-        return !!document.querySelector("[data-mkt-theme-toggle], .mkt-theme-toggle");
-      },
-      showUnavailable: true,
-      singleChar: true,
-    },
+    // v4.01.03 phantom-shortcut audit: `Alt+T` and `T` theme-toggle entries
+    // removed. `window.RMCTheme.toggle` does NOT exist as a globally bound
+    // keydown handler — `rmc-theme-toggle.js` wires `click` listeners on
+    // `[data-rmc-theme]` swatch buttons, never a keyboard chord. Marketing
+    // `T` likewise has no `keydown` listener anywhere in `static/`. Re-add
+    // only after wiring a real keydown handler in `rmc-theme-toggle.js`
+    // (and a marketing equivalent) that calls `RMCTheme.set(...)`.
     {
       id: "inbox-unread",
       keys: ["U"],

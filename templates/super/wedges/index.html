@@ -84,7 +84,7 @@
 
   <footer style="margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-secondary);">
     <span>{% trans "JSON export" %}: <a href="?format=json" style="color: var(--text-primary);">/portal/super/wedges/?format=json</a></span>
-    <span>{% trans "API" %}: <a href="/api/v1/super/wedges/" style="color: var(--text-primary);">/api/v1/super/wedges/</a></span>
+    <span>{% trans "API" %}: <a href="{% url 'api:super-wedge-list' %}" style="color: var(--text-primary);">{% url 'api:super-wedge-list' %}</a></span>
   </footer>
 </div>
 

@@ -64,6 +64,7 @@ backend-shell dashboard-page-backend
 {% endblock %}
 
 {% block backend_page %}
+{# table-pagination-allow: dashboard-widget-top-N each-table-is-bounded-summary-not-list #}
   {% admin_health as health %}
   {% phase8_dashboard_declaration "accounts/backend_dashboard.html" %}
 

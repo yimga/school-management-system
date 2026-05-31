@@ -23,7 +23,7 @@ from apps.api.dashboard_api import (
     FinancialDashboardAPI,
     AcademicDashboardAPI,
 )
-from apps.api.dashboard_layout_api import DashboardLayoutAPI
+from apps.api.dashboard_layout_api import AvailableWidgetsAPI, DashboardLayoutAPI
 from apps.api.user_preferences_api import PortalPreferencesAPI
 from apps.api.search_api import GlobalSearchAPI, SearchSuggestionsAPI
 from apps.api.teacher_hover_api import TeacherHoverContextView
@@ -323,6 +323,11 @@ urlpatterns = [
         "dashboard/layout/<str:page>/",
         DashboardLayoutAPI.as_view(),
         name="dashboard-layout",
+    ),
+    path(
+        "dashboard/available-widgets/",
+        AvailableWidgetsAPI.as_view(),
+        name="dashboard-available-widgets",
     ),
     path(
         "portal-preferences/", PortalPreferencesAPI.as_view(), name="portal-preferences"

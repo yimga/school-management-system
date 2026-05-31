@@ -19,14 +19,16 @@
       var direct = root.getAttribute("data-health-url");
       if (direct) { return direct; }
     }
-    var island = document.getElementById("page-data-components__ai_copilot-1");
-    if (!island || !island.textContent) { return null; }
-    try {
-      var data = JSON.parse(island.textContent);
-      return data.ai_health_url || null;
-    } catch (_) {
-      return null;
+    var chrome = document.getElementById("page-data-rmc-ai-chrome");
+    if (chrome && chrome.textContent) {
+      try {
+        var cfg = JSON.parse(chrome.textContent);
+        if (cfg.urls && cfg.urls.health) { return cfg.urls.health; }
+      } catch (_) {}
     }
+    var bodyUrl = document.body && document.body.getAttribute("data-ai-health-url");
+    if (bodyUrl) { return bodyUrl; }
+    return null;
   }
 
   function healthPills() {

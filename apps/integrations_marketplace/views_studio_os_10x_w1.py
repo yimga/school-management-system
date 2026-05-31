@@ -31,7 +31,6 @@ from typing import Any
 
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpRequest, JsonResponse
-from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 
 logger = logging.getLogger(__name__)

@@ -112,7 +112,7 @@
 
   <footer style="margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-secondary);">
     <span>{% trans "JSON" %}: <a href="?format=json" style="color: var(--text-primary);">/portal/super/wedge/{{ wedge.id }}/?format=json</a></span>
-    <span>{% trans "API" %}: <a href="/api/v1/super/wedges/{{ wedge.id }}/" style="color: var(--text-primary);">/api/v1/super/wedges/{{ wedge.id }}/</a></span>
+    <span>{% trans "API" %}: <a href="{% url 'api:super-wedge-detail' wedge.id %}" style="color: var(--text-primary);">{% url 'api:super-wedge-detail' wedge.id %}</a></span>
     <span>{% trans "Slug" %}: <code style="color: var(--text-primary);">{{ wedge.slug }}</code></span>
   </footer>
 </div>

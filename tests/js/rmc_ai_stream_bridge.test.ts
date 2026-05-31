@@ -14,6 +14,14 @@ const SCRIPT_PATH = path.resolve(
 );
 const SCRIPT_SRC = fs.readFileSync(SCRIPT_PATH, "utf-8");
 
+const AI_CHROME_ISLAND =
+  '<script type="application/json" id="page-data-rmc-ai-chrome">' +
+  '{"urls":{"ai_stream":"/portal/ai/stream/"}}</script>';
+
+function withAiChromePageData(html: string): string {
+  return AI_CHROME_ISLAND + html;
+}
+
 function loadScript() {
   delete (window as any).rmcAIStream;
   // eslint-disable-next-line no-new-func
@@ -24,6 +32,14 @@ describe("rmc-ai-stream-bridge", () => {
   beforeEach(() => {
     document.documentElement.removeAttribute("data-rmc-viewport-class");
     document.head.innerHTML = '<meta name="csrf-token" content="csrf-xyz">';
+    document.body.innerHTML = AI_CHROME_ISLAND;
+  });
+
+  it("throws when ai_stream URL is missing from page-data", async () => {
+    document.body.innerHTML = "";
+    (window as any).rmcStreamMount = { attachFetch: vi.fn() };
+    loadScript();
+    await expect(window.rmcAIStream.send("hello")).rejects.toThrow(/ai_stream URL missing/);
   });
 
   it("throws when window.rmcStreamMount is missing", async () => {
@@ -66,11 +82,11 @@ describe("rmc-ai-stream-bridge", () => {
   });
 
   it("bindForm intercepts submit and ships textarea value through send", async () => {
-    document.body.innerHTML = `
+    document.body.innerHTML = withAiChromePageData(`
       <form data-rmc-ai-stream-form="1">
         <textarea name="prompt">Hello AI</textarea>
         <button type="submit">Ask</button>
-      </form>`;
+      </form>`);
     const attachFetch = vi.fn().mockResolvedValue(undefined);
     (window as any).rmcStreamMount = { attachFetch };
     const fetchSpy = vi.spyOn(window as any, "fetch").mockResolvedValue(
@@ -102,11 +118,11 @@ describe("rmc-ai-stream-bridge", () => {
   });
 
   it("bindForm is idempotent on the same form", async () => {
-    document.body.innerHTML = `
+    document.body.innerHTML = withAiChromePageData(`
       <form data-rmc-ai-stream-form="1">
         <textarea name="prompt">Hi</textarea>
         <button type="submit">Ask</button>
-      </form>`;
+      </form>`);
     const attachFetch = vi.fn().mockResolvedValue(undefined);
     (window as any).rmcStreamMount = { attachFetch };
     const fetchSpy = vi.spyOn(window as any, "fetch").mockResolvedValue(

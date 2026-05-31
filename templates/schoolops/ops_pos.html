@@ -81,7 +81,11 @@
           <td>{{ line.grand_total }}</td>
           <td>{{ line.get_payment_method_display }}</td>
         </tr>
-        {% empty %}<tr><td colspan="10">{% trans "No lines yet." %}</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="10" class="rmc-empty-state rmc-empty-state--row">
+          <i class="bi bi-receipt rmc-empty-state__icon" aria-hidden="true"></i>
+          <p class="rmc-empty-state__title">{% trans "No sale lines recorded yet" %}</p>
+          <p class="rmc-empty-state__body">{% trans "Record a sale using the form above. When Inventory is enabled, link a stock line to prefill the item label." %}</p>
+        </td></tr>{% endfor %}
       </tbody>
     </table>
   </div>

@@ -444,3 +444,104 @@
     transition-duration: 1ms !important;
   }
 }
+
+/* ============================================================
+ * v4.01.02 — legacy KPI-namespace bridge
+ *
+ * 80+ dashboards still ship `.kpi`, `.kpi-card`, `.tdm-stat` etc. instead of
+ * the lux .rmc-lux-kpi grammar.  Per-dashboard migration is a separate wave,
+ * so this bridge lifts the legacy classes to inherit the lux token system
+ * (radius, elevation, hover behavior, accent on bordered-left variants).
+ * Existing styles win where they're more specific; this is a base layer.
+ *
+ * Scoped to top-level dashboards via :where() so specificity stays 0 and
+ * any per-page override silently wins.  Honors prefers-reduced-motion via
+ * the inheritance chain.
+ * ============================================================ */
+
+:where(.kpi, .kpi-card, .tdm-stat, .metric-kpi) {
+  border-radius: var(--lux-radius, 12px);
+  background: var(--lux-canvas-elev, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--lux-border-thin, rgba(255, 255, 255, 0.06));
+  transition: transform 280ms var(--lux-spring-curve, cubic-bezier(0.16, 1, 0.3, 1)),
+              box-shadow 280ms var(--lux-spring-curve, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+:where(.kpi, .kpi-card, .tdm-stat, .metric-kpi):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.45);
+}
+
+/* Bootstrap `.border-left-*` legacy variants used by compliance dashboards. */
+:where(.border-left-primary, .border-left-success, .border-left-warning, .border-left-danger) {
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+:where(.border-left-primary) { border-left-color: var(--lux-tier-accent, #6366f1); }
+:where(.border-left-success) { border-left-color: var(--lux-accent-emerald-soft, #10b981); }
+:where(.border-left-warning) { border-left-color: var(--lux-accent-amber-soft, #f59e0b); }
+:where(.border-left-danger)  { border-left-color: var(--lux-accent-rose-soft, #f43f5e); }
+
+/* ============================================================
+ * v4.01.06 — opt-in mini viz primitives for legacy KPI tiles
+ *
+ * Lets any existing .kpi / .tdm-stat / .metric-kpi tile attach a small
+ * data visualization via a single data-attribute, without migrating to
+ * the React KpiCard component.  Pattern:
+ *
+ *   <div class="kpi" data-rmc-mini-donut data-rmc-mini-donut-pct="73">
+ *     <span class="label">Syllabus progress</span>
+ *     <div class="value">73%</div>
+ *   </div>
+ *
+ * Renders a 48px donut in the top-right corner via CSS conic-gradient.
+ * No JS required.  Tone variants: --good (emerald), --warn (amber),
+ * --danger (rose).  Default uses the tier accent.
+ * ============================================================ */
+
+:where([data-rmc-mini-donut]) {
+  position: relative;
+}
+
+:where([data-rmc-mini-donut])::after {
+  content: '';
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--rmc-mini-donut-color, var(--lux-tier-accent, #6366f1))
+      calc(var(--rmc-mini-donut-pct, 0) * 1%),
+    var(--lux-border-thin, rgba(127, 127, 127, 0.18)) 0
+  );
+  -webkit-mask: radial-gradient(circle, transparent 56%, black 58%);
+          mask: radial-gradient(circle, transparent 56%, black 58%);
+  pointer-events: none;
+  transition: background 320ms var(--lux-spring-curve, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+:where([data-rmc-mini-donut][data-rmc-mini-donut-tone="good"])::after   { --rmc-mini-donut-color: var(--lux-accent-emerald-soft, #10b981); }
+:where([data-rmc-mini-donut][data-rmc-mini-donut-tone="warn"])::after   { --rmc-mini-donut-color: var(--lux-accent-amber-soft, #f59e0b); }
+:where([data-rmc-mini-donut][data-rmc-mini-donut-tone="danger"])::after { --rmc-mini-donut-color: var(--lux-accent-rose-soft, #f43f5e); }
+
+/* Inline sparkline mark for value-trend tiles. Pair with the value text:
+   <span class="value">$48.2k</span> <span class="rmc-mini-spark" data-rmc-mini-spark-pct="64"></span> */
+:where(.rmc-mini-spark) {
+  display: inline-block;
+  width: 36px;
+  height: 8px;
+  margin-inline-start: 0.4rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--lux-tier-accent, #6366f1) calc(var(--rmc-mini-spark-pct, 0) * 1%),
+    var(--lux-border-thin, rgba(127, 127, 127, 0.18)) 0
+  );
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where([data-rmc-mini-donut])::after { transition: none; }
+}

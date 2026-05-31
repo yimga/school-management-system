@@ -2,7 +2,7 @@
   <nav aria-label="breadcrumb" class="mb-0">
     <ol class="breadcrumb bg-transparent px-0 mb-0">
       {% for crumb in BREADCRUMBS %}
-        <li class="breadcrumb-item {% if crumb.active %}active text-dark{% endif %}">
+        <li class="breadcrumb-item {% if crumb.active %}active text-dark{% endif %}"{% if crumb.active %} aria-current="page"{% endif %}>
           {% if not crumb.active %}
             <a class="text-decoration-none" href="{{ crumb.url }}">{{ crumb.label }}</a>
           {% else %}
