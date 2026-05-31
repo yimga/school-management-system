@@ -348,6 +348,8 @@
     {% include "partials/rmc_assist_dock_labels.html" %}
     {% comment %} v4.00.91: registry SOT island. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
+    {% comment %} v4.00.97 Wave G2: impersonation banner partial — renders only when active. {% endcomment %}
+    {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
     {% include "partials/rmc_isomorphic_grid_boot.html" %}

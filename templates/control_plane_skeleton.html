@@ -265,6 +265,8 @@
     {% include "partials/rmc_tour_bootstrap.html" %}
     {% comment %} v4.00.91: registry SOT island for the assist dock. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
+    {% comment %} v4.00.97 Wave G2: impersonation banner partial — renders only when active. {% endcomment %}
+    {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}

@@ -309,6 +309,49 @@ class LuxWorkspaceI18nModuleTests(unittest.TestCase):
         ):
             self.assertIn(klass, css, f"CSS must ship {klass} for the v4.00.99 closure wave")
 
+    def test_lux_platform_ships(self) -> None:
+        """v4.01.00 platform hardening — sibling package luxPlatform."""
+        platform_dir = REPO_ROOT / "src" / "lib" / "luxPlatform"
+        platform_css = REPO_ROOT / "static" / "css" / "lux-platform.css"
+        platform_verifier = REPO_ROOT / "scripts" / "verify_platform_ux_invariants.py"
+        platform_readme = platform_dir / "README.md"
+        for path in (platform_dir, platform_css, platform_verifier, platform_readme):
+            self.assertTrue(path.exists(), f"lux-platform artifact missing: {path}")
+        barrel = (platform_dir / "index.ts").read_text(encoding="utf-8")
+        for export in (
+            "SectionTOC",
+            "ScrollProgressBar",
+            "Sparkline",
+            "Donut",
+            "DeltaChip",
+            "BarStack",
+            "Gauge",
+            "HeatStrip",
+            "KpiCard",
+            "BentoGrid",
+            "BentoTile",
+            "SplitPane",
+            "RhythmStack",
+            "TileBoard",
+        ):
+            self.assertIn(export, barrel, f"luxPlatform barrel must export {export}")
+        css = platform_css.read_text(encoding="utf-8")
+        for klass in (
+            ".rmc-lux-toc",
+            ".rmc-lux-scroll-progress",
+            ".rmc-lux-kpi",
+            ".rmc-lux-viz-sparkline",
+            ".rmc-lux-viz-donut",
+            ".rmc-lux-viz-gauge",
+            ".rmc-lux-viz-bars",
+            ".rmc-lux-viz-heat",
+            ".rmc-lux-bento",
+            ".rmc-lux-split",
+            ".rmc-lux-rhythm",
+            ".rmc-lux-tileboard",
+        ):
+            self.assertIn(klass, css, f"lux-platform.css must declare {klass}")
+
 
 def _print_banner(title: str) -> None:
     bar = "=" * len(title)

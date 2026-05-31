@@ -15,7 +15,7 @@
      - tap × button (data-rmc-sheet-close)
      - swipe down past 30% of height (mobile)
      - Escape key (native <dialog> behavior) {% endcomment %}
-<dialog class="rmc-sheet" id="{{ sheet_id }}"{% if sheet_aria_label %} aria-label="{{ sheet_aria_label }}"{% endif %}>
+<dialog class="rmc-sheet" id="{{ sheet_id }}" role="dialog" aria-modal="true"{% if sheet_aria_label %} aria-label="{{ sheet_aria_label }}"{% endif %}>
   <div class="rmc-sheet__handle" aria-hidden="true"></div>
   {% if sheet_title or sheet_close_label %}
     <header class="rmc-sheet__header">

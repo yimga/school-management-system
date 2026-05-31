@@ -1,0 +1,446 @@
+/*
+ * lux-platform.css — shared visual layer for every operator + tenant
+ * surface, sibling to lux-workspace.css.  Provides:
+ *
+ *   .rmc-lux-toc                    sticky on-this-page nav + progress
+ *   .rmc-lux-scroll-progress        thin top-of-page scroll progress bar
+ *   .rmc-lux-kpi                    consistent KPI card grammar
+ *   .rmc-lux-viz-*                  6 distinct viz primitives
+ *   .rmc-lux-bento                  asymmetric responsive grid (kills 4-up uniformity)
+ *   .rmc-lux-split                  monolithic split-pane (ledgers, settings)
+ *   .rmc-lux-rhythm                 alternating-density stack (long pages)
+ *   .rmc-lux-tileboard              balanced n-up cluster
+ *
+ * Tokens inherit from lux-workspace.css.  Honors prefers-reduced-motion +
+ * pointer:coarse.  No JS required — Django templates can opt in via
+ * className alone.
+ */
+
+/* ============================================================
+ * Sticky on-this-page TOC + scroll progress
+ * ============================================================ */
+
+.rmc-lux-toc {
+  position: sticky;
+  align-self: start;
+  width: 240px;
+  padding: 0.85rem 1rem 1rem;
+  background: var(--lux-canvas-elev);
+  border: 1px solid var(--lux-border-thin);
+  border-radius: var(--lux-radius);
+  font-family: var(--lux-font-display);
+  display: grid;
+  grid-template-columns: 4px 1fr;
+  gap: 0.55rem;
+}
+
+.rmc-lux-toc__title {
+  margin: 0 0 0.45rem 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lux-text-muted);
+  font-weight: 700;
+  grid-column: 2;
+}
+
+.rmc-lux-toc__progress {
+  grid-row: 1 / span 99;
+  grid-column: 1;
+  border-radius: 999px;
+  background: var(--lux-border-thin);
+  position: relative;
+  overflow: hidden;
+}
+
+.rmc-lux-toc__progress-bar {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 100%;
+  background: linear-gradient(180deg, var(--lux-tier-accent), color-mix(in srgb, var(--lux-tier-accent) 60%, transparent));
+  transition: height 220ms var(--lux-spring-curve);
+}
+
+.rmc-lux-toc__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  grid-column: 2;
+}
+
+.rmc-lux-toc__item.is-sub {
+  padding-inline-start: 0.85rem;
+}
+
+.rmc-lux-toc__link {
+  display: block;
+  padding: 0.32rem 0.5rem;
+  border-radius: var(--lux-radius-sm);
+  font-size: 0.76rem;
+  color: var(--lux-text-secondary);
+  text-decoration: none;
+  border-inline-start: 2px solid transparent;
+  transition: color 180ms var(--lux-spring-curve), background-color 180ms var(--lux-spring-curve), border-color 180ms var(--lux-spring-curve);
+}
+
+.rmc-lux-toc__link:hover,
+.rmc-lux-toc__link:focus-visible {
+  color: var(--lux-text-primary);
+  background: color-mix(in srgb, var(--lux-tier-accent) 6%, transparent);
+  outline: none;
+}
+
+.rmc-lux-toc__item.is-active .rmc-lux-toc__link {
+  color: var(--lux-text-primary);
+  background: color-mix(in srgb, var(--lux-tier-accent) 12%, transparent);
+  border-inline-start-color: var(--lux-tier-accent);
+}
+
+.rmc-lux-scroll-progress {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 110;
+  background: var(--lux-border-thin);
+  pointer-events: none;
+}
+
+.rmc-lux-scroll-progress__bar {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--lux-tier-accent), color-mix(in srgb, var(--lux-tier-accent) 50%, transparent));
+  transition: width 80ms linear;
+}
+
+/* ============================================================
+ * KPI card grammar
+ * ============================================================ */
+
+.rmc-lux-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.95rem 1.05rem;
+  border: 1px solid var(--lux-border-thin);
+  border-radius: var(--lux-radius);
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--lux-tier-accent) 3%, var(--lux-canvas-elev)) 0%,
+    var(--lux-canvas-elev) 100%);
+  color: var(--lux-text-primary);
+  text-decoration: none;
+  transition: border-color 220ms var(--lux-spring-curve), transform 220ms var(--lux-spring-curve), box-shadow 220ms var(--lux-spring-curve);
+}
+
+.rmc-lux-kpi.is-actionable {
+  cursor: pointer;
+}
+
+.rmc-lux-kpi.is-actionable:hover,
+.rmc-lux-kpi.is-actionable:focus-visible {
+  border-color: var(--lux-tier-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--lux-tier-accent) 12%, transparent);
+  outline: none;
+}
+
+.rmc-lux-kpi--good { --kpi-accent: var(--lux-accent-emerald); }
+.rmc-lux-kpi--warn { --kpi-accent: var(--lux-accent-amber); }
+.rmc-lux-kpi--danger { --kpi-accent: var(--lux-accent-rose); }
+.rmc-lux-kpi--neutral { --kpi-accent: var(--lux-tier-accent); }
+
+.rmc-lux-kpi__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+
+.rmc-lux-kpi__label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lux-text-muted);
+}
+
+.rmc-lux-kpi__body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.rmc-lux-kpi__value {
+  font-family: var(--lux-font-display);
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--lux-text-primary);
+  line-height: 1;
+}
+
+.rmc-lux-kpi__viz {
+  display: inline-flex;
+  align-items: flex-end;
+}
+
+.rmc-lux-kpi__hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--lux-text-muted);
+}
+
+/* ============================================================
+ * VIZ primitives — 6 distinct shapes
+ * ============================================================ */
+
+.rmc-lux-viz-sparkline {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.rmc-lux-viz-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  padding: 0.12rem 0.42rem;
+  border-radius: 999px;
+  font-family: var(--lux-font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.rmc-lux-viz-delta--good {
+  color: var(--lux-accent-emerald);
+  background: var(--lux-accent-emerald-soft);
+  border-color: color-mix(in srgb, var(--lux-accent-emerald) 28%, transparent);
+}
+
+.rmc-lux-viz-delta--warn {
+  color: var(--lux-accent-amber);
+  background: var(--lux-accent-amber-soft);
+  border-color: color-mix(in srgb, var(--lux-accent-amber) 28%, transparent);
+}
+
+.rmc-lux-viz-delta--danger {
+  color: var(--lux-accent-rose);
+  background: var(--lux-accent-rose-soft);
+  border-color: color-mix(in srgb, var(--lux-accent-rose) 28%, transparent);
+}
+
+.rmc-lux-viz-delta--neutral {
+  color: var(--lux-text-secondary);
+  background: var(--lux-canvas-elev-2);
+  border-color: var(--lux-border-thin);
+}
+
+.rmc-lux-viz-donut {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rmc-lux-viz-donut__center {
+  position: absolute;
+  font-family: var(--lux-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--lux-text-primary);
+}
+
+.rmc-lux-viz-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.18rem;
+  padding: 0.18rem;
+}
+
+.rmc-lux-viz-bar {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  min-height: 2px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+}
+
+.rmc-lux-viz-bar__label {
+  position: absolute;
+  inset-block-end: -1.1rem;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  font-family: var(--lux-font-mono);
+  font-size: 0.56rem;
+  color: var(--lux-text-dim);
+  pointer-events: none;
+}
+
+.rmc-lux-viz-gauge {
+  display: inline-flex;
+}
+
+.rmc-lux-viz-heat {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: 2px;
+}
+
+.rmc-lux-viz-heat__cell {
+  width: 8px;
+  height: 18px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+ * BentoGrid — kills the "4-up rectangles" uniformity
+ * ============================================================ */
+
+.rmc-lux-bento {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.rmc-lux-bento--compact { gap: 0.5rem; }
+.rmc-lux-bento--spacious { gap: 1.1rem; }
+
+.rmc-lux-bento__tile {
+  border: 1px solid var(--lux-border-thin);
+  border-radius: var(--lux-radius);
+  background: var(--lux-canvas-elev);
+  padding: 1rem 1.15rem;
+  position: relative;
+}
+
+.rmc-lux-bento__tile--col-1 { grid-column: span 1; }
+.rmc-lux-bento__tile--col-2 { grid-column: span 2; }
+.rmc-lux-bento__tile--col-3 { grid-column: span 3; }
+.rmc-lux-bento__tile--col-4 { grid-column: span 4; }
+.rmc-lux-bento__tile--col-6 { grid-column: span 6; }
+.rmc-lux-bento__tile--row-1 { grid-row: span 1; }
+.rmc-lux-bento__tile--row-2 { grid-row: span 2; }
+.rmc-lux-bento__tile--row-3 { grid-row: span 3; }
+
+.rmc-lux-bento__tile.is-hero {
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--lux-tier-accent) 10%, var(--lux-canvas-elev)) 0%,
+    var(--lux-canvas-elev) 100%);
+  border-color: color-mix(in srgb, var(--lux-tier-accent) 22%, transparent);
+}
+
+.rmc-lux-bento__tile--emerald { border-block-start: 2px solid var(--lux-accent-emerald); }
+.rmc-lux-bento__tile--azure   { border-block-start: 2px solid var(--lux-accent-azure); }
+.rmc-lux-bento__tile--indigo  { border-block-start: 2px solid var(--lux-accent-indigo); }
+.rmc-lux-bento__tile--amber   { border-block-start: 2px solid var(--lux-accent-amber); }
+.rmc-lux-bento__tile--rose    { border-block-start: 2px solid var(--lux-accent-rose); }
+
+@media (max-width: 880px) {
+  .rmc-lux-bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .rmc-lux-bento__tile--col-3,
+  .rmc-lux-bento__tile--col-4,
+  .rmc-lux-bento__tile--col-6 {
+    grid-column: span 2;
+  }
+}
+
+/* ============================================================
+ * SplitPane — monolithic two-column workspace
+ * ============================================================ */
+
+.rmc-lux-split {
+  display: grid;
+  gap: 1rem;
+}
+
+.rmc-lux-split--narrow    { grid-template-columns: 280px minmax(0, 1fr); }
+.rmc-lux-split--balanced  { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+.rmc-lux-split--wide      { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+
+.rmc-lux-split.is-sticky-left .rmc-lux-split__left {
+  position: sticky;
+  align-self: start;
+  top: 80px;
+}
+
+@media (max-width: 980px) {
+  .rmc-lux-split,
+  .rmc-lux-split--narrow,
+  .rmc-lux-split--balanced,
+  .rmc-lux-split--wide {
+    grid-template-columns: 1fr;
+  }
+  .rmc-lux-split.is-sticky-left .rmc-lux-split__left {
+    position: static;
+  }
+}
+
+/* ============================================================
+ * RhythmStack — alternating density rhythm so long pages
+ * don't look like one infinite uniform stream
+ * ============================================================ */
+
+.rmc-lux-rhythm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.rmc-lux-rhythm__row {
+  border-radius: var(--lux-radius);
+  border: 1px solid var(--lux-border-thin);
+  padding: 1rem 1.25rem;
+  background: var(--lux-canvas-elev);
+}
+
+.rmc-lux-rhythm__row--anchor {
+  padding: 1.5rem 1.75rem;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--lux-tier-accent) 5%, var(--lux-canvas-elev)) 0%,
+    var(--lux-canvas-elev) 100%);
+}
+
+.rmc-lux-rhythm__row--detail {
+  padding: 0.8rem 1.05rem;
+  background: var(--lux-canvas-deep);
+}
+
+.rmc-lux-rhythm__row--breath {
+  padding: 0.65rem 1rem;
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--lux-border-thin);
+}
+
+/* ============================================================
+ * TileBoard — balanced n-up cluster (the simple case)
+ * ============================================================ */
+
+.rmc-lux-tileboard {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.rmc-lux-tileboard--cols-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.rmc-lux-tileboard--cols-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.rmc-lux-tileboard--cols-4 { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+
+/* ============================================================
+ * Reduced motion
+ * ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-lux-toc__progress-bar,
+  .rmc-lux-scroll-progress__bar,
+  .rmc-lux-toc__link,
+  .rmc-lux-kpi {
+    transition-duration: 1ms !important;
+  }
+}
