@@ -2,6 +2,7 @@ from django.urls import path
 
 from . import views_ai_surfaces as _ai_surfaces
 from . import views_forums
+from . import views_lux_workspace
 
 from .views import (
     badge_verify,
@@ -529,5 +530,11 @@ urlpatterns = [
         "employer/<int:placement_id>/transcript/",
         employer_student_transcript,
         name="employer_student_transcript",
+    ),
+    # v4.00.98 lux-workspace luxury UI demo surface
+    path(
+        "lux-workspace/",
+        views_lux_workspace.lux_workspace_demo,
+        name="lux_workspace_demo",
     ),
 ]

@@ -79,7 +79,17 @@ class TenantLifecycleFullTests(TestCase):
         )
 
     @patch("apps.schools.tasks.dispatch_provision_school")
-    def test_verify_signup_activates_inactive_school(self, _mock_provision):
+    def test_verify_signup_dispatches_provisioning_for_inactive_school(
+        self, mock_provision,
+    ):
+        """v4.00.98: verify_signup must NOT activate the school itself —
+        provisioning does that at its successful tail (apps/schools/tasks.py
+        _do_provision) right before the welcome email.  Premature activation
+        here used to short-circuit _do_provision and silently skip the
+        welcome email send (regression).  This test now verifies the correct
+        contract: verify_signup leaves the school inactive and hands off to
+        ``dispatch_provision_school`` with the verified email.
+        """
         school = School.objects.create(
             name="Verify School",
             slug="verify-school",
@@ -101,7 +111,78 @@ class TenantLifecycleFullTests(TestCase):
         resp = verify_signup(request)
         self.assertEqual(resp.status_code, 302)
         school.refresh_from_db()
-        self.assertTrue(school.is_active)
+        # Activation happens INSIDE _do_provision, which is mocked here, so
+        # the school stays inactive — the previous assertion was hiding the
+        # premature-activation bug.
+        self.assertFalse(school.is_active)
+        # Verification is marked used and provisioning is dispatched.
+        sv.refresh_from_db()
+        self.assertIsNotNone(sv.verified_at)
+        mock_provision.assert_called_once()
+        call_args = mock_provision.call_args
+        self.assertEqual(call_args.args[0], str(school.id))
+        self.assertEqual(call_args.kwargs.get("contact_email"), "v@verify.test")
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        DEFAULT_FROM_EMAIL="noreply@runmycampus.com",
+    )
+    def test_verify_signup_runs_full_provisioning_and_sends_welcome_email(self):
+        """v4.00.98 regression coverage (no welcome-email mock): verify the
+        full path lands a welcome email in ``mail.outbox``.
+
+        Why: the prior coverage mocked ``dispatch_provision_school``, which
+        masked a bug where verify_signup activated the school before
+        provisioning ran, causing ``_do_provision`` to short-circuit and
+        skip the welcome email entirely.  This test patches dispatch to call
+        ``provision_school_sync`` directly (matching the Celery-unavailable
+        fallback path), then asserts both that the school becomes active
+        AND the welcome email lands in mail.outbox.
+        """
+        from django.core import mail
+        from apps.schools.tasks import provision_school_sync
+
+        school = School.objects.create(
+            name="Welcome Email School",
+            slug="welcome-email-school",
+            subdomain="welcome-email-school",
+            is_active=False,
+            country_code="US",
+            settings={},
+            default_region=self.region,
+        )
+        sv, _ = SignupVerification.objects.update_or_create(
+            school=school,
+            defaults={
+                "email": "owner@welcome-email.test",
+                "expires_at": timezone.now() + timedelta(days=1),
+                "verified_at": None,
+            },
+        )
+        mail.outbox = []
+
+        def _force_sync(school_id, contact_email="", **kwargs):
+            provision_school_sync(school_id, contact_email=contact_email, **kwargs)
+            return {"queued": False, "fallback": True, "job_id": None, "message": "forced sync"}
+
+        request = self.factory.get(f"/verify-signup/?token={sv.token}")
+        with patch(
+            "apps.schools.tasks.dispatch_provision_school",
+            side_effect=_force_sync,
+        ):
+            resp = verify_signup(request)
+        self.assertEqual(resp.status_code, 302)
+        school.refresh_from_db()
+        self.assertTrue(
+            school.is_active,
+            "provisioning should activate the school at its successful tail",
+        )
+        recipients = [addr for msg in mail.outbox for addr in (msg.to or [])]
+        self.assertIn(
+            "owner@welcome-email.test",
+            recipients,
+            f"welcome email never sent; mail.outbox recipients={recipients!r}",
+        )
 
     @patch(
         "apps.schools.tasks.dispatch_provision_school",

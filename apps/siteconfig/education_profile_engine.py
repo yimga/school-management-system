@@ -277,7 +277,12 @@ def build_profile_defaults(region: RegionConfig, sub_system: str) -> dict[str, A
             from apps.governance.academic_pack_bridge import resolve_grading_preset_key
             from apps.siteconfig.education_dna import EDUCATION_DNA_CURRICULUMS
 
-            from apps.siteconfig.global_catalog import GlobalGeoCatalog
+            # v4.00.98 fix: a redundant local import of GlobalGeoCatalog here
+            # was making Python treat the module-level GlobalGeoCatalog as a
+            # local variable throughout the function, so the use at line 258
+            # (well before this block) raised UnboundLocalError when this
+            # path was reached.  The module-level import at the top of the
+            # file provides GlobalGeoCatalog already; no re-import needed.
 
             alpha2 = GlobalGeoCatalog.alpha2_for_country(str(region.code or ""))
             preset_key = resolve_grading_preset_key(alpha2 or str(region.code or ""))

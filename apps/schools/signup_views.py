@@ -1116,8 +1116,17 @@ def _redirect_verified_admin_to_tenant_surface(request: HttpRequest, school, url
 
 def verify_signup(request: HttpRequest):
     """
-    GET ?token=xxx: look up SignupVerification, if valid set school.is_active=True,
-    run provisioning, mark verification used, redirect to login.
+    GET ?token=xxx: look up SignupVerification, run provisioning (which marks
+    school.is_active=True on success AND sends the welcome email), mark
+    verification used, redirect to login.
+
+    v4.00.98 fix: do NOT set ``school.is_active = True`` before dispatching
+    provisioning.  ``_do_provision`` short-circuits on ``school.is_active``
+    (treating it as "already fully provisioned, skip re-doing it"), and the
+    activation here was making it skip the welcome-email step at the end of
+    provisioning — so verified users never received the welcome email.
+    Activation now happens inside ``_do_provision`` (tasks.py) right before
+    the welcome email send, restoring the original contract.
     """
     token_str = (request.GET.get("token") or "").strip()
     if not token_str:
@@ -1160,8 +1169,10 @@ def verify_signup(request: HttpRequest):
         )
 
     school = verification.school
-    school.is_active = True
-    school.save(update_fields=["is_active", "updated_at"])
+    # v4.00.98 fix: do NOT activate the school here — provisioning sets
+    # school.is_active=True at its successful tail (apps/schools/tasks.py
+    # _do_provision).  Premature activation here caused _do_provision to
+    # short-circuit and skip the welcome email send.
     verification.verified_at = timezone.now()
     verification.save(update_fields=["verified_at"])
     try:
