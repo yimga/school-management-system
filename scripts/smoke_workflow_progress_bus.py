@@ -319,8 +319,13 @@ sw_text = open("static/js/service-worker.js", encoding="utf-8").read()
 # may have shipped on a subsequent wave — only regression to a lower
 # version fails this check.
 import re as _re
-_match = _re.search(r"sms-v4\.00\.(\d+)-", sw_text)
-expect("T10.1 SW cache version >= v4.00.97", bool(_match) and int(_match.group(1)) >= 97)
+_match = _re.search(r"sms-v4\.(\d+)\.(\d+)-", sw_text)
+_minor = int(_match.group(2)) if _match else -1
+_major = int(_match.group(1)) if _match else -1
+expect(
+    "T10.1 SW cache version >= v4.00.97",
+    bool(_match) and (_major > 0 or _minor >= 97),
+)
 
 
 # ── Report ────────────────────────────────────────────────────────────────

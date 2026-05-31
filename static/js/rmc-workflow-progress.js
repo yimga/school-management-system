@@ -22,6 +22,55 @@
 
   // Polling fallback cadence (ms) when EventSource unavailable.
   var POLL_INTERVAL_MS = 5000;
+  var STREAM_RECONNECT_MS = 4000;
+  // Render 502 HTML (~223 KB) during deploys — back off instead of hammering every 4–5s.
+  var OUTAGE_BACKOFF_MS = 30000;
+
+  function isPlatformOutageStatus(status) {
+    return !status || (status >= 502 && status <= 504);
+  }
+
+  function scheduleStreamReconnect(delayMs) {
+    var wait = typeof delayMs === "number" ? delayMs : STREAM_RECONNECT_MS;
+    window.setTimeout(connectStream, wait);
+  }
+
+  function probeActiveBeforeReconnect() {
+    return fetch(ENDPOINT_ACTIVE, { credentials: "same-origin" })
+      .then(function (r) {
+        if (r.status === 401 || r.status === 403) {
+          agentDebugLog("H1", "rmc-workflow-progress.js:connectStream", "auth_required_no_reconnect", { status: r.status });
+          return;
+        }
+        if (isPlatformOutageStatus(r.status)) {
+          scheduleStreamReconnect(OUTAGE_BACKOFF_MS);
+          return;
+        }
+        var ct = (r.headers.get("content-type") || "").toLowerCase();
+        if (ct && ct.indexOf("json") === -1) {
+          scheduleStreamReconnect(OUTAGE_BACKOFF_MS);
+          return;
+        }
+        scheduleStreamReconnect(STREAM_RECONNECT_MS);
+      })
+      .catch(function () {
+        scheduleStreamReconnect(OUTAGE_BACKOFF_MS);
+      });
+  }
+
+  function pollActiveOnce() {
+    return fetch(ENDPOINT_ACTIVE, { credentials: "same-origin" })
+      .then(function (r) {
+        if (!r.ok || isPlatformOutageStatus(r.status)) return null;
+        var ct = (r.headers.get("content-type") || "").toLowerCase();
+        if (ct.indexOf("json") === -1) return null;
+        return r.json();
+      })
+      .then(function (data) {
+        if (data) applySnapshot(data);
+      })
+      .catch(function () { /* next tick retries */ });
+  }
 
   var state = {
     runs: [],
@@ -304,17 +353,7 @@
         es.close();
         state.eventSource = null;
         agentDebugLog("H3", "rmc-workflow-progress.js:connectStream", "event_source_error", {});
-        fetch(ENDPOINT_ACTIVE, { credentials: "same-origin" })
-          .then(function (r) {
-            if (r.status === 401 || r.status === 403) {
-              agentDebugLog("H1", "rmc-workflow-progress.js:connectStream", "auth_required_no_reconnect", { status: r.status });
-              return;
-            }
-            setTimeout(connectStream, 4000);
-          })
-          .catch(function () {
-            setTimeout(connectStream, 4000);
-          });
+        probeActiveBeforeReconnect();
       };
     } catch (_) {
       startPolling();
@@ -323,17 +362,8 @@
 
   function startPolling() {
     if (state.pollTimer) return;
-    state.pollTimer = window.setInterval(function () {
-      fetch(ENDPOINT_ACTIVE, { credentials: "same-origin" })
-        .then(function (r) { return r.json(); })
-        .then(applySnapshot)
-        .catch(function () { /* ignore — next tick will retry */ });
-    }, POLL_INTERVAL_MS);
-    // Kick once immediately.
-    fetch(ENDPOINT_ACTIVE, { credentials: "same-origin" })
-      .then(function (r) { return r.json(); })
-      .then(applySnapshot)
-      .catch(function () { /* ignore */ });
+    state.pollTimer = window.setInterval(pollActiveOnce, POLL_INTERVAL_MS);
+    pollActiveOnce();
   }
 
   function toggleCard() {
@@ -365,12 +395,46 @@
     }
   }
 
+  function adoptRegisteredSlotChip() {
+    // The assist-dock registry paints a `workflow-progress` slot chip with a
+    // visible "Workflow" label but binds no click handler (only the `voice`
+    // slot gets one in `rmc-assist-dock.js::buildRegistryChip`). When that
+    // chip is present we adopt it: tag it with the id this module's handlers
+    // look up, mirror the count badge contract, and skip minting a duplicate
+    // floating chip. Returns the adopted node or null.
+    var slotChip = document.querySelector('[data-rmc-assist-slot-id="workflow-progress"]');
+    if (!slotChip) return null;
+    slotChip.id = "rmc-wfp-chip";
+    slotChip.setAttribute("aria-haspopup", "dialog");
+    slotChip.setAttribute("aria-expanded", "false");
+    slotChip.dataset.rmcWfpState = "idle";
+    if (!slotChip.querySelector(".rmc-wfp-chip__count")) {
+      var count = document.createElement("span");
+      count.className = "rmc-wfp-chip__count";
+      count.hidden = true;
+      count.textContent = "0";
+      slotChip.appendChild(count);
+    }
+    return slotChip;
+  }
+
   function mount() {
     if (!shouldConnectStream()) return;
     if (document.getElementById("rmc-wfp-chip")) return;
-    var chip = buildChip();
     var card = buildCard();
     document.body.appendChild(card);
+
+    var adopted = adoptRegisteredSlotChip();
+    var chip = adopted || buildChip();
+
+    if (adopted) {
+      adopted.addEventListener("click", toggleCard);
+      var closeBtn = card.querySelector(".rmc-wfp-card__close");
+      if (closeBtn) closeBtn.addEventListener("click", toggleCard);
+      document.addEventListener("keydown", onKeydown);
+      connectStream();
+      return;
+    }
 
     // Park the chip into the assist-dock host if it exists; otherwise float bottom-right.
     var dock = document.querySelector('[data-rmc-assist-dock-host],[data-rmc-assist-dock="mounted"]');
