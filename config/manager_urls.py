@@ -15,6 +15,7 @@ from apps.api.user_preferences_api import ControlPlanePreferencesAPI
 from apps.billing import api_views as billing_api_views
 from apps.billing.models import TenantSubscription
 from apps.observability import views as obs_views
+from apps.wal_stream.views_http import wal_websocket_http_stub
 from apps.observability.models import PlatformIncident
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.schools.models import School
@@ -743,6 +744,7 @@ urlpatterns = [
     ),
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
+    path("ws/wal/", wal_websocket_http_stub, name="wal_websocket_http_stub"),
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_status, name="status"),
     path("status/", obs_views.public_status, name="public_status"),

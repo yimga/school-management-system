@@ -20,6 +20,7 @@ from apps.platform_runtime.views_administration import internal_admin_alias_redi
 from apps.platform_runtime.views_rum import rum_ingest
 
 from apps.observability import views as obs_views
+from apps.wal_stream.views_http import wal_websocket_http_stub
 from apps.observability import views_friction as obs_friction_views
 from apps.portal.views_ai_copilot import (
     ai_copilot_query,
@@ -459,6 +460,7 @@ urlpatterns = [
     path("api/csrf-token/", obs_views.csrf_token_refresh, name="api_csrf_token"),
     # Public health endpoint for load balancers
     path("health/", obs_views.public_health, name="health"),
+    path("ws/wal/", wal_websocket_http_stub, name="wal_websocket_http_stub"),
     path("ready/", obs_views.public_health, name="ready"),
     path("status/", obs_views.public_status, name="status"),
     path("metrics/", obs_views.metrics, name="metrics"),

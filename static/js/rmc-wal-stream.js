@@ -221,7 +221,12 @@
   };
 
   function shouldBootWalSocket() {
-    return !document.querySelector("[data-rmc-auth-landing]");
+    if (document.querySelector("[data-rmc-auth-landing]")) return false;
+    // Manager / control-plane is WSGI-only on Render; /ws/wal/ needs ASGI (Daphne).
+    const surface = document.documentElement.getAttribute("data-surface") || "";
+    if (surface === "control-plane") return false;
+    if (document.body?.classList.contains("control-plane-shell")) return false;
+    return true;
   }
 
   // Boot: open WS only on authenticated shells (not login/public landings).
