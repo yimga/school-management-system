@@ -1,0 +1,28 @@
+{% extends "portal_base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Translate this page" %}{% endblock %}
+
+{% block content %}
+<section class="rmc-assist-power" data-rmc-assist-power="translate">
+  <header class="rmc-assist-power__header">
+    <h1 class="h3"><i class="bi bi-translate" aria-hidden="true"></i> {% trans "Translate this page" %}</h1>
+    <p class="text-secondary">{% trans "Switch languages mid-session — every page repaints in the chosen locale." %}</p>
+  </header>
+
+  <form action="{% url 'set_language' %}" method="post" class="rmc-assist-power__form">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <div class="rmc-assist-power__grid">
+      {% for lang in languages %}
+        <button type="submit" name="language" value="{{ lang.code }}"
+                class="rmc-assist-power__chip{% if lang.code == current_language %} rmc-assist-power__chip--active{% endif %}"
+                data-rmc-assist-language="{{ lang.code }}">
+          <span class="rmc-assist-power__chip-code">{{ lang.code }}</span>
+          <span class="rmc-assist-power__chip-label">{{ lang.label }}</span>
+        </button>
+      {% endfor %}
+    </div>
+  </form>
+</section>
+{% endblock %}

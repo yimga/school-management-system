@@ -811,6 +811,8 @@
     {% include "partials/rmc_tour_bootstrap.html" %}
     {% if request.user.is_authenticated %}
     {% include "partials/rmc_assist_dock_labels.html" %}
+    {% comment %} v4.00.91: registry SOT island — JS hydrates chips from this payload. {% endcomment %}
+    {% include "partials/rmc_assist_dock_slots.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% include "partials/rmc_command_bar.html" %}

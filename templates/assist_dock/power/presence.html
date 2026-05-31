@@ -1,0 +1,41 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Who's here" %}{% endblock %}
+
+{% block content %}
+<section class="rmc-assist-power" data-rmc-assist-power="presence">
+  <header class="rmc-assist-power__header">
+    <h1 class="h3"><i class="bi bi-people" aria-hidden="true"></i> {% trans "Who's here right now" %}</h1>
+    <p class="text-secondary">{% blocktrans %}Other operators looking at the same page in the last {{ heartbeat_seconds }} seconds.{% endblocktrans %}</p>
+  </header>
+
+  <dl class="rmc-assist-power__defs">
+    <dt>{% trans "Page" %}</dt>
+    <dd><code>{{ page }}</code></dd>
+    <dt>{% trans "Count" %}</dt>
+    <dd>{{ present|length }}</dd>
+  </dl>
+
+  {% if present %}
+    <ul class="rmc-assist-power__bullet">
+      {% for entry in present %}
+        <li>
+          {% if entry.avatar_url %}
+            <img class="rmc-assist-power__avatar" src="{{ entry.avatar_url }}" alt="" aria-hidden="true">
+          {% else %}
+            <span class="rmc-assist-power__avatar rmc-assist-power__avatar--text" aria-hidden="true">{{ entry.display_name|slice:":1"|upper|default:"?" }}</span>
+          {% endif %}
+          <span>{{ entry.display_name|default:_("(unnamed operator)") }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-secondary">{% trans "Nobody else is on this page right now." %}</p>
+  {% endif %}
+
+  <p class="text-secondary small">
+    {% trans "Co-browse + chat handoff land in the next wave." %}
+  </p>
+</section>
+{% endblock %}

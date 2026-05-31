@@ -345,6 +345,8 @@
   {% if request.user.is_authenticated %}
     {% include 'components/rmc_command_palette.html' %}
     {% include "partials/rmc_assist_dock_labels.html" %}
+    {% comment %} v4.00.91: registry SOT island. {% endcomment %}
+    {% include "partials/rmc_assist_dock_slots.html" %}
     <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
     {% include "partials/rmc_isomorphic_grid_boot.html" %}

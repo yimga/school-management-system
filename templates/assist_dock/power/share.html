@@ -1,0 +1,61 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Share this view" %}{% endblock %}
+
+{% block content %}
+<section class="rmc-assist-power" data-rmc-assist-power="share">
+  <header class="rmc-assist-power__header">
+    <h1 class="h3"><i class="bi bi-share" aria-hidden="true"></i> {% trans "Share this view" %}</h1>
+    <p class="text-secondary">{% trans "Send the current page to a colleague — choose a format and a delivery channel." %}</p>
+  </header>
+
+  <div class="rmc-assist-power__url-row">
+    <label for="assist-power-share-url" class="form-label">{% trans "Page URL" %}</label>
+    <div class="input-group">
+      <input id="assist-power-share-url" type="text" readonly class="form-control" value="{{ absolute_url }}">
+      <button type="button" class="btn btn-outline-secondary"
+              data-rmc-copy-target="#assist-power-share-url"
+              data-rmc-copy-feedback="{% trans 'Copied!' %}">
+        <i class="bi bi-clipboard" aria-hidden="true"></i> {% trans "Copy" %}
+      </button>
+    </div>
+  </div>
+
+  <div class="rmc-assist-power__grid">
+    <a class="rmc-assist-power__chip" href="?page={{ page }}&format=pdf">
+      <i class="bi bi-filetype-pdf" aria-hidden="true"></i> {% trans "PDF snapshot" %}
+    </a>
+    <a class="rmc-assist-power__chip" href="?page={{ page }}&format=csv">
+      <i class="bi bi-filetype-csv" aria-hidden="true"></i> {% trans "CSV export" %}
+    </a>
+    <a class="rmc-assist-power__chip" href="mailto:?subject={% trans 'RunMyCampus view' %}&body={{ absolute_url|urlencode }}">
+      <i class="bi bi-envelope" aria-hidden="true"></i> {% trans "Email link" %}
+    </a>
+  </div>
+
+  <h2 class="h5 mt-4">{% trans "24h short link" %}</h2>
+  <p class="text-secondary small">
+    {% trans "Mints a tokenised URL that auto-expires. Token is single-use-aware; the recipient still passes the page's own auth." %}
+  </p>
+  <div class="rmc-assist-share__mint" data-rmc-assist-share-mint="1"
+       data-rmc-assist-share-target="{{ absolute_url }}"
+       data-rmc-assist-share-mint-url="/assist-dock/share/mint/">
+    <button type="button" class="btn btn-primary" data-rmc-assist-share-mint-trigger>
+      <i class="bi bi-magic" aria-hidden="true"></i> {% trans "Mint short link" %}
+    </button>
+    <div class="rmc-assist-share__mint-result" data-rmc-assist-share-mint-result hidden>
+      <label class="form-label" for="rmc-assist-share-mint-output">{% trans "Short URL (expires in 24h)" %}</label>
+      <div class="input-group">
+        <input id="rmc-assist-share-mint-output" type="text" readonly class="form-control">
+        <button type="button" class="btn btn-outline-secondary"
+                data-rmc-copy-target="#rmc-assist-share-mint-output"
+                data-rmc-copy-feedback="{% trans 'Copied!' %}">
+          <i class="bi bi-clipboard" aria-hidden="true"></i> {% trans "Copy" %}
+        </button>
+      </div>
+      <span class="text-secondary small" data-rmc-assist-share-mint-expires></span>
+    </div>
+  </div>
+</section>
+{% endblock %}

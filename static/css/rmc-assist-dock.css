@@ -224,6 +224,360 @@ body.control-plane-shell:has(.rmc-kb-operator) .rmc-assist-dock__secondary:not(:
   transform: rotate(0deg);
 }
 
+/* ===== v4.00.91 Wave B — badges, halo, quick actions ====================== */
+
+/* Live badge pill — anchored top-right of the chip. */
+.rmc-assist-dock__btn {
+  position: relative;
+}
+
+.rmc-assist-dock__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  background: var(--color-info, #2563eb);
+  color: var(--text-on-brand, #fff);
+  border: 2px solid var(--surface-canvas, #0f172a);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.rmc-assist-dock__badge--dot-only {
+  min-width: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  padding: 0;
+  top: -2px;
+  right: -2px;
+}
+
+.rmc-assist-dock__btn[data-rmc-badge-level="success"] .rmc-assist-dock__badge,
+.rmc-assist-dock__badge[data-rmc-badge-level="success"] {
+  background: var(--color-success, #16a34a);
+}
+
+.rmc-assist-dock__btn[data-rmc-badge-level="warning"] .rmc-assist-dock__badge,
+.rmc-assist-dock__badge[data-rmc-badge-level="warning"] {
+  background: var(--color-warning, #f59e0b);
+  color: var(--text-on-warning, #1f2937);
+}
+
+.rmc-assist-dock__btn[data-rmc-badge-level="critical"] .rmc-assist-dock__badge,
+.rmc-assist-dock__badge[data-rmc-badge-level="critical"] {
+  background: var(--color-danger, #dc2626);
+}
+
+/* Predictive halo — subtle "next probable click" hint. */
+.rmc-assist-dock__btn--halo {
+  box-shadow:
+    0 0 0 2px color-mix(in oklab, var(--school-primary) 55%, transparent),
+    0 12px 32px color-mix(in oklab, var(--school-primary) 32%, transparent);
+  animation: rmc-assist-halo-pulse 2400ms ease-in-out infinite;
+}
+
+@keyframes rmc-assist-halo-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px color-mix(in oklab, var(--school-primary) 55%, transparent),
+      0 12px 32px color-mix(in oklab, var(--school-primary) 22%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px color-mix(in oklab, var(--school-primary) 38%, transparent),
+      0 14px 36px color-mix(in oklab, var(--school-primary) 42%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-assist-dock__btn--halo {
+    animation: none;
+  }
+}
+
+/* Page-aware quick actions strip — sits above the chip rail. */
+.rmc-assist-dock__quick-actions {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: auto;
+  max-width: var(--rmc-assist-panel-width);
+}
+
+.rmc-assist-dock__quick-actions[hidden] {
+  display: none !important;
+}
+
+.rmc-assist-dock__quick-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 6px 12px;
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.14));
+  background: var(--surface-elevated, #1a2234);
+  color: var(--text-primary, #f1f5f9);
+  box-shadow: var(--elev-1, 0 4px 12px rgba(0, 0, 0, 0.18));
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease;
+  white-space: nowrap;
+}
+
+.rmc-assist-dock__quick-action:hover,
+.rmc-assist-dock__quick-action:focus-visible {
+  transform: translateX(-2px);
+  background: color-mix(in oklab, var(--surface-elevated, #1a2234) 80%, var(--school-primary) 20%);
+  border-color: color-mix(in oklab, var(--school-primary) 45%, var(--hairline));
+}
+
+.rmc-assist-dock__quick-action i {
+  font-size: 0.95rem;
+  color: var(--school-primary);
+}
+
+/* ===== v4.00.93 Wave C — power chip landings + prefs UI ================== */
+
+.rmc-assist-power {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 1.75rem 2rem;
+  border-radius: 18px;
+  background: var(--surface-elevated, #1a2234);
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  color: var(--text-primary, #f1f5f9);
+  box-shadow: var(--elev-2, 0 12px 32px rgba(0, 0, 0, 0.28));
+}
+
+.rmc-assist-power__header h1 {
+  margin: 0 0 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rmc-assist-power__header h1 i {
+  color: var(--school-primary);
+}
+
+.rmc-assist-power__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.rmc-assist-power__chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1rem 0.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  background: var(--surface-canvas, #0f172a);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: var(--type-size-caption, 0.8125rem);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.rmc-assist-power__chip:hover,
+.rmc-assist-power__chip:focus-visible {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--school-primary) 45%, var(--hairline));
+  background: color-mix(in oklab, var(--surface-canvas, #0f172a) 80%, var(--school-primary) 20%);
+}
+
+.rmc-assist-power__chip--active {
+  border-color: var(--school-primary);
+  background: color-mix(in oklab, var(--school-primary) 24%, var(--surface-canvas));
+}
+
+.rmc-assist-power__chip-code {
+  font-family: var(--font-mono, monospace);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.rmc-assist-power__chip-label {
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 600;
+}
+
+.rmc-assist-power__chip i {
+  font-size: 1.4rem;
+  color: var(--school-primary);
+}
+
+.rmc-assist-power__url-row {
+  margin: 1.25rem 0;
+}
+
+.rmc-assist-power__defs {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 0.6rem 1rem;
+  margin: 1.25rem 0;
+}
+
+.rmc-assist-power__defs dt {
+  font-weight: 700;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.72));
+}
+
+.rmc-assist-power__defs dd {
+  margin: 0;
+}
+
+.rmc-assist-power__bullet {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.rmc-assist-power__bullet li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--surface-canvas, #0f172a) 70%, var(--school-primary) 30%);
+}
+
+/* ===== v4.00.95 Wave E — presence + settings DnD ========================= */
+
+.rmc-assist-power__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+  background: color-mix(in oklab, var(--school-primary) 30%, var(--surface-canvas));
+  color: var(--text-on-brand, #fff);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.rmc-assist-power__avatar--text {
+  text-transform: uppercase;
+}
+
+.rmc-assist-settings__chip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rmc-assist-settings__chip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.14));
+  background: var(--surface-canvas, #0f172a);
+  cursor: grab;
+}
+
+.rmc-assist-settings__chip-row:active {
+  cursor: grabbing;
+}
+
+.rmc-assist-settings__chip-row--dragging {
+  opacity: 0.5;
+  border-style: dashed;
+  border-color: var(--school-primary);
+}
+
+.rmc-assist-settings__handle {
+  font-size: 1.2rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+  cursor: grab;
+}
+
+.rmc-assist-settings__chip-row i.bi {
+  font-size: 1.1rem;
+  color: var(--school-primary);
+}
+
+.rmc-assist-settings__chip-label {
+  flex: 1;
+  font-weight: 600;
+}
+
+.rmc-assist-settings__chip-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.rmc-assist-settings__fieldset {
+  display: inline-flex;
+  gap: 1rem;
+  padding: 0;
+  border: 0;
+  margin: 0.5rem 1.5rem 0.5rem 0;
+}
+
+.rmc-assist-settings__radio,
+.rmc-assist-settings__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 1rem;
+  cursor: pointer;
+}
+
+.rmc-assist-settings__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.rmc-assist-settings__status {
+  font-size: var(--type-size-caption, 0.8125rem);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+}
+
+.rmc-assist-share__mint-result {
+  margin-top: 0.75rem;
+}
+
+.rmc-assist-share__mint-result[hidden] {
+  display: none !important;
+}
+
+
+
 /* --- Shared panel chrome --- */
 .rmc-assist-panel {
   display: none;

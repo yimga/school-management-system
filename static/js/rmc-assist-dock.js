@@ -16,6 +16,44 @@
     }
   }
 
+  // v4.00.91 — registry SOT island. Optional; falls back to legacy DOM-scan
+  // when missing so older shells keep working during the migration window.
+  function registry() {
+    var el = document.getElementById("page-data-rmc-assist-dock-registry");
+    if (!el) return null;
+    try {
+      var parsed = JSON.parse(el.textContent || "null");
+      if (!parsed || !Array.isArray(parsed.slots)) return null;
+      return parsed;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  // Look up a slot in the registry by its canonical id.
+  function findSlot(reg, slotId) {
+    if (!reg || !Array.isArray(reg.slots)) return null;
+    for (var i = 0; i < reg.slots.length; i++) {
+      if (reg.slots[i].id === slotId) return reg.slots[i];
+    }
+    return null;
+  }
+
+  // Resolve the DOM source for a slot. Returns the element or null.
+  // Skips body / html so a stray data-rmc-page-help on <body> doesn't
+  // get adopted as the help chip.
+  function resolveAdoptedNode(slot) {
+    if (!slot || slot.source !== "dom-adopt" || !slot.adopt_selector) return null;
+    var nodes = document.querySelectorAll(slot.adopt_selector);
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (node === document.body || node === document.documentElement) continue;
+      if (node.closest && node.closest("[data-rmc-copilot-rail]")) continue;
+      return node;
+    }
+    return null;
+  }
+
   function backdropEl() {
     return document.querySelector(".rmc-assist-dock__backdrop");
   }
@@ -55,7 +93,44 @@
     syncBackdrop();
   }
 
-  window.RMCAssistDock = { closeAll: closeAll, syncBackdrop: syncBackdrop };
+  // v4.00.91 — annotate every adopted chip with its registry slot id so
+  // downstream layers (badges in Wave B, presence in Wave C, AI deep
+  // features in Wave D) can target chips by slot id rather than by
+  // their original CSS class. Idempotent — safe to re-run.
+  function annotateAdoptedSlots() {
+    var reg = registry();
+    if (!reg) return 0;
+    var marked = 0;
+    for (var i = 0; i < reg.slots.length; i++) {
+      var slot = reg.slots[i];
+      if (slot.source !== "dom-adopt") continue;
+      var node = resolveAdoptedNode(slot);
+      if (!node) continue;
+      // Mark the source node AND, if the dock has already mounted, the
+      // adopted button (which is the same DOM node, just re-parented).
+      if (!node.hasAttribute("data-rmc-assist-slot-id")) {
+        node.setAttribute("data-rmc-assist-slot-id", slot.id);
+        marked++;
+      }
+      if (slot.shortcut && !node.getAttribute("data-rmc-assist-shortcut")) {
+        node.setAttribute("data-rmc-assist-shortcut", slot.shortcut);
+      }
+      if (slot.aria_keyshortcuts && !node.getAttribute("aria-keyshortcuts")) {
+        node.setAttribute("aria-keyshortcuts", slot.aria_keyshortcuts);
+      }
+    }
+    return marked;
+  }
+
+  window.RMCAssistDock = {
+    closeAll: closeAll,
+    syncBackdrop: syncBackdrop,
+    // Wave A introspection helpers — Wave B will append badge / presence
+    // wiring under the same namespace.
+    registrySnapshot: function () { return registry(); },
+    findSlot: function (id) { return findSlot(registry(), id); },
+    annotateAdoptedSlots: annotateAdoptedSlots,
+  };
 
   function mountDock(L) {
     var aiWrap = document.querySelector(".ai-copilot-wrapper");
@@ -281,9 +356,721 @@
     }
   }
 
+  // Wave B — context polling, badge painting, predictive halo + click tracking.
+  // -----------------------------------------------------------------------
+
+  var CONTEXT_URL = "/assist-dock/context.json";
+  var POLL_INTERVAL_MS = 60000; // 60s default; respects visibility state
+  var HALO_HISTORY_KEY = "rmc_dock_clicks_v1";
+  var HALO_HISTORY_TTL_DAYS = 30;
+  var HALO_MIN_CLICKS_TO_PROMOTE = 3;
+  var HALO_COOLDOWN_MS = 5 * 60 * 1000; // don't re-halo a slot for 5 min after click
+
+  function getChipForSlot(slotId) {
+    if (!slotId) return null;
+    var sel = '[data-rmc-assist-slot-id="' + slotId.replace(/"/g, '\\"') + '"]';
+    return document.querySelector(sel);
+  }
+
+  function paintBadge(chip, snapshot) {
+    if (!chip) return;
+    var existing = chip.querySelector(".rmc-assist-dock__badge");
+    if (!snapshot) {
+      if (existing) existing.remove();
+      chip.removeAttribute("data-rmc-badge-count");
+      chip.removeAttribute("data-rmc-badge-level");
+      return;
+    }
+    var level = snapshot.level || "info";
+    var count = snapshot.count;
+    var dot = !!snapshot.dot;
+    var pill = existing;
+    if (!pill) {
+      pill = document.createElement("span");
+      pill.className = "rmc-assist-dock__badge";
+      pill.setAttribute("aria-hidden", "true");
+      chip.appendChild(pill);
+    }
+    pill.dataset.rmcBadgeLevel = level;
+    if (count != null) {
+      pill.textContent = count > 99 ? "99+" : String(count);
+      pill.classList.remove("rmc-assist-dock__badge--dot-only");
+    } else if (dot) {
+      pill.textContent = "";
+      pill.classList.add("rmc-assist-dock__badge--dot-only");
+    } else {
+      pill.remove();
+      chip.removeAttribute("data-rmc-badge-count");
+      chip.removeAttribute("data-rmc-badge-level");
+      return;
+    }
+    chip.setAttribute("data-rmc-badge-level", level);
+    if (count != null) chip.setAttribute("data-rmc-badge-count", String(count));
+    if (snapshot.tooltip) chip.setAttribute("title", snapshot.tooltip);
+  }
+
+  function applyBadges(badges) {
+    if (!badges || typeof badges !== "object") return;
+    // Clear stale badges first — any chip with a badge that's no longer
+    // in the payload should drop its pill.
+    var chipsWithBadges = document.querySelectorAll("[data-rmc-assist-slot-id][data-rmc-badge-level]");
+    for (var i = 0; i < chipsWithBadges.length; i++) {
+      var slotId = chipsWithBadges[i].getAttribute("data-rmc-assist-slot-id");
+      if (!Object.prototype.hasOwnProperty.call(badges, slotId)) {
+        paintBadge(chipsWithBadges[i], null);
+      }
+    }
+    Object.keys(badges).forEach(function (slotId) {
+      var chip = getChipForSlot(slotId);
+      if (chip) paintBadge(chip, badges[slotId]);
+    });
+  }
+
+  // ---- Predictive halo (client-only frequency model, no server roundtrip) ----
+
+  function readHaloHistory() {
+    try {
+      var raw = localStorage.getItem(HALO_HISTORY_KEY);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch (_e) {
+      return {};
+    }
+  }
+
+  function writeHaloHistory(obj) {
+    try {
+      localStorage.setItem(HALO_HISTORY_KEY, JSON.stringify(obj));
+    } catch (_e) {
+      /* quota or disabled — silent */
+    }
+  }
+
+  function pageKey() {
+    try {
+      // Use pathname only — query string would shard history pointlessly.
+      return location.pathname || "/";
+    } catch (_e) {
+      return "/";
+    }
+  }
+
+  function recordChipClick(slotId) {
+    if (!slotId) return;
+    var key = pageKey();
+    var hist = readHaloHistory();
+    if (!hist[key]) hist[key] = { slots: {}, lastClickAt: {} };
+    var bucket = hist[key];
+    bucket.slots[slotId] = (bucket.slots[slotId] || 0) + 1;
+    bucket.lastClickAt[slotId] = Date.now();
+    writeHaloHistory(prunedHistory(hist));
+  }
+
+  function prunedHistory(hist) {
+    var cutoff = Date.now() - HALO_HISTORY_TTL_DAYS * 24 * 60 * 60 * 1000;
+    Object.keys(hist).forEach(function (key) {
+      var bucket = hist[key];
+      var anyRecent = false;
+      Object.keys(bucket.lastClickAt || {}).forEach(function (slotId) {
+        if ((bucket.lastClickAt[slotId] || 0) >= cutoff) anyRecent = true;
+      });
+      if (!anyRecent) delete hist[key];
+    });
+    return hist;
+  }
+
+  function pickHaloSlot() {
+    var hist = readHaloHistory();
+    var bucket = hist[pageKey()];
+    if (!bucket || !bucket.slots) return null;
+    var now = Date.now();
+    var best = null;
+    var bestCount = HALO_MIN_CLICKS_TO_PROMOTE - 1;
+    Object.keys(bucket.slots).forEach(function (slotId) {
+      var count = bucket.slots[slotId] || 0;
+      if (count <= bestCount) return;
+      var lastAt = (bucket.lastClickAt || {})[slotId] || 0;
+      if (now - lastAt < HALO_COOLDOWN_MS) return;
+      best = slotId;
+      bestCount = count;
+    });
+    return best;
+  }
+
+  function applyHalo() {
+    var prior = document.querySelectorAll(".rmc-assist-dock__btn--halo");
+    for (var i = 0; i < prior.length; i++) {
+      prior[i].classList.remove("rmc-assist-dock__btn--halo");
+      prior[i].removeAttribute("data-rmc-halo-promoted");
+    }
+    var target = pickHaloSlot();
+    if (!target) return;
+    var chip = getChipForSlot(target);
+    if (!chip) return;
+    chip.classList.add("rmc-assist-dock__btn--halo");
+    chip.setAttribute("data-rmc-halo-promoted", "1");
+  }
+
+  function bindClickTracking() {
+    document.addEventListener(
+      "click",
+      function (ev) {
+        var node = ev.target;
+        while (node && node !== document.body) {
+          if (node.hasAttribute && node.hasAttribute("data-rmc-assist-slot-id")) {
+            recordChipClick(node.getAttribute("data-rmc-assist-slot-id"));
+            return;
+          }
+          node = node.parentNode;
+        }
+      },
+      true
+    );
+  }
+
+  function fetchContext() {
+    var url = CONTEXT_URL + "?page=" + encodeURIComponent(pageKey());
+    try {
+      return fetch(url, {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      })
+        .then(function (r) {
+          if (!r.ok) return null;
+          return r.json();
+        })
+        .then(function (payload) {
+          if (!payload) return;
+          applyBadges(payload.badges || {});
+          renderQuickActions(payload.quick_actions || []);
+          applyHalo();
+          window.dispatchEvent(
+            new CustomEvent("rmc-assist-dock-context", { detail: payload })
+          );
+        })
+        .catch(function () {
+          /* network failure — silent, next poll will retry */
+        });
+    } catch (_e) {
+      return Promise.resolve();
+    }
+  }
+
+  function renderQuickActions(actions) {
+    var dock = document.querySelector(".rmc-assist-dock");
+    if (!dock) return;
+    var holder = dock.querySelector("[data-rmc-assist-quick-actions]");
+    if (!holder) {
+      holder = document.createElement("div");
+      holder.setAttribute("data-rmc-assist-quick-actions", "1");
+      holder.className = "rmc-assist-dock__quick-actions";
+      dock.insertBefore(holder, dock.querySelector(".rmc-assist-dock__rail"));
+    }
+    holder.innerHTML = "";
+    if (!actions || !actions.length) {
+      holder.hidden = true;
+      return;
+    }
+    holder.hidden = false;
+    for (var i = 0; i < actions.length; i++) {
+      var a = actions[i];
+      if (!a || !a.href) continue;
+      var link = document.createElement("a");
+      link.className = "rmc-assist-dock__quick-action";
+      link.href = a.href;
+      link.setAttribute("data-rmc-assist-quick-action-id", a.id || "");
+      link.innerHTML =
+        '<i class="bi ' +
+        (a.icon || "bi-arrow-right-short").replace(/"/g, "") +
+        '" aria-hidden="true"></i><span>' +
+        (a.label || "").replace(/</g, "&lt;") +
+        "</span>";
+      holder.appendChild(link);
+    }
+  }
+
+  function startPolling() {
+    fetchContext();
+    var timer = null;
+    function schedule() {
+      clearTimeout(timer);
+      if (document.hidden) return; // pause when tab is hidden
+      timer = setTimeout(function () {
+        fetchContext().then(schedule);
+      }, POLL_INTERVAL_MS);
+    }
+    schedule();
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        fetchContext().then(schedule);
+      } else {
+        clearTimeout(timer);
+      }
+    });
+  }
+
+  // Wave C — render registry-source chips (source="registry" or "external").
+  // The v1 dock only adopted DOM nodes; this pass paints brand-new chips
+  // from the registry into the same primary/secondary row chrome.
+  function mountRegistryChips() {
+    var reg = registry();
+    if (!reg || !Array.isArray(reg.slots)) return 0;
+    var dock = document.querySelector(".rmc-assist-dock");
+    if (!dock) return 0;
+    var primary = dock.querySelector(".rmc-assist-dock__primary-row");
+    var secondary = dock.querySelector(".rmc-assist-dock__secondary");
+    if (!primary || !secondary) return 0;
+    var rendered = 0;
+    for (var i = 0; i < reg.slots.length; i++) {
+      var slot = reg.slots[i];
+      if (!slot || slot.source === "dom-adopt") continue;
+      if (document.querySelector(
+            '[data-rmc-assist-slot-id="' + (slot.id || "").replace(/"/g, '\\"') + '"]'
+          )) {
+        // Already rendered (e.g. by a re-init pass) — skip.
+        continue;
+      }
+      var chip = buildRegistryChip(slot);
+      if (!chip) continue;
+      var slotWrap = document.createElement("div");
+      slotWrap.className =
+        "rmc-assist-dock__slot rmc-assist-dock__slot--" + (slot.id || "x");
+      slotWrap.appendChild(chip);
+      if (slot.pinned_default) {
+        primary.appendChild(slotWrap);
+      } else {
+        secondary.appendChild(slotWrap);
+      }
+      rendered++;
+    }
+    return rendered;
+  }
+
+  function buildRegistryChip(slot) {
+    var el;
+    if (slot.source === "external" && slot.href) {
+      el = document.createElement("a");
+      el.href = slot.href;
+    } else {
+      el = document.createElement("button");
+      el.type = "button";
+    }
+    el.className =
+      "rmc-assist-dock__btn rmc-assist-dock__btn--" + (slot.id || "x");
+    el.setAttribute("data-rmc-assist-slot-id", slot.id || "");
+    if (slot.shortcut) el.setAttribute("data-rmc-assist-shortcut", slot.shortcut);
+    if (slot.aria_keyshortcuts) {
+      el.setAttribute("aria-keyshortcuts", slot.aria_keyshortcuts);
+    }
+    if (slot.description) el.setAttribute("title", slot.description);
+    el.innerHTML =
+      '<i class="bi ' +
+      (slot.icon || "bi-circle").replace(/"/g, "") +
+      '" aria-hidden="true"></i><span class="rmc-assist-dock__label">' +
+      (slot.label || "").replace(/</g, "&lt;") +
+      "</span>";
+    if (slot.source === "registry" && slot.id === "voice") {
+      el.addEventListener("click", startVoiceCapture);
+    }
+    return el;
+  }
+
+  // Voice chip — Web Speech API → ⌘K dispatch. Requires user pref opt-in,
+  // which the registry enforces via requires_feature="voice_assist". The
+  // chip only renders when the feature flag flips on; the click handler
+  // does the actual speech recognition.
+  function startVoiceCapture() {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      alert("Voice not supported in this browser.");
+      return;
+    }
+    try {
+      var rec = new SR();
+      rec.lang = (document.documentElement.lang || "en") + "-US";
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      rec.onresult = function (ev) {
+        var phrase = ((ev.results[0] || [])[0] || {}).transcript || "";
+        if (!phrase) return;
+        // Dispatch into ⌘K if available.
+        if (window.rmcCommandBar && window.rmcCommandBar.runQuery) {
+          window.rmcCommandBar.runQuery(phrase);
+        } else {
+          window.dispatchEvent(
+            new CustomEvent("rmc-assist-voice-phrase", { detail: { phrase: phrase } })
+          );
+        }
+      };
+      rec.start();
+    } catch (_e) {
+      /* abort — never crash the dock */
+    }
+  }
+
+  // Wave D — AI action dispatcher. ``runAIAction(actionId, ctx)`` POSTs to
+  // /assist-dock/ai/<action_id>/ with {page_path, page_excerpt, user_query}
+  // and resolves with the response envelope. ``listInsights`` / ``clearInsight``
+  // expose the proactive-insights ring to the AI panel.
+  function csrfToken() {
+    var m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+    if (m) return decodeURIComponent(m[1]);
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute("content") || "" : "";
+  }
+
+  function runAIAction(actionId, ctx) {
+    var payload = {
+      page_path: (ctx && ctx.page_path) || location.pathname || "",
+      page_excerpt: (ctx && ctx.page_excerpt) || "",
+      user_query: (ctx && ctx.user_query) || "",
+    };
+    var url = "/assist-dock/ai/" + encodeURIComponent(actionId) + "/";
+    try {
+      return fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: JSON.stringify(payload),
+      }).then(function (r) {
+        return r.json().then(function (envelope) {
+          envelope.status = r.status;
+          return envelope;
+        });
+      });
+    } catch (_e) {
+      return Promise.resolve({ ok: false, error: "network_failed", status: 0 });
+    }
+  }
+
+  function listInsights(pagePath) {
+    var url = "/assist-dock/insights.json";
+    if (pagePath) url += "?page=" + encodeURIComponent(pagePath);
+    return fetch(url, {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    }).then(function (r) {
+      if (!r.ok) return { insights: [] };
+      return r.json();
+    });
+  }
+
+  function clearInsight(insightId) {
+    return fetch("/assist-dock/insights/clear/", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: JSON.stringify({ insight_id: insightId }),
+    }).then(function (r) {
+      return r.ok;
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Wave E1 — presence heartbeat (every PRESENCE_HEARTBEAT_MS, paused when
+  // tab is hidden).
+  // -----------------------------------------------------------------------
+  var PRESENCE_HEARTBEAT_MS = 30000;
+
+  function sendPresenceHeartbeat() {
+    var url = "/assist-dock/presence/heartbeat/";
+    try {
+      return fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: JSON.stringify({ page_path: pageKey() }),
+      }).catch(function () {
+        /* silent — best-effort */
+      });
+    } catch (_e) {
+      return Promise.resolve();
+    }
+  }
+
+  function startPresence() {
+    sendPresenceHeartbeat();
+    var timer = null;
+    function schedule() {
+      clearTimeout(timer);
+      if (document.hidden) return;
+      timer = setTimeout(function () {
+        sendPresenceHeartbeat().then(schedule);
+      }, PRESENCE_HEARTBEAT_MS);
+    }
+    schedule();
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        sendPresenceHeartbeat().then(schedule);
+      } else {
+        clearTimeout(timer);
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Wave E3 — SSE upgrade. EventSource subscribes to /context/stream/ and
+  // applies badge frames as they arrive. Falls back to the existing 60s
+  // poll when EventSource is missing OR when the stream errors twice in
+  // a row.
+  // -----------------------------------------------------------------------
+  var _sseSource = null;
+  var _sseErrorCount = 0;
+  var _sseFallbackEngaged = false;
+
+  function startSSE() {
+    if (_sseFallbackEngaged) return false;
+    if (typeof EventSource === "undefined") return false;
+    if (_sseSource !== null) return true;
+    try {
+      var url = "/assist-dock/context/stream/?page=" + encodeURIComponent(pageKey());
+      _sseSource = new EventSource(url, { withCredentials: true });
+    } catch (_e) {
+      _sseFallbackEngaged = true;
+      return false;
+    }
+    _sseSource.addEventListener("snapshot", function (ev) {
+      try {
+        var payload = JSON.parse(ev.data);
+        applyBadges(payload.badges || {});
+        renderQuickActions(payload.quick_actions || []);
+        applyHalo();
+      } catch (_e) {
+        /* malformed frame — ignore */
+      }
+    });
+    _sseSource.addEventListener("badges", function (ev) {
+      try {
+        var payload = JSON.parse(ev.data);
+        applyBadges(payload.badges || {});
+      } catch (_e) {
+        /* ignore */
+      }
+    });
+    _sseSource.addEventListener("heartbeat", function () {
+      /* no-op — proxy keep-alive */
+    });
+    _sseSource.addEventListener("done", function () {
+      // Server closed cleanly; let EventSource auto-reconnect on its own
+      // cadence. No fallback engagement.
+    });
+    _sseSource.onerror = function () {
+      _sseErrorCount++;
+      if (_sseErrorCount >= 2) {
+        try { _sseSource.close(); } catch (_e) {}
+        _sseSource = null;
+        _sseFallbackEngaged = true;
+        startPolling();
+      }
+    };
+    return true;
+  }
+
+  // -----------------------------------------------------------------------
+  // Wave E5 — share short-link mint client + Wave E4 settings page DnD.
+  // -----------------------------------------------------------------------
+  function bindShareMintTriggers() {
+    var triggers = document.querySelectorAll("[data-rmc-assist-share-mint-trigger]");
+    if (!triggers.length) return;
+    for (var i = 0; i < triggers.length; i++) {
+      triggers[i].addEventListener("click", handleShareMintClick);
+    }
+  }
+
+  function handleShareMintClick(ev) {
+    var trigger = ev.currentTarget;
+    var holder = trigger.closest("[data-rmc-assist-share-mint]");
+    if (!holder) return;
+    var target = holder.getAttribute("data-rmc-assist-share-target") || "";
+    var mintUrl = holder.getAttribute("data-rmc-assist-share-mint-url") || "/assist-dock/share/mint/";
+    trigger.disabled = true;
+    fetch(mintUrl, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: JSON.stringify({ target: target, ttl_hours: 24 }),
+    })
+      .then(function (r) { return r.json().then(function (b) { b.status = r.status; return b; }); })
+      .then(function (payload) {
+        var result = holder.querySelector("[data-rmc-assist-share-mint-result]");
+        var output = holder.querySelector("[data-rmc-assist-share-mint-result] input");
+        var expires = holder.querySelector("[data-rmc-assist-share-mint-expires]");
+        if (!payload.ok) {
+          if (result) result.hidden = false;
+          if (output) output.value = "Mint failed: " + (payload.error || "unknown");
+          if (expires) expires.textContent = "";
+          return;
+        }
+        if (result) result.hidden = false;
+        if (output) output.value = payload.short_url || "";
+        if (expires) {
+          expires.textContent = payload.expires_at ? "Expires " + payload.expires_at : "";
+        }
+      })
+      .catch(function () {
+        var result = holder.querySelector("[data-rmc-assist-share-mint-result]");
+        var output = holder.querySelector("[data-rmc-assist-share-mint-result] input");
+        if (result) result.hidden = false;
+        if (output) output.value = "Mint failed: network error";
+      })
+      .finally(function () { trigger.disabled = false; });
+  }
+
+  function bindSettingsForm() {
+    var form = document.getElementById("rmc-dock-settings-form");
+    if (!form) return;
+    var list = document.getElementById("rmc-dock-settings-chip-list");
+    if (list) wireSettingsDragAndDrop(list);
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      saveSettings(form);
+    });
+  }
+
+  function wireSettingsDragAndDrop(list) {
+    var dragging = null;
+    Array.prototype.forEach.call(list.querySelectorAll("[data-rmc-dock-slot-id]"), function (row) {
+      row.addEventListener("dragstart", function () {
+        dragging = row;
+        row.classList.add("rmc-assist-settings__chip-row--dragging");
+      });
+      row.addEventListener("dragend", function () {
+        if (dragging) dragging.classList.remove("rmc-assist-settings__chip-row--dragging");
+        dragging = null;
+      });
+      row.addEventListener("dragover", function (ev) {
+        ev.preventDefault();
+        if (!dragging || dragging === row) return;
+        var rect = row.getBoundingClientRect();
+        var midpoint = rect.top + rect.height / 2;
+        if (ev.clientY < midpoint) {
+          row.parentNode.insertBefore(dragging, row);
+        } else {
+          row.parentNode.insertBefore(dragging, row.nextSibling);
+        }
+      });
+    });
+  }
+
+  function saveSettings(form) {
+    var status = document.getElementById("rmc-dock-settings-status");
+    var list = document.getElementById("rmc-dock-settings-chip-list");
+    var prefsUrl = form.getAttribute("data-rmc-dock-prefs-url") || "/assist-dock/prefs.json";
+    var pinnedOrder = [];
+    if (list) {
+      Array.prototype.forEach.call(list.querySelectorAll("[data-rmc-dock-slot-id]"), function (row) {
+        pinnedOrder.push(row.getAttribute("data-rmc-dock-slot-id"));
+      });
+    }
+    var hidden = [];
+    Array.prototype.forEach.call(form.querySelectorAll('input[name="hidden_slots[]"]:checked'), function (cb) {
+      hidden.push(cb.value);
+    });
+    var density = (form.querySelector('input[name="density"]:checked') || {}).value || "cozy";
+    var side = (form.querySelector('input[name="side"]:checked') || {}).value || "right";
+    var halo = !!(form.querySelector('input[name="halo_enabled"]') || {}).checked;
+    var voice = !!(form.querySelector('input[name="voice_enabled"]') || {}).checked;
+    var payload = {
+      pinned_order: pinnedOrder,
+      hidden_slots: hidden,
+      density: density,
+      side: side,
+      halo_enabled: halo,
+      voice_enabled: voice,
+    };
+    if (status) status.textContent = "Saving…";
+    fetch(prefsUrl, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: JSON.stringify(payload),
+    })
+      .then(function (r) { return r.json().then(function (b) { b.status = r.status; return b; }); })
+      .then(function (body) {
+        if (status) {
+          status.textContent = body.saved ? "Saved." : "Save failed.";
+        }
+      })
+      .catch(function () {
+        if (status) status.textContent = "Save failed.";
+      });
+  }
+
+  // Expose Wave B + C + D + E controls on the namespace.
+  window.RMCAssistDock = window.RMCAssistDock || {};
+  window.RMCAssistDock.fetchContext = fetchContext;
+  window.RMCAssistDock.applyBadges = applyBadges;
+  window.RMCAssistDock.applyHalo = applyHalo;
+  window.RMCAssistDock.recordChipClick = recordChipClick;
+  window.RMCAssistDock.pickHaloSlot = pickHaloSlot;
+  window.RMCAssistDock.mountRegistryChips = mountRegistryChips;
+  window.RMCAssistDock.runAIAction = runAIAction;
+  window.RMCAssistDock.listInsights = listInsights;
+  window.RMCAssistDock.clearInsight = clearInsight;
+  window.RMCAssistDock.sendPresenceHeartbeat = sendPresenceHeartbeat;
+  window.RMCAssistDock.startSSE = startSSE;
+  window.RMCAssistDock.bindShareMintTriggers = bindShareMintTriggers;
+  window.RMCAssistDock.bindSettingsForm = bindSettingsForm;
+
   function init() {
     if (document.body.dataset.rmcAssistDock === "off") return;
     mountDock(labels());
+    // Wave A: annotate adopted nodes with their registry slot ids so the
+    // dock chrome carries the SOT slug. Runs after mountDock so the
+    // re-parented nodes get the attribute too.
+    try {
+      annotateAdoptedSlots();
+    } catch (_e) {
+      /* annotation is best-effort; never break dock mount */
+    }
+    // Wave B: bind click tracker, apply halo from local history, then
+    // begin polling for live badges + quick actions. Skip when the
+    // registry island is absent (anonymous shells / opt-out body attr).
+    if (!registry()) {
+      // Wave E mount points still need to bind on pages without the
+      // registry island (e.g. the standalone share / settings landings).
+      try { bindShareMintTriggers(); bindSettingsForm(); } catch (_e) {}
+      return;
+    }
+    try {
+      // Wave C: paint registry-source chips (anchors / buttons) AFTER the
+      // dom-adopt mount so they sit alongside the legacy widgets.
+      mountRegistryChips();
+      bindClickTracking();
+      applyHalo();
+      // Wave E1: presence heartbeat.
+      startPresence();
+      // Wave E3: try SSE first; fall back to poll only on repeated error.
+      if (!startSSE()) {
+        startPolling();
+      }
+      // Wave E4 + E5: bind settings DnD + share mint on the relevant pages.
+      bindShareMintTriggers();
+      bindSettingsForm();
+    } catch (_e) {
+      /* never break the dock if the context layer fails */
+    }
   }
 
   if (document.readyState === "loading") {

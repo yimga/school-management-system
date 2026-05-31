@@ -1,0 +1,37 @@
+{% comment %}
+v4.00.91 — assist dock registry JSON island.
+
+Rendered alongside `rmc_assist_dock_labels.html` so the JS dock can hydrate
+from the canonical registry rather than only scanning the DOM. The legacy
+labels island stays load-bearing for the six v1 chips; this new island
+adds the registry payload (surface/role/slots) consumed by Wave B+.
+
+Defensive: works even when the `assist_dock` context key is missing
+(processor failure, page rendered outside the request cycle).
+{% endcomment %}
+{% load static %}
+{% if assist_dock %}
+<script type="application/json" id="page-data-rmc-assist-dock-registry" nonce="{{ csp_nonce }}">{
+  "surface": "{{ assist_dock.surface|default:'*'|escapejs }}",
+  "role": "{{ assist_dock.role|default:'anonymous'|escapejs }}",
+  "version": "{{ assist_dock.version|default:''|escapejs }}",
+  "slots": [{% for slot in assist_dock.slots %}
+    {
+      "id": "{{ slot.id|escapejs }}",
+      "label": "{{ slot.label|escapejs }}",
+      "icon": "{{ slot.icon|escapejs }}",
+      "source": "{{ slot.source|escapejs }}",
+      "adopt_selector": "{{ slot.adopt_selector|default:''|escapejs }}",
+      "panel_url_name": "{{ slot.panel_url_name|default:''|escapejs }}",
+      "panel_template": "{{ slot.panel_template|default:''|escapejs }}",
+      "href": "{{ slot.href|default:''|escapejs }}",
+      "badge_source": "{{ slot.badge_source|default:''|escapejs }}",
+      "shortcut": "{{ slot.shortcut|default:''|escapejs }}",
+      "aria_keyshortcuts": "{{ slot.aria_keyshortcuts|default:''|escapejs }}",
+      "pinned_default": {% if slot.pinned_default %}true{% else %}false{% endif %},
+      "order": {{ slot.order|default:100 }},
+      "description": "{{ slot.description|default:''|escapejs }}"
+    }{% if not forloop.last %},{% endif %}{% endfor %}
+  ]
+}</script>
+{% endif %}

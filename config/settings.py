@@ -255,6 +255,7 @@ INSTALLED_APPS = [
     "apps.lifecycle.apps.LifecycleConfig",  # 360 school lifecycle spine (Wave L1+)
     "apps.admissions.apps.AdmissionsConfig",  # Wave R-B (v3.96.0) — admission application kernel
     "apps.safeguarding.apps.SafeguardingConfig",  # Wave R-D (v3.96.0) — KCSIE 2026 concern kernel
+    "apps.assist_dock.apps.AssistDockConfig",  # v4.00.91: assist dock registry SOT
     "emis",
     # Celery result/beat (optional: used when REDIS_URL is set for background tasks)
     "django_celery_results",
@@ -482,6 +483,10 @@ TEMPLATES = [
                 # country first, with the global frame as secondary context.
                 "apps.schools.marketing_local_context.marketing_local_context",
                 "apps.schools.marketing_media_context.marketing_media_context",
+                # v4.00.91: assist dock SOT registry → server-rendered chip
+                # rail. Reads `assist_dock` in every template; JS hydrates
+                # the dock chrome from the JSON island the partial emits.
+                "apps.assist_dock.context_processors.assist_dock_context",
             ]
         },
     }
@@ -3082,6 +3087,8 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.dashboard.apps.DashboardConfig",
         # Public-schema School lifecycle spine (SchoolLifecycleStage on School FK; operator-surface rapid-create / migration-intent / offboarding).
         "apps.lifecycle.apps.LifecycleConfig",
+        # v4.00.91: assist dock registry SOT — process-local; no models.
+        "apps.assist_dock.apps.AssistDockConfig",
     ]
     TENANT_APPS = [
         "apps.portal",

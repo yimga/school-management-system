@@ -1,0 +1,122 @@
+"""v4.00.91 — six legacy chips lifted into the registry.
+
+Loaded by ``AssistDockConfig.ready`` so the registry is seeded at startup
+without any other app having to know about it. Each slot keeps the same
+DOM source the v1 JS scanner used, so existing widget templates stay put.
+
+The shape declared here is the SOT for what the dock surfaces by default;
+Wave B+ chips register additively from their own apps.
+"""
+
+from __future__ import annotations
+
+from django.utils.translation import gettext_lazy as _
+
+from .registry import (
+    ALL_SURFACES,
+    SOURCE_DOM_ADOPT,
+    AssistDockSlot,
+    register_slot,
+)
+
+
+# Primary row (always pinned, ordered 10-29)
+register_slot(
+    AssistDockSlot(
+        id="ai-copilot",
+        label=_("AI Copilot"),
+        icon="bi-stars",
+        surfaces=ALL_SURFACES,
+        source=SOURCE_DOM_ADOPT,
+        adopt_selector=".ai-copilot-wrapper",
+        pinned_default=True,
+        order=10,
+        shortcut="g a",
+        aria_keyshortcuts="g a",
+        description=_("Open the AI assistant for this page."),
+    )
+)
+
+register_slot(
+    AssistDockSlot(
+        id="messages",
+        label=_("Messages"),
+        icon="bi-chat-dots",
+        surfaces=ALL_SURFACES,
+        source=SOURCE_DOM_ADOPT,
+        adopt_selector=".portal-chathead",
+        pinned_default=True,
+        order=20,
+        shortcut="g m",
+        aria_keyshortcuts="g m",
+        description=_("Open the messages panel."),
+    )
+)
+
+
+# Secondary tray (collapsed under "+" by default, ordered 30-79)
+register_slot(
+    AssistDockSlot(
+        id="feedback",
+        label=_("Page feedback"),
+        icon="bi-chat-heart",
+        surfaces=ALL_SURFACES,
+        source=SOURCE_DOM_ADOPT,
+        adopt_selector=".voc-widget",
+        pinned_default=False,
+        order=30,
+        shortcut="g f",
+        aria_keyshortcuts="g f",
+        description=_("Share quick feedback about this page."),
+    )
+)
+
+register_slot(
+    AssistDockSlot(
+        id="help",
+        label=_("Help on this page"),
+        icon="bi-question-circle",
+        surfaces=ALL_SURFACES,
+        source=SOURCE_DOM_ADOPT,
+        adopt_selector="[data-rmc-page-help]",
+        pinned_default=False,
+        order=40,
+        shortcut="?",
+        aria_keyshortcuts="?",
+        description=_("Open contextual help for this page."),
+    )
+)
+
+register_slot(
+    AssistDockSlot(
+        id="context",
+        label=_("Context"),
+        icon="bi-info-circle",
+        surfaces=ALL_SURFACES,
+        source=SOURCE_DOM_ADOPT,
+        adopt_selector=".cp-context-drawer-toggle",
+        pinned_default=False,
+        order=50,
+        shortcut="g c",
+        aria_keyshortcuts="g c",
+        description=_("Open the page context drawer."),
+    )
+)
+
+
+# Trailing utility — back-to-top stays in its own corner aesthetic via CSS,
+# but is declared here so the registry is complete.
+register_slot(
+    AssistDockSlot(
+        id="back-to-top",
+        label=_("Back to top"),
+        icon="bi-arrow-up-short",
+        surfaces=ALL_SURFACES,
+        source=SOURCE_DOM_ADOPT,
+        adopt_selector="#back-to-top-btn",
+        pinned_default=False,
+        order=80,
+        aria_keyshortcuts="Home",
+        description=_("Scroll back to the top of the page."),
+    )
+)

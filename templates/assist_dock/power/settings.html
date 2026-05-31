@@ -1,0 +1,88 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dock settings" %}{% endblock %}
+
+{% block content %}
+<section class="rmc-assist-power" data-rmc-assist-power="settings">
+  <header class="rmc-assist-power__header">
+    <h1 class="h3"><i class="bi bi-sliders" aria-hidden="true"></i> {% trans "Dock settings" %}</h1>
+    <p class="text-secondary">{% trans "Drag to reorder. Tick to hide. Flip predictive halo + voice. Saved against your account." %}</p>
+  </header>
+
+  <form id="rmc-dock-settings-form" data-rmc-dock-settings-form="1" data-rmc-dock-prefs-url="/assist-dock/prefs.json">
+    <h2 class="h5">{% trans "Chips" %}</h2>
+    <ul id="rmc-dock-settings-chip-list" class="rmc-assist-settings__chip-list">
+      {% for slot in slots %}
+        <li class="rmc-assist-settings__chip-row"
+            draggable="true"
+            data-rmc-dock-slot-id="{{ slot.id }}">
+          <span class="rmc-assist-settings__handle" aria-hidden="true">≡</span>
+          <i class="bi {{ slot.icon }}" aria-hidden="true"></i>
+          <span class="rmc-assist-settings__chip-label">{{ slot.label }}</span>
+          <label class="rmc-assist-settings__chip-toggle">
+            <input type="checkbox"
+                   name="hidden_slots[]"
+                   value="{{ slot.id }}"
+                   {% if slot.id in prefs.hidden_slots %}checked{% endif %}>
+            <span>{% trans "Hide" %}</span>
+          </label>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <h2 class="h5 mt-4">{% trans "Layout" %}</h2>
+    <fieldset class="rmc-assist-settings__fieldset">
+      <legend class="sr-only">{% trans "Density" %}</legend>
+      {% for density in 'cozy,compact'|cut:' '|stringformat:'s'|cut:' ' %}{% endfor %}
+      <label class="rmc-assist-settings__radio">
+        <input type="radio" name="density" value="cozy"
+               {% if prefs.density == 'cozy' %}checked{% endif %}>
+        <span>{% trans "Cozy" %}</span>
+      </label>
+      <label class="rmc-assist-settings__radio">
+        <input type="radio" name="density" value="compact"
+               {% if prefs.density == 'compact' %}checked{% endif %}>
+        <span>{% trans "Compact" %}</span>
+      </label>
+    </fieldset>
+
+    <fieldset class="rmc-assist-settings__fieldset">
+      <legend class="sr-only">{% trans "Dock side" %}</legend>
+      <label class="rmc-assist-settings__radio">
+        <input type="radio" name="side" value="right"
+               {% if prefs.side == 'right' %}checked{% endif %}>
+        <span>{% trans "Right edge" %}</span>
+      </label>
+      <label class="rmc-assist-settings__radio">
+        <input type="radio" name="side" value="left"
+               {% if prefs.side == 'left' %}checked{% endif %}>
+        <span>{% trans "Left edge" %}</span>
+      </label>
+    </fieldset>
+
+    <h2 class="h5 mt-4">{% trans "Behaviour" %}</h2>
+    <label class="rmc-assist-settings__check">
+      <input type="checkbox" name="halo_enabled"
+             {% if prefs.halo_enabled %}checked{% endif %}>
+      <span>{% trans "Predictive halo (highlight your likely next chip)" %}</span>
+    </label>
+    <label class="rmc-assist-settings__check">
+      <input type="checkbox" name="voice_enabled"
+             {% if prefs.voice_enabled %}checked{% endif %}>
+      <span>{% trans "Enable voice chip (Web Speech API)" %}</span>
+    </label>
+
+    <div class="rmc-assist-settings__actions">
+      <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+      <a href="{{ next_url }}" class="btn btn-link">{% trans "Back" %}</a>
+      <span class="rmc-assist-settings__status" id="rmc-dock-settings-status" aria-live="polite"></span>
+    </div>
+  </form>
+</section>
+
+<script id="rmc-dock-settings-data" type="application/json">{
+  "pinnedOrder": [{% for slug in prefs.pinned_order %}"{{ slug|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+  "csrfHeaderName": "X-CSRFToken"
+}</script>
+{% endblock %}

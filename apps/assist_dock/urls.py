@@ -1,0 +1,107 @@
+"""v4.00.91 — assist dock URL placeholder.
+
+Wave A registers the module so other apps can `include("apps.assist_dock.urls")`
+without import errors; the endpoints land in Wave B (badges + page-aware
+context fetch).
+"""
+
+from __future__ import annotations
+
+from django.urls import path
+
+from . import power_views, views, views_ai, views_presence, views_share
+
+app_name = "assist_dock"
+
+urlpatterns = [
+    # Wave A — registry introspection (staff-only).
+    # rbac-allow: assist-dock-registry-staff-introspection-staff-staff
+    path(
+        "registry.json",
+        views.registry_introspect,
+        name="registry_introspect",
+    ),
+    # Wave B — per-page context JSON the JS polls for badges + quick actions.
+    # Auth-only. rbac-allow: assist-dock-context-poll-authenticated-user-scope
+    path(
+        "context.json",
+        views.dock_context_view,
+        name="context",
+    ),
+    # Wave E3 — SSE upgrade for live badge push.
+    # rbac-allow: assist-dock-context-stream-authenticated-user-sse-channel
+    path(
+        "context/stream/",
+        views.dock_context_stream_view,
+        name="context_stream",
+    ),
+    # Wave C — power chip landings.
+    # rbac-allow: assist-dock-translate-landing-authenticated-locale-picker
+    path("translate/", power_views.translate_landing, name="translate"),
+    # rbac-allow: assist-dock-share-landing-authenticated-page-url-sheet
+    path("share/", power_views.share_landing, name="share"),
+    # rbac-allow: assist-dock-theme-landing-authenticated-aesthetic-picker
+    path("theme/", power_views.theme_landing, name="theme"),
+    # rbac-allow: assist-dock-inspect-landing-super-only-rbac-overlay
+    path("inspect/", power_views.inspect_landing, name="inspect"),
+    # rbac-allow: assist-dock-impersonate-landing-super-only-role-switch
+    path("impersonate/", power_views.impersonate_landing, name="impersonate"),
+    # rbac-allow: assist-dock-prefs-authenticated-user-pk-own-row-public-schema-shared
+    path("prefs.json", power_views.prefs_view, name="prefs"),
+    # Wave D — AI deep features.
+    # rbac-allow: assist-dock-ai-actions-list-authenticated-registry-introspection
+    path("ai/actions.json", views_ai.list_ai_actions, name="ai_actions"),
+    # rbac-allow: assist-dock-ai-invoke-authenticated-page-aware-action-dispatch
+    path(
+        "ai/<str:action_id>/",
+        views_ai.invoke_ai_action_view,
+        name="ai_invoke",
+    ),
+    # rbac-allow: assist-dock-insights-list-authenticated-user-pk-process-ring
+    path("insights.json", views_ai.list_insights_view, name="insights"),
+    # rbac-allow: assist-dock-insights-clear-authenticated-user-pk-own-ring-entry
+    path(
+        "insights/clear/",
+        views_ai.clear_insight_view,
+        name="insights_clear",
+    ),
+    # Wave E1 — presence chip.
+    # rbac-allow: assist-dock-presence-heartbeat-authenticated-user-page-keyed
+    path(
+        "presence/heartbeat/",
+        views_presence.presence_heartbeat,
+        name="presence_heartbeat",
+    ),
+    # rbac-allow: assist-dock-presence-list-authenticated-page-keyed-exclude-self
+    path(
+        "presence/list.json",
+        views_presence.presence_list,
+        name="presence_list",
+    ),
+    # rbac-allow: assist-dock-presence-landing-authenticated-page-keyed-overlay
+    path(
+        "presence/",
+        power_views.presence_landing,
+        name="presence",
+    ),
+    # Wave E4 — drag-to-pin prefs editor.
+    # rbac-allow: assist-dock-settings-landing-authenticated-user-prefs-editor
+    path(
+        "settings/",
+        power_views.settings_landing,
+        name="settings",
+    ),
+    # Wave E5 — 24h short links.
+    # rbac-allow: assist-dock-share-mint-authenticated-user-target-allowed-host
+    path(
+        "share/mint/",
+        views_share.mint_share_link,
+        name="share_mint",
+    ),
+    # rbac-allow: assist-dock-share-resolve-anonymous-token-redirect-expires-24h-default
+    path(
+        "s/<str:token>/",
+        views_share.resolve_share_link,
+        name="share_resolve",
+    ),
+]
