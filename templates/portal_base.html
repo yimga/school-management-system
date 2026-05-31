@@ -164,6 +164,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
     {% comment %} Phase G (2026-05-12): platform-wide long-page grammar — ⌘K palette, sticky
        section nav, progressive-disclosure collapse, Console/Configure switcher. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
@@ -814,6 +815,7 @@
     {% comment %} v4.00.91: registry SOT island — JS hydrates chips from this payload. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
+    <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% include "partials/rmc_command_bar.html" %}
     {% endif %}

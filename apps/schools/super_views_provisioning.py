@@ -38,12 +38,19 @@ from apps.schools.super_views_helpers import (
     safe_tenant_360_url,
     slug_from_school_name,
 )
+from apps.platform_runtime.workflow_tracker import track_workflow
+
 from .models import School, SchoolProvisioningEvent
 from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
 
 
 @require_POST
 @require_platform_scope(PLATFORM_SCOPE_PROVISION)
+@track_workflow(
+    "tenant_school_create",
+    steps=("validate", "create_row", "enqueue_provision"),
+    expected_duration_seconds=45,
+)
 def api_create_school(request):
     """
     Validate payload, create School row (is_active=False), enqueue provisioning task.

@@ -114,6 +114,10 @@ def call(provider: str, op: str, **kwargs: Any) -> dict[str, Any]:
     Returns ``{"status": "scaffold_only", "tier": ...}`` for SCAFFOLD-tier
     providers asked for live ops (``exchange_*``, ``refresh_*``,
     ``push_grade_live``, ``pull_courses``).
+
+    Every live call is tracked through the Workflow Progress Bus so operators
+    see real-time progress + AI-suggested remediation when an integration
+    fails. Tracking is best-effort and never breaks dispatch on failure.
     """
     op_norm = _normalise_op(op)
     if op_norm not in SUPPORTED_OPS:
@@ -144,7 +148,40 @@ def call(provider: str, op: str, **kwargs: Any) -> dict[str, Any]:
             "tier": tier,
             "reason": f"module {module.__name__} has no attribute {op_norm}",
         })
-    return fn(**kwargs)
+
+    run = None
+    try:
+        from apps.platform_runtime.workflow_tracker import (
+            begin_run,
+            finalize_run,
+            heartbeat,
+        )
+
+        run = begin_run(
+            workflow_key=f"lms_{op_norm}",
+            steps=("dispatch", "upstream", "respond"),
+            expected_duration_seconds=30,
+            payload={"provider": slug, "op": op_norm, "tier": tier},
+        )
+    except Exception:
+        run = None
+
+    try:
+        result = fn(**kwargs)
+    except Exception as exc:
+        if run is not None:
+            try:
+                finalize_run(run, status="failed", error=exc)
+            except Exception:
+                pass
+        raise
+    if run is not None:
+        try:
+            heartbeat(run)
+            finalize_run(run, status="succeeded")
+        except Exception:
+            pass
+    return result
 
 
 def list_providers() -> list[dict[str, str]]:

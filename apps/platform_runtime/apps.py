@@ -54,3 +54,14 @@ class PlatformRuntimeConfig(AppConfig):
                 "Platform event AI/analytics bridge not registered at Django ready",
                 exc_info=True,
             )
+        try:
+            from apps.platform_runtime.workflow_progress_slot import (
+                register_workflow_progress_assist_dock_slot,
+            )
+
+            register_workflow_progress_assist_dock_slot()
+        except Exception:
+            logger.debug(
+                "Workflow Progress assist-dock slot not registered at Django ready",
+                exc_info=True,
+            )

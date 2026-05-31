@@ -112,6 +112,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-base-site-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
   <link rel="stylesheet" href="{% static 'css/phase2-admin-bundle.css' %}">
   {% comment %} Phase G (2026-05-12): platform-wide long-page grammar. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-long-page-grammar.css' %}">
@@ -360,6 +361,7 @@
     <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
     {% include "partials/rmc_platform_chrome_scripts.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
+    <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
   {% endif %}
   {% if is_manager_host %}
   {% include "partials/cp_context_drawer_shell.html" %}

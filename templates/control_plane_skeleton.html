@@ -97,6 +97,7 @@
     <link rel="stylesheet" href="{% static 'css/control-plane-skeleton-root.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
@@ -265,6 +266,7 @@
     {% comment %} v4.00.91: registry SOT island for the assist dock. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
+    <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% if request.user.is_authenticated %}{% include "partials/rmc_command_bar.html" %}{% endif %}
     {% block extrajs %}{% endblock %}

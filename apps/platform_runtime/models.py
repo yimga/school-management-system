@@ -2189,3 +2189,9 @@ from .models_operator_identity import (  # noqa: E402,F401
     PlatformOperatorProfile,
     PlatformOperatorPromotionRequest,
 )
+from .models_workflow_run import (  # noqa: E402,F401
+    WorkflowRun,
+    WorkflowRunStatus,
+    WorkflowStep,
+    WorkflowStepStatus,
+)

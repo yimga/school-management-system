@@ -25,8 +25,47 @@ def get_current_subscription(school):
     )
 
 
-def get_lifecycle_snapshot(school) -> dict:
-    subscription = get_current_subscription(school)
+def batch_current_subscriptions(schools) -> dict:
+    """Return a ``{school_id: TenantSubscription}`` map for the given iterable.
+
+    Eliminates the per-school N+1 that ``get_lifecycle_snapshot(school)``
+    would otherwise trigger when called inside a paginator loop. The map
+    keeps the most-recent subscription per school based on
+    ``(updated_at, created_at)`` desc — same ordering as the single-school
+    helper above, so callers see identical rows.
+    """
+
+    school_ids = [getattr(s, "pk", None) for s in schools if getattr(s, "pk", None)]
+    if not school_ids:
+        return {}
+    out: dict = {}
+    rows = (
+        TenantSubscription.objects.select_related("billing_account", "plan")
+        .filter(school_id__in=school_ids)
+        .order_by("school_id", "-updated_at", "-created_at")
+    )
+    for row in rows:
+        # Order keeps the latest first per school_id; first hit wins.
+        if row.school_id not in out:
+            out[row.school_id] = row
+    return out
+
+
+_SUBSCRIPTION_SENTINEL = object()
+
+
+def get_lifecycle_snapshot(school, *, cached_subscription=_SUBSCRIPTION_SENTINEL) -> dict:
+    """Return a lifecycle snapshot for a single school.
+
+    Pass ``cached_subscription=<row_or_None>`` to skip the per-school
+    subscription query — used by paginator-driven views that pre-load all
+    subscriptions via :func:`batch_current_subscriptions`. The sentinel
+    default preserves backward-compatible behavior (do the lookup).
+    """
+    if cached_subscription is _SUBSCRIPTION_SENTINEL:
+        subscription = get_current_subscription(school)
+    else:
+        subscription = cached_subscription
     billing_account = getattr(subscription, "billing_account", None)
     if billing_account is None:
         try:

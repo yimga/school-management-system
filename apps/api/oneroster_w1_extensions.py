@@ -22,6 +22,8 @@ from typing import Any, Iterable
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.platform_runtime.workflow_tracker import track_workflow
+
 logger = logging.getLogger(__name__)
 
 _BULK_CAP = 500
@@ -151,6 +153,7 @@ def _bulk_post_payload(request: HttpRequest) -> tuple[list[dict] | None, JsonRes
 
 
 @require_POST
+@track_workflow("oneroster_classes_bulk_post", steps=("parse", "validate", "stage"), expected_duration_seconds=20)
 def classes_bulk_post(request: HttpRequest) -> HttpResponse:
     rows, err = _bulk_post_payload(request)
     if err is not None:
@@ -169,6 +172,7 @@ def classes_bulk_post(request: HttpRequest) -> HttpResponse:
 
 
 @require_POST
+@track_workflow("oneroster_enrollments_bulk_post", steps=("parse", "validate", "stage"), expected_duration_seconds=20)
 def enrollments_bulk_post(request: HttpRequest) -> HttpResponse:
     rows, err = _bulk_post_payload(request)
     if err is not None:
@@ -202,6 +206,7 @@ def _parse_since(raw: str) -> datetime | None:
 
 
 @require_GET
+@track_workflow("oneroster_staff_delta", steps=("parse_since", "scan", "respond"), expected_duration_seconds=15)
 def staff_delta(request: HttpRequest) -> HttpResponse:
     since = _parse_since(request.GET.get("modifiedSince", ""))
     rows: list[dict[str, Any]] = []
@@ -248,6 +253,7 @@ def staff_delta(request: HttpRequest) -> HttpResponse:
 
 
 @require_GET
+@track_workflow("oneroster_demographics_delta", steps=("parse_since", "scan", "respond"), expected_duration_seconds=15)
 def demographics_delta(request: HttpRequest) -> HttpResponse:
     since = _parse_since(request.GET.get("modifiedSince", ""))
     rows: list[dict[str, Any]] = []

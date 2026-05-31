@@ -8,6 +8,14 @@ from apps.platform_runtime.views_operational_center import (
     support_playbook_center,
 )
 from apps.platform_runtime.views_tenant_lifecycle import tenant_lifecycle_dashboard
+from apps.platform_runtime.views_workflow_progress import (
+    active_runs_view as workflow_progress_active_runs_view,
+    apply_fix_view as workflow_progress_apply_fix_view,
+    badge_view as workflow_progress_badge_view,
+    cancel_view as workflow_progress_cancel_view,
+    run_detail_view as workflow_progress_run_detail_view,
+    stream_view as workflow_progress_stream_view,
+)
 
 urlpatterns = [
     path(
@@ -39,5 +47,36 @@ urlpatterns = [
         "pilot-defects/",
         pilot_defect_dashboard,
         name="pilot_defect_dashboard",
+    ),
+    # Workflow Progress Bus — platform-wide (v4.00.96).
+    path(
+        "workflow-progress/active/",
+        workflow_progress_active_runs_view,
+        name="workflow_progress_active_runs",
+    ),
+    path(
+        "workflow-progress/badge/",
+        workflow_progress_badge_view,
+        name="workflow_progress_badge",
+    ),
+    path(
+        "workflow-progress/stream/",
+        workflow_progress_stream_view,
+        name="workflow_progress_stream",
+    ),
+    path(
+        "workflow-progress/detail/<int:run_id>/",
+        workflow_progress_run_detail_view,
+        name="workflow_progress_run_detail",
+    ),
+    path(
+        "workflow-progress/cancel/<int:run_id>/",
+        workflow_progress_cancel_view,
+        name="workflow_progress_cancel",
+    ),
+    path(
+        "workflow-progress/apply-fix/<int:run_id>/",
+        workflow_progress_apply_fix_view,
+        name="workflow_progress_apply_fix",
     ),
 ]

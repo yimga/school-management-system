@@ -542,6 +542,26 @@ jobs:
           python scripts/smoke_studio_os_10x_all_waves.py
           python scripts/verify_studio_os_10x_completion.py --strict --json
 
+  workflow-progress-bus:
+    name: "Workflow Progress Bus platform-wide gate (v4.00.97)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: beta/school-management-system
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Run Workflow Progress Bus smoke (model + decorator + auto-fix + SSE + chip + wiring)
+        run: |
+          python scripts/smoke_workflow_progress_bus.py
+
   ai-engine-room:
     name: "AI engine room completeness (tiers 1-5)"
     runs-on: ubuntu-latest
