@@ -23,11 +23,10 @@ import json
 import logging
 import os
 import time
-from functools import wraps
 from pathlib import Path
 
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
+from services.http_auth_guards import login_required_api, login_required_sse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
@@ -52,24 +51,6 @@ def _agent_debug_log(hypothesis_id: str, location: str, message: str, data: dict
     except OSError:
         pass
     # #endregion
-
-
-def login_required_sse(view_func):
-    """Like ``login_required`` but SSE clients get 401 instead of a 302 login redirect."""
-
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return view_func(request, *args, **kwargs)
-        _agent_debug_log(
-            "H1",
-            "views_workflow_progress.stream_view",
-            "unauthenticated_sse_rejected",
-            {"path": request.path, "referer": (request.META.get("HTTP_REFERER") or "")[:120]},
-        )
-        return HttpResponse(status=401)
-
-    return wrapper
 
 
 # SSE tuning — must finish before the WSGI worker request timeout.
@@ -119,7 +100,7 @@ def _resolve_scope(request) -> tuple[str, str]:
     return schema, actor_id
 
 
-@login_required
+@login_required_api
 @require_GET
 def active_runs_view(request):
     """JSON list of currently active runs visible to the caller."""
@@ -150,7 +131,7 @@ def active_runs_view(request):
     )
 
 
-@login_required
+@login_required_api
 @require_GET
 def badge_view(request):
     """Lightweight badge endpoint for the assist-dock chip. Returns the
@@ -177,7 +158,7 @@ def badge_view(request):
     return JsonResponse({"count": count, "level": level, "dot": running > 0 or stuck > 0})
 
 
-@login_required
+@login_required_api
 @require_GET
 def run_detail_view(request, run_id: int):
     """JSON detail of one run, including per-step breakdown."""
@@ -239,7 +220,7 @@ def run_detail_view(request, run_id: int):
     )
 
 
-@login_required
+@login_required_api
 @require_POST
 def cancel_view(request, run_id: int):
     """Operator cancels a RUNNING / STUCK run."""
@@ -270,7 +251,7 @@ def cancel_view(request, run_id: int):
     return JsonResponse({"ok": True, "status": "cancelled"})
 
 
-@login_required
+@login_required_api
 @require_POST
 def apply_fix_view(request, run_id: int):
     """Apply the run's suggested ``auto_fix_kind`` if any. The actual fix

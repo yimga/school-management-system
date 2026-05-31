@@ -1,6 +1,6 @@
 {% load i18n static workflow_guidance_tags %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-rmc-admin-density="comfortable" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane" data-rmc-isomorphic-template="operator-control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if not request.user.is_authenticated %} data-rmc-auth-landing="1"{% endif %}{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-rmc-admin-density="comfortable" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane" data-rmc-isomorphic-template="operator-control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

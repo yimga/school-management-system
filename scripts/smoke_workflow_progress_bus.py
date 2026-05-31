@@ -225,6 +225,40 @@ anon_resp = _stream_view(anon_req)
 expect("T6b.1 anonymous SSE returns 401 not 302", getattr(anon_resp, "status_code", None) == 401)
 
 
+# ── T6c ──────────────────────────────────────────────────────────────────
+from apps.platform_runtime.middleware_unauthenticated_api_guard import (
+    UnauthenticatedApiGuardMiddleware,
+)
+
+
+def _noop_response(_request):
+    from django.http import HttpResponse
+
+    return HttpResponse("ok")
+
+
+_mw = UnauthenticatedApiGuardMiddleware(_noop_response)
+_cursor_req = rf.get("/assist-dock/cursors/list.json?page=%2Fauthentication%2Flogin%2F")
+_cursor_req.user = AnonymousUser()
+_cursor_resp = _mw(_cursor_req)
+expect("T6c.1 middleware blocks anonymous cursor list with 401", getattr(_cursor_resp, "status_code", None) == 401)
+
+_stream_req = rf.get("/platform-runtime/workflow-progress/stream/")
+_stream_req.user = AnonymousUser()
+_stream_resp = _mw(_stream_req)
+expect("T6c.2 middleware blocks anonymous workflow stream with 401", getattr(_stream_resp, "status_code", None) == 401)
+
+_share_req = rf.get("/assist-dock/s/test-token/")
+_share_req.user = AnonymousUser()
+_share_resp = _mw(_share_req)
+expect("T6c.3 middleware allows anonymous share resolve through", getattr(_share_resp, "status_code", None) == 200)
+
+_wal_req = rf.get("/ws/wal/")
+_wal_req.user = AnonymousUser()
+_wal_resp = _mw(_wal_req)
+expect("T6c.4 middleware blocks anonymous WAL websocket path with 401", getattr(_wal_resp, "status_code", None) == 401)
+
+
 # ── T7 ───────────────────────────────────────────────────────────────────
 from django.urls import reverse, NoReverseMatch
 

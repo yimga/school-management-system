@@ -19,7 +19,7 @@ import json
 import logging
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
+from services.http_auth_guards import login_required_api as login_required
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render
 from django.utils.translation import gettext_lazy as _

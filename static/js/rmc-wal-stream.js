@@ -220,10 +220,16 @@
     onAck: (cb) => { ackListeners.add(cb); return () => ackListeners.delete(cb); },
   };
 
-  // Boot: open WS as soon as the page is interactive.
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", ensureSocket, { once: true });
-  } else {
-    ensureSocket();
+  function shouldBootWalSocket() {
+    return !document.querySelector("[data-rmc-auth-landing]");
+  }
+
+  // Boot: open WS only on authenticated shells (not login/public landings).
+  if (shouldBootWalSocket()) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", ensureSocket, { once: true });
+    } else {
+      ensureSocket();
+    }
   }
 })();

@@ -366,6 +366,7 @@
   }
 
   function mount() {
+    if (!shouldConnectStream()) return;
     if (document.getElementById("rmc-wfp-chip")) return;
     var chip = buildChip();
     var card = buildCard();

@@ -229,4 +229,10 @@ def public_status(request: HttpRequest):
 @require_GET
 def public_health(request):
     """Lightweight probe for load balancers (no DB)."""
-    return JsonResponse({"status": "healthy"})
+    return JsonResponse(
+        {
+            "status": "healthy",
+            # Deploy marker: present after unauthenticated-api-guard middleware ships.
+            "auth_api_guard": "unauthenticated-api-guard-v1",
+        }
+    )

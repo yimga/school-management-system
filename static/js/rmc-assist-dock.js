@@ -546,6 +546,7 @@
   }
 
   function fetchContext() {
+    if (_authRealtimeStopped || isAuthLanding()) return Promise.resolve();
     var url = CONTEXT_URL + "?page=" + encodeURIComponent(pageKey());
     try {
       return fetch(url, {
@@ -553,6 +554,10 @@
         headers: { Accept: "application/json" },
       })
         .then(function (r) {
+          if (r.status === 401 || r.status === 403) {
+            stopAuthRealtime();
+            return null;
+          }
           if (!r.ok) return null;
           return r.json();
         })
@@ -607,11 +612,12 @@
   }
 
   function startPolling() {
+    if (_authRealtimeStopped || isAuthLanding()) return;
     fetchContext();
     var timer = null;
     function schedule() {
       clearTimeout(timer);
-      if (document.hidden) return; // pause when tab is hidden
+      if (_authRealtimeStopped || document.hidden) return; // pause when tab is hidden
       timer = setTimeout(function () {
         fetchContext().then(schedule);
       }, POLL_INTERVAL_MS);
@@ -847,8 +853,23 @@
   var _sseSource = null;
   var _sseErrorCount = 0;
   var _sseFallbackEngaged = false;
+  var _authRealtimeStopped = false;
+
+  function stopAuthRealtime() {
+    _authRealtimeStopped = true;
+    _sseFallbackEngaged = true;
+    if (_sseSource) {
+      try { _sseSource.close(); } catch (_e) {}
+      _sseSource = null;
+    }
+    if (_cursorPollTimer) {
+      clearInterval(_cursorPollTimer);
+      _cursorPollTimer = null;
+    }
+  }
 
   function startSSE() {
+    if (_authRealtimeStopped || isAuthLanding()) return false;
     if (_sseFallbackEngaged) return false;
     if (typeof EventSource === "undefined") return false;
     if (_sseSource !== null) return true;
@@ -887,12 +908,30 @@
     });
     _sseSource.onerror = function () {
       _sseErrorCount++;
-      if (_sseErrorCount >= 2) {
-        try { _sseSource.close(); } catch (_e) {}
-        _sseSource = null;
-        _sseFallbackEngaged = true;
-        startPolling();
-      }
+      fetch(CONTEXT_URL + "?page=" + encodeURIComponent(pageKey()), {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      })
+        .then(function (r) {
+          if (r.status === 401 || r.status === 403) {
+            stopAuthRealtime();
+            return;
+          }
+          if (_sseErrorCount >= 2) {
+            try { _sseSource.close(); } catch (_e) {}
+            _sseSource = null;
+            _sseFallbackEngaged = true;
+            startPolling();
+          }
+        })
+        .catch(function () {
+          if (_sseErrorCount >= 2) {
+            try { _sseSource.close(); } catch (_e) {}
+            _sseSource = null;
+            _sseFallbackEngaged = true;
+            startPolling();
+          }
+        });
     };
     return true;
   }
@@ -1331,12 +1370,11 @@
   }
 
   function startCursors() {
+    if (isAuthLanding() || _authRealtimeStopped) return;
     if (document.body.dataset.rmcAssistCursors === "off") return;
     if (!document.body.classList.contains("authenticated") &&
         !document.querySelector("[data-rmc-authenticated]")) {
-      // Anonymous shells skip the cursor layer entirely.
-      // Most authenticated shells render a body class or a data attribute;
-      // when neither is present, fall through and let the heartbeat 403.
+      return;
     }
     document.addEventListener("mousemove", function (ev) {
       var sel = "";
@@ -1467,7 +1505,12 @@
   window.RMCAssistDock.sendCursorHeartbeat = sendCursorHeartbeat;
   window.RMCAssistDock.bindImpersonationPicker = bindImpersonationPicker;
 
+  function isAuthLanding() {
+    return !!document.querySelector("[data-rmc-auth-landing]");
+  }
+
   function init() {
+    if (isAuthLanding()) return;
     if (document.body.dataset.rmcAssistDock === "off") return;
     mountDock(labels());
     // Wave A: annotate adopted nodes with their registry slot ids so the

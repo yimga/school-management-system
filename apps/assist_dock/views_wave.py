@@ -17,7 +17,7 @@ import logging
 import time
 from uuid import uuid4
 
-from django.contrib.auth.decorators import login_required
+from services.http_auth_guards import login_required_api as login_required
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods

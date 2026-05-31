@@ -12,6 +12,8 @@ minified each) and ensures the architecture binds on every shell uniformly.
 {% endcomment %}
 <link rel="stylesheet" href="{% static 'css/rmc-viewport-engine.css' %}">
 <script src="{% static 'js/rmc-viewport-engine.js' %}"></script>
+{% if request.user.is_authenticated %}
 <script src="{% static 'js/rmc-wal-stream.js' %}" defer></script>
 <script src="{% static 'js/rmc-stream-mount.js' %}" defer></script>
 <script src="{% static 'js/_pages/rmc-ai-stream-bridge.js' %}" defer></script>
+{% endif %}

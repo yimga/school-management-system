@@ -15,7 +15,7 @@ import time
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse, StreamingHttpResponse
-from django.contrib.auth.decorators import login_required
+from services.http_auth_guards import login_required_api as login_required
 from django.views.decorators.http import require_safe
 
 from .badges import resolve_all_badges
@@ -138,7 +138,7 @@ def _sse_pack(event: str, data: dict) -> bytes:
     return chunk.encode("utf-8")
 
 
-@login_required
+@login_required(sse=True)
 @require_safe
 def dock_context_stream_view(request):
     """Wave E3 — Server-Sent Events upgrade for badge / quick-action push.

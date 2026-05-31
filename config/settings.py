@@ -317,6 +317,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # v4.00.98 — stop 302 redirect storms on login/public shells for SSE/fetch.
+    "apps.platform_runtime.middleware_unauthenticated_api_guard.UnauthenticatedApiGuardMiddleware",
     # v4.00.96 Wave F3 — assist dock's per-user locale preference overrides
     # the LocaleMiddleware pick once the user is authenticated.
     "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
@@ -3170,6 +3172,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.middleware.common.CommonMiddleware",
         "django.middleware.csrf.CsrfViewMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "apps.platform_runtime.middleware_unauthenticated_api_guard.UnauthenticatedApiGuardMiddleware",
         # v4.00.96 Wave F3 — per-user locale preference (django-tenants path).
         "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
         # v4.00.97 Wave G2 — impersonation banner state (django-tenants path).
