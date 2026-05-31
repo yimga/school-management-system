@@ -253,12 +253,39 @@
     if (state.open) renderCard();
   }
 
+  function agentDebugLog(hypothesisId, location, message, data) {
+    // #region agent log
+    fetch("http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "0f968b" },
+      body: JSON.stringify({
+        sessionId: "0f968b",
+        hypothesisId: hypothesisId,
+        location: location,
+        message: message,
+        data: data || {},
+        timestamp: Date.now(),
+      }),
+    }).catch(function () {});
+    // #endregion
+  }
+
+  function shouldConnectStream() {
+    if (document.querySelector("[data-rmc-auth-landing]")) return false;
+    return true;
+  }
+
   function connectStream() {
+    if (!shouldConnectStream()) {
+      agentDebugLog("H2", "rmc-workflow-progress.js:connectStream", "skip_auth_landing", {});
+      return;
+    }
     if (typeof EventSource === "undefined") {
       startPolling();
       return;
     }
     try {
+      agentDebugLog("H4", "rmc-workflow-progress.js:connectStream", "event_source_open", {});
       var es = new EventSource(ENDPOINT_STREAM, { withCredentials: true });
       state.eventSource = es;
       state.everyConnected = true;
@@ -276,8 +303,18 @@
       es.onerror = function () {
         es.close();
         state.eventSource = null;
-        // Reconnect with backoff so we don't hammer.
-        setTimeout(connectStream, 4000);
+        agentDebugLog("H3", "rmc-workflow-progress.js:connectStream", "event_source_error", {});
+        fetch(ENDPOINT_ACTIVE, { credentials: "same-origin" })
+          .then(function (r) {
+            if (r.status === 401 || r.status === 403) {
+              agentDebugLog("H1", "rmc-workflow-progress.js:connectStream", "auth_required_no_reconnect", { status: r.status });
+              return;
+            }
+            setTimeout(connectStream, 4000);
+          })
+          .catch(function () {
+            setTimeout(connectStream, 4000);
+          });
       };
     } catch (_) {
       startPolling();

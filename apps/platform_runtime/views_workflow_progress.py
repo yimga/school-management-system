@@ -23,13 +23,53 @@ import json
 import logging
 import os
 import time
+from functools import wraps
+from pathlib import Path
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 logger = logging.getLogger(__name__)
+
+_DEBUG_LOG_PATH = Path(__file__).resolve().parents[2] / "debug-0f968b.log"
+
+
+def _agent_debug_log(hypothesis_id: str, location: str, message: str, data: dict | None = None) -> None:
+    # #region agent log
+    try:
+        payload = {
+            "sessionId": "0f968b",
+            "hypothesisId": hypothesis_id,
+            "location": location,
+            "message": message,
+            "data": data or {},
+            "timestamp": int(time.time() * 1000),
+        }
+        with _DEBUG_LOG_PATH.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload, default=str) + "\n")
+    except OSError:
+        pass
+    # #endregion
+
+
+def login_required_sse(view_func):
+    """Like ``login_required`` but SSE clients get 401 instead of a 302 login redirect."""
+
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return view_func(request, *args, **kwargs)
+        _agent_debug_log(
+            "H1",
+            "views_workflow_progress.stream_view",
+            "unauthenticated_sse_rejected",
+            {"path": request.path, "referer": (request.META.get("HTTP_REFERER") or "")[:120]},
+        )
+        return HttpResponse(status=401)
+
+    return wrapper
 
 
 # SSE tuning — must finish before the WSGI worker request timeout.
@@ -287,7 +327,7 @@ def _format_sse_frame(event_id, kind: str, payload: dict) -> bytes:
     return ("\n".join(parts) + "\n").encode("utf-8")
 
 
-@login_required
+@login_required_sse
 @require_GET
 def stream_view(request):
     """SSE stream of the caller's active workflow runs.
@@ -303,6 +343,16 @@ def stream_view(request):
     is_staff = bool(getattr(request.user, "is_staff", False))
     actor_filter = "" if is_staff else actor_id
     max_duration = _sse_max_duration_seconds()
+    _agent_debug_log(
+        "H4",
+        "views_workflow_progress.stream_view",
+        "sse_stream_open",
+        {
+            "max_duration_s": max_duration,
+            "is_staff": is_staff,
+            "path": request.path,
+        },
+    )
 
     def _stream():
         yield f"retry: {_SSE_RETRY_MILLISECONDS}\n\n".encode("utf-8")

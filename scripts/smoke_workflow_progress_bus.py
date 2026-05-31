@@ -212,6 +212,19 @@ expect(
 )
 
 
+# ── T6b ──────────────────────────────────────────────────────────────────
+from django.contrib.auth.models import AnonymousUser
+from django.test import RequestFactory
+
+rf = RequestFactory()
+anon_req = rf.get("/platform-runtime/workflow-progress/stream/")
+anon_req.user = AnonymousUser()
+from apps.platform_runtime.views_workflow_progress import stream_view as _stream_view
+
+anon_resp = _stream_view(anon_req)
+expect("T6b.1 anonymous SSE returns 401 not 302", getattr(anon_resp, "status_code", None) == 401)
+
+
 # ── T7 ───────────────────────────────────────────────────────────────────
 from django.urls import reverse, NoReverseMatch
 
