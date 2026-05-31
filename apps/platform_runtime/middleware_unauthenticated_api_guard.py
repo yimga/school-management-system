@@ -36,7 +36,9 @@ def _assist_dock_requires_api_auth(path: str, method: str) -> bool:
     return True
 
 
-def _path_requires_api_auth(path: str, method: str) -> bool:
+def path_requires_unauthenticated_api_auth(path: str, method: str) -> bool:
+    """Public helper — manager middleware uses this before HTML login redirects."""
+
     if path.startswith(_WORKFLOW_PREFIX):
         return True
     if path.startswith(_WAL_WS_PREFIX) or path.rstrip("/") == _WAL_WS_PREFIX.rstrip("/"):
@@ -55,6 +57,6 @@ class UnauthenticatedApiGuardMiddleware:
         if user is not None and getattr(user, "is_authenticated", False):
             return self.get_response(request)
         path = request.path or ""
-        if _path_requires_api_auth(path, request.method):
+        if path_requires_unauthenticated_api_auth(path, request.method):
             return HttpResponse(status=401)
         return self.get_response(request)

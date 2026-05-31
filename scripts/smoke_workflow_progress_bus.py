@@ -258,6 +258,17 @@ _wal_req.user = AnonymousUser()
 _wal_resp = _mw(_wal_req)
 expect("T6c.4 middleware blocks anonymous WAL websocket path with 401", getattr(_wal_resp, "status_code", None) == 401)
 
+from apps.schools.middleware import ManagerHostControlPlaneRequiredMiddleware
+
+_mgr_req = rf.post("/assist-dock/cursors/heartbeat/")
+_mgr_req.user = AnonymousUser()
+_mgr_req.public_host_kind = "manager"
+_mgr_resp = ManagerHostControlPlaneRequiredMiddleware(_noop_response).process_request(_mgr_req)
+expect(
+    "T6c.5 manager host returns 401 for anonymous assist-dock API (not 302)",
+    getattr(_mgr_resp, "status_code", None) == 401,
+)
+
 
 # ── T7 ───────────────────────────────────────────────────────────────────
 from django.urls import reverse, NoReverseMatch

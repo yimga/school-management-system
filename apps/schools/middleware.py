@@ -7,6 +7,7 @@ import logging
 from django.conf import settings
 from django.db import DatabaseError
 from django.http import (
+    HttpResponse,
     HttpResponseRedirect,
     HttpResponsePermanentRedirect,
     JsonResponse,
@@ -1086,6 +1087,12 @@ class ManagerHostControlPlaneRequiredMiddleware(MiddlewareMixin):
                 from django.urls import reverse
 
                 return redirect(reverse("super:dashboard"))
+            from apps.platform_runtime.middleware_unauthenticated_api_guard import (
+                path_requires_unauthenticated_api_auth,
+            )
+
+            if path_requires_unauthenticated_api_auth(path, request.method):
+                return HttpResponse(status=401)
             from django.contrib.auth.views import redirect_to_login
 
             return redirect_to_login(request.get_full_path())
