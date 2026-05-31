@@ -193,7 +193,11 @@ expect("T5.3 succeeded run never stuck", is_stuck(finished) is False)
 
 
 # ── T6 ───────────────────────────────────────────────────────────────────
-from apps.platform_runtime.views_workflow_progress import _format_sse_frame, _stable_hash
+from apps.platform_runtime.views_workflow_progress import (
+    _format_sse_frame,
+    _sse_max_duration_seconds,
+    _stable_hash,
+)
 
 frame = _format_sse_frame(1, "snapshot", {"runs": []})
 expect("T6.1 SSE frame is bytes", isinstance(frame, bytes))
@@ -201,6 +205,11 @@ expect("T6.2 SSE frame has 'event:' line", b"event: snapshot" in frame)
 expect("T6.3 SSE frame ends with blank line", frame.endswith(b"\n\n") or frame.endswith(b"\n"))
 expect("T6.4 SSE frame contains id", b"id: 1" in frame)
 expect("T6.5 hash stable across identical input", _stable_hash([]) == _stable_hash([]))
+expect(
+    "T6.6 SSE max duration below default gunicorn timeout",
+    _sse_max_duration_seconds() <= 30.0,
+    f"got {_sse_max_duration_seconds()}",
+)
 
 
 # ── T7 ───────────────────────────────────────────────────────────────────

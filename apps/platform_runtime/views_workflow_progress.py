@@ -6,7 +6,8 @@ Endpoints mounted under ``/platform/workflow-progress/`` (see urls.py):
   caller's tenant + actor scope. Used by the assist-dock badge.
 * ``GET  detail/<id>/``       — JSON detail incl. per-step breakdown.
 * ``GET  stream/``            — Server-Sent Events stream pushing live
-  updates every 2s, heartbeat every 30s, graceful close at 60s.
+  updates every 2s, heartbeat every 15s, graceful close before the
+  hosting worker timeout (25s default; see ``_sse_max_duration_seconds``).
 * ``POST cancel/<id>/``       — Operator cancels a RUNNING / STUCK run.
 * ``POST apply-fix/<id>/``    — Operator triggers the suggested
   ``auto_fix_kind`` if any (idempotent; safe no-op if nothing applies).
@@ -20,6 +21,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 
 from django.contrib.auth.decorators import login_required
@@ -30,10 +32,31 @@ from django.views.decorators.http import require_GET, require_POST
 logger = logging.getLogger(__name__)
 
 
-# SSE tuning — mirrors the v3.29 migration_cloud SSE pattern.
+# SSE tuning — must finish before the WSGI worker request timeout.
+# Render often runs bare ``gunicorn`` (30s default); ``config/gunicorn.conf.py``
+# uses 120s when ``-c`` is wired via ``scripts/release/render_start_web.sh``.
 _SSE_TICK_SECONDS = 2.0
-_SSE_HEARTBEAT_SECONDS = 30.0
-_SSE_MAX_DURATION_SECONDS = 60.0
+_SSE_HEARTBEAT_SECONDS = 15.0
+_SSE_RETRY_MILLISECONDS = 2000
+
+
+def _sse_max_duration_seconds() -> float:
+    """Seconds to hold one SSE connection before a graceful ``bye`` frame."""
+
+    raw = (os.environ.get("WORKFLOW_PROGRESS_SSE_MAX_SECONDS") or "").strip()
+    if raw:
+        try:
+            return max(5.0, min(float(raw), 600.0))
+        except ValueError:
+            pass
+    gunicorn_raw = (os.environ.get("GUNICORN_TIMEOUT") or "").strip()
+    if gunicorn_raw:
+        try:
+            worker_timeout = float(gunicorn_raw)
+            return max(5.0, min(worker_timeout - 5.0, 60.0))
+        except ValueError:
+            pass
+    return 25.0
 
 
 def _resolve_scope(request) -> tuple[str, str]:
@@ -269,9 +292,9 @@ def _format_sse_frame(event_id, kind: str, payload: dict) -> bytes:
 def stream_view(request):
     """SSE stream of the caller's active workflow runs.
 
-    Tick every 2s with the current snapshot; heartbeat comment every 30s;
-    graceful close at 60s so worker pools don't pin forever. Client should
-    reconnect with EventSource's default reconnect behavior.
+    Tick every 2s with the current snapshot; heartbeat comment every 15s;
+    graceful close before the worker timeout so sync Gunicorn workers are not
+    SIGKILL'd. Client reconnects on ``bye`` or transport error.
     """
 
     from apps.platform_runtime.workflow_tracker import list_active_runs
@@ -279,9 +302,11 @@ def stream_view(request):
     schema, actor_id = _resolve_scope(request)
     is_staff = bool(getattr(request.user, "is_staff", False))
     actor_filter = "" if is_staff else actor_id
+    max_duration = _sse_max_duration_seconds()
 
     def _stream():
-        deadline = time.monotonic() + _SSE_MAX_DURATION_SECONDS
+        yield f"retry: {_SSE_RETRY_MILLISECONDS}\n\n".encode("utf-8")
+        deadline = time.monotonic() + max_duration
         last_heartbeat = time.monotonic()
         last_snapshot_hash = None
         event_seq = 0
