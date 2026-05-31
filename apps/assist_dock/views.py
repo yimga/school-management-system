@@ -20,6 +20,7 @@ from django.views.decorators.http import require_safe
 
 from .badges import resolve_all_badges
 from .context_processors import _resolve_role, _resolve_surface
+from .cursors import list_cursors, pings_as_jsonable
 from .quick_actions import actions_as_jsonable, actions_for
 from .registry import all_slots, get_slots_for, slots_as_jsonable
 
@@ -157,6 +158,8 @@ def dock_context_stream_view(request):
     role = _resolve_role(request)
     page_path = _sanitize_page_path(request.GET.get("page", ""))
 
+    user_id = getattr(request.user, "pk", None) or 0
+
     def stream():
         slots = get_slots_for(surface=surface, role=role)
         # Snapshot frame: badges + quick actions all in one go.
@@ -187,6 +190,7 @@ def dock_context_stream_view(request):
             return
 
         prev_badges = initial_badges
+        prev_cursors_key = None
         last_hb = time.time()
         started_at = time.time()
         frames = 0
@@ -203,11 +207,31 @@ def dock_context_stream_view(request):
             except Exception as exc:  # noqa: BLE001
                 logger.debug("SSE tick resolve failed: %s", exc)
                 next_badges = prev_badges
+            cursor_payload = []
+            cursors_key = ""
+            if page_path:
+                try:
+                    cursor_pings = list_cursors(
+                        page_path=page_path, exclude_user_id=user_id
+                    )
+                    cursor_payload = pings_as_jsonable(cursor_pings)
+                    cursors_key = "|".join(
+                        f"{p['user_id']}:{p['x_pct']:.1f}:{p['y_pct']:.1f}"
+                        for p in cursor_payload
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.debug("SSE cursor resolve failed: %s", exc)
+                    cursor_payload = []
+                    cursors_key = prev_cursors_key or ""
             if next_badges != prev_badges:
                 yield _sse_pack("badges", {"badges": next_badges})
                 prev_badges = next_badges
                 last_hb = now
-            elif now - last_hb >= _SSE_HEARTBEAT_SECONDS:
+            if cursors_key != prev_cursors_key:
+                yield _sse_pack("cursors", {"cursors": cursor_payload})
+                prev_cursors_key = cursors_key
+                last_hb = now
+            if now - last_hb >= _SSE_HEARTBEAT_SECONDS:
                 yield _sse_pack("heartbeat", {"ts": int(now)})
                 last_hb = now
             frames += 1

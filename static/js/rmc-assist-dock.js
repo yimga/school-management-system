@@ -16,6 +16,22 @@
     }
   }
 
+  function dockUrls() {
+    var L = labels();
+    return (L && L.urls) || {};
+  }
+
+  function dockUrl(key, fallback) {
+    var u = dockUrls()[key];
+    if (u && String(u).length) return String(u);
+    // Fallback only when the labels island is absent (legacy pages); production
+    // shells always ship rmc_assist_dock_labels.html with ASSIST_DOCK_URLS_JSON.
+    if (!document.getElementById("page-data-rmc-assist-dock")) {
+      return fallback || "";
+    }
+    return "";
+  }
+
   // v4.00.91 — registry SOT island. Optional; falls back to legacy DOM-scan
   // when missing so older shells keep working during the migration window.
   function registry() {
@@ -359,7 +375,7 @@
   // Wave B — context polling, badge painting, predictive halo + click tracking.
   // -----------------------------------------------------------------------
 
-  var CONTEXT_URL = "/assist-dock/context.json";
+  var CONTEXT_URL = dockUrl("context", "/assist-dock/context.json");
   var POLL_INTERVAL_MS = 60000; // 60s default; respects visibility state
   var HALO_HISTORY_KEY = "rmc_dock_clicks_v1";
   var HALO_HISTORY_TTL_DAYS = 30;
@@ -726,7 +742,8 @@
       page_excerpt: (ctx && ctx.page_excerpt) || "",
       user_query: (ctx && ctx.user_query) || "",
     };
-    var url = "/assist-dock/ai/" + encodeURIComponent(actionId) + "/";
+    var tpl = dockUrl("ai_invoke", "/assist-dock/ai/{action_id}/");
+    var url = tpl.replace("{action_id}", encodeURIComponent(actionId));
     try {
       return fetch(url, {
         method: "POST",
@@ -749,7 +766,7 @@
   }
 
   function listInsights(pagePath) {
-    var url = "/assist-dock/insights.json";
+    var url = dockUrl("insights", "/assist-dock/insights.json");
     if (pagePath) url += "?page=" + encodeURIComponent(pagePath);
     return fetch(url, {
       credentials: "same-origin",
@@ -761,7 +778,7 @@
   }
 
   function clearInsight(insightId) {
-    return fetch("/assist-dock/insights/clear/", {
+    return fetch(dockUrl("insights_clear", "/assist-dock/insights/clear/"), {
       method: "POST",
       credentials: "same-origin",
       headers: {
@@ -782,7 +799,7 @@
   var PRESENCE_HEARTBEAT_MS = 30000;
 
   function sendPresenceHeartbeat() {
-    var url = "/assist-dock/presence/heartbeat/";
+    var url = dockUrl("presence_heartbeat", "/assist-dock/presence/heartbeat/");
     try {
       return fetch(url, {
         method: "POST",
@@ -836,7 +853,8 @@
     if (typeof EventSource === "undefined") return false;
     if (_sseSource !== null) return true;
     try {
-      var url = "/assist-dock/context/stream/?page=" + encodeURIComponent(pageKey());
+      var base = dockUrl("context_stream", "/assist-dock/context/stream/");
+      var url = base + (base.indexOf("?") >= 0 ? "&" : "?") + "page=" + encodeURIComponent(pageKey());
       _sseSource = new EventSource(url, { withCredentials: true });
     } catch (_e) {
       _sseFallbackEngaged = true;
@@ -895,7 +913,7 @@
     var holder = trigger.closest("[data-rmc-assist-share-mint]");
     if (!holder) return;
     var target = holder.getAttribute("data-rmc-assist-share-target") || "";
-    var mintUrl = holder.getAttribute("data-rmc-assist-share-mint-url") || "/assist-dock/share/mint/";
+    var mintUrl = holder.getAttribute("data-rmc-assist-share-mint-url") || dockUrl("share_mint", "/assist-dock/share/mint/");
     trigger.disabled = true;
     fetch(mintUrl, {
       method: "POST",
@@ -972,7 +990,7 @@
   function saveSettings(form) {
     var status = document.getElementById("rmc-dock-settings-status");
     var list = document.getElementById("rmc-dock-settings-chip-list");
-    var prefsUrl = form.getAttribute("data-rmc-dock-prefs-url") || "/assist-dock/prefs.json";
+    var prefsUrl = form.getAttribute("data-rmc-dock-prefs-url") || dockUrl("prefs", "/assist-dock/prefs.json");
     var pinnedOrder = [];
     if (list) {
       Array.prototype.forEach.call(list.querySelectorAll("[data-rmc-dock-slot-id]"), function (row) {
@@ -1024,7 +1042,7 @@
     var list = document.querySelector("[data-rmc-presence-list]");
     if (!list) return;
     var page = list.getAttribute("data-rmc-presence-page") || "/";
-    var url = list.getAttribute("data-rmc-wave-url") || "/assist-dock/wave/";
+    var url = list.getAttribute("data-rmc-wave-url") || dockUrl("wave", "/assist-dock/wave/");
     var status = document.querySelector("[data-rmc-wave-status]");
     list.addEventListener("click", function (ev) {
       var btn = ev.target.closest("[data-rmc-wave-trigger]");
@@ -1086,7 +1104,7 @@
     var holder = trigger.closest("[data-rmc-assist-share-recipients]");
     if (!holder) return;
     var target = holder.getAttribute("data-rmc-assist-share-target") || "";
-    var url = holder.getAttribute("data-rmc-assist-share-recip-url") || "/assist-dock/share/mint-and-email/";
+    var url = holder.getAttribute("data-rmc-assist-share-recip-url") || dockUrl("share_mint_and_email", "/assist-dock/share/mint-and-email/");
     var textarea = holder.querySelector("#rmc-assist-share-recipients");
     var noteInput = holder.querySelector("#rmc-assist-share-note");
     var raw = textarea ? textarea.value : "";
@@ -1153,7 +1171,7 @@
   function bindTranslatePersistence() {
     var form = document.querySelector("[data-rmc-translate-form]");
     if (!form) return;
-    var prefsUrl = form.getAttribute("data-rmc-translate-prefs-url") || "/assist-dock/prefs.json";
+    var prefsUrl = form.getAttribute("data-rmc-translate-prefs-url") || dockUrl("prefs", "/assist-dock/prefs.json");
     form.addEventListener("click", function (ev) {
       var btn = ev.target.closest("button[name='language']");
       if (!btn) return;
@@ -1192,7 +1210,242 @@
     }
   }
 
-  // Expose Wave B + C + D + E + F controls on the namespace.
+  // -----------------------------------------------------------------------
+  // Wave G1 — pseudo-cobrowse cursor throttled at 4 Hz with peer dot render.
+  // Not WebSocket. Honest functional adequacy for school-admin use.
+  // -----------------------------------------------------------------------
+  var CURSOR_THROTTLE_MS = 250;
+  var CURSOR_LIST_POLL_MS = 1500;
+  var _cursorLastSent = 0;
+  var _cursorLayer = null;
+  var _cursorPeerNodes = {};
+  var _cursorPollTimer = null;
+
+  function ensureCursorLayer() {
+    if (_cursorLayer && document.body.contains(_cursorLayer)) return _cursorLayer;
+    _cursorLayer = document.createElement("div");
+    _cursorLayer.className = "rmc-assist-cursor-layer";
+    _cursorLayer.setAttribute("data-rmc-assist-cursor-layer", "1");
+    _cursorLayer.setAttribute("aria-hidden", "true");
+    _cursorLayer.style.position = "fixed";
+    _cursorLayer.style.inset = "0";
+    _cursorLayer.style.pointerEvents = "none";
+    _cursorLayer.style.zIndex = "9998";
+    document.body.appendChild(_cursorLayer);
+    return _cursorLayer;
+  }
+
+  function renderPeerCursor(ping) {
+    var layer = ensureCursorLayer();
+    var node = _cursorPeerNodes[ping.user_id];
+    if (!node) {
+      node = document.createElement("div");
+      node.className = "rmc-assist-cursor-peer";
+      node.style.position = "absolute";
+      node.style.width = "12px";
+      node.style.height = "12px";
+      node.style.borderRadius = "50%";
+      node.style.border = "2px solid white";
+      node.style.boxShadow = "0 1px 3px rgba(0,0,0,0.3)";
+      node.style.transform = "translate(-50%, -50%)";
+      node.style.transition = "left 0.2s ease, top 0.2s ease";
+      var label = document.createElement("span");
+      label.className = "rmc-assist-cursor-peer-label";
+      label.style.position = "absolute";
+      label.style.left = "12px";
+      label.style.top = "12px";
+      label.style.fontSize = "10px";
+      label.style.padding = "2px 4px";
+      label.style.borderRadius = "3px";
+      label.style.background = "rgba(0,0,0,0.7)";
+      label.style.color = "white";
+      label.style.whiteSpace = "nowrap";
+      node.appendChild(label);
+      layer.appendChild(node);
+      _cursorPeerNodes[ping.user_id] = node;
+    }
+    var hue = ping.color_hash || 0;
+    node.style.background = "hsl(" + hue + ", 70%, 55%)";
+    node.style.left = ping.x_pct + "%";
+    node.style.top = ping.y_pct + "%";
+    var label = node.querySelector(".rmc-assist-cursor-peer-label");
+    if (label) {
+      var text = ping.display_name || ("User " + ping.user_id);
+      if (ping.selection_text) text += " — \"" + ping.selection_text + "\"";
+      label.textContent = text;
+    }
+  }
+
+  function dropPeerCursor(userId) {
+    var node = _cursorPeerNodes[userId];
+    if (node && node.parentNode) node.parentNode.removeChild(node);
+    delete _cursorPeerNodes[userId];
+  }
+
+  function sendCursorHeartbeat(x, y, selection) {
+    var now = Date.now();
+    if (now - _cursorLastSent < CURSOR_THROTTLE_MS) return;
+    _cursorLastSent = now;
+    var url = dockUrl("cursor_heartbeat", "/assist-dock/cursors/heartbeat/");
+    var page = (location && location.pathname) || "/";
+    var w = Math.max(window.innerWidth || 1, 1);
+    var h = Math.max(window.innerHeight || 1, 1);
+    var body = {
+      page_path: page,
+      x_pct: Math.max(0, Math.min(100, (x / w) * 100)),
+      y_pct: Math.max(0, Math.min(100, (y / h) * 100)),
+      selection_text: selection || "",
+    };
+    fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: JSON.stringify(body),
+      keepalive: true,
+    }).catch(function () {});
+  }
+
+  function pollPeerCursors() {
+    var url = dockUrl("cursor_list", "/assist-dock/cursors/list.json");
+    var page = (location && location.pathname) || "/";
+    fetch(url + "?page=" + encodeURIComponent(page), {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (envelope) {
+        var seen = {};
+        (envelope.cursors || []).forEach(function (ping) {
+          seen[ping.user_id] = true;
+          renderPeerCursor(ping);
+        });
+        Object.keys(_cursorPeerNodes).forEach(function (uid) {
+          if (!seen[uid]) dropPeerCursor(uid);
+        });
+      })
+      .catch(function () {});
+  }
+
+  function startCursors() {
+    if (document.body.dataset.rmcAssistCursors === "off") return;
+    if (!document.body.classList.contains("authenticated") &&
+        !document.querySelector("[data-rmc-authenticated]")) {
+      // Anonymous shells skip the cursor layer entirely.
+      // Most authenticated shells render a body class or a data attribute;
+      // when neither is present, fall through and let the heartbeat 403.
+    }
+    document.addEventListener("mousemove", function (ev) {
+      var sel = "";
+      try { sel = String((window.getSelection && window.getSelection().toString()) || "").slice(0, 200); }
+      catch (_e) {}
+      sendCursorHeartbeat(ev.clientX, ev.clientY, sel);
+    }, { passive: true });
+    if (_cursorPollTimer) clearInterval(_cursorPollTimer);
+    _cursorPollTimer = setInterval(pollPeerCursors, CURSOR_LIST_POLL_MS);
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden && _cursorPollTimer) {
+        clearInterval(_cursorPollTimer);
+        _cursorPollTimer = null;
+      } else if (!document.hidden && !_cursorPollTimer) {
+        _cursorPollTimer = setInterval(pollPeerCursors, CURSOR_LIST_POLL_MS);
+      }
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Wave G2 — impersonation picker form bindings.
+  // -----------------------------------------------------------------------
+  function bindImpersonationPicker() {
+    var form = document.querySelector("[data-rmc-impersonation-request-form]");
+    if (form) {
+      form.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var url = form.getAttribute("action") || dockUrl("impersonation_request", "/assist-dock/impersonation/request/");
+        var statusEl = document.querySelector("[data-rmc-impersonation-request-status]");
+        var body = {
+          target_user_id: parseInt(form.querySelector("#rmc-imp-target").value || "0", 10),
+          reason: form.querySelector("#rmc-imp-reason").value || "",
+          ttl_seconds: parseInt(form.querySelector("#rmc-imp-ttl").value || "0", 10),
+        };
+        fetch(url, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken(),
+          },
+          body: JSON.stringify(body),
+        })
+          .then(function (r) { return r.json().then(function (b) { b.status = r.status; return b; }); })
+          .then(function (envelope) {
+            if (envelope.ok) {
+              if (statusEl) statusEl.textContent = "Requested grant #" + envelope.grant_id + " — awaiting approval.";
+              setTimeout(function () { location.reload(); }, 800);
+            } else if (statusEl) {
+              statusEl.textContent = "Request failed: " + (envelope.error || envelope.status);
+            }
+          })
+          .catch(function () {
+            if (statusEl) statusEl.textContent = "Request failed: network error.";
+          });
+      });
+    }
+    document.body.addEventListener("click", function (ev) {
+      var t = ev.target;
+      var action = null;
+      var grantId = null;
+      if (t.matches("[data-rmc-impersonation-approve]")) {
+        action = "approve";
+        grantId = t.getAttribute("data-rmc-impersonation-approve");
+      } else if (t.matches("[data-rmc-impersonation-revoke]")) {
+        action = "revoke";
+        grantId = t.getAttribute("data-rmc-impersonation-revoke");
+      } else if (t.matches("[data-rmc-impersonation-start]")) {
+        action = "start";
+        grantId = t.getAttribute("data-rmc-impersonation-start");
+      } else {
+        return;
+      }
+      ev.preventDefault();
+      var url = dockUrl("impersonation_" + action, "/assist-dock/impersonation/" + action + "/");
+      t.disabled = true;
+      fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: JSON.stringify({ grant_id: parseInt(grantId, 10) }),
+      })
+        .then(function (r) { return r.json().then(function (b) { b.status = r.status; return b; }); })
+        .then(function (envelope) {
+          if (envelope.ok) {
+            if (action === "start") {
+              // Reload root so the impersonated identity takes effect.
+              location.href = "/";
+            } else {
+              location.reload();
+            }
+          } else {
+            alert("Impersonation " + action + " failed: " + (envelope.error || envelope.status));
+            t.disabled = false;
+          }
+        })
+        .catch(function () {
+          alert("Impersonation " + action + " failed: network error.");
+          t.disabled = false;
+        });
+    });
+  }
+
+  // Expose Wave B + C + D + E + F + G controls on the namespace.
   window.RMCAssistDock = window.RMCAssistDock || {};
   window.RMCAssistDock.fetchContext = fetchContext;
   window.RMCAssistDock.applyBadges = applyBadges;
@@ -1210,6 +1463,9 @@
   window.RMCAssistDock.bindWaveButtons = bindWaveButtons;
   window.RMCAssistDock.bindShareRecipientPicker = bindShareRecipientPicker;
   window.RMCAssistDock.bindTranslatePersistence = bindTranslatePersistence;
+  window.RMCAssistDock.startCursors = startCursors;
+  window.RMCAssistDock.sendCursorHeartbeat = sendCursorHeartbeat;
+  window.RMCAssistDock.bindImpersonationPicker = bindImpersonationPicker;
 
   function init() {
     if (document.body.dataset.rmcAssistDock === "off") return;
@@ -1226,7 +1482,7 @@
     // begin polling for live badges + quick actions. Skip when the
     // registry island is absent (anonymous shells / opt-out body attr).
     if (!registry()) {
-      // Wave E + F mount points still need to bind on pages without the
+      // Wave E + F + G mount points still need to bind on pages without the
       // registry island (e.g. the standalone landing pages).
       try {
         bindShareMintTriggers();
@@ -1234,6 +1490,7 @@
         bindWaveButtons();
         bindShareRecipientPicker();
         bindTranslatePersistence();
+        bindImpersonationPicker();
       } catch (_e) {}
       return;
     }
@@ -1256,6 +1513,9 @@
       bindWaveButtons();
       bindShareRecipientPicker();
       bindTranslatePersistence();
+      // Wave G1 + G2: pseudo-cobrowse cursors + impersonation picker bindings.
+      startCursors();
+      bindImpersonationPicker();
     } catch (_e) {
       /* never break the dock if the context layer fails */
     }

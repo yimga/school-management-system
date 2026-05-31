@@ -13,6 +13,8 @@ from . import (
     power_views,
     views,
     views_ai,
+    views_cursors,
+    views_impersonation,
     views_presence,
     views_share,
     views_wave,
@@ -124,5 +126,67 @@ urlpatterns = [
         "share/mint-and-email/",
         views_share.mint_and_email_share_link,
         name="share_mint_and_email",
+    ),
+    # Wave G1 — pseudo-cobrowse cursor heartbeat + list.
+    # rbac-allow: assist-dock-cursor-heartbeat-authenticated-user-in-memory-volatile-4hz
+    path(
+        "cursors/heartbeat/",
+        views_cursors.cursor_heartbeat,
+        name="cursor_heartbeat",
+    ),
+    # rbac-allow: assist-dock-cursor-list-authenticated-page-keyed-exclude-self
+    path(
+        "cursors/list.json",
+        views_cursors.cursor_list,
+        name="cursor_list",
+    ),
+    # Wave G2 — dual-control impersonation flow.
+    # rbac-allow: assist-dock-impersonation-picker-super-only-dual-control-landing
+    path(
+        "impersonation/",
+        views_impersonation.impersonation_picker,
+        name="impersonation_picker",
+    ),
+    # rbac-allow: assist-dock-impersonation-request-super-only-create-requested-grant
+    path(
+        "impersonation/request/",
+        views_impersonation.impersonation_request,
+        name="impersonation_request",
+    ),
+    # rbac-allow: assist-dock-impersonation-approve-super-only-not-grantor-dual-control
+    path(
+        "impersonation/approve/",
+        views_impersonation.impersonation_approve,
+        name="impersonation_approve",
+    ),
+    # rbac-allow: assist-dock-impersonation-revoke-super-only-any-non-consumed-state
+    path(
+        "impersonation/revoke/",
+        views_impersonation.impersonation_revoke,
+        name="impersonation_revoke",
+    ),
+    # rbac-allow: assist-dock-impersonation-start-super-only-consume-approved-grant
+    path(
+        "impersonation/start/",
+        views_impersonation.impersonation_start,
+        name="impersonation_start",
+    ),
+    # rbac-allow: assist-dock-impersonation-stop-authenticated-self-session-only
+    path(
+        "impersonation/stop/",
+        views_impersonation.impersonation_stop,
+        name="impersonation_stop",
+    ),
+    # rbac-allow: assist-dock-impersonation-stop-redirect-authenticated-self-session-only
+    path(
+        "impersonation/stop-redirect/",
+        views_impersonation.impersonation_stop_and_redirect,
+        name="impersonation_stop_redirect",
+    ),
+    # rbac-allow: assist-dock-impersonation-banner-state-authenticated-self-session-poll
+    path(
+        "impersonation/banner-state.json",
+        views_impersonation.impersonation_banner_state,
+        name="impersonation_banner_state",
     ),
 ]

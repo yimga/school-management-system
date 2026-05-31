@@ -66,3 +66,29 @@ class AssistDockLocaleMiddleware:
         if recognised and candidate.lower() not in recognised:
             return ""
         return candidate
+
+
+class AssistDockImpersonationBannerMiddleware:
+    """v4.00.97 Wave G2 — exposes impersonation state on the request.
+
+    Sets ``request.assist_dock_impersonation`` to the banner payload
+    (``{active, grant_id, impersonator_id, started_at_iso}``) when an
+    impersonation is active in the session, otherwise an empty dict.
+
+    Templates / shells read this via the context processor (which
+    already runs assist-dock context). Defensive: any failure logs DEBUG
+    and lets the request through — NEVER raises.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        try:
+            from .impersonation import session_banner_context
+
+            request.assist_dock_impersonation = session_banner_context(request) or {}
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("assist_dock impersonation banner lookup failed: %s", exc)
+            request.assist_dock_impersonation = {}
+        return self.get_response(request)

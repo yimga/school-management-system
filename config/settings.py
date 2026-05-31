@@ -320,6 +320,8 @@ MIDDLEWARE = [
     # v4.00.96 Wave F3 — assist dock's per-user locale preference overrides
     # the LocaleMiddleware pick once the user is authenticated.
     "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
+    # v4.00.97 Wave G2 — exposes impersonation banner state on the request.
+    "apps.assist_dock.middleware.AssistDockImpersonationBannerMiddleware",
     "apps.accounts.middleware_session_pinning.SessionPinningMiddleware",  # Pillar 1: bind session to (IP, UA-hash); flush on mismatch
     "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
     "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",
@@ -3170,6 +3172,8 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "django.contrib.auth.middleware.AuthenticationMiddleware",
         # v4.00.96 Wave F3 — per-user locale preference (django-tenants path).
         "apps.assist_dock.middleware.AssistDockLocaleMiddleware",
+        # v4.00.97 Wave G2 — impersonation banner state (django-tenants path).
+        "apps.assist_dock.middleware.AssistDockImpersonationBannerMiddleware",
         "apps.accounts.middleware_session_pinning.SessionPinningMiddleware",
         "apps.schools.middleware_conversion_lock.ConversionLockMiddleware",
         "apps.schools.growth_funnel_middleware.GrowthFunnelMiddleware",

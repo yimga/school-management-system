@@ -282,6 +282,16 @@ class AssistDockShortLinkRecipient(models.Model):
         ]
 
 
+# v4.00.97 Wave G2 — re-export impersonation models so Django discovers them.
+from .impersonation import (  # noqa: E402, F401
+    ImpersonationAuditEvent,
+    ImpersonationAuditEventType,
+    ImpersonationGrant,
+    ImpersonationGrantStatus,
+    ImpersonationSession,
+)
+
+
 def apply_prefs_to_slots(slots, payload):
     """Reorder + filter ``slots`` per the user's preference payload.
 

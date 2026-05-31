@@ -1,0 +1,18 @@
+{% load i18n %}
+{% if request.assist_dock_impersonation.active %}
+<div class="rmc-impersonation-banner alert alert-warning"
+     role="status"
+     data-rmc-impersonation-banner="1"
+     data-rmc-impersonation-grant-id="{{ request.assist_dock_impersonation.grant_id }}">
+  <strong>{% trans "Impersonation active" %}</strong>
+  <span class="text-secondary small">
+    {% trans "Operator" %} #{{ request.assist_dock_impersonation.impersonator_id }} —
+    {% trans "started" %} {{ request.assist_dock_impersonation.started_at_iso }}
+  </span>
+  <form method="post" action="{% url 'assist_dock:impersonation_stop_redirect' %}" class="d-inline ms-2">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path|default:'/' }}">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "End impersonation" %}</button>
+  </form>
+</div>
+{% endif %}

@@ -53,7 +53,9 @@ class RegistryIntrospectTests(SimpleTestCase):
         payload = json.loads(response.content)
         self.assertIn("slots", payload)
         ids = {s["id"] for s in payload["slots"]}
-        self.assertIn("ai-copilot", ids)
+        # back-to-top is the always-on chip (no requires_feature gate); ai-copilot
+        # is feature-gated and only appears with ?include_hidden=1.
+        self.assertIn("back-to-top", ids)
 
     def test_filter_by_surface(self):
         view = registry_introspect.__wrapped__

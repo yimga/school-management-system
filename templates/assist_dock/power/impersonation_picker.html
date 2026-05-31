@@ -1,0 +1,117 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Impersonation — dual-control" %}{% endblock %}
+
+{% block content %}
+<section class="rmc-assist-power" data-rmc-assist-power="impersonation_picker">
+  <header class="rmc-assist-power__header">
+    <h1 class="h3"><i class="bi bi-person-badge" aria-hidden="true"></i> {% trans "Impersonation" %}</h1>
+    <p class="text-secondary">
+      {% trans "Dual-control flow: requesting an impersonation creates a grant another SUPERADMIN must approve before it can be started." %}
+    </p>
+  </header>
+
+  {% if active_session.active %}
+  <div class="alert alert-warning rmc-assist-power__active-session" role="alert"
+       data-rmc-impersonation-active="1">
+    <strong>{% trans "Impersonation active in this session." %}</strong>
+    <form method="post" action="{% url 'assist_dock:impersonation_stop_redirect' %}" class="d-inline ms-2">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="/">
+      <button type="submit" class="btn btn-sm btn-outline-secondary">{% trans "End impersonation" %}</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <section class="rmc-assist-power__section" data-rmc-impersonation-section="request">
+    <h2 class="h5">{% trans "Request a grant" %}</h2>
+    <form data-rmc-impersonation-request-form action="{% url 'assist_dock:impersonation_request' %}">
+      {% csrf_token %}
+      <div class="mb-2">
+        <label class="form-label" for="rmc-imp-target">{% trans "Target user id" %}</label>
+        <input type="number" id="rmc-imp-target" name="target_user_id" class="form-control" min="1" required>
+      </div>
+      <div class="mb-2">
+        <label class="form-label" for="rmc-imp-reason">{% trans "Reason" %} <span class="text-secondary small">({{ max_reason_len }} {% trans "chars max" %})</span></label>
+        <textarea id="rmc-imp-reason" name="reason" class="form-control" maxlength="{{ max_reason_len }}" required></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label" for="rmc-imp-ttl">{% trans "TTL (seconds)" %} — {% trans "default" %} {{ default_ttl_seconds }}, {% trans "max" %} {{ max_ttl_seconds }}</label>
+        <input type="number" id="rmc-imp-ttl" name="ttl_seconds" class="form-control" min="60" max="{{ max_ttl_seconds }}" value="{{ default_ttl_seconds }}">
+      </div>
+      <button type="submit" class="btn btn-primary">{% trans "Request grant" %}</button>
+      <span class="rmc-assist-power__status text-secondary small ms-2" data-rmc-impersonation-request-status aria-live="polite"></span>
+    </form>
+  </section>
+
+  <section class="rmc-assist-power__section" data-rmc-impersonation-section="pending">
+    <h2 class="h5">{% trans "Pending approval" %} <span class="text-secondary small">({{ pending_grants|length }})</span></h2>
+    {% if pending_grants %}
+      <ul class="list-group" data-rmc-impersonation-pending-list>
+        {% for grant in pending_grants %}
+          <li class="list-group-item d-flex justify-content-between align-items-start"
+              data-rmc-impersonation-grant-id="{{ grant.pk }}">
+            <div>
+              <div><strong>#{{ grant.pk }}</strong> — {% trans "by" %} {{ grant.grantor }} → {% trans "target" %} {{ grant.target }}</div>
+              <div class="text-secondary small">{% trans "Reason" %}: {{ grant.reason }}</div>
+              <div class="text-secondary small">{% trans "Expires" %}: {{ grant.expires_at|date:"Y-m-d H:i" }}</div>
+            </div>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-success" data-rmc-impersonation-approve="{{ grant.pk }}">{% trans "Approve" %}</button>
+              <button class="btn btn-outline-danger" data-rmc-impersonation-revoke="{{ grant.pk }}">{% trans "Revoke" %}</button>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-secondary">{% trans "No grants awaiting approval." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="rmc-assist-power__section" data-rmc-impersonation-section="ready">
+    <h2 class="h5">{% trans "Approved — ready to start" %} <span class="text-secondary small">({{ ready_grants|length }})</span></h2>
+    {% if ready_grants %}
+      <ul class="list-group" data-rmc-impersonation-ready-list>
+        {% for grant in ready_grants %}
+          <li class="list-group-item d-flex justify-content-between align-items-start"
+              data-rmc-impersonation-grant-id="{{ grant.pk }}">
+            <div>
+              <div><strong>#{{ grant.pk }}</strong> → {% trans "target" %} {{ grant.target }}</div>
+              <div class="text-secondary small">{% trans "Approved by" %} {{ grant.approver }} {% trans "at" %} {{ grant.approved_at|date:"Y-m-d H:i" }}</div>
+              <div class="text-secondary small">{% trans "Reason" %}: {{ grant.reason }}</div>
+            </div>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-primary" data-rmc-impersonation-start="{{ grant.pk }}">{% trans "Start impersonation" %}</button>
+              <button class="btn btn-outline-danger" data-rmc-impersonation-revoke="{{ grant.pk }}">{% trans "Revoke" %}</button>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-secondary">{% trans "No approved grants ready to start." %}</p>
+    {% endif %}
+  </section>
+
+  <section class="rmc-assist-power__section" data-rmc-impersonation-section="recent">
+    <h2 class="h5">{% trans "Recent grants" %}</h2>
+    {% if recent_grants %}
+      <ul class="list-group" data-rmc-impersonation-recent-list>
+        {% for grant in recent_grants %}
+          <li class="list-group-item">
+            <span class="badge bg-secondary me-1">{{ grant.status }}</span>
+            #{{ grant.pk }} — {{ grant.grantor }} → {{ grant.target }} —
+            <span class="text-secondary small">{{ grant.created_at|date:"Y-m-d H:i" }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-secondary">{% trans "No recent grants." %}</p>
+    {% endif %}
+  </section>
+
+  <footer class="rmc-assist-power__footer text-secondary small mt-4">
+    {% trans "Every state transition is recorded in ImpersonationAuditEvent. Dual control means the approver MUST be a different SUPERADMIN than the grantor." %}
+  </footer>
+</section>
+{% endblock %}

@@ -408,8 +408,11 @@ def _walk_auth_mixins(view_callable) -> list[str]:
 
 
 # Known impersonation URL-name candidates across the project. Try each in
-# order — first that reverses cleanly wins.
+# order — first that reverses cleanly wins. The assist-dock-native picker
+# is listed first so Wave G2's dual-control flow takes precedence over any
+# legacy single-click flow elsewhere in the project.
 _IMPERSONATION_URL_CANDIDATES = (
+    "assist_dock:impersonation_picker",
     "accounts:impersonate",
     "accounts:impersonation_picker",
     "accounts:impersonate_start",
