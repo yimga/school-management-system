@@ -224,8 +224,7 @@ class EncryptedCharField(models.CharField):
             # because the bytes won't decode to a valid foreign-hash
             # format. NEVER log the bytes themselves.
             logger.info(
-                "encrypted_charfield_decrypt_skipped",
-                extra={"reason": "invalid_or_plaintext_value"},
+                "encrypted_charfield_decrypt_skipped reason=invalid_or_plaintext_value",
             )
             return value
 
@@ -276,13 +275,11 @@ class EncryptedJSONField(models.JSONField):
                 parsed = json.loads(value)
             except (ValueError, TypeError):
                 logger.warning(
-                    "encrypted_jsonfield_decrypt_skipped",
-                    extra={"reason": "invalid_token_unrecoverable"},
+                    "encrypted_jsonfield_decrypt_skipped reason=invalid_token_unrecoverable",
                 )
                 return {}
             logger.info(
-                "encrypted_jsonfield_decrypt_skipped",
-                extra={"reason": "pre_encryption_plaintext_row"},
+                "encrypted_jsonfield_decrypt_skipped reason=pre_encryption_plaintext_row",
             )
             return parsed
         try:
@@ -357,8 +354,7 @@ class EncryptedBinaryField(models.BinaryField):
             # the migration's RunPython forward can re-wrap it. NEVER
             # log the raw bytes themselves.
             logger.info(
-                "encrypted_binaryfield_decrypt_skipped",
-                extra={"reason": "invalid_or_plaintext_value"},
+                "encrypted_binaryfield_decrypt_skipped reason=invalid_or_plaintext_value",
             )
             return bytes(value)
 
