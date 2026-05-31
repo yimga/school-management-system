@@ -10,19 +10,31 @@
     <p class="text-secondary">{% trans "Switch languages mid-session — every page repaints in the chosen locale." %}</p>
   </header>
 
-  <form action="{% url 'set_language' %}" method="post" class="rmc-assist-power__form">
+  <form action="{% url 'set_language' %}" method="post" class="rmc-assist-power__form"
+        data-rmc-translate-form="1"
+        data-rmc-translate-prefs-url="{{ prefs_url }}"
+        data-rmc-translate-current="{{ locale_preference }}">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ next_url }}">
     <div class="rmc-assist-power__grid">
       {% for lang in languages %}
         <button type="submit" name="language" value="{{ lang.code }}"
-                class="rmc-assist-power__chip{% if lang.code == current_language %} rmc-assist-power__chip--active{% endif %}"
+                class="rmc-assist-power__chip{% if lang.code == current_language %} rmc-assist-power__chip--active{% endif %}{% if lang.code == locale_preference %} rmc-assist-power__chip--pinned{% endif %}"
                 data-rmc-assist-language="{{ lang.code }}">
           <span class="rmc-assist-power__chip-code">{{ lang.code }}</span>
           <span class="rmc-assist-power__chip-label">{{ lang.label }}</span>
+          {% if lang.code == locale_preference %}<span class="rmc-assist-power__chip-pin" aria-hidden="true">★</span>{% endif %}
         </button>
       {% endfor %}
     </div>
+    <p class="text-secondary small mt-3">
+      {% if locale_preference %}
+        {% blocktrans with code=locale_preference %}Sticky locale: <code>{{ code }}</code> — applied on every page until you pick another or clear it.{% endblocktrans %}
+        <button type="button" class="btn btn-link btn-sm" data-rmc-translate-clear>{% trans "Clear" %}</button>
+      {% else %}
+        {% trans "Picking a language pins it as your sticky locale across sessions." %}
+      {% endif %}
+    </p>
   </form>
 </section>
 {% endblock %}

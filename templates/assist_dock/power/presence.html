@@ -18,24 +18,32 @@
   </dl>
 
   {% if present %}
-    <ul class="rmc-assist-power__bullet">
+    <ul class="rmc-assist-power__bullet" data-rmc-presence-list="1"
+        data-rmc-presence-page="{{ page }}"
+        data-rmc-wave-url="/assist-dock/wave/">
       {% for entry in present %}
-        <li>
+        <li data-rmc-presence-row="{{ entry.user_id }}">
           {% if entry.avatar_url %}
             <img class="rmc-assist-power__avatar" src="{{ entry.avatar_url }}" alt="" aria-hidden="true">
           {% else %}
             <span class="rmc-assist-power__avatar rmc-assist-power__avatar--text" aria-hidden="true">{{ entry.display_name|slice:":1"|upper|default:"?" }}</span>
           {% endif %}
-          <span>{{ entry.display_name|default:_("(unnamed operator)") }}</span>
+          <span class="rmc-assist-power__chip-label">{{ entry.display_name|default:_("(unnamed operator)") }}</span>
+          <button type="button" class="btn btn-sm btn-outline-primary"
+                  data-rmc-wave-trigger
+                  data-rmc-wave-target="{{ entry.user_id }}">
+            <i class="bi bi-hand-thumbs-up" aria-hidden="true"></i> {% trans "Wave" %}
+          </button>
         </li>
       {% endfor %}
     </ul>
+    <p class="text-secondary small mt-2" data-rmc-wave-status aria-live="polite"></p>
   {% else %}
     <p class="text-secondary">{% trans "Nobody else is on this page right now." %}</p>
   {% endif %}
 
   <p class="text-secondary small">
-    {% trans "Co-browse + chat handoff land in the next wave." %}
+    {% trans "Waves push an in-dock notification to the recipient. Full co-browse needs a WebSocket bridge and is still on the roadmap." %}
   </p>
 </section>
 {% endblock %}

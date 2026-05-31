@@ -9,7 +9,14 @@ from __future__ import annotations
 
 from django.urls import path
 
-from . import power_views, views, views_ai, views_presence, views_share
+from . import (
+    power_views,
+    views,
+    views_ai,
+    views_presence,
+    views_share,
+    views_wave,
+)
 
 app_name = "assist_dock"
 
@@ -103,5 +110,19 @@ urlpatterns = [
         "s/<str:token>/",
         views_share.resolve_share_link,
         name="share_resolve",
+    ),
+    # Wave F2 — wave at a co-viewer (pushes an Insight to their copilot ring).
+    # rbac-allow: assist-dock-wave-at-authenticated-target-must-be-co-viewer-rate-limited
+    path(
+        "wave/",
+        views_wave.wave_at_view,
+        name="wave_at",
+    ),
+    # Wave F4 — recipient picker + email send (wraps share/mint).
+    # rbac-allow: assist-dock-share-mint-and-email-authenticated-user-rfc5321-validated
+    path(
+        "share/mint-and-email/",
+        views_share.mint_and_email_share_link,
+        name="share_mint_and_email",
     ),
 ]

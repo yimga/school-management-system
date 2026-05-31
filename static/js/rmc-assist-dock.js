@@ -1017,7 +1017,182 @@
       });
   }
 
-  // Expose Wave B + C + D + E controls on the namespace.
+  // -----------------------------------------------------------------------
+  // Wave F2 — wave-at handler (presence landing).
+  // -----------------------------------------------------------------------
+  function bindWaveButtons() {
+    var list = document.querySelector("[data-rmc-presence-list]");
+    if (!list) return;
+    var page = list.getAttribute("data-rmc-presence-page") || "/";
+    var url = list.getAttribute("data-rmc-wave-url") || "/assist-dock/wave/";
+    var status = document.querySelector("[data-rmc-wave-status]");
+    list.addEventListener("click", function (ev) {
+      var btn = ev.target.closest("[data-rmc-wave-trigger]");
+      if (!btn) return;
+      var target = parseInt(btn.getAttribute("data-rmc-wave-target") || "0", 10);
+      if (!target) return;
+      btn.disabled = true;
+      fetch(url, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: JSON.stringify({ target_user_id: target, page_path: page }),
+      })
+        .then(function (r) {
+          return r.json().then(function (b) {
+            b.status = r.status;
+            return b;
+          });
+        })
+        .then(function (envelope) {
+          if (status) {
+            if (envelope.ok) {
+              status.textContent = "Wave sent.";
+            } else if (envelope.error === "rate_limited") {
+              status.textContent =
+                "Slow down — wait " +
+                (envelope.retry_after_seconds || 30) +
+                "s before waving again.";
+            } else {
+              status.textContent = "Wave failed: " + (envelope.error || envelope.status);
+            }
+          }
+        })
+        .catch(function () {
+          if (status) status.textContent = "Wave failed: network error.";
+        })
+        .finally(function () {
+          setTimeout(function () { btn.disabled = false; }, 1500);
+        });
+    });
+  }
+
+  // -----------------------------------------------------------------------
+  // Wave F4 — share recipient picker (mint + email).
+  // -----------------------------------------------------------------------
+  function bindShareRecipientPicker() {
+    var triggers = document.querySelectorAll("[data-rmc-assist-share-recip-trigger]");
+    for (var i = 0; i < triggers.length; i++) {
+      triggers[i].addEventListener("click", handleShareRecipientClick);
+    }
+  }
+
+  function handleShareRecipientClick(ev) {
+    var trigger = ev.currentTarget;
+    var holder = trigger.closest("[data-rmc-assist-share-recipients]");
+    if (!holder) return;
+    var target = holder.getAttribute("data-rmc-assist-share-target") || "";
+    var url = holder.getAttribute("data-rmc-assist-share-recip-url") || "/assist-dock/share/mint-and-email/";
+    var textarea = holder.querySelector("#rmc-assist-share-recipients");
+    var noteInput = holder.querySelector("#rmc-assist-share-note");
+    var raw = textarea ? textarea.value : "";
+    var recipients = raw
+      .split(/[,;\n]+/)
+      .map(function (s) { return (s || "").trim(); })
+      .filter(function (s) { return s.length > 0; });
+    if (!recipients.length) {
+      var s = holder.querySelector("[data-rmc-assist-share-recip-status]");
+      if (s) s.textContent = "Enter at least one address.";
+      return;
+    }
+    trigger.disabled = true;
+    fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: JSON.stringify({
+        target: target,
+        ttl_hours: 24,
+        recipients: recipients,
+        note: noteInput ? noteInput.value : "",
+      }),
+    })
+      .then(function (r) { return r.json().then(function (b) { b.status = r.status; return b; }); })
+      .then(function (envelope) {
+        var result = holder.querySelector("[data-rmc-assist-share-recip-result]");
+        var status = holder.querySelector("[data-rmc-assist-share-recip-status]");
+        var list = holder.querySelector("[data-rmc-assist-share-recip-list]");
+        if (result) result.hidden = false;
+        if (!envelope.ok) {
+          if (status) status.textContent = "Send failed: " + (envelope.error || envelope.status);
+          if (list) list.innerHTML = "";
+          return;
+        }
+        if (status) {
+          status.textContent =
+            "Sent to " + envelope.sent_count + " of " + envelope.recipients.length + " recipient(s).";
+        }
+        if (list) {
+          list.innerHTML = "";
+          envelope.recipients.forEach(function (r) {
+            var li = document.createElement("li");
+            li.textContent = r.address + " — " + r.send_status;
+            list.appendChild(li);
+          });
+        }
+      })
+      .catch(function () {
+        var status = holder.querySelector("[data-rmc-assist-share-recip-status]");
+        if (status) status.textContent = "Send failed: network error.";
+      })
+      .finally(function () { trigger.disabled = false; });
+  }
+
+  // -----------------------------------------------------------------------
+  // Wave F3 — translate landing writes locale_preference back to prefs.
+  // Picking a language also POSTs the prefs endpoint with the chosen code.
+  // -----------------------------------------------------------------------
+  function bindTranslatePersistence() {
+    var form = document.querySelector("[data-rmc-translate-form]");
+    if (!form) return;
+    var prefsUrl = form.getAttribute("data-rmc-translate-prefs-url") || "/assist-dock/prefs.json";
+    form.addEventListener("click", function (ev) {
+      var btn = ev.target.closest("button[name='language']");
+      if (!btn) return;
+      var code = btn.getAttribute("value") || "";
+      if (!code) return;
+      // Fire-and-forget; the form submit still hits set_language so the
+      // immediate request also flips locale.
+      fetch(prefsUrl, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken(),
+        },
+        body: JSON.stringify({ locale_preference: code }),
+        keepalive: true,
+      }).catch(function () {});
+    });
+    var clearBtn = form.querySelector("[data-rmc-translate-clear]");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", function () {
+        fetch(prefsUrl, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken(),
+          },
+          body: JSON.stringify({ locale_preference: "" }),
+        })
+          .then(function () { location.reload(); })
+          .catch(function () {});
+      });
+    }
+  }
+
+  // Expose Wave B + C + D + E + F controls on the namespace.
   window.RMCAssistDock = window.RMCAssistDock || {};
   window.RMCAssistDock.fetchContext = fetchContext;
   window.RMCAssistDock.applyBadges = applyBadges;
@@ -1032,6 +1207,9 @@
   window.RMCAssistDock.startSSE = startSSE;
   window.RMCAssistDock.bindShareMintTriggers = bindShareMintTriggers;
   window.RMCAssistDock.bindSettingsForm = bindSettingsForm;
+  window.RMCAssistDock.bindWaveButtons = bindWaveButtons;
+  window.RMCAssistDock.bindShareRecipientPicker = bindShareRecipientPicker;
+  window.RMCAssistDock.bindTranslatePersistence = bindTranslatePersistence;
 
   function init() {
     if (document.body.dataset.rmcAssistDock === "off") return;
@@ -1048,9 +1226,15 @@
     // begin polling for live badges + quick actions. Skip when the
     // registry island is absent (anonymous shells / opt-out body attr).
     if (!registry()) {
-      // Wave E mount points still need to bind on pages without the
-      // registry island (e.g. the standalone share / settings landings).
-      try { bindShareMintTriggers(); bindSettingsForm(); } catch (_e) {}
+      // Wave E + F mount points still need to bind on pages without the
+      // registry island (e.g. the standalone landing pages).
+      try {
+        bindShareMintTriggers();
+        bindSettingsForm();
+        bindWaveButtons();
+        bindShareRecipientPicker();
+        bindTranslatePersistence();
+      } catch (_e) {}
       return;
     }
     try {
@@ -1068,6 +1252,10 @@
       // Wave E4 + E5: bind settings DnD + share mint on the relevant pages.
       bindShareMintTriggers();
       bindSettingsForm();
+      // Wave F2 + F3 + F4: presence wave / locale persistence / share recipients.
+      bindWaveButtons();
+      bindShareRecipientPicker();
+      bindTranslatePersistence();
     } catch (_e) {
       /* never break the dock if the context layer fails */
     }

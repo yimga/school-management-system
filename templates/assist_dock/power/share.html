@@ -34,6 +34,27 @@
     </a>
   </div>
 
+  <h2 class="h5 mt-4">{% trans "Email this view" %}</h2>
+  <p class="text-secondary small">
+    {% trans "Mints a 24h link AND emails each recipient. Up to 12 addresses; we record per-recipient receipts so you can see who got it." %}
+  </p>
+  <div class="rmc-assist-share__recipients" data-rmc-assist-share-recipients="1"
+       data-rmc-assist-share-target="{{ absolute_url }}"
+       data-rmc-assist-share-recip-url="/assist-dock/share/mint-and-email/">
+    <label class="form-label" for="rmc-assist-share-recipients">{% trans "Recipients (comma- or newline-separated)" %}</label>
+    <textarea id="rmc-assist-share-recipients" class="form-control" rows="3"
+              placeholder="alice@example.org, bob@example.org"></textarea>
+    <label class="form-label mt-2" for="rmc-assist-share-note">{% trans "Optional note" %}</label>
+    <input id="rmc-assist-share-note" type="text" class="form-control" maxlength="200">
+    <button type="button" class="btn btn-primary mt-2" data-rmc-assist-share-recip-trigger>
+      <i class="bi bi-send" aria-hidden="true"></i> {% trans "Send" %}
+    </button>
+    <div class="rmc-assist-share__recip-result mt-2" data-rmc-assist-share-recip-result hidden>
+      <span class="text-secondary small" data-rmc-assist-share-recip-status></span>
+      <ul class="rmc-assist-power__bullet mt-1" data-rmc-assist-share-recip-list></ul>
+    </div>
+  </div>
+
   <h2 class="h5 mt-4">{% trans "24h short link" %}</h2>
   <p class="text-secondary small">
     {% trans "Mints a tokenised URL that auto-expires. Token is single-use-aware; the recipient still passes the page's own auth." %}

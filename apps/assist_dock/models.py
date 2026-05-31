@@ -24,6 +24,7 @@ _DEFAULT_PAYLOAD: dict = {
     "side": "right",             # "right" | "left"
     "halo_enabled": True,        # predictive halo on/off
     "voice_enabled": False,      # opt-in for the voice chip
+    "locale_preference": "",     # v4.00.96 Wave F3 — sticky locale across sessions
     "version": 1,                # payload schema version
 }
 
@@ -45,8 +46,29 @@ def default_prefs_payload() -> dict:
         "side": _DEFAULT_PAYLOAD["side"],
         "halo_enabled": _DEFAULT_PAYLOAD["halo_enabled"],
         "voice_enabled": _DEFAULT_PAYLOAD["voice_enabled"],
+        "locale_preference": _DEFAULT_PAYLOAD["locale_preference"],
         "version": _DEFAULT_PAYLOAD["version"],
     }
+
+
+# Permissive locale shape — Django LANGUAGE_CODE format ``en`` / ``en-us``.
+_LOCALE_PREFERENCE_MAX_LEN = 16
+_LOCALE_PREFERENCE_RE = None  # compiled lazily below to keep import cheap
+
+
+def _validate_locale_preference(value: str) -> str:
+    """Return the cleaned locale slug or '' if it doesn't match the shape."""
+    if not value:
+        return ""
+    value = str(value).strip().lower()[:_LOCALE_PREFERENCE_MAX_LEN]
+    if not value:
+        return ""
+    global _LOCALE_PREFERENCE_RE
+    if _LOCALE_PREFERENCE_RE is None:
+        import re
+
+        _LOCALE_PREFERENCE_RE = re.compile(r"^[a-z]{2,3}(?:[_-][a-z0-9]{2,8})?$")
+    return value if _LOCALE_PREFERENCE_RE.match(value) else ""
 
 
 class UserAssistDockPrefs(models.Model):
@@ -93,6 +115,9 @@ def coerce_payload(raw) -> dict:
         payload["side"] = side
     payload["halo_enabled"] = bool(raw.get("halo_enabled", True))
     payload["voice_enabled"] = bool(raw.get("voice_enabled", False))
+    payload["locale_preference"] = _validate_locale_preference(
+        raw.get("locale_preference", "")
+    )
     return payload
 
 
@@ -160,6 +185,43 @@ class InsightRecord(models.Model):
         ]
 
 
+class PresencePing(models.Model):
+    """v4.00.96 Wave F1 — durable + cross-worker presence row.
+
+    Mirror of the in-process ``presence`` ring. Heartbeat writes to BOTH
+    layers; ``list_present`` consults memory first (fast path) and the DB
+    second (cross-worker visibility). Single row per ``(user, page_path)``
+    via the unique constraint; conflict path updates ``last_seen``.
+    """
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="assist_dock_presence_pings",
+    )
+    page_path = models.CharField(max_length=256)
+    display_name = models.CharField(max_length=80, blank=True, default="")
+    avatar_url = models.CharField(max_length=512, blank=True, default="")
+    first_seen = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Assist dock presence ping"
+        verbose_name_plural = "Assist dock presence pings"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("user", "page_path"),
+                name="ad_uniq_user_page",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=("page_path", "last_seen"),
+                name="ad_presence_page_last_idx",
+            ),
+        ]
+
+
 class AssistDockShortLink(models.Model):
     """v4.00.95 Wave E5 — 24h short-link for the share chip.
 
@@ -186,6 +248,36 @@ class AssistDockShortLink(models.Model):
             models.Index(
                 fields=("created_by", "expires_at"),
                 name="ad_shortlink_user_exp_idx",
+            ),
+        ]
+
+
+class AssistDockShortLinkRecipient(models.Model):
+    """v4.00.96 Wave F4 — one row per recipient the operator emailed.
+
+    Surfaces who got the link + when, so the operator can later see
+    receipts in a "your shares" view. The actual email send is
+    best-effort through Django's email backend; sending failures land
+    here as ``send_status``.
+    """
+
+    short_link = models.ForeignKey(
+        "AssistDockShortLink",
+        on_delete=models.CASCADE,
+        related_name="recipients",
+    )
+    address = models.CharField(max_length=320)            # RFC 5321 max
+    sent_at = models.DateTimeField(auto_now_add=True)
+    send_status = models.CharField(max_length=32, default="queued")
+    notes = models.CharField(max_length=256, blank=True, default="")
+
+    class Meta:
+        verbose_name = "Assist dock short link recipient"
+        verbose_name_plural = "Assist dock short link recipients"
+        indexes = [
+            models.Index(
+                fields=("short_link", "sent_at"),
+                name="ad_shortlink_recip_idx",
             ),
         ]
 

@@ -59,7 +59,7 @@ def heartbeat(
     display_name: str = "",
     avatar_url: str = "",
 ) -> PresenceEntry | None:
-    """Record / refresh a user's presence on a page."""
+    """Record / refresh a user's presence on a page (memory + DB mirror)."""
     if not user_id:
         return None
     page = _sanitize_page(page_path)
@@ -86,28 +86,126 @@ def heartbeat(
                 last_seen=now,
             )
         bucket[user_id] = entry
-        return entry
+    # Wave F1 — best-effort DB mirror so other workers see this user too.
+    _mirror_heartbeat_to_db(entry=entry, page_path=page)
+    return entry
+
+
+def _mirror_heartbeat_to_db(*, entry: PresenceEntry, page_path: str) -> None:
+    """Wave F1 — upsert PresencePing row. Best-effort, never raises."""
+    try:
+        from .models import PresencePing
+    except (ImportError, RuntimeError):
+        return
+    try:
+        # tenant-isolation-allow: assist-dock-presence-mirror-user-pk-public-schema-shared
+        PresencePing.objects.update_or_create(
+            user_id=entry.user_id,
+            page_path=page_path[:PAGE_PATH_MAX_LEN],
+            defaults={
+                "display_name": entry.display_name[:80],
+                "avatar_url": entry.avatar_url[:512],
+            },
+        )
+    except Exception:  # noqa: BLE001 — best-effort write-through
+        pass
 
 
 def list_present(*, page_path: str, exclude_user_id: int | None = None) -> list[PresenceEntry]:
-    """Return active presence entries for a page (optionally excluding self)."""
+    """Return active presence entries for a page (memory + DB merged).
+
+    Wave F1: walk the in-process bucket first (sub-ms), then merge in any
+    PresencePing rows from OTHER workers whose ``last_seen`` is fresh.
+    Memory wins on conflict (a user with both layers visible counts once).
+    """
     page = _sanitize_page(page_path)
     if not page:
         return []
     now = time.time()
     with _LOCK:
         bucket = _BY_PAGE.get(page)
-        if not bucket:
-            return []
-        # Sweep stale.
-        stale_ids = [uid for uid, entry in bucket.items() if entry.is_stale(now)]
-        for uid in stale_ids:
-            del bucket[uid]
-        if not bucket:
-            return []
-        active = [e for e in bucket.values() if e.user_id != exclude_user_id]
+        if bucket:
+            stale_ids = [uid for uid, entry in bucket.items() if entry.is_stale(now)]
+            for uid in stale_ids:
+                del bucket[uid]
+        active = [
+            e
+            for e in (bucket or {}).values()
+            if e.user_id != exclude_user_id
+        ]
+    seen_ids = {e.user_id for e in active}
+    db_entries = _list_present_from_db(page_path=page, exclude_user_id=exclude_user_id)
+    for entry in db_entries:
+        if entry.user_id in seen_ids:
+            continue
+        active.append(entry)
+        seen_ids.add(entry.user_id)
     active.sort(key=lambda e: e.first_seen)
     return active[:MAX_PER_PAGE]
+
+
+def _list_present_from_db(*, page_path: str, exclude_user_id: int | None) -> list[PresenceEntry]:
+    """Wave F1 — pull fresh PresencePing rows from other workers."""
+    try:
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from .models import PresencePing
+    except (ImportError, RuntimeError):
+        return []
+    try:
+        cutoff = timezone.now() - timedelta(seconds=PRESENCE_TTL_SECONDS)
+        # tenant-isolation-allow: assist-dock-presence-list-from-db-public-schema-shared
+        qs = (
+            PresencePing.objects.filter(
+                page_path=page_path[:PAGE_PATH_MAX_LEN],
+                last_seen__gte=cutoff,
+            )
+            .exclude(user_id=exclude_user_id or 0)
+            .order_by("first_seen")[: MAX_PER_PAGE * 2]
+        )
+        rows = list(qs)
+    except Exception:  # noqa: BLE001
+        return []
+    out: list[PresenceEntry] = []
+    for row in rows:
+        try:
+            out.append(
+                PresenceEntry(
+                    user_id=row.user_id,
+                    display_name=row.display_name or "",
+                    avatar_url=row.avatar_url or "",
+                    first_seen=row.first_seen.timestamp() if row.first_seen else 0,
+                    last_seen=row.last_seen.timestamp() if row.last_seen else 0,
+                )
+            )
+        except (AttributeError, RuntimeError, TypeError, ValueError):
+            continue
+    return out
+
+
+def sweep_db_presence(*, ttl_seconds: int = PRESENCE_TTL_SECONDS) -> int:
+    """Wave F1 — bulk-delete stale PresencePing rows. Returns deleted count.
+
+    Designed to be safe to call from a Celery beat OR opportunistically
+    from heartbeat. Never raises.
+    """
+    try:
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from .models import PresencePing
+    except (ImportError, RuntimeError):
+        return 0
+    try:
+        cutoff = timezone.now() - timedelta(seconds=max(ttl_seconds, 0))
+        # tenant-isolation-allow: assist-dock-presence-sweep-stale-public-schema-shared
+        deleted, _ = PresencePing.objects.filter(last_seen__lt=cutoff).delete()
+        return int(deleted)
+    except Exception:  # noqa: BLE001
+        return 0
 
 
 def count_present(*, page_path: str, exclude_user_id: int | None = None) -> int:

@@ -1,7 +1,7 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-30T22:08:08+00:00",
+  "generated_at": "2026-05-31T00:42:00+00:00",
   "rule": "no bare except: clauses; specify the exception type (at minimum 'except Exception:')",
   "scan_dirs": [
     "apps",

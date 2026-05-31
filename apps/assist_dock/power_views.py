@@ -44,20 +44,29 @@ def _sanitize_next_url(raw: str) -> str:
 def translate_landing(request):
     """Locale picker — lists installed LANGUAGES + POSTs to set_language.
 
-    Django's i18n set_language view is the actual write-path; this page
-    just renders a friendly chooser.
+    Wave F3: also surfaces the user's saved ``locale_preference`` so the
+    picker can render a check next to the sticky choice + the JS can
+    write it back to the prefs endpoint when the user picks one.
     """
     from django.conf import settings
 
     languages = []
     for code, label in getattr(settings, "LANGUAGES", []):
         languages.append({"code": code, "label": str(label)})
+    try:
+        from .models import get_or_default_prefs
+
+        prefs = get_or_default_prefs(request.user)
+    except (ImportError, RuntimeError):
+        prefs = {}
     return render(
         request,
         "assist_dock/power/translate.html",
         {
             "languages": languages,
             "current_language": getattr(request, "LANGUAGE_CODE", ""),
+            "locale_preference": (prefs or {}).get("locale_preference", ""),
+            "prefs_url": "/assist-dock/prefs.json",
             "next_url": _sanitize_next_url(request.GET.get("next", "/")),
         },
     )
