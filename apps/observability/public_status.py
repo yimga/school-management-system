@@ -234,5 +234,8 @@ def public_health(request):
             "status": "healthy",
             # Deploy marker: present after unauthenticated-api-guard middleware ships.
             "auth_api_guard": "unauthenticated-api-guard-v1",
+            # Deploy marker: must be render_start_web when using render_start_web.sh.
+            "web_start": os.environ.get("RMC_WEB_START_SCRIPT", ""),
+            "gunicorn_timeout": os.environ.get("GUNICORN_TIMEOUT", ""),
         }
     )

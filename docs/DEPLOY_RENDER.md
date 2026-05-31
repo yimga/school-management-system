@@ -61,6 +61,10 @@ The web service **must** listen on **`0.0.0.0:$PORT`** so Render’s health chec
 
 That script runs Gunicorn with `config/gunicorn.conf.py`, which sets `bind = "0.0.0.0:{PORT}"` and **`timeout = 120`** (override with env `GUNICORN_TIMEOUT`). If you override the start command in the Render dashboard, use either this script or run Gunicorn with `-c config/gunicorn.conf.py` (or pass `--bind 0.0.0.0:$PORT` explicitly). A bare `.venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT` omits that config and falls back to Gunicorn’s **30s** worker timeout, which kills long-lived SSE streams (`WORKER TIMEOUT` on `/platform-runtime/workflow-progress/stream/`). Binding only to `127.0.0.1` or omitting `--bind` will cause “No open HTTP ports detected” and deploy failure.
 
+**Verify in Render logs after deploy:** you must see `[web-start] starting config.wsgi:application via config/gunicorn.conf.py`. If you see only `Running '.venv/bin/gunicorn config.wsgi:application --bind 0.0.0.0:$PORT'`, the dashboard override is still active — fix **Settings → Start Command** to match `render.yaml`.
+
+**Verify live:** `GET /health/` JSON should include `"web_start":"render_start_web"`, `"gunicorn_timeout":"120"`, and `"auth_api_guard":"unauthenticated-api-guard-v1"` (not a ~21-byte body and not Render’s ~223KB HTML **502** page).
+
 ## Predeploy flow
 
 `scripts/release/render_predeploy.sh` performs (see script for env toggles):
