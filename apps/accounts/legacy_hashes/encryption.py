@@ -267,15 +267,24 @@ class EncryptedJSONField(models.JSONField):
         try:
             plaintext = _get_fernet().decrypt(value.encode("utf-8")).decode("utf-8")
         except Exception:  # noqa: BLE001 - InvalidToken/TypeError
+            # Decrypt failed. Distinguish two genuinely different cases:
+            #   1. Row was written before the field was encrypted (legitimate,
+            #      will go away as old rows age out).
+            #   2. Row was encrypted under a key we no longer have (real data
+            #      integrity concern — surface so operators notice).
+            try:
+                parsed = json.loads(value)
+            except (ValueError, TypeError):
+                logger.warning(
+                    "encrypted_jsonfield_decrypt_skipped",
+                    extra={"reason": "invalid_token_unrecoverable"},
+                )
+                return {}
             logger.info(
                 "encrypted_jsonfield_decrypt_skipped",
-                extra={"reason": "invalid_or_plaintext_value"},
+                extra={"reason": "pre_encryption_plaintext_row"},
             )
-            # Try parsing the raw value as JSON (pre-encryption row).
-            try:
-                return json.loads(value)
-            except (ValueError, TypeError):
-                return {}
+            return parsed
         try:
             return json.loads(plaintext)
         except (ValueError, TypeError):
