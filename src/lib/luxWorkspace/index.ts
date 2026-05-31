@@ -66,3 +66,14 @@ export {
   loadSheetDraft,
   clearSheetDraft,
 } from "./sheetDraftPersistence";
+
+export { useFocusTrap, type UseFocusTrapOptions } from "./useFocusTrap";
+
+export { KeyboardHelpOverlay } from "./KeyboardHelpOverlay";
+
+export { PerformanceHud, type PerformanceHudProps } from "./PerformanceHud";
+
+export {
+  validateLuxRegistry,
+  type LuxRegistryValidationResult,
+} from "./registrySchema";

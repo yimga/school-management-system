@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { LUX_REGISTRY, WORKSPACE_TIERS, type WorkspaceTier } from "./types";
 import { useWorkspaceKernel } from "./WorkspaceKernel";
+import { useFocusTrap } from "./useFocusTrap";
 
 interface ConsoleAction {
   key: string;
@@ -54,7 +55,10 @@ export function GlobalCommandConsole() {
   const [query, setQuery] = useState("");
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const allActions = useMemo(() => buildActionIndex(), []);
+
+  useFocusTrap({ active: isConsoleVisible, ref: panelRef, initialFocusSelector: "input" });
 
   const filtered = useMemo(() => {
     return allActions
@@ -98,7 +102,7 @@ export function GlobalCommandConsole() {
         onClick={() => setIsConsoleVisible(false)}
         aria-label="Dismiss command console"
       />
-      <div className="rmc-lux-console__panel" role="document">
+      <div ref={panelRef} className="rmc-lux-console__panel" role="document">
         <div className="rmc-lux-console__inputbar">
           <span className="rmc-lux-console__prompt" aria-hidden="true">⌘K</span>
           <input

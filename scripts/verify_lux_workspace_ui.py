@@ -214,6 +214,11 @@ class LuxWorkspaceRegistryTests(unittest.TestCase):
             "saveSheetDraft",
             "loadSheetDraft",
             "clearSheetDraft",
+            # v4.00.99 closure-wave exports
+            "useFocusTrap",
+            "KeyboardHelpOverlay",
+            "PerformanceHud",
+            "validateLuxRegistry",
         )
         for export in required_exports:
             self.assertTrue(
@@ -282,6 +287,27 @@ class LuxWorkspaceI18nModuleTests(unittest.TestCase):
         body = config_path.read_text(encoding="utf-8")
         self.assertIn("src/apps/luxWorkspace/mount.tsx", body)
         self.assertIn("lux-workspace.mount.js", body)
+
+    def test_readme_documents_every_tier(self) -> None:
+        readme = REPO_ROOT / "src" / "lib" / "luxWorkspace" / "README.md"
+        self.assertTrue(readme.exists(), "lux-workspace README.md must exist")
+        body = readme.read_text(encoding="utf-8")
+        for tier in EXPECTED_TIERS:
+            self.assertIn(tier, body, f"README must mention {tier}")
+        for term in ("validateLuxRegistry", "useFocusTrap", "KeyboardHelpOverlay", "PerformanceHud"):
+            self.assertIn(term, body, f"README must document {term}")
+
+    def test_css_ships_v4_00_99_closure_surfaces(self) -> None:
+        css = CSS_PATH.read_text(encoding="utf-8")
+        for klass in (
+            ".rmc-lux-help",
+            ".rmc-lux-help__panel",
+            ".rmc-lux-help__kbd",
+            ".rmc-lux-perf-hud",
+            ".rmc-lux-sheet__textarea",
+            "rmc-lux-tier-flash",
+        ):
+            self.assertIn(klass, css, f"CSS must ship {klass} for the v4.00.99 closure wave")
 
 
 def _print_banner(title: str) -> None:

@@ -1,6 +1,8 @@
-import React, { useId, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useWorkspaceKernel } from "./WorkspaceKernel";
 import { PremiumInteractiveContainer, QuickActionButton } from "./PremiumInteractiveContainer";
+import { useFocusTrap } from "./useFocusTrap";
+import { clearSheetDraft, loadSheetDraft, saveSheetDraft } from "./sheetDraftPersistence";
 
 export type LedgerStatus = "PAID" | "OVERDUE" | "PENDING";
 
@@ -35,7 +37,35 @@ export function PremiumStudentActionCard({
 }: PremiumStudentActionCardProps) {
   const { pushOverlay, popOverlay, dispatch } = useWorkspaceKernel();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [draftNote, setDraftNote] = useState("");
   const sheetId = useId();
+  const draftKey = `student-detail::${id}`;
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap({
+    active: isSheetOpen,
+    ref: panelRef,
+    initialFocusSelector: "textarea, button",
+  });
+
+  useEffect(() => {
+    if (!isSheetOpen) return;
+    let cancelled = false;
+    void loadSheetDraft(draftKey).then((draft) => {
+      if (!cancelled && draft) setDraftNote(draft.body);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isSheetOpen, draftKey]);
+
+  useEffect(() => {
+    if (!isSheetOpen) return;
+    const handle = window.setTimeout(() => {
+      if (draftNote.trim().length > 0) void saveSheetDraft(draftKey, draftNote);
+    }, 400);
+    return () => window.clearTimeout(handle);
+  }, [draftNote, draftKey, isSheetOpen]);
 
   const openSheet = () => {
     setIsSheetOpen(true);
@@ -45,6 +75,11 @@ export function PremiumStudentActionCard({
   const closeSheet = () => {
     setIsSheetOpen(false);
     popOverlay(sheetId);
+  };
+
+  const clearDraft = async () => {
+    setDraftNote("");
+    await clearSheetDraft(draftKey);
   };
 
   const strip = (
@@ -130,7 +165,7 @@ export function PremiumStudentActionCard({
             onClick={closeSheet}
             aria-label="Close detail sheet"
           />
-          <div className="rmc-lux-sheet__panel">
+          <div ref={panelRef} className="rmc-lux-sheet__panel">
             <header className="rmc-lux-sheet__header">
               <h3 id={`${sheetId}-title`} className="rmc-lux-sheet__title">
                 System Identity Profile
@@ -162,6 +197,26 @@ export function PremiumStudentActionCard({
                     {ledgerStatus}
                   </span>
                 </p>
+              </section>
+              <section className="rmc-lux-sheet__section">
+                <h5 className="rmc-lux-sheet__section-label">Notes (auto-saved)</h5>
+                <textarea
+                  className="rmc-lux-sheet__textarea"
+                  value={draftNote}
+                  onChange={(e) => setDraftNote(e.target.value)}
+                  placeholder="Type a note — drafts persist locally if the tab closes."
+                  rows={4}
+                  aria-label="Draft note for this student"
+                />
+                {draftNote.trim().length > 0 ? (
+                  <button
+                    type="button"
+                    className="rmc-lux-quick rmc-lux-quick--danger"
+                    onClick={clearDraft}
+                  >
+                    Clear draft
+                  </button>
+                ) : null}
               </section>
             </div>
           </div>

@@ -1029,6 +1029,264 @@
 }
 
 /* ============================================================
+ * Tier-switch animation — when activeTier flips, the canvas
+ * eases its accent + background via the existing transition
+ * properties on .rmc-lux-root.  Also flash the rail accent so
+ * the user's eye lands on the new active button.
+ * ============================================================ */
+
+@keyframes rmc-lux-tier-flash {
+  0% { box-shadow: 0 0 0 0 transparent; }
+  35% { box-shadow: 0 0 32px color-mix(in srgb, var(--lux-tier-accent) 45%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.rmc-lux-shell__rail-btn.is-active {
+  animation: rmc-lux-tier-flash 520ms var(--lux-spring-curve);
+}
+
+/* ============================================================
+ * Predictive halo — rail button hover reveals the destination
+ * tier's accent on the right edge.  Mandate calls this out as
+ * the "predictive halo" UX surface.
+ * ============================================================ */
+
+.rmc-lux-shell__rail-btn {
+  position: relative;
+  overflow: visible;
+}
+
+.rmc-lux-shell__rail-btn::after {
+  content: "";
+  position: absolute;
+  inset-block: 4px;
+  inset-inline-end: -2px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--lux-rail-accent, var(--lux-tier-accent));
+  opacity: 0;
+  transform: translateX(6px);
+  transition:
+    opacity 240ms var(--lux-spring-curve),
+    transform 240ms var(--lux-spring-curve);
+  pointer-events: none;
+}
+
+.rmc-lux-shell__rail-btn:hover:not(.is-active)::after,
+.rmc-lux-shell__rail-btn:focus-visible:not(.is-active)::after {
+  opacity: 0.95;
+  transform: translateX(0);
+}
+
+/* ============================================================
+ * Sheet textarea (draft persistence surface)
+ * ============================================================ */
+
+.rmc-lux-sheet__textarea {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.7rem 0.85rem;
+  font-family: inherit;
+  font-size: 0.84rem;
+  color: var(--lux-text-primary);
+  background: var(--lux-canvas-deep);
+  border: 1px solid var(--lux-border-mid);
+  border-radius: var(--lux-radius);
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 220ms var(--lux-spring-curve);
+}
+
+.rmc-lux-sheet__textarea:focus-visible {
+  outline: none;
+  border-color: var(--lux-tier-accent);
+}
+
+.rmc-lux-sheet__textarea + .rmc-lux-quick {
+  margin-top: 0.5rem;
+}
+
+/* ============================================================
+ * KeyboardHelpOverlay
+ * ============================================================ */
+
+.rmc-lux-help {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.rmc-lux-help__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--lux-canvas-deep) 75%, transparent);
+  backdrop-filter: blur(10px);
+  border: 0;
+  margin: 0;
+  padding: 0;
+  cursor: default;
+  animation: rmc-lux-fade-in 220ms var(--lux-spring-curve);
+}
+
+.rmc-lux-help__panel {
+  position: relative;
+  z-index: 1;
+  width: min(94vw, 720px);
+  max-height: 80vh;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--lux-tier-accent) 6%, var(--lux-canvas-elev)) 0%,
+    var(--lux-canvas-elev) 100%);
+  border: 1px solid var(--lux-border-mid);
+  border-radius: var(--lux-radius-lg);
+  box-shadow: var(--lux-shadow-elev);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: rmc-lux-rise-in 320ms var(--lux-spring-curve);
+}
+
+.rmc-lux-help__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--lux-border-thin);
+}
+
+.rmc-lux-help__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--lux-text-primary);
+}
+
+.rmc-lux-help__body {
+  flex: 1;
+  overflow: auto;
+  padding: 1.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.rmc-lux-help__section {
+  border: 1px solid var(--lux-border-thin);
+  border-radius: var(--lux-radius);
+  padding: 0.85rem 1rem;
+  background: var(--lux-canvas-deep);
+}
+
+.rmc-lux-help__section-label {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lux-text-muted);
+}
+
+.rmc-lux-help__list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.rmc-lux-help__row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.rmc-lux-help__row dt {
+  margin: 0;
+}
+
+.rmc-lux-help__row dd {
+  margin: 0;
+  font-family: var(--lux-font-mono);
+  font-size: 0.72rem;
+  color: var(--lux-text-secondary);
+}
+
+.rmc-lux-help__kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.18rem 0.5rem;
+  border-radius: 4px;
+  font-family: var(--lux-font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--lux-tier-accent) 14%, var(--lux-canvas-deep));
+  border: 1px solid color-mix(in srgb, var(--lux-tier-accent) 28%, transparent);
+  color: var(--lux-text-primary);
+}
+
+.rmc-lux-help__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
+  border-top: 1px solid var(--lux-border-thin);
+  font-size: 0.78rem;
+  color: var(--lux-text-secondary);
+}
+
+/* ============================================================
+ * Performance HUD (dev-only)
+ * ============================================================ */
+
+.rmc-lux-perf-hud {
+  position: fixed;
+  inset-block-end: 1.25rem;
+  inset-inline-start: 1.25rem;
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  background: var(--lux-canvas-deep);
+  border: 1px solid var(--lux-border-mid);
+  font-family: var(--lux-font-mono);
+  font-size: 0.68rem;
+  color: var(--lux-text-secondary);
+  box-shadow: var(--lux-shadow-soft);
+}
+
+.rmc-lux-perf-hud--warn {
+  border-color: color-mix(in srgb, var(--lux-accent-amber) 36%, transparent);
+  color: var(--lux-accent-amber);
+}
+
+.rmc-lux-perf-hud__chip {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: baseline;
+}
+
+.rmc-lux-perf-hud__label {
+  color: var(--lux-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.58rem;
+}
+
+.rmc-lux-perf-hud__value {
+  font-weight: 600;
+  color: inherit;
+}
+
+/* ============================================================
  * Error boundary fallback
  * ============================================================ */
 

@@ -4,9 +4,11 @@ import { createRoot } from "react-dom/client";
 import {
   CustomKeyboardShortcutBus,
   GlobalCommandConsole,
+  KeyboardHelpOverlay,
   LUX_REGISTRY as LUX_REGISTRY_RUNTIME,
   LuxErrorBoundary,
   NetworkStatusChannel,
+  PerformanceHud,
   PremiumInteractiveContainer,
   PremiumStudentActionCard,
   PremiumUIOrchestratorProvider,
@@ -15,6 +17,7 @@ import {
   SkeletalDeferred,
   SkeletalShell,
   useWorkspaceKernel,
+  validateLuxRegistry,
   type LedgerStatus,
   type WorkspaceTier,
 } from "../../lib/luxWorkspace";
@@ -183,12 +186,14 @@ export interface LuxWorkspaceDemoProps {
   initialTier?: WorkspaceTier;
   students?: StudentSeed[];
   simulateAsyncMs?: number;
+  showPerformanceHud?: boolean;
 }
 
 export function LuxWorkspaceDemo({
   initialTier = "FINANCIAL_LEDGER",
   students = DEMO_STUDENTS,
   simulateAsyncMs = 0,
+  showPerformanceHud = false,
 }: LuxWorkspaceDemoProps) {
   const [loading, setLoading] = useState(simulateAsyncMs > 0);
 
@@ -220,7 +225,9 @@ export function LuxWorkspaceDemo({
           <ActiveTierCanvas content={content} />
         </PremiumWorkspaceOrchestrator>
         <GlobalCommandConsole />
+        <KeyboardHelpOverlay />
         <NetworkStatusChannel />
+        <PerformanceHud enabled={showPerformanceHud} />
       </PremiumUIOrchestratorProvider>
     </LuxErrorBoundary>
   );
@@ -271,6 +278,17 @@ function applyLuxI18n(): void {
 
 export function mountLuxWorkspaces(): void {
   applyLuxI18n();
+  // Drift defense: validate the runtime registry at boot. Warnings go to
+  // the console; errors halt mounting so a malformed registry can't ship
+  // to users with broken keyboard buses or missing tier accents.
+  const validation = validateLuxRegistry();
+  if (validation.warnings.length > 0) {
+    console.warn("[lux:registry] warnings:", validation.warnings);
+  }
+  if (!validation.ok) {
+    console.error("[lux:registry] registry validation FAILED:", validation.errors);
+    return;
+  }
   const nodes = document.querySelectorAll<HTMLElement>("[data-rmc-lux-workspace]");
   nodes.forEach((el) => {
     const initialTier =
@@ -278,11 +296,13 @@ export function mountLuxWorkspaces(): void {
       "FINANCIAL_LEDGER";
     const students = readJsonAttr<StudentSeed[]>(el, "data-students", DEMO_STUDENTS);
     const simulateAsyncMs = Number(el.getAttribute("data-simulate-async-ms") ?? 0);
+    const showPerformanceHud = el.getAttribute("data-show-perf-hud") === "1";
     createRoot(el).render(
       <LuxWorkspaceDemo
         initialTier={initialTier}
         students={students}
         simulateAsyncMs={Number.isFinite(simulateAsyncMs) ? simulateAsyncMs : 0}
+        showPerformanceHud={showPerformanceHud}
       />,
     );
   });
