@@ -34,6 +34,7 @@ services:
         value: "gthread"
       - key: WEB_CONCURRENCY
         value: "2"
+        # Dashboard value must be digits only (e.g. "2") — never paste inline comments.
       - key: GUNICORN_THREADS
         value: "4"
       # SSE streams may use at most (GUNICORN_THREADS - SSE_THREAD_RESERVE)

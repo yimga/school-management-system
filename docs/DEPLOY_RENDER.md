@@ -65,6 +65,8 @@ That script runs Gunicorn with `config/gunicorn.conf.py`, which sets `bind = "0.
 
 **Verify live:** `GET /health/` JSON should include `"web_start":"render_start_web"`, `"gunicorn_timeout":"120"`, and `"auth_api_guard":"unauthenticated-api-guard-v1"` (not a ~21-byte body and not Render’s ~223KB HTML **502** page).
 
+**Integer env vars (`WEB_CONCURRENCY`, `GUNICORN_THREADS`, etc.):** Render dashboard values must be **digits only** (e.g. `2`, not `2 ← optional headroom`). Inline comments in env values crash Gunicorn at import time. `scripts/release/sanitize_gunicorn_env.sh` strips leading digits as a safety net, but fix the dashboard value to `2` anyway.
+
 ## Predeploy flow
 
 `scripts/release/render_predeploy.sh` performs (see script for env toggles):
