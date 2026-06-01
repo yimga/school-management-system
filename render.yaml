@@ -11,13 +11,13 @@ services:
   - type: web
     name: school-management-system
     env: python
-    # Standard (2GB/1CPU): the free tier's 512MB/0.1CPU forced a single gunicorn
-    # worker, so live SSE streams (workflow-progress + assist-dock) could pin all
-    # gthread threads and starve Render's /health/ probe -> restart loop -> 502s
-    # -> SSE reconnect storm -> repeat. 2 workers x 4 threads plus the SSE
-    # concurrency cap (SSE_THREAD_RESERVE) keep threads free for /health/ and
-    # normal requests under load.
-    plan: standard
+    # FREE tier (512MB/0.1CPU) = a single gunicorn worker. The fix for the
+    # /health/ thread-starvation restart loop is the SSE concurrency cap in
+    # services/sse_wsgi_limits.py (free code), NOT a paid upgrade: the reserve
+    # below keeps threads free for /health/ + normal requests even when streams
+    # are open. Do NOT raise WEB_CONCURRENCY above 1 on free (2 workers OOM
+    # 512MB). More SSE headroom comes from GUNICORN_THREADS, not more workers.
+    plan: free
     buildCommand: "./build.sh"
     preDeployCommand: "./scripts/release/render_predeploy.sh"
     startCommand: "bash ./scripts/release/render_start_web.sh"
@@ -33,12 +33,16 @@ services:
         value: "120"
       - key: GUNICORN_WORKER_CLASS
         value: "gthread"
+      # Stay at 1 on free tier — a 2nd worker OOMs 512MB.
       - key: WEB_CONCURRENCY
-        value: "2"
+        value: "1"
+      # More gthread threads = more SSE headroom on the single free worker at
+      # $0 (threads are cheap, mostly I/O-bound here). 8 - SSE_THREAD_RESERVE(2)
+      # = 6 concurrent SSE slots, with 2 threads always reserved for /health/.
       - key: GUNICORN_THREADS
-        value: "4"
+        value: "8"
       # SSE streams may use at most (GUNICORN_THREADS - SSE_THREAD_RESERVE)
-      # threads per worker; the reserve guarantees /health/ always has one.
+      # threads; the reserve guarantees /health/ + normal requests always have one.
       - key: SSE_THREAD_RESERVE
         value: "2"
       - key: RUN_STARTUP_SCHEMA_CHECK
@@ -67,14 +71,27 @@ services:
         value: "1"
       - key: SECRET_KEY
         generateValue: true
+      # ── Per-deploy seeding: OFF for steady-state production ──────────────
+      # These ran heavy, sometimes destructive work on EVERY deploy (SEED_DEMO
+      # does `seed_demo --reset`), bloating boot time and memory. The DB is
+      # already seeded, so steady-state deploys only need migrations +
+      # seed_render_users + collectstatic (all kept, always-on in predeploy).
+      # When you actually change catalog/UI/fixtures, run the matching command
+      # manually — see docs/DEPLOY_SEEDING_MANUAL_RUNBOOK.md. On a brand-new
+      # environment, flip the relevant flag to "1" for the first deploy only.
       - key: APPLY_UI_FIXTURE_ON_DEPLOY
-        value: "1"
-      - key: RUN_INTEGRATION_PREFLIGHT
-        value: "1"
-      # Seed marketplace/catalog/Studio on every deploy so changes appear after deploy (see docs/CHANGES_NOT_VISIBLE_AFTER_DEPLOY.md)
+        value: "0"
       - key: RUN_BOOTSTRAP_PLATFORM_CATALOG
-        value: "1"
+        value: "0"
       - key: SEED_DEMO
+        value: "0"
+      - key: RUN_PLATFORM_SEED
+        value: "0"
+      - key: RUN_PGVECTOR_MIGRATE
+        value: "0"
+      # Kept ON: cheap pre-traffic safety gate (fails only on misconfigured
+      # feature flags), not seeding.
+      - key: RUN_INTEGRATION_PREFLIGHT
         value: "1"
       - key: COLLABORA_BASE_URL
         value: ""

@@ -550,15 +550,30 @@ PREVIEW_DATABASE_URL = (os.getenv("PREVIEW_DATABASE_URL") or "").strip() or None
 if _RMC_TEST_LOCAL_SQLITE:
     PREVIEW_DATABASE_URL = None
 
+# DB connection tuning — env-driven so a managed-Postgres cutover (Neon /
+# Supabase / etc.) is pure config, no code change. Defaults preserve prior
+# behavior. NOTE for poolers: with a PgBouncer *transaction*-pooling endpoint,
+# django-tenants' per-request search_path is unsafe — use the provider's
+# session/unpooled endpoint, and set DB_CONN_MAX_AGE=0 +
+# DB_DISABLE_SERVER_SIDE_CURSORS=1. See docs/DB_CUTOVER_NEON_SUPABASE.md.
+_DB_CONN_MAX_AGE = int((os.getenv("DB_CONN_MAX_AGE") or "600").strip() or "600")
+_DB_DISABLE_SS_CURSORS = (os.getenv("DB_DISABLE_SERVER_SIDE_CURSORS") or "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
 if DATABASE_URL:
     _default_db = dj_database_url.config(
         default=DATABASE_URL,
-        conn_max_age=600,
+        conn_max_age=_DB_CONN_MAX_AGE,
         ssl_require=not DEBUG,
     )
     # Ensure ENGINE is present (dj_database_url can return incomplete config if URL is malformed)
     if not _default_db.get("ENGINE"):
         _default_db["ENGINE"] = "django.db.backends.postgresql"
+    if _DB_DISABLE_SS_CURSORS:
+        _default_db["DISABLE_SERVER_SIDE_CURSORS"] = True
     DATABASES = {"default": _default_db}
 else:
     # Local fallback (no DATABASE_URL) = sqlite.
