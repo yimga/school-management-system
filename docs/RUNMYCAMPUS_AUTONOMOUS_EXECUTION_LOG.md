@@ -1,5 +1,115 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Tier-3 PlatformIncident API + legacy ticker migration batch 1600 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1600 — close remaining honest gaps (Tier-3 incident API, legacy enabled_on_tenant opt-out); rerun full platform audit.
+
+**B. Shipped:** `cockpit_incident_banner.py` (PlatformIncident strip → Tier-3, ticker fallback); legacy `enabled_on_tenant=False` migration; form persists `tenant_activity_ticker.enabled`; dedupe `platform_status_strip` when Tier-3 active; verifier gates extended.
+
+**C. Proof:** **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS** + luxury UI **15/15** + interaction integrity **17/17** + dead hrefs **0** + page fold **26/26** + template safety **0**; incident + ticker tests **15/15**.
+
+**D. SOT:** batch **1600** **DONE**. **E. Honest:** none blocking activity-tier forward motion on operator/tenant/future-tenant shells.
+
+## Slice — Tenant Tier-3 + legacy Tier-2 + ticker default-on batch 1599 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1599 — close all three remaining activity-tier gaps (tenant Tier-3, legacy landing Tier-2, ticker default-on).
+
+**B. Shipped:** `_pick_tenant_incident_banner` + `tenant_incident_banner` context; incident partial tenant branch; `tenant_role_home_landing` for legacy `?simple=1` role homes; `tenant_activity_ticker.enabled=True` default + form toggle default-on; extended platform tier verifiers.
+
+**C. Proof:** **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS** + **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS** + **PLATFORM_VERTICAL_WORKSPACE_POLICY_PASS**; activity ticker + tenant role-home tests **24/24**.
+
+**D. SOT:** batch **1599** **DONE**. **E. Superseded:** batch **1600** closed Tier-3 API + legacy opt-out gaps.
+
+## Slice — Tenant Tier-1 + platform full audit batch 1598 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1598 — close tenant Tier-1 gap; rerun platform audit (operator + tenant + future tenant); nothing assumed.
+
+**B. Shipped:** Tenant inline badge → drawer parity (`_activity_ticker_inline.html`, `_activity_ticker_drawer.html`, `portal_base` tp-actions + drawer/JS for all auth portal); tenant header CSS; manager activity_feed drawer fallback; `verify_platform_activity_tiers_full_audit.py`; extended workspace + operator tier verifiers.
+
+**C. Proof:** **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS** + **PLATFORM_VERTICAL_WORKSPACE_POLICY_PASS** + **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS** + luxury UI **15/15** + **INTERACTION_INTEGRITY_PASS** + dead hrefs **0** + page fold **26/26**; tests **13/13**.
+
+**D. SOT:** batch **1598** **DONE**. **E. Honest:** gaps closed in batch **1599** (tenant Tier-3, legacy Tier-2, ticker default-on).
+
+## Slice — Platform vertical workspace policy batch 1597 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1597 — vertical workspace north star on every authenticated page (operator + tenant + future tenant).
+
+**B. Shipped:** `vertical_workspace_policy()` in `shell_contract.py` + `data-rmc-vertical-workspace-policy` registry attr; `verify_platform_vertical_workspace_policy.py`; tenant global header marquee removed; v3 role-home Tier-2 landing ticker via `portal_landing_activity_ticker`; tenant branch on `_activity_ticker_landing_strip.html`.
+
+**C. Proof:** **PLATFORM_VERTICAL_WORKSPACE_POLICY_PASS** + **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS**; `test_shell_contract` **8/8**.
+
+**D. SOT:** batch **1597** **DONE**. **E. Honest:** legacy non-v3 tenant inner pages no longer show header marquee (by design); tenant Tier-1 inline badge not yet wired (operator-only today).
+
+## Slice — Operator activity tiers + dual-plane theme parity batch 1595 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1595 — platform-wide three-tier live activity UX + v8 preview dual-plane theme alignment (dark chrome / light canvas+footer).
+
+**B. Shipped:** Tier 1 inline badge → drawer (`_activity_ticker_inline.html`, `_activity_ticker_drawer.html`, `rmc-cp-activity-drawer.js`); Tier 2 landing marquee (`_activity_ticker_landing_strip.html` on super/founder/CS landings); Tier 3 incident banner (`_operator_incident_banner.html`, `_pick_operator_incident_banner`); `rmc-cp-activity-tiers.css`; chrome-scoped inline badge + light-theme compact footer tokens; `verify_cp_operator_activity_tiers_platform_audit.py`.
+
+**C. Proof:** **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS** + **CP_CONSOLIDATED_OPERATOR_SHELL_PASS**; `test_cockpit_activity_ticker_realdata` **5/5**; `test_shell_contract` **7/7**; SW monotonic **OK**.
+
+**D. SOT:** batch **1595** **DONE**. **E. Honest:** Tier 2 marquee only on operator landings (by design); tenant portal ticker unchanged; incident banner dismiss is session-scoped only.
+
+## Slice — Workflow Progress Bus optional closeout batch 1592 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1592 — finance/marketplace bulk tracking, chip noise tuning, Playwright progress bar demo, Render deploy smoke.
+
+**B. Shipped:** `@track_workflow` on finance auto-generate/copy + marketplace webhook deliver; registry + Celery bridge; chip visibility filter; `e2e-demo/start` + Playwright progress test; `smoke_render_workflow_progress_deploy.py`; npm `smoke:workflow-progress:render`.
+
+**C. Proof:** smoke **89/89**; **WORKFLOW_PROGRESS_10X_PASS**; HTTP tests **8/8**; offline Render smoke **PASS**.
+
+**D. SOT:** batch **1592** **DONE**. **E. Honest:** live Render smoke + full Playwright demo need credentials/server; run `python scripts/smoke_render_workflow_progress_deploy.py` post-deploy.
+
+## Slice — Workflow Progress Bus gates bundle batch 1591 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1591 — phases gate bundle, Playwright smoke, Django HTTP contract tests.
+
+**B. Shipped:** `verify_workflow_progress_10x` in `verify_phases_3_11_gates.py`; `tests/e2e/workflow-progress.spec.js`; `apps/platform_runtime/tests/test_workflow_progress_http.py`; npm `verify:workflow-progress` + `test:e2e:workflow-progress`; manager Playwright project match.
+
+**C. Proof:** **WORKFLOW_PROGRESS_10X_PASS**; `test_workflow_progress_http` **4/4** OK.
+
+**D. SOT:** batch **1591** **DONE**. **E. Honest:** authenticated Playwright needs live server + `E2E_LOGIN_USER`.
+
+## Slice — Consolidated operator header batch 1594 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1594 — recover ~110px vertical workspace on manager backoffice by consolidating triple header stack.
+
+**B. Shipped:** `partials/control_plane_unified_header.html`, `_activity_ticker_inline.html`, `rmc-cp-consolidated-operator-shell.css`; nav moved out of canvas chrome; landing pages stop overriding full marquee; `verify_cp_consolidated_operator_shell.py`.
+
+**C. Proof:** **CP_CONSOLIDATED_OPERATOR_SHELL_PASS**; `apps.platform_runtime.tests.test_shell_contract` **7/7**.
+
+**D. SOT:** batch **1594** **DONE**. **E. Honest:** `<1200px` nav drops to second row; tenant portal shells unchanged (manager bridge only).
+
+## Slice — JSON-Logic nuance toolset contract batch 1593 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1593 — codewide audit: logic toolsets must not contradict (registry vs model choices vs test contexts vs ranking math).
+
+**B. Shipped:** `VIRTUAL_HOOK_POINTS`, `model_hook_point_choices()`, `default_test_contexts_for_hook()`, `compute_report_card_average()`; `CustomNuance.HOOK_CHOICES` sourced from engine; admin + `grading_nuance_templates` share test contexts; `evals/ranking._compute_student_average` → nuance; `verify_nuance_logic_toolset_contract.py`, `scan_nuance_safe_eval_imports.py`; CI job runs full `verify_nuance_engine_gunicorn_safety.py`.
+
+**C. Proof:** `python scripts/verify_nuance_logic_toolset_contract.py` → **NUANCE_LOGIC_TOOLSET_CONTRACT_PASS**; `python scripts/verify_nuance_engine_gunicorn_safety.py` → **NUANCE_ENGINE_GUNICORN_SAFETY_PASS**.
+
+**D. SOT:** batch **1593** **DONE**. **E. Honest:** unused hooks `grade_weight` / `attendance_alert` documented; separate from UI `siteconfig/hooks.py` registry.
+
+## Slice — Nuance engine Gunicorn SIGALRM safety batch 1590 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1590 — close Render production SIGALRM worker-thread crash on tenant 360 / policy attach; gap-scan all JSON-Logic paths.
+
+**B. Shipped:** `nuance_engine` thread-pool timeout for non-main threads; `evaluate_json_logic()`; `aid_services` eligibility uses timed eval; `scan_sigalrm_worker_thread_safety.py` + baseline + CI job; `verify_nuance_engine_gunicorn_safety.py`; debug ingest removed from `nuance_engine.py`.
+
+**C. Proof:** **NUANCE_ENGINE_GUNICORN_SAFETY_PASS**; `test_nuance_engine_worker_thread_timeout` + `test_grading_nuance_templates` OK; SIGALRM scanner baseline **0**.
+
+**D. SOT:** batch **1590** **DONE**. **E. Honest:** operator must deploy; Postgres recovery blips remain infra-owned.
+
+## Slice — Workflow Progress Bus 10x E2E batch 1589 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1589 — close workflow progress gaps end-to-end (client headers, migration CBV tracking, CI 10x gate, debug log removal).
+
+**B. Shipped:** `rmc-workflow-track-headers.js` + shell wiring; middleware opt-in for non-API super POSTs; `MigrationCloudAdvanceView` / `MigrationCloudApplyView` `@track_workflow`; nested stack from prior wave; `verify_workflow_progress_10x.py` + CI `workflow-progress-bus` job; wizard + tenant 360 `data-rmc-workflow-track`; removed localhost debug ingest from `rmc-workflow-progress.js`.
+
+**C. Proof:** `verify_workflow_progress_10x.py` → **WORKFLOW_PROGRESS_10X_PASS**; smoke **81/81**; coverage gate pass.
+
+**D. SOT:** batch **1589** **DONE**. **E. Honest:** Playwright chip visual sweep still external; very fast API POSTs may flash chip briefly.
+
 ## Slice — Platform configurability cascade wave 3 batch 1587 (2026-05-30)
 
 **A. Claim:** §11.4 batch 1587 — close session configurability gaps (assist dock URLs, AI stream, EMIS client paths, wizard telemetry test).

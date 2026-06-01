@@ -21,12 +21,6 @@
 </nav>
 {% endblock %}
 
-{% comment %} v3.58.0 (2026-05-22): live activity ticker lives INSIDE the dark header chrome
-   on landing pages (matches v8 200x preview). Self-gates on cockpit.activity_ticker.cards. {% endcomment %}
-{% block cp_shell_header_ticker %}
-  {% include "partials/cockpit/_activity_ticker.html" %}
-{% endblock %}
-
 {% block cp_content %}
 {# table-pagination-allow: founder-dashboard-widget-top-N each-tile-is-bounded-summary #}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
@@ -39,6 +33,7 @@
 
    v3.58.x Wave 10 Agent T (2026-05-22): platform_pulse wrapped in the collapsable primitive
    so operators can fold the section. State persists per-section via localStorage. {% endcomment %}
+{% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Platform pulse") key="founder__platform_pulse" include_partial="partials/cockpit/_platform_pulse.html" chrome="section" %}
 
 {% comment %} v3.58.10 (2026-05-22): 200x cockpit panel wave — wires the 8 remaining manager 200x

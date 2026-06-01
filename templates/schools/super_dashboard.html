@@ -4,10 +4,6 @@
 
 {% block cp_title %}{% trans "Control Plane" %}{% endblock %}
 
-{% block cp_shell_header_ticker %}
-  {% include "partials/cockpit/_activity_ticker.html" %}
-{% endblock %}
-
 {% block breadcrumbs %}{% endblock %}
 
 {% block extrastyle %}
@@ -41,6 +37,12 @@
    that read as empty ruled bands on /super/ while cockpit health still reported
    would_render=true. {% endcomment %}
 <div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-section-nav="off">
+{% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+{% if cockpit.pulse_metrics.cards %}
+<div class="rmc-cp-landing-pulse mb-3" data-rmc-cp-landing-pulse="1">
+  {% include "partials/cockpit/_platform_pulse.html" %}
+</div>
+{% endif %}
 {% if cockpit.live_world_map.enabled %}
 {% include "partials/cockpit/_live_world_map.html" %}
 {% endif %}

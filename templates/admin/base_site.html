@@ -75,6 +75,7 @@
      BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
   {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
@@ -126,6 +127,8 @@
   <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-admin-modal-overlay-guard.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-platform-catalog.css' %}">
   {% comment %} v3.58.0 (2026-05-22): /admin/ 200x re-skin overlay — re-styles the existing
@@ -206,6 +209,10 @@
       h.setAttribute('data-rmc-nav-family', '{{ rmc_shell.nav_family|escapejs }}');
       h.setAttribute('data-rmc-host-kind', '{{ rmc_shell.host_kind|escapejs }}');
       h.setAttribute('data-rmc-main-region', '{{ rmc_shell.main_region|escapejs }}');
+      {% if is_manager_host %}
+      h.setAttribute('data-surface', 'control-plane');
+      h.setAttribute('data-shell-layout', 'admin-control-plane-unified');
+      {% endif %}
     })();
   </script>
   <script nonce="{{ csp_nonce }}">
@@ -366,6 +373,7 @@
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
     {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
+    <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
   {% endif %}
   {% if is_manager_host %}

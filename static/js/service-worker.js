@@ -178,7 +178,7 @@
 // forecast cockpit tile, timetable solver UI hook + view, adaptive signal on
 // Evaluation post-save, CA-mark input UI + migration 0050, monetization
 // admin inspector. theme-experience-premium
-const CACHE_VERSION = "sms-v4.01.14-workflow-chip-click-wired-2026-05-31";
+const CACHE_VERSION = "sms-v4.01.27-incident-api-legacy-ticker-migration-2026-06-01";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -261,6 +261,7 @@ const STATIC_ASSETS = [
   "/offline/",
   "/static/css/design-tokens.css",
   "/static/css/rmc-class-grammar.css",
+  "/static/css/rmc-class-grammar-ext.css",
   "/static/css/rmc-warm-bright-school.css",
   "/static/css/rmc-platform-header.css",
   "/static/css/migration-cloud-ui.css",

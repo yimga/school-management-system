@@ -57,6 +57,7 @@
     {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
@@ -126,6 +127,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
     {% comment %} v3.55.0+ (2026-05-21): 200x luxury cockpit — 10 elements layered over v7
        (AI Copilot rail, world map, forecast lane, operator notebook, tenant heatmap,
        revenue waterfall, audit feed, trust nutrition, SLO clocks, operator presence).
@@ -163,6 +166,7 @@
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% block content %}
     {% include "components/_workflow_auto_chrome.html" %}
+    {% if request.user.is_authenticated %}{% include "components/rmc_workflow_progress_strip.html" %}{% endif %}
     {% comment %} v3.55.0 (2026-05-21): .rmc-app-shell — platform-wide grid contract.
        header (row 1, static) + sidebar (col 1, own scroll) + canvas (col 2, own scroll).
        Legacy `cp-shell-content` class kept on canvas-body for back-compat with existing
@@ -219,6 +223,10 @@
     {% endif %}
     {% include "partials/help_contextual_drawer.html" %}
     {% block cp_shell_after %}{% endblock %}
+    {% if request.user.is_authenticated and request.public_host_kind == 'manager' %}
+    {% include "partials/cockpit/_activity_ticker_drawer.html" %}
+    <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
+    {% endif %}
     {% endblock %}
     {% comment %} v3.57.10 (2026-05-22): removed components/ai_copilot.html floating FAB +
        rmc-page-help-fab per v8 200x preview parity — the AI copilot is the rmc-app-shell__copilot
@@ -276,6 +284,7 @@
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% comment %} v4.01.03: g-chord → chip click bridge — bridge no-ops on control-plane surface so existing g-ladder stays authoritative. {% endcomment %}
     {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
+    <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% include "partials/rmc_command_bar.html" %}

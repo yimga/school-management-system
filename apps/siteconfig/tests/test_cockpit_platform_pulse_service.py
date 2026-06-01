@@ -21,6 +21,11 @@ class PulseServiceEmptyStateContract(SimpleTestCase):
             svc.invalidate_pulse_cards_cache()
         except Exception:
             pass
+        self._spark_patch = mock.patch.object(svc, "_sparkline_csv_for_metric", return_value="")
+        self._spark_patch.start()
+
+    def tearDown(self):
+        self._spark_patch.stop()
 
     def test_all_resolvers_failing_returns_6_empty_cards(self):
         """When every resolver crashes, 6 ``—`` cards still render."""
@@ -71,3 +76,9 @@ class PulseServiceEmptyStateContract(SimpleTestCase):
         self.assertEqual(cards[0]["value"], "42")
         for card in cards[1:]:
             self.assertEqual(card["value"], "—")
+
+    def test_attach_sparkline_sets_csv_when_history_exists(self):
+        card = {"head": "Schools", "value": "42"}
+        with mock.patch.object(svc, "_sparkline_csv_for_metric", return_value="1,2,3,4"):
+            svc._attach_sparkline(card, "schools")
+        self.assertEqual(card["spark_points"], "1,2,3,4")

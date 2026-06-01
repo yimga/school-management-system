@@ -1,0 +1,89 @@
+{% load i18n %}
+{% if request.user.is_authenticated %}
+{% if request.public_host_kind == 'manager' and cockpit.activity_ticker.cards %}
+<div class="offcanvas offcanvas-end rmc-cp-activity-drawer"
+     tabindex="-1"
+     id="rmcCpActivityDrawer"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="rmcCpActivityDrawerLabel"
+     data-rmc-cp-activity-drawer="1"
+     data-rmc-detail-drawer="1"
+     data-rmc-scroll-policy="viewport-lock">
+  <div class="offcanvas-header border-bottom">
+    <h2 class="offcanvas-title h5 mb-0" id="rmcCpActivityDrawerLabel">{% trans "Live platform activity" %}</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#rmcCpActivityDrawer" aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="rmc-cp-activity-feed list-unstyled mb-0" role="list">
+      {% for card in cockpit.activity_ticker.cards %}
+      <li class="rmc-cp-activity-feed__item rmc-cp-activity-feed__item--{{ card.severity|default:'info' }}">
+        {% if card.icon %}<span class="rmc-cp-activity-feed__icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
+        <div class="rmc-cp-activity-feed__body">
+          <p class="rmc-cp-activity-feed__text mb-0">{{ card.text }}</p>
+          {% if card.timestamp %}<span class="rmc-cp-activity-feed__time text-muted small">{{ card.timestamp }}</span>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% elif request.public_host_kind == 'manager' and cockpit.activity_feed.enabled and cockpit.activity_feed.events %}
+<div class="offcanvas offcanvas-end rmc-cp-activity-drawer"
+     tabindex="-1"
+     id="rmcCpActivityDrawer"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="rmcCpActivityDrawerLabel"
+     data-rmc-cp-activity-drawer="1"
+     data-rmc-detail-drawer="1"
+     data-rmc-scroll-policy="viewport-lock">
+  <div class="offcanvas-header border-bottom">
+    <h2 class="offcanvas-title h5 mb-0" id="rmcCpActivityDrawerLabel">{% trans "Live platform activity" %}</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#rmcCpActivityDrawer" aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="rmc-cp-activity-feed list-unstyled mb-0" role="list">
+      {% for event in cockpit.activity_feed.events %}
+      <li class="rmc-cp-activity-feed__item rmc-cp-activity-feed__item--{{ event.severity|default:'info' }}">
+        {% if event.icon %}<span class="rmc-cp-activity-feed__icon" aria-hidden="true">{{ event.icon }}</span>{% endif %}
+        <div class="rmc-cp-activity-feed__body">
+          <p class="rmc-cp-activity-feed__text mb-0">{{ event.text|default:event.label }}</p>
+          {% if event.time_label %}<span class="rmc-cp-activity-feed__time text-muted small">{{ event.time_label }}</span>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% elif request.public_host_kind != 'manager' and cockpit.tenant_activity_ticker.cards and cockpit.tenant_activity_ticker.enabled|default_if_none:True %}
+<div class="offcanvas offcanvas-end rmc-cp-activity-drawer rmc-cp-activity-drawer--tenant"
+     tabindex="-1"
+     id="rmcCpActivityDrawer"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="rmcCpActivityDrawerLabel"
+     data-rmc-cp-activity-drawer="1"
+     data-rmc-tenant-activity-drawer="1"
+     data-rmc-detail-drawer="1"
+     data-rmc-scroll-policy="viewport-lock">
+  <div class="offcanvas-header border-bottom">
+    <h2 class="offcanvas-title h5 mb-0" id="rmcCpActivityDrawerLabel">{% trans "Live school activity" %}</h2>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#rmcCpActivityDrawer" aria-label="{% trans 'Close' %}"></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="rmc-cp-activity-feed list-unstyled mb-0" role="list">
+      {% for card in cockpit.tenant_activity_ticker.cards %}
+      <li class="rmc-cp-activity-feed__item rmc-cp-activity-feed__item--{{ card.severity|default:'info' }}">
+        {% if card.icon %}<span class="rmc-cp-activity-feed__icon" aria-hidden="true">{{ card.icon }}</span>{% endif %}
+        <div class="rmc-cp-activity-feed__body">
+          <p class="rmc-cp-activity-feed__text mb-0">{{ card.text }}</p>
+          {% if card.timestamp %}<span class="rmc-cp-activity-feed__time text-muted small">{{ card.timestamp }}</span>{% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+{% endif %}

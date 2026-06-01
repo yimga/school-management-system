@@ -1,9 +1,10 @@
 {% load i18n %}
-{% comment %} v3.58.x Wave 10 Agent Q (2026-05-22): GLOBAL live platform activity ticker.
+{% comment %} v3.58.x Wave 10 Agent Q (2026-05-22): live platform activity ticker partial.
 
-   Rendered as global chrome at the top of every authenticated page across BOTH
-   the operator shell (control_plane_base.html via cp_shell_header_ticker block)
-   AND the tenant shell (portal_base.html via portal_shell_header_ticker block).
+   Vertical workspace (v4.01.25+): NOT global header chrome. Included from:
+   * Manager Tier 1: `_activity_ticker_inline.html` (compact badge in consolidated header)
+   * Tenant Tier 1: same partial in `portal_base` tp-actions (compact badge, drawer on click)
+   * Tier 2 landings: `_activity_ticker_landing_strip.html` (operator + tenant role-home canvas)
    Self-gates so it stays silent on anonymous / auth shells and on hosts where
    no ticker content is published.
 

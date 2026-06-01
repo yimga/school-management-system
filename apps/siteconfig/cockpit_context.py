@@ -159,6 +159,36 @@ def _resolve_cockpit_payload(request) -> dict[str, Any]:
     return payload
 
 
+def _pick_activity_incident_banner(ticker_section: dict[str, Any]) -> dict[str, Any] | None:
+    from apps.siteconfig.cockpit_incident_banner import _pick_activity_incident_banner as _pick
+
+    return _pick(ticker_section)
+
+
+def _pick_operator_incident_banner(
+    manager_cockpit: dict[str, Any],
+    request=None,
+) -> dict[str, Any] | None:
+    """First warn/danger operator activity card for Tier-3 ephemeral canvas banner."""
+    if request is not None:
+        from apps.siteconfig.cockpit_incident_banner import resolve_operator_incident_banner
+
+        return resolve_operator_incident_banner(request, manager_cockpit)
+    return _pick_activity_incident_banner(manager_cockpit.get("activity_ticker") or {})
+
+
+def _pick_tenant_incident_banner(
+    tenant_cockpit: dict[str, Any],
+    request=None,
+) -> dict[str, Any] | None:
+    """Tenant Tier-3 banner — never reads operator activity_ticker."""
+    if request is not None:
+        from apps.siteconfig.cockpit_incident_banner import resolve_tenant_incident_banner
+
+        return resolve_tenant_incident_banner(request, tenant_cockpit)
+    return _pick_activity_incident_banner(tenant_cockpit.get("tenant_activity_ticker") or {})
+
+
 # Default activity feed events. Production wave will source these from
 # the platform event stream (audit log + provisioning events + billing).
 _DEFAULT_ACTIVITY_EVENTS: list[dict[str, Any]] = [
@@ -243,6 +273,7 @@ _DEFAULT_PULSE_CARDS: list[dict[str, Any]] = [
         "label": _("Healthy"),
         "delta": "▲ +3 this week",
         "delta_direction": "up",
+        "spark_points": "158,160,162,164,166,167,168",
     },
     {
         "head": _("Incidents"),
@@ -251,6 +282,7 @@ _DEFAULT_PULSE_CARDS: list[dict[str, Any]] = [
         "label": _("Open"),
         "delta": "▲ 4 vs 7d avg",
         "delta_direction": "up",
+        "spark_points": "8,9,9,10,11,11,12",
     },
     {
         "head": _("Countries"),
@@ -259,6 +291,7 @@ _DEFAULT_PULSE_CARDS: list[dict[str, Any]] = [
         "label": _("Live coverage"),
         "delta": "→ no change",
         "delta_direction": None,
+        "spark_points": "2,2,2,2,2,2,2",
     },
     {
         "head": _("MRR"),
@@ -267,6 +300,7 @@ _DEFAULT_PULSE_CARDS: list[dict[str, Any]] = [
         "label": _("Recurring"),
         "delta": "▲ +$420 wk",
         "delta_direction": "up",
+        "spark_points": "39000,39800,40100,40800,41200,41600,42000",
     },
     {
         "head": _("Webhooks"),
@@ -275,6 +309,7 @@ _DEFAULT_PULSE_CARDS: list[dict[str, Any]] = [
         "label": _("Drift"),
         "delta": "— stable",
         "delta_direction": None,
+        "spark_points": "0,0,0,0,0,0,0",
     },
     {
         "head": _("Pipeline"),
@@ -283,6 +318,7 @@ _DEFAULT_PULSE_CARDS: list[dict[str, Any]] = [
         "label": _("Onboarding"),
         "delta": "▲ 1 new today",
         "delta_direction": "up",
+        "spark_points": "1,1,2,2,2,2,3",
     },
 ]
 
@@ -763,6 +799,9 @@ def cockpit_context(request) -> dict[str, Any]:
         return {
             "cockpit": manager_cockpit,
             "rmc_page_help_on_copilot_rail": rmc_page_help_on_copilot_rail,
+            "operator_incident_banner": _pick_operator_incident_banner(
+                manager_cockpit, request
+            ),
         }
 
     # Tenant host — civic footer + community band + newsletter band +
@@ -835,24 +874,25 @@ def cockpit_context(request) -> dict[str, Any]:
 
     # Overlay operator-saved cockpit_payload LAST so per-site overrides win.
     payload = _resolve_cockpit_payload(request)
+    raw_payload_tat = (
+        (payload or {}).get("tenant_activity_ticker")
+        if isinstance(payload, dict)
+        else None
+    )
+    raw_tat_explicit_disabled = (
+        isinstance(raw_payload_tat, dict) and raw_payload_tat.get("enabled") is False
+    )
     if payload:
         tenant_cockpit = _deep_merge(tenant_cockpit, payload)
 
-    # v3.58.x Wave 10 Agent Q (2026-05-22): tenant-host host-routing post-gate.
-    # The tenant ticker defaults `enabled=False` — operators must opt in via
-    # `atk_enabled_on_tenant=True`. Mirror that flag from the activity_ticker
-    # section (where the form persists it) onto the tenant_activity_ticker
-    # section's `enabled` flag, so a single admin-UI toggle controls
-    # rendering on both shells.
-    atk_section = tenant_cockpit.get("activity_ticker") or {}
+    # v4.01.27: tenant ticker default-on. Explicit opt-out ONLY when
+    # tenant_activity_ticker.enabled=False is persisted in cockpit_payload.
+    # Legacy activity_ticker.enabled_on_tenant=False (pre-batch-1599 form
+    # default) no longer suppresses the ticker.
     tat_section = tenant_cockpit.get("tenant_activity_ticker") or {}
-    if atk_section.get("enabled_on_tenant"):
-        tat_section["enabled"] = True
-    elif "enabled_on_tenant" in atk_section:
-        # Explicit False persisted — honor it (defeats the helper default).
+    if raw_tat_explicit_disabled:
         tat_section["enabled"] = False
-    elif tat_section.get("cards") and atk_section.get("enabled_on_tenant") is not False:
-        # Auto-enable when live cards exist unless operator explicitly opted out.
+    elif tat_section.get("cards"):
         tat_section["enabled"] = True
     if tat_section:
         tenant_cockpit["tenant_activity_ticker"] = tat_section
@@ -875,4 +915,8 @@ def cockpit_context(request) -> dict[str, Any]:
     except Exception:
         pass
 
-    return {"cockpit": tenant_cockpit, "rmc_page_help_on_copilot_rail": False}
+    return {
+        "cockpit": tenant_cockpit,
+        "rmc_page_help_on_copilot_rail": False,
+        "tenant_incident_banner": _pick_tenant_incident_banner(tenant_cockpit, request),
+    }

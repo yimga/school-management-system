@@ -1,0 +1,176 @@
+/**
+ * rmc-cp-activity-tiers.css — Tier 1 inline badge, Tier 2 landing strip, Tier 3 incident banner.
+ */
+
+/* Tier 1 — clickable inline badge */
+button.rmc-cp-ticker-inline {
+  cursor: pointer;
+  border: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--surface-elevated) 88%, transparent);
+  font: inherit;
+  text-align: start;
+}
+
+button.rmc-cp-ticker-inline:hover,
+button.rmc-cp-ticker-inline:focus-visible {
+  border-color: var(--hairline-strong, var(--hairline));
+  background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+}
+
+/* Tier 2 — landing canvas strip (compact marquee inside light workspace) */
+.rmc-cp-landing-ticker {
+  margin-bottom: calc(var(--space-2, 8px) * 2);
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+}
+
+.rmc-cp-landing-ticker .cp-live-strip,
+.rmc-cp-landing-ticker .rmc-cockpit-ticker,
+.rmc-cp-landing-ticker .cp-activity-ticker {
+  margin: 0;
+  padding: calc(var(--space-2, 8px) * 0.75) calc(var(--space-2, 8px) * 2);
+  min-height: calc(var(--space-2, 8px) * 4);
+  border-bottom: none;
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.rmc-cp-landing-ticker .rmc-cockpit-ticker__badge,
+.rmc-cp-landing-ticker .cp-activity-ticker__badge {
+  color: var(--accent-warning, var(--text-secondary));
+  border-color: var(--hairline);
+}
+
+.rmc-cp-landing-ticker .rmc-cockpit-ticker__event-text,
+.rmc-cp-landing-ticker .cp-activity-ticker__event-text {
+  color: var(--text-primary);
+}
+
+/* Tier 3 — incident banner below header, above canvas content */
+.rmc-cp-incident-banner {
+  flex: 0 0 auto;
+  width: 100%;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-cp-incident-banner__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space-2, 8px));
+  padding: calc(var(--space-2, 8px)) calc(var(--space-2, 8px) * 2);
+  font-size: var(--type-size-sm, 13px);
+}
+
+.rmc-cp-incident-banner--danger {
+  background: color-mix(in oklab, var(--danger, #ef4444) 12%, var(--surface-elevated));
+  color: var(--text-primary);
+}
+
+.rmc-cp-incident-banner--warn,
+.rmc-cp-incident-banner--warning {
+  background: color-mix(in oklab, var(--warning, #f59e0b) 14%, var(--surface-elevated));
+  color: var(--text-primary);
+}
+
+.rmc-cp-incident-banner__label {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+.rmc-cp-incident-banner__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rmc-cp-incident-banner__time {
+  color: var(--text-muted);
+  font-size: var(--type-size-xs, 11px);
+}
+
+.rmc-cp-incident-banner__open {
+  margin-inline-start: auto;
+}
+
+.rmc-cp-incident-banner[data-rmc-cp-incident-dismissed="1"] {
+  display: none;
+}
+
+/* Activity drawer */
+.rmc-cp-activity-drawer {
+  max-height: var(--rmc-iso-viewport-h, 100dvh);
+}
+
+.rmc-cp-activity-drawer .offcanvas-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rmc-cp-activity-feed__item {
+  display: flex;
+  gap: calc(var(--space-2, 8px));
+  padding: calc(var(--space-2, 8px)) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-cp-activity-feed__item:last-child {
+  border-bottom: none;
+}
+
+.rmc-cp-activity-feed__item--danger .rmc-cp-activity-feed__text {
+  color: var(--danger, #ef4444);
+}
+
+/* Tenant portal header — Tier 1 inline (single row in tp-actions, no extra band) */
+.tp-header .rmc-cp-ticker-inline,
+.tp-header__row .rmc-cp-ticker-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--space-2, 8px) * 0.75);
+  max-width: min(240px, 30vw);
+  min-height: 28px;
+  padding: 2px calc(var(--space-2, 8px));
+  border-radius: var(--radius-sm, 8px);
+  font-size: var(--type-size-xs, 11px);
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+
+.tp-header .rmc-cp-ticker-inline__badge,
+.tp-header__row .rmc-cp-ticker-inline__badge {
+  flex-shrink: 0;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 9px;
+}
+
+.tp-header .rmc-cp-ticker-inline__text,
+.tp-header__row .rmc-cp-ticker-inline__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+@media (max-width: 1199px) {
+  .tp-header .rmc-cp-ticker-inline__text,
+  .tp-header__row .rmc-cp-ticker-inline__text {
+    display: none;
+  }
+
+  .tp-header .rmc-cp-ticker-inline,
+  .tp-header__row .rmc-cp-ticker-inline {
+    max-width: none;
+    padding-inline: calc(var(--space-2, 8px) * 0.75);
+  }
+}
+
+.rmc-cp-activity-feed__item--warn .rmc-cp-activity-feed__text,
+.rmc-cp-activity-feed__item--warning .rmc-cp-activity-feed__text {
+  color: var(--warning, #f59e0b);
+}

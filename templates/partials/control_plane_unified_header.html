@@ -1,0 +1,26 @@
+{% load i18n %}
+{% comment %}
+Consolidated operator header — one high-density band (utility + inline ticker + primary nav).
+Replaces the former triple stack: utility row + marquee ticker + canvas primary nav.
+{% endcomment %}
+<div class="cp-header cp-header--consolidated" data-rmc-cp-header-200x="1" data-rmc-cp-header-mode="consolidated">
+  <div class="rmc-control-plane-chrome cp-header__consolidated-inner" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
+    <div class="cp-header__unified-band">
+      <div class="cp-header__row cp-header__row--utility">
+        {% include "partials/manager_operator_topbar.html" %}
+      </div>
+      {% block cp_shell_header_ticker %}
+      {% block portal_shell_header_ticker %}
+      <div class="cp-header__row cp-header__row--inline-chrome" data-rmc-cp-inline-chrome="1">
+        {% include "partials/cockpit/_activity_ticker_inline.html" %}
+        {% if PRIMARY_CONTROL_PLANE_NAV %}
+        <div class="cp-header__nav-slot" data-rmc-cp-nav-slot="1">
+          {% include "partials/control_plane_primary_nav.html" %}
+        </div>
+        {% endif %}
+      </div>
+      {% endblock %}
+      {% endblock %}
+    </div>
+  </div>
+</div>

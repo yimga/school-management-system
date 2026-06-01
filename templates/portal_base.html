@@ -64,6 +64,7 @@
        BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
@@ -175,11 +176,15 @@
        hygiene that the manager surface uses, so portal + backend look like one product. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-portal-bundle.css' %}">
+    {% if request.user.is_authenticated %}
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
+    {% endif %}
     {% if request.public_host_kind == 'manager' %}
     <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
@@ -250,30 +255,12 @@
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
     {% if request.public_host_kind == 'manager' %}
     <header class="rmc-app-shell__header" role="banner" data-rmc-shell-header="portal-manager">
-      <div class="cp-header" data-rmc-cp-header-200x="1">
-        <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
-          <div class="cp-header__row cp-header__row--utility">
-            {% include "partials/manager_operator_topbar.html" %}
-          </div>
-          {% block portal_shell_header_ticker %}
-            {% comment %} cp-live-strip: manager portal bridge live activity row {% endcomment %}
-            {% include "partials/cockpit/_activity_ticker.html" %}
-          {% endblock %}
-          {% if PRIMARY_CONTROL_PLANE_NAV %}
-          <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
-            {% include "partials/control_plane_primary_nav.html" %}
-          </div>
-          {% endif %}
-        </div>
-      </div>
+      {% include "partials/control_plane_unified_header.html" %}
     </header>
     {% else %}
     <div class="tp-header" data-rmc-tenant-header-100x="1">
       {% block portal_shell_header_ticker_tenant %}
-        {% comment %} v3 100x preview: no header ticker on role-home landings (canvas owns the story). {% endcomment %}
-        {% if not tp_v3_tenant_shell %}
-        {% include "partials/cockpit/_activity_ticker.html" %}
-        {% endif %}
+        {% comment %}v4.01.25: vertical workspace — full marquee is landing-only (Tier 2), never stacked above tp-header on inner pages.{% endcomment %}
       {% endblock %}
     <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
       <div class="container-fluid px-3 tp-header__row-inner" id="preview-header-bar" data-preview-label="{% trans 'Header bar (background & colors)' %}">
@@ -359,6 +346,9 @@
             {% endif %}
 
             <div class="topbar-controls d-flex align-items-center gap-2">
+              {% if request.public_host_kind != 'manager' %}
+              {% include "partials/cockpit/_activity_ticker_inline.html" %}
+              {% endif %}
               {% if SHOW_OFFLINE_STATUS_BAR %}
               {% include 'components/offline_status_bar.html' %}
               {% endif %}
@@ -511,6 +501,9 @@
             {% include "components/demo_guided_hints.html" %}
             {% endif %}
             {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
+            {% if request.user.is_authenticated %}
+            {% include "partials/cockpit/_operator_incident_banner.html" %}
+            {% endif %}
             {% include "partials/shell_chrome_security_posture_banner.html" %}
 
             {% if request.user.is_authenticated and not tp_v3_tenant_shell %}
@@ -547,8 +540,15 @@
             {% endif %}
             {% endblock %}
 
+            {% block portal_landing_activity_ticker %}
+            {% if tenant_role_home_landing and request.public_host_kind != 'manager' %}
+            {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+            {% endif %}
+            {% endblock %}
+
             <div class="portal-page-body{% if tp_v3_tenant_shell %} tp-canvas-body{% endif %}" data-rmc-portal-page-body="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
             {% include "components/_workflow_auto_chrome.html" %}
+            {% if request.user.is_authenticated %}{% include "components/rmc_workflow_progress_strip.html" %}{% endif %}
             {% if wind_down_mode %}
             {% include "partials/rmc_wind_down_banner.html" %}
             {% endif %}
@@ -757,6 +757,10 @@
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}
     {% include "partials/help_contextual_drawer.html" %}
+    {% if request.user.is_authenticated %}
+    {% include "partials/cockpit/_activity_ticker_drawer.html" %}
+    <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
+    {% endif %}
     {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
     {% include "partials/help_module_inline_assistant.html" %}
     {% endif %}
@@ -785,6 +789,7 @@
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
     {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
+    <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% include "partials/rmc_command_bar.html" %}

@@ -127,6 +127,44 @@ def _attach_delta(card: dict[str, Any], metric_key: str, raw_value: int | None) 
     return card
 
 
+def _sparkline_csv_for_metric(metric_key: str, *, days: int = 7) -> str:
+    """Last N daily snapshot raw_values as comma-separated CSV for sparkline JS."""
+    if days < 2:
+        return ""
+    try:
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from .models_pulse_snapshot import PlatformPulseSnapshot
+
+        today = timezone.now().date()
+        start = today - timedelta(days=days - 1)
+        values = list(
+            PlatformPulseSnapshot.objects.filter(
+                metric_key=metric_key,
+                snapshot_date__gte=start,
+                snapshot_date__lte=today,
+            )
+            .order_by("snapshot_date")
+            .values_list("raw_value", flat=True)
+        )
+        if len(values) < 2:
+            return ""
+        return ",".join(str(int(v)) for v in values)
+    except Exception:
+        logger.warning("pulse: sparkline lookup failed for %s", metric_key, exc_info=True)
+        return ""
+
+
+def _attach_sparkline(card: dict[str, Any], metric_key: str) -> dict[str, Any]:
+    """Optional corner sparkline — only when ≥2 snapshot points exist."""
+    csv = _sparkline_csv_for_metric(metric_key)
+    if csv:
+        card["spark_points"] = csv
+    return card
+
+
 # ============================================================
 # Card resolvers — one per slot. Each MUST tolerate missing models,
 # unmigrated DBs, and unrelated import failures. Return None on any
@@ -367,7 +405,9 @@ def resolve_pulse_cards() -> list[dict[str, Any]]:
         except Exception:
             logger.warning("pulse: %s resolver crashed", slot, exc_info=True)
             card = None
-        cards.append(card if card else _EMPTY_SHELLS[slot])
+        final = card if card else _EMPTY_SHELLS[slot]
+        _attach_sparkline(final, slot)
+        cards.append(final)
 
     try:
         cache.set(cache_key, cards, PULSE_CACHE_TTL_SECONDS)

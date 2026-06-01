@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from django.test import SimpleTestCase
 
+from apps.siteconfig.cockpit_context import (
+    _pick_operator_incident_banner,
+    _pick_tenant_incident_banner,
+)
 from apps.siteconfig.cockpit_activity_ticker_realdata import (
     MAX_CARDS_TOTAL,
     merge_activity_ticker_card_lists,
@@ -42,4 +46,61 @@ class ActivityTickerMergeTests(SimpleTestCase):
 
     def test_max_cards_total_at_least_twelve(self):
         self.assertGreaterEqual(MAX_CARDS_TOTAL, 12)
+
+
+class OperatorIncidentBannerTests(SimpleTestCase):
+    def test_picks_first_warn_or_danger_card(self):
+        cockpit = {
+            "activity_ticker": {
+                "enabled": True,
+                "cards": [
+                    {"text": "ok", "severity": "success"},
+                    {"text": "watch", "severity": "warn"},
+                    {"text": "later", "severity": "danger"},
+                ],
+            }
+        }
+        picked = _pick_operator_incident_banner(cockpit)
+        self.assertEqual(picked["text"], "watch")
+
+    def test_returns_none_when_disabled(self):
+        cockpit = {"activity_ticker": {"enabled": False, "cards": [{"severity": "danger"}]}}
+        self.assertIsNone(_pick_operator_incident_banner(cockpit))
+
+
+class TenantIncidentBannerTests(SimpleTestCase):
+    def test_picks_from_tenant_activity_ticker_only(self):
+        cockpit = {
+            "activity_ticker": {
+                "enabled": True,
+                "cards": [{"text": "operator leak", "severity": "danger"}],
+            },
+            "tenant_activity_ticker": {
+                "enabled": True,
+                "cards": [
+                    {"text": "ok", "severity": "success"},
+                    {"text": "maintenance window", "severity": "warn"},
+                ],
+            },
+        }
+        picked = _pick_tenant_incident_banner(cockpit)
+        self.assertEqual(picked["text"], "maintenance window")
+
+    def test_returns_none_when_tenant_ticker_disabled(self):
+        cockpit = {
+            "tenant_activity_ticker": {
+                "enabled": False,
+                "cards": [{"text": "watch", "severity": "warn"}],
+            }
+        }
+        self.assertIsNone(_pick_tenant_incident_banner(cockpit))
+
+
+class TenantActivityTickerDefaultsTests(SimpleTestCase):
+    def test_factory_enabled_by_default(self):
+        from apps.siteconfig.cockpit_tenant_dashboard import _tenant_activity_ticker_defaults
+
+        defaults = _tenant_activity_ticker_defaults()
+        self.assertTrue(defaults["enabled"])
+        self.assertGreaterEqual(len(defaults["cards"]), 1)
 
