@@ -14,7 +14,8 @@ import logging
 import time
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse
+from services.sse_response import guarded_sse_response
 from services.http_auth_guards import login_required_api as login_required
 from django.views.decorators.http import require_safe
 
@@ -250,7 +251,6 @@ def dock_context_stream_view(request):
             time.sleep(_SSE_TICK_SECONDS)
         yield _sse_pack("done", {})
 
-    response = StreamingHttpResponse(stream(), content_type="text/event-stream")
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"  # nginx: disable proxy buffering
-    return response
+    # Capacity-guarded so concurrent dock streams can't pin every worker thread
+    # and starve /health/ (see services.sse_response / sse_wsgi_limits).
+    return guarded_sse_response(stream)

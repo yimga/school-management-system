@@ -220,6 +220,48 @@ expect(
 )
 
 
+# ── T6d: SSE concurrency cap (thread-starvation guard) ─────────────────────
+# Long-lived SSE streams each pin a gthread worker thread. The cap reserves
+# threads so streams can never starve /health/ and trigger the Render restart
+# loop. Verify: hold up to capacity, refuse over-cap, busy response backs off
+# without holding a slot, and slots free after a stream drains.
+from services.sse_wsgi_limits import (
+    sse_stream_capacity,
+    try_acquire_sse_slot,
+    release_sse_slot,
+)
+from services.sse_response import guarded_sse_response
+
+_cap = sse_stream_capacity()
+expect("T6d.1 SSE capacity is a positive int", isinstance(_cap, int) and _cap >= 1, f"got {_cap}")
+_held = [try_acquire_sse_slot() for _ in range(_cap)]
+expect("T6d.2 can hold up to capacity streams", all(_held), f"acquired {_held}")
+expect("T6d.3 over-cap acquire is refused", try_acquire_sse_slot() is False)
+
+_busy_body = b"".join(guarded_sse_response(lambda: iter([b": x\n\n"])).streaming_content)
+expect(
+    "T6d.4 busy response carries a retry-backoff frame (no slot held)",
+    b"retry:" in _busy_body and b"busy" in _busy_body,
+    f"got {_busy_body!r}",
+)
+
+for _ in range(_cap):
+    release_sse_slot()
+
+_ran = {"v": False}
+
+
+def _probe_gen():
+    _ran["v"] = True
+    yield b": ok\n\n"
+
+
+list(guarded_sse_response(_probe_gen).streaming_content)  # drain -> finally releases
+expect("T6d.5 stream generator ran while a slot was held", _ran["v"] is True)
+expect("T6d.6 slot is re-acquirable after the stream drained", try_acquire_sse_slot() is True)
+release_sse_slot()
+
+
 # ── T6b ──────────────────────────────────────────────────────────────────
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory

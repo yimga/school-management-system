@@ -11,7 +11,13 @@ services:
   - type: web
     name: school-management-system
     env: python
-    plan: free
+    # Standard (2GB/1CPU): the free tier's 512MB/0.1CPU forced a single gunicorn
+    # worker, so live SSE streams (workflow-progress + assist-dock) could pin all
+    # gthread threads and starve Render's /health/ probe -> restart loop -> 502s
+    # -> SSE reconnect storm -> repeat. 2 workers x 4 threads plus the SSE
+    # concurrency cap (SSE_THREAD_RESERVE) keep threads free for /health/ and
+    # normal requests under load.
+    plan: standard
     buildCommand: "./build.sh"
     preDeployCommand: "./scripts/release/render_predeploy.sh"
     startCommand: "bash ./scripts/release/render_start_web.sh"
@@ -28,9 +34,13 @@ services:
       - key: GUNICORN_WORKER_CLASS
         value: "gthread"
       - key: WEB_CONCURRENCY
-        value: "1"
+        value: "2"
       - key: GUNICORN_THREADS
         value: "4"
+      # SSE streams may use at most (GUNICORN_THREADS - SSE_THREAD_RESERVE)
+      # threads per worker; the reserve guarantees /health/ always has one.
+      - key: SSE_THREAD_RESERVE
+        value: "2"
       - key: RUN_STARTUP_SCHEMA_CHECK
         value: "0"
       - key: PYTHON_VERSION

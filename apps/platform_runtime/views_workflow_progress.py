@@ -25,8 +25,9 @@ import os
 import time
 from pathlib import Path
 
-from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
+from django.http import HttpResponse, JsonResponse
 from services.http_auth_guards import login_required_api, login_required_sse
+from services.sse_response import guarded_sse_response
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
@@ -65,7 +66,10 @@ def _agent_debug_log(hypothesis_id: str, location: str, message: str, data: dict
 # uses 120s when ``-c`` is wired via ``scripts/release/render_start_web.sh``.
 _SSE_TICK_SECONDS = 2.0
 _SSE_HEARTBEAT_SECONDS = 15.0
-_SSE_RETRY_MILLISECONDS = 2000
+# Client reconnect delay after a graceful close. Kept well above the 2s that
+# used to re-pin a worker thread almost immediately on every cycle, so an
+# established stream frees its thread for a meaningful window between holds.
+_SSE_RETRY_MILLISECONDS = 8000
 
 
 def _sse_max_duration_seconds() -> float:
@@ -367,10 +371,9 @@ def stream_view(request):
         # Final close frame so clients with strict parsers don't hang.
         yield _format_sse_frame(event_seq + 1, "bye", {"reason": "graceful_close"})
 
-    response = StreamingHttpResponse(_stream(), content_type="text/event-stream")
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-    return response
+    # Capacity-guarded: never let SSE streams occupy every worker thread and
+    # starve /health/ (see services.sse_response / sse_wsgi_limits).
+    return guarded_sse_response(_stream)
 
 
 def _stable_hash(runs: list) -> str:
