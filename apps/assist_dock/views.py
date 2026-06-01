@@ -9,13 +9,15 @@ instead of <60s.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
 
+from asgiref.sync import sync_to_async
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
-from services.sse_response import guarded_sse_response
+from services.sse_response import guarded_async_sse_response
 from services.http_auth_guards import login_required_api as login_required
 from django.views.decorators.http import require_safe
 
@@ -153,34 +155,45 @@ def _sse_pack(event: str, data: dict) -> bytes:
 
 @login_required(sse=True)
 @require_safe
-def dock_context_stream_view(request):
-    """Wave E3 — Server-Sent Events upgrade for badge / quick-action push.
+async def dock_context_stream_view(request):
+    """Wave E3 — Server-Sent Events upgrade for badge / quick-action push (async).
 
     The poller (``/assist-dock/context.json``) stays as the fallback for
-    browsers without EventSource or for environments without a streaming
-    capable WSGI worker. This view ships an SSE channel that:
+    browsers without EventSource. Async (ASGI) so each open stream is a
+    coroutine rather than a pinned worker thread. This view:
 
       * emits ``event: snapshot`` immediately with the full payload
       * then ``event: badges`` whenever the resolved badge bundle changes
       * sends ``event: heartbeat`` every ``_SSE_HEARTBEAT_SECONDS`` so
         proxies don't kill an idle connection
-      * closes cleanly before the WSGI worker timeout so the client
-        reconnects (EventSource does this automatically)
+      * closes cleanly before the worker timeout so the client reconnects
     """
-    surface = _resolve_surface(request)
-    role = _resolve_role(request)
-    page_path = _sanitize_page_path(request.GET.get("page", ""))
 
-    user_id = getattr(request.user, "pk", None) or 0
+    # DB-touching helpers run via sync_to_async (thread_sensitive=True keeps
+    # django-tenants connection/search_path state consistent per request).
+    _aresolve_badges = sync_to_async(resolve_all_badges)
+    _aget_slots = sync_to_async(get_slots_for)
+    _aactions_for = sync_to_async(actions_for)
+    _alist_cursors = sync_to_async(list_cursors)
 
-    def stream():
-        slots = get_slots_for(surface=surface, role=role)
+    def _setup():
+        return (
+            _resolve_surface(request),
+            _resolve_role(request),
+            _sanitize_page_path(request.GET.get("page", "")),
+            getattr(request.user, "pk", None) or 0,
+        )
+
+    surface, role, page_path, user_id = await sync_to_async(_setup)()
+
+    async def stream():
+        slots = await _aget_slots(surface=surface, role=role)
         # Snapshot frame: badges + quick actions all in one go.
         try:
-            initial_badges = resolve_all_badges(
+            initial_badges = await _aresolve_badges(
                 request, slots=slots, page_path=page_path
             )
-            quick = actions_for(
+            quick = await _aactions_for(
                 surface=surface,
                 role=role,
                 page_path=page_path,
@@ -214,7 +227,7 @@ def dock_context_stream_view(request):
             if frames > _sse_max_frames():
                 break
             try:
-                next_badges = resolve_all_badges(
+                next_badges = await _aresolve_badges(
                     request, slots=slots, page_path=page_path
                 )
             except Exception as exc:  # noqa: BLE001
@@ -224,7 +237,7 @@ def dock_context_stream_view(request):
             cursors_key = ""
             if page_path:
                 try:
-                    cursor_pings = list_cursors(
+                    cursor_pings = await _alist_cursors(
                         page_path=page_path, exclude_user_id=user_id
                     )
                     cursor_payload = pings_as_jsonable(cursor_pings)
@@ -248,9 +261,8 @@ def dock_context_stream_view(request):
                 yield _sse_pack("heartbeat", {"ts": int(now)})
                 last_hb = now
             frames += 1
-            time.sleep(_SSE_TICK_SECONDS)
+            await asyncio.sleep(_SSE_TICK_SECONDS)
         yield _sse_pack("done", {})
 
-    # Capacity-guarded so concurrent dock streams can't pin every worker thread
-    # and starve /health/ (see services.sse_response / sse_wsgi_limits).
-    return guarded_sse_response(stream)
+    # Capacity-guarded; under ASGI each stream is a coroutine (services.sse_response).
+    return guarded_async_sse_response(stream)

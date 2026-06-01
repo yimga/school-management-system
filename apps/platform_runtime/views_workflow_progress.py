@@ -25,9 +25,12 @@ import os
 import time
 from pathlib import Path
 
+import asyncio
+
+from asgiref.sync import sync_to_async
 from django.http import HttpResponse, JsonResponse
 from services.http_auth_guards import login_required_api, login_required_sse
-from services.sse_response import guarded_sse_response
+from services.sse_response import guarded_async_sse_response
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
@@ -313,19 +316,25 @@ def _format_sse_frame(event_id, kind: str, payload: dict) -> bytes:
 
 @login_required_sse
 @require_GET
-def stream_view(request):
-    """SSE stream of the caller's active workflow runs.
+async def stream_view(request):
+    """SSE stream of the caller's active workflow runs (async / ASGI).
 
     Tick every 2s with the current snapshot; heartbeat comment every 15s;
-    graceful close before the worker timeout so sync Gunicorn workers are not
-    SIGKILL'd. Client reconnects on ``bye`` or transport error.
+    graceful close before the worker timeout. Async so the connection is a
+    coroutine, not a pinned worker thread — open streams cost ~nothing and
+    can't starve /health/. Client reconnects on ``bye`` or transport error.
     """
 
     from apps.platform_runtime.workflow_tracker import list_active_runs
 
-    schema, actor_id = _resolve_scope(request)
-    is_staff = bool(getattr(request.user, "is_staff", False))
-    actor_filter = "" if is_staff else actor_id
+    # request.user / request.tenant evaluation can hit the DB — resolve the
+    # whole scope off the event loop before streaming.
+    def _setup():
+        schema, actor_id = _resolve_scope(request)
+        is_staff = bool(getattr(request.user, "is_staff", False))
+        return schema, ("" if is_staff else actor_id), is_staff
+
+    schema, actor_filter, is_staff = await sync_to_async(_setup)()
     max_duration = _sse_max_duration_seconds()
     _agent_debug_log(
         "H4",
@@ -338,7 +347,9 @@ def stream_view(request):
         },
     )
 
-    def _stream():
+    _alist_active_runs = sync_to_async(list_active_runs)
+
+    async def _stream():
         yield f"retry: {_SSE_RETRY_MILLISECONDS}\n\n".encode("utf-8")
         deadline = time.monotonic() + max_duration
         last_heartbeat = time.monotonic()
@@ -346,16 +357,16 @@ def stream_view(request):
         event_seq = 0
         # Initial snapshot frame.
         try:
-            runs = list_active_runs(tenant_schema=schema, actor_user_id=actor_filter, limit=25)
+            runs = await _alist_active_runs(tenant_schema=schema, actor_user_id=actor_filter, limit=25)
         except Exception:
             runs = []
         event_seq += 1
         last_snapshot_hash = _stable_hash(runs)
         yield _format_sse_frame(event_seq, "snapshot", {"runs": runs, "ts": timezone.now().isoformat()})
         while time.monotonic() < deadline:
-            time.sleep(_SSE_TICK_SECONDS)
+            await asyncio.sleep(_SSE_TICK_SECONDS)
             try:
-                runs = list_active_runs(tenant_schema=schema, actor_user_id=actor_filter, limit=25)
+                runs = await _alist_active_runs(tenant_schema=schema, actor_user_id=actor_filter, limit=25)
                 current_hash = _stable_hash(runs)
                 if current_hash != last_snapshot_hash:
                     event_seq += 1
@@ -371,9 +382,9 @@ def stream_view(request):
         # Final close frame so clients with strict parsers don't hang.
         yield _format_sse_frame(event_seq + 1, "bye", {"reason": "graceful_close"})
 
-    # Capacity-guarded: never let SSE streams occupy every worker thread and
-    # starve /health/ (see services.sse_response / sse_wsgi_limits).
-    return guarded_sse_response(_stream)
+    # Capacity-guarded so concurrent streams can't exhaust the slot pool; under
+    # ASGI each stream is a coroutine (see services.sse_response).
+    return guarded_async_sse_response(_stream)
 
 
 def _stable_hash(runs: list) -> str:

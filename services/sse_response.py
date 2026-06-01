@@ -10,21 +10,25 @@ This keeps threads available for ``/health/`` and ordinary requests.
 
 from __future__ import annotations
 
-from typing import Callable, Iterator
+from typing import AsyncIterator, Callable, Iterator
 
 from django.http import StreamingHttpResponse
 
 from services.sse_wsgi_limits import release_sse_slot, try_acquire_sse_slot
 
 
-def _busy_iter(retry_ms: int) -> Iterator[bytes]:
+def _busy_frame(retry_ms: int) -> bytes:
     # Single frame: bump the client's EventSource reconnect delay, then end the
-    # response so the worker thread is freed immediately (no slot consumed).
-    yield (
+    # response so the worker thread/coroutine is freed immediately (no slot held).
+    return (
         f"retry: {int(retry_ms)}\n"
         "event: busy\n"
         'data: {"reason": "sse_capacity"}\n\n'
     ).encode("utf-8")
+
+
+def _busy_iter(retry_ms: int) -> Iterator[bytes]:
+    yield _busy_frame(retry_ms)
 
 
 def guarded_sse_response(
@@ -51,6 +55,43 @@ def guarded_sse_response(
     def _guarded() -> Iterator[bytes]:
         try:
             yield from stream_factory()
+        finally:
+            release_sse_slot()
+
+    response = StreamingHttpResponse(_guarded(), content_type=content_type)
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    return response
+
+
+def guarded_async_sse_response(
+    async_stream_factory: Callable[[], AsyncIterator[bytes]],
+    *,
+    content_type: str = "text/event-stream",
+    busy_retry_ms: int = 30000,
+) -> StreamingHttpResponse:
+    """Async (ASGI) counterpart of :func:`guarded_sse_response`.
+
+    ``async_stream_factory`` is a zero-arg callable returning an async byte
+    iterator. The concurrency slot is acquired non-blockingly and released in
+    the async generator's ``finally`` when the connection closes. Under ASGI an
+    open SSE stream is a coroutine, not a pinned worker thread.
+    """
+
+    if not try_acquire_sse_slot():
+
+        async def _busy() -> AsyncIterator[bytes]:
+            yield _busy_frame(busy_retry_ms)
+
+        response = StreamingHttpResponse(_busy(), content_type=content_type)
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response
+
+    async def _guarded() -> AsyncIterator[bytes]:
+        try:
+            async for chunk in async_stream_factory():
+                yield chunk
         finally:
             release_sse_slot()
 
