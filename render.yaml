@@ -11,13 +11,12 @@ services:
   - type: web
     name: school-management-system
     env: python
-    # FREE tier (512MB/0.1CPU) = a single gunicorn worker. The fix for the
-    # /health/ thread-starvation restart loop is the SSE concurrency cap in
-    # services/sse_wsgi_limits.py (free code), NOT a paid upgrade: the reserve
-    # below keeps threads free for /health/ + normal requests even when streams
-    # are open. Do NOT raise WEB_CONCURRENCY above 1 on free (2 workers OOM
-    # 512MB). More SSE headroom comes from GUNICORN_THREADS, not more workers.
-    plan: free
+    # Standard (2GB/1CPU). 2 workers x 4 threads + the SSE concurrency cap
+    # (services/sse_wsgi_limits) keep threads free for /health/ and normal
+    # requests even under live SSE load — the fix for the restart loop. Threads
+    # kept at 4 (not higher) to stay within the DB connection budget:
+    # 2 workers x 4 + Celery(2) + beat ~= 12 connections.
+    plan: standard
     buildCommand: "./build.sh"
     preDeployCommand: "./scripts/release/render_predeploy.sh"
     startCommand: "bash ./scripts/release/render_start_web.sh"
@@ -33,16 +32,13 @@ services:
         value: "120"
       - key: GUNICORN_WORKER_CLASS
         value: "gthread"
-      # Stay at 1 on free tier — a 2nd worker OOMs 512MB.
       - key: WEB_CONCURRENCY
-        value: "1"
-      # More gthread threads = more SSE headroom on the single free worker at
-      # $0 (threads are cheap, mostly I/O-bound here). 8 - SSE_THREAD_RESERVE(2)
-      # = 6 concurrent SSE slots, with 2 threads always reserved for /health/.
+        value: "2"
       - key: GUNICORN_THREADS
-        value: "8"
+        value: "4"
       # SSE streams may use at most (GUNICORN_THREADS - SSE_THREAD_RESERVE)
-      # threads; the reserve guarantees /health/ + normal requests always have one.
+      # threads per worker; the reserve guarantees /health/ always has one.
+      # Per worker: 2 SSE slots + 2 reserved. Across 2 workers: 4 SSE slots.
       - key: SSE_THREAD_RESERVE
         value: "2"
       - key: RUN_STARTUP_SCHEMA_CHECK
