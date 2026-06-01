@@ -54,6 +54,13 @@ def main() -> int:
             "control_plane_skeleton.html: rmc-workflow-progress.js must load inside "
             "request.user.is_authenticated block"
         )
+    if 'include "components/rmc_workflow_progress_strip.html"' in skeleton:
+        strip_tpl = ROOT / "templates/components/rmc_workflow_progress_strip.html"
+        if not strip_tpl.is_file():
+            failures.append(
+                "templates/components/rmc_workflow_progress_strip.html: missing "
+                "(included by control_plane_skeleton.html and portal_base.html)"
+            )
 
     viewport = _read("templates/partials/rmc_viewport_engine.html")
     if "rmc-wal-stream.js" in viewport and "public_host_kind != 'manager'" not in viewport:
