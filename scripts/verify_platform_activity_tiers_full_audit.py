@@ -93,8 +93,10 @@ def main() -> int:
         findings.append("incident banner partial: missing tenant_incident_banner branch")
 
     os_strip = _read("templates/components/rmc_os_status_strip.html")
-    if "tenant_incident_banner" not in os_strip:
-        findings.append("rmc_os_status_strip.html: must dedupe platform_status_strip when Tier-3 shows")
+    if "tenant_incident_banner" not in os_strip or "operator_incident_banner" not in os_strip:
+        findings.append(
+            "rmc_os_status_strip.html: must dedupe platform_status_strip when Tier-3 shows"
+        )
 
     tenant_ticker_block = portal.split("portal_shell_header_ticker_tenant", 1)[1][:400]
     if "_activity_ticker.html" in tenant_ticker_block:
@@ -145,8 +147,10 @@ def main() -> int:
         findings.append("cockpit_context.py: tenant_incident_banner not exported")
 
     os_strip = _read("templates/components/rmc_os_status_strip.html")
-    if "tenant_incident_banner" not in os_strip:
-        findings.append("rmc_os_status_strip.html: must dedupe platform_status_strip when Tier-3 shows")
+    if "tenant_incident_banner" not in os_strip or "operator_incident_banner" not in os_strip:
+        findings.append(
+            "rmc_os_status_strip.html: must dedupe platform_status_strip when Tier-3 shows"
+        )
 
     registry = _read("templates/partials/shell_rmc_registry_html_attrs.html")
     if "data-rmc-vertical-workspace-policy" not in registry:

@@ -70,6 +70,16 @@ def main() -> int:
             "but module lacks def csp_nonce"
         )
 
+    ctx = _read("apps/siteconfig/cockpit_context.py")
+    if '"tenant_incident_banner": None' not in ctx:
+        failures.append(
+            "cockpit_context.py: manager branch must export tenant_incident_banner=None"
+        )
+    if '"operator_incident_banner": None' not in ctx:
+        failures.append(
+            "cockpit_context.py: tenant branch must export operator_incident_banner=None"
+        )
+
     viewport = _read("templates/partials/rmc_viewport_engine.html")
     if "rmc-wal-stream.js" in viewport and "public_host_kind != 'manager'" not in viewport:
         failures.append("rmc_viewport_engine.html: WAL script must skip manager host")

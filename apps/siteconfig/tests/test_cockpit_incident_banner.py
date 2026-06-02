@@ -128,3 +128,34 @@ class TenantTickerLegacyOptOutTests(SimpleTestCase):
             tat_section["enabled"] = True
         self.assertTrue(raw_tat_explicit_disabled)
         self.assertFalse(tat_section["enabled"])
+
+
+class CockpitContextIncidentKeysTests(SimpleTestCase):
+    def test_manager_branch_exports_both_incident_banner_keys(self):
+        from apps.siteconfig.cockpit_context import cockpit_context
+
+        rf = RequestFactory()
+        request = rf.get("/super/")
+        request.public_host_kind = "manager"
+        ctx = cockpit_context(request)
+        self.assertIn("operator_incident_banner", ctx)
+        self.assertIn("tenant_incident_banner", ctx)
+        self.assertIsNone(ctx["tenant_incident_banner"])
+
+    def test_status_strip_renders_on_manager_without_variable_error(self):
+        from django.template.loader import render_to_string
+
+        rf = RequestFactory()
+        request = rf.get("/super/")
+        request.user = type("U", (), {"is_authenticated": True})()
+        html = render_to_string(
+            "components/rmc_os_status_strip.html",
+            {
+                "request": request,
+                "platform_status_strip": {"show": True, "tenant_items": []},
+                "operator_incident_banner": None,
+                "tenant_incident_banner": None,
+                "rmc_offline_sync_state": {"pending": 0, "failed": 0, "conflicts": 0},
+            },
+        )
+        self.assertIn('data-rmc-os-status-strip="1"', html)

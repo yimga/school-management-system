@@ -802,6 +802,8 @@ def cockpit_context(request) -> dict[str, Any]:
             "operator_incident_banner": _pick_operator_incident_banner(
                 manager_cockpit, request
             ),
+            # Control-plane templates reference both keys; manager host has no tenant banner.
+            "tenant_incident_banner": None,
         }
 
     # Tenant host — civic footer + community band + newsletter band +
@@ -919,4 +921,6 @@ def cockpit_context(request) -> dict[str, Any]:
         "cockpit": tenant_cockpit,
         "rmc_page_help_on_copilot_rail": False,
         "tenant_incident_banner": _pick_tenant_incident_banner(tenant_cockpit, request),
+        # Portal templates reference both keys; tenant host has no operator banner.
+        "operator_incident_banner": None,
     }
