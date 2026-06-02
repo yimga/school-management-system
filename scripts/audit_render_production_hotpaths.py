@@ -8,6 +8,7 @@ Exits 0 when the tree satisfies known fixes; 1 when actionable drift is found.
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -134,6 +135,13 @@ def main() -> int:
         print("RENDER_HOTPATH_AUDIT_FAIL")
         for item in failures:
             print(f"  - {item}")
+        return 1
+
+    deploy_ready = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "verify_render_deploy_readiness.py")],
+        cwd=str(ROOT),
+    )
+    if deploy_ready.returncode != 0:
         return 1
 
     print("RENDER_HOTPATH_AUDIT_PASS")

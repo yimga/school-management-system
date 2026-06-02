@@ -26,6 +26,8 @@ if [[ ! -f "${WFP_STRIP}" ]]; then
   exit 1
 fi
 
+run "${PYTHON_BIN}" scripts/verify_render_deploy_readiness.py
+
 # Fail fast when a new app has migrations but is missing from SHARED_APPS/TENANT_APPS
 # (migrate_schemas would skip it on Render).
 run "${PYTHON_BIN}" scripts/verify_tenant_schema_app_registration.py
