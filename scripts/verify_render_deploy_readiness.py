@@ -40,6 +40,15 @@ REQUIRED_GIT_PATHS = (
     "apps/security/csp_middleware.py",
     "scripts/release/sanitize_gunicorn_env.sh",
     "scripts/release/render_start_web.sh",
+    "static/js/rmc-workflow-track-headers.js",
+    "static/css/rmc-class-grammar-ext.css",
+)
+
+REQUIRED_SHELL_STATIC = (
+    "static/js/rmc-workflow-track-headers.js",
+    "static/css/rmc-class-grammar-ext.css",
+    "static/js/rmc-workflow-progress.js",
+    "static/css/rmc-workflow-progress.css",
 )
 
 
@@ -109,6 +118,13 @@ def _check_git_tracked(failures: list[str]) -> None:
             failures.append(f"not tracked in git: {rel}")
 
 
+def _check_shell_static_assets(failures: list[str]) -> None:
+    for rel in REQUIRED_SHELL_STATIC:
+        path = ROOT / rel
+        if not path.is_file():
+            failures.append(f"missing static asset: {rel}")
+
+
 def _check_shell_references(failures: list[str]) -> None:
     for shell in (
         "templates/control_plane_skeleton.html",
@@ -122,6 +138,7 @@ def _check_shell_references(failures: list[str]) -> None:
 def main() -> int:
     failures: list[str] = []
     _check_shell_includes(failures)
+    _check_shell_static_assets(failures)
     _check_shell_references(failures)
     _check_context_processors(failures)
     _check_cockpit_incident_keys(failures)
