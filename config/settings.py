@@ -317,6 +317,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # v4.01.15 — Workflow Progress Bus envelopes for mutating operator/tenant HTTP writes.
+    "apps.platform_runtime.workflow_request_middleware.WorkflowProgressRequestMiddleware",
     # v4.00.98 — stop 302 redirect storms on login/public shells for SSE/fetch.
     "apps.platform_runtime.middleware_unauthenticated_api_guard.UnauthenticatedApiGuardMiddleware",
     # v4.00.96 Wave F3 — assist dock's per-user locale preference overrides
@@ -379,6 +381,7 @@ MIDDLEWARE += [
     # set inside MigrationCloudGlobalThrottle.allow_request. No-op for
     # requests where the flag isn't set, so cheap to wire globally.
     "apps.migration_cloud.api.rate_limiting.SoftWarnHeaderMiddleware",
+    "apps.observability.middleware_agent_template_debug.AgentTemplateMissingDebugMiddleware",
 ]
 
 # CSP defaults — enforced by default since v2.57 (inline-style backlog at 0).
@@ -431,6 +434,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "apps.security.csp_middleware.csp_nonce",  # per-request CSP nonce for inline <script nonce="{{ csp_nonce }}">
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.static",
                 "django.contrib.messages.context_processors.messages",

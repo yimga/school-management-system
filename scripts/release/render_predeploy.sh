@@ -19,6 +19,13 @@ run() {
 # Fail fast when migration files are gitignored or not committed (e.g. *Conflict*.py rule).
 run "${PYTHON_BIN}" scripts/verify_migration_files_tracked.py
 
+# Fail fast when shell includes reference a template missing from the checkout.
+WFP_STRIP="templates/components/rmc_workflow_progress_strip.html"
+if [[ ! -f "${WFP_STRIP}" ]]; then
+  echo "[predeploy] FATAL: missing ${WFP_STRIP} (required by control_plane_skeleton + portal_base)"
+  exit 1
+fi
+
 # Fail fast when a new app has migrations but is missing from SHARED_APPS/TENANT_APPS
 # (migrate_schemas would skip it on Render).
 run "${PYTHON_BIN}" scripts/verify_tenant_schema_app_registration.py

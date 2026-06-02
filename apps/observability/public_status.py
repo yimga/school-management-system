@@ -229,6 +229,21 @@ def public_status(request: HttpRequest):
 @require_GET
 def public_health(request):
     """Lightweight probe for load balancers (no DB)."""
+    from apps.observability.agent_debug_session import (
+        agent_debug_log,
+        workflow_progress_strip_deploy_probe,
+    )
+
+    deploy_probe = workflow_progress_strip_deploy_probe(settings.BASE_DIR)
+    # #region agent log
+    agent_debug_log(
+        hypothesis_id="H1",
+        location="public_status.public_health",
+        message="health deploy probe",
+        data=deploy_probe,
+        base_dir=settings.BASE_DIR,
+    )
+    # #endregion
     return JsonResponse(
         {
             "status": "healthy",
@@ -239,5 +254,8 @@ def public_health(request):
             "gunicorn_timeout": os.environ.get("GUNICORN_TIMEOUT", ""),
             "gunicorn_worker_class": os.environ.get("GUNICORN_WORKER_CLASS", ""),
             "web_concurrency": os.environ.get("WEB_CONCURRENCY", ""),
+            # Deploy integrity: workflow progress strip partial required by shell includes.
+            "wfp_strip_template_present": deploy_probe["present_on_disk"],
+            "render_git_commit": deploy_probe["render_git_commit"],
         }
     )
