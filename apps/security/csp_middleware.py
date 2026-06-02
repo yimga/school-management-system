@@ -25,6 +25,8 @@ behavior to avoid breaking the admin or static asset delivery.
 
 from __future__ import annotations
 
+import secrets
+
 from django.conf import settings
 
 
@@ -42,9 +44,17 @@ _DEFAULT_DIRECTIVES: dict[str, tuple[str, ...]] = {
 }
 
 
-def _build_policy() -> str:
-    """Compose the CSP header value from settings overrides."""
+def _build_policy(nonce: str = "") -> str:
+    """Compose the CSP header value from settings overrides.
+
+    When ``nonce`` is supplied it is added to ``script-src`` as ``'nonce-<n>'``
+    so inline ``<script nonce="{{ csp_nonce }}">`` blocks are allowed WITHOUT
+    weakening the policy with ``'unsafe-inline'``. ``'self'`` is preserved, so
+    same-origin external scripts keep working — the nonce is strictly additive.
+    """
     directives = {k: list(v) for k, v in _DEFAULT_DIRECTIVES.items()}
+    if nonce:
+        directives["script-src"].append(f"'nonce-{nonce}'")
 
     extras = {
         "script-src": getattr(settings, "CSP_EXTRA_SCRIPT_SRC", ()) or (),
@@ -82,6 +92,11 @@ class ContentSecurityPolicyMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # Generate the per-request nonce BEFORE the view/template renders so the
+        # ``csp_nonce`` context processor can expose it to inline <script nonce>
+        # blocks. Must match the 'nonce-<n>' token added to the response header.
+        nonce = secrets.token_urlsafe(16)
+        request.csp_nonce = nonce
         response = self.get_response(request)
         path = (request.path or "").rstrip("/") or "/"
         if any(path.startswith(p) for p in self.BYPASS_PREFIXES):
@@ -92,7 +107,7 @@ class ContentSecurityPolicyMiddleware:
         if not (ct.startswith("text/html") or ct.startswith("application/xhtml")):
             return response
 
-        policy = _build_policy()
+        policy = _build_policy(nonce=nonce)
         if getattr(settings, "CSP_ENFORCE", False):
             response["Content-Security-Policy"] = policy
         else:
@@ -100,4 +115,14 @@ class ContentSecurityPolicyMiddleware:
         return response
 
 
-__all__ = ["ContentSecurityPolicyMiddleware", "_build_policy"]
+def csp_nonce(request):
+    """Context processor: expose the per-request CSP nonce to templates.
+
+    Returns the nonce set by ``ContentSecurityPolicyMiddleware`` (empty string
+    when the middleware did not run, e.g. in tests without it installed) so
+    ``nonce="{{ csp_nonce }}"`` renders the value that the CSP header honors.
+    """
+    return {"csp_nonce": getattr(request, "csp_nonce", "")}
+
+
+__all__ = ["ContentSecurityPolicyMiddleware", "_build_policy", "csp_nonce"]

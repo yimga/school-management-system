@@ -11,6 +11,7 @@ from django.urls import reverse
 from apps.security.csp_middleware import (
     ContentSecurityPolicyMiddleware,
     _build_policy,
+    csp_nonce,
 )
 
 
@@ -74,6 +75,19 @@ class CspMiddlewareTests(SimpleTestCase):
         self.assertIn("script-src 'self'", policy)
         self.assertIn("frame-ancestors 'self'", policy)
         self.assertIn("object-src 'none'", policy)
+
+    def test_nonce_appears_in_script_src_when_provided(self):
+        policy = _build_policy(nonce="abc123")
+        self.assertIn("script-src 'self' 'nonce-abc123'", policy)
+
+    @override_settings(CSP_ENFORCE=True)
+    def test_middleware_sets_request_nonce_and_header_token(self):
+        mw = ContentSecurityPolicyMiddleware(_get_response)
+        request = self.factory.get("/super/")
+        mw(request)
+        self.assertTrue(getattr(request, "csp_nonce", ""))
+        ctx = csp_nonce(request)
+        self.assertEqual(ctx["csp_nonce"], request.csp_nonce)
 
 
 class CspReportEndpointTests(TestCase):

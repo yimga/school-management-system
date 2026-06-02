@@ -62,6 +62,14 @@ def main() -> int:
                 "(included by control_plane_skeleton.html and portal_base.html)"
             )
 
+    settings_txt = _read("config/settings.py")
+    csp_mod = _read("apps/security/csp_middleware.py")
+    if "csp_middleware.csp_nonce" in settings_txt and "def csp_nonce" not in csp_mod:
+        failures.append(
+            "csp_middleware.py: settings registers csp_nonce context processor "
+            "but module lacks def csp_nonce"
+        )
+
     viewport = _read("templates/partials/rmc_viewport_engine.html")
     if "rmc-wal-stream.js" in viewport and "public_host_kind != 'manager'" not in viewport:
         failures.append("rmc_viewport_engine.html: WAL script must skip manager host")
