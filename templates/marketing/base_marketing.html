@@ -42,14 +42,17 @@
   {% block extrahead %}{% endblock %}
 
   <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
-  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  {% comment %} Bootstrap Icons are non-critical (decorative glyphs, no layout shift) — deferred to keep blocking CSS ≤5. {% endcomment %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="vendor/bootstrap-icons/css/bootstrap-icons.min.css" %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="css/accessibility.css" %}
   {% comment %} v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer (deferred). {% endcomment %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="css/design-tokens-personality.css" %}
   {% comment %} Marketing uses editorial CSS only — not operator platform chrome (scroll contract / OS-grade). {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
-  <link rel="stylesheet" href="{% static 'css/rmc-back-to-top.css' %}">
+  {% include "partials/rmc_platform_shell_beautify_styles.html" %}
+  {% comment %} Back-to-top control is below-the-fold chrome — deferred to keep blocking CSS ≤5. {% endcomment %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="css/rmc-back-to-top.css" %}
   {% if request.user.is_authenticated %}{% include "partials/rmc_security_posture_layout_styles.html" %}{% endif %}
   <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-critical.min.css' %}">

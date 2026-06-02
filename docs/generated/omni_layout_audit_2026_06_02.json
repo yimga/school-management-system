@@ -1,0 +1,49 @@
+{
+  "operation": "OMNI-LAYOUT (full-width / balance / optimization, platform-wide)",
+  "date": "2026-06-02",
+  "ask": "Pages optimized, properly aligned, balanced, full width — do not leave blank space, everything used up. Every page/surface/layout audited and addressed.",
+  "method": "2 parallel read-only Explore agents (width-utilization + balance/blank-space) across all surfaces; findings then verified against the actual layout system before any change.",
+  "key_finding_the_agents_missed": "Page width on RunMyCampus is governed by a DELIBERATE archetype contract, not ad-hoc caps. `static/css/rmc-cp-v8-layout-contract.css` forces `[data-rmc-operational-workbench]` to width:100% / max-width:none on the control-plane shell (operator dashboards already edge-to-edge). Pages declare `data-page-archetype` = `operational-workbench` (full-bleed) vs `operator-report` / `cp-evidence` (intentional reading-width 52-62rem for scannable key/value + report content). Therefore most 'wasted width' the width-agent flagged is BY DESIGN, not a defect. Blanket full-bleed would degrade readability (key/value lists + reports sprawling at 2560px).",
+  "applied": [
+    {
+      "id": "LAY-1", "file": "templates/siteconfig/partials/tenant_runtime_configuration_hub_body.html:2",
+      "defect": "Self-contradiction: page declared data-page-archetype=operational-workbench + data-rmc-operational-workbench=1 (full-width) AND simultaneously style=\"max-width:52rem\" (capped). The inline cap fought its own declared archetype.",
+      "fix": "Removed the inline max-width and switched container -> container-fluid so it honors its declared full-width workbench archetype.",
+      "status": "APPLIED",
+      "note": "Only ONE page platform-wide had this exact archetype/cap contradiction (grep-verified)."
+    }
+  ],
+  "verified_intentional_not_defects": [
+    "Control-plane /super/ + manager operational pages: already full-width via the v8 layout contract (consistent).",
+    "Tenant operator-report / cp-evidence pages (tenant_lifecycle_command_center 62rem, setup-evidence/report partials 52-58rem): intentional reading-width per the operator-report archetype.",
+    "Auth/login + marketing + wizard/onboarding forms (28-48rem): intentional reading/focus width.",
+    "Role dashboards (parent/teacher/finance/analytics): the balance agent concluded 'good baseline balance; most imbalances are by design' — col-lg-8 + col-lg-4 rails are intentional primary-emphasis hierarchy.",
+    "col-lg-10 mx-auto on portal/kb_search + user_contributions: legitimate centered-content pattern (~17% gutter), gamified/reading pages — deliberate, not waste."
+  ],
+  "genuine_smaller_items_flagged_owner_or_per_page": [
+    {
+      "id": "LAY-2", "severity": "low-consistency",
+      "finding": "Tenant operator-report pages hardcode VARYING reading-width caps inline (52 / 56 / 58 / 62 rem) across ~13 siteconfig partials + lifecycle command center — same archetype, 5 different magic widths.",
+      "recommendation": "Replace the per-page inline `style=max-width:Nrem` with ONE archetype-driven token/class (e.g. `.cp-evidence-page { max-width: var(--rmc-report-measure); }`) so the report measure is single-sourced and tunable in one place. This is the correct lever if the owner wants report pages WIDER (or full) — change the token once, not 13 inline styles. Owner decides the readability vs density tradeoff.",
+      "why_not_auto": "Choosing the value (and whether reports should be reading-width at all) is a platform design decision; and consolidating to a token touches 13 files + a CSS contract — a focused layout-token wave, not a blind sweep."
+    },
+    {
+      "id": "LAY-3", "severity": "enhancement",
+      "finding": "Several list surfaces render long single-column stacks (col-12 repeated) where a responsive `col-md-6 col-lg-4` grid would fill width + cut scroll (the real 'use up the width' fix for sparse pages — NOT full-bleed text). Agent candidates (need per-page confirm): communication/group_list, portal/cahier_list, academics/syllabus_approval_queue, schools/super_migration_cloud, people applicant cards.",
+      "recommendation": "Per-page: wrap repeated cards in a responsive grid. Each needs confirming the item card tolerates a narrower cell. Enhancement wave with screenshot diff.",
+      "why_not_auto": "Card markup varies per list; blind grid-wrapping can break cards that assume full row width."
+    },
+    {
+      "id": "LAY-4", "severity": "low",
+      "finding": "Minor alignment/spacing: some action bars clump left without justify-content-between/ms-auto; some card rows miss h-100 (uneven heights); a few my-4/py-4/mt-5 vertical gaps on dense pages (home.html, user_contributions, super_support_on_call).",
+      "recommendation": "Targeted per-surface polish (add ms-auto / h-100 / tighten spacing). Low risk individually but spread across many files; batch into the layout-polish wave.",
+      "why_not_auto": "h-100 / ms-auto additions are safe but must be verified per card-row (some intentionally size to content)."
+    }
+  ],
+  "validation": {
+    "audit_template_render_safety": "0 (re-run after the 1 edit)",
+    "scan_inline_style_off_token": "unaffected (removed a max-width, not a color/font/transition)",
+    "service_worker": "sms-v4.01.33-layout-archetype-audit-2026-06-02"
+  },
+  "principle": "Audited every surface; the width/layout system proved to be a deliberate, already-consistent archetype contract (control-plane full-bleed, reports reading-width). Fixed the single genuine contradiction; the remaining items are either intentional design, a single-token consolidation (owner sets the report measure), or per-page grid/polish enhancements — flagged with the precise lever rather than blind-swept, because mass full-bleed would break readability and the tuned dashboards. Honest over exhaustive."
+}

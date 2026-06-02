@@ -67,7 +67,7 @@ tr[data-rmc-bulk-selected="1"] {
 
 .ai-copilot-view.is-active {
   color: var(--text-primary, #fff);
-  border-bottom-color: var(--color-primary-500, #4f46e5);
+  border-bottom-color: var(--color-primary-500, #4f46e5); /* theme-locked-allow: brand-accent-active-tab-underline */
 }
 
 .ai-copilot-view-panel[hidden] {

@@ -34,7 +34,7 @@ class NewsletterSubscriptionStatus(models.TextChoices):
 class NewsletterSubscription(models.Model):
     """Public marketing-list subscription."""
 
-    email = models.EmailField(max_length=254, unique=True, db_index=True)
+    email = models.EmailField(max_length=254, unique=True, db_index=True)  # magic-number-allow: charfield-max-length
     status = models.CharField(
         max_length=16,
         choices=NewsletterSubscriptionStatus.choices,

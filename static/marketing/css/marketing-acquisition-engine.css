@@ -4,7 +4,7 @@
  */
 
 .mkt-ve-section--hero-duel {
-  background: var(--mkt-hero-bg, var(--color-base-900));
+  background: var(--mkt-hero-bg, var(--color-base-900)); /* theme-locked-allow: deliberately-dark-marketing-hero-band */
   color: var(--mkt-text-inverse, #f8fafc);
 }
 
@@ -83,7 +83,7 @@
   padding: 0.5rem 0.75rem;
   border-radius: var(--mkt-radius-sm, 6px);
   border: 1px solid var(--hairline, rgba(148, 163, 184, 0.35));
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.25); /* off-token-allow: status-overlay-fixed-tint */
   color: inherit;
   font-size: var(--type-size-sm, 0.875rem);
 }
@@ -94,7 +94,7 @@
   padding: 0.5rem;
   margin: var(--mkt-space-2, 16px) 0;
   border-radius: var(--mkt-radius-sm, 6px);
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.35); /* off-token-allow: status-overlay-fixed-tint */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -247,8 +247,8 @@
   margin: 0;
   padding: var(--mkt-space-2, 16px);
   border-radius: var(--mkt-radius-md, 8px);
-  background: var(--color-base-900);
-  color: #e2e8f0;
+  background: var(--mkt-surface-code, var(--color-base-900)); /* theme-locked-allow: dark-code-viewport-fixed-contrast */
+  color: #e2e8f0; /* off-token-allow: dark-code-viewport-fixed-contrast */
   font-size: 0.75rem;
   max-height: 14rem;
   overflow: auto;
@@ -338,7 +338,7 @@
 .mkt-ve-trinity__noc-grid div {
   padding: 1rem;
   border-radius: var(--mkt-radius-sm, 6px);
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.25); /* off-token-allow: status-overlay-fixed-tint */
   font-size: 0.8125rem;
   text-align: center;
 }

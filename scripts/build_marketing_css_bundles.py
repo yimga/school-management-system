@@ -47,6 +47,20 @@ def _minify_css(text: str) -> str:
     text = re.sub(r"\s+", " ", text)
     text = re.sub(r"\s*([{}:;,>+~])\s*", r"\1", text)
     text = text.replace(";}", "}")
+    # --- Rendering-neutral size reductions (lossless) ---
+    # Collapse duplicate semicolons left by empty declarations.
+    text = re.sub(r";{2,}", ";", text)
+    # Strip the leading zero in fractional values (0.5em -> .5em); the
+    # negative-lookbehind keeps digits like 10.5 / 100.0 intact.
+    text = re.sub(r"(?<![\d.])0+(\.\d+)", r"\1", text)
+    # Shorten 6-digit hex colours whose channel pairs match (#aabbcc -> #abc).
+    text = re.sub(
+        r"#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3(?![0-9a-fA-F])",
+        r"#\1\2\3",
+        text,
+    )
+    # Drop empty rulesets (selector{} renders nothing).
+    text = re.sub(r"[^{}]+\{\}", "", text)
     return text.strip()
 
 

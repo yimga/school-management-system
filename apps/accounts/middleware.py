@@ -614,6 +614,7 @@ class RequireMFAMiddleware:
         "/status/",
         "/metrics/",
         "/api/",
+        "/ws/wal/",  # WAL HTTP stub returns 401/426 — never MFA HTML redirect
         "/siteconfig/api/tour-",  # Guided tour + info-tag helpers (all portal roles)
     )
     BYPASS_PATHS = (

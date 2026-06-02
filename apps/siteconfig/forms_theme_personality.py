@@ -75,8 +75,9 @@ def _hex_field(label: str, placeholder: str = "") -> forms.CharField:
 
 
 # ---------------------------------------------------------------------------
-# Archetype slug catalog. Mirrors the 10 archetypes Agent U ships in
-# `static/css/design-tokens-personality.css`. Keep in sync with the CSS.
+# Archetype slug catalog. Mirrors the 14 archetypes shipped in
+# `static/css/design-tokens-personality.css`. Keep in sync with the CSS
+# and with PERSONALITY_SLUGS in apps/siteconfig/page_personality.py.
 # ---------------------------------------------------------------------------
 
 _ARCHETYPES: tuple[tuple[str, str, str], ...] = (
@@ -91,6 +92,12 @@ _ARCHETYPES: tuple[tuple[str, str, str], ...] = (
     ("reports",         _("Reports"),                      "#7c3aed"),
     ("settings",        _("Settings"),                     "#64748b"),
     ("auth",            _("Auth / login"),                 "#1e293b"),
+    # v4.01.35 — tenant functional-area archetypes (mirror new slugs in
+    # apps/siteconfig/page_personality.py + design-tokens-personality.css).
+    ("academic",        _("Academics"),                    "#7c3aed"),
+    ("people",          _("People / roster"),              "#0d9488"),
+    ("communication",   _("Communication"),                "#db2777"),
+    ("admissions",      _("Admissions"),                   "#c026d3"),
 )
 
 
@@ -109,14 +116,14 @@ class ThemePersonalityForm(forms.Form):
 
     Field groups (consumed by the template via the ``*_FIELDS`` class
     tuples):
-      * ACCENT_FIELDS        — 10 per-archetype accent overrides
+      * ACCENT_FIELDS        — 14 per-archetype accent overrides
       * STATUS_FIELDS        — 4 status palette slots
       * HEATMAP_FIELDS       — 5 heatmap palette tiers
       * CHART_SERIES_FIELDS  — 8 chart series colors
     """
 
     # ------------------------------------------------------------------
-    # Per-archetype accent overrides (10 archetypes).
+    # Per-archetype accent overrides (14 archetypes).
     # ------------------------------------------------------------------
 
     accent_control_plane = _hex_field(_("Control plane accent"), "#6366f1")
@@ -129,6 +136,10 @@ class ThemePersonalityForm(forms.Form):
     accent_reports = _hex_field(_("Reports accent"), "#7c3aed")
     accent_settings = _hex_field(_("Settings accent"), "#64748b")
     accent_auth = _hex_field(_("Auth accent"), "#1e293b")
+    accent_academic = _hex_field(_("Academics accent"), "#7c3aed")
+    accent_people = _hex_field(_("People / roster accent"), "#0d9488")
+    accent_communication = _hex_field(_("Communication accent"), "#db2777")
+    accent_admissions = _hex_field(_("Admissions accent"), "#c026d3")
 
     ACCENT_FIELDS: tuple[str, ...] = tuple(
         _slug_to_field_name(slug) for slug, _label, _ph in _ARCHETYPES

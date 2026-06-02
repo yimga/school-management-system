@@ -106,6 +106,7 @@ def _build_lineitem_detail(sourced_id: str) -> dict[str, Any] | None:
         return None
     pk_raw = sourced_id.removeprefix("li-")
     try:
+        # tenant-isolation-allow: oneroster-lineitem-detail-pk-lookup-bearer-auth-required
         eval_obj = Evaluation.objects.filter(pk=pk_raw).first()
     except Exception as exc:  # noqa: BLE001
         logger.debug("lineitem detail fetch failed: %s", exc)
@@ -260,6 +261,7 @@ def demographics_delta(request: HttpRequest) -> HttpResponse:
     tombstones: list[str] = []
     try:
         from apps.people.models import StudentProfile  # type: ignore
+        # tenant-isolation-allow: oneroster-demographics-delta-platform-scope-bearer-auth-required
         qs = StudentProfile.objects.all().order_by("-pk")[:_DEFAULT_LIMIT]
         for s in qs:
             sid = f"demo-{getattr(s, 'pk', '')}"

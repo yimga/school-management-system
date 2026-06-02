@@ -587,6 +587,156 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("SLACK_DEFAULT_CHANNEL", "str", '""', "ops", "Default Slack channel id/name."),
     SettingSpec("TEAMS_ACCESS_TOKEN", "str", '""', "ops", "Microsoft Teams access token."),
     SettingSpec("TEAMS_DEFAULT_CHAT_ID", "str", '""', "ops", "Default Teams chat id for alerts."),
+    # Infrastructure / storage / brokers
+    SettingSpec("AWS_STORAGE_BUCKET_NAME", "str", '""', "ops", "S3 bucket name when the S3 media/static backend is active."),
+    SettingSpec("BROKER_URL", "str", '""', "ops", "Celery broker URL (Redis/RabbitMQ)."),
+    SettingSpec("KAFKA_BOOTSTRAP_SERVERS", "str", '""', "ops", "Kafka bootstrap servers for optional event streaming."),
+    SettingSpec("EMAIL_TIMEOUT", "int", "10", "ops", "SMTP socket timeout in seconds."),
+    SettingSpec("MANAGER_URLCONF", "str", '"config.manager_urls"', "ops", "URLconf module served on the manager host."),
+    # Security / crypto
+    SettingSpec("DJANGO_CRYPTOGRAPHY_KEYS", "list", "[]", "security", "MultiFernet key ring (newest-first) for encrypted model fields."),
+    SettingSpec("GRAPHQL_INTROSPECTION_ENABLED", "bool", "False", "security", "Allow GraphQL schema introspection (kept off in prod)."),
+    # Help center / KB ops
+    SettingSpec("HELP_NORTH_STAR_WEEKLY_EMAIL", "bool", "False", "ops", "Send the weekly help-center north-star metrics email."),
+    SettingSpec("HELP_ZERO_RESULT_AUTO_DRAFT_KB", "bool", "False", "ops", "Auto-draft a KB article when a help search returns zero results."),
+    SettingSpec("KB_EMBEDDING_AUTO_REFRESH", "bool", "False", "ops", "Refresh KB embeddings automatically when articles change."),
+    SettingSpec("KB_PGVECTOR_ENABLED", "bool", "False", "ops", "Use pgvector for KB semantic search when available."),
+    # Cockpit / enrollment ops
+    SettingSpec("COCKPIT_100X_RENDER_PREVIEW_DEMO", "bool", "False", "ux", "Enable the cockpit 100x render-preview demo surface."),
+    SettingSpec("COCKPIT_200X_RENDER_PREVIEW_DEMO", "bool", "False", "ux", "Enable the cockpit 200x render-preview demo surface."),
+    SettingSpec("ENROLLMENT_PEAK_MODE", "bool", "False", "ops", "Toggle enrollment peak-load handling behavior."),
+    # Marketing surface
+    SettingSpec("MARKETING_GEO_COUNTRY_OVERRIDE", "str", '""', "marketing", "Force the marketing geo to a country code (testing/preview)."),
+    SettingSpec("MARKETING_INTENT_HOMEPAGE", "str", '""', "marketing", "Override the marketing homepage intent variant."),
+    SettingSpec("MARKETING_KB_TENANT_SLUG", "str", '""', "marketing", "Tenant slug whose KB powers the public marketing help center."),
+    SettingSpec("MARKETING_SCALE_COUNTRY_COUNT", "int", "0", "marketing", "Illustrative country count shown on marketing scale claims."),
+    SettingSpec("MARKETING_SCALE_SCHOOL_COUNT", "int", "0", "marketing", "Illustrative school count shown on marketing scale claims."),
+    SettingSpec("MARKETING_SCALE_ILLUSTRATIVE", "bool", "True", "marketing", "Whether marketing scale numbers are flagged illustrative."),
+    # Compliance / MAA
+    SettingSpec("MAA_TEXT_DRAFT_VERSIONS", "set", '{"v2.0"}', "compliance", "MAA versions still in draft (signature attempts are refused)."),
+    # Migration Cloud audit + retention
+    SettingSpec("MIGRATION_CLOUD_AUDIT_MAX_EVENTS_PER_TENANT_PER_HOUR", "int", "1000", "ops", "Rate cap for migration-cloud audit events per tenant per hour."),
+    SettingSpec("MIGRATION_CLOUD_AUDIT_OPS_EMAIL", "str", '""', "ops", "Operator email for migration-cloud audit alerts."),
+    SettingSpec("MIGRATION_CLOUD_AUDIT_RATE_LIMIT_DISABLED", "bool", "False", "ops", "Disable migration-cloud audit-event rate limiting."),
+    SettingSpec("MIGRATION_CLOUD_AUDIT_SIGNING_BACKEND", "str", '"local-env-key"', "security", "Backend selector for audit-event integrity signing."),
+    SettingSpec("MIGRATION_CLOUD_AUDIT_ROOT_SIGNING_BACKEND", "str", '"local-env-key"', "security", "Backend for per-event root-key HMAC-SHA512 signing."),
+    SettingSpec("MIGRATION_CLOUD_AUDIT_SIGNING_KEY", "str", '""', "security", "Key material for migration-cloud audit-event signing."),
+    SettingSpec("MIGRATION_CLOUD_AUDIT_PURGE_APPROVAL_TOKEN", "str", '""', "security", "Counsel approval token gating the audit retention purge command."),
+    SettingSpec("MIGRATION_CLOUD_DATA_RETENTION_APPROVAL_TOKEN", "str", '""', "security", "Counsel approval token gating tenant data-retention purges."),
+    SettingSpec("MIGRATION_CLOUD_EMIT_LEGACY_HEADERS", "bool", "True", "ops", "Emit legacy webhook headers during the 90-day migration window."),
+    # Migration Cloud — guardian consent / intake / MAA / retention / smoke / throttle
+    SettingSpec("MIGRATION_CLOUD_GUARDIAN_CONSENT_ACTIVE_VERSION", "str", '""', "compliance", "Active guardian-consent text version override for migration cloud."),
+    SettingSpec("MIGRATION_CLOUD_GUARDIAN_CONSENT_REVOKE_WINDOW_DAYS", "int", "90", "compliance", "Days a guardian may revoke migration-cloud consent after grant."),
+    SettingSpec("MIGRATION_CLOUD_INTAKE_FROM_EMAIL", "str", '""', "ops", "From-address for migration-cloud intake/consent emails (falls back to DEFAULT_FROM_EMAIL)."),
+    SettingSpec("MIGRATION_CLOUD_LEGACY_HEADER_DEPRECATION_DATE", "str", '"2026-08-18"', "ops", "Date string advertised as the legacy webhook-header deprecation cutover."),
+    SettingSpec("MIGRATION_CLOUD_MAA_DEFAULT_VERSION", "str", '"v1.0"', "compliance", "Default Migration Assistance Agreement version served to tenants."),
+    SettingSpec("MIGRATION_CLOUD_MAA_OPTIN_TENANT_IDS", "list", "[]", "compliance", "Tenant IDs opted into the preview MAA version."),
+    SettingSpec("MIGRATION_CLOUD_OPERATOR_ALERT_EMAIL", "str", '""', "ops", "Operator alert email for migration-cloud nightly smoke and retention sweeps."),
+    SettingSpec("MIGRATION_CLOUD_PUBLIC_HOSTNAME", "str", '""', "ops", "Public hostname used to build absolute migration-cloud consent links."),
+    SettingSpec("MIGRATION_CLOUD_RETENTION_DEFAULT_DAYS", "int", "180", "compliance", "Default retention window (days) for migration-cloud blobs."),
+    SettingSpec("MIGRATION_CLOUD_RETENTION_MIN_DAYS", "int", "90", "compliance", "Minimum retention floor (days) for migration-cloud blobs."),
+    SettingSpec("MIGRATION_CLOUD_SMOKE_NIGHTLY_ENABLED", "bool", "False", "ops", "Kill-switch enabling the migration-cloud nightly synthetic smoke run."),
+    SettingSpec("MIGRATION_CLOUD_SMOKE_SYNTHETIC_TENANT", "str", '"smoke-test-tenant"', "ops", "Slug of the synthetic tenant used by the migration-cloud nightly smoke."),
+    SettingSpec("MIGRATION_CLOUD_SSE_TRANSPORT", "str", '"wsgi-fallback"', "ops", "Transport mode for migration-cloud command-center SSE streams."),
+    SettingSpec("MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_DISABLED", "bool", "False", "ops", "Disable the migration-cloud rate-limit saturation alert."),
+    SettingSpec("MIGRATION_CLOUD_THROTTLE_SATURATION_ALERT_RATIO", "float", "0.95", "ops", "Saturation ratio threshold that triggers the rate-limit alert."),
+    # Observability metrics exporter
+    SettingSpec("OBSERVABILITY_METRICS_BACKEND", "str", '"noop"', "ops", "Metrics backend selector (noop / prometheus-client / statsd)."),
+    SettingSpec("OBSERVABILITY_METRICS_BEARER_TOKEN", "str", "None", "ops", "Bearer token required to scrape the /metrics endpoint (None disables auth)."),
+    SettingSpec("OBSERVABILITY_METRICS_STATSD_HOST", "str", '""', "ops", "StatsD host for the observability metrics exporter."),
+    SettingSpec("OBSERVABILITY_METRICS_STATSD_PORT", "int", "8125", "ops", "StatsD UDP port for the observability metrics exporter."),
+    SettingSpec("OBSERVABILITY_PROMETHEUS_NAMESPACE", "str", '"runmycampus"', "ops", "Prometheus metric namespace prefix."),
+    # OIDC relying party
+    SettingSpec("OIDC_PROVIDERS", "dict", "None", "identity", "OIDC relying-party provider configuration map."),
+    # Ollama (local AI runtime)
+    SettingSpec("OLLAMA_AUTO_DISCOVER", "bool", "True", "ops", "Probe common dev hosts for a reachable Ollama endpoint when unset/unreachable."),
+    SettingSpec("OLLAMA_BASE_URL", "str", '"http://127.0.0.1:11434"', "ops", "Base URL of the local Ollama AI runtime."),
+    SettingSpec("OLLAMA_BASE_URL_CANDIDATES", "str", '""', "ops", "Comma-separated candidate Ollama base URLs to probe."),
+    SettingSpec("OLLAMA_REQUIRE_LIVE", "bool", "False", "ops", "Require a live Ollama backend (block rules fallback) when truthy."),
+    # Operator alerting
+    SettingSpec("OPERATOR_ALERT_DRY_RUN", "bool", "True", "ops", "Suppress real delivery of operator alerts (dry-run mode)."),
+    SettingSpec("OPERATOR_ALERT_EMAIL", "str", '""', "ops", "Primary operator alert email address."),
+    SettingSpec("OPERATOR_ALERT_PAGERDUTY_INTEGRATION_KEY", "str", "None", "ops", "PagerDuty Events API integration key for operator alerts."),
+    SettingSpec("OPERATOR_ALERT_RATE_LIMIT_PER_HOUR", "int", "50", "ops", "Max operator alerts dispatched per hour."),
+    SettingSpec("OPERATOR_ALERT_SLACK_WEBHOOK_URL", "str", "None", "ops", "Slack incoming-webhook URL for operator alerts."),
+    SettingSpec("OPERATOR_MFA_REQUIRED_ON_MANAGER", "bool", "True", "security", "Require MFA on the operator/manager console."),
+    # Policy / ReBAC
+    SettingSpec("POLICY_PDP_ENFORCEMENT_MODE", "str", '"advisory"', "security", "Policy decision-point enforcement mode (advisory / enforce)."),
+    # Public status site
+    SettingSpec("PUBLIC_STATUS_SITE_ORIGIN", "str", '""', "ops", "Origin of the public status site for cross-link generation."),
+    # Redis / channels
+    SettingSpec("REDIS_URL", "str", "None", "ops", "Redis connection URL for cache, channels, and WAL stream."),
+    # RMC deployment / hub / edge / docs
+    SettingSpec("RMC_AUTO_APPLY_OFFLINE_BUNDLE_ON_PROVISION", "str", '"1"', "ops", "Auto-apply the offline bundle when provisioning an edge tenant."),
+    SettingSpec("RMC_DEPLOYMENT_PROFILE", "str", '"online"', "ops", "Deployment profile selector (online / edge / offline)."),
+    SettingSpec("RMC_EDGE_FALLBACK_ENABLED", "str", '""', "ops", "Enable edge-fallback middleware behavior when truthy."),
+    SettingSpec("RMC_GENERATED_DOCS_DIR", "str", "None", "ops", "Override directory for generated trust-center / evidence docs."),
+    SettingSpec("RMC_HUB_BASE_URL", "str", '""', "ops", "Base URL of the central RMC hub for offline-bundle sync."),
+    # RMC IAM snapshot
+    SettingSpec("RMC_IAM_SNAPSHOT_OFFLINE_TOKEN_TTL_HOURS", "int", "12", "identity", "TTL (hours) of offline IAM-snapshot tokens."),
+    SettingSpec("RMC_IAM_SNAPSHOT_SIGNING_KEY", "str", "None", "identity", "Signing key for IAM snapshot tokens."),
+    SettingSpec("RMC_IAM_SNAPSHOT_TTL_HOURS", "int", "168", "identity", "TTL (hours) of IAM snapshots."),
+    # RMC OIDC / OneRoster / SCIM tokens
+    SettingSpec("RMC_OIDC_REDIRECT_BASE_URL", "str", '""', "identity", "Base URL used to build OIDC redirect URIs."),
+    SettingSpec("RMC_ONEROSTER_ACCESS_TOKEN", "str", '""', "identity", "Static bearer token accepted by the OneRoster API (back-compat)."),
+    SettingSpec("RMC_ONEROSTER_ALLOW_DEV_OPEN", "bool", "False", "identity", "DEV/TEST ONLY escape hatch: when no access token is configured, accept any bearer. Default off — the roster API fails closed in production (v4.01)."),
+    SettingSpec("RMC_ONEROSTER_OAUTH_CLIENTS", "str", '""', "identity", "OneRoster OAuth2 client_credentials registry (client_id:secret pairs)."),
+    SettingSpec("RMC_SCIM_ACCESS_TOKEN", "str", '""', "identity", "Bearer token accepted by the SCIM provisioning API."),
+    # RMC operator / hosting
+    SettingSpec("RMC_OPERATOR_ALERT_EMAIL", "str", '""', "ops", "Operator alert email used by the platform email matrix (falls back to OPERATOR_ALERT_EMAIL)."),
+    SettingSpec("RMC_PRIMARY_HOST", "str", '""', "ops", "Primary host used to build absolute URLs in background tasks."),
+    SettingSpec("RMC_PUBLIC_SITE_URL", "str", '""', "marketing", "Public site base URL used in newsletter/marketing links."),
+    # RMC ReBAC
+    SettingSpec("RMC_REBAC_DUAL_RUN_LOG_MISMATCH", "bool", "True", "security", "Log mismatches between legacy and ReBAC authorization during dual-run."),
+    SettingSpec("RMC_REBAC_ENABLED", "bool", "True", "security", "Enable the ReBAC authorization engine."),
+    SettingSpec("RMC_REBAC_ENFORCE_SENSITIVE", "bool", "False", "security", "Enforce (not just log) ReBAC decisions on sensitive resources."),
+    # RMC RLS / sync signing keys
+    SettingSpec("RMC_RLS_JWT_SIGNING_KEY", "str", '""', "security", "Signing key for row-level-security JWT tenant claims."),
+    SettingSpec("RMC_SYNC_BUNDLE_SIGNING_KEY", "str", "None", "security", "Signing key for sync-engine delta bundles (falls back to SECRET_KEY)."),
+    # RMC SAML 2.0 SP
+    SettingSpec("RMC_SAML_ALLOW_RSA_SHA1", "bool", "False", "identity", "Allow legacy RSA-SHA1 SAML signature algorithm (default reject)."),
+    SettingSpec("RMC_SAML_CLOCK_SKEW_SECONDS", "int", "300", "identity", "SAML clock-skew tolerance in seconds (clamped 0-3600)."),
+    SettingSpec("RMC_SAML_HRD_MAPPING", "str", '""', "identity", "Home-realm-discovery domain-to-IdP mapping for SAML SSO."),
+    SettingSpec("RMC_SAML_IDP_CERT_PEM", "str", '""', "identity", "IdP X.509 signing certificate (PEM) for SAML."),
+    SettingSpec("RMC_SAML_IDP_SLO_URL", "str", '""', "identity", "IdP single-logout endpoint URL."),
+    SettingSpec("RMC_SAML_IDP_SSO_URL", "str", '""', "identity", "IdP single-sign-on endpoint URL."),
+    SettingSpec("RMC_SAML_LOGIN_BUTTON_LABEL", "str", '""', "identity", "Label shown on the SAML SSO login button."),
+    SettingSpec("RMC_SAML_METADATA_CACHE_SECONDS", "int", "86400", "identity", "Cache TTL (seconds) for served SP metadata (floor 60)."),
+    SettingSpec("RMC_SAML_METADATA_CONTACT_EMAIL", "str", '""', "identity", "Technical contact email published in SP metadata."),
+    SettingSpec("RMC_SAML_METADATA_ORG_NAME", "str", '""', "identity", "Organization name published in SP metadata."),
+    SettingSpec("RMC_SAML_METADATA_ORG_URL", "str", '""', "identity", "Organization URL published in SP metadata."),
+    SettingSpec("RMC_SAML_REPLAY_DEFENSE_ENABLED", "bool", "True", "identity", "Reject replayed SAML assertion IDs (one-time-use defense)."),
+    SettingSpec("RMC_SAML_REQUIRE_ASSERTION_SIGNATURE", "bool", "False", "identity", "Require the SAML Assertion element itself to be signed."),
+    SettingSpec("RMC_SAML_REQUIRE_ENCRYPTED_ASSERTION", "bool", "False", "identity", "Require successful EncryptedAssertion decryption on every response."),
+    SettingSpec("RMC_SAML_REQUIRE_REDIRECT_SIGNATURE", "bool", "False", "identity", "Require inbound Redirect-binding signature verification."),
+    SettingSpec("RMC_SAML_ALLOW_UNVERIFIED_ASSERTIONS", "bool", "False", "identity", "DEV/TEST ONLY escape hatch: allow ACS to provision+login from an unverified SAML assertion (no IdP cert / no signature). Never enable in production."),
+    SettingSpec("RMC_SAML_REQUIRE_SIGNATURE", "bool", "True", "identity", "Require a signature on inbound SAML responses. Secure-by-default (v4.01); the ACS fails closed unless RMC_SAML_ALLOW_UNVERIFIED_ASSERTIONS is set."),
+    SettingSpec("RMC_SAML_SIGNATURE_STRICT", "bool", "True", "identity", "Treat deps_missing signature verification as failure (strict mode)."),
+    SettingSpec("RMC_SAML_SP_BASE_URL", "str", '""', "identity", "Service-provider base URL used to build SAML endpoints."),
+    SettingSpec("RMC_SAML_SP_CERT_PEM", "str", '""', "identity", "Service-provider X.509 certificate (PEM)."),
+    SettingSpec("RMC_SAML_SP_ENTITY_ID", "str", '""', "identity", "Service-provider SAML entity ID."),
+    SettingSpec("RMC_SAML_SP_PRIVATE_KEY_PEM", "str", '""', "identity", "Service-provider private key (PEM) for SAML signing."),
+    SettingSpec("RMC_SAML_SP_SIGNATURE_ALG", "str", '"rsa-sha256"', "identity", "Signature algorithm used when the SP signs SAML messages."),
+    SettingSpec("RMC_SAML_SP_SIGN_LOGOUT", "bool", "False", "identity", "Sign outbound SP-initiated LogoutRequest/Response."),
+    SettingSpec("RMC_SAML_TENANT_ATTR_MAP_OVERRIDES", "str", '""', "identity", "Per-tenant SAML attribute-map override registry."),
+    # RMC setup wizard
+    SettingSpec("RMC_WIZARD_ENGINE_OVERRIDES", "dict", "None", "ux", "Override map routing legacy wizard keys to new setup-studio engines."),
+    # Schoolops email delivery
+    SettingSpec("SCHOOLOPS_EMAIL_DELIVERY_RETRY_BACKOFF", "list", "[1, 5, 30]", "ops", "Per-attempt SMTP retry backoff in seconds (length = attempt count)."),
+    SettingSpec("SCHOOLOPS_EMAIL_DELIVERY_SSE_HEARTBEAT_SECONDS", "int", "5", "ops", "Heartbeat cadence (seconds) for the email-health SSE stream."),
+    SettingSpec("SCHOOLOPS_EMAIL_DELIVERY_SYNC_BUDGET_SECONDS", "int", "8", "ops", "Synchronous wall-clock budget (seconds) for in-request email sends."),
+    SettingSpec("SCHOOLOPS_EMAIL_DELIVERY_TENANT_HOURLY_CAP", "int", "200", "ops", "Per-tenant sliding-window cap on transactional+bulk sends per hour."),
+    # Security strength
+    SettingSpec("SECURITY_ENFORCE_MINIMUM_STRENGTH", "bool", "True", "security", "Enforce the minimum account security-strength middleware gate."),
+    SettingSpec("SECURITY_PLATFORM_MINIMUM_SCORE", "int", "40", "security", "Minimum platform security score (0-100) required for access."),
+    # Finance
+    SettingSpec("SEND_FINANCE_SIGNALS", "bool", "True", "ops", "Emit finance domain signals (disable to suppress side effects)."),
+    # Social media
+    SettingSpec("SOCIAL_ASSET_CDN_BASE", "str", '""', "marketing", "CDN base URL prefix for processed social-media assets."),
+    SettingSpec("SOCIAL_LIVE_FETCH_ENABLED", "bool", "False", "marketing", "Enable live outbound fetch from social-media providers."),
+    SettingSpec("SOCIAL_LIVE_PUBLISH_ENABLED", "bool", "False", "marketing", "Enable live publishing to social-media providers."),
+    # Tenant offboarding
+    SettingSpec("TENANT_OFFBOARDING_PLATFORM_EMAILS", "str", '""', "ops", "Comma-separated platform notification emails for tenant offboarding."),
 )
 
 

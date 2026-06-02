@@ -357,9 +357,9 @@ body.control-plane-shell #nav-sidebar,
 #nav-sidebar .admin-sidebar-model-link.active {
   background: var(--cp-ultra-sidebar-active) !important;
   color: var(--cp-ultra-gold) !important;
-  border-left: 3px solid var(--cp-ultra-sidebar-active-border);
-  margin-left: var(--rmc-lit-86a04737d1);
-  padding-left: var(--rmc-lit-a44a2e4315);
+  border-inline-start: 3px solid var(--cp-ultra-sidebar-active-border);
+  margin-inline-start: var(--rmc-lit-86a04737d1);
+  padding-inline-start: var(--rmc-lit-a44a2e4315);
   box-shadow: var(--rmc-lit-f63d47b744);
 }
 
@@ -398,8 +398,8 @@ body.control-plane-shell #nav-sidebar,
 .cp-sidebar-nav .nav-link.active {
   background: var(--cp-ultra-sidebar-active);
   color: var(--cp-ultra-gold);
-  border-left: 3px solid var(--cp-ultra-sidebar-active-border);
-  padding-left: var(--rmc-lit-e0042ab2b3);
+  border-inline-start: 3px solid var(--cp-ultra-sidebar-active-border);
+  padding-inline-start: var(--rmc-lit-e0042ab2b3);
   box-shadow: var(--rmc-lit-f63d47b744);
 }
 

@@ -74,7 +74,7 @@ class LTIToolRegistrationForm(forms.Form):
         help_text="Where the platform redirects to start the OIDC flow.",
     )
     tool_redirect_uris = forms.CharField(
-        max_length=1024,
+        max_length=1024,  # magic-number-allow: charfield-max-length
         label="Tool redirect URIs (comma-separated)",
         help_text="Allowed redirect_uri values for OIDC callbacks.",
     )

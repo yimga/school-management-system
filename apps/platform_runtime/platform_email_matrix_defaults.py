@@ -89,6 +89,17 @@ def _register_default_email_rows() -> int:
             cooldown_minutes=60,
             user_unsubscribable=False,
         ),
+        EmailMatrixRow(
+            event_type="workflow.sla.breached",
+            classification=CLASSIFICATION_OPERATOR,
+            subject_template="[RMC] Workflow SLA exceeded: {{ workflow_label|default:workflow_key }}",
+            body_template="emails/operator_workflow_sla_breached.txt",
+            recipient_resolver=resolve_operator_inbox,
+            priority=PRIORITY_OPERATOR_ALERT,
+            cooldown_minutes=30,
+            user_unsubscribable=False,
+            description="Workflow exceeded registry slo_seconds while running or on finalize.",
+        ),
         # ── Tenant admin transactional ─────────────────────────────────────
         EmailMatrixRow(
             event_type="tenant.signup.verification_sent",

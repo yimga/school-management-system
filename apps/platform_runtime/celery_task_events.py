@@ -69,9 +69,24 @@ def connect_celery_platform_task_signals() -> None:
             )
         except Exception:
             logger.debug("celery_task_started emit skipped", exc_info=True)
+        try:
+            from apps.platform_runtime.workflow_celery_bridge import celery_task_prerun
+
+            celery_task_prerun(
+                task_id=str(task_id) if task_id else None,
+                task=task or sender,
+                kwargs=kwargs if isinstance(kwargs, dict) else None,
+            )
+        except Exception:
+            logger.debug("workflow_celery_prerun skipped", exc_info=True)
 
     def on_postrun(
-        sender=None, task_id=None, task=None, kwargs=None, **kw: Any
+        sender=None,
+        task_id=None,
+        task=None,
+        kwargs=None,
+        state=None,
+        **kw: Any,
     ) -> None:
         name = _task_display_name(task or sender)
         if name in _CELERY_TASK_EVENT_DENYLIST or name.startswith("celery."):
@@ -89,6 +104,16 @@ def connect_celery_platform_task_signals() -> None:
             )
         except Exception:
             logger.debug("celery_task_completed emit skipped", exc_info=True)
+        try:
+            from apps.platform_runtime.workflow_celery_bridge import celery_task_postrun
+
+            celery_task_postrun(
+                task_id=str(task_id) if task_id else None,
+                task=task or sender,
+                state=str(state) if state is not None else None,
+            )
+        except Exception:
+            logger.debug("workflow_celery_postrun skipped", exc_info=True)
 
     def on_failure(
         sender=None, task_id=None, exception=None, kwargs=None, **kw: Any
@@ -110,6 +135,15 @@ def connect_celery_platform_task_signals() -> None:
             )
         except Exception:
             logger.debug("celery_task_failed emit skipped", exc_info=True)
+        try:
+            from apps.platform_runtime.workflow_celery_bridge import celery_task_failure
+
+            celery_task_failure(
+                task_id=str(task_id) if task_id else None,
+                exception=exception if isinstance(exception, BaseException) else None,
+            )
+        except Exception:
+            logger.debug("workflow_celery_failure skipped", exc_info=True)
 
     task_prerun.connect(on_prerun, weak=False)
     task_postrun.connect(on_postrun, weak=False)

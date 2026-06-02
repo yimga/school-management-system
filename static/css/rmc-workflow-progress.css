@@ -64,6 +64,20 @@
 }
 
 /* ───── Stuck halo (urgent) ───── */
+.rmc-wfp-chip[data-rmc-wfp-state="degrading"] {
+  border-color: var(--color-warning-border, var(--hairline));
+}
+
+.rmc-wfp-chip[data-rmc-wfp-state="degrading"]::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid var(--color-warning-border, var(--text-primary));
+  opacity: 0.35;
+  z-index: -1;
+}
+
 .rmc-wfp-chip[data-rmc-wfp-state="stuck"] {
   border-color: var(--color-warning-border, var(--hairline));
 }
@@ -134,6 +148,17 @@
   display: flex;
 }
 
+body[data-rmc-assist-dock="mounted"] .rmc-wfp-card {
+  bottom: calc(
+    var(--rmc-assist-edge-bottom, 16px) +
+    var(--rmc-assist-rail-height, 120px) +
+    var(--rmc-wfp-chip-size) +
+    0.75rem +
+    env(safe-area-inset-bottom, 0px)
+  );
+  right: var(--rmc-assist-edge-right, max(1rem, env(safe-area-inset-right, 0px)));
+}
+
 @keyframes rmc-wfp-card-in {
   from { transform: scale(0.96) translateY(6px); opacity: 0; }
   to   { transform: scale(1) translateY(0); opacity: 1; }
@@ -143,9 +168,37 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--hairline);
   font-weight: 600;
+}
+
+.rmc-wfp-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-inline-start: auto;
+  margin-inline-end: 0.35rem;
+}
+
+.rmc-wfp-card__deck {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--brand-accent, var(--school-primary));
+}
+
+.rmc-wfp-card__explain {
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid var(--hairline);
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--text-primary);
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
 }
 
 .rmc-wfp-card__title {
@@ -232,6 +285,9 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rmc-wfp-run__pill--running {
@@ -247,6 +303,94 @@
 .rmc-wfp-run__pill--failed {
   background: var(--color-danger-fg, var(--text-primary));
   color: var(--surface-bg);
+}
+
+/* ───── Percent bar (reference: horizontal progress + label) ───── */
+.rmc-wfp-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rmc-wfp-bar__label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.7rem;
+  color: var(--text-secondary, var(--text-primary));
+}
+
+.rmc-wfp-bar__pct {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.rmc-wfp-bar__track {
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--hairline);
+  overflow: hidden;
+}
+
+.rmc-wfp-bar__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand-accent, var(--text-primary));
+  transition: width var(--motion-default, 220ms) var(--ease-standard, ease-out);
+}
+
+.rmc-wfp-bar[data-rmc-wfp-bar-state="stuck"] .rmc-wfp-bar__fill {
+  background: var(--color-warning-fg, var(--text-primary));
+}
+
+.rmc-wfp-bar[data-rmc-wfp-bar-state="failed"] .rmc-wfp-bar__fill {
+  background: var(--color-danger-fg, var(--text-primary));
+}
+
+/* ───── Inline page strip (operator + tenant shells) ───── */
+.rmc-wfp-inline {
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+
+.rmc-wfp-inline__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, var(--surface-bg));
+}
+
+.rmc-wfp-inline__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 10rem;
+  flex: 1 1 12rem;
+}
+
+.rmc-wfp-inline__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rmc-wfp-inline__step {
+  font-size: 0.75rem;
+  color: var(--text-secondary, var(--text-primary));
+}
+
+.rmc-wfp-inline .rmc-wfp-bar {
+  flex: 2 1 14rem;
+  min-width: 10rem;
+}
+
+.rmc-wfp-inline__open {
+  flex-shrink: 0;
 }
 
 /* ───── Step train ───── */
@@ -367,6 +511,25 @@
 }
 
 /* ───── Reduced motion ───── */
+.rmc-wfp-tenant-trust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, var(--surface-bg));
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.rmc-wfp-tenant-trust__label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rmc-wfp-chip::before,
   .rmc-wfp-train__bead[data-status="running"],

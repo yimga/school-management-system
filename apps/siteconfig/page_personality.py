@@ -57,6 +57,14 @@ PERSONALITY_SLUGS: Tuple[str, ...] = (
     "reports",
     "settings",
     "auth",
+    # v4.01.35 — tenant functional-area personalities. Previously these
+    # surfaces fell through to the generic "tenant-admin" indigo (or, for
+    # the accounts-mounted backend, were mis-bucketed as "auth"). Each now
+    # carries its own accent so a destination page signals its area.
+    "academic",
+    "people",
+    "communication",
+    "admissions",
     "default",
 )
 
@@ -81,6 +89,20 @@ _PATH_PREFIX_RULES: Tuple[Tuple[str, str], ...] = (
     ("/dashboard/student/", "student"),
     ("/dashboard/teacher/", "teacher"),
     ("/dashboard/backend/", "tenant-admin"),
+    # --- Tenant functional areas ------------------------------------------
+    # The accounts app is mounted at /authentication/, so the entire tenant
+    # backend (dashboard, roster, applicants) lives under /authentication/backend/.
+    # These specific rules MUST precede the generic ("/authentication/", "auth")
+    # rule below — otherwise the whole backend mis-resolves to the auth personality.
+    ("/authentication/backend/students/", "people"),
+    ("/authentication/backend/teachers/", "people"),
+    ("/authentication/backend/classrooms/", "people"),
+    ("/authentication/backend/alumni/", "people"),
+    ("/authentication/backend/applicants/", "admissions"),
+    ("/authentication/backend/", "tenant-admin"),
+    ("/academics/", "academic"),
+    ("/evals/", "academic"),
+    ("/communication/", "communication"),
     # --- Finance / billing ------------------------------------------------
     ("/finance/", "finance"),
     ("/billing/", "finance"),

@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.compliance.models import EraseRequest, ExportJob
+from apps.compliance.tenant_scope import get_compliance_scope_school
 
 
 def _is_data_rights_operator(user):
@@ -28,6 +29,23 @@ def _is_data_rights_operator(user):
         or user.is_staff
         or user.has_perm("compliance.manage_data_rights")
     )
+
+
+def _operator_scoped(request, model):
+    """v4.01 SECURITY — scope a data-rights queryset to the operator's tenant.
+
+    Compliance models have no RLS, so a bare ``Model.objects`` lets any tenant
+    operator read/mutate another tenant's data-rights records by PK. Platform
+    control-plane operators (no bound school) legitimately see all tenants; a
+    tenant-scoped operator sees only their own school. ``get_compliance_scope_school``
+    raises PermissionDenied when there is neither a school context nor
+    control-plane access, so this fails closed.
+    """
+    school = get_compliance_scope_school(request)
+    qs = model.objects.all()
+    if school is None:
+        return qs
+    return qs.filter(school=school)
 
 
 @login_required
@@ -39,10 +57,10 @@ def data_rights_queue(request):
     overdue_only = request.GET.get("overdue") == "1"
     now = timezone.now()
 
-    exports = ExportJob.objects.select_related("requested_by", "school").order_by(
-        "-created_at"
-    )
-    erases = EraseRequest.objects.select_related(
+    exports = _operator_scoped(request, ExportJob).select_related(
+        "requested_by", "school"
+    ).order_by("-created_at")
+    erases = _operator_scoped(request, EraseRequest).select_related(
         "requested_by", "school", "subject_user"
     ).order_by("-created_at")
 
@@ -74,7 +92,7 @@ def data_rights_queue(request):
 @user_passes_test(_is_data_rights_operator)
 @require_POST
 def approve_erase(request, pk):
-    erase = get_object_or_404(EraseRequest, pk=pk)
+    erase = get_object_or_404(_operator_scoped(request, EraseRequest), pk=pk)
     if erase.status == EraseRequest.Status.PENDING:
         erase.status = EraseRequest.Status.APPROVED
         erase.save(update_fields=["status"])
@@ -88,7 +106,7 @@ def approve_erase(request, pk):
 @user_passes_test(_is_data_rights_operator)
 @require_POST
 def reject_erase(request, pk):
-    erase = get_object_or_404(EraseRequest, pk=pk)
+    erase = get_object_or_404(_operator_scoped(request, EraseRequest), pk=pk)
     if erase.status in (EraseRequest.Status.PENDING, EraseRequest.Status.APPROVED):
         erase.status = EraseRequest.Status.REJECTED
         erase.completed_at = timezone.now()
@@ -103,14 +121,21 @@ def reject_erase(request, pk):
 @user_passes_test(_is_data_rights_operator)
 @require_POST
 def complete_erase(request, pk):
-    erase = get_object_or_404(EraseRequest, pk=pk)
-    if erase.status == EraseRequest.Status.APPROVED:
-        erase.status = EraseRequest.Status.COMPLETED
-        erase.completed_at = timezone.now()
-        erase.save(update_fields=["status", "completed_at"])
-        messages.success(request, f"Erase request {pk} marked complete.")
-    else:
+    # v4.01 COMPLIANCE — completing an erase MUST actually scrub the subject's
+    # PII. Previously this flipped status→COMPLETED without erasing anything,
+    # recording the Art.17 obligation as discharged while the data remained.
+    # Route through the single sanctioned scrub-and-complete transition.
+    from apps.compliance.gdpr_services import fulfill_pending_erasure
+
+    erase = get_object_or_404(_operator_scoped(request, EraseRequest), pk=pk)
+    if erase.status != EraseRequest.Status.APPROVED:
         messages.warning(request, f"Erase request {pk} must be approved before completing.")
+        return _back_to_queue(request)
+    result = fulfill_pending_erasure(erase.pk, fulfilled_by_user_id=getattr(request.user, "id", None))
+    if result.get("ok"):
+        messages.success(request, f"Erase request {pk} fulfilled — PII scrubbed and marked complete.")
+    else:
+        messages.error(request, f"Erase request {pk} NOT completed: {result.get('error') or 'scrub failed'}.")
     return _back_to_queue(request)
 
 
@@ -118,7 +143,7 @@ def complete_erase(request, pk):
 @user_passes_test(_is_data_rights_operator)
 @require_POST
 def complete_export(request, pk):
-    job = get_object_or_404(ExportJob, pk=pk)
+    job = get_object_or_404(_operator_scoped(request, ExportJob), pk=pk)
     if job.status != ExportJob.Status.COMPLETED:
         job.status = ExportJob.Status.COMPLETED
         job.completed_at = timezone.now()

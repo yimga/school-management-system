@@ -5,14 +5,14 @@
 {% block content %}
 <div class="container-fluid rmc-page" style="max-width: 880px;">
   <header class="rmc-page__header" style="margin-bottom: 16px;">
-    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">{% trans "Institution type assignment" %}</h1>
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "Institution type assignment" %}</h1>
     <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 64ch;">
       {% trans "Charter authorizer, IB + Cambridge programmes, and faith tradition for this tenant. Drives Wedge 16 / 17 / 18 detail pages and per-school reporting." %}
     </p>
   </header>
 
   {% if not is_admin_user %}
-    <div style="padding: 12px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated); color: var(--text-secondary); font-size: 13px; margin-bottom: 16px;">
+    <div style="padding: 12px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated); color: var(--text-secondary); font-size: var(--type-size-caption); margin-bottom: 16px;">
       {% trans "Read-only — admin role required to save changes." %}
     </div>
   {% endif %}
@@ -21,7 +21,7 @@
     {% csrf_token %}
 
     <fieldset style="border: 1px solid var(--hairline); border-radius: 12px; padding: 14px; background: var(--surface-elevated);">
-      <legend style="font-size: 0.9rem; padding: 0 6px; color: var(--text-secondary);">{% trans "Wedge 16 — Charter authorizer" %}</legend>
+      <legend style="font-size: var(--type-size-caption); padding: 0 6px; color: var(--text-secondary);">{% trans "Wedge 16 — Charter authorizer" %}</legend>
       <select name="charter_authorizer_code" {% if not is_admin_user %}disabled{% endif %} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-bg);">
         <option value="">— {% trans "none" %} —</option>
         {% for a in authorizers %}
@@ -31,8 +31,8 @@
     </fieldset>
 
     <fieldset style="border: 1px solid var(--hairline); border-radius: 12px; padding: 14px; background: var(--surface-elevated);">
-      <legend style="font-size: 0.9rem; padding: 0 6px; color: var(--text-secondary);">{% trans "Wedge 17 — IB + Cambridge programmes" %}</legend>
-      <p style="margin: 0 0 8px; font-size: 12px; color: var(--text-secondary);">{% trans "Hold Ctrl/Cmd to select multiple." %}</p>
+      <legend style="font-size: var(--type-size-caption); padding: 0 6px; color: var(--text-secondary);">{% trans "Wedge 17 — IB + Cambridge programmes" %}</legend>
+      <p style="margin: 0 0 8px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Hold Ctrl/Cmd to select multiple." %}</p>
       <select name="ib_programmes" multiple {% if not is_admin_user %}disabled{% endif %} style="width: 100%; min-height: 180px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-bg);">
         <optgroup label="{% trans 'IB programmes' %}">
           {% for p in ib_programmes %}
@@ -48,7 +48,7 @@
     </fieldset>
 
     <fieldset style="border: 1px solid var(--hairline); border-radius: 12px; padding: 14px; background: var(--surface-elevated);">
-      <legend style="font-size: 0.9rem; padding: 0 6px; color: var(--text-secondary);">{% trans "Wedge 18 — Faith tradition" %}</legend>
+      <legend style="font-size: var(--type-size-caption); padding: 0 6px; color: var(--text-secondary);">{% trans "Wedge 18 — Faith tradition" %}</legend>
       <select name="faith_tradition_code" {% if not is_admin_user %}disabled{% endif %} style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-bg);">
         <option value="">— {% trans "none" %} —</option>
         {% for t in traditions %}

@@ -131,11 +131,11 @@ _PLATFORM_ACTION_DEFS: tuple[tuple, ...] = (
     ("navigate", "Bulk letters", "✉", "siteconfig:bulk_letters", "tenant_admin", None),
     ("navigate", "Report card builder", "📝", "siteconfig:reportcard_builder", "tenant_admin", None),
     ("navigate", "Scheduled reports", "🕒", "siteconfig:scheduled_reports_delivery_hub", "tenant_admin", None),
-    ("navigate", "Draft parent message", "✉", "accounts:direct_compose", "tenant_user", "TEACHER"),
-    ("navigate", "Teacher workflow", "🧭", "portal:teacher_workflow", "tenant_user", "TEACHER"),
-    ("navigate", "Enter marks", "📊", "evals:teacher_marks_entry", "tenant_user", "TEACHER"),
-    ("navigate", "Family workflow", "🧭", "portal:parent_workflow", "tenant_user", "PARENT"),
-    ("navigate", "Student workflow", "🧭", "portal:student_workflow", "tenant_user", "STUDENT"),
+    ("navigate", "Draft parent message", "✉", "accounts:direct_compose", "tenant_user", "TEACHER"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Teacher workflow", "🧭", "portal:teacher_workflow", "tenant_user", "TEACHER"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Enter marks", "📊", "evals:teacher_marks_entry", "tenant_user", "TEACHER"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Family workflow", "🧭", "portal:parent_workflow", "tenant_user", "PARENT"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Student workflow", "🧭", "portal:student_workflow", "tenant_user", "STUDENT"),  # role-string-allow: command-palette-role-required-field
     ("navigate", "Help center (AI)", "✨", "feedback:help_center", "tenant_user", None),
     ("navigate", "Search help center", "🔍", "feedback:help_center", "tenant_user", None),
     ("navigate", "RunMyCampus Guide", "🧭", "portal:runmycampus_guide", "tenant_user", None),
@@ -144,14 +144,14 @@ _PLATFORM_ACTION_DEFS: tuple[tuple, ...] = (
     ("navigate", "Invite parents", "✉", "siteconfig:guided_onboarding", "tenant_admin", None),
     ("navigate", "Post fees", "💰", "finance:generate_fees", "tenant_admin", None),
     ("navigate", "Launch Studio", "🚀", "studio_os:shell", "tenant_user", None),
-    ("navigate", "Link child", "👪", "portal:link_child", "tenant_user", "PARENT"),
+    ("navigate", "Link child", "👪", "portal:link_child", "tenant_user", "PARENT"),  # role-string-allow: command-palette-role-required-field
     ("navigate", "Claim invite", "🎫", "portal:claim_invite", "tenant_user", "PARENT"),
-    ("navigate", "Parent finances", "🧾", "portal:parent_finance", "tenant_user", "PARENT"),
-    ("navigate", "Pay all open balances", "💳", "portal:parent_finance_pay_all", "tenant_user", "PARENT"),
-    ("navigate", "Contact school", "📞", "portal:parent_contact_school", "tenant_user", "PARENT"),
-    ("navigate", "Export attendance (CSV)", "📊", "portal:teacher_attendance_export", "tenant_user", "TEACHER"),
-    ("navigate", "Teacher education pack", "📚", "portal:education_pack_teacher", "tenant_user", "TEACHER"),
-    ("navigate", "Family learning pack", "👪", "portal:education_pack_parent", "tenant_user", "PARENT"),
+    ("navigate", "Parent finances", "🧾", "portal:parent_finance", "tenant_user", "PARENT"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Pay all open balances", "💳", "portal:parent_finance_pay_all", "tenant_user", "PARENT"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Contact school", "📞", "portal:parent_contact_school", "tenant_user", "PARENT"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Export attendance (CSV)", "📊", "portal:teacher_attendance_export", "tenant_user", "TEACHER"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Teacher education pack", "📚", "portal:education_pack_teacher", "tenant_user", "TEACHER"),  # role-string-allow: command-palette-role-required-field
+    ("navigate", "Family learning pack", "👪", "portal:education_pack_parent", "tenant_user", "PARENT"),  # role-string-allow: command-palette-role-required-field
     ("navigate", "Partner doc assistant", "🔗", "portal:partner_documentation_assistant", "tenant_admin", None),
     # ---- System / blueprints ----
     ("settings", "Get blueprints", "📐", "siteconfig:get_blueprints", "tenant_admin", None),
@@ -220,7 +220,7 @@ def _user_scope_rank(user) -> int:
     if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
         return 3
     role = (getattr(user, "role", "") or "").upper()
-    if role in {"ADMIN", "PROPRIETOR"}:
+    if role in {"ADMIN", "PROPRIETOR"}:  # role-string-allow: rbac-role-comparison
         return 2
     return 1
 

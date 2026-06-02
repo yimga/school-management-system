@@ -8,7 +8,7 @@
 <div class="container-fluid py-2">
   <p><a href="{{ hub_url }}" class="small">{% trans "← Operations hub" %}</a></p>
   <p class="small text-muted">{% trans "Draft and published master schedules. Generate or validate via API (scheduler) from integrations." %}</p>
-  <table class="table table-sm table-family align-middle">
+  <table class="table table-sm table-family align-middle rmc-data-table">
     <caption class="visually-hidden">{% trans "Timetabling" %} — {{ school.name }}</caption>
     <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Year" %}</th><th>{% trans_term "Term" key="term" %}</th><th>{% trans "Status" %}</th><th>{% trans "Generated" %}</th></tr></thead>
     <tbody>

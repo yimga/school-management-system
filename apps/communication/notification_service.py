@@ -113,7 +113,7 @@ def _bump_sms_usage_meter(school: Any, body: str) -> None:
         from apps.marketplace.monetization import USAGE_METRIC_SMS, record_usage_meter_increment
 
         text = body or ""
-        segments = max(1, (len(text) + 159) // 160)
+        segments = max(1, (len(text) + 159) // 160)  # magic-number-allow: sms-segment-length
         record_usage_meter_increment(
             school=school,
             metric_code=USAGE_METRIC_SMS,

@@ -93,7 +93,7 @@
     </div>
   </section>
 
-  <nav class="rmc-section-nav rmc-section-nav--mkt container d-flex flex-wrap gap-1 small py-2" aria-label="{% trans 'On this page' %}" data-rmc-toc>
+  <nav class="rmc-section-nav rmc-section-nav--mkt container d-flex flex-wrap gap-1 small py-2" aria-label="{% trans 'On this page' %}" data-rmc-toc data-rmc-section-nav="curated">
     <a href="#hero" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Overview" %}</a>
     <a href="#problem-statement" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "The pain" %}</a>
     <a href="#platform-pillars" class="rmc-section-nav__link" data-rmc-section-anchor>{% trans "Why switch" %}</a>
@@ -754,7 +754,7 @@
       {% endfor %}
     </div>
     <div class="table-responsive mt-4 mkt-home-price-matrix">
-      <table class="table table-family table-striped table-sm align-middle text-center">
+      <table class="table table-family table-striped table-sm align-middle text-center rmc-data-table">
         <caption class="visually-hidden">{{ plan.plan }}</caption>
         <thead><tr><th scope="col">{% trans "Capability" %}</th><th scope="col">{% trans "Starter" %}</th><th scope="col">{% trans "Growth" %}</th><th scope="col">{% trans "Enterprise" %}</th></tr></thead>
         <tbody>

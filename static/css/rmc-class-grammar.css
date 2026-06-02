@@ -4246,6 +4246,11 @@
   padding: 22px 26px;
   background: var(--surface-elevated, #ffffff); /* off-token-allow: rmc-page-header-glow-fallback */
   border: 1px solid var(--hairline, rgba(15,23,42,0.08)); /* off-token-allow: rmc-page-header-glow-fallback */
+  /* Per-page personality spine: a 3px accent on the start edge signals
+     the page's surface (finance green, reports slate, parent amber, …)
+     while the radial glow above stays tenant-brand. Falls back to brand,
+     then indigo, so headers without a personality are unchanged. */
+  border-inline-start: 3px solid var(--personality-accent, var(--brand-primary, #4f46e5)); /* off-token-allow: rmc-page-header-glow-personality-spine */
   box-shadow: var(--elev-1, 0 1px 2px rgba(15,23,42,0.06));
   isolation: isolate;
 }
@@ -4393,7 +4398,11 @@
   font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--text-tertiary, #6e6e73); /* off-token-allow: rmc-page-eyebrow-fallback */
+  /* Per-page personality: the eyebrow wears its surface's accent
+     (universally resolved on <body> via data-rmc-page-personality →
+     design-tokens-personality.css). Falls back to the muted tertiary
+     so pages without an active personality are visually unchanged. */
+  color: var(--personality-eyebrow, var(--text-tertiary, #6e6e73)); /* off-token-allow: rmc-page-eyebrow-fallback */
   font-weight: 700;
   margin-bottom: 4px;
 }
@@ -4754,4 +4763,106 @@
 .rmc-enrollment-forecast__band,
 .lx-admissions-queue {
   /* See static/css/rmc-bulk-actions.css and rmc-wizard-index.css for canonical declarations. */
+}
+
+/* ============================================================ */
+/* v2.36 — undefined-class CI gate closure (marketing-relevant mkt-* grammar; platform cp-*/rmc-* moved to rmc-class-grammar-ext.css) */
+/* ---- mkt-* marketing visual-engine surfaces ---- */
+.mkt-viz {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+}
+.mkt-viz--enterprise,
+.mkt-viz--gradebook,
+.mkt-viz--split-ledger,
+.mkt-viz--transit {
+  /* SVG variant scope, color via currentColor / per-svg tokens */
+}
+.mkt-footer-newsletter__status {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--mkt-fg, var(--text-secondary));
+}
+.mkt-ve-section__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  margin-bottom: var(--space-5, 1.25rem);
+}
+.mkt-ve-section__media {
+  display: block;
+  inline-size: 100%;
+}
+.mkt-ve-edge-map__panel,
+.mkt-ve-enterprise__viz,
+.mkt-ve-enterprise__ledger,
+.mkt-ve-governance__map,
+.mkt-ve-network__fragment,
+.mkt-ve-zero-ui__canvas-placeholder {
+  display: block;
+  inline-size: 100%;
+  min-block-size: 0;
+}
+.mkt-ve-enterprise__detail-title,
+.mkt-ve-enterprise__ledger-title,
+.mkt-ve-governance__panel-title,
+.mkt-ve-wizard__title {
+  margin: 0;
+  font-size: var(--type-size-md, 1rem);
+  font-weight: 600;
+  color: var(--mkt-fg, var(--text-primary));
+}
+.mkt-ve-enterprise__detail-body {
+  margin: var(--space-1, 0.25rem) 0 0;
+  color: var(--mkt-fg, var(--text-secondary));
+  font-size: var(--type-size-sm, 0.875rem);
+}
+.mkt-ve-enterprise__rollup,
+.mkt-ve-split__controls,
+.mkt-ve-wizard__modules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+.mkt-ve-governance__stamp,
+.mkt-ve-network__status,
+.mkt-ve-trinity__status,
+.mkt-ve-speed-duel__run {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--mkt-fg, var(--text-secondary));
+}
+.mkt-ve-entitlement,
+.mkt-ve-gradebook,
+.mkt-ve-platform-loop,
+.mkt-ve-platform-strip,
+.mkt-ve-zero-ui {
+  display: block;
+  inline-size: 100%;
+}
+.mkt-ve-loop--platform {
+  /* visual-engine loop variant scope */
+}
+.mkt-ve-trinity {
+  display: grid;
+  gap: var(--space-4, 1rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+}
+.mkt-ve-trinity__stage,
+.mkt-ve-trinity__chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  min-width: 0;
+}
+.mkt-ve-trinity__metric {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--mkt-fg, var(--text-secondary));
+}
+.mkt-ve-trinity__device--chromebook,
+.mkt-ve-trinity__device--noc {
+  /* device-frame variant scope */
+}
+.mkt-ve-speed-duel__panel--rmc {
+  /* speed-duel RMC-side panel variant scope */
 }

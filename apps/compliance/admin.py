@@ -197,15 +197,6 @@ def _erase_mark_rejected(modeladmin, request, queryset):
     messages.warning(request, f"{updated} erasure request(s) REJECTED.")
 
 
-@admin.action(description="Mark selected erasure requests as COMPLETED (status only — does not scrub data)")
-def _erase_mark_completed(modeladmin, request, queryset):
-    """Legacy: status-only flip. Use `_erase_approve_and_fulfill` to actually scrub PII."""
-    updated = queryset.filter(status=EraseRequest.Status.APPROVED).update(
-        status=EraseRequest.Status.COMPLETED, completed_at=timezone.now()
-    )
-    messages.success(request, f"{updated} erasure request(s) marked COMPLETED (no scrub).")
-
-
 @admin.action(description="Approve & fulfill: scrub PII and mark COMPLETED")
 def _erase_approve_and_fulfill(modeladmin, request, queryset):
     from .gdpr_services import fulfill_pending_erasure
@@ -249,11 +240,14 @@ class EraseRequestAdmin(admin.ModelAdmin):
     )
     date_hierarchy = "created_at"
     readonly_fields = ("created_at", "completed_at")
+    # v4.01 COMPLIANCE — the only path to COMPLETED is _erase_approve_and_fulfill,
+    # which runs the actual PII scrub. The legacy status-only "mark COMPLETED
+    # (no scrub)" action was removed: it recorded an Art.17 obligation as
+    # discharged while leaving the subject's PII in place.
     actions = [
         _erase_mark_approved,
         _erase_mark_rejected,
         _erase_approve_and_fulfill,
-        _erase_mark_completed,
     ]
     list_per_page = 50
 

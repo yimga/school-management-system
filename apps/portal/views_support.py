@@ -253,7 +253,7 @@ def support_ticket_detail(request, ticket_id):
                 GlobalSupportTicketReply.objects.create(
                     ticket=ticket,
                     author=request.user,
-                    body=body[:32000],
+                    body=body[:32000],  # magic-number-allow: text-body-char-truncation-cap
                     visibility=GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE,
                 )
                 try:
@@ -265,7 +265,7 @@ def support_ticket_detail(request, ticket_id):
                         str(ticket.pk),
                         actor_id=request.user.pk,
                         visibility=GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE,
-                        reply_body=body[:32000],
+                        reply_body=body[:32000],  # magic-number-allow: text-body-char-truncation-cap
                     )
                 except SUPPORT_TICKET_SOFT_FAILURES:
                     pass

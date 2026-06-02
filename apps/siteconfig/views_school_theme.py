@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import login_required, permission_required
+from apps.siteconfig.staff_context_redirects import redirect_staff_without_school
 
 
 THEME_CHOICES = [
@@ -20,8 +21,11 @@ def school_theme_settings(request):
     """Change school admin theme (theme_choice). Link to Theme Gallery doc."""
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "Select your school to change theme.")
-        return redirect("portal:home")
+        return redirect_staff_without_school(
+            request,
+            message="Select your school to change admin theme, or use Theme & Experience on the manager host.",
+            embed_aware=True,
+        )
     if not hasattr(school, "theme_choice"):
         messages.info(request, "Theme choice is not configured for this deployment.")
         return redirect("siteconfig:user_preferences")

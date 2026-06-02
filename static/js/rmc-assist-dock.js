@@ -138,9 +138,36 @@
     return marked;
   }
 
+  /** Measured height of the dock rail — drives back-to-top lift + notebook offset. */
+  function syncAssistRailMetrics(dock) {
+    if (!dock) dock = document.querySelector(".rmc-assist-dock");
+    var rail = dock && dock.querySelector(".rmc-assist-dock__rail");
+    if (!rail) return;
+    var h = Math.ceil(rail.getBoundingClientRect().height);
+    if (!h) return;
+    document.documentElement.style.setProperty("--rmc-assist-rail-height", h + "px");
+  }
+
+  function watchAssistRailMetrics(dock) {
+    if (!dock) return;
+    var rail = dock.querySelector(".rmc-assist-dock__rail");
+    if (!rail) return;
+    syncAssistRailMetrics(dock);
+    if (typeof ResizeObserver === "undefined") return;
+    if (dock.__rmcRailMetricsObs) {
+      dock.__rmcRailMetricsObs.disconnect();
+    }
+    var ro = new ResizeObserver(function () {
+      syncAssistRailMetrics(dock);
+    });
+    ro.observe(rail);
+    dock.__rmcRailMetricsObs = ro;
+  }
+
   window.RMCAssistDock = {
     closeAll: closeAll,
     syncBackdrop: syncBackdrop,
+    syncAssistRailMetrics: syncAssistRailMetrics,
     // Wave A introspection helpers — Wave B will append badge / presence
     // wiring under the same namespace.
     registrySnapshot: function () { return registry(); },
@@ -311,6 +338,9 @@
         : "bi bi-plus-lg";
       expandBtn.title = show ? L.collapse || "Fewer" : L.expand || "More";
       dock.classList.toggle("rmc-assist-dock--expanded", show);
+      window.requestAnimationFrame(function () {
+        syncAssistRailMetrics(dock);
+      });
     });
 
     backdrop.addEventListener("click", function () {
@@ -364,6 +394,8 @@
       expandBtn.hidden = true;
       secondary.hidden = true;
     }
+
+    watchAssistRailMetrics(dock);
 
     if (window.__rmcVocReinit) window.__rmcVocReinit();
     document.dispatchEvent(new CustomEvent("rmc-assist-dock-mounted"));
@@ -673,6 +705,11 @@
         secondary.appendChild(slotWrap);
       }
       rendered++;
+    }
+    if (rendered) {
+      window.requestAnimationFrame(function () {
+        syncAssistRailMetrics(dock);
+      });
     }
     return rendered;
   }

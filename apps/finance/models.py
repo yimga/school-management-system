@@ -1,5 +1,6 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
+import logging
 import uuid
 
 from django.conf import settings
@@ -644,8 +645,13 @@ class Invoice(models.Model):
 
         Note: The balance_amount field is deprecated and should be migrated to
         use this property. For now, both exist for backwards compatibility.
+
+        Soft-deleted/cancelled payments (deleted_at set) are excluded — counting
+        them would understate the outstanding balance after a payment reversal.
         """
-        total_paid = sum(p.amount for p in self.payments.all()) or Decimal("0.00")
+        total_paid = sum(
+            p.amount for p in self.payments.filter(deleted_at__isnull=True)
+        ) or Decimal("0.00")
         return max(self.total_amount - total_paid, Decimal("0.00"))
 
     def reconcile_balance(self) -> bool:
@@ -908,9 +914,13 @@ class Payment(models.Model):
                 raise ValidationError(
                     {"method": "Payment method is required for invoice payments."}
                 )
-            # Get total already paid (excluding this payment if editing)
+            # Get total already paid (excluding this payment if editing, and
+            # excluding soft-deleted/cancelled payments — consistent with
+            # Invoice.computed_balance, else a reversed payment would wrongly
+            # inflate paid_amount and reject a legitimate new payment).
             paid_amount = sum(
-                p.amount for p in self.invoice.payments.exclude(pk=self.pk)
+                p.amount
+                for p in self.invoice.payments.filter(deleted_at__isnull=True).exclude(pk=self.pk)
             ) or Decimal("0")
             remaining_balance = self.invoice.total_amount - paid_amount
 
@@ -981,6 +991,18 @@ class Payment(models.Model):
             self.status = "cancelled"
             fields.append("status")
         self.save(update_fields=fields)
+        # Soft-deleting a payment changes the invoice's outstanding balance and
+        # may flip its status (PAID -> PARTIAL/ISSUED). Recompute via the SOT so
+        # balance_amount + status don't drift. Best-effort: never break the delete.
+        if self.invoice_id:
+            try:
+                from apps.finance.services import recalculate_invoice
+
+                recalculate_invoice(self.invoice)
+            except Exception:  # noqa: BLE001 - best-effort reconcile, must not break delete
+                logging.getLogger(__name__).warning(
+                    "payment soft-delete invoice reconcile failed", exc_info=True
+                )
         return (1, {self._meta.label: 1})
 
     def _get_audit_region(self):

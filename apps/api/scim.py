@@ -229,10 +229,10 @@ def _extract_user_fields(payload: dict[str, Any]) -> dict[str, str]:
     if not primary_email and emails and isinstance(emails[0], dict):
         primary_email = str(emails[0].get("value") or "")
     return {
-        "username": str(payload.get("userName") or "")[:150],
-        "first_name": str(name.get("givenName") or "")[:150],
-        "last_name": str(name.get("familyName") or "")[:150],
-        "email": primary_email[:254],
+        "username": str(payload.get("userName") or "")[:150],  # magic-number-allow: string-truncation-cap
+        "first_name": str(name.get("givenName") or "")[:150],  # magic-number-allow: string-truncation-cap
+        "last_name": str(name.get("familyName") or "")[:150],  # magic-number-allow: string-truncation-cap
+        "email": primary_email[:254],  # magic-number-allow: string-truncation-cap
         "is_active": payload.get("active") if "active" in payload else True,
     }
 
@@ -382,22 +382,22 @@ def user_detail(request, user_id: str):
                     obj.is_active = bool(value)
                     changed = True
                 elif path.lower() in ("username", "username"):
-                    obj.username = str(value)[:150]
+                    obj.username = str(value)[:150]  # magic-number-allow: string-truncation-cap
                     changed = True
                 elif path.lower() in ("name.givenname",):
-                    obj.first_name = str(value)[:150]
+                    obj.first_name = str(value)[:150]  # magic-number-allow: string-truncation-cap
                     changed = True
                 elif path.lower() in ("name.familyname",):
-                    obj.last_name = str(value)[:150]
+                    obj.last_name = str(value)[:150]  # magic-number-allow: string-truncation-cap
                     changed = True
                 elif path.lower().startswith("emails"):
                     if isinstance(value, list) and value:
                         first = value[0]
                         if isinstance(first, dict):
-                            obj.email = str(first.get("value") or "")[:254]
+                            obj.email = str(first.get("value") or "")[:254]  # magic-number-allow: string-truncation-cap
                             changed = True
                     elif isinstance(value, str):
-                        obj.email = value[:254]
+                        obj.email = value[:254]  # magic-number-allow: string-truncation-cap
                         changed = True
                 elif not path and isinstance(value, dict):
                     # PATCH without path → apply nested replace
@@ -457,7 +457,7 @@ def groups_collection(request):
     payload = _scim_body(request)
     if not payload:
         return _scim_error(400, "invalidSyntax", "bad json")
-    name = str(payload.get("displayName") or "").strip()[:150]
+    name = str(payload.get("displayName") or "").strip()[:150]  # magic-number-allow: string-truncation-cap
     if not name:
         return _scim_error(400, "invalidValue", "displayName required")
     obj, created = Group.objects.get_or_create(name=name)

@@ -42,6 +42,20 @@ from apps.policies.models import PolicyDecisionLog, PolicyRule
 
 _TIER_ORDER = {"public": 0, "internal": 1, "restricted": 2, "confidential": 3, "secret": 4}
 
+# Truncation lengths for PolicyDecisionLog writes. The column-fit caps are DERIVED
+# from the model field max_length so they can never silently drift from the schema
+# (single source of truth = apps/policies/models.py::PolicyDecisionLog). decision_reason
+# is an unbounded TextField, so its cap is a deliberate soft bound on log-row size, and
+# the description preview is a display-truncation of the matched rule's description.
+_F = PolicyDecisionLog._meta.get_field
+_SUBJECT_ID_MAXLEN = _F("subject_id").max_length
+_SUBJECT_ROLE_MAXLEN = _F("subject_role").max_length
+_ACTION_MAXLEN = _F("action").max_length
+_RESOURCE_TYPE_MAXLEN = _F("resource_type").max_length
+_RESOURCE_ID_MAXLEN = _F("resource_id").max_length
+_DECISION_REASON_SOFT_CAP = 5000  # magic-number-allow: deliberate soft cap on unbounded TextField log rows
+_REASON_DESCRIPTION_PREVIEW = 160  # magic-number-allow: display-truncate matched-rule description into the reason
+
 
 @dataclass(frozen=True)
 class Decision:
@@ -173,7 +187,14 @@ def _matches_resource(rule: PolicyRule, resource: dict) -> bool:
 
 
 def _applicable_rules(school) -> Iterable[PolicyRule]:
-    qs = PolicyRule.objects.filter(is_active=True)  # tenant-isolation-allow: policy-decision-rules-global-catalog-lookup
+    # The base queryset below is a lazy intermediate — it never reaches the DB
+    # unscoped. Isolation is applied on the next lines via
+    # models_school_filter_for(school) => Q(school__isnull=True) | Q(school=school)
+    # (platform-wide rules PLUS this tenant's rules — never a foreign tenant's),
+    # or school__isnull=True when no tenant is in scope. PolicyRule is a hybrid
+    # global+tenant model (school=NULL = platform-wide), so the union — not a
+    # single school= filter — is the correct isolation primitive here.
+    qs = PolicyRule.objects.filter(is_active=True)  # tenant-isolation-allow: hybrid-platform-or-this-school-union-applied-below
     if school is not None:
         qs = qs.filter(models_school_filter_for(school))
     else:
@@ -248,21 +269,21 @@ def decide(
             f"entity={ctx['resource'].get('entity','?')}"
         )
         if rule.description:
-            reason += f" — {rule.description[:160]}"
+            reason += f" — {rule.description[:_REASON_DESCRIPTION_PREVIEW]}"
         break
 
     if log:
         try:
             PolicyDecisionLog.objects.create(
                 school=school,
-                subject_id=str(subject.get("user_id") or "")[:120],
-                subject_role=(subject.get("role") or "")[:64],
-                action=action[:64],
-                resource_type=(resource.get("entity") or "")[:120],
-                resource_id=str(resource.get("id") or "")[:190],
+                subject_id=str(subject.get("user_id") or "")[:_SUBJECT_ID_MAXLEN],
+                subject_role=(subject.get("role") or "")[:_SUBJECT_ROLE_MAXLEN],
+                action=action[:_ACTION_MAXLEN],
+                resource_type=(resource.get("entity") or "")[:_RESOURCE_TYPE_MAXLEN],
+                resource_id=str(resource.get("id") or "")[:_RESOURCE_ID_MAXLEN],
                 effect=effect,
                 matched_rule=matched_rule,
-                decision_reason=reason[:5000],
+                decision_reason=reason[:_DECISION_REASON_SOFT_CAP],
                 context_snapshot={
                     "subject": ctx["subject"],
                     "resource": ctx["resource"],

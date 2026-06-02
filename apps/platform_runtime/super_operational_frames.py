@@ -70,11 +70,33 @@ OBSERVABILITY_NAV = _groups(
     },
 )
 
+WORKFLOW_FLIGHT_DECK_NAV = _groups(
+    {
+        "key": "active",
+        "label": "Active",
+        "title": "Running & degrading",
+        "body": "Every in-flight workflow with honest ETA and step trains.",
+    },
+    {
+        "key": "incidents",
+        "label": "Incidents",
+        "title": "Cross-tenant signals",
+        "body": "Correlated remediation keys across tenants in the last 24h.",
+    },
+    {
+        "key": "autopilot",
+        "label": "Autopilot",
+        "title": "Trusted auto-fix",
+        "body": "Policies apply retry and token refresh without another click.",
+    },
+)
+
 SLUG_NAV: dict[str, list[dict[str, str]]] = {
     "incident_dashboard": MARKETPLACE_OPS_NAV,
     "package_rollout": MARKETPLACE_OPS_NAV,
     "slo_dashboard": OBSERVABILITY_NAV,
     "platform_incidents": OBSERVABILITY_NAV,
+    "workflow_flight_deck": WORKFLOW_FLIGHT_DECK_NAV,
 }
 
 

@@ -54,6 +54,21 @@ def _expected_token() -> str:
     )
 
 
+def _allow_dev_open() -> bool:
+    """v4.01 SECURITY escape hatch (default OFF).
+
+    When no ``RMC_ONEROSTER_ACCESS_TOKEN`` is configured, the roster API fails
+    closed. Set ``RMC_ONEROSTER_ALLOW_DEV_OPEN=1`` to restore the historical
+    "no token → open" behavior on a dev/test box only — never in production.
+    """
+    raw = str(
+        getattr(settings, "RMC_ONEROSTER_ALLOW_DEV_OPEN", "")
+        or os.environ.get("RMC_ONEROSTER_ALLOW_DEV_OPEN", "")
+        or ""
+    )
+    return raw.strip().lower() in ("1", "true", "yes", "on")
+
+
 def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
     """Bearer-token check. Returns (ok, error_code).
 
@@ -86,17 +101,41 @@ def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
         logger.debug("oneroster oauth2 decode failed: %s", exc)
         ok, payload = False, None
     if ok and payload is not None:
-        # Attach so per-endpoint scope checks (future) can read it.
+        # Attach so per-endpoint scope checks can read it.
         try:
             setattr(request, "_oneroster_oauth2", payload)
         except Exception:  # noqa: BLE001
             pass
+        # v4.01 SECURITY — enforce the token's bound tenant. An OAuth2 token is
+        # minted for a specific tenant_schema; if the request resolves to a
+        # different tenant, refuse rather than let the token read cross-tenant
+        # roster data. Tokens with no bound schema (legacy/global) are exempt.
+        token_schema = str((payload or {}).get("tenant_schema") or "").strip()
+        if token_schema:
+            req_schema = ""
+            try:
+                _t = getattr(request, "tenant", None)
+                if _t is not None:
+                    req_schema = str(getattr(_t, "schema_name", "") or "").strip()
+            except Exception:  # noqa: BLE001
+                req_schema = ""
+            if req_schema and req_schema != token_schema:
+                logger.warning(
+                    "oneroster oauth2: tenant mismatch (token=%s request=%s)",
+                    token_schema, req_schema,
+                )
+                return False, "tenant_mismatch"
         return True, None
     if not expected:
-        # Dev-mode soft-allow ONLY when neither path produced a token —
-        # preserves the historical "no env -> open" behavior.
-        logger.info("oneroster: no RMC_ONEROSTER_ACCESS_TOKEN configured (dev mode)")
-        return True, None
+        # v4.01 SECURITY — fail closed. Previously "no env token configured"
+        # soft-allowed ANY bearer (even garbage), opening every roster endpoint
+        # on a deployment that simply hadn't set RMC_ONEROSTER_ACCESS_TOKEN.
+        # The dev-open behavior now requires an explicit opt-in escape hatch.
+        if _allow_dev_open():
+            logger.info("oneroster: dev-open enabled (RMC_ONEROSTER_ALLOW_DEV_OPEN) — accepting bearer")
+            return True, None
+        logger.warning("oneroster: no token configured and dev-open disabled — refusing bearer")
+        return False, "invalid_token"
     return False, "invalid_token"
 
 

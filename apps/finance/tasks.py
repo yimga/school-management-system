@@ -20,6 +20,8 @@ from django.db import DatabaseError, transaction
 
 from celery import shared_task
 
+from apps.platform_runtime.workflow_tracker import pulse_workflow_step, track_workflow
+
 from apps.finance.models import (
     PaymentReminder,
     PaymentReminderLog,
@@ -956,6 +958,7 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
     )
 
     try:
+        pulse_workflow_step(None, "schedule")
         site = get_cached_site_settings()
         finance_settings = _get_finance_runtime_config(site)
 
@@ -1068,6 +1071,8 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
         # Check if approval required
         require_approval = finance_settings["auto_generate_require_approval"]
 
+        pulse_workflow_step(None, "generate", payload={"plan_count": len(plans)})
+
         if require_approval:
             # Create approval queue entry
             queue_entry = AutomationApprovalQueue.objects.create(
@@ -1116,6 +1121,11 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
             summary=execution_summary,
         )
 
+        pulse_workflow_step(
+            None,
+            "finalize",
+            payload={"invoices_created": total_invoices, "failed": total_failed},
+        )
         return {
             "status": "success",
             "invoices_created": total_invoices,
@@ -1137,6 +1147,11 @@ def _auto_generate_fee_invoices_body(dry_run: bool) -> dict:
     autoretry_for=FINANCE_TASK_RETRYABLE_FAILURES,
     max_retries=3,
     retry_backoff=True,
+)
+@track_workflow(
+    "finance_auto_generate_fee_invoices",
+    steps=("schedule", "generate", "finalize"),
+    expected_duration_seconds=600,  # magic-number-allow: workflow-expected-duration-seconds
 )
 def auto_generate_fee_invoices_task(
     self, dry_run: bool = False, school_id: str | None = None
@@ -1164,6 +1179,9 @@ def auto_generate_fee_invoices_task(
     return totals
 
 
+auto_generate_fee_invoices_task.rmc_workflow_explicit = True
+
+
 def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
     """Inner body: run inside tenant context."""
     from apps.academics.models import AcademicYear
@@ -1177,6 +1195,7 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
         status=AutomationExecutionLog.Status.PENDING,
     )
     try:
+        pulse_workflow_step(None, "resolve_years")
         site = get_cached_site_settings()
         finance_settings = _get_finance_runtime_config(site)
         enabled = finance_settings["fee_plan_auto_copy_enabled"]
@@ -1253,6 +1272,11 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
         skipped = 0
         # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
         errors = 0
+        pulse_workflow_step(
+            None,
+            "copy",
+            payload={"source_year": source_year.name, "target_year": target_year.name},
+        )
         for plan in source_plans:
             # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
             candidate_name = f"{plan.name} ({target_year.name})"
@@ -1302,6 +1326,7 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
                 "dry_run": dry_run,
             },
         )
+        pulse_workflow_step(None, "finalize", payload={"copied": copied, "errors": errors})
         return {
             "status": "success",
             "mode": mode,
@@ -1328,6 +1353,11 @@ def _auto_copy_fee_plans_body(dry_run: bool) -> dict:
     max_retries=3,
     retry_backoff=True,
 )
+@track_workflow(
+    "finance_auto_copy_fee_plans",
+    steps=("resolve_years", "copy", "finalize"),
+    expected_duration_seconds=300,
+)
 def auto_copy_fee_plans_task(
     self, dry_run: bool = False, school_id: str | None = None
 ) -> dict:
@@ -1344,6 +1374,9 @@ def auto_copy_fee_plans_task(
         totals["copied"] += result.get("copied", 0) or 0
         totals["errors"] += result.get("errors", 0) or 0
     return totals
+
+
+auto_copy_fee_plans_task.rmc_workflow_explicit = True
 
 
 def _update_invoice_statuses_body(dry_run: bool) -> dict:

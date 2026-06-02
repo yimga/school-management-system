@@ -81,7 +81,7 @@ def request_subscription(
     )
 
     addr = (email or "").strip().lower()
-    if not addr or "@" not in addr or len(addr) > 254:
+    if not addr or "@" not in addr or len(addr) > 254:  # magic-number-allow: field-char-cap
         return {"ok": False, "reason": "invalid_email"}
 
     # tenant-isolation-allow: public-marketing-newsletter-no-tenant-scope

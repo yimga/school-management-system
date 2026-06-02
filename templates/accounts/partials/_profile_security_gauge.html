@@ -38,7 +38,7 @@
       <div class="rmc-security-gauge__minimum-marker" style="left: {{ profile_security.security_minimum_required }}%;" title="{% trans 'Minimum required' %}"></div>
     </div>
     {% if not profile_security.meets_platform_minimum %}
-    <p class="small text-danger mb-0 mt-2">{% trans "You must reach the minimum score before using school workflows. Enable MFA, verify email, and use a strong password." %}</p>
+    <p class="small text-danger mb-0 mt-2">{% trans "To keep student and parent data safe, reach the minimum score before using school workflows — enable MFA, verify your email, and use a strong password." %}</p>
     {% endif %}
   </div>
   {% endif %}

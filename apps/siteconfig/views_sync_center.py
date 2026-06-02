@@ -8,6 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 
 from apps.accounts.decorators import login_required, permission_required
+from apps.siteconfig.staff_context_redirects import redirect_staff_without_school
 
 
 def _safe_sync_reverse(name: str):
@@ -51,8 +52,10 @@ def sync_center(request):
     """List SyncConflict for request.school; link to resolve from UI or admin."""
     school = getattr(request, "school", None)
     if not school:
-        messages.warning(request, "Select your school to view sync conflicts.")
-        return redirect("portal:home")
+        return redirect_staff_without_school(
+            request,
+            message="Select your school to view sync conflicts.",
+        )
     pref_url = reverse("siteconfig:user_preferences")
     try:
         from .models import SyncConflict
@@ -120,7 +123,10 @@ def sync_center_resolve(request, conflict_id):
     if not school:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return JsonResponse({"ok": False, "error": "No school"}, status=403)
-        return redirect("portal:home")
+        return redirect_staff_without_school(
+            request,
+            message="Select your school to resolve sync conflicts.",
+        )
     try:
         from .models import SyncConflict
     except ImportError:

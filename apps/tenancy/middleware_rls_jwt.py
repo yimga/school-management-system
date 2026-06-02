@@ -26,7 +26,6 @@ signing secret is ``settings.RMC_RLS_JWT_SIGNING_KEY`` env var, HMAC-SHA256).
 from __future__ import annotations
 
 import base64
-import hashlib
 import json
 import logging
 from collections.abc import Callable
@@ -105,26 +104,28 @@ def _verify_jwt(token: str) -> dict[str, Any] | None:
     return claims
 
 
-def _signing_key() -> str:
-    """Deprecated — kept for backwards-compat with callers (tests).
-
-    New code MUST use ``services.rls_jwt_signing.sign`` for the canonical
-    backend-aware dispatch.
-    """
-    key = getattr(settings, "RMC_RLS_JWT_SIGNING_KEY", "") or ""
-    if not key:
-        return hashlib.sha256(
-            (getattr(settings, "SECRET_KEY", "") + "::rmc-rls-jwt").encode("utf-8")
-        ).hexdigest()
-    return key
-
-
 def _extract_token(request: HttpRequest) -> str:
     header = request.META.get(_RLS_JWT_HEADER, "") or ""
     if header:
         return header.strip()
     cookie = request.COOKIES.get(_RLS_JWT_COOKIE, "") or ""
     return cookie.strip()
+
+
+def _request_school_id(request: HttpRequest) -> str:
+    """The host/session-resolved tenant id (set + GUC-bound by TenantMiddleware).
+
+    This is the authoritative tenant for the request — it is congruence-enforced
+    upstream by ``SessionSchoolBindingMiddleware`` (realign-or-logout) and drives
+    both app-layer authorization and ``RegionalDatabaseMiddleware`` DB routing.
+    Returns "" when no host tenant is resolved (e.g. a pure API request that is
+    authenticated only by the RLS-JWT itself).
+    """
+    school = getattr(request, "school", None)
+    if school is None:
+        return ""
+    sid = getattr(school, "pk", None) or getattr(school, "id", None)
+    return str(sid) if sid else ""
 
 
 class RLSJWTBindingMiddleware:
@@ -174,11 +175,41 @@ class RLSJWTBindingMiddleware:
         if not school_id:
             return self.get_response(request)
         request.rls_jwt_claims = claims  # downstream observability
+
+        # BENCHMARK 1 congruence guard (Routing vs RLS): TenantMiddleware has
+        # already bound app.current_school_id to the host/session-resolved
+        # ``request.school``. When that tenant is resolved AND the JWT cookie
+        # asserts a DIFFERENT school, the cookie is stale — the RLS-JWT cookie is
+        # host-scoped and only re-mints when absent, so an operator who switches
+        # tenants on the shared manager host keeps a cookie pinned to the first
+        # school. Binding the GUC to that stale value would silently diverge the
+        # RLS context from request.school and the DB router (cross-tenant read on
+        # the wrong tenant's connection). Bind to the AUTHORITATIVE host school
+        # instead and drop the stale cookie so the next response re-mints it.
+        host_school_id = _request_school_id(request)
+        clear_stale_cookie = False
+        if host_school_id and str(school_id) != host_school_id:
+            logger.warning(
+                "rls_jwt.school_divergence",
+                extra={
+                    "jwt_school_id": str(school_id),
+                    "host_school_id": host_school_id,
+                    "path": request.path,
+                },
+            )
+            authoritative_id = host_school_id
+            clear_stale_cookie = True
+        else:
+            authoritative_id = school_id
+
         bound = False
         try:
-            set_rls_school_id(school_id)
+            set_rls_school_id(authoritative_id)
             bound = True
-            return self.get_response(request)
+            response = self.get_response(request)
+            if clear_stale_cookie:
+                clear_rls_jwt_cookie(response)
+            return response
         except (ValueError, TypeError) as exc:
             logger.warning("rls_jwt.bind_failed: %s", exc)
             return self.get_response(request)

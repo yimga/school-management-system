@@ -1,7 +1,7 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-28T20:25:34+00:00",
+  "generated_at": "2026-06-02T16:59:37+00:00",
   "rule": "mass-action models must be written via apps.wal_stream, not direct ORM in views",
   "scan_dirs": [
     "apps"

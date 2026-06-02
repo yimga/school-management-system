@@ -41,6 +41,14 @@ on:
       - "beta/school-management-system/var/security-audit-baseline-theme-locked-token-text.json"
       - "beta/school-management-system/scripts/scan_pii_logging_smell.py"
       - "beta/school-management-system/var/security-audit-baseline-pii-logging-smell.json"
+      - "beta/school-management-system/scripts/scan_sigalrm_worker_thread_safety.py"
+      - "beta/school-management-system/var/security-audit-baseline-sigalrm-worker-thread-safety.json"
+      - "beta/school-management-system/scripts/scan_nuance_safe_eval_imports.py"
+      - "beta/school-management-system/var/security-audit-baseline-nuance-safe-eval-imports.json"
+      - "beta/school-management-system/scripts/verify_nuance_logic_toolset_contract.py"
+      - "beta/school-management-system/apps/siteconfig/nuance_engine.py"
+      - "beta/school-management-system/apps/policies/grading_nuance_templates.py"
+      - "beta/school-management-system/apps/evals/ranking.py"
       - "beta/school-management-system/scripts/scan_hardcoded_client_fetch_paths.py"
       - "beta/school-management-system/var/security-audit-baseline-hardcoded-client-fetch.json"
       - "beta/school-management-system/scripts/verify_platform_config_cascade.py"
@@ -553,7 +561,7 @@ jobs:
           python scripts/verify_studio_os_10x_completion.py --strict --json
 
   workflow-progress-bus:
-    name: "Workflow Progress Bus platform-wide gate (v4.00.97)"
+    name: "Workflow Progress Bus 10x gate (v4.01.18)"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     defaults:
@@ -568,9 +576,9 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install -r requirements.txt
-      - name: Run Workflow Progress Bus smoke (model + decorator + auto-fix + SSE + chip + wiring)
+      - name: Run Workflow Progress Bus 10x gate (smoke + coverage + shell wiring)
         run: |
-          python scripts/smoke_workflow_progress_bus.py
+          python scripts/verify_workflow_progress_10x.py
 
   email-infrastructure:
     name: "Email infrastructure 7-phase gate (v4.00.98)"
@@ -695,6 +703,20 @@ jobs:
       - name: Run pii-logging-smell scanner --strict
         run: |
           python scripts/scan_pii_logging_smell.py --strict
+
+  sigalrm-worker-thread-safety:
+    name: "SIGALRM / ITIMER only in guarded nuance_engine path (Gunicorn gthread)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Nuance engine safety (SIGALRM, logic toolset contract, tests)
+        run: |
+          python scripts/verify_nuance_engine_gunicorn_safety.py
 
   hardcoded-client-fetch:
     name: "Hardcoded client fetch paths (platform configurability cascade)"

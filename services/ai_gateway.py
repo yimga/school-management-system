@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -184,6 +185,91 @@ def _request_timeout(metadata: dict[str, Any] | None = None) -> int:
             except (TypeError, ValueError):
                 pass
     return base
+
+
+# ---------------------------------------------------------------------------
+# Per-tier circuit breaker (in-process; no DB / migration).
+#
+# When a network tier (litellm / vllm / removed_cloud_provider) keeps failing
+# — e.g. an upstream that hangs to the full request timeout — every invoke()
+# would otherwise re-probe it and burn the timeout again, starving worker
+# threads under load (the same failure mode behind the SSE thread-starvation
+# incident). After N consecutive call failures the tier's circuit OPENS for a
+# cooldown window: subsequent calls skip that tier immediately (fast-failover
+# to the next tier / rules), and the first probe after the window half-opens to
+# re-test. The deterministic "rules" tier is never circuit-broken so graceful
+# degradation always remains available.
+#
+# Env escape hatch (secure/resilient by default, fully tunable):
+#   AI_GATEWAY_CIRCUIT_BREAKER_ENABLED   default "1"  ("0" disables entirely)
+#   AI_GATEWAY_CIRCUIT_FAIL_THRESHOLD    default 3    consecutive failures to open
+#   AI_GATEWAY_CIRCUIT_COOLDOWN_SECONDS  default 30   open-state skip window
+# ---------------------------------------------------------------------------
+_CIRCUIT_STATE: dict[str, dict[str, float]] = {}
+_CIRCUIT_LOCK = threading.Lock()
+# Tiers that make a real outbound network call and can hang on a bad upstream.
+# Local/cheap tiers and the deterministic fallback are intentionally excluded.
+_CIRCUIT_BREAKABLE_TIERS = frozenset({"litellm", "vllm", "removed_cloud_provider", "ollama"})
+
+
+def _circuit_enabled() -> bool:
+    raw = (os.environ.get("AI_GATEWAY_CIRCUIT_BREAKER_ENABLED") or "1").strip().lower()
+    return raw not in {"0", "false", "no", "off"}
+
+
+def _circuit_fail_threshold() -> int:
+    try:
+        return max(1, int(os.environ.get("AI_GATEWAY_CIRCUIT_FAIL_THRESHOLD") or "3"))
+    except (TypeError, ValueError):
+        return 3
+
+
+def _circuit_cooldown_seconds() -> float:
+    try:
+        return max(1.0, float(os.environ.get("AI_GATEWAY_CIRCUIT_COOLDOWN_SECONDS") or "30"))
+    except (TypeError, ValueError):
+        return 30.0
+
+
+def _circuit_is_open(tier: str) -> bool:
+    """True iff this tier should be skipped right now (open circuit, still cooling)."""
+    if not _circuit_enabled() or tier not in _CIRCUIT_BREAKABLE_TIERS:
+        return False
+    with _CIRCUIT_LOCK:
+        st = _CIRCUIT_STATE.get(tier)
+        if not st:
+            return False
+        return st.get("opened_until", 0.0) > time.monotonic()
+
+
+def _circuit_record_failure(tier: str) -> None:
+    if not _circuit_enabled() or tier not in _CIRCUIT_BREAKABLE_TIERS:
+        return
+    threshold = _circuit_fail_threshold()
+    with _CIRCUIT_LOCK:
+        st = _CIRCUIT_STATE.setdefault(tier, {"failures": 0.0, "opened_until": 0.0})
+        st["failures"] = st.get("failures", 0.0) + 1
+        if st["failures"] >= threshold:
+            st["opened_until"] = time.monotonic() + _circuit_cooldown_seconds()
+            logger.warning(
+                "ai_gateway circuit OPEN for tier=%s after %d consecutive failures; "
+                "skipping for %.0fs",
+                tier, int(st["failures"]), _circuit_cooldown_seconds(),
+            )
+
+
+def _circuit_record_success(tier: str) -> None:
+    if tier not in _CIRCUIT_BREAKABLE_TIERS:
+        return
+    with _CIRCUIT_LOCK:
+        if tier in _CIRCUIT_STATE:
+            _CIRCUIT_STATE[tier] = {"failures": 0.0, "opened_until": 0.0}
+
+
+def reset_ai_gateway_circuits() -> None:
+    """Test/operational hook — clear all circuit-breaker state."""
+    with _CIRCUIT_LOCK:
+        _CIRCUIT_STATE.clear()
 
 
 def _cost_class_for_tier(tier: str | None) -> str:
@@ -611,10 +697,19 @@ def _check_and_consume_premium_budget(tenant_id: Any) -> tuple[bool, dict[str, A
                 "limit": limit,
                 "period": "day",
             }
-        if current == 0:
-            cache.set(cache_key, 1, timeout=86400 * 2)
-        else:
+        # Atomically seed the day-bucket then increment. ``cache.add`` is a
+        # no-op when the key already exists, so two concurrent cold-start
+        # callers can't both ``set(...,1)`` and silently drop an increment
+        # (lost-update). The 2-day TTL is anchored on the first seed and
+        # ``incr`` preserves it. Under contention we may still admit a
+        # request or two over ``limit`` (the read above races the incr) —
+        # that overrun is bounded by concurrency and intentional; the bug
+        # being closed is the unbounded counter-reset, not the soft edge.
+        cache.add(cache_key, 0, timeout=86400 * 2)
+        try:
             cache.incr(cache_key)
+        except ValueError:
+            cache.set(cache_key, 1, timeout=86400 * 2)
     except _CACHE_METRIC_ERRORS:
         return True, {}
     return True, {"premium_budget_remaining": max(0, limit - current - 1)}
@@ -631,15 +726,20 @@ def _check_and_consume_budget(tenant_id: Any) -> tuple[bool, dict[str, Any]]:
     key_tenant = str(tenant_id) if tenant_id is not None else "global"
     today = date.today().isoformat()
     cache_key = f"ai:budget:requests:{key_tenant}:{today}"
-    # Race: get and incr; we allow slightly over limit under contention
+    # Soft daily request budget. The read-then-incr below may admit a
+    # request or two over ``limit`` under contention (intentional soft
+    # edge), but the increment itself is made atomic via add+incr so the
+    # cold-start lost-update (two callers both seeing 0 and both set(1),
+    # dropping a count) cannot happen.
     try:
         current = cache.get(cache_key, 0) or 0
         if current >= limit:
             return False, {"budget_exceeded": True, "limit": limit, "period": "day"}
-        if current == 0:
-            cache.set(cache_key, 1, timeout=86400 * 2)  # 2 days TTL to cover day boundary
-        else:
+        cache.add(cache_key, 0, timeout=86400 * 2)  # 2 days TTL to cover day boundary
+        try:
             cache.incr(cache_key)
+        except ValueError:
+            cache.set(cache_key, 1, timeout=86400 * 2)
     except _CACHE_METRIC_ERRORS:
         # If cache fails, allow the request (fail open)
         return True, {}
@@ -831,6 +931,12 @@ def _invoke_inner(
     start = time.perf_counter()
 
     for tier in backends:
+        # Fast-failover: skip a tier whose circuit is open (recently failing in
+        # a row) so a hung/erroring upstream can't burn the request timeout on
+        # every call. "rules" is never breakable, so degradation still works.
+        if _circuit_is_open(tier):
+            errors[tier] = "circuit_open"
+            continue
         if tier == "litellm":
             if not allow_premium:
                 errors[tier] = "data_tier_disallowed"
@@ -891,6 +997,7 @@ def _invoke_inner(
             _audit_log(task_key, "rules", "rules", elapsed_ms, tenant_id, school_id, outcome, meta)
             return result, {"provider": "rules", "tier": "rules", "latency_ms": round(elapsed_ms, 2), **meta}
         if text:
+            _circuit_record_success(tier)
             elapsed_ms = (time.perf_counter() - start) * 1000
             model = meta.get("model", tier)
             schema_validation_failed = False
@@ -943,6 +1050,9 @@ def _invoke_inner(
             _audit_log(task_key, tier, model, elapsed_ms, tenant_id, school_id, "success", out_meta)
             return result, out_meta
         errors[tier] = meta.get("error", "unavailable")
+        # Count this as a real upstream failure for the circuit breaker (policy
+        # skips above use `continue` and never reach here).
+        _circuit_record_failure(tier)
 
     elapsed_ms = (time.perf_counter() - start) * 1000
     if ai_rules_fallback_allowed() and rules_allowed_for_call:

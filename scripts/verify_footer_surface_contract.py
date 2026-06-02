@@ -3,7 +3,8 @@
 Platform footer surface contract — prevents marketing mega-footer on wrong shells.
 
 Surfaces:
-  - operator-compact: manager login + control plane (rmc_operator_footer_compact.html)
+  - operator-civic: manager control plane + portal bridge (rmc_operator_footer_civic.html)
+  - operator-compact: manager login only (rmc_operator_footer_compact.html)
   - tenant-standard / tenant-minimal: portal_base + PORTAL_FOOTER_PARTIAL
   - marketing-full: runmycampus.com only (marketing_footer.html via base_marketing.html)
 """
@@ -44,19 +45,21 @@ FORBIDDEN_PATHS = [
 ]
 
 REQUIRED_MARKERS = [
-    ("templates/control_plane_skeleton.html", "rmc_operator_footer_compact.html"),
-    ("templates/control_plane_skeleton.html", 'data-rmc-footer-surface="operator-compact"'),
-    ("templates/admin/base.html", "rmc_operator_footer_compact.html"),
-    ("templates/admin/base.html", 'data-rmc-footer-surface="operator-compact"'),
+    ("templates/control_plane_skeleton.html", "rmc_operator_footer_civic.html"),
+    ("templates/partials/rmc_operator_footer_civic.html", 'data-rmc-footer-surface="operator-civic"'),
+    ("templates/control_plane_skeleton.html", "control_plane_unified_header.html"),
+    ("templates/admin/base.html", "rmc_operator_footer_civic.html"),
+    ("templates/admin/base.html", "control_plane_unified_header.html"),
     ("templates/admin/base_site.html", "rmc-footer-surfaces.css"),
     ("templates/base.html", "rmc-footer-surfaces.css"),
-    ("templates/base.html", "rmc_operator_footer_compact.html"),
     ("templates/portal_base.html", "PORTAL_FOOTER_PARTIAL"),
     ("templates/portal_base.html", "rmc-footer-surfaces.css"),
-    ("templates/portal_base.html", "rmc_operator_footer_compact.html"),
+    ("templates/portal_base.html", "rmc_operator_footer_civic.html"),
     ("templates/portal_base.html", "SHOW_MANAGER_CORPORATE_FOOTER"),
-    ("templates/portal_base.html", 'data-rmc-footer-surface="operator-compact"'),
+    ("templates/portal_base.html", "control_plane_unified_header.html"),
+    ("templates/partials/manager_login_footer.html", "rmc_operator_footer_compact.html"),
     ("static/css/rmc-footer-surfaces.css", "operator-compact"),
+    ("static/css/rmc-footer-surfaces.css", "operator-civic"),
     ("static/css/rmc-footer-surfaces.css", "tenant-standard"),
     ("apps/siteconfig/portal_chrome.py", '"marketing" not in fp.lower()'),
 ]

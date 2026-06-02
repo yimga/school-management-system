@@ -2480,18 +2480,6 @@ class CustomNuanceAdmin(ModelAdmin):
 register_platform_admin(CustomNuance, CustomNuanceAdmin)
 
 
-# Default test contexts for safety verification (fee-related hooks)
-def _default_nuance_test_contexts(hook_point):
-    if hook_point in ("tuition_calc", "fee_discount"):
-        return [
-            {"fee": 1000, "gpa": 3.5, "sibling_count": 0},
-            {"fee": 2000, "gpa": 4.0, "sibling_count": 2},
-        ]
-    if hook_point == "grade_weight":
-        return [{"score": 85, "weight": 0.3, "category": "exam"}]
-    return [{"value": 1}]
-
-
 class PendingNuanceAdmin(ModelAdmin):
     list_display = (
         "school",
@@ -2522,7 +2510,7 @@ class PendingNuanceAdmin(ModelAdmin):
     @admin.action(description="Approve selected pending nuances")
     def approve_pending_nuances(self, request, queryset):
         from django.db import transaction
-        from .nuance_engine import verify_nuance_safety
+        from .nuance_engine import default_test_contexts_for_hook, verify_nuance_safety
         from .models import CustomNuance
 
         pending = queryset.filter(status=PendingNuance.Status.PENDING).select_related(
@@ -2531,7 +2519,7 @@ class PendingNuanceAdmin(ModelAdmin):
         count = 0
         errors = []
         for pn in pending:
-            test_contexts = _default_nuance_test_contexts(pn.hook_point)
+            test_contexts = default_test_contexts_for_hook(pn.hook_point)
             ok, msg = verify_nuance_safety(
                 pn.proposed_logic, test_contexts, reject_negative_fee=True
             )

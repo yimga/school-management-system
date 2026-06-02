@@ -16,10 +16,10 @@ from django.utils import timezone
 from apps.metadata.services import get_dynamic_field_map, get_dynamic_field_value
 from apps.people.models import StudentProfile
 from apps.siteconfig.nuance_engine import (
-    _safe_eval,
+    DEFAULT_ALLOWED_KEYS,
     HOOK_REGISTRY,
     _scrub_context,
-    DEFAULT_ALLOWED_KEYS,
+    evaluate_json_logic,
 )
 
 from .models import (
@@ -92,11 +92,9 @@ def check_eligibility(
         return True, ""
     allowed = set(HOOK_REGISTRY.get("scholarship_eligibility", DEFAULT_ALLOWED_KEYS))
     scrubbed = _scrub_context(context, allowed)
-    try:
-        result = _safe_eval(criteria, scrubbed)
-    except (TypeError, ValueError, KeyError, AttributeError) as e:
-        logging.getLogger(__name__).debug("check_eligibility _safe_eval: %s", e)
-        return False, "Eligibility rule evaluation failed."
+    result = evaluate_json_logic(criteria, scrubbed)
+    if result is None and criteria:
+        return False, "Eligibility rule evaluation failed or timed out."
     if result is True:
         return True, ""
     if result is False:
@@ -300,7 +298,7 @@ def get_endowment_health_report(school_id: Any, *, years_ahead: int = 4) -> list
     years_ahead = max(1, min(int(years_ahead), 6))
     sources = AwardSource.objects.filter(school_id=school_id, is_active=True)
     result = []
-    trailing_window_start = timezone.now() - timedelta(days=365)
+    trailing_window_start = timezone.now() - timedelta(days=365)  # magic-number-allow: retention-window-days
     for src in sources:
         # tenant-isolation-allow: service-layer-scoped-via-caller-student-classroom-or-teacher-fk
         committed = FinancialAidApplication.objects.filter(

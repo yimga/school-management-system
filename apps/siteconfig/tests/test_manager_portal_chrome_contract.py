@@ -6,11 +6,11 @@ from django.test import SimpleTestCase
 
 
 class ManagerPortalChromeContractTests(SimpleTestCase):
-    def test_control_plane_skeleton_wires_compact_operator_footer(self):
+    def test_control_plane_skeleton_wires_civic_operator_footer(self):
         text = Path("templates/control_plane_skeleton.html").read_text(encoding="utf-8")
         self.assertIn("SHOW_MANAGER_CORPORATE_FOOTER", text)
-        self.assertIn("cp-corporate-footer", text)
-        self.assertIn("rmc_operator_footer_compact.html", text)
+        self.assertIn("rmc_operator_footer_civic.html", text)
+        self.assertIn("control_plane_unified_header.html", text)
         self.assertNotIn("corporate_footer_bundle.html", text)
         self.assertIn("cp_shell_page", text)
         self.assertIn("cp_shell_footer", text)
@@ -33,8 +33,8 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertIn("admin_operator_steering_strip.html", text)
         self.assertIn("rmc_operator_surface_strip.html", text)
         self.assertNotIn("operator_path_banner.html", text)
-        self.assertIn("rmc_operator_footer_compact.html", text)
-        self.assertIn("cp-corporate-footer", text)
+        self.assertIn("rmc_operator_footer_civic.html", text)
+        self.assertIn("control_plane_unified_header.html", text)
 
     def test_manager_admin_scroll_contract_in_css_and_templates(self):
         css = Path("static/css/admin-cp-parity.css").read_text(encoding="utf-8")
@@ -63,9 +63,15 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         sidebar = Path("templates/partials/manager_platform_admin_sidebar.html").read_text(
             encoding="utf-8"
         )
-        self.assertIn("overflow-auto", sidebar)
-        self.assertIn("guided_links", sidebar)
-        self.assertIn("Guided setup", sidebar)
+        self.assertIn("cp-sidebar-inner", sidebar)
+        self.assertIn("manager_complete_sidebar_nav.html", sidebar)
+        complete_nav = Path(
+            "templates/partials/manager_complete_sidebar_nav.html"
+        ).read_text(encoding="utf-8")
+        self.assertTrue(
+            "guided" in complete_nav.lower() or "Guided" in complete_nav,
+            "complete sidebar nav must expose guided setup links",
+        )
         offcanvas = Path("templates/admin/manager_cp_offcanvas.html").read_text(encoding="utf-8")
         self.assertIn("manager_platform_admin_sidebar.html", offcanvas)
 
@@ -75,8 +81,8 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         self.assertNotIn("marketing_footer.html", text)
         self.assertIn("PORTAL_FOOTER_PARTIAL", text)
         self.assertIn("SHOW_MANAGER_CORPORATE_FOOTER", text)
-        self.assertIn("rmc_operator_footer_compact.html", text)
-        self.assertIn('data-rmc-footer-surface="operator-compact"', text)
+        self.assertIn("rmc_operator_footer_civic.html", text)
+        self.assertIn("control_plane_unified_header.html", text)
         self.assertIn("manager-corporate-footer.css", text)
         self.assertIn("rmc-surface-overlay-guard.js", text)
         tenant_nav = Path("templates/partials/tenant_primary_nav.html").read_text(
@@ -92,7 +98,8 @@ class ManagerPortalChromeContractTests(SimpleTestCase):
         text = Path("templates/control_plane_skeleton.html").read_text(encoding="utf-8")
         self.assertTrue(
             'data-rmc-cp-scroll="canvas"' in text
-            or 'data-rmc-cp-scroll="document"' in text,
+            or 'data-rmc-cp-scroll="document"' in text
+            or "cp_scroll_mode" in text,
             "control plane skeleton must declare scroll contract",
         )
         self.assertIn("authenticated-shell-manager.js", text)

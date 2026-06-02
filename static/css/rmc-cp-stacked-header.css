@@ -1,0 +1,129 @@
+/**
+ * rmc-cp-stacked-header.css — v8 200x header stack (utility / live ticker / primary nav).
+ * Replaces the 48px consolidated squeeze; full-width canvas utilization.
+ */
+
+:root {
+  --rmc-cp-stacked-utility-h: 56px;
+  --rmc-cp-stacked-live-h: 40px;
+  --rmc-cp-stacked-primary-h: 44px;
+  --rmc-app-shell-header-h: calc(
+    var(--rmc-cp-stacked-utility-h) + var(--rmc-cp-stacked-live-h) +
+      var(--rmc-cp-stacked-primary-h)
+  );
+}
+
+body.control-plane-shell .cp-header--stacked,
+body.admin-manager-shell .cp-header--stacked {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+body.control-plane-shell .cp-header--stacked .cp-header__stacked-inner,
+body.admin-manager-shell .cp-header--stacked .cp-header__stacked-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+body.control-plane-shell .cp-header--stacked .cp-header__row--utility,
+body.admin-manager-shell .cp-header--stacked .cp-header__row--utility {
+  min-height: var(--rmc-cp-stacked-utility-h);
+  border-bottom: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+}
+
+body.control-plane-shell .cp-header--stacked .cp-header__row--live,
+body.admin-manager-shell .cp-header--stacked .cp-header__row--live {
+  min-height: var(--rmc-cp-stacked-live-h);
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  border-bottom: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+}
+
+body.control-plane-shell .cp-header--stacked .cp-header__row--live .cp-live-strip,
+body.admin-manager-shell .cp-header--stacked .cp-header__row--live .cp-live-strip {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+body.control-plane-shell .cp-header--stacked .cp-header__row--live .cp-activity-ticker,
+body.admin-manager-shell .cp-header--stacked .cp-header__row--live .cp-activity-ticker {
+  width: 100%;
+  max-width: none;
+}
+
+body.control-plane-shell .cp-header--stacked .cp-header__row--primary,
+body.admin-manager-shell .cp-header--stacked .cp-header__row--primary {
+  min-height: var(--rmc-cp-stacked-primary-h);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+body.control-plane-shell .cp-header--stacked .cp-header__row--primary .cp-primary-nav,
+body.admin-manager-shell .cp-header--stacked .cp-header__row--primary .cp-primary-nav {
+  width: 100%;
+  max-width: none;
+  flex-wrap: nowrap;
+  padding-inline: calc(var(--space-2, 8px) * 2);
+}
+
+body.control-plane-shell .cp-shell-content,
+body.control-plane-shell .rmc-app-shell__canvas-body,
+body.admin-manager-shell .cp-shell-content,
+body.admin-manager-shell .rmc-app-shell__canvas-body {
+  max-width: none;
+  width: 100%;
+}
+
+.rmc-wfp-header-slot {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  max-width: min(320px, 28vw);
+}
+
+.rmc-wfp-header-slot .rmc-wfp-inline {
+  width: 100%;
+  min-width: 0;
+}
+
+.rmc-wfp-header-slot .rmc-wfp-inline:not([hidden]) {
+  display: flex;
+}
+
+@media (max-width: 1199.98px) {
+  :root {
+    --rmc-cp-stacked-live-h: 36px;
+    --rmc-app-shell-header-h: calc(
+      var(--rmc-cp-stacked-utility-h) + var(--rmc-cp-stacked-live-h) +
+        var(--rmc-cp-stacked-primary-h)
+    );
+  }
+}
+
+@media (max-width: 991.98px) {
+  body.control-plane-shell .cp-header--stacked .cp-header__row--primary,
+  body.admin-manager-shell .cp-header--stacked .cp-header__row--primary {
+    display: none;
+  }
+
+  :root {
+    --rmc-app-shell-header-h: calc(
+      var(--rmc-cp-stacked-utility-h) + var(--rmc-cp-stacked-live-h)
+    );
+  }
+
+  .rmc-wfp-header-slot {
+    display: none;
+  }
+}

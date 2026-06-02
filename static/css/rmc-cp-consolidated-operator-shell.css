@@ -210,40 +210,61 @@ body.admin-manager-shell .cp-sidebar__item {
   min-height: calc(var(--space-2, 8px) * 4.5);
 }
 
-/* Footer: single micro-row when consolidated shell is active */
+/* Footer: full civic ribbon on operator surfaces */
 body.control-plane-shell.cp-shell-has-operator-footer .rmc-app-shell__footer,
 body.admin-manager-shell.cp-shell-has-operator-footer .rmc-app-shell__footer {
-  min-height: var(--rmc-cp-footer-compact-h);
+  min-height: auto;
   max-height: none;
 }
 
-body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .cp-footer-ribbon--primary,
-body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .cp-footer-ribbon--primary {
-  display: none;
+body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-civic,
+body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-civic {
+  width: 100%;
 }
 
-body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .cp-footer-ribbon--secondary,
-body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .cp-footer-ribbon--secondary {
+body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-civic .cp-footer-ribbon--primary,
+body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-civic .cp-footer-ribbon--primary {
+  display: flex;
+}
+
+body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact[data-rmc-footer-surface="operator-compact"] .cp-footer-ribbon--secondary,
+body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact[data-rmc-footer-surface="operator-compact"] .cp-footer-ribbon--secondary {
   min-height: var(--rmc-cp-footer-compact-h);
   padding-block: calc(var(--space-2, 8px) * 0.25);
   padding-inline: calc(var(--space-2, 8px) * 2);
 }
 
-body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .cp-footer-ribbon__stat,
-body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .cp-footer-ribbon__stat {
+body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact[data-rmc-footer-surface="operator-compact"] .cp-footer-ribbon__stat,
+body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact[data-rmc-footer-surface="operator-compact"] .cp-footer-ribbon__stat {
   font-size: 10px;
 }
 
-body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .rmc-civic-footer__social,
-body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .rmc-civic-footer__legal,
-body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .rmc-civic-footer__social,
-body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact .rmc-civic-footer__legal {
+body.control-plane-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-compact"]:not(.rmc-operator-footer-civic) .rmc-civic-footer__social,
+body.control-plane-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-compact"]:not(.rmc-operator-footer-civic) .rmc-civic-footer__legal,
+body.admin-manager-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-compact"]:not(.rmc-operator-footer-civic) .rmc-civic-footer__social,
+body.admin-manager-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-compact"]:not(.rmc-operator-footer-civic) .rmc-civic-footer__legal {
   display: none;
 }
 
+body.control-plane-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"] .cp-footer-ribbon--secondary,
+body.admin-manager-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"] .cp-footer-ribbon--secondary,
+body.portal-body-with-layout.manager-portal-bridge.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"] .cp-footer-ribbon--secondary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space-2, 8px));
+}
+
+body.control-plane-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"] .rmc-civic-footer__social,
+body.admin-manager-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"] .rmc-civic-footer__legal,
+body.portal-body-with-layout.manager-portal-bridge.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"] .rmc-civic-footer__social,
+body.portal-body-with-layout.manager-portal-bridge.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"] .rmc-civic-footer__legal {
+  display: flex;
+}
+
 /* Light canvas: compact footer inherits work-plane tokens (v8 preview parity) */
-html[data-resolved-theme="light"] body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact.rmc-civic-footer--dark,
-html[data-resolved-theme="light"] body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact.rmc-civic-footer--dark {
+html[data-resolved-theme="light"] body.control-plane-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact[data-rmc-footer-surface="operator-compact"].rmc-civic-footer--dark,
+html[data-resolved-theme="light"] body.admin-manager-shell.cp-shell-has-operator-footer .rmc-operator-footer-compact[data-rmc-footer-surface="operator-compact"].rmc-civic-footer--dark {
   --rmc-civic-fg: var(--text-secondary);
   --rmc-civic-fg-strong: var(--text-primary);
   --rmc-civic-fg-muted: var(--text-muted);

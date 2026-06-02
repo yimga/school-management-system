@@ -28,6 +28,14 @@ from apps.platform_runtime.structured_logging import (
 
 logger = logging.getLogger(__name__)
 
+
+def _access_log_middleware_writes_enabled() -> bool:
+    """Skip per-request AccessLog INSERTs during tests unless explicitly opted in."""
+    return bool(
+        getattr(settings, "COMPLIANCE_AUDIT_ACCESS_LOG_MIDDLEWARE_WRITES", True)
+    )
+
+
 # §2.4: Typed tuples for compliance middleware (allowlist 0).
 _RESET_DB_STATE_ERRORS = (
     TransactionManagementError,
@@ -119,6 +127,8 @@ class AuditLoggingMiddleware(MiddlewareMixin):
 
     def process_response(self, request, response):
         """Log the HTTP request/response to AccessLog."""
+        if not _access_log_middleware_writes_enabled():
+            return response
         try:
             if connection.needs_rollback:
                 _reset_db_state()
@@ -188,6 +198,8 @@ class AuditLoggingMiddleware(MiddlewareMixin):
 
     def process_exception(self, request, exception):
         """Log exceptions/failed requests."""
+        if not _access_log_middleware_writes_enabled():
+            return None
         try:
             if connection.needs_rollback:
                 _reset_db_state()
@@ -379,6 +391,11 @@ class IPCountryAccessMiddleware(MiddlewareMixin):
             return None
 
         if not is_allowed:
+            if not _access_log_middleware_writes_enabled():
+                return HttpResponseForbidden(
+                    f"<h1>Access Denied</h1><p>{reason}</p>"
+                    "<p>If you believe this is an error, contact support.</p>"
+                )
             # Log the blocked attempt (skip if AccessLog table missing)
             user = (
                 request.user

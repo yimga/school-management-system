@@ -1,24 +1,24 @@
 {
-  "generated_at": "2026-05-26T02:26:33.692404+00:00",
-  "finding_count": 60,
+  "generated_at": "2026-06-01T15:58:37.973596+00:00",
+  "finding_count": 68,
   "summary": {
     "by_surface": {
-      "tenant": 18,
+      "tenant": 22,
       "shell": 7,
-      "operator": 25,
-      "other": 10
+      "operator": 27,
+      "other": 12
     },
     "by_risk": {
-      "ok": 60
+      "ok": 68
     },
-    "hand_nav_count": 16,
-    "fold_required_count": 31,
-    "section_nav_off_count": 23,
+    "hand_nav_count": 13,
+    "fold_required_count": 34,
+    "section_nav_off_count": 29,
     "high_risk_count": 0,
     "medium_risk_count": 0,
     "unmitigated_high_risk_count": 0,
     "deprecated_horizontal_count": 0,
-    "ghost_jump_count": 1
+    "ghost_jump_count": 2
   },
   "shell_contract": [
     {
@@ -398,6 +398,30 @@
       "notes": []
     },
     {
+      "path": "templates/components/rmc_operational_center_frame.html",
+      "surface": "other",
+      "extends": null,
+      "fold_required": false,
+      "section_nav_off": false,
+      "section_nav_auto": false,
+      "hand_nav": false,
+      "ghost_jump_links": 4,
+      "anchor_count": 4,
+      "h2_h3_with_id": 0,
+      "h2_h3_total": 1,
+      "nav_label_attrs": 0,
+      "section_nav_curated": false,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": true,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
+        "section anchors in unified cp-hero__actions--toolbar row"
+      ]
+    },
+    {
       "path": "templates/components/rmc_operator_surface_strip.html",
       "surface": "other",
       "extends": null,
@@ -486,6 +510,30 @@
       "notes": []
     },
     {
+      "path": "templates/customersuccess/guided_onboarding.html",
+      "surface": "tenant",
+      "extends": "backend_base.html",
+      "fold_required": false,
+      "section_nav_off": false,
+      "section_nav_auto": false,
+      "hand_nav": true,
+      "ghost_jump_links": 0,
+      "anchor_count": 6,
+      "h2_h3_with_id": 0,
+      "h2_h3_total": 0,
+      "nav_label_attrs": 0,
+      "section_nav_curated": true,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
+        "curated TOC section nav (hand-authored)"
+      ]
+    },
+    {
       "path": "templates/feedback/help_center.html",
       "surface": "tenant",
       "extends": "backend_base.html",
@@ -558,6 +606,30 @@
       ]
     },
     {
+      "path": "templates/finance/workforce_command_center.html",
+      "surface": "tenant",
+      "extends": "portal_base.html",
+      "fold_required": true,
+      "section_nav_off": true,
+      "section_nav_auto": false,
+      "hand_nav": false,
+      "ghost_jump_links": 0,
+      "anchor_count": 0,
+      "h2_h3_with_id": 0,
+      "h2_h3_total": 0,
+      "nav_label_attrs": 0,
+      "section_nav_curated": false,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
+        "explicit data-rmc-section-nav=off"
+      ]
+    },
+    {
       "path": "templates/marketing/base_marketing.html",
       "surface": "shell",
       "extends": null,
@@ -584,15 +656,15 @@
       "surface": "operator",
       "extends": "control_plane_base.html",
       "fold_required": false,
-      "section_nav_off": false,
+      "section_nav_off": true,
       "section_nav_auto": false,
-      "hand_nav": true,
+      "hand_nav": false,
       "ghost_jump_links": 0,
-      "anchor_count": 6,
+      "anchor_count": 3,
       "h2_h3_with_id": 0,
       "h2_h3_total": 5,
       "nav_label_attrs": 0,
-      "section_nav_curated": true,
+      "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
       "sticky_section_nav": false,
@@ -600,7 +672,7 @@
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
-        "curated TOC section nav (hand-authored)"
+        "explicit data-rmc-section-nav=off"
       ]
     },
     {
@@ -610,31 +682,7 @@
       "fold_required": true,
       "section_nav_off": false,
       "section_nav_auto": false,
-      "hand_nav": true,
-      "ghost_jump_links": 0,
-      "anchor_count": 8,
-      "h2_h3_with_id": 0,
-      "h2_h3_total": 1,
-      "nav_label_attrs": 0,
-      "section_nav_curated": true,
-      "section_nav_skip": false,
-      "uses_toc_nav": false,
-      "sticky_section_nav": false,
-      "hero_toolbar_section_anchors": false,
-      "deprecated_horizontal": false,
-      "risk": "ok",
-      "notes": [
-        "curated TOC section nav (hand-authored)"
-      ]
-    },
-    {
-      "path": "templates/marketplace/compatibility_matrix.html",
-      "surface": "operator",
-      "extends": "control_plane_base.html",
-      "fold_required": false,
-      "section_nav_off": false,
-      "section_nav_auto": false,
-      "hand_nav": true,
+      "hand_nav": false,
       "ghost_jump_links": 0,
       "anchor_count": 4,
       "h2_h3_with_id": 0,
@@ -648,23 +696,23 @@
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
-        "curated TOC section nav (hand-authored)"
+        "data-rmc-section-nav=curated or TOC partial"
       ]
     },
     {
-      "path": "templates/marketplace/governance_console.html",
+      "path": "templates/marketplace/compatibility_matrix.html",
       "surface": "operator",
       "extends": "control_plane_base.html",
       "fold_required": false,
-      "section_nav_off": false,
+      "section_nav_off": true,
       "section_nav_auto": false,
-      "hand_nav": true,
+      "hand_nav": false,
       "ghost_jump_links": 0,
-      "anchor_count": 8,
+      "anchor_count": 2,
       "h2_h3_with_id": 0,
-      "h2_h3_total": 4,
+      "h2_h3_total": 1,
       "nav_label_attrs": 0,
-      "section_nav_curated": true,
+      "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
       "sticky_section_nav": false,
@@ -672,7 +720,31 @@
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
-        "curated TOC section nav (hand-authored)"
+        "explicit data-rmc-section-nav=off"
+      ]
+    },
+    {
+      "path": "templates/marketplace/governance_console.html",
+      "surface": "operator",
+      "extends": "control_plane_base.html",
+      "fold_required": false,
+      "section_nav_off": true,
+      "section_nav_auto": false,
+      "hand_nav": false,
+      "ghost_jump_links": 0,
+      "anchor_count": 4,
+      "h2_h3_with_id": 0,
+      "h2_h3_total": 4,
+      "nav_label_attrs": 0,
+      "section_nav_curated": false,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
+        "explicit data-rmc-section-nav=off"
       ]
     },
     {
@@ -682,9 +754,9 @@
       "fold_required": true,
       "section_nav_off": false,
       "section_nav_auto": false,
-      "hand_nav": true,
+      "hand_nav": false,
       "ghost_jump_links": 0,
-      "anchor_count": 4,
+      "anchor_count": 2,
       "h2_h3_with_id": 0,
       "h2_h3_total": 1,
       "nav_label_attrs": 0,
@@ -696,7 +768,7 @@
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
-        "curated TOC section nav (hand-authored)"
+        "data-rmc-section-nav=curated or TOC partial"
       ]
     },
     {
@@ -704,15 +776,15 @@
       "surface": "operator",
       "extends": "control_plane_base.html",
       "fold_required": false,
-      "section_nav_off": false,
+      "section_nav_off": true,
       "section_nav_auto": false,
-      "hand_nav": true,
+      "hand_nav": false,
       "ghost_jump_links": 0,
-      "anchor_count": 4,
+      "anchor_count": 2,
       "h2_h3_with_id": 0,
       "h2_h3_total": 1,
       "nav_label_attrs": 0,
-      "section_nav_curated": true,
+      "section_nav_curated": false,
       "section_nav_skip": false,
       "uses_toc_nav": false,
       "sticky_section_nav": false,
@@ -720,7 +792,31 @@
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
-        "curated TOC section nav (hand-authored)"
+        "explicit data-rmc-section-nav=off"
+      ]
+    },
+    {
+      "path": "templates/marketplace/tenant_app_catalog.html",
+      "surface": "operator",
+      "extends": "backend_base.html",
+      "fold_required": false,
+      "section_nav_off": false,
+      "section_nav_auto": false,
+      "hand_nav": true,
+      "ghost_jump_links": 0,
+      "anchor_count": 5,
+      "h2_h3_with_id": 0,
+      "h2_h3_total": 15,
+      "nav_label_attrs": 0,
+      "section_nav_curated": false,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
+        "curated hand-authored section nav"
       ]
     },
     {
@@ -1048,6 +1144,54 @@
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": []
+    },
+    {
+      "path": "templates/schools/group_console.html",
+      "surface": "tenant",
+      "extends": "backend_base.html",
+      "fold_required": true,
+      "section_nav_off": true,
+      "section_nav_auto": false,
+      "hand_nav": false,
+      "ghost_jump_links": 0,
+      "anchor_count": 0,
+      "h2_h3_with_id": 0,
+      "h2_h3_total": 0,
+      "nav_label_attrs": 0,
+      "section_nav_curated": false,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
+        "explicit data-rmc-section-nav=off"
+      ]
+    },
+    {
+      "path": "templates/schools/marketing_landing.html",
+      "surface": "other",
+      "extends": "schools/marketing_base.html",
+      "fold_required": false,
+      "section_nav_off": false,
+      "section_nav_auto": false,
+      "hand_nav": true,
+      "ghost_jump_links": 0,
+      "anchor_count": 9,
+      "h2_h3_with_id": 1,
+      "h2_h3_total": 51,
+      "nav_label_attrs": 0,
+      "section_nav_curated": true,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
+        "curated TOC section nav (hand-authored)"
+      ]
     },
     {
       "path": "templates/schools/partials/manager_help_center_body.html",
@@ -1390,7 +1534,7 @@
       "fold_required": true,
       "section_nav_off": false,
       "section_nav_auto": false,
-      "hand_nav": true,
+      "hand_nav": false,
       "ghost_jump_links": 0,
       "anchor_count": 6,
       "h2_h3_with_id": 0,
@@ -1404,7 +1548,55 @@
       "deprecated_horizontal": false,
       "risk": "ok",
       "notes": [
+        "data-rmc-section-nav=curated or TOC partial"
+      ]
+    },
+    {
+      "path": "templates/siteconfig/super/cockpit_configure.html",
+      "surface": "operator",
+      "extends": "control_plane_base.html",
+      "fold_required": false,
+      "section_nav_off": false,
+      "section_nav_auto": false,
+      "hand_nav": true,
+      "ghost_jump_links": 0,
+      "anchor_count": 7,
+      "h2_h3_with_id": 1,
+      "h2_h3_total": 1,
+      "nav_label_attrs": 0,
+      "section_nav_curated": true,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
         "curated TOC section nav (hand-authored)"
+      ]
+    },
+    {
+      "path": "templates/siteconfig/tenant_lifecycle_command_center.html",
+      "surface": "tenant",
+      "extends": "portal_base.html",
+      "fold_required": true,
+      "section_nav_off": false,
+      "section_nav_auto": false,
+      "hand_nav": false,
+      "ghost_jump_links": 0,
+      "anchor_count": 5,
+      "h2_h3_with_id": 0,
+      "h2_h3_total": 5,
+      "nav_label_attrs": 0,
+      "section_nav_curated": true,
+      "section_nav_skip": false,
+      "uses_toc_nav": false,
+      "sticky_section_nav": false,
+      "hero_toolbar_section_anchors": false,
+      "deprecated_horizontal": false,
+      "risk": "ok",
+      "notes": [
+        "data-rmc-section-nav=curated or TOC partial"
       ]
     },
     {
@@ -1418,7 +1610,7 @@
       "ghost_jump_links": 0,
       "anchor_count": 0,
       "h2_h3_with_id": 0,
-      "h2_h3_total": 3,
+      "h2_h3_total": 4,
       "nav_label_attrs": 0,
       "section_nav_curated": false,
       "section_nav_skip": false,

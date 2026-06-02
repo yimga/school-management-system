@@ -44,7 +44,7 @@ def _notify_subscribers(incident, kind: str) -> None:
         PublicIncidentSubscription.objects.filter(
             confirmed_at__isnull=False,
             unsubscribed_at__isnull=True,
-        ).exclude(last_alerted_at__gt=threshold)[:5000]
+        ).exclude(last_alerted_at__gt=threshold)[:5000]  # magic-number-allow: string-truncation-cap
     )
     if not subscribers:
         return

@@ -25,11 +25,17 @@ _COMMAND_CENTER_KEY = "rmc:super_dashboard:command_center:v1"
 _PLATFORM_HEALTH_KEY = "rmc:super_dashboard:platform_health:v1"
 _HEALTH_TABLES_KEY = "rmc:super_dashboard:health_tables:v1"
 _REGISTRY_COUNTS_KEY = "rmc:super_dashboard:registry_counts:v1"
+_INCIDENT_BUNDLE_KEY = "rmc:super_dashboard:incident_bundle:v1"
+_WEBHOOK_STACK_KEY = "rmc:super_dashboard:webhook_stack:v1"
+_COUNTRY_ROLLUP_KEY = "rmc:super_dashboard:country_rollup:v1"
 _COMMAND_CENTER_TTL = 60
 _PLATFORM_HEALTH_TTL = 30
 _HEALTH_METADATA_TTL = 120
 _REGISTRY_COUNTS_TTL = 120
 _FLEET_METRICS_TTL = 60
+_INCIDENT_BUNDLE_TTL = 30
+_WEBHOOK_STACK_TTL = 45
+_COUNTRY_ROLLUP_TTL = 60
 
 
 def get_cached_command_center_data() -> dict:
@@ -104,6 +110,88 @@ def get_cached_registry_counts() -> dict[str, int]:
     }
     cache.set(_REGISTRY_COUNTS_KEY, counts, _REGISTRY_COUNTS_TTL)
     return counts
+
+
+def get_cached_incident_bundle() -> dict[str, Any]:
+    cached = cache.get(_INCIDENT_BUNDLE_KEY)
+    if cached is not None:
+        return cached
+    from django.db.models import Count
+
+    from apps.observability.models import PlatformIncident
+
+    statuses = (
+        PlatformIncident.Status.OPEN,
+        PlatformIncident.Status.ACKNOWLEDGED,
+        PlatformIncident.Status.MITIGATED,
+    )
+    incidents = list(
+        PlatformIncident.objects.select_related("affected_school")
+        .filter(status__in=statuses)
+        .order_by("-detected_at", "-created_at")[:12]
+        .values(
+            "id",
+            "title",
+            "incident_type",
+            "severity",
+            "status",
+            "affected_school_id",
+            "affected_school__name",
+        )
+    )
+    for row in incidents:
+        row["affected_school_name"] = row.pop("affected_school__name", "")
+
+    counts = {
+        row["status"]: row["total"]
+        for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
+    }
+    critical_count = PlatformIncident.objects.filter(
+        status__in=statuses,
+        severity__in=[
+            PlatformIncident.Severity.CRITICAL,
+            PlatformIncident.Severity.HIGH,
+        ],
+    ).count()
+    payload = {
+        "platform_incidents": incidents,
+        "incident_counts": counts,
+        "critical_incident_count": critical_count,
+    }
+    cache.set(_INCIDENT_BUNDLE_KEY, payload, _INCIDENT_BUNDLE_TTL)
+    return payload
+
+
+def get_cached_legacy_webhook_stack() -> dict[str, Any]:
+    cached = cache.get(_WEBHOOK_STACK_KEY)
+    if cached is not None:
+        return cached
+    from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
+
+    payload = legacy_webhook_sync_snapshot()
+    cache.set(_WEBHOOK_STACK_KEY, payload, _WEBHOOK_STACK_TTL)
+    return payload
+
+
+def get_cached_country_rollup() -> list[dict[str, Any]]:
+    cached = cache.get(_COUNTRY_ROLLUP_KEY)
+    if cached is not None:
+        return cached
+    from django.db.models import Count
+
+    from apps.schools.models import School
+
+    payload = list(
+        School.objects.exclude(country_code="")
+        .values("country_code")
+        .annotate(
+            school_count=Count("id"),
+            student_count=Count("student_profiles", distinct=True),
+        )
+        .order_by("-school_count", "country_code")[:12]
+    )
+    cache.set(_COUNTRY_ROLLUP_KEY, payload, _COUNTRY_ROLLUP_TTL)
+    return payload
 
 
 def _fleet_metrics_cache_key(

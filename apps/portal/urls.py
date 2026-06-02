@@ -532,7 +532,7 @@ urlpatterns = [
         name="employer_student_transcript",
     ),
     # v4.00.98 lux-workspace luxury UI demo surface
-    path(
+    path(  # rbac-allow: intentionally-public-ui-demo-renders-only-hardcoded-seed-data-no-db-no-pii
         "lux-workspace/",
         views_lux_workspace.lux_workspace_demo,
         name="lux_workspace_demo",

@@ -88,7 +88,7 @@ class StudentTagsAndNuanceContextTests(TestCase):
         self.assertIn("Scholarship", names)
 
     def test_nuance_in_operator_with_student_tags(self):
-        from apps.siteconfig.nuance_engine import _safe_eval
+        from apps.siteconfig.nuance_engine import evaluate_json_logic
 
         self.student.tags.add(self.tag1)
         student_tags = list(
@@ -97,10 +97,10 @@ class StudentTagsAndNuanceContextTests(TestCase):
         data = {"student_tags": student_tags, "fee": 100}
         # {"in": ["Early Bird", {"var": "student_tags"}]} -> True
         logic = {"in": ["Early Bird", {"var": "student_tags"}]}
-        result = _safe_eval(logic, data)
+        result = evaluate_json_logic(logic, data)
         self.assertTrue(result)
         logic2 = {"in": ["Not a tag", {"var": "student_tags"}]}
-        self.assertFalse(_safe_eval(logic2, data))
+        self.assertFalse(evaluate_json_logic(logic2, data))
 
 
 class CriticalTagSignalTests(TestCase):

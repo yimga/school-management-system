@@ -1,0 +1,34 @@
+{
+  "operation": "FINAL SWEEP",
+  "date": "2026-06-02",
+  "ask": "DO A FINAL SWEEP",
+  "context": {
+    "working_tree_dirty_files": 649,
+    "sw_version": "sms-v4.01.40-workflow-10x-lane2-closeout-2026-06-02 (parallel wave's; unchanged by this sweep — no CSS/JS touched)",
+    "note": "Parallel workflow-10x wave still active (dirty 633 -> 649 since re-sweep). Re-validated and closed the one real gate that drifted."
+  },
+  "gap_closed_this_sweep": {
+    "gate": "check_documented_baselines.py (doc-vs-JSON consistency, CI-wired via architectural-boundaries.yml)",
+    "drift_found": "scan_role_strings.py doc 388 vs JSON 347; scan_magic_numbers.py doc 893 vs JSON 833.",
+    "root_cause": "Scanners auto-write var/security-audit-baseline-*.json on every run. The parallel wave's cleanup genuinely reduced findings (role-strings -41, magic-numbers -60); running the battery rewrote the JSON to current reality, leaving CLAUDE.md's hand-maintained doc numbers stale.",
+    "fix": "Reconciled CLAUDE.md scanner-table integers to current reality (388->347, 893->833) with a v4.01.40 reconcile note in the file's established nested-history format. CLAUDE.md was unmodified in the working tree, so no interleave with parallel-wave hunks. This is the same routine doc reconcile the file records on every prior wave.",
+    "result": "Documented-baseline check: 34 rows, NO doc-vs-JSON drift."
+  },
+  "results": {
+    "scanner_battery": "56 scanners -> 55 PASS, 1 flag (elev3_consumer_drift).",
+    "the_one_flag": {
+      "scanner": "scan_elev3_consumer_drift.py",
+      "report": "24 consumers vs baseline 19; new files rmc-support-quick-create.css + rmc-workflow-progress.css.",
+      "ci_wired": false,
+      "ownership": "PARALLEL WAVE (Workflow Progress Bus + support quick-create CSS) — not this engagement.",
+      "blocker": false,
+      "remediation_owner": "That wave / a designer: add each new consumer to render_verify_elev3_flip.py::CONSUMERS with a safe-to-flip|needs-designer-review verdict, then re-baseline + wire into CI."
+    },
+    "migration_drift": "0 real / 0 cosmetic",
+    "no_hardcoding": "clean",
+    "documented_baselines": "GREEN (reconciled this sweep)",
+    "import_health": "10,272 tests collected, 0 collection errors (confirmed this session)"
+  },
+  "verdict": "GREEN. The single real gate that drifted (doc-vs-JSON baseline) is closed; the only remaining scanner flag is a non-CI-wired drift detector tripped by parallel-wave CSS. Deploy-readiness from deploy_readiness_2026_06_02.json + deploy_readiness_resweep_2026_06_02.json stands. The check --deploy security warnings remain dev-env-only (env-driven, '... and not DEBUG' gated; clear in production).",
+  "not_committed": "Per standing constraint — working tree carries 649 pre-existing/parallel-wave modified files. This engagement's files (incl. this CLAUDE.md reconcile) remain un-committed; would be branch-staged on user word."
+}

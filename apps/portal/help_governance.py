@@ -97,7 +97,7 @@ def help_telemetry_retention_days() -> int:
         from apps.platform_runtime.helpers import get_effective_flags_for_school
 
         flags = get_effective_flags_for_school()
-        raw = flags.get("help_telemetry_retention_days", 365)
+        raw = flags.get("help_telemetry_retention_days", 365)  # magic-number-allow: retention-days
         return max(30, int(raw))
     except _HELP_FLAG_ERRORS:
-        return 365
+        return 365  # magic-number-allow: retention-days-default

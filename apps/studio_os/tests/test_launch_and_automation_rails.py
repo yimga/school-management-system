@@ -9,6 +9,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import Permission
+from apps.security.embed_frame_middleware import EmbedSameOriginFrameMiddleware
 
 User = get_user_model()
 
@@ -137,6 +138,32 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"studio-launch-iframe", response.content.lower())
+
+    def test_guided_onboarding_embed_allows_same_origin_framing(self):
+        """Launch Studio iframe must not get X-Frame-Options: DENY (browser refused to connect)."""
+        from django.test import RequestFactory
+
+        from apps.schools.models import School
+
+        school = School.objects.create(
+            name="Embed Test School",
+            slug="embed-test",
+            subdomain="embed-test",
+            is_active=True,
+        )
+        req = RequestFactory().get(
+            reverse("siteconfig:guided_onboarding"), {"embed": "1"}
+        )
+        req.user = self.user
+        req.school = school
+        from apps.customersuccess.views_tenant import guided_onboarding_view
+
+        response = guided_onboarding_view(req)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            EmbedSameOriginFrameMiddleware(lambda r: response)(req)["X-Frame-Options"],
+            "SAMEORIGIN",
+        )
 
     def test_launch_migration_pane_uses_iframe(self):
         """PATH III.9 / §4.5: migration path opens migration wizard in Launch Studio embed."""

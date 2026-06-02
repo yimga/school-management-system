@@ -75,17 +75,31 @@ def main() -> int:
     add(
         "manager",
         "skeleton_footer",
-        "control_plane_skeleton uses compact operator footer (not marketing bundle)",
-        _contains("templates/control_plane_skeleton.html", "cp-corporate-footer")
+        "control_plane_skeleton uses civic operator footer (not marketing bundle)",
+        _contains("templates/control_plane_skeleton.html", "rmc_operator_footer_civic.html")
         and _contains(
-            "templates/control_plane_skeleton.html",
-            "rmc_operator_footer_compact.html",
+            "templates/partials/rmc_operator_footer_civic.html",
+            'data-rmc-footer-surface="operator-civic"',
         )
         and _not_contains(
             "templates/control_plane_skeleton.html",
             "corporate_footer_bundle.html",
         ),
         "control_plane_skeleton.html",
+    )
+    add(
+        "manager",
+        "skeleton_unified_header",
+        "control_plane_skeleton defaults unified header (utility + LIVE ticker + nav)",
+        _contains(
+            "templates/control_plane_skeleton.html",
+            "control_plane_unified_header.html",
+        )
+        and _contains(
+            "templates/partials/control_plane_unified_header.html",
+            "cockpit/_activity_ticker.html",
+        ),
+        "control_plane_skeleton + control_plane_unified_header",
     )
     add(
         "manager",
@@ -198,10 +212,10 @@ def main() -> int:
     add(
         "manager",
         "skeleton_footer_contract_test",
-        "Template contract: skeleton emits compact operator footer when flagged",
+        "Template contract: skeleton emits civic operator footer when flagged",
         _contains(
             "apps/siteconfig/tests/test_manager_portal_chrome_contract.py",
-            "test_control_plane_skeleton_wires_compact_operator_footer",
+            "test_control_plane_skeleton_wires_civic_operator_footer",
         ),
         "test_manager_portal_chrome_contract",
     )
@@ -315,6 +329,13 @@ def main() -> int:
             _contains("templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="canvas"')
             or _contains(
                 "templates/control_plane_skeleton.html", 'data-rmc-cp-scroll="document"'
+            )
+            # cp_scroll_mode is now a per-page-overridable block (default canvas;
+            # auth/login shells override to "document"). The skeleton still
+            # declares the scroll-mode contract — accept the block form.
+            or _contains(
+                "templates/control_plane_skeleton.html",
+                'data-rmc-cp-scroll="{% block cp_scroll_mode %}',
             )
         )
         and _contains("apps/schools/middleware.py", "/authentication/documentation/")

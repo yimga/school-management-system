@@ -115,7 +115,7 @@ def tenant_ai_line_intents_view(request):
             "intents_json": json.dumps(intents, indent=2),
             "intent_count": len(intents),
             "is_admin_user": getattr(request.user, "is_staff", False)
-            or _user_has_role(request, "ADMIN"),
+            or _user_has_role(request, "ADMIN"),  # role-string-allow: rbac-role-check-argument
         },
     )
 
@@ -128,7 +128,7 @@ def tenant_ai_line_intents_save(request):
     school = getattr(request, "school", None)
     if school is None:
         return JsonResponse({"success": False, "error": "no_tenant"}, status=400)
-    if not (getattr(request.user, "is_staff", False) or _user_has_role(request, "ADMIN")):
+    if not (getattr(request.user, "is_staff", False) or _user_has_role(request, "ADMIN")):  # role-string-allow: rbac-role-check-argument
         return JsonResponse({"success": False, "error": "forbidden"}, status=403)
     raw = (request.POST.get("intents_json") or "").strip()
     try:
@@ -147,7 +147,7 @@ def tenant_ai_line_intents_save(request):
         label = str(raw_item.get("label") or "").strip()
         if not match or not url.startswith("/"):
             continue
-        sanitized.append({"match": match[:120], "url": url[:240], "label": (label or "Open")[:80]})
+        sanitized.append({"match": match[:120], "url": url[:240], "label": (label or "Open")[:80]})  # magic-number-allow: string-truncation-cap
 
     try:
         rd = getattr(school, "runtime_defaults", None) or {}

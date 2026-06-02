@@ -24,7 +24,7 @@ _STAGED_SECRETS: dict[int, dict] = {}  # subscription_id -> {staged_secret, grac
 _STAGED_SECRETS_CAP = 100
 
 
-def stage_new_secret(*, subscription_id: int, new_secret: str, grace_seconds: int = 86400) -> bool:
+def stage_new_secret(*, subscription_id: int, new_secret: str, grace_seconds: int = 86400) -> bool:  # magic-number-allow: ttl-seconds
     """Stage a new signing secret with a grace window. Returns True on
     stage success."""
     try:

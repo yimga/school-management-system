@@ -144,6 +144,7 @@ def set_search_path(cursor, schema_name: str) -> None:
         return
     sid = normalize_search_path_schema_name(schema_name)
     try:
+        # rls-bypass-allow: search_path switch is tenancy infrastructure, not tenant-row data
         cursor.execute("SET LOCAL search_path TO %s", [sid])
     except _AUDIT_REPO_DB_ERRORS:
         logger.debug("audit_repository: set_search_path failed", exc_info=True)
@@ -205,6 +206,7 @@ def create_audit_trigger_function(cursor) -> None:
         """
     )
     try:
+        # rls-bypass-allow: DDL creating the audit-trigger function, platform-level not tenant data
         cursor.execute(sql)
     except _AUDIT_REPO_DB_ERRORS:
         logger.debug(
@@ -224,6 +226,7 @@ def drop_audit_trigger(cursor, table_name: str) -> None:
     q_table = connection.ops.quote_name(table_name)
     stmt = "DROP TRIGGER IF EXISTS %s ON %s" % (q_trigger, q_table)
     try:
+        # rls-bypass-allow: DDL dropping the audit trigger, platform-level not tenant data
         cursor.execute(stmt)
     except _AUDIT_REPO_DB_ERRORS:
         logger.debug("audit_repository: drop_audit_trigger failed", exc_info=True)
@@ -244,6 +247,7 @@ def create_audit_trigger(cursor, table_name: str) -> None:
         "FOR EACH ROW EXECUTE PROCEDURE audit_trigger_fn()" % (q_trigger, q_table)
     )
     try:
+        # rls-bypass-allow: DDL creating the audit trigger, platform-level not tenant data
         cursor.execute(stmt)
     except _AUDIT_REPO_DB_ERRORS:
         logger.debug("audit_repository: create_audit_trigger failed", exc_info=True)
@@ -255,6 +259,7 @@ def revoke_audit_log_mutations(cursor) -> None:
     if connection.vendor != "postgresql":
         return
     try:
+        # rls-bypass-allow: GRANT/REVOKE on audit_log, platform DBA op not tenant data
         cursor.execute("REVOKE UPDATE, DELETE ON audit_log FROM CURRENT_USER;")
     except _AUDIT_REPO_DB_ERRORS:
         logger.debug(

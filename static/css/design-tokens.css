@@ -980,12 +980,31 @@ h3, .h3, h4, .h4 { letter-spacing: var(--tracking-heading); }
 }
 
 /* Eyebrow / chip / overline helper grammar (does not override; opt-in via class). */
+/* LAY-2: single source for the operator-report / cp-evidence reading measure.
+   Previously 52/56/58rem inline caps were scattered across ~10 report partials.
+   Set to the widest prior value so no report page narrows; change here to widen
+   reports platform-wide (the manager control-plane shell already forces these
+   full-width via #cp-main-content .cp-evidence-page { max-width:none !important }). */
+:root { --rmc-report-measure: 58rem; }
+
 .eyebrow, .ds-eyebrow {
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--admin-content-text-muted);
+}
+
+/* Per-page personality is applied ONLY to eyebrows inside a page header
+   (.page-header / .rmc-page-header-glow), which sit on light/neutral
+   premium surfaces — so the deep personality eyebrow color is always
+   contrast-safe. Arbitrary .eyebrow labels elsewhere (which may live on
+   colored / dark / brand backgrounds the contrast scanner can't resolve
+   through var()) keep the muted token. The dark glow-header keeps its own
+   .rmc-page-header-glow--dark .rmc-page-eyebrow override. */
+.page-header .eyebrow,
+.page-header .ds-eyebrow {
+  color: var(--personality-eyebrow, var(--admin-content-text-muted));
 }
 
 /* Buttons — Apple-tier micro-interactions. Applies to .btn (Bootstrap) and bare <button>. */

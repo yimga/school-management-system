@@ -31,7 +31,7 @@ def guarded_sse_response(
     stream_factory: Callable[[], Iterator[bytes]],
     *,
     content_type: str = "text/event-stream",
-    busy_retry_ms: int = 30000,
+    busy_retry_ms: int = 30000,  # magic-number-allow: millisecond-timeout
 ) -> StreamingHttpResponse:
     """Return an SSE response only if a concurrency slot is available.
 

@@ -2057,10 +2057,10 @@ def _marketing_context(
             hero_headline = _cms_h[:500]
         _cms_s = _marketing_cms_plain("landing_hero_subheadline", language)
         if _cms_s:
-            hero_subheadline = _cms_s[:1200]
+            hero_subheadline = _cms_s[:1200]  # magic-number-allow: ai-message-char-cap
         _cms_ai = _marketing_cms_plain("landing_hero_ai_line", language)
         if _cms_ai:
-            hero_ai_line = _cms_ai[:1200]
+            hero_ai_line = _cms_ai[:1200]  # magic-number-allow: ai-message-char-cap
             hero_cms_ai_set = True
     except (DatabaseError, OperationalError, AttributeError, TypeError, ValueError):
         pass
@@ -2560,7 +2560,7 @@ def blog_post_detail(request, slug: str):
     ctx = {
         **base_ctx,
         "seo_title": post.title,
-        "seo_description": (post.excerpt or post.title)[:160],
+        "seo_description": (post.excerpt or post.title)[:160],  # magic-number-allow: string-truncation-cap
         "canonical_url": canonical_url,
         "post": post,
         "active_nav_slug": "blog",
@@ -2731,7 +2731,7 @@ def marketing_solutions_persona(request, persona_slug: str):
         "headline": str(persona["name"]),
         "subheadline": str(persona["lead"]),
         "seo_title": f"{persona['name']} | RunMyCampus",
-        "seo_description": str(persona["lead"])[:160],
+        "seo_description": str(persona["lead"])[:160],  # magic-number-allow: string-truncation-cap
         "schema_type": "WebPage",
         "path": canonical_path,
     }
@@ -2806,7 +2806,7 @@ def submit_demo_request(request):
     message_for_store = message
     if detail_lines:
         suffix = "\n\n" + "\n".join(detail_lines)
-        message_for_store = (message + suffix).strip()[:4000]
+        message_for_store = (message + suffix).strip()[:4000]  # magic-number-allow: ai-message-char-cap
     webhook_url = getattr(settings, "MARKETING_DEMO_WEBHOOK_URL", None) or ""
     success = False
     if webhook_url and email:
@@ -2875,7 +2875,7 @@ def submit_contact_request(request):
     school = (request.POST.get("school") or "").strip()[:256]
     country = (request.POST.get("country") or "").strip()[:128]
     inquiry_type = (request.POST.get("inquiry_type") or "").strip()[:64]
-    message = (request.POST.get("message") or "").strip()[:4000]
+    message = (request.POST.get("message") or "").strip()[:4000]  # magic-number-allow: ai-message-char-cap
     webhook_url = getattr(settings, "MARKETING_CONTACT_WEBHOOK_URL", None) or getattr(
         settings, "MARKETING_DEMO_WEBHOOK_URL", None
     ) or ""
@@ -2938,7 +2938,7 @@ def submit_security_packet_request(request):
         :32
     ]
     nda_status = (request.POST.get("nda_status") or "").strip()[:128]
-    artifact_needs = (request.POST.get("artifact_needs") or "").strip()[:4000]
+    artifact_needs = (request.POST.get("artifact_needs") or "").strip()[:4000]  # magic-number-allow: ai-message-char-cap
     from apps.schools.security_packet_country_annex import (
         build_country_annex,
         country_code_for_jurisdiction,

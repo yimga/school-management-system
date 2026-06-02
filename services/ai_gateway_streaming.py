@@ -259,6 +259,30 @@ def invoke_stream(
     """
     md_in = dict(metadata or {})
 
+    # v4.01 SECURITY — block likely prompt-injection BEFORE any provider call,
+    # mirroring the non-streaming invoke() first gate. The streaming path
+    # previously ran NO injection check on any tier. Audit the block (content
+    # is never logged) so it is visible to operators.
+    try:
+        from services.ai_gateway import _audit_log, _looks_like_prompt_injection
+
+        if _looks_like_prompt_injection(prompt, user_query):
+            task_key = getattr(task_type, "value", str(task_type))
+            try:
+                _audit_log(
+                    task_key, "none", "", 0,
+                    md_in.get("tenant_id"), md_in.get("school_id"),
+                    "blocked",
+                    {**md_in, "prompt_injection_blocked": True, "streaming": True},
+                )
+            except Exception:  # noqa: BLE001 — audit must never break the stream
+                logger.debug("invoke_stream: injection audit write failed", exc_info=True)
+            yield ("error", {"code": "prompt_injection_blocked"})
+            yield ("done", {**md_in, "posture_mode": "blocked", "prompt_injection_blocked": True})
+            return
+    except Exception:  # noqa: BLE001 — injection guard must never crash the stream
+        logger.debug("invoke_stream: injection pre-check unavailable", exc_info=True)
+
     # Resolve tier order via the existing posture module — the source of truth
     # for "what's available right now" is shared with the non-streaming path.
     try:

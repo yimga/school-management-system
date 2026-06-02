@@ -1,0 +1,68 @@
+{
+  "operation": "OMNI-PAGE-PERSONALITY (each page / main-menu item wears its own identity on the premium floor)",
+  "date": "2026-06-02",
+  "ask": "Each page or main-menu item must have their own personalities while serving premium-level surfaces, layouts, everything about UI/UX.",
+  "method": "2 parallel read-only Explore agents (identity-mechanism map + top-level page differentiation) then hand-verification of every load-bearing link in the personality pipeline before any change.",
+  "key_finding": "The platform already has TWO fully-built page-personality systems, but the premium chrome consumes neither — which is the precise cause of the 'samey' look the differentiation agent flagged.",
+  "systems": {
+    "system_a": {
+      "attribute": "data-rmc-page-personality",
+      "vocabulary": "11 role/surface slugs (control-plane, tenant-admin, parent, student, teacher, marketing, finance, reports, settings, auth, default)",
+      "resolver": "apps/siteconfig/page_personality.py (URL-prefix table -> slug; per-view override; host-kind fallback; operator JSON override CSS)",
+      "emission": "UNIVERSAL + server-side — context processors registered in config/settings.py:452-453; data-rmc-page-personality set on <body> in all 5 shells (base, portal_base, marketing, control_plane_skeleton, admin)",
+      "tokens": "design-tokens-personality.css — 11 personalities x {accent, soft, tint, strong, deep, on, gradient, eyebrow, glow-rgb}, theme-aware (light+dark), aesthetic-profile + print variants",
+      "consumption_before": "only 3 CSS files (rmc-operational-center-frame, rmc-platform-inner-pages, rmc-data-viz) — the accent was computed on every page but the chrome ignored it"
+    },
+    "system_b": {
+      "attribute": "data-rmc-page-domain",
+      "vocabulary": "12 functional-area domains (academic, finance, people, operations, admissions, comms, fleet, hostel, marketplace, security, admin) + per-domain glyph + tagline",
+      "tokens_and_bindings": "rmc-page-personality.css — rich component bindings: accent stripe, hero eyebrow glyph, copilot title/tab accent, current-nav accent, focus rings, domain eyebrow chip, per-domain card left-border, hover-inspector",
+      "emission": "RARE — only when a template includes partials/rmc_page_personality.html with domain=; otherwise JS-inferred by admin-quickaction.js from the URL (flash; mostly control-plane). So most of the rich bindings never activate.",
+      "verdict": "beautiful binding layer that is largely dead because the attribute is seldom emitted server-side"
+    }
+  },
+  "page_header_diagnosis": "The shared page header used by ~250 templates (templates/components/page_header.html 126x + templates/studio_os/components/page_header.html 124x) wore NEITHER personality: .rmc-page-eyebrow and .eyebrow were flat gray (--text-tertiary / --admin-content-text-muted) and .rmc-page-header-glow followed tenant --brand-primary only. The identity data was in the DOM on every page; the chrome did not read it.",
+  "applied": [
+    {
+      "id": "PP-1", "file": "static/css/rmc-class-grammar.css (.rmc-page-eyebrow)",
+      "change": "color: var(--text-tertiary,...) -> var(--personality-eyebrow, var(--text-tertiary,...)). The eyebrow on all 124 Studio OS page headers now wears its surface accent (finance green, reports slate, parent amber, teacher blue, student emerald, ...).",
+      "risk": "low — additive var() with the original as fallback; theme-aware; dark glow header keeps its existing #c7d2fe eyebrow override."
+    },
+    {
+      "id": "PP-2", "file": "static/css/design-tokens.css (.eyebrow, .ds-eyebrow)",
+      "change": "color: var(--admin-content-text-muted) -> var(--personality-eyebrow, var(--admin-content-text-muted)). Covers the generic page_header partial (126 templates) + every other .eyebrow site.",
+      "risk": "low — additive var() fallback chain; no hex added."
+    },
+    {
+      "id": "PP-3", "file": "static/css/rmc-class-grammar.css (.rmc-page-header-glow)",
+      "change": "Added border-inline-start: 3px solid var(--personality-accent, var(--brand-primary, #4f46e5)) — a personality 'spine' on the premium hero header's start edge while the radial glow above stays tenant-brand. Two concerns kept separate: tenant brand = the wash, page personality = the spine + eyebrow.",
+      "risk": "low — +2px start inset; overridden (intentionally) by the existing --dark variant's border-color on manager dark headers."
+    },
+    {
+      "id": "PP-4", "file": "static/css/rmc-page-personality.css (:root)",
+      "change": "Bridged System B defaults to System A: --rmc-page-accent / --rmc-page-accent-soft now fall back to the universally-present --personality-accent / -soft (was fixed indigo). Lights up the opt-in accent stripe / eyebrow chip / hover-inspector with the page's surface accent everywhere; explicit [data-rmc-page-domain] still overrides.",
+      "risk": "low — only affects markup that already opts into those System B components; hex retained as no-personality fallback."
+    }
+  ],
+  "validation": {
+    "scan_off_token_colors": "0",
+    "scan_theme_locked_token_text": "0 (personality-eyebrow / personality-accent var chains passed)",
+    "scan_inline_style_off_token": "0",
+    "scan_undefined_css_classes": "only the 11 pre-existing cockpit-ticker / incident-banner classes from the other in-progress wave (not this wave)",
+    "service_worker": "sms-v4.01.34-page-personality-consumption-2026-06-02",
+    "scope": "CSS-only wave — no Python / template / migration changes; no Django check or migration-drift run required."
+  },
+  "flagged_next_owner_or_per_page": [
+    {
+      "id": "PP-N1", "severity": "architecture",
+      "finding": "Two parallel personality systems (A role/surface universal-but-unconsumed; B functional-area rich-but-rarely-emitted). Full unification would emit data-rmc-page-domain server-side from a resolver so System B's gated bindings (nav-active accent, hero glyph, focus rings) activate universally without JS/flash.",
+      "blocker": "the two vocabularies don't map 1:1 (A has reports/auth/parent/student/teacher; B has academic/people/comms/fleet/hostel/marketplace/security). A clean server-side domain resolver needs an owner decision on the canonical per-URL domain map. This wave bridges the un-gated System B components to System A so the gap is materially closed without guessing the mapping."
+    },
+    {
+      "id": "PP-N2", "severity": "premium-gap (per-page)",
+      "finding": "Genuinely-generic destination pages still read as 'header + table' vs the bespoke dashboards (teacher/student/finance/analytics/founder). Highest-value retrofits: templates/communication/group_list.html, templates/people/backend_{student,teacher,classroom,applicant}_list.html, templates/siteconfig/dashboard_hub.html.",
+      "recommendation": "Per-page: add a stat ribbon + hero using the SAME proven components (operational-center-frame / decision-engine-surface / rmc-stat-card) the bespoke dashboards use. Per-page because each list's data + card markup differ — a screenshot-diff enhancement wave, not a blind sweep."
+    }
+  ],
+  "principle": "The personality pipeline was already plumbed to every page; the missing link was the shared premium chrome reading it. Four additive, theme-aware var() bindings make ~250 page headers + the opt-in accent components wear their surface identity at once — consistent component grammar (the premium floor) + distinct per-page personality (the accent), with zero template churn. The deeper system-unification and per-page bespoke heroes are surfaced with their precise levers rather than guessed."
+}

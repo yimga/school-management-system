@@ -25,12 +25,12 @@ logger = logging.getLogger(__name__)
 
 
 _TONE_CHOICES = ("warm", "neutral", "formal")
-_MAX_DRAFT_CHARS = 1600
+_MAX_DRAFT_CHARS = 1600  # magic-number-allow: ai-message-char-cap
 
 
 def _prompt_for_draft(ticket, tone: str) -> str:
     subject = (getattr(ticket, "subject", "") or "")[:200]
-    body = (getattr(ticket, "body", "") or "")[:1200]
+    body = (getattr(ticket, "body", "") or "")[:1200]  # magic-number-allow: ai-message-char-cap
     category = ""
     metadata = getattr(ticket, "metadata", None) or {}
     if isinstance(metadata, dict):
@@ -86,7 +86,7 @@ def _parse_ai_response(response: Any) -> dict[str, Any]:
     confidence = (parsed.get("confidence") or "").strip().lower()
     if confidence not in ("low", "medium", "high"):
         confidence = "medium"
-    next_step_hint = (parsed.get("next_step_hint") or "").strip()[:280]
+    next_step_hint = (parsed.get("next_step_hint") or "").strip()[:280]  # magic-number-allow: string-truncation-cap
     return {
         "draft_text": draft_text,
         "tone": tone,

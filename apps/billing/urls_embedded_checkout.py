@@ -11,7 +11,7 @@ from . import views_embedded_checkout
 app_name = "billing_embedded_checkout"
 
 urlpatterns = [
-    path(
+    path(  # rbac-allow: intentionally-public-parent-checkout-tenant-verified-against-host-middleware
         "session/",
         views_embedded_checkout.create_embedded_checkout_session,
         name="create_session",

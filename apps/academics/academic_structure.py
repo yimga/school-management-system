@@ -42,7 +42,7 @@ class AcademicStructureNode(models.Model):
         related_name="academic_structure_nodes",
     )
     node_type = models.CharField(max_length=32, choices=NodeType.choices)
-    local_label = models.CharField(max_length=150)
+    local_label = models.CharField(max_length=150)  # magic-number-allow: charfield-max-length
     sort_order = models.PositiveIntegerField(default=0)
     structural_metadata = models.JSONField(default=dict, blank=True)
     classroom = models.OneToOneField(

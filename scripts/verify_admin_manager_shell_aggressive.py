@@ -90,8 +90,14 @@ def main() -> int:
         errors.append("help_contextual_drawer.html: contextual help chip missing")
 
     skeleton = (ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")
-    if "help_contextual_drawer.html" not in skeleton or "rmc-footer-notebook-anchor" not in skeleton:
-        errors.append("control_plane_skeleton.html: contextual help drawer or footer notebook anchor missing")
+    if "help_contextual_drawer.html" not in skeleton:
+        errors.append("control_plane_skeleton.html: contextual help drawer missing")
+    if "rmc-footer-notebook-anchor" in skeleton:
+        errors.append(
+            "control_plane_skeleton.html: footer notebook dock removed (use copilot rail ✎)"
+        )
+    if "_operator_notebook.html" not in skeleton:
+        errors.append("control_plane_skeleton.html: operator notebook partial missing")
     if "_workspace_context.html" in skeleton:
         errors.append("control_plane_skeleton.html: workspace_context must not ship in sidebar")
     if "data-rmc-copilot-page-help" not in skeleton or "rmc-platform-vertical-compact.css" not in skeleton:

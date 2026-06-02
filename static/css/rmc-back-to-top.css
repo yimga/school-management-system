@@ -18,7 +18,9 @@ html[data-surface="tenant"] body.portal-body-with-layout {
 
 body[data-rmc-assist-dock="mounted"] {
   --rmc-back-to-top-dock-lift: calc(
-    var(--rmc-assist-btn-size, 48px) + 10px + var(--rmc-assist-gap, 10px) + 0.35rem
+    var(--rmc-assist-rail-height, calc(var(--rmc-assist-btn-size, 48px) * 2 + var(--rmc-assist-gap, 10px) * 2)) +
+    var(--rmc-assist-gap, 10px) +
+    0.35rem
   );
 }
 

@@ -23,6 +23,7 @@ directly; the resolver below is the SOT.
 
 from __future__ import annotations
 
+import contextvars
 import functools
 import logging
 import time
@@ -32,6 +33,47 @@ from datetime import timedelta
 from typing import Any, Callable, Iterable, Optional
 
 from django.utils import timezone
+
+# Nested workflows (batch purge → per-school purge) stack so pulses land on the
+# innermost active run without losing the parent envelope.
+_WORKFLOW_RUN_STACK: contextvars.ContextVar[tuple[Any, ...]] = contextvars.ContextVar(
+    "rmc_workflow_run_stack",
+    default=(),
+)
+
+
+def active_workflow_run() -> Any | None:
+    """Return the innermost in-flight WorkflowRun for this execution context."""
+
+    stack = _WORKFLOW_RUN_STACK.get()
+    return stack[-1] if stack else None
+
+
+def push_workflow_run(run: Any) -> None:
+    if run is None or getattr(run, "pk", None) is None:
+        return
+    stack = list(_WORKFLOW_RUN_STACK.get())
+    stack.append(run)
+    _WORKFLOW_RUN_STACK.set(tuple(stack))
+
+
+def pop_workflow_run(run: Any | None = None) -> None:
+    stack = list(_WORKFLOW_RUN_STACK.get())
+    if not stack:
+        return
+    if run is not None and stack[-1] is not run:
+        try:
+            stack.remove(run)
+        except ValueError:
+            return
+    else:
+        stack.pop()
+    _WORKFLOW_RUN_STACK.set(tuple(stack))
+
+
+def clear_workflow_run_stack_for_tests() -> None:
+    """Reset context stack between smoke assertions."""
+    _WORKFLOW_RUN_STACK.set(())
 
 logger = logging.getLogger(__name__)
 
@@ -124,9 +166,10 @@ def _resolve_definition(workflow_key: str) -> dict:
         definition = WORKFLOWS.get(workflow_key)
         if definition is None:
             return {}
+        title = getattr(definition, "title", "") or getattr(definition, "label", "") or ""
         return {
-            "label": getattr(definition, "label", "") or "",
-            "tags": list(getattr(definition, "tags", []) or []),
+            "label": title,
+            "tags": list(getattr(definition, "default_tags", []) or getattr(definition, "tags", []) or []),
             "audience": getattr(definition, "audience", "") or "",
         }
     except Exception:
@@ -154,6 +197,130 @@ def _resolve_request_context(request: Any) -> dict:
     return ctx
 
 
+def compute_progress_percent(
+    *,
+    current_step_ordinal: int = 0,
+    total_steps: int = 0,
+    age_seconds: int = 0,
+    expected_duration_seconds: int = _DEFAULT_EXPECTED_DURATION,
+) -> int:
+    """Return 0–100 completion estimate for the workflow progress UI."""
+
+    ordinal = max(int(current_step_ordinal or 0), 0)
+    total = max(int(total_steps or 0), 0)
+    if total > 0 and ordinal > 0:
+        # In-progress step counts as partial credit (never 100 until finalize).
+        pct = int(round(((ordinal - 0.35) / total) * 100))
+        return max(1, min(99, pct))
+    expected = max(int(expected_duration_seconds or _DEFAULT_EXPECTED_DURATION), 5)
+    age = max(int(age_seconds or 0), 0)
+    if age <= 0:
+        return 0
+    return max(1, min(95, int(round((age / expected) * 100))))
+
+
+def _run_age_seconds(run: Any) -> int:
+    started = getattr(run, "started_at", None)
+    if started is None:
+        return 0
+    try:
+        return max(0, int((timezone.now() - started).total_seconds()))
+    except Exception:
+        return 0
+
+
+def serialize_workflow_run(run: Any, *, status_override: str = "") -> dict:
+    """JSON shape for one active WorkflowRun row."""
+
+    from apps.platform_runtime.workflow_degrading import resolve_display_status
+    from apps.platform_runtime.workflow_sla import sla_meta_for_run
+
+    status = status_override or resolve_display_status(run)
+    ordinal = int(getattr(run, "current_step_ordinal", 0) or 0)
+    total = int(getattr(run, "total_steps", 0) or 0)
+    age_seconds = _run_age_seconds(run)
+    expected = int(getattr(run, "expected_duration_seconds", _DEFAULT_EXPECTED_DURATION) or _DEFAULT_EXPECTED_DURATION)
+    route = ""
+    try:
+        from apps.platform_runtime.workflow_registry import WORKFLOWS
+
+        definition = WORKFLOWS.get(run.workflow_key or "")
+        if definition is not None:
+            route = getattr(definition, "route", "") or ""
+    except Exception:
+        pass
+    p95 = 0
+    try:
+        from apps.platform_runtime.workflow_duration_stats import get_p95_seconds
+
+        p95 = get_p95_seconds(run.workflow_key or "")
+    except Exception:
+        p95 = 0
+    return {
+        "id": run.pk,
+        "workflow_key": run.workflow_key,
+        "workflow_label": run.workflow_label,
+        "status": status,
+        "registry_route": route,
+        "p95_seconds": p95,
+        "sla": sla_meta_for_run(run),
+        "current_step_ordinal": ordinal,
+        "current_step_name": run.current_step_name,
+        "total_steps": total,
+        "progress_percent": compute_progress_percent(
+            current_step_ordinal=ordinal,
+            total_steps=total,
+            age_seconds=age_seconds,
+            expected_duration_seconds=expected,
+        ),
+        "started_at": run.started_at.isoformat() if run.started_at else "",
+        "expected_duration_seconds": expected,
+        "tenant_schema": run.tenant_schema,
+        "school_id": getattr(run, "school_id", "") or "",
+        "suggested_remediation": run.suggested_remediation or {},
+    }
+
+
+def pulse_workflow_step(run: Any, name: str, *, payload: Optional[dict] = None) -> None:
+    """Advance the visible step on a long-running workflow (no ``with`` block)."""
+
+    if run is None:
+        run = active_workflow_run()
+    if run is None or getattr(run, "pk", None) is None:
+        return
+    try:
+        from apps.platform_runtime.models import WorkflowRun, WorkflowStep
+
+        running = WorkflowStep.objects.filter(run=run, status="running").order_by("-ordinal").first()
+        if running is not None and running.name != name:
+            WorkflowStep.objects.filter(pk=running.pk).update(
+                status="done",
+                ended_at=timezone.now(),
+            )
+        step = WorkflowStep.objects.filter(run=run, name=name).first()
+        if step is None:
+            next_ordinal = WorkflowStep.objects.filter(run=run).count() + 1
+            step = WorkflowStep.objects.create(
+                run=run,
+                ordinal=next_ordinal,
+                name=name[:80],
+                label=name.replace("_", " ").title()[:160],  # magic-number-allow: string-truncation-cap
+            )
+        WorkflowStep.objects.filter(pk=step.pk).update(
+            status="running",
+            started_at=timezone.now(),
+            payload_summary=_scrub(payload or {}),
+        )
+        # tenant-isolation-allow: workflow-pulse-single-row-pk-update-on-held-run
+        WorkflowRun.objects.filter(pk=run.pk).update(
+            current_step_ordinal=step.ordinal,
+            current_step_name=step.name,
+            last_heartbeat_at=timezone.now(),
+        )
+    except Exception:
+        logger.exception("workflow_pulse_step_failed run_id=%s name=%s", getattr(run, "pk", "-"), name)
+
+
 def is_stuck(run: Any) -> bool:
     """Return True when a RUNNING row has gone past its stuck threshold."""
 
@@ -165,6 +332,65 @@ def is_stuck(run: Any) -> bool:
     if last is None:
         return False
     return (timezone.now() - last) > threshold
+
+
+# v4.01 — stuck vs ABANDONED. is_stuck() renders a RUNNING row as "stuck" in the
+# operator chip but never moves it to a terminal state, so a run whose process
+# died (no more heartbeats) shows as "stuck" FOREVER and zombie rows accumulate.
+# A run idle far past its stuck threshold is treated as abandoned and reaped to
+# terminal FAILED.
+_ABANDON_MULTIPLIER = 20  # magic-number-allow: stuck->abandoned hard cap, multiple of expected duration
+_ABANDON_FLOOR_SECONDS = 3600  # magic-number-allow: never abandon a run idle < 1h regardless of expected duration
+
+
+def _is_abandoned(run: Any) -> bool:
+    """Return True when a RUNNING row is idle past the hard abandonment cap."""
+    if getattr(run, "status", "") != "running":
+        return False
+    last = getattr(run, "last_heartbeat_at", None)
+    if last is None:
+        return False
+    expected = max(int(getattr(run, "expected_duration_seconds", _DEFAULT_EXPECTED_DURATION) or 0), 5)
+    cap = max(expected * _ABANDON_MULTIPLIER, _ABANDON_FLOOR_SECONDS)
+    return (timezone.now() - last) > timedelta(seconds=cap)
+
+
+def reap_abandoned_runs(*, tenant_schema: str = "", limit: int = 50) -> int:
+    """Transition long-abandoned RUNNING rows to terminal FAILED.
+
+    Bounds the zombie accumulation described above. Called lazily from
+    ``active_runs`` so the operator chip self-cleans without a dedicated Celery
+    beat. Only WRITES when a run is genuinely abandoned (rare); the scan is a
+    bounded, indexed ``status='running'`` query. Returns the number reaped.
+    """
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+    except Exception:  # noqa: BLE001
+        return 0
+    # tenant-isolation-allow: workflow-reaper-optional-tenant-schema-filter-operator-scope
+    qs = WorkflowRun.objects.filter(status="running")
+    if tenant_schema:
+        qs = qs.filter(tenant_schema=tenant_schema)
+    reaped = 0
+    for run in qs.order_by("started_at")[:limit]:
+        if not _is_abandoned(run):
+            continue
+        try:
+            finalize_run(
+                run,
+                status="failed",
+                error=TimeoutError(
+                    "workflow run abandoned: no heartbeat past the stuck threshold"
+                ),
+                email_on_failure=False,
+            )
+            reaped += 1
+        except Exception:  # noqa: BLE001 — reaping must never break the chip fetch
+            logger.debug(
+                "reap_abandoned_runs: finalize failed run_id=%s",
+                getattr(run, "pk", "-"), exc_info=True,
+            )
+    return reaped
 
 
 def begin_run(
@@ -202,7 +428,7 @@ def begin_run(
     try:
         run = WorkflowRun.objects.create(
             workflow_key=workflow_key[:80],
-            workflow_label=label[:160],
+            workflow_label=label[:160],  # magic-number-allow: string-truncation-cap
             tenant_schema=str(tenant_schema)[:64],
             school_id=str(school_id)[:40],
             actor_user_id=str(actor_user_id)[:40],
@@ -218,7 +444,7 @@ def begin_run(
                     run=run,
                     ordinal=index + 1,
                     name=str(name)[:80],
-                    label=str(name).replace("_", " ").title()[:160],
+                    label=str(name).replace("_", " ").title()[:160],  # magic-number-allow: string-truncation-cap
                 )
                 for index, name in enumerate(step_list)
             ]
@@ -238,6 +464,7 @@ def heartbeat(run: Any) -> None:
     try:
         from apps.platform_runtime.models import WorkflowRun
 
+        # tenant-isolation-allow: workflow-heartbeat-single-row-pk-update-on-held-run
         WorkflowRun.objects.filter(pk=run.pk).update(last_heartbeat_at=timezone.now())
     except Exception:
         logger.warning("workflow_tracker_heartbeat_failed run_id=%s", getattr(run, "pk", "-"))
@@ -290,7 +517,39 @@ def finalize_run(
                     "human_action": "Inspect the workflow run detail for raw error.",
                 }
             update_fields["suggested_remediation"] = suggested
+        # tenant-isolation-allow: workflow-finalize-single-row-pk-update-on-held-run
         WorkflowRun.objects.filter(pk=run.pk).update(**update_fields)
+
+        if status in ("succeeded", "failed", "cancelled"):
+            try:
+                from apps.platform_runtime.workflow_duration_stats import (
+                    duration_from_run,
+                    record_completed_duration,
+                )
+
+                record_completed_duration(
+                    workflow_key=getattr(run, "workflow_key", ""),
+                    duration_seconds=duration_from_run(run),
+                )
+            except Exception:
+                logger.debug("workflow_duration_stat_finalize_skip", exc_info=True)
+
+        if status == "failed" and suggested.get("auto_fix_available"):
+            try:
+                from apps.platform_runtime.workflow_autopilot import try_auto_apply_on_failure
+
+                try_auto_apply_on_failure(run_pk=int(run.pk))
+            except Exception:
+                logger.debug("workflow_autopilot_finalize_skip", exc_info=True)
+
+        if status in ("succeeded", "failed"):
+            try:
+                from apps.platform_runtime.workflow_duration_stats import duration_from_run
+                from apps.platform_runtime.workflow_sla import maybe_record_sla_breach
+
+                maybe_record_sla_breach(run=run, actual_seconds=duration_from_run(run))
+            except Exception:
+                logger.debug("workflow_sla_finalize_skip", exc_info=True)
 
         # v4.00.98 Phase 6 — opt-in operator email when a workflow fails.
         if status == "failed" and email_on_failure:
@@ -335,6 +594,8 @@ def workflow_step(run: Any, name: str, *, payload: Optional[dict] = None):
     On exception: marks the step FAILED with the exception's string form.
     """
 
+    if run is None:
+        run = active_workflow_run()
     if run is None or getattr(run, "pk", None) is None:
         # Tracking is best-effort; if begin_run failed, run the inner block transparently.
         yield None
@@ -354,13 +615,14 @@ def workflow_step(run: Any, name: str, *, payload: Optional[dict] = None):
                 run=run,
                 ordinal=next_ordinal,
                 name=name[:80],
-                label=name.replace("_", " ").title()[:160],
+                label=name.replace("_", " ").title()[:160],  # magic-number-allow: string-truncation-cap
             )
         WorkflowStep.objects.filter(pk=step.pk).update(
             status="running",
             started_at=timezone.now(),
             payload_summary=_scrub(payload or {}),
         )
+        # tenant-isolation-allow: workflow-step-enter-single-row-pk-update-on-held-run
         WorkflowRun.objects.filter(pk=run.pk).update(
             current_step_ordinal=step.ordinal,
             current_step_name=step.name,
@@ -393,6 +655,7 @@ def workflow_step(run: Any, name: str, *, payload: Optional[dict] = None):
                 ended_at=timezone.now(),
                 duration_ms=duration_ms,
             )
+        # tenant-isolation-allow: workflow-step-done-single-row-pk-update-on-held-run
         WorkflowRun.objects.filter(pk=run.pk).update(last_heartbeat_at=timezone.now())
     except Exception:
         logger.exception("workflow_step_done_record_failed run_id=%s", run.pk)
@@ -449,19 +712,45 @@ def track_workflow(
                 payload=payload,
                 idempotency_key=str(uuid.uuid4())[:128],
             )
+            push_workflow_run(run)
+            if request is not None:
+                try:
+                    setattr(request, "_rmc_workflow_run", run)
+                except Exception:
+                    pass
             try:
                 result = fn(*args, **kwargs)
             except Exception as exc:
                 finalize_run(run, status="failed", error=exc, email_on_failure=email_on_failure)
                 raise
-            finalize_run(run, status="succeeded")
-            return result
+            else:
+                finalize_run(run, status="succeeded")
+                return result
+            finally:
+                pop_workflow_run(run)
 
         # Expose the flag for testing / introspection.
         wrapper.email_on_failure = email_on_failure  # type: ignore[attr-defined]
         return wrapper
 
     return decorator
+
+
+# Generic Celery bridge keys flash on sub-second beats; hide until this age (seconds).
+_CHIP_MIN_VISIBLE_SECONDS = 4
+
+
+def _visible_in_progress_chip(run: Any) -> bool:
+    """Suppress ephemeral auto-tracked Celery envelopes from the assist-dock chip."""
+
+    key = str(getattr(run, "workflow_key", "") or "")
+    if not key.startswith("celery."):
+        return True
+    age = _run_age_seconds(run)
+    if age >= _CHIP_MIN_VISIBLE_SECONDS:
+        return True
+    ordinal = int(getattr(run, "current_step_ordinal", 0) or 0)
+    return ordinal > 1
 
 
 def list_active_runs(
@@ -479,28 +768,26 @@ def list_active_runs(
     except Exception:
         return []
 
+    # v4.01 — self-clean abandoned zombie runs before listing so they don't
+    # linger as permanent "stuck" rows in the operator chip.
+    try:
+        reap_abandoned_runs(tenant_schema=tenant_schema)
+    except Exception:  # noqa: BLE001 — reaping must never break the chip fetch
+        logger.debug("active_runs: reap_abandoned_runs failed", exc_info=True)
+
+    # tenant-isolation-allow: workflow-active-runs-operator-scope-conditional-tenant-schema-filter
     qs = WorkflowRun.objects.filter(status__in=("running", "stuck"))
     if tenant_schema:
         qs = qs.filter(tenant_schema=tenant_schema)
     if actor_user_id:
         qs = qs.filter(actor_user_id=str(actor_user_id))
-    qs = qs.order_by("-started_at")[:limit]
+    qs = qs.order_by("-started_at")[: max(limit * 3, limit)]
 
     out: list[dict] = []
     for run in qs:
-        out.append(
-            {
-                "id": run.pk,
-                "workflow_key": run.workflow_key,
-                "workflow_label": run.workflow_label,
-                "status": "stuck" if is_stuck(run) else run.status,
-                "current_step_ordinal": run.current_step_ordinal,
-                "current_step_name": run.current_step_name,
-                "total_steps": run.total_steps,
-                "started_at": run.started_at.isoformat() if run.started_at else "",
-                "expected_duration_seconds": run.expected_duration_seconds,
-                "tenant_schema": run.tenant_schema,
-                "suggested_remediation": run.suggested_remediation or {},
-            }
-        )
+        if not _visible_in_progress_chip(run):
+            continue
+        out.append(serialize_workflow_run(run))
+        if len(out) >= limit:
+            break
     return out

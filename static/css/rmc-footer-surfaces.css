@@ -1,6 +1,7 @@
 /**
  * RunMyCampus — platform footer surface contract.
- * - operator-compact: manager login + control plane (never full marketing mega-footer)
+ * - operator-civic: manager /super, /admin, portal bridge (rmc_operator_footer_civic.html)
+ * - operator-compact: manager login landings only (rmc_operator_footer_compact.html)
  * - tenant: school-scoped portal/dashboard footers
  * - marketing-full: runmycampus.com only (marketing_footer.html)
  */

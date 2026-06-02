@@ -1,9 +1,9 @@
 {
   "doc": "promoted_workflow_route_verification",
-  "generated_at": "2026-05-22T18:59:30Z",
+  "generated_at": "2026-06-02T12:45:37Z",
   "django_bootable": true,
-  "total_workflows": 54,
-  "hand_seeded": 16,
+  "total_workflows": 69,
+  "hand_seeded": 31,
   "promoted": 38,
   "promoted_results": [
     {
@@ -254,9 +254,9 @@
       "title": "Customer-success guided onboarding",
       "module": "customersuccess",
       "audience": "operator",
-      "entry_path": "/siteconfig/guided-onboarding/",
+      "entry_path": "/super/customer-success/",
       "status": "resolves",
-      "evidence": "first-segment 'siteconfig/guided-onboarding' matched in URL graph"
+      "evidence": "first-segment 'super/customer-success' matched in URL graph"
     },
     {
       "key": "finance-generate-fees",

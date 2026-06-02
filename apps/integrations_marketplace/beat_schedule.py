@@ -74,21 +74,21 @@ def _build_schedule() -> dict[str, dict[str, Any]]:
         schedule["integrations-refresh-lms-tokens"] = {
             "task": "integrations_marketplace.refresh_due_lms_tokens",
             "schedule": 3600.0,
-            "options": {"expires": 3300},
+            "options": {"expires": 3300},  # magic-number-allow: celery-task-expiry-seconds
         }
 
     if not _env_bool("RMC_LMS_TOKEN_ROTATION_BEAT_DISABLED"):
         schedule["integrations-rotate-lms-tokens"] = {
             "task": "integrations_marketplace.rotate_due_lms_tokens",
             "schedule": crontab(hour=3, minute=30),
-            "options": {"expires": 3600},
+            "options": {"expires": 3600},  # magic-number-allow: celery-task-expiry-seconds
         }
 
     if not _env_bool("RMC_LMS_AUDIT_RETENTION_BEAT_DISABLED"):
         schedule["integrations-purge-lms-audit-rows"] = {
             "task": "integrations_marketplace.purge_due_lms_audit_rows",
             "schedule": crontab(hour=4, minute=0, day_of_week="sun"),
-            "options": {"expires": 7200},
+            "options": {"expires": 7200},  # magic-number-allow: celery-task-expiry-seconds
         }
 
     # v4.00.59 — reactive OAuth health beat: catch tokens that fully expired
@@ -99,7 +99,7 @@ def _build_schedule() -> dict[str, dict[str, Any]]:
         schedule["integrations-lms-oauth-health"] = {
             "task": "integrations_marketplace.auto_refresh_expired_lms_tokens",
             "schedule": 900.0,
-            "options": {"expires": 600},
+            "options": {"expires": 600},  # magic-number-allow: celery-task-expiry-seconds
         }
 
     # v4.00.60 — auto-prune revoked OAuth grants. Walks expired rows whose
@@ -111,7 +111,7 @@ def _build_schedule() -> dict[str, dict[str, Any]]:
         schedule["integrations-lms-oauth-auto-prune"] = {
             "task": "integrations_marketplace.auto_prune_revoked_lms_tokens",
             "schedule": crontab(hour=2, minute=30),
-            "options": {"expires": 3600},
+            "options": {"expires": 3600},  # magic-number-allow: celery-task-expiry-seconds
         }
 
     # v4.00.63 — LMSDiagActionAudit retention sweep (7y FERPA cutoff).
@@ -122,7 +122,7 @@ def _build_schedule() -> dict[str, dict[str, Any]]:
         schedule["integrations-purge-lms-diag-action-rows"] = {
             "task": "integrations_marketplace.purge_due_lms_diag_action_rows",
             "schedule": crontab(hour=4, minute=30, day_of_week="sun"),
-            "options": {"expires": 7200},
+            "options": {"expires": 7200},  # magic-number-allow: celery-task-expiry-seconds
         }
 
     return schedule

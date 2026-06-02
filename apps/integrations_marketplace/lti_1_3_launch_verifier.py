@@ -36,8 +36,8 @@ EXPECTED_VERSION = "1.3.0"
 # In-process nonce ring for replay defense. Cap 10k; oldest evicted first.
 # Production should swap in a Redis-backed implementation.
 _NONCE_RING: dict[str, float] = {}
-_NONCE_RING_CAP = 10_000
-_NONCE_TTL_SECONDS = 600
+_NONCE_RING_CAP = 10_000  # magic-number-allow: in-memory-ring-buffer-cap
+_NONCE_TTL_SECONDS = 600  # magic-number-allow: ttl-seconds
 
 
 def _is_nonce_replay(nonce: str) -> bool:

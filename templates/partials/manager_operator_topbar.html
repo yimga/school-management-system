@@ -93,6 +93,9 @@
                theme + aesthetic chip is the unified SOT, rendered right of the
                notification bell and before the user dropdown on every shell. {% endcomment %}
             {% include "components/header_theme_chip.html" %}
+            <div class="rmc-wfp-header-slot" data-rmc-wfp-header-slot="1" aria-label="{% trans 'Workflow progress' %}">
+              {% include "components/rmc_workflow_progress_strip.html" %}
+            </div>
             {% include "components/user_dropdown.html" %}
           {% else %}
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>

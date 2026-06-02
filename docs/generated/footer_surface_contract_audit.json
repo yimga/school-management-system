@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-30T12:36:06.164309+00:00",
+  "generated_at": "2026-06-02T10:11:41.631523+00:00",
   "pass": true,
-  "templates_scanned": 1391,
+  "templates_scanned": 1422,
   "rows": [
     {
       "check_id": "forbid_bundle_templates_control_plane_skeleton.html",
@@ -269,25 +269,31 @@
     },
     {
       "check_id": "require_rmc_operator_footer__templates_control_plane_skeleton.html",
-      "description": "templates/control_plane_skeleton.html wires 'rmc_operator_footer_compact.html'",
+      "description": "templates/control_plane_skeleton.html wires 'rmc_operator_footer_civic.html'",
       "status": "PASS",
       "proof": "templates/control_plane_skeleton.html"
     },
     {
-      "check_id": "require_data-rmc-footer-surf_templates_control_plane_skeleton.html",
-      "description": "templates/control_plane_skeleton.html wires 'data-rmc-footer-surface=\"operator-compact\"'",
+      "check_id": "require_data-rmc-footer-surf_templates_partials_rmc_operator_footer_civic.html",
+      "description": "templates/partials/rmc_operator_footer_civic.html wires 'data-rmc-footer-surface=\"operator-civic\"'",
+      "status": "PASS",
+      "proof": "templates/partials/rmc_operator_footer_civic.html"
+    },
+    {
+      "check_id": "require_control_plane_unifie_templates_control_plane_skeleton.html",
+      "description": "templates/control_plane_skeleton.html wires 'control_plane_unified_header.html'",
       "status": "PASS",
       "proof": "templates/control_plane_skeleton.html"
     },
     {
       "check_id": "require_rmc_operator_footer__templates_admin_base.html",
-      "description": "templates/admin/base.html wires 'rmc_operator_footer_compact.html'",
+      "description": "templates/admin/base.html wires 'rmc_operator_footer_civic.html'",
       "status": "PASS",
       "proof": "templates/admin/base.html"
     },
     {
-      "check_id": "require_data-rmc-footer-surf_templates_admin_base.html",
-      "description": "templates/admin/base.html wires 'data-rmc-footer-surface=\"operator-compact\"'",
+      "check_id": "require_control_plane_unifie_templates_admin_base.html",
+      "description": "templates/admin/base.html wires 'control_plane_unified_header.html'",
       "status": "PASS",
       "proof": "templates/admin/base.html"
     },
@@ -300,12 +306,6 @@
     {
       "check_id": "require_rmc-footer-surfaces._templates_base.html",
       "description": "templates/base.html wires 'rmc-footer-surfaces.css'",
-      "status": "PASS",
-      "proof": "templates/base.html"
-    },
-    {
-      "check_id": "require_rmc_operator_footer__templates_base.html",
-      "description": "templates/base.html wires 'rmc_operator_footer_compact.html'",
       "status": "PASS",
       "proof": "templates/base.html"
     },
@@ -323,7 +323,7 @@
     },
     {
       "check_id": "require_rmc_operator_footer__templates_portal_base.html",
-      "description": "templates/portal_base.html wires 'rmc_operator_footer_compact.html'",
+      "description": "templates/portal_base.html wires 'rmc_operator_footer_civic.html'",
       "status": "PASS",
       "proof": "templates/portal_base.html"
     },
@@ -334,14 +334,26 @@
       "proof": "templates/portal_base.html"
     },
     {
-      "check_id": "require_data-rmc-footer-surf_templates_portal_base.html",
-      "description": "templates/portal_base.html wires 'data-rmc-footer-surface=\"operator-compact\"'",
+      "check_id": "require_control_plane_unifie_templates_portal_base.html",
+      "description": "templates/portal_base.html wires 'control_plane_unified_header.html'",
       "status": "PASS",
       "proof": "templates/portal_base.html"
     },
     {
+      "check_id": "require_rmc_operator_footer__templates_partials_manager_login_footer.html",
+      "description": "templates/partials/manager_login_footer.html wires 'rmc_operator_footer_compact.html'",
+      "status": "PASS",
+      "proof": "templates/partials/manager_login_footer.html"
+    },
+    {
       "check_id": "require_operator-compact_static_css_rmc-footer-surfaces.css",
       "description": "static/css/rmc-footer-surfaces.css wires 'operator-compact'",
+      "status": "PASS",
+      "proof": "static/css/rmc-footer-surfaces.css"
+    },
+    {
+      "check_id": "require_operator-civic_static_css_rmc-footer-surfaces.css",
+      "description": "static/css/rmc-footer-surfaces.css wires 'operator-civic'",
       "status": "PASS",
       "proof": "static/css/rmc-footer-surfaces.css"
     },
@@ -361,7 +373,7 @@
       "check_id": "sweep_non_marketing_no_bundle",
       "description": "No non-marketing template includes corporate_footer_bundle.html",
       "status": "PASS",
-      "proof": "1391 templates scanned"
+      "proof": "1422 templates scanned"
     },
     {
       "check_id": "sweep_non_marketing_no_mkt_command",

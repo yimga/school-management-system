@@ -130,6 +130,20 @@ def _apply_bundle_inner(
     )
 
     per_artifact_jobs = _build_jobs(bundle)
+    try:
+        from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
+
+        pulse_workflow_step(
+            active_workflow_run(),
+            "prepare",
+            payload={
+                "bundle_id": bundle_id,
+                "dry_run": dry_run,
+                "artifacts": len(per_artifact_jobs),
+            },
+        )
+    except Exception:
+        pass
     outcomes: list[ArtifactApplyOutcome] = []
     failed = False
 
@@ -148,6 +162,19 @@ def _apply_bundle_inner(
                 message=f"Wave {wave_index} starting ({len(wave_jobs)} artifact(s))",
                 detail={"wave": wave_index, "artifacts": len(wave_jobs)},
             )
+            try:
+                from apps.platform_runtime.workflow_tracker import (
+                    active_workflow_run,
+                    pulse_workflow_step,
+                )
+
+                pulse_workflow_step(
+                    active_workflow_run(),
+                    "apply_waves",
+                    payload={"wave": wave_index, "artifacts": len(wave_jobs)},
+                )
+            except Exception:
+                pass
             if worker_count <= 1 or len(wave_jobs) <= 1:
                 for job in wave_jobs:
                     outcomes.append(_apply_artifact(bundle, job, dry_run=dry_run))
@@ -211,6 +238,17 @@ def _apply_bundle_inner(
         detail={"totals": totals},
     )
     refresh_snapshot(bundle=bundle)
+
+    try:
+        from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
+
+        pulse_workflow_step(
+            active_workflow_run(),
+            "finalize",
+            payload={"status": new_status, "created": totals.get("created", 0)},
+        )
+    except Exception:
+        pass
 
     return ApplyResult(
         bundle_id=bundle.pk,
@@ -438,7 +476,7 @@ def _iter_csv_rows(
     locale_hints: dict[str, Any],
 ) -> Iterator[dict[str, Any]]:
     with path.open("r", encoding=encoding, errors="replace", newline="") as fh:
-        sample = fh.read(4096)
+        sample = fh.read(4096)  # magic-number-allow: file-read-chunk-bytes
         fh.seek(0)
         try:
             dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")

@@ -10,7 +10,7 @@ app_name = "communication"
 
 urlpatterns = [
     # Wave H (v3.95.0): WhatsApp Parent OS — Meta Business webhook.
-    path(
+    path(  # rbac-allow: intentionally-public-meta-webhook-hmac-signature-verified-via-verify_webhook
         "whatsapp/webhook/",
         views_whatsapp_webhook.whatsapp_webhook,
         name="whatsapp_webhook",

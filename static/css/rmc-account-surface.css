@@ -335,7 +335,7 @@ body.control-plane-shell #cp-main-content .operator-siteconfig-cp-body [data-rmc
   height: auto;
   object-fit: contain;
   border-radius: var(--token-radius-sm, 8px);
-  background: var(--color-base-0, #fff);
+  background: var(--color-base-0, #fff); /* theme-locked-allow: qr-code-needs-white-bg-for-scannability */
   padding: var(--space-3);
 }
 

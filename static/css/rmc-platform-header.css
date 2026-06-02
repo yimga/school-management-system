@@ -105,7 +105,7 @@
   .rmc-platform-header__toolbar {
     order: unset;
     width: auto;
-    margin-left: auto;
+    margin-inline-start: auto;
     justify-content: flex-end;
   }
 }
@@ -126,7 +126,7 @@
   .rmc-platform-header__toolbar {
     grid-column: 2;
     grid-row: 1;
-    margin-left: 0;
+    margin-inline-start: 0;
     max-width: none;
   }
 

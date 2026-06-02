@@ -371,6 +371,7 @@ MIDDLEWARE += [
     # `manage.py verify_data_residency --fix-derive` has been run.
     "apps.schools.middleware_residency.DataResidencyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.security.embed_frame_middleware.EmbedSameOriginFrameMiddleware",
     # Content-Security-Policy (enforced by default after v2.57 — inline-style
     # backlog hit zero per scan_inline_style_off_token CI gate, so style-src
     # 'unsafe-inline' was removed from the policy and enforce mode is now safe).
@@ -933,6 +934,15 @@ if RUNNING_TESTS:
     # Django test Client uses HTTP; Secure cookies would never round-trip.
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+
+# Compliance AccessLog middleware: one INSERT per HTTP response amplifies SQLite lock
+# contention during large test batches. Off by default in tests; opt in with
+# RMC_ENABLE_TEST_ACCESS_LOG=1 when exercising audit middleware explicitly.
+COMPLIANCE_AUDIT_ACCESS_LOG_MIDDLEWARE_WRITES = (
+    not RUNNING_TESTS
+    or os.getenv("RMC_ENABLE_TEST_ACCESS_LOG", "").strip().lower()
+    in ("1", "true", "yes")
+)
 # Cookies must not be readable by JavaScript — defense-in-depth for XSS.
 SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "1") == "1"
 CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "1") == "1"
@@ -1539,6 +1549,12 @@ CELERY_BEAT_SCHEDULE = {
     # workflow.run.stuck. Matrix cooldown blocks duplicate alerts.
     "platform-runtime-workflow-stuck-sweep": {
         "task": "platform_runtime.workflow_stuck_alert_sweep",
+        "schedule": 300.0,
+        "options": {"expires": 240},
+    },
+    # Workflow 10x — running workflows past registry slo_seconds → breach row + operator email.
+    "platform-runtime-workflow-sla-breach-sweep": {
+        "task": "platform_runtime.workflow_sla_breach_alert_sweep",
         "schedule": 300.0,
         "options": {"expires": 240},
     },
@@ -3226,6 +3242,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.observability.middleware.RequestIdLoggingMiddleware",
         "apps.observability.middleware.ObservabilityMiddleware",
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
+        "apps.security.embed_frame_middleware.EmbedSameOriginFrameMiddleware",
     ]
     # TenantMiddleware is not used; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware provide request.school
 

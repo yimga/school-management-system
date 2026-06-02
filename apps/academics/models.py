@@ -665,7 +665,7 @@ class CertificationExamPreset(models.Model):
         max_length=40,
         help_text="Short code, e.g. GCE_OLEVEL_2026, IGCSE_2026, WAEC_SSCE, BAC_FR_2026.",
     )
-    name = models.CharField(max_length=160)
+    name = models.CharField(max_length=160)  # magic-number-allow: charfield-max-length
     board = models.CharField(
         max_length=20, choices=Board.choices, default=Board.OTHER
     )
@@ -724,7 +724,7 @@ class CertificationFeeTemplate(models.Model):
         blank=True,
         help_text="Attach to a preset to reuse across sessions. Leave blank for a one-off template.",
     )
-    name = models.CharField(max_length=160)
+    name = models.CharField(max_length=160)  # magic-number-allow: charfield-max-length
     currency = models.CharField(max_length=10, default=_default_currency)
     is_default_for_preset = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -749,7 +749,7 @@ class CertificationFeeLine(models.Model):
     template = models.ForeignKey(
         CertificationFeeTemplate, on_delete=models.CASCADE, related_name="lines"
     )
-    label = models.CharField(max_length=160)
+    label = models.CharField(max_length=160)  # magic-number-allow: charfield-max-length
     fee_type = models.CharField(
         max_length=20, choices=FeeType.choices, default=FeeType.OTHER
     )
@@ -799,7 +799,7 @@ class CertificationDocumentChecklist(models.Model):
         blank=True,
         help_text="Attach to a preset to reuse across sessions. Leave blank for a one-off checklist.",
     )
-    name = models.CharField(max_length=160)
+    name = models.CharField(max_length=160)  # magic-number-allow: charfield-max-length
     is_default_for_preset = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
@@ -821,9 +821,9 @@ class CertificationDocumentItem(models.Model):
     code = models.CharField(
         max_length=40, help_text="Short code, e.g. BIRTH_CERT, ID_CARD, PHOTO_4X4."
     )
-    label = models.CharField(max_length=160)
+    label = models.CharField(max_length=160)  # magic-number-allow: charfield-max-length
     required = models.BooleanField(default=True)
-    help_text = models.CharField(max_length=240, blank=True)
+    help_text = models.CharField(max_length=240, blank=True)  # magic-number-allow: charfield-max-length
     display_order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:

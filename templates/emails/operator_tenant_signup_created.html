@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><title>New school signup</title></head>
-<body style="font-family:system-ui,sans-serif;color:#111;max-width:560px;margin:24px auto;padding:16px;background:#fafafa;border:1px solid #ececec;border-radius:8px;">
+<body style="font-family:system-ui,sans-serif;color:#111;max-width:560px;margin:24px auto;padding:16px;background:#fafafa;border:1px solid #ececec;border-radius:8px;/* inline-style-allow: email-client-requires-inline-css */">
   <h2 style="margin:0 0 .5rem">New school signup on RunMyCampus</h2>
-  <table style="width:100%;border-collapse:collapse;font-size:14px">
-    <tr><td style="padding:4px 0;color:#555">School name</td><td><strong>{{ school_name|default:"(unknown)" }}</strong></td></tr>
-    <tr><td style="padding:4px 0;color:#555">Country</td><td>{{ country_code|default:"(unspecified)" }}</td></tr>
-    <tr><td style="padding:4px 0;color:#555">Subdomain</td><td>{{ subdomain|default:"(pending)" }}</td></tr>
-    <tr><td style="padding:4px 0;color:#555">Owner email</td><td>{{ admin_email|default:"(see verification record)" }}</td></tr>
-    <tr><td style="padding:4px 0;color:#555">Created at</td><td>{{ generated_at }}</td></tr>
+  <table style="width:100%;border-collapse:collapse;font-size:14px;/* inline-style-allow: email-client-requires-inline-css */">
+    <tr><td style="padding:4px 0;color:#555;/* inline-style-allow: email-client-requires-inline-css */">School name</td><td><strong>{{ school_name|default:"(unknown)" }}</strong></td></tr>
+    <tr><td style="padding:4px 0;color:#555;/* inline-style-allow: email-client-requires-inline-css */">Country</td><td>{{ country_code|default:"(unspecified)" }}</td></tr>
+    <tr><td style="padding:4px 0;color:#555;/* inline-style-allow: email-client-requires-inline-css */">Subdomain</td><td>{{ subdomain|default:"(pending)" }}</td></tr>
+    <tr><td style="padding:4px 0;color:#555;/* inline-style-allow: email-client-requires-inline-css */">Owner email</td><td>{{ admin_email|default:"(see verification record)" }}</td></tr>
+    <tr><td style="padding:4px 0;color:#555;/* inline-style-allow: email-client-requires-inline-css */">Created at</td><td>{{ generated_at }}</td></tr>
   </table>
   {% if tenant_360_url %}<p style="margin-top:16px"><a href="{{ tenant_360_url }}">Inspect the tenant &rarr;</a></p>{% endif %}
-  <p style="color:#888;margin-top:24px;font-size:12px">— RunMyCampus platform</p>
+  <p style="color:#888;margin-top:24px;font-size:12px;/* inline-style-allow: email-client-requires-inline-css */">— RunMyCampus platform</p>
 </body>
 </html>

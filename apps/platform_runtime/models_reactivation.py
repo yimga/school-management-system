@@ -25,8 +25,8 @@ class TenantReactivationAttempt(models.Model):
     """One emailed reactivation attempt at a specific cadence stage."""
 
     school_id = models.CharField(max_length=40, db_index=True)
-    school_name = models.CharField(max_length=160, blank=True, default="")
-    recipient_email = models.CharField(max_length=254, blank=True, default="")
+    school_name = models.CharField(max_length=160, blank=True, default="")  # magic-number-allow: charfield-max-length
+    recipient_email = models.CharField(max_length=254, blank=True, default="")  # magic-number-allow: charfield-max-length
     recipient_email_hash = models.CharField(max_length=16, blank=True, default="")
 
     cadence = models.CharField(

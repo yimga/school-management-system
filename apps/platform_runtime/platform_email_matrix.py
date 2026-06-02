@@ -233,21 +233,27 @@ def _scrub_payload(payload: Any) -> dict:
         return {}
 
 
-def _cooldown_key(event_type: str, recipient: str) -> str:
+def _cooldown_key(event_type: str, classification: str, recipient: str) -> str:
     import hashlib
 
-    digest = hashlib.sha256(f"{event_type}|{recipient.strip().lower()}".encode("utf-8")).hexdigest()
+    # v4.01 — include classification. A single event fans out to multiple rows
+    # (operator / tenant_admin / tenant_user); when two of them resolve to the
+    # SAME address, omitting classification made them share one cooldown key, so
+    # the operator alert and the tenant_admin notice suppressed each other.
+    digest = hashlib.sha256(
+        f"{event_type}|{classification}|{recipient.strip().lower()}".encode("utf-8")
+    ).hexdigest()
     return f"emxk:{digest[:24]}"
 
 
 _COOLDOWN_RING: dict[str, float] = {}
-_COOLDOWN_RING_CAP = 5000
+_COOLDOWN_RING_CAP = 5000  # magic-number-allow: in-memory-ring-buffer-cap
 
 
-def _in_cooldown(event_type: str, recipient: str, cooldown_minutes: int) -> bool:
+def _in_cooldown(event_type: str, classification: str, recipient: str, cooldown_minutes: int) -> bool:
     if cooldown_minutes <= 0:
         return False
-    key = _cooldown_key(event_type, recipient)
+    key = _cooldown_key(event_type, classification, recipient)
     last = _COOLDOWN_RING.get(key)
     if last is None:
         return False
@@ -255,12 +261,12 @@ def _in_cooldown(event_type: str, recipient: str, cooldown_minutes: int) -> bool
     return age_seconds < (cooldown_minutes * 60)
 
 
-def _record_cooldown(event_type: str, recipient: str) -> None:
+def _record_cooldown(event_type: str, classification: str, recipient: str) -> None:
     if len(_COOLDOWN_RING) >= _COOLDOWN_RING_CAP:
         # Drop oldest 10% to make room.
         for key in list(_COOLDOWN_RING.keys())[: _COOLDOWN_RING_CAP // 10]:
             _COOLDOWN_RING.pop(key, None)
-    _COOLDOWN_RING[_cooldown_key(event_type, recipient)] = timezone.now().timestamp()
+    _COOLDOWN_RING[_cooldown_key(event_type, classification, recipient)] = timezone.now().timestamp()
 
 
 def _render_subject(template_string: str, payload: dict) -> str:
@@ -391,7 +397,7 @@ def _dispatch_one_row(
     after_cooldown: list[str] = []
     skipped_cooldown: list[str] = []
     for recipient in visible_recipients:
-        if _in_cooldown(event_type, recipient, row.cooldown_minutes):
+        if _in_cooldown(event_type, row.classification, recipient, row.cooldown_minutes):
             skipped_cooldown.append(recipient)
             continue
         after_cooldown.append(recipient)
@@ -421,7 +427,7 @@ def _dispatch_one_row(
             )
             results.append({"recipient_hash": _hash_for_log(recipient), "result": result})
             if result.get("ok"):
-                _record_cooldown(event_type, recipient)
+                _record_cooldown(event_type, row.classification, recipient)
         except Exception as exc:
             logger.exception("email_matrix_send_failed event=%s", event_type)
             results.append(

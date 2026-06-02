@@ -93,6 +93,45 @@ class RLSJWTHandoffMintTests(SimpleTestCase):
         # Middleware finds the token + binds; should NOT additionally set a cookie.
         self.assertNotIn(_RLS_JWT_COOKIE, response.cookies)
 
+    def test_divergent_cookie_binds_authoritative_host_school_and_clears(self):
+        # BENCHMARK 1 congruence: the host/session tenant (school B) is
+        # authoritative; a stale school-A cookie must NOT rebind RLS to A.
+        user = SimpleNamespace(is_authenticated=True, pk=7, is_superuser=False, is_staff=False)
+        school_b = SimpleNamespace(pk="school-b-uuid")
+        stale = mint_rls_jwt(school_id="school-a-uuid", user_id=7, role="user")
+        request = _build_request(user=user, school=school_b, cookies={_RLS_JWT_COOKIE: stale})
+        with mock.patch("apps.tenancy.middleware_rls_jwt.set_rls_school_id") as m_set, \
+             mock.patch("apps.tenancy.middleware_rls_jwt.reset_rls_school_id"):
+            response = self.middleware(request)
+        # GUC bound to the authoritative host school (B), never the stale JWT (A).
+        m_set.assert_called_once_with("school-b-uuid")
+        # Stale cookie dropped so the next response re-mints it for the right school.
+        self.assertIn(_RLS_JWT_COOKIE, response.cookies)
+        self.assertEqual(response.cookies[_RLS_JWT_COOKIE].value, "")
+
+    def test_matching_cookie_binds_jwt_school_without_clearing(self):
+        user = SimpleNamespace(is_authenticated=True, pk=7, is_superuser=False, is_staff=False)
+        school_a = SimpleNamespace(pk="school-a-uuid")
+        good = mint_rls_jwt(school_id="school-a-uuid", user_id=7, role="user")
+        request = _build_request(user=user, school=school_a, cookies={_RLS_JWT_COOKIE: good})
+        with mock.patch("apps.tenancy.middleware_rls_jwt.set_rls_school_id") as m_set, \
+             mock.patch("apps.tenancy.middleware_rls_jwt.reset_rls_school_id"):
+            response = self.middleware(request)
+        m_set.assert_called_once_with("school-a-uuid")
+        # No divergence -> cookie left intact (not cleared, not re-minted).
+        self.assertNotIn(_RLS_JWT_COOKIE, response.cookies)
+
+    def test_api_request_without_host_school_binds_jwt_claim(self):
+        # Pure API path: no host tenant resolved -> trust the signed JWT claim.
+        user = SimpleNamespace(is_authenticated=True, pk=7, is_superuser=False, is_staff=False)
+        good = mint_rls_jwt(school_id="school-a-uuid", user_id=7, role="user")
+        request = _build_request(user=user, school=None, cookies={_RLS_JWT_COOKIE: good})
+        with mock.patch("apps.tenancy.middleware_rls_jwt.set_rls_school_id") as m_set, \
+             mock.patch("apps.tenancy.middleware_rls_jwt.reset_rls_school_id"):
+            response = self.middleware(request)
+        m_set.assert_called_once_with("school-a-uuid")
+        self.assertNotIn(_RLS_JWT_COOKIE, response.cookies)
+
     def test_logout_marker_clears_cookie(self):
         user = SimpleNamespace(is_authenticated=False)
         request = _build_request(user=user)

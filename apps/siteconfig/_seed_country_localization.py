@@ -1974,18 +1974,18 @@ COUNTRY_LOCALIZATION["CM"] = {
         {"code": "cm-tle",  "label": "Terminale (Baccalauréat)",  "order": 13},
         # Anglophone ladder (run in parallel for bilingual schools)
         {"code": "cm-cls1", "label": "Class 1 / Nursery 1",       "order": 100},
-        {"code": "cm-cls2", "label": "Class 2 / Nursery 2",       "order": 101},
-        {"code": "cm-cls3", "label": "Class 3",                   "order": 102},
-        {"code": "cm-cls4", "label": "Class 4",                   "order": 103},
-        {"code": "cm-cls5", "label": "Class 5",                   "order": 104},
-        {"code": "cm-cls6", "label": "Class 6 (FSLC)",            "order": 105},
-        {"code": "cm-f1",   "label": "Form 1",                    "order": 110},
-        {"code": "cm-f2",   "label": "Form 2",                    "order": 111},
-        {"code": "cm-f3",   "label": "Form 3",                    "order": 112},
-        {"code": "cm-f4",   "label": "Form 4",                    "order": 113},
-        {"code": "cm-f5",   "label": "Form 5 (GCE O/L)",          "order": 114},
-        {"code": "cm-ls",   "label": "Lower Sixth",               "order": 115},
-        {"code": "cm-us",   "label": "Upper Sixth (GCE A/L)",     "order": 116},
+        {"code": "cm-cls2", "label": "Class 2 / Nursery 2",       "order": 101},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-cls3", "label": "Class 3",                   "order": 102},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-cls4", "label": "Class 4",                   "order": 103},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-cls5", "label": "Class 5",                   "order": 104},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-cls6", "label": "Class 6 (FSLC)",            "order": 105},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-f1",   "label": "Form 1",                    "order": 110},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-f2",   "label": "Form 2",                    "order": 111},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-f3",   "label": "Form 3",                    "order": 112},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-f4",   "label": "Form 4",                    "order": 113},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-f5",   "label": "Form 5 (GCE O/L)",          "order": 114},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-ls",   "label": "Lower Sixth",               "order": 115},  # magic-number-allow: grade-level-display-order
+        {"code": "cm-us",   "label": "Upper Sixth (GCE A/L)",     "order": 116},  # magic-number-allow: grade-level-display-order
     ],
     "terminology": {
         "teacher":     "Enseignant / Teacher",
@@ -2083,9 +2083,9 @@ COUNTRY_LOCALIZATION["KE"] = {
         {"code": "ke-g12", "label": "Grade 12 (KCSE)",        "order": 13},
         # Legacy 8-4-4 (still in use by older cohorts)
         {"code": "ke-s1",  "label": "Form 1 (Legacy)",        "order": 100},
-        {"code": "ke-s2",  "label": "Form 2 (Legacy)",        "order": 101},
-        {"code": "ke-s3",  "label": "Form 3 (Legacy)",        "order": 102},
-        {"code": "ke-s4",  "label": "Form 4 (Legacy KCSE)",   "order": 103},
+        {"code": "ke-s2",  "label": "Form 2 (Legacy)",        "order": 101},  # magic-number-allow: grade-level-display-order
+        {"code": "ke-s3",  "label": "Form 3 (Legacy)",        "order": 102},  # magic-number-allow: grade-level-display-order
+        {"code": "ke-s4",  "label": "Form 4 (Legacy KCSE)",   "order": 103},  # magic-number-allow: grade-level-display-order
     ],
     "terminology": {
         "teacher": "Teacher", "principal": "Head Teacher / Principal",

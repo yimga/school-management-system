@@ -1,0 +1,69 @@
+{
+  "operation": "OMNI-UX-FORENSIC (operator + tenant)",
+  "date": "2026-06-02",
+  "standard": "Apple-tier premium/luxury is the FLOOR. Mandate: every task in fewer clicks. Method: 2 parallel read-only Explore agents (operator control-plane + tenant portal), every claim hand-verified against the live tree before any change.",
+  "principle": "Isomorphic enhancement only — do not reorder/rebuild carefully-tuned luxury surfaces (rmc-reveal/section-nav/above-fold markers) without owner sign-off; the high-leverage flows are FEATURE-scale and are flagged as a wave, not half-built.",
+  "applied_now_safe_contained": [
+    {
+      "id": "UX-1", "surface": "templates/finance/payments.html:59-60",
+      "fix": "Brought the premium .rmc-data-table treatment (hover depth, density, token spacing) to the payments table via additive class + .rmc-data-table-wrapper. CSS-only, no behavior change. Matches backend_student_list.",
+      "status": "APPLIED"
+    }
+  ],
+  "verified_false_or_already_good": [
+    {"claim": "payments.html needs bulk 'mark paid'", "verdict": "MISPLACED — payments.html is a read-only list of ALREADY-recorded payments; bulk-pay belongs on the invoices list. Re-scoped."},
+    {"claim": "parent dashboard buries fees below the fold", "verdict": "PARTLY ALREADY-ADDRESSED — the legacy dashboard's first section is 'What needs attention' with an outstanding-balance danger card + 'Review finance' CTA (parent/dashboard.html:290), and the 'Family summary' glance grid has an Outstanding->finance card (line 337); the v2 cockpit surfaces Quick Actions near the top. Reorder is a preference change on a heavily-tuned surface, not a defect."},
+    {"claim": "command palette / drawer / bulk framework missing", "verdict": "ALREADY PRESENT — rmc-command-palette.js, rmc-portal-row-detail-drawer.js, rmc-list-bulk-select.js, rmc-bulk-actions.js, skeleton_loader.html, rmc_empty_state.html, dirty-form + draft-save are all wired."},
+    {"claim": "group_detail.html leave-group lacks role=button", "verdict": "FALSE POSITIVE — already has role=button."}
+  ],
+  "recommended_ux_wave_feature_scale_flagged": [
+    {
+      "id": "UXW-1", "priority": "P1", "surface": "templates/teacher/marks_entry.html + evals views",
+      "friction": "Grade entry: select class/subject -> click Load -> open row drawer -> edit -> save, per student. ~5 clicks/student.",
+      "target": "Auto-load roster on dropdown change (HTMX) + inline cell editing with numpad. ~1 click + 2 taps/student.",
+      "why_flagged": "Needs a new evals:marks_roster HTMX endpoint + inline-edit JS + skeleton wiring + tests. Multi-file feature build."
+    },
+    {
+      "id": "UXW-2", "priority": "P1", "surface": "templates/portal/roll_call_teacher.html",
+      "friction": "Attendance: per-student dropdown select + save. ~30 dropdown interactions for a class.",
+      "target": "Row-level keyboard shortcuts (P/A/L) + 'mark all present then uncheck absences'. ~2 keystrokes/exception.",
+      "why_flagged": "New rmc-attendance-keyboard-shortcuts.js + row focus model + status-value mapping from Django + tests."
+    },
+    {
+      "id": "UXW-3", "priority": "P1", "surface": "templates/finance/invoices list",
+      "friction": "Recording payment against an outstanding invoice is list->detail->mark-paid->back per invoice.",
+      "target": "Checkbox column + bulk 'record payment' on the INVOICES list (reuse rmc-list-bulk + a finance bulk endpoint).",
+      "why_flagged": "Needs a finance:bulk_record_payment endpoint + concurrency-safe posting (note: the invoice-level select_for_update from this session's finance wave is the right substrate) + tests."
+    },
+    {
+      "id": "UXW-4", "priority": "P2", "surface": "mobile (parent/student) — mobile-tables-forms.css min-width rules; rmc-bottom-sheet.js unused",
+      "friction": "Tables force horizontal scroll < 600px; row detail uses side drawer (narrow on phones); some btn-sm tap targets < 44px.",
+      "target": "Responsive column reflow/hide < 600px; row detail as bottom-sheet on phones; enforce .min-touch-target on mobile CTAs.",
+      "why_flagged": "Cross-cutting CSS + JS conditional (drawer->bottom-sheet) touching many templates; needs device QA."
+    },
+    {
+      "id": "UXW-5", "priority": "P2", "surface": "operator: metric cards on backend_dashboard / migration dashboards",
+      "friction": "KPI cards (Failed 24h, In-flight, etc.) are not drill-through; operator must navigate+filter separately.",
+      "target": "Wrap each KPI in an anchor to the pre-filtered list (e.g. ?status=FAILED&since=24h). 1 click vs 3.",
+      "why_flagged": "Needs the target list views to accept those filters + per-card URL wiring; small-to-medium, but multi-view."
+    },
+    {
+      "id": "UXW-6", "priority": "P2", "surface": "operator: rbac_dashboard.html (5 stacked forms), settings sidebar mobile dropdown, command-palette 16-cap",
+      "friction": "RBAC page is 5 separate submit-forms (discovery cost); settings mobile nav is a 3-tap dropdown; palette silently caps at 16 results with no 'more' affordance.",
+      "target": "Drawer-per-action on RBAC; horizontal anchor pill-bar on mobile settings; palette result count + load-more.",
+      "why_flagged": "Each is a contained but real UI rework; batch into the operator polish sub-wave."
+    },
+    {
+      "id": "UXW-7", "priority": "P3", "surface": "form-system.css invalid-feedback 11px; data entry defaults",
+      "friction": "Validation error text is ~11px low-contrast (missable); finance filter dates have no sensible 30-day default; teacher subject not pre-selected from last use.",
+      "target": "Error text 13-14px + icon + stronger color; view-layer date defaults; localStorage last-selection hydrate.",
+      "why_flagged": "form-system.css change is global (regression-test all forms); the rest are small view/JS additions."
+    }
+  ],
+  "operator_polish_observations": [
+    "Destructive actions (migration rollback) sit behind a disclosure menu — consider inline danger button with confirm_modal.",
+    "Several operator tables use overflow-x:hidden !important (admin-cp-parity.css) which silently truncates wide tables — switch to overflow-x:auto + sticky first column.",
+    "control-plane uses 85 opaque --rmc-lit-* literal tokens across 7 files — semantic-token consolidation is quality debt, not a defect."
+  ],
+  "note": "This docket is the audit deliverable. The single safe contained fix was applied this wave; the P1-P3 items are real and worth doing but are feature-scale and must not be half-shipped — they are queued as the dedicated UX wave with click-cost deltas above."
+}

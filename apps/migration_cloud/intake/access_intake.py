@@ -199,6 +199,7 @@ def _export_via_pyodbc(path: Path, table: str) -> bytes:
         return b""
     try:
         cursor = conn.cursor()
+        # rls-bypass-allow: reads an uploaded external MS-Access migration source via pyodbc, not tenant Postgres
         cursor.execute(f"SELECT * FROM [{table}]")
         cols = [c[0] for c in cursor.description]
         buf = io.StringIO()

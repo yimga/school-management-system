@@ -847,6 +847,12 @@ def build_control_plane_nav(request):
                 "url_name": "super:dashboard_packs_catalog",
                 "icon": "bi-grid",
             },
+            {
+                "id": "super_workflow_flight_deck",
+                "label": "Workflow Flight Deck",
+                "url_name": "platform_runtime:workflow_progress_flight_deck",
+                "icon": "bi-hourglass-split",
+            },
         ],
     )
     add_group(
@@ -1187,7 +1193,7 @@ def build_studio_focus_sidebar(request) -> list[dict]:
         active_mode = None
 
     items: list[dict] = []
-    for nav_item in for_shell(SHELL_STUDIO_FOCUS, ["PROPRIETOR"]):
+    for nav_item in for_shell(SHELL_STUDIO_FOCUS, ["PROPRIETOR"]):  # role-string-allow: nav-shell-role-filter-argument
         if nav_item.section == "shortcuts" and active_mode:
             continue  # shortcuts only render when no mode is active
         url = _safe_reverse(nav_item.url_name, urlconf=urlconf)

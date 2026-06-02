@@ -1,6 +1,47 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-05-31 (v4.01.08 — orphan `.cp-topbar-theme-toggle` retirement following theme-toggle SOT hoist).
+**Last updated:** 2026-06-02 (v4.01.39 — RESIDUALS AGGRESSIVE CLOSEOUT: eyebrow contrast scope + RLS purge + School index + System-B unify + report-measure token).
+
+## 2026-06-02 — v4.01.39 — RESIDUALS aggressive closeout (no retirements)
+
+**Status:** SHIPPED. Closed every honest residual the audit-the-auditor pass surfaced. **(1) Eyebrow contrast (WAVE-5 follow-up):** the global `.eyebrow,.ds-eyebrow` personality repaint was a contrast risk on arbitrary dark/brand backgrounds the scanner can't resolve through `var()`. Reverted the global rule to the muted token and **scoped** personality eyebrow to `.page-header .eyebrow,.page-header .ds-eyebrow` only (guaranteed light/neutral premium surfaces). **(2) System-B accent unification:** added one trailing `[data-rmc-page-domain]` rule (equal specificity, later source order) in `rmc-page-personality.css` that pulls `--rmc-page-accent`/`-soft` from System-A `--personality-accent` while keeping each domain's glyph/tagline — so a JS-set domain page never shows two different accents. **(3) LAY-2 report-measure token:** new `--rmc-report-measure: 58rem` (widest prior value → nothing narrows) in `design-tokens.css`; `scripts/codemod_report_measure_token.py` repointed the inline `max-width:52/56/58rem` caps on **10 operator-report / cp-evidence partials** to `var(--rmc-report-measure)` (single-source, cascade preserved; manager shell already forces these full-width). **(4) dashboard_hub** card `<h1>`→`<h2>` heading-hierarchy fix. No CSS retired. Validation: off-token 0, theme-locked 0, color-contrast 0, inline-style 0, template-safety 0, undefined-css unchanged (pre-existing only), migration drift 0 real/0 cosmetic. SW `…v4.01.38` (parallel wave) → `sms-v4.01.39-residuals-aggressive-closeout-2026-06-02`. Companion Python residuals (lifecycle RLS purge wrap + `School(deleted_at,is_active)` index migration 0064 + DB-test run) tracked in memory. Deliverable: memory `project_operation_single_truth_audit_2026_06_01.md`.
+
+---
+
+## 2026-06-02 — v4.01.36 — OMNI-PERSONALITY-UNIFICATION (no retirements)
+
+**Status:** SHIPPED. Resolved the two-personality-system split (System A `data-rmc-page-personality` universal-but-thinly-consumed vs System B `data-rmc-page-domain` rich-but-rarely-emitted, and their palettes *disagree* on the same area — finance green vs bronze). **Decision: System A is the single color SOT; extend it to the functional areas** rather than activate a second divergent palette. **Lever A:** 4 new area personalities — `academic` (violet #7c3aed), `people` (teal #0d9488), `communication` (rose #db2777), `admissions` (fuchsia #c026d3) — each a light + dark token block in `design-tokens-personality.css` (consumed automatically by the WAVE-5 eyebrow + header-spine chrome). Resolver `apps/siteconfig/page_personality.py` gains path rules for `/academics/`, `/evals/`, `/communication/`, plus a **pre-existing bug fix**: the accounts app is mounted at `/authentication/`, so the whole tenant backend (`/authentication/backend/...` — dashboard, roster, applicants) was matching `/authentication/`→`auth` and rendering violet; now correctly people/admissions/tenant-admin via specificity rules placed before the auth rule. Cockpit form `forms_theme_personality.py` extended to 14 archetypes for operator override parity. **Lever B (exemplar):** `templates/communication/group_list.html` bespoke flat `<h1>` → `.rmc-page-header-glow` premium hero (carries the rose personality spine + eyebrow) + a 3-card `.rmc-stat-card` ribbon from existing context — the page now reads as a workbench, not header+table. No CSS retired. Validation: resolver smoke 10/10, form round-trip 14/14, off-token 0, theme-locked 0, template-safety 0, inline-style 0, no new undefined-css. SW `…v4.01.35` (taken by the parallel workflow-progress-10x wave) → `sms-v4.01.36-personality-area-unification-2026-06-02`. Flagged: same hero recipe for people-list/config-hub pages (per-page); optional System-B accent alignment on JS-set surfaces. Deliverable `docs/generated/omni_personality_unification_2026_06_02.json`.
+
+---
+
+## 2026-06-02 — v4.01.34 — OMNI-PAGE-PERSONALITY chrome consumption (no retirements)
+
+**Status:** SHIPPED. Audit (2 Explore agents) found the platform has **two fully-built page-personality systems** but the premium chrome consumed **neither** — the cause of the "samey" page look. System A (`data-rmc-page-personality`, 11 role/surface slugs) is resolved **universally server-side** (resolver `apps/siteconfig/page_personality.py`; context processors at `config/settings.py:452-453`; set on `<body>` in all 5 shells) with a complete theme-aware token set in `design-tokens-personality.css`, yet was consumed by only 3 CSS files. System B (`data-rmc-page-domain`, 12 functional-area domains) in `rmc-page-personality.css` has rich bindings but is rarely emitted. Critically, the page header used by **~250 templates** wore a flat-gray eyebrow and a tenant-brand glow — it never read the per-page accent already computed on every body. **Four additive, theme-aware `var()` bindings (CSS-only, zero template churn):** (1) `.rmc-page-eyebrow` → `var(--personality-eyebrow, …)`; (2) `.eyebrow, .ds-eyebrow` (design-tokens.css) → `var(--personality-eyebrow, …)`; (3) `.rmc-page-header-glow` gains a 3px `border-inline-start` personality "spine" (`--personality-accent` → brand → indigo) while the radial glow stays tenant-brand; (4) `rmc-page-personality.css :root` bridges `--rmc-page-accent`/`-soft` to fall back to the universal `--personality-accent`/`-soft`. No CSS retired. Validation: off-token **0**, theme-locked **0** (personality var chains pass), inline-style **0**, undefined-css = only the same 11 pre-existing cockpit-ticker classes from the separate wave. SW `sms-v4.01.33…` → `sms-v4.01.34-page-personality-consumption-2026-06-02`. Flagged-not-fixed (per no-half-fake): full A↔B unification (needs an owner decision on the canonical per-URL domain map — the two vocabularies don't map 1:1) and per-page bespoke-hero retrofits for the genuinely-generic destination pages (communication/people-list/config-hub). Deliverable: `docs/generated/omni_page_personality_audit_2026_06_02.json`.
+
+---
+
+## 2026-06-02 — v4.01.32 — OMNI-CONSISTENCY rmc-data-table adoption sweep (no retirements)
+
+**Status:** SHIPPED. Consistency audit (2 Explore agents) found only **43.9% of tables** (65/148) carried the canonical `.rmc-data-table` grammar — worst surfaces accounts 5%, siteconfig 12.5%, finance 37.5%. A guarded codemod (`scripts/codemod_rmc_data_table_consistency.py`) added the additive, CSS-only `rmc-data-table` class to every `<table>` already carrying `table-family` (the operational-data-table marker) but missing it. **202 tables across 149 files** now unified. EXCLUDED: `templates/reports/*` (PDF/print domain, bespoke `cameroon-*`/`cam` classes) and tables without `table-family`. No CSS retired; no behaviour change (behaviour comes from separate `data-rmc-*` attrs). Validation: template-safety 0; the sweep added **zero** undefined-css (rmc-data-table is defined in design-tokens.css); off-token/theme-locked/inline-style unaffected (HTML-only). SW `sms-v4.01.31…` → `sms-v4.01.32-rmc-data-table-consistency-2026-06-02`. Flagged-not-fixed (per no-half-fake): ~230 bespoke-H1 pages (header-grammar wave), ~47 competing-primary-CTA pages, ~57 raw `.card`, ad-hoc empty/loading states, and 11 PRE-EXISTING undefined `.rmc-cp-activity-*` classes belonging to the separate in-progress cockpit-ticker wave.
+
+---
+
+## 2026-06-02 — v4.01.31 — OMNI-LIFECYCLE-FORENSIC RTL active-nav fix (no retirements)
+
+## 2026-06-02 — v4.01.31 — OMNI-LIFECYCLE-FORENSIC RTL active-nav fix (no retirements)
+
+**Status:** SHIPPED. Part of the OMNI-LIFECYCLE-FORENSIC wave (finance concurrency hardening + 7-layer forensic audit). No CSS rules retired this wave — only physical→logical property conversions for RTL correctness on the control-plane / admin sidebar active-nav indicators (the indicator previously landed on the wrong side under `dir="rtl"`).
+
+| File | Action |
+|---|---|
+| `static/css/control-plane-ultra.css` (2 rules) | `#nav-sidebar .admin-sidebar-link.active` + `.cp-sidebar-nav .nav-link.active`: `border-left`/`margin-left`/`padding-left` → `border-inline-start`/`margin-inline-start`/`padding-inline-start`. Identical in LTR; mirrors in RTL. |
+| `static/css/admin-sidebar-polish.css` (1 rule + dark variant) | `.admin-sidebar-model-list`: `margin-left`/`padding-left`/`padding-right`/`border-left` (+`.dark` `border-left-color`) → logical equivalents. |
+
+**Deploy:** SW bumped `sms-v4.01.30…` → `sms-v4.01.31-omni-lifecycle-forensic-2026-06-02`. All CSS zero-tolerance scanners (off-token / theme-locked / inline-style) remain 0.
+
+---
+
+## 2026-05-31 — v4.01.08 — orphan theme-toggle CSS retirement (follow-up to v4.01.07 SOT hoist)
 
 ## 2026-05-31 — v4.01.08 — orphan theme-toggle CSS retirement (follow-up to v4.01.07 SOT hoist)
 

@@ -134,7 +134,7 @@
     </div>
   </div>
   {% endif %}
-  <div id="offboarding" class="card shadow-sm border-danger mb-3 rmc-danger-zone" data-rmc-offboarding-panel data-rmc-scroll-policy="paginate">
+  <div id="offboarding" class="card shadow-sm border-danger mb-3 rmc-danger-zone" data-rmc-offboarding-panel data-rmc-workflow-track="1" data-rmc-scroll-policy="paginate">
     <div class="card-header bg-danger-subtle text-danger-emphasis">{% trans "Offboarding & data custody" %}</div>
     <div class="card-body">
       <p class="small text-secondary mb-3">{% trans "Remove a tenant safely: restrict access, export a portability pack, optional legal hold, then permanent delete with typed confirmation. Platform audit logs are retained; cold backups and orphan user accounts may remain until separate cleanup." %} <a href="{{ offboarding_queue_url }}" class="link-light">{% trans "Offboarding queue" %}</a></p>

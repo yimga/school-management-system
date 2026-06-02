@@ -1,6 +1,6 @@
 {
   "allowlist_count": 10,
-  "finding_count": 127,
+  "finding_count": 130,
   "findings": [
     {
       "line": 63,
@@ -105,43 +105,43 @@
       "reason": "missing-enable-rls"
     },
     {
-      "line": 16,
+      "line": 19,
       "model": "billing.BillingAccount",
       "path": "apps/billing/models.py",
       "reason": "missing-enable-rls"
     },
     {
-      "line": 274,
+      "line": 288,
       "model": "billing.BillingProcessorSyncEvent",
       "path": "apps/billing/models.py",
       "reason": "missing-enable-rls"
     },
     {
-      "line": 122,
+      "line": 136,
       "model": "billing.Entitlement",
       "path": "apps/billing/models.py",
       "reason": "missing-enable-rls"
     },
     {
-      "line": 226,
+      "line": 240,
       "model": "billing.PlatformLedgerEntry",
       "path": "apps/billing/models.py",
       "reason": "missing-enable-rls"
     },
     {
-      "line": 459,
+      "line": 473,
       "model": "billing.Quote",
       "path": "apps/billing/models.py",
       "reason": "missing-enable-rls"
     },
     {
-      "line": 51,
+      "line": 65,
       "model": "billing.TenantSubscription",
       "path": "apps/billing/models.py",
       "reason": "missing-enable-rls"
     },
     {
-      "line": 192,
+      "line": 206,
       "model": "billing.UsageMeter",
       "path": "apps/billing/models.py",
       "reason": "missing-enable-rls"
@@ -393,6 +393,18 @@
       "reason": "missing-enable-rls"
     },
     {
+      "line": 203,
+      "model": "governance.SchoolAssignment",
+      "path": "apps/governance/models.py",
+      "reason": "missing-enable-rls"
+    },
+    {
+      "line": 124,
+      "model": "governance.SchoolContextProfile",
+      "path": "apps/governance/models.py",
+      "reason": "missing-enable-rls"
+    },
+    {
       "line": 726,
       "model": "marketplace.AppAuditLog",
       "path": "apps/marketplace/models.py",
@@ -609,6 +621,12 @@
       "reason": "missing-enable-rls"
     },
     {
+      "line": 387,
+      "model": "registries.TenantGradeScaleOverride",
+      "path": "apps/registries/models.py",
+      "reason": "missing-enable-rls"
+    },
+    {
       "line": 14,
       "model": "requests.AccessRequest",
       "path": "apps/requests/models.py",
@@ -765,7 +783,7 @@
       "reason": "missing-enable-rls"
     }
   ],
-  "generated_at": "2026-05-28T20:25:46+00:00",
+  "generated_at": "2026-06-02T16:59:56+00:00",
   "rule": "every tenant-scoped model must live in an app with both *_enable_rls_postgresql and *_rls_policy_default_deny migrations",
   "scan_dirs": [
     "apps"

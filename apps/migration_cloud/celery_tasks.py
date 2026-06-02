@@ -16,10 +16,18 @@ from typing import Any
 
 from celery import shared_task
 
+from apps.platform_runtime.workflow_tracker import track_workflow
+
 logger = logging.getLogger("apps.migration_cloud.celery_tasks")
 
 
 @shared_task(name="migration_cloud.advance_bundle", bind=True, ignore_result=False)
+@track_workflow(
+    "migration_bundle_advance",
+    steps=("profile", "classify", "map"),
+    expected_duration_seconds=900,  # magic-number-allow: workflow-expected-duration-seconds
+    email_on_failure=True,
+)
 def advance_bundle_task(self, bundle_id: int, use_accelerator: bool = True) -> dict[str, Any]:
     """Run profile → classify → map on a bundle off the request thread."""
     from .models import BundleStatus, MigrationBundle
@@ -49,6 +57,12 @@ def advance_bundle_task(self, bundle_id: int, use_accelerator: bool = True) -> d
 
 
 @shared_task(name="migration_cloud.apply_bundle", bind=True, ignore_result=False)
+@track_workflow(
+    "migration_bundle_apply",
+    steps=("prepare", "apply_waves", "finalize"),
+    expected_duration_seconds=1800,  # magic-number-allow: workflow-expected-duration-seconds
+    email_on_failure=True,
+)
 def apply_bundle_task(self, bundle_id: int, dry_run: bool = True) -> dict[str, Any]:
     """Apply a MAPPED bundle to its tenant off the request thread."""
     from .models import MigrationBundle
@@ -106,6 +120,11 @@ def enqueue_apply(bundle_id: int, *, dry_run: bool = True):
 
 
 @shared_task(name="migration_cloud.fetch_assets", bind=True, ignore_result=False)
+@track_workflow(
+    "migration_bundle_fetch_assets",
+    steps=("fetch",),
+    expected_duration_seconds=600,  # magic-number-allow: workflow-expected-duration-seconds
+)
 def fetch_assets_task(self, bundle_id: int, max_batch: int = 100) -> dict[str, Any]:
     """Stream pending MigrationAsset rows to MEDIA_ROOT off the request thread."""
     from .asset_pipeline import fetch_pending_assets
@@ -120,6 +139,11 @@ def fetch_assets_task(self, bundle_id: int, max_batch: int = 100) -> dict[str, A
     except Exception as exc:  # noqa: BLE001
         logger.exception("fetch_assets_task: bundle %s failed", bundle_id)
         return {"ok": False, "bundle_id": bundle_id, "error": str(exc)}
+
+
+advance_bundle_task.rmc_workflow_explicit = True
+apply_bundle_task.rmc_workflow_explicit = True
+fetch_assets_task.rmc_workflow_explicit = True
 
 
 def enqueue_fetch_assets(bundle_id: int, *, max_batch: int = 100):

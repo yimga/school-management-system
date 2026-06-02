@@ -279,7 +279,7 @@ def signup_school(request: HttpRequest):
         name = (request.GET.get("name") or request.GET.get("school_name") or "").strip()[
             :200
         ]
-        email = (request.GET.get("email") or "").strip()[:254]
+        email = (request.GET.get("email") or "").strip()[:254]  # magic-number-allow: string-truncation-cap
         slug = (request.GET.get("slug") or "").strip()[:120]
         ref = (request.GET.get("ref") or "").strip()[:32]
         if not request.session.get("rmc_signup_started_event"):

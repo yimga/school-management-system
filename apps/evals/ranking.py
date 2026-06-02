@@ -86,7 +86,7 @@ class RankingCache:
         rankings = _compute_rankings(term, classroom, use_mock_blending)
 
         # Cache for 15 minutes
-        cache.set(cache_key, rankings, 900)
+        cache.set(cache_key, rankings, 900)  # magic-number-allow: cache-ttl-seconds
 
         return rankings
 
@@ -160,10 +160,13 @@ def _compute_rankings(
     for eval_obj in evaluations:
         student_evals_map.setdefault(eval_obj.student_id, []).append(eval_obj)
 
+    school = getattr(classroom, "school", None) or getattr(term, "school", None)
+
     student_averages: dict[int, float] = {}
     for student_id, eval_list in student_evals_map.items():
         avg = _compute_student_average(
             eval_list,
+            school=school,
             use_mock_blending=use_mock_blending,
             mock_setting=mock_setting,
         )
@@ -230,6 +233,8 @@ def _compute_rankings(
 
 def _compute_student_average(
     evaluations,
+    *,
+    school=None,
     use_mock_blending: bool = False,
     mock_setting: Optional[MockExamSetting] = None,
 ) -> float:
@@ -240,11 +245,11 @@ def _compute_student_average(
 
     Args:
         evaluations: Queryset of Evaluation objects
+        school: Tenant school for report_card_avg JSON-Logic (CustomNuance / policy template)
         use_mock_blending: Whether to blend mock exam scores
         mock_setting: MockExamSetting for blending weights (required if use_mock_blending=True)
 
-    Uses subject coefficient for weighting:
-    Average = sum(score * coefficient) / sum(coefficients)
+    Uses subject coefficient for weighting, then report_card_avg nuance when configured.
     """
     total_weighted = 0.0
     total_coef = 0.0
@@ -271,7 +276,14 @@ def _compute_student_average(
     if total_coef <= 0:
         return 0.0
 
-    return total_weighted / total_coef
+    from apps.siteconfig.nuance_engine import compute_report_card_average
+
+    return compute_report_card_average(
+        school,
+        weighted_sum=total_weighted,
+        coefficient_total=total_coef,
+        scale_max=20.0,
+    )
 
 
 def _resolve_ranking_mode(term: Term, classroom: Optional[Classroom]) -> str:

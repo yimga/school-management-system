@@ -986,7 +986,13 @@ def support_copilot_view(request):
 @login_required
 def guided_onboarding_view(request):
     """Section 11.4: Guided onboarding - Setup Studio. When not embedded, redirect to Studio Launch."""
-    if request.GET.get("embed") != "1":
+    embed = request.GET.get("embed") == "1"
+    template_name = (
+        "customersuccess/guided_onboarding_embed.html"
+        if embed
+        else "customersuccess/guided_onboarding.html"
+    )
+    if not embed:
         return redirect(reverse("studio_os:launch"))
     try:
         from apps.lifecycle.tenant_school_resolve import resolve_request_school
@@ -997,7 +1003,7 @@ def guided_onboarding_view(request):
     if not school:
         return render(
             request,
-            "customersuccess/guided_onboarding.html",
+            template_name,
             _guided_onboarding_fallback_context(
                 school=None,
                 detail="No school context was detected for Setup Studio.",
@@ -1059,7 +1065,7 @@ def guided_onboarding_view(request):
     except GUIDED_ONBOARDING_SOFT_FAILURES:
         return render(
             request,
-            "customersuccess/guided_onboarding.html",
+            template_name,
             _guided_onboarding_fallback_context(
                 school=school,
                 detail="Setup Studio data is temporarily unavailable.",
@@ -1078,7 +1084,7 @@ def guided_onboarding_view(request):
         context["csv_apply_url"] = ""
     return render(
         request,
-        "customersuccess/guided_onboarding.html",
+        template_name,
         context,
     )
 

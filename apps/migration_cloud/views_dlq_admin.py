@@ -232,7 +232,7 @@ def _attempt_outbound_replay(row, payload_bytes: bytes) -> tuple[bool, str, int 
 
     if 200 <= status_code < 300:
         return True, "ok", status_code
-    if 500 <= status_code < 600:
+    if 500 <= status_code < 600:  # magic-number-allow: http-status-code-range
         return False, "target_returned_5xx", status_code
     if 400 <= status_code < 500:
         return False, "target_returned_4xx", status_code

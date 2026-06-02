@@ -3,13 +3,13 @@
 {% block title %}{% trans "LMS connectors" %} — {{ block.super }}{% endblock %}
 {% block content %}
 <div class="container-fluid rmc-page" style="max-width: 1100px;">
-  <nav style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+  <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
     <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
     <span aria-hidden="true">›</span>
     <span style="color: var(--text-primary);">{% trans "LMS connectors" %}</span>
   </nav>
   <header class="rmc-page__header" style="margin-bottom: 14px;">
-    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">{% trans "LMS connectors" %}</h1>
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "LMS connectors" %}</h1>
     <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 70ch;">
       {% trans "Per-(school, provider) OAuth2 tokens. Tokens are Fernet-encrypted at rest." %}
     </p>
@@ -18,16 +18,16 @@
   <section style="display: flex; gap: 10px; margin-bottom: 18px;">
     {% for p in providers %}
       <a href="{% url 'portal:lms_provider_detail' p %}" class="rmc-pill"
-         style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--hairline); background: var(--surface-elevated); color: var(--text-primary); text-decoration: none; font-size: 13px;">
+         style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--hairline); background: var(--surface-elevated); color: var(--text-primary); text-decoration: none; font-size: var(--type-size-caption);">
         {{ p }}
       </a>
     {% endfor %}
   </section>
 
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
       <thead>
-        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+        <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "School" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Provider" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Base URL" %}</th>
@@ -40,10 +40,10 @@
           <tr>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.school.name|default:r.school_id }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.get_provider_display }}</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 12px;">{{ r.base_url|default:"—" }}</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 12px;">{{ r.masked_token|default:"—" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ r.base_url|default:"—" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ r.masked_token|default:"—" }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">
-              <a href="{% url 'portal:lms_provider_detail' r.provider %}" style="font-size: 11px; color: var(--text-secondary);">{% trans "open" %} →</a>
+              <a href="{% url 'portal:lms_provider_detail' r.provider %}" style="font-size: var(--type-size-micro); color: var(--text-secondary);">{% trans "open" %} →</a>
             </td>
           </tr>
         {% empty %}

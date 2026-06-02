@@ -263,7 +263,7 @@
               <div class="cp-list-row">
                 <div>
                   <strong>{{ incident.title }}</strong>
-                  <div class="cp-list-meta">{{ incident.incident_type|title }} | {{ incident.severity|upper }}{% if incident.affected_school %} | {{ incident.affected_school.name }}{% endif %}</div>
+                  <div class="cp-list-meta">{{ incident.incident_type|title }} | {{ incident.severity|upper }}{% if incident.affected_school_name %} | {{ incident.affected_school_name }}{% endif %}</div>
                 </div>
                 <span class="cp-status-badge cp-status-badge-{{ incident.status }}">{{ incident.status|title }}</span>
               </div>
@@ -398,7 +398,7 @@
             <div class="cp-table-card">
               <div class="cp-mini-heading">{% trans "Storage by schema" %}</div>
               <div class="table-responsive">
-                <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle">
+                <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle rmc-data-table">
                   <caption class="visually-hidden">{% trans "Storage by schema" %}</caption>
                   <thead>
                     <tr><th>{% trans "Schema" %}</th><th>{% trans "Size" %}</th><th>{% trans "Tables" %}</th></tr>
@@ -422,7 +422,7 @@
             <div class="cp-table-card">
               <div class="cp-mini-heading">{% trans "Largest tables" %}</div>
               <div class="table-responsive">
-                <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle">
+                <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle rmc-data-table">
                   <caption class="visually-hidden">{% trans "Largest tables" %}</caption>
                   <thead>
                     <tr><th>{% trans "Table" %}</th><th>{% trans "Size" %}</th><th>{% trans "Rows" %}</th></tr>
@@ -491,7 +491,7 @@
             <div class="cp-table-card">
               <div class="cp-mini-heading">{% trans "Top active countries" %}</div>
               <div class="table-responsive">
-                <table class="table table-family table-sm mb-0 cp-table align-middle">
+                <table class="table table-family table-sm mb-0 cp-table align-middle rmc-data-table">
                   <caption class="visually-hidden">{% trans "Top active countries" %}</caption>
                   <thead>
                     <tr><th>{% trans "Country" %}</th><th>{% trans_term "Schools" key="school" plural=True %}</th><th>{% trans_term "Students" key="student" plural=True %}</th><th>{% trans "Revenue" %}</th><th>{% trans "Waived" %}</th></tr>

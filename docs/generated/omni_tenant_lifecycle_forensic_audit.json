@@ -1,0 +1,97 @@
+{
+  "operation": "OMNI-LIFECYCLE-FORENSIC",
+  "date": "2026-06-02",
+  "service_worker": "sms-v4.01.31-omni-lifecycle-forensic-2026-06-02",
+  "method": "4 parallel read-only Explore agents across 7 audit layers + lifecycle congruence; every finding adversarially re-verified by hand against the live tree before remediation.",
+  "stack_note": "Audit mapped the pasted SQL/FastAPI framing onto the actual Django 5.x + RLS(app.current_school_id) + Bootstrap/.rmc-* stack. No parallel SQL monolith, no FastAPI orchestrator, no app.current_tenant_id, no connections.databases per-request mutation were introduced (all on the prompt's reject list).",
+  "findings": [
+    {
+      "id": "B1", "layer": "3/4 money", "severity": "medium",
+      "file": "apps/finance/services.py:1027",
+      "finding": "Payment status set via fragile positional index Payment.STATUS_CHOICES[2][0] ('completed') — breaks silently if the choices list is reordered.",
+      "status": "FIXED", "fix": "Use canonical literal status=\"completed\" (matches Payment.mark_completed)."
+    },
+    {
+      "id": "D3", "layer": "lifecycle FSM", "severity": "high",
+      "file": "apps/lifecycle/unified_lifecycle.py:335",
+      "finding": "validate_unified_transition() existed but was never called from any production path (dead code) — a buggy signal could record an illegal state jump (e.g. draft->purged).",
+      "status": "FIXED", "fix": "Wired the validator into record_unified_transition(): resolve current unified state, refuse illegal transitions (log + skip, best-effort, never raise to preserve the signal-layer contract)."
+    },
+    {
+      "id": "A1", "layer": "1 tenancy/hierarchy", "severity": "high",
+      "file": "apps/schools/models.py:652 (clean), helper apps/schools/hierarchy_helpers.py:35",
+      "finding": "hierarchy_link_would_cycle() existed but was only called from tests — School.parent_school could be saved into a cycle (A->B, B->A), hanging every ancestor-chain / hierarchy_path walk.",
+      "status": "FIXED", "fix": "School.clean() now calls hierarchy_link_would_cycle(self, parent_school_id) and raises ValidationError on a cycle. No migration."
+    },
+    {
+      "id": "D5", "layer": "1 data residency", "severity": "medium",
+      "file": "apps/schools/data_residency.py:100",
+      "finding": "derive_default_region() silently returned 'global' for any country with no mapping/override — a real country code could breach an unconfigured data-residency requirement with zero signal.",
+      "status": "FIXED", "fix": "Added logger.warning on the global fallback for a non-empty unmapped code, pointing operators at the RuntimeDefaults override key. Behavior unchanged; observability added."
+    },
+    {
+      "id": "C1", "layer": "5 RTL", "severity": "medium",
+      "file": "static/css/control-plane-ultra.css:357,398; static/css/admin-sidebar-polish.css:191",
+      "finding": "Active-nav indicators used physical border-left/margin-left/padding-left with no RTL companion — indicator lands on the wrong side under dir=rtl.",
+      "status": "FIXED", "fix": "Converted to logical properties (border-inline-start / margin-inline-start / padding-inline-start). Identical in LTR; mirrors correctly in RTL. SW bumped."
+    },
+    {
+      "id": "A2", "layer": "1 tenancy/purge", "severity": "high",
+      "file": "apps/schools/tenant_offboarding.py:472 (run_scheduled_purges -> apply_purge -> _apply_purge_tracked:792); apps/compliance/tenant_offboarding_inventory.py purge_public_school_dependencies",
+      "finding": "The destructive purge (Celery beat, no request middleware) runs without an RLS context. Under FORCE RLS + default-deny (migration 0026: allow only when app.rls_bypass='on' OR school_id matches app.current_school_id), tenant-scoped child-row deletes could be silently denied (0 rows affected) when neither GUC is set.",
+      "status": "FLAGGED-NOT-FIXED", "reason": "Security-boundary destructive-path change. Cannot be validated locally — RLS is Postgres-only and is a no-op on the SQLite test DB, so any change here is unverifiable in CI. Changing it also alters destructive-delete behavior in prod and warrants owner review + a Postgres integration test before merge.",
+      "recommended_fix": "Wrap the purge deletion block in `with rls_school(school.id):` (apps/schools/rls_context.py) — scopes RLS to exactly the target tenant so deletes are permitted AND a bug cannot reach another tenant's rows. Verify the Celery worker DB role on Postgres first (if it is BYPASSRLS the issue is moot)."
+    },
+    {
+      "id": "A3", "layer": "1 perf", "severity": "medium",
+      "file": "apps/schools/models.py (School.Meta)",
+      "finding": "School has no index on (deleted_at, is_active) for grace-period purge scans; large fleets full-scan.",
+      "status": "FLAGGED-NOT-FIXED", "reason": "Migration-class item — per standing constraint, migration-class changes are flagged for the migration wave (D9/D10), not folded into a code wave whose hunks interleave with 300+ pre-existing modified files."
+    },
+    {
+      "id": "D1", "layer": "lifecycle", "severity": "low",
+      "file": "apps/schools/onboarding_service.py",
+      "finding": "onboarding_service.py create path does not call set_creation_path; tenant defaults to creation_path=operator via inference.",
+      "status": "FLAGGED-NOT-FIXED", "reason": "Metadata-hygiene only; get_creation_path already infers from rmc_public_onboarding. Self-serve signup (signup_views.py:618) and rapid-create (views_rapid_create.py) both set it correctly. Mislabeling risk if changed without knowing the caller's intent — owner decision."
+    },
+    {
+      "id": "D2", "layer": "lifecycle", "severity": "medium",
+      "file": "apps/schools/tasks.py (_do_provision)",
+      "finding": "Provisioning can stall: COMPLETED event only logged on success; some failure exits leave no terminal (COMPLETED|FAILED) event, so unified_lifecycle stays in provisioning indefinitely with no explicit STUCK signal.",
+      "status": "FLAGGED-NOT-FIXED", "reason": "Touches task failure semantics + needs a regression test; out of scope for the finance/lifecycle congruence pass. Recommended: always emit a terminal event in a finally/except, add a stuck-provisioning watch (a tasks_stall_watch.py already exists — wire it)."
+    },
+    {
+      "id": "D4", "layer": "lifecycle UX", "severity": "medium",
+      "file": "apps/schools/signup_views.py:1243 (verify_signup dispatch failure)",
+      "finding": "If dispatch_provision_school fails post-verify, the user is still logged in and redirected to the dashboard — sees a half-provisioned school that never finishes.",
+      "status": "FLAGGED-NOT-FIXED", "reason": "Product/UX policy decision (error page vs auto-retry vs degraded-banner). Owner decision."
+    }
+  ],
+  "dismissed_false_positives": [
+    {"id": "C3", "claim": "group_detail.html href=\"#\" leave-group lacks role=button", "verdict": "FALSE POSITIVE — line 114 already has role=\"button\"."},
+    {"id": "D6", "claim": "build_offboarding_checklist progress_pct is a per-step bug", "verdict": "FALSE POSITIVE — it intentionally assigns the same overall completion percent to every step; the agent's 'fix' is behaviorally identical."},
+    {"id": "L3-stale-grade-scale", "claim": "hardcoded 0-20 grade scale", "verdict": "FALSE POSITIVE — exists only in a stale worktree; active tree resolves grading polymorphically."},
+    {"id": "money-float", "claim": "float() on money paths", "verdict": "CLEAN — scan_money_float baseline 0; all float() sites carry money-float-allow markers (ratios/display/gateway)."},
+    {"id": "eval-rce", "claim": "eval() on user grade formulas", "verdict": "CLEAN — zero eval()/exec() on user input in apps/evals or apps/academics."}
+  ],
+  "verified_correct": [
+    "RLS FORCE coverage (migration 0048) + default-deny policies across 8 apps; GUC is app.current_school_id (correct), no connections.databases per-request mutation.",
+    "Double-entry ledger posting functions are @transaction.atomic and balance debits==credits (test_ledger_failures).",
+    "PPP coefficients read from siteconfig CountryMultiplier (DB), not hardcoded.",
+    "Metering: realtime_meter.hot_increment (atomic HINCRBY + Lua HGETALL+DEL drain + ORM fallback + TTL guard); both Celery beats wired (billing-flush-realtime-meter 60s, billing-flush-ai-metrics 5min).",
+    "Offboarding purge gates: export-before-purge + grace period + legal hold + dual approval + audit mirror all present.",
+    "GDPR/DSAR export auth-gated to tenant admin/operator.",
+    "Command palette (rmc-command-palette.js) wired; modal a11y (role/aria-modal/aria-labelledby) correct on confirm_modal.html.",
+    "Currency/country lists centralized in registries; role strings via TextChoices."
+  ],
+  "validation": {
+    "manage_py_check": "no issues (0 silenced)",
+    "scan_tenant_queryset_safety": 0,
+    "scan_ai_gateway_boundary": 0,
+    "scan_money_float": 0,
+    "scan_off_token_colors": 0,
+    "scan_theme_locked_token_text": 0,
+    "scan_inline_style_off_token": 0,
+    "audit_template_render_safety": 0
+  }
+}

@@ -63,7 +63,7 @@ urlpatterns = [
     path("api/wizards/search/", WizardSearchAPIView.as_view(), name="wizard_search_api"),
     # Bulk-promote cockpit preset (staff-only)
     path("api/wizards/cockpit-preset/", BulkPromoteCockpitPresetAPIView.as_view(), name="wizard_cockpit_preset_apply"),
-    path(
+    path(  # rbac-allow: intentionally-public-browser-telemetry-beacon-enum-only-no-pii-no-db-read
         "api/wizards/telemetry/cache-event/",
         wizard_cache_telemetry,
         name="wizard_cache_telemetry",

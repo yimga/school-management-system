@@ -85,6 +85,7 @@
                 <form
                   id="wizard-form"
                   enctype="multipart/form-data"
+                  data-rmc-workflow-track="1"
                   data-create-school-api-url="{% url 'super:api_create_school' %}"
                   data-edit-school-url-template="{{ school_admin_edit_template|default:'' }}"
                   data-timeline-url-template="{% url 'super:api_school_timeline' '00000000-0000-0000-0000-000000000000' %}"

@@ -34,7 +34,7 @@ import logging
 from datetime import timedelta
 
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 GRANT_DEFAULT_TTL_SECONDS = 30 * 60       # 30 min from approval
 GRANT_MAX_TTL_SECONDS = 4 * 60 * 60       # 4 h absolute ceiling
-GRANT_REASON_MAX_LEN = 280                # tweet-length reason
+GRANT_REASON_MAX_LEN = 280                # tweet-length reason  # magic-number-allow: field-char-cap
 SESSION_KEY_IMPERSONATOR = "_assist_dock_impersonator_id"
 SESSION_KEY_GRANT_ID = "_assist_dock_impersonation_grant_id"
 SESSION_KEY_STARTED_AT = "_assist_dock_impersonation_started_at"
@@ -399,30 +399,38 @@ def start_session_from_grant(
     """Consume an APPROVED grant; install impersonation in the session."""
     if not is_super(operator):
         return ("not_super", None)
+    # v4.01 — lock the grant row and re-check status under the lock so two
+    # concurrent operators cannot both pass is_consumable() and consume one
+    # single-use grant twice (TOCTOU). The whole read-check-write is atomic.
     try:
-        grant = ImpersonationGrant.objects.filter(pk=grant_id).first()
-    except Exception as exc:  # noqa: BLE001
-        logger.debug("start_session: lookup failed: %s", exc)
-        return ("lookup_failed", None)
-    if grant is None:
-        return ("grant_not_found", None)
-    if grant.approver_id != operator.pk and grant.grantor_id != operator.pk:
-        # Only the grantor (who requested it) or the approver may start it.
-        return ("not_assignee", None)
-    if not grant.is_consumable():
-        if grant.is_expired() and grant.status != ImpersonationGrantStatus.EXPIRED:
-            grant.status = ImpersonationGrantStatus.EXPIRED
-            grant.save(update_fields=["status"])
-            record_audit_event(
-                grant=grant,
-                actor=operator,
-                event_type=ImpersonationAuditEventType.EXPIRED_AT_START,
+        with transaction.atomic():
+            grant = (
+                ImpersonationGrant.objects.select_for_update()
+                .filter(pk=grant_id)
+                .first()
             )
-            return ("expired", None)
-        return ("wrong_state", None)
-    grant.consumed_at = timezone.now()
-    grant.status = ImpersonationGrantStatus.CONSUMED
-    grant.save(update_fields=["consumed_at", "status"])
+            if grant is None:
+                return ("grant_not_found", None)
+            if grant.approver_id != operator.pk and grant.grantor_id != operator.pk:
+                # Only the grantor (who requested it) or the approver may start it.
+                return ("not_assignee", None)
+            if not grant.is_consumable():
+                if grant.is_expired() and grant.status != ImpersonationGrantStatus.EXPIRED:
+                    grant.status = ImpersonationGrantStatus.EXPIRED
+                    grant.save(update_fields=["status"])
+                    record_audit_event(
+                        grant=grant,
+                        actor=operator,
+                        event_type=ImpersonationAuditEventType.EXPIRED_AT_START,
+                    )
+                    return ("expired", None)
+                return ("wrong_state", None)
+            grant.consumed_at = timezone.now()
+            grant.status = ImpersonationGrantStatus.CONSUMED
+            grant.save(update_fields=["consumed_at", "status"])
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("start_session: consume failed: %s", exc)
+        return ("lookup_failed", None)
     # tenant-isolation-allow: assist-dock-impersonation-session-create-public-schema-shared
     session = ImpersonationSession.objects.create(
         grant=grant,

@@ -71,7 +71,7 @@ def compute_rotation_chain_retention_plan(*, years: int | None = None,
             "retain_forever": True,
             "generated_at": now.isoformat(),
         }
-    cutoff = now - timedelta(days=int(years) * 365)
+    cutoff = now - timedelta(days=int(years) * 365)  # magic-number-allow: retention-window-days
     return {
         "years": int(years),
         "keep_tail": max(0, keep_tail),

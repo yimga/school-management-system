@@ -111,7 +111,7 @@ def _generate_ephemeral_keypair() -> tuple[bytes, bytes]:
     if mods is None:
         raise PlatformJWKSError("cryptography_missing", "cryptography not installed")
     rsa_mod, serialization, _hashes, _padding = mods
-    private = rsa_mod.generate_private_key(public_exponent=65537, key_size=2048)
+    private = rsa_mod.generate_private_key(public_exponent=65537, key_size=2048)  # magic-number-allow: rsa-public-exponent
     private_pem = private.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.PKCS8,
@@ -246,7 +246,7 @@ def build_jwks() -> dict[str, Any]:
 
 
 def sign_platform_jwt(
-    *, claims: dict[str, Any], expires_in_seconds: int = 3600
+    *, claims: dict[str, Any], expires_in_seconds: int = 3600  # magic-number-allow: ttl-seconds
 ) -> str:
     """Sign ``claims`` as a compact RS256 JWS with ``kid`` set on the header.
 

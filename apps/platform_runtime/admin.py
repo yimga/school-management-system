@@ -936,3 +936,36 @@ register_platform_admin(PlatformOperatorInvite, PlatformOperatorInviteAdmin)
 register_platform_admin(
     PlatformOperatorPromotionRequest, PlatformOperatorPromotionRequestAdmin
 )
+
+from .models_workflow_10x import (  # noqa: E402
+    WorkflowAutopilotApplyLog,
+    WorkflowAutopilotPolicy,
+    WorkflowDurationStat,
+    WorkflowSlaBreach,
+)
+from .models_workflow_run import WorkflowRun, WorkflowStep  # noqa: E402
+
+
+class WorkflowRunAdmin(ModelAdmin):
+    list_display = ("workflow_key", "status", "tenant_schema", "started_at", "ended_at")
+    list_filter = ("status", "workflow_key")
+    search_fields = ("workflow_key", "tenant_schema", "workflow_label")
+    readonly_fields = ("started_at", "ended_at", "last_heartbeat_at")
+
+
+class WorkflowAutopilotPolicyAdmin(ModelAdmin):
+    list_display = ("workflow_key", "tenant_schema", "enabled", "updated_at")
+    list_filter = ("enabled",)
+    search_fields = ("workflow_key", "tenant_schema")
+
+
+class WorkflowDurationStatAdmin(ModelAdmin):
+    list_display = ("workflow_key", "sample_count", "p95_seconds", "updated_at")
+    search_fields = ("workflow_key",)
+
+
+register_platform_admin(WorkflowRun, WorkflowRunAdmin)
+register_platform_admin(WorkflowAutopilotPolicy, WorkflowAutopilotPolicyAdmin)
+register_platform_admin(WorkflowAutopilotApplyLog, ModelAdmin)
+register_platform_admin(WorkflowDurationStat, WorkflowDurationStatAdmin)
+register_platform_admin(WorkflowSlaBreach, ModelAdmin)

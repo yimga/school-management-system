@@ -30,8 +30,14 @@
  */
 
 :root {
-  --rmc-page-accent: #6366f1; /* off-token-allow: page-personality-default */
-  --rmc-page-accent-soft: rgba(99, 102, 241, 0.12); /* off-token-allow: page-personality-default */
+  /* Bridge to the universally-resolved System-A personality accent
+     (data-rmc-page-personality on <body>, set server-side in every
+     shell). This lights up the opt-in accent stripe / eyebrow chip /
+     hover-inspector with the page's surface accent everywhere, instead
+     of a fixed indigo. An explicit [data-rmc-page-domain="…"] still
+     overrides below. Hex remains as the no-personality fallback. */
+  --rmc-page-accent: var(--personality-accent, #6366f1); /* off-token-allow: page-personality-default */
+  --rmc-page-accent-soft: var(--personality-accent-soft, rgba(99, 102, 241, 0.12)); /* off-token-allow: page-personality-default */
   --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-default */
   --rmc-page-glyph: "✦";
   --rmc-page-tagline: "Platform";
@@ -134,6 +140,23 @@
   --rmc-page-accent-ink: #fff; /* off-token-allow: page-personality-admin */
   --rmc-page-glyph: "⚙";
   --rmc-page-tagline: "Configuration";
+}
+
+/* ============================================================
+   UNIFICATION (v4.01.37) — System A is the single accent SOT.
+   When a page declares data-rmc-page-domain (server-side, or via
+   admin-quickaction.js URL inference), keep its per-domain glyph +
+   tagline but pull the ACCENT from the universally-resolved System-A
+   personality (--personality-accent), so a page never shows two
+   different accents (e.g. a green System-A eyebrow + a bronze
+   System-B stripe). This generic [data-rmc-page-domain] rule has the
+   same specificity as the per-domain [data-rmc-page-domain="x"] blocks
+   above and is later in source order, so it wins for these two
+   properties while leaving --rmc-page-glyph / --rmc-page-tagline intact.
+   ============================================================ */
+[data-rmc-page-domain] {
+  --rmc-page-accent: var(--personality-accent, #6366f1); /* off-token-allow: page-personality-unified-soto */
+  --rmc-page-accent-soft: var(--personality-accent-soft, rgba(99, 102, 241, 0.12)); /* off-token-allow: page-personality-unified-soto */
 }
 
 /* ============================================================

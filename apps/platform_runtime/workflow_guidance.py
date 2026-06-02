@@ -29,6 +29,8 @@ Role-string contract:
 
 from __future__ import annotations
 
+import re
+
 from typing import Any, Optional
 
 from django.utils.translation import gettext_lazy as _
@@ -155,6 +157,38 @@ def get_workflow(key: str) -> Optional[WorkflowDefinition]:
     return WORKFLOWS.get(key)
 
 
+_TENANT_PATH_PREFIX_RE = re.compile(r"^/t/[^/]+")
+
+
+def normalize_path_for_workflow_registry(path: str) -> str:
+    """Strip ``/t/<tenant-slug>/`` so matrix ``entry_path`` prefixes match tenant URLs."""
+
+    normalized = path if path.startswith("/") else f"/{path}"
+    match = _TENANT_PATH_PREFIX_RE.match(normalized)
+    if not match:
+        return normalized
+    suffix = normalized[match.end() :] or "/"
+    return suffix if suffix.startswith("/") else f"/{suffix}"
+
+
+def resolve_workflow_for_entry_path(path: str) -> Optional[WorkflowDefinition]:
+    """Longest-prefix match on registry ``entry_path`` (tenant-aware)."""
+
+    normalized = normalize_path_for_workflow_registry(path or "")
+    if not normalized:
+        return None
+    best_match: Optional[WorkflowDefinition] = None
+    best_length = -1
+    for workflow in WORKFLOWS.values():
+        ep = getattr(workflow, "entry_path", None)
+        if not ep or not isinstance(ep, str):
+            continue
+        if normalized.startswith(ep) and len(ep) > best_length:
+            best_match = workflow
+            best_length = len(ep)
+    return best_match
+
+
 def resolve_workflow_for_route(request: Any) -> Optional[WorkflowDefinition]:
     """Best-effort lookup: find a workflow whose ``route`` matches the request's URL name.
 
@@ -175,23 +209,11 @@ def resolve_workflow_for_route(request: Any) -> Optional[WorkflowDefinition]:
             if workflow.route == view_name:
                 return workflow
     # Fallback for matrix-promoted entries whose ``route`` is a URL path
-    # (e.g. ``/super/schools/create/``) rather than a view name. Match by
-    # ``request.path.startswith(entry_path)`` against any registered
-    # ``entry_path``. Longest prefix wins so nested routes don't trigger
-    # a parent workflow.
+    # (e.g. ``/super/schools/create/``) rather than a view name.
     path = getattr(request, "path", None)
-    if not isinstance(path, str) or not path:
-        return None
-    best_match: Optional[WorkflowDefinition] = None
-    best_length = -1
-    for workflow in WORKFLOWS.values():
-        ep = getattr(workflow, "entry_path", None)
-        if not ep or not isinstance(ep, str):
-            continue
-        if path.startswith(ep) and len(ep) > best_length:
-            best_match = workflow
-            best_length = len(ep)
-    return best_match
+    if isinstance(path, str) and path:
+        return resolve_workflow_for_entry_path(path)
+    return None
 
 
 def is_visible_for(request: Any, workflow: WorkflowDefinition) -> bool:

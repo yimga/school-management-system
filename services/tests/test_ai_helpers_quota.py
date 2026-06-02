@@ -94,6 +94,30 @@ class TokenBucketTests(SimpleTestCase):
         self.assertFalse(check_inference_quota(a)[0])
         self.assertTrue(check_inference_quota(b)[0])
 
+    def test_cold_start_uses_atomic_add_not_set(self):
+        """Regression: the cold-start path must seed the bucket via the
+        atomic ``cache.add`` (no-op if present) rather than an
+        unconditional ``cache.set``, so two concurrent first-callers can't
+        each clobber the counter back to 1 (lost-update race)."""
+        s = _school(school_id=22, ai_inference_per_day=5)
+        with patch("django.core.cache.cache.add", wraps=cache.add) as mock_add:
+            check_inference_quota(s)
+        mock_add.assert_called_once()
+
+    def test_concurrent_cold_start_does_not_lose_increments(self):
+        """Simulate the race: two callers both seed then increment. With
+        the atomic ``add`` seed, the second seed is a no-op and both
+        increments land — count reaches 2, not 1."""
+        s = _school(school_id=23, ai_inference_per_day=5)
+        # First caller seeds + increments → remaining 4.
+        ok1, rem1 = check_inference_quota(s)
+        # Second caller's seed must NOT reset the counter → remaining 3.
+        ok2, rem2 = check_inference_quota(s)
+        self.assertTrue(ok1)
+        self.assertTrue(ok2)
+        self.assertEqual(rem1, 4)
+        self.assertEqual(rem2, 3)
+
 
 class FailOpenTests(SimpleTestCase):
     def test_cache_outage_falls_open(self):

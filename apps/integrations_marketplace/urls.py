@@ -68,18 +68,18 @@ urlpatterns = [
         views.integrations_data_inventory_csv, name="data_inventory_csv",
     ),
     # v4.00.91 Studio-OS-10X W1 Pillar A — 14 operator UI surfaces.
-    path("studio-os-10x/",                              s10x.studio_home,                   name="s10x_home"),
-    path("studio-os-10x/quick-actions/",                s10x.quick_actions,                 name="s10x_quick_actions"),
-    path("studio-os-10x/oauth-metrics/",                s10x.oauth_metrics_dashboard,       name="s10x_oauth_metrics"),
-    path("studio-os-10x/saml-idp-registry/",            s10x.saml_idp_registry,             name="s10x_saml_idp_registry"),
-    path("studio-os-10x/lms-provider-rollup/",          s10x.lms_provider_rollup,           name="s10x_lms_rollup"),
-    path("studio-os-10x/retention-preview/",            s10x.retention_preview_historical,  name="s10x_retention_preview"),
-    path("studio-os-10x/dlq-filter-nav/",               s10x.dlq_filter_nav,                name="s10x_dlq_filter_nav"),
-    path("studio-os-10x/audit-packet-export/",          s10x.audit_packet_export,           name="s10x_audit_packet_export"),
-    path("studio-os-10x/diagnostics-alarms/",           s10x.diagnostics_alarm_panel,       name="s10x_diagnostics_alarms"),
-    path("studio-os-10x/pki-bundle-viewer/",            s10x.pki_bundle_viewer,             name="s10x_pki_bundle_viewer"),
-    path("studio-os-10x/tenant-retention-override/",    s10x.tenant_retention_override,     name="s10x_tenant_retention_override"),
-    path("studio-os-10x/token-rotation-timeline/",      s10x.token_rotation_timeline,       name="s10x_token_rotation_timeline"),
-    path("studio-os-10x/billing-summary/",              s10x.billing_summary,               name="s10x_billing_summary"),
-    path("studio-os-10x/nav-sidebar/",                  s10x.studio_nav_sidebar,            name="s10x_nav_sidebar"),
+    path("studio-os-10x/",                              s10x.studio_home,                   name="s10x_home"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/quick-actions/",                s10x.quick_actions,                 name="s10x_quick_actions"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/oauth-metrics/",                s10x.oauth_metrics_dashboard,       name="s10x_oauth_metrics"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/saml-idp-registry/",            s10x.saml_idp_registry,             name="s10x_saml_idp_registry"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/lms-provider-rollup/",          s10x.lms_provider_rollup,           name="s10x_lms_rollup"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/retention-preview/",            s10x.retention_preview_historical,  name="s10x_retention_preview"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/dlq-filter-nav/",               s10x.dlq_filter_nav,                name="s10x_dlq_filter_nav"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/audit-packet-export/",          s10x.audit_packet_export,           name="s10x_audit_packet_export"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/diagnostics-alarms/",           s10x.diagnostics_alarm_panel,       name="s10x_diagnostics_alarms"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/pki-bundle-viewer/",            s10x.pki_bundle_viewer,             name="s10x_pki_bundle_viewer"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/tenant-retention-override/",    s10x.tenant_retention_override,     name="s10x_tenant_retention_override"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/token-rotation-timeline/",      s10x.token_rotation_timeline,       name="s10x_token_rotation_timeline"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/billing-summary/",              s10x.billing_summary,               name="s10x_billing_summary"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
+    path("studio-os-10x/nav-sidebar/",                  s10x.studio_nav_sidebar,            name="s10x_nav_sidebar"),  # rbac-allow: staff-only-via-staff_required-user_passes_test-is_staff
 ]

@@ -1,5 +1,6 @@
 {% extends "portal_base.html" %}
 {% load static %}
+{% load i18n %}
 {% load region_format %}
 {% block title %}Request {{ req.reference }}{% endblock %}
 
@@ -43,13 +44,13 @@
           data-offline-hint="{% trans 'Decision notes stay on this device until you reconnect and sync.' %}">
       {% csrf_token %}
       <div class="col-12">
-        <label class="form-label small">Decision notes / clarification reason</label>
-        <textarea name="reason" class="form-control" rows="3" placeholder="Explain the decision or request clarification"></textarea>
+        <label for="request-reason" class="form-label small">{% trans "Decision notes / clarification reason" %}</label>
+        <textarea id="request-reason" name="reason" class="form-control" rows="3" placeholder="{% trans 'Explain the decision or request clarification' %}"></textarea>
       </div>
       <div class="col-12 d-flex flex-wrap gap-2">
-        <button type="submit" name="action" value="APPROVED" class="btn btn-success">Approve</button>
-        <button type="submit" name="action" value="DENIED" class="btn btn-danger">Deny</button>
-        <button type="submit" name="action" value="CLARIFY" class="btn btn-warning text-dark">Request clarification</button>
+        <button type="submit" name="action" value="APPROVED" class="btn btn-success">{% trans "Approve" %}</button>
+        <button type="submit" name="action" value="DENIED" class="btn btn-danger">{% trans "Deny" %}</button>
+        <button type="submit" name="action" value="CLARIFY" class="btn btn-warning text-dark">{% trans "Request clarification" %}</button>
         <a href="{% url 'requests:dashboard' %}" class="btn btn-outline-secondary">Back</a>
       </div>
     </form>

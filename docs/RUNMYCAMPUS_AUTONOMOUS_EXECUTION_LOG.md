@@ -1,5 +1,43 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Activity tiers consolidated header regression batch 1603 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1603** — fix operator unified header drift (stacked marquee vs Tier-1 inline badge).
+
+**B. Shipped:** restored `templates/partials/control_plane_unified_header.html` to consolidated layout from git HEAD.
+
+**C. Proof:** **CP_CONSOLIDATED_OPERATOR_SHELL_PASS**; **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS**.
+
+**D. SOT:** batch **1603** **DONE**.
+
+## Slice — Workflow Progress 10× four-wave completion batch 1601 (2026-06-02)
+
+**A. Claim:** §11.4 batch 1601 — ship waves 2–4 to 100% (autopilot engine, Flight Deck + copilot, tenant trust + SLA); fix registry duplicate `tenant_school_purge`; add wave-completion gate + smoke T15.
+
+**B. Shipped:** `models_workflow_10x.py` + migration `0079`; autopilot/trust/flight-deck views + URLs; `workflow_degrading` / `workflow_sla` / `workflow_incidents` / `workflow_tenant_trust`; Flight Deck template + JS/CSS; tenant trust strip on `portal_base`; control-plane nav Flight Deck; `verify_workflow_10x_waves_complete.py`; registry SLO fields without duplicate keys.
+
+**C. Proof:** **WORKFLOW_10X_WAVES_COMPLETE_PASS** (per-wave file + wiring + URL matrix); **WORKFLOW_PROGRESS_10X_PASS**; smoke **101/101**; Django workflow suite **25/25** including `test_workflow_10x_waves_validation`.
+
+**D. SOT:** batch **1601** **DONE**. **E. Follow-up (residuals):** SLA `workflow.sla.breached` + operator email + 5m sweep; apply-fix Preview (`dry_run`); **g f** → Flight Deck; SW `v4.01.38`. Run `migrate platform_runtime` if not applied.
+
+## Slice — Workflow Progress 10× Lane 2 closeout batch 1602 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1602** — Playwright live sweep, purge agent debug logging, apply migration **0079**, Flight Deck E2E smoke.
+
+**B. Shipped:** removed `_agent_debug_log` from `views_workflow_progress.py`; Flight Deck + authenticated cases in `workflow-progress.spec.js`; `scripts/run_workflow_progress_e2e.js`; `manager-login.js` `DB_FILE`/TOTP alignment; `export_manager_playwright_storage.py` MFA POST + manager cookie sync; `manager_client.bind_manager_session` empty-sessionid guard; SW `v4.01.40`.
+
+**C. Proof:** `npm run test:e2e:workflow-progress` → **10 passed, 1 skipped** (`VISUAL_QA_PORT=8012`, `E2E_LOGIN_USER=admin`, `RMC_ALLOW_WORKFLOW_E2E_DEMO=1`); `verify_workflow_progress_10x.py` + `verify_workflow_10x_waves_complete.py` **PASS**; Django **33/33**.
+
+**D. SOT:** batch **1602** **DONE**. **E. Ops:** seed `e2e-playwright` TOTP on the same SQLite file as runserver (`.env.local` `DB_FILE`); one runserver on `VISUAL_QA_PORT`.
+
+## Slice — Workflow Progress 10× validation re-run batch 1601 (2026-06-02, closeout)
+
+**A. Claim:** Re-validate batch **1601** + **1601b/c** after matrix `entry_path` collision fix (`customersuccess-guided-onboarding` → `/super/customer-success/`).
+
+**C. Proof:** **WORKFLOW_10X_WAVES_COMPLETE_PASS**; **WORKFLOW_PROGRESS_COVERAGE_PASS** (**38/38**); **WORKFLOW_PROGRESS_10X_PASS**; smoke **101/101**; Django workflow suite **33/33**; `verify_promoted_workflows.py` → **38/38 resolves** (regenerated `promoted_workflow_route_verification.json`).
+
+**D. SOT:** no new batch — **1601** remains **DONE**. **E. Deploy:** `python manage.py migrate platform_runtime` on each environment; optional Playwright `npm run test:e2e:workflow-progress` with live server.
+
 ## Slice — Tier-3 PlatformIncident API + legacy ticker migration batch 1600 (2026-06-01)
 
 **A. Claim:** §11.4 batch 1600 — close remaining honest gaps (Tier-3 incident API, legacy enabled_on_tenant opt-out); rerun full platform audit.

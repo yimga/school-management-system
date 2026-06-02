@@ -67,6 +67,7 @@ def run_sqlite_integrity_check(db_path: Path | str | bytes | None) -> Optional[s
         )
         try:
             cursor = conn.cursor()
+            # rls-bypass-allow: SQLite PRAGMA integrity_check on a backup file, not the tenant DB
             result = cursor.execute("PRAGMA integrity_check;").fetchone()
             if not result:
                 return None

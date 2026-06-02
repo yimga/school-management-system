@@ -42,7 +42,7 @@ def _probe_w3c_vc_forgery() -> dict[str, Any]:
     from apps.governance.turbo import w3c_verifiable_credentials as vc_mod
     vc = vc_mod.issue_vc(issuer_did="did:key:issuer", subject_did="did:key:subject", claims={"x": 1}, secret="A")
     forged = dict(vc)
-    forged["credentialSubject"] = {"id": "did:key:subject", "x": 99999}
+    forged["credentialSubject"] = {"id": "did:key:subject", "x": 99999}  # magic-number-allow: test-fixture-numeric-value
     result = vc_mod.verify_vc(forged, secret="A")
     return {"probe": "w3c_vc_forgery", "severity": "high", "finding": "ok" if not result.get("valid") else "vc_forgery_passes_verification"}
 

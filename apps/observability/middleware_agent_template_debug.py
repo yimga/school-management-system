@@ -11,6 +11,12 @@ from apps.observability.agent_debug_session import agent_debug_log, workflow_pro
 class AgentTemplateMissingDebugMiddleware:
     """Log deploy probe when the workflow progress strip partial is missing."""
 
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
     def process_exception(self, request, exception):
         if not isinstance(exception, TemplateDoesNotExist):
             return None

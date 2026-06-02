@@ -75,6 +75,7 @@
        BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-warm-bright-school.css' %}">
@@ -307,9 +308,7 @@
 
     {% block footer %}
     {% if SHOW_CORPORATE_MARKETING_FOOTER %}
-      <footer class="cp-corporate-footer" role="contentinfo" data-rmc-footer-surface="operator-compact">
-        {% include "partials/rmc_operator_footer_compact.html" %}
-      </footer>
+      {% include "partials/rmc_operator_footer_civic.html" %}
     {% elif PUBLIC_BRAND_MODE %}
       <footer class="container text-center text-muted small pt-3 pb-5 rmc-shell-footer" data-rmc-shell-footer="base">
         <p class="mb-1">
@@ -383,9 +382,7 @@
     {% include "partials/rmc_shortcuts_nav_data.html" %}
     {% include "partials/rmc_tour_bootstrap.html" %}
     {% include "partials/rmc_platform_chrome_scripts.html" %}
-    <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
     {% include "partials/rmc_isomorphic_grid_boot.html" %}
-    {% include 'components/back_to_top.html' %}
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% if request.user.is_authenticated %}
     {% include "partials/rmc_platform_surface_page_data.html" %}

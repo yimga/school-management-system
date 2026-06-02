@@ -262,6 +262,21 @@ def _run_action_emit_event(
         for k, v in (context or {}).items():
             if k.startswith("event_"):
                 payload[k] = v
+        # v4.01 — propagate the recursion-guard depth (incremented) into the
+        # emitted event. Previously the emitted payload carried NO depth marker,
+        # so a workflow→event→workflow cycle reset the counter to 0 every hop and
+        # the guard never accumulated → unbounded loop. Both downstream guards
+        # (visual_executor reads _workflow_depth; trigger_dispatcher reads
+        # _domain_event_depth) are fed.
+        _depth_raw = (context or {}).get(
+            "_workflow_depth", (context or {}).get("_domain_event_depth", 0)
+        )
+        try:
+            _next_depth = int(_depth_raw) + 1
+        except (TypeError, ValueError):
+            _next_depth = 1
+        payload["_workflow_depth"] = _next_depth
+        payload["_domain_event_depth"] = _next_depth
         school_id = getattr(school, "pk", None) or getattr(school, "id", None)
         schema_name = getattr(
             getattr(school, "client", None), "schema_name", None

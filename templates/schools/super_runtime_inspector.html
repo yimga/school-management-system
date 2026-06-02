@@ -244,7 +244,7 @@
       {% if inspection.feature_toggles %}
       <p class="small text-secondary mb-2">{% trans "Active overrides with owner/expiry/source/scope from capability registry. Source: school = tenant override, global = platform override." %}</p>
       <div class="table-responsive">
-        <table class="table table-sm mb-0 table-family align-middle">
+        <table class="table table-sm mb-0 table-family align-middle rmc-data-table">
           <caption class="visually-hidden">{% trans "Feature toggles &amp; flag metadata (GAP.13)" %}</caption>
           <thead><tr><th>{% trans "Key" %}</th><th>{% trans "On" %}</th><th>{% trans "Source" %}</th><th>{% trans "Expires" %}</th><th>{% trans "Owner" %}</th><th>{% trans "Def. source" %}</th><th>{% trans "Scope" %}</th></tr></thead>
           <tbody>

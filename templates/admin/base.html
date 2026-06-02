@@ -144,16 +144,14 @@
 
         {% if is_manager_host %}
         {% include "partials/cockpit/_ai_copilot_rail.html" %}
+        {% if request.user.is_authenticated %}
+        {% include "partials/cockpit/_operator_notebook.html" %}
+        {% endif %}
         {% endif %}
 
         {% comment %} ---------- Grid row 3 — static footer (viewport-pinned) ---------- {% endcomment %}
         {% if is_manager_host %}
-        <div class="rmc-footer-notebook-anchor" data-rmc-footer-notebook-anchor>
-          {% include "partials/cockpit/_operator_notebook.html" %}
-        </div>
-        <footer class="rmc-app-shell__footer cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
-          {% include "partials/rmc_operator_footer_compact.html" %}
-        </footer>
+        {% include "partials/rmc_operator_footer_civic.html" %}
         {% include "admin/manager_cp_offcanvas.html" %}
         {% include "partials/cockpit/_activity_ticker_drawer.html" %}
         <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
@@ -161,8 +159,6 @@
 
     </div>
     {% if is_manager_host %}
-    {% include 'components/back_to_top.html' %}
-    <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
-    <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+    {% include "partials/rmc_platform_chrome_scripts.html" %}
     {% endif %}
 {% endblock %}

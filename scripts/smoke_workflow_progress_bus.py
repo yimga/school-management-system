@@ -138,6 +138,7 @@ from django.db import connection
 # do not require the table to exist for tracking-failed runs to degrade.
 from apps.platform_runtime.workflow_tracker import (
     begin_run,
+    compute_progress_percent,
     finalize_run,
     heartbeat,
     is_stuck,
@@ -145,6 +146,9 @@ from apps.platform_runtime.workflow_tracker import (
     track_workflow,
     workflow_step,
 )
+
+expect("T2.8 progress_percent step-based mid-run", compute_progress_percent(current_step_ordinal=2, total_steps=5) in range(20, 45))
+expect("T2.9 progress_percent time-based fallback", compute_progress_percent(age_seconds=15, expected_duration_seconds=30) in range(40, 55))
 
 
 @track_workflow("smoke_demo_happy", steps=("a", "b"), expected_duration_seconds=5)
@@ -375,6 +379,226 @@ _major = int(_match.group(1)) if _match else -1
 expect(
     "T10.1 SW cache version >= v4.00.97",
     bool(_match) and (_major > 0 or _minor >= 97),
+)
+
+
+# ── T11 — platform-wide Celery + HTTP envelopes ───────────────────────────
+from django.conf import settings
+
+from apps.platform_runtime.workflow_celery_bridge import (
+    _should_track_celery_task,
+    clear_active_runs_for_tests,
+)
+from apps.platform_runtime.workflow_request_middleware import (
+    _client_requests_workflow_track,
+    _should_track_request,
+)
+
+
+class _SmokeUser:
+    is_authenticated = True
+    id = 1
+
+
+class _SmokeTask:
+    name = "apps.evals.tasks.bulk_grade_submissions"
+    time_limit = 120
+
+
+expect(
+    "T11.1 middleware registered",
+    "apps.platform_runtime.workflow_request_middleware.WorkflowProgressRequestMiddleware"
+    in settings.MIDDLEWARE,
+)
+expect(
+    "T11.2 celery bridge tracks generic shared_task",
+    _should_track_celery_task(_SmokeTask(), name=_SmokeTask.name),
+)
+expect(
+    "T11.3 celery bridge skips provision_school_task",
+    not _should_track_celery_task(
+        type("_P", (), {"name": "schools.provision_school_task"})(),
+        name="schools.provision_school_task",
+    ),
+)
+expect(
+    "T11.4 celery bridge skips scheduled purge (explicit decorator)",
+    not _should_track_celery_task(
+        type("_R", (), {"name": "schools.run_scheduled_tenant_purges"})(),
+        name="schools.run_scheduled_tenant_purges",
+    ),
+)
+from apps.platform_runtime.workflow_celery_bridge import _CELERY_WORKFLOW_KEY_OVERRIDES
+from apps.platform_runtime.workflow_registry import WORKFLOWS
+
+expect("T11.5 registry has tenant_school_purge", "tenant_school_purge" in WORKFLOWS)
+
+from django.test import RequestFactory
+
+_rf = RequestFactory()
+_post_api = _rf.post("/api/v1/students/import/")
+_post_api.user = _SmokeUser()
+expect("T11.6 middleware tracks tenant API POST", _should_track_request(_post_api))
+_skip_create = _rf.post("/super/api/create-school/")
+_skip_create.user = _SmokeUser()
+expect(
+    "T11.7 middleware skips explicit create-school",
+    not _should_track_request(_skip_create),
+)
+_health = _rf.post("/api/health/")
+_health.user = _SmokeUser()
+expect("T11.8 middleware skips health POST", not _should_track_request(_health))
+
+clear_active_runs_for_tests()
+
+
+# ── T12 — nested run stack ────────────────────────────────────────────────
+from apps.platform_runtime.workflow_tracker import (
+    active_workflow_run,
+    clear_workflow_run_stack_for_tests,
+    pop_workflow_run,
+    push_workflow_run,
+)
+
+clear_workflow_run_stack_for_tests()
+_fake = type("_FakeRun", (), {"pk": 1})()
+push_workflow_run(_fake)
+expect("T12.1 stack exposes inner run", active_workflow_run() is _fake)
+pop_workflow_run(_fake)
+expect("T12.2 stack empty after pop", active_workflow_run() is None)
+expect(
+    "T12.3 migration registry apply key",
+    WORKFLOWS.get("migration_bundle_apply") is not None,
+)
+expect(
+    "T12.4 celery override maps apply_bundle",
+    _CELERY_WORKFLOW_KEY_OVERRIDES.get("migration_cloud.apply_bundle")
+    == "migration_bundle_apply",
+)
+
+_super_form = _rf.post("/super/siteconfig/some-form/")
+_super_form.user = _SmokeUser()
+expect("T13.1 bare super POST not tracked without header", not _should_track_request(_super_form))
+_super_form.META["HTTP_X_RMC_WORKFLOW_TRACK"] = "1"
+expect("T13.2 super POST tracked with opt-in header", _should_track_request(_super_form))
+expect("T13.3 header helper accepts 1", _client_requests_workflow_track(_super_form))
+_mig_apply = _rf.post("/super/migration/api/v1/bundles/42/apply/")
+_mig_apply.user = _SmokeUser()
+expect("T13.4 migration apply skipped (explicit track_workflow)", not _should_track_request(_mig_apply))
+from apps.migration_cloud.views import MigrationCloudApplyView
+
+expect(
+    "T13.5 migration views post wrapped",
+    getattr(MigrationCloudApplyView.post, "__wrapped__", None) is not None,
+)
+
+
+# ── T14 — finance/marketplace bulk + chip noise ───────────────────────────
+from django.utils import timezone as dj_timezone
+
+from apps.platform_runtime.workflow_tracker import _visible_in_progress_chip
+
+expect(
+    "T14.1 registry finance_auto_generate_fee_invoices",
+    "finance_auto_generate_fee_invoices" in WORKFLOWS,
+)
+expect(
+    "T14.2 registry finance_auto_copy_fee_plans",
+    "finance_auto_copy_fee_plans" in WORKFLOWS,
+)
+expect(
+    "T14.3 registry marketplace_webhook_deliver_due",
+    "marketplace_webhook_deliver_due" in WORKFLOWS,
+)
+expect(
+    "T14.4 celery override finance auto_generate",
+    _CELERY_WORKFLOW_KEY_OVERRIDES.get("finance.auto_generate_fee_invoices")
+    == "finance_auto_generate_fee_invoices",
+)
+_young_celery = type(
+    "_YoungCelery",
+    (),
+    {
+        "workflow_key": "celery.ephemeral_task",
+        "current_step_ordinal": 1,
+        "started_at": dj_timezone.now(),
+    },
+)()
+expect("T14.5 young generic celery hidden from chip", not _visible_in_progress_chip(_young_celery))
+_named_run = type(
+    "_NamedRun",
+    (),
+    {
+        "workflow_key": "finance_auto_generate_fee_invoices",
+        "current_step_ordinal": 1,
+        "started_at": dj_timezone.now(),
+    },
+)()
+expect("T14.6 named workflow visible on chip immediately", _visible_in_progress_chip(_named_run))
+from apps.finance.tasks import auto_generate_fee_invoices_task
+from apps.marketplace.tasks import webhook_deliver_due
+
+expect(
+    "T14.7 finance auto_generate explicit flag",
+    getattr(auto_generate_fee_invoices_task, "rmc_workflow_explicit", False),
+)
+expect(
+    "T14.8 marketplace webhook explicit flag",
+    getattr(webhook_deliver_due, "rmc_workflow_explicit", False),
+)
+
+# ── T15: Workflow Progress 10x waves ─────────────────────────────────────
+from django.urls import reverse
+
+from apps.platform_runtime.models_workflow_10x import (
+    WorkflowAutopilotPolicy,
+    WorkflowDurationStat,
+    WorkflowSlaBreach,
+)
+from django.contrib.auth import get_user_model
+from django.test import RequestFactory
+
+from apps.schools.control_plane_nav import build_control_plane_nav
+
+for _url_name in (
+    "platform_runtime:workflow_progress_flight_deck",
+    "platform_runtime:workflow_progress_flight_deck_json",
+    "platform_runtime:workflow_progress_tenant_trusted_active",
+    "platform_runtime:workflow_progress_tenant_trusted_stream",
+    "platform_runtime:workflow_progress_autopilot_policy",
+    "platform_runtime:workflow_progress_enable_autopilot",
+):
+    try:
+        reverse(_url_name)
+        expect(f"T15.1 url resolves {_url_name}", True)
+    except Exception as exc:
+        expect(f"T15.1 url resolves {_url_name}", False, str(exc))
+
+_nav_req = RequestFactory().get("/super/")
+_nav_req.urlconf = "config.manager_urls"
+_nav_req.user = get_user_model()(is_superuser=True, username="workflow_smoke_nav")
+_flight_ids = [
+    item.get("id")
+    for section in build_control_plane_nav(_nav_req)
+    for item in (section.get("items") or [])
+    if isinstance(item, dict)
+]
+expect(
+    "T15.2 control plane nav includes Flight Deck",
+    "super_workflow_flight_deck" in _flight_ids,
+)
+expect("T15.3 WorkflowAutopilotPolicy model", WorkflowAutopilotPolicy._meta.db_table)
+expect("T15.4 WorkflowDurationStat model", WorkflowDurationStat._meta.db_table)
+expect("T15.5 WorkflowSlaBreach model", WorkflowSlaBreach._meta.db_table)
+from apps.platform_runtime.workflow_registry import WORKFLOWS
+
+expect(
+    "T15.6 tenant_school_provision has slo_seconds",
+    getattr(WORKFLOWS.get("tenant_school_provision"), "slo_seconds", None),
+)
+expect(
+    "T15.7 registry has single tenant_school_purge key",
+    list(WORKFLOWS.keys()).count("tenant_school_purge") == 1,
 )
 
 

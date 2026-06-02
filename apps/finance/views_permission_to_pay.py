@@ -51,7 +51,11 @@ def _finance_roles_ok(user) -> bool:
     if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
         return True
     role = (getattr(user, "role", "") or "").upper()
-    return role in {"ADMIN", "FINANCE", "BURSAR", "PRINCIPAL", "LEADERSHIP"}
+    # Canonical User.Role tokens only — "FINANCE" was a phantom role (no such
+    # User.Role choice), so the intended FINANCE_STAFF was silently excluded.
+    # (ACCOUNTANT is also a finance role but is intentionally NOT added here to
+    # avoid widening the original grant; flag for owner if it should be included.)
+    return role in {"ADMIN", "FINANCE_STAFF", "BURSAR", "PRINCIPAL", "LEADERSHIP"}  # role-string-allow: canonical-User.Role-finance-authz-tokens
 
 
 def _serialize(req: PermissionToPayRequest) -> dict:

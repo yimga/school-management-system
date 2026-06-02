@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-16T13:06:33.479229+00:00",
+  "generated_at": "2026-06-01T21:51:42.690094+00:00",
   "finding_count": 5,
   "by_kind": {
     "hostile-error-copy": 4,
-    "alarming-number-no-context": 1
+    "imperative-tone-no-reason": 1
   },
   "by_severity": {
     "warning": 4,
@@ -12,19 +12,11 @@
   "findings": [
     {
       "file": "templates/customersuccess/super_dashboard.html",
-      "line": 108,
+      "line": 143,
       "severity": "warning",
       "kind": "hostile-error-copy",
       "snippet": "<thead class=\"table-light\"><tr><th>School</th><th>Workflow</th><th>Error</th><th>When</th></tr></thead>",
       "fix": "Add a next-step verb (try, retry, contact, reload). Tell the user what to do next."
-    },
-    {
-      "file": "templates/evals/grade_import_upload_v2.html",
-      "line": 107,
-      "severity": "info",
-      "kind": "alarming-number-no-context",
-      "snippet": "<h3 class=\"text-danger\" id=\"invalidRowsCount\">0</h3>",
-      "fix": "A red number alone reads as scary. Add an aria-label or a small descriptor (e.g., 'overdue this term')."
     },
     {
       "file": "templates/evals/import_job_monitor.html",
@@ -49,6 +41,14 @@
       "kind": "hostile-error-copy",
       "snippet": "<div class=\"stat-label\">Failed</div>",
       "fix": "Add a next-step verb (try, retry, contact, reload). Tell the user what to do next."
+    },
+    {
+      "file": "templates/schools/super_schools_list.html",
+      "line": 96,
+      "severity": "info",
+      "kind": "imperative-tone-no-reason",
+      "snippet": "<table class=\"table table-family table-hover rmc-data-table\" data-rmc-row-detail-table=\"1\" data-rmc-list-bulk=\"1\" data-rmc-bulk-bar-id=\"super-schools\" data-rmc-bulk-actions='[{\"id\":\"ask\",\"label\":\"{% t",
+      "fix": "Lead with the reason ('To protect parent data, \u2026') instead of the prohibition."
     }
   ]
 }

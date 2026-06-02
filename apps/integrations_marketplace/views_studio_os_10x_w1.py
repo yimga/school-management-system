@@ -193,10 +193,10 @@ def dlq_filter_nav(request: HttpRequest) -> JsonResponse:
         "tenant_filter_key": "tenant_schema",
         "provider_filter_key": "provider",
         "age_buckets": [
-            {"slug": "1h",  "label": "Last 1 hour",  "seconds": 3600},
-            {"slug": "24h", "label": "Last 24 hours","seconds": 86400},
-            {"slug": "7d",  "label": "Last 7 days", "seconds": 604800},
-            {"slug": "30d", "label": "Last 30 days","seconds": 2592000},
+            {"slug": "1h",  "label": "Last 1 hour",  "seconds": 3600},  # magic-number-allow: duration-seconds
+            {"slug": "24h", "label": "Last 24 hours","seconds": 86400},  # magic-number-allow: duration-seconds
+            {"slug": "7d",  "label": "Last 7 days", "seconds": 604800},  # magic-number-allow: duration-seconds
+            {"slug": "30d", "label": "Last 30 days","seconds": 2592000},  # magic-number-allow: duration-seconds
             {"slug": "all", "label": "All time",    "seconds": 0},
         ],
         "base_url": "/super/migration/operator/dlq/",

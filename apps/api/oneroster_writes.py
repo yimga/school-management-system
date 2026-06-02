@@ -173,13 +173,13 @@ def _upsert_user(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any],
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
-    username = (body.get("username") or "").strip()[:150]
+    username = (body.get("username") or "").strip()[:150]  # magic-number-allow: string-truncation-cap
     if not username:
         return {"error": "missing_username"}, 400
 
-    given = (body.get("givenName") or "")[:150]
-    family = (body.get("familyName") or "")[:150]
-    email = (body.get("email") or "")[:254]
+    given = (body.get("givenName") or "")[:150]  # magic-number-allow: string-truncation-cap
+    family = (body.get("familyName") or "")[:150]  # magic-number-allow: string-truncation-cap
+    email = (body.get("email") or "")[:254]  # magic-number-allow: string-truncation-cap
 
     with _PROCESS_LOCK:
         obj, created = User.objects.get_or_create(  # tenant-isolation-allow: roster-write-platform-scope

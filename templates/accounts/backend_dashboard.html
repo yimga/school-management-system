@@ -362,7 +362,7 @@ backend-shell dashboard-page-backend
               </div>
               <div id="backendBentoDrillPanel" class="backend-bento-drill-panel d-none">
                 <div class="table-responsive">
-                  <table class="table table-sm table-hover mb-0 table-family align-middle">
+                  <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
                     <caption class="visually-hidden">{% trans "KPI snapshot" %}</caption>
                     <thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
                     <tbody>
@@ -405,7 +405,7 @@ backend-shell dashboard-page-backend
               <p class="small text-muted">{% trans "Expand for full table" %}</p>
               <div id="backendBentoDrillPanel" class="backend-bento-drill-panel d-none">
                 <div class="table-responsive">
-                  <table class="table table-sm mb-0 table-family align-middle"><thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
+                  <table class="table table-sm mb-0 table-family align-middle rmc-data-table"><thead><tr><th>{% trans "Metric" %}</th><th>{% trans "Value" %}</th><th>{% trans "Context" %}</th></tr></thead>
                     <caption class="visually-hidden">{% trans "KPI detail" %}</caption>
                   <tbody>{% for item in kpi_strip_cards %}<tr><td>{{ item.label }}</td><td>{{ item.value }}</td><td>{{ item.meta }}</td></tr>{% endfor %}</tbody></table>
                 </div>

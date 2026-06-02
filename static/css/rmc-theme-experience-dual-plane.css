@@ -38,6 +38,7 @@ body.manager-portal-bridge {
 
 body.control-plane-shell .rmc-app-shell__header,
 html[data-surface="control-plane"] .rmc-app-shell__header,
+.rmc-app-shell[data-rmc-app-shell-host="manager"] .rmc-app-shell__header,
 body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__header,
 body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__header,
 body[data-rmc-host-kind="manager"]:not(.marketing-surface) #portalHeader.topbar,
@@ -52,6 +53,7 @@ body[data-rmc-host-kind="manager"]:not(.marketing-surface) .statement-header.top
 
 body.control-plane-shell .rmc-app-shell__sidebar,
 html[data-surface="control-plane"] .rmc-app-shell__sidebar,
+.rmc-app-shell[data-rmc-app-shell-host="manager"] .rmc-app-shell__sidebar,
 body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sidebar,
 body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__sidebar,
 body[data-rmc-host-kind="manager"]:not(.marketing-surface) .portal-sidebar-col .sidebar {
@@ -88,6 +90,8 @@ html[data-resolved-theme="light"] body.control-plane-shell .rmc-app-shell__canva
 html[data-bs-theme="light"] body.control-plane-shell .rmc-app-shell__canvas,
 html[data-resolved-theme="light"] body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__canvas,
 html[data-bs-theme="light"] body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__canvas,
+html[data-resolved-theme="light"] .rmc-app-shell[data-rmc-app-shell-host="manager"] .rmc-app-shell__canvas,
+html[data-bs-theme="light"] .rmc-app-shell[data-rmc-app-shell-host="manager"] .rmc-app-shell__canvas,
 html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__canvas,
 html[data-bs-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .page-wrap,
 html[data-resolved-theme="light"][data-surface="tenant"] body:not(.marketing-surface) .rmc-app-shell__canvas,
@@ -173,6 +177,7 @@ html[data-resolved-theme="dark"] body[data-rmc-host-kind="tenant"]:not(.marketin
 
 html[data-resolved-theme="light"] body.control-plane-shell .rmc-app-shell__footer,
 html[data-resolved-theme="light"] body.admin-manager-shell .rmc-app-shell__footer,
+html[data-resolved-theme="light"] .rmc-app-shell[data-rmc-app-shell-host="manager"] .rmc-app-shell__footer,
 html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-app-shell__footer,
 html[data-resolved-theme="light"] body[data-rmc-host-kind="tenant"]:not(.marketing-surface) .rmc-app-shell__footer {
   background: var(--surface-canvas, #fbfbfd);

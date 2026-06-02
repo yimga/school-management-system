@@ -132,7 +132,7 @@ def public_status_subscribe(request):
             request.POST.get("email")
             or request.POST.get("address")
             or ""
-        ).strip().lower()[:240]
+        ).strip().lower()[:240]  # magic-number-allow: string-truncation-cap
     else:
         address = (request.POST.get("address") or "").strip()[:500]
 

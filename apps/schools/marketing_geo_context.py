@@ -8,15 +8,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from apps.schools.marketing_media_matrix import (
-    apm_icons_for_country,
-    apm_primary_static_for_country,
-    assets_for_country,
-    loop_bucket_for_country,
-)
-
 
 def build_geo_context(request) -> dict[str, Any]:
+    # Lazy import avoids circular init with marketing template processors at Django startup.
+    from apps.schools.marketing_media_matrix import (
+        apm_icons_for_country,
+        apm_primary_static_for_country,
+        assets_for_country,
+        loop_bucket_for_country,
+    )
     try:
         from apps.siteconfig.country_localization_service import resolve_country_for_request
         from apps.siteconfig.localization_context_processor import localization_context

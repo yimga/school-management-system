@@ -397,7 +397,7 @@ class RevenueSharePayout(models.Model):
     status = models.CharField(
         max_length=16, choices=Status.choices, default=Status.DRAFT, db_index=True
     )
-    payee_name = models.CharField(max_length=160)
+    payee_name = models.CharField(max_length=160)  # magic-number-allow: charfield-max-length
     payee_ref = models.CharField(max_length=120, blank=True, db_index=True)
     processor_code = models.CharField(max_length=32, blank=True, db_index=True)
     external_payout_ref = models.CharField(max_length=120, blank=True, db_index=True)

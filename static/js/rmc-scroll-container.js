@@ -13,44 +13,67 @@
     return canScroll && el.scrollHeight > el.clientHeight + 1;
   }
 
+  function scrollCandidates(mode) {
+    if (mode === "canvas") {
+      return [
+        document.querySelector(".rmc-app-shell__canvas"),
+        document.querySelector(".rmc-app-shell__canvas-body"),
+        document.getElementById("cp-main-content"),
+        document.getElementById("main-content"),
+        document.querySelector(".portal-main-col"),
+        document.querySelector(".portal-main"),
+      ];
+    }
+    if (mode === "main") {
+      return [
+        document.querySelector(".cp-admin-main-scroll-pane"),
+        document.getElementById("cp-main-content"),
+        document.querySelector(".cp-main-col"),
+        document.querySelector(".rmc-app-shell__canvas"),
+        document.querySelector(".rmc-app-shell__canvas-body"),
+      ];
+    }
+    return [
+      document.getElementById("main-content"),
+      document.querySelector(".portal-main-col"),
+      document.getElementById("cp-main-content"),
+      document.querySelector(".rmc-app-shell__canvas"),
+      document.querySelector(".rmc-app-shell__canvas-body"),
+      document.getElementById("main"),
+    ];
+  }
+
   function getScrollContainer() {
     var body = document.body;
     var mode = body && body.getAttribute("data-rmc-cp-scroll");
     if (mode === "document") {
       return null;
     }
-    // v3.55.0: shell-canvas scroll mode — the .rmc-app-shell__canvas is the
-    // single scrollable surface. Falls through to legacy resolution if absent.
-    if (mode === "canvas") {
-      var shellCanvas = document.querySelector(".rmc-app-shell__canvas");
-      if (isScrollable(shellCanvas)) return shellCanvas;
-      if (shellCanvas) return shellCanvas;
+    var candidates = scrollCandidates(mode || "canvas");
+    var i;
+    for (i = 0; i < candidates.length; i += 1) {
+      if (isScrollable(candidates[i])) {
+        return candidates[i];
+      }
     }
-    if (mode === "main") {
-      var scrollPane = document.querySelector(".cp-admin-main-scroll-pane");
-      if (isScrollable(scrollPane)) return scrollPane;
-      var adminMain =
-        document.getElementById("cp-main-content") ||
-        document.querySelector(".cp-main-col");
-      if (isScrollable(adminMain)) return adminMain;
-      if (scrollPane) return scrollPane;
-      if (adminMain) return adminMain;
+    for (i = 0; i < candidates.length; i += 1) {
+      if (candidates[i]) {
+        return candidates[i];
+      }
     }
-    // Legacy fallback chain. Shell canvas is checked first so it wins when
-    // present without the body opting in via data-rmc-cp-scroll=canvas.
-    var shellCanvasFallback = document.querySelector(".rmc-app-shell__canvas");
-    if (isScrollable(shellCanvasFallback)) return shellCanvasFallback;
-    var main = document.getElementById("main");
-    if (isScrollable(main)) return main;
-    var cpMain =
-      document.getElementById("cp-main-content") ||
-      document.querySelector(".cp-main-col");
-    if (isScrollable(cpMain)) return cpMain;
-    var portalMain =
-      document.getElementById("main-content") ||
-      document.querySelector(".portal-main-col");
-    if (isScrollable(portalMain)) return portalMain;
     return null;
+  }
+
+  function getScrollListenerTargets() {
+    var body = document.body;
+    var mode = body && body.getAttribute("data-rmc-cp-scroll");
+    var targets = scrollCandidates(mode === "document" ? "document" : mode || "canvas");
+    if (mode === "document") {
+      return [];
+    }
+    return targets.filter(function (el) {
+      return !!el;
+    });
   }
 
   function getScrollTop(container) {
@@ -69,6 +92,7 @@
 
   window.RMC = window.RMC || {};
   window.RMC.getScrollContainer = getScrollContainer;
+  window.RMC.getScrollListenerTargets = getScrollListenerTargets;
   window.RMC.getScrollTop = getScrollTop;
   window.RMC.scrollToY = scrollToY;
   window.RMC.getFoldHeight = function () {

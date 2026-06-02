@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-19T22:33:41.243588+00:00",
+  "generated_at": "2026-06-01T16:02:18.389918+00:00",
   "verdict": "MANAGER_PORTAL_CHROME_PASS",
   "passed": 24,
   "failed": 0,
@@ -42,7 +42,7 @@
     {
       "area": "manager",
       "check_id": "platform_shell_wrapper",
-      "description": "Skeleton wraps all manager pages in cp-shell-content + cp_shell_page",
+      "description": "Skeleton wraps all manager pages in cp-shell canvas blocks",
       "status": "PASS",
       "proof": "control_plane_skeleton + control_plane_base"
     },

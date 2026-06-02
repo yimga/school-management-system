@@ -21,9 +21,12 @@ from apps.platform_runtime.operator_identity import (
 from .decision_architecture import get_decision_architecture_for_page
 from .models import School
 from .super_dashboard_cache import (
+    get_cached_country_rollup,
     get_cached_command_center_data,
     get_cached_fleet_registry_metrics,
     get_cached_health_table_metadata,
+    get_cached_incident_bundle,
+    get_cached_legacy_webhook_stack,
     get_cached_platform_health,
     get_cached_registry_counts,
 )
@@ -129,6 +132,7 @@ def api_super_dashboard_layout(request):
 def super_dashboard_v2(request):
     """Mission-control control plane for the manager host."""
     t0 = time.perf_counter()
+    timings: dict[str, int] = {}
     if request.method == "POST":
         # Stray POST (browser resubmit) must not rebuild ~600KB HTML on a sync/gthread worker.
         _agent_debug_log(
@@ -141,8 +145,6 @@ def super_dashboard_v2(request):
         return HttpResponseRedirect(target)
 
     from apps.billing.models import BillingAccount, TenantSubscription
-    from apps.events.legacy_bridge import legacy_webhook_sync_snapshot
-    from apps.observability.models import PlatformIncident
     from apps.siteconfig.models import RevenueSnapshot
 
     first_of_month = parse_month_param(request)
@@ -183,13 +185,14 @@ def super_dashboard_v2(request):
         )
     except CONTROL_PLANE_METRIC_FAILURES:
         pass
+    timings["revenue_snapshot_ms"] = int((time.perf_counter() - t0) * 1000)
 
     pending_schools = list(
         School.objects.filter(is_approved=False)
         .prefetch_related("tenant_systems__system")
         .order_by("-created_at")
         .annotate(member_count=Count("memberships"))
-        .annotate(student_count=Count("student_profiles", distinct=True))[:50]
+        .annotate(student_count=Count("student_profiles", distinct=True))[:20]
     )
     for school in pending_schools:
         school.timeline_url = safe_school_timeline_url(school.pk)
@@ -198,36 +201,16 @@ def super_dashboard_v2(request):
             school.canonical_country_code, school.canonical_country_code or "Unassigned"
         )
     pending_approval_count = School.objects.filter(is_approved=False).count()
+    timings["pending_queue_ms"] = int((time.perf_counter() - t0) * 1000)
 
     health_top_tables, health_schema_stats = get_cached_health_table_metadata()
 
     command_center = get_cached_command_center_data()
-    platform_incidents = list(
-        PlatformIncident.objects.select_related("affected_school")
-        .filter(
-            status__in=[
-                PlatformIncident.Status.OPEN,
-                PlatformIncident.Status.ACKNOWLEDGED,
-                PlatformIncident.Status.MITIGATED,
-            ]
-        )
-        .order_by("-detected_at", "-created_at")[:12]
-    )
-    incident_counts = {
-        row["status"]: row["total"]
-        for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
-    }
-    critical_incident_count = PlatformIncident.objects.filter(
-        status__in=[
-            PlatformIncident.Status.OPEN,
-            PlatformIncident.Status.ACKNOWLEDGED,
-            PlatformIncident.Status.MITIGATED,
-        ],
-        severity__in=[
-            PlatformIncident.Severity.CRITICAL,
-            PlatformIncident.Severity.HIGH,
-        ],
-    ).count()
+    incident_bundle = get_cached_incident_bundle()
+    platform_incidents = incident_bundle.get("platform_incidents", [])
+    incident_counts = incident_bundle.get("incident_counts", {})
+    critical_incident_count = int(incident_bundle.get("critical_incident_count", 0) or 0)
+    timings["incident_bundle_ms"] = int((time.perf_counter() - t0) * 1000)
     billing_watchlist = list(
         TenantSubscription.objects.select_related("school", "billing_account", "plan")
         .filter(
@@ -247,8 +230,9 @@ def super_dashboard_v2(request):
         ]
     ).count()
     billing_account_count = BillingAccount.objects.count()
-    webhook_stack = legacy_webhook_sync_snapshot()
+    webhook_stack = get_cached_legacy_webhook_stack()
     platform_health = get_cached_platform_health()
+    timings["billing_health_ms"] = int((time.perf_counter() - t0) * 1000)
 
     registry_counts = get_cached_registry_counts()
     churn_risk_lookup = {
@@ -262,9 +246,9 @@ def super_dashboard_v2(request):
         if row.get("school") is not None
     }
     incident_school_ids = {
-        incident.affected_school_id
+        incident.get("affected_school_id")
         for incident in platform_incidents
-        if getattr(incident, "affected_school_id", None)
+        if incident.get("affected_school_id")
     }
     fleet_metrics = get_cached_fleet_registry_metrics(
         incident_school_ids=incident_school_ids,
@@ -307,15 +291,7 @@ def super_dashboard_v2(request):
             churn_risk_lookup=churn_risk_lookup,
         )
 
-    country_rollup = list(
-        School.objects.exclude(country_code="")
-        .values("country_code")
-        .annotate(
-            school_count=Count("id"),
-            student_count=Count("student_profiles", distinct=True),
-        )
-        .order_by("-school_count", "country_code")[:12]
-    )
+    country_rollup = get_cached_country_rollup()
     revenue_by_country_lookup = {
         str(row.get("country_code") or "").upper(): row for row in revenue_by_country
     }
@@ -327,6 +303,7 @@ def super_dashboard_v2(request):
         )
         row["actual_revenue"] = revenue_row.get("actual") or 0
         row["waived_revenue"] = revenue_row.get("waived") or 0
+    timings["country_rollup_ms"] = int((time.perf_counter() - t0) * 1000)
 
     if total_mrr is not None and total_mrr > 0:
         north_star_label = "Total MRR"
@@ -667,6 +644,9 @@ def super_dashboard_v2(request):
             "data_residency_readiness": data_residency_readiness,
         },
     )
+    response["X-RMC-SuperDashboard-Elapsed-Ms"] = str(
+        int((time.perf_counter() - t0) * 1000)
+    )
     _agent_debug_log(
         "H-LOAD",
         "super_views_dashboard_surfaces.super_dashboard_v2",
@@ -675,6 +655,7 @@ def super_dashboard_v2(request):
             "method": request.method,
             "elapsed_ms": int((time.perf_counter() - t0) * 1000),
             "registry_total_count": registry_page.paginator.count,
+            "timings": timings,
         },
     )
     return response

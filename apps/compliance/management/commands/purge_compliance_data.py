@@ -21,6 +21,7 @@ from apps.compliance.models_audit import (
     UserActivitySession,
     ComplianceReport,
 )
+from apps.platform_runtime.append_only import AppendOnlyManager
 
 
 class Command(BaseCommand):
@@ -55,6 +56,21 @@ class Command(BaseCommand):
             if days <= 0:
                 self.stdout.write(
                     self.style.WARNING(f"Skipping {model.__name__}: retention disabled")
+                )
+                continue
+
+            # v4.01 — append-only audit models (AuditLog) deliberately block ORM
+            # delete. Purging audit logs is legally sensitive and belongs to an
+            # approval-gated raw-SQL path (cf. migration_cloud
+            # purge_audit_events_pre_approved), NOT this scheduled command.
+            # Previously this CRASHED on the first append-only target (AuditLog
+            # raised AppendOnlyDeleteError), so the legitimate non-append-only
+            # purges below never ran. Skip + report instead of crashing.
+            if isinstance(getattr(model, "objects", None), AppendOnlyManager):
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Skipping {model.__name__}: append-only — use the approval-gated audit-retention purge."
+                    )
                 )
                 continue
 

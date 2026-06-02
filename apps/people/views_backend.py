@@ -913,8 +913,6 @@ def backend_applicant_create(request):
     )
 
 
-@login_required
-@permission_required("people.view_studentprofile", raise_exception=True)
 def _build_applicant_stage_breakdown(request) -> list[dict]:
     """v4.00.13 — per-stage applicant count for the rmc-five-col primitive header.
 
@@ -947,6 +945,8 @@ def _build_applicant_stage_breakdown(request) -> list[dict]:
         return []
 
 
+@login_required
+@permission_required("people.view_applicant", raise_exception=True)
 def backend_applicant_list(request):
     """List applicants (admissions funnel) with search, filter by stage, export CSV (26.5 / applications list)."""
     school = getattr(request, "school", None)

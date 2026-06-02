@@ -109,7 +109,7 @@ def decode_oauth2_error_response(body: Any) -> dict:
     desc = body.get("error_description")
     if desc is not None:
         # Strip control chars; cap at 256 to keep audit rows compact.
-        clean = "".join(ch for ch in str(desc) if 0x20 <= ord(ch) < 0x7f or ord(ch) > 0xa0)
+        clean = "".join(ch for ch in str(desc) if 0x20 <= ord(ch) < 0x7f or ord(ch) > 0xa0)  # magic-number-allow: ascii-codepoint-boundary
         out["error_description"] = clean[:256]
 
     out["has_error_uri"] = bool(body.get("error_uri"))

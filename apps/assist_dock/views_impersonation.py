@@ -28,7 +28,7 @@ from .impersonation import (
 
 logger = logging.getLogger(__name__)
 
-_MAX_BODY_BYTES = 4096
+_MAX_BODY_BYTES = 4096  # magic-number-allow: byte-size-cap
 
 
 def _client_ip(request) -> str:

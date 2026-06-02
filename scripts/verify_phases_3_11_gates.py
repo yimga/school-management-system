@@ -613,6 +613,10 @@ def main(argv: list[str] | None = None) -> int:
         [py, _script_path("scan_main_content_text_utilities.py"), *base_args],
         "Theme visibility: main-content text-white/text-dark baseline",
     )
+    run(
+        [py, _script_path("verify_workflow_progress_10x.py")],
+        "Workflow Progress Bus 10x (smoke + coverage + shell wiring)",
+    )
     print("verify_phases_3_11_gates: all non-DB gates passed.")
     return 0
 

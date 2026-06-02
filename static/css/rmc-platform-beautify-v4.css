@@ -1,0 +1,126 @@
+/*
+ * rmc-platform-beautify-v4.css
+ * Cross-shell luxury spacing + full-width utilization (control plane, tenant portal,
+ * backend, marketing editorial, studio embed).
+ */
+
+:root {
+  --rmc-shell-pad-x: clamp(12px, 1.4vw, 24px);
+  --rmc-shell-pad-y: clamp(10px, 1.2vw, 18px);
+  --rmc-shell-card-radius: var(--radius-lg, 16px);
+  --rmc-mkt-content-max: min(72rem, 100%);
+}
+
+/* --- Control plane + manager admin --- */
+body.control-plane-shell .rmc-app-shell__canvas-body,
+body.admin-manager-shell .rmc-app-shell__canvas-body,
+body.control-plane-shell .cp-shell-content,
+body.admin-manager-shell .cp-shell-content {
+  width: 100%;
+  max-width: none;
+  padding-inline: var(--rmc-shell-pad-x);
+  padding-block: var(--rmc-shell-pad-y);
+}
+
+body.control-plane-shell .cp-layout,
+body.admin-manager-shell .cp-layout {
+  width: 100%;
+  max-width: none;
+}
+
+body.control-plane-shell .cp-panel,
+body.admin-manager-shell .cp-panel {
+  border-radius: var(--rmc-shell-card-radius);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  box-shadow: var(--elev-1);
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__inner,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__inner {
+  gap: clamp(8px, 1vw, 16px);
+  padding-inline: var(--rmc-shell-pad-x);
+}
+
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__command,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__command {
+  max-width: min(740px, 48vw);
+}
+
+/* --- Tenant portal + legacy base document shell --- */
+body.portal-body-with-layout .cp-panel,
+body.portal-body-with-layout .tp-card,
+body.base-document-shell .card,
+body.backend-shell .card {
+  border-radius: var(--rmc-shell-card-radius);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  box-shadow: var(--elev-1);
+}
+
+body.portal-body-with-layout #main-content,
+body.portal-body-with-layout .portal-main,
+body.portal-body-with-layout [data-shell-main="portal"],
+body.base-document-shell #main-content,
+body.backend-shell #main-content,
+body.backend-shell .portal-main {
+  max-width: none;
+  width: 100%;
+}
+
+body.portal-body-with-layout .container-fluid,
+body.base-document-shell .container-fluid,
+body.backend-shell .container-fluid {
+  padding-inline: var(--rmc-shell-pad-x);
+}
+
+/* Manager bridge on portal_base: same canvas rules as control plane */
+body.portal-body-with-layout.host-kind-manager .rmc-app-shell__canvas-body,
+body.portal-body-with-layout.host-kind-manager .cp-shell-content {
+  width: 100%;
+  max-width: none;
+  padding-inline: var(--rmc-shell-pad-x);
+  padding-block: var(--rmc-shell-pad-y);
+}
+
+/* --- Marketing (editorial): spacing only, not operator chrome --- */
+html[data-surface="marketing"] .mkt-page-wrap,
+html[data-surface="marketing"] main[role="main"],
+html[data-surface="marketing"] .marketing-content-root {
+  width: 100%;
+  max-width: var(--rmc-mkt-content-max);
+  margin-inline: auto;
+  padding-inline: var(--rmc-shell-pad-x);
+}
+
+html[data-surface="marketing"] .card,
+html[data-surface="marketing"] .mkt-card {
+  border-radius: var(--rmc-shell-card-radius);
+}
+
+/* --- Studio embed / minimal iframe surfaces --- */
+html[data-rmc-studio-embed="1"] .studio-embed-main,
+html[data-rmc-studio-embed="1"] main[role="main"] {
+  width: 100%;
+  max-width: none;
+  padding: var(--rmc-shell-pad-y) var(--rmc-shell-pad-x);
+}
+
+html[data-rmc-studio-embed="1"] .card {
+  border-radius: var(--rmc-shell-card-radius);
+  border: 1px solid var(--hairline);
+}
+
+@media (max-width: 991.98px) {
+  body.control-plane-shell .rmc-app-shell__canvas-body,
+  body.admin-manager-shell .rmc-app-shell__canvas-body,
+  body.control-plane-shell .cp-shell-content,
+  body.admin-manager-shell .cp-shell-content,
+  body.portal-body-with-layout .container-fluid,
+  body.base-document-shell .container-fluid,
+  body.backend-shell .container-fluid,
+  html[data-surface="marketing"] .mkt-page-wrap,
+  html[data-surface="marketing"] main[role="main"] {
+    padding-inline: 10px;
+  }
+}

@@ -94,7 +94,7 @@ def hot_increment(school: Any, dimension: str, delta: int = 1) -> None:
         client.hincrby(key, dimension, delta_int)
         # Keep the hash for at most 24h even if flush is down — protects
         # against unbounded growth during an outage.
-        client.expire(key, 86400)
+        client.expire(key, 86400)  # magic-number-allow: cache-ttl-seconds
     except (AttributeError, RuntimeError, ConnectionError, TimeoutError) as exc:
         logger.debug("hot_increment fallback to ORM for %s: %s", dimension, exc)
         _fallback_orm_record(school, dimension, delta_int)
@@ -118,7 +118,7 @@ def _enumerate_hot_keys() -> list[str]:
         for raw in client.scan_iter(match=f"{_HOT_KEY_PREFIX}*", count=500):
             key = raw.decode("utf-8") if isinstance(raw, (bytes, bytearray)) else str(raw)
             out.append(_strip_django_redis_version_prefix(key))
-            if len(out) >= 100_000:
+            if len(out) >= 100_000:  # magic-number-allow: result-set-row-cap
                 break
     except (AttributeError, RuntimeError, ConnectionError, TimeoutError) as exc:
         logger.warning("realtime meter scan_iter failed: %s", exc)

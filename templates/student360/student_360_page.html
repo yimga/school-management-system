@@ -136,7 +136,14 @@
             <li class="border-bottom py-2">
               <span class="text-muted small">{{ e.created_at }}</span>
               <strong class="d-block">{{ e.event_type }}</strong>
-              {% if e.payload %}<pre class="small mb-0 mt-1 bg-light p-2 rounded">{{ e.payload }}</pre>{% endif %}
+              {% if e.payload %}
+              <dl class="row g-1 small mb-0 mt-1 bg-light p-2 rounded">
+                {% for key, value in e.payload.items %}
+                <dt class="col-sm-4 text-muted fw-normal text-truncate">{{ key }}</dt>
+                <dd class="col-sm-8 mb-0 text-break">{{ value }}</dd>
+                {% endfor %}
+              </dl>
+              {% endif %}
             </li>
             {% endfor %}
           </ul>

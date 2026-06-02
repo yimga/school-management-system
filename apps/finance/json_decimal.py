@@ -31,7 +31,7 @@ marker on the same line, recognized by ``scripts/scan_money_float.py``.
 from __future__ import annotations
 
 import json
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Any
 
 
@@ -39,6 +39,36 @@ from typing import Any
 # Keep in lock-step with the ``DecimalField(max_digits=12, decimal_places=2)``
 # canonical money column in ``apps/finance/models.py``.
 _AMOUNT_QUANT = Decimal("0.01")
+
+
+def quantize_money(value: Any) -> Decimal:
+    """Return ``value`` coerced to a ``Decimal`` quantized to the canonical
+    2-decimal currency step (banker-free ``ROUND_HALF_UP``).
+
+    Use at money write boundaries (wallet ``balance_after``, running
+    balances, derived amounts) so a value carrying >2 decimal places from
+    upstream arithmetic — an FX conversion, a split remainder, a coerced
+    string — can never be persisted unrounded and silently drift the
+    next running-balance comparison.
+
+    >>> quantize_money(Decimal("10.005"))
+    Decimal('10.01')
+    >>> quantize_money("3.1")
+    Decimal('3.10')
+    >>> quantize_money(None)
+    Decimal('0.00')
+    """
+    if value is None:
+        dec = Decimal("0")
+    elif isinstance(value, Decimal):
+        dec = value
+    elif isinstance(value, (int, str, float)):
+        dec = Decimal(str(value))
+    else:
+        raise TypeError(
+            f"quantize_money expected Decimal/int/str/float, got {type(value).__name__}"
+        )
+    return dec.quantize(_AMOUNT_QUANT, rounding=ROUND_HALF_UP)
 
 
 def amount_str(value: Any, *, quantize: bool = True) -> str:
@@ -89,4 +119,4 @@ class DecimalJSONEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-__all__ = ["amount_str", "DecimalJSONEncoder"]
+__all__ = ["amount_str", "quantize_money", "DecimalJSONEncoder"]

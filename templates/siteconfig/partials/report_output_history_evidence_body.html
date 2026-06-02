@@ -1,6 +1,6 @@
 {% load i18n static %}
 {% load terminology_tags %}
-<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: 58rem;" data-rmc-scroll-policy="paginate" data-page-archetype="operator-report" data-shell-surface="report-output-history-evidence" data-admin-replacement-category="reports_output_history_evidence" data-cp-evidence-surface="report-output-history" data-rmc-operator-evidence-surface="1" data-rmc-report-bulk-evidence="1072" data-rmc-component-audit="1">
+<div class="container py-3 cp-evidence-page ui-premium-surface" style="max-width: var(--rmc-report-measure);" data-rmc-scroll-policy="paginate" data-page-archetype="operator-report" data-shell-surface="report-output-history-evidence" data-admin-replacement-category="reports_output_history_evidence" data-cp-evidence-surface="report-output-history" data-rmc-operator-evidence-surface="1" data-rmc-report-bulk-evidence="1072" data-rmc-component-audit="1">
   <h1 class="h3 mb-2">{% trans "Report output history (read-only)" %}</h1>
   <p class="text-muted small mb-2">
     {% trans "Evidence-only view of generated report card output rows, PDF coverage, hash ledger coverage, and audit events. This page does not generate, export, publish, or resend reports." %}
@@ -47,7 +47,7 @@
   </div>
 
   <div class="table-responsive">
-    <table class="table table-sm align-middle table-family table-sticky-head" aria-label="{% trans 'Report output history' %}">
+    <table class="table table-sm align-middle table-family table-sticky-head rmc-data-table" aria-label="{% trans 'Report output history' %}">
       <thead>
         <tr>
           <th>{% trans "Generated" %}</th>

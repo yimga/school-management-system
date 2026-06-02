@@ -368,7 +368,7 @@ urlpatterns = [
         lost_belongings_recover,
         name="lost_belongings_recover",
     ),
-    path(
+    path(  # rbac-allow: intentionally-public-anonymous-lost-item-finder-lookup-no-pii-reflected
         "lost-found/",
         lost_belongings_lookup,
         name="lost_belongings_lookup",
@@ -538,11 +538,11 @@ urlpatterns = [
         operator_invite_accept,
         name="operator_invite_accept",
     ),  # rbac-allow: anonymous operator invite acceptance
-    path(
+    path(  # rbac-allow: intentionally-public-pre-auth-staff-invite-accept-unguessable-uuid-token
         "staff-invite/<uuid:token>/",
         tenant_staff_invite_accept,
         name="tenant_staff_invite_accept",
-    ),  # rbac-allow: anonymous tenant staff invite acceptance
+    ),
     # v3.29 migration-cloud sunset job: one-time setup link landing page for
     # users emailed by accounts.sunset_stale_legacy_hashes. Token-validated
     # by Django's PasswordResetConfirmView parent; view additionally clears

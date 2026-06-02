@@ -1,0 +1,11 @@
+{% load i18n %}
+{% comment %}
+  Tenant-safe workflow runway — finance/evals jobs visible to school admins only.
+  Populated by ``rmc-workflow-tenant-trust.js``.
+{% endcomment %}
+{% if request.user.is_authenticated and request.tenant %}
+<div class="rmc-wfp-tenant-trust" data-rmc-wfp-tenant-trust hidden aria-live="polite">
+  <span class="rmc-wfp-tenant-trust__label">{% trans "School workflows" %}</span>
+  <span class="rmc-wfp-tenant-trust__body" data-rmc-wfp-tenant-trust-body></span>
+</div>
+{% endif %}

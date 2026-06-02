@@ -2195,6 +2195,12 @@ from .models_workflow_run import (  # noqa: E402,F401
     WorkflowStep,
     WorkflowStepStatus,
 )
+from .models_workflow_10x import (  # noqa: E402,F401
+    WorkflowAutopilotApplyLog,
+    WorkflowAutopilotPolicy,
+    WorkflowDurationStat,
+    WorkflowSlaBreach,
+)
 from .models_newsletter import (  # noqa: E402,F401
     NewsletterSubscription,
     NewsletterSubscriptionStatus,

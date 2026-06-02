@@ -26,6 +26,7 @@ def fetch_current_school_id_setting_value() -> object | None:
     """
     try:
         with connection.cursor() as cursor:
+            # rls-bypass-allow: reads the app.current_school_id RLS GUC itself, not tenant rows
             cursor.execute("SELECT current_setting('app.current_school_id', true)")
             row = cursor.fetchone()
         if not row:

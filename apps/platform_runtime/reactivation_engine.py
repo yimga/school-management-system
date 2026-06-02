@@ -31,8 +31,8 @@ _CADENCE_WINDOWS: tuple[tuple[str, int, int], ...] = (
     # (cadence_value, min_inactive_days, max_inactive_days)
     ("30d", 30, 59),
     ("60d", 60, 89),
-    ("90d", 90, 119),
-    ("120d", 120, 365 * 5),
+    ("90d", 90, 119),  # magic-number-allow: reactivation-cadence-days
+    ("120d", 120, 365 * 5),  # magic-number-allow: reactivation-cadence-days
 )
 
 
@@ -146,12 +146,23 @@ def run_reactivation_sweep(*, dry_run: bool = False, limit_per_cadence: int = 20
         eligible = list(_eligible_schools_for_cadence(cadence, min_days, max_days))
         for school in eligible[:limit_per_cadence]:
             admin_email = _resolve_admin_email(school)
+            # v4.01 — bound suppressed rows. A suppressed school stays eligible
+            # every sweep (the eligibility exclude only counts suppressed=False
+            # attempts), so without this guard a NEW suppressed row was written
+            # for it on every daily run, forever. Keep at most one suppressed
+            # row per (school, cadence).
+            if not dry_run and (not admin_email or _is_email_unsubscribed_marketing(admin_email)):
+                already_suppressed = TenantReactivationAttempt.objects.filter(
+                    school_id=str(school.pk), cadence=cadence, suppressed=True
+                ).exists()
+            else:
+                already_suppressed = False
             if not admin_email:
                 suppressed += 1
-                if not dry_run:
+                if not dry_run and not already_suppressed:
                     TenantReactivationAttempt.objects.create(
                         school_id=str(school.pk),
-                        school_name=getattr(school, "name", "")[:160],
+                        school_name=getattr(school, "name", "")[:160],  # magic-number-allow: string-truncation-cap
                         cadence=cadence,
                         suppressed=True,
                         suppressed_reason="no_admin_email",
@@ -160,12 +171,12 @@ def run_reactivation_sweep(*, dry_run: bool = False, limit_per_cadence: int = 20
                 continue
             if _is_email_unsubscribed_marketing(admin_email):
                 suppressed += 1
-                if not dry_run:
+                if not dry_run and not already_suppressed:
                     TenantReactivationAttempt.objects.create(
                         school_id=str(school.pk),
-                        school_name=getattr(school, "name", "")[:160],
+                        school_name=getattr(school, "name", "")[:160],  # magic-number-allow: string-truncation-cap
                         cadence=cadence,
-                        recipient_email=admin_email[:254],
+                        recipient_email=admin_email[:254],  # magic-number-allow: string-truncation-cap
                         recipient_email_hash=_hash_email(admin_email),
                         suppressed=True,
                         suppressed_reason="recipient_unsubscribed",
@@ -198,9 +209,9 @@ def run_reactivation_sweep(*, dry_run: bool = False, limit_per_cadence: int = 20
                     delivery_event_id = str(first_result["result"].get("delivery_event_id") or "")
                 TenantReactivationAttempt.objects.create(
                     school_id=str(school.pk),
-                    school_name=getattr(school, "name", "")[:160],
+                    school_name=getattr(school, "name", "")[:160],  # magic-number-allow: string-truncation-cap
                     cadence=cadence,
-                    recipient_email=admin_email[:254],
+                    recipient_email=admin_email[:254],  # magic-number-allow: string-truncation-cap
                     recipient_email_hash=_hash_email(admin_email),
                     delivery_event_id=delivery_event_id[:64],
                     delivery_ok=ok,
@@ -217,9 +228,9 @@ def run_reactivation_sweep(*, dry_run: bool = False, limit_per_cadence: int = 20
                     try:
                         TenantReactivationAttempt.objects.create(
                             school_id=str(school.pk),
-                            school_name=getattr(school, "name", "")[:160],
+                            school_name=getattr(school, "name", "")[:160],  # magic-number-allow: string-truncation-cap
                             cadence=cadence,
-                            recipient_email=admin_email[:254],
+                            recipient_email=admin_email[:254],  # magic-number-allow: string-truncation-cap
                             recipient_email_hash=_hash_email(admin_email),
                             delivery_ok=False,
                             delivery_error_kind=f"exception:{type(exc).__name__}"[:64],

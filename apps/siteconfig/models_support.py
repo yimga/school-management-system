@@ -259,7 +259,7 @@ def default_backend_feature_flags():
         "parent_student_ai_assistant_panel": False,
         "parent_student_support_deflection_on_submit": True,
         "parent_student_feature_center_redirect": True,
-        "help_telemetry_retention_days": 365,
+        "help_telemetry_retention_days": 365,  # magic-number-allow: retention-days
         "kb_search_synonyms": {},
         "enable_offline_mode": True,
         "enable_offline_form_queue": True,
@@ -289,9 +289,9 @@ def default_backend_feature_flags():
         "prefetch_at_hour": None,
         "max_bulk_import_rows": 500,
         "allow_bulk_commit": True,
-        "allowed_roles_entity_console": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
-        "allowed_roles_entity_import": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
-        "allowed_roles_api_schema": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],
+        "allowed_roles_entity_console": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],  # role-string-allow: default-allowed-roles-setting
+        "allowed_roles_entity_import": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],  # role-string-allow: default-allowed-roles-setting
+        "allowed_roles_api_schema": ["ADMIN", "LEADERSHIP", "IT_ADMIN"],  # role-string-allow: default-allowed-roles-setting
         "parent_simplified_default_home": True,
         "require_guardian_finance_opt_in": True,
         "allow_finance_access_requests": True,
@@ -347,8 +347,8 @@ def default_delegation_role_mapping():
         "PRINCIPAL": ["VICE_PRINCIPAL", "HOD"],
         "VICE_PRINCIPAL": ["HOD", "DEAN"],
         "DEAN": ["HOD", "ACADEMICS_STAFF"],
-        "HOD": ["DEPT_LEAD", "TEACHER"],
-        "TEACHER": ["TEACHER"],
+        "HOD": ["DEPT_LEAD", "TEACHER"],  # role-string-allow: role-delegation-mapping
+        "TEACHER": ["TEACHER"],  # role-string-allow: role-delegation-mapping
         "BURSAR": ["FINANCE_STAFF"],
     }
 

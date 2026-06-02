@@ -1015,7 +1015,7 @@ class TenantLastActivityMiddleware(MiddlewareMixin):
             cache_key = f"school_last_activity:{school.id}"
             if cache.get(cache_key):
                 return response
-            cache.set(cache_key, True, timeout=3600)
+            cache.set(cache_key, True, timeout=3600)  # magic-number-allow: cache-ttl-seconds
             from apps.schools.models import School
 
             School.objects.filter(pk=school.id).update(last_activity=timezone.now())

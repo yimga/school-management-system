@@ -32,22 +32,22 @@ from . import views_guardian_consent, views_guardian_consent_admin
 guardian_anonymous_app_name = "migration_guardian_consent"
 
 guardian_anonymous_urlpatterns = [
-    path(
+    path(  # rbac-allow: intentionally-public-guardian-consent-unguessable-256bit-url-token-credential
         "<str:raw_token>/",
         views_guardian_consent.GuardianConsentLandingView.as_view(),
         name="guardian-consent-landing",
     ),
-    path(
+    path(  # rbac-allow: intentionally-public-guardian-consent-unguessable-256bit-url-token-credential
         "<str:raw_token>/accept/",
         views_guardian_consent.GuardianConsentAcceptView.as_view(),
         name="guardian-consent-accept",
     ),
-    path(
+    path(  # rbac-allow: intentionally-public-guardian-consent-unguessable-256bit-url-token-credential
         "<str:raw_token>/decline/",
         views_guardian_consent.GuardianConsentDeclineView.as_view(),
         name="guardian-consent-decline",
     ),
-    path(
+    path(  # rbac-allow: intentionally-public-guardian-consent-unguessable-256bit-url-token-credential
         "<str:raw_token>/revoke/",
         views_guardian_consent.GuardianConsentRevokeView.as_view(),
         name="guardian-consent-revoke",

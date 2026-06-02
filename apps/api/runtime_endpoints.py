@@ -72,7 +72,7 @@ def _runtime_response(request: HttpRequest, view: str, payload: dict[str, Any]) 
 
 @extend_schema(tags=[_RUNTIME_TAG], summary="Academic calendar snapshot", description=_RUNTIME_DESCRIPTION)
 @require_safe
-@cache_control(public=True, max_age=15, s_maxage=900)
+@cache_control(public=True, max_age=15, s_maxage=900)  # magic-number-allow: http-cache-max-age-seconds
 def school_calendar_runtime(request: HttpRequest) -> JsonResponse:
     """GET /api/v1/runtime/calendar — academic calendar bundle.
 
@@ -107,7 +107,7 @@ def school_calendar_runtime(request: HttpRequest) -> JsonResponse:
 
 @extend_schema(tags=[_RUNTIME_TAG], summary="Grading scale + cutoffs", description=_RUNTIME_DESCRIPTION)
 @require_safe
-@cache_control(public=True, max_age=15, s_maxage=900)
+@cache_control(public=True, max_age=15, s_maxage=900)  # magic-number-allow: http-cache-max-age-seconds
 def grading_matrix_runtime(request: HttpRequest) -> JsonResponse:
     """GET /api/v1/runtime/grading-matrix — grading scale + cutoffs."""
     payload: dict[str, Any] = {
@@ -147,7 +147,7 @@ def grading_matrix_runtime(request: HttpRequest) -> JsonResponse:
 
 @extend_schema(tags=[_RUNTIME_TAG], summary="Structural onboarding options", description=_RUNTIME_DESCRIPTION)
 @require_safe
-@cache_control(public=True, max_age=15, s_maxage=900)
+@cache_control(public=True, max_age=15, s_maxage=900)  # magic-number-allow: http-cache-max-age-seconds
 def structural_options_runtime(request: HttpRequest) -> JsonResponse:
     """GET /api/v1/runtime/structural-options?country=XX — country pack + matrix context."""
     country = (request.GET.get("country") or "").strip().upper()[:2]
@@ -260,7 +260,7 @@ def structural_options_initialize_runtime(request: HttpRequest) -> JsonResponse:
 
 @extend_schema(tags=[_RUNTIME_TAG], summary="RuntimeDefaults projection", description=_RUNTIME_DESCRIPTION)
 @require_safe
-@cache_control(public=True, max_age=15, s_maxage=900)
+@cache_control(public=True, max_age=15, s_maxage=900)  # magic-number-allow: http-cache-max-age-seconds
 def runtime_defaults_snapshot(request: HttpRequest) -> JsonResponse:
     """GET /api/v1/runtime/defaults — RuntimeDefaults projection."""
     payload: dict[str, Any] = {"defaults": {}}
@@ -281,7 +281,7 @@ def runtime_defaults_snapshot(request: HttpRequest) -> JsonResponse:
 
 @extend_schema(tags=[_RUNTIME_TAG], summary="SiteSettings public-safe snapshot", description=_RUNTIME_DESCRIPTION)
 @require_safe
-@cache_control(public=True, max_age=15, s_maxage=900)
+@cache_control(public=True, max_age=15, s_maxage=900)  # magic-number-allow: http-cache-max-age-seconds
 def site_settings_snapshot(request: HttpRequest) -> JsonResponse:
     """GET /api/v1/runtime/site-settings — public-safe SiteSettings projection."""
     payload: dict[str, Any] = {"settings": {}}
@@ -303,7 +303,7 @@ def site_settings_snapshot(request: HttpRequest) -> JsonResponse:
 
 @extend_schema(tags=[_RUNTIME_TAG], summary="Resolved tenant feature flags", description=_RUNTIME_DESCRIPTION)
 @require_safe
-@cache_control(public=True, max_age=15, s_maxage=900)
+@cache_control(public=True, max_age=15, s_maxage=900)  # magic-number-allow: http-cache-max-age-seconds
 def feature_flags_runtime(request: HttpRequest) -> JsonResponse:
     """GET /api/v1/runtime/feature-flags — resolved flags for the current tenant."""
     payload: dict[str, Any] = {"flags": {}}

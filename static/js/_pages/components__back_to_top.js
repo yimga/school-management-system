@@ -300,15 +300,38 @@
     window.requestAnimationFrame(update);
   }
 
+  function bindScrollTargets() {
+    var seen = typeof WeakSet === "function" ? new WeakSet() : null;
+    var attached = state.scrollTargets || (state.scrollTargets = []);
+    function attach(el) {
+      if (!el) return;
+      if (seen) {
+        if (seen.has(el)) return;
+        seen.add(el);
+      } else if (attached.indexOf(el) !== -1) {
+        return;
+      } else {
+        attached.push(el);
+      }
+      el.addEventListener("scroll", scheduleUpdate, { passive: true });
+    }
+    var targets =
+      window.RMC && window.RMC.getScrollListenerTargets
+        ? window.RMC.getScrollListenerTargets()
+        : [];
+    var i;
+    for (i = 0; i < targets.length; i += 1) {
+      attach(targets[i]);
+    }
+    attach(getScrollContainer());
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+  }
+
   function bindListeners() {
     if (state.bound || !state.btn) return;
     state.bound = true;
 
-    var container = getScrollContainer();
-    if (container) {
-      container.addEventListener("scroll", scheduleUpdate, { passive: true });
-    }
-    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    bindScrollTargets();
     window.addEventListener("resize", scheduleUpdate, { passive: true });
     window.addEventListener("resize", applySavedPosition, { passive: true });
     state.btn.addEventListener("click", handleClick);
@@ -367,9 +390,31 @@
     mount: mount,
   };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", mount);
-  } else {
+  function boot() {
     mount();
+    scheduleUpdate();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
+
+  window.addEventListener("load", scheduleUpdate);
+
+  if (typeof MutationObserver === "function") {
+    var shellObserver = new MutationObserver(scheduleUpdate);
+    var observeShell = function () {
+      var shell = document.querySelector(".rmc-app-shell");
+      if (shell) {
+        shellObserver.observe(shell, { childList: true, subtree: true });
+      }
+    };
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", observeShell);
+    } else {
+      observeShell();
+    }
   }
 })();
