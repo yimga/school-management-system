@@ -1,6 +1,33 @@
 from django.db import migrations
 
 
+def _sitesettings_has_compliance_profile_column(connection):
+    """True when siteconfig_sitesettings.compliance_profile_id physically exists.
+
+    Per 0003 (SeparateDatabaseAndState) that FK column is added to the migration
+    STATE everywhere but to the DB only in tenant schemas (the shared/public
+    schema has no finance_complianceprofile to point at). siteconfig is a SHARED
+    app, so this data migration runs in the public schema, where a full-row ORM
+    op on SiteSettings would reference a column that does not exist. Detect it.
+    """
+    table = "siteconfig_sitesettings"
+    column = "compliance_profile_id"
+    with connection.cursor() as cursor:
+        if connection.vendor == "postgresql":
+            cursor.execute(
+                """
+                SELECT 1 FROM information_schema.columns
+                WHERE table_schema = current_schema()
+                  AND table_name = %s AND column_name = %s
+                LIMIT 1
+                """,
+                [table, column],
+            )
+            return cursor.fetchone() is not None
+        cursor.execute("PRAGMA table_info(%s)" % table)
+        return any(row[1] == column for row in cursor.fetchall())
+
+
 def create_theme_packs(apps, schema_editor):
     ThemePack = apps.get_model("siteconfig", "ThemePack")
     SiteSettings = apps.get_model("siteconfig", "SiteSettings")
@@ -59,22 +86,27 @@ def create_theme_packs(apps, schema_editor):
         created.append(pack)
 
     if created:
-        site_settings, _ = SiteSettings.objects.get_or_create(pk=1)
         default_pack = next((pack for pack in created if pack.is_default), created[0])
-        site_settings.theme_pack = default_pack
-        site_settings.primary_color = default_pack.primary_color
-        site_settings.accent_color = default_pack.accent_color
-        site_settings.brand_font = default_pack.font_family
-        site_settings.custom_css = default_pack.custom_css or ""
-        site_settings.save(
-            update_fields=[
-                "theme_pack",
-                "primary_color",
-                "accent_color",
-                "brand_font",
-                "custom_css",
-            ]
-        )
+        cosmetic = {
+            "theme_pack": default_pack,
+            "primary_color": default_pack.primary_color,
+            "accent_color": default_pack.accent_color,
+            "brand_font": default_pack.font_family,
+            "custom_css": default_pack.custom_css or "",
+        }
+        if _sitesettings_has_compliance_profile_column(schema_editor.connection):
+            # Single-schema / tenant schema: the column exists, so full-row ORM
+            # ops are safe. Preserve the original behaviour exactly.
+            site_settings, _ = SiteSettings.objects.get_or_create(pk=1)
+            for attr, value in cosmetic.items():
+                setattr(site_settings, attr, value)
+            site_settings.save(update_fields=list(cosmetic))
+        else:
+            # Shared/public schema: compliance_profile_id has no column here (0003).
+            # Touch only the cosmetic columns so we never SELECT/INSERT the missing
+            # one. If no singleton row exists yet, the app creates it at runtime via
+            # SiteSettings.get_solo() and the theme is re-derived from the cascade.
+            SiteSettings.objects.filter(pk=1).update(**cosmetic)
 
 
 def remove_theme_packs(apps, schema_editor):
