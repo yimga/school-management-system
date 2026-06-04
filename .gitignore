@@ -99,12 +99,16 @@ db_step4.sqlite3
 !static/marketing/css/marketing-enhanced.min.css
 !static/marketing/css/marketing-bundles.manifest.json
 
-# Merge conflict artifacts (do not commit)
+# Merge conflict artifacts (do not commit).
+# Anchored to cloud-sync "conflict copy" names (a space or hyphen precedes
+# "Conflict") so legit modules like apps/sync_engine/conflict_resolver.py are
+# NOT swallowed on case-insensitive (Windows) git — which silently kept that
+# import-required module out of the repo and broke CI.
 *_Conflict.py
-*Conflict*.py
+*[ -]Conflict*.py
 # Django migrations must never be gitignored by the rules above (Render deploy drift).
 !**/migrations/*_Conflict.py
-!**/migrations/*Conflict*.py
+!**/migrations/*[ -]Conflict*.py
 
 # Local video-frame extraction (audit artefacts; never committed)
 .video-frames/

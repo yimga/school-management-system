@@ -1211,18 +1211,23 @@ def region_settings(request):
             region = RegionConfig.objects.get(code=region_code)
             grading_scale = getattr(region, "grading_scale", "default")
             default_language = getattr(region, "default_language", "en")
-    except RegionConfig.DoesNotExist:
-        # Fallback to the platform-neutral default region.
-        region = RegionConfig.get_default()
-        grading_scale = getattr(region, "grading_scale", "default")
-        default_language = getattr(region, "default_language", "en")
-    except DatabaseError:
-        _reset_db_state()
+    except (RegionConfig.DoesNotExist, DatabaseError) as _region_exc:
+        # Either there is no RegionConfig row (fresh tenant) or the DB is
+        # momentarily unavailable (sqlite lock contention during the CI gate's
+        # portal crawl). Fallback is RegionConfig.get_default(), but that does a
+        # get_or_create (a WRITE) which can ITSELF raise DatabaseError under lock
+        # contention. Previously get_default() was called bare inside the
+        # DoesNotExist handler, so that DatabaseError escaped as a 500. Try the
+        # DB default once, but never let a DB error here 500 the page — degrade
+        # to in-memory platform defaults instead.
+        if isinstance(_region_exc, DatabaseError):
+            _reset_db_state()
         try:
             region = RegionConfig.get_default()
             grading_scale = getattr(region, "grading_scale", "default")
             default_language = getattr(region, "default_language", "en")
         except (AttributeError, DatabaseError, TypeError, ValueError):
+            _reset_db_state()
             _pd = get_platform_defaults(use_db=False)
             region = SimpleNamespace(
                 code=_pd["region_code"],
