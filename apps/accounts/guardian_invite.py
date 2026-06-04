@@ -115,6 +115,24 @@ class GuardianSetupView(PasswordResetConfirmView):
     template_name = "accounts/guardian_setup.html"
     success_url = reverse_lazy("accounts:login")
 
+    def get_user(self, uidb64):
+        # Role gate: this generic "set password + activate" flow must only ever
+        # apply to PARENT/guardian accounts. get_user() is how
+        # PasswordResetConfirmView resolves the token's user; returning None makes
+        # the link present as invalid/expired. This guarantees a token minted for
+        # a deactivated staff/admin can never re-activate them via this view.
+        user = super().get_user(uidb64)
+        if user is not None:
+            from apps.accounts.models import User as _User
+
+            if getattr(user, "role", None) != _User.Role.PARENT:
+                logger.warning(
+                    "guardian_setup_role_refused",
+                    extra={"user_id": getattr(user, "pk", None)},
+                )
+                return None  # → token treated as invalid; "link expired" page
+        return user
+
     def form_valid(self, form):
         response = super().form_valid(form)
         user = getattr(self, "user", None)

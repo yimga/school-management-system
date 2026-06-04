@@ -63,6 +63,23 @@ def _expected_token() -> str:
     )
 
 
+def _allow_dev_open() -> bool:
+    """SECURITY escape hatch (default OFF), mirroring OneRoster.
+
+    When no ``RMC_SCIM_ACCESS_TOKEN`` is configured, SCIM fails CLOSED. Setting
+    ``RMC_SCIM_ALLOW_DEV_OPEN=1`` restores the historical "no token -> open"
+    behavior on a dev/test box only — NEVER in production. Without this, a deploy
+    that simply forgot to set the SCIM token exposed anonymous user
+    create/modify/delete/enumerate over the entire SCIM surface.
+    """
+    raw = str(
+        getattr(settings, "RMC_SCIM_ALLOW_DEV_OPEN", "")
+        or os.environ.get("RMC_SCIM_ALLOW_DEV_OPEN", "")
+        or ""
+    ).strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
 def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
     header = request.META.get("HTTP_AUTHORIZATION", "") or ""
     if not header.lower().startswith("bearer "):
@@ -70,8 +87,13 @@ def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
     submitted = header[7:].strip()
     expected = _expected_token()
     if not expected:
-        logger.info("scim: no RMC_SCIM_ACCESS_TOKEN configured (dev mode)")
-        return True, None
+        # Fail CLOSED — no token configured means refuse, unless an explicit
+        # dev-open opt-in is set. (Previously soft-allowed ANY request.)
+        if _allow_dev_open():
+            logger.info("scim: dev-open enabled (RMC_SCIM_ALLOW_DEV_OPEN) — accepting request")
+            return True, None
+        logger.warning("scim: no RMC_SCIM_ACCESS_TOKEN configured and dev-open disabled — refusing")
+        return False, "not_configured"
     if not submitted or not hmac.compare_digest(submitted, expected):
         return False, "invalid_token"
     return True, None

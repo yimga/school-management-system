@@ -34,10 +34,10 @@ LEAD_CAPTURE_SOFT_FAILURES = (
 
 
 def _client_ip(request) -> str:
-    forwarded = (request.META.get("HTTP_X_FORWARDED_FOR") or "").strip()
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return (request.META.get("REMOTE_ADDR") or "unknown").strip()
+    # Delegate to the canonical XFF-spoofing-resistant resolver.
+    from apps.api.rate_limit import client_ip
+
+    return client_ip(request)
 
 
 def _incr_with_limit(key: str, max_count: int, window_seconds: int) -> tuple[bool, int]:
