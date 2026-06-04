@@ -4,6 +4,7 @@ School is the tenant; SchoolMembership links users to schools with a role.
 Phase D: Plan + addons; is_feature_enabled(tenant, code) for feature gate.
 """
 
+import hashlib
 import logging
 import uuid
 
@@ -266,6 +267,16 @@ class School(models.Model):
         unique=True,
         blank=True,
         help_text="Subdomain for this school (e.g. ghs-limbe for ghs-limbe.yoursystem.com)",
+    )
+    # Stored, indexed sha256(str(id))[:12] used by the WAL drain to resolve a
+    # tenant from its hash in O(1). Kept in sync in save(); the drain falls back
+    # to a full scan for any row whose hash predates the backfill migration.
+    tenant_hash = models.CharField(
+        max_length=12,
+        blank=True,
+        db_index=True,
+        editable=False,
+        help_text="Derived sha256(id)[:12] for fast WAL tenant resolution.",
     )
     sub_system = models.CharField(
         max_length=10,
@@ -724,6 +735,12 @@ class School(models.Model):
     def save(self, *args, **kwargs):
         rp = (getattr(self, "report_platform_bundle_slug", None) or "").strip()
         self.report_platform_bundle_slug = rp.lower() if rp else ""
+        # Keep the WAL tenant_hash in sync. id is a UUID set at instantiation
+        # (default=uuid4), so it is available on first save before super().save().
+        if self.id:
+            self.tenant_hash = hashlib.sha256(
+                str(self.id).encode("utf-8")
+            ).hexdigest()[:12]
         # Keep materialized path in sync for multi-level hierarchy
         if self.parent_school_id:
             parent = School.objects.filter(pk=self.parent_school_id).first()

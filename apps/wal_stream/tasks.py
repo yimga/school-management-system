@@ -217,7 +217,11 @@ def _apply_envelope(envelope: dict[str, Any]) -> None:
 def _resolve_school_id_from_hash(tenant_hash: str) -> str | None:
     """Reverse ``sha256[:12]`` lookup via the RLS-bypassed school directory.
 
-    The drainer is the only context that legitimately walks every school.
+    Fast path: the stored, indexed ``School.tenant_hash`` column (people/0065
+    backfill) resolves in O(1). Fallback: a full scan recomputes the hash for any
+    row whose ``tenant_hash`` predates the backfill (e.g. created mid-deploy), so
+    correctness never depends on the backfill having run. The drainer is the only
+    context that legitimately walks every school.
     """
     import hashlib
 
@@ -225,6 +229,14 @@ def _resolve_school_id_from_hash(tenant_hash: str) -> str | None:
     from apps.schools.rls_context import rls_bypass
 
     with rls_bypass():
+        match = (
+            School.objects.filter(tenant_hash=tenant_hash)  # tenant-isolation-allow: celery-wal-drain-resolves-bound-tenant-by-derived-hash
+            .only("id")
+            .first()
+        )
+        if match is not None:
+            return str(match.id)
+        # Fallback for rows not yet backfilled — recompute on the fly.
         for school in School.objects.all().only("id"):  # tenant-isolation-allow: celery-wal-fanout-iterates-all-schools
             if hashlib.sha256(str(school.id).encode("utf-8")).hexdigest()[:12] == tenant_hash:
                 return str(school.id)
