@@ -22,7 +22,7 @@ run "${PYTHON_BIN}" scripts/verify_migration_files_tracked.py
 # Fail fast when shell includes reference a template missing from the checkout.
 WFP_STRIP="templates/components/rmc_workflow_progress_strip.html"
 if [[ ! -f "${WFP_STRIP}" ]]; then
-  echo "[predeploy] FATAL: missing ${WFP_STRIP} (required by control_plane_skeleton + portal_base)"
+  echo "[predeploy] FATAL: missing ${WFP_STRIP} (required by portal_base + manager topbar / deploy readiness gate)"
   exit 1
 fi
 

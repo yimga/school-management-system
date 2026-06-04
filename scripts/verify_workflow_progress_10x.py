@@ -13,6 +13,7 @@ SUBPROCESS_SCRIPTS = (
     "scripts/smoke_workflow_progress_bus.py",
     "scripts/verify_workflow_progress_coverage.py",
     "scripts/verify_workflow_10x_waves_complete.py",
+    "scripts/verify_workflow_progress_shell_strip.py",
 )
 
 STATIC_MARKERS = (
@@ -40,7 +41,10 @@ STATIC_MARKERS = (
     ("static/css/rmc-workflow-flight-deck.css", "rmc-wfp-flight-deck"),
     ("config/settings.py", "WorkflowProgressRequestMiddleware"),
     ("templates/control_plane_skeleton.html", "rmc-workflow-track-headers.js"),
+    ("templates/partials/manager_operator_topbar.html", "rmc-wfp-header-slot"),
+    ("templates/partials/manager_operator_topbar.html", "rmc_workflow_progress_strip.html"),
     ("templates/portal_base.html", "rmc-workflow-track-headers.js"),
+    ("templates/portal_base.html", "rmc_workflow_progress_strip.html"),
     ("static/js/rmc-workflow-progress.js", "progress_percent"),
     ("static/js/rmc-workflow-track-headers.js", "X-RMC-Workflow-Track"),
     ("apps/platform_runtime/workflow_tracker.py", "active_workflow_run"),

@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Workflow deploy strip + OSS posture batch 1618 (2026-06-04)
+
+**A. Claim:** §11.4 batch **1618** — lock Render deploy workflow strip wiring; prevent duplicate manager strip; record Track 7 OSS composite proof.
+
+**B. Shipped:** multi-host `updateInlineStrip()`; canvas dedupe on control plane; transitive deploy readiness; **`verify_workflow_progress_shell_strip.py`** in 10x bundle; predeploy comment aligned; commits **`d1042641`** + **`4c0ddc46`** on **`main`**.
+
+**C. Proof:** **RENDER_DEPLOY_READINESS_PASS**; **WORKFLOW_PROGRESS_10X_PASS**; **WORKFLOW_PROGRESS_SHELL_STRIP_PASS**; **OPEN_SOURCE_POSTURE_PASS**; SW **v4.01.57**.
+
+**D. SOT:** batch **1618** **DONE**. **E. Honest:** operator mailbox verification external; admin Playwright sweep optional on Windows.
+
 ## Slice — SFDP dispute copy + phases burndown batch 1617 (2026-06-02)
 
 **A. Claim:** §11.4 batch **1617** — restore missing SFDP module; unblock dual-engine + phases gates after **1616**.
