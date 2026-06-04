@@ -37,13 +37,21 @@ def _ensure_model_table(apps, schema_editor, model_name):
 
 
 def _current_school_id(apps, schema_editor):
-    Client = apps.get_model("customers", "Client")
-    client = (
-        Client.objects.filter(schema_name=_schema_name(schema_editor.connection))
-        .only("school_id")
-        .first()
-    )
-    return getattr(client, "school_id", None)
+    # customers is a SHARED app and is NOT in this TENANT migration's historical
+    # app registry, so apps.get_model("customers", "Client") raises LookupError on
+    # a freshly-provisioned schema (No installed app with label 'customers'). Read
+    # the tenant->school mapping straight from the public customers_client table
+    # instead — raw SQL, consistent with this migration's other public-schema
+    # reads, touching only the stable schema_name / school_id columns.
+    schema = _schema_name(schema_editor.connection)
+    with schema_editor.connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT school_id FROM public.customers_client "
+            "WHERE schema_name = %s LIMIT 1",
+            [schema],
+        )
+        row = cursor.fetchone()
+    return row[0] if row else None
 
 
 def _copy_rows(schema_editor, model, where_sql="", params=None):
