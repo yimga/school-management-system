@@ -3593,10 +3593,11 @@ class CockpitPayloadForm(forms.ModelForm):
         from apps.siteconfig.models import SiteSettings as _SiteSettings
 
         model = _SiteSettings
-        fields: list[str] = ["cockpit_payload"]
-        # Hide the raw JSON column from rendering — operators edit the
-        # flat fields above; ``clean()`` rebuilds the nested dict.
-        widgets = {"cockpit_payload": forms.HiddenInput()}
+        # Phase B: cockpit_payload is no longer a SiteSettings column (it lives in
+        # RuntimeDefaults.payload). Operators edit the flat fields above;
+        # ``clean()`` rebuilds the nested dict into cleaned_data["cockpit_payload"]
+        # and the owning view persists it via SiteSettings.set_cockpit_payload().
+        fields: list[str] = []
 
     # ----- helpers for declarative fieldset grouping (templates / admin) ---
     FOOTER_FIELDS: tuple[str, ...] = (
@@ -5077,10 +5078,9 @@ class CockpitPayloadForm(forms.ModelForm):
         cleaned = super().clean() or {}
         payload = self._build_payload(cleaned)
         cleaned["cockpit_payload"] = payload
-        # Mirror onto the model instance so save() picks it up via the
-        # ModelForm machinery's normal cleaned_data -> instance flow.
-        if self.instance is not None:
-            self.instance.cockpit_payload = payload
+        # Phase B: cockpit_payload is persisted by the owning view via
+        # SiteSettings.set_cockpit_payload(cleaned_data["cockpit_payload"]);
+        # the column no longer exists, so no model-instance mirror is needed.
         return cleaned
 
 

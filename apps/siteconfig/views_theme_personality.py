@@ -139,13 +139,10 @@ class ThemePersonalityConfigView(LoginRequiredMixin, UserPassesTestMixin, FormVi
     def form_valid(self, form: ThemePersonalityForm) -> HttpResponse:
         site = _resolve_site_settings_instance(self.request)
         payload = form._build_payload(form.cleaned_data)
-        site.theme_personality = payload
-        try:
-            site.save(update_fields=["theme_personality", "updated_at"])
-        except (AttributeError, TypeError, ValueError):
-            # Fall back to a full save if update_fields rejects the
-            # field (e.g. brand-new singleton row before any save).
-            site.save()
+        # Phase B: theme_personality lives in RuntimeDefaults.payload, not as a
+        # SiteSettings column. Persist via the accessor; reads still go through
+        # getattr(site, "theme_personality") (the __getattr__ payload shim).
+        type(site).set_theme_personality(payload)
         # PII-logging-smell-safe: never log raw hex codes; only a coarse
         # success signal + a count of populated sections.
         import logging
@@ -171,11 +168,8 @@ class ThemePersonalityConfigView(LoginRequiredMixin, UserPassesTestMixin, FormVi
 
     def _handle_reset(self, request: HttpRequest) -> HttpResponse:
         site = _resolve_site_settings_instance(request)
-        site.theme_personality = {}
-        try:
-            site.save(update_fields=["theme_personality", "updated_at"])
-        except (AttributeError, TypeError, ValueError):
-            site.save()
+        # Phase B: persist via accessor (RuntimeDefaults.payload), not a column.
+        type(site).set_theme_personality({})
         messages.info(request, _("Theme personality reset to defaults."))
         return HttpResponseRedirect(self._success_url())
 

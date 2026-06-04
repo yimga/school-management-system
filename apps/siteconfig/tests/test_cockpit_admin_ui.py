@@ -91,7 +91,8 @@ class CockpitFormSchemaTests(SimpleTestCase):
     """Pure-function tests over the form's parse / serialize round-trip."""
 
     def test_form_builds_nested_payload_matching_cockpit_context_schema(self) -> None:
-        instance = SiteSettings(pk=1, cockpit_payload={})
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = {}  # Phase B: in-memory seed (no DB column); form reads via __dict__
         form = CockpitPayloadForm(data=_flat_form_payload(), instance=instance)
         self.assertTrue(form.is_valid(), msg=form.errors)
         payload = form.cleaned_data["cockpit_payload"]
@@ -201,7 +202,8 @@ class CockpitFormSchemaTests(SimpleTestCase):
                 "privacy_label": "privacy",
             },
         }
-        instance = SiteSettings(pk=1, cockpit_payload=existing)
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = existing  # Phase B: in-memory seed (no DB column)
         form = CockpitPayloadForm(instance=instance)
         # Flat-field initials populated from nested dict.
         self.assertEqual(form.fields["footer_wordmark"].initial, "Acme Prep")
@@ -215,7 +217,8 @@ class CockpitFormSchemaTests(SimpleTestCase):
 
     def test_form_with_empty_data_still_writes_canonical_shape(self) -> None:
         """Even empty fields produce the canonical 3-block top-level shape."""
-        instance = SiteSettings(pk=1, cockpit_payload={})
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = {}  # Phase B: in-memory seed (no DB column); form reads via __dict__
         form = CockpitPayloadForm(data={}, instance=instance)
         self.assertTrue(form.is_valid(), msg=form.errors)
         payload = form.cleaned_data["cockpit_payload"]
@@ -244,7 +247,8 @@ class CockpitContextSurfaceTests(SimpleTestCase):
         # for the host classification.
         request.public_host_kind = "tenant"
         # Attach a stand-in SiteSettings instance carrying the payload.
-        site = SiteSettings(pk=1, cockpit_payload=payload)
+        site = SiteSettings(pk=1)
+        site.cockpit_payload = payload  # Phase B: in-memory seed (no DB column)
         request.SITE = site
         request.site_settings = site
         return request
@@ -260,7 +264,8 @@ class CockpitContextSurfaceTests(SimpleTestCase):
 
     def test_tenant_footer_can_render_with_saved_payload(self) -> None:
         """Operator's saved wordmark survives into a tiny template render."""
-        instance = SiteSettings(pk=1, cockpit_payload={})
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = {}  # Phase B: in-memory seed (no DB column); form reads via __dict__
         form = CockpitPayloadForm(data=_flat_form_payload(), instance=instance)
         self.assertTrue(form.is_valid(), msg=form.errors)
         # Render a small template directly from the form-built payload —
@@ -299,19 +304,18 @@ class CockpitBleedPreventionTests(SimpleTestCase):
         request.public_host_kind = "manager"
         # Attach a tenant-populated payload to the request — the
         # manager branch in cockpit_context() must ignore it.
-        tenant_site = SiteSettings(
-            pk=1,
-            cockpit_payload={
-                "footer": {
-                    "brand": {
-                        "wordmark": "TENANT BLEED MARKER",
-                        "motto": "",
-                        "founded_year": None,
-                        "descriptor": "Family portal",
-                    }
+        tenant_site = SiteSettings(pk=1)
+        # Phase B: in-memory seed (no DB column); cockpit_context reads via __dict__.
+        tenant_site.cockpit_payload = {
+            "footer": {
+                "brand": {
+                    "wordmark": "TENANT BLEED MARKER",
+                    "motto": "",
+                    "founded_year": None,
+                    "descriptor": "Family portal",
                 }
-            },
-        )
+            }
+        }
         request.SITE = tenant_site
         request.site_settings = tenant_site
 

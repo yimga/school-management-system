@@ -144,16 +144,16 @@ def mat_group_hub_edit(request: HttpRequest, group_id: str = "") -> HttpResponse
             "Operator SiteSettings singleton not configured.",
             status=500,
         )
-    payload = settings_row.cockpit_payload if isinstance(
-        settings_row.cockpit_payload, dict,
-    ) else {}
+    # Phase B: cockpit_payload lives in RuntimeDefaults.payload; read via getattr
+    # (the __getattr__ shim returns None when unset) and persist via the accessor.
+    _cp = getattr(settings_row, "cockpit_payload", None)
+    payload = _cp if isinstance(_cp, dict) else {}
 
     if request.method == "POST":
         form = MATGroupEditorForm(request.POST)
         if form.is_valid():
             new_payload = apply_form_to_payload(payload, form)
-            settings_row.cockpit_payload = new_payload
-            settings_row.save(update_fields=["cockpit_payload"])
+            type(settings_row).set_cockpit_payload(new_payload)
             verb = "deleted" if form.cleaned_data.get("delete") else "saved"
             messages.success(
                 request,

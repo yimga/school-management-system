@@ -365,8 +365,9 @@ class TenantSettingsAdminFormWithCockpit(TenantSettingsAdminForm):
         cleaned = super().clean() or {}
         payload = _CockpitPayloadForm._build_payload(self, cleaned)
         cleaned["cockpit_payload"] = payload
-        if self.instance is not None:
-            self.instance.cockpit_payload = payload
+        # Phase B: cockpit_payload moved off SiteSettings to RuntimeDefaults.payload;
+        # the admin persists it in save_model() via set_cockpit_payload(). No
+        # model-instance mirror (the column no longer exists).
         return cleaned
 
 
@@ -884,6 +885,11 @@ class TenantSettingsAdmin(ModelAdmin):
             request.session["preview_mode_enabled"] = False
             request.session.modified = True
         super().save_model(request, obj, form, change)
+        # Phase B: cockpit_payload moved off SiteSettings to RuntimeDefaults.payload;
+        # super().save_model() only writes real columns, so persist the
+        # form-computed payload via the accessor.
+        if form is not None and "cockpit_payload" in getattr(form, "cleaned_data", {}):
+            type(obj).set_cockpit_payload(form.cleaned_data.get("cockpit_payload") or {})
         # Audit trail in admin log
         if change:
             summary = (

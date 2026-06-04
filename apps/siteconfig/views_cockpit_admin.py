@@ -260,13 +260,10 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
         # ``form.clean()`` mirrored the nested dict onto the instance;
         # save persists the JSON column.
         instance = form.instance
-        instance.cockpit_payload = form.cleaned_data.get("cockpit_payload", {})
-        try:
-            instance.save(update_fields=["cockpit_payload", "updated_at"])
-        except Exception:
-            # Fall back to a full save for instances where update_fields
-            # doesn't apply (e.g. fresh singleton row).
-            instance.save()
+        # Phase B: cockpit_payload is stored in RuntimeDefaults.payload (not a
+        # SiteSettings column). Persist via the accessor; form.clean() still
+        # builds cleaned_data["cockpit_payload"], and reads go through __getattr__.
+        type(instance).set_cockpit_payload(form.cleaned_data.get("cockpit_payload", {}))
         messages.success(self.request, _("Cockpit configuration saved."))
         return HttpResponseRedirect(self._success_url())
 
@@ -287,11 +284,8 @@ class CockpitConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
 
     def _handle_reset(self, request: HttpRequest) -> HttpResponse:
         instance = _resolve_site_settings_instance(request)
-        instance.cockpit_payload = {}
-        try:
-            instance.save(update_fields=["cockpit_payload", "updated_at"])
-        except Exception:
-            instance.save()
+        # Phase B: persist via accessor (RuntimeDefaults.payload), not a column.
+        type(instance).set_cockpit_payload({})
         messages.info(request, _("Cockpit configuration reset to defaults."))
         return HttpResponseRedirect(self._success_url())
 
@@ -340,11 +334,8 @@ class MarketingVoiceConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormV
 
     def form_valid(self, form: Any) -> HttpResponse:
         instance = form.instance
-        instance.cockpit_payload = form.cleaned_data.get("cockpit_payload", {})
-        try:
-            instance.save(update_fields=["cockpit_payload", "updated_at"])
-        except Exception:
-            instance.save()
+        # Phase B: cockpit_payload stored in RuntimeDefaults.payload via accessor.
+        type(instance).set_cockpit_payload(form.cleaned_data.get("cockpit_payload", {}))
         messages.success(self.request, _("Marketing voice saved for this tenant."))
         return HttpResponseRedirect(self.request.path)
 
@@ -354,11 +345,8 @@ class MarketingVoiceConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormV
             payload = getattr(instance, "cockpit_payload", None) or {}
             if isinstance(payload, dict) and "marketing_voice" in payload:
                 payload = {k: v for k, v in payload.items() if k != "marketing_voice"}
-                instance.cockpit_payload = payload
-                try:
-                    instance.save(update_fields=["cockpit_payload", "updated_at"])
-                except Exception:
-                    instance.save()
+                # Phase B: persist via accessor (RuntimeDefaults.payload).
+                type(instance).set_cockpit_payload(payload)
                 messages.info(request, _("Marketing voice cleared — country defaults will apply."))
             return HttpResponseRedirect(request.path)
         return super().post(request, *args, **kwargs)
