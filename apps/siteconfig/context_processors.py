@@ -395,15 +395,26 @@ def site_settings(request):
     finance_request_alerts = 0
     notifications_unread_count = 0
     if user and getattr(user, "is_authenticated", False) and getattr(user, "pk", None):
-        finance_request_alerts = Notification.objects.filter(
-            recipient=user,
-            title__icontains="finance access request",
-            is_read=False,
-        ).count()
-        notifications_unread_count = Notification.objects.filter(
-            recipient=user,
-            is_read=False,
-        ).count()
+        # finance is a TENANT app. This SHARED context processor runs on every
+        # request, including hosts whose search_path has no finance_notification
+        # table (manager / public host, or a tenant page rendered before the
+        # schema is provisioned). Guard like apps.accounts.context_processors:
+        # reset the (possibly aborted) connection state and fall back to 0
+        # instead of 500-ing the page.
+        try:
+            finance_request_alerts = Notification.objects.filter(
+                recipient=user,
+                title__icontains="finance access request",
+                is_read=False,
+            ).count()
+            notifications_unread_count = Notification.objects.filter(
+                recipient=user,
+                is_read=False,
+            ).count()
+        except DatabaseError:
+            _reset_db_state()
+            finance_request_alerts = 0
+            notifications_unread_count = 0
     feature_flags = _resolve_backend_feature_flags(request, site)
     admin_theme = site.get_admin_theme()
     use_site_primary_for_admin = bool(getattr(site, "admin_use_site_primary", False))
