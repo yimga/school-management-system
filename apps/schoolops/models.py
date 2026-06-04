@@ -409,6 +409,17 @@ class VisitorCheckIn(models.Model):
         indexes = [
             models.Index(fields=["school", "checked_out_at"]),
         ]
+        constraints = [
+            # DB-enforced offline idempotency: a replay / two devices cannot
+            # double-log the same check-in. Partial so blank (online) rows are
+            # exempt. The offline writer catches the IntegrityError and returns
+            # the existing row as a dedup hit.
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_visitorcheckin_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.visitor_name} @ {self.checked_in_at}"

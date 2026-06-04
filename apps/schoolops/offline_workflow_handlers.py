@@ -102,7 +102,22 @@ def _apply_visitor_check_in(
                 recorded_by_id=user_id,
                 client_offline_id=client_key,
             )
-    except (DatabaseError, IntegrityError, ValueError) as exc:
+    except IntegrityError:
+        # Concurrent replay won the unique-constraint race — return its row.
+        if client_key:
+            existing = VisitorCheckIn.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
+                school_id=school_id, client_offline_id=client_key
+            ).first()
+            if existing:
+                return {
+                    "ok": True,
+                    "dedup": True,
+                    "visit_id": existing.pk,
+                    "schoolops_capture": True,
+                }
+        logger.warning("schoolops.offline_visitor_check_in integrity school=%s", school_id)
+        return {"ok": False, "error": "create_failed:IntegrityError"}
+    except (DatabaseError, ValueError) as exc:
         logger.warning(
             "schoolops.offline_visitor_check_in failed school=%s err=%s", school_id, exc
         )
