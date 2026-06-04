@@ -105,6 +105,15 @@ def try_apply_field_capture_workflow(
                 return note_result
             return {**note_result, **payroll_result}
         return payroll_result
+    # Person creation (edge/LAN offline onboarding). The handler creates the real
+    # record (StudentProfile), so we return its result directly — no opaque note.
+    from apps.people.offline_workflow_handlers import apply_people_workflow
+
+    people_result = apply_people_workflow(
+        school_id, user_id, workflow, fields, payload
+    )
+    if people_result is not None:
+        return people_result
     return None
 
 
