@@ -39,7 +39,13 @@ jobs:
           DJANGO_TEST_DB_FILE: ".django_test_dbs/ci_django_tests.sqlite3"
         run: |
           mkdir -p .django_test_dbs
-          python manage.py test --settings=config.settings --noinput
+          # Scope discovery to the Django package roots. A bare `manage.py test`
+          # discovers from '.', which descends into the hyphen-named companion
+          # siblings (companion-docker/, companion-extension/) whose pytest test
+          # packages can't be imported by Django's unittest loader (non-package
+          # parent) and crash the ENTIRE run at discovery. These five dirs are
+          # the only top-level Python packages that hold Django tests.
+          python manage.py test apps config services payment emis --settings=config.settings --noinput
 
   npm-audit:
     runs-on: ubuntu-latest

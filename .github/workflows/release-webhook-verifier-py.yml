@@ -33,7 +33,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: beta/school-management-system/packages/runmycampus-webhook-verifier-py
+    working-directory: packages/runmycampus-webhook-verifier-py
 
 jobs:
   confirm:
@@ -96,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: webhook-verifier-py-dist
-          path: beta/school-management-system/packages/runmycampus-webhook-verifier-py/dist/*
+          path: packages/runmycampus-webhook-verifier-py/dist/*
           retention-days: 1
 
   publish:

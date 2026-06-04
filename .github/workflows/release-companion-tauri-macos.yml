@@ -59,7 +59,7 @@ env:
 
 defaults:
   run:
-    working-directory: beta/school-management-system/companion-tauri
+    working-directory: companion-tauri
 
 jobs:
   confirm:
@@ -155,7 +155,7 @@ jobs:
           rm -f /tmp/rmc-cert.p12
 
       - name: Build universal-darwin .dmg via cargo tauri build (locked + frozen)
-        working-directory: beta/school-management-system/companion-tauri/src-tauri
+        working-directory: companion-tauri/src-tauri
         env:
           SOURCE_DATE_EPOCH: ${{ env.SOURCE_DATE_EPOCH }}
           RUSTFLAGS: ${{ env.RUSTFLAGS }}
@@ -249,7 +249,7 @@ jobs:
           npm run build
 
       - name: Re-build universal-darwin .dmg on clean runner
-        working-directory: beta/school-management-system/companion-tauri/src-tauri
+        working-directory: companion-tauri/src-tauri
         env:
           SOURCE_DATE_EPOCH: ${{ env.SOURCE_DATE_EPOCH }}
           RUSTFLAGS: ${{ env.RUSTFLAGS }}

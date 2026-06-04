@@ -30,7 +30,7 @@ on:
 
 defaults:
   run:
-    working-directory: beta/school-management-system
+    working-directory: .
 
 jobs:
   axe:
@@ -64,7 +64,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: beta/school-management-system/requirements.txt
+          cache-dependency-path: requirements.txt
       - name: Install Python deps
         run: |
           python -m pip install --upgrade pip

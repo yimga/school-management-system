@@ -34,7 +34,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: beta/school-management-system
+    working-directory: .
 
 jobs:
   rtl-and-zoom:
@@ -58,14 +58,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: beta/school-management-system/requirements.txt
+          cache-dependency-path: requirements.txt
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: "npm"
-          cache-dependency-path: beta/school-management-system/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install Python deps
         run: |
@@ -131,8 +131,8 @@ jobs:
         with:
           name: playwright-a11y-extended-artifacts
           path: |
-            beta/school-management-system/artifacts/playwright-a11y-extended
-            beta/school-management-system/test-results
-            beta/school-management-system/playwright-report
+            artifacts/playwright-a11y-extended
+            test-results
+            playwright-report
           if-no-files-found: ignore
           retention-days: 1  # Strict storage hygiene — never default 90d

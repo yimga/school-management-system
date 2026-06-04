@@ -12,128 +12,128 @@ name: architectural-boundaries
 on:
   pull_request:
     paths:
-      - "beta/school-management-system/apps/**/*.py"
-      - "beta/school-management-system/services/**/*.py"
-      - "beta/school-management-system/scripts/scan_ai_gateway_boundary.py"
-      - "beta/school-management-system/scripts/scan_sentry_boundary.py"
-      - "beta/school-management-system/scripts/scan_print_statements.py"
-      - "beta/school-management-system/scripts/scan_bare_except.py"
-      - "beta/school-management-system/scripts/scan_migration_model_imports.py"
-      - "beta/school-management-system/scripts/scan_drf_schema_coverage.py"
-      - "beta/school-management-system/scripts/scan_role_strings.py"
-      - "beta/school-management-system/scripts/scan_assert_in_production.py"
-      - "beta/school-management-system/scripts/scan_magic_numbers.py"
-      - "beta/school-management-system/scripts/scan_subprocess_shell_true.py"
-      - "beta/school-management-system/scripts/scan_rls_bypass.py"
-      - "beta/school-management-system/scripts/scan_money_float.py"
-      - "beta/school-management-system/scripts/scan_locale_coverage.py"
-      - "beta/school-management-system/scripts/verify_service_worker_version.py"
-      - "beta/school-management-system/scripts/verify_slo_registry.py"
-      - "beta/school-management-system/scripts/scan_sri_required.py"
-      - "beta/school-management-system/scripts/verify_csp_nonce_emission.py"
-      - "beta/school-management-system/scripts/scan_pwa_manifest_coverage.py"
-      - "beta/school-management-system/scripts/verify_sentry_alert_rule_drift.py"
-      - "beta/school-management-system/scripts/audit_template_render_safety.py"
-      - "beta/school-management-system/scripts/scan_inline_style_off_token.py"
-      - "beta/school-management-system/scripts/scan_undefined_css_classes.py"
-      - "beta/school-management-system/scripts/scan_off_token_colors.py"
-      - "beta/school-management-system/scripts/scan_theme_locked_token_text.py"
-      - "beta/school-management-system/var/security-audit-baseline-theme-locked-token-text.json"
-      - "beta/school-management-system/scripts/scan_pii_logging_smell.py"
-      - "beta/school-management-system/var/security-audit-baseline-pii-logging-smell.json"
-      - "beta/school-management-system/scripts/scan_sigalrm_worker_thread_safety.py"
-      - "beta/school-management-system/var/security-audit-baseline-sigalrm-worker-thread-safety.json"
-      - "beta/school-management-system/scripts/scan_nuance_safe_eval_imports.py"
-      - "beta/school-management-system/var/security-audit-baseline-nuance-safe-eval-imports.json"
-      - "beta/school-management-system/scripts/verify_nuance_logic_toolset_contract.py"
-      - "beta/school-management-system/apps/siteconfig/nuance_engine.py"
-      - "beta/school-management-system/apps/policies/grading_nuance_templates.py"
-      - "beta/school-management-system/apps/evals/ranking.py"
-      - "beta/school-management-system/scripts/scan_hardcoded_client_fetch_paths.py"
-      - "beta/school-management-system/var/security-audit-baseline-hardcoded-client-fetch.json"
-      - "beta/school-management-system/scripts/verify_platform_config_cascade.py"
-      - "beta/school-management-system/scripts/verify_ai_chrome_no_hardcoding.py"
-      - "beta/school-management-system/scripts/verify_client_config_cascade.py"
-      - "beta/school-management-system/static/js/**/*.js"
-      - "beta/school-management-system/src/**/*.{js,ts,tsx}"
-      - "beta/school-management-system/apps/siteconfig/platform_surface_config.py"
-      - "beta/school-management-system/apps/assist_dock/client_urls.py"
-      - "beta/school-management-system/apps/portal/ai_chrome_config.py"
-      - "beta/school-management-system/scripts/scan_companion_canonical_headers_drift.py"
-      - "beta/school-management-system/scripts/scan_wizard_json_schema_drift.py"
-      - "beta/school-management-system/scripts/scan_wizard_class_grammar.py"
-      - "beta/school-management-system/scripts/verify_unified_wizard_framework.py"
-      - "beta/school-management-system/apps/setup_studio/wizards/**/*.json"
-      - "beta/school-management-system/apps/setup_studio/wizard_*.py"
-      - "beta/school-management-system/apps/setup_studio/ai_prompts.py"
-      - "beta/school-management-system/apps/setup_studio/ai_fallbacks.py"
-      - "beta/school-management-system/static/css/rmc-wizard.css"
-      - "beta/school-management-system/templates/setup_studio/**/*.html"
-      - "beta/school-management-system/scripts/scan_flex_collapse_risk.py"
-      - "beta/school-management-system/scripts/scan_horizontal_overflow_risk.py"
-      - "beta/school-management-system/scripts/scan_sticky_with_overflow_hidden.py"
-      - "beta/school-management-system/var/security-audit-baseline-flex-collapse-risk.json"
-      - "beta/school-management-system/var/security-audit-baseline-horizontal-overflow-risk.json"
-      - "beta/school-management-system/var/security-audit-baseline-sticky-with-overflow-hidden.json"
-      - "beta/school-management-system/var/security-audit-baseline-canonical-headers-drift.json"
-      - "beta/school-management-system/apps/migration_cloud/accelerators/runmycampus_canonical.py"
-      - "beta/school-management-system/companion-tauri/src-tauri/src/canonical_headers.json"
-      - "beta/school-management-system/companion-docker/app/canonical_headers.json"
-      - "beta/school-management-system/templates/**/*.html"
-      - "beta/school-management-system/static/css/**/*.css"
-      - "beta/school-management-system/static/marketing/css/**/*.css"
-      - "beta/school-management-system/var/security-audit-baseline-inline-style-off-token.json"
-      - "beta/school-management-system/var/security-audit-baseline-undefined-css-classes.json"
-      - "beta/school-management-system/var/security-audit-baseline-ai-gateway-boundary.json"
-      - "beta/school-management-system/var/security-audit-baseline-sentry-boundary.json"
-      - "beta/school-management-system/var/security-audit-baseline-print-statements.json"
-      - "beta/school-management-system/var/security-audit-baseline-bare-except.json"
-      - "beta/school-management-system/var/security-audit-baseline-migration-model-imports.json"
-      - "beta/school-management-system/var/security-audit-baseline-drf-schema-coverage.json"
-      - "beta/school-management-system/var/security-audit-baseline-role-strings.json"
-      - "beta/school-management-system/var/security-audit-baseline-assert-in-production.json"
-      - "beta/school-management-system/var/security-audit-baseline-magic-numbers.json"
-      - "beta/school-management-system/var/security-audit-baseline-subprocess-shell.json"
-      - "beta/school-management-system/var/security-audit-baseline-rls-bypass.json"
-      - "beta/school-management-system/var/security-audit-baseline-money-float.json"
-      - "beta/school-management-system/var/security-audit-baseline-locale-coverage.json"
-      - "beta/school-management-system/var/security-audit-baseline-service-worker-version.json"
-      - "beta/school-management-system/var/security-audit-baseline-sri-required.json"
-      - "beta/school-management-system/var/security-audit-baseline-csp-nonce-emission.json"
-      - "beta/school-management-system/var/security-audit-baseline-pwa-manifest-coverage.json"
-      - "beta/school-management-system/static/js/service-worker.js"
-      - "beta/school-management-system/apps/observability/slo.py"
-      - "beta/school-management-system/locale/**/*.po"
-      - "beta/school-management-system/apps/platform_runtime/management/commands/verify_platform_readiness.py"
-      - "beta/school-management-system/apps/security/csp_readiness.py"
-      - "beta/school-management-system/apps/analytics/at_risk_readiness.py"
-      - "beta/school-management-system/apps/schools/residency_readiness.py"
-      - "beta/school-management-system/apps/schools/rls_readiness.py"
-      - "beta/school-management-system/scripts/check_documented_baselines.py"
-      - "beta/school-management-system/scripts/audit_role_permission_matrix.py"
-      - "beta/school-management-system/scripts/scan_bell_clock_consistency.py"
-      - "beta/school-management-system/scripts/check_marketing_assets_claimed_vs_present.py"
-      - "beta/school-management-system/scripts/verify_theme_visibility_platform.py"
-      - "beta/school-management-system/scripts/verify_manager_admin_cp_layout.py"
-      - "beta/school-management-system/scripts/audit_security_posture_banner_layout.py"
-      - "beta/school-management-system/scripts/audit_sidebar_disclosure_overflow.py"
-      - "beta/school-management-system/scripts/audit_section_nav_platform.py"
-      - "beta/school-management-system/static/css/rmc-section-nav-toc.css"
-      - "beta/school-management-system/templates/partials/rmc_section_nav_curated.html"
-      - "beta/school-management-system/scripts/scan_main_content_text_utilities.py"
-      - "beta/school-management-system/var/security-audit-baseline-main-content-text-utilities.json"
-      - "beta/school-management-system/static/css/theme-platform-contrast.css"
-      - "beta/school-management-system/static/css/dark-mode-safety-net.css"
-      - "beta/school-management-system/static/js/theme-preference-bootstrap.js"
-      - "beta/school-management-system/apps/**/urls*.py"
+      - "apps/**/*.py"
+      - "services/**/*.py"
+      - "scripts/scan_ai_gateway_boundary.py"
+      - "scripts/scan_sentry_boundary.py"
+      - "scripts/scan_print_statements.py"
+      - "scripts/scan_bare_except.py"
+      - "scripts/scan_migration_model_imports.py"
+      - "scripts/scan_drf_schema_coverage.py"
+      - "scripts/scan_role_strings.py"
+      - "scripts/scan_assert_in_production.py"
+      - "scripts/scan_magic_numbers.py"
+      - "scripts/scan_subprocess_shell_true.py"
+      - "scripts/scan_rls_bypass.py"
+      - "scripts/scan_money_float.py"
+      - "scripts/scan_locale_coverage.py"
+      - "scripts/verify_service_worker_version.py"
+      - "scripts/verify_slo_registry.py"
+      - "scripts/scan_sri_required.py"
+      - "scripts/verify_csp_nonce_emission.py"
+      - "scripts/scan_pwa_manifest_coverage.py"
+      - "scripts/verify_sentry_alert_rule_drift.py"
+      - "scripts/audit_template_render_safety.py"
+      - "scripts/scan_inline_style_off_token.py"
+      - "scripts/scan_undefined_css_classes.py"
+      - "scripts/scan_off_token_colors.py"
+      - "scripts/scan_theme_locked_token_text.py"
+      - "var/security-audit-baseline-theme-locked-token-text.json"
+      - "scripts/scan_pii_logging_smell.py"
+      - "var/security-audit-baseline-pii-logging-smell.json"
+      - "scripts/scan_sigalrm_worker_thread_safety.py"
+      - "var/security-audit-baseline-sigalrm-worker-thread-safety.json"
+      - "scripts/scan_nuance_safe_eval_imports.py"
+      - "var/security-audit-baseline-nuance-safe-eval-imports.json"
+      - "scripts/verify_nuance_logic_toolset_contract.py"
+      - "apps/siteconfig/nuance_engine.py"
+      - "apps/policies/grading_nuance_templates.py"
+      - "apps/evals/ranking.py"
+      - "scripts/scan_hardcoded_client_fetch_paths.py"
+      - "var/security-audit-baseline-hardcoded-client-fetch.json"
+      - "scripts/verify_platform_config_cascade.py"
+      - "scripts/verify_ai_chrome_no_hardcoding.py"
+      - "scripts/verify_client_config_cascade.py"
+      - "static/js/**/*.js"
+      - "src/**/*.{js,ts,tsx}"
+      - "apps/siteconfig/platform_surface_config.py"
+      - "apps/assist_dock/client_urls.py"
+      - "apps/portal/ai_chrome_config.py"
+      - "scripts/scan_companion_canonical_headers_drift.py"
+      - "scripts/scan_wizard_json_schema_drift.py"
+      - "scripts/scan_wizard_class_grammar.py"
+      - "scripts/verify_unified_wizard_framework.py"
+      - "apps/setup_studio/wizards/**/*.json"
+      - "apps/setup_studio/wizard_*.py"
+      - "apps/setup_studio/ai_prompts.py"
+      - "apps/setup_studio/ai_fallbacks.py"
+      - "static/css/rmc-wizard.css"
+      - "templates/setup_studio/**/*.html"
+      - "scripts/scan_flex_collapse_risk.py"
+      - "scripts/scan_horizontal_overflow_risk.py"
+      - "scripts/scan_sticky_with_overflow_hidden.py"
+      - "var/security-audit-baseline-flex-collapse-risk.json"
+      - "var/security-audit-baseline-horizontal-overflow-risk.json"
+      - "var/security-audit-baseline-sticky-with-overflow-hidden.json"
+      - "var/security-audit-baseline-canonical-headers-drift.json"
+      - "apps/migration_cloud/accelerators/runmycampus_canonical.py"
+      - "companion-tauri/src-tauri/src/canonical_headers.json"
+      - "companion-docker/app/canonical_headers.json"
+      - "templates/**/*.html"
+      - "static/css/**/*.css"
+      - "static/marketing/css/**/*.css"
+      - "var/security-audit-baseline-inline-style-off-token.json"
+      - "var/security-audit-baseline-undefined-css-classes.json"
+      - "var/security-audit-baseline-ai-gateway-boundary.json"
+      - "var/security-audit-baseline-sentry-boundary.json"
+      - "var/security-audit-baseline-print-statements.json"
+      - "var/security-audit-baseline-bare-except.json"
+      - "var/security-audit-baseline-migration-model-imports.json"
+      - "var/security-audit-baseline-drf-schema-coverage.json"
+      - "var/security-audit-baseline-role-strings.json"
+      - "var/security-audit-baseline-assert-in-production.json"
+      - "var/security-audit-baseline-magic-numbers.json"
+      - "var/security-audit-baseline-subprocess-shell.json"
+      - "var/security-audit-baseline-rls-bypass.json"
+      - "var/security-audit-baseline-money-float.json"
+      - "var/security-audit-baseline-locale-coverage.json"
+      - "var/security-audit-baseline-service-worker-version.json"
+      - "var/security-audit-baseline-sri-required.json"
+      - "var/security-audit-baseline-csp-nonce-emission.json"
+      - "var/security-audit-baseline-pwa-manifest-coverage.json"
+      - "static/js/service-worker.js"
+      - "apps/observability/slo.py"
+      - "locale/**/*.po"
+      - "apps/platform_runtime/management/commands/verify_platform_readiness.py"
+      - "apps/security/csp_readiness.py"
+      - "apps/analytics/at_risk_readiness.py"
+      - "apps/schools/residency_readiness.py"
+      - "apps/schools/rls_readiness.py"
+      - "scripts/check_documented_baselines.py"
+      - "scripts/audit_role_permission_matrix.py"
+      - "scripts/scan_bell_clock_consistency.py"
+      - "scripts/check_marketing_assets_claimed_vs_present.py"
+      - "scripts/verify_theme_visibility_platform.py"
+      - "scripts/verify_manager_admin_cp_layout.py"
+      - "scripts/audit_security_posture_banner_layout.py"
+      - "scripts/audit_sidebar_disclosure_overflow.py"
+      - "scripts/audit_section_nav_platform.py"
+      - "static/css/rmc-section-nav-toc.css"
+      - "templates/partials/rmc_section_nav_curated.html"
+      - "scripts/scan_main_content_text_utilities.py"
+      - "var/security-audit-baseline-main-content-text-utilities.json"
+      - "static/css/theme-platform-contrast.css"
+      - "static/css/dark-mode-safety-net.css"
+      - "static/js/theme-preference-bootstrap.js"
+      - "apps/**/urls*.py"
       - ".github/workflows/architectural-boundaries.yml"
       - ".github/workflows/*.yml"
-      - "beta/school-management-system/scripts/verify_github_artifact_retention.py"
+      - "scripts/verify_github_artifact_retention.py"
   workflow_dispatch: {}
 
 defaults:
   run:
-    working-directory: beta/school-management-system
+    working-directory: .
 
 jobs:
   ai-gateway-boundary:
@@ -544,7 +544,7 @@ jobs:
     timeout-minutes: 5
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -566,7 +566,7 @@ jobs:
     timeout-minutes: 5
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -586,7 +586,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -617,7 +617,7 @@ jobs:
     timeout-minutes: 3
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -633,7 +633,7 @@ jobs:
     timeout-minutes: 5
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -663,7 +663,7 @@ jobs:
     timeout-minutes: 5
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -930,7 +930,7 @@ jobs:
           python-version: "3.12"
       - name: Install runtime dependencies
         # Required for manage.py makemigrations --dry-run inside the helper.
-        working-directory: beta/school-management-system
+        working-directory: .
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
@@ -1126,7 +1126,7 @@ jobs:
     timeout-minutes: 12
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python

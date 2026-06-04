@@ -31,7 +31,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: beta/school-management-system
+    working-directory: .
 
 jobs:
   check-graduation-window:
@@ -48,7 +48,7 @@ jobs:
           set -euo pipefail
           TODAY="$(date -u +%Y-%m-%d)"
           WINDOW_OPENS="2026-08-17"
-          PYPROJECT="beta/school-management-system/packages/runmycampus-webhook-verifier-py/pyproject.toml"
+          PYPROJECT="packages/runmycampus-webhook-verifier-py/pyproject.toml"
 
           echo "today_utc=$TODAY" >> "$GITHUB_OUTPUT"
           echo "window_opens=$WINDOW_OPENS" >> "$GITHUB_OUTPUT"
@@ -124,10 +124,10 @@ jobs:
               "",
               "```",
               "# 1. Dry-run (prints the planned edits)",
-              "python beta/school-management-system/scripts/graduate_sdk_1_0_0.py",
+              "python scripts/graduate_sdk_1_0_0.py",
               "",
               "# 2. Apply",
-              "python beta/school-management-system/scripts/graduate_sdk_1_0_0.py --apply",
+              "python scripts/graduate_sdk_1_0_0.py --apply",
               "",
               "# 3. Commit the version bumps",
               "git add -A && git commit -m \"Graduate webhook-verifier SDKs to 1.0.0\"",

@@ -33,7 +33,7 @@ on:
 
 defaults:
   run:
-    working-directory: beta/school-management-system
+    working-directory: .
 
 jobs:
   python:
@@ -54,7 +54,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
       - name: Build sdist + wheel
-        working-directory: beta/school-management-system/sdk
+        working-directory: sdk
         run: |
           python -m build
           ls -la dist/
@@ -63,11 +63,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pypi-dist
-          path: beta/school-management-system/sdk/dist/*
+          path: sdk/dist/*
           retention-days: 1
       - name: Publish to PyPI
         if: ${{ env.PYPI_API_TOKEN != '' && !inputs.pypi_test }}
-        working-directory: beta/school-management-system/sdk
+        working-directory: sdk
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
@@ -75,7 +75,7 @@ jobs:
         run: twine upload dist/*
       - name: Publish to test.pypi.org
         if: ${{ env.PYPI_API_TOKEN != '' && inputs.pypi_test }}
-        working-directory: beta/school-management-system/sdk
+        working-directory: sdk
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
@@ -96,7 +96,7 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
       - name: Pack
-        working-directory: beta/school-management-system/sdk/js
+        working-directory: sdk/js
         run: |
           npm pack --dry-run
           npm pack
@@ -105,11 +105,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: npm-tarball
-          path: beta/school-management-system/sdk/js/*.tgz
+          path: sdk/js/*.tgz
           retention-days: 1
       - name: Publish to npm
         if: ${{ env.NPM_TOKEN != '' }}
-        working-directory: beta/school-management-system/sdk/js
+        working-directory: sdk/js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
