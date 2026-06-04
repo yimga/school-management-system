@@ -100,11 +100,13 @@ def _shared_secret_ok(request: HttpRequest) -> bool:
     secret = str(getattr(settings, "RMC_SMS_WEBHOOK_SHARED_SECRET", "") or "")
     if not secret:
         return False
-    provided = (
-        request.GET.get("key")
-        or request.META.get("HTTP_X_RMC_SMS_SECRET")
-        or ""
-    ).strip()
+    # Prefer the header. The ?key= form leaks the secret into proxy/access logs
+    # and browser history, so it is OFF by default and must be explicitly
+    # re-enabled (RMC_SMS_WEBHOOK_ALLOW_QUERY_SECRET) for a provider that truly
+    # cannot send a header.
+    provided = (request.META.get("HTTP_X_RMC_SMS_SECRET") or "").strip()
+    if not provided and getattr(settings, "RMC_SMS_WEBHOOK_ALLOW_QUERY_SECRET", False):
+        provided = (request.GET.get("key") or "").strip()
     return bool(provided) and hmac.compare_digest(provided, secret)
 
 

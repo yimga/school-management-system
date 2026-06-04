@@ -819,6 +819,17 @@ def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> d
         return {"ok": False, "error": "user_not_found"}
     category = str(payload.get("category") or "SUPPORT").upper()[:32]
     prefix = "[Support]" if category == "SUPPORT" else "[Feedback]"
+    # Idempotency: a FAILED-then-retried offline row (or two devices) must not
+    # open duplicate tickets. Dedupe on the client_offline_id carried in metadata.
+    client_key = str(
+        payload.get("client_offline_id") or payload.get("idempotency_key") or ""
+    )[:128]
+    if client_key:
+        existing = GlobalSupportTicket.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
+            school_id=school_id, metadata__offline_client_id=client_key
+        ).first()
+        if existing:
+            return {"ok": True, "dedup": True, "ticket_id": str(existing.pk)}
     ticket = GlobalSupportTicket.objects.create(
         school_id=school_id,
         user=user,
@@ -826,7 +837,11 @@ def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> d
         body=message[:8000],
         priority=GlobalSupportTicket.Priority.NORMAL,
         status=GlobalSupportTicket.Status.OPEN,
-        metadata={"source": "offline_enqueue", "category": category},
+        metadata={
+            "source": "offline_enqueue",
+            "category": category,
+            "offline_client_id": client_key,
+        },
     )
     return {"ok": True, "ticket_id": str(ticket.pk)}
 
