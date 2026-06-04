@@ -333,6 +333,12 @@ class TeacherAttendance(models.Model):
         max_length=20, choices=Status.choices, default=Status.PRESENT
     )
     remarks = models.CharField(max_length=255, blank=True)
+    # Nullable on purpose: existing rows backfill to NULL (no one-off default
+    # prompt). The WAL drain treats a NULL updated_at as "no known online time"
+    # → the offline write wins, which is the safe last-writer-wins default. Every
+    # save() from here on stamps it (auto_now), so conflict detection engages for
+    # all rows touched after this migration.
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         unique_together = ("teacher", "date")

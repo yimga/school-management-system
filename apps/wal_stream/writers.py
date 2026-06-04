@@ -258,11 +258,11 @@ def _apply_teacher_attendance(envelope: dict[str, Any]) -> None:
     Single-statement throughput via ``bulk_create(update_conflicts=True)``.
     The ``(teacher, date)`` unique constraint enables idempotent retry.
 
-    NOTE: unlike student ``Attendance``, ``TeacherAttendance`` has no
-    ``updated_at`` column, so a stale-offline-write-vs-newer-online conflict
-    cannot be detected here without a schema change. Last-write-wins remains in
-    effect for this domain; adding ``updated_at`` (a migration) is the follow-up
-    that would let it use ``_partition_stale_upserts`` like attendance does.
+    Conflict resolution mirrors ``_apply_attendance``: a stale offline write
+    never clobbers a newer online correction. ``TeacherAttendance.updated_at``
+    (added in people/0056) is the freshness basis; a NULL existing value (rows
+    written before that migration) is treated as "no known time" → the offline
+    write wins (safe last-writer-wins default).
     """
     actions = envelope.get("actions") or []
     if not actions:
@@ -290,12 +290,57 @@ def _apply_teacher_attendance(envelope: dict[str, Any]) -> None:
         except KeyError as exc:
             logger.warning("wal_stream.teacher_attendance_bad_action missing=%s", exc)
             continue
+    if not rows:
+        return
+    captured_dt = _captured_dt(envelope)
+    if captured_dt is not None:
+        from django.db import DatabaseError
+
+        keys = {(r.teacher_id, r.date) for r in rows}
+        existing_ts_map: dict[tuple, Any] = {}
+        try:
+            rows_qs = TeacherAttendance.objects.filter(  # tenant-isolation-allow: drainer-runs-inside-rls_school-scoped-via-teacher-profile-for-this-tenant
+                teacher_id__in={k[0] for k in keys},
+                date__in={k[1] for k in keys},
+            ).values_list("teacher_id", "date", "updated_at")
+            for t_id, d, upd in rows_qs:
+                existing_ts_map[(t_id, d)] = upd
+        except DatabaseError as exc:
+            logger.warning("wal_stream.teacher_attendance_freshness_read_failed err=%s", exc)
+            existing_ts_map = {}
+        winners, stale = _partition_stale_upserts(
+            rows,
+            existing_ts_map,
+            captured_dt,
+            key_fn=lambda r: (r.teacher_id, r.date),
+        )
+        if stale:
+            from apps.wal_stream.tasks import record_wal_conflicts
+
+            record_wal_conflicts(
+                envelope.get("tenant_hash", ""),
+                "teacher_attendance",
+                [
+                    {
+                        "teacher_id": r.teacher_id,
+                        "date": str(r.date),
+                        "status": r.status,
+                        "txn_id": envelope.get("txn_id", ""),
+                    }
+                    for r in stale
+                ],
+            )
+            logger.warning(
+                "wal_stream.teacher_attendance_stale_skipped count=%s txn=%s",
+                len(stale), envelope.get("txn_id"),
+            )
+        rows = winners
     if rows:
         TeacherAttendance.objects.bulk_create(
             rows,
             update_conflicts=True,
             unique_fields=("teacher", "date"),
-            update_fields=("status", "remarks"),
+            update_fields=("status", "remarks", "updated_at"),
         )
 
 

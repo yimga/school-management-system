@@ -480,6 +480,39 @@ class WALStaleUpsertPartitionTests(SimpleTestCase):
         self.assertEqual({w.student_id for w in winners}, {1, 2})
         self.assertEqual(stale, [])
 
+    def test_teacher_attendance_key_shape_partitions(self):
+        from datetime import datetime, timezone
+        from types import SimpleNamespace
+
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        rows = [
+            SimpleNamespace(teacher_id=3, date="2026-06-04", status="ABSENT"),
+            SimpleNamespace(teacher_id=4, date="2026-06-04", status="PRESENT"),
+        ]
+        key = lambda r: (r.teacher_id, r.date)
+        captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
+        # Teacher 3's row is newer online (NULL would be a winner; here it's set).
+        existing = {(3, "2026-06-04"): datetime(2026, 6, 4, 12, 0, tzinfo=timezone.utc)}
+        winners, stale = _partition_stale_upserts(rows, existing, captured, key)
+        self.assertEqual([w.teacher_id for w in winners], [4])
+        self.assertEqual([s.teacher_id for s in stale], [3])
+
+    def test_null_existing_timestamp_is_treated_as_winner(self):
+        # Pre-migration TeacherAttendance rows have updated_at = NULL; those must
+        # be writable (no existing time means the offline write wins).
+        from datetime import datetime, timezone
+        from types import SimpleNamespace
+
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        rows = [SimpleNamespace(teacher_id=3, date="2026-06-04", status="ABSENT")]
+        key = lambda r: (r.teacher_id, r.date)
+        captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
+        winners, stale = _partition_stale_upserts(rows, {(3, "2026-06-04"): None}, captured, key)
+        self.assertEqual([w.teacher_id for w in winners], [3])
+        self.assertEqual(stale, [])
+
     def test_captured_dt_helper_reads_epoch_seconds(self):
         from datetime import timezone
 
