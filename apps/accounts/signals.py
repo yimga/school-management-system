@@ -2,14 +2,55 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth.signals import user_logged_in
-from django.db.models.signals import post_save, pre_save
+from django.db import DatabaseError
+from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from .models import AccessRole, User
+
+# Imported here (signals.py is only loaded from AppConfig.ready(), after all
+# apps' models are ready) so the post_delete receiver can bind to the model.
+from apps.schools.models import SchoolMembership
 
 # Django 4.0 removed LANGUAGE_SESSION_KEY; the session key is now `_language`.
 LANGUAGE_SESSION_KEY = "_language"
 
 logger = logging.getLogger(__name__)
+
+
+@receiver(post_delete, sender=SchoolMembership)
+def revoke_offline_access_on_offboarding(sender, instance, **kwargs):
+    """Revoke a user's offline capability tokens + device registrations for a
+    school when their membership there is removed (offboarding).
+
+    The authoritative server-side boundary for offline writes is the WAL
+    WebSocket reconnect membership re-check (apps/schools/channels_tenant_
+    middleware.py — an offboarded user simply cannot reconnect to ship queued
+    work). This receiver additionally flips the client-side offline navigation
+    gate and sets the model's advertised ``revoked_at`` so revocation is a real
+    contract, not a dead field. Best-effort: a failure here must never break the
+    membership deletion.
+    """
+    user_id = getattr(instance, "user_id", None)
+    school_id = getattr(instance, "school_id", None)
+    if not user_id or not school_id:
+        return
+    try:
+        from django.utils import timezone
+
+        from apps.accounts.models_offline_device import (
+            DeviceRegistration,
+            OfflineCapabilityToken,
+        )
+
+        now = timezone.now()
+        OfflineCapabilityToken.objects.filter(  # tenant-isolation-allow: explicit-user-and-school-scoped-offline-token-revocation
+            user_id=user_id, school_id=school_id, revoked_at__isnull=True,
+        ).update(revoked_at=now)
+        DeviceRegistration.objects.filter(  # tenant-isolation-allow: explicit-user-and-school-scoped-device-revocation
+            user_id=user_id, school_id=school_id, revoked_at__isnull=True,
+        ).update(revoked_at=now)
+    except (ImportError, DatabaseError) as exc:
+        logger.warning("revoke_offline_access_on_offboarding failed: %s", exc)
 
 
 @receiver(user_logged_in)
