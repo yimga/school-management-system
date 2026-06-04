@@ -85,12 +85,24 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
         result["error"] = "Invalid URL"
         return result
 
+    # SSRF guard: refuse private/loopback/link-local/metadata targets. http is
+    # allowed (many brand sites still redirect via http) but redirects are NOT
+    # followed, so an https→http://169.254.169.254 redirect can't smuggle past
+    # the check.
+    from apps.security.ssrf import is_safe_public_url
+
+    safe, reason = is_safe_public_url(url, allow_http=True)
+    if not safe:
+        logger.warning("Brand import blocked unsafe URL reason=%s", reason)
+        result["error"] = "That URL can't be fetched. Use a public web address."
+        return result
+
     try:
         resp = requests.get(
             url,
             timeout=timeout,
             headers={"User-Agent": USER_AGENT},
-            allow_redirects=True,
+            allow_redirects=False,
         )
         resp.raise_for_status()
         html = resp.text
