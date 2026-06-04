@@ -1,5 +1,5 @@
 {
-  "last_reviewed": "2026-05-31",
+  "last_reviewed": "2026-06-04",
   "allowed": [
     "AGENTS.md",
     ".coveragerc",
@@ -12,9 +12,13 @@
     ".python-version",
     "build.sh",
     "CLAUDE.md",
+    "CODE_OF_CONDUCT.md",
     "conftest.py",
     "CONTRIBUTING.md",
     "deploy.sh",
+    "LICENSE",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md",
     "docker-compose.collabora.yml",
     "docker-compose.ollama.yml",
     "lighthouserc.js",

@@ -72,7 +72,10 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci_visual_qa
       MULTI_TENANT_BASE_DOMAIN: runmycampus.com
       USE_DJANGO_TENANTS: "1"
-      DEBUG: "0"
+      # DEBUG=1 only so settings computes ssl_require=not DEBUG=False at import time:
+      # the CI postgres:15 service offers no SSL, but ssl_require=True forces
+      # sslmode=require and fails the migrate/connection step.
+      DEBUG: "1"
       # Explicit for CI; settings also derive hosts from MULTI_TENANT_BASE_DOMAIN.
       ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
       VISUAL_QA_PORT: "8010"
