@@ -80,12 +80,32 @@ class WalStreamConsumer(AsyncJsonWebsocketConsumer):
             "domain": content["domain"],
             "vector_clock": int(content["vector_clock"]),
             "actions": content["actions"],
+            # When the offline write was CAPTURED on the device (epoch seconds).
+            # Carried so upsert writers can do last-writer-wins by capture time
+            # and refuse to clobber newer online state. None for older clients
+            # (the writer then falls back to prior last-write-wins behavior).
+            "captured_at": _coerce_captured_at(content.get("captured_at")),
             "received_at": time.time(),
         }
         await _ship_to_redis_stream(envelope)
         if getattr(settings, "KAFKA_BOOTSTRAP_SERVERS", ""):
             await _ship_to_kafka(envelope)
         await self.send_json({"ok": True, "txn_id": content["txn_id"]})
+
+
+def _coerce_captured_at(raw: Any) -> float | None:
+    """Normalize the client-sent capture timestamp to epoch SECONDS.
+
+    The client stores ``created_at`` as ``Date.now()`` (epoch MILLISECONDS).
+    Accept a positive number and divide; reject anything else to None so a
+    malformed value simply disables freshness checks for that envelope rather
+    than corrupting the comparison.
+    """
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        return None
+    if raw <= 0:
+        return None
+    return float(raw) / 1000.0
 
 
 def _validate(content: dict, *, expected_tenant_hash: str) -> tuple[bool, str]:

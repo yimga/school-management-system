@@ -294,6 +294,10 @@
           domain: row.domain,
           actions: actions,
           tenant_hash: row.tenant_hash,
+          // When this write was captured offline (epoch ms). The server uses it
+          // for last-writer-wins so a stale offline upsert never clobbers newer
+          // online state. Falls back to row.created_at for rows queued earlier.
+          captured_at: row.captured_at || row.created_at,
         }));
         shipped += 1;
       } catch (e) {

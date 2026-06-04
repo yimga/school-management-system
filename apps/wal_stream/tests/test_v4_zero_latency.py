@@ -404,3 +404,115 @@ class EdgeCacheKeyTests(SimpleTestCase):
 
         key = surrogate_key_for(tenant="", view="school_calendar", viewport="C")
         self.assertTrue(key.startswith("_::"))
+
+
+class WALCaptureTimeCoercionTests(SimpleTestCase):
+    """The consumer normalizes the client's epoch-ms capture time to seconds and
+    rejects junk so a malformed value just disables freshness checks."""
+
+    def test_ms_to_seconds(self):
+        from apps.wal_stream.consumers import _coerce_captured_at
+
+        self.assertEqual(_coerce_captured_at(1_700_000_000_000), 1_700_000_000.0)
+
+    def test_rejects_non_numbers_and_bool_and_nonpositive(self):
+        from apps.wal_stream.consumers import _coerce_captured_at
+
+        for bad in (None, "123", True, False, 0, -5):
+            self.assertIsNone(_coerce_captured_at(bad))
+
+    def test_validate_does_not_require_captured_at(self):
+        # Backward compat: an older client that omits captured_at still validates.
+        env = {
+            "txn_id": "abcd1234ef56",
+            "vector_clock": 1,
+            "domain": "attendance",
+            "actions": [{"student_id": 1, "session_id": "9::2026-06-04", "status": "present"}],
+            "tenant_hash": "deadbeefcafe",
+        }
+        ok, reason = _validate(env, expected_tenant_hash="deadbeefcafe")
+        self.assertTrue(ok, reason)
+
+
+class WALStaleUpsertPartitionTests(SimpleTestCase):
+    """Last-writer-wins by capture time: a stale offline upsert must never
+    clobber newer online state, but must also never be silently dropped."""
+
+    def _rows(self):
+        from types import SimpleNamespace
+
+        return [
+            SimpleNamespace(student_id=1, classroom_id=9, date="2026-06-04", status="absent"),
+            SimpleNamespace(student_id=2, classroom_id=9, date="2026-06-04", status="present"),
+        ]
+
+    def _key(self, r):
+        return (r.student_id, r.classroom_id, r.date)
+
+    def test_no_captured_dt_preserves_all_as_winners(self):
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        rows = self._rows()
+        winners, stale = _partition_stale_upserts(rows, {}, None, self._key)
+        self.assertEqual(winners, rows)
+        self.assertEqual(stale, [])
+
+    def test_existing_newer_than_capture_is_stale(self):
+        from datetime import datetime, timezone
+
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
+        # Student 1's online row was updated AFTER capture -> stale (skip clobber).
+        existing = {(1, 9, "2026-06-04"): datetime(2026, 6, 4, 11, 0, tzinfo=timezone.utc)}
+        winners, stale = _partition_stale_upserts(self._rows(), existing, captured, self._key)
+        self.assertEqual([w.student_id for w in winners], [2])
+        self.assertEqual([s.student_id for s in stale], [1])
+
+    def test_existing_older_than_capture_is_winner(self):
+        from datetime import datetime, timezone
+
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
+        existing = {(1, 9, "2026-06-04"): datetime(2026, 6, 4, 9, 0, tzinfo=timezone.utc)}
+        winners, stale = _partition_stale_upserts(self._rows(), existing, captured, self._key)
+        self.assertEqual({w.student_id for w in winners}, {1, 2})
+        self.assertEqual(stale, [])
+
+    def test_captured_dt_helper_reads_epoch_seconds(self):
+        from datetime import timezone
+
+        from apps.wal_stream.writers import _captured_dt
+
+        dt = _captured_dt({"captured_at": 1_700_000_000.0})
+        self.assertIsNotNone(dt)
+        self.assertEqual(dt.tzinfo, timezone.utc)
+        self.assertIsNone(_captured_dt({}))
+        self.assertIsNone(_captured_dt({"captured_at": "x"}))
+
+
+class WALConflictRecordTests(SimpleTestCase):
+    def test_record_wal_conflicts_noop_without_tenant_or_items(self):
+        from apps.wal_stream.tasks import record_wal_conflicts
+
+        self.assertEqual(record_wal_conflicts("", "attendance", [{"x": 1}]), 0)
+        self.assertEqual(record_wal_conflicts("deadbeefcafe", "attendance", []), 0)
+
+    @override_settings(REDIS_URL="redis://localhost:6379/0")
+    def test_record_wal_conflicts_writes_to_conflict_stream(self):
+        from unittest import mock
+
+        import redis as redis_mod
+
+        from apps.wal_stream.tasks import record_wal_conflicts
+
+        client = mock.MagicMock()
+        with mock.patch.object(redis_mod.Redis, "from_url", return_value=client):
+            n = record_wal_conflicts(
+                "deadbeefcafe", "attendance",
+                [{"student_id": 1, "classroom_id": 9, "date": "2026-06-04"}],
+            )
+        self.assertEqual(n, 1)
+        stream_arg = client.xadd.call_args[0][0]
+        self.assertEqual(stream_arg, "rmc.wal.conflict.deadbeefcafe")

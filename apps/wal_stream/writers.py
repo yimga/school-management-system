@@ -67,6 +67,48 @@ def _ids_in_school(model, ids, school_id, *, id_field: str = "id", school_field:
         return wanted
 
 
+def _captured_dt(envelope: dict[str, Any]):
+    """Return the offline-capture time as a tz-aware UTC datetime, or None.
+
+    The consumer stores ``captured_at`` as epoch SECONDS. None means an older
+    client that did not send a capture time — callers then fall back to plain
+    last-write-wins (no conflict detection, no regression).
+    """
+    ts = envelope.get("captured_at")
+    if not isinstance(ts, (int, float)) or isinstance(ts, bool) or ts <= 0:
+        return None
+    from datetime import datetime, timezone as _tz
+
+    try:
+        return datetime.fromtimestamp(float(ts), tz=_tz.utc)
+    except (ValueError, OverflowError, OSError):
+        return None
+
+
+def _partition_stale_upserts(records, existing_ts_map, captured_dt, key_fn):
+    """Split ``records`` into ``(winners, stale)`` by capture freshness.
+
+    A record is STALE when an existing row for its key was last updated AFTER
+    the offline write was captured — i.e. the online state is newer and must not
+    be clobbered by a stale offline write (last-writer-wins by capture time).
+
+    ``existing_ts_map`` maps ``key_fn(record) -> updated_at`` for rows already in
+    the DB. No ``captured_dt`` (older client) or no existing row for a key means
+    the record is a winner — this preserves the prior last-write-wins behavior
+    exactly when capture metadata is absent.
+    """
+    if captured_dt is None:
+        return list(records), []
+    winners, stale = [], []
+    for r in records:
+        existing_ts = existing_ts_map.get(key_fn(r))
+        if existing_ts is not None and existing_ts > captured_dt:
+            stale.append(r)
+        else:
+            winners.append(r)
+    return winners, stale
+
+
 def _apply_attendance(envelope: dict[str, Any]) -> None:
     """Apply a batched attendance delta against ``apps.academics.Attendance``.
 
@@ -128,6 +170,58 @@ def _apply_attendance(envelope: dict[str, Any]) -> None:
         records = kept
     if not records:
         return
+    # Conflict resolution: never let a STALE offline write clobber newer online
+    # state. If the existing row for (student, classroom, date) was updated after
+    # this batch was captured offline, the online value wins and the offline one
+    # is routed to the conflict stream for operator review (not silently lost).
+    captured_dt = _captured_dt(envelope)
+    if captured_dt is not None:
+        from django.db import DatabaseError
+
+        keys = {(r.student_id, r.classroom_id, r.date) for r in records}
+        existing_ts_map: dict[tuple, Any] = {}
+        try:
+            rows_qs = Attendance.objects.filter(  # tenant-isolation-allow: drainer-runs-inside-rls_school-and-keys-are-this-tenants-validated-rows
+                student_id__in={k[0] for k in keys},
+                classroom_id__in={k[1] for k in keys},
+                date__in={k[2] for k in keys},
+            ).values_list("student_id", "classroom_id", "date", "updated_at")
+            for s_id, c_id, d, upd in rows_qs:
+                existing_ts_map[(s_id, c_id, d)] = upd
+        except DatabaseError as exc:
+            # Fail-open: a freshness read hiccup must not drop legitimate writes.
+            logger.warning("wal_stream.attendance_freshness_read_failed err=%s", exc)
+            existing_ts_map = {}
+        winners, stale = _partition_stale_upserts(
+            records,
+            existing_ts_map,
+            captured_dt,
+            key_fn=lambda r: (r.student_id, r.classroom_id, r.date),
+        )
+        if stale:
+            from apps.wal_stream.tasks import record_wal_conflicts
+
+            record_wal_conflicts(
+                envelope.get("tenant_hash", ""),
+                "attendance",
+                [
+                    {
+                        "student_id": r.student_id,
+                        "classroom_id": r.classroom_id,
+                        "date": str(r.date),
+                        "status": r.status,
+                        "txn_id": envelope.get("txn_id", ""),
+                    }
+                    for r in stale
+                ],
+            )
+            logger.warning(
+                "wal_stream.attendance_stale_skipped count=%s txn=%s",
+                len(stale), envelope.get("txn_id"),
+            )
+        records = winners
+    if not records:
+        return
     Attendance.objects.bulk_create(
         records,
         update_conflicts=True,
@@ -163,6 +257,12 @@ def _apply_teacher_attendance(envelope: dict[str, Any]) -> None:
 
     Single-statement throughput via ``bulk_create(update_conflicts=True)``.
     The ``(teacher, date)`` unique constraint enables idempotent retry.
+
+    NOTE: unlike student ``Attendance``, ``TeacherAttendance`` has no
+    ``updated_at`` column, so a stale-offline-write-vs-newer-online conflict
+    cannot be detected here without a schema change. Last-write-wins remains in
+    effect for this domain; adding ``updated_at`` (a migration) is the follow-up
+    that would let it use ``_partition_stale_upserts`` like attendance does.
     """
     actions = envelope.get("actions") or []
     if not actions:

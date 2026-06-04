@@ -116,6 +116,45 @@ def drain_tenant_stream(self, tenant_hash: str) -> dict[str, int]:
     }
 
 
+def record_wal_conflicts(tenant_hash: str, domain: str, conflicts: list[dict]) -> int:
+    """Record stale-offline-write conflicts to ``rmc.wal.conflict.<tenant_hash>``.
+
+    When an offline upsert is refused because newer online state already exists
+    (see ``writers._partition_stale_upserts``), the skipped write is NOT silently
+    dropped — it lands here as a JSON entry so an operator can review and, if the
+    offline value was actually the correct one, reconcile it by hand. Best-effort:
+    a Redis hiccup must never break the drain, so this never raises.
+    """
+    if not tenant_hash or not conflicts:
+        return 0
+    try:
+        import redis  # type: ignore[import-not-found]
+    except ImportError:
+        return 0
+
+    from django.conf import settings
+
+    redis_url = getattr(settings, "REDIS_URL", "") or getattr(settings, "CELERY_BROKER_URL", "")
+    if not redis_url:
+        return 0
+
+    stream = f"rmc.wal.conflict.{tenant_hash}"
+    written = 0
+    try:
+        client = redis.Redis.from_url(redis_url)
+        for c in conflicts:
+            client.xadd(
+                stream,
+                {"domain": domain, "conflict": json.dumps(c)},
+                maxlen=10_000,
+                approximate=True,
+            )
+            written += 1
+    except (redis.RedisError, TypeError, ValueError) as exc:
+        logger.warning("wal_stream.record_conflicts_failed domain=%s err=%s", domain, exc)
+    return written
+
+
 def purge_streams_for_school(school_id) -> dict[str, int]:
     """Delete all Redis WAL keys for a tenant (called during offboarding purge).
 
@@ -144,6 +183,7 @@ def purge_streams_for_school(school_id) -> dict[str, int]:
         f"rmc.wal.dedupe.{tenant_hash}",
         f"rmc.wal.attempts.{tenant_hash}",
         f"rmc.wal.deadletter.{tenant_hash}",
+        f"rmc.wal.conflict.{tenant_hash}",
     ]
     try:
         client = redis.Redis.from_url(redis_url)
@@ -215,7 +255,19 @@ def drain_fanout(self) -> dict[str, int]:
     try:
         for raw_key in client.scan_iter(match="rmc.wal.*", count=200):
             key = raw_key.decode("utf-8") if isinstance(raw_key, (bytes, bytearray)) else raw_key
-            if key.startswith("rmc.wal.dedupe."):
+            # Skip the sidecar keys — only ``rmc.wal.<hash>`` is a drainable
+            # tenant stream. ``attempts`` is a Redis HASH (XLEN on it raises and
+            # would abort the whole fan-out); dedupe is a SET; deadletter and
+            # conflict are review streams, not work queues.
+            if any(
+                key.startswith(prefix)
+                for prefix in (
+                    "rmc.wal.dedupe.",
+                    "rmc.wal.attempts.",
+                    "rmc.wal.deadletter.",
+                    "rmc.wal.conflict.",
+                )
+            ):
                 continue
             tenant_hash = key.rsplit(".", 1)[-1]
             if not tenant_hash:
