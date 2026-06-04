@@ -178,7 +178,7 @@
 // forecast cockpit tile, timetable solver UI hook + view, adaptive signal on
 // Evaluation post-save, CA-mark input UI + migration 0050, monetization
 // admin inspector. theme-experience-premium
-const CACHE_VERSION = "sms-v4.01.53-wal-capture-time-conflict-resolution-2026-06-04";
+const CACHE_VERSION = "sms-v4.01.54-sw-logout-auth-cache-purge-2026-06-04";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -481,7 +481,34 @@ self.addEventListener("message", (event) => {
       }),
     );
   }
+  if (data.type === "PURGE_AUTH_CACHE") {
+    // Shared-device hygiene: drop the authenticated read-cache so the next user
+    // can never be served the previous user's cached PII. Acks back so a caller
+    // (the logout click handler) can await it before navigating.
+    event.waitUntil(
+      purgeAuthCache().then(() => {
+        const source = event.source;
+        if (source) {
+          try { source.postMessage({ type: "auth-cache-purged" }); } catch (_err) {}
+        }
+      }),
+    );
+  }
 });
+
+/**
+ * Delete the authenticated dynamic read-cache (API JSON, stale-while-revalidate).
+ * STATIC_CACHE holds only non-PII assets (css/js/images) and is intentionally
+ * kept. The offline WRITE queues (IndexedDB) are NOT touched here — those are
+ * the user's pending work, not a read leak, and must survive to sync.
+ */
+async function purgeAuthCache() {
+  try {
+    return await caches.delete(DYNAMIC_CACHE);
+  } catch (_err) {
+    return false;
+  }
+}
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
@@ -489,6 +516,14 @@ self.addEventListener("fetch", (event) => {
 
   if (url.origin !== self.location.origin) {
     return;
+  }
+
+  // Shared-device PII hygiene: when the logout request goes by (GET or POST),
+  // purge the authenticated read-cache so the next user on this device is never
+  // served the previous user's cached PII. Observe-only — never blocks or alters
+  // the logout request/response, and the write queues are left intact.
+  if (OFFLINE_CONFIG.logoutPath && url.pathname === OFFLINE_CONFIG.logoutPath) {
+    event.waitUntil(purgeAuthCache());
   }
 
   if (OFFLINE_CONFIG.enabled && isApiWriteRequest(request, url) && isApiWriteAllowedByToggles(url)) {
