@@ -8,25 +8,25 @@ name: Template Marketplace gates
 on:
   pull_request:
     paths:
-      - "beta/school-management-system/apps/brand_experience/**"
-      - "beta/school-management-system/apps/siteconfig/local_experience_profiles.py"
-      - "beta/school-management-system/apps/platform_runtime/pack_contract.py"
-      - "beta/school-management-system/apps/marketplace/template_*.py"
-      - "beta/school-management-system/scripts/verify_template_*.py"
-      - "beta/school-management-system/scripts/generate_template_*.py"
-      - "beta/school-management-system/scripts/split_palette_bundles.py"
-      - "beta/school-management-system/templates/marketplace/**"
-      - "beta/school-management-system/templates/studio_os/partials/experience_templates_fold.html"
-      - "beta/school-management-system/static/css/rmc-template-marketplace.css"
-      - "beta/school-management-system/static/css/design-tokens-local-*.css"
+      - "apps/brand_experience/**"
+      - "apps/siteconfig/local_experience_profiles.py"
+      - "apps/platform_runtime/pack_contract.py"
+      - "apps/marketplace/template_*.py"
+      - "scripts/verify_template_*.py"
+      - "scripts/generate_template_*.py"
+      - "scripts/split_palette_bundles.py"
+      - "templates/marketplace/**"
+      - "templates/studio_os/partials/experience_templates_fold.html"
+      - "static/css/rmc-template-marketplace.css"
+      - "static/css/design-tokens-local-*.css"
   push:
     branches: [main]
     paths:
-      - "beta/school-management-system/apps/brand_experience/**"
-      - "beta/school-management-system/apps/siteconfig/local_experience_profiles.py"
-      - "beta/school-management-system/apps/platform_runtime/pack_contract.py"
-      - "beta/school-management-system/apps/marketplace/template_*.py"
-      - "beta/school-management-system/scripts/verify_template_*.py"
+      - "apps/brand_experience/**"
+      - "apps/siteconfig/local_experience_profiles.py"
+      - "apps/platform_runtime/pack_contract.py"
+      - "apps/marketplace/template_*.py"
+      - "scripts/verify_template_*.py"
 
 jobs:
   registry-and-boundaries:
@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: template-marketplace-audit-pairs
-          path: beta/school-management-system/docs/generated/local_first_template_*
+          path: docs/generated/local_first_template_*
           if-no-files-found: ignore
           retention-days: 1  # Strict storage hygiene — never default 90d
 
@@ -71,7 +71,7 @@ jobs:
     needs: registry-and-boundaries
     defaults:
       run:
-        working-directory: beta/school-management-system
+        working-directory: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -98,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: template-marketplace-verifier-output
-          path: beta/school-management-system/docs/generated/experience_template_registry.json
+          path: docs/generated/experience_template_registry.json
           if-no-files-found: ignore
           retention-days: 1  # Strict storage hygiene — never default 90d
       - name: Upload AI live-smoke JSON
@@ -106,7 +106,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: template-marketplace-ai-smoke
-          path: beta/school-management-system/docs/generated/template_ai_recommender_live_smoke.json
+          path: docs/generated/template_ai_recommender_live_smoke.json
           if-no-files-found: ignore
           retention-days: 1  # Strict storage hygiene — never default 90d
       - name: Upload semantic-runtime JSON
@@ -114,6 +114,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: template-marketplace-semantic-runtime
-          path: beta/school-management-system/docs/generated/template_marketplace_semantic_runtime.json
+          path: docs/generated/template_marketplace_semantic_runtime.json
           if-no-files-found: ignore
           retention-days: 1  # Strict storage hygiene — never default 90d

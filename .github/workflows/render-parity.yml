@@ -22,7 +22,7 @@ on:
 
 defaults:
   run:
-    working-directory: beta/school-management-system
+    working-directory: .
 
 jobs:
   parity:

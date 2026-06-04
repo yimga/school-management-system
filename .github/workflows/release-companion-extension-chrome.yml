@@ -81,7 +81,7 @@ env:
 
 defaults:
   run:
-    working-directory: beta/school-management-system/companion-extension
+    working-directory: companion-extension
 
 jobs:
   confirm:
@@ -238,4 +238,4 @@ jobs:
                 "extId": "${{ secrets.CHROME_EXT_ID }}"
               }
             }
-          artifact: beta/school-management-system/companion-extension/dist-zip/companion-extension-${{ env.RELEASE_TAG }}.zip
+          artifact: companion-extension/dist-zip/companion-extension-${{ env.RELEASE_TAG }}.zip

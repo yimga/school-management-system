@@ -11,7 +11,7 @@ on:
 
 defaults:
   run:
-    working-directory: beta/school-management-system
+    working-directory: .
 
 jobs:
   production-visual-engine:
@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: beta/school-management-system/package-lock.json
+          cache-dependency-path: package-lock.json
       - name: Install Node deps
         run: npm ci
       - name: Install Playwright Chromium

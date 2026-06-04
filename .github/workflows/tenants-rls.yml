@@ -63,7 +63,11 @@ jobs:
       SECRET_KEY: "ci-tenants-rls-not-for-production-64chars________________________________"
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci_tenants_rls
       USE_DJANGO_TENANTS: "0"
-      DEBUG: "0"
+      # DEBUG=1 only so settings computes ssl_require=not DEBUG=False at import time:
+      # the CI postgres:15 service offers no SSL, but ssl_require=True forces
+      # sslmode=require and fails the connection. Django's test runner forces
+      # settings.DEBUG=False at runtime, so RLS test behaviour is unaffected.
+      DEBUG: "1"
       ALLOWED_HOSTS: "127.0.0.1,localhost,testserver,runmycampus.com,.runmycampus.com"
       MULTI_TENANT_BASE_DOMAIN: runmycampus.com
 

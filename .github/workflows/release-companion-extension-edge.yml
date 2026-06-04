@@ -71,7 +71,7 @@ env:
 
 defaults:
   run:
-    working-directory: beta/school-management-system/companion-extension
+    working-directory: companion-extension
 
 jobs:
   confirm:

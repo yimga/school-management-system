@@ -34,7 +34,7 @@ permissions:
 
 defaults:
   run:
-    working-directory: beta/school-management-system/packages/runmycampus-webhook-verifier-js
+    working-directory: packages/runmycampus-webhook-verifier-js
 
 jobs:
   confirm:
@@ -98,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: webhook-verifier-js-tarball
-          path: beta/school-management-system/packages/runmycampus-webhook-verifier-js/*.tgz
+          path: packages/runmycampus-webhook-verifier-js/*.tgz
           retention-days: 1
 
   publish:

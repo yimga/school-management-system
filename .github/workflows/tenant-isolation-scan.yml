@@ -14,15 +14,15 @@ name: tenant-isolation-scan
 on:
   pull_request:
     paths:
-      - "beta/school-management-system/apps/**/*.py"
-      - "beta/school-management-system/scripts/scan_tenant_queryset_safety.py"
-      - "beta/school-management-system/var/security-audit-baseline-tenant-isolation.json"
+      - "apps/**/*.py"
+      - "scripts/scan_tenant_queryset_safety.py"
+      - "var/security-audit-baseline-tenant-isolation.json"
       - ".github/workflows/tenant-isolation-scan.yml"
   workflow_dispatch: {}
 
 defaults:
   run:
-    working-directory: beta/school-management-system
+    working-directory: .
 
 jobs:
   scan:
