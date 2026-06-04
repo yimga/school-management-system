@@ -79,6 +79,20 @@ def _reject_cross_tenant_fks(form, school_id, fk_names) -> dict[str, Any] | None
     return None
 
 
+def _existing_by_offline_id(model, school_id, client_key):
+    """Return the row with this offline id for the tenant, or None.
+
+    Dedupe is on the first-class ``client_offline_id`` column (DB-unique per
+    tenant), not a JSON sub-key — so it is both race-safe (the constraint backs
+    it) and index-backed.
+    """
+    if not client_key:
+        return None
+    return model.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
+        school_id=school_id, client_offline_id=client_key
+    ).first()
+
+
 def apply_people_workflow(
     school_id: int,
     user_id: int,
@@ -157,10 +171,7 @@ def _apply_student_create(
 
     client_key = _client_key(payload)
     if client_key:
-        existing = StudentProfile.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
-            school_id=school_id,
-            custom_attributes__offline_client_id=client_key,
-        ).first()
+        existing = _existing_by_offline_id(StudentProfile, school_id, client_key)
         if existing:
             return {
                 "ok": True,
@@ -191,10 +202,9 @@ def _apply_student_create(
             student.school_id = school_id
             student.created_by_id = user_id
             student.is_active = True
+            student.client_offline_id = client_key
             attrs = dict(getattr(student, "custom_attributes", None) or {})
             attrs["created_offline"] = True
-            if client_key:
-                attrs["offline_client_id"] = client_key
             student.custom_attributes = attrs
             student.save()
             parent_email = (form.cleaned_data.get("parent_email") or "").strip()
@@ -203,7 +213,13 @@ def _apply_student_create(
                 guardian_linked = _link_parent(
                     student, parent_email, form.cleaned_data.get("parent_phone") or ""
                 )
-    except (DatabaseError, IntegrityError, ValueError) as exc:
+    except IntegrityError:
+        existing = _existing_by_offline_id(StudentProfile, school_id, client_key)
+        if existing:
+            return {"ok": True, "dedup": True, "student_id": existing.pk, "people_create_capture": True}
+        logger.warning("people.offline_student_create integrity school=%s", school_id)
+        return {"ok": False, "error": "create_failed:IntegrityError"}
+    except (DatabaseError, ValueError) as exc:
         logger.warning("people.offline_student_create failed school=%s err=%s", school_id, exc)
         return {"ok": False, "error": "create_failed:%s" % type(exc).__name__}
 
@@ -231,10 +247,7 @@ def _apply_teacher_create(
 
     client_key = _client_key(payload)
     if client_key:
-        existing = TeacherProfile.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
-            school_id=school_id,
-            custom_attributes__offline_client_id=client_key,
-        ).first()
+        existing = _existing_by_offline_id(TeacherProfile, school_id, client_key)
         if existing:
             return {
                 "ok": True,
@@ -283,13 +296,18 @@ def _apply_teacher_create(
             teacher.user = user
             teacher.school_id = school_id
             teacher.is_active = True
+            teacher.client_offline_id = client_key
             attrs = dict(getattr(teacher, "custom_attributes", None) or {})
             attrs["created_offline"] = True
-            if client_key:
-                attrs["offline_client_id"] = client_key
             teacher.custom_attributes = attrs
             teacher.save()
-    except (DatabaseError, IntegrityError, ValueError) as exc:
+    except IntegrityError:
+        existing = _existing_by_offline_id(TeacherProfile, school_id, client_key)
+        if existing:
+            return {"ok": True, "dedup": True, "teacher_id": existing.pk, "people_create_capture": True}
+        logger.warning("people.offline_teacher_create integrity school=%s", school_id)
+        return {"ok": False, "error": "create_failed:IntegrityError"}
+    except (DatabaseError, ValueError) as exc:
         logger.warning(
             "people.offline_teacher_create failed school=%s err=%s", school_id, exc
         )
@@ -317,10 +335,7 @@ def _apply_applicant_create(
 
     client_key = _client_key(payload)
     if client_key:
-        existing = Applicant.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
-            school_id=school_id,
-            extra_data__offline_client_id=client_key,
-        ).first()
+        existing = _existing_by_offline_id(Applicant, school_id, client_key)
         if existing:
             return {
                 "ok": True,
@@ -341,13 +356,18 @@ def _apply_applicant_create(
         with transaction.atomic():
             applicant = form.save(commit=False)
             applicant.school_id = school_id
+            applicant.client_offline_id = client_key
             extra = dict(getattr(applicant, "extra_data", None) or {})
             extra["created_offline"] = True
-            if client_key:
-                extra["offline_client_id"] = client_key
             applicant.extra_data = extra
             applicant.save()
-    except (DatabaseError, IntegrityError, ValueError) as exc:
+    except IntegrityError:
+        existing = _existing_by_offline_id(Applicant, school_id, client_key)
+        if existing:
+            return {"ok": True, "dedup": True, "applicant_id": existing.pk, "people_create_capture": True}
+        logger.warning("people.offline_applicant_create integrity school=%s", school_id)
+        return {"ok": False, "error": "create_failed:IntegrityError"}
+    except (DatabaseError, ValueError) as exc:
         logger.warning(
             "people.offline_applicant_create failed school=%s err=%s", school_id, exc
         )
