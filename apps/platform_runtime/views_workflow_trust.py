@@ -54,4 +54,8 @@ def tenant_trusted_stream_view(request):
             time.sleep(3.0)
         yield b"event: bye\ndata: {}\n\n"
 
-    return guarded_sse_response(_stream(), content_type="text/event-stream")
+    # guarded_sse_response expects a stream FACTORY (it calls it inside the slot
+    # guard) — pass _stream, not _stream(). Passing the invoked generator made it
+    # do (<generator>)() -> TypeError on every connect, so this endpoint never
+    # streamed.
+    return guarded_sse_response(_stream, content_type="text/event-stream")

@@ -131,6 +131,13 @@ def _apply_attendance(envelope: dict[str, Any]) -> None:
     except ImportError:
         logger.debug("wal_stream.attendance_model_unavailable")
         return
+    # Refuse to write NULL-school rows: Attendance.school is nullable, and a row
+    # with school=NULL escapes tenant-scoped reporting AND the offboarding purge
+    # (orphan PII that survives a "permanent" delete). _apply_envelope always
+    # stamps a resolved school_id, so a falsy value here is an anomaly — drop it.
+    if not envelope.get("school_id"):
+        logger.warning("wal_stream.attendance_no_school txn=%s", envelope.get("txn_id"))
+        return
     records = []
     for a in actions:
         try:
