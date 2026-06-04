@@ -127,6 +127,19 @@ def _link_parent(student, parent_email: str, parent_phone: str) -> bool:
             "phone": parent_phone or "",
         },
     )
+    # A freshly-created parent has an unusable password; send the one-time
+    # set-password link so they are not locked out. Runs during the (online)
+    # drain, so this is the right moment to deliver. Best-effort — the invite
+    # helper never raises, and email delivery itself is an external dependency.
+    if created:
+        try:
+            from apps.accounts.guardian_invite import send_guardian_invite
+
+            send_guardian_invite(
+                parent_user, school=getattr(student, "school", None)
+            )
+        except Exception:  # noqa: BLE001 — credential delivery must not break creation
+            logger.warning("people.offline_guardian_invite_failed student=%s", student.pk)
     return True
 
 
