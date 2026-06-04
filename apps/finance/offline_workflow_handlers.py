@@ -709,6 +709,10 @@ def _apply_split_allocation(
                 student=student,
                 amount=total_amount,
                 method=method,
+                # Offline split allocation records cash already collected, so the
+                # payment is "completed" — not the default "pending" (which, after
+                # the balance-status fix, must reflect money actually received).
+                status="completed",
                 paid_at=timezone.now(),
                 created_by_id=user_id,
             )

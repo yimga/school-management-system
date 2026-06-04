@@ -654,10 +654,15 @@ def recalculate_invoice(invoice: Invoice) -> None:
             total = subtotal + tax_amount
 
     paid = Decimal("0.00")
-    # Exclude soft-deleted/cancelled payments (deleted_at set) so a reversed
-    # payment stops counting toward paid — mirrors Invoice.computed_balance.
+    # Exclude soft-deleted payments AND not-received statuses (failed/cancelled/
+    # refunded) so a reversed/failed payment stops counting toward paid — mirrors
+    # Invoice.computed_balance.
+    from apps.finance.models import _NON_RECEIVED_PAYMENT_STATUSES
+
     # tenant-isolation-allow: service-scoped-via-request-school-context
-    for payment in Payment.objects.filter(invoice_id=invoice.pk, deleted_at__isnull=True):
+    for payment in Payment.objects.filter(
+        invoice_id=invoice.pk, deleted_at__isnull=True
+    ).exclude(status__in=_NON_RECEIVED_PAYMENT_STATUSES):
         paid += payment.amount
 
     balance = max(total - paid, Decimal("0.00"))
