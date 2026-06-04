@@ -1,16 +1,17 @@
 """Offline person-creation workflows (edge/LAN onboarding).
 
 Closes the biggest offline-first gap: an edge/LAN school could not onboard a
-student offline. The student-create form already queues to the OfflineAction
-``field_capture`` rail with ``data-rmc-offline-workflow="people_student_create"``;
-this module is the missing server applier, mirroring
-``apps.finance.offline_workflow_handlers``.
+person offline. The student / teacher / applicant create forms each queue to the
+OfflineAction ``field_capture`` rail with a
+``data-rmc-offline-workflow="people_<kind>_create"`` marker; this module is the
+missing server applier, mirroring ``apps.finance.offline_workflow_handlers``.
 
 Security: the OfflineAction rail carries the authenticated offline user's id, but
-authorization to create a student is RE-DERIVED here server-side (``people.add_
-studentprofile``) — the client form must never be the authorization boundary.
-Idempotency: the client_offline_id is stored on the StudentProfile so a replay
-(or two devices) cannot create duplicates.
+authorization to create a person is RE-DERIVED here server-side (the matching
+``people.add_*`` permission) — the client form must never be the authorization
+boundary. Idempotency: the client_offline_id is stored on the created record
+(``custom_attributes`` / ``extra_data``) so a replay (or two devices) cannot
+create duplicates.
 """
 from __future__ import annotations
 
@@ -21,7 +22,13 @@ from django.db import DatabaseError, IntegrityError, transaction
 
 logger = logging.getLogger(__name__)
 
-PEOPLE_WORKFLOWS: frozenset[str] = frozenset({"people_student_create"})
+PEOPLE_WORKFLOWS: frozenset[str] = frozenset(
+    {
+        "people_student_create",
+        "people_teacher_create",
+        "people_applicant_create",
+    }
+)
 
 
 def _client_key(payload: dict[str, Any]) -> str:
@@ -30,15 +37,46 @@ def _client_key(payload: dict[str, Any]) -> str:
     )[:128]
 
 
-def _user_can_add_student(user_id):
-    """Return ``(user, allowed)``; ``user`` is None when the id is unknown."""
+def _resolve_actor(user_id, perm: str):
+    """Return ``(user, allowed)``; ``user`` is None when the id is unknown.
+
+    Authorization is RE-DERIVED here: the offline client supplies the author id
+    but never the verdict. ``perm`` is checked against the live permission graph.
+    """
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
     user = User.objects.filter(pk=user_id).first()  # tenant-isolation-allow: offline-author-resolved-by-pk-then-permission-checked
     if user is None:
         return None, False
-    return user, bool(user.has_perm("people.add_studentprofile"))
+    return user, bool(user.has_perm(perm))
+
+
+def _user_can_add_student(user_id):
+    return _resolve_actor(user_id, "people.add_studentprofile")
+
+
+def _user_can_add_teacher(user_id):
+    return _resolve_actor(user_id, "people.add_teacherprofile")
+
+
+def _user_can_add_applicant(user_id):
+    return _resolve_actor(user_id, "people.add_applicant")
+
+
+def _reject_cross_tenant_fks(form, school_id, fk_names) -> dict[str, Any] | None:
+    """Reject any FK in ``fk_names`` whose ``school_id`` is not the bound tenant.
+
+    The backend create forms' FK querysets are NOT school-scoped (online they
+    rely on request RLS). On the offline drain there is no request, so a forged
+    FK id from another tenant could otherwise be accepted — guard each one.
+    """
+    for fk_name in fk_names:
+        obj = form.cleaned_data.get(fk_name)
+        obj_school = getattr(obj, "school_id", None) if obj is not None else None
+        if obj_school is not None and str(obj_school) != str(school_id):
+            return {"ok": False, "error": "cross_tenant_%s" % fk_name}
+    return None
 
 
 def apply_people_workflow(
@@ -52,6 +90,10 @@ def apply_people_workflow(
         return None
     if workflow == "people_student_create":
         return _apply_student_create(school_id, user_id, fields, payload)
+    if workflow == "people_teacher_create":
+        return _apply_teacher_create(school_id, user_id, fields, payload)
+    if workflow == "people_applicant_create":
+        return _apply_applicant_create(school_id, user_id, fields, payload)
     return None
 
 
@@ -122,15 +164,13 @@ def _apply_student_create(
             "details": form.errors.get_json_data(),
         }
 
-    # Defense-in-depth: StudentCreateForm's FK querysets are NOT school-scoped
-    # (online it relies on request RLS). On the offline drain a forged
-    # classroom/year/specialty id from another tenant could otherwise be
-    # accepted, so reject any FK whose school does not match the bound tenant.
-    for fk_name in ("classroom", "academic_year", "specialty"):
-        obj = form.cleaned_data.get(fk_name)
-        obj_school = getattr(obj, "school_id", None) if obj is not None else None
-        if obj_school is not None and str(obj_school) != str(school_id):
-            return {"ok": False, "error": "cross_tenant_%s" % fk_name}
+    # Defense-in-depth: reject any FK from another tenant (querysets aren't
+    # school-scoped offline; there is no request RLS on the drain).
+    cross = _reject_cross_tenant_fks(
+        form, school_id, ("classroom", "academic_year", "specialty")
+    )
+    if cross is not None:
+        return cross
 
     try:
         with transaction.atomic():
@@ -158,5 +198,150 @@ def _apply_student_create(
         "ok": True,
         "student_id": student.pk,
         "guardian_linked": guardian_linked,
+        "people_create_capture": True,
+    }
+
+
+def _apply_teacher_create(
+    school_id: int, user_id: int, fields: dict[str, Any], payload: dict[str, Any]
+) -> dict[str, Any]:
+    from django.contrib.auth import get_user_model
+
+    from apps.people.forms_backend import TeacherCreateForm
+    from apps.people.models import TeacherProfile
+
+    actor, allowed = _user_can_add_teacher(user_id)
+    if actor is None:
+        return {"ok": False, "error": "unknown_user"}
+    if not allowed:
+        return {"ok": False, "error": "not_authorized_to_create_teacher"}
+
+    client_key = _client_key(payload)
+    if client_key:
+        existing = TeacherProfile.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
+            school_id=school_id,
+            custom_attributes__offline_client_id=client_key,
+        ).first()
+        if existing:
+            return {
+                "ok": True,
+                "dedup": True,
+                "teacher_id": existing.pk,
+                "people_create_capture": True,
+            }
+
+    form = TeacherCreateForm(data=fields)
+    if not form.is_valid():
+        return {
+            "ok": False,
+            "error": "validation_failed",
+            "details": form.errors.get_json_data(),
+        }
+
+    cross = _reject_cross_tenant_fks(form, school_id, ("department", "reports_to"))
+    if cross is not None:
+        return cross
+
+    User = get_user_model()
+    email = (form.cleaned_data["email"] or "").strip().lower()
+    username = (form.cleaned_data.get("username") or email).strip()
+    password = form.cleaned_data["password"]
+
+    # Email uniqueness is the second idempotency/conflict boundary: if the email
+    # already belongs to a user, we must not double-create. A replay of the SAME
+    # offline action is caught by client_offline_id above; reaching here with an
+    # existing email means a genuine conflict (someone else created it, or the
+    # address is taken by another role) — surface it as FAILED, never crash.
+    if User.objects.filter(email__iexact=email).exists() or (
+        username and User.objects.filter(username__iexact=username).exists()
+    ):
+        return {"ok": False, "error": "email_or_username_taken"}
+
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                role=User.Role.TEACHER,
+                is_active=True,
+            )
+            teacher = form.save(commit=False)
+            teacher.user = user
+            teacher.school_id = school_id
+            teacher.is_active = True
+            attrs = dict(getattr(teacher, "custom_attributes", None) or {})
+            attrs["created_offline"] = True
+            if client_key:
+                attrs["offline_client_id"] = client_key
+            teacher.custom_attributes = attrs
+            teacher.save()
+    except (DatabaseError, IntegrityError, ValueError) as exc:
+        logger.warning(
+            "people.offline_teacher_create failed school=%s err=%s", school_id, exc
+        )
+        return {"ok": False, "error": "create_failed:%s" % type(exc).__name__}
+
+    return {
+        "ok": True,
+        "teacher_id": teacher.pk,
+        "user_id": user.pk,
+        "people_create_capture": True,
+    }
+
+
+def _apply_applicant_create(
+    school_id: int, user_id: int, fields: dict[str, Any], payload: dict[str, Any]
+) -> dict[str, Any]:
+    from apps.people.forms_backend import ApplicantCreateForm
+    from apps.people.models import Applicant
+
+    actor, allowed = _user_can_add_applicant(user_id)
+    if actor is None:
+        return {"ok": False, "error": "unknown_user"}
+    if not allowed:
+        return {"ok": False, "error": "not_authorized_to_create_applicant"}
+
+    client_key = _client_key(payload)
+    if client_key:
+        existing = Applicant.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
+            school_id=school_id,
+            extra_data__offline_client_id=client_key,
+        ).first()
+        if existing:
+            return {
+                "ok": True,
+                "dedup": True,
+                "applicant_id": existing.pk,
+                "people_create_capture": True,
+            }
+
+    form = ApplicantCreateForm(data=fields)
+    if not form.is_valid():
+        return {
+            "ok": False,
+            "error": "validation_failed",
+            "details": form.errors.get_json_data(),
+        }
+
+    try:
+        with transaction.atomic():
+            applicant = form.save(commit=False)
+            applicant.school_id = school_id
+            extra = dict(getattr(applicant, "extra_data", None) or {})
+            extra["created_offline"] = True
+            if client_key:
+                extra["offline_client_id"] = client_key
+            applicant.extra_data = extra
+            applicant.save()
+    except (DatabaseError, IntegrityError, ValueError) as exc:
+        logger.warning(
+            "people.offline_applicant_create failed school=%s err=%s", school_id, exc
+        )
+        return {"ok": False, "error": "create_failed:%s" % type(exc).__name__}
+
+    return {
+        "ok": True,
+        "applicant_id": applicant.pk,
         "people_create_capture": True,
     }
