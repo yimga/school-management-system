@@ -181,3 +181,51 @@ describe("offline outbox at-rest encryption (real rmc-wal-stream.js)", () => {
     expect(opened).toEqual([]);
   });
 });
+
+describe("offline outbox eviction plan (real rmc-wal-stream.js)", () => {
+  const NOW = 1_000_000_000_000;
+
+  it("drops acked rows past retention but keeps fresh acked", () => {
+    const t = T();
+    const rows = [
+      { txn_id: "a", status: "acked", acked_at: NOW - t.ACKED_RETENTION_MS - 1 },
+      { txn_id: "b", status: "acked", acked_at: NOW - 1000 },
+      { txn_id: "c", status: "acked" }, // no acked_at -> drop
+    ];
+    const { toDelete } = t.evictionPlan(rows, NOW, 500);
+    expect(toDelete).toContain("a");
+    expect(toDelete).toContain("c");
+    expect(toDelete).not.toContain("b");
+  });
+
+  it("ages out unsynced rows older than the 30d ceiling", () => {
+    const t = T();
+    const rows = [
+      { txn_id: "old", status: "queued", created_at: NOW - t.MAX_OUTBOX_AGE_MS - 1 },
+      { txn_id: "new", status: "queued", created_at: NOW - 1000 },
+    ];
+    const { toDelete, cappedOverflow } = t.evictionPlan(rows, NOW, 500);
+    expect(toDelete).toEqual(["old"]);
+    expect(cappedOverflow).toBe(0);
+  });
+
+  it("caps the backlog by evicting the OLDEST unsynced rows", () => {
+    const t = T();
+    const rows = [];
+    for (let i = 0; i < 5; i++) {
+      rows.push({ txn_id: "q" + i, status: "queued", created_at: NOW - (5 - i) * 1000 });
+    }
+    const { toDelete, cappedOverflow } = t.evictionPlan(rows, NOW, 3);
+    expect(cappedOverflow).toBe(2);
+    expect(toDelete).toContain("q0"); // oldest
+    expect(toDelete).toContain("q1");
+    expect(toDelete).not.toContain("q4"); // newest survives
+  });
+
+  it("keeps everything when under cap and fresh", () => {
+    const t = T();
+    const rows = [{ txn_id: "x", status: "queued", created_at: NOW - 1000 }];
+    const { toDelete } = t.evictionPlan(rows, NOW, 500);
+    expect(toDelete).toEqual([]);
+  });
+});

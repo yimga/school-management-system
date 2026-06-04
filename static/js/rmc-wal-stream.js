@@ -288,6 +288,8 @@
   }
 
   async function flush() {
+    // Bound outbox growth even while permanently offline (throttled internally).
+    maybeEvict().catch(() => {});
     const socket = ensureSocket();
     if (!socket || socket.readyState !== WebSocket.OPEN) return { shipped: 0, queued: await pendingCount() };
     const db = await openDb();
@@ -329,10 +331,95 @@
     return { shipped, queued: queued.length - shipped };
   }
 
+  // ── Outbox eviction (bounded growth) ────────────────────────────────────
+  // Without this the outbox grows forever: acked rows are never removed, and a
+  // row that can never ship (author signed out for good, undecryptable) stays
+  // queued — eventually tripping the IndexedDB quota, at which point EVERY new
+  // offline write fails. Eviction drops synced rows, ages out very old unsynced
+  // rows (loudly, never silently), and caps the backlog as a last resort.
+  const ACKED_RETENTION_MS = 60 * 60 * 1000;            // keep acked rows 1h, then drop
+  const MAX_OUTBOX_AGE_MS = 30 * 24 * 60 * 60 * 1000;   // 30d ceiling for any unsynced row
+  let lastEvictAt = 0;
+
+  function maxQueueItems() {
+    try {
+      var n = parseInt(window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.maxQueueItems, 10);
+      return n > 0 ? n : 500;
+    } catch (e) {
+      return 500;
+    }
+  }
+
+  // Pure decision: given the current rows, return the txn_ids to evict. Kept
+  // side-effect-free so it can be unit-tested without IndexedDB.
+  function evictionPlan(rows, now, cap) {
+    const toDelete = [];
+    const queued = [];
+    for (const r of rows) {
+      const created = r.created_at || 0;
+      if (r.status === "acked") {
+        if (!r.acked_at || now - r.acked_at > ACKED_RETENTION_MS) toDelete.push(r.txn_id);
+      } else if (created && now - created > MAX_OUTBOX_AGE_MS) {
+        toDelete.push(r.txn_id);
+      } else {
+        queued.push(r);
+      }
+    }
+    let overAge = toDelete.length; // count flagged before the cap pass (acked + >30d)
+    if (queued.length > cap) {
+      // Last resort: drop the OLDEST unsynced rows beyond the cap so a runaway
+      // backlog cannot exhaust storage and brick all future writes.
+      queued.sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
+      const overflow = queued.slice(0, queued.length - cap);
+      for (const r of overflow) toDelete.push(r.txn_id);
+    }
+    return { toDelete, cappedOverflow: toDelete.length - overAge };
+  }
+
+  async function evictOutbox() {
+    try {
+      const db = await openDb();
+      const now = Date.now();
+      const rows = await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readonly");
+        const rq = tx.objectStore(STORE).getAll();
+        rq.onsuccess = () => resolve(rq.result || []);
+        rq.onerror = () => reject(rq.error);
+      });
+      const cap = maxQueueItems();
+      const { toDelete, cappedOverflow } = evictionPlan(rows, now, cap);
+      if (cappedOverflow > 0) {
+        // Dropping UNSYNCED rows is data loss — never silent.
+        try { console.warn("rmcWAL: outbox over cap " + cap + ", evicting " + cappedOverflow + " oldest unsynced rows"); } catch (e) {}
+      }
+      if (!toDelete.length) return 0;
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readwrite");
+        const os = tx.objectStore(STORE);
+        for (const id of toDelete) os.delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      return toDelete.length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // Throttled wrapper so the full-store scan runs at most once a minute even when
+  // flush() fires on every append during a bulk operation.
+  function maybeEvict() {
+    const now = Date.now();
+    if (now - lastEvictAt < 60_000) return Promise.resolve(0);
+    lastEvictAt = now;
+    return evictOutbox();
+  }
+
   window.rmcWAL = {
     append,
     flush,
     pending: pendingCount,
+    evict: evictOutbox,
     onAck: (cb) => { ackListeners.add(cb); return () => ackListeners.delete(cb); },
   };
 
@@ -341,7 +428,11 @@
   // the REAL shipped code rather than a re-implementation. Inert in production
   // — `window.__RMC_OUTBOX_TEST__` is never set outside the test harness.
   if (window.__RMC_OUTBOX_TEST__) {
-    window.rmcWAL.__test = { sealActions, openActions, getEncKey, encEnabled };
+    window.rmcWAL.__test = {
+      sealActions, openActions, getEncKey, encEnabled,
+      evictionPlan, currentUserId,
+      ACKED_RETENTION_MS, MAX_OUTBOX_AGE_MS,
+    };
   }
 
   function shouldBootWalSocket() {
