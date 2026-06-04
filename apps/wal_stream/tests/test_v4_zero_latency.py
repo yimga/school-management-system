@@ -185,6 +185,29 @@ class WALEnvelopeValidationTests(SimpleTestCase):
         self.assertFalse(ok)
         self.assertEqual(reason, "too_large")
 
+    def test_author_mismatch_rejected(self):
+        # An outbox row stamped by user "5" must not ship over user "9"'s socket.
+        env = self._envelope(author_user_id="5")
+        ok, reason = _validate(
+            env, expected_tenant_hash=self.TENANT, expected_user_id="9"
+        )
+        self.assertFalse(ok)
+        self.assertEqual(reason, "author_mismatch")
+
+    def test_author_match_accepted(self):
+        env = self._envelope(author_user_id="9")
+        ok, reason = _validate(
+            env, expected_tenant_hash=self.TENANT, expected_user_id="9"
+        )
+        self.assertTrue(ok, reason)
+
+    def test_missing_author_is_backward_compatible(self):
+        # Older client without author stamp still validates (no author check).
+        ok, reason = _validate(
+            self._envelope(), expected_tenant_hash=self.TENANT, expected_user_id="9"
+        )
+        self.assertTrue(ok, reason)
+
 
 class WALWriterDispatchTests(SimpleTestCase):
     def test_dispatch_rejects_unknown_domain(self):

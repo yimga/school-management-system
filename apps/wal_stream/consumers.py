@@ -67,7 +67,11 @@ class WalStreamConsumer(AsyncJsonWebsocketConsumer):
         if not isinstance(content, dict):
             await self.send_json({"ok": False, "error": "bad_payload"})
             return
-        ok, reason = _validate(content, expected_tenant_hash=self.tenant_hash)
+        ok, reason = _validate(
+            content,
+            expected_tenant_hash=self.tenant_hash,
+            expected_user_id=self.user_id,
+        )
         if not ok:
             logger.warning("wal_stream.reject: %s", reason)
             await self.send_json({"ok": False, "error": reason, "txn_id": content.get("txn_id")})
@@ -108,7 +112,9 @@ def _coerce_captured_at(raw: Any) -> float | None:
     return float(raw) / 1000.0
 
 
-def _validate(content: dict, *, expected_tenant_hash: str) -> tuple[bool, str]:
+def _validate(
+    content: dict, *, expected_tenant_hash: str, expected_user_id: str | None = None
+) -> tuple[bool, str]:
     txn_id = content.get("txn_id")
     if not isinstance(txn_id, str) or len(txn_id) < 8 or len(txn_id) > 64:
         return False, "bad_txn_id"
@@ -124,6 +130,18 @@ def _validate(content: dict, *, expected_tenant_hash: str) -> tuple[bool, str]:
     asserted_tenant = content.get("tenant_hash")
     if asserted_tenant and asserted_tenant != expected_tenant_hash:
         return False, "tenant_mismatch"
+    # Shared-device defense: an outbox row stamped with the user who authored it
+    # offline must not be shipped over a DIFFERENT user's authenticated socket.
+    # Reject the mismatch so the row stays queued until the real author returns,
+    # rather than being applied (and attributed) as the wrong user. Older clients
+    # that don't stamp an author skip this check (backward compatible).
+    author = content.get("author_user_id")
+    if (
+        author not in (None, "")
+        and expected_user_id is not None
+        and str(author) != str(expected_user_id)
+    ):
+        return False, "author_mismatch"
     try:
         serialized = json.dumps(content).encode("utf-8")
     except (TypeError, ValueError):

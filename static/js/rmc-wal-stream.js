@@ -82,6 +82,19 @@
     return [...new Uint8Array(digest)].slice(0, 6).map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
+  // Identity of the signed-in user (from the offline config island). Stamped on
+  // every outbox row so a shared device cannot ship one user's queued writes
+  // over another user's socket — the server rejects author/socket mismatches and
+  // the row stays queued until its real author signs back in.
+  function currentUserId() {
+    try {
+      var v = window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.currentUserId;
+      return v == null ? "" : String(v);
+    } catch (e) {
+      return "";
+    }
+  }
+
   // ── Optional at-rest encryption of the outbox payload (audit residual) ──
   // The outbox holds attendance/grades/messages/charges (PII) in IndexedDB. When
   // SMS_OFFLINE_CONFIG.encryptOutbox is true we AES-GCM-seal the `actions` before
@@ -172,6 +185,7 @@
       vector_clock,
       domain,
       tenant_hash: await tenantHash(),
+      author_user_id: currentUserId(),
       status: "queued",
       created_at: Date.now(),
     };
@@ -283,9 +297,14 @@
       rq.onsuccess = () => resolve(rq.result || []);
       rq.onerror = () => reject(rq.error);
     });
+    const me = currentUserId();
     let shipped = 0;
     for (const row of queued) {
       try {
+        // Shared-device guard: do not ship a row authored by a different signed-in
+        // user. Leave it queued for when its real author returns. (The server
+        // enforces this too; this just avoids a pointless rejected round-trip.)
+        if (row.author_user_id && me && String(row.author_user_id) !== me) continue;
         const actions = await openActions(row); // unseal if encrypted, else passthrough
         if (!actions || actions.length === 0) continue; // skip undecryptable rows
         socket.send(JSON.stringify({
@@ -294,6 +313,9 @@
           domain: row.domain,
           actions: actions,
           tenant_hash: row.tenant_hash,
+          // Author of this offline write — the server rejects shipping it over a
+          // different user's socket (cross-user attribution defense).
+          author_user_id: row.author_user_id || "",
           // When this write was captured offline (epoch ms). The server uses it
           // for last-writer-wins so a stale offline upsert never clobbers newer
           // online state. Falls back to row.created_at for rows queued earlier.
