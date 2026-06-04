@@ -398,6 +398,9 @@ class VisitorCheckIn(models.Model):
         blank=True,
         related_name="visitor_checkins_recorded",
     )
+    # Idempotency anchor for offline check-ins replayed via the OfflineAction
+    # field_capture rail — a replay (or two devices) can't double-log a visitor.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         app_label = "schoolops"
