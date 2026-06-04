@@ -67,6 +67,17 @@
       "notes": "Meta WhatsApp webhook must accept provider GET/POST callbacks without browser CSRF; GET verification and POST delivery are guarded by integration verification, tenant feature flag gating, and hashed-phone logging.",
       "last_reviewed": "2026-05-27"
     },
+    "apps/communication/views_sms_inbound_webhook.py": {
+      "expected_count": 2,
+      "owner": "parent_communications",
+      "verdict": "keep_with_hardening",
+      "auth_model": "twilio_x_twilio_signature_hmac_sha1_or_africastalking_shared_secret",
+      "replay_protection": "provider_signature_and_message_sid_manual_review_required",
+      "rate_limiting": "manual_review_required",
+      "audit_logging": "pii_minimized_hashed_phone_structured_logs",
+      "notes": "Two endpoints (inbound MO + status callback): SMS providers POST without browser CSRF. Every request is verified by _signature_ok() — a valid Twilio X-Twilio-Signature HMAC-SHA1 (constant-time compare) wins, else a valid Africa's Talking shared secret (AT has no request-signing scheme); bad signature -> 403, never 5xx.",
+      "last_reviewed": "2026-06-04"
+    },
     "apps/finance/views_payments.py": {
       "expected_count": 1,
       "owner": "finance_payments",
@@ -277,15 +288,15 @@
       "last_reviewed": "2026-03-28"
     },
     "apps/platform_runtime/views_newsletter.py": {
-      "expected_count": 1,
+      "expected_count": 2,
       "owner": "platform_marketing",
       "verdict": "keep_with_hardening",
-      "auth_model": "public_form_post",
+      "auth_model": "public_form_post_and_rfc8058_one_click_token",
       "replay_protection": "not_applicable",
       "rate_limiting": "manual_review_required",
       "audit_logging": "implemented",
-      "notes": "Public newsletter subscribe POST from marketing/portal without browser CSRF; double opt-in service handles abuse.",
-      "last_reviewed": "2026-06-02"
+      "notes": "Two endpoints: (1) public newsletter subscribe POST from marketing/portal without browser CSRF (double opt-in service handles abuse); (2) RFC 8058 one-click List-Unsubscribe-Post — mail clients POST without a CSRF token and the opaque per-recipient token in the URL is the authenticator.",
+      "last_reviewed": "2026-06-04"
     },
     "apps/platform_runtime/views_rum.py": {
       "expected_count": 1,
