@@ -268,6 +268,87 @@ class WALWriterDispatchTests(SimpleTestCase):
         self.assertEqual(statuses, ["ABSENT", "PRESENT", "PRESENT"])  # BOGUS -> PRESENT
 
 
+class WALWriterTenantIsolationTests(SimpleTestCase):
+    """Writers must drop client-supplied FK ids that don't belong to the bound
+    tenant (cross-tenant write defense). _ids_in_school is patched so the logic
+    is exercised without a DB; id 999 stands in for a foreign-tenant row.
+    """
+
+    def test_ids_in_school_fail_open_without_school(self):
+        from apps.wal_stream.writers import _ids_in_school
+
+        # No bound school -> fail-open (returns the wanted set, no DB touched).
+        self.assertEqual(_ids_in_school(None, [1, 2, None], None), {1, 2})
+
+    def test_attendance_drops_cross_tenant_rows(self):
+        from unittest import mock
+
+        env = {
+            "school_id": 7,
+            "actions": [
+                {"student_id": 1, "classroom_id": 1, "date": "2026-05-28", "status": "present"},
+                {"student_id": 999, "classroom_id": 1, "date": "2026-05-28", "status": "present"},
+            ],
+        }
+        captured: list = []
+
+        def _fake_ids(model, ids, school_id, **kw):
+            return {i for i in ids if i != 999}
+
+        with mock.patch("apps.wal_stream.writers._ids_in_school", side_effect=_fake_ids), \
+                mock.patch("apps.academics.models.Attendance.objects.bulk_create",
+                           side_effect=lambda rows, **kw: captured.extend(rows)):
+            from apps.wal_stream.writers import _apply_attendance
+
+            _apply_attendance(env)
+        self.assertEqual([r.student_id for r in captured], [1])
+
+    def test_grade_drops_cross_tenant_student(self):
+        from unittest import mock
+
+        env = {
+            "school_id": 7,
+            "user_id": 5,
+            "actions": [
+                {"student_id": 1, "subject_assignment_id": 3, "academic_year_id": 1, "term_id": 1, "seq1_score": 80},
+                {"student_id": 999, "subject_assignment_id": 3, "academic_year_id": 1, "term_id": 1, "seq1_score": 70},
+            ],
+        }
+        captured: list = []
+
+        with mock.patch("apps.wal_stream.writers._resolve_teacher_id_from_envelope", return_value=42), \
+                mock.patch("apps.wal_stream.writers._ids_in_school",
+                           side_effect=lambda model, ids, school_id, **kw: {i for i in ids if i != 999}), \
+                mock.patch("apps.evals.models.OfflineMarkEntry.objects.bulk_create",
+                           side_effect=lambda rows, **kw: captured.extend(rows)):
+            from apps.wal_stream.writers import _apply_grade
+
+            _apply_grade(env)
+        self.assertEqual([r.student_id for r in captured], [1])
+
+    def test_communication_drops_non_member_recipient(self):
+        from unittest import mock
+
+        env = {
+            "school_id": 7,
+            "user_id": 5,
+            "actions": [
+                {"recipient_id": 1, "subject": "hi", "body": "ok"},
+                {"recipient_id": 999, "subject": "hi", "body": "ok"},
+            ],
+        }
+        captured: list = []
+
+        with mock.patch("apps.wal_stream.writers._ids_in_school",
+                        side_effect=lambda model, ids, school_id, **kw: {i for i in ids if i != 999}), \
+                mock.patch("apps.communication.models.Message.objects.bulk_create",
+                           side_effect=lambda rows, **kw: captured.extend(rows)):
+            from apps.wal_stream.writers import _apply_communication_send
+
+            _apply_communication_send(env)
+        self.assertEqual([r.recipient_id for r in captured], [1])
+
+
 class ResolveAttendanceSessionTests(SimpleTestCase):
     """The WAL JS sends session_id="<classroom_id>::<date>" to keep the wire compact.
 

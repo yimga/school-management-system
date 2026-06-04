@@ -37,6 +37,36 @@ def dispatch(envelope: dict[str, Any]) -> None:
     fn(envelope)
 
 
+def _ids_in_school(model, ids, school_id, *, id_field: str = "id", school_field: str = "school_id") -> set:
+    """Return the subset of ``ids`` whose rows belong to ``school_id``.
+
+    Defense-in-depth for the WAL drain: a disconnected client must not be able
+    to attach another tenant's row by sending a foreign FK id in an action. The
+    writer — not just RLS — enforces tenant ownership here, which matters under
+    django-tenants schema mode (where ``rls_school()`` is a no-op) and for any
+    referenced model that lacks its own row-level school policy.
+
+    Fail-open on a missing ``school_id`` or a transient DB error (RLS context
+    remains the backstop) so a hiccup never silently drops legitimate writes.
+    """
+    wanted = {i for i in ids if i is not None}
+    if not wanted or not school_id:
+        return wanted
+    from django.db import DatabaseError
+
+    try:
+        return set(
+            model.objects.filter(  # tenant-isolation-allow: explicit-school-filter-validates-client-supplied-fk-against-bound-tenant
+                **{f"{id_field}__in": wanted, school_field: school_id}
+            ).values_list(id_field, flat=True)
+        )
+    except DatabaseError as exc:
+        logger.warning(
+            "wal_stream.fk_validation_failed model=%s err=%s", getattr(model, "__name__", "?"), exc
+        )
+        return wanted
+
+
 def _apply_attendance(envelope: dict[str, Any]) -> None:
     """Apply a batched attendance delta against ``apps.academics.Attendance``.
 
@@ -79,6 +109,23 @@ def _apply_attendance(envelope: dict[str, Any]) -> None:
         except KeyError as exc:
             logger.warning("wal_stream.attendance_bad_action missing=%s", exc)
             continue
+    if not records:
+        return
+    # Drop any row whose client-supplied student/classroom does not belong to
+    # the bound tenant (cross-tenant write defense; see _ids_in_school).
+    school_id = envelope.get("school_id")
+    if school_id:
+        from apps.academics.models import Classroom  # type: ignore[attr-defined]
+        from apps.people.models import StudentProfile  # type: ignore[attr-defined]
+
+        valid_students = _ids_in_school(StudentProfile, [r.student_id for r in records], school_id)
+        valid_classrooms = _ids_in_school(Classroom, [r.classroom_id for r in records], school_id)
+        kept = [r for r in records if r.student_id in valid_students and r.classroom_id in valid_classrooms]
+        if len(kept) != len(records):
+            logger.warning(
+                "wal_stream.attendance_cross_tenant_dropped dropped=%s", len(records) - len(kept)
+            )
+        records = kept
     if not records:
         return
     Attendance.objects.bulk_create(
@@ -206,6 +253,21 @@ def _apply_grade(envelope: dict[str, Any]) -> None:
         except KeyError as exc:
             logger.warning("wal_stream.grade_bad_action missing=%s", exc)
             continue
+    if not rows:
+        return
+    # Drop any mark whose client-supplied student does not belong to the bound
+    # tenant (cross-tenant write defense).
+    school_id = envelope.get("school_id")
+    if school_id:
+        from apps.people.models import StudentProfile  # type: ignore[attr-defined]
+
+        valid_students = _ids_in_school(StudentProfile, [r.student_id for r in rows], school_id)
+        kept = [r for r in rows if r.student_id in valid_students]
+        if len(kept) != len(rows):
+            logger.warning(
+                "wal_stream.grade_cross_tenant_dropped dropped=%s", len(rows) - len(kept)
+            )
+        rows = kept
     if rows:
         OfflineMarkEntry.objects.bulk_create(rows, ignore_conflicts=True)
 
@@ -287,6 +349,25 @@ def _apply_communication_send(envelope: dict[str, Any]) -> None:
         except KeyError as exc:
             logger.warning("wal_stream.communication_bad_action missing=%s", exc)
             continue
+    if not rows:
+        return
+    # Drop messages to recipients who are not members of the bound tenant — a
+    # disconnected client must not be able to message a user in another school.
+    if envelope_school_id:
+        from apps.schools.models import SchoolMembership  # type: ignore[attr-defined]
+
+        valid_recipients = _ids_in_school(
+            SchoolMembership,
+            [r.recipient_id for r in rows],
+            envelope_school_id,
+            id_field="user_id",
+        )
+        kept = [r for r in rows if r.recipient_id in valid_recipients]
+        if len(kept) != len(rows):
+            logger.warning(
+                "wal_stream.communication_cross_tenant_dropped dropped=%s", len(rows) - len(kept)
+            )
+        rows = kept
     if rows:
         Message.objects.bulk_create(rows)
 
