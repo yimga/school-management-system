@@ -1,5 +1,145 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — SFDP dispute copy + phases burndown batch 1617 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1617** — restore missing SFDP module; unblock dual-engine + phases gates after **1616**.
+
+**B. Shipped:** **`payment_dispute_local_copy.py`**; **`power_views._try_site_settings_keys`** → **`get_effective_site_settings`**; CSRF exempt allowlist for OneRoster OAuth2 + LTI token + newsletter + wizard telemetry; SW **v4.01.50**.
+
+**C. Proof:** **SOVEREIGN_FINANCIAL_LOCAL_GLOBAL_FORCE_COMPLETE**; **DUAL_ENGINE_FINANCIAL_PROGRAM_PASS**; **lint_sitesettings_orm_singleton OK**; **`/admin/`** + **`/super/`** HTTP **200** smoke.
+
+**D. SOT:** batch **1617** **DONE**.
+
+## Slice — Phase 3 + marketing honest labeling batch 1616 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1616** — close AWS plan follow-ups: Phase 3 consolidated-header verifiers, marketing simulated benchmark disclosure gate, activity ticker template crash on legacy feed events.
+
+**B. Shipped:** **`verify_phase3_navigation_command_conformance.py`** + **`verify_manager_admin_cp_layout.py`** transitive include checks (batch 1596 consolidated header); **`verify_marketing_simulated_benchmark_disclosure.py`** wired lane2 audit; **`_activity_ticker_inline.html`** / **`_activity_ticker_drawer.html`** `{% firstof %}` fix; SW **v4.01.49**.
+
+**C. Proof:** **verify_phase3_navigation_command_conformance PASS**; **verify_manager_admin_cp_layout OK**; **MARKETING_SIMULATED_BENCHMARK_DISCLOSURE_PASS**; Phase 3 + manager CP layout gates in **verify_phases_3_11_gates** green; bundle still fails pre-existing **SFDP dual-engine** row (unrelated).
+
+**D. SOT:** batch **1616** **DONE**. **E. Honest:** marketing speed duel / zero-ui remain client-side simulated — gate locks disclosure copy only; live edge telemetry still out of scope.
+
+## Slice — AWS/realtime optional residual batch 1615 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1615** — plan optionals (MC permissions test, SSE hardening, Celery audit, honest-empty panels, v3 extended realdata).
+
+**B. Shipped:** `test_migration_cloud_permissions_host_boundary.py`; `verify_sse_tenant_ingress.py`; `audit_celery_tenant_task_scoping.py` + **54** allow markers; `_honest_empty_panel`; `cockpit_tenant_v3_realdata.py`; workflow SSE 403; contract doc Celery/SSE fixes; SW **v4.01.48**.
+
+**C. Proof:** **verify_sse_tenant_ingress OK**; **audit_celery_tenant_task_scoping 0**; v3 realdata + workflow SSE tests green; five-pillar extended AWS rows.
+
+**D. SOT:** batch **1615** **DONE**.
+
+## Slice — AWS zero-gap + realtime closeout batch 1614 (2026-06-02)
+
+**A. Claim:** §11.4 batches **1607–1614** consolidated closeout — AWS ingress gates + authenticated realdata truth.
+
+**B. Shipped:** SW **v4.01.47**; SOT rows **1607–1614**; **`generate_system_closure_map.py --write`**; tenant API guard strict membership on tenant hosts; WS bind sync helper for testability.
+
+**C. Proof:** **WEBSOCKET_TENANT_SCOPE_PASS**; staff-bypass scan **0**; delta sync + GraphQL verifiers OK; **PLATFORM_AUTHENTICATED_REALDATA_PASS**; **FIVE_PILLAR_PLATFORM_PASS (47)**; 23-test AWS/realdata sqlite suite OK.
+
+**D. SOT:** batches **1607–1614** **DONE**.
+
+## Slice — Authenticated realdata gate batch 1613 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1613** — mechanical gate for demo-off authenticated surfaces.
+
+**B. Shipped:** **`scripts/verify_platform_authenticated_realdata.py`**; CI + five-pillar row; extended cockpit + tenant realdata tests.
+
+**C. Proof:** **PLATFORM_AUTHENTICATED_REALDATA_PASS**.
+
+**D. SOT:** batch **1613** **DONE**.
+
+## Slice — Authenticated surface realdata batch 1612 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1612** — operator/tenant dashboards DB-backed or honest empty.
+
+**B. Shipped:** **`tenant_cockpit_realdata.py`** TEACHER/STUDENT `_role_widget_bundle`; parent-only child-name guard.
+
+**C. Proof:** **`test_tenant_cockpit_realdata`** teacher hydration green.
+
+**D. SOT:** batch **1612** **DONE**.
+
+## Slice — Cockpit demo defaults off batch 1611 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1611** — flip preview demo defaults + merge order.
+
+**B. Shipped:** settings defaults **`"0"`**; manager/tenant realdata-before-demo; preview-route-only demo helpers.
+
+**C. Proof:** **`CockpitDemoDefaultsOffTests`** — no `$42.1k` on live `/super/`; preview retains demo.
+
+**D. SOT:** batch **1611** **DONE**.
+
+## Slice — AWS P1 SSE + contract batch 1610 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1610** — SSE school scoping + contract doc.
+
+**B. Shipped:** **`views_ai_stream.py`** tenant 403 without school; **`TENANT_ISOLATION_CONTRACT.md`** WS/SSE sections.
+
+**C. Proof:** doc + view guard in tree; workflow SSE already `_resolve_scope`-scoped.
+
+**D. SOT:** batch **1610** **DONE**.
+
+## Slice — AWS mechanical verifiers batch 1609 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1609** — four AWS verifiers + CI wire.
+
+**B. Shipped:** websocket/staff-bypass/delta-sync/graphql verifiers; five-pillar + **`platform-pillar-gates`**.
+
+**C. Proof:** all four exit **0**; **FIVE_PILLAR_PLATFORM_PASS**.
+
+**D. SOT:** batch **1609** **DONE**.
+
+## Slice — AWS P0 HTTP guards batch 1608 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1608** — staff bypass, delta sync, GraphQL, rebac.
+
+**B. Shipped:** **`tenant_api_guards`**, migration cloud permissions, sync delta fail-closed, **`config/schema.py`**, **`drf_rebac`**.
+
+**C. Proof:** **`test_tenant_api_guards_staff_host`**, **`test_delta_sync_tenant_guard`**, control-plane boundary tests.
+
+**D. SOT:** batch **1608** **DONE**.
+
+## Slice — AWS P0 WebSocket batch 1607 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1607** — ASGI tenant middleware + scoped consumers.
+
+**B. Shipped:** **`channels_tenant_middleware.py`**, **`config/asgi.py`**, **`api/consumers.py`**, **`wal_stream/consumers.py`**.
+
+**C. Proof:** **WEBSOCKET_TENANT_SCOPE_PASS**; **`test_websocket_tenant_scope`**.
+
+**D. SOT:** batch **1607** **DONE**.
+
+## Slice — Dual-plane theme sweep 3 batch 1606 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1606** — cascade order, phase2 canvas leaks, verifier/test drift after consolidated header.
+
+**B. Shipped:** base.html dual-plane after vertical-compact + terminal include; admin/base_site terminal dual-plane; phase2 section V class expansion; civic light flip in consolidated shell CSS; verify_operator_cp_header_footer_parity consolidated contract; super admin parity test theme chip marker; SW **v4.01.46**.
+
+**C. Proof:** **THEME_EXPERIENCE_DUAL_PLANE_SHELL_PASS**; **INTERACTION_INTEGRITY_PASS**; operator CP header/footer parity OK; consolidated + activity tiers PASS.
+
+**D. SOT:** batch **1606** **DONE**.
+
+## Slice — Dual-plane theme sweep batch 1605 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1605** — second-pass sweep for mixed light/dark operator surfaces (civic footer + canvas leaks).
+
+**B. Shipped:** dual-plane CSS v4.01.45 (civic footer light token flip, manager body bg, metric-card/compliance-dashboard/page-wrap leaks); terminal dual-plane on `control_plane_skeleton`; interaction-integrity check 12 → civic footer; extended theme verifier; SW **v4.01.45**.
+
+**C. Proof:** **THEME_EXPERIENCE_DUAL_PLANE_SHELL_PASS**; **INTERACTION_INTEGRITY_PASS**; activity tiers + consolidated shell + vertical workspace PASS; dead hrefs **0**; SW monotonic OK.
+
+**D. SOT:** batch **1605** **DONE**.
+
+## Slice — Dual-plane theme coherence + header chrome closeout batch 1604 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1604** — close v8 preview dual-plane gap (dark operator chrome + theme-flipping canvas/footer); finish v4.01.43 header/LIVE/theme-dropdown work with mechanical proof.
+
+**B. Shipped:** `rmc-theme-experience-dual-plane.css` v4.01.44 (manager-portal-bridge, tenant resolved-theme, chrome lock, canvas leaks); `theme-preference-bootstrap.js` operator palette guard; `portal_base.html` triple dual-plane + no `portal-sidebar-tone-*`; header +10% tokens; LIVE Tier-1 in `manager_operator_topbar`; theme in `user_dropdown` Appearance; extended `verify_theme_experience_dual_plane_shell.py`; SW baseline **v4.01.44**.
+
+**C. Proof:** **THEME_EXPERIENCE_DUAL_PLANE_SHELL_PASS**; **CP_CONSOLIDATED_OPERATOR_SHELL_PASS**; **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS**; **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS**; **PLATFORM_VERTICAL_WORKSPACE_POLICY_PASS**; theme visibility platform OK; dead hrefs **0**; SW monotonic OK.
+
+**D. SOT:** batch **1604** **DONE**. **E. Residual:** hard-refresh / SW update on operator workstations for visual sign-off.
+
 ## Slice — Activity tiers consolidated header regression batch 1603 (2026-06-02)
 
 **A. Claim:** §11.4 batch **1603** — fix operator unified header drift (stacked marquee vs Tier-1 inline badge).

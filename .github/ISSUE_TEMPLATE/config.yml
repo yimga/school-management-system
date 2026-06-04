@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability (private)
+    url: https://github.com/yimga/school-management-system/blob/main/SECURITY.md#reporting-a-vulnerability
+    about: Do not file public issues for security reports — use the private channel in SECURITY.md.
+  - name: Documentation
+    url: https://github.com/yimga/school-management-system/tree/main/docs
+    about: Read the docs index and runbooks before opening a question issue.
+  - name: Questions & ideas (Discussions)
+    url: https://github.com/yimga/school-management-system/discussions
+    about: Use GitHub Discussions for how-to questions and early design chat when enabled.

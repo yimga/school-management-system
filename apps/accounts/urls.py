@@ -69,6 +69,7 @@ from .views_certification import (
     certification_session_override,
 )
 from .views_legacy_setup import LegacySetupView
+from .guardian_invite import GuardianSetupView
 from apps.schools.super_views_operator_team import operator_invite_accept
 from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
 from .views_passkey import (
@@ -552,6 +553,12 @@ urlpatterns = [
         "legacy-setup/<uidb64>/<token>/",
         LegacySetupView.as_view(),
         name="legacy_setup",
+    ),
+    # rbac-allow: token-authenticated one-time guardian set-password; must be anonymous-reachable
+    path(
+        "guardian-setup/<uidb64>/<token>/",
+        GuardianSetupView.as_view(),
+        name="guardian_setup",
     ),
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
     path("mfa/dismiss-banner/", dismiss_mfa_banner, name="dismiss_mfa_banner"),

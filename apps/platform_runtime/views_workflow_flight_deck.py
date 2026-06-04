@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
@@ -58,7 +57,9 @@ def flight_deck_json_view(request):
 
     active = list_active_runs(tenant_schema=schema, actor_user_id="", limit=50)
     recent_failed = []
-    qs = WorkflowRun.objects.filter(status__in=("failed", "cancelled")).order_by("-ended_at")[:20]
+    qs = WorkflowRun.objects.filter(  # tenant-isolation-allow: operator-flight-deck-recent-failed-tenant-schema-filter
+        status__in=("failed", "cancelled")
+    ).order_by("-ended_at")[:20]
     if schema:
         qs = qs.filter(tenant_schema=schema)
     for run in qs:

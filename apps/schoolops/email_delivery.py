@@ -55,6 +55,7 @@ import base64
 import datetime as _dt
 import email.utils as _email_utils
 import hashlib
+import json
 import logging
 import re
 import smtplib
@@ -93,7 +94,13 @@ _ERR_OS = "os_error"
 _ERR_CONN = "connection_error"
 _ERR_VALUE = "value_error"
 _ERR_RATE_LIMIT = "rate_limit_exceeded"
+_ERR_SUPPRESSED = "suppressed"
+_ERR_HEADER_INJECTION = "header_injection"
 _ERR_OTHER = "other"
+# Marker sentinel for the synchronous "queued" row written before an async
+# dispatch (audit finding C2). A dropped daemon thread / un-drained Celery
+# task therefore leaves a visible row instead of vanishing silently.
+_ERR_QUEUED = "queued"
 
 # v3.58.x Wave 9 Agent M — bounce taxonomy labels persisted to
 # EmailDeliveryEvent.bounce_kind. Send-time labels prefix-free; webhook-
@@ -171,6 +178,41 @@ def _coerce_to_list(addrs: Union[str, Iterable[str]]) -> list[str]:
     return out
 
 
+def _strip_header_value(value: str) -> str:
+    """Remove CR/LF (and surrounding whitespace) from a header value.
+
+    Defense-in-depth against header / SMTP-command injection (audit finding,
+    P2). Django's ``forbid_multi_line_headers`` raises on most of this at send
+    time, but we sanitise caller-supplied headers / From / Reply-To *before*
+    constructing the message so a crafted ``School.name`` or custom header can
+    never smuggle a second header (e.g. an injected ``Bcc:``).
+    """
+    if value is None:
+        return ""
+    return str(value).replace("\r", " ").replace("\n", " ").strip()
+
+
+def _has_crlf(value: Any) -> bool:
+    """True if a string contains a CR or LF (raw injection attempt)."""
+    return isinstance(value, str) and ("\r" in value or "\n" in value)
+
+
+def _message_id_prefix(message_id: str) -> str:
+    """Return the correlation prefix for a Message-ID header value.
+
+    ``email.utils.make_msgid`` returns ``<local@domain>``; providers report
+    the bounce with or without brackets and sometimes only the local-part.
+    We persist the local-part (brackets + domain stripped) so the inbound
+    bounce webhook can match deterministically. Returns "" on empty input.
+    """
+    if not message_id:
+        return ""
+    cleaned = str(message_id).strip().lstrip("<").rstrip(">").strip()
+    if "@" in cleaned:
+        cleaned = cleaned.split("@", 1)[0]
+    return cleaned.strip()[:64]
+
+
 def _coerce_to_int(value: Any, default: int) -> int:
     """Coerce a value to int, returning default on failure."""
     try:
@@ -218,6 +260,56 @@ def _decrypt_password_b64(encrypted_b64: str) -> str:
             type(exc).__name__,
         )
         return ""
+
+
+_ALLOWED_SMTP_PORTS = frozenset({25, 465, 587, 2525})
+
+
+def _is_safe_smtp_host(host: str, port: int) -> bool:
+    """Reject tenant-supplied SMTP targets that point at private/internal hosts.
+
+    SSRF guard (audit P2-low): a tenant BYO-SMTP override can set host/port,
+    and the platform would otherwise open a connection (with platform
+    credentials in the From header) to anything — including internal hosts
+    (port scan / SSRF) or an open relay. We block private / loopback / link-
+    local / reserved ranges and constrain the port to known SMTP ports.
+    Operators can widen via ``settings.SCHOOLOPS_EMAIL_SMTP_HOST_ALLOWLIST``.
+    """
+    import ipaddress
+    import socket as _socket
+
+    h = (host or "").strip().lower()
+    if not h:
+        return False
+    if int(port or 0) not in _ALLOWED_SMTP_PORTS:
+        logger.warning(
+            "schoolops.email_delivery.tenant_smtp_port_rejected port=%s", port,
+        )
+        return False
+    allowlist = getattr(settings, "SCHOOLOPS_EMAIL_SMTP_HOST_ALLOWLIST", None) or []
+    if h in {str(a).strip().lower() for a in allowlist}:
+        return True
+    # Resolve and check every returned address against blocked ranges.
+    try:
+        infos = _socket.getaddrinfo(h, int(port), proto=_socket.IPPROTO_TCP)
+    except Exception:  # noqa: BLE001 — DNS failure → treat as unsafe
+        logger.warning("schoolops.email_delivery.tenant_smtp_dns_failed")
+        return False
+    for info in infos:
+        addr = info[4][0]
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            return False
+        if (
+            ip.is_private or ip.is_loopback or ip.is_link_local
+            or ip.is_reserved or ip.is_multicast or ip.is_unspecified
+        ):
+            logger.warning(
+                "schoolops.email_delivery.tenant_smtp_blocked_range",
+            )
+            return False
+    return True
 
 
 def get_resolved_smtp_config(*, school=None) -> dict:
@@ -341,6 +433,15 @@ def _load_tenant_school_override(school) -> dict | None:
         merged = dict(env_cfg)
         merged["host"] = raw.get("host") or env_cfg["host"]
         merged["port"] = _coerce_to_int(raw.get("port"), env_cfg["port"])
+        # SSRF guard (audit P2): if the tenant set a custom host, validate it
+        # against private/internal ranges + allowed ports before we ever
+        # connect with platform credentials. On rejection, fall back to the
+        # platform env SMTP (ignore the unsafe override) rather than failing.
+        if raw.get("host") and not _is_safe_smtp_host(merged["host"], merged["port"]):
+            logger.warning(
+                "schoolops.email_delivery.tenant_smtp_override_rejected_unsafe_host"
+            )
+            return None
         merged["use_tls"] = _coerce_to_bool(raw.get("use_tls"), env_cfg["use_tls"])
         merged["host_user"] = raw.get("host_user") or env_cfg["host_user"]
         pwd_b64 = raw.get("host_password_encrypted_b64") or ""
@@ -456,6 +557,7 @@ def _persist_event(
     bounced: bool = False,
     bounce_kind: str = "",
     idempotency_key: str = "",
+    message_id_prefix: str = "",
 ) -> Optional[str]:
     """Best-effort write of an EmailDeliveryEvent row. Returns its UUID str.
 
@@ -480,6 +582,7 @@ def _persist_event(
             bounced=bool(bounced),
             bounce_kind=(bounce_kind or "")[:32],
             idempotency_key=(idempotency_key or "")[:128],
+            message_id_prefix=(message_id_prefix or "")[:64],
         )
         return str(row.pk)
     except Exception as exc:  # broad-by-design — log persistence is never load-bearing
@@ -562,6 +665,29 @@ def _check_per_tenant_rate_limit(
         # limit. The caller may still pass ``tenant_hash=None`` from
         # platform-level sends (operator test email, no SchoolEntity).
         return True
+
+    # Shared (cross-worker) fixed-window counter via the cache (Redis in prod)
+    # so the cap is real across gunicorn workers, not per-process (audit P2).
+    # Falls back to the in-memory sliding window below on any cache trouble.
+    cap = max(1, int(limit_per_hour))
+    try:
+        from django.core.cache import cache
+
+        window = int(time.time()) // _RATE_LIMIT_WINDOW_SECONDS
+        key = f"em:rl:{tenant_hash}:{window}"
+        # add() seeds the counter+TTL atomically; incr() bumps it.
+        if cache.add(key, 1, _RATE_LIMIT_WINDOW_SECONDS):
+            return True
+        try:
+            current = cache.incr(key)
+        except ValueError:
+            # Key expired between add() and incr(); re-seed.
+            cache.add(key, 1, _RATE_LIMIT_WINDOW_SECONDS)
+            return True
+        return current <= cap
+    except Exception:  # noqa: BLE001 — cache down → fall back to in-memory
+        pass
+
     now = time.monotonic()
     cutoff = now - _RATE_LIMIT_WINDOW_SECONDS
     cap = max(1, int(limit_per_hour))
@@ -587,6 +713,325 @@ def _hash_tenant(tenant_id: Optional[str]) -> str:
         return ""
     norm = str(tenant_id).strip().lower().encode("utf-8")
     return hashlib.sha256(norm).hexdigest()[:_TO_HASH_LEN]
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Suppression list (audit finding H3) — bounce/complaint/unsubscribe.
+# ──────────────────────────────────────────────────────────────────────
+
+
+def is_recipient_suppressed(to: str) -> bool:
+    """True when the address is on the active suppression list.
+
+    Hashed-key lookup (``to_hash`` = sha256[:12]); never reads the raw
+    address. Best-effort — returns False on any error so a transient DB
+    blip never blocks legitimate mail (fail-open is correct here: the
+    cost of a missed suppression is one extra send, not a lockout).
+    """
+    addr = (to or "").strip()
+    if not addr:
+        return False
+    try:
+        from apps.schoolops.models_email_suppression import SuppressedRecipient
+
+        to_hash = _hash_recipient(addr)
+        # Only address-is-undeliverable / complained / operator-blocked reasons
+        # gate transactional mail. A *marketing* unsubscribe must NEVER block
+        # transactional sends (password reset, invoices) — that opt-out is
+        # enforced separately by the email-matrix ``is_unsubscribed`` gate.
+        _blocking = ("hard_bounce", "complaint", "manual")
+        # tenant-isolation-allow: platform-email-suppression-no-tenant-scope
+        return SuppressedRecipient.objects.filter(
+            to_hash=to_hash, active=True, reason__in=_blocking,
+        ).exists()
+    except Exception as exc:  # broad-by-design — never block the hot path
+        logger.warning(
+            "schoolops.email_delivery.suppression_check_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return False
+
+
+def suppress_recipient(
+    to: str,
+    *,
+    reason: str = "hard_bounce",
+    source: str = "",
+    detail: str = "",
+) -> bool:
+    """Add (or refresh) an address on the suppression list. Idempotent.
+
+    Returns True on success. Never raises into the caller. Re-activates a
+    previously-lifted row so a fresh bounce after a re-subscribe re-blocks.
+    """
+    addr = (to or "").strip()
+    if not addr:
+        return False
+    try:
+        from apps.schoolops.models_email_suppression import SuppressedRecipient
+
+        to_hash = _hash_recipient(addr)
+        # tenant-isolation-allow: platform-email-suppression-no-tenant-scope
+        SuppressedRecipient.objects.update_or_create(
+            to_hash=to_hash,
+            defaults={
+                "reason": (reason or "hard_bounce")[:24],
+                "source": (source or "")[:48],
+                "detail": (detail or "")[:120],
+                "active": True,
+            },
+        )
+        logger.info(
+            "schoolops.email_delivery.recipient_suppressed "
+            "to_hash=%s reason=%s source=%s",
+            to_hash, reason, source,
+        )
+        return True
+    except Exception as exc:  # broad-by-design
+        logger.warning(
+            "schoolops.email_delivery.suppress_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return False
+
+
+def lift_suppression(to: str) -> bool:
+    """Lift suppression for an address (re-subscribe / operator clear).
+
+    Sets ``active=False`` (retains the row for audit). Returns True if a
+    row was updated.
+    """
+    addr = (to or "").strip()
+    if not addr:
+        return False
+    try:
+        from apps.schoolops.models_email_suppression import SuppressedRecipient
+
+        to_hash = _hash_recipient(addr)
+        # tenant-isolation-allow: platform-email-suppression-no-tenant-scope
+        updated = SuppressedRecipient.objects.filter(
+            to_hash=to_hash, active=True,
+        ).update(active=False)
+        return bool(updated)
+    except Exception as exc:  # broad-by-design
+        logger.warning(
+            "schoolops.email_delivery.lift_suppression_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return False
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Dead-letter queue (audit residual) — park + redrive failed sends.
+# ──────────────────────────────────────────────────────────────────────
+
+
+_DEFAULT_DLQ_MAX_REDRIVES = 5
+
+
+def _dlq_enabled() -> bool:
+    """True when the operator has opted into the dead-letter queue."""
+    return _coerce_to_bool(
+        getattr(settings, "SCHOOLOPS_EMAIL_DLQ_ENABLED", False), False,
+    )
+
+
+def _dlq_max_redrives() -> int:
+    """Resolve the per-row redrive ceiling (default 5)."""
+    raw = getattr(settings, "SCHOOLOPS_EMAIL_DLQ_MAX_REDRIVES", None)
+    try:
+        val = int(raw) if raw is not None else _DEFAULT_DLQ_MAX_REDRIVES
+    except (TypeError, ValueError):
+        return _DEFAULT_DLQ_MAX_REDRIVES
+    return val if val > 0 else _DEFAULT_DLQ_MAX_REDRIVES
+
+
+def _maybe_enqueue_dead_letter(
+    *,
+    subject: str,
+    body: str,
+    to: list,
+    html_body: Optional[str],
+    reply_to: Optional[Union[str, Iterable[str]]],
+    from_email: Optional[str],
+    headers: Optional[dict],
+    priority: str,
+    school: Any,
+    idempotency_key: str,
+    to_hash: str,
+    subject_prefix: str,
+    error_kind: str,
+    attempts: int,
+    delivery_event_id: Optional[str],
+) -> None:
+    """Park a permanently-failed retry-eligible send for later redrive.
+
+    No-op unless ``SCHOOLOPS_EMAIL_DLQ_ENABLED`` is set. The full resend
+    payload is Fernet-encrypted before storage so no plaintext body lands at
+    rest. Best-effort — never raises into the send hot path.
+    """
+    if not _dlq_enabled():
+        return
+    try:
+        from apps.accounts.legacy_hashes.encryption import _get_fernet
+        from apps.schoolops.models_email_deadletter import EmailDeadLetter
+
+        payload = {
+            "subject": subject,
+            "body": body,
+            "html_body": html_body,
+            "to": list(to or []),
+            "reply_to": list(_coerce_to_list(reply_to)) if reply_to else None,
+            "from_email": from_email,
+            "headers": headers or None,
+            "priority": priority,
+            "school_id": getattr(school, "id", None) or getattr(school, "pk", None),
+            "idempotency_key": idempotency_key or "",
+        }
+        token = _get_fernet().encrypt(
+            json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        ).decode("utf-8")
+        # tenant-isolation-allow: platform-email-dead-letter-no-tenant-scope
+        EmailDeadLetter.objects.create(
+            to_hash=to_hash,
+            subject_prefix=subject_prefix,
+            priority=priority,
+            payload_encrypted=token,
+            error_kind=(error_kind or "")[:64],
+            attempts=int(attempts or 0),
+            delivery_event_id=(delivery_event_id or "")[:64],
+        )
+        logger.info(
+            "schoolops.email_delivery.dead_letter_enqueued to_hash=%s error_kind=%s",
+            to_hash, error_kind,
+        )
+    except Exception as exc:  # broad-by-design — DLQ enqueue never breaks a send
+        logger.warning(
+            "schoolops.email_delivery.dead_letter_enqueue_failed err_type=%s",
+            type(exc).__name__,
+        )
+
+
+def redrive_dead_letters(limit: int = 50) -> dict:
+    """Re-attempt parked dead-letter sends. Returns a summary dict.
+
+    Worked by ``python manage.py redrive_email_dead_letters``. Each pending row
+    is decrypted, re-sent with a FRESH idempotency key (so it never dedupes back
+    to the original failure row), and transitioned: success → ``redriven``;
+    failure with attempts left → stays ``pending`` (count bumped); failure at
+    the ceiling → ``exhausted``. Suppression is honoured (a recipient that
+    bounced/complained meanwhile is skipped → ``abandoned``). NEVER raises.
+    """
+    summary = {
+        "scanned": 0, "redriven": 0, "still_pending": 0,
+        "exhausted": 0, "abandoned": 0, "enabled": _dlq_enabled(),
+    }
+    try:
+        from django.utils import timezone
+
+        from apps.accounts.legacy_hashes.encryption import _get_fernet
+        from apps.schoolops.models_email_deadletter import (
+            DeadLetterStatus,
+            EmailDeadLetter,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "schoolops.email_delivery.redrive_import_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return summary
+
+    max_redrives = _dlq_max_redrives()
+    try:
+        # tenant-isolation-allow: platform-email-dead-letter-no-tenant-scope
+        rows = list(
+            EmailDeadLetter.objects.filter(status=DeadLetterStatus.PENDING)
+            .order_by("created_at")[: max(1, int(limit))]
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "schoolops.email_delivery.redrive_query_failed err_type=%s",
+            type(exc).__name__,
+        )
+        return summary
+
+    for row in rows:
+        summary["scanned"] += 1
+        try:
+            payload = json.loads(
+                _get_fernet().decrypt(row.payload_encrypted.encode("utf-8"))
+            )
+        except Exception as exc:  # noqa: BLE001 — undecryptable row → abandon
+            logger.warning(
+                "schoolops.email_delivery.redrive_decrypt_failed err_type=%s",
+                type(exc).__name__,
+            )
+            row.status = DeadLetterStatus.ABANDONED
+            row.last_error_kind = "decrypt_failed"
+            row.redriven_at = timezone.now()
+            row.save(update_fields=["status", "last_error_kind", "redriven_at", "updated_at"])
+            summary["abandoned"] += 1
+            continue
+
+        to_list = payload.get("to") or []
+        if to_list and is_recipient_suppressed(to_list[0]):
+            row.status = DeadLetterStatus.ABANDONED
+            row.last_error_kind = "suppressed"
+            row.redriven_at = timezone.now()
+            row.save(update_fields=["status", "last_error_kind", "redriven_at", "updated_at"])
+            summary["abandoned"] += 1
+            continue
+
+        school = None
+        sid = payload.get("school_id")
+        if sid:
+            try:
+                from apps.schools.models import School
+
+                # tenant-isolation-allow: redrive re-resolves the original send's school by id
+                school = School.objects.filter(pk=sid).first()
+            except Exception:  # noqa: BLE001
+                school = None
+
+        attempt_no = int(row.redrive_count or 0) + 1
+        base_idem = payload.get("idempotency_key") or f"dlq:{row.id}"
+        result = send_transactional(
+            subject=payload.get("subject") or "",
+            body=payload.get("body") or "",
+            to=to_list,
+            html_body=payload.get("html_body"),
+            reply_to=payload.get("reply_to"),
+            from_email=payload.get("from_email"),
+            headers=payload.get("headers"),
+            priority=payload.get("priority") or "transactional",
+            school=school,
+            idempotency_key=f"{base_idem}:redrive:{attempt_no}",
+        )
+        row.redrive_count = attempt_no
+        if result.get("ok"):
+            row.status = DeadLetterStatus.REDRIVEN
+            row.last_error_kind = ""
+            row.redriven_at = timezone.now()
+            row.save(update_fields=["status", "redrive_count", "last_error_kind", "redriven_at", "updated_at"])
+            summary["redriven"] += 1
+            continue
+        row.last_error_kind = (result.get("error_kind") or "unknown")[:64]
+        if attempt_no >= max_redrives:
+            row.status = DeadLetterStatus.EXHAUSTED
+            row.redriven_at = timezone.now()
+            row.save(update_fields=["status", "redrive_count", "last_error_kind", "redriven_at", "updated_at"])
+            summary["exhausted"] += 1
+        else:
+            row.save(update_fields=["redrive_count", "last_error_kind", "updated_at"])
+            summary["still_pending"] += 1
+
+    logger.info(
+        "schoolops.email_delivery.redrive_complete scanned=%d redriven=%d "
+        "exhausted=%d abandoned=%d",
+        summary["scanned"], summary["redriven"], summary["exhausted"],
+        summary["abandoned"],
+    )
+    return summary
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -620,6 +1065,7 @@ def _send_transactional_sync_core(
     enforce_sync_budget: bool = True,
     school=None,
     idempotency_key: str = "",
+    attachments: Optional[list] = None,
 ) -> dict:
     """Internal synchronous send implementation.
 
@@ -683,19 +1129,65 @@ def _send_transactional_sync_core(
     to_hash = _hash_recipient(to_list[0])
     subject_prefix = _redact_subject_for_log(subject or "")
 
-    from_header = _build_from_header(cfg, from_email)
-    reply_to_list = _coerce_to_list(reply_to) if reply_to else (
-        [cfg["default_reply_to"]] if cfg.get("default_reply_to") else []
+    # CRLF / header-injection guard (audit P2). Reject the send outright if
+    # a caller-supplied From / Reply-To / header value carries a raw CR/LF —
+    # that's an injection attempt, not a transient error, so we do not retry.
+    injection_detected = (
+        _has_crlf(from_email)
+        or any(_has_crlf(r) for r in _coerce_to_list(reply_to))
+        or any(_has_crlf(k) or _has_crlf(v) for k, v in (headers or {}).items())
     )
+    if injection_detected:
+        logger.error(
+            "schoolops.email_delivery.header_injection_blocked "
+            "to_hash=%s priority=%s",
+            to_hash, priority,
+        )
+        delivery_event_id = _persist_event(
+            to_hash=to_hash,
+            subject_prefix=subject_prefix,
+            priority=priority,
+            attempts=0,
+            ok=False,
+            error_kind=_ERR_HEADER_INJECTION,
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "ok": False,
+            "attempts": 0,
+            "delivery_event_id": delivery_event_id,
+            "error_kind": _ERR_HEADER_INJECTION,
+            "bounced": False,
+            "bounce_kind": "",
+        }
 
-    # DKIM-friendly headers — explicit Message-ID + Date.
+    from_header = _strip_header_value(_build_from_header(cfg, from_email))
+    reply_to_list = [
+        _strip_header_value(r)
+        for r in (
+            _coerce_to_list(reply_to) if reply_to else (
+                [cfg["default_reply_to"]] if cfg.get("default_reply_to") else []
+            )
+        )
+        if _strip_header_value(r)
+    ]
+
+    # DKIM-friendly headers — explicit Message-ID + Date. Strip CR/LF from
+    # every caller-supplied header value defensively (belt-and-braces with
+    # the injection gate above).
     domain_hint = (cfg.get("default_from_email") or "runmycampus.com").split(
         "@",
     )[-1] or "runmycampus.com"
-    msg_headers = dict(headers or {})
+    msg_headers = {
+        str(k): _strip_header_value(v) for k, v in (headers or {}).items()
+    }
     msg_headers.setdefault("Message-ID", _email_utils.make_msgid(domain=domain_hint))
-    msg_headers.setdefault("Date", _email_utils.formatdate(localtime=True))
+    # UTC Date (audit P3 — localtime leaked the host timezone).
+    msg_headers.setdefault("Date", _email_utils.formatdate(usegmt=True))
     msg_headers.setdefault("X-RMC-Email-Priority", priority)
+    # Persist the Message-ID local-part so a later provider bounce webhook can
+    # correlate the bounce to this exact row (audit residual closeout).
+    message_id_prefix_value = _message_id_prefix(msg_headers.get("Message-ID", ""))
 
     last_exc_kind = ""
     last_bounce_kind = ""  # v3.58.x Wave 9 Agent M — set when the FINAL attempt raises a bounce-class exception
@@ -734,6 +1226,20 @@ def _send_transactional_sync_core(
                     headers=msg_headers,
                     connection=connection,
                 )
+            # Optional attachments — each is (filename, content, mimetype) or a
+            # MIMEBase, mirroring Django's EmailMessage.attach contract. Lets
+            # report/finance senders (PDF/CSV) migrate off raw EmailMessage.
+            for att in (attachments or []):
+                try:
+                    if isinstance(att, (tuple, list)) and len(att) == 3:
+                        msg.attach(att[0], att[1], att[2])
+                    else:
+                        msg.attach(att)
+                except Exception:  # noqa: BLE001 — a bad attachment never blocks the send
+                    logger.warning(
+                        "schoolops.email_delivery.attachment_skipped to_hash=%s",
+                        to_hash,
+                    )
             msg.send(fail_silently=False)
             ok = True
             last_exc_kind = ""
@@ -832,7 +1338,49 @@ def _send_transactional_sync_core(
         bounced=bounced_flag,
         bounce_kind=last_bounce_kind if bounced_flag else "",
         idempotency_key=idempotency_key,
+        message_id_prefix=message_id_prefix_value,
     )
+
+    # Dead-letter queue (audit residual). When a transactional send permanently
+    # fails for a RETRY-eligible reason (transient SMTP/connection exhaustion —
+    # NOT a hard bounce, suppression, or header-injection) we optionally park
+    # the full payload (encrypted) so an operator can redrive it once the relay
+    # recovers. Opt-in via SCHOOLOPS_EMAIL_DLQ_ENABLED (default off) so we never
+    # store message bodies unless the operator wants the DLQ.
+    if (not ok) and (not bounced_flag) and last_exc_kind not in (
+        _ERR_HEADER_INJECTION, _ERR_SUPPRESSED, _ERR_RATE_LIMIT, _ERR_QUEUED,
+    ):
+        _maybe_enqueue_dead_letter(
+            subject=subject,
+            body=body,
+            to=to_list,
+            html_body=html_body,
+            reply_to=reply_to,
+            from_email=from_email,
+            headers=headers,
+            priority=priority,
+            school=school,
+            idempotency_key=idempotency_key,
+            to_hash=to_hash,
+            subject_prefix=subject_prefix,
+            error_kind=last_exc_kind,
+            attempts=attempts_made,
+            delivery_event_id=delivery_event_id,
+        )
+
+    # Auto-suppress on a hard send-time bounce (audit H3). Only the hard
+    # classes (sender/recipients refused, 5xx) — soft/transient bounces stay
+    # retry-eligible and are NOT suppressed. First recipient only (the hash
+    # we persisted); multi-recipient transactional sends are rare.
+    if bounced_flag and last_bounce_kind in (
+        _BOUNCE_HARD_5XX, _BOUNCE_SENDER_REFUSED, _BOUNCE_RECIPIENTS_REFUSED,
+    ):
+        suppress_recipient(
+            to_list[0],
+            reason="hard_bounce",
+            source="send_time",
+            detail=last_bounce_kind,
+        )
 
     if ok:
         logger.info(
@@ -897,6 +1445,8 @@ def send_transactional(
     tenant_hash: Optional[str] = None,
     school=None,
     idempotency_key: str = "",
+    allow_suppressed: bool = False,
+    attachments: Optional[list] = None,
 ) -> dict:
     """Send a transactional message with retries + audit logging.
 
@@ -974,6 +1524,39 @@ def send_transactional(
                     "deduplicated": True,
                 }
 
+    # ── Suppression gate (audit H3) ──────────────────────────────────
+    # Before any send, consult the bounce/complaint/unsubscribe list.
+    # ``allow_suppressed=True`` lets a caller bypass it for a re-opt-in
+    # confirmation mail (e.g. newsletter re-subscribe) — but transactional
+    # callers never set it. Suppression applies to the FIRST recipient.
+    to_list_sup = _coerce_to_list(to)
+    if not allow_suppressed and to_list_sup and is_recipient_suppressed(to_list_sup[0]):
+        to_hash_sup = _hash_recipient(to_list_sup[0])
+        delivery_event_id_sup = _persist_event(
+            to_hash=to_hash_sup,
+            subject_prefix=_redact_subject_for_log(subject or ""),
+            priority=priority,
+            attempts=0,
+            ok=False,
+            error_kind=_ERR_SUPPRESSED,
+            idempotency_key=idempotency_key,
+        )
+        logger.info(
+            "schoolops.email_delivery.send_skipped_suppressed "
+            "to_hash=%s priority=%s event_id=%s",
+            to_hash_sup, priority, delivery_event_id_sup or "n/a",
+        )
+        return {
+            "ok": False,
+            "queued": False,
+            "attempts": 0,
+            "delivery_event_id": delivery_event_id_sup,
+            "error_kind": _ERR_SUPPRESSED,
+            "suppressed": True,
+            "bounced": False,
+            "bounce_kind": "",
+        }
+
     # ── v3.58.x Wave 9 Agent M — per-tenant rate-limit gate ──────────
     # Gate at the outer entry so both sync AND async paths share one
     # bucket. When tenant_hash is None (platform-level sends) the gate
@@ -1013,20 +1596,64 @@ def send_transactional(
             }
 
     if async_send:
+        # Audit C2 — write a synchronous "queued" marker row BEFORE we hand
+        # off. If the daemon thread dies on a worker restart (the live
+        # "no activation email" failure class) or a Celery task is never
+        # drained, this row remains visible on the health dashboard as a
+        # stuck/queued send instead of vanishing without a trace. The marker
+        # carries NO idempotency_key (so it never dedupes against the real
+        # terminal row the worker writes).
+        to_list_q = _coerce_to_list(to)
+        queued_event_id = _persist_event(
+            to_hash=_hash_recipient(to_list_q[0]) if to_list_q else "",
+            subject_prefix=_redact_subject_for_log(subject or ""),
+            priority=priority,
+            attempts=0,
+            ok=False,
+            error_kind=_ERR_QUEUED,
+        )
+
+        worker_kwargs = {
+            "subject": subject,
+            "body": body,
+            "to": to,
+            "html_body": html_body,
+            "reply_to": reply_to,
+            "from_email": from_email,
+            "headers": headers,
+            "priority": priority,
+            "school": school,
+            "idempotency_key": idempotency_key,
+        }
+
+        # Durable path (opt-in): when an always-on Celery worker is available
+        # and SCHOOLOPS_EMAIL_ASYNC_USE_CELERY is set, dispatch the send as a
+        # task so it survives a web-worker restart. Default stays the daemon
+        # thread (free-tier reality: the worker may be asleep, and a hung
+        # thread is still bounded by the per-attempt socket cap).
+        if getattr(settings, "SCHOOLOPS_EMAIL_ASYNC_USE_CELERY", False):
+            try:
+                from apps.schoolops.tasks import dispatch_transactional_email
+
+                dispatch_transactional_email.delay(**worker_kwargs)
+                return {
+                    "ok": True,
+                    "attempts": 0,
+                    "delivery_event_id": queued_event_id,
+                    "error_kind": None,
+                    "queued": True,
+                    "transport": "celery",
+                }
+            except Exception as exc:  # broad-by-design — fall back to thread
+                logger.warning(
+                    "schoolops.email_delivery.async_celery_dispatch_failed "
+                    "err_type=%s falling_back_to_thread",
+                    type(exc).__name__,
+                )
+
         thread = threading.Thread(
             target=_async_send_worker,
-            kwargs={
-                "subject": subject,
-                "body": body,
-                "to": to,
-                "html_body": html_body,
-                "reply_to": reply_to,
-                "from_email": from_email,
-                "headers": headers,
-                "priority": priority,
-                "school": school,
-                "idempotency_key": idempotency_key,
-            },
+            kwargs=worker_kwargs,
             name="schoolops-email-async-send",
             daemon=True,
         )
@@ -1042,16 +1669,17 @@ def send_transactional(
             return {
                 "ok": False,
                 "attempts": 0,
-                "delivery_event_id": None,
+                "delivery_event_id": queued_event_id,
                 "error_kind": "thread_start_failed",
                 "queued": False,
             }
         return {
             "ok": True,
             "attempts": 0,
-            "delivery_event_id": None,
+            "delivery_event_id": queued_event_id,
             "error_kind": None,
             "queued": True,
+            "transport": "thread",
         }
 
     return _send_transactional_sync_core(
@@ -1066,6 +1694,7 @@ def send_transactional(
         enforce_sync_budget=True,
         school=school,
         idempotency_key=idempotency_key,
+        attachments=attachments,
     )
 
 
@@ -1078,11 +1707,14 @@ def send_bulk(
     *,
     subject: str,
     body: str,
-    to: Union[str, Iterable[str]],
+    to: Optional[Union[str, Iterable[str]]] = None,
+    recipients: Optional[Union[str, Iterable[str]]] = None,
     html_body: Optional[str] = None,
     reply_to: Optional[Union[str, Iterable[str]]] = None,
     from_email: Optional[str] = None,
     headers: Optional[dict] = None,
+    priority: str = "bulk",
+    idempotency_key: str = "",
 ) -> dict:
     """Queue a bulk send via Celery when available, fall back to inline.
 
@@ -1090,7 +1722,15 @@ def send_bulk(
     Celery path is taken, ``attempts`` is reported as 0 and
     ``delivery_event_id`` is None — the real attempt + persistence
     happens when the worker runs ``send_transactional``.
+
+    Audit H2 — ``recipients`` is accepted as an alias for ``to`` (some
+    callers, incl. ``test_email_health --bulk``, used it), and ``priority``
+    / ``idempotency_key`` are forwarded so the bulk path has feature parity
+    with :func:`send_transactional`. Previously these kwargs raised
+    ``TypeError`` and the ``--bulk`` health probe always failed.
     """
+    resolved_to = to if to is not None else recipients
+    to_list = list(_coerce_to_list(resolved_to))
     try:
         # Lazy import — celery is optional in dev / tests.
         from apps.schoolops.tasks import dispatch_bulk_email  # type: ignore[attr-defined]
@@ -1102,17 +1742,20 @@ def send_bulk(
         dispatch_bulk_email.delay(  # type: ignore[union-attr]
             subject=subject,
             body=body,
-            to=list(_coerce_to_list(to)),
+            to=to_list,
             html_body=html_body,
             reply_to=list(_coerce_to_list(reply_to)) if reply_to else None,
             from_email=from_email,
             headers=headers,
+            priority=priority,
+            idempotency_key=idempotency_key,
         )
         return {
             "ok": True,
             "attempts": 0,
             "delivery_event_id": None,
             "error_kind": "",
+            "queued": True,
         }
     except (ImportError, AttributeError):
         # No Celery task wired — fall through to inline send.
@@ -1129,12 +1772,13 @@ def send_bulk(
     return send_transactional(
         subject=subject,
         body=body,
-        to=to,
+        to=to_list,
         html_body=html_body,
         reply_to=reply_to,
         from_email=from_email,
         headers=headers,
-        priority="bulk",
+        priority=priority or "bulk",
+        idempotency_key=idempotency_key,
     )
 
 
@@ -1189,15 +1833,27 @@ def smtp_probe(timeout: float = _DEFAULT_SMTP_PROBE_TIMEOUT) -> dict:
         # only on the dedicated TLS port (465) or via explicit ``starttls()``.
         if port == 465:
             sock = smtplib.SMTP_SSL(host=host, port=port, timeout=timeout)
+        tls_warning = None
+        if port == 465:
+            sock = smtplib.SMTP_SSL(host=host, port=port, timeout=timeout)
         else:
             sock = smtplib.SMTP(host=host, port=port, timeout=timeout)
             if use_tls:
                 try:
                     sock.starttls()
-                except smtplib.SMTPException:
-                    # STARTTLS unsupported is a real config issue but
-                    # the bare connection works — surface it as a warning.
-                    pass
+                except smtplib.SMTPException as tls_exc:
+                    # STARTTLS unsupported is a real config issue (mail would
+                    # go in cleartext) — surface it loudly instead of the
+                    # previous silent ``pass`` so a green dashboard can't hide
+                    # a relay that quietly dropped TLS (audit P2).
+                    tls_warning = (
+                        f"STARTTLS_failed:{type(tls_exc).__name__}"
+                    )
+                    logger.warning(
+                        "schoolops.email_delivery.smtp_probe_starttls_failed "
+                        "host=%s port=%d err_type=%s",
+                        host, port, type(tls_exc).__name__,
+                    )
         try:
             sock.ehlo_or_helo_if_needed()
         finally:
@@ -1210,6 +1866,7 @@ def smtp_probe(timeout: float = _DEFAULT_SMTP_PROBE_TIMEOUT) -> dict:
             "ok": True,
             "latency_ms": elapsed_ms,
             "error": None,
+            "tls_warning": tls_warning,
             "host": host,
             "port": port,
             "use_tls": use_tls,
@@ -1257,6 +1914,10 @@ def get_recent_delivery_stats(window_hours: int = 24) -> dict:
     out = {
         "sent_count": 0,
         "failed_count": 0,
+        "queued_count": 0,
+        "suppressed_count": 0,
+        "rate_limited_count": 0,
+        "stuck_queued_count": 0,
         "last_failure_iso": None,
         "last_failure_reason_kind": None,
         "window_hours": int(window_hours),
@@ -1266,16 +1927,37 @@ def get_recent_delivery_stats(window_hours: int = 24) -> dict:
 
         from apps.schoolops.models_email_delivery import EmailDeliveryEvent
 
-        cutoff = timezone.now() - _dt.timedelta(hours=int(window_hours))
+        now = timezone.now()
+        cutoff = now - _dt.timedelta(hours=int(window_hours))
+        # Intentional-non-send sentinels are reported separately so the
+        # genuine-failure count is not polluted by queued markers (C2),
+        # suppression skips (H3), or rate-limit rejections.
+        _sentinels = (_ERR_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT)
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
         qs = EmailDeliveryEvent.objects.filter(created_at__gte=cutoff)
-        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
         out["sent_count"] = qs.filter(ok=True).count()
-        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
-        out["failed_count"] = qs.filter(ok=False).count()
-        # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+        out["failed_count"] = qs.filter(ok=False).exclude(
+            error_kind__in=_sentinels
+        ).count()
+        out["queued_count"] = qs.filter(error_kind=_ERR_QUEUED).count()
+        out["suppressed_count"] = qs.filter(error_kind=_ERR_SUPPRESSED).count()
+        out["rate_limited_count"] = qs.filter(error_kind=_ERR_RATE_LIMIT).count()
+        # Stuck = a queued marker older than the stuck threshold (default
+        # 15 min) that was never followed by delivery → a dropped async send.
+        stuck_minutes = _coerce_to_int(
+            getattr(settings, "SCHOOLOPS_EMAIL_STUCK_QUEUED_MINUTES", 15), 15,
+        )
+        stuck_cutoff = now - _dt.timedelta(minutes=max(1, stuck_minutes))
+        out["stuck_queued_count"] = (
+            EmailDeliveryEvent.objects.filter(  # noqa: E501
+                # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+                error_kind=_ERR_QUEUED, created_at__lt=stuck_cutoff,
+                created_at__gte=cutoff,
+            ).count()
+        )
         last_fail = (
             qs.filter(ok=False)
+            .exclude(error_kind__in=_sentinels)
             .order_by("-created_at")
             .only("created_at", "error_kind")
             .first()
@@ -1314,6 +1996,7 @@ def get_recent_failures(limit: int = 5) -> list[dict]:
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
         rows = (
             EmailDeliveryEvent.objects.filter(ok=False)
+            .exclude(error_kind__in=(_ERR_QUEUED, _ERR_SUPPRESSED, _ERR_RATE_LIMIT))
             .order_by("-created_at")[: max(1, int(limit))]
         )
         for r in rows:
@@ -1378,6 +2061,12 @@ __all__ = [
     "get_recent_delivery_stats",
     "get_recent_failures",
     "encrypt_password_for_storage",
+    # Suppression list (audit H3).
+    "is_recipient_suppressed",
+    "suppress_recipient",
+    "lift_suppression",
+    # Dead-letter queue (audit residual).
+    "redrive_dead_letters",
     # v3.58.x Wave 9 Agent M — bounce + rate-limit + tenant hashing.
     "_check_per_tenant_rate_limit",
     "_hash_tenant",

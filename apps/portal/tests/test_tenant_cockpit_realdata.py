@@ -65,7 +65,7 @@ class TenantCockpitRealdataTests(SimpleTestCase):
     @patch("apps.portal.services.guardian_student_links", return_value=[])
     @patch("apps.portal.parent_portal_helpers.get_active_child_id", return_value=None)
     @patch("apps.portal.tenant_cockpit_realdata.is_tp_v3_role_home_request", return_value=True)
-    @patch("apps.portal.tenant_cockpit_realdata._parent_widget_bundle")
+    @patch("apps.portal.tenant_cockpit_realdata._role_widget_bundle")
     def test_hydrate_role_home_overlays_sections(
         self, mock_bundle, _mock_role_home, _mock_child, _mock_links
     ):
@@ -93,3 +93,21 @@ class TenantCockpitRealdataTests(SimpleTestCase):
         self.assertTrue(out["today_snapshot"]["enabled"])
         self.assertTrue(out["upcoming_events"]["enabled"])
         self.assertGreaterEqual(len(out["upcoming_events"]["events"]), 1)
+
+    @patch("apps.portal.tenant_cockpit_realdata.is_tp_v3_role_home_request", return_value=True)
+    @patch("apps.portal.tenant_cockpit_realdata._role_widget_bundle")
+    def test_teacher_role_home_hydrates_completion(self, mock_bundle, _mock_role_home):
+        mock_bundle.return_value = {
+            "attendance": {"overall": 91},
+            "finance": {},
+            "tasks": {"pending_evaluations": 3, "pending_payments": 0},
+            "performance": {"average": 72, "label": "Marking completion"},
+        }
+        cockpit = {"today_snapshot": {"enabled": False, "cards": []}}
+        class _Req:
+            user = type("U", (), {"role": User.Role.TEACHER, "pk": 2})()
+
+        out = hydrate_role_home_cockpit_realdata(_Req(), cockpit)
+        self.assertTrue(out["today_snapshot"]["enabled"])
+        values = [c.get("value") for c in out["today_snapshot"]["cards"]]
+        self.assertIn("72", values)

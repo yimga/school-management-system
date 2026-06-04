@@ -1152,3 +1152,16 @@ from .video_conferencing import (  # noqa: E402,F401
     SessionRecording,
     VirtualClassroom,
 )
+
+# Cross-channel consent log + SMS/WhatsApp delivery receipts (audit residual
+# closeout). Re-exported here so model loading + migrations include them.
+from .models_consent import (  # noqa: E402,F401
+    ConsentAction,
+    ConsentChannel,
+    ConsentEvent,
+    ConsentEventReadOnlyError,
+)
+from .models_delivery_receipt import (  # noqa: E402,F401
+    DeliveryChannel,
+    MessageDeliveryReceipt,
+)

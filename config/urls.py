@@ -19,6 +19,8 @@ from apps.platform_runtime.views_click_tracking import (
 from apps.platform_runtime.views_administration import internal_admin_alias_redirect
 from apps.platform_runtime.views_rum import rum_ingest
 
+from apps.schoolops.views_email_webhook import EmailProviderWebhookView
+from apps.communication.views_delivery_dashboard import MessageDeliveryDashboardView
 from apps.observability import views as obs_views
 from apps.wal_stream.views_http import wal_websocket_http_stub
 from apps.observability import views_friction as obs_friction_views
@@ -678,6 +680,22 @@ urlpatterns = [
         include(
             ("apps.communication.urls", "communication"), namespace="communication"
         ),
+    ),
+    # Inbound email-provider bounce/complaint webhook (Postmark/SendGrid/SES/
+    # Mailgun/Brevo). Anonymous + per-provider signature-verified inside the
+    # view; correlates bounces to EmailDeliveryEvent via the message_id_prefix
+    # column and populates the suppression list.
+    path(  # rbac-allow: intentionally-public-email-provider-webhook-signature-verified-in-view
+        "email/webhook/<str:provider>/",
+        EmailProviderWebhookView.as_view(),
+        name="email_provider_webhook",
+    ),
+    # Operator delivery-receipt dashboard (SMS/WhatsApp/push) — staff-only via
+    # staff_member_required on the view.
+    path(  # rbac-allow: super-staff-message-delivery-receipts-dashboard
+        "super/communication/delivery-receipts/",
+        MessageDeliveryDashboardView.as_view(),
+        name="message_delivery_receipts_dashboard",
     ),
     path("emis/", include(("emis.urls", "emis"), namespace="emis")),
     path(

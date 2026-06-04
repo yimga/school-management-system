@@ -13,7 +13,11 @@
 
       <div class="card shadow-sm">
         <div class="card-body">
-          <form method="post" novalidate enctype="multipart/form-data">
+          <form method="post" novalidate enctype="multipart/form-data"
+                data-rmc-offline-form="field_capture"
+                data-offline-action-type="notes_report"
+                data-rmc-offline-workflow="people_teacher_create"
+                data-rmc-offline-hint="{% trans 'Teacher details (except photo) stay on this device until you reconnect. Upload photo when online.' %}">
             {% csrf_token %}
 
             <div class="row g-3">

@@ -68,7 +68,7 @@ If you'd like to be ready for 2.0 today:
 
 ## Where to ask for help
 
-- Issues: <https://github.com/runmycampus/runmycampus/issues>
+- Issues: <https://github.com/yimga/school-management-system/issues>
 - Header-migration runbook: `docs/WEBHOOK_HEADER_MIGRATION_2026.md`
   in the platform repository.
 - Verification doc: `apps/migration_cloud/api/static/WEBHOOK_VERIFICATION.md`

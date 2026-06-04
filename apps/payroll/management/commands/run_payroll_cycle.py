@@ -65,6 +65,7 @@ class Command(BaseCommand):
             )
             raise CommandError("No active compliance profile configured for payroll.")
 
+        start = end = None
         try:
             year = options.get("year")
             month = options.get("month")
@@ -115,8 +116,8 @@ class Command(BaseCommand):
                 school_id=school_id,
                 extra={
                     "command": "run_payroll_cycle",
-                    "period_start": period_start_str,
-                    "period_end": period_end_str,
+                    "period_start": str(start) if start else None,
+                    "period_end": str(end) if end else None,
                     "error": str(exc),
                 },
             )

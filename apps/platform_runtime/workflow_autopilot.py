@@ -105,7 +105,7 @@ def try_auto_apply_on_failure(*, run_pk: int) -> bool:
     except Exception:
         return False
 
-    run = WorkflowRun.objects.filter(pk=run_pk).first()
+    run = WorkflowRun.objects.filter(pk=run_pk).first()  # tenant-isolation-allow: workflow-run-load-by-primary-key-row
     if run is None:
         return False
     remediation = run.suggested_remediation or {}

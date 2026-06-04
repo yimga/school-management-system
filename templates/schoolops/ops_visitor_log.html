@@ -8,7 +8,11 @@
   <div class="card shadow-sm mb-4">
     <div class="card-body">
       <h1 class="h6">{% trans "Check in visitor" %}</h1>
-      <form method="post" class="row g-2 align-items-end">{% csrf_token %}
+      <form method="post" class="row g-2 align-items-end"
+            data-rmc-offline-form="field_capture"
+            data-offline-action-type="notes_report"
+            data-rmc-offline-workflow="visitor_check_in"
+            data-rmc-offline-hint="{% trans 'Visitor check-in saves on this device and syncs when you reconnect.' %}">{% csrf_token %}
         <input type="hidden" name="action" value="checkin">
         <div class="col-md-3"><label class="form-label small">{% trans "Name" %} *</label><input class="form-control" name="visitor_name" required maxlength="255"></div>
         <div class="col-md-3"><label class="form-label small">{% trans "Visiting (host/office)" %}</label><input class="form-control" name="host_contact" maxlength="255"></div>

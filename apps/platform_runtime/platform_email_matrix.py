@@ -254,19 +254,36 @@ def _in_cooldown(event_type: str, classification: str, recipient: str, cooldown_
     if cooldown_minutes <= 0:
         return False
     key = _cooldown_key(event_type, classification, recipient)
-    last = _COOLDOWN_RING.get(key)
-    if last is None:
-        return False
-    age_seconds = timezone.now().timestamp() - last
-    return age_seconds < (cooldown_minutes * 60)
+    # Shared cross-worker cooldown via cache (Redis in prod) so the "max one
+    # ping per X" guarantee holds across the 2 web workers + survives restarts
+    # (audit P2). Falls back to the in-process ring on any cache trouble.
+    try:
+        from django.core.cache import cache
+
+        return cache.get(key) is not None
+    except Exception:  # noqa: BLE001
+        last = _COOLDOWN_RING.get(key)
+        if last is None:
+            return False
+        age_seconds = timezone.now().timestamp() - last
+        return age_seconds < (cooldown_minutes * 60)
 
 
-def _record_cooldown(event_type: str, classification: str, recipient: str) -> None:
+def _record_cooldown(event_type: str, classification: str, recipient: str, cooldown_minutes: int = 0) -> None:
+    key = _cooldown_key(event_type, classification, recipient)
+    try:
+        from django.core.cache import cache
+
+        ttl = max(1, int(cooldown_minutes)) * 60 if cooldown_minutes else 3600
+        cache.set(key, timezone.now().timestamp(), ttl)
+        return
+    except Exception:  # noqa: BLE001 — fall back to the in-process ring
+        pass
     if len(_COOLDOWN_RING) >= _COOLDOWN_RING_CAP:
         # Drop oldest 10% to make room.
-        for key in list(_COOLDOWN_RING.keys())[: _COOLDOWN_RING_CAP // 10]:
-            _COOLDOWN_RING.pop(key, None)
-    _COOLDOWN_RING[_cooldown_key(event_type, classification, recipient)] = timezone.now().timestamp()
+        for k in list(_COOLDOWN_RING.keys())[: _COOLDOWN_RING_CAP // 10]:
+            _COOLDOWN_RING.pop(k, None)
+    _COOLDOWN_RING[key] = timezone.now().timestamp()
 
 
 def _render_subject(template_string: str, payload: dict) -> str:
@@ -358,6 +375,10 @@ def _dispatch_one_row(
     scrubbed = _scrub_payload(payload or {})
     scrubbed["_event_type"] = event_type
     scrubbed.setdefault("generated_at", timezone.now().isoformat())
+    # Always expose the legal sender identity to every template so footers can
+    # render the required postal address (CAN-SPAM / CASL / GDPR).
+    for _k, _v in company_email_context().items():
+        scrubbed.setdefault(_k, _v)
 
     try:
         recipients = row.recipient_resolver(scrubbed) or []
@@ -414,6 +435,13 @@ def _dispatch_one_row(
 
     results = []
     for recipient in after_cooldown:
+        send_headers = {
+            "X-RMC-Event-Type": event_type,
+            "X-RMC-Classification": row.classification,
+        }
+        # RFC 8058 one-click unsubscribe headers for marketing mail (H4).
+        if row.classification == CLASSIFICATION_MARKETING:
+            send_headers.update(_marketing_list_headers(recipient, scrubbed))
         try:
             result = send_transactional(
                 subject=subject,
@@ -423,11 +451,11 @@ def _dispatch_one_row(
                 priority=row.priority if row.priority in ("transactional", "bulk") else "transactional",
                 tenant_hash=tenant_hash,
                 idempotency_key=(idempotency_key or "") + f":{event_type}:{recipient[:32]}",
-                headers={"X-RMC-Event-Type": event_type, "X-RMC-Classification": row.classification},
+                headers=send_headers,
             )
             results.append({"recipient_hash": _hash_for_log(recipient), "result": result})
             if result.get("ok"):
-                _record_cooldown(event_type, row.classification, recipient)
+                _record_cooldown(event_type, row.classification, recipient, row.cooldown_minutes)
         except Exception as exc:
             logger.exception("email_matrix_send_failed event=%s", event_type)
             results.append(
@@ -453,6 +481,57 @@ def _hash_for_log(recipient: str) -> str:
     import hashlib
 
     return hashlib.sha256(recipient.lower().encode("utf-8")).hexdigest()[:12]
+
+
+def company_email_context() -> dict:
+    """Legal sender identity for email footers (CAN-SPAM / CASL / GDPR).
+
+    Sourced from settings so templates always render a physical postal
+    address + sender identity. Audit: marketing/reactivation mail had no
+    postal address (statutory requirement)."""
+
+    from django.conf import settings
+
+    return {
+        "company_name": getattr(settings, "RMC_COMPANY_LEGAL_NAME", "") or "RunMyCampus",
+        "company_address": getattr(settings, "RMC_COMPANY_POSTAL_ADDRESS", "")
+        or "RunMyCampus — postal address on file; reply for details.",
+        "company_url": (getattr(settings, "RMC_PUBLIC_SITE_URL", "") or "https://runmycampus.com").rstrip("/"),
+    }
+
+
+def _marketing_list_headers(recipient: str, payload: dict) -> dict:
+    """Build RFC 8058 one-click List-Unsubscribe headers for marketing mail.
+
+    Gmail/Yahoo bulk-sender rules require ``List-Unsubscribe`` +
+    ``List-Unsubscribe-Post`` or mail is spam-foldered/rejected. We prefer a
+    payload-supplied ``unsubscribe_url`` (newsletter/reactivation inject one);
+    otherwise we mint a per-recipient token URL."""
+
+    from django.conf import settings
+
+    unsub_url = str(payload.get("unsubscribe_url") or "").strip()
+    if not unsub_url:
+        try:
+            from apps.platform_runtime.newsletter_service import _build_unsubscribe_url
+
+            unsub_url = _build_unsubscribe_url(recipient)
+        except Exception:  # noqa: BLE001 — header is best-effort
+            unsub_url = ""
+    mailto = getattr(settings, "RMC_LIST_UNSUBSCRIBE_MAILTO", "") or "unsubscribe@runmycampus.com"
+    parts = []
+    if unsub_url:
+        parts.append(f"<{unsub_url}>")
+    parts.append(f"<mailto:{mailto}?subject=unsubscribe>")
+    headers = {
+        "List-Unsubscribe": ", ".join(parts),
+        "List-Id": getattr(settings, "RMC_LIST_ID", "") or "RunMyCampus <newsletter.runmycampus.com>",
+        "Precedence": "bulk",
+    }
+    # One-click POST per RFC 8058 only when we have an HTTPS unsubscribe URL.
+    if unsub_url.startswith("https://"):
+        headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+    return headers
 
 
 # ── Unsubscribe registry (in-process + DB-backed via Phase 3 model) ───────

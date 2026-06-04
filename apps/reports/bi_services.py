@@ -378,7 +378,7 @@ class ScheduledReportRunner:
     @staticmethod
     def _send_report(scheduled_report, result: Dict):
         """Send report via email"""
-        from django.core.mail import send_mail
+        from apps.schoolops.email_compat import send_mail
 
         subject = f"Scheduled Report: {scheduled_report.report_definition.name}"
         message = (

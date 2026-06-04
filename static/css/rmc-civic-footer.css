@@ -1,14 +1,12 @@
 /*
- * rmc-civic-footer.css — v3.55.0 (2026-05-21)
+ * rmc-civic-footer.css — v4.01.41 (2026-06-02)
  *
  * Civic centered 4-tier footer pattern shared by:
  *   - Tenant portal       (.rmc-civic-footer)                        via templates/components/dashboard_footer.html
  *   - Studio OS           (inherits via portal_base.html)
  *   - Manager operator    (.rmc-civic-footer.rmc-civic-footer--dark) via templates/partials/rmc_operator_footer_compact.html
  *
- * Densified 4-tier centered layout: brand+motto | trust+lang+app+social | contacts+stat | legal.
- * Targets ~25% vertical reduction vs the legacy dense-accordion tenant footer + the multi-row
- * manager gateway footer, while packing ~3x the content density via inline luxury elements.
+ * v4.01.41: ~30% vertical density (padding, tier gaps, pill/icon sizing ×0.7) — all tiers preserved.
  *
  * All values configurable via cockpit.footer.* context (see apps/siteconfig/cockpit_context.py).
  * Dark variant (`.rmc-civic-footer--dark`) flips chrome via scoped token overrides — no off-token
@@ -29,8 +27,8 @@
   --rmc-civic-accent:      var(--school-primary, var(--brand-primary, var(--rmc-civic-fg-muted)));
 
   width: 100%;
-  /* v3.57.8 (2026-05-22): ~10% vertical reduction (18→16, 14→13) to give pages more vertical freedom. */
-  padding: 16px clamp(20px, 4vw, 40px) 13px;
+  /* v4.01.41: ~30% vertical reduction vs v3.57.8 (16→11, 14→9, gap 7→5). */
+  padding: 11px clamp(20px, 4vw, 40px) 9px;
   font-size: 11px;
   line-height: 1.3;
   color: var(--rmc-civic-fg);
@@ -46,8 +44,8 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  /* v3.57.8 (2026-05-22): tighter inter-tier gap (8→7) for ~10% vertical reduction. */
-  gap: 7px;
+  /* v4.01.41: tighter inter-tier gap (7→5, ~30% vertical reduction). */
+  gap: 5px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -58,7 +56,7 @@
   align-items: baseline;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
   font-size: 12.5px;
   line-height: 1.2;
 }
@@ -77,7 +75,7 @@
 /* ------------------------------------------------------------------ */
 .rmc-civic-footer__strip {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
@@ -85,7 +83,7 @@
 
 .rmc-civic-footer__pill {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 9px;
+  padding: 2px 6px;
   border-radius: var(--radius-pill, 999px);
   background: var(--rmc-civic-surface-sunken);
   font-size: 10.5px;
@@ -105,7 +103,7 @@
 
 .rmc-civic-footer__divider {
   display: inline-block;
-  width: 1px; height: 14px;
+  width: 1px; height: 10px;
   background: var(--rmc-civic-hairline);
   margin: 0 4px;
   align-self: center;
@@ -116,7 +114,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 9px 3px 8px;
+  padding: 2px 6px 2px 6px;
   border: 1px solid var(--rmc-civic-hairline);
   border-radius: var(--radius-pill, 999px);
   background: var(--rmc-civic-surface);
@@ -140,7 +138,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 9px;
+  padding: 2px 6px;
   border-radius: var(--radius-pill, 999px);
   border: 1px solid var(--rmc-civic-hairline);
   background: var(--rmc-civic-surface);
@@ -161,7 +159,7 @@
 .rmc-civic-footer__social {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 .rmc-civic-footer__social-label {
   font-size: 10.5px;
@@ -172,7 +170,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px; height: 22px;
+  width: 15px; height: 15px;
   border-radius: 50%;
   border: 1px solid var(--rmc-civic-hairline);
   background: var(--rmc-civic-surface);
@@ -195,7 +193,7 @@
 /* ------------------------------------------------------------------ */
 .rmc-civic-footer__contacts {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   flex-wrap: wrap;
   font-size: 10.5px;
   justify-content: center;
@@ -219,9 +217,9 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 4px 14px;
-  padding-top: 10px;
-  margin-top: 2px;
+  gap: 3px 10px;
+  padding-top: 7px;
+  margin-top: 1px;
   border-top: 1px solid var(--rmc-civic-hairline);
   font-size: 10.5px;
   color: var(--rmc-civic-fg-faint);

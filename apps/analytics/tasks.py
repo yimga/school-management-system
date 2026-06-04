@@ -244,7 +244,7 @@ def send_deadline_reminders_task(
     from apps.schools.models import School
 
     totals = {"sent": 0, "errors": 0, "dry_run": dry_run, "schools_processed": 0}
-    for sid in School.objects.filter(is_active=True).values_list("id", flat=True):
+    for sid in School.objects.filter(is_active=True).values_list("id", flat=True):  # tenant-isolation-allow: celery-platform-analytics-beat-iterates-active-schools
         result = _run_with_tenant_context(
             school_id=sid,
             runnable=lambda sid=sid: _run_for_school(str(sid)),
@@ -267,7 +267,7 @@ def _write_student_signals_for_school(school, today, last_30):
     for student in StudentProfile.objects.filter(school=school).values_list(
         "id", flat=True
     ):
-        att = Attendance.objects.filter(
+        att = Attendance.objects.filter(  # tenant-isolation-allow: celery-platform-analytics-beat-iterates-active-schools
             school=school, student_id=student, date__gte=last_30
         ).aggregate(
             total=Count("id"),
@@ -317,7 +317,7 @@ def compute_risk_factors_task(self, school_id: str) -> dict:
         created = 0
         RiskFactor.objects.filter(school=school).delete()
         for sid in students:
-            att = Attendance.objects.filter(
+            att = Attendance.objects.filter(  # tenant-isolation-allow: celery-platform-analytics-beat-iterates-active-schools
                 school=school, student_id=sid, date__gte=last_30
             ).aggregate(
                 total=Count("id"),
@@ -359,7 +359,7 @@ def nightly_risk_factors_task(self) -> dict:
     """
     from apps.schools.models import School
 
-    schools = School.objects.filter(is_active=True).values_list("id", flat=True)
+    schools = School.objects.filter(is_active=True).values_list("id", flat=True)  # tenant-isolation-allow: celery-platform-analytics-beat-iterates-active-schools
     count = 0
     for school_id in schools:
         compute_risk_factors_task.delay(str(school_id))

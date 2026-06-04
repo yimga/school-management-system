@@ -434,7 +434,22 @@ def _deliver_one(row) -> bool:
     row.attempt_count += 1
     status_code = 0
     err = ""
+    # SSRF guard at DELIVERY time too (not just registration) so a subscription
+    # whose DNS now points at an internal address can't be used to beacon
+    # internally. On block we fall through to the normal failure/retry/exhaust
+    # path (no HTTP call made) rather than delivering.
+    from apps.security.ssrf import is_safe_public_url
+
+    _safe, _reason = is_safe_public_url(sub.url, allow_http=False)
+    if not _safe:
+        logger.warning(
+            "migration_cloud_webhook_blocked_unsafe_target sub_id=%s reason=%s",
+            sub.pk, _reason,
+        )
+        err = "blocked_unsafe_target"
     try:
+        if not _safe:
+            raise RuntimeError("blocked_unsafe_target")
         try:
             import requests  # type: ignore
 
@@ -456,8 +471,8 @@ def _deliver_one(row) -> bool:
             except _urlerr.HTTPError as http_err:
                 status_code = int(http_err.code)
                 err = f"HTTP {http_err.code}"
-    except Exception as exc:  # network failure of any kind
-        err = type(exc).__name__
+    except Exception as exc:  # network failure of any kind (incl. blocked target)
+        err = err or type(exc).__name__
         logger.exception(
             "migration_cloud_webhook_deliver_exception sub_id=%s delivery_id=%s",
             sub.pk, row.pk,

@@ -120,7 +120,22 @@ def dispatch_event(
     from apps.platform_runtime.tasks import deliver_event_webhook_task
 
     for did in delivery_ids:
-        deliver_event_webhook_task.delay(did)
+        # NEVER let a broker-enqueue failure escape into the originating
+        # business transaction. On the free tier there is often no Celery
+        # broker, so ``.delay()`` raises ``kombu.exceptions.OperationalError``
+        # (NOT a DatabaseError, so signal-level except tuples miss it) — which
+        # would otherwise propagate out of the post_save signal and roll back
+        # the attendance-save / student-create that triggered this event. The
+        # EventWebhookDelivery row is already persisted as PENDING above, so a
+        # retry sweep / worker can deliver it later — no data loss.
+        try:
+            deliver_event_webhook_task.delay(did)
+        except Exception:  # noqa: BLE001 - broker transport errors are diverse
+            logger.warning(
+                "event_bus: webhook enqueue failed (broker unavailable?); "
+                "delivery left PENDING for retry did=%s",
+                did,
+            )
 
 
 def _ensure_payload_event_id(row: Any) -> None:

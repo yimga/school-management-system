@@ -1,0 +1,6 @@
+
+--
+{{ company_name|default:"RunMyCampus" }}
+{{ company_address|default:"" }}
+{{ company_url|default:"https://runmycampus.com" }}
+You are receiving this because you opted in. Unsubscribe: {{ unsubscribe_url|default:"reply with 'unsubscribe'" }}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Set up your parent account" %}{% endblock %}
+
+{% block content %}
+<section class="auth-shell" aria-labelledby="guardian-setup-title">
+  <div class="auth-card">
+    {% if validlink %}
+      <div class="auth-badge" aria-hidden="true">
+        <i class="bi bi-people"></i>
+      </div>
+      <h1 id="guardian-setup-title">{% trans "Welcome to RunMyCampus" %}</h1>
+      <p class="auth-sub">
+        {% blocktrans %}
+        Your school created a parent account for you. Choose a password to finish
+        setting it up — after this you can sign in to follow your child's progress.
+        {% endblocktrans %}
+      </p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="mb-3">
+          <label for="id_new_password1" class="form-label">{% trans "New password" %}</label>
+          <input type="password"
+                 name="new_password1"
+                 id="id_new_password1"
+                 class="form-control"
+                 required
+                 autocomplete="new-password"
+                 autofocus>
+          {% if form.new_password1.help_text %}
+            <div class="form-help-muted">{{ form.new_password1.help_text|safe }}</div>
+          {% endif %}
+          {% if form.new_password1.errors %}
+            <div class="invalid-feedback d-block">{{ form.new_password1.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <div class="mb-4">
+          <label for="id_new_password2" class="form-label">{% trans "Confirm new password" %}</label>
+          <input type="password"
+                 name="new_password2"
+                 id="id_new_password2"
+                 class="form-control"
+                 required
+                 autocomplete="new-password">
+          {% if form.new_password2.errors %}
+            <div class="invalid-feedback d-block">{{ form.new_password2.errors.0 }}</div>
+          {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary auth-submit">
+          <i class="bi bi-check2-circle me-1"></i>
+          {% trans "Finish setup & sign in" %}
+        </button>
+      </form>
+    {% else %}
+      <div class="auth-badge auth-badge-error" aria-hidden="true">
+        <i class="bi bi-exclamation-circle"></i>
+      </div>
+      <h2 id="guardian-setup-title">{% trans "This link has expired." %}</h2>
+      <p class="auth-sub">
+        {% blocktrans %}
+        Setup links are valid for a limited time and can only be used once. Please
+        request a password reset from the sign-in page to continue.
+        {% endblocktrans %}
+      </p>
+      <a href="{% url 'accounts:login' %}" class="btn btn-primary auth-submit">
+        <i class="bi bi-arrow-clockwise me-1"></i>
+        {% trans "Request a new link" %}
+      </a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

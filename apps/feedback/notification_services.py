@@ -29,7 +29,7 @@ def send_quiet(*, subject: str, body: str, recipients: list[str]) -> int:
     if not recipients:
         return 0
     try:
-        from django.core.mail import send_mail
+        from apps.schoolops.email_compat import send_mail
 
         return send_mail(
             subject=subject,

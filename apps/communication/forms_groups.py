@@ -5,7 +5,6 @@ Forms for group/thread creation and management.
 from django import forms
 from django.contrib.auth import get_user_model
 from apps.academics.models import Classroom, Department
-from apps.accounts.models import User
 from apps.communication.models import MessageThread
 
 User = get_user_model()

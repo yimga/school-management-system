@@ -7,22 +7,30 @@ import logging
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import DatabaseError, IntegrityError, OperationalError, ProgrammingError
-from django.db.models.signals import post_save, m2m_changed
+from django.db.models.signals import post_save, pre_save, m2m_changed
 from django.dispatch import receiver
 
 from apps.communication.models import MessageThread
 from apps.people.models import (
+    Applicant,
     TeacherProfile,
     StudentGuardian,
     StudentProfile,
     TeacherAttendance,
 )
 from apps.platform_runtime.structured_logging import log_exception_with_context
+from kombu.exceptions import OperationalError as KombuOperationalError
 
 logger = logging.getLogger(__name__)
 
 # §2.4: Typed tuples for signal/event emission and query paths (no broad except).
+# KombuOperationalError/ConnectionError/OSError: free-tier deploys often have no
+# Celery broker, so a signal firing .delay() raises a broker-transport error
+# (NOT a DatabaseError). Catch it so it can't roll back the student-create write.
 _SIGNAL_EMIT_ERRORS = (
+    KombuOperationalError,
+    ConnectionError,
+    OSError,
     ImportError,
     AttributeError,
     TypeError,
@@ -338,6 +346,86 @@ def dispatch_student_automation_workflows(sender, instance, created, **kwargs):
         )
     except ImportError:
         pass
+
+
+# ── Admissions decision emails (audit C3) ───────────────────────────────
+# Applicants were decided (ACCEPTED / REJECTED) with NO notification. We send
+# a decision email whenever the stage transitions into a terminal decision.
+# A pre_save captures the prior stage so post_save can detect the transition.
+
+_APPLICANT_DECISION_STAGES = {
+    Applicant.Stage.ACCEPTED,
+    Applicant.Stage.REJECTED,
+}
+
+
+@receiver(pre_save, sender=Applicant)
+def _capture_applicant_prior_stage(sender, instance, **kwargs):
+    """Stash the DB stage so post_save can detect a real transition."""
+    if not instance.pk:
+        instance._prior_stage = None
+        return
+    try:
+        instance._prior_stage = (
+            sender.objects.filter(pk=instance.pk)  # tenant-isolation-allow: signal-self-row-lookup-by-pk
+            .values_list("stage", flat=True)
+            .first()
+        )
+    except _SIGNAL_EMIT_ERRORS:
+        instance._prior_stage = None
+
+
+@receiver(post_save, sender=Applicant)
+def send_applicant_decision_email(sender, instance, created, **kwargs):
+    """Email the applicant when their stage transitions to a decision (C3)."""
+    new_stage = getattr(instance, "stage", "")
+    if new_stage not in _APPLICANT_DECISION_STAGES:
+        return
+    prior = getattr(instance, "_prior_stage", None)
+    # Fire only on a genuine transition into the decision stage (not on
+    # unrelated saves of an already-decided applicant).
+    if not created and prior == new_stage:
+        return
+    email = (getattr(instance, "email", "") or "").strip()
+    if not email:
+        return
+    school = getattr(instance, "school", None)
+    school_name = getattr(school, "name", "") or "the school"
+    first = getattr(instance, "first_name", "") or "Applicant"
+    accepted = new_stage == Applicant.Stage.ACCEPTED
+    if accepted:
+        subject = f"Your application to {school_name} — decision"
+        body = (
+            f"Dear {first},\n\n"
+            f"Congratulations! We are pleased to inform you that your application "
+            f"to {school_name} has been accepted. Our admissions team will be in "
+            f"touch with the next steps to complete your enrolment.\n\n"
+            f"Warm regards,\n{school_name} Admissions"
+        )
+    else:
+        subject = f"Your application to {school_name} — decision"
+        body = (
+            f"Dear {first},\n\n"
+            f"Thank you for your interest in {school_name} and for the time you "
+            f"invested in your application. After careful review, we are unable to "
+            f"offer a place at this time. We wish you every success.\n\n"
+            f"Kind regards,\n{school_name} Admissions"
+        )
+    try:
+        from apps.schoolops.email_delivery import send_transactional
+
+        send_transactional(
+            subject=subject,
+            body=body,
+            to=[email],
+            priority="transactional",
+            school=school,
+            idempotency_key=f"applicant_decision:{instance.pk}:{new_stage}",
+        )
+    except _SIGNAL_EMIT_ERRORS as e:
+        logger.warning(
+            "people.applicant_decision_email skipped err=%s", type(e).__name__
+        )
 
 
 @receiver(post_save, sender=TeacherProfile)

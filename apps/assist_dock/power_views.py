@@ -448,14 +448,13 @@ def _resolve_impersonation_routes() -> list[dict]:
 def _try_site_settings_keys(request) -> list[str]:
     """Tenant-scoped SiteSettings keys — best-effort, never raises."""
     try:
-        from apps.siteconfig.models import SiteSettings
+        from apps.platform_runtime.helpers import get_effective_site_settings
 
         school = getattr(request, "school", None)
         if school is None:
             return []
-        # tenant-isolation-allow: assist-dock-inspect-readonly-keys-current-tenant-school-fk
-        row = SiteSettings.objects.filter(school=school).only("id").first()
-        if row is None:
+        settings = get_effective_site_settings(request=request, school=school)
+        if settings is None:
             return []
         # Return a small fixed set of keys to keep the overlay legible.
         return ["site_name", "default_currency", "default_locale"]

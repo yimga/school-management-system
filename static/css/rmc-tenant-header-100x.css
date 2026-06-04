@@ -16,6 +16,22 @@ body.portal-body-with-layout:not(.control-plane-shell) .tp-header .rmc-cockpit-t
   background: linear-gradient(90deg, rgba(30, 111, 58, 0.06) 0%, transparent 42%, transparent 100%); /* off-token-allow: tenant-ticker-brand-fade */
 }
 
+body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner {
+  width: 100%;
+  min-width: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner .rmc-cp-landing-ticker,
+body.portal-body-with-layout:not(.control-plane-shell) .tp-header__live-banner .cp-live-strip {
+  margin: 0;
+}
+
+body.portal-body-with-layout:not(.control-plane-shell) .tp-header .rmc-cp-ticker-inline,
+body.portal-body-with-layout:not(.control-plane-shell) .tp-header__row .rmc-cp-ticker-inline {
+  max-width: min(220px, 26vw);
+}
+
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.tp-header__row,
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.topbar,
 body.portal-body-with-layout:not(.control-plane-shell) #portalHeader.statement-header {
@@ -31,8 +47,8 @@ body.portal-body-with-layout:not(.control-plane-shell) #portalHeader .container-
   flex-wrap: nowrap !important; /* style-allow: tenant-header-single-line-guarantee */
   align-items: center;
   gap: 12px;
-  padding: 12px 24px;
-  min-height: 64px;
+  padding: calc(12px * 1.1) calc(24px * 1.1);
+  min-height: calc(64px * 1.1);
   min-width: 0;
   width: 100%;
 }

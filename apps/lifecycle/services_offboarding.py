@@ -217,4 +217,51 @@ def audit_event_log_mirror(event) -> bool:
         actor_hash(actor),
         getattr(event, "created_at", ""),
     )
+    notify_offboarding_confirmed(event)
     return True
+
+
+def notify_offboarding_confirmed(event) -> bool:
+    """Send the GDPR offboarding-confirmation email (audit H11).
+
+    Fires on the DEACTIVATED / purge-requested transitions — the points at
+    which the tenant admin's address is still reachable (after the actual
+    purge their email is gone). Publishes ``tenant.offboarding.confirmed`` to
+    the platform Email Matrix. Best-effort: never breaks the offboarding flow.
+    """
+    confirm_event_types = {
+        "OFFBOARDING_DEACTIVATED",
+        "OFFBOARDING_PURGE_REQUESTED",
+        "OFFBOARDING_AUTO_PURGE_SCHEDULED",
+    }
+    if getattr(event, "event_type", None) not in confirm_event_types:
+        return False
+    school = getattr(event, "school", None)
+    if school is None:
+        return False
+    # Capture the admin address NOW (before purge wipes it).
+    admin_email = ""
+    verification = getattr(school, "signupverification", None)
+    if verification is not None:
+        admin_email = getattr(verification, "email", "") or ""
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+
+        publish_event(
+            "tenant.offboarding.confirmed",
+            {
+                "school_name": getattr(school, "name", "")
+                or getattr(school, "slug", ""),
+                "admin_email": admin_email,
+                "grace_days": _grace_days(),
+            },
+            school_id=getattr(school, "id", None),
+            idempotency_key=f"offboard_confirmed:{getattr(school, 'id', '')}",
+        )
+        return True
+    except Exception:  # noqa: BLE001 — mail never breaks offboarding
+        logger.warning(
+            "lifecycle.offboarding.confirm_email_publish_failed school_id=%s",
+            getattr(school, "id", None),
+        )
+        return False

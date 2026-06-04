@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 
 from apps.api.sync_services import apply_changes
 from apps.platform_runtime.helpers import get_effective_offline_runtime_settings
+from apps.schools.tenant_api_guards import user_may_operate_on_school
 
 
 @extend_schema(
@@ -80,7 +81,17 @@ class DeltaSyncAPI(APIView):
             )
 
         school = getattr(request, "school", None)
-        school_id = str(school.id) if school else None
+        if school is None:
+            return Response(
+                {"error": "Tenant context required"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if not user_may_operate_on_school(request, school):
+            return Response(
+                {"error": "Forbidden"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        school_id = str(school.id)
         out = apply_changes(school_id, request.user, items, persist_conflicts=True)
 
         results = out["results"]

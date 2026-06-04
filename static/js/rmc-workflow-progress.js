@@ -212,13 +212,21 @@
     );
   }
 
+  function progressStatusLabel(status) {
+    if (status === "stuck") return "Needs attention";
+    if (status === "failed") return "Failed";
+    if (status === "degrading") return "Slowing";
+    return "In progress";
+  }
+
   function renderProgressBar(percent, status) {
     var safe = Math.max(0, Math.min(100, percent || 0));
     var state = status === "stuck" ? "stuck" : status === "failed" ? "failed" : "running";
+    var label = progressStatusLabel(status);
     return (
       '<div class="rmc-wfp-bar" data-rmc-wfp-bar-state="' + escapeHtml(state) + '">' +
       '<div class="rmc-wfp-bar__label">' +
-      '<span class="rmc-wfp-bar__status">' + escapeHtml(state) + "</span>" +
+      '<span class="rmc-wfp-bar__status">' + escapeHtml(label) + "</span>" +
       '<span class="rmc-wfp-bar__pct" aria-hidden="true">' + safe + "%</span>" +
       "</div>" +
       '<div class="rmc-wfp-bar__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + safe + '">' +

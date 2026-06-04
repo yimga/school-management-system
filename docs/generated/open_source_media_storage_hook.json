@@ -1,0 +1,13 @@
+{
+  "status": "hook_present",
+  "settings_path": "config/settings.py",
+  "env_vars": [
+    "MEDIA_STORAGE_BACKEND",
+    "AWS_S3_ENDPOINT_URL",
+    "AWS_STORAGE_BUCKET_NAME",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY"
+  ],
+  "optional_dependency": "django-storages[s3] (requirements_optional.txt)",
+  "default_backend": "django.core.files.storage.FileSystemStorage"
+}

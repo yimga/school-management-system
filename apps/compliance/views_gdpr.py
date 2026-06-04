@@ -179,6 +179,40 @@ def erasure_request_view(request):
                 )
             return redirect("compliance:erasure_request")
 
+        # Feed the erasure fulfillment + SLA pipeline. Previously this path only
+        # wrote an audit log and told the user "an administrator will process it"
+        # — but NO EraseRequest was ever created, so the existing
+        # fulfill_pending_erasure / process_erase_requests / mark_sla_breaches
+        # machinery was never fed and the right-to-be-forgotten request silently
+        # vanished. fulfill_pending_erasure keys on subject_user_id -> Student,
+        # so it needs the student's linked User; a student with no account can't
+        # be queued and falls back to the audit log + an honest message.
+        from django.conf import settings
+        from django.utils import timezone
+
+        erase_request_id = None
+        sla_days = int(getattr(settings, "COMPLIANCE_ERASURE_SLA_DAYS", 30))
+        if student.user_id:
+            try:
+                from datetime import timedelta
+
+                from .models import EraseRequest
+
+                er = EraseRequest.objects.create(
+                    school=school,
+                    requested_by=request.user,
+                    subject_user_id=student.user_id,
+                    status=EraseRequest.Status.PENDING,
+                    reason="GDPR Art. 17 erasure request (student_id=%s)" % sid,
+                    due_at=timezone.now() + timedelta(days=sla_days),
+                )
+                erase_request_id = er.pk
+            except _GDPR_VIEW_AUDIT_LOG_ERRORS:
+                log_view_exception(
+                    request,
+                    "GDPR EraseRequest create failed",
+                    extra={"student_id": sid},
+                )
         try:
             from .models import ComplianceAuditLog
 
@@ -193,6 +227,7 @@ def erasure_request_view(request):
                         "student_id": sid,
                         "school_id": school.id,
                         "requested_by": request.user.id,
+                        "erase_request_id": erase_request_id,
                     },
                     user=request.user,
                     severity="high",
@@ -203,8 +238,17 @@ def erasure_request_view(request):
                 "GDPR erasure request audit log create failed",
                 extra={"student_id": sid},
             )
-        messages.success(
-            request, "Erasure request logged. An administrator will process it."
-        )
+        if erase_request_id:
+            messages.success(
+                request,
+                "Erasure request created and queued for processing (due within %s days)."
+                % sla_days,
+            )
+        else:
+            messages.success(
+                request,
+                "Erasure request logged. This student has no linked account, so an "
+                "administrator will process it manually.",
+            )
         return redirect("compliance:erasure_request")
     return render(request, "compliance/erasure_request.html", {"school": school})

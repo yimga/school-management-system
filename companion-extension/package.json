@@ -1,6 +1,7 @@
 {
   "name": "@runmycampus/companion-extension",
   "version": "1.0.0",
+  "license": "AGPL-3.0-or-later",
   "private": true,
   "description": "RunMyCampus Companion — Manifest V3 browser extension for operator-authorized SIS DOM-reading and sealed-box upload to RunMyCampus migration cloud.",
   "type": "module",

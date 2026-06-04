@@ -22,110 +22,83 @@ except ImportError:
 
 from django.contrib.auth import get_user_model
 
+from apps.schools.channels_tenant_middleware import tenant_sync_room_name
+
 User = get_user_model()
 
 
-class StudentSyncConsumer(AsyncWebsocketConsumer):
-    """WebSocket consumer for student data synchronization"""
+class _TenantScopedSyncConsumer(AsyncWebsocketConsumer):
+    """Base consumer: requires host-bound tenant from TenantChannelsMiddleware."""
+
+    room_prefix = "sync"
 
     async def connect(self):
-        self.user = self.scope["user"]
-        if not self.user.is_authenticated:
-            await self.close()
+        self.user = self.scope.get("user")
+        if not self.user or not getattr(self.user, "is_authenticated", False):
+            await self.close(code=4401)
             return
 
-        self.room_group_name = f"students_sync_{self.user.id}"
+        self.room_group_name = tenant_sync_room_name(self.room_prefix, self.scope)
+        if not self.room_group_name:
+            await self.close(code=4403)
+            return
 
-        # Join room group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-
         await self.accept()
 
     async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if getattr(self, "room_group_name", None):
+            await self.channel_layer.group_discard(
+                self.room_group_name, self.channel_name
+            )
 
-    # Receive message from WebSocket
+
+class StudentSyncConsumer(_TenantScopedSyncConsumer):
+    """WebSocket consumer for student data synchronization"""
+
+    room_prefix = "students_sync"
+
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json.get("message", "")
-
-        # Echo message back (for testing)
         await self.send(text_data=json.dumps({"message": f"Received: {message}"}))
 
-    # Receive message from room group
     async def student_update(self, event):
         message = event["message"]
-
-        # Send message to WebSocket
         await self.send(
             text_data=json.dumps({"type": "student_update", "message": message})
         )
 
 
-class TeacherSyncConsumer(AsyncWebsocketConsumer):
+class TeacherSyncConsumer(_TenantScopedSyncConsumer):
     """WebSocket consumer for teacher data synchronization"""
 
-    async def connect(self):
-        self.user = self.scope["user"]
-        if not self.user.is_authenticated:
-            await self.close()
-            return
-
-        self.room_group_name = f"teachers_sync_{self.user.id}"
-
-        # Join room group
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+    room_prefix = "teachers_sync"
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json.get("message", "")
-
         await self.send(text_data=json.dumps({"message": f"Received: {message}"}))
 
     async def teacher_update(self, event):
         message = event["message"]
-
         await self.send(
             text_data=json.dumps({"type": "teacher_update", "message": message})
         )
 
 
-class ClassroomSyncConsumer(AsyncWebsocketConsumer):
+class ClassroomSyncConsumer(_TenantScopedSyncConsumer):
     """WebSocket consumer for classroom data synchronization"""
 
-    async def connect(self):
-        self.user = self.scope["user"]
-        if not self.user.is_authenticated:
-            await self.close()
-            return
-
-        self.room_group_name = f"classrooms_sync_{self.user.id}"
-
-        # Join room group
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-
-        await self.accept()
-
-    async def disconnect(self, close_code):
-        # Leave room group
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+    room_prefix = "classrooms_sync"
 
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json.get("message", "")
-
         await self.send(text_data=json.dumps({"message": f"Received: {message}"}))
 
     async def classroom_update(self, event):
         message = event["message"]
-
         await self.send(
             text_data=json.dumps({"type": "classroom_update", "message": message})
         )
@@ -140,7 +113,10 @@ class AIChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope.get("user")
         if not self.user or not getattr(self.user, "is_authenticated", False):
-            await self.close()
+            await self.close(code=4401)
+            return
+        if self.scope.get("school_access_denied") or not self.scope.get("school"):
+            await self.close(code=4403)
             return
         await self.accept()
 
@@ -161,7 +137,7 @@ class AIChatConsumer(AsyncWebsocketConsumer):
         from services.ai_helpers import invoke_with_request
 
         request = self.scope.get("request", None)
-        school = getattr(request, "school", None) or getattr(self.user, "school", None)
+        school = self.scope.get("school") or getattr(request, "school", None)
         extra_country = payload.get("country_code")
         prompt = (
             "You are a helpful assistant for the school platform. Answer concisely.\n\nUser: "

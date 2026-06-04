@@ -318,24 +318,35 @@ class BulkOperationService:
 
     @staticmethod
     def bulk_send_email(queryset, subject, message, sender_email):
-        """Send bulk emails"""
-        from django.core.mail import send_mass_mail
+        """Send bulk emails via the reliability layer (audited + retried)."""
+        from apps.schoolops.email_delivery import send_bulk
 
-        email_list = []
+        emails = [
+            obj.user.email
+            for obj in queryset
+            if hasattr(obj, "user") and getattr(obj.user, "email", None)
+        ]
+        if not emails:
+            return {"sent": 0}
 
-        for obj in queryset:
-            if hasattr(obj, "user") and obj.user.email:
-                email_list.append((subject, message, sender_email, [obj.user.email]))
-
+        sent = 0
         try:
-            sent = send_mass_mail(email_list, fail_silently=False)
+            for addr in emails:
+                result = send_bulk(
+                    subject=subject,
+                    body=message,
+                    to=[addr],
+                    from_email=sender_email,
+                )
+                if result.get("ok") or result.get("queued"):
+                    sent += 1
             return {"sent": sent}
         except _PEOPLE_BULK_EMAIL_ERRORS as e:
             log_exception_with_context(
                 "people.bulk_send_email: send failed",
                 extra={"task": "bulk_send_email", "error": str(e)},
             )
-            return {"error": str(e)}
+            return {"error": str(e), "sent": sent}
 
     @staticmethod
     def generate_bulk_report(queryset, report_type="summary"):

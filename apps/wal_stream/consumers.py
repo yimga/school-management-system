@@ -41,8 +41,8 @@ _ALLOWED_DOMAINS: frozenset[str] = frozenset({
     "attendance",
     "teacher_attendance",
     "grade",
-    "billing_charge",
     "communication_send",
+    "announcement_create",
     "audit_event",
 })
 
@@ -55,40 +55,23 @@ class WalStreamConsumer(AsyncJsonWebsocketConsumer):
         if user is None or not getattr(user, "is_authenticated", False):
             await self.close(code=4401)
             return
-        school_id = self._scope_school_id()
-        if not school_id:
+        if self.scope.get("school_access_denied") or not self.scope.get("school_id"):
             await self.close(code=4403)
             return
-        self.tenant_hash = hashlib.sha256(str(school_id).encode("utf-8")).hexdigest()[:12]
+        school_id = str(self.scope["school_id"])
+        self.tenant_hash = hashlib.sha256(school_id.encode("utf-8")).hexdigest()[:12]
         self.user_id = str(user.pk)
         await self.accept()
-
-    def _scope_school_id(self) -> str | None:
-        # Channels scope is hydrated by `apps.tenancy.middleware_rls_jwt` style
-        # binding when the WS handshake passes through it. Fall back to session.
-        session = self.scope.get("session", {}) or {}
-        sid = session.get("school_id") or session.get("active_school_id")
-        if sid:
-            return str(sid)
-        # Fallback: cookie-bound JWT (the same one HTTP middleware reads).
-        cookies = self.scope.get("cookies", {}) or {}
-        token = cookies.get("rmc_rls_jwt", "")
-        if token:
-            try:
-                from apps.tenancy.middleware_rls_jwt import _verify_jwt
-
-                claims = _verify_jwt(token)
-                if isinstance(claims, dict):
-                    return claims.get("school_id") or claims.get("tenant_id")
-            except (ImportError, AttributeError):
-                return None
-        return None
 
     async def receive_json(self, content: Any, **kwargs) -> None:
         if not isinstance(content, dict):
             await self.send_json({"ok": False, "error": "bad_payload"})
             return
-        ok, reason = _validate(content, expected_tenant_hash=self.tenant_hash)
+        ok, reason = _validate(
+            content,
+            expected_tenant_hash=self.tenant_hash,
+            expected_user_id=self.user_id,
+        )
         if not ok:
             logger.warning("wal_stream.reject: %s", reason)
             await self.send_json({"ok": False, "error": reason, "txn_id": content.get("txn_id")})
@@ -101,6 +84,11 @@ class WalStreamConsumer(AsyncJsonWebsocketConsumer):
             "domain": content["domain"],
             "vector_clock": int(content["vector_clock"]),
             "actions": content["actions"],
+            # When the offline write was CAPTURED on the device (epoch seconds).
+            # Carried so upsert writers can do last-writer-wins by capture time
+            # and refuse to clobber newer online state. None for older clients
+            # (the writer then falls back to prior last-write-wins behavior).
+            "captured_at": _coerce_captured_at(content.get("captured_at")),
             "received_at": time.time(),
         }
         await _ship_to_redis_stream(envelope)
@@ -109,7 +97,24 @@ class WalStreamConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({"ok": True, "txn_id": content["txn_id"]})
 
 
-def _validate(content: dict, *, expected_tenant_hash: str) -> tuple[bool, str]:
+def _coerce_captured_at(raw: Any) -> float | None:
+    """Normalize the client-sent capture timestamp to epoch SECONDS.
+
+    The client stores ``created_at`` as ``Date.now()`` (epoch MILLISECONDS).
+    Accept a positive number and divide; reject anything else to None so a
+    malformed value simply disables freshness checks for that envelope rather
+    than corrupting the comparison.
+    """
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        return None
+    if raw <= 0:
+        return None
+    return float(raw) / 1000.0
+
+
+def _validate(
+    content: dict, *, expected_tenant_hash: str, expected_user_id: str | None = None
+) -> tuple[bool, str]:
     txn_id = content.get("txn_id")
     if not isinstance(txn_id, str) or len(txn_id) < 8 or len(txn_id) > 64:
         return False, "bad_txn_id"
@@ -125,6 +130,18 @@ def _validate(content: dict, *, expected_tenant_hash: str) -> tuple[bool, str]:
     asserted_tenant = content.get("tenant_hash")
     if asserted_tenant and asserted_tenant != expected_tenant_hash:
         return False, "tenant_mismatch"
+    # Shared-device defense: an outbox row stamped with the user who authored it
+    # offline must not be shipped over a DIFFERENT user's authenticated socket.
+    # Reject the mismatch so the row stays queued until the real author returns,
+    # rather than being applied (and attributed) as the wrong user. Older clients
+    # that don't stamp an author skip this check (backward compatible).
+    author = content.get("author_user_id")
+    if (
+        author not in (None, "")
+        and expected_user_id is not None
+        and str(author) != str(expected_user_id)
+    ):
+        return False, "author_mismatch"
     try:
         serialized = json.dumps(content).encode("utf-8")
     except (TypeError, ValueError):

@@ -82,21 +82,109 @@ def send_email(
         or (getattr(site, "email_from_address", None) if site else None)
         or getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@runmycampus.com")
     )
+    # Route through the reliability layer (audit H4/observability) so tenant
+    # notifications are retried + audited to EmailDeliveryEvent like every
+    # other send, instead of a second unaudited facade. Falls back to Django's
+    # send_mail only if the reliability layer is unimportable.
     try:
-        django_send_mail(
+        from apps.schoolops.email_delivery import send_transactional
+
+        recipients = list(to_addresses)
+        result = send_transactional(
             subject=subject,
-            message=body,
+            body=body,
+            to=recipients,
+            html_body=html_message,
             from_email=from_addr,
-            recipient_list=list(to_addresses),
-            html_message=html_message,
-            fail_silently=fail_silently,
+            priority="transactional",
+            school=school,
         )
-        logger.info("Email sent to %s: %s", to_addresses, subject[:50])
-        return True
+        ok = bool(result.get("ok") or result.get("queued"))
+        if ok:
+            logger.info(
+                "notification_service.email_sent count=%d subject=%s",
+                len(recipients), (subject or "")[:50],
+            )
+        if not ok and not fail_silently:
+            raise RuntimeError(result.get("error_kind") or "email_send_failed")
+        return ok
     except _NOTIFICATION_EMAIL_SEND_ERRORS as e:
-        logger.exception("Email send failed: %s", e)
+        logger.exception("Email send failed: %s", type(e).__name__)
         if not fail_silently:
             raise
+        return False
+    except ImportError:
+        try:
+            django_send_mail(
+                subject=subject,
+                message=body,
+                from_email=from_addr,
+                recipient_list=list(to_addresses),
+                html_message=html_message,
+                fail_silently=fail_silently,
+            )
+            return True
+        except _NOTIFICATION_EMAIL_SEND_ERRORS as e:
+            logger.exception("Email send failed: %s", type(e).__name__)
+            if not fail_silently:
+                raise
+            return False
+
+
+def _enqueue_outbound(
+    *,
+    channel: str,
+    recipient: str,
+    body: str,
+    school: Any = None,
+    idempotency_key: Optional[str] = None,
+) -> bool:
+    """Durably queue a failed SMS/WhatsApp send for later retry (audit residual).
+
+    Previously a provider failure was lost unless the caller manually wrote an
+    ``OutboundMessageQueue`` row — almost no caller did, so a transient provider
+    outage silently dropped the message. We now auto-enqueue on failure; the
+    ``process_outbound_message_queue`` Celery beat drains the row when the
+    provider recovers (atomic claim + 3 retries + stale recovery).
+
+    Opt-out via ``RMC_AUTO_ENQUEUE_OUTBOUND=0``. Idempotent when an
+    ``idempotency_key`` is supplied (won't double-queue an in-flight row).
+    Best-effort — never raises into the send path.
+    """
+    if not (recipient and body):
+        return False
+    if not getattr(settings, "RMC_AUTO_ENQUEUE_OUTBOUND", True):
+        return False
+    try:
+        from apps.communication.models import OutboundMessageQueue
+
+        key = (idempotency_key or "").strip()[:255]
+        if key:
+            # Don't re-queue a row that's already pending/retrying for this key.
+            # tenant-isolation-allow: outbound queue keyed by idempotency_key; drainer is school-scoped
+            exists = OutboundMessageQueue.objects.filter(
+                idempotency_key=key, status__in=("pending", "retrying"),
+            ).exists()
+            if exists:
+                return True
+        OutboundMessageQueue.objects.create(
+            school=school if (school is not None and getattr(school, "pk", None)) else None,
+            channel=channel,
+            recipient_identifier=str(recipient)[:255],
+            body=body,
+            status="pending",
+            idempotency_key=key,
+        )
+        logger.info(
+            "notification_service.outbound_enqueued channel=%s (provider failed, queued for retry)",
+            channel,
+        )
+        return True
+    except Exception as exc:  # broad-by-design — enqueue never breaks the caller
+        logger.warning(
+            "notification_service.outbound_enqueue_failed channel=%s err=%s",
+            channel, type(exc).__name__,
+        )
         return False
 
 
@@ -138,6 +226,7 @@ def send_sms(
     site_settings: Any = None,
     fallback_email: Optional[str] = None,
     idempotency_key: Optional[str] = None,
+    queue_on_failure: bool = True,
 ) -> bool:
     """
     Send SMS via configured provider adapter (Twilio, AfricasTalking).
@@ -147,6 +236,17 @@ def send_sms(
     to_phone = (to_phone or "").strip().replace(" ", "")
     if to_phone and not to_phone.startswith("+"):
         to_phone = "+" + to_phone
+    # Honour SMS opt-out (audit residual). A recipient who texted STOP has a
+    # trailing ``withdrawn`` consent event — we must not message them. Best-
+    # effort: a consent-log read error fails open (see consent.is_channel_suppressed).
+    try:
+        from apps.communication.consent import is_channel_suppressed
+
+        if to_phone and is_channel_suppressed("sms", to_phone):
+            logger.info("send_sms skipped: recipient opted out of SMS")
+            return False
+    except ImportError:
+        pass
     site = _resolve_site_settings(school=school, site_settings=site_settings)
     school_id = getattr(school, "id", None) if school else None
     if circuit_is_open(school_id, "sms"):
@@ -160,7 +260,15 @@ def send_sms(
                 body=body,
                 site_settings=site,
             )
-        return bool(fallback_email)
+            return True
+        # No fallback substituted the SMS — queue it so it isn't lost while the
+        # circuit is open (audit residual: silent loss on provider outage).
+        if queue_on_failure:
+            _enqueue_outbound(
+                channel="sms", recipient=to_phone, body=body, school=school,
+                idempotency_key=idempotency_key,
+            )
+        return False
     provider = get_sms_provider(site)
     if provider:
         result = provider.send(to_phone, body, idempotency_key=idempotency_key)
@@ -177,6 +285,12 @@ def send_sms(
                 site_settings=site,
             )
             return True
+        # Provider failed and nothing substituted — durably queue for retry.
+        if queue_on_failure:
+            _enqueue_outbound(
+                channel="sms", recipient=to_phone, body=body, school=school,
+                idempotency_key=idempotency_key,
+            )
         return False
     # No SMS provider (e.g. console): log and optionally fallback to email
     logger.info("[CONSOLE SMS] %s: %s", to_phone, body[:100])
@@ -213,17 +327,31 @@ def send_whatsapp(
     template_name: Optional[str] = None,
     template_params: Optional[List[str]] = None,
     body: Optional[str] = None,
+    idempotency_key: Optional[str] = None,
+    queue_on_failure: bool = True,
 ) -> bool:
-    """Delegate to channels.send_whatsapp (tenant-configured WhatsApp Business API)."""
+    """Delegate to channels.send_whatsapp (tenant-configured WhatsApp Business API).
+
+    On provider failure, a plain-body message is durably queued to
+    ``OutboundMessageQueue`` for retry by the drainer (audit residual: silent
+    loss on provider outage). Template messages are not auto-queued because the
+    queue replays a raw text body, not a template envelope.
+    """
     from .channels import send_whatsapp as _send_whatsapp
 
-    return _send_whatsapp(
+    ok = _send_whatsapp(
         school,
         to_phone,
         template_name=template_name,
         template_params=template_params,
         body=body,
     )
+    if not ok and queue_on_failure and body and not template_name:
+        _enqueue_outbound(
+            channel="whatsapp", recipient=to_phone, body=body, school=school,
+            idempotency_key=idempotency_key,
+        )
+    return ok
 
 
 def get_notification_service():

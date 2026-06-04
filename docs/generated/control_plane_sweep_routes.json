@@ -1,8 +1,8 @@
 {
   "version": "2026-05-18",
-  "count": 646,
+  "count": 651,
   "operator_count": 463,
-  "admin_changelist_count": 183,
+  "admin_changelist_count": 188,
   "routes": [
     {
       "path": "/",
@@ -697,6 +697,36 @@
     {
       "path": "/admin/platform_runtime/runtimedefaults/",
       "name": "platform_runtime_runtimedefaults_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/workflowautopilotapplylog/",
+      "name": "platform_runtime_workflowautopilotapplylog_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/workflowautopilotpolicy/",
+      "name": "platform_runtime_workflowautopilotpolicy_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/workflowdurationstat/",
+      "name": "platform_runtime_workflowdurationstat_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/workflowrun/",
+      "name": "platform_runtime_workflowrun_changelist",
+      "tier": "admin_changelist",
+      "sweep": true
+    },
+    {
+      "path": "/admin/platform_runtime/workflowslabreach/",
+      "name": "platform_runtime_workflowslabreach_changelist",
       "tier": "admin_changelist",
       "sweep": true
     },

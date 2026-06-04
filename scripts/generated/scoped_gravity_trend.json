@@ -2,30 +2,6 @@
   "version": 1,
   "history": [
     {
-      "recorded_at": "2026-04-24T10:46:42.149678+00:00",
-      "counts": {
-        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
-        "cursor_execute_apps_config_py_excl_migrations": 16,
-        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
-        "print_calls_apps_py_excl_migrations_tests_management": 0,
-        "print_calls_scripts_py": 827,
-        "site_settings_refs_apps_py_excl_migrations": 5,
-        "site_settings_refs_apps_py_excl_migrations_tests": 2
-      }
-    },
-    {
-      "recorded_at": "2026-04-25T10:34:29.588865+00:00",
-      "counts": {
-        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
-        "cursor_execute_apps_config_py_excl_migrations": 32,
-        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
-        "print_calls_apps_py_excl_migrations_tests_management": 0,
-        "print_calls_scripts_py": 829,
-        "site_settings_refs_apps_py_excl_migrations": 27,
-        "site_settings_refs_apps_py_excl_migrations_tests": 4
-      }
-    },
-    {
       "recorded_at": "2026-04-26T20:59:04.534253+00:00",
       "counts": {
         "csrf_exempt_decorator_lines_apps_config_excl_migrations": 37,
@@ -575,6 +551,30 @@
         "print_calls_scripts_py": 3805,
         "site_settings_refs_apps_py_excl_migrations": 198,
         "site_settings_refs_apps_py_excl_migrations_tests": 150
+      }
+    },
+    {
+      "recorded_at": "2026-06-03T14:38:49.316508+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 107,
+        "cursor_execute_apps_config_py_excl_migrations": 42,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3908,
+        "site_settings_refs_apps_py_excl_migrations": 196,
+        "site_settings_refs_apps_py_excl_migrations_tests": 148
+      }
+    },
+    {
+      "recorded_at": "2026-06-03T18:41:23.451702+00:00",
+      "counts": {
+        "csrf_exempt_decorator_lines_apps_config_excl_migrations": 107,
+        "cursor_execute_apps_config_py_excl_migrations": 42,
+        "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
+        "print_calls_apps_py_excl_migrations_tests_management": 0,
+        "print_calls_scripts_py": 3908,
+        "site_settings_refs_apps_py_excl_migrations": 194,
+        "site_settings_refs_apps_py_excl_migrations_tests": 146
       }
     }
   ]

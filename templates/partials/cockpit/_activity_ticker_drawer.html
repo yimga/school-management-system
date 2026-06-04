@@ -48,7 +48,7 @@
       <li class="rmc-cp-activity-feed__item rmc-cp-activity-feed__item--{{ event.severity|default:'info' }}">
         {% if event.icon %}<span class="rmc-cp-activity-feed__icon" aria-hidden="true">{{ event.icon }}</span>{% endif %}
         <div class="rmc-cp-activity-feed__body">
-          <p class="rmc-cp-activity-feed__text mb-0">{{ event.text|default:event.label }}</p>
+          <p class="rmc-cp-activity-feed__text mb-0">{% firstof event.text event.label %}</p>
           {% if event.time_label %}<span class="rmc-cp-activity-feed__time text-muted small">{{ event.time_label }}</span>{% endif %}
         </div>
       </li>

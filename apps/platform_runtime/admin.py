@@ -943,7 +943,7 @@ from .models_workflow_10x import (  # noqa: E402
     WorkflowDurationStat,
     WorkflowSlaBreach,
 )
-from .models_workflow_run import WorkflowRun, WorkflowStep  # noqa: E402
+from .models_workflow_run import WorkflowRun  # noqa: E402
 
 
 class WorkflowRunAdmin(ModelAdmin):

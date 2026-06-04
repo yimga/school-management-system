@@ -60,10 +60,13 @@
         {% if can_reply %}
         <div class="border-top p-3">
           <form method="post" action="{% url 'accounts:direct_thread' other_user.id %}" aria-label="Reply in conversation"
-                data-rmc-offline-form="notes_report" data-offline-action-type="notes_report"
+                data-rmc-message-outbox
+                data-recipient-field="recipient" data-subject-field="subject" data-body-field="body"
+                data-success-url="{% url 'accounts:user_messages' %}?tab=direct"
                 data-draft-key="direct_thread_{{ other_user.id }}" data-draft-max-age-hours="24">
             {% csrf_token %}
             <input type="hidden" name="subject" value="Direct message">
+            <input type="hidden" name="recipient" value="{{ other_user.id }}">
             <div class="mb-2">
               <label for="direct-reply-body" class="visually-hidden">Message</label>
               <textarea name="body" id="direct-reply-body" class="form-control" rows="3" placeholder="Type your message..." required></textarea>

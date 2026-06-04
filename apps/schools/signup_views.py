@@ -251,6 +251,49 @@ def _assign_data_residency_or_record_failure(school) -> bool:
         return False
 
 
+def _signup_rate_limited_response(request, scope: str, *, json_response: bool):
+    """Per-IP throttle for the UNAUTHENTICATED tenant-creation entry points.
+
+    Without this, anyone can POST in a loop to: squat school slugs, exhaust the
+    free-tier schema namespace, and — most damaging — make the platform fire
+    verification emails at arbitrary addresses (a spam cannon). Returns a 429
+    response when over the limit, else ``None``.
+
+    Limits are settings-configurable so an operator can raise them for a
+    high-volume partner integration; the cache-backed throttle fails OPEN if the
+    cache is unavailable, so a cache blip never blocks legitimate signups.
+    """
+    from apps.api.rate_limit import throttle_ip_request
+
+    max_count = int(getattr(settings, "SIGNUP_MAX_PER_WINDOW", 10))
+    window = int(getattr(settings, "SIGNUP_RATE_WINDOW_SECONDS", 3600))
+    allowed, retry_after = throttle_ip_request(
+        request, scope=scope, max_count=max_count, window_seconds=window
+    )
+    if allowed:
+        return None
+    logger.warning("signup.rate_limited scope=%s", scope)
+    if json_response:
+        resp = JsonResponse(
+            {
+                "ok": False,
+                "error": "rate_limited",
+                "detail": "Too many signup attempts. Please try again later.",
+                "retry_after": retry_after,
+            },
+            status=429,
+        )
+    else:
+        messages.error(
+            request,
+            "Too many signup attempts from your network. "
+            "Please wait a few minutes and try again.",
+        )
+        resp = redirect(request.path)
+    resp["Retry-After"] = str(retry_after)
+    return resp
+
+
 @require_http_methods(["GET", "POST"])
 def signup_school(request: HttpRequest):
     """
@@ -348,6 +391,16 @@ def signup_school(request: HttpRequest):
                 "governance_matrix_hint": signup_governance_defaults(cc),
             },
         )
+
+    # Abuse defense: throttle per IP before creating a school or sending the
+    # verification email (slug squatting / free-tier exhaustion / email spam).
+    throttled = _signup_rate_limited_response(
+        request,
+        "signup_school",
+        json_response=request.headers.get("Accept", "").find("application/json") >= 0,
+    )
+    if throttled is not None:
+        return throttled
 
     name = (request.POST.get("name") or "").strip()
     slug = (request.POST.get("slug") or "").strip() or _slug_from_name(name)
@@ -1349,6 +1402,14 @@ def api_trial_school(request: HttpRequest):
     Creates school with billing_type=FREE_TRIAL, trial_end_date=now+14d, enqueues provisioning.
     Returns 202 with school_id, job_id, message "We'll email when ready".
     """
+    # Abuse defense: this is fully unauthenticated and creates a tenant + sends
+    # mail, so throttle per IP (separate bucket from the HTML signup form).
+    throttled = _signup_rate_limited_response(
+        request, "api_trial_school", json_response=True
+    )
+    if throttled is not None:
+        return throttled
+
     try:
         data = json.loads(request.body) if request.body else {}
     except json.JSONDecodeError:

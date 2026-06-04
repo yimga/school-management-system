@@ -262,7 +262,11 @@ class SuperAdminSurfaceParityTests(TestCase):
         admin_resp = self.client.get("/admin/", HTTP_HOST=self.host)
         self.assertEqual(super_resp.status_code, 200)
         self.assertEqual(admin_resp.status_code, 200)
-        for marker in ("id=\"cpSearchInput\"", "cp-topbar-theme-toggle", "data-shell-nav-bridge=\"manager-operator\""):
+        for marker in (
+            'id="cpSearchInput"',
+            "data-rmc-header-theme-chip",
+            'data-shell-nav-bridge="manager-operator"',
+        ):
             self.assertIn(marker, super_resp.content.decode())
             self.assertIn(marker, admin_resp.content.decode())
 

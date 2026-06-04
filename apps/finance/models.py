@@ -19,6 +19,14 @@ from apps.accounts.validators import (
 )
 from apps.siteconfig.models import _tenant_upload_to
 
+# Payment statuses that must NEVER count toward an invoice's paid total — money
+# that did not arrive or was returned. These three are unambiguous; "pending"
+# is deliberately NOT excluded here to avoid changing balance semantics for the
+# many flows that create-then-process (the offline cash path is fixed at source
+# to record "completed"). Tightening to require "completed" is a follow-up that
+# needs full ledger test coverage.
+_NON_RECEIVED_PAYMENT_STATUSES = ("failed", "cancelled", "refunded")
+
 
 def _default_currency():
     """Platform default currency (no hardcoded XAF). See config.PLATFORM_DEFAULT_CURRENCY."""
@@ -648,9 +656,15 @@ class Invoice(models.Model):
 
         Soft-deleted/cancelled payments (deleted_at set) are excluded — counting
         them would understate the outstanding balance after a payment reversal.
+        Payments that are definitively NOT money received (failed / cancelled /
+        refunded) are likewise excluded — counting them flips an invoice to
+        PAID/PARTIAL for money that never arrived (or was returned).
         """
         total_paid = sum(
-            p.amount for p in self.payments.filter(deleted_at__isnull=True)
+            p.amount
+            for p in self.payments.filter(deleted_at__isnull=True).exclude(
+                status__in=_NON_RECEIVED_PAYMENT_STATUSES
+            )
         ) or Decimal("0.00")
         return max(self.total_amount - total_paid, Decimal("0.00"))
 
@@ -840,6 +854,9 @@ class Payment(models.Model):
         ("refunded", "Refunded"),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    # Statuses that must NEVER reduce an invoice balance — money not received or
+    # already returned. Used by Invoice.computed_balance + recalculate_invoice.
+    # (module-level alias defined below for cross-class import)
     status_reason = models.TextField(blank=True)
 
     # Audit logging fields

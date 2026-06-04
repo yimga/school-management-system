@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from apps.siteconfig.cockpit_context import (
     _pick_operator_incident_banner,
@@ -104,3 +104,41 @@ class TenantActivityTickerDefaultsTests(SimpleTestCase):
         self.assertTrue(defaults["enabled"])
         self.assertGreaterEqual(len(defaults["cards"]), 1)
 
+
+class CockpitDemoDefaultsOffTests(TestCase):
+    def test_manager_live_route_omits_demo_mrr_waterfall(self):
+        from django.test import RequestFactory, override_settings
+
+        from apps.siteconfig.cockpit_context import cockpit_context
+
+        rf = RequestFactory()
+        request = rf.get("/super/")
+        request.public_host_kind = "manager"
+        with override_settings(
+            COCKPIT_200X_RENDER_PREVIEW_DEMO=False,
+            COCKPIT_100X_RENDER_PREVIEW_DEMO=False,
+        ):
+            ctx = cockpit_context(request)
+        waterfall = (ctx.get("cockpit") or {}).get("revenue_waterfall") or {}
+        bars = waterfall.get("bars") or []
+        demo_values = {bar.get("value") for bar in bars if isinstance(bar, dict)}
+        self.assertNotIn("$42.1k", demo_values)
+        self.assertNotIn("$39.2k", demo_values)
+
+    def test_preview_route_still_allows_demo_overlay(self):
+        from django.test import RequestFactory, override_settings
+
+        from apps.siteconfig.cockpit_context import cockpit_context
+
+        rf = RequestFactory()
+        request = rf.get("/siteconfig/super/configure/cockpit/previews/manager-200x/")
+        request.public_host_kind = "manager"
+        with override_settings(
+            COCKPIT_200X_RENDER_PREVIEW_DEMO=False,
+            COCKPIT_100X_RENDER_PREVIEW_DEMO=False,
+        ):
+            ctx = cockpit_context(request)
+        waterfall = (ctx.get("cockpit") or {}).get("revenue_waterfall") or {}
+        bars = waterfall.get("bars") or []
+        demo_values = {bar.get("value") for bar in bars if isinstance(bar, dict)}
+        self.assertIn("$42.1k", demo_values)

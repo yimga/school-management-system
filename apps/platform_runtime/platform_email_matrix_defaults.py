@@ -152,41 +152,50 @@ def _register_default_email_rows() -> int:
             priority=PRIORITY_TRANSACTIONAL,
             user_unsubscribable=False,
         ),
+        # Win-back / reactivation is MARKETING under CASL/GDPR (no longer
+        # transactional). Classifying it as marketing routes it through the
+        # matrix suppression gate centrally + makes it user-unsubscribable
+        # (audit) — the reactivation engine's own opt-out pre-check stays as
+        # defence in depth.
         EmailMatrixRow(
             event_type="tenant.reactivation.30d",
-            classification=CLASSIFICATION_TENANT_ADMIN,
+            classification=CLASSIFICATION_MARKETING,
             subject_template="We miss you at RunMyCampus",
             body_template="emails/tenant_reactivation_30d.txt",
             recipient_resolver=resolve_tenant_admin_from_payload,
-            priority=PRIORITY_TRANSACTIONAL,
+            priority=PRIORITY_BULK,
             cooldown_minutes=60 * 24 * 30,
+            user_unsubscribable=True,
         ),
         EmailMatrixRow(
             event_type="tenant.reactivation.60d",
-            classification=CLASSIFICATION_TENANT_ADMIN,
+            classification=CLASSIFICATION_MARKETING,
             subject_template="Your RunMyCampus account has been quiet",
             body_template="emails/tenant_reactivation_60d.txt",
             recipient_resolver=resolve_tenant_admin_from_payload,
-            priority=PRIORITY_TRANSACTIONAL,
+            priority=PRIORITY_BULK,
             cooldown_minutes=60 * 24 * 30,
+            user_unsubscribable=True,
         ),
         EmailMatrixRow(
             event_type="tenant.reactivation.90d",
-            classification=CLASSIFICATION_TENANT_ADMIN,
+            classification=CLASSIFICATION_MARKETING,
             subject_template="Coming back to RunMyCampus? Here's what's new.",
             body_template="emails/tenant_reactivation_90d.txt",
             recipient_resolver=resolve_tenant_admin_from_payload,
-            priority=PRIORITY_TRANSACTIONAL,
+            priority=PRIORITY_BULK,
             cooldown_minutes=60 * 24 * 30,
+            user_unsubscribable=True,
         ),
         EmailMatrixRow(
             event_type="tenant.reactivation.120d",
-            classification=CLASSIFICATION_TENANT_ADMIN,
+            classification=CLASSIFICATION_MARKETING,
             subject_template="Final reactivation reminder",
             body_template="emails/tenant_reactivation_120d.txt",
             recipient_resolver=resolve_tenant_admin_from_payload,
-            priority=PRIORITY_TRANSACTIONAL,
+            priority=PRIORITY_BULK,
             cooldown_minutes=60 * 24 * 90,
+            user_unsubscribable=True,
         ),
         # ── Marketing ──────────────────────────────────────────────────────
         EmailMatrixRow(

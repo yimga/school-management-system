@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, FileResponse
 from django.utils import timezone
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.views.decorators.http import require_POST, require_http_methods
 
 from apps.accounts.decorators import permission_required

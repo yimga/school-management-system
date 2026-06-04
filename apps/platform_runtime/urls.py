@@ -34,6 +34,11 @@ from apps.platform_runtime.views_newsletter import (
     newsletter_subscribe_view,
     newsletter_unsubscribe_view,
 )
+from apps.platform_runtime.views_platform_health import (
+    platform_health_badge,
+    platform_health_center,
+    platform_health_recheck,
+)
 
 urlpatterns = [
     path(
@@ -131,6 +136,22 @@ urlpatterns = [
         "workflow-progress/autopilot/enable/",
         workflow_progress_enable_autopilot_view,
         name="workflow_progress_enable_autopilot",
+    ),
+    # Platform Health — registries → assist-dock connective tissue (2026-06-03).
+    path(  # rbac-allow: staff-gated-via-staff_member_required-redirect-on-non-staff
+        "platform-health/",
+        platform_health_center,
+        name="platform_health_center",
+    ),
+    path(  # rbac-allow: staff-gated-via-login_required_api-plus-is_staff-403
+        "platform-health/badge/",
+        platform_health_badge,
+        name="platform_health_badge",
+    ),
+    path(  # rbac-allow: staff-gated-via-login_required_api-plus-is_staff-403
+        "platform-health/recheck/",
+        platform_health_recheck,
+        name="platform_health_recheck",
     ),
     # Newsletter subscription (v4.00.98 Phase 3).
     path(  # rbac-allow: intentionally-public-marketing-newsletter-double-opt-in-signup

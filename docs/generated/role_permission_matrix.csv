@@ -166,7 +166,7 @@ decision/revenue/,decision_revenue_dashboard,apps/analytics/urls.py,apps/analyti
 decision/engagement/,decision_engagement_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
 decision/risk/,decision_risk_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
 decision/founder/,decision_founder_dashboard,apps/analytics/urls.py,apps/analytics/views_governed.py,func,login_required | require_GET,,,,1,0,0,0,0,,0,0
-,dashboard,apps/analytics/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
+,dashboard,apps/analytics/urls.py,apps/analytics/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 master-sheet/,master_sheet,apps/analytics/urls.py,apps/analytics/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 deadlines/,grading_deadlines,apps/analytics/urls.py,apps/analytics/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 strategic/,strategic_report,apps/analytics/urls.py,apps/analytics/views.py,func,login_required,,,,1,0,0,0,0,,0,0
@@ -623,7 +623,7 @@ super/feedback/<int:pk>/action/,views.operator_feedback_action,apps/feedback/url
 super/feature/<int:pk>/roadmap/,views.add_to_roadmap,apps/feedback/urls.py,apps/feedback/views.py,func,login_required | require_POST,,,,1,0,0,0,0,,0,0
 help/,views.help_center,apps/feedback/urls.py,apps/feedback/views.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
 release-notes/,views.release_notes_public,apps/feedback/urls.py,apps/feedback/views.py,func,,,,,1,0,0,0,0,intentionally public — filters is_public=True at QS level,0,0
-,dashboard,apps/finance/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
+,dashboard,apps/finance/urls.py,apps/analytics/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 payment-setup/,payment_readiness_setup,apps/finance/urls.py,apps/finance/views_payment_setup.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 payment-readiness/,payment_readiness_dashboard,apps/finance/urls.py,apps/finance/views_payment_readiness_dashboard.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 payment-command-center/,global_payment_command_center,apps/finance/urls.py,apps/finance/views_global_payment_command_center.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
@@ -813,7 +813,7 @@ api/runs/<int:run_id>/events/,api.run_events,apps/orchestration/urls.py,,,,,,,0,
 api/runs/<int:run_id>/cancel/,api.run_cancel,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1
 api/runs/<int:run_id>/retry/,api.run_retry,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1
 api/slo/,api.slo_snapshot,apps/orchestration/urls.py,,,,,,,0,0,0,0,0,,0,1
-,dashboard,apps/payroll/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
+,dashboard,apps/payroll/urls.py,apps/analytics/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 runs/create/,create_run,apps/payroll/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 runs/<int:run_id>/,run_detail,apps/payroll/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
 runs/<int:run_id>/generate/,generate_run,apps/payroll/urls.py,apps/payroll/views.py,func,staff_member_required,,,,1,0,0,0,0,,0,0
@@ -952,10 +952,10 @@ backend/signatures/,signature_requests_manage,apps/portal/urls.py,apps/portal/vi
 backend/signatures/create/,signature_request_create,apps/portal/urls.py,apps/portal/views_documents.py,func,"permission_required('settings.manage') | login_required | require_http_methods(['GET', 'POST'])",,,,1,0,1,0,0,,0,0
 parent/signatures/,signature_pending_list,apps/portal/urls.py,apps/portal/views_documents.py,func,login_required,,,,1,0,0,0,0,,0,0
 parent/signatures/sign/<int:signature_id>/,signature_sign,apps/portal/urls.py,apps/portal/views_documents.py,func,"login_required | require_http_methods(['GET', 'POST'])",,,,1,0,0,0,0,,0,0
-student/<int:student_id>/360/,student_360_page,apps/portal/urls.py,apps/student360/views.py,func,login_required,,,,1,0,0,0,0,,0,0
+student/<int:student_id>/360/,student_360_page,apps/portal/urls.py,apps/student360/views.py,func,login_required | audit_pii_view,,,,1,0,0,0,0,,0,0
 student/<int:student_profile_id>/passport/,student_passport_detail,apps/portal/urls.py,apps/portal/views_passport.py,func,login_required | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0
 student/<int:student_profile_id>/transcript-vault/,student_transcript_vault,apps/portal/urls.py,apps/portal/views_passport.py,func,login_required | require_http_methods(['GET']),,,,1,0,0,0,0,,0,0
-student/<int:student_id>/360/export/,student_360_export,apps/portal/urls.py,apps/student360/views.py,func,login_required,,,,1,0,0,0,0,,0,0
+student/<int:student_id>/360/export/,student_360_export,apps/portal/urls.py,apps/student360/views.py,func,login_required | audit_pii_view,,,,1,0,0,0,0,,0,0
 student/<int:student_id>/360/transcript-archive/,transcript_archive,apps/portal/urls.py,apps/student360/views.py,func,login_required | audit_pii_view,,,,1,0,0,0,0,,0,0
 student/<int:student_id>/360/transcript-archive/<int:year_id>/,transcript_archive_year,apps/portal/urls.py,apps/student360/views.py,func,login_required,,,,1,0,0,0,0,,0,0
 student/<int:student_id>/360/transcript-freeze/,transcript_freeze,apps/portal/urls.py,apps/student360/views.py,func,login_required,,,,1,0,0,0,0,,0,0

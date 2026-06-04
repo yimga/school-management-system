@@ -96,13 +96,9 @@ from .cockpit_tenant_v3_extended import build_tenant_v3_extended_cockpit
 
 # v3.57.3 (2026-05-21): preview demo payloads — pre-populated sample content
 # that mirrors the v8 200x manager preview + v3 100x tenant preview HTML
-# artifacts in `docs/generated/`. When the corresponding settings flags are
-# True (defaults: True so the shell renders the preview UI out of the box),
-# the orchestrator overlays these payloads onto the helper defaults so each
-# 200x / 100x section becomes `enabled=True` + populated with sample data.
-# Operators override individual sections via SiteSettings.cockpit_payload
-# (the v3.57.1 admin toggle UI). To disable the whole demo, set
-# COCKPIT_200X_RENDER_PREVIEW_DEMO=False / COCKPIT_100X_RENDER_PREVIEW_DEMO=False.
+# artifacts in `docs/generated/`. Overlay applies only when the corresponding
+# settings flag is True OR the request is the staff cockpit preview CBV route.
+# Production defaults (batch 1611): flags False — realdata + honest empty states.
 from .cockpit_manager_200x_preview_data import manager_200x_demo_payload
 from .cockpit_tenant_v3_preview_data import tenant_v3_extended_demo_payload
 
@@ -140,6 +136,27 @@ def _deep_merge(base: Any, override: Any) -> Any:
     if isinstance(override, str) and override == "":
         return base
     return override
+
+
+def _cockpit_preview_route(request) -> bool:
+    path = (getattr(request, "path", "") or "").lower()
+    return "/siteconfig/super/configure/cockpit/previews/" in path
+
+
+def _manager_cockpit_demo_enabled(request) -> bool:
+    from django.conf import settings as dj_settings
+
+    if _cockpit_preview_route(request):
+        return True
+    return bool(getattr(dj_settings, "COCKPIT_200X_RENDER_PREVIEW_DEMO", False))
+
+
+def _tenant_cockpit_demo_enabled(request) -> bool:
+    from django.conf import settings as dj_settings
+
+    if _cockpit_preview_route(request):
+        return True
+    return bool(getattr(dj_settings, "COCKPIT_100X_RENDER_PREVIEW_DEMO", False))
 
 
 def _resolve_cockpit_payload(request) -> dict[str, Any]:
@@ -695,38 +712,16 @@ def cockpit_context(request) -> dict[str, Any]:
             _sibling_compare_defaults(),
         )
 
-        # v3.57.3: overlay the preview demo payload so the 10 manager 200x
-        # sections render out of the box matching the v8 200x preview HTML.
-        # Operators disable individual sections via the v3.57.1 admin toggles;
-        # to disable the whole demo set COCKPIT_200X_RENDER_PREVIEW_DEMO=False.
-        from django.conf import settings as _dj_settings
-        if getattr(_dj_settings, "COCKPIT_200X_RENDER_PREVIEW_DEMO", True):
-            manager_cockpit = _deep_merge(
-                manager_cockpit, manager_200x_demo_payload()
-            )
-
-        # v3.58.2 (2026-05-22): real-data resolver overlay. The
-        # cockpit_panels_realdata_service queries the platform models for the
-        # 9 manager cockpit panels (operator_presence, activity_ticker,
-        # audit_feed, live_world_map, tenant_heatmap, forecast_lane, slo_clocks,
-        # revenue_waterfall, trust_nutrition). Each resolver is wrapped in
-        # try/except — a None return leaves the slot pointed at whatever the
-        # demo overlay (or static default) provided. Operator override below
-        # still wins, so a SiteSettings.cockpit_payload value is final.
+        # v3.58.2 (2026-05-22): real-data resolver overlay BEFORE optional demo.
         try:
             from .cockpit_panels_realdata_service import resolve_panel_overrides
+
             real_panels = resolve_panel_overrides()
         except Exception:
             real_panels = {}
         if real_panels:
             manager_cockpit = _deep_merge(manager_cockpit, real_panels)
 
-        # v3.58.x Wave 10 Agent Q (2026-05-22): GLOBAL activity ticker
-        # real-data overlay. Runs only when (a) the Django settings flag
-        # `ATK_REALDATA_ENABLED` is True (default), AND (b) the operator
-        # hasn't disabled realdata via cockpit_payload.activity_ticker.
-        # realdata_enabled=False. Best-effort — any failure returns {} so
-        # we cleanly fall back to the demo/seed cards.
         from django.conf import settings as _atk_settings
         _atk_pre_payload = _resolve_cockpit_payload(request).get(
             "activity_ticker"
@@ -741,6 +736,7 @@ def cockpit_context(request) -> dict[str, Any]:
                     merge_activity_ticker_sections,
                     resolve_activity_ticker_cards,
                 )
+
                 ticker_real = resolve_activity_ticker_cards(request)
             except Exception:
                 ticker_real = {}
@@ -748,6 +744,11 @@ def cockpit_context(request) -> dict[str, Any]:
                 manager_cockpit = merge_activity_ticker_sections(
                     manager_cockpit, ticker_real
                 )
+
+        if _manager_cockpit_demo_enabled(request):
+            manager_cockpit = _deep_merge(
+                manager_cockpit, manager_200x_demo_payload()
+            )
 
         # Overlay operator-saved cockpit_payload LAST so per-site overrides
         # (including section.enabled = False) win over both defaults and demo.
@@ -839,27 +840,12 @@ def cockpit_context(request) -> dict[str, Any]:
         _sibling_compare_defaults(),
     )
 
-    # v3.57.3: overlay the v3 100x tenant preview demo payload so the 10 new
-    # tenant sections render out of the box matching the v3 100x preview HTML.
-    # Sibling-compare honors its separate opt_in privacy gate inside the
-    # section payload (no sibling data renders without parent consent).
-    from django.conf import settings as _dj_settings
-    if getattr(_dj_settings, "COCKPIT_100X_RENDER_PREVIEW_DEMO", True):
-        tenant_cockpit = _deep_merge(
-            tenant_cockpit, tenant_v3_extended_demo_payload()
-        )
-
-    # v3.58.x Wave 10 Agent Q (2026-05-22): tenant-scoped activity ticker
-    # real-data overlay. Runs only when (a) the Django settings flag
-    # `ATK_REALDATA_ENABLED` is True (default), AND (b) the operator
-    # hasn't disabled realdata via cockpit_payload.activity_ticker.
-    # realdata_enabled=False. Best-effort — any failure returns {} so
-    # we cleanly fall back to operator-published seed cards.
+    from django.conf import settings as _atk_settings
     _atk_pre_payload = _resolve_cockpit_payload(request).get(
         "activity_ticker"
     ) or {}
     _atk_realdata_ok = (
-        getattr(_dj_settings, "ATK_REALDATA_ENABLED", True)
+        getattr(_atk_settings, "ATK_REALDATA_ENABLED", True)
         and _atk_pre_payload.get("realdata_enabled", True)
     )
     if _atk_realdata_ok:
@@ -868,11 +854,19 @@ def cockpit_context(request) -> dict[str, Any]:
                 merge_activity_ticker_sections,
                 resolve_activity_ticker_cards,
             )
+
             ticker_real = resolve_activity_ticker_cards(request)
         except Exception:
             ticker_real = {}
         if ticker_real:
-            tenant_cockpit = merge_activity_ticker_sections(tenant_cockpit, ticker_real)
+            tenant_cockpit = merge_activity_ticker_sections(
+                tenant_cockpit, ticker_real
+            )
+
+    if _tenant_cockpit_demo_enabled(request):
+        tenant_cockpit = _deep_merge(
+            tenant_cockpit, tenant_v3_extended_demo_payload()
+        )
 
     # Overlay operator-saved cockpit_payload LAST so per-site overrides win.
     payload = _resolve_cockpit_payload(request)

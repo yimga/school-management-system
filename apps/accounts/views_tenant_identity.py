@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import timedelta
 
 from django.contrib import messages
@@ -23,6 +24,8 @@ from apps.accounts.iam_pdp_guards import (
 )
 from apps.accounts.models import TenantStaffInvite, User
 from apps.accounts.iam_localization import localized_government_body_label
+
+logger = logging.getLogger(__name__)
 from apps.accounts.tenant_identity import (
     localized_role_for_user,
     mfa_enrolled_for_user,
@@ -267,10 +270,39 @@ def tenant_identity_invite(request):
         accept_url = request.build_absolute_uri(
             reverse("accounts:tenant_staff_invite_accept", kwargs={"token": invite.token})
         )
-        messages.success(
-            request,
-            _("Staff invite created. Share this link: %(url)s") % {"url": accept_url},
-        )
+        # Audit C5 — actually email the invite link (previously only flashed).
+        school_name = getattr(school, "name", "") or "your school"
+        emailed = False
+        try:
+            from apps.schoolops.email_delivery import send_transactional
+
+            res = send_transactional(
+                subject=_("You're invited to join %(school)s on RunMyCampus")
+                % {"school": school_name},
+                body=_(
+                    "You have been invited to join %(school)s as %(role)s.\n\n"
+                    "Accept your invitation (valid 7 days):\n%(url)s\n"
+                ) % {"school": school_name, "role": role, "url": accept_url},
+                to=[email],
+                priority="transactional",
+                school=school,
+                allow_suppressed=True,
+                idempotency_key=f"staff_invite:{invite.token}",
+            )
+            emailed = bool(res.get("ok") or res.get("queued"))
+        except Exception:  # noqa: BLE001 — invite still usable via the link
+            logger.warning("accounts.staff_invite_email_failed")
+        if emailed:
+            messages.success(
+                request,
+                _("Staff invite emailed to %(email)s. Link: %(url)s")
+                % {"email": email, "url": accept_url},
+            )
+        else:
+            messages.success(
+                request,
+                _("Staff invite created. Share this link: %(url)s") % {"url": accept_url},
+            )
         return redirect("accounts:tenant_identity_roster")
     return render(
         request,

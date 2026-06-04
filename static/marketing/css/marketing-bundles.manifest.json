@@ -1,6 +1,6 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-06-01T16:11:17Z",
+  "generated_utc": "2026-06-03T17:51:03Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
     "bytes": 21386,
@@ -34,17 +34,17 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 347235,
+    "bytes": 348498,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
-        "sha256": "7105131c37cd44d92fa088dfa0599ec63a244e5c5debea29a28ef4683e7b9471",
-        "bytes": 144206
+        "sha256": "8cc5c7e13d0ce54056943d36c284467be95a64dca2205e9d9775205b25423cf2",
+        "bytes": 144963
       },
       {
         "path": "static/css/rmc-platform-header.css",
-        "sha256": "53a9191ae7c5d45ff66ad577c401c6f6a1cf822216e6ba63b50f7aab24589e4e",
-        "bytes": 16078
+        "sha256": "91880898773834f81d9550ae00ebc6010f0ac33a3fb48f94805be7fe93c2a01c",
+        "bytes": 17106
       },
       {
         "path": "static/css/statement-header.css",
@@ -123,8 +123,8 @@
       },
       {
         "path": "static/css/design-tokens-luxury.css",
-        "sha256": "97ce301a704a2fd8b9e8de085c7b0224211de446f8d73b0ddf0f52ec462d3d0f",
-        "bytes": 5467
+        "sha256": "af20a690a146e723b502c55b116168ffdd6d79f432319a7749dd8c033000142e",
+        "bytes": 5520
       },
       {
         "path": "static/marketing/css/marketing-v3-dashboards.css",

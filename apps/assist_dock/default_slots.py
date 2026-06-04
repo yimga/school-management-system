@@ -15,6 +15,8 @@ from django.utils.translation import gettext_lazy as _
 from .registry import (
     ALL_SURFACES,
     SOURCE_DOM_ADOPT,
+    SOURCE_EXTERNAL,
+    SURFACE_MANAGER,
     AssistDockSlot,
     register_slot,
 )
@@ -51,6 +53,29 @@ register_slot(
         shortcut="g m",
         aria_keyshortcuts="g m",
         description=_("Open the messages panel."),
+    )
+)
+
+
+# Platform Health (2026-06-03) — manager-surface chip aggregating broken
+# feature-gap proofs + over-SLA backlog items into one live dock signal. The
+# badge resolver (default_badges.platform_health_badge_resolver) paints a pill
+# only when there is a problem (and only for staff). External-source so the JS
+# renders a real navigable <a>; href is the manager-host mount of the platform
+# health center (platform_runtime is mounted at /platform-runtime/ on the
+# manager urlconf, and this chip only renders on SURFACE_MANAGER, so the path
+# is stable for the surface it appears on).
+register_slot(
+    AssistDockSlot(
+        id="platform-health",
+        label=_("Platform health"),
+        icon="bi-clipboard2-pulse",
+        surfaces=frozenset({SURFACE_MANAGER}),
+        source=SOURCE_EXTERNAL,
+        href="/platform-runtime/platform-health/",
+        pinned_default=True,
+        order=28,
+        description=_("Broken feature proofs and over-SLA backlog items."),
     )
 )
 

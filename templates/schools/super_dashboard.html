@@ -17,6 +17,13 @@
 
 {% block cp_workspace_header %}{% endblock %}
 
+{% block cp_shell_header_ticker %}
+<div class="cp-header__row cp-header__row--live" data-rmc-cp-header-live="1">
+  {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+</div>
+{{ block.super }}
+{% endblock %}
+
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>
 {% comment %} v3.57.10 (2026-05-22): the 8 v8 200x dashboard sections render ONLY on this
@@ -37,7 +44,7 @@
    that read as empty ruled bands on /super/ while cockpit health still reported
    would_render=true. {% endcomment %}
 <div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-section-nav="off">
-{% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+{% comment %}v4.01.43: LIVE banner moved to cp_shell_header_ticker header row.{% endcomment %}
 {% if cockpit.pulse_metrics.cards %}
 <div class="rmc-cp-landing-pulse mb-3" data-rmc-cp-landing-pulse="1">
   {% include "partials/cockpit/_platform_pulse.html" %}

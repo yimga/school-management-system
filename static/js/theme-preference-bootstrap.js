@@ -95,8 +95,29 @@
     "portal-backend-midnight",
   ];
 
-  function syncPortalBackendBodyPalette(resolved) {
+  function shouldSyncPortalBackendPalette() {
     if (!document.body) {
+      return false;
+    }
+    /* Operator dual-plane shells own canvas vs chrome separately; the legacy
+       portal-backend-* body palette fights rmc-theme-experience-dual-plane.css. */
+    if (document.body.classList.contains("control-plane-shell")) {
+      return false;
+    }
+    if (document.body.classList.contains("manager-portal-bridge")) {
+      return false;
+    }
+    if (document.body.classList.contains("admin-manager-shell")) {
+      return false;
+    }
+    if (document.documentElement.getAttribute("data-surface") === "control-plane") {
+      return false;
+    }
+    return true;
+  }
+
+  function syncPortalBackendBodyPalette(resolved) {
+    if (!shouldSyncPortalBackendPalette()) {
       return;
     }
     var i;

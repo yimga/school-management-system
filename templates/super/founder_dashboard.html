@@ -21,6 +21,13 @@
 </nav>
 {% endblock %}
 
+{% block cp_shell_header_ticker %}
+<div class="cp-header__row cp-header__row--live" data-rmc-cp-header-live="1">
+  {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+</div>
+{{ block.super }}
+{% endblock %}
+
 {% block cp_content %}
 {# table-pagination-allow: founder-dashboard-widget-top-N each-tile-is-bounded-summary #}
 {% url 'sales:pipeline_board' as sales_pipeline_url %}
@@ -33,7 +40,7 @@
 
    v3.58.x Wave 10 Agent T (2026-05-22): platform_pulse wrapped in the collapsable primitive
    so operators can fold the section. State persists per-section via localStorage. {% endcomment %}
-{% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+{% comment %}v4.01.43: LIVE banner moved to cp_shell_header_ticker header row.{% endcomment %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Platform pulse") key="founder__platform_pulse" include_partial="partials/cockpit/_platform_pulse.html" chrome="section" %}
 
 {% comment %} v3.58.10 (2026-05-22): 200x cockpit panel wave — wires the 8 remaining manager 200x

@@ -933,6 +933,19 @@ class ServiceIntegration(models.Model):
     def __str__(self):
         return f"{self.school.name} - {self.service_name}"
 
+    def save(self, *args, **kwargs):
+        # Audit C1 — encrypt secret-named keys in ``config`` at rest. The
+        # channel resolvers decrypt on read (apps.communication.secret_config),
+        # so plaintext credentials never persist to the DB / backups.
+        try:
+            from apps.communication.secret_config import encrypt_config
+
+            if isinstance(self.config, dict):
+                self.config = encrypt_config(self.config)
+        except Exception:  # noqa: BLE001 — never block the save on crypto trouble
+            pass
+        super().save(*args, **kwargs)
+
 
 class WebhookSubscription(models.Model):
     school = models.ForeignKey(

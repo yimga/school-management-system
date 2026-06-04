@@ -881,6 +881,37 @@ def apply_processor_snapshot(
                     "processor_source_ref": processor_source_ref,
                 },
             )
+
+        # Audit C4 — bridge the processor's payment-failed event to the
+        # platform Email Matrix. Billing emits provider-specific strings
+        # ("invoice.payment_failed", "payment_intent.payment_failed", ...);
+        # the matrix keys on the canonical "tenant.payment.failed", so without
+        # this bridge no dunning / payment-failed email ever fired (operators
+        # OR tenants). Best-effort: never break webhook processing on a mail
+        # publish failure.
+        if et in _PROC_PAYMENT_FAIL:
+            try:
+                from apps.platform_runtime.event_bus import publish_event
+
+                publish_event(
+                    "tenant.payment.failed",
+                    {
+                        "school_name": getattr(school, "name", "")
+                        or getattr(school, "slug", ""),
+                        "billing_event_type": event_type,
+                        "processor_code": processor_code,
+                    },
+                    school_id=getattr(school, "id", None),
+                    idempotency_key=(
+                        f"pay_failed:{processor_code}:"
+                        f"{processor_source_ref or external_subscription_ref or account.pk}"
+                    ),
+                )
+            except Exception:  # noqa: BLE001 — mail publish never breaks billing
+                logger.warning(
+                    "billing.payment_failed_event_publish_failed school_id=%s",
+                    getattr(school, "id", None),
+                )
         if billed_amount is not None:
             try:
                 amt = Decimal(str(billed_amount))

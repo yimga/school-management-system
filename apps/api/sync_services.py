@@ -138,6 +138,20 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True):
     conflicts = []
     success_count = 0
 
+    if not school_id:
+        return {
+            "success_count": 0,
+            "results": [
+                {
+                    "index": idx,
+                    "status": 403,
+                    "data": {"error": "Tenant context required"},
+                }
+                for idx, _ in enumerate(items)
+            ],
+            "conflicts": [],
+        }
+
     with transaction.atomic():
         for idx, item in enumerate(items):
             entity_type = (item.get("entity_type") or "").strip().lower()
@@ -190,7 +204,7 @@ def _apply_changes_inner(school_id, user, items, *, persist_conflicts=True):
                 )
                 continue
 
-            if school_id and hasattr(instance, "school_id"):
+            if hasattr(instance, "school_id"):
                 instance_school_id = getattr(instance, "school_id", None)
                 if instance_school_id is None or str(instance_school_id) != str(
                     school_id

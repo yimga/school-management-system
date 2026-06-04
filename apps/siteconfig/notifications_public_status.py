@@ -63,7 +63,7 @@ def _build_subject_and_body(incident, kind: str, status_url: str, unsub_url: str
 def _dispatch_email(sub, incident, subject: str, body: str) -> DispatchResult:
     try:
         from django.conf import settings
-        from django.core.mail import send_mail
+        from apps.schoolops.email_compat import send_mail
     except ImportError:
         return DispatchResult(ok=False, detail="email-backend-missing")
     to_addr = sub.email or sub.address

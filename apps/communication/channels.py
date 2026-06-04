@@ -54,16 +54,18 @@ def _get_whatsapp_config(school) -> dict | None:
     )
     from apps.integrations_marketplace.models import ServiceIntegration
 
+    from apps.communication.secret_config import decrypt_config
+
     rec = resolve_active_integration(school, "whatsapp")
     if rec and rec.is_active and rec.config:
-        return rec.config
+        return decrypt_config(rec.config)
     svc = resolve_service_integration(
         school,
         service_type=ServiceIntegration.ServiceType.WHATSAPP,
         name_hints=["whatsapp"],
     )
     if svc and svc.config:
-        return svc.config
+        return decrypt_config(svc.config)
     return None
 
 
@@ -147,17 +149,53 @@ def _get_push_config(school) -> dict | None:
     )
     from apps.integrations_marketplace.models import ServiceIntegration
 
+    from apps.communication.secret_config import decrypt_config
+
     rec = resolve_active_integration(school, "push")
     if rec and rec.is_active and rec.config:
-        return rec.config
+        return decrypt_config(rec.config)
     svc = resolve_service_integration(
         school,
         service_type=ServiceIntegration.ServiceType.PUSH,
         name_hints=["push", "fcm"],
     )
     if svc and svc.config:
-        return svc.config
+        return decrypt_config(svc.config)
     return None
+
+
+def _fcm_v1_access_token(config: dict) -> str:
+    """Resolve an OAuth2 bearer token for FCM HTTP v1.
+
+    Order of preference:
+      1. A caller-supplied short-lived ``access_token`` in config (the caller
+         refreshes it out-of-band).
+      2. A service-account JSON (``service_account_json`` / ``service_account``)
+         minted into a token via ``google.oauth2.service_account`` when the
+         ``google-auth`` library is installed.
+    Returns "" when no token can be obtained (caller logs + returns False)."""
+    token = (config.get("access_token") or "").strip()
+    if token:
+        return token
+    sa = config.get("service_account_json") or config.get("service_account")
+    if not sa:
+        return ""
+    try:
+        import json as _json
+
+        from google.oauth2 import service_account  # type: ignore
+        from google.auth.transport.requests import Request as _GRequest  # type: ignore
+
+        info = _json.loads(sa) if isinstance(sa, str) else sa
+        creds = service_account.Credentials.from_service_account_info(
+            info,
+            scopes=["https://www.googleapis.com/auth/firebase.messaging"],
+        )
+        creds.refresh(_GRequest())
+        return creds.token or ""
+    except Exception as exc:  # noqa: BLE001 — missing lib / bad creds → no token
+        logger.warning("Push(fcm): v1 token mint failed err_type=%s", type(exc).__name__)
+        return ""
 
 
 def send_push(
@@ -189,25 +227,55 @@ def send_push(
         return False
     try:
         if provider == "fcm":
-            server_key = config.get("server_key")
-            if not server_key:
-                return False
-            import requests
+            # FCM HTTP v1 (audit H9). The legacy "/fcm/send" + "Authorization:
+            # Key" API was shut down by Google in 2024, so all legacy sends
+            # silently failed. v1 uses an OAuth2 bearer + per-project endpoint.
+            project_id = config.get("project_id") or config.get("fcm_project_id")
+            access_token = _fcm_v1_access_token(config)
+            if project_id and access_token:
+                import requests
 
-            r = requests.post(
-                "https://fcm.googleapis.com/fcm/send",
-                headers={
-                    "Authorization": f"Key {server_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "to": device_token,
-                    "notification": {"title": title, "body": body},
-                    "data": data or {},
-                },
-                timeout=10,
+                payload_data = {k: str(v) for k, v in (data or {}).items()}
+                r = requests.post(
+                    f"https://fcm.googleapis.com/v1/projects/{project_id}/messages:send",
+                    headers={
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "message": {
+                            "token": device_token,
+                            "notification": {"title": title, "body": body},
+                            "data": payload_data,
+                        }
+                    },
+                    timeout=10,
+                )
+                return r.status_code == 200
+            # Explicit legacy opt-in only (deprecated; Google-disabled in 2024).
+            server_key = config.get("server_key")
+            if config.get("allow_legacy_fcm") and server_key:
+                import requests
+
+                r = requests.post(
+                    "https://fcm.googleapis.com/fcm/send",
+                    headers={
+                        "Authorization": f"Key {server_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "to": device_token,
+                        "notification": {"title": title, "body": body},
+                        "data": data or {},
+                    },
+                    timeout=10,
+                )
+                return r.status_code == 200
+            logger.warning(
+                "Push(fcm): missing project_id/access_token for HTTP v1 "
+                "(legacy API is disabled by Google)."
             )
-            return r.status_code == 200
+            return False
         if provider == "web_push" or config.get("endpoint_url"):
             url = config.get("endpoint_url")
             if not url:

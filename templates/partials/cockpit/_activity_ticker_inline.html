@@ -30,9 +30,9 @@ Click opens #rmcCpActivityDrawer; full marquee is Tier 2 on landing canvas only.
               data-bs-toggle="offcanvas"
               data-bs-target="#rmcCpActivityDrawer"
               aria-controls="rmcCpActivityDrawer"
-              title="{{ event.text|default:event.label }}">
+              title="{% firstof event.text event.label %}">
         <span class="rmc-cp-ticker-inline__badge">{% trans "LIVE" %}</span>
-        <span class="rmc-cp-ticker-inline__text rmc-text-shield" data-rmc-text-shield="1">{{ event.text|default:event.label }}</span>
+        <span class="rmc-cp-ticker-inline__text rmc-text-shield" data-rmc-text-shield="1">{% firstof event.text event.label %}</span>
       </button>
       {% endwith %}
     {% endif %}

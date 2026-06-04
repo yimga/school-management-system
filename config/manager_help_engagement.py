@@ -20,7 +20,6 @@ from apps.feedback.db_readiness import (
     roadmap_queryset,
 )
 from apps.feedback.forms import FeatureRequestForm
-from apps.feedback.models import FeatureRequest
 from apps.feedback.services import (
     generate_you_said_we_did_items,
     submit_feature_request,

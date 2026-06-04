@@ -589,7 +589,47 @@ _RESOLVERS = (
 )
 
 
-def resolve_panel_overrides() -> dict[str, dict[str, Any]]:
+def _honest_empty_panel(key: str) -> dict[str, Any]:
+    """Layout-safe empty shape when demo is off and resolver returned None."""
+    common = {
+        "enabled": False,
+        "empty_state": True,
+        "meta_text": str(_("No live data yet")),
+    }
+    if key == "revenue_waterfall":
+        return {
+            **common,
+            "eyebrow": str(_("MRR waterfall")),
+            "title": "—",
+            "title_em": "",
+            "title_end": "—",
+            "bars": [],
+            "connector_dashes": [],
+            "legend_rows": [],
+        }
+    if key == "forecast_lane":
+        return {**common, "lanes": [], "title": str(_("Forecast")), "title_em": "—"}
+    if key == "live_world_map":
+        return {**common, "regions": [], "total_schools": "—"}
+    if key == "tenant_heatmap":
+        return {**common, "tiles": []}
+    if key == "activity_ticker":
+        return {**common, "cards": []}
+    if key == "audit_feed":
+        return {**common, "events": []}
+    if key == "operator_presence":
+        return {
+            **common,
+            "operators_online_count": 0,
+            "avatars": [],
+            "status_pill_text": str(_("No operators online")),
+        }
+    if key in {"slo_clocks", "trust_nutrition", "trust_pillars_alerts"}:
+        return {**common, "clocks": [], "pillars": [], "rows": []}
+    return common
+
+
+def resolve_panel_overrides(*, include_honest_empty: bool = True) -> dict[str, dict[str, Any]]:
     """Return ``{section_key: real_data_dict}`` for every panel whose resolver
     returned data. Sections whose resolver returned None are absent — the
     orchestrator should fall back to the demo payload (when demo is on)
@@ -613,6 +653,8 @@ def resolve_panel_overrides() -> dict[str, dict[str, Any]]:
             value = None
         if value:
             out[key] = value
+        elif include_honest_empty:
+            out[key] = _honest_empty_panel(key)
 
     try:
         cache.set(cache_key, out, CACHE_TTL_SECONDS)

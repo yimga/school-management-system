@@ -18,7 +18,7 @@ def cluster_recent_incidents(*, hours: int = 24, min_tenants: int = 2) -> list[d
         return []
 
     since = timezone.now() - timedelta(hours=max(hours, 1))
-    qs = WorkflowRun.objects.filter(
+    qs = WorkflowRun.objects.filter(  # tenant-isolation-allow: operator-flight-deck-cross-tenant-incident-cluster
         status__in=("failed", "stuck", "running"),
         started_at__gte=since,
     ).order_by("-started_at")[:500]

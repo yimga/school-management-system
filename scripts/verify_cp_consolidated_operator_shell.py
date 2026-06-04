@@ -11,6 +11,7 @@ REPO = Path(__file__).resolve().parent.parent
 REQUIRED_PARTIAL = REPO / "templates/partials/control_plane_unified_header.html"
 REQUIRED_CSS = REPO / "static/css/rmc-cp-consolidated-operator-shell.css"
 REQUIRED_INLINE_TICKER = REPO / "templates/partials/cockpit/_activity_ticker_inline.html"
+TOPBAR_PARTIAL = REPO / "templates/partials/manager_operator_topbar.html"
 
 SHELLS = (
     "templates/control_plane_base.html",
@@ -29,10 +30,16 @@ def main() -> int:
             findings.append(f"missing {path.relative_to(REPO)}")
 
     partial = REQUIRED_PARTIAL.read_text(encoding="utf-8") if REQUIRED_PARTIAL.is_file() else ""
+    topbar = TOPBAR_PARTIAL.read_text(encoding="utf-8") if TOPBAR_PARTIAL.is_file() else ""
     if partial and "cp-header--consolidated" not in partial:
         findings.append("control_plane_unified_header.html: missing cp-header--consolidated")
-    if partial and "_activity_ticker_inline.html" not in partial:
-        findings.append("control_plane_unified_header.html: missing inline ticker include")
+    inline_in_header = (
+        partial and "_activity_ticker_inline.html" in partial
+    ) or (topbar and "_activity_ticker_inline.html" in topbar)
+    if not inline_in_header:
+        findings.append(
+            "consolidated header: missing Tier-1 inline ticker (unified header or manager topbar)"
+        )
 
     css = REQUIRED_CSS.read_text(encoding="utf-8") if REQUIRED_CSS.is_file() else ""
     if css and "--rmc-cp-unified-header-h" not in css:
