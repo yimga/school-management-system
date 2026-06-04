@@ -90,4 +90,8 @@ jobs:
 
       - name: Run @tag("tenants_rls") Django tests
         run: |
-          python manage.py test --tag=tenants_rls --settings=config.settings --noinput -v 2
+          # Scope discovery to apps/ (all @tag("tenants_rls") tests live there).
+          # A bare `manage.py test` discovers from '.' and crashes on the
+          # hyphen-named companion siblings' pytest packages (same root cause as
+          # django-tests.yml). The --tag filter still selects only RLS tests.
+          python manage.py test apps --tag=tenants_rls --settings=config.settings --noinput -v 2
