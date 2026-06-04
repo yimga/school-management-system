@@ -598,11 +598,39 @@ def _persist_student_note(school_id, user_id: int, payload: dict[str, Any]) -> d
 
 def _apply_notes_report(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     """Persist narrative captured offline into ``StudentNote`` (idempotent per client_offline_id)."""
-    from apps.platform_runtime.offline_workflow_apply import try_apply_field_capture_workflow
+    from apps.platform_runtime.offline_workflow_apply import (
+        parse_field_capture_body,
+        try_apply_field_capture_workflow,
+    )
 
     workflow_result = try_apply_field_capture_workflow(school_id, user_id, payload)
     if workflow_result is not None:
         return workflow_result
+
+    # If the payload was a STRUCTURED field-capture workflow (carried a
+    # `workflow` name + `fields`) but no handler claimed it, do NOT silently
+    # downgrade it to a SYNCED note. That is silent data loss — e.g. an offline
+    # "create student" / "POS sale" / "erasure request" that the UI reported as
+    # saved but which only ever landed as an opaque note no one re-keys.
+    # Preserve the captured data as a note (for manual re-entry) AND return a
+    # non-ok result so the row is marked FAILED and surfaces in the offline-sync
+    # review queue instead of looking done.
+    structured = parse_field_capture_body(payload)
+    if structured is not None:
+        note = _persist_student_note(school_id, user_id, payload)
+        workflow = structured.get("workflow")
+        result: dict[str, Any] = {
+            "ok": False,
+            "error": (
+                f"No offline handler for workflow '{workflow}'. The data was "
+                "captured as a note — please re-enter it online to complete it."
+            ),
+            "captured_as_note": True,
+            "workflow": workflow,
+        }
+        if note.get("ok"):
+            result["student_note_id"] = note.get("student_note_id")
+        return result
 
     return _persist_student_note(school_id, user_id, payload)
 

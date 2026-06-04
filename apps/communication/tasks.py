@@ -256,6 +256,9 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
                         item.body,
                         school=school,
                         idempotency_key=item.idempotency_key or f"outbound-{item.id}",
+                        # We ARE the drainer — a failure here must NOT re-enqueue
+                        # a new row (the existing row's retry_count handles retry).
+                        queue_on_failure=False,
                     )
                 else:
                     ok = send_push(

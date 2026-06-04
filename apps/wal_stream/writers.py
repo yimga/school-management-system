@@ -16,6 +16,19 @@ from typing import Any, Callable
 logger = logging.getLogger(__name__)
 
 
+class _AnnouncementRequestShim:
+    """Request-like carrier so announcement feature-flag resolution works in the
+    drainer, which has a bound school (from the envelope's tenant) but no HTTP
+    request. Mirrors ``platform_runtime.helpers.get_effective_flags_for_school``'s
+    shim so the teacher submit-for-approval flag resolves the same offline as it
+    does online — only ``.school`` and ``.tenant_runtime`` are read downstream.
+    """
+
+    def __init__(self, school: Any):
+        self.school = school
+        self.tenant_runtime = None
+
+
 def dispatch(envelope: dict[str, Any]) -> None:
     domain = envelope.get("domain")
     fn = _REGISTRY.get(domain)
@@ -59,6 +72,9 @@ def _apply_attendance(envelope: dict[str, Any]) -> None:
                 date=date,
                 status=a.get("status", "present"),
                 remarks=a.get("remarks", ""),
+                # bulk_create bypasses Attendance.save(); stamp the authoritative
+                # server-resolved school so RLS/tenant-scoped reporting sees the row.
+                school_id=envelope.get("school_id"),
             ))
         except KeyError as exc:
             logger.warning("wal_stream.attendance_bad_action missing=%s", exc)
@@ -120,6 +136,9 @@ def _apply_teacher_attendance(envelope: dict[str, Any]) -> None:
                 date=a["date"],
                 status=status,
                 remarks=a.get("remarks", ""),
+                # NOTE: TeacherAttendance has no `school` column — tenant scope is
+                # via teacher -> TeacherProfile.school under the drainer's RLS
+                # context, so there is nothing to stamp here.
             ))
         except KeyError as exc:
             logger.warning("wal_stream.teacher_attendance_bad_action missing=%s", exc)
@@ -151,6 +170,8 @@ def _apply_grade(envelope: dict[str, Any]) -> None:
     if not actions:
         return
     try:
+        from django.utils import timezone
+
         from apps.evals.models import OfflineMarkEntry  # type: ignore[attr-defined]
         from apps.people.models import TeacherProfile  # type: ignore[attr-defined]
     except ImportError:
@@ -160,6 +181,7 @@ def _apply_grade(envelope: dict[str, Any]) -> None:
     if teacher_id is None:
         logger.warning("wal_stream.grade_no_teacher user=%s", envelope.get("user_id"))
         return
+    now = timezone.now()
     rows = []
     for a in actions:
         try:
@@ -175,6 +197,11 @@ def _apply_grade(envelope: dict[str, Any]) -> None:
                 mock_score=_safe_decimal(a.get("mock_score")),
                 practical_score=_safe_decimal(a.get("practical_score")),
                 remarks=a.get("remarks", "") or "",
+                # created_offline_at is NOT NULL with no default; bulk_create
+                # bypasses any model default so it MUST be set here or every
+                # offline grade envelope raises IntegrityError and wedges the
+                # tenant's drain (head-of-line poison pill).
+                created_offline_at=now,
             ))
         except KeyError as exc:
             logger.warning("wal_stream.grade_bad_action missing=%s", exc)
@@ -208,46 +235,30 @@ def _safe_decimal(v) -> Any:
         return None
 
 
-def _apply_billing_charge(envelope: dict[str, Any]) -> None:
-    """Apply a batched billing-charge delta against ``apps.finance.Invoice``.
-
-    Action shape: ``{"counterparty_id": int, "amount": str-decimal,
-    "currency": str, "due_date": iso, "memo": str}``. Single-row creates only;
-    we deliberately do NOT collapse invoice updates into bulk_create because
-    Invoice numbering is a strict, gap-free sequence per tenant.
-    """
-    actions = envelope.get("actions") or []
-    if not actions:
-        return
-    try:
-        from decimal import Decimal
-
-        from apps.finance.models import Invoice  # type: ignore[attr-defined]
-    except ImportError:
-        logger.debug("wal_stream.billing_model_unavailable")
-        return
-    for a in actions:
-        try:
-            Invoice.objects.create(
-                counterparty_id=a["counterparty_id"],
-                amount=Decimal(str(a["amount"])),
-                currency=a.get("currency", "USD"),
-                due_date=a.get("due_date"),
-                memo=a.get("memo", ""),
-            )
-        except (KeyError, ValueError, TypeError) as exc:
-            logger.warning("wal_stream.billing_bad_action err=%s", exc)
-            continue
+# NOTE: There is intentionally NO `billing_charge` WAL writer. The previous one
+# built `Invoice(amount=, currency=, memo=)` — fields that do NOT exist on the
+# model (real fields: total_amount/notes) and omitted the required PROTECT
+# `profile` FK, so every offline charge raised TypeError, was swallowed, and the
+# money write was silently lost AFTER the idempotency key was already burned. It
+# also had no client producer. Offline finance is handled by the proven
+# OfflineAction finance handlers (apps/finance/offline_workflow_handlers.py:
+# payment_receipt / cash_closure / split_allocation). A real billing_charge WAL
+# domain must be rebuilt against the actual Invoice contract WITH DB tests before
+# being re-added to consumers._ALLOWED_DOMAINS and the registry below.
 
 
 def _apply_communication_send(envelope: dict[str, Any]) -> None:
     """Apply a batched communication-send delta against ``apps.communication.Message``.
 
-    Action shape: ``{"sender_id": int, "recipient_id": int, "subject": str,
-    "body": str, "school_id": str-uuid, "locale_target": str}``.
+    Action shape: ``{"recipient_id": int, "subject": str, "body": str,
+    "locale_target": str}``.
 
-    The Message model handles its own delivery FSM (read/archived/parent) and
-    triggers downstream signals; we just persist the row.
+    The **sender is derived server-side from the authenticated socket's
+    ``user_id``** (captured at the WS handshake), NOT from the client action —
+    a disconnected client must never be able to forge a message attributed to
+    another user (audit: offline messaging outbox hardening). ``school_id`` is
+    likewise taken from the envelope's bound tenant, ignoring any client value.
+    The Message model handles its own delivery FSM + downstream signals.
     """
     actions = envelope.get("actions") or []
     if not actions:
@@ -257,14 +268,19 @@ def _apply_communication_send(envelope: dict[str, Any]) -> None:
     except ImportError:
         logger.debug("wal_stream.communication_model_unavailable")
         return
+    sender_id = envelope.get("user_id")
+    if not sender_id:
+        logger.warning("wal_stream.communication_no_sender")
+        return
+    envelope_school_id = envelope.get("school_id")
     rows = []
     for a in actions:
         try:
             rows.append(Message(
-                sender_id=a["sender_id"],
+                sender_id=sender_id,
                 recipient_id=a["recipient_id"],
-                school_id=a.get("school_id"),
-                subject=a["subject"][:255],
+                school_id=envelope_school_id or a.get("school_id"),
+                subject=str(a.get("subject") or "")[:255] or "Message",
                 body=a.get("body", ""),
                 locale_target=a.get("locale_target", ""),
             ))
@@ -273,6 +289,109 @@ def _apply_communication_send(envelope: dict[str, Any]) -> None:
             continue
     if rows:
         Message.objects.bulk_create(rows)
+
+
+def _apply_announcement_create(envelope: dict[str, Any]) -> None:
+    """Apply an offline-composed school-wide announcement.
+
+    Action shape: ``{"title": str, "content": str, "announcement_type": str,
+    "audience": str, "is_urgent": bool}``.
+
+    The **author is the authenticated socket's** ``user_id`` and the
+    publish/approval decision is re-derived **server-side** from that author's
+    role — never trusted from the client. A teacher who can only submit for
+    approval has their offline announcement land as ``PENDING_APPROVAL``; only a
+    role that may publish school-wide gets ``PUBLISHED``. This mirrors the
+    online ``announcement_create`` view's gate so the offline path can never be
+    used to bypass approval and broadcast to the whole school.
+    """
+    actions = envelope.get("actions") or []
+    if not actions:
+        return
+    try:
+        from apps.communication.models import Announcement, log_announcement_audit
+        from apps.communication.views_announcements import (
+            _can_create_school_wide_announcement,
+            _can_submit_for_approval,
+        )
+    except ImportError:
+        logger.debug("wal_stream.announcement_model_unavailable")
+        return
+    sender_id = envelope.get("user_id")
+    if not sender_id:
+        logger.warning("wal_stream.announcement_no_sender")
+        return
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    try:
+        sender = User.objects.get(pk=sender_id)  # tenant-isolation-allow: wal-author-resolved-by-pk-from-authenticated-socket
+    except User.DoesNotExist:
+        logger.warning("wal_stream.announcement_unknown_sender")
+        return
+
+    school_id = envelope.get("school_id")
+    # Resolve the bound school so the submit-for-approval feature flag resolves
+    # the same offline as online (it is school-scoped). The drainer already
+    # entered rls_school(school_id), so this read is correctly tenant-scoped.
+    school_obj = None
+    if school_id:
+        from django.db import DatabaseError
+
+        from apps.schools.models import School
+
+        try:
+            school_obj = School.objects.filter(pk=school_id).first()  # tenant-isolation-allow: drainer-runs-inside-rls_school-for-this-envelope-tenant
+        except DatabaseError:
+            school_obj = None
+
+    can_publish = _can_create_school_wide_announcement(sender)
+    can_submit = _can_submit_for_approval(sender, _AnnouncementRequestShim(school_obj))
+    if not (can_publish or can_submit):
+        # Mirrors the online view's 403: a user who could not have created this
+        # announcement online cannot do so via the offline rail either. The
+        # writer — not the client form — is the authorization boundary.
+        logger.warning("wal_stream.announcement_forbidden author=%s", sender_id)
+        return
+    status = (
+        Announcement.Status.PUBLISHED
+        if can_publish
+        else Announcement.Status.PENDING_APPROVAL
+    )
+
+    valid_types = set(Announcement.AnnouncementType.values)
+    valid_audiences = set(Announcement.Audience.values)
+    for a in actions:
+        title = str(a.get("title") or "").strip()[:255]
+        content = str(a.get("content") or "").strip()
+        if not title or not content:
+            logger.warning("wal_stream.announcement_bad_action empty_title_or_content")
+            continue
+        a_type = a.get("announcement_type")
+        if a_type not in valid_types:
+            a_type = Announcement.AnnouncementType.GENERAL
+        audience = a.get("audience")
+        if audience not in valid_audiences:
+            audience = Announcement.Audience.ALL
+        ann = Announcement(
+            title=title,
+            content=content,
+            school_id=school_id,
+            announcement_type=a_type,
+            audience=audience,
+            status=status,
+            is_urgent=bool(a.get("is_urgent")),
+            created_by_id=sender_id,
+        )
+        # save() (not bulk_create) so the school fallback fires and we can write
+        # the audit row the online path also writes.
+        ann.save()
+        audit_action = (
+            "submitted_for_approval"
+            if status == Announcement.Status.PENDING_APPROVAL
+            else "created"
+        )
+        log_announcement_audit(ann, sender, audit_action)
 
 
 def _apply_audit_event(envelope: dict[str, Any]) -> None:
@@ -316,7 +435,7 @@ _REGISTRY: dict[str, Callable[[dict[str, Any]], None]] = {
     "attendance": _apply_attendance,
     "teacher_attendance": _apply_teacher_attendance,
     "grade": _apply_grade,
-    "billing_charge": _apply_billing_charge,
     "communication_send": _apply_communication_send,
+    "announcement_create": _apply_announcement_create,
     "audit_event": _apply_audit_event,
 }

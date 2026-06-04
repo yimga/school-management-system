@@ -196,8 +196,19 @@ class WALWriterDispatchTests(SimpleTestCase):
     def test_dispatch_accepts_registered_domains(self):
         from apps.wal_stream.writers import _REGISTRY
 
-        for domain in ("attendance", "teacher_attendance", "grade", "billing_charge", "communication_send", "audit_event"):
+        for domain in ("attendance", "teacher_attendance", "grade", "communication_send", "announcement_create", "audit_event"):
             self.assertIn(domain, _REGISTRY)
+
+    def test_billing_charge_domain_is_intentionally_removed(self):
+        # The old billing_charge writer built Invoice() with non-existent fields
+        # and silently lost money; it had no client producer. It must stay out of
+        # the registry + consumer allow-list until rebuilt against the real
+        # Invoice contract with DB tests.
+        from apps.wal_stream.consumers import _ALLOWED_DOMAINS
+        from apps.wal_stream.writers import _REGISTRY
+
+        self.assertNotIn("billing_charge", _REGISTRY)
+        self.assertNotIn("billing_charge", _ALLOWED_DOMAINS)
 
     def test_teacher_attendance_domain_is_validated_by_consumer(self):
         from apps.wal_stream.consumers import _validate

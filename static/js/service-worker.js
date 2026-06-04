@@ -178,7 +178,7 @@
 // forecast cockpit tile, timetable solver UI hook + view, adaptive signal on
 // Evaluation post-save, CA-mark input UI + migration 0050, monetization
 // admin inspector. theme-experience-premium
-const CACHE_VERSION = "sms-v4.01.50-sfdp-dispute-copy-phases-closeout-2026-06-02";
+const CACHE_VERSION = "sms-v4.01.52-offline-outbox-surfaces-and-encryption-tests-2026-06-04";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 
@@ -289,6 +289,7 @@ const STATIC_ASSETS = [
   "/static/js/rmc-viewport-engine.js",
   "/static/js/rmc-wal-stream.js",
   "/static/js/rmc-stream-mount.js",
+  "/static/js/rmc-message-outbox.js",
   "/static/css/rmc-viewport-engine.css",
   // v4.00.7–v4.00.10: adoption helpers (attendance, AI streaming, gradebook).
   "/static/js/_pages/rmc-attendance-wal-enhance.js",

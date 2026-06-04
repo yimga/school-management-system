@@ -41,8 +41,8 @@ _ALLOWED_DOMAINS: frozenset[str] = frozenset({
     "attendance",
     "teacher_attendance",
     "grade",
-    "billing_charge",
     "communication_send",
+    "announcement_create",
     "audit_event",
 })
 

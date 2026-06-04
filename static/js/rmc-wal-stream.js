@@ -82,6 +82,85 @@
     return [...new Uint8Array(digest)].slice(0, 6).map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
+  // ── Optional at-rest encryption of the outbox payload (audit residual) ──
+  // The outbox holds attendance/grades/messages/charges (PII) in IndexedDB. When
+  // SMS_OFFLINE_CONFIG.encryptOutbox is true we AES-GCM-seal the `actions` before
+  // storing and unseal at flush time. OPT-IN (default off) + backward-compatible:
+  // a row may be sealed OR plaintext, and flush handles both, so enabling it
+  // never strands already-queued work. The AES key is a non-extractable CryptoKey
+  // persisted in the existing clock store (no DB version bump).
+  function encEnabled() {
+    try {
+      return !!(window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.encryptOutbox);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function bufToB64(buf) {
+    var bytes = new Uint8Array(buf);
+    var bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+
+  function b64ToBuf(b64) {
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  async function getEncKey() {
+    const db = await openDb();
+    const existing = await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_CLOCK, "readonly");
+      const rq = tx.objectStore(STORE_CLOCK).get("enckey");
+      rq.onsuccess = () => resolve(rq.result?.v || null);
+      rq.onerror = () => reject(rq.error);
+    });
+    if (existing) return existing;
+    const key = await crypto.subtle.generateKey(
+      { name: "AES-GCM", length: 256 },
+      false, // non-extractable — can be stored as a CryptoKey but never exported
+      ["encrypt", "decrypt"]
+    );
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_CLOCK, "readwrite");
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.objectStore(STORE_CLOCK).put({ k: "enckey", v: key });
+    });
+    return key;
+  }
+
+  async function sealActions(actions) {
+    const key = await getEncKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const plain = new TextEncoder().encode(JSON.stringify(actions));
+    const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, plain);
+    return { iv: bufToB64(iv.buffer), ct: bufToB64(ct) };
+  }
+
+  async function openActions(row) {
+    // Backward-compatible: plaintext rows return row.actions directly.
+    if (!row.actions_sealed) return row.actions;
+    try {
+      const key = await getEncKey();
+      const iv = new Uint8Array(b64ToBuf(row.actions_sealed.iv));
+      const pt = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        b64ToBuf(row.actions_sealed.ct)
+      );
+      return JSON.parse(new TextDecoder().decode(pt));
+    } catch (e) {
+      // Undecryptable (key rotated/cleared) — drop to empty so flush skips it
+      // rather than shipping garbage; the row stays queued for manual review.
+      return [];
+    }
+  }
+
   async function append(domain, actions) {
     if (!domain || !Array.isArray(actions) || actions.length === 0) {
       throw new Error("rmcWAL.append: domain+actions required");
@@ -92,11 +171,20 @@
       txn_id,
       vector_clock,
       domain,
-      actions,
       tenant_hash: await tenantHash(),
       status: "queued",
       created_at: Date.now(),
     };
+    // Seal the PII-bearing actions at rest when enabled; otherwise store plain.
+    if (encEnabled()) {
+      try {
+        envelope.actions_sealed = await sealActions(actions);
+      } catch (e) {
+        envelope.actions = actions; // crypto unavailable → fall back to plaintext
+      }
+    } else {
+      envelope.actions = actions;
+    }
     const db = await openDb();
     await new Promise((resolve, reject) => {
       const tx = db.transaction(STORE, "readwrite");
@@ -198,11 +286,13 @@
     let shipped = 0;
     for (const row of queued) {
       try {
+        const actions = await openActions(row); // unseal if encrypted, else passthrough
+        if (!actions || actions.length === 0) continue; // skip undecryptable rows
         socket.send(JSON.stringify({
           txn_id: row.txn_id,
           vector_clock: row.vector_clock,
           domain: row.domain,
-          actions: row.actions,
+          actions: actions,
           tenant_hash: row.tenant_hash,
         }));
         shipped += 1;
@@ -219,6 +309,14 @@
     pending: pendingCount,
     onAck: (cb) => { ackListeners.add(cb); return () => ackListeners.delete(cb); },
   };
+
+  // Test-only hook: exposes the at-rest encryption internals so the outbox
+  // seal/open round-trip can be exercised in CI (vitest + Playwright) against
+  // the REAL shipped code rather than a re-implementation. Inert in production
+  // — `window.__RMC_OUTBOX_TEST__` is never set outside the test harness.
+  if (window.__RMC_OUTBOX_TEST__) {
+    window.rmcWAL.__test = { sealActions, openActions, getEncKey, encEnabled };
+  }
 
   function shouldBootWalSocket() {
     if (document.querySelector("[data-rmc-auth-landing]")) return false;

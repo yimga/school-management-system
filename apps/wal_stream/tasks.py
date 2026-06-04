@@ -22,6 +22,12 @@ logger = logging.getLogger(__name__)
 
 _DEDUPE_TTL_SECONDS = 24 * 60 * 60
 _BATCH_SIZE = 64
+# After this many failed apply attempts an envelope is dead-lettered instead of
+# being retried forever. Without this, a permanently-failing envelope (e.g. a
+# writer IntegrityError, or an envelope for a deleted tenant whose hash no
+# longer resolves) is never xdel'd and is re-delivered on every drain — a
+# head-of-line poison pill that blocks every later envelope for that tenant.
+_MAX_APPLY_ATTEMPTS = 5
 
 
 @shared_task(name="wal_stream.drain_tenant_stream", bind=True)
@@ -38,13 +44,18 @@ def drain_tenant_stream(self, tenant_hash: str) -> dict[str, int]:
     if not redis_url:
         return {"applied": 0, "skipped": 0, "missing_redis_url": 1}
 
+    from django.db import DatabaseError
+
     client = redis.Redis.from_url(redis_url)
     stream = f"rmc.wal.{tenant_hash}"
     dedupe_key = f"rmc.wal.dedupe.{tenant_hash}"
+    attempts_key = f"rmc.wal.attempts.{tenant_hash}"
+    deadletter_stream = f"rmc.wal.deadletter.{tenant_hash}"
 
     entries = client.xrange(stream, count=_BATCH_SIZE)
     applied = 0
     skipped = 0
+    dead_lettered = 0
     for entry_id, fields in entries:
         raw = fields.get(b"envelope") or fields.get("envelope")
         if raw is None:
@@ -67,12 +78,42 @@ def drain_tenant_stream(self, tenant_hash: str) -> dict[str, int]:
             client.sadd(dedupe_key, txn_id)
             client.expire(dedupe_key, _DEDUPE_TTL_SECONDS)
             applied += 1
-        except (ValueError, TypeError, RuntimeError) as exc:
-            logger.warning("wal_stream.apply_failed txn=%s err=%s", txn_id, exc)
-            # leave entry in stream for retry on next drain
+        except (ValueError, TypeError, RuntimeError, DatabaseError) as exc:
+            # Bounded retry, then dead-letter — so a permanently-failing
+            # envelope (writer IntegrityError, deleted-tenant unknown hash,
+            # malformed action) cannot wedge the tenant's whole drain forever.
+            # DatabaseError (incl. IntegrityError) MUST be caught here; before,
+            # it propagated out of the loop, the entry was never xdel'd, and it
+            # re-delivered on every drain blocking all later envelopes.
+            attempts = client.hincrby(attempts_key, txn_id, 1)
+            client.expire(attempts_key, _DEDUPE_TTL_SECONDS)
+            if attempts >= _MAX_APPLY_ATTEMPTS:
+                logger.error(
+                    "wal_stream.dead_letter txn=%s attempts=%s err=%s",
+                    txn_id, attempts, exc,
+                )
+                try:
+                    client.xadd(deadletter_stream, {"envelope": raw, "error": str(exc)[:500]})
+                except redis.RedisError as dl_exc:
+                    logger.error("wal_stream.dead_letter_xadd_failed txn=%s err=%s", txn_id, dl_exc)
+                client.hdel(attempts_key, txn_id)
+                client.xdel(stream, entry_id)
+                dead_lettered += 1
+            else:
+                logger.warning(
+                    "wal_stream.apply_failed txn=%s attempt=%s err=%s",
+                    txn_id, attempts, exc,
+                )
+                # leave entry in stream for retry on next drain
             continue
         client.xdel(stream, entry_id)
-    return {"applied": applied, "skipped": skipped, "tenant_hash": tenant_hash}
+        client.hdel(attempts_key, txn_id)
+    return {
+        "applied": applied,
+        "skipped": skipped,
+        "dead_lettered": dead_lettered,
+        "tenant_hash": tenant_hash,
+    }
 
 
 def _apply_envelope(envelope: dict[str, Any]) -> None:
@@ -84,6 +125,12 @@ def _apply_envelope(envelope: dict[str, Any]) -> None:
     school_id = _resolve_school_id_from_hash(school_lookup_hash)
     if not school_id:
         raise RuntimeError(f"unknown_tenant_hash:{school_lookup_hash}")
+    # Stamp the authoritative, server-resolved school onto the envelope so each
+    # writer scopes its rows to the right tenant. Writers (communication_send,
+    # billing_charge, announcement_create) use bulk_create, which bypasses each
+    # model's save() — without this, the school FK would land NULL because the
+    # client never sends (and must not be trusted for) school_id.
+    envelope["school_id"] = school_id
     with rls_school(school_id):
         dispatch(envelope)
 

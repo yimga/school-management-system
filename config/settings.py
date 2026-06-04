@@ -1487,11 +1487,18 @@ SCHOOLOPS_EMAIL_ASYNC_USE_CELERY = os.getenv(
 SCHOOLOPS_EMAIL_SMTP_HOST_ALLOWLIST = [
     h.strip() for h in os.getenv("SCHOOLOPS_EMAIL_SMTP_HOST_ALLOWLIST", "").split(",") if h.strip()
 ]
-# Email dead-letter queue (audit residual). OFF by default — when enabled, a
-# transient permanent failure parks the encrypted payload in EmailDeadLetter
-# for redrive via ``manage.py redrive_email_dead_letters``.
+# Email dead-letter queue (audit residual). Defaults ON in production (DEBUG
+# False) so a transient permanent failure parks the encrypted payload in
+# EmailDeadLetter for redrive via ``manage.py redrive_email_dead_letters``
+# instead of being lost by a dropped async daemon thread; OFF in local dev.
+# Always env-overridable.
 SCHOOLOPS_EMAIL_DLQ_ENABLED = os.getenv(
-    "SCHOOLOPS_EMAIL_DLQ_ENABLED", "0"
+    "SCHOOLOPS_EMAIL_DLQ_ENABLED", "0" if DEBUG else "1"
+) in ("1", "true", "True", "yes")
+# Auto-queue failed SMS/WhatsApp sends to OutboundMessageQueue for retry by the
+# drainer (audit residual: silent loss on provider outage). On by default.
+RMC_AUTO_ENQUEUE_OUTBOUND = os.getenv(
+    "RMC_AUTO_ENQUEUE_OUTBOUND", "1"
 ) in ("1", "true", "True", "yes")
 SCHOOLOPS_EMAIL_DLQ_MAX_REDRIVES = int(
     os.getenv("SCHOOLOPS_EMAIL_DLQ_MAX_REDRIVES", "5")
