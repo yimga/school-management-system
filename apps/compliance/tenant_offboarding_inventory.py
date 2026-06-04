@@ -62,6 +62,50 @@ def iter_school_m2m_through_targets():
             yield model, field.name
 
 
+def iter_school_scalar_id_targets():
+    """Yield ``(model, field_name)`` for every model carrying a NON-FK scalar
+    ``school_id`` column.
+
+    Some models reference their tenant by a bare ``school_id`` UUID/Char column
+    instead of a Django ``ForeignKey`` (e.g. ``events.DomainEvent``,
+    ``siteconfig.AIEmbeddingStore`` — embeddings of tenant content). The FK loop
+    above never visits these, so their rows survive a "permanent" purge as
+    orphaned tenant PII, and ``build_inventory`` under-reports the footprint.
+
+    Only ``school_id`` is swept (a high-confidence school reference). ``tenant_id``
+    columns are deliberately excluded — several store a tenant *hash* or schema
+    name rather than the school PK, so matching them against ``school.pk`` would
+    be wrong; they are surfaced for manual review instead of auto-deleted.
+    """
+    for model in django_apps.get_models():
+        if model._meta.proxy or not model._meta.managed:
+            continue
+        for field in model._meta.get_fields():
+            if getattr(field, "is_relation", False):
+                continue
+            if not getattr(field, "concrete", False):
+                continue
+            if field.name == "school_id":
+                yield model, field.name
+
+
+def _scalar_school_match_value(model, field_name, school_pk):
+    """Return the value to filter a scalar ``school_id`` column on.
+
+    School PKs are UUIDs. A ``UUIDField`` column stores the UUID directly; a
+    ``CharField`` column stores its string form. Matching on the right type makes
+    the filter exact-tenant (it can only ever match THIS school's rows), so there
+    is no cross-tenant over-deletion risk.
+    """
+    try:
+        field = model._meta.get_field(field_name)
+        if field.get_internal_type() == "UUIDField":
+            return school_pk
+    except Exception:  # noqa: BLE001 - field introspection best-effort
+        pass
+    return str(school_pk)
+
+
 def tenant_scoped_models() -> list:
     """Return Django models that have a ``school`` FK to ``schools.School``."""
     seen: set[str] = set()
@@ -236,6 +280,28 @@ def purge_public_school_dependencies(school) -> dict[str, int]:
             continue
         if _deleted:
             deleted[label] = deleted.get(label, 0) + int(_deleted)
+
+    # Scalar school_id columns (non-FK) — orphaned tenant data the FK loop never
+    # sees. Exact-tenant match (see _scalar_school_match_value), savepoint-isolated
+    # and best-effort so a single bad table never aborts the purge.
+    for model, field_name in iter_school_scalar_id_targets():
+        label = f"{model._meta.label_lower}#scalar"
+        if table_set is not None and not model_table_exists(model, table_set=table_set):
+            continue
+        match_value = _scalar_school_match_value(model, field_name, school_pk)
+        try:
+            with transaction.atomic():
+                _deleted, _detail = model._default_manager.filter(
+                    **{field_name: match_value}
+                ).delete()
+        except Exception as exc:  # noqa: BLE001 - mirror the broad best-effort skip above
+            logger.warning(
+                "tenant_offboarding purge skip scalar %s after DB error (%s): %s",
+                label, type(exc).__name__, exc,
+            )
+            continue
+        if _deleted:
+            deleted[label] = deleted.get(label, 0) + int(_deleted)
     return deleted
 
 
@@ -273,7 +339,13 @@ def delete_school_record_resilient(school) -> None:
 
 
 def build_inventory(school) -> dict[str, int]:
-    """Return ``{model_label: count}`` for every tenant-scoped model with rows."""
+    """Return ``{model_label: count}`` for every tenant-scoped model with rows.
+
+    Counts both FK-scoped models AND non-FK scalar ``school_id`` columns so the
+    purge manifest reports the TRUE footprint (the FK-only count previously
+    under-reported, giving false "purge complete" assurance for orphan-bearing
+    models like ``siteconfig.AIEmbeddingStore``).
+    """
     inventory: dict[str, int] = {}
     for model in tenant_scoped_models():
         try:
@@ -282,6 +354,14 @@ def build_inventory(school) -> dict[str, int]:
             continue
         if count:
             inventory[model._meta.label_lower] = int(count)
+    for model, field_name in iter_school_scalar_id_targets():
+        match_value = _scalar_school_match_value(model, field_name, school.pk)
+        try:
+            count = model._default_manager.filter(**{field_name: match_value}).count()
+        except Exception:
+            continue
+        if count:
+            inventory[f"{model._meta.label_lower}#scalar"] = int(count)
     return inventory
 
 

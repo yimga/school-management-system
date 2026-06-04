@@ -799,6 +799,17 @@ def _apply_purge_tracked(
     # rls_bypass(). No-op on non-PostgreSQL. Scoped strictly to this atomic block.
     from apps.schools.rls_context import rls_bypass
 
+    # Cancel platform subscriptions BEFORE the CASCADE delete so the external
+    # (Stripe) ref is captured for reconciliation; otherwise the remote sub keeps
+    # billing with no local trace once the row is gone.
+    try:
+        from apps.billing.offboarding import cancel_subscriptions_for_offboarding
+
+        subscription_cancel_result = cancel_subscriptions_for_offboarding(school)
+    except Exception as exc:  # noqa: BLE001 - cleanup must never fail the purge
+        logger.warning("tenant_offboarding subscription cancel failed slug=%s: %s", school_slug, exc)
+        subscription_cancel_result = {"canceled": 0, "error": str(exc)[:200]}
+
     with rls_bypass(), transaction.atomic():
         try:
             with transaction.atomic():
@@ -841,11 +852,23 @@ def _apply_purge_tracked(
         )
         delete_school_record_resilient(school)
 
+    # Purge the tenant's Redis WAL keys (unsynced offline ops = tenant PII the
+    # schema/row purge never reached). Best-effort; outside the DB txn.
+    try:
+        from apps.wal_stream.tasks import purge_streams_for_school
+
+        wal_purge_result = purge_streams_for_school(school_id)
+    except Exception as exc:  # noqa: BLE001 - cleanup must never fail the purge
+        logger.warning("tenant_offboarding wal purge failed slug=%s: %s", school_slug, exc)
+        wal_purge_result = {"deleted": 0, "error": 1}
+
     receipt_extra = {
         "purge_receipt": True,
         "actor_id": actor_id,
         "actor_username": actor_username,
         "schema_dropped": schema_dropped,
+        "wal_streams_purged": wal_purge_result,
+        "subscriptions_canceled": subscription_cancel_result,
         "deleted_at": datetime.now(tz=timezone.utc).isoformat(),
     }
     Path(manifest_path).write_text(

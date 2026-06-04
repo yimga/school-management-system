@@ -116,6 +116,45 @@ def drain_tenant_stream(self, tenant_hash: str) -> dict[str, int]:
     }
 
 
+def purge_streams_for_school(school_id) -> dict[str, int]:
+    """Delete all Redis WAL keys for a tenant (called during offboarding purge).
+
+    The tenant's ``rmc.wal.<hash>`` stream + dedupe/attempts/deadletter keys hold
+    unsynced offline operations (attendance, grades, messages) — i.e. tenant PII.
+    The schema/row purge never touched Redis, so this data survived a "permanent"
+    purge. tenant_hash = ``sha256(str(school_id))[:12]`` (matches the consumer).
+    Best-effort: returns {"deleted": n} or a reason flag; never raises.
+    """
+    import hashlib
+
+    try:
+        import redis  # type: ignore[import-not-found]
+    except ImportError:
+        return {"deleted": 0, "missing_redis": 1}
+
+    from django.conf import settings
+
+    redis_url = getattr(settings, "REDIS_URL", "") or getattr(settings, "CELERY_BROKER_URL", "")
+    if not redis_url:
+        return {"deleted": 0, "missing_redis_url": 1}
+
+    tenant_hash = hashlib.sha256(str(school_id).encode("utf-8")).hexdigest()[:12]
+    keys = [
+        f"rmc.wal.{tenant_hash}",
+        f"rmc.wal.dedupe.{tenant_hash}",
+        f"rmc.wal.attempts.{tenant_hash}",
+        f"rmc.wal.deadletter.{tenant_hash}",
+    ]
+    try:
+        client = redis.Redis.from_url(redis_url)
+        deleted = int(client.delete(*keys))
+    except redis.RedisError as exc:
+        logger.warning("wal_stream.purge_streams_failed school=%s err=%s", school_id, exc)
+        return {"deleted": 0, "error": 1}
+    logger.info("wal_stream.purge_streams school=%s tenant_hash=%s deleted=%s", school_id, tenant_hash, deleted)
+    return {"deleted": deleted, "tenant_hash": tenant_hash}
+
+
 def _apply_envelope(envelope: dict[str, Any]) -> None:
     """Dispatch to per-domain writer under RLS context."""
     from apps.schools.rls_context import rls_school
