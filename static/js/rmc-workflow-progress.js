@@ -371,31 +371,25 @@
     }
   }
 
-  function updateInlineStrip() {
-    var strip =
-      document.querySelector("[data-rmc-wfp-header-slot] [data-rmc-wfp-inline]") ||
-      document.querySelector("[data-rmc-wfp-inline]");
-    if (!strip) return;
-    if (!state.runs.length) {
-      strip.hidden = true;
-      strip.innerHTML = "";
-      return;
-    }
+  function pickPrimaryRun() {
+    if (!state.runs.length) return null;
     var primary = state.runs[0];
     for (var i = 0; i < state.runs.length; i++) {
       if (state.runs[i].status === "stuck") {
-        primary = state.runs[i];
-        break;
+        return state.runs[i];
       }
       if (state.runs[i].status === "running") {
         primary = state.runs[i];
       }
     }
+    return primary;
+  }
+
+  function buildInlineStripHtml(primary) {
     var pct = typeof primary.progress_percent === "number" ? primary.progress_percent : 0;
     var label = escapeHtml(primary.workflow_label || primary.workflow_key || "Workflow");
     var step = escapeHtml(primary.current_step_name || "starting…");
-    strip.hidden = false;
-    strip.innerHTML =
+    return (
       '<div class="rmc-wfp-inline__inner">' +
       '<div class="rmc-wfp-inline__copy">' +
       '<strong class="rmc-wfp-inline__title">' + label + "</strong>" +
@@ -405,13 +399,33 @@
       '<button type="button" class="rmc-wfp-inline__open btn btn-sm btn-outline-secondary">' +
       "Details" +
       "</button>" +
-      "</div>";
-    var openBtn = strip.querySelector(".rmc-wfp-inline__open");
-    if (openBtn) {
-      openBtn.addEventListener("click", function (evt) {
-        evt.preventDefault();
-        if (!state.open) toggleCard();
-      });
+      "</div>"
+    );
+  }
+
+  function updateInlineStrip() {
+    var strips = document.querySelectorAll("[data-rmc-wfp-inline]");
+    if (!strips.length) return;
+    var primary = pickPrimaryRun();
+    if (!primary) {
+      for (var h = 0; h < strips.length; h++) {
+        strips[h].hidden = true;
+        strips[h].innerHTML = "";
+      }
+      return;
+    }
+    var html = buildInlineStripHtml(primary);
+    for (var s = 0; s < strips.length; s++) {
+      var strip = strips[s];
+      strip.hidden = false;
+      strip.innerHTML = html;
+      var openBtn = strip.querySelector(".rmc-wfp-inline__open");
+      if (openBtn) {
+        openBtn.addEventListener("click", function (evt) {
+          evt.preventDefault();
+          if (!state.open) toggleCard();
+        });
+      }
     }
   }
 

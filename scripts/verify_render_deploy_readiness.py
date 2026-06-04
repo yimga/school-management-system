@@ -126,13 +126,21 @@ def _check_shell_static_assets(failures: list[str]) -> None:
 
 
 def _check_shell_references(failures: list[str]) -> None:
+    wfp_needle = "rmc_workflow_progress_strip.html"
     for shell in (
         "templates/control_plane_skeleton.html",
         "templates/portal_base.html",
     ):
         text = _read(shell)
-        if "rmc_workflow_progress_strip.html" not in text:
+        if wfp_needle not in text:
             failures.append(f"{shell}: missing workflow progress strip include")
+    topbar = _read("templates/partials/manager_operator_topbar.html")
+    skeleton = _read("templates/control_plane_skeleton.html")
+    if wfp_needle not in topbar and wfp_needle not in skeleton:
+        failures.append(
+            "manager surface: workflow strip must be in control_plane_skeleton "
+            "or manager_operator_topbar"
+        )
 
 
 def main() -> int:
