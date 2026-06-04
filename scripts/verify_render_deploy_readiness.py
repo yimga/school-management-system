@@ -125,22 +125,27 @@ def _check_shell_static_assets(failures: list[str]) -> None:
             failures.append(f"missing static asset: {rel}")
 
 
+def _control_plane_skeleton_has_workflow_strip(skeleton_text: str) -> bool:
+    wfp_needle = "rmc_workflow_progress_strip.html"
+    if wfp_needle in skeleton_text:
+        return True
+    if "control_plane_unified_header.html" not in skeleton_text:
+        return False
+    topbar = _read("templates/partials/manager_operator_topbar.html")
+    return wfp_needle in topbar
+
+
 def _check_shell_references(failures: list[str]) -> None:
     wfp_needle = "rmc_workflow_progress_strip.html"
-    for shell in (
-        "templates/control_plane_skeleton.html",
-        "templates/portal_base.html",
-    ):
-        text = _read(shell)
-        if wfp_needle not in text:
-            failures.append(f"{shell}: missing workflow progress strip include")
-    topbar = _read("templates/partials/manager_operator_topbar.html")
     skeleton = _read("templates/control_plane_skeleton.html")
-    if wfp_needle not in topbar and wfp_needle not in skeleton:
+    if not _control_plane_skeleton_has_workflow_strip(skeleton):
         failures.append(
-            "manager surface: workflow strip must be in control_plane_skeleton "
-            "or manager_operator_topbar"
+            "control_plane_skeleton: missing workflow progress strip "
+            "(direct include or via manager_operator_topbar in unified header)"
         )
+    portal = _read("templates/portal_base.html")
+    if wfp_needle not in portal:
+        failures.append(f"templates/portal_base.html: missing workflow progress strip include")
 
 
 def main() -> int:

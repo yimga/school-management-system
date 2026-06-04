@@ -184,7 +184,7 @@
         {% block cp_shell_canvas_chrome %}{% endblock %}
         <div class="rmc-app-shell__canvas-body cp-shell-content{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}" data-rmc-cp-page-body="1">
           {% include "components/_workflow_auto_chrome.html" %}
-          {% if request.user.is_authenticated %}{% include "components/rmc_workflow_progress_strip.html" %}{% endif %}
+          {% comment %} Workflow strip: manager_operator_topbar header slot (via unified header). {% endcomment %}
           {% comment %} Quarterly posture: collapsible inline banner in cp-main-content
              (control_plane_base / portal_base / manager admin). Corner toast suppressed
              when inline is active. {% endcomment %}
