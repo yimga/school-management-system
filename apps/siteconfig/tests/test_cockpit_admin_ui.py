@@ -14,6 +14,7 @@ Covers:
 from __future__ import annotations
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.test import RequestFactory, SimpleTestCase
 from django.urls import NoReverseMatch, reverse
@@ -89,6 +90,10 @@ def _flat_form_payload() -> dict[str, object]:
 
 class CockpitFormSchemaTests(SimpleTestCase):
     """Pure-function tests over the form's parse / serialize round-trip."""
+
+    # One test exercises cockpit_context, which reads platform-pulse counts from
+    # the DB; allow queries against the (empty) test DB so it does not raise.
+    databases = {"default"}
 
     def test_form_builds_nested_payload_matching_cockpit_context_schema(self) -> None:
         instance = SiteSettings(pk=1)
@@ -238,6 +243,10 @@ class CockpitFormSchemaTests(SimpleTestCase):
 class CockpitContextSurfaceTests(SimpleTestCase):
     """RequestFactory + the existing cockpit_context processor."""
 
+    # cockpit_context reads platform-pulse counts from the DB; allow queries
+    # against the (empty) test DB so it does not raise under SimpleTestCase.
+    databases = {"default"}
+
     def setUp(self) -> None:
         self.factory = RequestFactory()
 
@@ -296,6 +305,10 @@ class CockpitBleedPreventionTests(SimpleTestCase):
     attached with a populated cockpit_payload.
     """
 
+    # cockpit_context reads platform-pulse counts from the DB; allow queries
+    # against the (empty) test DB so it does not raise under SimpleTestCase.
+    databases = {"default"}
+
     def setUp(self) -> None:
         self.factory = RequestFactory()
 
@@ -345,14 +358,13 @@ class CockpitConfigureViewAccessTests(SimpleTestCase):
     def setUp(self) -> None:
         self.factory = RequestFactory()
         User = get_user_model()
-        # Non-persisted user instances are sufficient for the view's
-        # auth-mixin checks (UserPassesTestMixin only reads attributes).
-        self.anonymous = User()
-        self.anonymous.is_authenticated = False
+        # Non-persisted user instances are sufficient for the view's auth-mixin
+        # checks (UserPassesTestMixin only reads attributes). is_authenticated is
+        # a read-only property — AnonymousUser reports False, a real User reports
+        # True — so we pick the type instead of assigning the property.
+        self.anonymous = AnonymousUser()
         self.staff = User(username="op", is_staff=True, is_superuser=False)
-        self.staff.is_authenticated = True
         self.non_staff = User(username="parent", is_staff=False, is_superuser=False)
-        self.non_staff.is_authenticated = True
 
     def _view(self):
         from apps.siteconfig.views_cockpit_admin import CockpitConfigureView
@@ -384,7 +396,6 @@ class CockpitConfigureViewAccessTests(SimpleTestCase):
     def test_test_func_accepts_superuser_even_if_not_staff(self) -> None:
         User = get_user_model()
         su = User(username="root", is_staff=False, is_superuser=True)
-        su.is_authenticated = True
         request = self.factory.get("/")
         request.user = su
         view = self._bind_view(self._view(), request)
