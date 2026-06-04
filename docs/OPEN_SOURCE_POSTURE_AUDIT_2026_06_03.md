@@ -66,7 +66,7 @@ _Status 2026-06-03: the LICENSE/README/Cargo.toml/package.json declarations abov
 
 Governance scaffolding (action plan item 4 / Track 7) — **DONE 2026-06-03:** [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) (Contributor Covenant 2.1), [.github/ISSUE_TEMPLATE/](../.github/ISSUE_TEMPLATE/) (`bug_report.md`, `feature_request.md`, `config.yml`), [SECURITY.md](../SECURITY.md) reporting section, [CONTRIBUTING.md](../CONTRIBUTING.md) DCO section. Maintainer checklist: [GOVERNANCE_OPERATOR_CONTACTS.md](GOVERNANCE_OPERATOR_CONTACTS.md) (conduct@ / security@ monitoring, fork vs canonical repo policy). README links resolve.
 
-**Action plan item 6 (operator):** run `python scripts/verify_open_source_github_repo_visibility.py --write` and, before publishing SDKs that link to GitHub, `--require-public` after confirming `runmycampus/runmycampus` (or updating SDK URLs). Unauthenticated API returns 404 for private *or* missing repos — evidence JSON at `docs/generated/open_source_github_repo_visibility.json`.
+**Action plan item 6:** → ✅ **DONE** — `yimga/school-management-system` public; SDK URLs aligned; `python scripts/verify_open_source_posture.py` green. Evidence: `docs/generated/open_source_github_repo_visibility.json`.
 
 ---
 
@@ -89,9 +89,9 @@ Once decided:
 | Item | Status | Proof |
 | --- | --- | --- |
 | SH-4 media `STORAGES` hook | ✅ DONE | `verify_media_storage_self_host_hook.py` → `MEDIA_STORAGE_SELF_HOST_HOOK_PASS` |
-| Action plan #6 repo public | 🟡 Operator | `verify_open_source_github_repo_visibility.py --write`; `--require-public` when ready |
+| Action plan #6 repo public | ✅ DONE | `verify_open_source_posture.py` |
 | conduct@ / security@ monitored | 🟡 Operator | [GOVERNANCE_OPERATOR_CONTACTS.md](GOVERNANCE_OPERATOR_CONTACTS.md) |
-| `config.yml` URLs | ✅ Correct for fork | Uses `yimga/school-management-system` = `git remote origin`; SDK metadata uses `runmycampus/runmycampus` — document both |
+| `config.yml` + SDK URLs | ✅ Aligned | `yimga/school-management-system` |
 
 ---
 

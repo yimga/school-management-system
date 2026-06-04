@@ -30,6 +30,11 @@ def add_assigned_to_if_missing(apps, schema_editor):
     """Add assigned_to_id column; no-op if it already exists."""
     conn = schema_editor.connection
     vendor = conn.vendor
+    # Use the AUTH_USER_MODEL table name (e.g. accounts_user), not auth_user:
+    # this project swaps in a custom user model, so auth_user never exists on a
+    # fresh DB and a hardcoded FK breaks new-tenant / DR provisioning.
+    User = apps.get_model(*settings.AUTH_USER_MODEL.split("."))
+    user_table = User._meta.db_table
     if vendor == "postgresql":
         with conn.cursor() as cursor:
             if _column_exists_pg(
@@ -40,11 +45,9 @@ def add_assigned_to_if_missing(apps, schema_editor):
         try:
             with conn.cursor() as cursor:
                 cursor.execute(
-                    """
-                    ALTER TABLE siteconfig_globalsupportticket
-                    ADD COLUMN assigned_to_id integer NULL
-                    REFERENCES auth_user(id) ON DELETE SET NULL
-                    """
+                    "ALTER TABLE siteconfig_globalsupportticket "
+                    "ADD COLUMN assigned_to_id integer NULL "
+                    "REFERENCES " + user_table + "(id) ON DELETE SET NULL"
                 )
         except Exception as e:
             if _is_duplicate_column_error(e):

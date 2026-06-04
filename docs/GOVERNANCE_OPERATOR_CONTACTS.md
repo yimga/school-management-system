@@ -87,10 +87,8 @@ Evidence JSON: run `python scripts/verify_open_source_github_repo_visibility.py 
 ## Related verifiers
 
 ```bash
-python scripts/verify_media_storage_self_host_hook.py --write-json
-python scripts/verify_open_source_github_repo_visibility.py --write
-# Release gate (only when operator confirmed repos are public):
-python scripts/verify_open_source_github_repo_visibility.py --require-public
+python scripts/verify_open_source_posture.py
+python scripts/verify_open_source_posture.py --skip-github-network  # offline CI
 ```
 
 Audit ledger: [OPEN_SOURCE_POSTURE_AUDIT_2026_06_03.md](OPEN_SOURCE_POSTURE_AUDIT_2026_06_03.md).

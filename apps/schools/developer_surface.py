@@ -75,5 +75,5 @@ def developer_link_context(request) -> dict:
         "admin_developer_applications": f"{base}/admin/apicenter/developerapplication/",
         "admin_marketplace_apps": f"{base}/admin/marketplace/marketplaceapp/",
         "admin_tenant_subscriptions": f"{base}/admin/billing/tenantsubscription/",
-        "sdk_repo": "https://github.com/runmycampus/sdk",
+        "sdk_repo": "https://github.com/yimga/school-management-system/tree/main/sdk",
     }
