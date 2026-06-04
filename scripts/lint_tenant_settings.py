@@ -13,9 +13,11 @@ Run: ``raise SystemExit(main(None))`` (optional ``--base``; default is this repo
 from __future__ import annotations
 
 import argparse
+import io
 import re
 import subprocess
 import sys
+import tokenize
 from functools import lru_cache
 from pathlib import Path
 
@@ -85,6 +87,7 @@ ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES = (
     "apps/compliance/attendance_region_packs.py",
     "apps/compliance/enrollment_region_packs.py",
     "apps/communication/management/commands/purge_thread_message_retention.py",
+    "apps/portal/views_lexicon.py",  # Canonical tenant terminology writer: persists overrides to school.settings["terminology"] (no runtime-helper write path exists)
 )
 
 # Patterns: (regex, description)
@@ -259,6 +262,37 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return ap.parse_args(argv)
 
 
+def _school_attr_code_lines(text: str) -> set[tuple[int, str]] | None:
+    """Line numbers where ``school.settings`` / ``school.features`` appear as real code.
+
+    Uses ``tokenize`` so the attribute access is only recognised when it is an actual
+    ``NAME('school') OP('.') NAME('settings'|'features')`` token sequence — occurrences
+    inside comments and string literals (docstrings, prose like
+    ``school.settings["terminology"]`` in a module docstring) are emitted as COMMENT /
+    STRING tokens and therefore never match. Mirrors ``\\bschool\\.(settings|features)\\b``
+    (which also matches the tail of ``request.school.settings``).
+
+    Returns ``None`` when the file cannot be tokenized (e.g. a syntax error); callers
+    should fall back to the line-regex so a malformed file is never silently skipped.
+    """
+    try:
+        toks = list(tokenize.generate_tokens(io.StringIO(text).readline))
+    except (tokenize.TokenError, IndentationError, SyntaxError):
+        return None
+    out: set[tuple[int, str]] = set()
+    for a, b, c in zip(toks, toks[1:], toks[2:]):
+        if (
+            a.type == tokenize.NAME
+            and a.string == "school"
+            and b.type == tokenize.OP
+            and b.string == "."
+            and c.type == tokenize.NAME
+            and c.string in ("settings", "features")
+        ):
+            out.add((c.start[0], c.string))
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
@@ -295,6 +329,16 @@ def main(argv: list[str] | None = None) -> int:
         allowed_for_school_settings = any(
             path_str.startswith(p) for p in ALLOWED_SCHOOL_SETTINGS_FEATURES_PREFIXES
         )
+        # For the school.settings/features check, recognise the attribute access only as
+        # real code tokens so comments and docstrings (prose) aren't flagged. None means
+        # tokenize failed — fall back to the per-line regex below so nothing is missed.
+        school_attr_lines: set[tuple[int, str]] | None = None
+        if (
+            getattr(args, "check_school_settings_features", False)
+            and in_tenant_app
+            and not allowed_for_school_settings
+        ):
+            school_attr_lines = _school_attr_code_lines(text)
         for i, line in enumerate(text.splitlines(), 1):
             if getattr(args, "check_sitesettings_orm_in_tenant_apps", False):
                 if in_tenant_app and SITESETTINGS_OBJECTS_PATTERN[0].search(line):
@@ -316,14 +360,25 @@ def main(argv: list[str] | None = None) -> int:
                 and in_tenant_app
                 and not allowed_for_school_settings
             ):
-                if SCHOOL_SETTINGS_PATTERN[0].search(line):
-                    hits.append(
-                        (path_str, i, line.strip()[:90], SCHOOL_SETTINGS_PATTERN[1])
-                    )
-                if SCHOOL_FEATURES_PATTERN[0].search(line):
-                    hits.append(
-                        (path_str, i, line.strip()[:90], SCHOOL_FEATURES_PATTERN[1])
-                    )
+                # Token-aware path (skips comments/docstrings); regex fallback if tokenize failed.
+                if school_attr_lines is not None:
+                    if (i, "settings") in school_attr_lines:
+                        hits.append(
+                            (path_str, i, line.strip()[:90], SCHOOL_SETTINGS_PATTERN[1])
+                        )
+                    if (i, "features") in school_attr_lines:
+                        hits.append(
+                            (path_str, i, line.strip()[:90], SCHOOL_FEATURES_PATTERN[1])
+                        )
+                else:
+                    if SCHOOL_SETTINGS_PATTERN[0].search(line):
+                        hits.append(
+                            (path_str, i, line.strip()[:90], SCHOOL_SETTINGS_PATTERN[1])
+                        )
+                    if SCHOOL_FEATURES_PATTERN[0].search(line):
+                        hits.append(
+                            (path_str, i, line.strip()[:90], SCHOOL_FEATURES_PATTERN[1])
+                        )
             if not getattr(args, "check_get_solo_only", False) and not getattr(
                 args, "check_school_settings_features", False
             ):
