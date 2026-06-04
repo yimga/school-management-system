@@ -266,6 +266,17 @@
       "replay_protection": "cryptographically_random_session_id",
       "verdict": "keep_with_hardening"
     },
+    "apps/communication/views_sms_inbound_webhook.py": {
+      "audit_logging": "pii_minimized_hashed_phone_structured_logs",
+      "auth_model": "twilio_x_twilio_signature_hmac_sha1_or_africastalking_shared_secret",
+      "expected_count": 2,
+      "last_reviewed": "2026-06-04",
+      "notes": "Two endpoints (inbound MO + status callback): SMS providers POST without browser CSRF. Every request is verified by _signature_ok() \u2014 a valid Twilio X-Twilio-Signature HMAC-SHA1 (constant-time compare) wins, else a valid Africa's Talking shared secret (AT has no request-signing scheme); bad signature -> 403, never 5xx.",
+      "owner": "parent_communications",
+      "rate_limiting": "manual_review_required",
+      "replay_protection": "provider_signature_and_message_sid_manual_review_required",
+      "verdict": "keep_with_hardening"
+    },
     "apps/communication/views_whatsapp_webhook.py": {
       "audit_logging": "pii_minimized_structured_logs",
       "auth_model": "meta_whatsapp_signature_or_verify_token",
@@ -345,10 +356,10 @@
     },
     "apps/platform_runtime/views_newsletter.py": {
       "audit_logging": "implemented",
-      "auth_model": "public_form_post",
-      "expected_count": 1,
-      "last_reviewed": "2026-06-02",
-      "notes": "Public newsletter subscribe POST from marketing/portal without browser CSRF; double opt-in service handles abuse.",
+      "auth_model": "public_form_post_and_rfc8058_one_click_token",
+      "expected_count": 2,
+      "last_reviewed": "2026-06-04",
+      "notes": "Two endpoints: (1) public newsletter subscribe POST from marketing/portal without browser CSRF (double opt-in service handles abuse); (2) RFC 8058 one-click List-Unsubscribe-Post \u2014 mail clients POST without a CSRF token and the opaque per-recipient token in the URL is the authenticator.",
       "owner": "platform_marketing",
       "rate_limiting": "manual_review_required",
       "replay_protection": "not_applicable",
@@ -443,7 +454,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-06-03T15:45:52.264378+00:00",
+  "generated_at": "2026-06-04T19:16:10.334460+00:00",
   "raw_sql": {
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,
@@ -559,7 +570,7 @@
   },
   "summary": {
     "allow_any_files": 4,
-    "csrf_exempt_files": 36,
+    "csrf_exempt_files": 37,
     "raw_sql_files": 21
   }
 }

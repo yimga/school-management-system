@@ -70,7 +70,11 @@ jobs:
           retention-days: 1
 
       - name: Pre-deploy gate (check, migrations, smoke, theme matrix, phase checks)
-        timeout-minutes: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 55 || 30 }}
+        # PR budget raised 30->50: the full gate now runs end-to-end on PRs
+        # (~12 min just for migrate_gate_test_db on the full migration set, then
+        # the Phase 3 portal crawl + UX/i18n suites). main keeps 55 for its
+        # extra post-merge backlog-unlock evaluation.
+        timeout-minutes: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 55 || 50 }}
         env:
           DEBUG: "0"
           # DEBUG=0 puts settings in production mode, which requires SECRET_KEY at

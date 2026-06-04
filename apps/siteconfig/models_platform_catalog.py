@@ -874,6 +874,10 @@ class ServiceIntegration(models.Model):
         related_name="service_integrations",
         null=True,
         blank=True,
+        # siteconfig is SHARED; schoolops is TENANT. Cross-schema FK can't be
+        # DB-enforced under django-tenants (migrate_schemas --shared has no
+        # schoolops_campus), so no DB constraint. Matches the codebase pattern.
+        db_constraint=False,
         help_text=(
             "Optional campus scope. NULL = applies to all campuses of the school. "
             "Campus rows override the school-level row in the cascade resolver."

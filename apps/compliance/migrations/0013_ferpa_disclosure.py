@@ -83,6 +83,7 @@ class Migration(migrations.Migration):
                 (
                     "student",
                     models.ForeignKey(
+                        db_constraint=False,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="ferpa_disclosures",
                         to="people.studentprofile",

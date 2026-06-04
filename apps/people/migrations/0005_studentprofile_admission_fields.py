@@ -5,6 +5,17 @@ from django.db import migrations, models
 
 def populate_admission_numbers(apps, schema_editor):
     StudentProfile = apps.get_model("people", "StudentProfile")
+
+    # This is a one-time backfill for students that pre-date the admission_number
+    # field. A freshly-provisioned tenant has none, so skip before touching the
+    # SHARED SiteSettings row: siteconfig is in SHARED_APPS, so under django-tenants
+    # its public table is already at HEAD when this TENANT migration runs, while the
+    # historical SiteSettings model still has since-removed columns (e.g. site_name).
+    # A historical SELECT * would then fail with "column ... does not exist" and
+    # break new-tenant onboarding. No students → nothing to backfill → nothing to do.
+    if not StudentProfile.objects.exists():
+        return
+
     AcademicYear = apps.get_model("academics", "AcademicYear")
     Specialty = apps.get_model("academics", "Specialty")
     Classroom = apps.get_model("academics", "Classroom")

@@ -136,127 +136,6 @@ class SiteSettings(models.Model):
     maintenance_mode = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # v3.56 cockpit configurability cascade — operator-editable nested config
-    # for the 3 cockpit blocks emitted by apps.siteconfig.cockpit_context
-    # (footer, community_band, newsletter_band). Schema mirrors the SOT in
-    # cockpit_context.py:
-    #
-    #     cockpit_payload = {
-    #       "footer": {
-    #         "brand": {"wordmark": str, "motto": str, "founded_year": int|None, "descriptor": str},
-    #         "trust_pillars": [{"label": str, "tone": "secure"|"cert"|"neutral"}, ...],
-    #         "language": {"label": str, "current_locale": str, "has_switcher": bool},
-    #         "app_badges": [{"label": str, "glyph": str, "url": str}, ...],
-    #         "social":     [{"platform": str, "glyph": str, "url": str, "label": str}, ...],
-    #         "contacts":   [{"kind": str, "value": str, "href": str, "glyph": str}, ...],
-    #         "stat_line": str,
-    #         "legal_links":[{"label": str, "url": str}, ...],
-    #         "copyright_holder": str,
-    #         "powered_by": {"label": str, "url": str},
-    #       },
-    #       "community_band": {
-    #         "enabled": bool,
-    #         "achievement": {
-    #           "enabled": bool, "title": str, "period_label": str,
-    #           "student_initials": str, "student_name": str, "student_subline": str,
-    #           "teacher_quote": str, "teacher_cite": str,
-    #         },
-    #         "testimonial": {
-    #           "enabled": bool, "title": str, "quotes": list[str], "interval_ms": int,
-    #         },
-    #         "map": {
-    #           "enabled": bool, "title": str, "period_label": str,
-    #           "address_line_1": str, "address_line_2": str,
-    #           "maps_url": str, "cta_label": str,
-    #         },
-    #       },
-    #       "newsletter_band": {
-    #         "enabled": bool, "title": str, "subtitle": str,
-    #         "placeholder": str, "cta_label": str, "submit_url": str,
-    #         "privacy_url": str, "privacy_label": str,
-    #       },
-    #     }
-    #
-    # Read by apps.siteconfig.cockpit_context.cockpit_context() — the
-    # context processor merges this dict over per-host defaults so the
-    # tenant footer + community + newsletter bands render operator-published
-    # values. Nullable-with-default ({}) so legacy rows render the defaults.
-    cockpit_payload = models.JSONField(default=dict, blank=True)
-
-    # v3.57.x Wave 8 Agent C — operator-overridable SMTP delivery config.
-    # Read by ``apps.schoolops.email_delivery.get_resolved_smtp_config``;
-    # when ``enabled`` is False or absent the resolver falls back to env
-    # settings. Shape:
-    #
-    #     email_delivery = {
-    #       "enabled": bool,            # gate; False = use env settings
-    #       "host": str,
-    #       "port": int,
-    #       "use_tls": bool,
-    #       "host_user": str,
-    #       "host_password_encrypted_b64": str,  # Fernet ciphertext, base64
-    #       "default_from_email": str,
-    #       "default_from_name": str,
-    #       "default_reply_to": str,
-    #       "connection_timeout_seconds": int,
-    #     }
-    #
-    # NEVER write the plaintext password. The form layer wraps it via
-    # apps.accounts.legacy_hashes.encryption._get_fernet() before storing.
-    email_delivery = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text=(
-            "Operator-overridable SMTP delivery config. Falls back to env "
-            "settings when 'enabled' is False or absent."
-        ),
-    )
-
-    # v3.59.x Wave 11 Agent W — operator-overridable theme personality.
-    # Read by ``apps.siteconfig.page_personality.resolve_personality_overrides``;
-    # the resolver emits a `<style data-rmc-personality-override>` block in
-    # the page <head> AFTER ``static/css/design-tokens-personality.css`` so
-    # operator-published hex values cascade-override the platform defaults
-    # without a CSS redeploy. Shape (every key optional — empty = inherit):
-    #
-    #     theme_personality = {
-    #       "personality_overrides": {
-    #         "control-plane": {"accent": "#hex"},
-    #         "tenant-admin":  {"accent": "#hex"},
-    #         "parent":        {"accent": "#hex"},
-    #         "student":       {"accent": "#hex"},
-    #         "teacher":       {"accent": "#hex"},
-    #         "marketing":     {"accent": "#hex"},
-    #         "finance":       {"accent": "#hex"},
-    #         "reports":       {"accent": "#hex"},
-    #         "settings":      {"accent": "#hex"},
-    #         "auth":          {"accent": "#hex"},
-    #       },
-    #       "status_palette":  {"success": "#hex", "warning": "#hex",
-    #                            "danger":  "#hex", "info":    "#hex"},
-    #       "heatmap_palette": {"healthy": "#hex", "okay":    "#hex",
-    #                            "watch":   "#hex", "critical":"#hex",
-    #                            "idle":    "#hex"},
-    #       "chart_series":    ["#hex","#hex","#hex","#hex",
-    #                            "#hex","#hex","#hex","#hex"],
-    #     }
-    #
-    # Cascade (platform default → most-specific last):
-    #   design-tokens-personality.css (platform default)
-    #     → platform-host SiteSettings.theme_personality (manager host)
-    #     → tenant-host  SiteSettings.theme_personality (current tenant)
-    # Schema documented in static/css/design-tokens-personality.css and
-    # apps/siteconfig/page_personality.py.
-    theme_personality = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text=(
-            "Operator-overridable theme personality. Cascade: platform default -> "
-            "platform-host SiteSettings -> tenant-host SiteSettings. Schema documented "
-            "in static/css/design-tokens-personality.css and apps/siteconfig/page_personality.py."
-        ),
-    )
-
     class Meta:
         verbose_name = "Site Settings"
         verbose_name_plural = "Site Settings"
@@ -329,6 +208,25 @@ class SiteSettings(models.Model):
                 merged[key] = safe_value
         obj.payload = merged
         obj.save(update_fields=list(dict.fromkeys(update_fields)))
+
+    # Phase B: these three operator-config blobs no longer live as columns on
+    # SiteSettings (slim contract = id / maintenance_mode / updated_at). They are
+    # persisted in RuntimeDefaults.payload and read back transparently via
+    # __getattr__ above. Writers MUST use these accessors instead of
+    # ``instance.<field> = ...; save(update_fields=[...])`` — a plain save would
+    # silently drop the now-nonexistent field. The payload key name is centralized
+    # here so readers' getattr(site, "<key>") and these writers stay in sync.
+    @classmethod
+    def set_cockpit_payload(cls, value: dict) -> None:
+        cls._persist_runtime_payload_updates({"cockpit_payload": value or {}})
+
+    @classmethod
+    def set_email_delivery(cls, value: dict) -> None:
+        cls._persist_runtime_payload_updates({"email_delivery": value or {}})
+
+    @classmethod
+    def set_theme_personality(cls, value: dict) -> None:
+        cls._persist_runtime_payload_updates({"theme_personality": value or {}})
 
     @classmethod
     def _ensure_preview_columns(cls) -> None:

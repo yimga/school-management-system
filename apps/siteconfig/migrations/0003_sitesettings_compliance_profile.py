@@ -6,25 +6,39 @@ from django.db import connection, migrations, models
 
 
 def add_compliance_profile_if_tenant(apps, schema_editor):
-    """Only add FK on tenant schemas; public schema has no finance_complianceprofile."""
-    if getattr(connection, "schema_name", None) == "public":
-        return
+    """Add the compliance_profile_id column in every schema.
+
+    siteconfig is a SHARED app: SiteSettings (and this migration) live in the
+    public/shared schema as well as in tenant schemas. The migration STATE adds
+    the field everywhere (SeparateDatabaseAndState below), so the *column* must
+    exist everywhere too — otherwise any later SHARED-app data migration that
+    does a full-row SiteSettings ORM op (e.g. get_or_create(pk=1)) fails with
+    "column siteconfig_sitesettings.compliance_profile_id does not exist".
+
+    In tenant schemas finance_complianceprofile exists, so we keep the real FK
+    constraint. In the public/shared schema that table is absent (finance is a
+    TENANT app), so we add the same column WITHOUT a DB FK constraint — it is a
+    nullable integer that is always NULL there and is dropped from the model in
+    a later phase-B migration.
+    """
     SiteSettings = apps.get_model("siteconfig", "SiteSettings")
     ComplianceProfile = apps.get_model("finance", "ComplianceProfile")
+    is_public = getattr(connection, "schema_name", None) == "public"
     field = models.ForeignKey(
         ComplianceProfile,
         blank=True,
         null=True,
         on_delete=django.db.models.deletion.SET_NULL,
         related_name="site_settings",
+        db_constraint=not is_public,
     )
     field.set_attributes_from_name("compliance_profile")
     schema_editor.add_field(SiteSettings, field)
 
 
 def remove_compliance_profile_if_tenant(apps, schema_editor):
-    if getattr(connection, "schema_name", None) == "public":
-        return
+    # Symmetric with add_*: the column now exists in every schema, so remove it
+    # everywhere on reverse.
     SiteSettings = apps.get_model("siteconfig", "SiteSettings")
     field = SiteSettings._meta.get_field("compliance_profile")
     schema_editor.remove_field(SiteSettings, field)

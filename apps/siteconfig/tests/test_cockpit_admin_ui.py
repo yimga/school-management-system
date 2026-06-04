@@ -14,6 +14,7 @@ Covers:
 from __future__ import annotations
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.template import Context, Template
 from django.test import RequestFactory, SimpleTestCase
 from django.urls import NoReverseMatch, reverse
@@ -90,8 +91,13 @@ def _flat_form_payload() -> dict[str, object]:
 class CockpitFormSchemaTests(SimpleTestCase):
     """Pure-function tests over the form's parse / serialize round-trip."""
 
+    # One test exercises cockpit_context, which reads platform-pulse counts from
+    # the DB; allow queries against the (empty) test DB so it does not raise.
+    databases = {"default"}
+
     def test_form_builds_nested_payload_matching_cockpit_context_schema(self) -> None:
-        instance = SiteSettings(pk=1, cockpit_payload={})
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = {}  # Phase B: in-memory seed (no DB column); form reads via __dict__
         form = CockpitPayloadForm(data=_flat_form_payload(), instance=instance)
         self.assertTrue(form.is_valid(), msg=form.errors)
         payload = form.cleaned_data["cockpit_payload"]
@@ -201,7 +207,8 @@ class CockpitFormSchemaTests(SimpleTestCase):
                 "privacy_label": "privacy",
             },
         }
-        instance = SiteSettings(pk=1, cockpit_payload=existing)
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = existing  # Phase B: in-memory seed (no DB column)
         form = CockpitPayloadForm(instance=instance)
         # Flat-field initials populated from nested dict.
         self.assertEqual(form.fields["footer_wordmark"].initial, "Acme Prep")
@@ -215,7 +222,8 @@ class CockpitFormSchemaTests(SimpleTestCase):
 
     def test_form_with_empty_data_still_writes_canonical_shape(self) -> None:
         """Even empty fields produce the canonical 3-block top-level shape."""
-        instance = SiteSettings(pk=1, cockpit_payload={})
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = {}  # Phase B: in-memory seed (no DB column); form reads via __dict__
         form = CockpitPayloadForm(data={}, instance=instance)
         self.assertTrue(form.is_valid(), msg=form.errors)
         payload = form.cleaned_data["cockpit_payload"]
@@ -235,6 +243,10 @@ class CockpitFormSchemaTests(SimpleTestCase):
 class CockpitContextSurfaceTests(SimpleTestCase):
     """RequestFactory + the existing cockpit_context processor."""
 
+    # cockpit_context reads platform-pulse counts from the DB; allow queries
+    # against the (empty) test DB so it does not raise under SimpleTestCase.
+    databases = {"default"}
+
     def setUp(self) -> None:
         self.factory = RequestFactory()
 
@@ -244,7 +256,8 @@ class CockpitContextSurfaceTests(SimpleTestCase):
         # for the host classification.
         request.public_host_kind = "tenant"
         # Attach a stand-in SiteSettings instance carrying the payload.
-        site = SiteSettings(pk=1, cockpit_payload=payload)
+        site = SiteSettings(pk=1)
+        site.cockpit_payload = payload  # Phase B: in-memory seed (no DB column)
         request.SITE = site
         request.site_settings = site
         return request
@@ -260,7 +273,8 @@ class CockpitContextSurfaceTests(SimpleTestCase):
 
     def test_tenant_footer_can_render_with_saved_payload(self) -> None:
         """Operator's saved wordmark survives into a tiny template render."""
-        instance = SiteSettings(pk=1, cockpit_payload={})
+        instance = SiteSettings(pk=1)
+        instance.cockpit_payload = {}  # Phase B: in-memory seed (no DB column); form reads via __dict__
         form = CockpitPayloadForm(data=_flat_form_payload(), instance=instance)
         self.assertTrue(form.is_valid(), msg=form.errors)
         # Render a small template directly from the form-built payload —
@@ -291,6 +305,10 @@ class CockpitBleedPreventionTests(SimpleTestCase):
     attached with a populated cockpit_payload.
     """
 
+    # cockpit_context reads platform-pulse counts from the DB; allow queries
+    # against the (empty) test DB so it does not raise under SimpleTestCase.
+    databases = {"default"}
+
     def setUp(self) -> None:
         self.factory = RequestFactory()
 
@@ -299,19 +317,18 @@ class CockpitBleedPreventionTests(SimpleTestCase):
         request.public_host_kind = "manager"
         # Attach a tenant-populated payload to the request — the
         # manager branch in cockpit_context() must ignore it.
-        tenant_site = SiteSettings(
-            pk=1,
-            cockpit_payload={
-                "footer": {
-                    "brand": {
-                        "wordmark": "TENANT BLEED MARKER",
-                        "motto": "",
-                        "founded_year": None,
-                        "descriptor": "Family portal",
-                    }
+        tenant_site = SiteSettings(pk=1)
+        # Phase B: in-memory seed (no DB column); cockpit_context reads via __dict__.
+        tenant_site.cockpit_payload = {
+            "footer": {
+                "brand": {
+                    "wordmark": "TENANT BLEED MARKER",
+                    "motto": "",
+                    "founded_year": None,
+                    "descriptor": "Family portal",
                 }
-            },
-        )
+            }
+        }
         request.SITE = tenant_site
         request.site_settings = tenant_site
 
@@ -341,14 +358,13 @@ class CockpitConfigureViewAccessTests(SimpleTestCase):
     def setUp(self) -> None:
         self.factory = RequestFactory()
         User = get_user_model()
-        # Non-persisted user instances are sufficient for the view's
-        # auth-mixin checks (UserPassesTestMixin only reads attributes).
-        self.anonymous = User()
-        self.anonymous.is_authenticated = False
+        # Non-persisted user instances are sufficient for the view's auth-mixin
+        # checks (UserPassesTestMixin only reads attributes). is_authenticated is
+        # a read-only property — AnonymousUser reports False, a real User reports
+        # True — so we pick the type instead of assigning the property.
+        self.anonymous = AnonymousUser()
         self.staff = User(username="op", is_staff=True, is_superuser=False)
-        self.staff.is_authenticated = True
         self.non_staff = User(username="parent", is_staff=False, is_superuser=False)
-        self.non_staff.is_authenticated = True
 
     def _view(self):
         from apps.siteconfig.views_cockpit_admin import CockpitConfigureView
@@ -380,7 +396,6 @@ class CockpitConfigureViewAccessTests(SimpleTestCase):
     def test_test_func_accepts_superuser_even_if_not_staff(self) -> None:
         User = get_user_model()
         su = User(username="root", is_staff=False, is_superuser=True)
-        su.is_authenticated = True
         request = self.factory.get("/")
         request.user = su
         view = self._bind_view(self._view(), request)

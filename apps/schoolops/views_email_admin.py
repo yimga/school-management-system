@@ -61,8 +61,10 @@ def _persist_payload(new_payload: dict) -> bool:
         row = get_platform_site_settings_record(create=True)
         if row is None:
             return False
-        row.email_delivery = new_payload
-        row.save(update_fields=["email_delivery"])
+        # Phase B: email_delivery lives in RuntimeDefaults.payload, not a
+        # SiteSettings column. Persist via the accessor; the read path above
+        # (getattr(row, "email_delivery")) resolves it through __getattr__.
+        type(row).set_email_delivery(new_payload)
         return True
     except Exception as exc:  # noqa: BLE001
         logger.exception(

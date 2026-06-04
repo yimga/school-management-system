@@ -618,6 +618,10 @@ class FerpaDisclosure(models.Model):
         "people.StudentProfile",
         on_delete=models.CASCADE,
         related_name="ferpa_disclosures",
+        # compliance is a SHARED app; people is TENANT. A cross-schema FK cannot be
+        # DB-enforced under django-tenants (migrate_schemas --shared has no
+        # people_studentprofile), so no DB constraint. Matches the codebase pattern.
+        db_constraint=False,
     )
     disclosed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

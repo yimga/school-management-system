@@ -36,7 +36,12 @@ class EMISExport(models.Model):
     academic_year = models.ForeignKey(
         'academics.AcademicYear',
         on_delete=models.CASCADE,
-        related_name='emis_exports'
+        related_name='emis_exports',
+        # emis is in SHARED_APPS (public schema); academics is in TENANT_APPS.
+        # A real cross-schema FK constraint can't be created in the public schema
+        # (academics_* tables live only in tenant schemas), so disable it. Same
+        # pattern as compliance.FerpaDisclosure.student / siteconfig.*.campus.
+        db_constraint=False,
     )
 
     term = models.ForeignKey(
@@ -44,7 +49,9 @@ class EMISExport(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='emis_exports'
+        related_name='emis_exports',
+        # SHARED→TENANT FK: see academic_year above.
+        db_constraint=False,
     )
 
     exported_by = models.ForeignKey(

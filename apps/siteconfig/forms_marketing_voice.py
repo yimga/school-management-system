@@ -96,8 +96,11 @@ class MarketingVoiceForm(forms.ModelForm):
 
     class Meta:
         model = SiteSettings
-        fields: list[str] = ["cockpit_payload"]
-        widgets = {"cockpit_payload": forms.HiddenInput()}
+        # Phase B: cockpit_payload is no longer a SiteSettings column (it lives in
+        # RuntimeDefaults.payload). This ModelForm declares no editable model
+        # fields; the computed payload is persisted via SiteSettings
+        # .set_cockpit_payload() in save().
+        fields: list[str] = []
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -224,7 +227,9 @@ class MarketingVoiceForm(forms.ModelForm):
 
     def save(self, commit: bool = True) -> SiteSettings:
         instance = super().save(commit=False)
-        instance.cockpit_payload = self.cleaned_data.get("cockpit_payload", {})
         if commit:
-            instance.save()
+            # Phase B: persist to RuntimeDefaults.payload via the accessor.
+            type(instance).set_cockpit_payload(
+                self.cleaned_data.get("cockpit_payload", {})
+            )
         return instance

@@ -46,9 +46,9 @@ class Migration(migrations.Migration):
                 ('error_message', models.TextField(blank=True)),
                 ('country_code', models.CharField(default='CMR', help_text='ISO 3166-1 alpha-3 country code', max_length=3)),
                 ('ministry_format', models.CharField(blank=True, help_text='Specific ministry format requirements', max_length=50)),
-                ('academic_year', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='emis_exports', to='academics.academicyear')),
+                ('academic_year', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.CASCADE, related_name='emis_exports', to='academics.academicyear')),
                 ('exported_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='emis_exports', to=settings.AUTH_USER_MODEL)),
-                ('term', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='emis_exports', to='academics.term')),
+                ('term', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='emis_exports', to='academics.term')),
             ],
             options={
                 'verbose_name': 'EMIS Export',
