@@ -81,6 +81,8 @@ python manage.py test <labels> --settings=config.settings_test --parallel=1
 - [CONTRIBUTING.md](CONTRIBUTING.md) — how to propose changes (incl. the DCO sign-off).
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) — community standards.
 - [SECURITY.md](SECURITY.md) — how to report a vulnerability privately.
+- [docs/GOVERNANCE_OPERATOR_CONTACTS.md](docs/GOVERNANCE_OPERATOR_CONTACTS.md) — maintainer checklist (mailboxes, GitHub visibility).
+- [docs/OPEN_SOURCE_POSTURE_AUDIT_2026_06_03.md](docs/OPEN_SOURCE_POSTURE_AUDIT_2026_06_03.md) — OSS posture audit + verifiers.
 
 ## License
 
