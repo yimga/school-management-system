@@ -38,7 +38,7 @@ from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from apps.api.oneroster import _gate
+from apps.api.oneroster import _gate, _require_write_scope
 
 logger = logging.getLogger(__name__)
 
@@ -280,6 +280,9 @@ def _handle_put(
     gate = _gate(request)
     if gate is not None:
         return gate
+    scope_gate = _require_write_scope(request)
+    if scope_gate is not None:
+        return scope_gate
 
     body = _body_json(request)
     if body is None:

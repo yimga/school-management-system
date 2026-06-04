@@ -176,6 +176,37 @@ def _gate(request: HttpRequest) -> JsonResponse | None:
     return resp
 
 
+# OneRoster v1.2 write scopes. A *.createput scope is required to mutate roster
+# data; without this check a read-only (.readonly) OAuth2 token could call the
+# PUT/bulk-POST write endpoints (the scope model existed but was unenforced).
+_WRITE_SCOPES: frozenset[str] = frozenset({
+    "roster-core.createput",
+    "roster-demographics.createput",
+    "roster-results.createput",
+})
+
+
+def _require_write_scope(request: HttpRequest) -> JsonResponse | None:
+    """Return a 403 unless the OAuth2 caller holds a write scope.
+
+    Static-bearer / dev-open callers (no ``_oneroster_oauth2`` payload) are
+    unaffected — they have no scope model and keep their historical access.
+    """
+    payload = getattr(request, "_oneroster_oauth2", None)
+    if not payload:
+        return None
+    scopes = set(payload.get("scopes") or [])
+    if scopes & _WRITE_SCOPES:
+        return None
+    resp = JsonResponse(
+        {"error": "insufficient_scope", "scope": "roster-*.createput"}, status=403
+    )
+    resp["WWW-Authenticate"] = (
+        'Bearer realm="OneRoster v1.2", error="insufficient_scope"'
+    )
+    return resp
+
+
 # ---------------------------------------------------------------------------
 # v4.00.92 Wave 25 M1 + M2 — shared GET/HEAD pipeline for the 6 main
 # collection list endpoints (orgs / schools / users / classes / courses /
@@ -973,6 +1004,9 @@ def users_bulk_post(request: HttpRequest):
     gate = _gate(request)
     if gate is not None:
         return gate
+    scope_gate = _require_write_scope(request)
+    if scope_gate is not None:
+        return scope_gate
 
     idem = _bulk_user_idempotency_key(request)
     if not idem:
