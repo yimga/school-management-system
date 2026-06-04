@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Admin changelist evidence batch 1619 (2026-06-04)
+
+**A. Claim:** §11.4 batch **1619** — close batch **1617** admin Playwright residual with full render crawl + honest audit JSON; route classifier + TOTP seed for local/CI layout sweep.
+
+**B. Shipped:** `0065_school_tenant_hash` migrate; sweep excludes `password_change/done`; TOTP in `run_admin_abrupt_end_sweep.sh`; render contract writes dual JSON artifacts; **`verify_admin_playwright_sweep_audit.py`**.
+
+**C. Proof:** **verify_admin_changelist_render_contract OK (185/187)**; **ADMIN_PLAYWRIGHT_SWEEP_AUDIT_PASS**; route classifier test OK.
+
+**D. SOT:** batch **1619** **DONE**. **E. Honest:** layout Playwright overwrites audit in CI; phases bundle still has unrelated **GEOS-99** fail.
+
 ## Slice — Workflow deploy strip + OSS posture batch 1618 (2026-06-04)
 
 **A. Claim:** §11.4 batch **1618** — lock Render deploy workflow strip wiring; prevent duplicate manager strip; record Track 7 OSS composite proof.

@@ -60,6 +60,8 @@ def main() -> int:
     for cmd, env in steps:
         if _run(cmd, env) != 0:
             return 1
+    if _run([sys.executable, "scripts/verify_admin_playwright_sweep_audit.py"], None) != 0:
+        return 1
     print("verify_admin_platform_gear_up_bundle: OK")
     return 0
 

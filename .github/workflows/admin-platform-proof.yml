@@ -114,11 +114,15 @@ jobs:
           u.save()
           "
 
-      - name: Playwright admin abrupt-end sweep (175 changelists)
+      - name: Playwright admin abrupt-end sweep (admin_changelist tier)
         env:
           SWEEP_INCLUDE_TENANT: "0"
           SWEEP_TIER: admin_changelist
+          ADMIN_PLAYWRIGHT_LAYOUT_SWEEP_REQUIRED: "1"
         run: bash scripts/run_admin_abrupt_end_sweep.sh
+
+      - name: Admin Playwright sweep audit contract
+        run: python scripts/verify_admin_playwright_sweep_audit.py
 
       - name: Upload sweep artifacts
         if: always()

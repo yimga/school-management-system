@@ -39,6 +39,11 @@ ADMIN_NON_CHANGELIST_SUFFIXES = (
     "/change/",
     "/autocomplete/",
     "/view/",
+    "/done/",
+)
+# Django admin auth flows (not model changelists): /admin/password_change/done/
+ADMIN_NON_MODEL_SEGMENTS = frozenset(
+    {"password_change", "login", "logout", "jsi18n", "rjs"},
 )
 # Operator HTML surfaces (extends control_plane_base / manager shells).
 OPERATOR_PREFIXES = (
@@ -92,7 +97,11 @@ def _admin_changelist_only(path: str) -> bool:
         return False
     parts = [p for p in path.strip("/").split("/") if p]
     # /admin/<app_label>/<model_name>/
-    return len(parts) == 3 and parts[0] == "admin"
+    return (
+        len(parts) == 3
+        and parts[0] == "admin"
+        and parts[1] not in ADMIN_NON_MODEL_SEGMENTS
+    )
 
 
 def _include_path(path: str, name: str | None) -> bool:

@@ -1,8 +1,8 @@
 {
   "version": "2026-05-18",
-  "count": 651,
+  "count": 650,
   "operator_count": 463,
-  "admin_changelist_count": 188,
+  "admin_changelist_count": 187,
   "routes": [
     {
       "path": "/",
@@ -541,12 +541,6 @@
     {
       "path": "/admin/packages/packageversion/",
       "name": "packages_packageversion_changelist",
-      "tier": "admin_changelist",
-      "sweep": true
-    },
-    {
-      "path": "/admin/password_change/done/",
-      "name": "password_change_done",
       "tier": "admin_changelist",
       "sweep": true
     },

@@ -59,6 +59,23 @@ u.role = "SUPERADMIN"
 u.set_password("${VISUAL_PASSWORD}")
 u.save()
 print(f"Seeded manager QA user: {u.username}")
+try:
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    TOTPDevice.objects.filter(user=u).delete()
+    device, _ = TOTPDevice.objects.update_or_create(
+        user=u,
+        name="e2e-playwright",
+        defaults={"confirmed": True},
+    )
+    device.key = os.environ.get(
+        "VISUAL_QA_TOTP_HEX_KEY",
+        "eab95095c004f245721ba0fa7ebf82d5dc73",
+    )
+    device.save()
+    print(f"Seeded TOTP device e2e-playwright for {u.username}")
+except Exception as exc:
+    print(f"WARN: TOTP seed skipped for {u.username}: {exc}")
 PY
 }
 
