@@ -973,12 +973,16 @@ def redirect_uri_registry(request: HttpRequest) -> HttpResponse:
         cid, secret = resolve_oauth_client_credentials(connector.slug)
         cdict = connector.to_dict()
         cdict["brand_mark_class"] = f"rmc-integration-mark rmc-integration-mark--{connector.slug}"
+        # reverse() is hoisted out of the f-string: multi-line expressions inside
+        # f-strings are PEP 701 (Python 3.12+); CI runs 3.11, where this is a
+        # SyntaxError ("unterminated string literal").
+        callback_path = reverse(
+            "integrations_marketplace:oauth_callback",
+            kwargs={"connector_slug": connector.slug},
+        )
         rows.append({
             "connector": cdict,
-            "redirect_uri": f"{base.rstrip('/')}{reverse(
-                'integrations_marketplace:oauth_callback',
-                kwargs={'connector_slug': connector.slug},
-            )}",
+            "redirect_uri": f"{base.rstrip('/')}{callback_path}",
             "has_client_id": bool(cid),
             "has_client_secret": bool(secret),
             "env_id_var": f"INTEGRATIONS_{connector.slug.upper()}_CLIENT_ID",
