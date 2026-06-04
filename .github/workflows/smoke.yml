@@ -73,6 +73,10 @@ jobs:
         timeout-minutes: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 55 || 30 }}
         env:
           DEBUG: "0"
+          # DEBUG=0 puts settings in production mode, which requires SECRET_KEY at
+          # import; the gate runs `manage.py check`, so it must be set (mirrors the
+          # Django check --deploy step above). CI-only placeholder, never prod.
+          SECRET_KEY: "ci-pre-deploy-gate-not-for-production-use-64chars_______________________"
           LOG_LEVEL: WARNING
           # After a green main merge, refresh backlog unlock snapshot + transition events (shared cache in prod when gate runs there).
           RUN_BACKLOG_UNLOCK_EVAL: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '1' || '0' }}
