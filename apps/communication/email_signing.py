@@ -144,9 +144,14 @@ def email_signing_status() -> dict[str, Any]:
     if signs_dkim:
         provider = DKIM_SIGNING_BACKENDS[backend]
     elif backend in NON_SIGNING_BACKENDS:
-        # The SMTP backend is "relay-dependent": if it points at a known
-        # signing relay (Brevo/SendGrid/...), DKIM IS applied at the relay.
-        relay_provider = _signing_smtp_relay()
+        # Only the real SMTP backend actually ships through EMAIL_HOST, so the
+        # relay-signs-DKIM inference applies to it alone. The console / locmem /
+        # dummy / filebased backends never send mail — a configured EMAIL_HOST
+        # (e.g. a dev .env still pointing at Brevo) must NOT make them report
+        # signed (audit H13 follow-up: this previously false-positived the
+        # console backend whenever EMAIL_HOST happened to be a known relay).
+        if backend == "django.core.mail.backends.smtp.EmailBackend":
+            relay_provider = _signing_smtp_relay()
         if relay_provider:
             signs_dkim = True
             provider = relay_provider
