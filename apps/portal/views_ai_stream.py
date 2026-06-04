@@ -104,6 +104,9 @@ def ai_stream_view(request: HttpRequest) -> Any:
         return JsonResponse({"ok": False, "error": "gateway_unconfigured"}, status=503)
     if not is_litellm_configured():
         return JsonResponse({"ok": False, "error": "litellm_unconfigured"}, status=503)
+    host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+    if host_kind == "tenant" and getattr(request, "school", None) is None:
+        return JsonResponse({"ok": False, "error": "tenant_required"}, status=403)
     viewport = _resolve_viewport(request)
     response = StreamingHttpResponse(
         _stream_chunks(request, prompt, viewport),

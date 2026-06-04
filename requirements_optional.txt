@@ -15,3 +15,10 @@ shap>=0.44.0
 # The platform uses raw SQL for cosine ranking, so the Python package is
 # strictly optional for the ORM-side migration helper.
 # pgvector>=0.2.5
+
+# Object storage (S3-compatible) for durable, scalable media — only needed when
+# MEDIA_STORAGE_BACKEND=s3 (or AWS_S3_ENDPOINT_URL + AWS_STORAGE_BUCKET_NAME) is
+# set. Works with self-hosted MinIO (FOSS), Cloudflare R2, Backblaze B2, AWS S3,
+# or a regional/edge bucket. The default local-filesystem media path needs none
+# of this. See config/settings.py STORAGES block.
+# django-storages[s3]>=1.14  # pulls boto3

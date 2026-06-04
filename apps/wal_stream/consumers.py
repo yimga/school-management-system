@@ -55,34 +55,13 @@ class WalStreamConsumer(AsyncJsonWebsocketConsumer):
         if user is None or not getattr(user, "is_authenticated", False):
             await self.close(code=4401)
             return
-        school_id = self._scope_school_id()
-        if not school_id:
+        if self.scope.get("school_access_denied") or not self.scope.get("school_id"):
             await self.close(code=4403)
             return
-        self.tenant_hash = hashlib.sha256(str(school_id).encode("utf-8")).hexdigest()[:12]
+        school_id = str(self.scope["school_id"])
+        self.tenant_hash = hashlib.sha256(school_id.encode("utf-8")).hexdigest()[:12]
         self.user_id = str(user.pk)
         await self.accept()
-
-    def _scope_school_id(self) -> str | None:
-        # Channels scope is hydrated by `apps.tenancy.middleware_rls_jwt` style
-        # binding when the WS handshake passes through it. Fall back to session.
-        session = self.scope.get("session", {}) or {}
-        sid = session.get("school_id") or session.get("active_school_id")
-        if sid:
-            return str(sid)
-        # Fallback: cookie-bound JWT (the same one HTTP middleware reads).
-        cookies = self.scope.get("cookies", {}) or {}
-        token = cookies.get("rmc_rls_jwt", "")
-        if token:
-            try:
-                from apps.tenancy.middleware_rls_jwt import _verify_jwt
-
-                claims = _verify_jwt(token)
-                if isinstance(claims, dict):
-                    return claims.get("school_id") or claims.get("tenant_id")
-            except (ImportError, AttributeError):
-                return None
-        return None
 
     async def receive_json(self, content: Any, **kwargs) -> None:
         if not isinstance(content, dict):

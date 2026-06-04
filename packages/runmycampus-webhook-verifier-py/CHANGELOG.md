@@ -77,6 +77,6 @@ are frozen — breaking changes require a 2.0 major bump.
   would silently break customer signature verification.
 - OIDC trusted publishing (PyPI) — no API token in repo secrets.
 
-[1.0.0-rc.1]: https://github.com/runmycampus/runmycampus/releases/tag/webhook-verifier-py-v1.0.0-rc.1
-[0.2.0]: https://github.com/runmycampus/runmycampus/releases/tag/webhook-verifier-py-v0.2.0
-[0.1.0]: https://github.com/runmycampus/runmycampus/releases/tag/webhook-verifier-py-v0.1.0
+[1.0.0-rc.1]: https://github.com/yimga/school-management-system/releases/tag/webhook-verifier-py-v1.0.0-rc.1
+[0.2.0]: https://github.com/yimga/school-management-system/releases/tag/webhook-verifier-py-v0.2.0
+[0.1.0]: https://github.com/yimga/school-management-system/releases/tag/webhook-verifier-py-v0.1.0

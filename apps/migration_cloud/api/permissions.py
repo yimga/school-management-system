@@ -21,6 +21,19 @@ from rest_framework.permissions import BasePermission
 logger = logging.getLogger(__name__)
 
 
+def _is_operator_shell_request(request) -> bool:
+    """Migration Cloud operator API — manager host + platform operator only."""
+    user = getattr(request, "user", None)
+    if user is None or not user.is_authenticated:
+        return False
+    from apps.schools.control_plane import user_has_control_plane_access
+
+    if not user_has_control_plane_access(user):
+        return False
+    host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+    return host_kind in {"manager", "local"}
+
+
 class MigrationCloudAPIPermission(BasePermission):
     """Authenticated + (staff OR tenant-match) gate for Migration Cloud API.
 
@@ -36,18 +49,20 @@ class MigrationCloudAPIPermission(BasePermission):
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
             return False
-        # Staff always pass (operator shell). Non-staff need a school binding
-        # on the request so the object-level check can match.
-        if user.is_staff:
+        if _is_operator_shell_request(request):
             return True
         school = getattr(request, "school", None) or getattr(request, "tenant", None)
-        return school is not None
+        if school is None:
+            return False
+        from apps.schools.models import SchoolMembership
+
+        return SchoolMembership.objects.filter(user=user, school=school).exists()
 
     def has_object_permission(self, request, view, obj) -> bool:
         user = getattr(request, "user", None)
         if user is None or not user.is_authenticated:
             return False
-        if user.is_staff:
+        if _is_operator_shell_request(request):
             return True
         bundle_school_id = getattr(obj, "school_id", None)
         if bundle_school_id is None:

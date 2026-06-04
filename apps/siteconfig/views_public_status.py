@@ -174,7 +174,7 @@ def public_status_subscribe(request):
     if channel == "EMAIL":
         try:
             from django.conf import settings
-            from django.core.mail import send_mail
+            from apps.schoolops.email_compat import send_mail
 
             verify_url = request.build_absolute_uri(
                 reverse("public_status_verify", args=[sub.verification_token])

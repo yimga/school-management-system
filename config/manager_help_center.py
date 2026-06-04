@@ -19,7 +19,6 @@ from apps.feedback.db_readiness import (
     open_feature_request_count,
 )
 from apps.feedback.forms import FeatureRequestForm
-from apps.feedback.models import FeatureRequest
 from apps.feedback.services import submit_feature_request, support_entry_points
 from apps.schools.control_plane import require_control_plane_access
 from apps.portal.help_page_inbound import feature_form_initial_from_request, parse_help_landing_inbound

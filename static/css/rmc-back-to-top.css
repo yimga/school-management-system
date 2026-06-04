@@ -353,7 +353,7 @@ html[data-surface="marketing"] .rmc-back-to-top__icon {
 
 /* Control plane operator footer clearance */
 html[data-surface="control-plane"] body.cp-shell-has-operator-footer .back-to-top-btn.rmc-back-to-top {
-  bottom: calc(6.35rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(4.45rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
 }
 
 html[data-rmc-exceeds-2-folds="1"] .back-to-top-btn.rmc-back-to-top {
@@ -376,13 +376,13 @@ body.admin-manager-shell:has(.rmc-app-shell[data-copilot="expanded"]) .back-to-t
 }
 
 body.admin-manager-shell:has(.rmc-footer-notebook-anchor) .back-to-top-btn.rmc-back-to-top {
-  bottom: calc(5.5rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(3.85rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
 }
 
 html[data-surface="control-plane"][data-rmc-exceeds-2-folds="1"]
   body.cp-shell-has-operator-footer
   .back-to-top-btn.rmc-back-to-top {
-  bottom: calc(6.35rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(4.45rem + var(--rmc-back-to-top-dock-lift) + env(safe-area-inset-bottom, 0px));
 }
 
 @media (prefers-reduced-motion: reduce) {

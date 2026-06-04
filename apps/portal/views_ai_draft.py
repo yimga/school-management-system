@@ -130,6 +130,107 @@ def ai_draft_parent_message(request):
 
 @login_required
 @require_POST
+def ai_draft_announcement(request):
+    """Draft a school announcement (audit AI roadmap #1). tone ∈ warm/formal/urgent."""
+    if not _can_draft(request.user):
+        return HttpResponseForbidden("You don't have permission to use AI draft.")
+    school = _school_from_request(request)
+    if school is None:
+        return JsonResponse({"error": "School context required."}, status=400)
+    if not _entitlement_ok(school, "AI_TEACHER_COMMS"):
+        return JsonResponse({"error": "AI comms not enabled for this school."}, status=402)
+    payload = _decode_json(request)
+    intent = (payload.get("intent") or "").strip()[:500]
+    audience = (payload.get("audience") or "parents").strip()[:40]
+    tone = (payload.get("tone") or "warm").strip()[:20]
+    facts = [str(f)[:200] for f in (payload.get("key_facts") or []) if str(f).strip()][:10]
+    if not intent:
+        return JsonResponse({"error": "Tell us what the announcement is about."}, status=400)
+    try:
+        from services.messaging_ai import draft_announcement
+    except ImportError:
+        return JsonResponse({"error": "Draft service unavailable."}, status=503)
+    text, meta = draft_announcement(
+        school=school, audience=audience, intent=intent, key_facts=facts, tone=tone,
+    )
+    if not text:
+        return JsonResponse({"error": meta.get("error") or "No draft returned."}, status=503)
+    return JsonResponse({"draft": text, "provider": meta.get("provider", "")})
+
+
+@login_required
+@require_POST
+def ai_suggest_subject_lines(request):
+    """Suggest email subject lines for a body (audit AI roadmap #2)."""
+    if not _can_draft(request.user):
+        return HttpResponseForbidden("You don't have permission to use AI draft.")
+    school = _school_from_request(request)
+    if school is None:
+        return JsonResponse({"error": "School context required."}, status=400)
+    if not _entitlement_ok(school, "AI_TEACHER_COMMS"):
+        return JsonResponse({"error": "AI comms not enabled for this school."}, status=402)
+    payload = _decode_json(request)
+    body = (payload.get("body") or "").strip()[:2000]
+    if not body:
+        return JsonResponse({"error": "Provide the message body."}, status=400)
+    try:
+        from services.messaging_ai import suggest_subject_lines
+    except ImportError:
+        return JsonResponse({"error": "Suggestion service unavailable."}, status=503)
+    return JsonResponse({"subjects": suggest_subject_lines(school=school, body_excerpt=body)})
+
+
+@login_required
+@require_POST
+def ai_rewrite_plain_language(request):
+    """Rewrite a message at a target reading level (audit AI roadmap #3 — equity)."""
+    if not _can_draft(request.user):
+        return HttpResponseForbidden("You don't have permission to use AI draft.")
+    school = _school_from_request(request)
+    if school is None:
+        return JsonResponse({"error": "School context required."}, status=400)
+    if not _entitlement_ok(school, "AI_TEACHER_COMMS"):
+        return JsonResponse({"error": "AI comms not enabled for this school."}, status=402)
+    payload = _decode_json(request)
+    text = (payload.get("text") or "").strip()[:2000]
+    reading_level = (payload.get("reading_level") or "grade 6").strip()[:32]
+    if not text:
+        return JsonResponse({"error": "Provide the text to rewrite."}, status=400)
+    try:
+        from services.messaging_ai import rewrite_plain_language
+    except ImportError:
+        return JsonResponse({"error": "Rewrite service unavailable."}, status=503)
+    out, meta = rewrite_plain_language(school=school, text=text, reading_level=reading_level)
+    return JsonResponse({"draft": out, "provider": meta.get("provider", "")})
+
+
+@login_required
+@require_POST
+def ai_suggest_replies(request):
+    """Suggest staff replies to an inbound parent message (audit AI roadmap #7)."""
+    if not _can_draft(request.user):
+        return HttpResponseForbidden("You don't have permission to use AI draft.")
+    school = _school_from_request(request)
+    if school is None:
+        return JsonResponse({"error": "School context required."}, status=400)
+    if not _entitlement_ok(school, "AI_TEACHER_COMMS"):
+        return JsonResponse({"error": "AI comms not enabled for this school."}, status=402)
+    payload = _decode_json(request)
+    inbound_text = (payload.get("inbound_text") or "").strip()[:1000]
+    context = (payload.get("context") or "").strip()[:500]
+    if not inbound_text:
+        return JsonResponse({"error": "Provide the inbound message."}, status=400)
+    try:
+        from services.messaging_ai import suggest_replies
+    except ImportError:
+        return JsonResponse({"error": "Suggestion service unavailable."}, status=503)
+    return JsonResponse(
+        {"replies": suggest_replies(school=school, inbound_text=inbound_text, context=context)}
+    )
+
+
+@login_required
+@require_POST
 def ai_draft_report_card_comment(request):
     """Draft a 40-60 word report-card comment from an evaluation snapshot."""
     if not _can_draft(request.user):

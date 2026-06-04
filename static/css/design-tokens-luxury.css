@@ -106,7 +106,7 @@
   /* Statement header */
   --statement-header-bg: var(--lux-surface-base);
   --statement-header-fg: var(--lux-color-ink);
-  --statement-header-height: 72px;
+  --statement-header-height: calc(72px * 1.1); /* v4.01.43 +10% platform header band */
   --statement-logo-min-width: 150px;
   --statement-logo-font: "Inter", system-ui, -apple-system, sans-serif;
   --statement-logo-weight: 700;

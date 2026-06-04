@@ -6,7 +6,7 @@
 :root {
   --rmc-brand-navy: #002147;
   --rmc-brand-gold: #d4af37;
-  --rmc-manager-header-height: 64px;
+  --rmc-manager-header-height: calc(64px * 1.1); /* v4.01.43 +10% platform header band */
   --rmc-platform-header-pad-x: 1.25rem;
   --rmc-header-control-height: 2.375rem;
   --rmc-header-control-radius: 999px;
@@ -474,13 +474,9 @@ html[data-resolved-theme="dark"] .mkt-navbar .rmc-brand-mark__title--platform .r
   object-fit: contain;
 }
 
-/* === Unified header theme + aesthetic chip (v4.01.07) =====================
-   Single SOT for the platform's theme + aesthetic toggle. Hoisted out of
-   components/user_dropdown.html and out of the standalone cp-topbar-theme-toggle
-   button on the manager topbar. Rendered by templates/components/header_theme_chip.html
-   at one consistent anchor per shell (right of notification bell, before
-   user dropdown). Compatibility shim inherits the existing icon-button
-   sizing rules above so visual continuity is preserved.
+/* === Unified appearance controls (v4.01.43) ===============================
+   Authenticated: profile dropdown via components/user_dropdown.html.
+   Anonymous marketing: nav drawer. Anonymous base: palette dropdown.
 */
 .rmc-header-theme-chip {
   display: inline-flex;
@@ -531,11 +527,48 @@ html[data-resolved-theme="dark"] .mkt-navbar .rmc-brand-mark__title--platform .r
   color: #ffffff; /* off-token-allow: hex-literal-decorative */
 }
 
-/* Hide the aesthetic group on narrow viewports — theme alone is the
-   load-bearing control. Operator can still reach aesthetic via /settings/. */
+/* Hide the aesthetic group on narrow viewports in header context only — dropdown
+   and nav-drawer layouts always show the full control set. */
 @media (max-width: 991.98px) {
-  .rmc-header-theme-chip .rmc-aesthetic-toggle-row {
+  .rmc-header-theme-chip:not(.rmc-header-theme-chip--dropdown):not(.rmc-header-theme-chip--nav-drawer) .rmc-aesthetic-toggle-row {
     display: none;
   }
+}
+
+/* === Profile dropdown appearance panel (v4.01.43) ========================= */
+.user-dropdown-menu .user-dropdown-appearance {
+  min-width: 15rem;
+}
+
+.rmc-header-theme-chip--dropdown,
+.rmc-header-theme-chip--nav-drawer {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.rmc-header-theme-chip--dropdown .rmc-header-theme-chip__group,
+.rmc-header-theme-chip--nav-drawer .rmc-header-theme-chip__group {
+  width: 100%;
+}
+
+.rmc-header-theme-chip--dropdown .rmc-header-theme-chip__segmented,
+.rmc-header-theme-chip--nav-drawer .rmc-header-theme-chip__segmented {
+  display: flex;
+  width: 100%;
+}
+
+.rmc-header-theme-chip--dropdown .rmc-header-theme-chip__segmented .btn,
+.rmc-header-theme-chip--nav-drawer .rmc-header-theme-chip__segmented .btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.mkt-nav-appearance .rmc-header-theme-chip--nav-drawer .rmc-header-theme-chip__segmented .btn {
+  background: rgba(255, 255, 255, 0.06); /* off-token-allow: white-overlay */
+  border-color: rgba(255, 255, 255, 0.10); /* off-token-allow: white-overlay */
+  color: rgba(255, 255, 255, 0.92); /* off-token-allow: white-overlay */
 }
 

@@ -88,7 +88,6 @@ def invoke_tool(
             return {"ok": False, "error": "query and school required"}
         try:
             from apps.portal.kb_context import published_kb_queryset
-            from apps.portal.models_kb import KBArticle
 
             qs = published_kb_queryset().filter(school=school)
             hits = list(

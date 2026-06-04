@@ -60,7 +60,7 @@ def _students_with_three_consecutive_present(school, end_date):
     start = end_date - timedelta(days=2)
     # Count distinct dates with present for each student in [start, end_date]; need exactly 3 days
     student_ids = (
-        Attendance.objects.filter(
+        Attendance.objects.filter(  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
             school=school,
             date__gte=start,
             date__lte=end_date,
@@ -113,7 +113,7 @@ def kudos_perfect_attendance_3d_task(
         skipped = 0
         for student in _students_with_three_consecutive_present(school, as_of):
             # Avoid duplicate: already have event for this 3-day window (end_date=as_of)
-            exists = AchievementEvent.objects.filter(
+            exists = AchievementEvent.objects.filter(  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
                 school=school,
                 student=student,
                 event_type=PERFECT_ATTENDANCE_3D_EVENT,
@@ -168,7 +168,7 @@ def kudos_perfect_attendance_3d_task(
     from apps.schools.models import School
 
     totals = {"created": 0, "skipped": 0, "schools_processed": 0}
-    for sid in School.objects.filter(is_active=True).values_list("id", flat=True):
+    for sid in School.objects.filter(is_active=True).values_list("id", flat=True):  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
         result = _run_with_tenant_context(
             school_id=sid,
             runnable=lambda sid=sid: _run_for_school(sid),
@@ -194,18 +194,45 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
     """
 
     def _process_for_school(current_school_id):
+        from datetime import timedelta
+
         from apps.communication.models import OutboundMessageQueue
         from apps.communication.channels import send_whatsapp, send_push
 
-        qs = (
-            OutboundMessageQueue.objects.filter(
+        # Recover rows stuck in "processing" (a worker died mid-send) by
+        # returning them to the retry pool after a grace window.
+        stale_before = timezone.now() - timedelta(minutes=15)
+        OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: celery-platform-comms-beat-stale-claim-recovery
+            status="processing",
+            school_id=current_school_id,
+            updated_at__lt=stale_before,
+        ).update(status="retrying")
+
+        # Atomic claim (audit P2 — concurrent beats/workers double-sent). Pick
+        # candidate ids, then flip them to "processing" with a status-guarded
+        # UPDATE: only ONE worker's UPDATE matches each row (the others see it
+        # already-processing → 0 rows), so each message is claimed exactly once.
+        # Works on SQLite + Postgres without select_for_update/skip_locked.
+        candidate_ids = list(
+            OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
                 status__in=("pending", "retrying"),
                 school_id=current_school_id,
+            )
+            .order_by("created_at")
+            .values_list("id", flat=True)[:limit]
+        )
+        if not candidate_ids:
+            return 0, 0
+        OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: ids already school-scoped by the candidate query above
+            id__in=candidate_ids, status__in=("pending", "retrying"),
+        ).update(status="processing")
+        items = list(
+            OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: ids already school-scoped by the candidate query above
+                id__in=candidate_ids, status="processing"
             )
             .select_related("school")
             .order_by("created_at")
         )
-        items = list(qs[:limit])
         sent = failed = 0
         max_retries = 3
         for item in items:
@@ -283,7 +310,7 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
         )
 
     orphaned = list(
-        OutboundMessageQueue.objects.filter(
+        OutboundMessageQueue.objects.filter(  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
             status="pending", school__isnull=True
         ).order_by("created_at")[:limit]
     )
@@ -301,7 +328,7 @@ def process_outbound_message_queue(self, school_id=None, limit=50) -> dict:
         "schools_processed": 0,
     }
     school_ids = list(
-        OutboundMessageQueue.objects.filter(status="pending", school__isnull=False)
+        OutboundMessageQueue.objects.filter(status="pending", school__isnull=False)  # tenant-isolation-allow: celery-platform-comms-beat-iterates-active-schools
         .values_list("school_id", flat=True)
         .distinct()
     )

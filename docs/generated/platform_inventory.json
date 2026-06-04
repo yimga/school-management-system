@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
     "allow_any": 173,
-    "csrf_exempt": 669,
-    "cursor_execute": 405,
-    "except_exception": 2340,
+    "csrf_exempt": 676,
+    "cursor_execute": 407,
+    "except_exception": 2410,
     "get_solo": 212,
-    "gilead": 16835,
-    "gilead_files": 230,
-    "html_files": 1588,
+    "gilead": 16836,
+    "gilead_files": 231,
+    "html_files": 1604,
     "management_commands": 278,
-    "markdown_files": 1584,
-    "migration_files": 971,
-    "print_calls": 3986,
-    "python_files": 5958,
-    "site_settings": 2437
+    "markdown_files": 1585,
+    "migration_files": 973,
+    "print_calls": 4089,
+    "python_files": 6030,
+    "site_settings": 2434
   },
   "doc_drift": {
     "actual_installed_app_count": 54,
@@ -23,28 +23,28 @@
   },
   "largest_python_files": [
     {
-      "bytes": 1224958,
+      "bytes": 1225693,
       "lines": 16897,
       "path": "apps/siteconfig/_seed_country_localization.py"
     },
     {
-      "bytes": 206345,
-      "lines": 5086,
+      "bytes": 206503,
+      "lines": 5088,
       "path": "apps/siteconfig/forms_cockpit.py"
     },
     {
-      "bytes": 165439,
+      "bytes": 165744,
       "lines": 4135,
       "path": "apps/schools/marketing_views.py"
     },
     {
-      "bytes": 156787,
-      "lines": 3259,
+      "bytes": 163226,
+      "lines": 3374,
       "path": "config/settings.py"
     },
     {
-      "bytes": 144405,
-      "lines": 3441,
+      "bytes": 147039,
+      "lines": 3487,
       "path": "apps/api/saml.py"
     },
     {
@@ -73,14 +73,14 @@
       "path": "apps/api/views_v1.py"
     },
     {
-      "bytes": 114077,
-      "lines": 2675,
+      "bytes": 114910,
+      "lines": 2696,
       "path": "apps/migration_cloud/views.py"
     },
     {
-      "bytes": 108724,
-      "lines": 1958,
-      "path": "scripts/_batch_1489_generate_edos_artifacts.py"
+      "bytes": 109725,
+      "lines": 3112,
+      "path": "apps/finance/models.py"
     }
   ],
   "management_commands_list": [
@@ -1504,23 +1504,25 @@
         "north_star_api",
         "orchestration",
         "parent_communications",
+        "platform_marketing",
         "platform_observability",
         "portal_office_wopi",
         "schoolops_email_delivery",
-        "security_observability"
+        "security_observability",
+        "setup_studio"
       ],
-      "reviewed_endpoints": 102,
-      "reviewed_files": 31
+      "reviewed_endpoints": 107,
+      "reviewed_files": 36
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 106,
-    "cursor_execute_apps_config_py_excl_migrations": 40,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 107,
+    "cursor_execute_apps_config_py_excl_migrations": 42,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 3805,
-    "site_settings_refs_apps_py_excl_migrations": 198,
-    "site_settings_refs_apps_py_excl_migrations_tests": 150
+    "print_calls_scripts_py": 3908,
+    "site_settings_refs_apps_py_excl_migrations": 194,
+    "site_settings_refs_apps_py_excl_migrations_tests": 146
   },
   "site_settings_fields": [
     {

@@ -5,6 +5,8 @@ URL patterns for communication app.
 from django.urls import path
 from . import views_groups, views_announcements, views_narrative
 from . import views_whatsapp_webhook
+from . import views_sms_inbound_webhook
+from . import views_preferences
 
 app_name = "communication"
 
@@ -14,6 +16,24 @@ urlpatterns = [
         "whatsapp/webhook/",
         views_whatsapp_webhook.whatsapp_webhook,
         name="whatsapp_webhook",
+    ),
+    # Inbound SMS keyword handling (STOP/HELP/START) — consent opt-out source.
+    path(  # rbac-allow: intentionally-public-sms-webhook-twilio-signature-verified-in-view
+        "sms/inbound/",
+        views_sms_inbound_webhook.sms_inbound_webhook,
+        name="sms_inbound_webhook",
+    ),
+    # Twilio delivery status callbacks → MessageDeliveryReceipt.
+    path(  # rbac-allow: intentionally-public-sms-status-webhook-twilio-signature-verified-in-view
+        "sms/status/",
+        views_sms_inbound_webhook.sms_status_webhook,
+        name="sms_status_webhook",
+    ),
+    # Consent preference centre (logged-in user manages their own email consent).
+    path(
+        "preferences/consent/",
+        views_preferences.consent_preferences,
+        name="consent_preferences",
     ),
     # Groups/Threads
     path("groups/", views_groups.group_list, name="group_list"),

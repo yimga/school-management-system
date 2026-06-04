@@ -12,7 +12,8 @@ from django.apps import apps as django_apps
 from django.conf import settings
 from django.db import connection, transaction
 from django.db.models import ForeignKey
-from django.db.utils import DatabaseError, ProgrammingError
+from django.db.models.deletion import ProtectedError
+from django.db.utils import DatabaseError, IntegrityError, ProgrammingError
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,32 @@ def iter_school_foreign_key_targets():
     school_model = _school_model()
     for model in django_apps.get_models():
         if model._meta.proxy or not model._meta.managed:
+            continue
+        for field in model._meta.get_fields():
+            if not isinstance(field, ForeignKey):
+                continue
+            if field.related_model is not school_model:
+                continue
+            yield model, field.name
+
+
+def iter_school_m2m_through_targets():
+    """Yield ``(through_model, fk_field_name)`` for every M2M through table with an FK to School.
+
+    Auto-created ManyToMany *through* models are excluded from ``get_models()`` (no
+    ``include_auto_created``), so ``iter_school_foreign_key_targets`` never visits them.
+    Their join tables nonetheless carry a ``school_id`` FK that blocks a raw ``DELETE``
+    on ``schools_school`` — and ``delete_school_record_resilient``'s ``_raw_delete``
+    fallback bypasses Django's collector, so those rows are otherwise never cleared
+    (root cause of the ``schools_school_education_system_types`` FK-violation purge
+    failure). Covers forward M2Ms defined on School *and* reverse M2Ms pointing at it.
+    """
+    school_model = _school_model()
+    for model in django_apps.get_models(include_auto_created=True):
+        if model._meta.proxy or not model._meta.managed:
+            continue
+        if not model._meta.auto_created:
+            # Real models are already handled by iter_school_foreign_key_targets().
             continue
         for field in model._meta.get_fields():
             if not isinstance(field, ForeignKey):
@@ -106,42 +133,109 @@ def purge_public_school_dependencies(school) -> dict[str, int]:
     # psycopg3 holding unfetched results, this collides with
     # "another command is already in progress". See render log 2026-05-28.
     table_set = _snapshot_public_table_set()
-    for model, field_name in iter_school_foreign_key_targets():
+
+    def _attempt_delete(model, field_name) -> str:
+        """Delete ``model``'s rows for this school inside its own savepoint.
+
+        Returns ``"ok"`` on success (rows recorded in ``deleted``), ``"protected"``
+        when an ``on_delete=PROTECT`` child still references a row (caller retries
+        after other models are cleared), or ``"skip"`` on a non-recoverable DB
+        error (missing table, ``psycopg.OperationalError``) — preserving the prior
+        broad-skip behaviour. The savepoint is rolled back automatically on error.
+        """
         label = model._meta.label_lower
-        if table_set is not None and not model_table_exists(model, table_set=table_set):
-            logger.info(
-                "tenant_offboarding purge skip %s (table %s missing)",
-                label,
-                model._meta.db_table,
-            )
-            continue
         try:
-            # Per-model savepoint: PostgreSQL aborts the whole transaction on any
-            # error unless we roll back to a savepoint before continuing.
             with transaction.atomic():
                 _deleted, detail = model._default_manager.filter(
                     **{field_name: school_pk}
                 ).delete()
+        except ProtectedError:
+            # A PROTECT child still points here; defer and retry once it is cleared.
+            return "protected"
         except Exception as exc:
-            # Catch broadly: psycopg.OperationalError ("another command is already
-            # in progress") is NOT a subclass of django.db.utils.DatabaseError, so
-            # the prior narrow catch let it escape. The `with transaction.atomic()`
-            # savepoint above is rolled back automatically on exception, leaving the
-            # connection in a clean state for the next iteration.
+            # psycopg.OperationalError ("another command is already in progress")
+            # is NOT a subclass of django.db.utils.DatabaseError, so keep this broad.
             logger.warning(
                 "tenant_offboarding purge skip %s after DB error (%s): %s",
                 label,
                 type(exc).__name__,
                 exc,
             )
-            continue
+            return "skip"
         if _deleted:
-            deleted[label] = int(_deleted)
+            deleted[label] = deleted.get(label, 0) + int(_deleted)
             if detail:
                 for child_label, count in detail.items():
                     if child_label == label:
                         continue
                     deleted[child_label] = deleted.get(child_label, 0) + int(count)
+        return "ok"
+
+    # Fixed-point dependency purge. on_delete=PROTECT FKs *between* tenant-scoped
+    # models mean deletion order matters (child must die before parent). Rather
+    # than topologically sort the whole graph, loop: each pass deletes what it can
+    # and defers any model whose rows are still PROTECT-referenced, repeating until
+    # a pass clears nothing new. This is the FK twin of the M2M fix below — without
+    # it a deferred PROTECT child is silently abandoned and the later School delete
+    # fails with an opaque IntegrityError. (Prod offboarding failure 2026-06-02.)
+    remaining: list = []
+    for model, field_name in iter_school_foreign_key_targets():
+        if table_set is not None and not model_table_exists(model, table_set=table_set):
+            logger.info(
+                "tenant_offboarding purge skip %s (table %s missing)",
+                model._meta.label_lower,
+                model._meta.db_table,
+            )
+            continue
+        remaining.append((model, field_name))
+
+    while remaining:
+        still_blocked = [
+            (model, field_name)
+            for model, field_name in remaining
+            if _attempt_delete(model, field_name) == "protected"
+        ]
+        if len(still_blocked) == len(remaining):
+            # No forward progress this pass → a genuine PROTECT cycle, or a child
+            # without its own school FK. Log loudly so the blocker is visible here
+            # rather than as an opaque School-delete IntegrityError downstream.
+            for model, field_name in still_blocked:
+                logger.warning(
+                    "tenant_offboarding purge BLOCKED %s — on_delete=PROTECT child "
+                    "still references it after fixed-point passes",
+                    model._meta.label_lower,
+                )
+            break
+        remaining = still_blocked
+
+    # M2M through-table rows (e.g. schools_school_education_system_types) reference
+    # School via an FK but live on auto-created models the FK loop above never sees.
+    # Clear them here so the subsequent (collector-bypassing) raw delete of the
+    # School row does not trip the through table's school_id FK constraint.
+    for model, field_name in iter_school_m2m_through_targets():
+        label = model._meta.label_lower
+        if table_set is not None and not model_table_exists(model, table_set=table_set):
+            logger.info(
+                "tenant_offboarding purge skip m2m %s (table %s missing)",
+                label,
+                model._meta.db_table,
+            )
+            continue
+        try:
+            with transaction.atomic():
+                _deleted, _detail = model._default_manager.filter(
+                    **{field_name: school_pk}
+                ).delete()
+        except Exception as exc:
+            logger.warning(
+                "tenant_offboarding purge skip m2m %s after DB error (%s): %s",
+                label,
+                type(exc).__name__,
+                exc,
+            )
+            continue
+        if _deleted:
+            deleted[label] = deleted.get(label, 0) + int(_deleted)
     return deleted
 
 
@@ -161,10 +255,16 @@ def delete_school_record_resilient(school) -> None:
             deleted, _detail = qs.delete()
             if deleted:
                 return
-    except (ProgrammingError, DatabaseError) as exc:
+    except (ProgrammingError, DatabaseError, IntegrityError, ProtectedError) as exc:
+        # IntegrityError/ProtectedError can surface if a PROTECT child or FK row
+        # survived the dependency purge (e.g. a model without its own school FK).
+        # The fixed-point purge above should have cleared the common cases; this
+        # keeps the collector failure from escaping so the raw-delete fallback
+        # still runs (and any residual raw FK error is then explicit, not opaque).
         logger.warning(
-            "tenant_offboarding school.delete collector failed slug=%s: %s; raw delete fallback",
+            "tenant_offboarding school.delete collector failed slug=%s (%s): %s; raw delete fallback",
             school_slug,
+            type(exc).__name__,
             exc,
         )
 

@@ -543,4 +543,6 @@
   {% endif %}
   <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
   {% if request.user.is_authenticated %}{% include 'components/back_to_top.html' %}{% endif %}
+  {% comment %} v4.01.46: terminal dual-plane pass after Unfold/admin late styles. {% endcomment %}
+  {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
 {% endblock %}

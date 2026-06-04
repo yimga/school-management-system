@@ -18,7 +18,7 @@ from django.http import HttpRequest, HttpResponseForbidden
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 from django.urls import reverse
-from django.core.mail import send_mail
+from apps.schoolops.email_compat import send_mail
 
 from apps.evals.notifications import NotificationService
 from apps.communication.models import Message

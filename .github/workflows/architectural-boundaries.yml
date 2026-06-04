@@ -1143,6 +1143,13 @@ jobs:
           python scripts/verify_github_artifact_retention.py
           python scripts/verify_middleware_stack_order.py
           python scripts/verify_tenant_resolution_cache_keys.py
+          python scripts/verify_websocket_tenant_scope.py
+          python scripts/scan_staff_bypass_tenant_guards.py --compare
+          python scripts/verify_delta_sync_requires_school.py
+          python scripts/verify_graphql_control_plane_host.py
+          python scripts/verify_platform_authenticated_realdata.py
+          python scripts/verify_sse_tenant_ingress.py
+          python scripts/audit_celery_tenant_task_scoping.py --compare
           python scripts/verify_list_search_adoption.py
           python scripts/verify_five_pillar_platform_completion.py --write
           python scripts/verify_greatest_education_os_matrix.py --write

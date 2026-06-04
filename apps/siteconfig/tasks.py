@@ -132,7 +132,7 @@ def national_syllabus_sync(country_code: str, payload=None):
     """
     from .models import GlobalSyllabus
 
-    count = GlobalSyllabus.objects.filter(country_code=country_code).count()
+    count = GlobalSyllabus.objects.filter(country_code=country_code).count()  # tenant-isolation-allow: celery-platform-siteconfig-beat-cross-tenant
     return {"country_code": country_code, "syllabus_nodes": count, "status": "stub"}
 
 
@@ -180,11 +180,11 @@ def check_regional_ollama_health(cluster: str = None):
 
     now = timezone.now().isoformat()
     if cluster:
-        configs = RegionalAIConfig.objects.filter(
+        configs = RegionalAIConfig.objects.filter(  # tenant-isolation-allow: celery-platform-siteconfig-beat-cross-tenant
             regional_cluster=cluster, is_active=True
         )
     else:
-        configs = RegionalAIConfig.objects.filter(is_active=True)
+        configs = RegionalAIConfig.objects.filter(is_active=True)  # tenant-isolation-allow: celery-platform-siteconfig-beat-cross-tenant
 
     config_list = list(configs)
     for config in config_list:
@@ -269,7 +269,7 @@ def global_ai_upgrade_run(self, run_id: str, model_id: str):
     from .models import RegionalAIConfig
 
     clusters = list(
-        RegionalAIConfig.objects.filter(is_active=True)
+        RegionalAIConfig.objects.filter(is_active=True)  # tenant-isolation-allow: celery-platform-siteconfig-beat-cross-tenant
         .values_list("regional_cluster", flat=True)
         .distinct()
     )
@@ -348,7 +348,7 @@ def execute_school_workflow_async(
     if not wf:
         return {"ok": False, "error": "workflow_not_found"}
     User = get_user_model()
-    user = User.objects.filter(pk=user_id).first() if user_id else None
+    user = User.objects.filter(pk=user_id).first() if user_id else None  # tenant-isolation-allow: celery-platform-siteconfig-beat-cross-tenant
     ctx = context if isinstance(context, dict) else {}
     try:
         return run_school_workflow(wf, ctx, user=user)
@@ -368,7 +368,7 @@ def retry_school_workflow_execution_async(
     from apps.siteconfig.workflow_engine import retry_failed_actions_from_log
 
     User = get_user_model()
-    user = User.objects.filter(pk=user_id).first() if user_id else None
+    user = User.objects.filter(pk=user_id).first() if user_id else None  # tenant-isolation-allow: celery-platform-siteconfig-beat-cross-tenant
     ctx = context_override if isinstance(context_override, dict) else {}
     return retry_failed_actions_from_log(
         int(execution_log_id),
@@ -415,7 +415,7 @@ def ingest_policy_documents_all_tenants() -> dict:
     processed = 0
     skipped = 0
     errors = 0
-    schools = School.objects.filter(is_active=True).only("id", "settings")
+    schools = School.objects.filter(is_active=True).only("id", "settings")  # tenant-isolation-allow: celery-platform-siteconfig-beat-cross-tenant
     for school in schools.iterator(chunk_size=100):
         settings_dict = getattr(school, "settings", None) or {}
         path = (settings_dict.get("policy_doc_root") or "").strip()
@@ -534,7 +534,7 @@ def support_sla_breach_sweep():
                 }
             )
             metadata["sla_alerts"] = alerts[-20:]
-            type(ticket).objects.filter(pk=ticket.pk).update(metadata=metadata)
+            type(ticket).objects.filter(pk=ticket.pk).update(metadata=metadata)  # tenant-isolation-allow: celery-platform-siteconfig-beat-cross-tenant
             recipient_id = ticket.assigned_to_id
             # v4.00.43 — escalate to backup on-call when the resolution SLA
             # breached. Notifies the FIRST backup currently on call (if any)

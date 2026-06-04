@@ -2,7 +2,6 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files.base import ContentFile
-from django.core.mail import EmailMessage
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import DatabaseError, IntegrityError
@@ -646,12 +645,14 @@ def parent_share_report(request: HttpRequest, student_id: int, report_type: str)
                 f"{share_url}\n\n"
                 "This link will expire automatically."
             )
-            email = EmailMessage(
+            from apps.schoolops.email_delivery import send_transactional
+
+            send_transactional(
                 subject=subject,
                 body=body,
                 to=[request.user.email],
+                priority="transactional",
             )
-            email.send(fail_silently=True)
             messages.success(request, "Share link emailed successfully.")
 
     site = get_effective_site_settings(request=request)

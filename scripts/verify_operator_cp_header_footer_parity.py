@@ -42,10 +42,17 @@ def main() -> int:
     unified = (ROOT / "templates/partials/control_plane_unified_header.html").read_text(
         encoding="utf-8"
     )
-    if "cockpit/_activity_ticker.html" not in unified:
-        errors.append("unified header: missing full LIVE ticker row")
-    if 'cp-header__row--live' not in unified:
-        errors.append("unified header: missing cp-header__row--live")
+    topbar = (ROOT / "templates/partials/manager_operator_topbar.html").read_text(
+        encoding="utf-8"
+    )
+    if "cp-header--consolidated" not in unified:
+        errors.append("unified header: missing consolidated cp-header--consolidated")
+    if "_activity_ticker_inline.html" not in topbar:
+        errors.append("manager_operator_topbar: Tier-1 inline LIVE badge missing")
+    if "cockpit/_activity_ticker.html" in unified and "cp-header__row--live" in unified:
+        errors.append(
+            "unified header: stacked marquee ticker must not return (Tier-1 inline only)"
+        )
 
     civic = (ROOT / "templates/partials/rmc_operator_footer_civic.html").read_text(
         encoding="utf-8"

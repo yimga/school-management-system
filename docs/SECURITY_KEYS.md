@@ -134,6 +134,42 @@ with any key in the list and encrypts with the first. To rotate:
   (`accounts-sunset-stale-legacy-hashes`) to drop them within 12+1
   months.
 
+### Vault-sourced key ring (SH-6, opt-in — 2026-06-03)
+
+By default the key ring comes from env (`DJANGO_CRYPTOGRAPHY_KEYS` /
+`DJANGO_CRYPTOGRAPHY_KEY`). Operators who run HashiCorp Vault can instead source
+the **whole ring** from a KV v2 secret — closing the SH-6 self-host gap from the
+open-source posture audit. This is **opt-in and default-off**: when
+`DJANGO_CRYPTOGRAPHY_KEYS_SOURCE` is unset or `env`, nothing reaches Vault and
+resolution is byte-for-byte unchanged.
+
+Enable with:
+
+```
+DJANGO_CRYPTOGRAPHY_KEYS_SOURCE=vault
+VAULT_ADDR=https://vault.internal:8200
+VAULT_TOKEN=<token>           # or a Vault agent / AppRole-injected token
+VAULT_NAMESPACE=              # optional (Vault Enterprise)
+DJANGO_CRYPTOGRAPHY_VAULT_MOUNT=secret          # KV v2 mount (default: secret)
+DJANGO_CRYPTOGRAPHY_VAULT_PATH=rmc/crypto-keys  # required
+DJANGO_CRYPTOGRAPHY_VAULT_FIELD=keys            # field holding the ring (default: keys)
+DJANGO_CRYPTOGRAPHY_VAULT_CACHE_SECONDS=300     # process cache TTL
+DJANGO_CRYPTOGRAPHY_VAULT_DRY_RUN=0             # 1 = skip network, fall back to env (CI)
+```
+
+The secret's `keys` field is the **newest-first** ring (a JSON array of url-safe
+base64 Fernet keys, or a comma/newline-separated string). MultiFernet semantics
+are identical to the env path: encrypt under the newest key, decrypt under any.
+Rotation = `vault kv put` a new newest-first ring; the process picks it up within
+the cache TTL.
+
+**Fail-loud:** if you set `…_SOURCE=vault` but Vault is unreachable / mis-pathed /
+returns no keys, the resolver raises `VaultKeySourceError` rather than silently
+falling back to a different key source (which would make existing ciphertext
+unreadable). Implementation: `apps/accounts/legacy_hashes/key_source_vault.py`
+(stdlib `urllib`, never logs the token or key bytes). Shares `VAULT_ADDR` /
+`VAULT_TOKEN` with the migration-cloud audit-signing backend (`hsm_vault.py`).
+
 ---
 
 ## 3. `CompanionKeypair` private keys

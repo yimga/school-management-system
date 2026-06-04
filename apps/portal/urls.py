@@ -131,9 +131,13 @@ except ImportError:
     ) = None
 
 from .views_ai_draft import (
+    ai_draft_announcement,
     ai_draft_lesson_outline,
     ai_draft_parent_message,
     ai_draft_report_card_comment,
+    ai_rewrite_plain_language,
+    ai_suggest_replies,
+    ai_suggest_subject_lines,
 )
 from .views_education_pack import education_pack_parent, education_pack_teacher
 from .views_partner_docs import partner_documentation_assistant
@@ -216,6 +220,10 @@ urlpatterns = [
     path("ai/draft/parent-message/", ai_draft_parent_message, name="ai_draft_parent_message"),
     path("ai/draft/report-card-comment/", ai_draft_report_card_comment, name="ai_draft_report_card_comment"),
     path("ai/draft/lesson-outline/", ai_draft_lesson_outline, name="ai_draft_lesson_outline"),
+    path("ai/draft/announcement/", ai_draft_announcement, name="ai_draft_announcement"),
+    path("ai/suggest/subject-lines/", ai_suggest_subject_lines, name="ai_suggest_subject_lines"),
+    path("ai/rewrite/plain-language/", ai_rewrite_plain_language, name="ai_rewrite_plain_language"),
+    path("ai/suggest/replies/", ai_suggest_replies, name="ai_suggest_replies"),
     path("guide/", runmycampus_guide, name="runmycampus_guide"),
     path("education/teacher/", education_pack_teacher, name="education_pack_teacher"),
     path("education/parent/", education_pack_parent, name="education_pack_parent"),

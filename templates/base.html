@@ -203,8 +203,9 @@
     <link rel="stylesheet" href="{% static 'css/rmc-signup-form.css' %}">
     {% endif %}
     {% block extrastyle %}{% endblock %}
-    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-vertical-compact.css' %}">
+    {% comment %} v4.01.46: dual-plane must load last in head (after vertical-compact). {% endcomment %}
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </head>
 
   {% comment %} Pass 8 UX consistency: activate the `.form-system` class globally so the
@@ -245,18 +246,21 @@
           {% if request.user.is_authenticated %}
             {% include "partials/rmc_security_posture_nav_button.html" %}
             <span class="small text-white-50 d-none d-md-inline align-self-center ms-2">{% trans "Press" %} <kbd>?</kbd> {% trans "for keyboard shortcuts" %}</span>
-            {% comment %} v4.01.07: unified theme + aesthetic chip — SOT in
-               components/header_theme_chip.html. Same anchor across all shells. {% endcomment %}
-            {% include "components/header_theme_chip.html" %}
             {% if SHOW_HEADER_PROFILE_MENU|default:True %}
               {% include "components/user_dropdown.html" %}
             {% else %}
               <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:logout' %}">{% trans "Logout" %}</a>
             {% endif %}
           {% else %}
-            {% comment %} v4.01.07: marketing-style (anonymous) theme chip still renders on this shell
-               when PUBLIC_BRAND_MODE — the partial self-gates. {% endcomment %}
-            {% include "components/header_theme_chip.html" %}
+            {% comment %} v4.01.43: anonymous appearance in compact dropdown (header chip retired). {% endcomment %}
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="baseAppearanceMenu" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="{% trans 'Appearance' %}">
+                <i class="bi bi-palette" aria-hidden="true"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end px-3 py-2" aria-labelledby="baseAppearanceMenu">
+                <li>{% include "components/header_theme_chip.html" with theme_chip_layout="dropdown" %}</li>
+              </ul>
+            </div>
             <a class="btn btn-sm btn-outline-light" href="{% url 'accounts:login' %}">{% trans "Login" %}</a>
           {% endif %}
         </div>
@@ -393,5 +397,7 @@
     {% if request.resolver_match.url_name == 'signup_school' %}
     <script src="{% static 'js/_pages/rmc-signup-form.js' %}" defer></script>
     {% endif %}
+    {% comment %} v4.01.46: terminal dual-plane pass after late body scripts. {% endcomment %}
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     </div>
 </html>

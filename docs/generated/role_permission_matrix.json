@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-06-01T21:41:57.335326+00:00",
+  "generated_at": "2026-06-03T09:12:12.440657+00:00",
   "generated_by": "scripts/audit_role_permission_matrix.py",
   "row_count": 1197,
-  "views_indexed": 2312,
+  "views_indexed": 2319,
   "summary": {
     "login_gated": 1089,
     "role_gated": 77,
@@ -3732,7 +3732,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/analytics/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/analytics/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -13805,7 +13805,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/finance/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/analytics/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -17960,7 +17960,7 @@
       "url_pattern": "",
       "view_symbol": "dashboard",
       "urls_file": "apps/payroll/urls.py",
-      "view_file": "apps/payroll/views.py",
+      "view_file": "apps/analytics/views.py",
       "kind": "func",
       "decorators": [
         "staff_member_required"
@@ -21070,7 +21070,8 @@
       "view_file": "apps/student360/views.py",
       "kind": "func",
       "decorators": [
-        "login_required"
+        "login_required",
+        "audit_pii_view"
       ],
       "drf_permission_classes": [],
       "bases": [],
@@ -21135,7 +21136,8 @@
       "view_file": "apps/student360/views.py",
       "kind": "func",
       "decorators": [
-        "login_required"
+        "login_required",
+        "audit_pii_view"
       ],
       "drf_permission_classes": [],
       "bases": [],

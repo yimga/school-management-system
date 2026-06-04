@@ -46094,3 +46094,256 @@ msgstr ""
 
 msgid "target"
 msgstr ""
+
+msgid "%(n)s assignments"
+msgstr ""
+
+msgid "Academics accent"
+msgstr ""
+
+msgid "Active conversations"
+msgstr ""
+
+msgid "Admissions accent"
+msgstr ""
+
+msgid "All clear"
+msgstr ""
+
+msgid "Broken feature-gap proofs"
+msgstr ""
+
+msgid ""
+"Broken feature-gap proofs (promises that no longer resolve) and over-SLA "
+"backlog items, aggregated into one operator signal. This is the same data "
+"the bottom-right dock badge surfaces."
+msgstr ""
+
+msgid "CLASS"
+msgstr ""
+
+msgid "Chat with your department, classroom, or custom groups"
+msgstr ""
+
+msgid "Checklist pulse"
+msgstr ""
+
+msgid "Class attendance"
+msgstr ""
+
+msgid "Closed without refund — document rationale for audit."
+msgstr ""
+
+msgid "Column"
+msgstr ""
+
+msgid "Communication accent"
+msgstr ""
+
+msgid "Create Group"
+msgstr ""
+
+msgid "Current step"
+msgstr ""
+
+msgid "Days / max"
+msgstr ""
+
+msgid "Decision notes / clarification reason"
+msgstr ""
+
+msgid "Deny"
+msgstr ""
+
+msgid "Department groups"
+msgstr ""
+
+msgid "Dismiss alert"
+msgstr ""
+
+msgid "Dispute closed — retention window applies per policy."
+msgstr ""
+
+msgid "Dispute under review — confirm ledger and PSP status."
+msgstr ""
+
+msgid "Explain the decision or request clarification"
+msgstr ""
+
+msgid ""
+"Fast embed view: current progress, blockers, and the highest-impact next "
+"actions."
+msgstr ""
+
+msgid "Forecast"
+msgstr ""
+
+msgid "Homeroom"
+msgstr ""
+
+msgid "Latest platform activity — open feed"
+msgstr ""
+
+msgid "Latest school activity — open feed"
+msgstr ""
+
+msgid "Launch readiness snapshot"
+msgstr ""
+
+msgid ""
+"Live mission control for platform workflows — active runs, incidents, and "
+"fixes."
+msgstr ""
+
+msgid "Live operator activity feed"
+msgstr ""
+
+msgid "Live school activity feed"
+msgstr ""
+
+msgid "Loading workflows…"
+msgstr ""
+
+msgid "MRR waterfall"
+msgstr ""
+
+msgid "Marking completion"
+msgstr ""
+
+msgid "Mine"
+msgstr ""
+
+msgid "My groups"
+msgstr ""
+
+msgid "New dispute — assign reviewer and gather payment evidence."
+msgstr ""
+
+msgid "No active step yet."
+msgstr ""
+
+msgid ""
+"No backlog evaluation snapshot is cached, so SLA breaches can't be shown. "
+"Run it once:"
+msgstr ""
+
+msgid "No backlog items are over their SLA."
+msgstr ""
+
+msgid "No blockers — launch is clear."
+msgstr ""
+
+msgid "No broken proofs — every shipped feature resolves its proof."
+msgstr ""
+
+msgid "No checklist items yet."
+msgstr ""
+
+msgid "No live data yet"
+msgstr ""
+
+msgid "Open study assist"
+msgstr ""
+
+msgid "Our finance team is reviewing your dispute."
+msgstr ""
+
+msgid "Over-SLA backlog items"
+msgstr ""
+
+msgid "Overdue fees"
+msgstr ""
+
+msgid "People / roster"
+msgstr ""
+
+msgid "People / roster accent"
+msgstr ""
+
+msgid "Platform Health"
+msgstr ""
+
+msgid "Public"
+msgstr ""
+
+msgid "Re-check"
+msgstr ""
+
+msgid ""
+"Re-check runs a tracked workflow that re-resolves the proof. It appears in "
+"the workflow progress chip; if the proof still fails, the run is recorded as"
+" failed."
+msgstr ""
+
+msgid ""
+"Re-checked <code>{{ slug }}</code> — proof now resolves. A tracked workflow "
+"run was recorded."
+msgstr ""
+
+msgid ""
+"Re-checked <code>{{ slug }}</code> — proof still does not resolve. The "
+"tracked workflow run was marked failed."
+msgstr ""
+
+msgid "Refund completed — check your statement for the credit."
+msgstr ""
+
+msgid "Refund could not be completed — contact the school bursar."
+msgstr ""
+
+msgid "Refund failed — escalate to PSP support with evidence."
+msgstr ""
+
+msgid "Refund issued — reconcile ledger and notify parent."
+msgstr ""
+
+msgid "Refund pending — verify PSP webhook and ledger hold."
+msgstr ""
+
+msgid "Refund requested — processing may take a few business days."
+msgstr ""
+
+msgid "Refund succeeded — confirm settlement and close ticket."
+msgstr ""
+
+msgid "Request clarification"
+msgstr ""
+
+msgid "School workflows"
+msgstr ""
+
+msgid "Snooze 1h"
+msgstr ""
+
+msgid "Snooze for one hour"
+msgstr ""
+
+msgid "This dispute is closed."
+msgstr ""
+
+msgid "View activity"
+msgstr ""
+
+msgid "View school activity"
+msgstr ""
+
+msgid "We received your dispute and will review it shortly."
+msgstr ""
+
+msgid "Workflow Flight Deck"
+msgstr ""
+
+msgid "Your dispute was resolved and a refund was issued."
+msgstr ""
+
+msgid "Your dispute was reviewed and closed without a refund."
+msgstr ""
+
+msgid "broken proof(s)"
+msgstr ""
+
+msgid "or schedule the daily refresh by setting"
+msgstr ""
+
+msgid "over-SLA backlog"
+msgstr ""

@@ -783,6 +783,14 @@ from apps.schoolops.models_email_delivery import (  # noqa: E402  re-export at m
     EmailDeliveryEvent,
     EmailDeliveryEventReadOnlyError,
 )
+from apps.schoolops.models_email_suppression import (  # noqa: E402
+    SuppressedRecipient,
+    SuppressionReason,
+)
+from apps.schoolops.models_email_deadletter import (  # noqa: E402
+    DeadLetterStatus,
+    EmailDeadLetter,
+)
 from apps.schoolops.models_micro_friction import (  # noqa: E402
     LostBelongingsCustodyEventRecord,
     LostBelongingsTagRecord,
@@ -792,6 +800,10 @@ from apps.schoolops.models_micro_friction import (  # noqa: E402
 __all__ = [
     "EmailDeliveryEvent",
     "EmailDeliveryEventReadOnlyError",
+    "SuppressedRecipient",
+    "SuppressionReason",
+    "DeadLetterStatus",
+    "EmailDeadLetter",
     "LostBelongingsCustodyEventRecord",
     "LostBelongingsTagRecord",
     "SubstituteHandoverPacketRecord",

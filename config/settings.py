@@ -832,11 +832,69 @@ CELERY_BEAT_ENABLED = (
 # --- Static / Media ---
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# --- Media storage backend (12-factor, FOSS-self-host-friendly) ---
+# Default: local filesystem (cheap, zero infra — right for getting started).
+# Scale path: any S3-compatible object store via env — self-hosted MinIO (FOSS),
+# Cloudflare R2, Backblaze B2, AWS S3, or a regional/edge bucket — WITHOUT a code
+# change. This keeps uploaded tenant media (logos, documents, photos) durable
+# across redeploys once configured, and lets the platform scale to large/edge
+# infrastructure later while running on a single cheap box today.
+#
+# Activate S3-compatible storage by setting MEDIA_STORAGE_BACKEND=s3 (aliases:
+# minio, r2) OR simply by providing both AWS_S3_ENDPOINT_URL + AWS_STORAGE_BUCKET_NAME.
+# Requires `pip install django-storages[s3]` (see requirements_optional.txt) on
+# deployments that enable it; the default local-FS path pulls in nothing extra.
+_MEDIA_STORAGE_BACKEND = (os.getenv("MEDIA_STORAGE_BACKEND", "") or "").strip().lower()
+_S3_ENDPOINT_URL = (os.getenv("AWS_S3_ENDPOINT_URL", "") or "").strip()
+_S3_BUCKET_NAME = (os.getenv("AWS_STORAGE_BUCKET_NAME", "") or "").strip()
+_USE_S3_MEDIA = _MEDIA_STORAGE_BACKEND in ("s3", "minio", "r2") or bool(
+    _S3_ENDPOINT_URL and _S3_BUCKET_NAME
+)
+
+if _USE_S3_MEDIA:
+    _media_storage = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": _S3_BUCKET_NAME,
+            # endpoint_url empty => real AWS S3; set it for MinIO / R2 / B2.
+            "endpoint_url": _S3_ENDPOINT_URL or None,
+            "access_key": (os.getenv("AWS_ACCESS_KEY_ID", "") or "").strip() or None,
+            "secret_key": (os.getenv("AWS_SECRET_ACCESS_KEY", "") or "").strip()
+            or None,
+            "region_name": (os.getenv("AWS_S3_REGION_NAME", "") or "").strip() or None,
+            # MinIO requires path-style addressing; AWS/R2 accept it too.
+            "addressing_style": (
+                os.getenv("AWS_S3_ADDRESSING_STYLE", "path") or "path"
+            ).strip(),
+            # Never silently clobber an existing object on name collision.
+            "file_overwrite": False,
+            # Signed URLs by default (private buckets); set 0 for public-read CDN.
+            "querystring_auth": os.getenv("AWS_QUERYSTRING_AUTH", "1").strip().lower()
+            in ("1", "true", "yes"),
+            "default_acl": (os.getenv("AWS_DEFAULT_ACL", "") or "").strip() or None,
+        },
+    }
+else:
+    _media_storage = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+
+# NOTE: the legacy STATICFILES_STORAGE = whitenoise.CompressedManifestStaticFilesStorage
+# setting was removed in Django 5.1 and was already inert here on Django 5.2 —
+# static files are still compressed/served by WhiteNoiseMiddleware. Restoring the
+# hashed-manifest backend (and a test-safe override) is tracked separately in
+# docs/OPEN_SOURCE_POSTURE_AUDIT_2026_06_03.md so it can be validated against
+# collectstatic on its own. Here we keep the framework-default staticfiles
+# backend (current effective behaviour) and only make media storage swappable.
+STORAGES = {
+    "default": _media_storage,
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -1408,6 +1466,57 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@runmycampus.com")
 # Optional regional SMTP (Phase Welcome): map region_id to from_email; override in local_settings, e.g. REGIONAL_FROM_EMAIL = {"DEU": "noreply@eu.example.com"}
 REGIONAL_FROM_EMAIL = {}
 
+# ── Messaging audit (2026-06-03) — operator alerts + legal sender identity ──
+# Operator alert inbox: matrix operator alerts + Django error mail land here
+# (audit H8). Empty = alerts dead-end, so set this in prod.
+RMC_OPERATOR_ALERT_EMAIL = os.getenv("RMC_OPERATOR_ALERT_EMAIL", "")
+OPERATOR_ALERT_EMAIL = os.getenv("OPERATOR_ALERT_EMAIL", RMC_OPERATOR_ALERT_EMAIL)
+# Legal sender identity for CAN-SPAM / CASL / GDPR email footers.
+RMC_COMPANY_LEGAL_NAME = os.getenv("RMC_COMPANY_LEGAL_NAME", "RunMyCampus")
+RMC_COMPANY_POSTAL_ADDRESS = os.getenv("RMC_COMPANY_POSTAL_ADDRESS", "")
+RMC_PUBLIC_SITE_URL = os.getenv("RMC_PUBLIC_SITE_URL", "https://runmycampus.com")
+RMC_LIST_ID = os.getenv("RMC_LIST_ID", "")
+RMC_LIST_UNSUBSCRIBE_MAILTO = os.getenv("RMC_LIST_UNSUBSCRIBE_MAILTO", "")
+# DKIM posture: extra SMTP relay hostnames that sign DKIM at the edge.
+EMAIL_DKIM_RELAY_TRUSTED = os.getenv("EMAIL_DKIM_RELAY_TRUSTED", "")
+# Durable async transactional sends via Celery when the worker is always-on.
+SCHOOLOPS_EMAIL_ASYNC_USE_CELERY = os.getenv(
+    "SCHOOLOPS_EMAIL_ASYNC_USE_CELERY", "0"
+) in ("1", "true", "True", "yes")
+# SSRF allow-list for tenant BYO-SMTP override hosts (comma-separated).
+SCHOOLOPS_EMAIL_SMTP_HOST_ALLOWLIST = [
+    h.strip() for h in os.getenv("SCHOOLOPS_EMAIL_SMTP_HOST_ALLOWLIST", "").split(",") if h.strip()
+]
+# Email dead-letter queue (audit residual). OFF by default — when enabled, a
+# transient permanent failure parks the encrypted payload in EmailDeadLetter
+# for redrive via ``manage.py redrive_email_dead_letters``.
+SCHOOLOPS_EMAIL_DLQ_ENABLED = os.getenv(
+    "SCHOOLOPS_EMAIL_DLQ_ENABLED", "0"
+) in ("1", "true", "True", "yes")
+SCHOOLOPS_EMAIL_DLQ_MAX_REDRIVES = int(
+    os.getenv("SCHOOLOPS_EMAIL_DLQ_MAX_REDRIVES", "5")
+)
+# Inbound SMS webhook (STOP/HELP + Twilio status callbacks). When set, the
+# Twilio X-Twilio-Signature is required and verified; otherwise unsigned posts
+# are accepted (dev / Africa's Talking which has no standard signature).
+RMC_SMS_WEBHOOK_REQUIRE_TWILIO_SIGNATURE = os.getenv(
+    "RMC_SMS_WEBHOOK_REQUIRE_TWILIO_SIGNATURE", "0"
+) in ("1", "true", "True", "yes")
+# Shared secret for providers without a request-signing scheme (Africa's
+# Talking). When set, the inbound/status SMS webhooks require it via ?key= or
+# the X-RMC-SMS-Secret header (constant-time compared). Empty = not enforced.
+RMC_SMS_WEBHOOK_SHARED_SECRET = os.getenv("RMC_SMS_WEBHOOK_SHARED_SECRET", "")
+# Help text replied to an inbound SMS "HELP" keyword.
+RMC_SMS_HELP_REPLY = os.getenv(
+    "RMC_SMS_HELP_REPLY",
+    "RunMyCampus alerts. Reply STOP to unsubscribe. Msg&data rates may apply.",
+)
+# Suspicious-login alerts: email the account owner the first time we see a
+# login from a new device/IP fingerprint (after their first-ever login).
+RMC_SUSPICIOUS_LOGIN_ALERTS_ENABLED = os.getenv(
+    "RMC_SUSPICIOUS_LOGIN_ALERTS_ENABLED", "1"
+) in ("1", "true", "True", "yes")
+
 # v3.57.x Wave 8 Agent C — additive SMTP reliability + observability knobs.
 # EMAIL_TIMEOUT: per-attempt socket timeout (seconds) for Django's SMTP
 # backend. Lower = fail-fast on a dead server; higher = tolerate slow
@@ -1494,6 +1603,24 @@ CELERY_TASK_TRACK_STARTED = True
 # Run tasks synchronously in test runs so no broker is required.
 if RUNNING_TESTS:
     CELERY_TASK_ALWAYS_EAGER = True
+# Broker-less deploys (e.g. Render free tier, where no Redis/RabbitMQ is
+# provisioned): with an empty CELERY_BROKER_URL, `.delay()` cannot enqueue, so
+# deferred work — webhook delivery, low-balance notices, notification intents —
+# would otherwise sit PENDING forever and never run. Fall back to inline
+# (eager) execution so the work still happens during the request. A configured
+# broker is ALWAYS preferred; this branch only activates when none is set.
+# Opt out with RMC_DISABLE_EAGER_FALLBACK=1 to keep tasks PENDING for a worker
+# that drains them later.
+elif (
+    not CELERY_BROKER_URL
+    and os.getenv("RMC_DISABLE_EAGER_FALLBACK", "").strip().lower()
+    not in ("1", "true", "yes")
+):
+    CELERY_TASK_ALWAYS_EAGER = True
+    # An inline task failing must NOT bubble up and roll back the request that
+    # triggered it — log-and-continue, matching the broker-down `.delay()`
+    # guards in academics/people/schoolops signals and the event bus.
+    CELERY_TASK_EAGER_PROPAGATES = False
 # Optional: run celery beat with: celery -A config beat -l info
 # Add periodic tasks in Django admin (django_celery_beat) or define CELERY_BEAT_SCHEDULE (see Celery docs).
 
@@ -2972,10 +3099,10 @@ OLLAMA_AUTO_START = os.getenv("OLLAMA_AUTO_START", _OLLAMA_AUTO_START_DEFAULT).s
 # Manager /super/ landing: demo payloads mirror docs/generated v8 200x preview HTML.
 # Set COCKPIT_200X_RENDER_PREVIEW_DEMO=0 on Render only when real SVG/layout builders replace demo cards.
 COCKPIT_200X_RENDER_PREVIEW_DEMO = os.getenv(
-    "COCKPIT_200X_RENDER_PREVIEW_DEMO", "1"
+    "COCKPIT_200X_RENDER_PREVIEW_DEMO", "0"
 ).strip().lower() in ("1", "true", "yes", "on")
 COCKPIT_100X_RENDER_PREVIEW_DEMO = os.getenv(
-    "COCKPIT_100X_RENDER_PREVIEW_DEMO", "1"
+    "COCKPIT_100X_RENDER_PREVIEW_DEMO", "0"
 ).strip().lower() in ("1", "true", "yes", "on")
 AI_CENTER_LOG_PROMPTS = os.getenv("AI_CENTER_LOG_PROMPTS", "0").strip().lower() in (
     "1",

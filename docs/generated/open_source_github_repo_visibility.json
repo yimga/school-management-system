@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-06-03T22:24:26.693398+00:00",
+  "canonical_sdk_default": "yimga/school-management-system",
+  "workspace_origin": "yimga/school-management-system",
+  "issue_template_urls_use": "yimga/school-management-system",
+  "repos": {
+    "yimga/school-management-system": {
+      "http_status": 200,
+      "visibility": "public",
+      "full_name": "yimga/school-management-system",
+      "html_url": "https://github.com/yimga/school-management-system"
+    }
+  }
+}

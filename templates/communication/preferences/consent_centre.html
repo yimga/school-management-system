@@ -1,0 +1,89 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Communication preferences" %} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid rmc-page" data-rmc-page-domain="account" style="max-width: 820px;">
+  <header class="rmc-page__header" style="margin-bottom: 18px;">
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">
+      <i class="bi bi-envelope-gear" aria-hidden="true"></i>
+      {% trans "Communication preferences" %}
+    </h1>
+    <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 60ch;">
+      {% trans "Choose how we contact you. Transactional messages (sign-in, security, billing, and account notices) are always sent regardless of these settings." %}
+    </p>
+  </header>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }}" role="alert" style="margin-bottom: 14px;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- ── Email ──────────────────────────────────────────────────────── -->
+  <section class="rmc-card" style="padding: 18px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated); margin-bottom: 16px;">
+    <h2 class="rmc-h2" style="font-size: var(--type-size-title-s);">{% trans "Email" %}</h2>
+    {% if account_email %}
+      <p class="rmc-meta" style="color: var(--text-secondary);">
+        {% blocktrans %}Marketing &amp; newsletter email to your account address.{% endblocktrans %}
+      </p>
+      <p style="margin: 10px 0;">
+        {% if email_opted_out %}
+          <span class="rmc-badge rmc-badge--muted">{% trans "Unsubscribed" %}</span>
+        {% else %}
+          <span class="rmc-badge rmc-badge--success">{% trans "Subscribed" %}</span>
+        {% endif %}
+      </p>
+      <form method="post" action="{% url 'communication:consent_preferences' %}">
+        {% csrf_token %}
+        {% if email_opted_out %}
+          <button type="submit" name="action" value="opt_in" class="rmc-btn rmc-btn--primary">
+            {% trans "Re-subscribe to email" %}
+          </button>
+        {% else %}
+          <button type="submit" name="action" value="opt_out" class="rmc-btn rmc-btn--ghost">
+            {% trans "Unsubscribe from marketing email" %}
+          </button>
+        {% endif %}
+      </form>
+    {% else %}
+      <p class="rmc-empty">{% trans "Your account has no email address on file." %}</p>
+    {% endif %}
+  </section>
+
+  <!-- ── SMS / WhatsApp (possession-proven) ─────────────────────────── -->
+  <section class="rmc-card" style="padding: 18px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated); margin-bottom: 16px;">
+    <h2 class="rmc-h2" style="font-size: var(--type-size-title-s);">{% trans "SMS & WhatsApp" %}</h2>
+    <p class="rmc-meta" style="color: var(--text-secondary);">
+      {% trans "To stop SMS or WhatsApp messages, reply STOP to any message from us. Reply START to opt back in. We honour this from the phone itself so no one else can change it." %}
+    </p>
+  </section>
+
+  <!-- ── History ────────────────────────────────────────────────────── -->
+  {% if history %}
+  <section class="rmc-card" style="padding: 18px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
+    <h2 class="rmc-h2" style="font-size: var(--type-size-title-s);">{% trans "Recent changes" %}</h2>
+    <table class="rmc-data-table" style="width: 100%;">
+      <thead>
+        <tr>
+          <th>{% trans "When" %}</th>
+          <th>{% trans "Action" %}</th>
+          <th>{% trans "Source" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in history %}
+          <tr>
+            <td>{{ ev.created_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ ev.get_action_display }}</td>
+            <td>{{ ev.source }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

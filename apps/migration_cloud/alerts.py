@@ -241,7 +241,7 @@ def _emit_email(*, severity: str, title: str, body: str, links: dict | None) -> 
         return
     try:
         from django.conf import settings
-        from django.core.mail import send_mail
+        from apps.schoolops.email_compat import send_mail
     except Exception:  # pragma: no cover
         return
     from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "") or "noreply@runmycampus.com"

@@ -14,6 +14,28 @@ if str(REPO_ROOT) not in sys.path:
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
+_INCLUDE_RE = re.compile(r"""\{%\s*include\s+["']([^"']+)["']""")
+
+
+def _read_with_includes(path: Path, templates_root: Path, *, _seen: set[Path] | None = None) -> str:
+    if _seen is None:
+        _seen = set()
+    resolved = path.resolve()
+    if resolved in _seen:
+        return ""
+    _seen.add(resolved)
+    try:
+        text = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ""
+    chunks = [text]
+    for match in _INCLUDE_RE.finditer(text):
+        rel = match.group(1).strip()
+        child = templates_root / rel
+        if child.is_file():
+            chunks.append(_read_with_includes(child, templates_root, _seen=_seen))
+    return "\n".join(chunks)
+
 CSS_FILES = (
     "static/css/admin-sidebar-scroll.css",
     "static/css/admin-base-site-shell.css",
@@ -124,7 +146,9 @@ def check_css() -> list[str]:
                 errors.append(
                     f"{rel}: missing :has(.admin-cp-unified-page) guard on legacy #page trap"
                 )
-    admin_base = (REPO_ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
+    admin_base_path = REPO_ROOT / "templates/admin/base.html"
+    admin_base = admin_base_path.read_text(encoding="utf-8")
+    admin_base_tree = _read_with_includes(admin_base_path, REPO_ROOT / "templates")
     if "admin-cp-unified-page" not in admin_base:
         errors.append("templates/admin/base.html missing admin-cp-unified-page class")
     if "data-rmc-admin-cp-unified" not in admin_base:
@@ -167,15 +191,32 @@ def check_css() -> list[str]:
         errors.append("templates/admin/base_site.html must load manager-cockpit-v7.css on manager host")
     if "rmc-cp-header-200x.css" not in base_site:
         errors.append("templates/admin/base_site.html must load rmc-cp-header-200x.css on manager host")
-    if 'data-rmc-cp-header-200x="1"' not in admin_base:
-        errors.append("templates/admin/base.html must use cp-header 200x stack on manager host")
-    if "_activity_ticker.html" not in admin_base:
-        errors.append("templates/admin/base.html must include live activity ticker in manager header")
-    if "control_plane_primary_nav.html" not in admin_base:
-        errors.append("templates/admin/base.html must include primary nav in manager header")
-    cp_base = (REPO_ROOT / "templates/control_plane_base.html").read_text(encoding="utf-8")
-    if 'data-rmc-cp-header-200x="1"' not in cp_base:
-        errors.append("templates/control_plane_base.html must use cp-header 200x stack")
+    if 'data-rmc-cp-header-200x="1"' not in admin_base_tree:
+        errors.append(
+            "templates/admin/base.html must use cp-header 200x stack on manager host "
+            "(directly or via consolidated header partials)."
+        )
+    if (
+        "_activity_ticker.html" not in admin_base_tree
+        and "_activity_ticker_inline.html" not in admin_base_tree
+    ):
+        errors.append(
+            "templates/admin/base.html must include live activity ticker in manager header "
+            "(marquee or inline Tier-1 badge)."
+        )
+    if "control_plane_primary_nav.html" not in admin_base_tree:
+        errors.append(
+            "templates/admin/base.html must include primary nav in manager header "
+            "(directly or via consolidated header partials)."
+        )
+    cp_base_path = REPO_ROOT / "templates/control_plane_base.html"
+    cp_base = cp_base_path.read_text(encoding="utf-8")
+    cp_base_tree = _read_with_includes(cp_base_path, REPO_ROOT / "templates")
+    if 'data-rmc-cp-header-200x="1"' not in cp_base_tree:
+        errors.append(
+            "templates/control_plane_base.html must use cp-header 200x stack "
+            "(directly or via consolidated header partials)."
+        )
     cp_sk = (REPO_ROOT / "templates/control_plane_skeleton.html").read_text(encoding="utf-8")
     if "rmc-cp-header-200x.css" not in cp_sk:
         errors.append("templates/control_plane_skeleton.html must load rmc-cp-header-200x.css")
@@ -275,9 +316,6 @@ def check_render() -> list[str]:
                     "data-rmc-admin-catalog-index",
                     "cp-hero__title",
                     'data-rmc-cp-header-200x="1"',
-                    "cp-live-strip",
-                    "cp-nav-row",
-                    "cp-activity-ticker",
                     "cp-primary-nav",
                     "rmc-admin-v1-200x.css",
                     "rmc-cp-header-200x.css",
@@ -298,13 +336,20 @@ def check_render() -> list[str]:
                 'data-shell-nav-family="control-plane"',
                 "Advanced",
                 'data-rmc-cp-header-200x="1"',
-                "cp-live-strip",
-                "cp-nav-row",
-                "cp-activity-ticker",
                 "cp-primary-nav",
                 "rmc-cp-header-200x.css",
             ),
         ),
+    )
+    ticker_markers = (
+        "cp-activity-ticker-inline",
+        "cp-activity-ticker",
+        "cp-live-strip",
+        "data-rmc-cp-ticker-inline",
+    )
+    consolidated_markers = (
+        'data-rmc-cp-header-mode="consolidated"',
+        "cp-header--consolidated",
     )
     errors: list[str] = []
     for path, needles in probes:
@@ -316,17 +361,14 @@ def check_render() -> list[str]:
         for needle in needles:
             if needle not in html:
                 errors.append(f"{path}: missing {needle!r} in HTML")
-        live_pos = html.find("cp-live-strip")
-        nav_pos = html.find("cp-nav-row")
-        if path.startswith("/super"):
-            if live_pos < 0 or nav_pos < 0 or live_pos > nav_pos:
+        if path.startswith("/admin") or path.startswith("/super"):
+            if not any(marker in html for marker in consolidated_markers):
                 errors.append(
-                    f"{path}: rendered header must stack cp-live-strip before cp-nav-row (v8 200x)"
+                    f"{path}: rendered header must expose consolidated cp-header chrome"
                 )
-        elif path.startswith("/admin"):
-            if live_pos < 0 or nav_pos < 0 or nav_pos > live_pos:
+            if not any(marker in html for marker in ticker_markers):
                 errors.append(
-                    f"{path}: rendered header must stack cp-nav-row before cp-live-strip (admin v1 200x)"
+                    f"{path}: rendered header must expose Tier-1 activity ticker chrome"
                 )
     return errors
 

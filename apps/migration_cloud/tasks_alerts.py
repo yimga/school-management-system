@@ -81,7 +81,7 @@ def token_rotation_watchdog() -> dict:
                         f"- {tenant_part}\n"
                         f"- grace_until: {tok.grace_until.isoformat() if tok.grace_until else 'unset'}\n"
                         "\nRun `python manage.py shell` and call "
-                        "`MigrationCloudAPIToken.objects.get(pk=...).rotate()` "
+                        "`MigrationCloudAPIToken.objects.get(pk=...).rotate()` "  # tenant-isolation-allow: celery-migration-cloud-token-admin-by-pk
                         "or revoke + re-issue."
                     ),
                     dedupe_key=dedupe_key,

@@ -15,3 +15,5 @@ Come back: {{ portal_url|default:"https://manager.runmycampus.com/" }}
 To stop these gentle reminders: {{ unsubscribe_url|default:"(URL not captured)" }}
 
 — The RunMyCampus team
+
+{% include "emails/_legal_footer.txt" %}

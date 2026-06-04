@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `54`
-- Python files: `5958`
-- HTML templates: `1588`
-- Markdown files: `1584`
-- Migration files: `971`
+- Python files: `6030`
+- HTML templates: `1604`
+- Markdown files: `1585`
+- Migration files: `973`
 - Management commands: `278` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2437`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `198`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `150`
+- `SiteSettings` refs (gross scan): `2434`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `194`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `146`
 - `get_solo()` refs: `212`
-- `except Exception`: `2340`
-- `cursor.execute()` (gross): `405`
-- `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `40`
-- `csrf_exempt` (substring, gross): `669`
-- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `106`
+- `except Exception`: `2410`
+- `cursor.execute()` (gross): `407`
+- `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `42`
+- `csrf_exempt` (substring, gross): `676`
+- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `107`
 - `AllowAny`: `173`
-- `print()` (gross all `.py`): `3986`
-- `print()` (`apps` product paths): `0`; `scripts/`: `3805`
-- `gilead` matches (gross corpus): `16835` across `230` files
+- `print()` (gross all `.py`): `4089`
+- `print()` (`apps` product paths): `0`; `scripts/`: `3908`
+- `gilead` matches (gross corpus): `16836` across `231` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -57,8 +57,8 @@ Total: `278` commands. First 25 by app/command:
 
 ## Public Endpoint Review
 
-- Reviewed `csrf_exempt` files: `31`
-- Reviewed `csrf_exempt` endpoints: `102`
+- Reviewed `csrf_exempt` files: `36`
+- Reviewed `csrf_exempt` endpoints: `107`
 - Reviewed `AllowAny` files: `4`
 - Reviewed `AllowAny` occurrences: `10`
 
@@ -79,18 +79,18 @@ Total: `278` commands. First 25 by app/command:
 
 ## Largest Python Files
 
-- `apps/siteconfig/_seed_country_localization.py`: `16897` lines / `1224958` bytes
-- `apps/siteconfig/forms_cockpit.py`: `5086` lines / `206345` bytes
-- `apps/schools/marketing_views.py`: `4135` lines / `165439` bytes
-- `config/settings.py`: `3259` lines / `156787` bytes
-- `apps/api/saml.py`: `3441` lines / `144405` bytes
+- `apps/siteconfig/_seed_country_localization.py`: `16897` lines / `1225693` bytes
+- `apps/siteconfig/forms_cockpit.py`: `5088` lines / `206503` bytes
+- `apps/schools/marketing_views.py`: `4135` lines / `165744` bytes
+- `config/settings.py`: `3374` lines / `163226` bytes
+- `apps/api/saml.py`: `3487` lines / `147039` bytes
 - `apps/schools/marketing_page_definitions.py`: `3056` lines / `143830` bytes
 - `apps/accounts/views.py`: `3557` lines / `141001` bytes
 - `apps/api/oneroster_results.py`: `3418` lines / `139254` bytes
 - `apps/evals/views.py`: `3416` lines / `131340` bytes
 - `apps/api/views_v1.py`: `2905` lines / `119916` bytes
-- `apps/migration_cloud/views.py`: `2675` lines / `114077` bytes
-- `scripts/_batch_1489_generate_edos_artifacts.py`: `1958` lines / `108724` bytes
+- `apps/migration_cloud/views.py`: `2696` lines / `114910` bytes
+- `apps/finance/models.py`: `3112` lines / `109725` bytes
 
 ## Documentation Drift
 

@@ -7,3 +7,5 @@ You can unsubscribe any time:
   {{ unsubscribe_url|default:"(URL not captured)" }}
 
 — The RunMyCampus team
+
+{% include "emails/_legal_footer.txt" %}

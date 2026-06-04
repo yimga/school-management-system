@@ -3,6 +3,8 @@ Generate regional reports with localized content and score conversion.
 Usage: python manage.py generate_regional_reports [--language LANG] [--region REGION] [--format pdf|html]
 """
 
+import smtplib
+
 from django.core.management.base import BaseCommand
 from django.core.mail import EmailMessage
 from django.db import DatabaseError, IntegrityError

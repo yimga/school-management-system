@@ -138,36 +138,22 @@ def dispatch_notification_intent(
     idem = (idempotency_key or "").strip()[:128]
     tenant_hash = _hash_tenant(school.pk)
 
-    if async_send:
-        try:
-            from apps.schoolops.tasks import deliver_notification_intent_task
-
-            deliver_notification_intent_task.delay(
-                school_id=school.pk,
-                subject=subject,
-                body=body,
-                to_hash_target=hashlib.sha256(to_email.encode()).hexdigest()[:12],
-                to_email=to_email,
-                html_body=html_body,
-                idempotency_key=idem,
-                tenant_hash=tenant_hash,
-            )
-            return {"ok": True, "queued": True, "delivery_id": idem or None}
-        except Exception as exc:
-            logger.warning(
-                "notification_intent.celery_unavailable err_type=%s tenant_hash=%s",
-                type(exc).__name__,
-                tenant_hash,
-            )
-
     from apps.schoolops.email_delivery import send_transactional
 
+    # ``async_send`` now uses the IN-PROCESS daemon-thread sender
+    # (send_transactional async_send=True) rather than a Celery task. On the
+    # free tier the Celery worker is a separate, frequently-asleep service, so a
+    # successful ``.delay()`` returned ``queued=True`` while the message sat in
+    # the queue undelivered (H3). The daemon thread runs inside this process —
+    # the same proven path as signup activation — so delivery never depends on
+    # the worker being awake. (Trade-off: no offload to a worker process; fine
+    # for transactional email volume.)
     result = send_transactional(
         subject=subject,
         body=body,
         to=to_email,
         html_body=html_body,
-        async_send=False,
+        async_send=bool(async_send),
         tenant_hash=tenant_hash,
         school=school,
         idempotency_key=idem,

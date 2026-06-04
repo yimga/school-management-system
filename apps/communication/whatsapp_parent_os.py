@@ -20,7 +20,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, Optional
 
 
 logger = logging.getLogger(__name__)
@@ -213,6 +213,11 @@ class RoutingConfig:
     rate_limit_per_hour: int = 30
     now_fn: Callable[[], float] = field(default_factory=lambda: __import__("time").time)
     placeholder_resolver: Callable[[InboundMessage, str], dict[str, str]] | None = None
+    # AI fallback (audit AI roadmap): a callable ``(body, allowlist) -> intent
+    # | None`` consulted ONLY when keyword classification yields UNKNOWN. The
+    # kernel stays pure — the view injects the real classifier (which routes
+    # through the guardrailed AI gateway). None = keyword-only (legacy default).
+    ai_classifier: Callable[[str, tuple[str, ...]], Optional[str]] | None = None
 
 
 def route_inbound_message(
@@ -233,6 +238,17 @@ def route_inbound_message(
         intent = raw_intent
     else:
         intent = classify_intent_keyword(inbound.body)
+        # AI fallback (audit) — only when the cheap keyword path gives up.
+        # Bounded to the tenant's allowlist; the classifier returns None when
+        # unavailable/unsure, so we keep the safe UNKNOWN→menu default.
+        if intent == _INTENT_UNKNOWN and cfg.ai_classifier is not None and (inbound.body or "").strip():
+            try:
+                ai_intent = cfg.ai_classifier(inbound.body, tuple(cfg.allowlist))
+            except Exception as exc:  # noqa: BLE001 — AI never breaks routing
+                logger.warning("whatsapp_parent_os ai_classifier failed err=%s", type(exc).__name__)
+                ai_intent = None
+            if ai_intent and ai_intent in _INTENT_TEMPLATE_KEYS:
+                intent = ai_intent
 
     if intent not in cfg.allowlist and intent != _INTENT_UNKNOWN:
         # Tenant disabled this intent — degrade to UNKNOWN (which always

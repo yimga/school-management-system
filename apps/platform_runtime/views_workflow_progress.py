@@ -26,7 +26,7 @@ import threading
 import time
 from typing import Any
 
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from services.http_auth_guards import login_required_api, login_required_sse
 from services.sse_response import guarded_sse_response
 from django.utils import timezone
@@ -324,6 +324,10 @@ def stream_view(request):
     from apps.platform_runtime.workflow_tracker import list_active_runs
 
     schema, actor_id = _resolve_scope(request)
+    host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+    if host_kind not in {"manager", "local"}:
+        if getattr(request, "school", None) is None and not schema:
+            return JsonResponse({"error": "tenant_required"}, status=403)
     is_staff = bool(getattr(request.user, "is_staff", False))
     actor_filter = "" if is_staff else actor_id
     max_duration = _sse_max_duration_seconds()

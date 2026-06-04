@@ -77,7 +77,11 @@ class InteractionIntegrityContractTests(SimpleTestCase):
 
     def test_manager_admin_footer_wired(self):
         admin_base = (ROOT / "templates/admin/base.html").read_text(encoding="utf-8")
-        self.assertIn("rmc_operator_footer_compact.html", admin_base)
+        civic = (ROOT / "templates/partials/rmc_operator_footer_civic.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("rmc_operator_footer_civic.html", admin_base)
+        self.assertIn('data-rmc-footer-surface="operator-civic"', civic)
         self.assertIn("is_manager_host", admin_base)
 
     def test_tenant_handler503_matches_root(self):

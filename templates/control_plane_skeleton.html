@@ -99,6 +99,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
@@ -165,8 +166,6 @@
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% block content %}
-    {% include "components/_workflow_auto_chrome.html" %}
-    {% if request.user.is_authenticated %}{% include "components/rmc_workflow_progress_strip.html" %}{% endif %}
     {% comment %} v3.55.0 (2026-05-21): .rmc-app-shell — platform-wide grid contract.
        header (row 1, static) + sidebar (col 1, own scroll) + canvas (col 2, own scroll).
        Legacy `cp-shell-content` class kept on canvas-body for back-compat with existing
@@ -184,6 +183,7 @@
       <div class="rmc-app-shell__canvas">
         {% block cp_shell_canvas_chrome %}{% endblock %}
         <div class="rmc-app-shell__canvas-body cp-shell-content{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}">
+          {% include "components/_workflow_auto_chrome.html" %}
           {% comment %} Quarterly posture: collapsible inline banner in cp-main-content
              (control_plane_base / portal_base / manager admin). Corner toast suppressed
              when inline is active. {% endcomment %}
@@ -288,5 +288,7 @@
     {% include "partials/rmc_command_bar.html" %}
     {% endif %}
     {% block extrajs %}{% endblock %}
+    {% comment %} v4.01.45: terminal dual-plane pass after late-loaded block CSS. {% endcomment %}
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </body>
 </html>

@@ -21,7 +21,7 @@ def _get_or_create_backup_device(user):
 def _generate_backup_tokens(device, count=10):
     device.token_set.all().delete()
     tokens = []
-    for _ in range(count):
+    for _token_index in range(count):
         token = f"{secrets.randbelow(10**8):08d}"
         StaticToken.objects.create(device=device, token=token)
         tokens.append(token)
@@ -46,7 +46,7 @@ def build_mfa_setup_context(request, *, next_url: str = "") -> dict:
     has_mfa = mfa_has_device(user)
     backup_tokens = []
     if has_mfa:
-        backup_device, _ = _get_or_create_backup_device(user)
+        backup_device, _unused = _get_or_create_backup_device(user)
         if backup_device.token_set.count() == 0:
             backup_tokens = _generate_backup_tokens(backup_device, count=10)
         else:
@@ -134,7 +134,7 @@ def handle_mfa_setup_post(request, *, next_url: str = "") -> tuple[str, dict | N
         return ("redirect_mfa_setup", None)
 
     if "regen_backup" in request.POST:
-        backup_device, _ = _get_or_create_backup_device(user)
+        backup_device, _unused = _get_or_create_backup_device(user)
         _generate_backup_tokens(backup_device, count=10)
         messages.success(request, _("Backup codes regenerated."))
         return ("render", build_mfa_setup_context(request, next_url=next_url))

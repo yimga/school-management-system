@@ -14,3 +14,5 @@ before we do): reply to this email.
 Otherwise, you'll stop hearing from us after this message.
 
 — The RunMyCampus team
+
+{% include "emails/_legal_footer.txt" %}

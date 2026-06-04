@@ -42,6 +42,8 @@ _EVALS_OCR_IMAGE_OPEN_ERRORS = (
     UnidentifiedImageError,
 )
 _EVALS_OCR_DECIMAL_PARSE_ERRORS = (ValueError, TypeError, InvalidOperation)
+# Per-row confidence parsing touches dict/list lookups + numeric coercion.
+_EVALS_OCR_PARSE_ROW_ERRORS = (KeyError, IndexError, TypeError, ValueError, AttributeError)
 
 DEFAULT_TESSERACT_CMD = "tesseract"
 

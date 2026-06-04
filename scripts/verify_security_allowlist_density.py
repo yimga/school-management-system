@@ -28,12 +28,14 @@ ROOT = Path(__file__).resolve().parent.parent
 # embedded classification lints still enforce exact path/count parity.
 # tracked_root: repo-root file allowlist for mega-file / tree gates (shrink-only).
 # 2026-05-29: batch 1578 final audit — OneRoster Demographics module (apps/api/oneroster_demographics.py).
+# 2026-06-02: batch 1617 — sqlite_pragmas WAL PRAGMAs; OneRoster OAuth2 + LTI token +
+# newsletter + wizard telemetry CSRF classifications; tracked_root manifest sync.
 MAX_COUNTS: dict[str, tuple[str, int]] = {
-    "raw_sql_allowlist.json": ("files", 20),
-    "csrf_exempt_allowlist.json": ("files", 31),
+    "raw_sql_allowlist.json": ("files", 21),
+    "csrf_exempt_allowlist.json": ("files", 36),
     "allow_any_allowlist.json": ("files", 4),
     "broad_except_allowlist.json": ("allowed_counts", 189),
-    "tracked_root_allowlist.json": ("allowed", 34),
+    "tracked_root_allowlist.json": ("allowed", 35),
 }
 
 _CLASSIFICATION_LINTS: tuple[tuple[str, str], ...] = (

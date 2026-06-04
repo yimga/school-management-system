@@ -1,6 +1,5 @@
 import json
 import os
-from io import StringIO
 
 from django.conf import settings
 from django.contrib import messages

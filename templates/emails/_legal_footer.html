@@ -1,0 +1,8 @@
+<hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0">
+<p style="color:#888;font-size:12px;line-height:1.6;margin:0">
+  {{ company_name|default:"RunMyCampus" }}<br>
+  {{ company_address|default:"" }}<br>
+  <a href="{{ company_url|default:'https://runmycampus.com' }}" style="color:#888">{{ company_url|default:"runmycampus.com" }}</a><br>
+  You are receiving this because you opted in.
+  <a href="{{ unsubscribe_url|default:'#' }}" style="color:#888">Unsubscribe</a>.
+</p>

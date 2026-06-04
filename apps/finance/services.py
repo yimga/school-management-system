@@ -7,7 +7,7 @@ import uuid
 from collections import defaultdict
 from datetime import date
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 from django.conf import settings
 from django.db import transaction
@@ -46,6 +46,12 @@ from .models import (
     RefundRequest,
     WalletTransaction,
 )
+
+if TYPE_CHECKING:  # annotation-only; not evaluated at runtime (PEP 563)
+    from apps.accounts.models import User
+    from apps.schools.models import School
+
+logger = logging.getLogger(__name__)
 
 
 PAYMENT_METHOD_PROVIDER_SLUGS = {

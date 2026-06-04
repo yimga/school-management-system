@@ -82,22 +82,53 @@ def send_email(
         or (getattr(site, "email_from_address", None) if site else None)
         or getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@runmycampus.com")
     )
+    # Route through the reliability layer (audit H4/observability) so tenant
+    # notifications are retried + audited to EmailDeliveryEvent like every
+    # other send, instead of a second unaudited facade. Falls back to Django's
+    # send_mail only if the reliability layer is unimportable.
     try:
-        django_send_mail(
+        from apps.schoolops.email_delivery import send_transactional
+
+        recipients = list(to_addresses)
+        result = send_transactional(
             subject=subject,
-            message=body,
+            body=body,
+            to=recipients,
+            html_body=html_message,
             from_email=from_addr,
-            recipient_list=list(to_addresses),
-            html_message=html_message,
-            fail_silently=fail_silently,
+            priority="transactional",
+            school=school,
         )
-        logger.info("Email sent to %s: %s", to_addresses, subject[:50])
-        return True
+        ok = bool(result.get("ok") or result.get("queued"))
+        if ok:
+            logger.info(
+                "notification_service.email_sent count=%d subject=%s",
+                len(recipients), (subject or "")[:50],
+            )
+        if not ok and not fail_silently:
+            raise RuntimeError(result.get("error_kind") or "email_send_failed")
+        return ok
     except _NOTIFICATION_EMAIL_SEND_ERRORS as e:
-        logger.exception("Email send failed: %s", e)
+        logger.exception("Email send failed: %s", type(e).__name__)
         if not fail_silently:
             raise
         return False
+    except ImportError:
+        try:
+            django_send_mail(
+                subject=subject,
+                message=body,
+                from_email=from_addr,
+                recipient_list=list(to_addresses),
+                html_message=html_message,
+                fail_silently=fail_silently,
+            )
+            return True
+        except _NOTIFICATION_EMAIL_SEND_ERRORS as e:
+            logger.exception("Email send failed: %s", type(e).__name__)
+            if not fail_silently:
+                raise
+            return False
 
 
 def _bump_sms_usage_meter(school: Any, body: str) -> None:
@@ -147,6 +178,17 @@ def send_sms(
     to_phone = (to_phone or "").strip().replace(" ", "")
     if to_phone and not to_phone.startswith("+"):
         to_phone = "+" + to_phone
+    # Honour SMS opt-out (audit residual). A recipient who texted STOP has a
+    # trailing ``withdrawn`` consent event — we must not message them. Best-
+    # effort: a consent-log read error fails open (see consent.is_channel_suppressed).
+    try:
+        from apps.communication.consent import is_channel_suppressed
+
+        if to_phone and is_channel_suppressed("sms", to_phone):
+            logger.info("send_sms skipped: recipient opted out of SMS")
+            return False
+    except ImportError:
+        pass
     site = _resolve_site_settings(school=school, site_settings=site_settings)
     school_id = getattr(school, "id", None) if school else None
     if circuit_is_open(school_id, "sms"):

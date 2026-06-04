@@ -19,7 +19,7 @@ import logging
 
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 logger = logging.getLogger(__name__)
 
@@ -137,13 +137,28 @@ def newsletter_confirm_view(request, token: str):
     )
 
 
-@require_GET
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
 def newsletter_unsubscribe_view(request, token: str):
-    """One-click unsubscribe landing page."""
+    """One-click unsubscribe (RFC 8058).
+
+    POST = the mail-client one-click action (List-Unsubscribe-Post) — returns
+    a minimal 200 with no body, as the spec expects. GET = the human landing
+    page. Audit H5: previously GET-only, which both failed RFC 8058 (needs
+    POST) and let email link-scanners accidentally unsubscribe users.
+    """
 
     from apps.platform_runtime.newsletter_service import unsubscribe
 
     result = unsubscribe(token)
+
+    if request.method == "POST":
+        # One-click: machine action, terse response, never an HTML page.
+        return JsonResponse(
+            {"ok": bool(result.get("ok")), "unsubscribed": bool(result.get("ok"))},
+            status=200 if result.get("ok") else 400,
+        )
+
     if result.get("ok"):
         body = (
             "<!doctype html><html><head><meta charset=\"utf-8\"><title>Unsubscribed</title></head>"

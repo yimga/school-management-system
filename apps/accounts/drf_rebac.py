@@ -9,14 +9,30 @@ def school_from_request(request):
     school = getattr(request, "school", None)
     if school is not None:
         return school
-    school_id = getattr(getattr(request, "session", None), "get", lambda _k, _d=None: None)(
-        "school_id",
-    )
+    session = getattr(request, "session", None)
+    school_id = getattr(session, "get", lambda _k, _d=None: None)("school_id") if session else None
     if not school_id:
         return None
     from apps.schools.models import School
 
-    return School.objects.filter(pk=school_id, is_active=True).first()
+    session_school = School.objects.filter(pk=school_id, is_active=True).first()
+    if session_school is None:
+        return None
+    try:
+        from apps.schools.middleware import _resolve_school_from_request
+
+        host_school = _resolve_school_from_request(request)
+    except (ImportError, AttributeError, TypeError, ValueError):
+        host_school = None
+    if host_school is not None and str(host_school.pk) != str(session_school.pk):
+        return None
+    if session is not None:
+        from apps.schools.session_school_bind import verify_session_school_bind
+
+        user = getattr(request, "user", None)
+        if user and not verify_session_school_bind(session, user):
+            return None
+    return session_school
 
 
 class RebacPermission(BasePermission):

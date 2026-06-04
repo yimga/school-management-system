@@ -167,7 +167,7 @@ def backend_student_create(request):
                                         False,
                                     )
                                 if notify:
-                                    from django.core.mail import send_mail
+                                    from apps.schoolops.email_compat import send_mail
                                     from django.conf import settings
 
                                     site_name = get_site_display_name(request)

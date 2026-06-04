@@ -268,7 +268,7 @@ def _maybe_apply_onboarding_blueprint_pack(school, actor=None) -> None:
     except (ImportError, ModuleNotFoundError):
         return
     try:
-        pack = BlueprintPack.objects.filter(slug=pack_slug, is_active=True).first()
+        pack = BlueprintPack.objects.filter(slug=pack_slug, is_active=True).first()  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
     except (DatabaseError, AttributeError, TypeError, ValueError):
         pack = None
     if pack is None:
@@ -437,11 +437,7 @@ def dispatch_provision_school(
 
 
 def _do_provision(school_id: str, contact_email: str = "", **kwargs):
-    from .models import School, SchoolMembership
-    from apps.academics.models import AcademicYear, Term, Subject
-    from apps.siteconfig.education_profile_engine import resolve_profile_for_school
-    from django.utils import timezone
-    from datetime import date, timedelta
+    from .models import School
 
     school = School.objects.filter(id=school_id).first()
     if not school:
@@ -502,6 +498,17 @@ def _do_provision_tracked(
     **kwargs,
 ):
     """Body of ``_do_provision`` with workflow-progress step pulses."""
+    # These names are used throughout this function. They were originally
+    # imported locally inside ``_do_provision`` before this body was extracted
+    # into its own function; the extraction left them out of scope here, which
+    # crashed synchronous provisioning (the broker-unavailable fallback path,
+    # e.g. when no Celery worker is running) with a NameError on
+    # ``resolve_profile_for_school``. Re-declare the same local imports here.
+    from .models import SchoolMembership
+    from apps.academics.models import AcademicYear, Term, Subject
+    from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+    from django.utils import timezone
+    from datetime import date, timedelta
 
     pulse = pulse_workflow_step or (lambda *a, **k: None)
     _record_school_event(
@@ -528,10 +535,10 @@ def _do_provision_tracked(
     # Create default admin user if contact_email provided and no user exists
     admin_user = None
     if contact_email:
-        admin_user = User.objects.filter(email=contact_email).first()
+        admin_user = User.objects.filter(email=contact_email).first()  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
         if not admin_user:
             username = contact_email.split("@")[0][:150] or f"admin_{school.slug}"  # magic-number-allow: string-truncation-cap
-            if User.objects.filter(username=username).exists():
+            if User.objects.filter(username=username).exists():  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
                 username = f"{username}_{school.slug}"[:150]  # magic-number-allow: string-truncation-cap
             admin_user = User.objects.create_user(
                 username=username,
@@ -731,7 +738,7 @@ def _do_provision_tracked(
                 TenantSystem,
             )
 
-            approved = EducationSystemProfile.objects.filter(
+            approved = EducationSystemProfile.objects.filter(  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
                 code__in=profile_codes,
                 is_active=True,
                 approval_status=EducationSystemProfile.ApprovalStatus.APPROVED,

@@ -1,0 +1,139 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Platform Health" %}{% endblock %}
+
+{% block cp_content %}
+<main id="main" class="container-fluid py-2" data-rmc-page="platform-health" data-page-archetype="operator-report">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Platform Health" %}</h1>
+      <p class="text-tertiary mb-0">
+        {% trans "Broken feature-gap proofs (promises that no longer resolve) and over-SLA backlog items, aggregated into one operator signal. This is the same data the bottom-right dock badge surfaces." %}
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% if summary.feature_gap_broken %}
+      <span class="badge text-bg-danger">{{ summary.feature_gap_broken }} {% trans "broken proof(s)" %}</span>
+      {% endif %}
+      {% if summary.backlog_breaches %}
+      <span class="badge text-bg-warning text-dark">{{ summary.backlog_breaches }} {% trans "over-SLA backlog" %}</span>
+      {% endif %}
+      {% if not summary.count %}
+      <span class="badge text-bg-success">{% trans "All clear" %}</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if flash %}
+  <div class="alert {% if flash.resolved %}alert-success{% else %}alert-warning{% endif %} py-2 small" role="status">
+    {% if flash.resolved %}
+      {% blocktrans with slug=flash.feature_slug %}Re-checked <code>{{ slug }}</code> — proof now resolves. A tracked workflow run was recorded.{% endblocktrans %}
+    {% else %}
+      {% blocktrans with slug=flash.feature_slug %}Re-checked <code>{{ slug }}</code> — proof still does not resolve. The tracked workflow run was marked failed.{% endblocktrans %}
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Broken feature-gap proofs -->
+  <section class="mb-4">
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Broken feature-gap proofs" %}</h2>
+    {% if broken_proofs %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Feature" %}</th>
+            <th scope="col">{% trans "Domain" %}</th>
+            <th scope="col">{% trans "Proof" %}</th>
+            <th scope="col">{% trans "Error" %}</th>
+            <th scope="col">{% trans "Public" %}</th>
+            <th scope="col" class="text-end">{% trans "Action" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in broken_proofs %}
+          <tr class="table-danger">
+            <td>
+              <div class="fw-semibold">{{ b.label }}</div>
+              <code class="text-tertiary small">{{ b.feature_slug }}</code>
+            </td>
+            <td class="text-tertiary">{{ b.capability_domain }}</td>
+            <td><code>{{ b.proof_ref }}</code> <span class="text-tertiary small">({{ b.proof_kind }})</span></td>
+            <td class="text-danger small">{{ b.error }}</td>
+            <td>
+              {% if b.public_promise %}
+                <span class="badge text-bg-info">{% trans "yes" %}</span>
+              {% else %}
+                <span class="text-tertiary small">{% trans "internal" %}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <form method="post" action="{% url 'platform_runtime:platform_health_recheck' %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="feature_slug" value="{{ b.feature_slug }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-arrow-repeat" aria-hidden="true"></i> {% trans "Re-check" %}
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="text-tertiary small mb-0">
+      {% trans "Re-check runs a tracked workflow that re-resolves the proof. It appears in the workflow progress chip; if the proof still fails, the run is recorded as failed." %}
+    </p>
+    {% else %}
+    <div class="text-tertiary small">{% trans "No broken proofs — every shipped feature resolves its proof." %}</div>
+    {% endif %}
+  </section>
+
+  <!-- Over-SLA backlog items -->
+  <section class="mb-4">
+    <h2 class="h5 mb-2 text-uppercase text-tertiary small">{% trans "Over-SLA backlog items" %}</h2>
+    {% if not backlog_snapshot_available %}
+    <div class="alert alert-info py-2 small" role="status">
+      {% trans "No backlog evaluation snapshot is cached, so SLA breaches can't be shown. Run it once:" %}
+      <code>python manage.py evaluate_backlog_unlocks --profile full --update-cache</code>
+      {% trans "or schedule the daily refresh by setting" %} <code>ENABLE_BACKLOG_UNLOCK_BEAT=1</code>.
+    </div>
+    {% elif backlog_breaches %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle small">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Item" %}</th>
+            <th scope="col">{% trans "Category" %}</th>
+            <th scope="col">{% trans "Column" %}</th>
+            <th scope="col">{% trans "Days / max" %}</th>
+            <th scope="col">{% trans "Next action" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for it in backlog_breaches %}
+          <tr class="table-warning">
+            <td>
+              <div class="fw-semibold">{{ it.title }}</div>
+              {% if it.doc_href %}
+                <a href="/{{ it.doc_href }}" class="text-tertiary small">{{ it.item_id }}</a>
+              {% else %}
+                <code class="text-tertiary small">{{ it.item_id }}</code>
+              {% endif %}
+            </td>
+            <td class="text-tertiary">{{ it.category }}</td>
+            <td>{{ it.column }}</td>
+            <td><span class="fw-semibold text-danger">{{ it.days_in_column }}</span> / {{ it.max_days }}</td>
+            <td>{% if it.action_hint %}<code>{{ it.action_hint }}</code>{% else %}<span class="text-tertiary small">{% trans "—" %}</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-tertiary small">{% trans "No backlog items are over their SLA." %}</div>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

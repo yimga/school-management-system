@@ -130,7 +130,7 @@ def detect_stalled_onboarding(*, dry_run: bool = False) -> dict:
             _maybe_email_ops(summary)
 
     # Best-effort assurance the school count is bounded.
-    School.objects.all().count()
+    School.objects.all().count()  # tenant-isolation-allow: celery-platform-stall-watch-global-count
     return summary
 
 
@@ -140,7 +140,7 @@ def _maybe_email_ops(summary: dict) -> None:
         recipient = _platform_ops_email()
         if not recipient:
             return
-        from django.core.mail import send_mail
+        from apps.schoolops.email_compat import send_mail
 
         subject = (
             f"[RunMyCampus] Onboarding stall watch: "

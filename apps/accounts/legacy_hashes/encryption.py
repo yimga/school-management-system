@@ -112,7 +112,29 @@ def _resolve_fernet_key_list() -> list[bytes]:
     """
     out: list[bytes] = []
 
-    # Highest priority: list-typed setting for rotation.
+    # SH-6 (opt-in): source the ring from HashiCorp Vault when
+    # DJANGO_CRYPTOGRAPHY_KEYS_SOURCE=vault. Returns None (no-op) by default, so
+    # the env/settings resolution below is unchanged for every existing deploy.
+    # A misconfigured Vault opt-in raises VaultKeySourceError (fail-loud) rather
+    # than silently switching key sources — that propagates here intentionally.
+    from .key_source_vault import load_keys_from_vault
+
+    vault_keys = load_keys_from_vault()
+    if vault_keys:
+        for entry in vault_keys:
+            s = (entry or "").strip()
+            if not s:
+                continue
+            if len(s) != 44:
+                logger.warning(
+                    "django_cryptography_vault_key_unexpected_length",
+                    extra={"len": len(s), "expected": 44, "position": len(out)},
+                )
+            out.append(s.encode("ascii"))
+        if out:
+            return out
+
+    # Highest priority (env/settings): list-typed setting for rotation.
     try:
         from django.conf import settings  # local import
         list_setting = getattr(settings, "DJANGO_CRYPTOGRAPHY_KEYS", None)

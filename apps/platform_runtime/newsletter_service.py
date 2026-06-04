@@ -212,4 +212,25 @@ def unsubscribe(token: str) -> dict:
     row.unsubscribed_at = timezone.now()
     row.save()
 
+    # Mirror into the platform suppression list so the marketing opt-out is
+    # also honoured by the transactional engine's pre-send suppression gate
+    # (defence in depth alongside the matrix is_unsubscribed check).
+    try:
+        from apps.schoolops.email_delivery import suppress_recipient
+
+        suppress_recipient(row.email, reason="unsubscribe", source="unsubscribe")
+    except Exception:  # noqa: BLE001 — suppression mirror is best-effort
+        logger.warning("newsletter_unsubscribe_suppression_mirror_failed")
+
+    # Append the cross-channel consent audit trail (compliance evidence).
+    try:
+        from apps.communication.consent import record_consent_event
+
+        record_consent_event(
+            channel="email", identifier=row.email, action="withdrawn",
+            reason="newsletter_unsubscribe", source="newsletter",
+        )
+    except Exception:  # noqa: BLE001 — consent log mirror is best-effort
+        logger.warning("newsletter_unsubscribe_consent_mirror_failed")
+
     return {"ok": True, "unsubscribed": True, "email": row.email}

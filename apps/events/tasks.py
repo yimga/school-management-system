@@ -51,7 +51,7 @@ def process_outbox_batch(batch_size: int = 100):
 
         school_by_id = {
             s.pk: s
-            for s in School.objects.filter(pk__in=school_ids).only(
+            for s in School.objects.filter(pk__in=school_ids).only(  # tenant-isolation-allow: celery-events-beat-school-id-list-scoped
                 "pk", "slug", "subdomain", "is_active"
             )
         }

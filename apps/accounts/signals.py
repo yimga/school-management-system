@@ -41,6 +41,79 @@ def apply_preferred_language_on_login(sender, user, request, **kwargs):
     request.session[LANGUAGE_SESSION_KEY] = code
 
 
+def _client_ip(request) -> str:
+    """Best-effort client IP from X-Forwarded-For (first hop) or REMOTE_ADDR."""
+    xff = (request.META.get("HTTP_X_FORWARDED_FOR") or "").split(",")[0].strip()
+    return xff or (request.META.get("REMOTE_ADDR") or "").strip()
+
+
+@receiver(user_logged_in)
+def alert_on_suspicious_login(sender, user, request, **kwargs):
+    """Email the account owner the first time we see a login from a NEW
+    device/network fingerprint (after their first-ever login).
+
+    Privacy: we store only hashes of the IP + User-Agent (never the raw
+    values). The alert email — sent to the owner about their own account —
+    does surface the IP for recognisability, but nothing is logged. Best-
+    effort: any failure is swallowed so it never blocks a login.
+    """
+    import hashlib
+
+    if not getattr(settings, "RMC_SUSPICIOUS_LOGIN_ALERTS_ENABLED", True):
+        return
+    if request is None:
+        return
+    email = (getattr(user, "email", "") or "").strip()
+    if not email:
+        return
+    try:
+        ip = _client_ip(request)
+        ua = (request.META.get("HTTP_USER_AGENT") or "").strip()
+        ip_hash = hashlib.sha256((ip or "").encode("utf-8")).hexdigest()[:12] if ip else ""
+        ua_hash = hashlib.sha256((ua or "").encode("utf-8")).hexdigest()[:12] if ua else ""
+        context_hash = hashlib.sha256(
+            f"{ip}|{ua}".encode("utf-8")
+        ).hexdigest()[:16]
+
+        from apps.accounts.models_login_context import KnownLoginContext
+
+        _row, created = KnownLoginContext.objects.get_or_create(
+            user=user,
+            context_hash=context_hash,
+            defaults={"ip_hash": ip_hash, "ua_hash": ua_hash},
+        )
+        if not created:
+            return
+        # First-ever login (only this one context exists) → record silently.
+        known_count = KnownLoginContext.objects.filter(user=user).count()
+        if known_count <= 1:
+            return
+        from apps.schoolops.email_delivery import send_transactional
+
+        site_url = getattr(settings, "RMC_PUBLIC_SITE_URL", "") or "the platform"
+        body = (
+            "We noticed a new sign-in to your account.\n\n"
+            f"Approximate IP: {ip or 'unknown'}\n"
+            f"Device: {(ua or 'unknown')[:160]}\n\n"  # magic-number-allow: ua-display-truncation
+            "If this was you, no action is needed. If you don't recognise this "
+            "sign-in, change your password immediately and contact your "
+            f"administrator. ({site_url})"
+        )
+        send_transactional(
+            subject="New sign-in to your account",
+            body=body,
+            to=[email],
+            priority="transactional",
+            allow_suppressed=True,
+            idempotency_key=f"login_alert:{getattr(user, 'pk', '')}:{context_hash}",
+        )
+    except Exception:  # noqa: BLE001 — alerting never blocks login
+        logger.warning(
+            "alert_on_suspicious_login failed for user_id=%s",
+            getattr(user, "pk", None),
+        )
+
+
 ROLE_TEMPLATES: dict[str, list[str]] = {
     User.Role.SUPERADMIN: ["ADMIN"],
     User.Role.ADMIN: ["ADMIN"],

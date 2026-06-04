@@ -155,9 +155,21 @@ def _dispatch_low_balance_notification(
                 pass
 
         from apps.schoolops.tasks import notify_low_meal_plan_balance
-        notify_low_meal_plan_balance.delay(
-            meal_plan_balance_id=int(instance.pk),
-        )
+        try:
+            notify_low_meal_plan_balance.delay(
+                meal_plan_balance_id=int(instance.pk),
+            )
+        except Exception:  # noqa: BLE001 - broker transport errors are diverse
+            # Free tier often has no Celery broker, so .delay() raises
+            # kombu.OperationalError and the email would be silently dropped.
+            # Run the task body inline instead (idempotent via the 7-day
+            # cooldown above) so the parent still gets the low-balance alert.
+            logger.warning(
+                "schoolops.low_balance: broker enqueue failed; sending inline "
+                "row_pk=%s",
+                instance.pk,
+            )
+            notify_low_meal_plan_balance(meal_plan_balance_id=int(instance.pk))
         # v3.33.0 — publish a coarse webhook event so partner systems
         # subscribed to ``schoolops.*`` can react (e.g. parent-portal
         # banner refresh, finance-team alerting). NEVER include PII —

@@ -87,7 +87,7 @@ def audit_encryption_key_orphans(notify: bool = True) -> dict[str, Any]:
             )
             return summary
         try:
-            from django.core.mail import send_mail  # local: optional in CI
+            from apps.schoolops.email_compat import send_mail  # local: optional in CI
             body_lines = [
                 "Orphan ciphertext audit found rows that cannot decrypt",
                 "under any currently-active key in DJANGO_CRYPTOGRAPHY_KEYS.",

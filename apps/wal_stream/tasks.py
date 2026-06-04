@@ -99,7 +99,7 @@ def _resolve_school_id_from_hash(tenant_hash: str) -> str | None:
     from apps.schools.rls_context import rls_bypass
 
     with rls_bypass():
-        for school in School.objects.all().only("id"):
+        for school in School.objects.all().only("id"):  # tenant-isolation-allow: celery-wal-fanout-iterates-all-schools
             if hashlib.sha256(str(school.id).encode("utf-8")).hexdigest()[:12] == tenant_hash:
                 return str(school.id)
     return None

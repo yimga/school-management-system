@@ -351,6 +351,14 @@ class TeacherAssignment(models.Model):
         return f"{self.teacher} -> {self.subject_assignment}"
 
 
+# Exception tuples for Evaluation.save(): computing total_score / normalized
+# value can fail on bad arithmetic, missing relations, or type coercion. Catch
+# narrowly and fall back to None rather than crashing the save. ArithmeticError
+# covers ZeroDivisionError + decimal.InvalidOperation without extra imports.
+_EVALS_MODEL_SAVE_FINAL_SCORE_ERRORS = (TypeError, ValueError, AttributeError, ArithmeticError)
+_EVALS_MODEL_SAVE_NORMALIZED_ERRORS = (TypeError, ValueError, AttributeError, ArithmeticError)
+
+
 class Evaluation(models.Model):
     """
     One row per student per subject_assignment per term.

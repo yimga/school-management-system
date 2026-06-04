@@ -1,5 +1,5 @@
 {
-  "manifest_last_reviewed": "2026-05-27",
+  "manifest_last_reviewed": "2026-06-02",
   "files": {
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
@@ -95,6 +95,11 @@
       "expected_count": 6,
       "reason": "Staff-run portal KB pgvector migration performs extension/vector DDL, batch backfill, index creation, and dimension detection.",
       "last_reviewed": "2026-05-27"
+    },
+    "apps/platform_runtime/sqlite_pragmas.py": {
+      "expected_count": 2,
+      "reason": "SQLite connection_created hook sets PRAGMA journal_mode=WAL and synchronous=NORMAL on file-backed dev/test DBs only; no user input; reduces test lock contention.",
+      "last_reviewed": "2026-06-02"
     },
     "apps/schools/rls_readiness.py": {
       "expected_count": 3,

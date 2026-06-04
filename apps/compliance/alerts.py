@@ -13,7 +13,7 @@ import time
 from urllib import request, error as urllib_error
 
 from django.conf import settings
-from django.core.mail import send_mail
+from apps.schoolops.email_compat import send_mail
 from django.utils import timezone
 
 from apps.platform_runtime.structured_logging import log_exception_with_context

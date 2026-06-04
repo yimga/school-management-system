@@ -173,4 +173,13 @@ def enrich_tenant_cockpit_for_request(
     except Exception:
         pass
 
+    try:
+        from apps.siteconfig.cockpit_tenant_v3_realdata import (
+            hydrate_tenant_v3_extended_realdata,
+        )
+
+        tenant_cockpit = hydrate_tenant_v3_extended_realdata(request, tenant_cockpit)
+    except Exception:
+        pass
+
     return tenant_cockpit

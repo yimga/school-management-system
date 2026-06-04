@@ -207,11 +207,14 @@ def main() -> int:
 
     add(
         "12",
-        "Manager /admin/ compact operator footer",
-        _contains("templates/admin/base.html", "rmc_operator_footer_compact.html")
-        and _contains("templates/admin/base.html", 'data-rmc-footer-surface="operator-compact"')
+        "Manager /admin/ operator civic footer",
+        _contains("templates/admin/base.html", "rmc_operator_footer_civic.html")
+        and _contains(
+            "templates/partials/rmc_operator_footer_civic.html",
+            'data-rmc-footer-surface="operator-civic"',
+        )
         and _contains("templates/admin/base_site.html", "rmc-footer-surfaces.css"),
-        "templates/admin/base.html + base_site.html",
+        "templates/admin/base.html + rmc_operator_footer_civic.html + base_site.html",
     )
 
     tenant_urls_text = (ROOT / "config" / "tenant_urls.py").read_text(

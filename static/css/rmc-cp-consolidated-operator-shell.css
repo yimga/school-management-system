@@ -1,13 +1,13 @@
 /**
- * rmc-cp-consolidated-operator-shell.css — v4.01.22 (2026-06-01)
- * Consolidated operator header: utility + inline ticker + primary nav in one band.
+ * rmc-cp-consolidated-operator-shell.css — v4.01.43 (2026-06-02)
+ * Consolidated operator header: utility + inline LIVE + primary nav in one band.
  * Recovers ~110px vertical workspace vs triple-stack chrome (utility / marquee / canvas nav).
  * Token-only surfaces; composes on rmc-app-shell + rmc-cp-header-200x.
  */
 
 :root {
-  --rmc-cp-unified-header-h: calc(var(--space-2, 8px) * 6); /* 48px */
-  --rmc-cp-footer-compact-h: calc(var(--space-2, 8px) * 3); /* 24px */
+  --rmc-cp-unified-header-h: calc(var(--space-2, 8px) * 6.6); /* 52.8px — +10% vs 48px */
+  --rmc-cp-footer-compact-h: calc(var(--space-2, 8px) * 2.125); /* ~17px — 30% below 24px */
   --rmc-cp-sidebar-compact-pad: calc(var(--space-2, 8px) * 1.5); /* 12px */
 }
 
@@ -93,12 +93,13 @@ body.admin-manager-shell .cp-header--consolidated .cp-header__row--utility .rmc-
   color: var(--text-secondary);
 }
 
-body.control-plane-shell .cp-header--consolidated .rmc-cp-ticker-inline,
-body.admin-manager-shell .cp-header--consolidated .rmc-cp-ticker-inline {
+body.control-plane-shell .cp-header--consolidated .rmc-platform-header__actions .rmc-cp-ticker-inline,
+body.admin-manager-shell .cp-header--consolidated .rmc-platform-header__actions .rmc-cp-ticker-inline {
   display: inline-flex;
   border-color: var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
   background: color-mix(in srgb, var(--cp-chrome-surface, #0f1530) 72%, transparent);
   color: var(--cp-chrome-text-muted, #94a3b8);
+  max-width: min(200px, 22vw);
 }
 
 body.control-plane-shell .cp-header--consolidated .rmc-cp-ticker-inline__badge,
@@ -157,31 +158,44 @@ body.admin-manager-shell .cp-header--consolidated .cp-header__nav-slot .cp-prima
   min-height: calc(var(--space-2, 8px) * 3.5);
 }
 
-/* Hide legacy full marquee when consolidated inline chrome is active */
-body.control-plane-shell .cp-header--consolidated .cp-header__unified-band .cp-live-strip,
-body.control-plane-shell .cp-header--consolidated .cp-header__unified-band > .rmc-cockpit-ticker,
-body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band .cp-live-strip,
-body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band > .rmc-cockpit-ticker {
-  display: none;
-}
-
-/* Landing override: child template replaces inline block with full ticker */
-body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(> .cp-live-strip),
-body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(> .cp-live-strip) {
+/* Landing LIVE banner row — embedded in header (Tier 2), never canvas */
+body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live),
+body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live) {
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: var(--rmc-cp-unified-header-h) auto;
   max-height: none;
 }
 
-body.control-plane-shell .cp-header--consolidated .cp-header__unified-band > .cp-live-strip,
-body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band > .cp-live-strip {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  display: block;
+body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live) .cp-header__row--utility,
+body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live) .cp-header__row--utility {
+  grid-column: 1;
+  grid-row: 1;
 }
 
-body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(> .cp-live-strip) .cp-header__row--inline-chrome,
-body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(> .cp-live-strip) .cp-header__row--inline-chrome {
-  display: none;
+body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live) .cp-header__row--inline-chrome,
+body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live) .cp-header__row--inline-chrome {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+}
+
+body.control-plane-shell .cp-header--consolidated .cp-header__row--live,
+body.admin-manager-shell .cp-header--consolidated .cp-header__row--live {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  border-bottom: 1px solid var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
+}
+
+body.control-plane-shell .cp-header--consolidated .cp-header__row--live .rmc-cp-landing-ticker,
+body.admin-manager-shell .cp-header--consolidated .cp-header__row--live .rmc-cp-landing-ticker {
+  margin: 0;
+}
+
+body.control-plane-shell .cp-header--consolidated .cp-header__row--live .cp-live-strip,
+body.admin-manager-shell .cp-header--consolidated .cp-header__row--live .cp-live-strip {
+  display: flex;
+  border-bottom: none;
 }
 
 /* Sidebar density (8px grid) */
@@ -277,12 +291,42 @@ html[data-resolved-theme="light"] body.admin-manager-shell.cp-shell-has-operator
   border-top-color: var(--hairline);
 }
 
+html[data-resolved-theme="light"] body.control-plane-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"].rmc-civic-footer--dark,
+html[data-bs-theme="light"] body.control-plane-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"].rmc-civic-footer--dark,
+html[data-resolved-theme="light"] body.admin-manager-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"].rmc-civic-footer--dark,
+html[data-bs-theme="light"] body.admin-manager-shell.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"].rmc-civic-footer--dark,
+html[data-resolved-theme="light"] body.manager-portal-bridge.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"].rmc-civic-footer--dark,
+html[data-bs-theme="light"] body.manager-portal-bridge.cp-shell-has-operator-footer [data-rmc-footer-surface="operator-civic"].rmc-civic-footer--dark {
+  --rmc-civic-fg: var(--text-secondary);
+  --rmc-civic-fg-strong: var(--text-primary);
+  --rmc-civic-fg-muted: var(--text-muted);
+  --rmc-civic-fg-faint: var(--text-tertiary, var(--text-muted));
+  --rmc-civic-surface: color-mix(in oklab, var(--surface-elevated) 92%, var(--surface-canvas));
+  --rmc-civic-surface-sunken: var(--surface-sunken, var(--surface-canvas));
+  --rmc-civic-hairline: var(--hairline);
+  --rmc-civic-accent: var(--text-primary);
+  background: var(--surface-canvas, #fbfbfd);
+  color: var(--text-secondary);
+  border-top-color: var(--hairline);
+}
+
 @media (max-width: 1199.98px) {
   body.control-plane-shell .cp-header--consolidated .cp-header__unified-band,
   body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band {
     grid-template-columns: 1fr;
     grid-template-rows: var(--rmc-cp-unified-header-h) auto;
     max-height: none;
+  }
+
+  body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live),
+  body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live) {
+    grid-template-rows: var(--rmc-cp-unified-header-h) auto auto;
+  }
+
+  body.control-plane-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live) .cp-header__row--live,
+  body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band:has(.cp-header__row--live) .cp-header__row--live {
+    grid-column: 1;
+    grid-row: 3;
   }
 
   body.control-plane-shell .cp-header--consolidated .cp-header__row--inline-chrome,

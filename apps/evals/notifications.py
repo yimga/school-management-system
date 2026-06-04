@@ -8,7 +8,7 @@ from typing import Any, Dict, List
 from urllib.parse import quote_plus
 
 from django.conf import settings
-from django.core.mail import send_mail
+from apps.schoolops.email_compat import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
 

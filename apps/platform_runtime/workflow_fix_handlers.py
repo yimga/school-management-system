@@ -51,7 +51,7 @@ def apply_auto_fix_kind(*, run: Any, kind: str) -> dict[str, Any]:
         return {"ok": True, "applied": kind, "alternates": alternates}
 
     if kind in ("retry_once_with_backoff", "retry_after_rate_limit", "refresh_oauth_token_and_retry"):
-        WorkflowRun.objects.filter(pk=run.pk).update(
+        WorkflowRun.objects.filter(pk=run.pk).update(  # tenant-isolation-allow: workflow-run-update-by-primary-key-row
             status="running",
             last_heartbeat_at=timezone.now(),
             payload_summary={

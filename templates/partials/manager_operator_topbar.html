@@ -89,10 +89,9 @@
                 {% if attention_school_count %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ attention_school_count }}</span>{% endif %}
               </a>
             {% endif %}
-            {% comment %} v4.01.07: standalone cp-topbar-theme-toggle removed —
-               theme + aesthetic chip is the unified SOT, rendered right of the
-               notification bell and before the user dropdown on every shell. {% endcomment %}
-            {% include "components/header_theme_chip.html" %}
+            {% comment %} v4.01.43: Tier-1 LIVE badge embedded in header utility row (not canvas). {% endcomment %}
+            {% include "partials/cockpit/_activity_ticker_inline.html" %}
+            {% comment %} v4.01.43: theme + aesthetic controls moved to user profile dropdown. {% endcomment %}
             <div class="rmc-wfp-header-slot" data-rmc-wfp-header-slot="1" aria-label="{% trans 'Workflow progress' %}">
               {% include "components/rmc_workflow_progress_strip.html" %}
             </div>
