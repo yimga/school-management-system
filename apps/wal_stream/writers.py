@@ -222,6 +222,15 @@ def _apply_attendance(envelope: dict[str, Any]) -> None:
         records = winners
     if not records:
         return
+    # bulk_create's conflict-UPDATE branch does NOT run pre_save, so the auto_now
+    # `updated_at` would otherwise carry the (unset) insert-time value — leaving
+    # the freshness basis stale and letting a later offline write clobber a newer
+    # online one. Stamp it explicitly so conflict detection stays sound.
+    from django.utils import timezone as _tz
+
+    _now = _tz.now()
+    for r in records:
+        r.updated_at = _now
     Attendance.objects.bulk_create(
         records,
         update_conflicts=True,
@@ -292,6 +301,27 @@ def _apply_teacher_attendance(envelope: dict[str, Any]) -> None:
             continue
     if not rows:
         return
+    # Cross-tenant write defense (parity with the other five writers): drop any
+    # row whose client-supplied teacher_id does not belong to the bound tenant.
+    # TeacherAttendance has no school column, so the FK ownership check on
+    # TeacherProfile.school IS the isolation boundary here — the drainer's
+    # rls_school() is a no-op under django-tenants schema mode.
+    school_id = envelope.get("school_id")
+    if school_id:
+        from apps.people.models import TeacherProfile  # type: ignore[attr-defined]
+
+        valid_teachers = _ids_in_school(
+            TeacherProfile, [r.teacher_id for r in rows], school_id
+        )
+        kept = [r for r in rows if r.teacher_id in valid_teachers]
+        if len(kept) != len(rows):
+            logger.warning(
+                "wal_stream.teacher_attendance_cross_tenant_dropped dropped=%s",
+                len(rows) - len(kept),
+            )
+        rows = kept
+    if not rows:
+        return
     captured_dt = _captured_dt(envelope)
     if captured_dt is not None:
         from django.db import DatabaseError
@@ -336,6 +366,11 @@ def _apply_teacher_attendance(envelope: dict[str, Any]) -> None:
             )
         rows = winners
     if rows:
+        from django.utils import timezone as _tz
+
+        _now = _tz.now()
+        for r in rows:
+            r.updated_at = _now
         TeacherAttendance.objects.bulk_create(
             rows,
             update_conflicts=True,

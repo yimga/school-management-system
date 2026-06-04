@@ -28,6 +28,36 @@ _BATCH_SIZE = 64
 # longer resolves) is never xdel'd and is re-delivered on every drain — a
 # head-of-line poison pill that blocks every later envelope for that tenant.
 _MAX_APPLY_ATTEMPTS = 5
+# Per-tenant drain lock TTL. Longer than a worst-case batch apply, short enough
+# that a crashed worker's lock frees promptly for the next drain.
+_DRAIN_LOCK_TTL_SECONDS = 300
+# Credential-ish keys scrubbed from an envelope before it is dead-lettered, so a
+# repeatedly-failing envelope never becomes a plaintext secret store in Redis.
+_SENSITIVE_ACTION_KEYS = frozenset(
+    {"password", "passwd", "pwd", "secret", "token", "api_key", "apikey", "private_key"}
+)
+
+
+def _scrub_envelope_for_deadletter(raw) -> str:
+    """Return the envelope JSON with credential-ish action fields redacted."""
+    try:
+        env = json.loads(raw)
+    except (TypeError, ValueError):
+        return json.dumps({"scrubbed": True, "parse_failed": True})
+
+    def _redact(d):
+        if isinstance(d, dict):
+            for k in list(d.keys()):
+                if isinstance(k, str) and k.lower() in _SENSITIVE_ACTION_KEYS:
+                    d[k] = "***redacted***"
+                else:
+                    _redact(d[k])
+        elif isinstance(d, list):
+            for item in d:
+                _redact(item)
+
+    _redact(env.get("actions"))
+    return json.dumps(env)
 
 
 @shared_task(name="wal_stream.drain_tenant_stream", bind=True)
@@ -52,68 +82,92 @@ def drain_tenant_stream(self, tenant_hash: str) -> dict[str, int]:
     attempts_key = f"rmc.wal.attempts.{tenant_hash}"
     deadletter_stream = f"rmc.wal.deadletter.{tenant_hash}"
 
-    entries = client.xrange(stream, count=_BATCH_SIZE)
-    applied = 0
-    skipped = 0
-    dead_lettered = 0
-    for entry_id, fields in entries:
-        raw = fields.get(b"envelope") or fields.get("envelope")
-        if raw is None:
-            continue
-        try:
-            envelope = json.loads(raw)
-        except (TypeError, ValueError):
-            client.xdel(stream, entry_id)
-            continue
-        txn_id = envelope.get("txn_id")
-        if not txn_id:
-            client.xdel(stream, entry_id)
-            continue
-        if client.sismember(dedupe_key, txn_id):
-            client.xdel(stream, entry_id)
-            skipped += 1
-            continue
-        try:
-            _apply_envelope(envelope)
-            client.sadd(dedupe_key, txn_id)
-            client.expire(dedupe_key, _DEDUPE_TTL_SECONDS)
-            applied += 1
-        except (ValueError, TypeError, RuntimeError, DatabaseError) as exc:
-            # Bounded retry, then dead-letter — so a permanently-failing
-            # envelope (writer IntegrityError, deleted-tenant unknown hash,
-            # malformed action) cannot wedge the tenant's whole drain forever.
-            # DatabaseError (incl. IntegrityError) MUST be caught here; before,
-            # it propagated out of the loop, the entry was never xdel'd, and it
-            # re-delivered on every drain blocking all later envelopes.
-            attempts = client.hincrby(attempts_key, txn_id, 1)
-            client.expire(attempts_key, _DEDUPE_TTL_SECONDS)
-            if attempts >= _MAX_APPLY_ATTEMPTS:
-                logger.error(
-                    "wal_stream.dead_letter txn=%s attempts=%s err=%s",
-                    txn_id, attempts, exc,
-                )
-                try:
-                    client.xadd(deadletter_stream, {"envelope": raw, "error": str(exc)[:500]})
-                except redis.RedisError as dl_exc:
-                    logger.error("wal_stream.dead_letter_xadd_failed txn=%s err=%s", txn_id, dl_exc)
-                client.hdel(attempts_key, txn_id)
+    # Per-tenant drain lock. Without it, two overlapping drains (fanout double-fire,
+    # beat + manual, or a slow drain outliving the 30s cadence) both xrange the
+    # SAME entries and the sismember->sadd dedupe is check-then-act, so each
+    # NON-idempotent domain (announcement_create, communication_send, grade,
+    # audit_event) double-applies. The lock serializes drains per tenant.
+    lock_key = f"rmc.wal.lock.{tenant_hash}"
+    try:
+        got_lock = bool(client.set(lock_key, "1", nx=True, ex=_DRAIN_LOCK_TTL_SECONDS))
+    except redis.RedisError:
+        got_lock = True  # fail-open: a lock-infra hiccup must not stall draining
+    if not got_lock:
+        return {"applied": 0, "skipped": 0, "locked": 1, "tenant_hash": tenant_hash}
+
+    try:
+        entries = client.xrange(stream, count=_BATCH_SIZE)
+        applied = 0
+        skipped = 0
+        dead_lettered = 0
+        for entry_id, fields in entries:
+            raw = fields.get(b"envelope") or fields.get("envelope")
+            if raw is None:
+                continue
+            try:
+                envelope = json.loads(raw)
+            except (TypeError, ValueError):
                 client.xdel(stream, entry_id)
-                dead_lettered += 1
-            else:
-                logger.warning(
-                    "wal_stream.apply_failed txn=%s attempt=%s err=%s",
-                    txn_id, attempts, exc,
-                )
-                # leave entry in stream for retry on next drain
-            continue
-        client.xdel(stream, entry_id)
-        client.hdel(attempts_key, txn_id)
-    return {
-        "applied": applied,
-        "skipped": skipped,
-        "dead_lettered": dead_lettered,
-        "tenant_hash": tenant_hash,
-    }
+                continue
+            txn_id = envelope.get("txn_id")
+            if not txn_id:
+                client.xdel(stream, entry_id)
+                continue
+            if client.sismember(dedupe_key, txn_id):
+                client.xdel(stream, entry_id)
+                skipped += 1
+                continue
+            try:
+                _apply_envelope(envelope)
+                client.sadd(dedupe_key, txn_id)
+                client.expire(dedupe_key, _DEDUPE_TTL_SECONDS)
+                applied += 1
+            except (ValueError, TypeError, RuntimeError, DatabaseError) as exc:
+                # Bounded retry, then dead-letter — so a permanently-failing
+                # envelope (writer IntegrityError, deleted-tenant unknown hash,
+                # malformed action) cannot wedge the tenant's whole drain forever.
+                attempts = client.hincrby(attempts_key, txn_id, 1)
+                client.expire(attempts_key, _DEDUPE_TTL_SECONDS)
+                if attempts >= _MAX_APPLY_ATTEMPTS:
+                    logger.error(
+                        "wal_stream.dead_letter txn=%s attempts=%s err=%s",
+                        txn_id, attempts, exc,
+                    )
+                    try:
+                        # Scrub credential-bearing fields before persisting the raw
+                        # envelope to the (capped) dead-letter stream — it must not
+                        # become a plaintext password store.
+                        client.xadd(
+                            deadletter_stream,
+                            {"envelope": _scrub_envelope_for_deadletter(raw), "error": str(exc)[:500]},
+                            maxlen=10_000,
+                            approximate=True,
+                        )
+                    except redis.RedisError as dl_exc:
+                        logger.error("wal_stream.dead_letter_xadd_failed txn=%s err=%s", txn_id, dl_exc)
+                    client.hdel(attempts_key, txn_id)
+                    client.xdel(stream, entry_id)
+                    dead_lettered += 1
+                else:
+                    logger.warning(
+                        "wal_stream.apply_failed txn=%s attempt=%s err=%s",
+                        txn_id, attempts, exc,
+                    )
+                    # leave entry in stream for retry on next drain
+                continue
+            client.xdel(stream, entry_id)
+            client.hdel(attempts_key, txn_id)
+        return {
+            "applied": applied,
+            "skipped": skipped,
+            "dead_lettered": dead_lettered,
+            "tenant_hash": tenant_hash,
+        }
+    finally:
+        try:
+            client.delete(lock_key)
+        except redis.RedisError:
+            pass
 
 
 def record_wal_conflicts(tenant_hash: str, domain: str, conflicts: list[dict]) -> int:
@@ -184,6 +238,7 @@ def purge_streams_for_school(school_id) -> dict[str, int]:
         f"rmc.wal.attempts.{tenant_hash}",
         f"rmc.wal.deadletter.{tenant_hash}",
         f"rmc.wal.conflict.{tenant_hash}",
+        f"rmc.wal.lock.{tenant_hash}",
     ]
     try:
         client = redis.Redis.from_url(redis_url)
@@ -278,6 +333,7 @@ def drain_fanout(self) -> dict[str, int]:
                     "rmc.wal.attempts.",
                     "rmc.wal.deadletter.",
                     "rmc.wal.conflict.",
+                    "rmc.wal.lock.",
                 )
             ):
                 continue
@@ -289,7 +345,9 @@ def drain_fanout(self) -> dict[str, int]:
                     continue
             except (TypeError, ValueError):
                 continue
-            drain_tenant_stream.delay(tenant_hash)
+            # expires shorter than the 30s fanout cadence so backed-up dispatches
+            # don't pile up unboundedly under broker pressure.
+            drain_tenant_stream.apply_async(args=[tenant_hash], expires=25)
             queued += 1
     except Exception as exc:  # noqa: BLE001 — periodic task must never crash beat
         logger.warning("wal_stream.drain_fanout_failed: %s", exc)

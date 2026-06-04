@@ -548,6 +548,56 @@ class WALStaleUpsertPartitionTests(SimpleTestCase):
         self.assertIsNone(_captured_dt({"captured_at": "x"}))
 
 
+class WALDeadLetterScrubTests(SimpleTestCase):
+    def test_redacts_credential_fields_in_actions(self):
+        import json as _json
+
+        from apps.wal_stream.tasks import _scrub_envelope_for_deadletter
+
+        raw = _json.dumps({
+            "txn_id": "abc",
+            "actions": [
+                {"username": "t@x.com", "password": "hunter2", "staff_id": "S1"},
+                {"fields": {"api_key": "k", "name": "ok"}},
+            ],
+        })
+        out = _json.loads(_scrub_envelope_for_deadletter(raw))
+        self.assertEqual(out["actions"][0]["password"], "***redacted***")
+        self.assertEqual(out["actions"][0]["username"], "t@x.com")  # not a secret key
+        self.assertEqual(out["actions"][1]["fields"]["api_key"], "***redacted***")
+        self.assertEqual(out["actions"][1]["fields"]["name"], "ok")
+
+    def test_parse_failure_returns_safe_placeholder(self):
+        import json as _json
+
+        from apps.wal_stream.tasks import _scrub_envelope_for_deadletter
+
+        out = _json.loads(_scrub_envelope_for_deadletter(b"not-json"))
+        self.assertTrue(out["scrubbed"])
+        self.assertTrue(out["parse_failed"])
+
+
+class WALPurgeKeyCoverageTests(SimpleTestCase):
+    @override_settings(REDIS_URL="redis://localhost:6379/0")
+    def test_purge_includes_lock_key(self):
+        import hashlib
+        import uuid
+        from unittest import mock
+
+        import redis as redis_mod
+
+        from apps.wal_stream.tasks import purge_streams_for_school
+
+        pk = uuid.uuid4()
+        h = hashlib.sha256(str(pk).encode("utf-8")).hexdigest()[:12]
+        client = mock.MagicMock()
+        client.delete.return_value = 5
+        with mock.patch.object(redis_mod.Redis, "from_url", return_value=client):
+            purge_streams_for_school(pk)
+        keys = set(client.delete.call_args[0])
+        self.assertIn(f"rmc.wal.lock.{h}", keys)
+
+
 class WALConflictRecordTests(SimpleTestCase):
     def test_record_wal_conflicts_noop_without_tenant_or_items(self):
         from apps.wal_stream.tasks import record_wal_conflicts
