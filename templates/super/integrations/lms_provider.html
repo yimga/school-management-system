@@ -3,7 +3,7 @@
 {% block title %}{{ provider }} — {% trans "LMS connectors" %} — {{ block.super }}{% endblock %}
 {% block content %}
 <div class="container-fluid rmc-page" style="max-width: 1100px;">
-  <nav style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+  <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
     <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
     <span aria-hidden="true">›</span>
     <a href="{% url 'portal:lms_index' %}" style="color: var(--text-secondary); text-decoration: none;">{% trans "LMS connectors" %}</a>
@@ -11,26 +11,26 @@
     <span style="color: var(--text-primary);">{{ provider }}</span>
   </nav>
   <header class="rmc-page__header" style="margin-bottom: 14px;">
-    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">{{ provider }} {% trans "tokens" %}</h1>
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{{ provider }} {% trans "tokens" %}</h1>
   </header>
 
   <section style="margin-bottom: 18px; padding: 14px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <h2 style="font-size: 0.95rem; margin: 0 0 10px;">{% trans "Add or update token" %}</h2>
+    <h2 style="font-size: var(--type-size-caption); margin: 0 0 10px;">{% trans "Add or update token" %}</h2>
     <form method="post" action="{% url 'portal:lms_token_save' provider %}" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
       {% csrf_token %}
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "School ID" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "School ID" %}
         <input name="school" type="number" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Base URL (Canvas/Moodle)" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Base URL (Canvas/Moodle)" %}
         <input name="base_url" type="url" placeholder="https://canvas.school.edu" style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary); grid-column: span 2;">{% trans "Access token" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary); grid-column: span 2;">{% trans "Access token" %}
         <input name="access_token" type="password" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Refresh token (optional)" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Refresh token (optional)" %}
         <input name="refresh_token" type="password" style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Scope (optional)" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Scope (optional)" %}
         <input name="scope" type="text" style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
       <button type="submit" style="grid-column: span 2; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Save token" %}</button>
@@ -38,22 +38,22 @@
   </section>
 
   <section style="margin-bottom: 18px; padding: 14px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <h2 style="font-size: 0.95rem; margin: 0 0 10px;">{% trans "Push grade" %}</h2>
+    <h2 style="font-size: var(--type-size-caption); margin: 0 0 10px;">{% trans "Push grade" %}</h2>
     <form method="post" action="{% url 'portal:lms_push_grade' provider %}" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
       {% csrf_token %}
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "School ID" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "School ID" %}
         <input name="school" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Course ID" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Course ID" %}
         <input name="course_id" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Assignment ID" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Assignment ID" %}
         <input name="assignment_id" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "User ID" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "User ID" %}
         <input name="user_id" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Score" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Score" %}
         <input name="score" type="number" step="0.01" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
       <button type="submit" style="grid-column: span 3; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Push grade" %} →</button>
@@ -62,11 +62,11 @@
 
   {% if action_result %}
     <section style="margin-bottom: 14px; padding: 12px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated);">
-      <h3 style="font-size: 0.85rem; margin: 0 0 8px; color: var(--text-secondary);">{% trans "Action result" %} ({% trans "school" %} #{{ action_result.school }})</h3>
+      <h3 style="font-size: var(--type-size-caption); margin: 0 0 8px; color: var(--text-secondary);">{% trans "Action result" %} ({% trans "school" %} #{{ action_result.school }})</h3>
       {% if action_result.error %}
-        <p style="font-size: 13px; color: var(--text-secondary);">{{ action_result.error }}</p>
+        <p style="font-size: var(--type-size-caption); color: var(--text-secondary);">{{ action_result.error }}</p>
       {% else %}
-        <ul style="margin: 0; padding-left: 18px; font-size: 13px;">
+        <ul style="margin: 0; padding-left: 18px; font-size: var(--type-size-caption);">
           {% for c in action_result.courses %}
             <li>{% if c.error %}<span style="color: var(--text-secondary);">{{ c.error }}</span>{% else %}<strong>{{ c.name }}</strong> · {{ c.code }} · {{ c.term|default:"—" }} ({{ c.id }}){% endif %}</li>
           {% endfor %}
@@ -76,9 +76,9 @@
   {% endif %}
 
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
       <thead>
-        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+        <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "School" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Base URL" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Token" %}</th>
@@ -90,11 +90,11 @@
         {% for r in rows %}
           <tr>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.school.name|default:r.school_id }}</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 12px;">{{ r.base_url|default:"—" }}</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 12px;">{{ r.masked_token|default:"—" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ r.base_url|default:"—" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ r.masked_token|default:"—" }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.updated_at|date:"Y-m-d H:i" }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">
-              <a href="?school={{ r.school_id }}&action=list_courses" style="font-size: 11px; color: var(--text-secondary);">{% trans "list courses" %} →</a>
+              <a href="?school={{ r.school_id }}&action=list_courses" style="font-size: var(--type-size-micro); color: var(--text-secondary);">{% trans "list courses" %} →</a>
             </td>
           </tr>
         {% empty %}

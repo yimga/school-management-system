@@ -7,7 +7,8 @@ html[data-surface="tenant"] body.portal-body-with-layout {
   --rmc-assist-edge-bottom: max(16px, env(safe-area-inset-bottom, 0px));
   --rmc-assist-edge-right: max(16px, env(safe-area-inset-right, 0px));
   --rmc-assist-btn-size: 48px;
-  --rmc-assist-gap: 10px;
+  --rmc-assist-gap: 12px;
+  --rmc-assist-rail-height: 0px;
   --rmc-assist-panel-width: min(400px, calc(100vw - 2rem));
   --rmc-assist-panel-max-h: min(640px, calc(100vh - 7rem));
 }
@@ -99,7 +100,38 @@ body.control-plane-shell:has(.rmc-kb-operator) .rmc-assist-dock__secondary:not(:
 
 .rmc-assist-dock__slot {
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
+  position: relative;
+  /* Pulse/halos on workflow + badges extend outside the hit box. */
+  padding: 4px;
+  margin: -4px;
+  overflow: visible;
+}
+
+/* Workflow chip in the dock — same footprint as other rail actions. */
+.rmc-assist-dock__slot--workflow-progress .rmc-wfp-chip,
+.rmc-assist-dock__btn--workflow-progress.rmc-wfp-chip {
+  width: var(--rmc-assist-btn-size);
+  height: var(--rmc-assist-btn-size);
+  min-width: var(--rmc-assist-btn-size);
+  min-height: var(--rmc-assist-btn-size);
+}
+
+.rmc-assist-dock__slot--workflow-progress .rmc-wfp-chip__count,
+.rmc-assist-dock__btn--workflow-progress .rmc-wfp-chip__count {
+  z-index: 3;
+}
+
+.rmc-assist-dock__slot:has(.rmc-assist-dock__btn--ai) {
+  padding-top: 6px;
+  margin-top: -6px;
+}
+
+body[data-rmc-assist-dock="mounted"] .lx-notebook {
+  right: calc(var(--rmc-assist-edge-right) + var(--rmc-assist-btn-size) + 1.25rem);
+  bottom: calc(var(--rmc-assist-edge-bottom) + var(--rmc-assist-rail-height, 120px) + var(--rmc-assist-gap));
+  z-index: 10479;
 }
 
 /* --- Unified circular actions --- */
@@ -337,6 +369,9 @@ body.control-plane-shell:has(.rmc-kb-operator) .rmc-assist-dock__secondary:not(:
     background 140ms ease,
     border-color 140ms ease;
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rmc-assist-dock__quick-action:hover,

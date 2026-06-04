@@ -123,8 +123,8 @@ def render_audit_packet_jsonl(packet: dict) -> bytes:
         # Truncate detail to 1024 chars
         out_row = dict(row)
         detail = out_row.get("detail", "")
-        if detail and len(detail) > 1024:
-            out_row["detail"] = detail[:1024]
+        if detail and len(detail) > 1024:  # magic-number-allow: field-char-cap
+            out_row["detail"] = detail[:1024]  # magic-number-allow: string-truncation-cap
         lines.append(json.dumps(out_row, sort_keys=True, separators=(",", ":"), default=str))
     text = "\n".join(lines) + "\n"
     out_buf = io.BytesIO()

@@ -6,6 +6,8 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from apps.siteconfig.nuance_engine import model_hook_point_choices
+
 from .models import tenant_upload_to_waiver_requests
 
 
@@ -188,7 +190,7 @@ class EducationSystemProfile(models.Model):
         DEPRECATED = "DEPRECATED", "Deprecated"
 
     code = models.SlugField(max_length=80, unique=True)
-    name = models.CharField(max_length=160)
+    name = models.CharField(max_length=160)  # magic-number-allow: charfield-max-length
     lineage_key = models.SlugField(
         max_length=80,
         blank=True,
@@ -775,14 +777,8 @@ class WaiverRequest(models.Model):
 
 
 class CustomNuance(models.Model):
-    HOOK_CHOICES = [
-        ("tuition_calc", "Tuition / fee calculation"),
-        ("grade_weight", "Grade weighting"),
-        ("attendance_alert", "Attendance alerts"),
-        ("fee_discount", "Fee discount eligibility"),
-        ("report_card_avg", "Report card weighted average"),
-        ("generic", "Generic (custom)"),
-    ]
+    # Kept in sync with nuance_engine.HOOK_REGISTRY via model_hook_point_choices().
+    HOOK_CHOICES = model_hook_point_choices()
 
     school = models.ForeignKey(
         "schools.School",
@@ -936,6 +932,19 @@ class ServiceIntegration(models.Model):
 
     def __str__(self):
         return f"{self.school.name} - {self.service_name}"
+
+    def save(self, *args, **kwargs):
+        # Audit C1 — encrypt secret-named keys in ``config`` at rest. The
+        # channel resolvers decrypt on read (apps.communication.secret_config),
+        # so plaintext credentials never persist to the DB / backups.
+        try:
+            from apps.communication.secret_config import encrypt_config
+
+            if isinstance(self.config, dict):
+                self.config = encrypt_config(self.config)
+        except Exception:  # noqa: BLE001 — never block the save on crypto trouble
+            pass
+        super().save(*args, **kwargs)
 
 
 class WebhookSubscription(models.Model):

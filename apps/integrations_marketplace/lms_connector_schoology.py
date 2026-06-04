@@ -36,7 +36,7 @@ DEFAULT_AUTHORIZE_URL = "https://www.schoology.com/oauth/authorize"
 DEFAULT_TOKEN_URL = "https://api.schoology.com/v1/oauth/access_token"
 
 OAUTH_STATE_SALT = "rmc.lms.schoology.oauth_state.v4.00.71"
-OAUTH_STATE_TTL_SECONDS = 600  # 10 min
+OAUTH_STATE_TTL_SECONDS = 600  # 10 min  # magic-number-allow: ttl-seconds
 
 
 def oauth_authorize_url(
@@ -374,7 +374,7 @@ def exchange_authorization_code_for_token(*, code: str, client_id: str,
         return {
             "access_token": "dry-run-access-token",
             "refresh_token": "dry-run-refresh-token",
-            "expires_in": 3600,
+            "expires_in": 3600,  # magic-number-allow: ttl-seconds
             "token_type": "Bearer",
             "scope": " ".join(DEFAULT_SCOPES) if DEFAULT_SCOPES else "",
             "dry_run": True,
@@ -581,7 +581,7 @@ def refresh_access_token(*, refresh_token: str, client_id: str,
         return {
             "access_token": "dry-run-refreshed-access-token",
             "refresh_token": "dry-run-refreshed-refresh-token",
-            "expires_in": 3600,
+            "expires_in": 3600,  # magic-number-allow: ttl-seconds
             "token_type": "Bearer",
             "scope": " ".join(DEFAULT_SCOPES) if DEFAULT_SCOPES else "",
             "dry_run": True,

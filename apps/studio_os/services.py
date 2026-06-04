@@ -1398,21 +1398,14 @@ def get_launch_readiness_summary(request: Any) -> dict[str, Any]:
         "service_online": False,
     }
     school = getattr(request, "school", None) if request is not None else None
-    # Approvals pending: best-effort count from approval-workflow domain.
+    # Pending tenant onboarding approvals (manager launch cockpit).
     try:
-        from apps.accounts.models_workflow import ApprovalWorkflow  # type: ignore[import-not-found]
+        from apps.schools.models import School
 
-        qs = ApprovalWorkflow.objects.all()
+        qs = School.objects.filter(is_active=False, is_approved=False)
         if school is not None:
-            try:
-                # tenant-isolation-allow: launch-cockpit-tenant-scoped-approval-count
-                qs = qs.filter(school=school)
-            except _STUDIO_SOFT_FAILURES:
-                pass
-        try:
-            qs = qs.filter(status__iexact="pending")
-        except _STUDIO_SOFT_FAILURES:
-            pass
+            # tenant-isolation-allow: launch-cockpit-tenant-scoped-approval-count
+            qs = qs.filter(pk=school.pk)
         summary["approvals_pending"] = int(qs.count())
         summary["service_online"] = True
     except _STUDIO_SOFT_FAILURES as e:

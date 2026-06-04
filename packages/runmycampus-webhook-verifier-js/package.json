@@ -40,11 +40,11 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/runmycampus/runmycampus.git",
+    "url": "https://github.com/yimga/school-management-system.git",
     "directory": "beta/school-management-system/packages/runmycampus-webhook-verifier-js"
   },
   "bugs": {
-    "url": "https://github.com/runmycampus/runmycampus/issues"
+    "url": "https://github.com/yimga/school-management-system/issues"
   },
   "homepage": "https://runmycampus.com",
   "engines": {

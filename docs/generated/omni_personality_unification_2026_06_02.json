@@ -1,0 +1,56 @@
+{
+  "operation": "OMNI-PERSONALITY-UNIFICATION (Lever A: one color SOT extended to functional areas; Lever B: bespoke premium hero exemplar)",
+  "date": "2026-06-02",
+  "follows": "omni_page_personality_audit_2026_06_02.json (WAVE 5 — bound shared chrome to System A accent)",
+  "decision": "Resolve the two-personality-system split by making System A (data-rmc-page-personality) the SINGLE color SOT and EXTENDING it to cover the tenant functional areas that previously fell through to generic indigo. Did NOT emit System B (data-rmc-page-domain) server-side — that would double-color pages (System A finance=green vs System B finance=bronze on the same page). System B is retained for its glyph/tagline markers + legacy JS surfaces, its --rmc-page-accent already bridged to System A at :root (WAVE 5 PP-4).",
+  "lever_a_applied": {
+    "summary": "Added 4 functional-area personalities + fixed a pre-existing miscategorization, all consumed automatically by the WAVE-5 chrome (eyebrow + header spine).",
+    "new_slugs": ["academic (violet #7c3aed)", "people (teal #0d9488)", "communication (rose #db2777)", "admissions (fuchsia #c026d3)"],
+    "files": [
+      {
+        "file": "apps/siteconfig/page_personality.py",
+        "change": "PERSONALITY_SLUGS += 4. New _PATH_PREFIX_RULES: /academics/ + /evals/ -> academic; /communication/ -> communication; AND the specificity fix for the accounts app (mounted at /authentication/): /authentication/backend/students|teachers|classrooms|alumni/ -> people, /authentication/backend/applicants/ -> admissions, /authentication/backend/ -> tenant-admin. These precede the generic /authentication/ -> auth rule.",
+        "bug_fixed": "PRE-EXISTING: the entire tenant backend (dashboard, roster, applicants) lived under /authentication/backend/ and matched /authentication/ -> 'auth', painting core admin pages violet. Now correctly people/admissions/tenant-admin."
+      },
+      {
+        "file": "static/css/design-tokens-personality.css",
+        "change": "4 new light personality blocks (6.12-6.15) + 4 dark-theme variant blocks, each with accent/soft/tint/strong/deep/on/gradient/eyebrow + off-token-allow markers, mirroring the existing 11."
+      },
+      {
+        "file": "apps/siteconfig/forms_theme_personality.py",
+        "change": "4 _ARCHETYPES catalog entries + 4 accent_* hex fields so operators can override the new areas via the cockpit (ACCENT_FIELDS now 14). Round-trip verified."
+      }
+    ],
+    "validation": {
+      "resolver_smoke": "10/10 path->slug cases correct incl. backend specificity fix",
+      "form_round_trip": "14 archetypes, 14 ACCENT_FIELDS, 0 missing field defs, 4 new slugs build+seed correctly",
+      "scan_off_token_colors": "0",
+      "scan_theme_locked_token_text": "0",
+      "ast_parse": "clean (both .py)"
+    }
+  },
+  "lever_b_applied": {
+    "summary": "Bespoke premium hero EXEMPLAR on the worst generic destination page, using only defined components, to set the repeatable pattern.",
+    "file": "templates/communication/group_list.html",
+    "change": "Replaced the bespoke flat <h1> header with a `.rmc-page-header-glow` premium hero (now carries the communication rose personality spine + eyebrow from the cascade) + a 3-card `.rmc-stat-card` ribbon (Department groups / My groups / Active conversations) computed from existing context (department_threads, my_threads) via {% with %} + |add. The page now reads as a workbench, not header+table.",
+    "validation": {
+      "audit_template_render_safety": "0",
+      "scan_inline_style_off_token": "0",
+      "scan_undefined_css_classes": "no new undefined (rmc-stat-card*/rmc-page-eyebrow/rmc-page-header-glow all defined)"
+    }
+  },
+  "service_worker": "sms-v4.01.36-personality-area-unification-2026-06-02 (v4.01.35 was taken concurrently by the parallel workflow-progress-10x wave; bumped to .36 to stay monotonic)",
+  "flagged_repeatable_followups": [
+    {
+      "id": "PB-N1", "severity": "premium-gap (per-page, same recipe)",
+      "finding": "Remaining generic destination pages want the same hero+ribbon treatment now proven on communication/group_list.",
+      "targets": ["templates/people/backend_student_list.html (HIGH traffic — already has rmc-five-col status; add glow hero + reuse the breakdown as the ribbon)", "templates/people/backend_teacher_list.html", "templates/people/backend_classroom_list.html", "templates/people/backend_applicant_list.html (admissions personality)", "templates/siteconfig/dashboard_hub.html"],
+      "recipe": "1) swap bespoke <h1> for `.rmc-page-header-glow` + `.rmc-page-eyebrow` (personality auto-applies); 2) add a `.rmc-stat-card` row from the view's existing counts; 3) per-page because each list's context vars + card markup differ (screenshot-diff)."
+    },
+    {
+      "id": "PB-N2", "severity": "low (optional)",
+      "finding": "System B per-domain accents still diverge from System A on the narrow surfaces where admin-quickaction.js sets data-rmc-page-domain (pre-existing, not introduced here). Optional: align System B's 12 domain --rmc-page-accent values to defer to --personality-accent so even JS-set domains follow the single SOT. Left as-is to avoid over-reach; :root already bridges the default."
+    }
+  ],
+  "principle": "Unify by choosing ONE color SOT (System A, already universal + consumed) and extending it to the functional areas, rather than activating a second divergent palette. Fixed a real backend->auth miscategorization in the process. Proved the premium-hero pattern on one page with defined components; flagged the rest with the exact recipe rather than rushing a wide sweep."
+}

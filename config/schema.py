@@ -30,7 +30,7 @@ def _can_access_global_school_registry(request) -> bool:
     if not user_has_control_plane_access(user):
         return False
     host_kind = (getattr(request, "public_host_kind", None) or "").lower()
-    return host_kind in {"manager", "local", ""}
+    return host_kind == "manager"
 
 
 class UserType(graphene.ObjectType):

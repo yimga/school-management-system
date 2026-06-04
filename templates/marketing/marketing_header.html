@@ -96,18 +96,16 @@
           {% endif %}
         </li>
         {% endif %}
+        <li class="nav-item mkt-nav-appearance px-3 py-2">
+          <span class="d-block small text-uppercase text-white-50 mb-2">{% trans "Appearance" %}</span>
+          {% include "components/header_theme_chip.html" with theme_chip_layout="nav-drawer" %}
+        </li>
       </ul>
       <div class="d-flex align-items-center gap-2 flex-shrink-0">
         {% if request.user.is_authenticated %}
         {% include "partials/rmc_security_posture_nav_button.html" %}
         {% endif %}
-        {% comment %} v4.01.07: unified theme + aesthetic chip — SOT in
-           components/header_theme_chip.html. Replaces the prior
-           marketing/components/_theme_toggle.html include so every shell renders
-           the SAME control at the SAME anchor. Partial self-gates on
-           PUBLIC_BRAND_MODE / authenticated so anonymous marketing visitors
-           still see it. {% endcomment %}
-        {% include "components/header_theme_chip.html" %}
+        {% comment %} v4.01.43: theme controls in profile dropdown (auth) or nav drawer (guest). {% endcomment %}
         {% include "marketing/components/_marketing_region_affordance.html" %}
         <a class="mkt-status-pill" href="{% url 'status' %}" data-mkt-status aria-label="{% trans 'Platform status' %}" title="{% trans 'Platform status' %}">
           <span class="mkt-status-pill__dot" aria-hidden="true"></span>

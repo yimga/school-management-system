@@ -66,8 +66,25 @@ def manager_help(request):
 
 
 def manager_support_request(request):
+    """Operator "Contact Support" intake form.
+
+    The dedicated support-contact form is preserved as the operator's support
+    surface. We only DEFAULT its post-submission destination to the live
+    ``manager_feedback_loop`` console — where operator support + feedback
+    submissions are aggregated — when the caller didn't pass an explicit
+    ``next``. This honours the operator support→feedback-loop flow without
+    removing the intake form.
+    """
+    from django.urls import reverse
     from config.manager_operator_support import manager_support_request as _view
 
+    if not (request.GET.get("next") or request.POST.get("next")):
+        try:
+            mutable = request.GET.copy()
+            mutable["next"] = reverse("manager_feedback_loop")
+            request.GET = mutable
+        except Exception:  # pragma: no cover - defensive
+            pass
     return _view(request)
 
 

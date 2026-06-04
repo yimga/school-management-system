@@ -17,6 +17,7 @@ SHELLS = (
     "templates/marketing/base_marketing.html",
     "templates/admin/base.html",
     "templates/admin/base_site.html",
+    "templates/partials/rmc_platform_chrome_scripts.html",
 )
 
 ALWAYS_POLICY_SHELLS = (
@@ -39,7 +40,11 @@ def main() -> int:
             failures.append(f"missing shell: {rel}")
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        if "back_to_top.html" not in text:
+        if rel.endswith("rmc_platform_chrome_scripts.html"):
+            if "back_to_top.html" not in text:
+                failures.append("rmc_platform_chrome_scripts.html: missing back_to_top include")
+            continue
+        if "back_to_top.html" not in text and "rmc_platform_chrome_scripts.html" not in text:
             failures.append(f"no back-to-top: {rel}")
 
     for rel in ALWAYS_POLICY_SHELLS:
@@ -62,10 +67,13 @@ def main() -> int:
     admin_base = ROOT / "templates/admin/base.html"
     if admin_base.is_file():
         admin_text = admin_base.read_text(encoding="utf-8", errors="replace")
-        marker = "</div>\n    {% if is_manager_host %}\n    {% include 'components/back_to_top.html' %}"
-        if marker not in admin_text.replace("\r\n", "\n"):
+        admin_norm = admin_text.replace("\r\n", "\n")
+        if (
+            "rmc_platform_chrome_scripts.html" not in admin_norm
+            or "</div>\n    {% if is_manager_host %}" not in admin_norm
+        ):
             failures.append(
-                "admin/base.html must mount back-to-top outside .rmc-app-shell (fixed positioning)"
+                "admin/base.html must mount platform chrome scripts outside .rmc-app-shell"
             )
 
     fold_css = ROOT / "templates/partials/rmc_platform_chrome_styles.html"

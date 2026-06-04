@@ -57,6 +57,7 @@
     {% include "partials/rmc_dashboard_corporate_os_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-os-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
@@ -98,6 +99,7 @@
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
     <link rel="stylesheet" href="{% static 'css/regional-rtl.css' %}">
     <link rel="stylesheet" href="{% static 'css/glocal-text-expansion.css' %}">
@@ -126,6 +128,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
     {% comment %} v3.55.0+ (2026-05-21): 200x luxury cockpit — 10 elements layered over v7
        (AI Copilot rail, world map, forecast lane, operator notebook, tenant heatmap,
        revenue waterfall, audit feed, trust nutrition, SLO clocks, operator presence).
@@ -157,12 +161,11 @@
     <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </head>
-  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-back-to-top-policy="always" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1" data-rmc-notebook-footer-dock="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-back-to-top-policy="always" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% block content %}
-    {% include "components/_workflow_auto_chrome.html" %}
     {% comment %} v3.55.0 (2026-05-21): .rmc-app-shell — platform-wide grid contract.
        header (row 1, static) + sidebar (col 1, own scroll) + canvas (col 2, own scroll).
        Legacy `cp-shell-content` class kept on canvas-body for back-compat with existing
@@ -170,7 +173,9 @@
     <div class="rmc-app-shell" data-copilot="collapsed"{% block rmc_app_shell_attrs %}{% endblock %}{% block cp_shell_content_attrs %}{% endblock %}>
       {% block rmc_app_shell_inner %}
       <header class="rmc-app-shell__header" role="banner">
-        {% block cp_shell_header %}{% endblock %}
+        {% block cp_shell_header %}
+        {% include "partials/control_plane_unified_header.html" %}
+        {% endblock %}
       </header>
       <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Control plane navigation' %}">
         {% block cp_shell_sidebar %}{% endblock %}
@@ -178,6 +183,7 @@
       <div class="rmc-app-shell__canvas">
         {% block cp_shell_canvas_chrome %}{% endblock %}
         <div class="rmc-app-shell__canvas-body cp-shell-content{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}">
+          {% include "components/_workflow_auto_chrome.html" %}
           {% comment %} Quarterly posture: collapsible inline banner in cp-main-content
              (control_plane_base / portal_base / manager admin). Corner toast suppressed
              when inline is active. {% endcomment %}
@@ -200,16 +206,14 @@
       {% include "partials/cockpit/_pulse_drill_sheet.html" %}
       {% comment %} v3.55.0+ (2026-05-21): 200x Element 1 — AI Copilot rail (grid col 3). Self-gates on cockpit.ai_copilot_rail.enabled. {% endcomment %}
       {% include "partials/cockpit/_ai_copilot_rail.html" %}
+      {% if request.user.is_authenticated %}
+      {% include "partials/cockpit/_operator_notebook.html" %}
+      {% endif %}
       {% comment %} v3.55.0: footer is a sibling grid child (row 3), NOT inside the canvas.
          This pins it to the viewport bottom alongside the static header. {% endcomment %}
       {% block cp_shell_footer %}
       {% if SHOW_MANAGER_CORPORATE_FOOTER %}
-      <div class="rmc-footer-notebook-anchor" data-rmc-footer-notebook-anchor aria-hidden="false">
-        {% include "partials/cockpit/_operator_notebook.html" %}
-      </div>
-      <footer class="rmc-app-shell__footer cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
-        {% include "partials/rmc_operator_footer_compact.html" %}
-      </footer>
+      {% include "partials/rmc_operator_footer_civic.html" %}
       {% endif %}
       {% endblock %}
       {% endblock %}
@@ -219,6 +223,10 @@
     {% endif %}
     {% include "partials/help_contextual_drawer.html" %}
     {% block cp_shell_after %}{% endblock %}
+    {% if request.user.is_authenticated and request.public_host_kind == 'manager' %}
+    {% include "partials/cockpit/_activity_ticker_drawer.html" %}
+    <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
+    {% endif %}
     {% endblock %}
     {% comment %} v3.57.10 (2026-05-22): removed components/ai_copilot.html floating FAB +
        rmc-page-help-fab per v8 200x preview parity — the AI copilot is the rmc-app-shell__copilot
@@ -227,10 +235,8 @@
     {% if request.user.is_authenticated %}
       {% include 'components/rmc_command_palette.html' %}
       <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
-      {% include 'components/back_to_top.html' %}
       {% include "partials/rmc_platform_chrome_scripts.html" %}
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
-      <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
       {% include "partials/rmc_isomorphic_grid_boot.html" %}
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
       {% include "partials/portal_row_detail_drawer_bundle.html" %}
@@ -276,10 +282,13 @@
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% comment %} v4.01.03: g-chord → chip click bridge — bridge no-ops on control-plane surface so existing g-ladder stays authoritative. {% endcomment %}
     {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
+    <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% include "partials/rmc_command_bar.html" %}
     {% endif %}
     {% block extrajs %}{% endblock %}
+    {% comment %} v4.01.45: terminal dual-plane pass after late-loaded block CSS. {% endcomment %}
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </body>
 </html>

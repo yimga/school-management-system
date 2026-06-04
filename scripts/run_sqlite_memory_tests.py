@@ -62,6 +62,9 @@ def main() -> int:
     env["RMC_SQLITE_TEST_USE_MEMORY_NAME"] = "0"
     env["DJANGO_TEST_DB_FILE"] = str(tfile)
     env.setdefault("PYTHONUNBUFFERED", "1")
+    # Default serial DB access — parallel workers multiply SQLite lock errors on one file.
+    if "--parallel" not in argv:
+        argv = [*argv, "--parallel=1"]
     cmd = [
         sys.executable,
         str(root / "manage.py"),

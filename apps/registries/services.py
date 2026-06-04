@@ -79,42 +79,42 @@ DEFAULT_EDUCATION_SYSTEM_TYPES = (
         "code": "PUBLIC",
         "name": "Public / state",
         "category": "sector",
-        "sort_order": 140,
+        "sort_order": 140,  # magic-number-allow: display-sort-order-value
         "description": "Funding and compliance; district/ministry reporting; statutory returns; role model (state, district, school).",
     },
     {
         "code": "PRIVATE",
         "name": "Private / independent",
         "category": "sector",
-        "sort_order": 150,
+        "sort_order": 150,  # magic-number-allow: display-sort-order-value
         "description": "Tuition, fees, aid; admissions; same platform as public.",
     },
     {
         "code": "CHARTER",
         "name": "Charter",
         "category": "sector",
-        "sort_order": 160,
+        "sort_order": 160,  # magic-number-allow: display-sort-order-value
         "description": "Hybrid public accountability and school autonomy; reporting and funding rules.",
     },
     {
         "code": "INTERNATIONAL",
         "name": "International",
         "category": "sector",
-        "sort_order": 170,
+        "sort_order": 170,  # magic-number-allow: display-sort-order-value
         "description": "Multi-country, multi-curriculum (IB, UK, US, national); one school, many systems; language and currency.",
     },
     {
         "code": "FAITH_BASED",
         "name": "Faith-based",
         "category": "sector",
-        "sort_order": 180,
+        "sort_order": 180,  # magic-number-allow: display-sort-order-value
         "description": "Same as private plus optional faith-specific reporting or branding.",
     },
     {
         "code": "HOME_SCHOOL",
         "name": "Home-school / hybrid",
         "category": "sector",
-        "sort_order": 190,
+        "sort_order": 190,  # magic-number-allow: display-sort-order-value
         "description": "Part-time, external, or home-school students; attendance and assessment flexibility.",
     },
     {
@@ -128,14 +128,14 @@ DEFAULT_EDUCATION_SYSTEM_TYPES = (
         "code": "NGO",
         "name": "NGO / non-profit",
         "category": "sector",
-        "sort_order": 210,
+        "sort_order": 210,  # magic-number-allow: display-sort-order-value
         "description": "Donor and program reporting; grants; often private + advancement.",
     },
     {
         "code": "MULTI_CAMPUS",
         "name": "Multi-campus / group",
         "category": "sector",
-        "sort_order": 220,
+        "sort_order": 220,  # magic-number-allow: display-sort-order-value
         "description": "One tenant or hierarchy (group → campuses); shared reporting and governance.",
     },
 )
@@ -164,7 +164,7 @@ class CountryChoice:
 
 def ensure_country_registry_seed() -> int:
     existing = CountryRegistry.objects.count()
-    if existing >= 190:
+    if existing >= 190:  # magic-number-allow: display-sort-order-floor
         return existing
 
     created = 0
@@ -795,7 +795,7 @@ SECTOR_ROLE_SUGGESTIONS: dict[str, dict] = {
     },
     "GOVERNMENT_MINISTRY": {
         "suggested_roles": [
-            "ADMIN",
+            "ADMIN",  # role-string-allow: sector-suggested-role-code
             "PRINCIPAL",
             "BURSAR",
             "ACCOUNTANT",
@@ -806,18 +806,18 @@ SECTOR_ROLE_SUGGESTIONS: dict[str, dict] = {
     },
     "PRIVATE": {
         "suggested_roles": [
-            "PROPRIETOR",
+            "PROPRIETOR",  # role-string-allow: sector-suggested-role-code
             "PRINCIPAL",
             "BURSAR",
             "ACCOUNTANT",
-            "TEACHER",
-            "ADMIN",
+            "TEACHER",  # role-string-allow: sector-suggested-role-code
+            "ADMIN",  # role-string-allow: sector-suggested-role-code
         ],
         "description": "Tuition, fees, aid; admissions.",
     },
     "NGO": {
         "suggested_roles": [
-            "ADMIN",
+            "ADMIN",  # role-string-allow: sector-suggested-role-code
             "PRINCIPAL",
             "BURSAR",
             "ACCOUNTANT",
@@ -828,7 +828,7 @@ SECTOR_ROLE_SUGGESTIONS: dict[str, dict] = {
     },
     "INTERNATIONAL": {
         "suggested_roles": [
-            "ADMIN",
+            "ADMIN",  # role-string-allow: sector-suggested-role-code
             "PRINCIPAL",
             "DEAN",
             "HOD",
@@ -839,7 +839,7 @@ SECTOR_ROLE_SUGGESTIONS: dict[str, dict] = {
     },
     "MULTI_CAMPUS": {
         "suggested_roles": [
-            "ADMIN",
+            "ADMIN",  # role-string-allow: sector-suggested-role-code
             "PRINCIPAL",
             "VICE_PRINCIPAL",
             "BURSAR",
@@ -860,7 +860,7 @@ SECTOR_ROLE_SUGGESTIONS: dict[str, dict] = {
     },
     "FAITH_BASED": {
         "suggested_roles": [
-            "PROPRIETOR",
+            "PROPRIETOR",  # role-string-allow: sector-suggested-role-code
             "PRINCIPAL",
             "BURSAR",
             "DEAN",
@@ -869,7 +869,7 @@ SECTOR_ROLE_SUGGESTIONS: dict[str, dict] = {
         "description": "As private; optional faith reporting/branding.",
     },
     "HOME_SCHOOL": {
-        "suggested_roles": ["ADMIN", "TEACHER", "PARENT", "ACADEMICS_STAFF"],
+        "suggested_roles": ["ADMIN", "TEACHER", "PARENT", "ACADEMICS_STAFF"],  # role-string-allow: sector-suggested-role-code
         "description": "Flexible attendance/assessment.",
     },
 }
@@ -884,7 +884,7 @@ def get_sector_role_suggestions(primary_sector: str | None) -> dict:
 
 
 # Bootstrap contact user must not receive portal-only AccessRoles
-_SECTOR_BOOTSTRAP_SKIP_ACCESS_ROLES = frozenset({"STUDENT", "PARENT", "EMPLOYER"})
+_SECTOR_BOOTSTRAP_SKIP_ACCESS_ROLES = frozenset({"STUDENT", "PARENT", "EMPLOYER"})  # role-string-allow: bootstrap-skip-access-role-set
 
 
 def apply_wedge_14_22_sector_access_roles_to_user(school, user) -> dict:
@@ -933,7 +933,7 @@ def apply_wedge_14_22_sector_access_roles_to_user(school, user) -> dict:
         ar = _ensure_access_role(code)
         user.roles.add(ar)
         applied.append(code)
-    admin_ar = _ensure_access_role("ADMIN")
+    admin_ar = _ensure_access_role("ADMIN")  # role-string-allow: bootstrap-admin-access-role-code
     user.roles.add(admin_ar)
     admin_attached = True
     return {

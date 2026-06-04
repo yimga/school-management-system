@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 _KEY_PREFIX = "ai:metrics:"
 # Soft cap so a runaway key-scan can't OOM the worker on a misconfigured cluster.
-_MAX_KEYS_PER_RUN = 50_000
+_MAX_KEYS_PER_RUN = 50_000  # magic-number-allow: in-memory-ring-buffer-cap
 
 
 def _parse_key(raw_key: str) -> tuple[str, str, str, str, str] | None:

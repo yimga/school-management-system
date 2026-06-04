@@ -122,9 +122,14 @@ def preview_import(data: Iterable[dict]) -> GradeImportPreview:
     return GradeImportPreview(rows=rows, errors=errors)
 
 
-def apply_import(preview: GradeImportPreview, academic_year):
+def apply_import_from_preview(preview: GradeImportPreview, academic_year):
     """
     Persist rows from a validated preview. Caller ensures permissions.
+
+    NOTE: previously also named ``apply_import`` — it was silently shadowed by
+    the csv-rows ``apply_import`` defined later in this module, so the
+    migration grade-import path (which passes a GradeImportPreview) was calling
+    the wrong function. Renamed to disambiguate.
     """
     if not preview.is_valid:
         raise ValidationError("Preview contains errors; aborting import.")

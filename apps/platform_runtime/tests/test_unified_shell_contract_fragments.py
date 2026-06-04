@@ -116,6 +116,8 @@ class UnifiedShellTemplateFragmentTests(SimpleTestCase):
             {
                 "request": request,
                 "platform_status_strip": None,
+                "operator_incident_banner": None,
+                "tenant_incident_banner": None,
                 "rmc_offline_sync_state": {"pending": 0, "failed": 0, "conflicts": 0},
             },
         )

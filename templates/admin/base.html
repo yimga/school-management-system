@@ -2,7 +2,7 @@
 
 {% load admin_list i18n unfold admin_urls static %}
 {% block base %}
-    <div class="rmc-app-shell admin-cp-unified-page {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}" data-rmc-isomorphic-template="tenant-admin-hub"{% if is_manager_host %} data-rmc-admin-cp-unified="1" data-rmc-backoffice-frame="v2" data-copilot="collapsed"{% endif %}>
+    <div class="rmc-app-shell admin-cp-unified-page{% if is_manager_host %} admin-manager-shell control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% endif %} {% if not is_manager_host %}rmc-app-shell--no-sidebar{% endif %}" data-rmc-shell-root="django-admin" data-rmc-app-shell-host="{% if is_manager_host %}manager{% else %}tenant{% endif %}" data-rmc-isomorphic-template="tenant-admin-hub"{% if is_manager_host %} data-rmc-admin-cp-unified="1" data-rmc-backoffice-frame="v2" data-copilot="collapsed"{% endif %}>
 
         {% comment %} ---------- Grid row 1 — static header (viewport-pinned) ---------- {% endcomment %}
         {% comment %}v3.59.9 (2026-05-22): added data-rmc-control-plane-chrome="1" so
@@ -12,18 +12,7 @@
            source of the manager topbar on the /admin/ shell.{% endcomment %}
         <header class="rmc-app-shell__header" role="banner" data-rmc-admin-shell-header="1"{% if is_manager_host %} data-rmc-control-plane-chrome="1"{% endif %}>
             {% if is_manager_host %}
-            <div class="cp-header" data-rmc-cp-header-200x="1">
-              <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
-                <div class="cp-header__row cp-header__row--utility">
-                  {% include "partials/manager_operator_topbar.html" %}
-                </div>
-                <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
-                  {% include "partials/control_plane_primary_nav.html" %}
-                </div>
-                {% comment %} cp-live-strip: admin v1 200x live strip after nav row {% endcomment %}
-                {% include "partials/cockpit/_activity_ticker.html" %}
-              </div>
-            </div>
+            {% include "partials/control_plane_unified_header.html" %}
             {% else %}
                 {% include "unfold/helpers/header.html" %}
             {% endif %}
@@ -58,6 +47,12 @@
                         </div>
                     </div>
                 {% endblock messages %}
+
+                {% if is_manager_host and request.user.is_authenticated %}
+                <div class="px-4">
+                    {% include "partials/cockpit/_operator_incident_banner.html" %}
+                </div>
+                {% endif %}
 
                 {% if is_manager_host and request.user.is_authenticated %}
                 <div class="px-4">
@@ -149,23 +144,21 @@
 
         {% if is_manager_host %}
         {% include "partials/cockpit/_ai_copilot_rail.html" %}
+        {% if request.user.is_authenticated %}
+        {% include "partials/cockpit/_operator_notebook.html" %}
+        {% endif %}
         {% endif %}
 
         {% comment %} ---------- Grid row 3 — static footer (viewport-pinned) ---------- {% endcomment %}
         {% if is_manager_host %}
-        <div class="rmc-footer-notebook-anchor" data-rmc-footer-notebook-anchor>
-          {% include "partials/cockpit/_operator_notebook.html" %}
-        </div>
-        <footer class="rmc-app-shell__footer cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
-          {% include "partials/rmc_operator_footer_compact.html" %}
-        </footer>
+        {% include "partials/rmc_operator_footer_civic.html" %}
         {% include "admin/manager_cp_offcanvas.html" %}
+        {% include "partials/cockpit/_activity_ticker_drawer.html" %}
+        <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
         {% endif %}
 
     </div>
     {% if is_manager_host %}
-    {% include 'components/back_to_top.html' %}
-    <link rel="stylesheet" href="{% static 'css/rmc-page-fold-standards.css' %}">
-    <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
+    {% include "partials/rmc_platform_chrome_scripts.html" %}
     {% endif %}
 {% endblock %}

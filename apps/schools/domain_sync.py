@@ -13,6 +13,8 @@ from django.db import transaction
 from django.db.utils import DatabaseError
 from django.utils import timezone
 
+from apps.platform_runtime.structured_logging import log_exception_with_context
+
 logger = logging.getLogger(__name__)
 
 

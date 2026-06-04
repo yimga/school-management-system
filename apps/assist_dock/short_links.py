@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 SHORT_LINK_TOKEN_BYTES = 16          # 22 base64-urlsafe chars
 SHORT_LINK_DEFAULT_TTL_HOURS = 24
-SHORT_LINK_MAX_TTL_HOURS = 168       # 7 days hard cap
+SHORT_LINK_MAX_TTL_HOURS = 168       # 7 days hard cap  # magic-number-allow: ttl-seconds
 SHORT_LINK_MAX_URL_LEN = 2048
 SHORT_LINK_TOKEN_MAX_LEN = 32
 

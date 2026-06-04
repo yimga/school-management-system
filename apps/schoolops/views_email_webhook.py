@@ -26,10 +26,12 @@ Signature verification
 
 Postmark, Mailgun, and SES (the AWS SNS shape we accept) carry a
 shared-secret HMAC signature in the documented header — we verify with
-``hmac.compare_digest``. SendGrid uses Ed25519 (NACL signing keys);
-without `pynacl` configured the operator pastes the public key in the
-config form but we mark the verification as
-``signature_unverified=True`` and log INFO. This is a known v3.58.x
+``hmac.compare_digest``. SendGrid uses ECDSA (P-256, SHA-256) over
+``timestamp + body``; the operator pastes the base64 public key in the
+config form and we verify it via the ``cryptography`` library
+(:func:`_verify_sendgrid_ecdsa`). When a signature cannot be verified we
+fall back to accept-unverified + log INFO unless
+``SCHOOLOPS_SENDGRID_REQUIRE_VERIFIED_WEBHOOK`` is set (then we 401). This is a known v3.58.x
 deferral — the public-key flow needs `pynacl` or a similar lib and is
 covered by the deliverability docs.
 
@@ -60,6 +62,7 @@ import json
 import logging
 from typing import Any, Optional, Tuple
 
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -69,7 +72,7 @@ from django.views.decorators.csrf import csrf_exempt
 logger = logging.getLogger(__name__)
 
 
-_SUPPORTED_PROVIDERS = ("postmark", "sendgrid", "ses", "mailgun")
+_SUPPORTED_PROVIDERS = ("postmark", "sendgrid", "ses", "mailgun", "brevo")
 # Max body bytes we'll attempt to parse. Providers send tiny JSON
 # (typically <8KB); we cap at 256KB defense-in-depth against memory
 # pressure from a hostile poster.
@@ -244,17 +247,102 @@ def _parse_mailgun(payload: dict) -> Optional[Tuple[str, str, str, str]]:
     )
 
 
+def _parse_brevo(payload: Any) -> Optional[Tuple[str, str, str, str]]:
+    """Brevo (Sendinblue) transactional event webhook shape (audit H13).
+
+    Brevo POSTs one event object per request, e.g.::
+
+        {
+          "event": "hard_bounce" | "soft_bounce" | "spam" | "blocked"
+                   | "invalid_email" | "deferred" | "delivered" | ...,
+          "email": "user@example.com",
+          "message-id": "<...>",
+          "date": "2026-06-03 12:00:00",
+          "reason": "..."
+        }
+
+    We act only on the deliverability-negative events; everything else
+    (delivered/opened/clicked) returns None so the shared path acks 200.
+    """
+    if not isinstance(payload, dict):
+        return None
+    event = str(payload.get("event") or "").lower().replace("-", "_")
+    actionable = {
+        "hard_bounce", "soft_bounce", "spam", "blocked",
+        "invalid_email", "complaint", "unsubscribed",
+    }
+    if event not in actionable:
+        return None
+    return (
+        str(payload.get("email") or "")[:320],
+        event[:64],
+        str(payload.get("date") or payload.get("ts") or "")[:64],
+        str(payload.get("message-id") or payload.get("message_id") or "")[:128],
+    )
+
+
 _PARSERS = {
     "postmark": _parse_postmark,
     "sendgrid": _parse_sendgrid,
     "ses": _parse_ses,
     "mailgun": _parse_mailgun,
+    "brevo": _parse_brevo,
 }
+
+# Bounce-kind tokens (any provider) that mean the address is undeliverable or
+# complained → add to the suppression list so we stop sending (audit H3).
+_SUPPRESSION_BOUNCE_TOKENS = frozenset(
+    {
+        "hard_bounce", "hardbounce", "hard", "permanent",
+        "spam", "complaint", "complained", "abuse",
+        "invalid_email", "blocked", "recipientsrefused", "senderrefused",
+        "5xx", "hard_5xx", "bounce",
+    }
+)
 
 
 # ──────────────────────────────────────────────────────────────────────
 # Signature verification.
 # ──────────────────────────────────────────────────────────────────────
+
+
+def _verify_sendgrid_ecdsa(
+    public_key_b64: str, timestamp: str, body_bytes: bytes, signature_b64: str
+) -> bool:
+    """Verify a SendGrid (Twilio) Event Webhook ECDSA signature.
+
+    SendGrid signs the bytes ``timestamp + payload`` with ECDSA (NIST P-256,
+    SHA-256). The operator-configured ``secret`` for the ``sendgrid`` provider
+    is the base64 public key shown in the SendGrid UI (DER SubjectPublicKeyInfo).
+    Returns True ONLY on a cryptographically valid signature; any error
+    (library absent, malformed key/signature, mismatch) returns False so the
+    caller decides whether to accept unverified or reject.
+    """
+    if not (public_key_b64 and timestamp and signature_b64):
+        return False
+    try:
+        import base64
+
+        from cryptography.exceptions import InvalidSignature
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import ec
+
+        public_key = serialization.load_der_public_key(
+            base64.b64decode(public_key_b64)
+        )
+        if not isinstance(public_key, ec.EllipticCurvePublicKey):
+            return False
+        signed_payload = timestamp.encode("utf-8") + body_bytes
+        public_key.verify(
+            base64.b64decode(signature_b64),
+            signed_payload,
+            ec.ECDSA(hashes.SHA256()),
+        )
+        return True
+    except InvalidSignature:
+        return False
+    except Exception:  # noqa: BLE001 - lib missing / bad key / bad b64 → unverified
+        return False
 
 
 def _verify_signature(
@@ -275,11 +363,14 @@ def _verify_signature(
       signing certificate flow is OUT OF SCOPE. We HMAC-SHA256 the raw
       body with the operator-pasted shared secret (operator wires a
       shared-secret-bearing SNS subscriber, e.g. via API Gateway).
-    * SendGrid: Ed25519 signature in
+    * SendGrid: ECDSA (P-256, SHA-256) signature in
       ``X-Twilio-Email-Event-Webhook-Signature`` over
-      ``X-Twilio-Email-Event-Webhook-Timestamp + body``. Without
-      ``pynacl`` we cannot verify Ed25519; we return
-      ``(False, True)`` — signature unverified, accept anyway.
+      ``X-Twilio-Email-Event-Webhook-Timestamp + body``, verified via the
+      ``cryptography`` library (:func:`_verify_sendgrid_ecdsa`) against the
+      operator's base64 public key. On a valid signature → ``(True, False)``.
+      If it cannot be verified we fall back to ``(False, True)``
+      (accept-unverified) unless ``SCHOOLOPS_SENDGRID_REQUIRE_VERIFIED_WEBHOOK``
+      is set, in which case → ``(False, False)`` (401).
     """
     if not secret:
         return (False, False)
@@ -326,11 +417,9 @@ def _verify_signature(
         ).hexdigest()
         return (hmac.compare_digest(computed, provided), False)
     if provider == "sendgrid":
-        # SendGrid uses Ed25519 (NACL signing). Without pynacl we cannot
-        # verify cryptographically; accept the delivery but mark it
-        # signature_unverified=True so the operator dashboard can show
-        # the gap. The operator pasted secret here is the Ed25519 public
-        # key but we treat it as a presence flag only.
+        # SendGrid Event Webhook uses ECDSA (P-256, SHA-256) over
+        # ``timestamp + body``. ``secret`` is the base64 public key from the
+        # SendGrid UI. We verify with the `cryptography` library.
         provided = (
             request.META.get("HTTP_X_TWILIO_EMAIL_EVENT_WEBHOOK_SIGNATURE")
             or request.META.get("HTTP_X_SENDGRID_SIGNATURE")
@@ -338,7 +427,19 @@ def _verify_signature(
         ).strip()
         if not provided:
             return (False, False)
-        # Honest deferral marker — we did NOT verify cryptographically.
+        timestamp = (
+            request.META.get("HTTP_X_TWILIO_EMAIL_EVENT_WEBHOOK_TIMESTAMP") or ""
+        ).strip()
+        if _verify_sendgrid_ecdsa(secret, timestamp, body_bytes, provided):
+            return (True, False)
+        # Could not verify (bad/forged signature, missing timestamp, or
+        # cryptography unavailable). Reject when the operator requires verified
+        # webhooks; otherwise fall back to accept-unverified (legacy behaviour,
+        # so this is never a regression) and log the gap.
+        if getattr(settings, "SCHOOLOPS_SENDGRID_REQUIRE_VERIFIED_WEBHOOK", False):
+            logger.info("schoolops.email_webhook.sendgrid_signature_rejected")
+            return (False, False)
+        logger.info("schoolops.email_webhook.sendgrid_unverified_fallback")
         return (False, True)
     return (False, False)
 
@@ -372,32 +473,34 @@ def _mark_bounced_by_message_id(
     cleaned = message_id_or_prefix.strip().lstrip("<").rstrip(">")
     if "@" in cleaned:
         cleaned = cleaned.split("@", 1)[0]
-    cleaned = cleaned.strip()
+    cleaned = cleaned.strip()[:64]
     if not cleaned:
         return None
     try:
         from apps.schoolops.models_email_delivery import EmailDeliveryEvent
-        # We do NOT persist the raw Message-ID on the row (existing
-        # schema only has to_hash + subject_prefix + priority). The
-        # cleanest deterministic correlation is by ``created_at`` /
-        # ``to_hash`` — but the provider gives us the message-id, not
-        # the recipient. To bridge: scan the most recent successful
-        # sends and match on a known UUID prefix in subject_prefix? No
-        # — the canonical correlation key is the Message-ID itself.
-        # Until the schema persists it (deferred), we fall back to
-        # logging the unmatched bounce at INFO. The operator can
-        # cross-reference manually via SMTP logs.
-        #
-        # If a future migration adds an indexed ``message_id_prefix``
-        # column, swap the filter() below to use it.
+
+        # Deterministic correlation on the indexed ``message_id_prefix`` column
+        # the sender now persists (audit residual closeout). Exact match first;
+        # a forgiving startswith fallback covers providers that truncate the
+        # local-part. We no longer rely on the old subject_prefix heuristic.
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
         candidate = (
             EmailDeliveryEvent.objects
-            .filter(subject_prefix__icontains=cleaned[:32])
+            .filter(message_id_prefix=cleaned)
             .order_by("-created_at")
             .only("pk")
             .first()
         )
+        if candidate is None:
+            # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
+            candidate = (
+                EmailDeliveryEvent.objects
+                .filter(message_id_prefix__startswith=cleaned[:24])
+                .exclude(message_id_prefix="")
+                .order_by("-created_at")
+                .only("pk")
+                .first()
+            )
         if candidate is None:
             return None
         # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
@@ -502,6 +605,26 @@ class EmailProviderWebhookView(View):
         _recipient, bounce_kind_raw, _occurred_at, message_id = parsed
         # NEVER log the raw recipient. The hash is for forensic correlation.
         recipient_hash = _hash_recipient(_recipient)
+
+        # Audit H3 — enforce suppression off the *reported recipient* directly.
+        # This works even though row-correlation by Message-ID is best-effort:
+        # the provider tells us WHO bounced/complained, so we can stop future
+        # sends to that address regardless of which EmailDeliveryEvent matched.
+        kind_token = (bounce_kind_raw or "").strip().lower().replace("-", "_")
+        if _recipient and kind_token in _SUPPRESSION_BOUNCE_TOKENS:
+            try:
+                from apps.schoolops.email_delivery import suppress_recipient
+
+                reason = "complaint" if kind_token in (
+                    "spam", "complaint", "complained", "abuse",
+                ) else "hard_bounce"
+                suppress_recipient(
+                    _recipient, reason=reason, source="webhook", detail=kind_token,
+                )
+            except Exception:  # noqa: BLE001 — webhook NEVER 500s
+                logger.warning(
+                    "schoolops.email_webhook.suppress_failed provider=%s", provider,
+                )
 
         matched_event_id: Optional[str] = None
         try:

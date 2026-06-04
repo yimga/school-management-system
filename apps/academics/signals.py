@@ -10,12 +10,22 @@ from django.db import DatabaseError, IntegrityError
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
+from kombu.exceptions import OperationalError as KombuOperationalError
+
 from .models import Attendance, Classroom, Incident, StudentDegreeEnrollment
 
 logger = logging.getLogger(__name__)
 
 # §2.4 Typed exceptions for signal handlers (emit_event, get_effective_flags, Notification.create).
+# KombuOperationalError/ConnectionError/OSError: on the free tier there is often
+# no Celery broker, so a signal that fires .delay()/.apply_async() raises a
+# broker-transport error (NOT a DatabaseError). Without catching it here the
+# exception escapes the post_save receiver and ROLLS BACK the business write
+# (e.g. an attendance save / enrollment). Swallow + log instead.
 _ACADEMICS_SIGNAL_ERRORS = (
+    KombuOperationalError,
+    ConnectionError,
+    OSError,
     ImportError,
     AttributeError,
     TypeError,

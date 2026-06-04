@@ -356,14 +356,29 @@
 
 .rmc-cockpit-pulse__cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px;
 }
 @media (max-width: 1280px) {
-  .rmc-cockpit-pulse__cards { grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr)); }
+  .rmc-cockpit-pulse__cards {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .rmc-cockpit-pulse-card {
+    flex: 0 0 min(42vw, 11rem);
+    scroll-snap-align: start;
+  }
 }
 @media (max-width: 720px) {
-  .rmc-cockpit-pulse__cards { grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); }
+  .rmc-cockpit-pulse-card {
+    flex-basis: min(72vw, 11rem);
+  }
 }
 
 .rmc-cockpit-pulse-card {
@@ -375,14 +390,17 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  transition: border-color var(--motion-fast), transform var(--motion-fast);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--motion-fast), transform var(--motion-fast), box-shadow var(--motion-fast);
 }
 .rmc-cockpit-pulse-card[data-rmc-cp-pulse-drill="1"] {
   cursor: pointer;
 }
 .rmc-cockpit-pulse-card:hover {
-  border-color: var(--hairline-strong);
-  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--school-primary, #4f46e5) 40%, var(--hairline));
+  transform: translateY(-2px);
+  box-shadow: var(--elev-2, 0 4px 12px rgba(15, 23, 42, 0.08));
 }
 @media (prefers-reduced-motion: reduce) {
   .rmc-cockpit-pulse__live-dot {
@@ -432,6 +450,27 @@
 }
 .rmc-cockpit-pulse-card__delta--up   { color: var(--success, #22c55e); }
 .rmc-cockpit-pulse-card__delta--down { color: var(--danger,  #ef4444); }
+
+/* v8 preview parity — corner sparkline overlay (56×18, non-interactive) */
+.rmc-cockpit-pulse-card__spark {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  inline-size: 56px;
+  block-size: 18px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.rmc-cockpit-pulse-card__spark .rmc-sparkline {
+  inline-size: 100%;
+  block-size: 100%;
+  --rmc-sparkline-height: 18px;
+}
+
+.rmc-cockpit-pulse-card--muted .rmc-cockpit-pulse-card__spark {
+  display: none;
+}
 
 /* ---------- v3.58.5 — Empty-state polish for muted-severity cards ----------
    When a resolver returned None (no data yet) the orchestrator substitutes

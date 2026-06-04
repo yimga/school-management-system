@@ -4,10 +4,6 @@
 
 {% block cp_title %}{% trans "Control Plane" %}{% endblock %}
 
-{% block cp_shell_header_ticker %}
-  {% include "partials/cockpit/_activity_ticker.html" %}
-{% endblock %}
-
 {% block breadcrumbs %}{% endblock %}
 
 {% block extrastyle %}
@@ -20,6 +16,13 @@
 {% endblock %}
 
 {% block cp_workspace_header %}{% endblock %}
+
+{% block cp_shell_header_ticker %}
+<div class="cp-header__row cp-header__row--live" data-rmc-cp-header-live="1">
+  {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+</div>
+{{ block.super }}
+{% endblock %}
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>
@@ -41,6 +44,12 @@
    that read as empty ruled bands on /super/ while cockpit health still reported
    would_render=true. {% endcomment %}
 <div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-section-nav="off">
+{% comment %}v4.01.43: LIVE banner moved to cp_shell_header_ticker header row.{% endcomment %}
+{% if cockpit.pulse_metrics.cards %}
+<div class="rmc-cp-landing-pulse mb-3" data-rmc-cp-landing-pulse="1">
+  {% include "partials/cockpit/_platform_pulse.html" %}
+</div>
+{% endif %}
 {% if cockpit.live_world_map.enabled %}
 {% include "partials/cockpit/_live_world_map.html" %}
 {% endif %}
@@ -261,7 +270,7 @@
               <div class="cp-list-row">
                 <div>
                   <strong>{{ incident.title }}</strong>
-                  <div class="cp-list-meta">{{ incident.incident_type|title }} | {{ incident.severity|upper }}{% if incident.affected_school %} | {{ incident.affected_school.name }}{% endif %}</div>
+                  <div class="cp-list-meta">{{ incident.incident_type|title }} | {{ incident.severity|upper }}{% if incident.affected_school_name %} | {{ incident.affected_school_name }}{% endif %}</div>
                 </div>
                 <span class="cp-status-badge cp-status-badge-{{ incident.status }}">{{ incident.status|title }}</span>
               </div>
@@ -396,7 +405,7 @@
             <div class="cp-table-card">
               <div class="cp-mini-heading">{% trans "Storage by schema" %}</div>
               <div class="table-responsive">
-                <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle">
+                <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle rmc-data-table">
                   <caption class="visually-hidden">{% trans "Storage by schema" %}</caption>
                   <thead>
                     <tr><th>{% trans "Schema" %}</th><th>{% trans "Size" %}</th><th>{% trans "Tables" %}</th></tr>
@@ -420,7 +429,7 @@
             <div class="cp-table-card">
               <div class="cp-mini-heading">{% trans "Largest tables" %}</div>
               <div class="table-responsive">
-                <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle">
+                <table class="table table-family table-sm mb-0 cp-table cp-table-compact align-middle rmc-data-table">
                   <caption class="visually-hidden">{% trans "Largest tables" %}</caption>
                   <thead>
                     <tr><th>{% trans "Table" %}</th><th>{% trans "Size" %}</th><th>{% trans "Rows" %}</th></tr>
@@ -489,7 +498,7 @@
             <div class="cp-table-card">
               <div class="cp-mini-heading">{% trans "Top active countries" %}</div>
               <div class="table-responsive">
-                <table class="table table-family table-sm mb-0 cp-table align-middle">
+                <table class="table table-family table-sm mb-0 cp-table align-middle rmc-data-table">
                   <caption class="visually-hidden">{% trans "Top active countries" %}</caption>
                   <thead>
                     <tr><th>{% trans "Country" %}</th><th>{% trans_term "Schools" key="school" plural=True %}</th><th>{% trans_term "Students" key="student" plural=True %}</th><th>{% trans "Revenue" %}</th><th>{% trans "Waived" %}</th></tr>

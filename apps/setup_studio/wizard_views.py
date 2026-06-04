@@ -512,23 +512,26 @@ class WizardStateResetView(LoginRequiredMixin, View):
 
 
 def _user_is_tenant_admin(request: HttpRequest) -> bool:
-    """Lightweight role check via apps.platform_runtime.role_registry."""
+    """Django staff OR a tenant-admin User.Role (ADMIN / PROPRIETOR / PRINCIPAL)."""
     user = getattr(request, "user", None)
     if user is None or not user.is_authenticated:
         return False
     if getattr(user, "is_staff", False):
         return True
-    try:
-        from apps.platform_runtime import role_registry  # type: ignore
-        for role_attr in ("user_role", "role", "primary_role"):
-            role = getattr(user, role_attr, None)
-            if role and role in getattr(role_registry, "TENANT_ADMIN_ROLES", ("tenant_admin", "proprietor", "principal")):
-                return True
-    except Exception:  # noqa: BLE001
-        pass
-    # Fallback: rely on Django staff_member_required style — non-staff tenant users with .school must be admins.
-    user_role = getattr(user, "role", None) or getattr(user, "user_role", None)
-    return user_role in ("tenant_admin", "admin", "proprietor", "principal", "school_admin")
+    # Compare case-insensitively against CANONICAL User.Role tokens. The previous
+    # implementation read a nonexistent role_registry.TENANT_ADMIN_ROLES and fell
+    # back to lowercase tuples ("admin"/"proprietor"/...) that could NEVER match the
+    # uppercase User.role value — so every non-staff tenant admin was wrongly denied.
+    for role_attr in ("user_role", "role", "primary_role"):
+        role = getattr(user, role_attr, None)
+        if role and str(role).strip().upper() in _TENANT_ADMIN_USER_ROLES:
+            return True
+    return False
+
+
+# Canonical tenant-admin User.Role tokens (single source: apps/accounts/models.py
+# User.Role). "tenant_admin"/"school_admin" are conceptual aliases of ADMIN.
+_TENANT_ADMIN_USER_ROLES = frozenset({"ADMIN", "PROPRIETOR", "PRINCIPAL"})  # role-string-allow: canonical-User.Role-tenant-admin-tokens
 
 
 _ROLE_TO_AUDIENCE = {

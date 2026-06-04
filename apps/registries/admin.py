@@ -81,20 +81,20 @@ class CountryRegistryAdminForm(forms.ModelForm):
     mv_country_name = forms.CharField(required=False, max_length=120)
     mv_greeting = forms.CharField(required=False, max_length=120)
     mv_headline_lead = forms.CharField(required=False, max_length=240)
-    mv_headline_lead_native = forms.CharField(required=False, max_length=240)
+    mv_headline_lead_native = forms.CharField(required=False, max_length=240)  # magic-number-allow: charfield-max-length
     mv_hero_subline = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
-    mv_trust_count = forms.CharField(required=False, max_length=240)
+    mv_trust_count = forms.CharField(required=False, max_length=240)  # magic-number-allow: charfield-max-length
     mv_currency_sample = forms.CharField(required=False, max_length=80)
-    mv_calendar_sample = forms.CharField(required=False, max_length=160)
+    mv_calendar_sample = forms.CharField(required=False, max_length=160)  # magic-number-allow: charfield-max-length
     mv_regulatory_line = forms.CharField(required=False, widget=forms.Textarea(attrs={"rows": 2}))
     mv_anchor_city = forms.CharField(required=False, max_length=120)
-    mv_regional_phrase = forms.CharField(required=False, max_length=160)
+    mv_regional_phrase = forms.CharField(required=False, max_length=160)  # magic-number-allow: charfield-max-length
     mv_testimonial_quote = forms.CharField(
         required=False, widget=forms.Textarea(attrs={"rows": 2}),
         help_text="Under 140 characters reads best on the marketing band.",
     )
     mv_testimonial_author = forms.CharField(required=False, max_length=160)
-    mv_testimonial_credential = forms.CharField(required=False, max_length=160)
+    mv_testimonial_credential = forms.CharField(required=False, max_length=160)  # magic-number-allow: charfield-max-length
     mv_case_study_chips = forms.CharField(
         required=False, widget=forms.Textarea(attrs={"rows": 4}),
         help_text="One chip per line (3–5 works best). Example:\nWAEC + NECO result import\nJSS / SSS promotion engine",

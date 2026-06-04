@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import logging
 import signal
+import threading
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from typing import Any
 
 from apps.platform_runtime.structured_logging import log_exception_with_context
@@ -66,6 +68,72 @@ HOOK_REGISTRY = {
     ],  # regional grading (e.g. Cameroon coefficient)
     "generic": ["value"],  # minimal for custom hooks
 }
+
+# Hook points evaluated via evaluate_json_logic on inline JSON (not CustomNuance rows).
+VIRTUAL_HOOK_POINTS = frozenset({"scholarship_eligibility"})
+
+HOOK_POINT_LABELS: dict[str, str] = {
+    "tuition_calc": "Tuition / fee calculation",
+    "grade_weight": "Grade weighting",
+    "attendance_alert": "Attendance alerts",
+    "fee_discount": "Fee discount eligibility",
+    "report_card_avg": "Report card weighted average",
+    "generic": "Generic (custom)",
+    "scholarship_eligibility": "Scholarship eligibility (inline JSON on Scholarship)",
+}
+
+
+def model_hook_point_choices() -> list[tuple[str, str]]:
+    """Django CharField choices for CustomNuance / PendingNuance (HOOK_REGISTRY minus virtual)."""
+    return [
+        (key, HOOK_POINT_LABELS.get(key, key.replace("_", " ").title()))
+        for key in HOOK_REGISTRY
+        if key not in VIRTUAL_HOOK_POINTS
+    ]
+
+
+def database_hook_points() -> frozenset[str]:
+    """Hook points that may be stored on CustomNuance."""
+    return frozenset(k for k in HOOK_REGISTRY if k not in VIRTUAL_HOOK_POINTS)
+
+
+def default_test_contexts_for_hook(hook_point: str) -> list[dict[str, Any]]:
+    """
+    Canonical safety-test contexts for verify_nuance_safety (admin approve, policy attach, sync).
+    Keys must stay within HOOK_REGISTRY allowed keys for the hook.
+    """
+    if hook_point in ("tuition_calc", "fee_discount"):
+        return [
+            {"fee": 1000, "gpa": 3.5, "sibling_count": 0},
+            {"fee": 2000, "gpa": 4.0, "sibling_count": 2},
+        ]
+    if hook_point == "grade_weight":
+        return [{"score": 85, "weight": 0.3, "category": "exam"}]
+    if hook_point == "attendance_alert":
+        return [{"attendance_rate": 0.92, "student_id": 1, "term_id": 1}]
+    if hook_point == "report_card_avg":
+        return [
+            {
+                "weighted_sum": 42.0,
+                "coefficient_total": 6.0,
+                "scale_max": 20.0,
+                "scores_by_subject": {},
+                "coefficients": {},
+            },
+            {
+                "value": 14.5,
+                "scale_max": 20.0,
+                "scores_by_subject": {},
+                "coefficients": {},
+            },
+        ]
+    if hook_point == "scholarship_eligibility":
+        return [
+            {"gpa": 3.5, "sibling_count": 0, "attendance_rate": 0.95, "fee_status": "current"},
+            {"gpa": 2.0, "sibling_count": 1, "attendance_rate": 0.6, "fee_status": "overdue"},
+        ]
+    return [{"value": 1}]
+
 
 # Default allowed keys if hook unknown (restrictive)
 DEFAULT_ALLOWED_KEYS = {"value"}
@@ -178,25 +246,37 @@ def _safe_eval(logic: Any, data: dict[str, Any]) -> Any:
     return None
 
 
+def _sigalrm_timeout_available() -> bool:
+    """SIGALRM/itimer only work on the main interpreter thread (not Gunicorn gthread workers)."""
+    return hasattr(signal, "SIGALRM") and threading.current_thread() is threading.main_thread()
+
+
 def _run_with_timeout(
     logic: dict, data: dict, timeout_sec: float = EXECUTION_TIMEOUT_SECONDS
 ) -> Any:
-    """Run evaluator with timeout (Unix: SIGALRM; Windows: no timeout)."""
+    """Run evaluator with timeout (main thread: SIGALRM; workers: thread pool)."""
     result = [None]
+    timeout = max(0.001, float(timeout_sec))
 
     def run_eval():
         result[0] = _safe_eval(logic, data)
 
-    if hasattr(signal, "SIGALRM"):
+    if _sigalrm_timeout_available():
 
         def handler(signum, frame):
             raise TimeoutError("Nuance execution exceeded %s s" % timeout_sec)
 
         old = signal.signal(signal.SIGALRM, handler)
         try:
-            signal.setitimer(signal.ITIMER_REAL, timeout_sec)  # type: ignore[attr-defined]
+            signal.setitimer(signal.ITIMER_REAL, timeout)  # type: ignore[attr-defined]
             try:
                 run_eval()
+            except _NUANCE_EVAL_ERRORS as e:
+                log_exception_with_context(
+                    "nuance_engine: _run_with_timeout eval failed",
+                    extra={"error": str(e)},
+                )
+                return None
             finally:
                 signal.setitimer(signal.ITIMER_REAL, 0)  # type: ignore[attr-defined]
         except TimeoutError:
@@ -204,15 +284,24 @@ def _run_with_timeout(
             return None
         finally:
             signal.signal(signal.SIGALRM, old)
-    else:
+        return result[0]
+
+    pool = ThreadPoolExecutor(max_workers=1)
+    try:
+        future = pool.submit(run_eval)
         try:
-            run_eval()
+            future.result(timeout=timeout)
+        except FuturesTimeoutError:
+            logger.warning("Nuance execution timed out (thread pool)")
+            return None
         except _NUANCE_EVAL_ERRORS as e:
             log_exception_with_context(
                 "nuance_engine: _run_with_timeout eval failed",
                 extra={"error": str(e)},
             )
             return None
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
     return result[0]
 
 
@@ -234,6 +323,56 @@ def _logic_from_policy(school, hook_point: str) -> dict[str, Any] | None:
     except (ImportError, AttributeError, TypeError, ValueError):
         return None
     return None
+
+
+def evaluate_json_logic(
+    logic: dict,
+    data: dict[str, Any],
+    *,
+    timeout_sec: float = EXECUTION_TIMEOUT_SECONDS,
+) -> Any:
+    """
+    Evaluate JSON-Logic with Gunicorn-safe timeout semantics.
+
+    Use this instead of calling ``_safe_eval`` directly from request/worker code paths.
+    """
+    if not logic or not isinstance(logic, dict):
+        return None
+    return _run_with_timeout(logic, data, timeout_sec=timeout_sec)
+
+
+def compute_report_card_average(
+    school,
+    *,
+    weighted_sum: float,
+    coefficient_total: float,
+    scale_max: float = 20.0,
+) -> float:
+    """
+    Coefficient-weighted term average via report_card_avg nuance (CustomNuance / policy template).
+
+    Falls back to weighted_sum / coefficient_total when no logic is configured or evaluation fails.
+    """
+    if coefficient_total <= 0:
+        return 0.0
+    raw_avg = weighted_sum / coefficient_total
+    if school is None:
+        return raw_avg
+    context = {
+        "weighted_sum": weighted_sum,
+        "coefficient_total": coefficient_total,
+        "scale_max": scale_max,
+        "value": raw_avg,
+        "scores_by_subject": {},
+        "coefficients": {},
+    }
+    result = apply_nuance(school, "report_card_avg", context)
+    if result is None:
+        return raw_avg
+    try:
+        return float(result)
+    except (TypeError, ValueError):
+        return raw_avg
 
 
 def apply_nuance(school, hook_point: str, context: dict[str, Any]) -> Any:

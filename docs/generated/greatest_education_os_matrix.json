@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-05-31T12:57:45.027588+00:00",
+  "generated_at": "2026-06-03T18:50:44.167760+00:00",
   "repo_target_pct": 99.0,
   "verdict": "GEOS_99_MATRIX_PASS",
   "overall": {
@@ -106,7 +106,7 @@
           "check_id": "five_pillar",
           "description": "verify_five_pillar_platform_completion.py",
           "passed": true,
-          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (42 checks)"
+          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (49 checks)"
         },
         {
           "check_id": "companion_preflight",
@@ -184,7 +184,7 @@
           "check_id": "five_pillar_shopify",
           "description": "five_pillar Shopify rows",
           "passed": true,
-          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (42 checks)"
+          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (49 checks)"
         },
         {
           "check_id": "psp_health",
@@ -217,7 +217,7 @@
           "check_id": "five_pillar_sf",
           "description": "five_pillar Salesforce rows",
           "passed": true,
-          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (42 checks)"
+          "proof": "verify_five_pillar_platform_completion: FIVE_PILLAR_PLATFORM_PASS (49 checks)"
         },
         {
           "check_id": "pilot_scorecard",

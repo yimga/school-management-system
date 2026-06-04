@@ -127,7 +127,7 @@ def _resolve_redirect_uri(request: HttpRequest, provider: str) -> str:
 
 
 _SESSION_KEY = "_lms_pkce_state_v40053"
-_VERIFIER_TTL_SECONDS = 600  # 10 min — enough for upstream consent.
+_VERIFIER_TTL_SECONDS = 600  # 10 min — enough for upstream consent.  # magic-number-allow: ttl-seconds
 
 
 @staff_member_required

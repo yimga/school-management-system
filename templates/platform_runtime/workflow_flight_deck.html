@@ -1,0 +1,20 @@
+{% extends "control_plane_base.html" %}
+{% load i18n static %}
+{% block cp_title %}{{ page_title }}{% endblock %}
+{% block cp_content %}
+<div class="container-lg py-4" data-rmc-page="workflow-flight-deck" data-rmc-scroll-policy="paginate">
+  <header class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+    <div>
+      <h1 class="h3 mb-1">{% trans "Workflow Flight Deck" %}</h1>
+      <p class="text-muted mb-0">{% trans "Live mission control for platform workflows — active runs, incidents, and fixes." %}</p>
+    </div>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'super:dashboard' %}">{% trans "Back to dashboard" %}</a>
+  </header>
+
+  <div id="rmc-wfp-flight-deck" class="rmc-wfp-flight-deck" data-api-url="{{ flight_deck_api_url }}">
+    <div class="rmc-wfp-flight-deck__loading rmc-skeleton" aria-live="polite">{% trans "Loading workflows…" %}</div>
+  </div>
+</div>
+<link rel="stylesheet" href="{% static 'css/rmc-workflow-flight-deck.css' %}">
+<script src="{% static 'js/rmc-workflow-flight-deck.js' %}" defer nonce="{{ csp_nonce }}"></script>
+{% endblock %}

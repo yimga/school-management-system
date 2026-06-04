@@ -551,8 +551,8 @@ html[data-rmc-os-grade="1"] .rmc-cmdk__list [data-rmc-cmdk-group="slash"] {
   color: var(--text-primary, currentColor);
 }
 .rmc-cmdk__mic.is-listening {
-  color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.55);
+  color: #ef4444; /* off-token-allow: recording-live-status-indicator */
+  border-color: rgba(239, 68, 68, 0.55); /* off-token-allow: recording-live-status-indicator */
   animation: rmc-cmdk-mic-pulse 1100ms ease-in-out infinite;
   min-width: 56px;
 }
@@ -562,7 +562,7 @@ html[data-rmc-os-grade="1"] .rmc-cmdk__list [data-rmc-cmdk-group="slash"] {
   font-size: 10px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #ef4444;
+  color: #ef4444; /* off-token-allow: recording-live-status-indicator */
   letter-spacing: 0.02em;
 }
 @keyframes rmc-cmdk-mic-pulse {

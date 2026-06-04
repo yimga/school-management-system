@@ -470,6 +470,19 @@ EVENT_CATALOG = {
         "description": "WorkflowRun heartbeat exceeded expected duration; flagged stuck.",
         "payload": ["run_id", "workflow_key", "workflow_label", "tenant_schema", "current_step_name"],
     },
+    "workflow.sla.breached": {
+        "description": "WorkflowRun exceeded registry slo_seconds (running or finalized).",
+        "payload": [
+            "run_id",
+            "workflow_key",
+            "workflow_label",
+            "tenant_schema",
+            "slo_seconds",
+            "actual_seconds",
+            "status",
+            "current_step_name",
+        ],
+    },
     "newsletter.subscription.verify": {
         "description": "Newsletter signup double-opt-in verification email.",
         "payload": ["to", "verification_url"],

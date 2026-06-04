@@ -46,6 +46,21 @@ def _provider_for_key(site_settings: Any, provider_key: str) -> SMSProvider | No
     for attr in ("africastalking_username", "africastalking_api_key", "africastalking_sender_id"):
         if hasattr(site_settings, attr):
             setattr(patched, attr, getattr(site_settings, attr))
+    # Audit P2 — the Africa's Talking provider reads ``sms_api_key`` /
+    # ``sms_username`` / ``sms_sender_id`` (NOT the africastalking_* names), so
+    # the patched shim must expose those aliases or the provider always sees
+    # "api_key not set". Map both the africastalking_* and any generic sms_*
+    # source attributes onto the canonical sms_* names the provider expects.
+    _at_alias = {
+        "sms_api_key": ("sms_api_key", "africastalking_api_key"),
+        "sms_username": ("sms_username", "africastalking_username"),
+        "sms_sender_id": ("sms_sender_id", "africastalking_sender_id"),
+    }
+    for target, sources in _at_alias.items():
+        for src in sources:
+            if hasattr(site_settings, src) and getattr(site_settings, src):
+                setattr(patched, target, getattr(site_settings, src))
+                break
     return get_sms_provider(patched)
 
 

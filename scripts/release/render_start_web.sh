@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=scripts/release/sanitize_gunicorn_env.sh
+source "$ROOT/scripts/release/sanitize_gunicorn_env.sh"
+
 # Render web start script.
 # Uses config/gunicorn.conf.py so HTTP always binds to 0.0.0.0:PORT for port-scan health checks.
 

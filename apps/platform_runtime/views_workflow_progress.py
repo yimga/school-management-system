@@ -22,13 +22,14 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
 import time
-from pathlib import Path
+from typing import Any
 
 import asyncio
 
 from asgiref.sync import sync_to_async
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from services.http_auth_guards import login_required_api, login_required_sse
 from services.sse_response import guarded_async_sse_response
 from django.utils import timezone
@@ -36,32 +37,18 @@ from django.views.decorators.http import require_GET, require_POST
 
 logger = logging.getLogger(__name__)
 
-_DEBUG_LOG_PATH = Path(__file__).resolve().parents[2] / "debug-0f968b.log"
 
-
-def _agent_debug_log(hypothesis_id: str, location: str, message: str, data: dict | None = None) -> None:
-    if os.environ.get("RMC_AGENT_DEBUG", "").strip().lower() not in (
-        "1",
-        "true",
-        "yes",
-        "on",
-    ):
-        return
-    # #region agent log
-    try:
-        payload = {
-            "sessionId": "0f968b",
-            "hypothesisId": hypothesis_id,
-            "location": location,
-            "message": message,
-            "data": data or {},
-            "timestamp": int(time.time() * 1000),
-        }
-        with _DEBUG_LOG_PATH.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(payload, default=str) + "\n")
-    except OSError:
-        pass
-    # #endregion
+def _request_dry_run(request) -> bool:
+    flag = str(request.GET.get("dry_run", "") or "").lower()
+    if flag in ("1", "true", "yes", "on"):
+        return True
+    if request.content_type and "json" in request.content_type:
+        try:
+            body = json.loads(request.body.decode("utf-8") or "{}")
+            return bool(body.get("dry_run"))
+        except (json.JSONDecodeError, UnicodeDecodeError, AttributeError):
+            return False
+    return False
 
 
 # SSE tuning — must finish before the WSGI worker request timeout.
@@ -72,7 +59,7 @@ _SSE_HEARTBEAT_SECONDS = 15.0
 # Client reconnect delay after a graceful close. Kept well above the 2s that
 # used to re-pin a worker thread almost immediately on every cycle, so an
 # established stream frees its thread for a meaningful window between holds.
-_SSE_RETRY_MILLISECONDS = 8000
+_SSE_RETRY_MILLISECONDS = 8000  # magic-number-allow: millisecond-timeout
 
 
 def _sse_max_duration_seconds() -> float:
@@ -119,7 +106,7 @@ def active_runs_view(request):
     actor_filter = "" if is_staff else actor_id
     runs = list_active_runs(tenant_schema=schema, actor_user_id=actor_filter, limit=25)
 
-    counts = {"running": 0, "stuck": 0}
+    counts = {"running": 0, "degrading": 0, "stuck": 0}
     for row in runs:
         counts[row["status"]] = counts.get(row["status"], 0) + 1
 
@@ -151,10 +138,13 @@ def badge_view(request):
     runs = list_active_runs(tenant_schema=schema, actor_user_id=actor_filter, limit=25)
 
     stuck = sum(1 for r in runs if r["status"] == "stuck")
+    degrading = sum(1 for r in runs if r["status"] == "degrading")
     running = sum(1 for r in runs if r["status"] == "running")
-    count = stuck + running
+    count = stuck + degrading + running
 
     if stuck > 0:
+        level = "warning"
+    elif degrading > 0:
         level = "warning"
     elif running > 0:
         level = "info"
@@ -173,7 +163,7 @@ def run_detail_view(request, run_id: int):
     from apps.platform_runtime.workflow_tracker import is_stuck
 
     try:
-        run = WorkflowRun.objects.get(pk=run_id)
+        run = WorkflowRun.objects.get(pk=run_id)  # tenant-isolation-allow: workflow-run-detail-pk-lookup-tenant-checked-post-query
     except WorkflowRun.DoesNotExist:
         return JsonResponse({"error": "not_found"}, status=404)
 
@@ -234,7 +224,7 @@ def cancel_view(request, run_id: int):
     from apps.platform_runtime.models import WorkflowRun
 
     try:
-        run = WorkflowRun.objects.get(pk=run_id)
+        run = WorkflowRun.objects.get(pk=run_id)  # tenant-isolation-allow: workflow-run-cancel-pk-lookup-tenant-checked-post-query
     except WorkflowRun.DoesNotExist:
         return JsonResponse({"error": "not_found"}, status=404)
 
@@ -249,6 +239,7 @@ def cancel_view(request, run_id: int):
     if run.status not in ("running", "stuck"):
         return JsonResponse({"ok": False, "reason": "not_in_cancellable_state", "status": run.status})
 
+    # tenant-isolation-allow: workflow-run-cancel-single-row-pk-update-already-scoped
     WorkflowRun.objects.filter(pk=run.pk).update(
         status="cancelled",
         ended_at=timezone.now(),
@@ -268,7 +259,7 @@ def apply_fix_view(request, run_id: int):
     from apps.platform_runtime.models import WorkflowRun
 
     try:
-        run = WorkflowRun.objects.get(pk=run_id)
+        run = WorkflowRun.objects.get(pk=run_id)  # tenant-isolation-allow: workflow-run-applyfix-pk-lookup-tenant-checked-post-query
     except WorkflowRun.DoesNotExist:
         return JsonResponse({"error": "not_found"}, status=404)
 
@@ -285,22 +276,31 @@ def apply_fix_view(request, run_id: int):
     kind = str(remediation.get("auto_fix_kind", ""))
     workflow_key = run.workflow_key
 
-    if kind == "suggest_alternate_slug":
-        # Generate three alternate slugs from the original.
-        base = (run.payload_summary or {}).get("slug") or workflow_key
-        alternates = [f"{base}-2026", f"{base}-academy", f"{base}-school"]
-        return JsonResponse({"ok": True, "applied": "suggest_alternate_slug", "alternates": alternates})
+    from apps.platform_runtime.workflow_autopilot import promotion_hint, record_apply_log
+    from apps.platform_runtime.workflow_fix_handlers import (
+        apply_auto_fix_kind,
+        preview_auto_fix_kind,
+    )
 
-    if kind in ("retry_once_with_backoff", "retry_after_rate_limit", "refresh_oauth_token_and_retry"):
-        # Mark the run for retry; the caller's workflow re-invokes on the next request.
-        WorkflowRun.objects.filter(pk=run.pk).update(
-            status="running",
-            last_heartbeat_at=timezone.now(),
-            payload_summary={**(run.payload_summary or {}), "retry_requested_at": timezone.now().isoformat(), "retry_kind": kind},
+    if _request_dry_run(request):
+        return JsonResponse(preview_auto_fix_kind(run=run, kind=kind))
+
+    result = apply_auto_fix_kind(run=run, kind=kind)
+    if result.get("ok"):
+        record_apply_log(
+            run_id=run.pk,
+            workflow_key=workflow_key,
+            auto_fix_kind=kind,
+            outcome="applied",
+            actor_user_id=str(getattr(request.user, "id", "") or ""),
+            autopilot=False,
         )
-        return JsonResponse({"ok": True, "applied": kind, "note": "Run marked for retry. Re-invoke the original action."})
+        hint = promotion_hint(workflow_key=workflow_key, auto_fix_kind=kind)
+        if hint:
+            result["promotion"] = hint
+        return JsonResponse(result)
 
-    return JsonResponse({"ok": False, "reason": "unsupported_fix_kind", "kind": kind})
+    return JsonResponse(result)
 
 
 def _format_sse_frame(event_id, kind: str, payload: dict) -> bytes:
@@ -328,24 +328,22 @@ async def stream_view(request):
     from apps.platform_runtime.workflow_tracker import list_active_runs
 
     # request.user / request.tenant evaluation can hit the DB — resolve the
-    # whole scope off the event loop before streaming.
+    # whole scope (including the tenant-isolation guard) off the event loop
+    # before streaming, so the async stream never touches the ORM synchronously.
     def _setup():
         schema, actor_id = _resolve_scope(request)
+        host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+        tenant_ok = True
+        if host_kind not in {"manager", "local"}:
+            if getattr(request, "school", None) is None and not schema:
+                tenant_ok = False
         is_staff = bool(getattr(request.user, "is_staff", False))
-        return schema, ("" if is_staff else actor_id), is_staff
+        return schema, ("" if is_staff else actor_id), is_staff, tenant_ok
 
-    schema, actor_filter, is_staff = await sync_to_async(_setup)()
+    schema, actor_filter, is_staff, tenant_ok = await sync_to_async(_setup)()
+    if not tenant_ok:
+        return JsonResponse({"error": "tenant_required"}, status=403)
     max_duration = _sse_max_duration_seconds()
-    _agent_debug_log(
-        "H4",
-        "views_workflow_progress.stream_view",
-        "sse_stream_open",
-        {
-            "max_duration_s": max_duration,
-            "is_staff": is_staff,
-            "path": request.path,
-        },
-    )
 
     _alist_active_runs = sync_to_async(list_active_runs)
 
@@ -400,3 +398,68 @@ def _stable_hash(runs: list) -> str:
         )
     except Exception:
         return str(time.monotonic())
+
+
+E2E_DEMO_WORKFLOW_KEY = "workflow_progress_e2e_demo"
+
+
+def _e2e_demo_enabled() -> bool:
+    from django.conf import settings
+
+    if getattr(settings, "DEBUG", False):
+        return True
+    return os.environ.get("RMC_ALLOW_WORKFLOW_E2E_DEMO", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _run_e2e_demo_worker(run: Any) -> None:
+    from apps.platform_runtime.workflow_tracker import finalize_run, pop_workflow_run, workflow_step
+
+    try:
+        with workflow_step(run, "prepare", payload={"phase": 1}):
+            time.sleep(0.9)
+        with workflow_step(run, "process", payload={"phase": 2}):
+            time.sleep(0.9)
+        with workflow_step(run, "finalize", payload={"phase": 3}):
+            time.sleep(0.5)
+        finalize_run(run, status="succeeded")
+    except Exception as exc:
+        finalize_run(run, status="failed", error=exc)
+    finally:
+        pop_workflow_run(run)
+
+
+@login_required_api
+@require_POST
+def e2e_demo_start_view(request):
+    """Staff-only demo run for Playwright / manual QA (DEBUG or RMC_ALLOW_WORKFLOW_E2E_DEMO)."""
+
+    if not _e2e_demo_enabled():
+        return JsonResponse({"error": "forbidden"}, status=403)
+    if not getattr(request.user, "is_staff", False):
+        return JsonResponse({"error": "staff_required"}, status=403)
+
+    from apps.platform_runtime.workflow_tracker import begin_run, push_workflow_run
+
+    run = begin_run(
+        workflow_key=E2E_DEMO_WORKFLOW_KEY,
+        steps=("prepare", "process", "finalize"),
+        request=request,
+        expected_duration_seconds=8,
+        payload={"source": "e2e_demo"},
+    )
+    if run is None:
+        return JsonResponse({"error": "begin_failed"}, status=500)
+    push_workflow_run(run)
+    threading.Thread(target=_run_e2e_demo_worker, args=(run,), daemon=True).start()
+    return JsonResponse(
+        {
+            "ok": True,
+            "run_id": run.pk,
+            "workflow_key": E2E_DEMO_WORKFLOW_KEY,
+        }
+    )

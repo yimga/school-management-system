@@ -395,7 +395,7 @@ def ai_copilot_query(request):
                             sid, scope, emb, limit=2, **_retrieval_kwargs(request)
                         ):
                             parts.append(str(r.get("metadata", ""))[:400])
-                    rag_block = "\n".join(parts)[:1200]
+                    rag_block = "\n".join(parts)[:1200]  # magic-number-allow: ai-message-char-cap
         except (
             ImportError,
             AttributeError,
@@ -620,7 +620,7 @@ def ai_copilot_audit_feed(request):
         user.is_staff
         or user.is_superuser
         or role_value
-        in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN")
+        in ("ADMIN", "LEADERSHIP", "PRINCIPAL", "VICE_PRINCIPAL", "DEAN", "IT_ADMIN")  # role-string-allow: rbac-role-comparison
     ):
         return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
 
@@ -662,7 +662,7 @@ def build_contextual_prompt(
     user_name = getattr(user, "first_name", "") or getattr(user, "username", "User")
     role = get_user_role(user) or "USER"
     admin_roles = {
-        "ADMIN",
+        "ADMIN",  # role-string-allow: rbac-role-comparison
         "LEADERSHIP",
         "PRINCIPAL",
         "VICE_PRINCIPAL",

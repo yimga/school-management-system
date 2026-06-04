@@ -1,4 +1,4 @@
-"""Footer surface contract — operator compact vs tenant vs marketing full."""
+"""Footer surface contract — operator civic vs tenant vs marketing full."""
 
 from pathlib import Path
 
@@ -6,17 +6,21 @@ from django.test import SimpleTestCase
 
 
 class FooterSurfaceContractTests(SimpleTestCase):
-    def test_control_plane_uses_compact_operator_footer(self):
+    def test_control_plane_uses_civic_operator_footer(self):
         text = Path("templates/control_plane_skeleton.html").read_text(encoding="utf-8")
-        self.assertIn("rmc_operator_footer_compact.html", text)
+        civic = Path("templates/partials/rmc_operator_footer_civic.html").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("rmc_operator_footer_civic.html", text)
+        self.assertIn('data-rmc-footer-surface="operator-civic"', civic)
         self.assertNotIn("corporate_footer_bundle.html", text)
         self.assertNotIn("mkt-footer-command", text)
 
-    def test_manager_admin_uses_compact_operator_footer(self):
+    def test_manager_admin_uses_civic_operator_footer(self):
         admin_base = Path("templates/admin/base.html").read_text(encoding="utf-8")
         admin_site = Path("templates/admin/base_site.html").read_text(encoding="utf-8")
-        self.assertIn("rmc_operator_footer_compact.html", admin_base)
-        self.assertIn('data-rmc-footer-surface="operator-compact"', admin_base)
+        self.assertIn("rmc_operator_footer_civic.html", admin_base)
+        self.assertIn("control_plane_unified_header.html", admin_base)
         self.assertIn("is_manager_host", admin_base)
         self.assertIn("rmc-footer-surfaces.css", admin_site)
         self.assertNotIn("corporate_footer_bundle.html", admin_base)
@@ -27,12 +31,13 @@ class FooterSurfaceContractTests(SimpleTestCase):
         self.assertNotIn("marketing_footer.html", text)
         self.assertIn("PORTAL_FOOTER_PARTIAL", text)
         self.assertIn("rmc-footer-surfaces.css", text)
-        self.assertIn("rmc_operator_footer_compact.html", text)
+        self.assertIn("rmc_operator_footer_civic.html", text)
+        self.assertIn("control_plane_unified_header.html", text)
         self.assertIn("SHOW_MANAGER_CORPORATE_FOOTER", text)
 
-    def test_base_manager_login_uses_compact_not_bundle(self):
+    def test_base_manager_login_uses_civic_not_bundle(self):
         text = Path("templates/base.html").read_text(encoding="utf-8")
-        self.assertIn("rmc_operator_footer_compact.html", text)
+        self.assertIn("rmc_operator_footer_civic.html", text)
         self.assertNotIn("corporate_footer_bundle.html", text)
 
     def test_tenant_dashboard_footer_surface_marker(self):
@@ -48,9 +53,3 @@ class FooterSurfaceContractTests(SimpleTestCase):
         self.assertIn("cp-footer-inner", text)
         self.assertIn("cp-footer-ribbon--primary", text)
         self.assertIn("rmc-civic-footer__social", text)
-        self.assertIn("SOC 2 · ISO 27001 · FERPA · GDPR", text)
-        self.assertIn('data-rmc-footer-surface="operator-compact"', text)
-
-    def test_base_html_loads_footer_surface_css_for_tenant_guard(self):
-        text = Path("templates/base.html").read_text(encoding="utf-8")
-        self.assertIn("rmc-footer-surfaces.css", text)

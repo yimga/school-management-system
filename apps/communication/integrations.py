@@ -33,7 +33,9 @@ def _resolve_connector_config_safe(connector_slug, *, school):
 
         resolved = resolve_connector_config(connector_slug, school=school)
         if resolved and resolved.is_configured and resolved.is_active:
-            return dict(resolved.config or {})
+            from apps.communication.secret_config import decrypt_config
+
+            return decrypt_config(dict(resolved.config or {}))
     except Exception:  # noqa: BLE001 — never let resolver-side faults break sends
         logger.exception(
             "Connector cascade lookup failed for %s; falling back to global settings.",

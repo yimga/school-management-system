@@ -60,7 +60,7 @@ class WorkflowRun(models.Model):
     """
 
     workflow_key = models.CharField(max_length=80, db_index=True)
-    workflow_label = models.CharField(max_length=160, blank=True, default="")
+    workflow_label = models.CharField(max_length=160, blank=True, default="")  # magic-number-allow: charfield-max-length
     tenant_schema = models.CharField(
         max_length=64, blank=True, default="", db_index=True
     )
@@ -132,7 +132,7 @@ class WorkflowStep(models.Model):
     )
     ordinal = models.PositiveSmallIntegerField()
     name = models.CharField(max_length=80)
-    label = models.CharField(max_length=160, blank=True, default="")
+    label = models.CharField(max_length=160, blank=True, default="")  # magic-number-allow: charfield-max-length
 
     status = models.CharField(
         max_length=12,

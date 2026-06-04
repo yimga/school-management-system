@@ -44137,3 +44137,793 @@ msgstr ""
 
 msgid "← Back to delivery log"
 msgstr ""
+
+msgid "24h short link"
+msgstr ""
+
+msgid "Academic Matrix"
+msgstr ""
+
+msgid "Academic rules"
+msgstr ""
+
+msgid "Active platform workflows"
+msgstr ""
+
+msgid ""
+"Add a meal using the form above to start building the canteen menu and "
+"pricing."
+msgstr ""
+
+msgid ""
+"Add a region with its Ollama endpoint, default model, and fallback to begin "
+"routing AI traffic."
+msgstr ""
+
+msgid ""
+"Add a title using the form above to start tracking copies in the library."
+msgstr ""
+
+msgid ""
+"Add an item using the form above to start tracking stock and locations."
+msgstr ""
+
+msgid "Add regional config"
+msgstr ""
+
+msgid "Appearance and aesthetic"
+msgstr ""
+
+msgid "Approved by"
+msgstr ""
+
+msgid "Approved — ready to start"
+msgstr ""
+
+msgid "Attendance {{ pct }}% overall"
+msgstr ""
+
+msgid "Auth decorators"
+msgstr ""
+
+msgid "Back to page"
+msgstr ""
+
+msgid "Back to webhook delivery log"
+msgstr ""
+
+msgid "Behaviour"
+msgstr ""
+
+msgid "CSV export"
+msgstr ""
+
+msgid "Check in a visitor using the form above to start tracking arrivals."
+msgstr ""
+
+msgid "Chips"
+msgstr ""
+
+msgid "Class-based auth mixins"
+msgstr ""
+
+msgid "Close detail sheet"
+msgstr ""
+
+msgid "Content blocks"
+msgstr ""
+
+msgid "Cozy"
+msgstr ""
+
+msgid ""
+"Create a school lead from the pipeline board and tag notes with region, "
+"type, and pilot status to surface it here."
+msgstr ""
+
+msgid "Dead-letter queue entries in {{ status_filter }} status"
+msgstr ""
+
+msgid "Deep utility, multi-tenant monitoring, raw computing metrics."
+msgstr ""
+
+msgid "Density"
+msgstr ""
+
+msgid "Dock settings"
+msgstr ""
+
+msgid "Dock side"
+msgstr ""
+
+msgid ""
+"Drag to reorder. Tick to hide. Flip predictive halo + voice. Saved against "
+"your account."
+msgstr ""
+
+msgid ""
+"Dual-control flow: requesting an impersonation creates a grant another "
+"SUPERADMIN must approve before it can be started."
+msgstr ""
+
+msgid "Email link"
+msgstr ""
+
+msgid "Email this view"
+msgstr ""
+
+msgid "Enable voice chip (Web Speech API)"
+msgstr ""
+
+msgid "End impersonation"
+msgstr ""
+
+msgid ""
+"Entries are created from integrated clinic workflows or the Django admin. "
+"Access is restricted to leadership and staff."
+msgstr ""
+
+msgid ""
+"Every state transition is recorded in ImpersonationAuditEvent. Dual control "
+"means the approver MUST be a different SUPERADMIN than the grantor."
+msgstr ""
+
+msgid "Every subject is above the alert threshold — keep it up."
+msgstr ""
+
+msgid ""
+"Feature toggle changes will be recorded here once operators flip flags on "
+"the control panel."
+msgstr ""
+
+msgid "Financial Ledger"
+msgstr ""
+
+msgid "Fluidity, multi-dimensional tracking, metric grouping."
+msgstr ""
+
+msgid "Front-office 200x"
+msgstr ""
+
+msgid ""
+"Generate or validate a schedule via the scheduler API in Integrations to "
+"populate this list."
+msgstr ""
+
+msgid "Hide"
+msgstr ""
+
+msgid "Impersonate"
+msgstr ""
+
+msgid "Impersonation"
+msgstr ""
+
+msgid "Impersonation active"
+msgstr ""
+
+msgid "Impersonation active in this session."
+msgstr ""
+
+msgid "Impersonation — dual-control"
+msgstr ""
+
+msgid "Inspect this page"
+msgstr ""
+
+msgid ""
+"Install a blueprint from the marketplace to seed this school with a tested "
+"configuration package."
+msgstr ""
+
+msgid "Install flow"
+msgstr ""
+
+msgid "Launch hero"
+msgstr ""
+
+msgid "Left edge"
+msgstr ""
+
+msgid ""
+"Light follows the OS, dark is editorial, system tracks your platform "
+"preference."
+msgstr ""
+
+msgid "Loading workspace"
+msgstr ""
+
+msgid "Migration & interoperability"
+msgstr ""
+
+msgid "Ministry registration"
+msgstr ""
+
+msgid "Mint short link"
+msgstr ""
+
+msgid ""
+"Mints a 24h link AND emails each recipient. Up to 12 addresses; we record "
+"per-recipient receipts so you can see who got it."
+msgstr ""
+
+msgid ""
+"Mints a tokenised URL that auto-expires. Token is single-use-aware; the "
+"recipient still passes the page's own auth."
+msgstr ""
+
+msgid "Newsletter"
+msgstr ""
+
+msgid "No URL pattern matched this path."
+msgstr ""
+
+msgid "No approved grants ready to start."
+msgstr ""
+
+msgid "No archived smoke runs yet"
+msgstr ""
+
+msgid "No audit entries yet"
+msgstr ""
+
+msgid "No blueprint installations yet"
+msgstr ""
+
+msgid "No clinic records yet"
+msgstr ""
+
+msgid "No cover assignments yet"
+msgstr ""
+
+msgid "No evaluation records yet"
+msgstr ""
+
+msgid "No friction signals yet"
+msgstr ""
+
+msgid "No grants awaiting approval."
+msgstr ""
+
+msgid ""
+"No impersonation route is currently wired on this build. The chip will "
+"activate automatically as soon as the platform registers a recognized URL "
+"name (e.g. accounts:impersonate)."
+msgstr ""
+
+msgid "No improvements tracked yet"
+msgstr ""
+
+msgid "No inventory items yet"
+msgstr ""
+
+msgid "No leads in the first-100 pipeline yet"
+msgstr ""
+
+msgid "No maintenance requests yet"
+msgstr ""
+
+msgid "No master schedules yet"
+msgstr ""
+
+msgid "No meals on the menu yet"
+msgstr ""
+
+msgid "No recent grants."
+msgstr ""
+
+msgid "No regional AI configurations yet"
+msgstr ""
+
+msgid "No results for \"{{ q }}\""
+msgstr ""
+
+msgid "No runs match this filter"
+msgstr ""
+
+msgid "No sale lines recorded yet"
+msgstr ""
+
+msgid "No specialty pass rates yet"
+msgstr ""
+
+msgid "No tenant scope detected."
+msgstr ""
+
+msgid "No term rankings yet"
+msgstr ""
+
+msgid "No titles in the catalog yet"
+msgstr ""
+
+msgid "No visit history yet"
+msgstr ""
+
+msgid "No visitors on site"
+msgstr ""
+
+msgid "No weak subjects identified"
+msgstr ""
+
+msgid "Nobody else is on this page right now."
+msgstr ""
+
+msgid "Open marketplace"
+msgstr ""
+
+msgid "Open pipeline board"
+msgstr ""
+
+msgid "Operator Shell"
+msgstr ""
+
+msgid "Optional note"
+msgstr ""
+
+msgid ""
+"Other operators looking at the same page in the last {{ heartbeat_seconds }}"
+" seconds."
+msgstr ""
+
+msgid "PDF snapshot"
+msgstr ""
+
+msgid "Page"
+msgstr ""
+
+msgid "Page URL"
+msgstr ""
+
+msgid "Page path"
+msgstr ""
+
+msgid "Past check-ins will appear here once visitors begin signing in."
+msgstr ""
+
+msgid "Pick a role to preview how a tenant sees this surface."
+msgstr ""
+
+msgid "Picking a language pins it as your sticky locale across sessions."
+msgstr ""
+
+msgid "Precision, density, absolute financial clarity."
+msgstr ""
+
+msgid "Predictive halo (highlight your likely next chip)"
+msgstr ""
+
+msgid "Press ⌘ + K to open the global console"
+msgstr ""
+
+msgid "RBAC scope"
+msgstr ""
+
+msgid "Rankings appear once the first term's grades are computed."
+msgstr ""
+
+msgid "Rates appear after the first round of grades is entered."
+msgstr ""
+
+msgid "Ready to switch to RunMyCampus?"
+msgstr ""
+
+msgid "Recent grants"
+msgstr ""
+
+msgid "Recipients (comma- or newline-separated)"
+msgstr ""
+
+msgid ""
+"Record a sale using the form above. When Inventory is enabled, link a stock "
+"line to prefill the item label."
+msgstr ""
+
+msgid "Records appear here once marks are captured for this class and term."
+msgstr ""
+
+msgid "Replay dead-letter row {{ row.id }}"
+msgstr ""
+
+msgid "Request a grant"
+msgstr ""
+
+msgid "Request grant"
+msgstr ""
+
+msgid "Right edge"
+msgstr ""
+
+msgid ""
+"Routes with elevated friction scores will appear once analytics start "
+"collecting telemetry from live traffic."
+msgstr ""
+
+msgid "RunMyCampus view"
+msgstr ""
+
+msgid ""
+"Send the current page to a colleague — choose a format and a delivery "
+"channel."
+msgstr ""
+
+msgid "Share this view"
+msgstr ""
+
+msgid "Short URL (expires in 24h)"
+msgstr ""
+
+msgid "Signup form"
+msgstr ""
+
+msgid "SiteSettings keys"
+msgstr ""
+
+msgid "Start impersonation"
+msgstr ""
+
+msgid "Status: {{ row.status }}"
+msgstr ""
+
+msgid ""
+"Sticky locale: <code>{{ code }}</code> — applied on every page until you "
+"pick another or clear it."
+msgstr ""
+
+msgid "Submit Article"
+msgstr ""
+
+msgid "Submit Question"
+msgstr ""
+
+msgid ""
+"Submit a new request using the form above to track facilities work and "
+"status."
+msgstr ""
+
+msgid "Super-only RBAC + settings introspection. Not a write surface."
+msgstr ""
+
+msgid ""
+"Switch languages mid-session — every page repaints in the chosen locale."
+msgstr ""
+
+msgid "Switch theme"
+msgstr ""
+
+msgid "Syllabus progress {{ pct }}%"
+msgstr ""
+
+msgid "TTL (seconds)"
+msgstr ""
+
+msgid "Target user id"
+msgstr ""
+
+msgid "Tel"
+msgstr ""
+
+msgid "Tenant v3 100x"
+msgstr ""
+
+msgid "Term-over-term deltas appear once at least two terms have been graded."
+msgstr ""
+
+msgid ""
+"The nightly Celery task writes results to var/smoke-results/ once enabled. "
+"Trigger a run now to seed the history."
+msgstr ""
+
+msgid ""
+"The platform exposes one or more impersonation routes — pick one to land in "
+"the audit-logged role-switch flow."
+msgstr ""
+
+msgid ""
+"To keep student and parent data safe, reach the minimum score before using "
+"school workflows — enable MFA, verify your email, and use a strong password."
+msgstr ""
+
+msgid "Translate this page"
+msgstr ""
+
+msgid ""
+"Try different keywords, browse by category, or open the AI help assistant "
+"for guided answers."
+msgstr ""
+
+msgid ""
+"Try widening the status filter — there may be archived runs outside the "
+"currently selected scope."
+msgstr ""
+
+msgid "URL resolution"
+msgstr ""
+
+msgid ""
+"Use the form above to record an absent teacher and assign cover for a period"
+" or full day."
+msgstr ""
+
+msgid "Wave"
+msgstr ""
+
+msgid ""
+"Waves push an in-dock notification to the recipient. Full co-browse needs a "
+"WebSocket bridge and is still on the roadmap."
+msgstr ""
+
+msgid "Who's here"
+msgstr ""
+
+msgid "Who's here right now"
+msgstr ""
+
+msgid ""
+"Your preference is stored against your account so it follows you across "
+"devices."
+msgstr ""
+
+msgid "chars max"
+msgstr ""
+
+msgid "default"
+msgstr ""
+
+msgid "max"
+msgstr ""
+
+msgid "target"
+msgstr ""
+
+msgid "%(n)s assignments"
+msgstr ""
+
+msgid "Academics accent"
+msgstr ""
+
+msgid "Active conversations"
+msgstr ""
+
+msgid "Admissions accent"
+msgstr ""
+
+msgid "All clear"
+msgstr ""
+
+msgid "Broken feature-gap proofs"
+msgstr ""
+
+msgid ""
+"Broken feature-gap proofs (promises that no longer resolve) and over-SLA "
+"backlog items, aggregated into one operator signal. This is the same data "
+"the bottom-right dock badge surfaces."
+msgstr ""
+
+msgid "CLASS"
+msgstr ""
+
+msgid "Chat with your department, classroom, or custom groups"
+msgstr ""
+
+msgid "Checklist pulse"
+msgstr ""
+
+msgid "Class attendance"
+msgstr ""
+
+msgid "Closed without refund — document rationale for audit."
+msgstr ""
+
+msgid "Column"
+msgstr ""
+
+msgid "Communication accent"
+msgstr ""
+
+msgid "Create Group"
+msgstr ""
+
+msgid "Current step"
+msgstr ""
+
+msgid "Days / max"
+msgstr ""
+
+msgid "Decision notes / clarification reason"
+msgstr ""
+
+msgid "Deny"
+msgstr ""
+
+msgid "Department groups"
+msgstr ""
+
+msgid "Dismiss alert"
+msgstr ""
+
+msgid "Dispute closed — retention window applies per policy."
+msgstr ""
+
+msgid "Dispute under review — confirm ledger and PSP status."
+msgstr ""
+
+msgid "Explain the decision or request clarification"
+msgstr ""
+
+msgid ""
+"Fast embed view: current progress, blockers, and the highest-impact next "
+"actions."
+msgstr ""
+
+msgid "Forecast"
+msgstr ""
+
+msgid "Homeroom"
+msgstr ""
+
+msgid "Latest platform activity — open feed"
+msgstr ""
+
+msgid "Latest school activity — open feed"
+msgstr ""
+
+msgid "Launch readiness snapshot"
+msgstr ""
+
+msgid ""
+"Live mission control for platform workflows — active runs, incidents, and "
+"fixes."
+msgstr ""
+
+msgid "Live operator activity feed"
+msgstr ""
+
+msgid "Live school activity feed"
+msgstr ""
+
+msgid "Loading workflows…"
+msgstr ""
+
+msgid "MRR waterfall"
+msgstr ""
+
+msgid "Marking completion"
+msgstr ""
+
+msgid "Mine"
+msgstr ""
+
+msgid "My groups"
+msgstr ""
+
+msgid "New dispute — assign reviewer and gather payment evidence."
+msgstr ""
+
+msgid "No active step yet."
+msgstr ""
+
+msgid ""
+"No backlog evaluation snapshot is cached, so SLA breaches can't be shown. "
+"Run it once:"
+msgstr ""
+
+msgid "No backlog items are over their SLA."
+msgstr ""
+
+msgid "No blockers — launch is clear."
+msgstr ""
+
+msgid "No broken proofs — every shipped feature resolves its proof."
+msgstr ""
+
+msgid "No checklist items yet."
+msgstr ""
+
+msgid "No live data yet"
+msgstr ""
+
+msgid "Open study assist"
+msgstr ""
+
+msgid "Our finance team is reviewing your dispute."
+msgstr ""
+
+msgid "Over-SLA backlog items"
+msgstr ""
+
+msgid "Overdue fees"
+msgstr ""
+
+msgid "People / roster"
+msgstr ""
+
+msgid "People / roster accent"
+msgstr ""
+
+msgid "Platform Health"
+msgstr ""
+
+msgid "Public"
+msgstr ""
+
+msgid "Re-check"
+msgstr ""
+
+msgid ""
+"Re-check runs a tracked workflow that re-resolves the proof. It appears in "
+"the workflow progress chip; if the proof still fails, the run is recorded as"
+" failed."
+msgstr ""
+
+msgid ""
+"Re-checked <code>{{ slug }}</code> — proof now resolves. A tracked workflow "
+"run was recorded."
+msgstr ""
+
+msgid ""
+"Re-checked <code>{{ slug }}</code> — proof still does not resolve. The "
+"tracked workflow run was marked failed."
+msgstr ""
+
+msgid "Refund completed — check your statement for the credit."
+msgstr ""
+
+msgid "Refund could not be completed — contact the school bursar."
+msgstr ""
+
+msgid "Refund failed — escalate to PSP support with evidence."
+msgstr ""
+
+msgid "Refund issued — reconcile ledger and notify parent."
+msgstr ""
+
+msgid "Refund pending — verify PSP webhook and ledger hold."
+msgstr ""
+
+msgid "Refund requested — processing may take a few business days."
+msgstr ""
+
+msgid "Refund succeeded — confirm settlement and close ticket."
+msgstr ""
+
+msgid "Request clarification"
+msgstr ""
+
+msgid "School workflows"
+msgstr ""
+
+msgid "Snooze 1h"
+msgstr ""
+
+msgid "Snooze for one hour"
+msgstr ""
+
+msgid "This dispute is closed."
+msgstr ""
+
+msgid "View activity"
+msgstr ""
+
+msgid "View school activity"
+msgstr ""
+
+msgid "We received your dispute and will review it shortly."
+msgstr ""
+
+msgid "Workflow Flight Deck"
+msgstr ""
+
+msgid "Your dispute was resolved and a refund was issued."
+msgstr ""
+
+msgid "Your dispute was reviewed and closed without a refund."
+msgstr ""
+
+msgid "broken proof(s)"
+msgstr ""
+
+msgid "or schedule the daily refresh by setting"
+msgstr ""
+
+msgid "over-SLA backlog"
+msgstr ""

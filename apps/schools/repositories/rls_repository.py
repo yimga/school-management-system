@@ -72,6 +72,7 @@ def get_tenant_rls_status(table_names: list[str]) -> dict[str, bool]:
     placeholders = ",".join(["%s"] * len(normalized_table_names))
     try:
         with connection.cursor() as cursor:
+            # rls-bypass-allow: introspects pg_class RLS-enabled flags, the RLS surface itself
             cursor.execute(
                 """
                 SELECT c.relname, c.relrowsecurity

@@ -10,7 +10,7 @@
     <p class="small text-muted mb-1"><a href="{% url 'configuration:blueprint_marketplace' %}">{% trans "Blueprint Marketplace" %}</a></p>
     <h1 class="h3 mb-2">{% trans "Blueprint installation history" %}</h1>
   </header>
-  <div class="table-responsive"><table class="table table-sm align-middle table-family">
+  <div class="table-responsive"><table class="table table-sm align-middle table-family rmc-data-table">
     <thead><tr><th>{% trans "Blueprint" %}</th><th>{% trans_term "School" key="school" %}</th><th>{% trans "Status" %}</th><th>{% trans "Applied" %}</th><th>{% trans "Audit" %}</th><th>{% trans "Action" %}</th></tr></thead>
     <tbody>{% for installation in installations %}<tr>
       <td>{{ installation.blueprint_key }}</td><td>{{ installation.school.name }}</td><td>{{ installation.status }}</td><td>{{ installation.applied_at }}</td><td>{{ installation.audit_ref }}</td>

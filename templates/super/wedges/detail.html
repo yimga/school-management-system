@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container-fluid rmc-page" style="max-width: 1100px;">
-  <nav style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+  <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
     <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
     <span aria-hidden="true">›</span>
     <span>{{ wedge.tier }}-P{{ wedge.phase }}</span>
@@ -13,16 +13,16 @@
   </nav>
 
   <header class="rmc-page__header" style="margin-bottom: 14px; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
-    <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-elevated); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--hairline); font-size: 13px; color: var(--text-secondary);">#{{ wedge.id }}</span>
-    <h1 class="rmc-page__title" style="font-size: 1.5rem; letter-spacing: -0.01em; margin: 0;">{{ wedge.name }}</h1>
-    <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-elevated); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--hairline); font-size: 12px; color: var(--text-secondary);">{{ wedge.tier }}-P{{ wedge.phase }}</span>
+    <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-elevated); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--hairline); font-size: var(--type-size-caption); color: var(--text-secondary);">#{{ wedge.id }}</span>
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em; margin: 0;">{{ wedge.name }}</h1>
+    <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-elevated); padding: 2px 8px; border-radius: 6px; border: 1px solid var(--hairline); font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{{ wedge.tier }}-P{{ wedge.phase }}</span>
     <span style="margin-left: auto; display: flex; gap: 6px;">
-      <a href="/portal/super/wedge/{{ prev_id }}/" title="{% trans 'Previous wedge' %}" style="font-size: 13px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); color: var(--text-secondary); text-decoration: none;">←</a>
-      <a href="/portal/super/wedge/{{ next_id }}/" title="{% trans 'Next wedge' %}" style="font-size: 13px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); color: var(--text-secondary); text-decoration: none;">→</a>
+      <a href="/portal/super/wedge/{{ prev_id }}/" title="{% trans 'Previous wedge' %}" style="font-size: var(--type-size-caption); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); color: var(--text-secondary); text-decoration: none;">←</a>
+      <a href="/portal/super/wedge/{{ next_id }}/" title="{% trans 'Next wedge' %}" style="font-size: var(--type-size-caption); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); color: var(--text-secondary); text-decoration: none;">→</a>
     </span>
   </header>
 
-  <p style="font-size: 15px; line-height: 1.5; max-width: 72ch; color: var(--text-primary); margin: 0 0 18px;">{{ wedge.brief }}</p>
+  <p style="font-size: var(--type-size-body); line-height: 1.5; max-width: 72ch; color: var(--text-primary); margin: 0 0 18px;">{{ wedge.brief }}</p>
 
   {% comment %} Phase timeline strip {% endcomment %}
   <section style="display: flex; gap: 6px; margin-bottom: 22px; flex-wrap: wrap;">
@@ -37,11 +37,11 @@
   <section style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; margin-bottom: 22px;">
     {% comment %} Checklist column {% endcomment %}
     <div class="rmc-card" style="padding: 16px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <h2 style="font-size: 1.05rem; margin: 0 0 10px; letter-spacing: -0.01em;">{% trans "Checklist" %}</h2>
+      <h2 style="font-size: var(--type-size-body); margin: 0 0 10px; letter-spacing: -0.01em;">{% trans "Checklist" %}</h2>
       {% if checklist %}
         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
           {% for item in checklist %}
-            <li style="display: flex; gap: 10px; align-items: baseline; font-size: 14px; line-height: 1.45;">
+            <li style="display: flex; gap: 10px; align-items: baseline; font-size: var(--type-size-caption); line-height: 1.45;">
               <span style="display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; border-radius: 4px; font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
                 {% if item.live is True %} background: var(--surface-bg); color: var(--text-primary); border: 1px solid var(--hairline);
                 {% elif item.live is False %} background: var(--surface-bg); color: var(--text-secondary); border: 1px solid var(--hairline);
@@ -54,25 +54,25 @@
           {% endfor %}
         </ul>
       {% else %}
-        <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">{% trans "No checklist entries." %}</p>
+        <p style="color: var(--text-secondary); font-size: var(--type-size-caption); margin: 0;">{% trans "No checklist entries." %}</p>
       {% endif %}
     </div>
 
     {% comment %} Deep links column {% endcomment %}
     <div class="rmc-card" style="padding: 16px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <h2 style="font-size: 1.05rem; margin: 0 0 10px; letter-spacing: -0.01em;">{% trans "Deep links" %}</h2>
+      <h2 style="font-size: var(--type-size-body); margin: 0 0 10px; letter-spacing: -0.01em;">{% trans "Deep links" %}</h2>
       {% if deep_links %}
         <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px;">
           {% for link in deep_links %}
-            <li style="display: flex; flex-direction: column; gap: 2px; font-size: 13px;">
+            <li style="display: flex; flex-direction: column; gap: 2px; font-size: var(--type-size-caption);">
               <a href="{{ link.path }}" style="color: var(--text-primary); text-decoration: none; font-weight: 500;">{{ link.label }}</a>
-              <code style="color: var(--text-secondary); font-size: 11px; word-break: break-all;">{{ link.path }}</code>
-              <a href="{{ link.path_with_filter }}" style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;" title="{% trans 'Filtered to this wedge' %}">{% trans "with ?wedge filter" %} →</a>
+              <code style="color: var(--text-secondary); font-size: var(--type-size-micro); word-break: break-all;">{{ link.path }}</code>
+              <a href="{{ link.path_with_filter }}" style="font-size: var(--type-size-micro); color: var(--text-secondary); margin-top: 2px;" title="{% trans 'Filtered to this wedge' %}">{% trans "with ?wedge filter" %} →</a>
             </li>
           {% endfor %}
         </ul>
       {% else %}
-        <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">{% trans "No deep links wired yet." %}</p>
+        <p style="color: var(--text-secondary); font-size: var(--type-size-caption); margin: 0;">{% trans "No deep links wired yet." %}</p>
       {% endif %}
     </div>
   </section>
@@ -80,37 +80,37 @@
   {% comment %} Facets + deep-link copy {% endcomment %}
   <section style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px;">
     <div class="rmc-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <h2 style="font-size: 0.95rem; margin: 0 0 8px; letter-spacing: -0.01em; color: var(--text-secondary);">{% trans "Facets" %}</h2>
+      <h2 style="font-size: var(--type-size-caption); margin: 0 0 8px; letter-spacing: -0.01em; color: var(--text-secondary);">{% trans "Facets" %}</h2>
       {% if wedge.facets %}
         <div style="display: flex; flex-wrap: wrap; gap: 4px;">
           {% for k, v in wedge.facets.items %}
-            <span style="font-size: 11px; padding: 2px 6px; border-radius: 5px; background: var(--surface-bg); border: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ k }}:{{ v }}</span>
+            <span style="font-size: var(--type-size-micro); padding: 2px 6px; border-radius: 5px; background: var(--surface-bg); border: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ k }}:{{ v }}</span>
           {% endfor %}
         </div>
       {% else %}
-        <p style="color: var(--text-secondary); font-size: 13px; margin: 0;">—</p>
+        <p style="color: var(--text-secondary); font-size: var(--type-size-caption); margin: 0;">—</p>
       {% endif %}
     </div>
     <div class="rmc-card" style="padding: 14px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <h2 style="font-size: 0.95rem; margin: 0 0 8px; letter-spacing: -0.01em; color: var(--text-secondary);">{% trans "Canonical filter for grouped surfaces" %}</h2>
-      <code id="rmc-wedge-filter-code" style="display: block; padding: 8px; border-radius: 6px; background: var(--surface-bg); border: 1px solid var(--hairline); font-size: 12px; word-break: break-all; color: var(--text-primary);">?wedge={{ wedge.id }}</code>
-      <button type="button" id="rmc-wedge-filter-copy" style="margin-top: 8px; font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); background: transparent; color: var(--text-secondary); cursor: pointer;">{% trans "Copy" %}</button>
+      <h2 style="font-size: var(--type-size-caption); margin: 0 0 8px; letter-spacing: -0.01em; color: var(--text-secondary);">{% trans "Canonical filter for grouped surfaces" %}</h2>
+      <code id="rmc-wedge-filter-code" style="display: block; padding: 8px; border-radius: 6px; background: var(--surface-bg); border: 1px solid var(--hairline); font-size: var(--type-size-eyebrow); word-break: break-all; color: var(--text-primary);">?wedge={{ wedge.id }}</code>
+      <button type="button" id="rmc-wedge-filter-copy" style="margin-top: 8px; font-size: var(--type-size-eyebrow); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); background: transparent; color: var(--text-secondary); cursor: pointer;">{% trans "Copy" %}</button>
     </div>
   </section>
 
   {% comment %} Tier sibling navigation {% endcomment %}
   {% if siblings_in_tier %}
     <section style="margin-bottom: 22px;">
-      <h2 style="font-size: 0.95rem; margin: 0 0 8px; letter-spacing: -0.01em; color: var(--text-secondary);">{% trans "Siblings in tier" %} {{ wedge.tier }}</h2>
+      <h2 style="font-size: var(--type-size-caption); margin: 0 0 8px; letter-spacing: -0.01em; color: var(--text-secondary);">{% trans "Siblings in tier" %} {{ wedge.tier }}</h2>
       <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px;">
         {% for s in siblings_in_tier %}
-          <li><a href="/portal/super/wedge/{{ s.id }}/" style="font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); color: var(--text-secondary); text-decoration: none;">#{{ s.id }} {{ s.name }}</a></li>
+          <li><a href="/portal/super/wedge/{{ s.id }}/" style="font-size: var(--type-size-eyebrow); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--hairline); color: var(--text-secondary); text-decoration: none;">#{{ s.id }} {{ s.name }}</a></li>
         {% endfor %}
       </ul>
     </section>
   {% endif %}
 
-  <footer style="margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-secondary);">
+  <footer style="margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
     <span>{% trans "JSON" %}: <a href="?format=json" style="color: var(--text-primary);">/portal/super/wedge/{{ wedge.id }}/?format=json</a></span>
     <span>{% trans "API" %}: <a href="{% url 'api:super-wedge-detail' wedge.id %}" style="color: var(--text-primary);">{% url 'api:super-wedge-detail' wedge.id %}</a></span>
     <span>{% trans "Slug" %}: <code style="color: var(--text-primary);">{{ wedge.slug }}</code></span>

@@ -30,7 +30,7 @@ def build_ministry_stub_pdf_bytes(
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=letter)
     c.setTitle(f"Ministry report — {label}")
-    y = 750
+    y = 750  # magic-number-allow: pdf-layout-coordinate
     c.drawString(72, y, "RunMyCampus — Ministry / statutory export (generated shell)")
     y -= 24
     c.drawString(72, y, f"Report: {label}")
@@ -44,7 +44,7 @@ def build_ministry_stub_pdf_bytes(
             c.drawString(72, y, f"Framework note: {hint['framework'][:90]}")
             y -= 20
             if len(hint["framework"]) > 90:
-                c.drawString(72, y, f"  {hint['framework'][90:180]}")
+                c.drawString(72, y, f"  {hint['framework'][90:180]}")  # magic-number-allow: pdf-layout-coordinate
                 y -= 20
     if school_name:
         c.drawString(72, y, f"Tenant: {school_name}")

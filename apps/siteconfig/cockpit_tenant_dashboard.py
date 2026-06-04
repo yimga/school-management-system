@@ -262,14 +262,13 @@ def _tenant_activity_ticker_defaults() -> dict[str, Any]:
       * parent messages / announcements
       * scheduled system maintenance windows
 
-    Default ``enabled=False`` so tenant operators must opt in via
-    ``SiteSettings.cockpit_payload.tenant_activity_ticker.*`` (or via the
-    ``atk_enabled_on_tenant`` toggle in the cockpit admin form). Sensible
-    seed cards ship so the ticker renders the moment an operator flips
-    enabled=True without requiring them to publish 6 individual cards first.
+    Default ``enabled=True`` with seed cards so Tier 1/2/3 render on first
+    tenant login. Operators may opt out via
+    ``SiteSettings.cockpit_payload.activity_ticker.enabled_on_tenant=False``
+    (``atk_enabled_on_tenant`` toggle in the cockpit admin form).
     """
     return {
-        "enabled": False,
+        "enabled": True,
         # v3.60.0 (2026-05-22): tuned from 60s → 40s for a snappier feel.
         "scroll_seconds": 40,
         "live_badge_label": _("LIVE"),

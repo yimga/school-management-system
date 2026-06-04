@@ -15,7 +15,18 @@ os.environ["REDIS_URL"] = ""
 os.environ["RMC_FORCE_DB_SESSIONS"] = "1"
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-USERNAME = os.environ.get("VISUAL_QA_USERNAME", "visualqa_admin")
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(ROOT / ".env.local", override=False)
+except ImportError:
+    pass
+
+USERNAME = (
+    os.environ.get("E2E_LOGIN_USER")
+    or os.environ.get("VISUAL_QA_USERNAME")
+    or "visualqa_admin"
+)
 DEVICE_NAME = os.environ.get("VISUAL_QA_TOTP_DEVICE", "e2e-playwright")
 
 

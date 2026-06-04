@@ -17,33 +17,33 @@
 
   <section role="alert" style="margin-bottom:14px;padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
     <strong style="color:var(--text-primary);">{% trans "Preview only — nothing was deleted." %}</strong>
-    <div style="margin-top:6px;color:var(--text-secondary);font-size:13px;">
+    <div style="margin-top:6px;color:var(--text-secondary);font-size:var(--type-size-caption);">
       {% trans "Use ?years=&lt;N&gt; to override the retention window for the forecast. The real Celery beat reads RMC_LMS_DIAG_ACTION_RETENTION_YEARS (default 7y FERPA)." %}
     </div>
   </section>
 
   <section style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">
     <div style="padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
-      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Retention years" %}</div>
-      <div style="font-size:1.5rem;font-weight:600;">{{ retention.years }}</div>
+      <div style="font-size:var(--type-size-micro);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Retention years" %}</div>
+      <div style="font-size:var(--type-size-headline-m);font-weight:600;">{{ retention.years }}</div>
     </div>
     <div style="padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
-      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Considered" %}</div>
-      <div style="font-size:1.5rem;font-weight:600;">{{ retention.considered }}</div>
+      <div style="font-size:var(--type-size-micro);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Considered" %}</div>
+      <div style="font-size:var(--type-size-headline-m);font-weight:600;">{{ retention.considered }}</div>
     </div>
     <div style="padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
-      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Would delete" %}</div>
-      <div style="font-size:1.5rem;font-weight:600;">{{ retention.considered }}</div>
+      <div style="font-size:var(--type-size-micro);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Would delete" %}</div>
+      <div style="font-size:var(--type-size-headline-m);font-weight:600;">{{ retention.considered }}</div>
     </div>
     <div style="padding:12px 16px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);">
-      <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Actually deleted" %}</div>
-      <div style="font-size:1.5rem;font-weight:600;color:var(--text-secondary);">0</div>
+      <div style="font-size:var(--type-size-micro);color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.04em;">{% trans "Actually deleted" %}</div>
+      <div style="font-size:var(--type-size-headline-m);font-weight:600;color:var(--text-secondary);">0</div>
     </div>
   </section>
 
   <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
-    <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;">{% trans "Sweep parameters" %}</h2>
-    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <h2 class="rmc-h2" style="margin-top:0;font-size:var(--type-size-body);">{% trans "Sweep parameters" %}</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:var(--type-size-caption);">
       <tbody>
         <tr>
           <td style="padding:6px 0;color:var(--text-secondary);width:200px;">{% trans "dry_run" %}</td>
@@ -81,8 +81,8 @@
   {% comment %} the cutoff. Left half = would-purge (before cutoff); right half = kept. {% endcomment %}
   {% if sparkline.buckets %}
   <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
-    <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;">{% trans "Row distribution by week" %}</h2>
-    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;">
+    <h2 class="rmc-h2" style="margin-top:0;font-size:var(--type-size-body);">{% trans "Row distribution by week" %}</h2>
+    <p style="color:var(--text-secondary);font-size:var(--type-size-caption);margin-bottom:10px;">
       {% blocktrans with weeks=sparkline.weeks_per_side %}{{ weeks }} weeks before cutoff and {{ weeks }} weeks after. Bars left of the divider would purge; bars right of the divider would be kept.{% endblocktrans %}
       <strong style="color:var(--text-primary);">{% trans "Before total" %}:</strong> <code>{{ sparkline.before_total }}</code> ·
       <strong style="color:var(--text-primary);">{% trans "After total" %}:</strong> <code>{{ sparkline.after_total }}</code>
@@ -110,7 +110,7 @@
       </line>
       {% endif %}
     </svg>
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-top:4px;">
+    <div style="display:flex;justify-content:space-between;font-size:var(--type-size-micro);color:var(--text-secondary);margin-top:4px;">
       <span>← {{ sparkline.window_start_iso|slice:":10" }}</span>
       <span>{% trans "cutoff" %}</span>
       <span>{{ sparkline.window_end_iso|slice:":10" }} →</span>
@@ -119,8 +119,8 @@
   {% endif %}
 
   <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
-    <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;">{% trans "Forecast different windows" %}</h2>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:13px;">
+    <h2 class="rmc-h2" style="margin-top:0;font-size:var(--type-size-body);">{% trans "Forecast different windows" %}</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:var(--type-size-caption);">
       <a href="?years=1" class="rmc-button rmc-button--secondary">1y</a>
       <a href="?years=3" class="rmc-button rmc-button--secondary">3y</a>
       <a href="?years=5" class="rmc-button rmc-button--secondary">5y</a>
@@ -134,8 +134,8 @@
   {% comment %} i.e. the preview produced a real cutoff w/ at least one row to delete). {% endcomment %}
   {% if purge_token %}
   <section style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
-    <h2 class="rmc-h2" style="margin-top:0;font-size:1.05rem;color:var(--text-primary);">{% trans "Confirm purge" %}</h2>
-    <p style="color:var(--text-secondary);font-size:13px;margin-bottom:10px;">
+    <h2 class="rmc-h2" style="margin-top:0;font-size:var(--type-size-body);color:var(--text-primary);">{% trans "Confirm purge" %}</h2>
+    <p style="color:var(--text-secondary);font-size:var(--type-size-caption);margin-bottom:10px;">
       {% blocktrans count counter=retention.considered %}Permanently delete {{ counter }} row older than the cutoff above.{% plural %}Permanently delete {{ counter }} rows older than the cutoff above.{% endblocktrans %}
       {% trans "This token is valid for" %} {{ purge_token_ttl_seconds }}s.
     </p>
@@ -145,7 +145,7 @@
       <button type="submit" class="rmc-button rmc-button--danger" style="background:var(--text-primary);color:var(--surface-elevated);">
         {% trans "Confirm purge — actually delete" %} ({{ retention.considered }})
       </button>
-      <span style="color:var(--text-secondary);font-size:12px;">
+      <span style="color:var(--text-secondary);font-size:var(--type-size-eyebrow);">
         {% trans "Audit row is written to action-history." %}
       </span>
     </form>
@@ -155,14 +155,14 @@
   {% if request.GET.purged_deleted %}
   <section role="alert" style="padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--surface-elevated);margin-bottom:18px;">
     <strong style="color:var(--text-primary);">{% trans "Purge complete." %}</strong>
-    <div style="margin-top:6px;color:var(--text-secondary);font-size:13px;">
+    <div style="margin-top:6px;color:var(--text-secondary);font-size:var(--type-size-caption);">
       {% trans "Deleted" %}: <code>{{ request.GET.purged_deleted }}</code> ·
       {% trans "Considered" %}: <code>{{ request.GET.purged_considered }}</code>
     </div>
   </section>
   {% endif %}
 
-  <footer style="font-size:12px;color:var(--text-secondary);margin-top:12px;">
+  <footer style="font-size:var(--type-size-eyebrow);color:var(--text-secondary);margin-top:12px;">
     <span>{{ note }}</span> ·
     <a href="?format=json{% if years_override is not None %}&amp;years={{ years_override }}{% endif %}">{% trans "JSON" %}</a> ·
     {% comment %} v4.00.68 — CSV gzip export of the sparkline histogram + retention summary. {% endcomment %}

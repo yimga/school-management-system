@@ -1108,11 +1108,11 @@ def lti_ags_results(request, tool_id, lineitem_id):
 
 def _map_membership_role(role: str) -> str:
     role_upper = str(role or "").upper()
-    if role_upper in {"ADMIN", "IT_ADMIN", "LEADERSHIP"}:
+    if role_upper in {"ADMIN", "IT_ADMIN", "LEADERSHIP"}:  # role-string-allow: role-to-display-label-mapping
         return "Administrator"
-    if role_upper == "TEACHER":
+    if role_upper == "TEACHER":  # role-string-allow: role-to-display-label-mapping
         return "Instructor"
-    if role_upper == "PARENT":
+    if role_upper == "PARENT":  # role-string-allow: role-to-display-label-mapping
         return "Guardian"
     return "Learner"
 
@@ -1211,7 +1211,7 @@ def lti_deep_linking(request, tool_id):
             "items": accepted,
         }
     )
-    cfg["_lti_deep_links"] = deep_links[-100:]
+    cfg["_lti_deep_links"] = deep_links[-100:]  # magic-number-allow: string-truncation-cap
     _save_lti_state(integration, cfg)
     return JsonResponse({"status": "ok", "accepted": accepted}, status=200)
 

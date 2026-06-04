@@ -3,7 +3,7 @@ name = "runmycampus-companion-tauri"
 version = "3.39.0"
 description = "RunMyCampus Migration Cloud Tauri companion (RMC platform handshake + canonical-CSV ingest). NO third-party SIS automation."
 edition = "2021"
-license = "Proprietary"
+license = "AGPL-3.0-or-later"
 
 [lib]
 name = "runmycampus_companion_tauri_lib"

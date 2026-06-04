@@ -103,6 +103,51 @@ def ai_copilot_badge_resolver(request, *, slot, page_path):  # noqa: ARG001
     )
 
 
+def platform_health_badge_resolver(request, *, slot, page_path):  # noqa: ARG001
+    """Live platform-health pill: broken feature-gap proofs + over-SLA backlog.
+
+    Staff-only (returns None for non-staff so nothing leaks). Returns None when
+    healthy (count 0) so the dock paints no pill. The pill level mirrors the
+    summary level: critical when a shipped promise's proof is broken, warning on
+    backlog SLA breaches. Cheap — proof resolution is reverse()/get_model(),
+    backlog is cache-only. See apps.platform_runtime.platform_health.
+    """
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return None
+    if not getattr(user, "is_staff", False):
+        return None
+    try:
+        from apps.platform_runtime.platform_health import (
+            LEVEL_CRITICAL,
+            LEVEL_WARNING,
+            platform_health_summary,
+        )
+    except (ImportError, RuntimeError):
+        return None
+    # use_cache: this runs on every dock poll / SSE tick — serve the short-TTL
+    # cached summary instead of re-scanning every feature proof each time.
+    summary = platform_health_summary(use_cache=True)
+    count = int(summary.get("count", 0) or 0)
+    if count <= 0:
+        return None
+    summary_level = summary.get("level")
+    if summary_level == LEVEL_CRITICAL:
+        level = "critical"
+    elif summary_level == LEVEL_WARNING:
+        level = "warning"
+    else:
+        level = BADGE_LEVEL_INFO
+    broken = int(summary.get("feature_gap_broken", 0) or 0)
+    breaches = int(summary.get("backlog_breaches", 0) or 0)
+    return BadgeSnapshot(
+        count=min(count, 99),
+        dot=True,
+        level=level,
+        tooltip=f"{broken} broken proof(s), {breaches} over-SLA backlog item(s)",
+    )
+
+
 def help_badge_resolver(request, *, slot, page_path):  # noqa: ARG001
     """Hot KB article count for the current page path. Stub for Wave D."""
     return None
@@ -150,6 +195,7 @@ def presence_badge_resolver(request, *, slot, page_path):  # noqa: ARG001
 
 # Register on import — loaded by AppConfig.ready.
 register_badge_resolver("messages", messages_badge_resolver)
+register_badge_resolver("platform-health", platform_health_badge_resolver)
 register_badge_resolver("ai-copilot", ai_copilot_badge_resolver)
 register_badge_resolver("help", help_badge_resolver)
 register_badge_resolver("feedback", feedback_badge_resolver)

@@ -46,7 +46,7 @@ body[data-dashboard-page] #content .container {
 
 .skip-link {
   position: absolute;
-  left: -999px;
+  inset-inline-start: -999px;
   top: 0;
   padding: 0.4rem 0.75rem;
   background: var(--surface-canvas, var(--color-base-900));
@@ -57,7 +57,7 @@ body[data-dashboard-page] #content .container {
 }
 
 .skip-link:focus {
-  left: 0.75rem;
+  inset-inline-start: 0.75rem;
   top: 0.5rem;
 }
 

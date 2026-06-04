@@ -162,7 +162,7 @@ def send_verification_email(req: PublisherSignupRequest, *, base_url: str) -> bo
     The body uses a plain-text template so it works regardless of HTML rendering.
     """
 
-    from django.core.mail import send_mail
+    from apps.schoolops.email_compat import send_mail
 
     verify_url = (
         base_url.rstrip("/")

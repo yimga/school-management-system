@@ -268,7 +268,7 @@ def _bump_retention_sweep_counter(*, kind: str, considered: int, deleted: int) -
         logger.debug("retention counters bump failed: %s", exc)
 
 
-def build_audit_row_export_packet(*, limit: int = 5000,
+def build_audit_row_export_packet(*, limit: int = 5000,  # magic-number-allow: audit-export-row-cap
                                     provider: str = "",
                                     action: str = "",
                                     since=None, before=None) -> dict:
@@ -284,7 +284,7 @@ def build_audit_row_export_packet(*, limit: int = 5000,
     to S3 / handed to counsel directly. NEVER raises.
     """
     try:
-        entries = get_last_action_snapshot(limit=max(1, min(20000, limit)),
+        entries = get_last_action_snapshot(limit=max(1, min(20000, limit)),  # magic-number-allow: audit-export-row-cap
                                            since=since, before=before, durable=True)
     except Exception as exc:  # noqa: BLE001
         logger.debug("audit export snapshot failed: %s", exc)
@@ -419,7 +419,7 @@ def build_diagnostics_forensic_export(*, since=None, before=None,
     they pull this, attach to a Linear ticket, and hand to security.
     """
     try:
-        entries = get_last_action_snapshot(limit=max(1, min(5000, limit)),
+        entries = get_last_action_snapshot(limit=max(1, min(5000, limit)),  # magic-number-allow: audit-export-row-cap
                                            since=since, before=before, durable=True)
     except Exception as exc:  # noqa: BLE001
         logger.debug("forensic export snapshot failed: %s", exc)
@@ -947,9 +947,9 @@ def _retention_purge_sparkline(*, cutoff_dt, now=None) -> dict:
         "after_total": after_total,
         "window_start_iso": window_start.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "window_end_iso": window_end.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "viewbox_width": 288,
+        "viewbox_width": 288,  # magic-number-allow: pdf-layout-coordinate
         "viewbox_height": 60,
-        "divider_x": 144,
+        "divider_x": 144,  # magic-number-allow: pdf-layout-coordinate
         "percentile_bands": {
             "p25": p25, "p25_y": _band_y(p25),
             "p50": p50, "p50_y": _band_y(p50),

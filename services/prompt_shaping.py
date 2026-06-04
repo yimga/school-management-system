@@ -46,8 +46,8 @@ SYSTEM_MESSAGES: dict[str, tuple[str, ...]] = {
 
 MAX_COMPLETION_TOKENS: dict[str, int] = {
     "A": 2048,
-    "B": 1024,
-    "C": 384,
+    "B": 1024,  # magic-number-allow: token-budget-size
+    "C": 384,  # magic-number-allow: token-budget-size
 }
 
 

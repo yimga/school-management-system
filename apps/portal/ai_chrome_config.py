@@ -94,7 +94,7 @@ def ai_copilot_permissions_for_user(user) -> dict[str, Any]:
         user_role = (getattr(user, "role", "USER") or "").upper()
 
     admin_roles = {
-        "ADMIN",
+        "ADMIN",  # role-string-allow: rbac-role-comparison
         "LEADERSHIP",
         "PRINCIPAL",
         "VICE_PRINCIPAL",
@@ -145,7 +145,7 @@ def ai_copilot_permissions_for_user(user) -> dict[str, Any]:
                 "scope": "finance",
             }
         )
-    elif user_role == "TEACHER":
+    elif user_role == "TEACHER":  # role-string-allow: rbac-role-comparison
         permissions.update(
             {
                 "can_access_grades": True,
@@ -153,7 +153,7 @@ def ai_copilot_permissions_for_user(user) -> dict[str, Any]:
                 "scope": "teacher",
             }
         )
-    elif user_role == "PARENT":
+    elif user_role == "PARENT":  # role-string-allow: rbac-role-comparison
         permissions.update(
             {
                 "can_access_grades": True,
@@ -225,7 +225,7 @@ def resolve_ai_chrome_config(request) -> dict[str, Any]:
 
     max_chars_raw = ui.get("floating_max_message_chars", flags.get("ai_copilot_max_message_chars", 500))
     try:
-        max_message_chars = max(100, min(int(max_chars_raw), 4000))
+        max_message_chars = max(100, min(int(max_chars_raw), 4000))  # magic-number-allow: ai-message-char-cap
     except (TypeError, ValueError):
         max_message_chars = 500
 

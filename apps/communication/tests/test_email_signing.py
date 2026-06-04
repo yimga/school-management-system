@@ -98,11 +98,30 @@ class AssertDkimConfiguredTests(SimpleTestCase):
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
         EMAIL_SIGNING_REQUIRED=True,
+        # Pin EMAIL_HOST to a non-relay host so this asserts the genuine
+        # misconfig path. Under audit H13 an SMTP backend pointing at a KNOWN
+        # signing relay (Brevo/SendGrid/...) legitimately signs and must NOT
+        # raise; without this override the test would be env-dependent on
+        # whatever EMAIL_HOST the local .env happens to carry.
+        EMAIL_HOST="mail.unknown-relay.example",
+        EMAIL_DKIM_RELAY_TRUSTED="",
     )
     def test_required_setting_raises_on_misconfig(self):
         with self.assertRaises(EmailSigningMisconfigured) as ctx:
             assert_dkim_configured()
         self.assertIn("does NOT sign DKIM", str(ctx.exception))
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+        EMAIL_SIGNING_REQUIRED=True,
+        EMAIL_HOST="smtp-relay.brevo.com",
+    )
+    def test_smtp_pointing_at_known_relay_signs(self):
+        # Audit H13: the plain SMTP backend aimed at a known DKIM-signing relay
+        # IS signed at the relay edge — the gate must pass, not hard-block.
+        status = assert_dkim_configured()
+        self.assertTrue(status["signs_dkim"])
+        self.assertIn("Brevo", status["provider"])
 
 
 class ProviderMatrixSanityTests(SimpleTestCase):

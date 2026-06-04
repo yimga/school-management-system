@@ -36,7 +36,7 @@ _VALID_PRIORITIES = ("LOW", "NORMAL", "HIGH", "URGENT")
 def _prompt_for_ticket(ticket) -> str:
     """Build a deterministic structured prompt asking for JSON-only output."""
     subject = (getattr(ticket, "subject", "") or "")[:200]
-    body = (getattr(ticket, "body", "") or "")[:1200]
+    body = (getattr(ticket, "body", "") or "")[:1200]  # magic-number-allow: ai-message-char-cap
     submission_surface = ""
     template_key = ""
     metadata = getattr(ticket, "metadata", None) or {}
@@ -91,8 +91,8 @@ def _parse_ai_response(response: Any) -> dict[str, Any]:
     priority = (parsed.get("priority_suggestion") or "").strip().upper()
     if priority not in _VALID_PRIORITIES:
         priority = "NORMAL"
-    summary = (parsed.get("summary") or "").strip()[:240]
-    reasoning = (parsed.get("reasoning") or "").strip()[:480]
+    summary = (parsed.get("summary") or "").strip()[:240]  # magic-number-allow: string-truncation-cap
+    reasoning = (parsed.get("reasoning") or "").strip()[:480]  # magic-number-allow: string-truncation-cap
     return {
         "category": category,
         "priority_suggestion": priority,

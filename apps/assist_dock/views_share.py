@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 
 from services.http_auth_guards import login_required_api as login_required
@@ -26,15 +27,17 @@ from .short_links import (
     resolve_short_link,
 )
 
+logger = logging.getLogger(__name__)
+
 # Conservative RFC 5321-ish address shape; we don't pretend to be a full
 # email validator — this is just a "looks like an address" gate.
 _EMAIL_RE = re.compile(r"^[^\s@]{1,64}@[^\s@]{3,255}\.[^\s@]{2,24}$")
 
 # Caps for the recipient picker.
 _MAX_RECIPIENTS_PER_MINT = 12
-_MAX_RECIPIENT_LEN = 320
+_MAX_RECIPIENT_LEN = 320  # magic-number-allow: field-char-cap
 
-_MAX_MINT_BODY_BYTES = 4 * 1024
+_MAX_MINT_BODY_BYTES = 4 * 1024  # magic-number-allow: byte-size-cap
 
 
 @login_required

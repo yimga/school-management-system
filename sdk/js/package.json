@@ -32,11 +32,11 @@
   "homepage": "https://runmycampus.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/runmycampus/runmycampus.git",
+    "url": "git+https://github.com/yimga/school-management-system.git",
     "directory": "beta/school-management-system/sdk/js"
   },
   "bugs": {
-    "url": "https://github.com/runmycampus/runmycampus/issues"
+    "url": "https://github.com/yimga/school-management-system/issues"
   },
   "publishConfig": {
     "access": "public"

@@ -144,6 +144,23 @@ class EmailDeliveryEvent(models.Model):
             "send with the same key returns the existing row id without SMTP."
         ),
     )
+    # Bounce-correlation key (audit residual closeout). The sender writes an
+    # explicit RFC 5322 Message-ID (``email.utils.make_msgid``) into every
+    # message; we persist the local-part (the bit before ``@``, brackets
+    # stripped) here so an inbound provider bounce webhook can deterministically
+    # match the bounce back to THIS row instead of the previous best-effort
+    # ``subject_prefix__icontains`` heuristic. Indexed for the webhook lookup.
+    message_id_prefix = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "Local-part of the outbound Message-ID header (sha-ish token "
+            "before '@', angle-brackets stripped). Correlation key for "
+            "provider bounce webhooks. NEVER contains PII."
+        ),
+    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         db_index=True,
@@ -185,17 +202,17 @@ class EmailDeliveryEvent(models.Model):
     # ------------------------------------------------------------------
 
     def save(self, *args, **kwargs):
-        if self.pk is not None:
-            existing = (
-                type(self).objects  # tenant-isolation-allow: platform-email-delivery-log-no-tenant-scope
-                .filter(pk=self.pk)
-                .only("pk")
-                .first()
+        # Append-only: refuse to overwrite a row that already exists in the DB.
+        # Use ``self._state.adding`` (no query) rather than a per-insert SELECT:
+        # the PK is a uuid4 default, so ``self.pk`` is set even for brand-new
+        # rows, which made the old pk-based guard fire a wasted SELECT on EVERY
+        # insert (write amplification on the single free-tier worker).
+        # ``_state.adding`` is True only for a freshly-constructed (not-yet-saved)
+        # instance; a row loaded from the DB has it False.
+        if not self._state.adding:
+            raise EmailDeliveryEventReadOnlyError(
+                "EmailDeliveryEvent rows are append-only; update refused."
             )
-            if existing is not None:
-                raise EmailDeliveryEventReadOnlyError(
-                    "EmailDeliveryEvent rows are append-only; update refused."
-                )
         super().save(*args, **kwargs)
 
     def delete(self, using=None, keep_parents=False):

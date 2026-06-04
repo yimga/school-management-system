@@ -185,6 +185,29 @@ class WALEnvelopeValidationTests(SimpleTestCase):
         self.assertFalse(ok)
         self.assertEqual(reason, "too_large")
 
+    def test_author_mismatch_rejected(self):
+        # An outbox row stamped by user "5" must not ship over user "9"'s socket.
+        env = self._envelope(author_user_id="5")
+        ok, reason = _validate(
+            env, expected_tenant_hash=self.TENANT, expected_user_id="9"
+        )
+        self.assertFalse(ok)
+        self.assertEqual(reason, "author_mismatch")
+
+    def test_author_match_accepted(self):
+        env = self._envelope(author_user_id="9")
+        ok, reason = _validate(
+            env, expected_tenant_hash=self.TENANT, expected_user_id="9"
+        )
+        self.assertTrue(ok, reason)
+
+    def test_missing_author_is_backward_compatible(self):
+        # Older client without author stamp still validates (no author check).
+        ok, reason = _validate(
+            self._envelope(), expected_tenant_hash=self.TENANT, expected_user_id="9"
+        )
+        self.assertTrue(ok, reason)
+
 
 class WALWriterDispatchTests(SimpleTestCase):
     def test_dispatch_rejects_unknown_domain(self):
@@ -196,8 +219,19 @@ class WALWriterDispatchTests(SimpleTestCase):
     def test_dispatch_accepts_registered_domains(self):
         from apps.wal_stream.writers import _REGISTRY
 
-        for domain in ("attendance", "teacher_attendance", "grade", "billing_charge", "communication_send", "audit_event"):
+        for domain in ("attendance", "teacher_attendance", "grade", "communication_send", "announcement_create", "audit_event"):
             self.assertIn(domain, _REGISTRY)
+
+    def test_billing_charge_domain_is_intentionally_removed(self):
+        # The old billing_charge writer built Invoice() with non-existent fields
+        # and silently lost money; it had no client producer. It must stay out of
+        # the registry + consumer allow-list until rebuilt against the real
+        # Invoice contract with DB tests.
+        from apps.wal_stream.consumers import _ALLOWED_DOMAINS
+        from apps.wal_stream.writers import _REGISTRY
+
+        self.assertNotIn("billing_charge", _REGISTRY)
+        self.assertNotIn("billing_charge", _ALLOWED_DOMAINS)
 
     def test_teacher_attendance_domain_is_validated_by_consumer(self):
         from apps.wal_stream.consumers import _validate
@@ -257,6 +291,87 @@ class WALWriterDispatchTests(SimpleTestCase):
         self.assertEqual(statuses, ["ABSENT", "PRESENT", "PRESENT"])  # BOGUS -> PRESENT
 
 
+class WALWriterTenantIsolationTests(SimpleTestCase):
+    """Writers must drop client-supplied FK ids that don't belong to the bound
+    tenant (cross-tenant write defense). _ids_in_school is patched so the logic
+    is exercised without a DB; id 999 stands in for a foreign-tenant row.
+    """
+
+    def test_ids_in_school_fail_open_without_school(self):
+        from apps.wal_stream.writers import _ids_in_school
+
+        # No bound school -> fail-open (returns the wanted set, no DB touched).
+        self.assertEqual(_ids_in_school(None, [1, 2, None], None), {1, 2})
+
+    def test_attendance_drops_cross_tenant_rows(self):
+        from unittest import mock
+
+        env = {
+            "school_id": 7,
+            "actions": [
+                {"student_id": 1, "classroom_id": 1, "date": "2026-05-28", "status": "present"},
+                {"student_id": 999, "classroom_id": 1, "date": "2026-05-28", "status": "present"},
+            ],
+        }
+        captured: list = []
+
+        def _fake_ids(model, ids, school_id, **kw):
+            return {i for i in ids if i != 999}
+
+        with mock.patch("apps.wal_stream.writers._ids_in_school", side_effect=_fake_ids), \
+                mock.patch("apps.academics.models.Attendance.objects.bulk_create",
+                           side_effect=lambda rows, **kw: captured.extend(rows)):
+            from apps.wal_stream.writers import _apply_attendance
+
+            _apply_attendance(env)
+        self.assertEqual([r.student_id for r in captured], [1])
+
+    def test_grade_drops_cross_tenant_student(self):
+        from unittest import mock
+
+        env = {
+            "school_id": 7,
+            "user_id": 5,
+            "actions": [
+                {"student_id": 1, "subject_assignment_id": 3, "academic_year_id": 1, "term_id": 1, "seq1_score": 80},
+                {"student_id": 999, "subject_assignment_id": 3, "academic_year_id": 1, "term_id": 1, "seq1_score": 70},
+            ],
+        }
+        captured: list = []
+
+        with mock.patch("apps.wal_stream.writers._resolve_teacher_id_from_envelope", return_value=42), \
+                mock.patch("apps.wal_stream.writers._ids_in_school",
+                           side_effect=lambda model, ids, school_id, **kw: {i for i in ids if i != 999}), \
+                mock.patch("apps.evals.models.OfflineMarkEntry.objects.bulk_create",
+                           side_effect=lambda rows, **kw: captured.extend(rows)):
+            from apps.wal_stream.writers import _apply_grade
+
+            _apply_grade(env)
+        self.assertEqual([r.student_id for r in captured], [1])
+
+    def test_communication_drops_non_member_recipient(self):
+        from unittest import mock
+
+        env = {
+            "school_id": 7,
+            "user_id": 5,
+            "actions": [
+                {"recipient_id": 1, "subject": "hi", "body": "ok"},
+                {"recipient_id": 999, "subject": "hi", "body": "ok"},
+            ],
+        }
+        captured: list = []
+
+        with mock.patch("apps.wal_stream.writers._ids_in_school",
+                        side_effect=lambda model, ids, school_id, **kw: {i for i in ids if i != 999}), \
+                mock.patch("apps.communication.models.Message.objects.bulk_create",
+                           side_effect=lambda rows, **kw: captured.extend(rows)):
+            from apps.wal_stream.writers import _apply_communication_send
+
+            _apply_communication_send(env)
+        self.assertEqual([r.recipient_id for r in captured], [1])
+
+
 class ResolveAttendanceSessionTests(SimpleTestCase):
     """The WAL JS sends session_id="<classroom_id>::<date>" to keep the wire compact.
 
@@ -312,3 +427,198 @@ class EdgeCacheKeyTests(SimpleTestCase):
 
         key = surrogate_key_for(tenant="", view="school_calendar", viewport="C")
         self.assertTrue(key.startswith("_::"))
+
+
+class WALCaptureTimeCoercionTests(SimpleTestCase):
+    """The consumer normalizes the client's epoch-ms capture time to seconds and
+    rejects junk so a malformed value just disables freshness checks."""
+
+    def test_ms_to_seconds(self):
+        from apps.wal_stream.consumers import _coerce_captured_at
+
+        self.assertEqual(_coerce_captured_at(1_700_000_000_000), 1_700_000_000.0)
+
+    def test_rejects_non_numbers_and_bool_and_nonpositive(self):
+        from apps.wal_stream.consumers import _coerce_captured_at
+
+        for bad in (None, "123", True, False, 0, -5):
+            self.assertIsNone(_coerce_captured_at(bad))
+
+    def test_validate_does_not_require_captured_at(self):
+        # Backward compat: an older client that omits captured_at still validates.
+        env = {
+            "txn_id": "abcd1234ef56",
+            "vector_clock": 1,
+            "domain": "attendance",
+            "actions": [{"student_id": 1, "session_id": "9::2026-06-04", "status": "present"}],
+            "tenant_hash": "deadbeefcafe",
+        }
+        ok, reason = _validate(env, expected_tenant_hash="deadbeefcafe")
+        self.assertTrue(ok, reason)
+
+
+class WALStaleUpsertPartitionTests(SimpleTestCase):
+    """Last-writer-wins by capture time: a stale offline upsert must never
+    clobber newer online state, but must also never be silently dropped."""
+
+    def _rows(self):
+        from types import SimpleNamespace
+
+        return [
+            SimpleNamespace(student_id=1, classroom_id=9, date="2026-06-04", status="absent"),
+            SimpleNamespace(student_id=2, classroom_id=9, date="2026-06-04", status="present"),
+        ]
+
+    def _key(self, r):
+        return (r.student_id, r.classroom_id, r.date)
+
+    def test_no_captured_dt_preserves_all_as_winners(self):
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        rows = self._rows()
+        winners, stale = _partition_stale_upserts(rows, {}, None, self._key)
+        self.assertEqual(winners, rows)
+        self.assertEqual(stale, [])
+
+    def test_existing_newer_than_capture_is_stale(self):
+        from datetime import datetime, timezone
+
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
+        # Student 1's online row was updated AFTER capture -> stale (skip clobber).
+        existing = {(1, 9, "2026-06-04"): datetime(2026, 6, 4, 11, 0, tzinfo=timezone.utc)}
+        winners, stale = _partition_stale_upserts(self._rows(), existing, captured, self._key)
+        self.assertEqual([w.student_id for w in winners], [2])
+        self.assertEqual([s.student_id for s in stale], [1])
+
+    def test_existing_older_than_capture_is_winner(self):
+        from datetime import datetime, timezone
+
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
+        existing = {(1, 9, "2026-06-04"): datetime(2026, 6, 4, 9, 0, tzinfo=timezone.utc)}
+        winners, stale = _partition_stale_upserts(self._rows(), existing, captured, self._key)
+        self.assertEqual({w.student_id for w in winners}, {1, 2})
+        self.assertEqual(stale, [])
+
+    def test_teacher_attendance_key_shape_partitions(self):
+        from datetime import datetime, timezone
+        from types import SimpleNamespace
+
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        rows = [
+            SimpleNamespace(teacher_id=3, date="2026-06-04", status="ABSENT"),
+            SimpleNamespace(teacher_id=4, date="2026-06-04", status="PRESENT"),
+        ]
+        key = lambda r: (r.teacher_id, r.date)
+        captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
+        # Teacher 3's row is newer online (NULL would be a winner; here it's set).
+        existing = {(3, "2026-06-04"): datetime(2026, 6, 4, 12, 0, tzinfo=timezone.utc)}
+        winners, stale = _partition_stale_upserts(rows, existing, captured, key)
+        self.assertEqual([w.teacher_id for w in winners], [4])
+        self.assertEqual([s.teacher_id for s in stale], [3])
+
+    def test_null_existing_timestamp_is_treated_as_winner(self):
+        # Pre-migration TeacherAttendance rows have updated_at = NULL; those must
+        # be writable (no existing time means the offline write wins).
+        from datetime import datetime, timezone
+        from types import SimpleNamespace
+
+        from apps.wal_stream.writers import _partition_stale_upserts
+
+        rows = [SimpleNamespace(teacher_id=3, date="2026-06-04", status="ABSENT")]
+        key = lambda r: (r.teacher_id, r.date)
+        captured = datetime(2026, 6, 4, 10, 0, tzinfo=timezone.utc)
+        winners, stale = _partition_stale_upserts(rows, {(3, "2026-06-04"): None}, captured, key)
+        self.assertEqual([w.teacher_id for w in winners], [3])
+        self.assertEqual(stale, [])
+
+    def test_captured_dt_helper_reads_epoch_seconds(self):
+        from datetime import timezone
+
+        from apps.wal_stream.writers import _captured_dt
+
+        dt = _captured_dt({"captured_at": 1_700_000_000.0})
+        self.assertIsNotNone(dt)
+        self.assertEqual(dt.tzinfo, timezone.utc)
+        self.assertIsNone(_captured_dt({}))
+        self.assertIsNone(_captured_dt({"captured_at": "x"}))
+
+
+class WALDeadLetterScrubTests(SimpleTestCase):
+    def test_redacts_credential_fields_in_actions(self):
+        import json as _json
+
+        from apps.wal_stream.tasks import _scrub_envelope_for_deadletter
+
+        raw = _json.dumps({
+            "txn_id": "abc",
+            "actions": [
+                {"username": "t@x.com", "password": "hunter2", "staff_id": "S1"},
+                {"fields": {"api_key": "k", "name": "ok"}},
+            ],
+        })
+        out = _json.loads(_scrub_envelope_for_deadletter(raw))
+        self.assertEqual(out["actions"][0]["password"], "***redacted***")
+        self.assertEqual(out["actions"][0]["username"], "t@x.com")  # not a secret key
+        self.assertEqual(out["actions"][1]["fields"]["api_key"], "***redacted***")
+        self.assertEqual(out["actions"][1]["fields"]["name"], "ok")
+
+    def test_parse_failure_returns_safe_placeholder(self):
+        import json as _json
+
+        from apps.wal_stream.tasks import _scrub_envelope_for_deadletter
+
+        out = _json.loads(_scrub_envelope_for_deadletter(b"not-json"))
+        self.assertTrue(out["scrubbed"])
+        self.assertTrue(out["parse_failed"])
+
+
+class WALPurgeKeyCoverageTests(SimpleTestCase):
+    @override_settings(REDIS_URL="redis://localhost:6379/0")
+    def test_purge_includes_lock_key(self):
+        import hashlib
+        import uuid
+        from unittest import mock
+
+        import redis as redis_mod
+
+        from apps.wal_stream.tasks import purge_streams_for_school
+
+        pk = uuid.uuid4()
+        h = hashlib.sha256(str(pk).encode("utf-8")).hexdigest()[:12]
+        client = mock.MagicMock()
+        client.delete.return_value = 5
+        with mock.patch.object(redis_mod.Redis, "from_url", return_value=client):
+            purge_streams_for_school(pk)
+        keys = set(client.delete.call_args[0])
+        self.assertIn(f"rmc.wal.lock.{h}", keys)
+
+
+class WALConflictRecordTests(SimpleTestCase):
+    def test_record_wal_conflicts_noop_without_tenant_or_items(self):
+        from apps.wal_stream.tasks import record_wal_conflicts
+
+        self.assertEqual(record_wal_conflicts("", "attendance", [{"x": 1}]), 0)
+        self.assertEqual(record_wal_conflicts("deadbeefcafe", "attendance", []), 0)
+
+    @override_settings(REDIS_URL="redis://localhost:6379/0")
+    def test_record_wal_conflicts_writes_to_conflict_stream(self):
+        from unittest import mock
+
+        import redis as redis_mod
+
+        from apps.wal_stream.tasks import record_wal_conflicts
+
+        client = mock.MagicMock()
+        with mock.patch.object(redis_mod.Redis, "from_url", return_value=client):
+            n = record_wal_conflicts(
+                "deadbeefcafe", "attendance",
+                [{"student_id": 1, "classroom_id": 9, "date": "2026-06-04"}],
+            )
+        self.assertEqual(n, 1)
+        stream_arg = client.xadd.call_args[0][0]
+        self.assertEqual(stream_arg, "rmc.wal.conflict.deadbeefcafe")

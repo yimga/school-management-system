@@ -11,6 +11,7 @@ facade other surfaces call.
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Optional
 
 from django.utils import timezone
@@ -18,6 +19,8 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.lifecycle.models import SchoolLifecycleStage, TERMINAL_STAGES
 from apps.lifecycle.services import current_stage, record_stage
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Canonical unified states
@@ -353,6 +356,25 @@ def record_unified_transition(
     if not stage:
         return
     if current_stage(school) in TERMINAL_STAGES and to_state != STATE_PURGED:
+        return
+    # Enforce the unified FSM before writing the spine. The validator
+    # previously existed but was never wired into any write path (dead
+    # code), so a buggy signal could record an illegal jump (e.g.
+    # draft→purged). Resolve the current unified state and refuse the
+    # write on an illegal transition — best-effort (log + skip), never
+    # raise, to preserve this function's "best-effort spine write"
+    # contract for its signal-layer callers.
+    try:
+        current_state = resolve_unified_lifecycle(school).get("state", STATE_DRAFT)
+    except (RuntimeError, ValueError, TypeError, AttributeError):
+        current_state = STATE_DRAFT
+    if not validate_unified_transition(current_state, to_state):
+        logger.warning(
+            "unified lifecycle: refused illegal transition %s -> %s for school=%s",
+            current_state,
+            to_state,
+            getattr(school, "pk", None),
+        )
         return
     merged = dict(payload or {})
     merged["unified_state"] = to_state

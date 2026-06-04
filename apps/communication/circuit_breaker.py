@@ -23,8 +23,42 @@ def _key(school_id: Any, channel: str) -> tuple[str, str]:
     return (str(school_id) if school_id else "global", channel)
 
 
+# ── Shared (cross-worker) breaker state via cache (audit P2) ────────────────
+# The in-memory dict below is a per-process fallback; on a shared cache
+# backend (Redis in prod) all gunicorn workers + dynos see one breaker, so the
+# 3-failures threshold is real instead of 3×N, and state survives restarts.
+
+
+def _cache_key(school_id: Any, channel: str) -> str:
+    sid, ch = _key(school_id, channel)
+    return f"cb:{sid}:{ch}"
+
+
+def _cache_record_failure(school_id: Any, channel: str) -> bool:
+    """Returns True if handled via cache, False to fall back to in-memory."""
+    try:
+        from django.core.cache import cache
+    except Exception:  # noqa: BLE001
+        return False
+    key = _cache_key(school_id, channel)
+    try:
+        if cache.add(key, 1, OPEN_SECONDS):
+            count = 1
+        else:
+            count = cache.incr(key)
+        if count >= FAILURE_THRESHOLD:
+            logger.warning(
+                "Circuit breaker open channel=%s (failures=%s)", channel, count,
+            )
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def record_failure(school_id: Any, channel: str) -> None:
     """Record a provider failure for (school_id, channel)."""
+    if _cache_record_failure(school_id, channel):
+        return
     with _lock:
         k = _key(school_id, channel)
         count, first = _breakers.get(k, (0, 0.0))
@@ -44,6 +78,12 @@ def record_failure(school_id: Any, channel: str) -> None:
 
 def record_success(school_id: Any, channel: str) -> None:
     """On success, reset the failure count for (school_id, channel)."""
+    try:
+        from django.core.cache import cache
+
+        cache.delete(_cache_key(school_id, channel))
+    except Exception:  # noqa: BLE001
+        pass
     with _lock:
         k = _key(school_id, channel)
         if k in _breakers:
@@ -52,6 +92,14 @@ def record_success(school_id: Any, channel: str) -> None:
 
 def is_open(school_id: Any, channel: str) -> bool:
     """Return True if the circuit is open (skip provider, use fallback)."""
+    try:
+        from django.core.cache import cache
+
+        val = cache.get(_cache_key(school_id, channel))
+        if val is not None:
+            return int(val) >= FAILURE_THRESHOLD
+    except Exception:  # noqa: BLE001
+        pass
     with _lock:
         k = _key(school_id, channel)
         if k not in _breakers:

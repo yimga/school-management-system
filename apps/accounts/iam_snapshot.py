@@ -95,9 +95,13 @@ def snapshot_not_expired(body: dict[str, Any]) -> bool:
 
 
 def offline_capability_bitmap(user, *, school) -> list[str]:
-    """Bitmap for OfflineCapabilityToken — from snapshot capabilities."""
+    """Bitmap for OfflineCapabilityToken — from snapshot capabilities.
+
+    A user with zero capabilities gets an EMPTY bitmap. The previous
+    ``attendance.mark``/``grade.submit`` fallback was a latent privilege grant:
+    it handed offline write capability to users who have none, which would
+    become a real escalation the moment the bitmap is enforced.
+    """
     snap = build_permission_snapshot(user, school=school, offline_token=True)
     caps = list(snap.get("capabilities") or [])
-    if not caps:
-        caps = ["attendance.mark", "grade.submit"]
     return sorted(set(caps))[:64]

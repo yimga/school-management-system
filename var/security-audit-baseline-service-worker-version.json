@@ -1,12 +1,12 @@
 {
-  "date": "2026-05-27",
-  "generated_at": "2026-05-28T01:38:15+00:00",
-  "major": 3,
-  "minor": 99,
-  "patch": 13,
-  "raw": "sms-v3.99.13-sovereign-layout-token-matrix-2026-05-27",
+  "date": "2026-06-02",
+  "generated_at": "2026-06-02T23:40:10+00:00",
+  "major": 4,
+  "minor": 1,
+  "patch": 46,
+  "raw": "sms-v4.01.46-dual-plane-theme-sweep3-2026-06-02",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "sovereign-layout-token-matrix",
+  "slug": "dual-plane-theme-sweep3",
   "valid": true
 }

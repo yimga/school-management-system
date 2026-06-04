@@ -51,16 +51,21 @@ def main() -> int:
         rel, needle, label = item[0], item[1], item[2]
         text = _read(rel)
         if label in ("rmc-page-fold-standards",):
+            wired = (
+                "back_to_top.html" in text
+                or "rmc_platform_chrome_scripts.html" in text
+            )
             add(
                 f"shell_{rel.replace('/', '_')}_back_to_top",
                 f"{rel} includes back-to-top",
-                "back_to_top.html" in text,
+                wired,
                 rel,
             )
             add(
                 f"shell_{rel.replace('/', '_')}_fold_assets",
                 f"{rel} loads page fold standards assets",
-                "rmc-page-fold-standards" in text,
+                "rmc-page-fold-standards" in text
+                or "rmc_platform_chrome_scripts.html" in text,
                 rel,
             )
         else:

@@ -398,6 +398,9 @@ class VisitorCheckIn(models.Model):
         blank=True,
         related_name="visitor_checkins_recorded",
     )
+    # Idempotency anchor for offline check-ins replayed via the OfflineAction
+    # field_capture rail — a replay (or two devices) can't double-log a visitor.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class Meta:
         app_label = "schoolops"
@@ -405,6 +408,17 @@ class VisitorCheckIn(models.Model):
         ordering = ["-checked_in_at"]
         indexes = [
             models.Index(fields=["school", "checked_out_at"]),
+        ]
+        constraints = [
+            # DB-enforced offline idempotency: a replay / two devices cannot
+            # double-log the same check-in. Partial so blank (online) rows are
+            # exempt. The offline writer catches the IntegrityError and returns
+            # the existing row as a dedup hit.
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_visitorcheckin_school_offline_id",
+            ),
         ]
 
     def __str__(self):
@@ -783,6 +797,14 @@ from apps.schoolops.models_email_delivery import (  # noqa: E402  re-export at m
     EmailDeliveryEvent,
     EmailDeliveryEventReadOnlyError,
 )
+from apps.schoolops.models_email_suppression import (  # noqa: E402
+    SuppressedRecipient,
+    SuppressionReason,
+)
+from apps.schoolops.models_email_deadletter import (  # noqa: E402
+    DeadLetterStatus,
+    EmailDeadLetter,
+)
 from apps.schoolops.models_micro_friction import (  # noqa: E402
     LostBelongingsCustodyEventRecord,
     LostBelongingsTagRecord,
@@ -792,6 +814,10 @@ from apps.schoolops.models_micro_friction import (  # noqa: E402
 __all__ = [
     "EmailDeliveryEvent",
     "EmailDeliveryEventReadOnlyError",
+    "SuppressedRecipient",
+    "SuppressionReason",
+    "DeadLetterStatus",
+    "EmailDeadLetter",
     "LostBelongingsCustodyEventRecord",
     "LostBelongingsTagRecord",
     "SubstituteHandoverPacketRecord",

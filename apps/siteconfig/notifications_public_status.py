@@ -63,7 +63,7 @@ def _build_subject_and_body(incident, kind: str, status_url: str, unsub_url: str
 def _dispatch_email(sub, incident, subject: str, body: str) -> DispatchResult:
     try:
         from django.conf import settings
-        from django.core.mail import send_mail
+        from apps.schoolops.email_compat import send_mail
     except ImportError:
         return DispatchResult(ok=False, detail="email-backend-missing")
     to_addr = sub.email or sub.address
@@ -83,7 +83,7 @@ def _dispatch_sms(sub, incident, body: str) -> DispatchResult:
     sms_text = (
         f"[RMC status] {incident.get_severity_display()} — "
         f"{incident.title[:80]}. {incident.get_status_display()}."
-    )[:160]
+    )[:160]  # magic-number-allow: string-truncation-cap
     address = sub.address.strip()
     if not address:
         return DispatchResult(ok=False, detail="no-sms-address")
@@ -147,7 +147,7 @@ def _dispatch_webhook(sub, incident, kind: str, status_url: str, payload_label: 
     if "discord" in webhook_url:
         payload = {"content": text_line[:1900], "username": "RunMyCampus status"}
     else:
-        payload = {"text": text_line[:2900], "username": "RunMyCampus status"}
+        payload = {"text": text_line[:2900], "username": "RunMyCampus status"}  # magic-number-allow: ai-message-char-cap
 
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(

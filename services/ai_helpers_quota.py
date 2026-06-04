@@ -81,9 +81,18 @@ def check_inference_quota(school) -> tuple[bool, int]:
     try:
         from django.core.cache import cache
         key = _cache_key(school)
+        # Atomically establish the bucket window before incrementing.
+        # ``cache.add`` is a no-op when the key already exists, so two
+        # concurrent cold-start callers can't each reset the counter to 1
+        # (the lost-update race the old get-or-set-then-incr had). The TTL
+        # is anchored here on the very first request of the window and the
+        # subsequent ``incr`` preserves it (24h refill semantics).
+        cache.add(key, 0, timeout=WINDOW_SECONDS)
         try:
             count = cache.incr(key)
         except ValueError:
+            # Key expired between add and incr (window rolled over under us)
+            # — re-seed at 1 and re-anchor the window.
             cache.set(key, 1, timeout=WINDOW_SECONDS)
             count = 1
         if count > budget:

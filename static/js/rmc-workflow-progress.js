@@ -39,7 +39,6 @@
     return fetch(ENDPOINT_ACTIVE, { credentials: "same-origin" })
       .then(function (r) {
         if (r.status === 401 || r.status === 403) {
-          agentDebugLog("H1", "rmc-workflow-progress.js:connectStream", "auth_required_no_reconnect", { status: r.status });
           return;
         }
         if (isPlatformOutageStatus(r.status)) {
@@ -103,12 +102,23 @@
     chip.setAttribute("aria-label", "Workflow progress");
     chip.setAttribute("aria-haspopup", "dialog");
     chip.setAttribute("aria-expanded", "false");
-    chip.setAttribute("aria-keyshortcuts", "g w");
+    chip.setAttribute("aria-keyshortcuts", "g w, g f");
     chip.dataset.rmcWfpState = "idle";
     chip.innerHTML =
       '<i class="bi bi-hourglass-split rmc-wfp-chip__icon" aria-hidden="true"></i>' +
       '<span class="rmc-wfp-chip__count" hidden>0</span>';
     return chip;
+  }
+
+  function flightDeckPageUrl() {
+    var el = document.getElementById("page-data-rmc-workflow-flight-deck");
+    if (!el) return "/platform-runtime/workflow-progress/flight-deck/";
+    try {
+      var data = JSON.parse(el.textContent || "{}");
+      return data.page_url || "/platform-runtime/workflow-progress/flight-deck/";
+    } catch (_) {
+      return "/platform-runtime/workflow-progress/flight-deck/";
+    }
   }
 
   function buildCard() {
@@ -123,6 +133,12 @@
       '<span class="rmc-wfp-card__title" id="rmc-wfp-card-title">' +
       '<i class="bi bi-hourglass-split" aria-hidden="true"></i> Workflow Progress' +
       "</span>" +
+      '<div class="rmc-wfp-card__actions">' +
+      '<a class="rmc-wfp-card__deck" href="' +
+      escapeHtml(flightDeckPageUrl()) +
+      '">Flight Deck</a>' +
+      '<button type="button" class="rmc-wfp-card__explain" data-rmc-wfp-explain hidden>Explain</button>' +
+      "</div>" +
       '<button type="button" class="rmc-wfp-card__close" aria-label="Close">' +
       '<i class="bi bi-x-lg" aria-hidden="true"></i>' +
       "</button>" +
@@ -133,6 +149,8 @@
 
   function renderCard() {
     var body = document.getElementById("rmc-wfp-card-body");
+    var explainBtn = document.querySelector("[data-rmc-wfp-explain]");
+    if (explainBtn) explainBtn.hidden = !state.runs.length;
     if (!body) return;
     if (!state.runs.length) {
       body.innerHTML =
@@ -164,6 +182,11 @@
     var etaSeconds = Math.max(0, (run.expected_duration_seconds || 30) - ageSeconds);
     var etaText = etaSeconds === 0 ? "overdue" : "~" + etaSeconds + "s left";
 
+    var pct = typeof run.progress_percent === "number" ? run.progress_percent : 0;
+    if (!run.progress_percent && total && ordinal) {
+      pct = Math.max(1, Math.min(99, Math.round(((ordinal - 0.35) / total) * 100)));
+    }
+    var bar = renderProgressBar(pct, status);
     var train = renderTrain(ordinal, total, status);
     var fix = run.suggested_remediation && Object.keys(run.suggested_remediation).length
       ? renderFix(run)
@@ -178,12 +201,37 @@
       "</div>" +
       '<span class="rmc-wfp-run__pill ' + pillClass + '">' + escapeHtml(status) + "</span>" +
       "</div>" +
+      bar +
       '<div class="rmc-wfp-train">' + train + "</div>" +
       '<div class="rmc-wfp-run__step-row">' +
       "<span>Step " + ordinal + (total ? " / " + total : "") + ": <strong>" + current + "</strong></span>" +
       "<span>" + etaText + "</span>" +
       "</div>" +
       fix +
+      "</div>"
+    );
+  }
+
+  function progressStatusLabel(status) {
+    if (status === "stuck") return "Needs attention";
+    if (status === "failed") return "Failed";
+    if (status === "degrading") return "Slowing";
+    return "In progress";
+  }
+
+  function renderProgressBar(percent, status) {
+    var safe = Math.max(0, Math.min(100, percent || 0));
+    var state = status === "stuck" ? "stuck" : status === "failed" ? "failed" : "running";
+    var label = progressStatusLabel(status);
+    return (
+      '<div class="rmc-wfp-bar" data-rmc-wfp-bar-state="' + escapeHtml(state) + '">' +
+      '<div class="rmc-wfp-bar__label">' +
+      '<span class="rmc-wfp-bar__status">' + escapeHtml(label) + "</span>" +
+      '<span class="rmc-wfp-bar__pct" aria-hidden="true">' + safe + "%</span>" +
+      "</div>" +
+      '<div class="rmc-wfp-bar__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + safe + '">' +
+      '<div class="rmc-wfp-bar__fill" style="width:' + safe + '%;"></div>' +
+      "</div>" +
       "</div>"
     );
   }
@@ -215,7 +263,8 @@
       '<div class="rmc-wfp-fix__body">' + escapeHtml(rem.human_action) + "</div>" +
       '<div class="rmc-wfp-fix__actions">' +
       (canApply
-        ? '<button type="button" class="rmc-wfp-fix__btn" data-rmc-wfp-action="apply-fix">Apply</button>'
+        ? '<button type="button" class="rmc-wfp-fix__btn rmc-wfp-fix__btn--ghost" data-rmc-wfp-action="preview-fix">Preview</button>' +
+          '<button type="button" class="rmc-wfp-fix__btn" data-rmc-wfp-action="apply-fix">Apply</button>'
         : "") +
       '<button type="button" class="rmc-wfp-fix__btn rmc-wfp-fix__btn--ghost" data-rmc-wfp-action="cancel">Cancel run</button>' +
       "</div>" +
@@ -249,6 +298,7 @@
     if (!runId) return;
     var url = "";
     if (action === "apply-fix") url = ENDPOINT_APPLY_FIX + runId + "/";
+    else if (action === "preview-fix") url = ENDPOINT_APPLY_FIX + runId + "/?dry_run=1";
     else if (action === "cancel") url = ENDPOINT_CANCEL + runId + "/";
     else return;
     fetch(url, {
@@ -261,9 +311,32 @@
     })
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        // Soft-refresh; the next SSE tick will pick up the state change.
+        if (action === "preview-fix" && j) {
+          var previewMsg = j.note || j.would_apply || JSON.stringify(j);
+          if (window.alert) window.alert(String(previewMsg));
+          return;
+        }
         if (j && j.ok) {
           card.style.opacity = "0.5";
+        }
+        if (j && j.promotion && j.promotion.promote_autopilot) {
+          var msg = j.promotion.message || "Enable autopilot for this fix kind?";
+          if (window.confirm(msg)) {
+            fetch("/platform-runtime/workflow-progress/autopilot/enable/", {
+              method: "POST",
+              headers: {
+                "X-CSRFToken": getCsrfToken(),
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+              },
+              credentials: "same-origin",
+              body: JSON.stringify({
+                workflow_key: j.promotion.workflow_key,
+                auto_fix_kind: j.promotion.auto_fix_kind,
+                promoted_from_successes: true,
+              }),
+            }).catch(function () {});
+          }
         }
       })
       .catch(function () { /* network failures are surfaced on next tick */ });
@@ -273,19 +346,22 @@
     var chip = document.getElementById("rmc-wfp-chip");
     if (!chip) return;
     var stuck = 0;
+    var degrading = 0;
     var running = 0;
     for (var i = 0; i < state.runs.length; i++) {
       if (state.runs[i].status === "stuck") stuck++;
+      else if (state.runs[i].status === "degrading") degrading++;
       else if (state.runs[i].status === "running") running++;
     }
     var chipState;
     if (stuck > 0) chipState = "stuck";
+    else if (degrading > 0) chipState = "degrading";
     else if (running > 0) chipState = "running";
     else chipState = "idle";
     chip.dataset.rmcWfpState = chipState;
     var countEl = chip.querySelector(".rmc-wfp-chip__count");
     if (countEl) {
-      var total = stuck + running;
+      var total = stuck + degrading + running;
       if (total > 0) {
         countEl.textContent = String(total);
         countEl.hidden = false;
@@ -295,30 +371,56 @@
     }
   }
 
+  function updateInlineStrip() {
+    var strip =
+      document.querySelector("[data-rmc-wfp-header-slot] [data-rmc-wfp-inline]") ||
+      document.querySelector("[data-rmc-wfp-inline]");
+    if (!strip) return;
+    if (!state.runs.length) {
+      strip.hidden = true;
+      strip.innerHTML = "";
+      return;
+    }
+    var primary = state.runs[0];
+    for (var i = 0; i < state.runs.length; i++) {
+      if (state.runs[i].status === "stuck") {
+        primary = state.runs[i];
+        break;
+      }
+      if (state.runs[i].status === "running") {
+        primary = state.runs[i];
+      }
+    }
+    var pct = typeof primary.progress_percent === "number" ? primary.progress_percent : 0;
+    var label = escapeHtml(primary.workflow_label || primary.workflow_key || "Workflow");
+    var step = escapeHtml(primary.current_step_name || "starting…");
+    strip.hidden = false;
+    strip.innerHTML =
+      '<div class="rmc-wfp-inline__inner">' +
+      '<div class="rmc-wfp-inline__copy">' +
+      '<strong class="rmc-wfp-inline__title">' + label + "</strong>" +
+      '<span class="rmc-wfp-inline__step">' + step + "</span>" +
+      "</div>" +
+      renderProgressBar(pct, primary.status || "running") +
+      '<button type="button" class="rmc-wfp-inline__open btn btn-sm btn-outline-secondary">' +
+      "Details" +
+      "</button>" +
+      "</div>";
+    var openBtn = strip.querySelector(".rmc-wfp-inline__open");
+    if (openBtn) {
+      openBtn.addEventListener("click", function (evt) {
+        evt.preventDefault();
+        if (!state.open) toggleCard();
+      });
+    }
+  }
+
   function applySnapshot(payload) {
     if (!payload || !Array.isArray(payload.runs)) return;
     state.runs = payload.runs;
     updateChip();
+    updateInlineStrip();
     if (state.open) renderCard();
-  }
-
-  function agentDebugLog(hypothesisId, location, message, data) {
-    var host = (window.location && window.location.hostname) || "";
-    if (host !== "localhost" && host !== "127.0.0.1") return;
-    // #region agent log
-    fetch("http://127.0.0.1:7426/ingest/383483ef-728e-4a6f-8288-6731caa89dc7", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "0f968b" },
-      body: JSON.stringify({
-        sessionId: "0f968b",
-        hypothesisId: hypothesisId,
-        location: location,
-        message: message,
-        data: data || {},
-        timestamp: Date.now(),
-      }),
-    }).catch(function () {});
-    // #endregion
   }
 
   function shouldConnectStream() {
@@ -328,7 +430,6 @@
 
   function connectStream() {
     if (!shouldConnectStream()) {
-      agentDebugLog("H2", "rmc-workflow-progress.js:connectStream", "skip_auth_landing", {});
       return;
     }
     if (typeof EventSource === "undefined") {
@@ -336,7 +437,6 @@
       return;
     }
     try {
-      agentDebugLog("H4", "rmc-workflow-progress.js:connectStream", "event_source_open", {});
       var es = new EventSource(ENDPOINT_STREAM, { withCredentials: true });
       state.eventSource = es;
       state.everyConnected = true;
@@ -354,7 +454,6 @@
       es.onerror = function () {
         es.close();
         state.eventSource = null;
-        agentDebugLog("H3", "rmc-workflow-progress.js:connectStream", "event_source_error", {});
         probeActiveBeforeReconnect();
       };
     } catch (_) {
@@ -392,6 +491,10 @@
       window.__rmcWfpGPending = 0;
       toggleCard();
     }
+    if (evt.key === "f" && window.__rmcWfpGPending && (Date.now() - window.__rmcWfpGPending) < 1000) {
+      window.__rmcWfpGPending = 0;
+      window.location.href = flightDeckPageUrl();
+    }
     if (evt.key === "Escape" && state.open) {
       toggleCard();
     }
@@ -407,6 +510,7 @@
     var slotChip = document.querySelector('[data-rmc-assist-slot-id="workflow-progress"]');
     if (!slotChip) return null;
     slotChip.id = "rmc-wfp-chip";
+    slotChip.classList.add("rmc-wfp-chip");
     slotChip.setAttribute("aria-haspopup", "dialog");
     slotChip.setAttribute("aria-expanded", "false");
     slotChip.dataset.rmcWfpState = "idle";
@@ -462,10 +566,38 @@
 
     var closeBtn = card.querySelector(".rmc-wfp-card__close");
     if (closeBtn) closeBtn.addEventListener("click", toggleCard);
+    var explainBtn = card.querySelector("[data-rmc-wfp-explain]");
+    if (explainBtn) {
+      explainBtn.addEventListener("click", function () {
+        window.__rmcWorkflowCopilotContext = {
+          active_run_ids: state.runs.map(function (r) { return r.id; }),
+          runs: state.runs.slice(0, 5),
+        };
+        document.dispatchEvent(
+          new CustomEvent("rmc-workflow-copilot-context", {
+            detail: window.__rmcWorkflowCopilotContext,
+          })
+        );
+        var trigger = document.getElementById("aiCopilotTrigger");
+        if (trigger) trigger.click();
+      });
+    }
     document.addEventListener("keydown", onKeydown);
 
     connectStream();
+
+    if (window.RMCAssistDock && window.RMCAssistDock.syncAssistRailMetrics) {
+      window.RMCAssistDock.syncAssistRailMetrics();
+    }
   }
+
+  document.addEventListener("rmc-assist-dock-mounted", function () {
+    if (window.RMCAssistDock && window.RMCAssistDock.syncAssistRailMetrics) {
+      window.requestAnimationFrame(function () {
+        window.RMCAssistDock.syncAssistRailMetrics();
+      });
+    }
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", mount);

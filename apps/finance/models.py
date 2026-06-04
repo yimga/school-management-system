@@ -1,5 +1,6 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
+import logging
 import uuid
 
 from django.conf import settings
@@ -17,6 +18,14 @@ from apps.accounts.validators import (
     validate_file_size_2mb,
 )
 from apps.siteconfig.models import _tenant_upload_to
+
+# Payment statuses that must NEVER count toward an invoice's paid total — money
+# that did not arrive or was returned. These three are unambiguous; "pending"
+# is deliberately NOT excluded here to avoid changing balance semantics for the
+# many flows that create-then-process (the offline cash path is fixed at source
+# to record "completed"). Tightening to require "completed" is a follow-up that
+# needs full ledger test coverage.
+_NON_RECEIVED_PAYMENT_STATUSES = ("failed", "cancelled", "refunded")
 
 
 def _default_currency():
@@ -644,8 +653,19 @@ class Invoice(models.Model):
 
         Note: The balance_amount field is deprecated and should be migrated to
         use this property. For now, both exist for backwards compatibility.
+
+        Soft-deleted/cancelled payments (deleted_at set) are excluded — counting
+        them would understate the outstanding balance after a payment reversal.
+        Payments that are definitively NOT money received (failed / cancelled /
+        refunded) are likewise excluded — counting them flips an invoice to
+        PAID/PARTIAL for money that never arrived (or was returned).
         """
-        total_paid = sum(p.amount for p in self.payments.all()) or Decimal("0.00")
+        total_paid = sum(
+            p.amount
+            for p in self.payments.filter(deleted_at__isnull=True).exclude(
+                status__in=_NON_RECEIVED_PAYMENT_STATUSES
+            )
+        ) or Decimal("0.00")
         return max(self.total_amount - total_paid, Decimal("0.00"))
 
     def reconcile_balance(self) -> bool:
@@ -834,6 +854,9 @@ class Payment(models.Model):
         ("refunded", "Refunded"),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    # Statuses that must NEVER reduce an invoice balance — money not received or
+    # already returned. Used by Invoice.computed_balance + recalculate_invoice.
+    # (module-level alias defined below for cross-class import)
     status_reason = models.TextField(blank=True)
 
     # Audit logging fields
@@ -908,9 +931,13 @@ class Payment(models.Model):
                 raise ValidationError(
                     {"method": "Payment method is required for invoice payments."}
                 )
-            # Get total already paid (excluding this payment if editing)
+            # Get total already paid (excluding this payment if editing, and
+            # excluding soft-deleted/cancelled payments — consistent with
+            # Invoice.computed_balance, else a reversed payment would wrongly
+            # inflate paid_amount and reject a legitimate new payment).
             paid_amount = sum(
-                p.amount for p in self.invoice.payments.exclude(pk=self.pk)
+                p.amount
+                for p in self.invoice.payments.filter(deleted_at__isnull=True).exclude(pk=self.pk)
             ) or Decimal("0")
             remaining_balance = self.invoice.total_amount - paid_amount
 
@@ -981,6 +1008,18 @@ class Payment(models.Model):
             self.status = "cancelled"
             fields.append("status")
         self.save(update_fields=fields)
+        # Soft-deleting a payment changes the invoice's outstanding balance and
+        # may flip its status (PAID -> PARTIAL/ISSUED). Recompute via the SOT so
+        # balance_amount + status don't drift. Best-effort: never break the delete.
+        if self.invoice_id:
+            try:
+                from apps.finance.services import recalculate_invoice
+
+                recalculate_invoice(self.invoice)
+            except Exception:  # noqa: BLE001 - best-effort reconcile, must not break delete
+                logging.getLogger(__name__).warning(
+                    "payment soft-delete invoice reconcile failed", exc_info=True
+                )
         return (1, {self._meta.label: 1})
 
     def _get_audit_region(self):

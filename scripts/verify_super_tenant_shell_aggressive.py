@@ -65,7 +65,7 @@ def main() -> int:
 
     for needle, path, msg in (
         ("help_contextual_drawer.html", cp_sk, "control_plane_skeleton contextual help"),
-        ("rmc-footer-notebook-anchor", cp_sk, "control_plane_skeleton footer notebook"),
+        ("_operator_notebook.html", cp_sk, "control_plane_skeleton operator notebook"),
         ("rmc-help-contextual-drawer", help_drawer, "contextual help drawer partial"),
         ("help_contextual_drawer.html", portal, "portal_base contextual help"),
         ("data-rmc-cp-header-200x", cp_base, "control_plane_base header"),

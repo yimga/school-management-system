@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-31T13:05:47.167268+00:00",
+  "generated_at": "2026-06-03T23:28:15.121075+00:00",
   "verdict": "INTERACTION_INTEGRITY_PASS",
   "pass_count": 17,
   "fail_count": 0,
@@ -72,9 +72,9 @@
     },
     {
       "id": "12",
-      "label": "Manager /admin/ compact operator footer",
+      "label": "Manager /admin/ operator civic footer",
       "status": "PASS",
-      "proof": "templates/admin/base.html + base_site.html"
+      "proof": "templates/admin/base.html + rmc_operator_footer_civic.html + base_site.html"
     },
     {
       "id": "13",
@@ -104,7 +104,7 @@
       "id": "17",
       "label": "Contract tests green",
       "status": "PASS",
-      "proof": "fast: _protocol=- request_scheme=- server_name=- wizard registry: loaded 36 wizards\n........................\n----------------------------------------------------------------------\nRan 24 tests in 2.420s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
+      "proof": "fast: _protocol=- request_scheme=- server_name=- wizard registry: loaded 36 wizards\n........................\n----------------------------------------------------------------------\nRan 24 tests in 1.545s\n\nOK\nfeedback: skipped (RMC_VERIFY_INTERACTION_SKIP_FEEDBACK_TESTS=1)"
     }
   ]
 }

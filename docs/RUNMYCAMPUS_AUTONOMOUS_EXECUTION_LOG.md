@@ -1,5 +1,293 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — SFDP dispute copy + phases burndown batch 1617 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1617** — restore missing SFDP module; unblock dual-engine + phases gates after **1616**.
+
+**B. Shipped:** **`payment_dispute_local_copy.py`**; **`power_views._try_site_settings_keys`** → **`get_effective_site_settings`**; CSRF exempt allowlist for OneRoster OAuth2 + LTI token + newsletter + wizard telemetry; SW **v4.01.50**.
+
+**C. Proof:** **SOVEREIGN_FINANCIAL_LOCAL_GLOBAL_FORCE_COMPLETE**; **DUAL_ENGINE_FINANCIAL_PROGRAM_PASS**; **lint_sitesettings_orm_singleton OK**; **`/admin/`** + **`/super/`** HTTP **200** smoke.
+
+**D. SOT:** batch **1617** **DONE**.
+
+## Slice — Phase 3 + marketing honest labeling batch 1616 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1616** — close AWS plan follow-ups: Phase 3 consolidated-header verifiers, marketing simulated benchmark disclosure gate, activity ticker template crash on legacy feed events.
+
+**B. Shipped:** **`verify_phase3_navigation_command_conformance.py`** + **`verify_manager_admin_cp_layout.py`** transitive include checks (batch 1596 consolidated header); **`verify_marketing_simulated_benchmark_disclosure.py`** wired lane2 audit; **`_activity_ticker_inline.html`** / **`_activity_ticker_drawer.html`** `{% firstof %}` fix; SW **v4.01.49**.
+
+**C. Proof:** **verify_phase3_navigation_command_conformance PASS**; **verify_manager_admin_cp_layout OK**; **MARKETING_SIMULATED_BENCHMARK_DISCLOSURE_PASS**; Phase 3 + manager CP layout gates in **verify_phases_3_11_gates** green; bundle still fails pre-existing **SFDP dual-engine** row (unrelated).
+
+**D. SOT:** batch **1616** **DONE**. **E. Honest:** marketing speed duel / zero-ui remain client-side simulated — gate locks disclosure copy only; live edge telemetry still out of scope.
+
+## Slice — AWS/realtime optional residual batch 1615 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1615** — plan optionals (MC permissions test, SSE hardening, Celery audit, honest-empty panels, v3 extended realdata).
+
+**B. Shipped:** `test_migration_cloud_permissions_host_boundary.py`; `verify_sse_tenant_ingress.py`; `audit_celery_tenant_task_scoping.py` + **54** allow markers; `_honest_empty_panel`; `cockpit_tenant_v3_realdata.py`; workflow SSE 403; contract doc Celery/SSE fixes; SW **v4.01.48**.
+
+**C. Proof:** **verify_sse_tenant_ingress OK**; **audit_celery_tenant_task_scoping 0**; v3 realdata + workflow SSE tests green; five-pillar extended AWS rows.
+
+**D. SOT:** batch **1615** **DONE**.
+
+## Slice — AWS zero-gap + realtime closeout batch 1614 (2026-06-02)
+
+**A. Claim:** §11.4 batches **1607–1614** consolidated closeout — AWS ingress gates + authenticated realdata truth.
+
+**B. Shipped:** SW **v4.01.47**; SOT rows **1607–1614**; **`generate_system_closure_map.py --write`**; tenant API guard strict membership on tenant hosts; WS bind sync helper for testability.
+
+**C. Proof:** **WEBSOCKET_TENANT_SCOPE_PASS**; staff-bypass scan **0**; delta sync + GraphQL verifiers OK; **PLATFORM_AUTHENTICATED_REALDATA_PASS**; **FIVE_PILLAR_PLATFORM_PASS (47)**; 23-test AWS/realdata sqlite suite OK.
+
+**D. SOT:** batches **1607–1614** **DONE**.
+
+## Slice — Authenticated realdata gate batch 1613 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1613** — mechanical gate for demo-off authenticated surfaces.
+
+**B. Shipped:** **`scripts/verify_platform_authenticated_realdata.py`**; CI + five-pillar row; extended cockpit + tenant realdata tests.
+
+**C. Proof:** **PLATFORM_AUTHENTICATED_REALDATA_PASS**.
+
+**D. SOT:** batch **1613** **DONE**.
+
+## Slice — Authenticated surface realdata batch 1612 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1612** — operator/tenant dashboards DB-backed or honest empty.
+
+**B. Shipped:** **`tenant_cockpit_realdata.py`** TEACHER/STUDENT `_role_widget_bundle`; parent-only child-name guard.
+
+**C. Proof:** **`test_tenant_cockpit_realdata`** teacher hydration green.
+
+**D. SOT:** batch **1612** **DONE**.
+
+## Slice — Cockpit demo defaults off batch 1611 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1611** — flip preview demo defaults + merge order.
+
+**B. Shipped:** settings defaults **`"0"`**; manager/tenant realdata-before-demo; preview-route-only demo helpers.
+
+**C. Proof:** **`CockpitDemoDefaultsOffTests`** — no `$42.1k` on live `/super/`; preview retains demo.
+
+**D. SOT:** batch **1611** **DONE**.
+
+## Slice — AWS P1 SSE + contract batch 1610 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1610** — SSE school scoping + contract doc.
+
+**B. Shipped:** **`views_ai_stream.py`** tenant 403 without school; **`TENANT_ISOLATION_CONTRACT.md`** WS/SSE sections.
+
+**C. Proof:** doc + view guard in tree; workflow SSE already `_resolve_scope`-scoped.
+
+**D. SOT:** batch **1610** **DONE**.
+
+## Slice — AWS mechanical verifiers batch 1609 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1609** — four AWS verifiers + CI wire.
+
+**B. Shipped:** websocket/staff-bypass/delta-sync/graphql verifiers; five-pillar + **`platform-pillar-gates`**.
+
+**C. Proof:** all four exit **0**; **FIVE_PILLAR_PLATFORM_PASS**.
+
+**D. SOT:** batch **1609** **DONE**.
+
+## Slice — AWS P0 HTTP guards batch 1608 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1608** — staff bypass, delta sync, GraphQL, rebac.
+
+**B. Shipped:** **`tenant_api_guards`**, migration cloud permissions, sync delta fail-closed, **`config/schema.py`**, **`drf_rebac`**.
+
+**C. Proof:** **`test_tenant_api_guards_staff_host`**, **`test_delta_sync_tenant_guard`**, control-plane boundary tests.
+
+**D. SOT:** batch **1608** **DONE**.
+
+## Slice — AWS P0 WebSocket batch 1607 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1607** — ASGI tenant middleware + scoped consumers.
+
+**B. Shipped:** **`channels_tenant_middleware.py`**, **`config/asgi.py`**, **`api/consumers.py`**, **`wal_stream/consumers.py`**.
+
+**C. Proof:** **WEBSOCKET_TENANT_SCOPE_PASS**; **`test_websocket_tenant_scope`**.
+
+**D. SOT:** batch **1607** **DONE**.
+
+## Slice — Dual-plane theme sweep 3 batch 1606 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1606** — cascade order, phase2 canvas leaks, verifier/test drift after consolidated header.
+
+**B. Shipped:** base.html dual-plane after vertical-compact + terminal include; admin/base_site terminal dual-plane; phase2 section V class expansion; civic light flip in consolidated shell CSS; verify_operator_cp_header_footer_parity consolidated contract; super admin parity test theme chip marker; SW **v4.01.46**.
+
+**C. Proof:** **THEME_EXPERIENCE_DUAL_PLANE_SHELL_PASS**; **INTERACTION_INTEGRITY_PASS**; operator CP header/footer parity OK; consolidated + activity tiers PASS.
+
+**D. SOT:** batch **1606** **DONE**.
+
+## Slice — Dual-plane theme sweep batch 1605 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1605** — second-pass sweep for mixed light/dark operator surfaces (civic footer + canvas leaks).
+
+**B. Shipped:** dual-plane CSS v4.01.45 (civic footer light token flip, manager body bg, metric-card/compliance-dashboard/page-wrap leaks); terminal dual-plane on `control_plane_skeleton`; interaction-integrity check 12 → civic footer; extended theme verifier; SW **v4.01.45**.
+
+**C. Proof:** **THEME_EXPERIENCE_DUAL_PLANE_SHELL_PASS**; **INTERACTION_INTEGRITY_PASS**; activity tiers + consolidated shell + vertical workspace PASS; dead hrefs **0**; SW monotonic OK.
+
+**D. SOT:** batch **1605** **DONE**.
+
+## Slice — Dual-plane theme coherence + header chrome closeout batch 1604 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1604** — close v8 preview dual-plane gap (dark operator chrome + theme-flipping canvas/footer); finish v4.01.43 header/LIVE/theme-dropdown work with mechanical proof.
+
+**B. Shipped:** `rmc-theme-experience-dual-plane.css` v4.01.44 (manager-portal-bridge, tenant resolved-theme, chrome lock, canvas leaks); `theme-preference-bootstrap.js` operator palette guard; `portal_base.html` triple dual-plane + no `portal-sidebar-tone-*`; header +10% tokens; LIVE Tier-1 in `manager_operator_topbar`; theme in `user_dropdown` Appearance; extended `verify_theme_experience_dual_plane_shell.py`; SW baseline **v4.01.44**.
+
+**C. Proof:** **THEME_EXPERIENCE_DUAL_PLANE_SHELL_PASS**; **CP_CONSOLIDATED_OPERATOR_SHELL_PASS**; **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS**; **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS**; **PLATFORM_VERTICAL_WORKSPACE_POLICY_PASS**; theme visibility platform OK; dead hrefs **0**; SW monotonic OK.
+
+**D. SOT:** batch **1604** **DONE**. **E. Residual:** hard-refresh / SW update on operator workstations for visual sign-off.
+
+## Slice — Activity tiers consolidated header regression batch 1603 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1603** — fix operator unified header drift (stacked marquee vs Tier-1 inline badge).
+
+**B. Shipped:** restored `templates/partials/control_plane_unified_header.html` to consolidated layout from git HEAD.
+
+**C. Proof:** **CP_CONSOLIDATED_OPERATOR_SHELL_PASS**; **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS**.
+
+**D. SOT:** batch **1603** **DONE**.
+
+## Slice — Workflow Progress 10× four-wave completion batch 1601 (2026-06-02)
+
+**A. Claim:** §11.4 batch 1601 — ship waves 2–4 to 100% (autopilot engine, Flight Deck + copilot, tenant trust + SLA); fix registry duplicate `tenant_school_purge`; add wave-completion gate + smoke T15.
+
+**B. Shipped:** `models_workflow_10x.py` + migration `0079`; autopilot/trust/flight-deck views + URLs; `workflow_degrading` / `workflow_sla` / `workflow_incidents` / `workflow_tenant_trust`; Flight Deck template + JS/CSS; tenant trust strip on `portal_base`; control-plane nav Flight Deck; `verify_workflow_10x_waves_complete.py`; registry SLO fields without duplicate keys.
+
+**C. Proof:** **WORKFLOW_10X_WAVES_COMPLETE_PASS** (per-wave file + wiring + URL matrix); **WORKFLOW_PROGRESS_10X_PASS**; smoke **101/101**; Django workflow suite **25/25** including `test_workflow_10x_waves_validation`.
+
+**D. SOT:** batch **1601** **DONE**. **E. Follow-up (residuals):** SLA `workflow.sla.breached` + operator email + 5m sweep; apply-fix Preview (`dry_run`); **g f** → Flight Deck; SW `v4.01.38`. Run `migrate platform_runtime` if not applied.
+
+## Slice — Workflow Progress 10× Lane 2 closeout batch 1602 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1602** — Playwright live sweep, purge agent debug logging, apply migration **0079**, Flight Deck E2E smoke.
+
+**B. Shipped:** removed `_agent_debug_log` from `views_workflow_progress.py`; Flight Deck + authenticated cases in `workflow-progress.spec.js`; `scripts/run_workflow_progress_e2e.js`; `manager-login.js` `DB_FILE`/TOTP alignment; `export_manager_playwright_storage.py` MFA POST + manager cookie sync; `manager_client.bind_manager_session` empty-sessionid guard; SW `v4.01.40`.
+
+**C. Proof:** `npm run test:e2e:workflow-progress` → **10 passed, 1 skipped** (`VISUAL_QA_PORT=8012`, `E2E_LOGIN_USER=admin`, `RMC_ALLOW_WORKFLOW_E2E_DEMO=1`); `verify_workflow_progress_10x.py` + `verify_workflow_10x_waves_complete.py` **PASS**; Django **33/33**.
+
+**D. SOT:** batch **1602** **DONE**. **E. Ops:** seed `e2e-playwright` TOTP on the same SQLite file as runserver (`.env.local` `DB_FILE`); one runserver on `VISUAL_QA_PORT`.
+
+## Slice — Workflow Progress 10× validation re-run batch 1601 (2026-06-02, closeout)
+
+**A. Claim:** Re-validate batch **1601** + **1601b/c** after matrix `entry_path` collision fix (`customersuccess-guided-onboarding` → `/super/customer-success/`).
+
+**C. Proof:** **WORKFLOW_10X_WAVES_COMPLETE_PASS**; **WORKFLOW_PROGRESS_COVERAGE_PASS** (**38/38**); **WORKFLOW_PROGRESS_10X_PASS**; smoke **101/101**; Django workflow suite **33/33**; `verify_promoted_workflows.py` → **38/38 resolves** (regenerated `promoted_workflow_route_verification.json`).
+
+**D. SOT:** no new batch — **1601** remains **DONE**. **E. Deploy:** `python manage.py migrate platform_runtime` on each environment; optional Playwright `npm run test:e2e:workflow-progress` with live server.
+
+## Slice — Tier-3 PlatformIncident API + legacy ticker migration batch 1600 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1600 — close remaining honest gaps (Tier-3 incident API, legacy enabled_on_tenant opt-out); rerun full platform audit.
+
+**B. Shipped:** `cockpit_incident_banner.py` (PlatformIncident strip → Tier-3, ticker fallback); legacy `enabled_on_tenant=False` migration; form persists `tenant_activity_ticker.enabled`; dedupe `platform_status_strip` when Tier-3 active; verifier gates extended.
+
+**C. Proof:** **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS** + luxury UI **15/15** + interaction integrity **17/17** + dead hrefs **0** + page fold **26/26** + template safety **0**; incident + ticker tests **15/15**.
+
+**D. SOT:** batch **1600** **DONE**. **E. Honest:** none blocking activity-tier forward motion on operator/tenant/future-tenant shells.
+
+## Slice — Tenant Tier-3 + legacy Tier-2 + ticker default-on batch 1599 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1599 — close all three remaining activity-tier gaps (tenant Tier-3, legacy landing Tier-2, ticker default-on).
+
+**B. Shipped:** `_pick_tenant_incident_banner` + `tenant_incident_banner` context; incident partial tenant branch; `tenant_role_home_landing` for legacy `?simple=1` role homes; `tenant_activity_ticker.enabled=True` default + form toggle default-on; extended platform tier verifiers.
+
+**C. Proof:** **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS** + **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS** + **PLATFORM_VERTICAL_WORKSPACE_POLICY_PASS**; activity ticker + tenant role-home tests **24/24**.
+
+**D. SOT:** batch **1599** **DONE**. **E. Superseded:** batch **1600** closed Tier-3 API + legacy opt-out gaps.
+
+## Slice — Tenant Tier-1 + platform full audit batch 1598 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1598 — close tenant Tier-1 gap; rerun platform audit (operator + tenant + future tenant); nothing assumed.
+
+**B. Shipped:** Tenant inline badge → drawer parity (`_activity_ticker_inline.html`, `_activity_ticker_drawer.html`, `portal_base` tp-actions + drawer/JS for all auth portal); tenant header CSS; manager activity_feed drawer fallback; `verify_platform_activity_tiers_full_audit.py`; extended workspace + operator tier verifiers.
+
+**C. Proof:** **PLATFORM_ACTIVITY_TIERS_FULL_AUDIT_PASS** + **PLATFORM_VERTICAL_WORKSPACE_POLICY_PASS** + **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS** + luxury UI **15/15** + **INTERACTION_INTEGRITY_PASS** + dead hrefs **0** + page fold **26/26**; tests **13/13**.
+
+**D. SOT:** batch **1598** **DONE**. **E. Honest:** gaps closed in batch **1599** (tenant Tier-3, legacy Tier-2, ticker default-on).
+
+## Slice — Platform vertical workspace policy batch 1597 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1597 — vertical workspace north star on every authenticated page (operator + tenant + future tenant).
+
+**B. Shipped:** `vertical_workspace_policy()` in `shell_contract.py` + `data-rmc-vertical-workspace-policy` registry attr; `verify_platform_vertical_workspace_policy.py`; tenant global header marquee removed; v3 role-home Tier-2 landing ticker via `portal_landing_activity_ticker`; tenant branch on `_activity_ticker_landing_strip.html`.
+
+**C. Proof:** **PLATFORM_VERTICAL_WORKSPACE_POLICY_PASS** + **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS**; `test_shell_contract` **8/8**.
+
+**D. SOT:** batch **1597** **DONE**. **E. Honest:** legacy non-v3 tenant inner pages no longer show header marquee (by design); tenant Tier-1 inline badge not yet wired (operator-only today).
+
+## Slice — Operator activity tiers + dual-plane theme parity batch 1595 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1595 — platform-wide three-tier live activity UX + v8 preview dual-plane theme alignment (dark chrome / light canvas+footer).
+
+**B. Shipped:** Tier 1 inline badge → drawer (`_activity_ticker_inline.html`, `_activity_ticker_drawer.html`, `rmc-cp-activity-drawer.js`); Tier 2 landing marquee (`_activity_ticker_landing_strip.html` on super/founder/CS landings); Tier 3 incident banner (`_operator_incident_banner.html`, `_pick_operator_incident_banner`); `rmc-cp-activity-tiers.css`; chrome-scoped inline badge + light-theme compact footer tokens; `verify_cp_operator_activity_tiers_platform_audit.py`.
+
+**C. Proof:** **CP_OPERATOR_ACTIVITY_TIERS_PLATFORM_AUDIT_PASS** + **CP_CONSOLIDATED_OPERATOR_SHELL_PASS**; `test_cockpit_activity_ticker_realdata` **5/5**; `test_shell_contract` **7/7**; SW monotonic **OK**.
+
+**D. SOT:** batch **1595** **DONE**. **E. Honest:** Tier 2 marquee only on operator landings (by design); tenant portal ticker unchanged; incident banner dismiss is session-scoped only.
+
+## Slice — Workflow Progress Bus optional closeout batch 1592 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1592 — finance/marketplace bulk tracking, chip noise tuning, Playwright progress bar demo, Render deploy smoke.
+
+**B. Shipped:** `@track_workflow` on finance auto-generate/copy + marketplace webhook deliver; registry + Celery bridge; chip visibility filter; `e2e-demo/start` + Playwright progress test; `smoke_render_workflow_progress_deploy.py`; npm `smoke:workflow-progress:render`.
+
+**C. Proof:** smoke **89/89**; **WORKFLOW_PROGRESS_10X_PASS**; HTTP tests **8/8**; offline Render smoke **PASS**.
+
+**D. SOT:** batch **1592** **DONE**. **E. Honest:** live Render smoke + full Playwright demo need credentials/server; run `python scripts/smoke_render_workflow_progress_deploy.py` post-deploy.
+
+## Slice — Workflow Progress Bus gates bundle batch 1591 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1591 — phases gate bundle, Playwright smoke, Django HTTP contract tests.
+
+**B. Shipped:** `verify_workflow_progress_10x` in `verify_phases_3_11_gates.py`; `tests/e2e/workflow-progress.spec.js`; `apps/platform_runtime/tests/test_workflow_progress_http.py`; npm `verify:workflow-progress` + `test:e2e:workflow-progress`; manager Playwright project match.
+
+**C. Proof:** **WORKFLOW_PROGRESS_10X_PASS**; `test_workflow_progress_http` **4/4** OK.
+
+**D. SOT:** batch **1591** **DONE**. **E. Honest:** authenticated Playwright needs live server + `E2E_LOGIN_USER`.
+
+## Slice — Consolidated operator header batch 1594 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1594 — recover ~110px vertical workspace on manager backoffice by consolidating triple header stack.
+
+**B. Shipped:** `partials/control_plane_unified_header.html`, `_activity_ticker_inline.html`, `rmc-cp-consolidated-operator-shell.css`; nav moved out of canvas chrome; landing pages stop overriding full marquee; `verify_cp_consolidated_operator_shell.py`.
+
+**C. Proof:** **CP_CONSOLIDATED_OPERATOR_SHELL_PASS**; `apps.platform_runtime.tests.test_shell_contract` **7/7**.
+
+**D. SOT:** batch **1594** **DONE**. **E. Honest:** `<1200px` nav drops to second row; tenant portal shells unchanged (manager bridge only).
+
+## Slice — JSON-Logic nuance toolset contract batch 1593 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1593 — codewide audit: logic toolsets must not contradict (registry vs model choices vs test contexts vs ranking math).
+
+**B. Shipped:** `VIRTUAL_HOOK_POINTS`, `model_hook_point_choices()`, `default_test_contexts_for_hook()`, `compute_report_card_average()`; `CustomNuance.HOOK_CHOICES` sourced from engine; admin + `grading_nuance_templates` share test contexts; `evals/ranking._compute_student_average` → nuance; `verify_nuance_logic_toolset_contract.py`, `scan_nuance_safe_eval_imports.py`; CI job runs full `verify_nuance_engine_gunicorn_safety.py`.
+
+**C. Proof:** `python scripts/verify_nuance_logic_toolset_contract.py` → **NUANCE_LOGIC_TOOLSET_CONTRACT_PASS**; `python scripts/verify_nuance_engine_gunicorn_safety.py` → **NUANCE_ENGINE_GUNICORN_SAFETY_PASS**.
+
+**D. SOT:** batch **1593** **DONE**. **E. Honest:** unused hooks `grade_weight` / `attendance_alert` documented; separate from UI `siteconfig/hooks.py` registry.
+
+## Slice — Nuance engine Gunicorn SIGALRM safety batch 1590 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1590 — close Render production SIGALRM worker-thread crash on tenant 360 / policy attach; gap-scan all JSON-Logic paths.
+
+**B. Shipped:** `nuance_engine` thread-pool timeout for non-main threads; `evaluate_json_logic()`; `aid_services` eligibility uses timed eval; `scan_sigalrm_worker_thread_safety.py` + baseline + CI job; `verify_nuance_engine_gunicorn_safety.py`; debug ingest removed from `nuance_engine.py`.
+
+**C. Proof:** **NUANCE_ENGINE_GUNICORN_SAFETY_PASS**; `test_nuance_engine_worker_thread_timeout` + `test_grading_nuance_templates` OK; SIGALRM scanner baseline **0**.
+
+**D. SOT:** batch **1590** **DONE**. **E. Honest:** operator must deploy; Postgres recovery blips remain infra-owned.
+
+## Slice — Workflow Progress Bus 10x E2E batch 1589 (2026-06-01)
+
+**A. Claim:** §11.4 batch 1589 — close workflow progress gaps end-to-end (client headers, migration CBV tracking, CI 10x gate, debug log removal).
+
+**B. Shipped:** `rmc-workflow-track-headers.js` + shell wiring; middleware opt-in for non-API super POSTs; `MigrationCloudAdvanceView` / `MigrationCloudApplyView` `@track_workflow`; nested stack from prior wave; `verify_workflow_progress_10x.py` + CI `workflow-progress-bus` job; wizard + tenant 360 `data-rmc-workflow-track`; removed localhost debug ingest from `rmc-workflow-progress.js`.
+
+**C. Proof:** `verify_workflow_progress_10x.py` → **WORKFLOW_PROGRESS_10X_PASS**; smoke **81/81**; coverage gate pass.
+
+**D. SOT:** batch **1589** **DONE**. **E. Honest:** Playwright chip visual sweep still external; very fast API POSTs may flash chip briefly.
+
 ## Slice — Platform configurability cascade wave 3 batch 1587 (2026-05-30)
 
 **A. Claim:** §11.4 batch 1587 — close session configurability gaps (assist dock URLs, AI stream, EMIS client paths, wizard telemetry test).

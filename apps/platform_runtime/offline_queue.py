@@ -598,11 +598,39 @@ def _persist_student_note(school_id, user_id: int, payload: dict[str, Any]) -> d
 
 def _apply_notes_report(school_id, user_id: int, payload: dict[str, Any]) -> dict[str, Any]:
     """Persist narrative captured offline into ``StudentNote`` (idempotent per client_offline_id)."""
-    from apps.platform_runtime.offline_workflow_apply import try_apply_field_capture_workflow
+    from apps.platform_runtime.offline_workflow_apply import (
+        parse_field_capture_body,
+        try_apply_field_capture_workflow,
+    )
 
     workflow_result = try_apply_field_capture_workflow(school_id, user_id, payload)
     if workflow_result is not None:
         return workflow_result
+
+    # If the payload was a STRUCTURED field-capture workflow (carried a
+    # `workflow` name + `fields`) but no handler claimed it, do NOT silently
+    # downgrade it to a SYNCED note. That is silent data loss — e.g. an offline
+    # "create student" / "POS sale" / "erasure request" that the UI reported as
+    # saved but which only ever landed as an opaque note no one re-keys.
+    # Preserve the captured data as a note (for manual re-entry) AND return a
+    # non-ok result so the row is marked FAILED and surfaces in the offline-sync
+    # review queue instead of looking done.
+    structured = parse_field_capture_body(payload)
+    if structured is not None:
+        note = _persist_student_note(school_id, user_id, payload)
+        workflow = structured.get("workflow")
+        result: dict[str, Any] = {
+            "ok": False,
+            "error": (
+                f"No offline handler for workflow '{workflow}'. The data was "
+                "captured as a note — please re-enter it online to complete it."
+            ),
+            "captured_as_note": True,
+            "workflow": workflow,
+        }
+        if note.get("ok"):
+            result["student_note_id"] = note.get("student_note_id")
+        return result
 
     return _persist_student_note(school_id, user_id, payload)
 
@@ -791,6 +819,17 @@ def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> d
         return {"ok": False, "error": "user_not_found"}
     category = str(payload.get("category") or "SUPPORT").upper()[:32]
     prefix = "[Support]" if category == "SUPPORT" else "[Feedback]"
+    # Idempotency: a FAILED-then-retried offline row (or two devices) must not
+    # open duplicate tickets. Dedupe on the client_offline_id carried in metadata.
+    client_key = str(
+        payload.get("client_offline_id") or payload.get("idempotency_key") or ""
+    )[:128]
+    if client_key:
+        existing = GlobalSupportTicket.objects.filter(  # tenant-isolation-allow: explicit-school-scoped-offline-idempotency-lookup
+            school_id=school_id, metadata__offline_client_id=client_key
+        ).first()
+        if existing:
+            return {"ok": True, "dedup": True, "ticket_id": str(existing.pk)}
     ticket = GlobalSupportTicket.objects.create(
         school_id=school_id,
         user=user,
@@ -798,7 +837,11 @@ def _apply_support_ticket(school_id, user_id: int, payload: dict[str, Any]) -> d
         body=message[:8000],
         priority=GlobalSupportTicket.Priority.NORMAL,
         status=GlobalSupportTicket.Status.OPEN,
-        metadata={"source": "offline_enqueue", "category": category},
+        metadata={
+            "source": "offline_enqueue",
+            "category": category,
+            "offline_client_id": client_key,
+        },
     )
     return {"ok": True, "ticket_id": str(ticket.pk)}
 

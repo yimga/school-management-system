@@ -19,14 +19,36 @@ def session_school_id_from_request(request) -> str | None:
     return sid or None
 
 
+def staff_may_bypass_tenant_guard_on_request(request) -> bool:
+    """Control-plane operators on manager/local hosts may cross tenant query params."""
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return True
+    from apps.schools.control_plane import user_has_control_plane_access
+
+    if not user_has_control_plane_access(user):
+        return False
+    host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+    return host_kind in {"manager", "local"}
+
+
 def user_may_operate_on_school(request, school: Any) -> bool:
     if school is None:
         return False
     user = getattr(request, "user", None)
     if not user or not getattr(user, "is_authenticated", False):
         return False
-    if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
+    if staff_may_bypass_tenant_guard_on_request(request):
         return True
+
+    host_kind = (getattr(request, "public_host_kind", None) or "").lower()
+    if host_kind not in {"manager", "local"}:
+        from apps.schools.models import SchoolMembership
+
+        return SchoolMembership.objects.filter(user=user, school=school).exists()
+
     from apps.schools.tenant_switch_security import user_may_access_school_api
 
     return user_may_access_school_api(
@@ -85,5 +107,6 @@ def resolve_school_from_request_param(
 __all__ = [
     "resolve_school_from_request_param",
     "session_school_id_from_request",
+    "staff_may_bypass_tenant_guard_on_request",
     "user_may_operate_on_school",
 ]

@@ -19,10 +19,33 @@ DEFAULT_TENANT_WINDOW_SECONDS = 60
 
 
 def client_ip(request) -> str:
+    """Best-effort real client IP, resistant to ``X-Forwarded-For`` spoofing.
+
+    ``X-Forwarded-For`` is client-controlled to the LEFT and only trustworthy to
+    the RIGHT (entries appended by our own reverse proxies). Taking the leftmost
+    hop — as this did before — let a client rotate a fake XFF per request and get
+    a fresh throttle bucket every time, defeating every per-IP limit. We instead
+    take the entry contributed by the outermost trusted proxy: ``XFF[-N]`` where
+    ``N = RATE_LIMIT_TRUSTED_PROXY_COUNT`` (default 1, matching a single LB like
+    Render). With no/short XFF we fall back to ``REMOTE_ADDR``.
+    """
     forwarded = (request.META.get("HTTP_X_FORWARDED_FOR") or "").strip()
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return (request.META.get("REMOTE_ADDR") or "unknown").strip()
+    remote = (request.META.get("REMOTE_ADDR") or "unknown").strip()
+    if not forwarded:
+        return remote
+    parts = [p.strip() for p in forwarded.split(",") if p.strip()]
+    if not parts:
+        return remote
+    try:
+        depth = int(getattr(settings, "RATE_LIMIT_TRUSTED_PROXY_COUNT", 1))
+    except (TypeError, ValueError):
+        depth = 1
+    depth = max(1, depth)
+    if len(parts) >= depth:
+        return parts[-depth]
+    # Fewer hops than expected proxies — the chain is shorter than configured;
+    # the leftmost is the closest-to-client value we can trust here.
+    return parts[0]
 
 
 def _throttle(key: str, max_count: int, window_seconds: int) -> tuple[bool, int]:

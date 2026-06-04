@@ -144,6 +144,39 @@ def main() -> int:
     code, tail = _run([py, "scripts/verify_middleware_stack_order.py"])
     add("AWS", "middleware_order", "Middleware stack order gate", code == 0, tail or "ok")
 
+    code, tail = _run([py, "scripts/verify_websocket_tenant_scope.py"])
+    add("AWS", "websocket_tenant_scope", "WebSocket tenant ASGI binding", code == 0, tail or "ok")
+
+    code, tail = _run([py, "scripts/scan_staff_bypass_tenant_guards.py", "--compare"])
+    add("AWS", "staff_bypass_guards", "No bare is_staff tenant bypass", code == 0, tail or "ok")
+
+    code, tail = _run([py, "scripts/verify_delta_sync_requires_school.py"])
+    add("AWS", "delta_sync_school", "Delta sync requires tenant context", code == 0, tail or "ok")
+
+    code, tail = _run([py, "scripts/verify_graphql_control_plane_host.py"])
+    add("AWS", "graphql_cp_host", "GraphQL registry manager-host only", code == 0, tail or "ok")
+
+    code, tail = _run([py, "scripts/verify_platform_authenticated_realdata.py", "--skip-tests"])
+    add(
+        "AWS",
+        "authenticated_realdata",
+        "Authenticated surfaces realdata defaults + merge order",
+        code == 0,
+        tail or "ok",
+    )
+
+    code, tail = _run([py, "scripts/verify_sse_tenant_ingress.py"])
+    add("AWS", "sse_tenant_ingress", "SSE tenant host fail-closed guards", code == 0, tail or "ok")
+
+    code, tail = _run([py, "scripts/audit_celery_tenant_task_scoping.py", "--compare"])
+    add(
+        "AWS",
+        "celery_tenant_tasks",
+        "Celery task queryset scoping baseline",
+        code == 0,
+        tail or "ok",
+    )
+
     # --- Shopify ---
     add(
         "Shopify",

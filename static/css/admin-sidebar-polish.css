@@ -189,14 +189,14 @@
 #nav-sidebar .admin-sidebar-model-list,
 #nav-sidebar-apps .admin-sidebar-model-list {
   margin: 0 0 12px !important;
-  margin-left: var(--sidebar-px) !important;
-  padding-left: 12px !important;
-  padding-right: var(--sidebar-px) !important;
-  border-left: 2px solid rgba(255, 255, 255, 0.08) !important;
+  margin-inline-start: var(--sidebar-px) !important;
+  padding-inline-start: 12px !important;
+  padding-inline-end: var(--sidebar-px) !important;
+  border-inline-start: 2px solid rgba(255, 255, 255, 0.08) !important;
 }
 .dark #nav-sidebar .admin-sidebar-model-list,
 .dark #nav-sidebar-apps .admin-sidebar-model-list {
-  border-left-color: rgba(255, 255, 255, 0.1) !important; /* off-token-allow: white-overlay */
+  border-inline-start-color: rgba(255, 255, 255, 0.1) !important; /* off-token-allow: white-overlay */
 }
 
 #nav-sidebar .admin-sidebar-model-list li,

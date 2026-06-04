@@ -70,7 +70,7 @@ def delegation_add(request):
                     site = get_effective_site_settings(request=request)
                     notify = getattr(site, "delegation_notify_delegate_on_start", "off")
                     if notify in ("email", "both") and d.delegate.email:
-                        from django.core.mail import send_mail
+                        from apps.schoolops.email_compat import send_mail
                         from django.conf import settings as django_settings
 
                         send_mail(

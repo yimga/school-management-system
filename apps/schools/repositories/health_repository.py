@@ -102,6 +102,7 @@ def get_top_tables_by_size(
                 schema_filter_sql = "AND schemaname = %s"
                 params.append(schema_name)
             params.append(limit)
+            # rls-bypass-allow: pg_stat health observability across schemas, no tenant rows read
             cursor.execute(
                 f"""
                 SELECT
@@ -200,6 +201,7 @@ def count_table_rows(schema: str, table: str) -> int:
         quoted_schema = connection.ops.quote_name(schema_norm)
         quoted_table = connection.ops.quote_name(table_norm)
         with connection.cursor() as cursor:
+            # rls-bypass-allow: row-count health probe on operator-supplied quoted schema.table, observability only
             cursor.execute(f"SELECT COUNT(*) FROM {quoted_schema}.{quoted_table}")
             row = cursor.fetchone()
             if not row or row[0] is None:
@@ -246,6 +248,7 @@ def get_global_health_stats(limit: int | None = None) -> list[dict]:
             eff_limit = _HEALTH_GLOBAL_SCHEMA_STATS_MAX_LIMIT
     try:
         with connection.cursor() as cursor:
+            # rls-bypass-allow: pg_size/pg_class schema-size observability, no tenant rows read
             cursor.execute(
                 """
                 SELECT

@@ -3,20 +3,20 @@
 {% block title %}{% trans "SSO tenant bindings" %} — {{ block.super }}{% endblock %}
 {% block content %}
 <div class="container-fluid rmc-page" style="max-width: 1200px;">
-  <nav style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+  <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
     <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
     <span aria-hidden="true">›</span>
     <span style="color: var(--text-primary);">{% trans "SSO tenant bindings" %}</span>
   </nav>
   <header class="rmc-page__header" style="margin-bottom: 14px;">
-    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">{% trans "SSO tenant bindings" %}</h1>
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "SSO tenant bindings" %}</h1>
     <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 70ch;">
       {% trans "User → School bindings minted by OIDC + SAML provisioning. Reassigning a row marks it source=manual for audit." %}
     </p>
   </header>
 
   <form method="get" style="display: flex; gap: 10px; margin-bottom: 14px; align-items: end;">
-    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Source" %}
+    <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Source" %}
       <select name="source" style="display: block; min-width: 120px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary);">
         <option value="" {% if not filter_source %}selected{% endif %}>{% trans "all" %}</option>
         <option value="oidc"   {% if filter_source == 'oidc' %}selected{% endif %}>oidc</option>
@@ -24,23 +24,23 @@
         <option value="manual" {% if filter_source == 'manual' %}selected{% endif %}>manual</option>
       </select>
     </label>
-    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Provider" %}
+    <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Provider" %}
       <input name="provider" value="{{ filter_provider }}" placeholder="azure / google / saml" style="display: block; min-width: 160px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
     </label>
-    <label style="font-size: 12px; color: var(--text-secondary);">{% trans "School ID" %}
+    <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "School ID" %}
       <input name="school" value="{{ filter_school }}" style="display: block; min-width: 200px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
     </label>
     <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Filter" %}</button>
   </form>
 
   <section style="margin-bottom: 18px; padding: 12px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated);">
-    <h2 style="font-size: 0.95rem; margin: 0 0 10px;">{% trans "Reassign binding" %}</h2>
+    <h2 style="font-size: var(--type-size-caption); margin: 0 0 10px;">{% trans "Reassign binding" %}</h2>
     <form method="post" action="{% url 'portal:tenant_binding_reassign' %}" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
       {% csrf_token %}
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "User ID" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "User ID" %}
         <input name="user" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
-      <label style="font-size: 12px; color: var(--text-secondary);">{% trans "Target School ID" %}
+      <label style="font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{% trans "Target School ID" %}
         <input name="school" required style="display: block; width: 100%; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); font-family: monospace;">
       </label>
       <button type="submit" style="padding: 8px 14px; border-radius: 8px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); cursor: pointer;">{% trans "Reassign" %} →</button>
@@ -48,9 +48,9 @@
   </section>
 
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
       <thead>
-        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+        <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "User" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "School" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Source" %}</th>
@@ -64,9 +64,9 @@
           <tr>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.user.username|default:r.user_id }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.school.name|default:r.school_id }}</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 12px;">{{ r.source }}</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 12px;">{{ r.provider|default:"—" }}</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: 12px;">{{ r.subject|default:"—"|truncatechars:40 }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ r.source }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ r.provider|default:"—" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); font-family: monospace; font-size: var(--type-size-eyebrow);">{{ r.subject|default:"—"|truncatechars:40 }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">{{ r.updated_at|date:"Y-m-d H:i" }}</td>
           </tr>
         {% empty %}

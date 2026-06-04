@@ -399,7 +399,7 @@ def super_support_ticket_detail(request, ticket_id):
                 GlobalSupportTicketReply.objects.create(
                     ticket=ticket,
                     author=request.user,
-                    body=body[:32000],
+                    body=body[:32000],  # magic-number-allow: text-body-char-truncation-cap
                     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                     visibility=vis,
                 )
@@ -417,7 +417,7 @@ def super_support_ticket_detail(request, ticket_id):
                         str(ticket.pk),
                         actor_id=getattr(request.user, "id", None),
                         visibility=vis,
-                        reply_body=body[:32000],
+                        reply_body=body[:32000],  # magic-number-allow: text-body-char-truncation-cap
                     )
                 except (
                     AttributeError,
@@ -513,7 +513,7 @@ def super_support_ticket_detail(request, ticket_id):
                 GlobalSupportTicketReply.objects.create(
                     ticket=ticket,
                     author=request.user,
-                    body=edited_text[:32000],
+                    body=edited_text[:32000],  # magic-number-allow: text-body-char-truncation-cap
                     # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
                     visibility=GlobalSupportTicketReply.Visibility.SUBMITTER_VISIBLE,
                 )
@@ -551,8 +551,8 @@ def super_support_ticket_detail(request, ticket_id):
         if action == "promote_incident":
             from apps.siteconfig.models_feature_controls import PublicIncident
 
-            title = (request.POST.get("incident_title") or ticket.subject)[:180]
-            summary = (request.POST.get("incident_summary") or "").strip()[:4000]
+            title = (request.POST.get("incident_title") or ticket.subject)[:180]  # magic-number-allow: string-truncation-cap
+            summary = (request.POST.get("incident_summary") or "").strip()[:4000]  # magic-number-allow: ai-message-char-cap
             sev_raw = (request.POST.get("incident_severity") or "MINOR").strip().upper()
             severity = sev_raw if sev_raw in dict(PublicIncident.Severity.choices) else PublicIncident.Severity.MINOR
             stat_raw = (request.POST.get("incident_status") or "INVESTIGATING").strip().upper()
@@ -638,7 +638,7 @@ def super_support_ticket_detail(request, ticket_id):
                 changed.append("status")
         raw_notes = request.POST.get("internal_notes", "")
         if isinstance(raw_notes, str) and raw_notes != ticket.internal_notes:
-            ticket.internal_notes = raw_notes[:32000]
+            ticket.internal_notes = raw_notes[:32000]  # magic-number-allow: text-body-char-truncation-cap
             changed.append("internal_notes")
         if changed:
             ticket.save(update_fields=[f for f in changed if f in ("status", "internal_notes")])

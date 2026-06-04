@@ -35,8 +35,16 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 AUTH_PATH = ROOT / "artifacts" / "manager-playwright-auth.json"
 MANAGER_HOST = os.environ.get("VISUAL_QA_MANAGER_HOST", "manager.runmycampus.com")
-USERNAME = os.environ.get("VISUAL_QA_USERNAME", "visualqa_admin")
-PASSWORD = os.environ.get("VISUAL_QA_PASSWORD", "VisualQaPass123!")
+USERNAME = (
+    os.environ.get("E2E_LOGIN_USER")
+    or os.environ.get("VISUAL_QA_USERNAME")
+    or "visualqa_admin"
+)
+PASSWORD = (
+    os.environ.get("E2E_LOGIN_PASSWORD")
+    or os.environ.get("VISUAL_QA_PASSWORD")
+    or "VisualQaPass123!"
+)
 
 
 def main() -> int:
@@ -95,7 +103,42 @@ def main() -> int:
     client.get("/authentication/login/")
     client.force_login(user)
     bind_manager_session(client)
-    mark_manager_mfa_verified(client)
+    mfa_resp = client.get("/authentication/mfa/verify/", follow=False)
+    if mfa_resp.status_code in (200, 302):
+        from django_otp.oath import totp
+        from django_otp.plugins.otp_totp.models import TOTPDevice
+
+        device = TOTPDevice.objects.filter(
+            user=user, name=os.environ.get("VISUAL_QA_TOTP_DEVICE", "e2e-playwright"), confirmed=True
+        ).first()
+        if device:
+            code = str(
+                totp(
+                    device.bin_key,
+                    step=device.step,
+                    t0=device.t0,
+                    digits=device.digits,
+                    drift=device.drift,
+                )
+            ).zfill(device.digits)
+            verify = client.post(
+                "/authentication/mfa/verify/",
+                {"token": code, "next": "/super/schools/"},
+                follow=True,
+            )
+            if verify.status_code >= 400:
+                mark_manager_mfa_verified(client)
+        else:
+            mark_manager_mfa_verified(client)
+    else:
+        mark_manager_mfa_verified(client)
+    bind_manager_session(client)
+    # Manager host may clear the default sessionid cookie while keeping rmc_manager_sessionid.
+    session_name = getattr(settings, "SESSION_COOKIE_NAME", "sessionid")
+    manager_name = getattr(settings, "MANAGER_SESSION_COOKIE_NAME", "rmc_manager_sessionid")
+    mgr = client.cookies.get(manager_name)
+    if mgr and str(mgr.value or "").strip():
+        client.cookies[session_name] = mgr.value
     probe = client.get("/super/schools/", follow=False)
     if probe.status_code == 302:
         location = probe.headers.get("Location") or ""

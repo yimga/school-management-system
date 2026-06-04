@@ -66,6 +66,12 @@ class PlatformRuntimeConfig(AppConfig):
                 exc_info=True,
             )
         try:
+            from apps.platform_runtime.sqlite_pragmas import connect_sqlite_pragma_signal
+
+            connect_sqlite_pragma_signal()
+        except Exception:
+            logger.debug("SQLite PRAGMA signal not connected at Django ready", exc_info=True)
+        try:
             from apps.platform_runtime.platform_email_matrix import (
                 register_email_matrix_event_subscriber,
             )

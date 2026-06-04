@@ -1,5 +1,8 @@
 """BOLA/IDOR guards for campus school switching."""
 
+import os
+from unittest import mock
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
@@ -13,6 +16,17 @@ from apps.schools.tenant_switch_security import (
 
 class TenantSwitchSecurityTests(TestCase):
     def setUp(self):
+        # Pin the control-plane operator allowlist to its SUPERADMIN-only default
+        # so these BOLA/IDOR assertions are env-independent. Without this a local
+        # ``.env.local`` setting CONTROL_PLANE_OPERATOR_ROLES=SUPERADMIN,ADMIN would
+        # promote the tenant ADMIN below to a platform operator and silently flip
+        # the cross-tenant "denied" assertions (the test must verify default config,
+        # not whatever a developer's shell happens to export).
+        _env_patch = mock.patch.dict(
+            os.environ, {"CONTROL_PLANE_OPERATOR_ROLES": "SUPERADMIN"}
+        )
+        _env_patch.start()
+        self.addCleanup(_env_patch.stop)
         User = get_user_model()
         self.parent = School.objects.create(
             name="District",

@@ -63,6 +63,23 @@ def _expected_token() -> str:
     )
 
 
+def _allow_dev_open() -> bool:
+    """SECURITY escape hatch (default OFF), mirroring OneRoster.
+
+    When no ``RMC_SCIM_ACCESS_TOKEN`` is configured, SCIM fails CLOSED. Setting
+    ``RMC_SCIM_ALLOW_DEV_OPEN=1`` restores the historical "no token -> open"
+    behavior on a dev/test box only — NEVER in production. Without this, a deploy
+    that simply forgot to set the SCIM token exposed anonymous user
+    create/modify/delete/enumerate over the entire SCIM surface.
+    """
+    raw = str(
+        getattr(settings, "RMC_SCIM_ALLOW_DEV_OPEN", "")
+        or os.environ.get("RMC_SCIM_ALLOW_DEV_OPEN", "")
+        or ""
+    ).strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
 def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
     header = request.META.get("HTTP_AUTHORIZATION", "") or ""
     if not header.lower().startswith("bearer "):
@@ -70,8 +87,13 @@ def _authenticate(request: HttpRequest) -> tuple[bool, str | None]:
     submitted = header[7:].strip()
     expected = _expected_token()
     if not expected:
-        logger.info("scim: no RMC_SCIM_ACCESS_TOKEN configured (dev mode)")
-        return True, None
+        # Fail CLOSED — no token configured means refuse, unless an explicit
+        # dev-open opt-in is set. (Previously soft-allowed ANY request.)
+        if _allow_dev_open():
+            logger.info("scim: dev-open enabled (RMC_SCIM_ALLOW_DEV_OPEN) — accepting request")
+            return True, None
+        logger.warning("scim: no RMC_SCIM_ACCESS_TOKEN configured and dev-open disabled — refusing")
+        return False, "not_configured"
     if not submitted or not hmac.compare_digest(submitted, expected):
         return False, "invalid_token"
     return True, None
@@ -229,10 +251,10 @@ def _extract_user_fields(payload: dict[str, Any]) -> dict[str, str]:
     if not primary_email and emails and isinstance(emails[0], dict):
         primary_email = str(emails[0].get("value") or "")
     return {
-        "username": str(payload.get("userName") or "")[:150],
-        "first_name": str(name.get("givenName") or "")[:150],
-        "last_name": str(name.get("familyName") or "")[:150],
-        "email": primary_email[:254],
+        "username": str(payload.get("userName") or "")[:150],  # magic-number-allow: string-truncation-cap
+        "first_name": str(name.get("givenName") or "")[:150],  # magic-number-allow: string-truncation-cap
+        "last_name": str(name.get("familyName") or "")[:150],  # magic-number-allow: string-truncation-cap
+        "email": primary_email[:254],  # magic-number-allow: string-truncation-cap
         "is_active": payload.get("active") if "active" in payload else True,
     }
 
@@ -382,22 +404,22 @@ def user_detail(request, user_id: str):
                     obj.is_active = bool(value)
                     changed = True
                 elif path.lower() in ("username", "username"):
-                    obj.username = str(value)[:150]
+                    obj.username = str(value)[:150]  # magic-number-allow: string-truncation-cap
                     changed = True
                 elif path.lower() in ("name.givenname",):
-                    obj.first_name = str(value)[:150]
+                    obj.first_name = str(value)[:150]  # magic-number-allow: string-truncation-cap
                     changed = True
                 elif path.lower() in ("name.familyname",):
-                    obj.last_name = str(value)[:150]
+                    obj.last_name = str(value)[:150]  # magic-number-allow: string-truncation-cap
                     changed = True
                 elif path.lower().startswith("emails"):
                     if isinstance(value, list) and value:
                         first = value[0]
                         if isinstance(first, dict):
-                            obj.email = str(first.get("value") or "")[:254]
+                            obj.email = str(first.get("value") or "")[:254]  # magic-number-allow: string-truncation-cap
                             changed = True
                     elif isinstance(value, str):
-                        obj.email = value[:254]
+                        obj.email = value[:254]  # magic-number-allow: string-truncation-cap
                         changed = True
                 elif not path and isinstance(value, dict):
                     # PATCH without path → apply nested replace
@@ -457,7 +479,7 @@ def groups_collection(request):
     payload = _scim_body(request)
     if not payload:
         return _scim_error(400, "invalidSyntax", "bad json")
-    name = str(payload.get("displayName") or "").strip()[:150]
+    name = str(payload.get("displayName") or "").strip()[:150]  # magic-number-allow: string-truncation-cap
     if not name:
         return _scim_error(400, "invalidValue", "displayName required")
     obj, created = Group.objects.get_or_create(name=name)

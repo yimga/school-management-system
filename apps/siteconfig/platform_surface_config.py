@@ -291,6 +291,16 @@ def resolve_sms_offline_config(
         "prefetchAtHour": flags.get("prefetch_at_hour"),
         "parentPortalShell": parent_shell,
         "csrfTokenUrl": api_urls.get("csrf_token") or "",
+        # Path the service worker watches to purge the authenticated read-cache
+        # (DYNAMIC_CACHE) on logout — prevents the previous user's cached PII
+        # being served to the next user on a shared school device.
+        "logoutPath": _reverse("accounts:logout") or _reverse("logout"),
+        # Identity of the signed-in user. The WAL outbox stamps each queued write
+        # with this so a shared device cannot ship user A's queued offline writes
+        # over user B's socket (the server rejects author/socket mismatches).
+        "currentUserId": str(
+            getattr(getattr(request, "user", None), "pk", "") or ""
+        ),
     }
 
 

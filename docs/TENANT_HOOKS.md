@@ -49,6 +49,19 @@ The tag returns the fragment's `metadata_schema["html"]` for the current school 
 - Fragment HTML is rendered with `mark_safe`. For untrusted content, consider stripping `<script>`, `on*` attributes, or serving via CSP/sandbox.
 - Hook names are normalized to uppercase in the tag.
 
+## JSON-Logic nuance (separate registry)
+
+Template **tenant hooks** (this doc) are unrelated to the **JSON-Logic nuance engine** used for tuition, fee discounts, report-card averages, and scholarship eligibility.
+
+| Concern | Module |
+|--------|--------|
+| UI fragment sockets (`STUDENT_LIST_FOOTER`, …) | `apps/siteconfig/hooks.py` |
+| JSON-Logic hook points (`tuition_calc`, `report_card_avg`, …) | `apps/siteconfig/nuance_engine.py` (`HOOK_REGISTRY`, `apply_nuance`, `evaluate_json_logic`) |
+| Grading preset templates → policy → `CustomNuance` | `apps/policies/grading_nuance_templates.py` |
+| Contract verifier | `python scripts/verify_nuance_logic_toolset_contract.py` |
+
+`scholarship_eligibility` is a **virtual** hook: rules live on `Scholarship.eligibility_criteria` and run via `evaluate_json_logic`, not `CustomNuance` rows.
+
 ## Related
 
 - **Models:** `CustomFeatureTicket`, `FeatureFragment` in `apps.siteconfig.models`

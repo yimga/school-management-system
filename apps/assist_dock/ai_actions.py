@@ -36,7 +36,7 @@ DEFAULT_TASK_TYPE = "admin_copilot"
 
 # Cap rendered prompt length so a runaway page_excerpt can't blow past the
 # gateway's model context. The gateway will truncate further if needed.
-PROMPT_MAX_CHARS = 4000
+PROMPT_MAX_CHARS = 4000  # magic-number-allow: ai-message-char-cap
 
 # Cap response chars surfaced back to the JS — never echo a full PII dump.
 RESPONSE_MAX_CHARS = 2000

@@ -305,7 +305,7 @@ def signup_verification_stale_sweep_task() -> dict:
         for v in rows:
             try:
                 school = getattr(v, "school", None)
-                age_hours = int((_tz.now() - v.created_at).total_seconds() / 3600)
+                age_hours = int((_tz.now() - v.created_at).total_seconds() / 3600)  # magic-number-allow: seconds-per-hour-divisor
                 payload = {
                     "school_id": str(getattr(school, "pk", "")),
                     "school_name": getattr(school, "name", ""),
@@ -375,10 +375,35 @@ def workflow_stuck_alert_sweep_task() -> dict:
                     source="platform_runtime.workflow_stuck_alert_sweep",
                 )
                 # Flip the row so the SSE chip reflects stuck visually.
+                # tenant-isolation-allow: workflow-stuck-sweep-single-row-pk-update-system-beat
                 WorkflowRun.objects.filter(pk=run.pk).update(status="stuck")
                 published += 1
             except Exception:
                 continue
         return {"ok": True, "scanned": len(candidates), "published": published}
+    except Exception as exc:
+        return {"ok": False, "reason": f"exception:{type(exc).__name__}"}
+
+
+@shared_task(name="platform_runtime.workflow_sla_breach_alert_sweep")
+def workflow_sla_breach_alert_sweep_task() -> dict:
+    """Scan RUNNING workflows past registry ``slo_seconds``; record breach + notify once."""
+
+    try:
+        from apps.platform_runtime.models import WorkflowRun
+        from apps.platform_runtime.workflow_sla import record_running_sla_breach_if_needed
+
+        candidates = list(
+            # tenant-isolation-allow: platform-workflow-sla-sweep-no-tenant-scope
+            WorkflowRun.objects.filter(status="running").order_by("-started_at")[:500]
+        )
+        recorded = 0
+        for run in candidates:
+            try:
+                if record_running_sla_breach_if_needed(run=run):
+                    recorded += 1
+            except Exception:
+                continue
+        return {"ok": True, "scanned": len(candidates), "recorded": recorded}
     except Exception as exc:
         return {"ok": False, "reason": f"exception:{type(exc).__name__}"}

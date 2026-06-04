@@ -1,0 +1,116 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+<!-- Audit residual closeout — operator delivery-receipt dashboard for SMS / WhatsApp / push. NEVER renders raw recipients (only the hashed recipient_hash). Cross-tenant by design (operator incident response). Auto-refreshes every 60s. -->
+
+{% block page_title %}{{ page_title|default:"Message delivery receipts" }}{% endblock %}
+
+{% block extra_head %}
+  {{ block.super }}
+  <meta http-equiv="refresh" content="60">
+{% endblock %}
+
+{% block cp_shell_page %}
+<main class="rmc-page" data-rmc-scroll-policy="paginate" id="main">
+  <header class="rmc-page__header">
+    <h1 class="rmc-h1">{% trans "Message delivery receipts" %}</h1>
+    <p class="rmc-lede">
+      {% trans "SMS / WhatsApp / push delivery outcomes reported by providers. Recipients shown as SHA-256 hashes — never raw numbers. Auto-refreshes every 60 seconds." %}
+    </p>
+  </header>
+
+  {% if load_error %}
+    <p class="rmc-empty">{% trans "Delivery-receipt model not loadable in this environment." %}</p>
+  {% endif %}
+
+  <div class="rmc-grid rmc-grid--3col">
+
+    <!-- ── Panel 1 — Volume ─────────────────────────────────────────── -->
+    <section class="rmc-card" aria-labelledby="dr-volume-heading">
+      <h2 id="dr-volume-heading" class="rmc-h2">{% trans "Volume" %}</h2>
+      <p class="rmc-metric-ticker">
+        <span class="rmc-metric-ticker__value">{{ totals.last_24h }}</span>
+        <span class="rmc-metric-ticker__label">{% trans "receipts (24h)" %}</span>
+      </p>
+      <p class="rmc-meta">
+        <span>{% blocktrans with n=totals.last_7d %}{{ n }} in the last 7 days{% endblocktrans %}</span>
+      </p>
+    </section>
+
+    <!-- ── Panel 2 — Terminal outcomes ──────────────────────────────── -->
+    <section class="rmc-card" aria-labelledby="dr-terminal-heading">
+      <h2 id="dr-terminal-heading" class="rmc-h2">{% trans "Terminal (7d)" %}</h2>
+      <p class="rmc-metric-ticker">
+        <span class="rmc-metric-ticker__value">{{ totals.terminal_7d }}</span>
+        <span class="rmc-metric-ticker__label">{% trans "reached a final state" %}</span>
+      </p>
+      <p class="rmc-meta">
+        <span>{% blocktrans with n=totals.failed_7d %}{{ n }} failed / undelivered{% endblocktrans %}</span>
+      </p>
+    </section>
+
+    <!-- ── Panel 3 — Channel × status matrix ────────────────────────── -->
+    <section class="rmc-card" aria-labelledby="dr-matrix-heading">
+      <h2 id="dr-matrix-heading" class="rmc-h2">{% trans "By channel & status (7d)" %}</h2>
+      {% if matrix %}
+        <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+          <thead>
+            <tr>
+              <th>{% trans "Channel" %}</th>
+              <th>{% trans "Status" %}</th>
+              <th>{% trans "Count" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in matrix %}
+              <tr>
+                <td><code class="rmc-kbd">{{ row.channel }}</code></td>
+                <td><code class="rmc-kbd">{{ row.status }}</code></td>
+                <td>{{ row.count }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="rmc-empty">{% trans "No delivery receipts in the last 7 days." %}</p>
+      {% endif %}
+    </section>
+
+  </div>
+
+  <!-- ── Recent terminal failures ───────────────────────────────────── -->
+  <section class="rmc-card" aria-labelledby="dr-failures-heading">
+    <h2 id="dr-failures-heading" class="rmc-h2">{% trans "Recent failures" %}</h2>
+    {% if recent_failures %}
+      <table class="rmc-data-table" data-rmc-row-detail-table="1" data-rmc-row-detail-auto="1">
+        <thead>
+          <tr>
+            <th>{% trans "When" %}</th>
+            <th>{% trans "Channel" %}</th>
+            <th>{% trans "Provider" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th>{% trans "Error" %}</th>
+            <th>{% trans "Recipient (hash)" %}</th>
+            <th>{% trans "Message id" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in recent_failures %}
+            <tr>
+              <td>{{ row.updated_at|date:"Y-m-d H:i" }}</td>
+              <td><code class="rmc-kbd">{{ row.channel }}</code></td>
+              <td>{{ row.provider }}</td>
+              <td><code class="rmc-kbd">{{ row.status }}</code></td>
+              <td>{{ row.error_code }}</td>
+              <td><code class="rmc-kbd">{{ row.recipient_hash }}</code></td>
+              <td><code class="rmc-kbd">{{ row.provider_message_id }}</code></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="rmc-empty">{% trans "No failed or undelivered messages recorded." %}</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

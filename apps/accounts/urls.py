@@ -69,6 +69,7 @@ from .views_certification import (
     certification_session_override,
 )
 from .views_legacy_setup import LegacySetupView
+from .guardian_invite import GuardianSetupView
 from apps.schools.super_views_operator_team import operator_invite_accept
 from .views_mfa import mfa_setup, mfa_verify, dismiss_mfa_banner
 from .views_passkey import (
@@ -368,7 +369,7 @@ urlpatterns = [
         lost_belongings_recover,
         name="lost_belongings_recover",
     ),
-    path(
+    path(  # rbac-allow: intentionally-public-anonymous-lost-item-finder-lookup-no-pii-reflected
         "lost-found/",
         lost_belongings_lookup,
         name="lost_belongings_lookup",
@@ -538,11 +539,11 @@ urlpatterns = [
         operator_invite_accept,
         name="operator_invite_accept",
     ),  # rbac-allow: anonymous operator invite acceptance
-    path(
+    path(  # rbac-allow: intentionally-public-pre-auth-staff-invite-accept-unguessable-uuid-token
         "staff-invite/<uuid:token>/",
         tenant_staff_invite_accept,
         name="tenant_staff_invite_accept",
-    ),  # rbac-allow: anonymous tenant staff invite acceptance
+    ),
     # v3.29 migration-cloud sunset job: one-time setup link landing page for
     # users emailed by accounts.sunset_stale_legacy_hashes. Token-validated
     # by Django's PasswordResetConfirmView parent; view additionally clears
@@ -552,6 +553,12 @@ urlpatterns = [
         "legacy-setup/<uidb64>/<token>/",
         LegacySetupView.as_view(),
         name="legacy_setup",
+    ),
+    # rbac-allow: token-authenticated one-time guardian set-password; must be anonymous-reachable
+    path(
+        "guardian-setup/<uidb64>/<token>/",
+        GuardianSetupView.as_view(),
+        name="guardian_setup",
     ),
     path("mfa/setup/", mfa_setup, name="mfa_setup"),
     path("mfa/dismiss-banner/", dismiss_mfa_banner, name="dismiss_mfa_banner"),

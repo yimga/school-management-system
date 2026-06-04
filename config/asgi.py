@@ -16,12 +16,15 @@ django_asgi_app = get_asgi_application()
 try:
     from channels.routing import ProtocolTypeRouter, URLRouter
     from channels.auth import AuthMiddlewareStack
+    from apps.schools.channels_tenant_middleware import TenantChannelsMiddleware
     from config.routing import websocket_urlpatterns
 
     application = ProtocolTypeRouter(
         {
             "http": django_asgi_app,
-            "websocket": AuthMiddlewareStack(URLRouter(websocket_urlpatterns)),
+            "websocket": AuthMiddlewareStack(
+                TenantChannelsMiddleware(URLRouter(websocket_urlpatterns))
+            ),
         }
     )
 except ImportError:

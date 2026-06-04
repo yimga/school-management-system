@@ -60,8 +60,8 @@ from typing import Any, Iterable
 logger = logging.getLogger(__name__)
 
 DEFAULT_RETENTION_YEARS = 7
-DEFAULT_EXPORT_MAX_ROWS = 100_000
-_DAYS_PER_YEAR = 365  # leap-year drift acceptable for a 7-year cutoff
+DEFAULT_EXPORT_MAX_ROWS = 100_000  # magic-number-allow: export-row-cap
+_DAYS_PER_YEAR = 365  # leap-year drift acceptable for a 7-year cutoff  # magic-number-allow: retention-window-days
 
 
 def _env_int(name: str, default: int) -> int:
@@ -123,7 +123,7 @@ def _write_export(
         return None, f"export_write_failed: {exc}"
 
     try:
-        os.chmod(filepath, 0o600)
+        os.chmod(filepath, 0o600)  # magic-number-allow: file-permission-octal-mode
     except OSError:
         # Windows often returns EPERM on chmod; ignore — filesystem ACLs
         # govern access there. POSIX restrictive perm is the load-bearing case.
@@ -157,7 +157,19 @@ def sweep_lms_audit_retention(
     from django.utils import timezone as _tz
 
     if years is None:
-        years = _env_int("RMC_LMS_AUDIT_RETENTION_YEARS", DEFAULT_RETENTION_YEARS)
+        # Resolution precedence: legacy module env RMC_LMS_AUDIT_RETENTION_YEARS
+        # (documented operator knob — wins when set) → unified resolver
+        # (TenantRetentionOverride platform row → RMC_LMS_RETENTION_PUSH_GRADE_AUDIT_YEARS → 7y).
+        from apps.integrations_marketplace.lms_retention_resolver import (
+            resolve_retention_years,
+        )
+
+        years = _env_int(
+            "RMC_LMS_AUDIT_RETENTION_YEARS",
+            resolve_retention_years(
+                tenant_schema="", target_table="lms_push_grade_audit"
+            ),
+        )
     if dry_run is None:
         dry_run = _env_bool("RMC_LMS_AUDIT_RETENTION_DRY_RUN")
     if export_dir is None:
@@ -202,6 +214,21 @@ def sweep_lms_audit_retention(
     exported = False
     export_path = ""
     export_rows = 0
+
+    # v4.01 — operator escalation alert on a large pending purge (fires in
+    # dry-run too). Never breaks the sweep.
+    try:
+        from apps.integrations_marketplace.retention_escalation_alerts import (
+            check_large_batch_threshold,
+        )
+
+        check_large_batch_threshold(
+            tenant_schema="",
+            target_table="lms_push_grade_audit",
+            count=considered,
+        )
+    except Exception as _alert_exc:  # noqa: BLE001
+        logger.debug("lms_audit_retention: batch alert emission failed: %s", _alert_exc)
 
     # Export-before-purge contract (v4.00.55): write JSONL snapshot first.
     if not dry_run and considered and export_dir:

@@ -44,7 +44,7 @@ def lux_workspace_demo(request: HttpRequest) -> HttpResponse:
         simulate_async_ms = int(request.GET.get("simulate_async_ms") or 0)
     except (TypeError, ValueError):
         simulate_async_ms = 0
-    simulate_async_ms = max(0, min(simulate_async_ms, 30_000))
+    simulate_async_ms = max(0, min(simulate_async_ms, 30_000))  # magic-number-allow: millisecond-timeout
     return render(
         request,
         "lux_workspace/demo.html",

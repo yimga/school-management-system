@@ -75,7 +75,7 @@ def build_oauth2_authorization_server_metadata(request: HttpRequest) -> dict[str
         "oneroster_spec_version": "v1.2",
         # Cache hint for well-behaved clients (RFC 8414 § 3 says metadata
         # is cacheable; we make the freshness window explicit).
-        "metadata_cache_duration_seconds": 3600,
+        "metadata_cache_duration_seconds": 3600,  # magic-number-allow: duration-seconds
     }
 
 

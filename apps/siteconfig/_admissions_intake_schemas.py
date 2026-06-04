@@ -37,7 +37,7 @@ KCSE_LETTERS = ["A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "D-", "E
 CSEE_LETTERS = ["A", "B+", "B", "C", "D", "F"]
 ACSEE_LETTERS = ["A", "B", "C", "D", "S", "F"]
 NSC_LEVELS = ["Level 7", "Level 6", "Level 5", "Level 4", "Level 3", "Level 2", "Level 1"]
-SA_NSC_PERCENT = [str(i) for i in range(0, 101, 10)]
+SA_NSC_PERCENT = [str(i) for i in range(0, 101, 10)]  # magic-number-allow: percentage-scale-bound
 
 
 SCHEMAS: dict[str, dict[str, Any]] = {

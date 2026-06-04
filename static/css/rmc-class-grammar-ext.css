@@ -1,0 +1,419 @@
+/* rmc-class-grammar-ext.css — platform grammar split out of rmc-class-grammar.css (v2.36 cp-*/rmc-* additions) to keep the marketing CSS bundle under its size budget. Loaded directly by the platform shells; intentionally NOT in the marketing bundle (no marketing template references these classes). */
+/* v2.36 â€” undefined-class CI gate closure sweep (2026-06-01)    */
+/* Defines 113 project-prefixed classes referenced in templates  */
+/* but never declared in any CSS. Semantic tokens only; tenant   */
+/* brand cascade still wins. Grouped by family.                  */
+/* ============================================================ */
+
+/* ---- rmc-* page / section structural grammar ---- */
+.rmc-page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 1.5rem);
+  padding: var(--space-6, 1.5rem) var(--space-7, 2rem);
+  max-inline-size: min(1440px, 100%);
+  margin-inline: auto;
+  color: var(--text-primary);
+}
+.rmc-page-sub {
+  margin: var(--space-1, 0.25rem) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-size-md, 1rem);
+  max-inline-size: 60ch;
+}
+.rmc-page__title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--type-size-2xl, 1.75rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.rmc-page__subtitle {
+  margin: var(--space-2, 0.5rem) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-size-md, 1rem);
+  max-inline-size: 60ch;
+}
+.rmc-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+  min-width: 0;
+}
+.rmc-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 0.75rem);
+}
+
+/* ---- rmc-* lti_admin pill / alert / button / callout modifiers ---- */
+.rmc-pill-ok {
+  background: var(--surface-bg-subtle, transparent);
+  color: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--text-primary, currentColor) 18%, transparent);
+}
+.rmc-pill-muted {
+  background: transparent;
+  color: var(--text-muted, var(--text-secondary));
+  border: 1px solid var(--hairline);
+}
+.rmc-btn-primary {
+  background: var(--brand-gradient, var(--school-primary, transparent));
+  color: var(--text-on-brand, #fff);
+  border-color: transparent;
+}
+.rmc-btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--hairline);
+}
+.rmc-alert-error {
+  border-left: 3px solid var(--text-danger, currentColor);
+  color: var(--text-primary);
+}
+.rmc-alert-ok {
+  border-left: 3px solid var(--text-success, currentColor);
+  color: var(--text-primary);
+}
+.rmc-callout-warn {
+  border-left: 3px solid var(--text-warning, currentColor);
+  background: var(--surface-bg-subtle, transparent);
+  color: var(--text-primary);
+}
+.rmc-field-error {
+  margin-top: var(--space-1, 0.25rem);
+  color: var(--text-danger, currentColor);
+  font-size: var(--type-size-sm, 0.875rem);
+}
+.rmc-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3, 0.75rem);
+  align-items: center;
+  margin-top: var(--space-4, 1rem);
+}
+.rmc-deflist {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2, 0.5rem) var(--space-4, 1rem);
+  margin: 0;
+  color: var(--text-primary);
+}
+.rmc-deflist dt { font-weight: 600; color: var(--text-secondary); }
+.rmc-deflist dd { margin: 0; }
+
+/* ---- rmc-row-disclosure (table-row actions disclosure) ---- */
+.rmc-row-disclosure {
+  display: inline-block;
+}
+.rmc-row-disclosure__body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+
+/* ---- rmc-* assist dock power surfaces ---- */
+.rmc-assist-power__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem) 0;
+  border-top: 1px solid var(--hairline);
+}
+.rmc-assist-power__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+}
+.rmc-assist-power__active-session {
+  padding: var(--space-3, 0.75rem);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-bg-subtle, transparent);
+  color: var(--text-primary);
+}
+.rmc-assist-power__status {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary);
+}
+.rmc-assist-power__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+  margin-top: var(--space-3, 0.75rem);
+  padding-top: var(--space-3, 0.75rem);
+  border-top: 1px solid var(--hairline);
+}
+.rmc-assist-power__chip-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.rmc-assist-power__chip--pinned {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.rmc-assist-share__recipients {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+.rmc-assist-share__recip-result {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary);
+}
+.rmc-assist-share__mint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+.rmc-impersonation-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-2, 0.5rem) var(--space-4, 1rem);
+  background: var(--surface-bg-subtle, transparent);
+  border-bottom: 1px solid var(--hairline);
+  color: var(--text-primary);
+}
+.rmc-help-support-lane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+}
+
+/* ---- rmc-security-posture-modal (Bootstrap modal skin) ---- */
+.rmc-security-posture-modal {
+  color: var(--text-primary);
+}
+.rmc-security-posture-modal__content {
+  color: var(--text-primary);
+}
+.rmc-security-posture-modal__score {
+  font-size: var(--type-size-md, 1rem);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.rmc-security-posture-modal__checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+  color: var(--text-secondary);
+}
+
+/* ---- rmc-wizard-viewport (viewport-locked multi-step wizard) ---- */
+.rmc-wizard-viewport__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+.rmc-wizard-viewport__title {
+  margin: 0;
+  font-size: var(--type-size-xl, 1.5rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.rmc-wizard-viewport__lead {
+  color: var(--text-secondary);
+  font-size: var(--type-size-md, 1rem);
+  max-inline-size: 60ch;
+}
+.rmc-edt-eyebrow {
+  margin: 0;
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted, var(--text-secondary));
+}
+
+/* ---- rmc-* account shell modifiers + misc grammar ---- */
+.rmc-account-shell--tenant,
+.rmc-account-shell--operator {
+  color: var(--text-primary);
+}
+.rmc-account-auth-message-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+.rmc-mfa-inline-wizard__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+  color: var(--text-primary);
+}
+.rmc-admin-submit-row__hint {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary);
+}
+.rmc-guardian-student-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+.rmc-iso-panel-empty__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  color: var(--text-muted, var(--text-secondary));
+}
+.rmc-copilot-lens-root {
+  position: relative;
+  min-width: 0;
+}
+.rmc-operator-queue-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-2, 0.5rem) var(--space-4, 1rem);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-bg-subtle, transparent);
+  border: 1px solid var(--hairline);
+  color: var(--text-primary);
+}
+.rmc-mkt-catalog {
+  display: grid;
+  gap: var(--space-5, 1.25rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+}
+.rmc-bulk-check {
+  inline-size: 1rem;
+  block-size: 1rem;
+  cursor: pointer;
+}
+
+/* ---- rmc-* list bulk toolbar parts ---- */
+.rmc-list-bulk-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+.rmc-list-bulk-bar__clear {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 0.25rem);
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+/* ---- rmc-* section nav ---- */
+.rmc-section-nav__toc-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1, 0.25rem);
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.rmc-section-nav--mkt {
+  color: var(--text-primary);
+}
+
+/* ---- rmc-* super wedges index ---- */
+.rmc-stat-card__hint {
+  font-size: var(--type-size-sm, 0.875rem);
+  color: var(--text-secondary);
+}
+.rmc-tier-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-4, 1rem);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, transparent);
+}
+.rmc-wedge-grid {
+  display: grid;
+  gap: var(--space-4, 1rem);
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+}
+.rmc-wedge-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  padding: var(--space-4, 1rem);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, transparent);
+  color: var(--text-primary);
+}
+
+/* ---- rmc-* migration_cloud operator/super page + table modifiers ---- */
+.rmc-page--operator-dlq,
+.rmc-page--lms-diagnostics,
+.rmc-page--lms-diag-retention-preview {
+  color: var(--text-primary);
+}
+.rmc-data-table--dlq {
+  width: 100%;
+}
+.rmc-button--danger {
+  background: var(--surface-elevated, transparent);
+  color: var(--text-danger, currentColor);
+  border: 1px solid color-mix(in srgb, var(--text-danger, currentColor) 40%, transparent);
+}
+
+/* ---- rmc-back-to-top SVG gradient defs (non-painting) ---- */
+.rmc-back-to-top-defs { display: none; }
+.rmc-back-to-top-gradient-stop { /* gradient stop element, no box styling */ }
+
+/* ---- cp-* control-plane sidebar / hero / form / sidecar ---- */
+.cp-sidebar-nav--complete,
+.cp-sidebar-nav--focused {
+  color: var(--text-primary);
+}
+.cp-sidebar__group--expanded,
+.cp-sidebar__group--complete,
+.cp-sidebar__group--unified {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+}
+.cp-sidebar__section--first {
+  margin-top: 0;
+}
+.cp-admin-sidebar-apps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+}
+.cp-hero__actions-group--primary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  align-items: center;
+}
+.cp-form__panels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 1rem);
+}
+.cp-sidecar__card--metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1, 0.25rem);
+  padding: var(--space-3, 0.75rem);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated, transparent);
+  color: var(--text-primary);
+}

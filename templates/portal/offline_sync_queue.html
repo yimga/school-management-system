@@ -47,12 +47,12 @@
         </div>
         {% endif %}
         <div class="col-md-2">
-          <label class="form-label mb-1">{% trans "Class ID" %}</label>
-          <input type="number" name="classroom_id" value="{{ filter_classroom_id }}" class="form-control form-control-sm" placeholder="{% trans 'Payload classroom_id' %}">
+          <label class="form-label mb-1" for="offline-sync-classroom-id">{% trans "Class ID" %}</label>
+          <input id="offline-sync-classroom-id" type="number" name="classroom_id" value="{{ filter_classroom_id }}" class="form-control form-control-sm" placeholder="{% trans 'Payload classroom_id' %}">
         </div>
         <div class="col-md-2">
-          <label class="form-label mb-1">{% trans "Student ID" %}</label>
-          <input type="number" name="student_id" value="{{ filter_student_id }}" class="form-control form-control-sm" placeholder="{% trans 'Payload student_id' %}">
+          <label class="form-label mb-1" for="offline-sync-student-id">{% trans "Student ID" %}</label>
+          <input id="offline-sync-student-id" type="number" name="student_id" value="{{ filter_student_id }}" class="form-control form-control-sm" placeholder="{% trans 'Payload student_id' %}">
         </div>
         <div class="col-md-2 d-flex gap-2">
           <button type="submit" class="btn btn-sm btn-outline-primary flex-grow-1">{% trans "Apply filters" %}</button>

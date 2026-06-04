@@ -94,9 +94,9 @@ def _metadata_cache_seconds() -> int:
         or ""
     )
     try:
-        val = int(raw) if str(raw).strip() else 86400
+        val = int(raw) if str(raw).strip() else 86400  # magic-number-allow: default-ttl-seconds
     except (ValueError, TypeError):
-        val = 86400
+        val = 86400  # magic-number-allow: default-ttl-seconds
     return max(60, val)  # floor of 1min so we never produce already-expired metadata
 
 
@@ -275,10 +275,35 @@ def _idp_cert_b64() -> str:
 
 
 def _require_signature() -> bool:
+    # v4.01 SECURITY — secure-by-default. When unset, signature verification is
+    # REQUIRED. Prior default (False) let a stock deployment provision+login
+    # from a forged unsigned SAMLResponse on the public, csrf-exempt ACS.
+    # Operators who genuinely must run unverified (dev/test) flip the explicit
+    # escape hatch RMC_SAML_ALLOW_UNVERIFIED_ASSERTIONS instead of leaving this
+    # off silently.
     raw = (
         getattr(settings, "RMC_SAML_REQUIRE_SIGNATURE", None)
         if hasattr(settings, "RMC_SAML_REQUIRE_SIGNATURE")
         else os.environ.get("RMC_SAML_REQUIRE_SIGNATURE", "")
+    )
+    if raw is None or raw == "":
+        return True
+    return str(raw).lower() in ("1", "true", "yes", "on")
+
+
+def _allow_unverified_assertions() -> bool:
+    """v4.01 SECURITY escape hatch (default OFF).
+
+    The ACS fails closed: it refuses to provision+login from an assertion it
+    could not cryptographically verify (no IdP cert configured, no signature,
+    or a failed c14n verify). Set ``RMC_SAML_ALLOW_UNVERIFIED_ASSERTIONS=1``
+    ONLY on a dev/test deployment that intentionally runs SSO without an IdP
+    cert — never in production. Documented in ``config/settings_registry.py``.
+    """
+    raw = (
+        getattr(settings, "RMC_SAML_ALLOW_UNVERIFIED_ASSERTIONS", None)
+        if hasattr(settings, "RMC_SAML_ALLOW_UNVERIFIED_ASSERTIONS")
+        else os.environ.get("RMC_SAML_ALLOW_UNVERIFIED_ASSERTIONS", "")
     )
     if raw is None or raw == "":
         return False
@@ -1477,7 +1502,7 @@ def _provision_user_from_saml(name_id: str, attrs: dict, tenant_schema: str = ""
 # (LRU eviction). NEVER persisted — process restart clears the map.
 _SESSION_INDEX_REGISTRY: dict[str, str] = {}  # session_index -> django_session_key
 _SESSION_INDEX_REGISTRY_REVERSE: dict[str, str] = {}  # django_session_key -> session_index
-_SESSION_INDEX_REGISTRY_CAP = 10000
+_SESSION_INDEX_REGISTRY_CAP = 10000  # magic-number-allow: in-memory-ring-buffer-cap
 _SESSION_INDEX_REGISTRY_LOCK = threading.Lock()
 
 
@@ -1688,6 +1713,27 @@ def acs(request):
             _saml_tenant_schema = str(getattr(_t, "schema_name", "") or "")
     except Exception:  # noqa: BLE001
         _saml_tenant_schema = ""
+
+    # v4.01 SECURITY — FAIL CLOSED before provisioning. The per-check gates
+    # above only fire when an IdP cert is configured; a stock deployment with
+    # NO cert would otherwise fall straight through to provision+login from an
+    # unverified (forgeable) assertion. Refuse unless the operator has set the
+    # explicit dev/test escape hatch. This is the single chokepoint guarding
+    # the only provision+login path in the module.
+    if not _allow_unverified_assertions():
+        if not _idp_cert_b64():
+            logger.warning("saml acs: refusing unverified assertion — RMC_SAML_IDP_CERT_PEM not configured")
+            return JsonResponse(
+                {"success": False,
+                 "stage": "signature_verification_unavailable",
+                 "detail": "IdP certificate not configured; refusing to provision from an unverified assertion"},
+                status=401,
+            )
+        if not parsed.get("signature_present"):
+            return JsonResponse(
+                {"success": False, "stage": "signature_required_but_missing"},
+                status=401,
+            )
 
     try:
         user, created = _provision_user_from_saml(
@@ -3284,8 +3330,8 @@ def _clock_skew_seconds() -> int:
         return 300
     if n < 0:
         return 0
-    if n > 3600:
-        return 3600
+    if n > 3600:  # magic-number-allow: max-clamp-seconds
+        return 3600  # magic-number-allow: max-clamp-seconds
     return n
 
 
@@ -3359,7 +3405,7 @@ def _is_within_validity_window(
 # generally re-receives any replay.
 _ASSERTION_ID_CACHE: dict[str, float] = {}
 _ASSERTION_ID_CACHE_LOCK = threading.Lock()
-_ASSERTION_ID_CACHE_MAX = 10000
+_ASSERTION_ID_CACHE_MAX = 10000  # magic-number-allow: in-memory-ring-buffer-cap
 _ASSERTION_ID_CACHE_EVICT_BATCH = 100
 _ASSERTION_ID_TTL_SECONDS = 24 * 60 * 60  # 24h
 

@@ -12,6 +12,7 @@ from apps.portal.context_processors import tenant_experience_command
 from apps.portal.tenant_role_home import (
     build_tp_hero_context,
     build_tp_hero_contextual_line,
+    is_tenant_role_home_landing_request,
     is_tp_v3_role_home_request,
     is_tp_v3_tenant_shell_request,
     role_home_show_legacy,
@@ -50,6 +51,10 @@ class TenantRoleHomeHelperTests(SimpleTestCase):
         self.assertIn("tp_brand_tagline", ctx)
         _Req.GET = {"simple": "legacy"}
         self.assertFalse(is_tp_v3_role_home_request(_Req()))
+        ctx_legacy = tp_v3_role_home_shell_context(_Req())
+        self.assertFalse(ctx_legacy["tp_v3_role_home"])
+        self.assertTrue(ctx_legacy["tenant_role_home_landing"])
+        self.assertTrue(is_tenant_role_home_landing_request(_Req()))
 
     def test_ai_tier_line_has_no_urls(self):
         line = tp_hero_ai_tier_line()

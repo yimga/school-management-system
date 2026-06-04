@@ -246,14 +246,14 @@ body.control-plane-shell .cp-sidebar__item .cp-nav-icon {
 }
 
 /* Colored icons per group (preview emoji parity via accent rotation) */
-body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 1) .cp-nav-icon { color: #60a5fa; } /* off-token-allow: sidebar-icon-accent */
-body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 2) .cp-nav-icon { color: #a78bfa; } /* off-token-allow: sidebar-icon-accent */
-body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 3) .cp-nav-icon { color: #34d399; } /* off-token-allow: sidebar-icon-accent */
-body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 4) .cp-nav-icon { color: #fbbf24; } /* off-token-allow: sidebar-icon-accent */
-body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 5) .cp-nav-icon { color: #f472b6; } /* off-token-allow: sidebar-icon-accent */
-body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 6) .cp-nav-icon { color: #38bdf8; } /* off-token-allow: sidebar-icon-accent */
-body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 7) .cp-nav-icon { color: #fb923c; } /* off-token-allow: sidebar-icon-accent */
-body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 8) .cp-nav-icon { color: #4ade80; } /* off-token-allow: sidebar-icon-accent */
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 1) .cp-nav-icon { color: #60a5fa; /* off-token-allow: decorative-icon-accent-rotation */ }
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 2) .cp-nav-icon { color: #a78bfa; /* off-token-allow: decorative-icon-accent-rotation */ }
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 3) .cp-nav-icon { color: #34d399; /* off-token-allow: decorative-icon-accent-rotation */ }
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 4) .cp-nav-icon { color: #fbbf24; /* off-token-allow: decorative-icon-accent-rotation */ }
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 5) .cp-nav-icon { color: #f472b6; /* off-token-allow: decorative-icon-accent-rotation */ }
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 6) .cp-nav-icon { color: #38bdf8; /* off-token-allow: decorative-icon-accent-rotation */ }
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 7) .cp-nav-icon { color: #fb923c; /* off-token-allow: decorative-icon-accent-rotation */ }
+body.control-plane-shell .cp-sidebar__group:nth-of-type(8n + 8) .cp-nav-icon { color: #4ade80; /* off-token-allow: decorative-icon-accent-rotation */ }
 
 body.control-plane-shell .cp-sidebar__item[aria-current="page"] .cp-nav-icon,
 body.control-plane-shell .cp-sidebar__item.cp-sidebar__item--current .cp-nav-icon {

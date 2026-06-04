@@ -37,7 +37,7 @@
     <div class="card-body p-0">
       {% if interop_access_recent %}
       <div class="table-responsive">
-        <table class="table table-sm table-hover mb-0 small table-family align-middle">
+        <table class="table table-sm table-hover mb-0 small table-family align-middle rmc-data-table">
           <caption class="visually-hidden">{% trans "Interop workbench (Phase 9)" %}</caption>
           <thead><tr><th>{% trans "When" %}</th><th>{% trans "Service" %}</th><th>{% trans "Endpoint" %}</th><th>{% trans "IP" %}</th><th>{% trans "Token" %}</th></tr></thead>
           <tbody>
@@ -103,7 +103,7 @@
     <div class="card-body small">
       {% if federation_sso_rows %}
       <div class="table-responsive">
-        <table class="table table-sm table-borderless mb-0 table-family align-middle">
+        <table class="table table-sm table-borderless mb-0 table-family align-middle rmc-data-table">
           <caption class="visually-hidden">{% trans "SSO / IdP login health" %} {% trans "Wedge 45" %}</caption>
           <thead><tr><th>{% trans "Integration" %}</th><th>{% trans "Last OK" %}</th><th>{% trans "Last fail" %}</th><th>{% trans "Fails" %}</th><th>{% trans "Last error" %}</th></tr></thead>
           <tbody>
@@ -131,9 +131,9 @@
       <p class="text-muted mb-2">{% trans "Store district bearer tokens for vendor APIs (encrypted at rest per your deployment). Probes are rate-limited and logged without response bodies in the access log." %}</p>
       <form method="post" action="{% url 'accounts:district_interop_save_native_vendor' %}" class="mb-3">
         {% csrf_token %}
-        <div class="mb-2"><label class="form-label">{% trans "Clever API bearer" %}</label><input class="form-control form-control-sm" type="password" name="native_clever_bearer" autocomplete="off" placeholder="{% if native_clever_preview %}{% trans 'Leave blank to keep' %}{% endif %}"></div>
-        <div class="mb-2"><label class="form-label">{% trans "ClassLink / OneRoster bearer" %}</label><input class="form-control form-control-sm" type="password" name="native_classlink_bearer" autocomplete="off" placeholder="{% if native_classlink_preview %}{% trans 'Leave blank to keep' %}{% endif %}"></div>
-        <div class="mb-2"><label class="form-label">{% trans "ClassLink base URL (optional)" %}</label><input class="form-control form-control-sm" type="text" name="native_classlink_base_url" value="{{ native_classlink_base_url|default:'' }}" placeholder="https://…/v1p1"></div>
+        <div class="mb-2"><label class="form-label" for="native_clever_bearer">{% trans "Clever API bearer" %}</label><input id="native_clever_bearer" class="form-control form-control-sm" type="password" name="native_clever_bearer" autocomplete="off" placeholder="{% if native_clever_preview %}{% trans 'Leave blank to keep' %}{% endif %}"></div>
+        <div class="mb-2"><label class="form-label" for="native_classlink_bearer">{% trans "ClassLink / OneRoster bearer" %}</label><input id="native_classlink_bearer" class="form-control form-control-sm" type="password" name="native_classlink_bearer" autocomplete="off" placeholder="{% if native_classlink_preview %}{% trans 'Leave blank to keep' %}{% endif %}"></div>
+        <div class="mb-2"><label class="form-label" for="native_classlink_base_url">{% trans "ClassLink base URL (optional)" %}</label><input id="native_classlink_base_url" class="form-control form-control-sm" type="text" name="native_classlink_base_url" value="{{ native_classlink_base_url|default:'' }}" placeholder="https://…/v1p1"></div>
         <button type="submit" class="btn btn-primary btn-sm">{% trans "Save native credentials" %}</button>
       </form>
       <p class="text-muted mb-1">{% trans "Stored" %}: Clever <code>{{ native_clever_preview|default:"—" }}</code> · ClassLink <code>{{ native_classlink_preview|default:"—" }}</code></p>
@@ -155,17 +155,17 @@
     <div class="card-body">
       <form method="post" action="{% url 'accounts:district_interop_save_advanced' %}" class="small">
         {% csrf_token %}
-        <div class="mb-2"><label class="form-label">{% trans "Roster webhook URL" %}</label><input class="form-control form-control-sm" name="roster_webhook_url" value="{{ advanced.roster_webhook_url|default:'' }}" placeholder="https://district.example/roster-hook"></div>
-        <div class="mb-2"><label class="form-label">{% trans "Webhook secret (HMAC)" %}</label><input class="form-control form-control-sm" name="roster_webhook_secret" type="password" autocomplete="new-password" placeholder="{% trans 'Leave blank to keep' %}"></div>
-        <div class="mb-2"><label class="form-label">{% trans "Allowed IPs (comma-separated; empty = any)" %}</label><input class="form-control form-control-sm" name="allowed_ips" value="{{ advanced.allowed_ips|default:'' }}"></div>
-        <div class="mb-2"><label class="form-label">{% trans "Scopes" %}</label><input class="form-control form-control-sm" name="oneroster_scopes" value="{{ advanced.oneroster_scopes|default:'*' }}" placeholder="* or roster.students roster.teachers"></div>
-        <div class="mb-2"><label class="form-label">{% trans "Export profile" %}</label>
-          <select class="form-select form-select-sm" name="oneroster_export_profile">
+        <div class="mb-2"><label class="form-label" for="roster_webhook_url">{% trans "Roster webhook URL" %}</label><input id="roster_webhook_url" class="form-control form-control-sm" name="roster_webhook_url" value="{{ advanced.roster_webhook_url|default:'' }}" placeholder="https://district.example/roster-hook"></div>
+        <div class="mb-2"><label class="form-label" for="roster_webhook_secret">{% trans "Webhook secret (HMAC)" %}</label><input id="roster_webhook_secret" class="form-control form-control-sm" name="roster_webhook_secret" type="password" autocomplete="new-password" placeholder="{% trans 'Leave blank to keep' %}"></div>
+        <div class="mb-2"><label class="form-label" for="allowed_ips">{% trans "Allowed IPs (comma-separated; empty = any)" %}</label><input id="allowed_ips" class="form-control form-control-sm" name="allowed_ips" value="{{ advanced.allowed_ips|default:'' }}"></div>
+        <div class="mb-2"><label class="form-label" for="oneroster_scopes">{% trans "Scopes" %}</label><input id="oneroster_scopes" class="form-control form-control-sm" name="oneroster_scopes" value="{{ advanced.oneroster_scopes|default:'*' }}" placeholder="* or roster.students roster.teachers"></div>
+        <div class="mb-2"><label class="form-label" for="oneroster_export_profile">{% trans "Export profile" %}</label>
+          <select id="oneroster_export_profile" class="form-select form-select-sm" name="oneroster_export_profile">
             <option value="minimal" {% if advanced.oneroster_export_profile == 'minimal' %}selected{% endif %}>minimal</option>
             <option value="standard" {% if not advanced.oneroster_export_profile or advanced.oneroster_export_profile == 'standard' %}selected{% endif %}>standard</option>
             <option value="full" {% if advanced.oneroster_export_profile == 'full' %}selected{% endif %}>full</option>
           </select></div>
-        <div class="mb-2"><label class="form-label">{% trans "Max requests per 15m (per token)" %}</label><input class="form-control form-control-sm" name="rate_limit" value="{{ advanced.oneroster_rate_limit_per_window|default:600 }}"></div>
+        <div class="mb-2"><label class="form-label" for="rate_limit">{% trans "Max requests per 15m (per token)" %}</label><input id="rate_limit" class="form-control form-control-sm" name="rate_limit" value="{{ advanced.oneroster_rate_limit_per_window|default:600 }}"></div>
         <div class="form-check mb-2"><input class="form-check-input" type="checkbox" name="disable_audit" id="da" {% if advanced.oneroster_audit_disabled %}checked{% endif %}><label class="form-check-label" for="da">{% trans "Disable API audit log" %}</label></div>
         <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
       </form>

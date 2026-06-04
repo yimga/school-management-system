@@ -98,9 +98,8 @@ def notify_guardians_new_invoice(
 
 
 def _send_new_invoice_emails(invoice: Invoice, guardians: list) -> None:
-    """Send optional email to guardians (Phase 2.3)."""
-    from django.core.mail import EmailMessage
-    from django.conf import settings
+    """Send optional email to guardians (Phase 2.3) via the reliability layer."""
+    from apps.schoolops.email_delivery import send_transactional
 
     ref = invoice.reference or f"INV-{invoice.id}"
     subject = f"New invoice: {ref}"
@@ -108,18 +107,23 @@ def _send_new_invoice_emails(invoice: Invoice, guardians: list) -> None:
         f"Invoice {ref} has been issued for {invoice.student}. "
         "Log in to the parent portal to view details and pay."
     )
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@school.example")
     for g in guardians:
         email = (getattr(g, "email", None) or "").strip() or (
             g.guardian_user.email or ""
         ).strip()
         if email:
             try:
-                EmailMessage(subject, body, from_email, [email]).send(
-                    fail_silently=True
+                send_transactional(
+                    subject=subject,
+                    body=body,
+                    to=[email],
+                    priority="transactional",
+                    idempotency_key=f"invoice:{invoice.id}:{email.lower()}",
                 )
-            except (OSError, ConnectionError, ValueError, TypeError) as e:
-                logger.warning("Failed to send new-invoice email to %s: %s", email, e)
+            except Exception as e:  # noqa: BLE001 — never break the invoice flow
+                logger.warning(
+                    "Failed to send new-invoice email err_type=%s", type(e).__name__
+                )
 
 
 def notify_guardians_payment_received(
@@ -170,26 +174,29 @@ def notify_guardians_payment_received(
 
 
 def _send_payment_received_emails(payment: Payment, guardians: list) -> None:
-    """Optional email when payment is received (Phase 2.4)."""
-    from django.core.mail import EmailMessage
-    from django.conf import settings
+    """Optional email when payment is received (Phase 2.4) via reliability layer."""
+    from apps.schoolops.email_delivery import send_transactional
 
     ref = payment.invoice.reference if payment.invoice else str(payment.id)
     subject = f"Payment received for invoice {ref}"
     body = f"Payment of {payment.amount} has been recorded for invoice {ref}."
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@school.example")
     for g in guardians:
         email = (getattr(g, "email", None) or "").strip() or (
             g.guardian_user.email or ""
         ).strip()
         if email:
             try:
-                EmailMessage(subject, body, from_email, [email]).send(
-                    fail_silently=True
+                send_transactional(
+                    subject=subject,
+                    body=body,
+                    to=[email],
+                    priority="transactional",
+                    idempotency_key=f"payment:{payment.id}:{email.lower()}",
                 )
-            except (OSError, ConnectionError, ValueError, TypeError) as e:
+            except Exception as e:  # noqa: BLE001 — never break the payment flow
                 logger.warning(
-                    "Failed to send payment-received email to %s: %s", email, e
+                    "Failed to send payment-received email err_type=%s",
+                    type(e).__name__,
                 )
 
 

@@ -38,7 +38,7 @@ from apps.schools.super_views_helpers import (
     safe_tenant_360_url,
     slug_from_school_name,
 )
-from apps.platform_runtime.workflow_tracker import track_workflow
+from apps.platform_runtime.workflow_tracker import pulse_workflow_step, track_workflow, workflow_step
 
 from .models import School, SchoolProvisioningEvent
 from .super_views_constants import CONTROL_PLANE_AUDIT_FAILURES
@@ -302,6 +302,10 @@ def api_create_school(request):
 
     if errors:
         return JsonResponse({"errors": errors}, status=400)
+
+    wf_run = getattr(request, "_rmc_workflow_run", None)
+    pulse_workflow_step(wf_run, "validate", payload={"slug": slug, "name": name[:80]})
+
     location_payload = {
         "country_code": country_code or (default_region.code if default_region else ""),
         "country_code_alpha2": canonical_country_code or "",
@@ -403,28 +407,29 @@ def api_create_school(request):
     )
 
     try:
-        with transaction.atomic():
-            school = School.objects.create(**create_kw)
-            try:
-                from apps.lifecycle.unified_lifecycle import (
-                    CREATION_PATH_OPERATOR,
-                    set_creation_path,
-                )
+        with workflow_step(wf_run, "create_row"):
+            with transaction.atomic():
+                school = School.objects.create(**create_kw)
+                try:
+                    from apps.lifecycle.unified_lifecycle import (
+                        CREATION_PATH_OPERATOR,
+                        set_creation_path,
+                    )
 
-                set_creation_path(school, CREATION_PATH_OPERATOR, save=False)
-            except (ImportError, ValueError, TypeError, OSError):
-                pass
-            ensure_brand_profile_colors(
-                school=school,
-                primary_color=primary_color,
-                accent_color=accent_color,
-            )
-            if logo_file:
-                persist_school_brand_logo(school=school, uploaded_file=logo_file)
-                school_settings_overrides["provisioning"]["logo_uploaded"] = True
-            if favicon_file:
-                persist_school_brand_favicon(school=school, uploaded_file=favicon_file)
-                school_settings_overrides["provisioning"]["favicon_uploaded"] = True
+                    set_creation_path(school, CREATION_PATH_OPERATOR, save=False)
+                except (ImportError, ValueError, TypeError, OSError):
+                    pass
+                ensure_brand_profile_colors(
+                    school=school,
+                    primary_color=primary_color,
+                    accent_color=accent_color,
+                )
+                if logo_file:
+                    persist_school_brand_logo(school=school, uploaded_file=logo_file)
+                    school_settings_overrides["provisioning"]["logo_uploaded"] = True
+                if favicon_file:
+                    persist_school_brand_favicon(school=school, uploaded_file=favicon_file)
+                    school_settings_overrides["provisioning"]["favicon_uploaded"] = True
     except ValidationError as exc:
         logger.warning(
             "School provisioning rejected: brand asset validation failed (logo=%s, favicon=%s): %s",
@@ -504,11 +509,12 @@ def api_create_school(request):
 
     from apps.schools.tasks import dispatch_provision_school
 
-    dispatch = dispatch_provision_school(
-        str(school.id),
-        contact_email=contact_email,
-        seed_demo_personas=seed_demo_personas,
-    )
+    with workflow_step(wf_run, "enqueue_provision", payload={"school_id": str(school.id)}):
+        dispatch = dispatch_provision_school(
+            str(school.id),
+            contact_email=contact_email,
+            seed_demo_personas=seed_demo_personas,
+        )
     job_id = dispatch.get("job_id")
     payload = {"job_id": job_id or ""}
     if dispatch.get("fallback") and dispatch.get("reason"):

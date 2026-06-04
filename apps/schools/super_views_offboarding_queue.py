@@ -31,6 +31,7 @@ from apps.platform_runtime.operator_identity import (
     PLATFORM_SCOPE_SECURITY_WRITE,
     require_platform_scope,
 )
+from apps.platform_runtime.workflow_tracker import track_workflow, workflow_step
 
 
 @require_GET
@@ -138,6 +139,12 @@ def super_offboarding_queue(request):
 
 @require_http_methods(["POST"])
 @require_platform_scope(PLATFORM_SCOPE_SECURITY_WRITE)
+@track_workflow(
+    "tenant_school_offboard_purge",
+    steps=("scan", "purge", "notify"),
+    expected_duration_seconds=120,
+    email_on_failure=True,
+)
 def api_super_run_scheduled_purges(request):
     import json
 
@@ -164,12 +171,20 @@ def api_super_run_scheduled_purges(request):
                 },
                 status=400,
             )
-    result = run_scheduled_purges(
-        actor=request.user,
-        dry_run=bool(dry_run),
-        limit=int(body.get("limit") or 10),
-        force_operator=bool(force_operator),
-    )
+    from apps.platform_runtime.workflow_tracker import active_workflow_run
+
+    run = active_workflow_run() or getattr(request, "_rmc_workflow_run", None)
+    with workflow_step(run, "scan", payload={"dry_run": bool(dry_run)}):
+        pass
+    with workflow_step(run, "purge"):
+        result = run_scheduled_purges(
+            actor=request.user,
+            dry_run=bool(dry_run),
+            limit=int(body.get("limit") or 10),
+            force_operator=bool(force_operator),
+        )
+    with workflow_step(run, "notify", payload={"processed": len(result.get("processed") or [])}):
+        pass
     return JsonResponse(result)
 
 

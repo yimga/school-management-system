@@ -24,7 +24,11 @@
           </div>
           {% endif %}
 
-          <form method="post">
+          <form method="post"
+                data-rmc-announcement-outbox
+                data-title-field="title" data-content-field="content"
+                data-type-field="announcement_type" data-audience-field="audience"
+                data-urgent-field="is_urgent">
             {% csrf_token %}
 
             {% include "components/form_field.html" with field=form.title %}

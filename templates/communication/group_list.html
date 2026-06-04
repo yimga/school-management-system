@@ -5,15 +5,47 @@
 
 {% block content %}
 <div class="container-fluid" data-rmc-scroll-policy="paginate" data-page-archetype="task-list">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="mb-1">Message Groups</h1>
-      <p class="text-muted mb-0">Chat with your department, classroom, or custom groups</p>
+  {% comment %} v4.01.35 — premium personality-aware hero. `.rmc-page-header-glow`
+     carries the communication (rose) personality spine + eyebrow set by the
+     page-personality cascade; the stat ribbon below uses the canonical
+     `.rmc-stat-card` grammar so this destination reads as a workbench, not a
+     bare header+table. {% endcomment %}
+  <header class="rmc-page-header-glow d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4" role="banner">
+    <div class="min-w-0">
+      <div class="rmc-page-eyebrow">{% trans "Communication" %}</div>
+      <h1 class="page-h1 h3 mb-1">{% trans "Message Groups" %}</h1>
+      <p class="page-sub text-muted mb-0">{% trans "Chat with your department, classroom, or custom groups" %}</p>
     </div>
     <a href="{% url 'communication:group_create' %}" class="btn btn-primary">
-      <i class="bi bi-plus-circle me-2"></i>Create Group
+      <i class="bi bi-plus-circle me-2"></i>{% trans "Create Group" %}
     </a>
+  </header>
+
+  {% with dept_count=department_threads|length mine_count=my_threads|length %}
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="rmc-stat-card h-100">
+        <div class="rmc-stat-card__eyebrow">{% trans "Department" %}</div>
+        <div class="rmc-stat-card__value">{{ dept_count }}</div>
+        <div class="rmc-stat-card__label">{% trans "Department groups" %}</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="rmc-stat-card h-100">
+        <div class="rmc-stat-card__eyebrow">{% trans "Mine" %}</div>
+        <div class="rmc-stat-card__value">{{ mine_count }}</div>
+        <div class="rmc-stat-card__label">{% trans "My groups" %}</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="rmc-stat-card h-100">
+        <div class="rmc-stat-card__eyebrow">{% trans "Total" %}</div>
+        <div class="rmc-stat-card__value">{{ dept_count|add:mine_count }}</div>
+        <div class="rmc-stat-card__label">{% trans "Active conversations" %}</div>
+      </div>
+    </div>
   </div>
+  {% endwith %}
 
   {% if department_threads %}
   <div class="card shadow-sm mb-4">
@@ -63,7 +95,7 @@
       <div class="table-responsive">
         {% comment %} Pass 8 Wave 2: standardized to design-system table grammar (.table-family .table-sticky-head
            .table-zebra .align-middle) so this list matches signature_requests_manage / invoices / etc. {% endcomment %}
-        <table class="table table-family table-sticky-head table-zebra table-hover align-middle">
+        <table class="table table-family table-sticky-head table-zebra table-hover align-middle rmc-data-table">
           <caption class="visually-hidden">{% trans "My Groups" %}</caption>
           <thead class="table-light">
             <tr>

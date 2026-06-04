@@ -5,6 +5,7 @@ Tier 4: celery_task_* events via apps.platform_runtime.celery_task_events (globa
 """
 
 from celery import shared_task
+from apps.platform_runtime.workflow_tracker import pulse_workflow_step, track_workflow
 from django.conf import settings
 from django.db import connection
 from django.db import DatabaseError, OperationalError
@@ -96,6 +97,12 @@ def _infer_school_id_for_bulk_grades(
 
 
 @shared_task(bind=True, name="evals.process_bulk_grades")
+@track_workflow(
+    "evals_bulk_grades",
+    steps=("resolve_tenant", "batch_grade", "finalize"),
+    expected_duration_seconds=900,  # magic-number-allow: workflow-expected-duration-seconds
+    email_on_failure=True,
+)
 def process_bulk_grades(
     self,
     student_ids=None,
@@ -109,6 +116,7 @@ def process_bulk_grades(
     In multi-tenant deployments, pass schema_name or school_id so the task runs in the correct
     tenant schema. If both are omitted, runs in current schema (single-tenant or test only).
     """
+    pulse_workflow_step(None, "resolve_tenant", payload={"schema": bool(schema_name)})
     resolved_school_id = school_id
     if resolved_school_id is None and not schema_name:
         try:
@@ -160,6 +168,9 @@ def process_bulk_grades(
     return _run_bulk_grades(student_ids, academic_year_id, term_id)
 
 
+process_bulk_grades.rmc_workflow_explicit = True  # noqa: E305 — set after Celery + decorator wrap
+
+
 def _run_bulk_grades(student_ids, academic_year_id, term_id):
     from apps.evals.models import Evaluation
     from apps.academics.models import AcademicYear, Term
@@ -178,15 +189,17 @@ def _run_bulk_grades(student_ids, academic_year_id, term_id):
         # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
         ids = list(
             StudentProfile.objects.filter(is_active=True).values_list("id", flat=True)[
-                :10000
+                :10000  # magic-number-allow: query-result-row-cap
             ]
         )
+    pulse_workflow_step(None, "batch_grade", payload={"students": len(ids)})
     total = 0
     for i in range(0, len(ids), BULK_GRADES_BATCH_SIZE):
         # tenant-isolation-allow: celery-task-runs-inside-tenant-context-or-rls-sweep
         batch = ids[i : i + BULK_GRADES_BATCH_SIZE]
         Evaluation.objects.filter(student_id__in=batch).count()
         total += len(batch)
+    pulse_workflow_step(None, "finalize", payload={"processed": total})
     return {
         "processed": total,
         "batches": (total + BULK_GRADES_BATCH_SIZE - 1) // BULK_GRADES_BATCH_SIZE,

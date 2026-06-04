@@ -258,8 +258,8 @@
       </div>
       <div class="row g-2 align-items-end">
         <div class="col-md-8">
-          <label class="form-label">{% trans "Upload PDF or image" %}</label>
-          <input type="file" class="form-control" name="attachment" accept=".pdf,image/*">
+          <label class="form-label" for="invoice-attachment">{% trans "Upload PDF or image" %}</label>
+          <input id="invoice-attachment" type="file" class="form-control" name="attachment" accept=".pdf,image/*">
         </div>
         <div class="col-md-4 d-grid">
           <button class="btn btn-outline-primary" type="submit">{% trans "Save attachment" %}</button>
@@ -308,13 +308,13 @@
         <input type="hidden" id="idempotency_key" name="idempotency_key" value="">
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">{% trans "Receipt File" %} <span class="text-danger">*</span></label>
-            <input type="file" class="form-control" name="receipt_file" accept=".pdf,.jpg,.jpeg,.png" required>
+            <label class="form-label" for="receipt-file">{% trans "Receipt File" %} <span class="text-danger">*</span></label>
+            <input id="receipt-file" type="file" class="form-control" name="receipt_file" accept=".pdf,.jpg,.jpeg,.png" required>
             <div class="small text-muted">{% trans "Upload receipt/screenshot (PDF or image, max 2MB)" %}</div>
           </div>
           <div class="col-md-3">
-            <label class="form-label">{% trans "Payment Method" %} <span class="text-danger">*</span></label>
-            <select class="form-select" name="payment_method" required>
+            <label class="form-label" for="receipt-payment-method">{% trans "Payment Method" %} <span class="text-danger">*</span></label>
+            <select id="receipt-payment-method" class="form-select" name="payment_method" required>
               <option value="">{% trans "Select method..." %}</option>
               {% for code, label in payment_corridor.payment_method_choices %}
               <option value="{{ code }}">{{ label }}</option>
@@ -327,18 +327,18 @@
             </select>
           </div>
           <div class="col-md-3">
-            <label class="form-label">{% trans "Amount Paid (Optional)" %}</label>
-            <input type="number" class="form-control" name="uploaded_amount" step="0.01" min="0.01" placeholder="{{ invoice.balance_amount }}">
+            <label class="form-label" for="receipt-uploaded-amount">{% trans "Amount Paid (Optional)" %}</label>
+            <input id="receipt-uploaded-amount" type="number" class="form-control" name="uploaded_amount" step="0.01" min="0.01" placeholder="{{ invoice.balance_amount }}">
             <div class="small text-muted">{% trans "Will be extracted from receipt if not provided" %}</div>
           </div>
           <div class="col-md-6">
-            <label class="form-label">{% trans "Transaction Reference (Optional)" %}</label>
-            <input type="text" class="form-control" name="transaction_reference" placeholder="{% trans 'e.g., TXN123456' %}">
+            <label class="form-label" for="receipt-transaction-reference">{% trans "Transaction Reference (Optional)" %}</label>
+            <input id="receipt-transaction-reference" type="text" class="form-control" name="transaction_reference" placeholder="{% trans 'e.g., TXN123456' %}">
             <div class="small text-muted">{% trans "Transaction ID from receipt (will be extracted if not provided)" %}</div>
           </div>
           <div class="col-md-6">
-            <label class="form-label">{% trans "Notes (Optional)" %}</label>
-            <input type="text" class="form-control" name="notes" placeholder="{% trans 'Additional information' %}">
+            <label class="form-label" for="receipt-notes">{% trans "Notes (Optional)" %}</label>
+            <input id="receipt-notes" type="text" class="form-control" name="notes" placeholder="{% trans 'Additional information' %}">
           </div>
           <div class="col-12">
             <button type="submit" class="btn btn-outline-primary">{% trans "Upload Receipt" %}</button>
@@ -357,7 +357,7 @@
     <div class="card-body">
       <h5 class="mb-2">{% trans "Uploaded Receipts" %}</h5>
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family">
+        <table class="table table-sm align-middle table-family rmc-data-table">
           <caption class="visually-hidden">{% trans "Uploaded Receipts" %}</caption>
           <thead>
             <tr>
@@ -419,7 +419,7 @@
     <div class="card-body">
       <h5 class="mb-2">{% trans "Lines" %}</h5>
       <div class="table-responsive">
-        <table class="table table-sm align-middle table-family">
+        <table class="table table-sm align-middle table-family rmc-data-table">
           <caption class="visually-hidden">{% trans "Lines" %}</caption>
           <thead>
             <tr>

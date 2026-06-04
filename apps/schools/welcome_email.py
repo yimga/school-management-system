@@ -8,11 +8,10 @@ Optional: regional SMTP — set Django EMAIL_BACKEND / use SES Frankfurt etc. pe
 from __future__ import annotations
 
 import logging
-from smtplib import SMTPException
 
 from django.conf import settings
-from django.core.mail import EmailMessage
 from django.urls import NoReverseMatch
+from django.utils.html import escape
 
 logger = logging.getLogger(__name__)
 
@@ -66,15 +65,20 @@ def render_welcome_email_html(
             e,
         )
         brand = {}
-    primary = (
+    # Escape every interpolated value (audit P2 — HTML/attribute injection).
+    # ``primary`` lands inside style/href attributes; ``name`` / ``contact_email``
+    # are tenant-controlled. ``block`` is platform-authored profile config
+    # (trusted markup), so it is intentionally NOT escaped.
+    primary = escape(
         brand.get("primary_color")
         or getattr(school, "primary_color", None)
         or "#0d6efd"
     )
     _logo_url = brand.get("logo_url") or getattr(school, "logo_url", None) or ""
-    name = getattr(school, "name", None) or "Your School"
-    login = login_url or _login_url(school)
-    setup = (setup_password_url or "").strip()
+    name = escape(getattr(school, "name", None) or "Your School")
+    contact_email = escape(contact_email)
+    login = escape(login_url or _login_url(school))
+    setup = escape((setup_password_url or "").strip())
     block = (dynamic_block or "").strip()
     setup_cta = ""
     if setup:
@@ -147,19 +151,29 @@ def send_welcome_email(school_id: str, contact_email: str) -> bool:
     )
     subject = f"Your school is ready — {getattr(school, 'name', 'Your School')}"
     from_email = _regional_from_email(school)
+    # Route through the reliability layer (audit H1): retried, rate-limited,
+    # audited to EmailDeliveryEvent, recipient hashed in logs. A short plain-
+    # text body accompanies the HTML for non-HTML clients + deliverability.
+    text_body = (
+        f"Welcome to {getattr(school, 'name', 'Your School')}. Your school is "
+        f"ready. Sign in at {_login_url(school)}"
+    )
     try:
-        msg = EmailMessage(
+        from apps.schoolops.email_delivery import send_transactional
+
+        result = send_transactional(
             subject=subject,
-            body=html,
-            from_email=from_email,
+            body=text_body,
             to=[contact_email.strip()],
+            html_body=html,
+            from_email=from_email,
+            priority="transactional",
+            school=school,
+            idempotency_key=f"welcome:{school_id}:{contact_email.strip().lower()}",
         )
-        msg.content_subtype = "html"
-        msg.send(fail_silently=False)
-        logger.info("Welcome email sent to %s for school %s", contact_email, school_id)
-        return True
-    except (OSError, SMTPException) as e:
-        logger.warning("Welcome email failed for school %s: %s", school_id, e)
+        return bool(result.get("ok") or result.get("queued"))
+    except Exception as e:  # noqa: BLE001 — never break provisioning on mail
+        logger.warning("Welcome email failed for school %s: %s", school_id, type(e).__name__)
         return False
 
 

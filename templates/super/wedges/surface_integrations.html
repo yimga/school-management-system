@@ -5,7 +5,7 @@
 {% block surface_title %}{% trans "Integrations marketplace — wedge-scoped" %}{% endblock %}
 {% block surface_body %}
   {% if facets %}
-    <p style="font-size: 12px; color: var(--text-secondary); margin: 0 0 12px;">
+    <p style="font-size: var(--type-size-eyebrow); color: var(--text-secondary); margin: 0 0 12px;">
       {% trans "Applied facets:" %}
       {% for k, v in facets.items %}
         <code style="background: var(--surface-elevated); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--hairline);">{{ k }}:{{ v }}</code>{% if not forloop.last %} {% endif %}
@@ -15,10 +15,10 @@
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;">
     {% for r in rows %}
       <article style="border: 1px solid var(--hairline); border-radius: 10px; padding: 12px; background: var(--surface-elevated);">
-        <div style="font-size: 11px; color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">#{{ r.id }} · {{ r.category|default:"—" }}</div>
+        <div style="font-size: var(--type-size-micro); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">#{{ r.id }} · {{ r.category|default:"—" }}</div>
         <div style="font-weight: 600; margin-top: 2px;">{{ r.name }}</div>
-        <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{{ r.vendor }}</div>
-        <code style="font-size: 10px; color: var(--text-secondary);">{{ r.slug }}</code>
+        <div style="font-size: var(--type-size-micro); color: var(--text-secondary); margin-top: 2px;">{{ r.vendor }}</div>
+        <code style="font-size: var(--type-size-micro); color: var(--text-secondary);">{{ r.slug }}</code>
       </article>
     {% empty %}
       <div style="grid-column: 1/-1; text-align: center; padding: 24px; color: var(--text-secondary);">{% trans "No integrations match this filter." %}</div>

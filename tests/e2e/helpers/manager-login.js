@@ -61,8 +61,16 @@ async function ensureManagerHost(page) {
  * @param {{ username?: string; password?: string }} [opts]
  */
 async function loginManager(page, opts = {}) {
-  const username = opts.username || process.env.VISUAL_QA_USERNAME || 'visualqa_admin';
-  const password = opts.password || process.env.VISUAL_QA_PASSWORD || 'VisualQaPass123!';
+  const username =
+    opts.username ||
+    process.env.E2E_LOGIN_USER ||
+    process.env.VISUAL_QA_USERNAME ||
+    'visualqa_admin';
+  const password =
+    opts.password ||
+    process.env.E2E_LOGIN_PASSWORD ||
+    process.env.VISUAL_QA_PASSWORD ||
+    'VisualQaPass123!';
 
   const loginUrl = `${MANAGER_BASE_URL.replace(/\/$/, '')}/authentication/login/`;
   const currentUrl = page.url() ? new URL(page.url()) : null;
@@ -108,33 +116,42 @@ async function loginManager(page, opts = {}) {
     pathnameAfterLogin = '';
   }
   if (/mfa\/verify/i.test(pathnameAfterLogin)) {
-    const pythonCmd = process.env.VISUAL_QA_PYTHON || 'python';
-    const token = execFileSync(pythonCmd, [TOTP_HELPER], {
-      cwd: ROOT_DIR,
-      encoding: 'utf8',
-      env: {
-        ...process.env,
-        REDIS_URL: '',
-        VISUAL_QA_USERNAME: username,
-      },
-    }).trim();
-    await page.locator('input[name="token"]').fill(token);
-    const leftMfa = page
-      .waitForURL((url) => !/\/authentication\/mfa\/verify/i.test(url.pathname), {
-        timeout: 90000,
-        waitUntil: 'commit',
-      })
-      .catch(() => null);
-    const shellAfterMfa = page
-      .locator(
-        '#cp-main-content, [data-rmc-operator-surface-strip], .admin-cp-unified-page, #content'
-      )
-      .first()
-      .waitFor({ state: 'visible', timeout: 90000 })
-      .catch(() => null);
-    await page.locator('form').first().evaluate((form) => form.requestSubmit());
-    await Promise.race([leftMfa, shellAfterMfa]);
-    await ensureManagerHost(page);
+    const tokenInput = page.locator('input[name="token"]');
+    await tokenInput.waitFor({ state: 'visible', timeout: 60000 });
+    const submitMfa = async () => {
+      const token = fetchManagerTotpToken(username);
+      await tokenInput.fill(token);
+      const leftMfa = page
+        .waitForURL((url) => !/\/authentication\/mfa\/verify/i.test(url.pathname), {
+          timeout: 90000,
+          waitUntil: 'commit',
+        })
+        .catch(() => null);
+      const shellAfterMfa = page
+        .locator(
+          '#cp-main-content, [data-rmc-operator-surface-strip], .admin-cp-unified-page, #content'
+        )
+        .first()
+        .waitFor({ state: 'visible', timeout: 90000 })
+        .catch(() => null);
+      await page
+        .locator('form[method="post"] button[type="submit"]')
+        .first()
+        .click({ timeout: 30000 });
+      await Promise.race([leftMfa, shellAfterMfa]);
+      await ensureManagerHost(page);
+    };
+    await submitMfa();
+    let mfaPath = '';
+    try {
+      mfaPath = new URL(page.url()).pathname;
+    } catch (_e) {
+      mfaPath = '';
+    }
+    if (/mfa\/verify/i.test(mfaPath)) {
+      await page.waitForTimeout(1500);
+      await submitMfa();
+    }
   }
 
   let finalUrl;
@@ -143,12 +160,6 @@ async function loginManager(page, opts = {}) {
   } catch (_e) {
     throw new Error(`Manager login failed for ${username}: invalid page URL after submit`);
   }
-  if (/\/authentication\/login\/?$/i.test(finalUrl.pathname)) {
-    const bodyText = (await page.locator('body').textContent()) || '';
-    throw new Error(
-      `Manager login failed for ${username} at ${page.url()}. Page text: ${bodyText.slice(0, 240)}`
-    );
-  }
   if (/mfa\/setup/i.test(finalUrl.pathname)) {
     throw new Error(
       `Manager login blocked by MFA setup for ${username} at ${finalUrl.pathname}. ` +
@@ -156,8 +167,16 @@ async function loginManager(page, opts = {}) {
     );
   }
   if (/mfa\/verify/i.test(finalUrl.pathname)) {
+    const bodyText = (await page.locator('body').textContent()) || '';
     throw new Error(
-      `Manager MFA verify did not complete for ${username} at ${finalUrl.pathname}.`
+      `Manager MFA verify did not complete for ${username} at ${page.url()}. ` +
+        `Page text: ${bodyText.slice(0, 240)}`
+    );
+  }
+  if (/\/authentication\/login\/?$/i.test(finalUrl.pathname)) {
+    const bodyText = (await page.locator('body').textContent()) || '';
+    throw new Error(
+      `Manager login failed for ${username} at ${page.url()}. Page text: ${bodyText.slice(0, 240)}`
     );
   }
 
@@ -225,11 +244,73 @@ async function needsManagerLogin(page) {
   return false;
 }
 
+const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
 const ROOT_DIR = path.join(__dirname, '../../..');
 const TOTP_HELPER = path.join(ROOT_DIR, 'scripts/e2e_totp_code.py');
+
+/**
+ * Resolve SQLite DB_FILE for Django helpers (matches export_manager_playwright_storage.py).
+ * @returns {string | undefined}
+ */
+function resolveE2eDbFile() {
+  const explicit = (process.env.DB_FILE || '').trim();
+  if (explicit) {
+    return explicit;
+  }
+  const envLocal = path.join(ROOT_DIR, '.env.local');
+  if (fs.existsSync(envLocal)) {
+    const match = fs.readFileSync(envLocal, 'utf8').match(/^DB_FILE=(.+)$/m);
+    if (match && match[1].trim()) {
+      return match[1].trim();
+    }
+  }
+  for (const name of ['db_working.sqlite3', 'db.sqlite3']) {
+    const candidate = path.join(ROOT_DIR, name);
+    try {
+      if (fs.statSync(candidate).size > 4096) {
+        return candidate;
+      }
+    } catch (_e) {
+      /* missing */
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Subprocess env for Django TOTP export (same DB + sessions as runserver).
+ * @param {string} username
+ * @returns {NodeJS.ProcessEnv}
+ */
+function djangoE2eSubprocessEnv(username) {
+  const env = {
+    ...process.env,
+    REDIS_URL: '',
+    RMC_FORCE_DB_SESSIONS: '1',
+    E2E_LOGIN_USER: username,
+    VISUAL_QA_USERNAME: username,
+  };
+  const dbFile = resolveE2eDbFile();
+  if (dbFile) {
+    env.DB_FILE = dbFile;
+  }
+  return env;
+}
+
+/**
+ * @returns {string}
+ */
+function fetchManagerTotpToken(username) {
+  const pythonCmd = process.env.VISUAL_QA_PYTHON || 'python';
+  return execFileSync(pythonCmd, [TOTP_HELPER], {
+    cwd: ROOT_DIR,
+    encoding: 'utf8',
+    env: djangoE2eSubprocessEnv(username),
+  }).trim();
+}
 
 const AUTH_STATE_PATH = path.join(
   __dirname,
@@ -242,6 +323,9 @@ module.exports = {
   ensureManagerSession,
   hasManagerSession,
   needsManagerLogin,
+  resolveE2eDbFile,
+  djangoE2eSubprocessEnv,
+  fetchManagerTotpToken,
   MANAGER_BASE_URL,
   MANAGER_HOST,
   AUTH_STATE_PATH,

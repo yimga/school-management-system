@@ -57,11 +57,23 @@ class AdminDashboardOverviewAPI(View):
             total_teachers = TeacherProfile.objects.filter(is_active=True).count()
             total_parents = 0  # Implement based on your parent model
 
-            # Finance data
+            # Finance data — exclude voided/soft-deleted invoices and
+            # soft-deleted (reversed) payments so totals reflect real money
+            # (consistent with Invoice.computed_balance / recalculate_invoice).
+            # tenant-isolation-allow: rls-scoped-finance-admin-dashboard-aggregate
             total_invoices = (
-                Invoice.objects.aggregate(Sum("total_amount"))["total_amount__sum"] or 0
+                Invoice.objects.exclude(status=Invoice.Status.VOID)
+                .filter(deleted_at__isnull=True)
+                .aggregate(Sum("total_amount"))["total_amount__sum"]
+                or 0
             )
-            total_paid = Payment.objects.aggregate(Sum("amount"))["amount__sum"] or 0
+            # tenant-isolation-allow: rls-scoped-finance-admin-dashboard-aggregate
+            total_paid = (
+                Payment.objects.filter(deleted_at__isnull=True).aggregate(Sum("amount"))[
+                    "amount__sum"
+                ]
+                or 0
+            )
             pending_fees = total_invoices - total_paid
 
             # Attendance
@@ -74,11 +86,23 @@ class AdminDashboardOverviewAPI(View):
             if total_students > 0:
                 attendance_rate = (attendance_today / total_students) * 100
 
-            # Active users today
-            from django.contrib.auth.models import User
-
+            # Active users today — scoped to THIS school's people. The shared
+            # auth_user table has no school FK (it lives in SHARED_APPS and has
+            # no school_id for RLS to bind to), so a global
+            # User.objects.filter(last_login=...) would count active users
+            # across ALL tenants. Derive the count from the school-scoped
+            # student/teacher profiles instead (RLS-filtered, like the
+            # total_students / total_teachers metrics above).
             last_24h = timezone.now() - timedelta(hours=24)
-            active_users = User.objects.filter(last_login__gte=last_24h).count()
+            # tenant-isolation-allow: derived-from-rls-scoped-people-profiles-no-school-fk-on-user
+            active_student_ids = StudentProfile.objects.filter(
+                user__last_login__gte=last_24h
+            ).values_list("user_id", flat=True)
+            # tenant-isolation-allow: derived-from-rls-scoped-people-profiles-no-school-fk-on-user
+            active_teacher_ids = TeacherProfile.objects.filter(
+                user__last_login__gte=last_24h
+            ).values_list("user_id", flat=True)
+            active_users = len(set(active_student_ids) | set(active_teacher_ids))
 
             return JsonResponse(
                 {
@@ -236,9 +260,11 @@ class ParentDashboardAPI(View):
             # Get pending fees for children
             total_invoices = (
                 # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
-                Invoice.objects.filter(student_id__in=finance_children).aggregate(
-                    Sum("total_amount")
-                )["total_amount__sum"]
+                Invoice.objects.filter(
+                    student_id__in=finance_children, deleted_at__isnull=True
+                )
+                .exclude(status=Invoice.Status.VOID)
+                .aggregate(Sum("total_amount"))["total_amount__sum"]
                 or 0
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             )
@@ -246,7 +272,7 @@ class ParentDashboardAPI(View):
             # tenant-isolation-allow: scoped-via-surrounding-tenant-context-reviewed-2026-05-17
             total_paid = (
                 Payment.objects.filter(
-                    invoice__student_id__in=finance_children
+                    invoice__student_id__in=finance_children, deleted_at__isnull=True
                 ).aggregate(Sum("amount"))["amount__sum"]
                 or 0
             )
@@ -369,12 +395,22 @@ class FinancialDashboardAPI(View):
         try:
             from apps.finance.models import Invoice, Payment
 
-            # Total revenue
-            total_revenue = Payment.objects.aggregate(Sum("amount"))["amount__sum"] or 0
+            # Total revenue — exclude soft-deleted (reversed) payments.
+            # tenant-isolation-allow: rls-scoped-finance-dashboard-aggregate
+            total_revenue = (
+                Payment.objects.filter(deleted_at__isnull=True).aggregate(Sum("amount"))[
+                    "amount__sum"
+                ]
+                or 0
+            )
 
-            # Outstanding fees
+            # Outstanding fees — exclude voided/soft-deleted invoices.
+            # tenant-isolation-allow: rls-scoped-finance-dashboard-aggregate
             total_invoiced = (
-                Invoice.objects.aggregate(Sum("total_amount"))["total_amount__sum"] or 0
+                Invoice.objects.exclude(status=Invoice.Status.VOID)
+                .filter(deleted_at__isnull=True)
+                .aggregate(Sum("total_amount"))["total_amount__sum"]
+                or 0
             )
             outstanding = total_invoiced - total_revenue
 

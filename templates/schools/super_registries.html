@@ -21,7 +21,7 @@
   {% include "studio_os/components/page_header.html" with title=_("Global Registries") subtitle=_("Canonical source of world facts: countries, subdivisions, education levels, document types, fee categories, grade scales. Manage via Admin for CRUD and activation.") action_url=dashboard_url action_text=_("Back to Dashboard") %}
   <div class="card shadow-sm border-secondary" style="background: var(--cp-panel-bg, rgba(8,16,30,0.6)); border-color: var(--cp-panel-border) !important;">
     <div class="card-body p-0">
-      <table class="table table-family table-hover mb-0" aria-label="{% trans 'Global registries and counts' %}">
+      <table class="table table-family table-hover mb-0 rmc-data-table" aria-label="{% trans 'Global registries and counts' %}">
         <thead>
           <tr>
             <th scope="col">{% trans "Registry" %}</th>

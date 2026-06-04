@@ -1,0 +1,18 @@
+{% load i18n %}
+{% comment %}
+Tier 2 — landing canvas marquee (not global header). Operator + tenant + future tenant.
+Self-gates like _activity_ticker.html.
+{% endcomment %}
+{% if request.user.is_authenticated %}
+{% if request.public_host_kind == 'manager' %}
+{% if cockpit.activity_ticker.cards and cockpit.activity_ticker.enabled|default_if_none:True %}
+<div class="rmc-cp-landing-ticker" data-rmc-cp-landing-ticker="1" aria-label="{% trans 'Live operator activity feed' %}">
+  {% include "partials/cockpit/_activity_ticker.html" %}
+</div>
+{% endif %}
+{% elif cockpit.tenant_activity_ticker.cards and cockpit.tenant_activity_ticker.enabled|default_if_none:True %}
+<div class="rmc-cp-landing-ticker rmc-tenant-landing-ticker" data-rmc-tenant-landing-ticker="1" aria-label="{% trans 'Live school activity feed' %}">
+  {% include "partials/cockpit/_activity_ticker.html" %}
+</div>
+{% endif %}
+{% endif %}

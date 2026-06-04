@@ -109,7 +109,7 @@
       <h2 class="h6 mb-2">Step 2: Map columns → target fields</h2>
       <p class="small text-muted mb-3">Map each CSV column to a target field (or skip). Required: {{ required_fields|join:", " }}.</p>
       <div class="table-responsive">
-        <table class="table table-sm table-family align-middle">
+        <table class="table table-sm table-family align-middle rmc-data-table">
           <caption class="visually-hidden">{% trans "Step 2: Map columns → target fields" %}</caption>
           <thead><tr><th>CSV column</th><th>→ Target field</th></tr></thead>
           <tbody id="mapping-body">
@@ -143,7 +143,7 @@
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
-        <table class="table table-sm table-hover mb-0 table-family align-middle">
+        <table class="table table-sm table-hover mb-0 table-family align-middle rmc-data-table">
           <caption class="visually-hidden">{% trans "Migration Wizard" %}</caption>
           <thead class="table-light">
             <tr>

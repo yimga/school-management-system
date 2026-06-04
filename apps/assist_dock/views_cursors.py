@@ -30,7 +30,7 @@ from .cursors import (
 
 logger = logging.getLogger(__name__)
 
-_MAX_BODY_BYTES = 1024
+_MAX_BODY_BYTES = 1024  # magic-number-allow: byte-size-cap
 
 
 def _display_name(user) -> str:

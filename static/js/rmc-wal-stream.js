@@ -82,6 +82,98 @@
     return [...new Uint8Array(digest)].slice(0, 6).map((b) => b.toString(16).padStart(2, "0")).join("");
   }
 
+  // Identity of the signed-in user (from the offline config island). Stamped on
+  // every outbox row so a shared device cannot ship one user's queued writes
+  // over another user's socket — the server rejects author/socket mismatches and
+  // the row stays queued until its real author signs back in.
+  function currentUserId() {
+    try {
+      var v = window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.currentUserId;
+      return v == null ? "" : String(v);
+    } catch (e) {
+      return "";
+    }
+  }
+
+  // ── Optional at-rest encryption of the outbox payload (audit residual) ──
+  // The outbox holds attendance/grades/messages/charges (PII) in IndexedDB. When
+  // SMS_OFFLINE_CONFIG.encryptOutbox is true we AES-GCM-seal the `actions` before
+  // storing and unseal at flush time. OPT-IN (default off) + backward-compatible:
+  // a row may be sealed OR plaintext, and flush handles both, so enabling it
+  // never strands already-queued work. The AES key is a non-extractable CryptoKey
+  // persisted in the existing clock store (no DB version bump).
+  function encEnabled() {
+    try {
+      return !!(window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.encryptOutbox);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function bufToB64(buf) {
+    var bytes = new Uint8Array(buf);
+    var bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+
+  function b64ToBuf(b64) {
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+
+  async function getEncKey() {
+    const db = await openDb();
+    const existing = await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_CLOCK, "readonly");
+      const rq = tx.objectStore(STORE_CLOCK).get("enckey");
+      rq.onsuccess = () => resolve(rq.result?.v || null);
+      rq.onerror = () => reject(rq.error);
+    });
+    if (existing) return existing;
+    const key = await crypto.subtle.generateKey(
+      { name: "AES-GCM", length: 256 },
+      false, // non-extractable — can be stored as a CryptoKey but never exported
+      ["encrypt", "decrypt"]
+    );
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_CLOCK, "readwrite");
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.objectStore(STORE_CLOCK).put({ k: "enckey", v: key });
+    });
+    return key;
+  }
+
+  async function sealActions(actions) {
+    const key = await getEncKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const plain = new TextEncoder().encode(JSON.stringify(actions));
+    const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, plain);
+    return { iv: bufToB64(iv.buffer), ct: bufToB64(ct) };
+  }
+
+  async function openActions(row) {
+    // Backward-compatible: plaintext rows return row.actions directly.
+    if (!row.actions_sealed) return row.actions;
+    try {
+      const key = await getEncKey();
+      const iv = new Uint8Array(b64ToBuf(row.actions_sealed.iv));
+      const pt = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: iv },
+        key,
+        b64ToBuf(row.actions_sealed.ct)
+      );
+      return JSON.parse(new TextDecoder().decode(pt));
+    } catch (e) {
+      // Undecryptable (key rotated/cleared) — drop to empty so flush skips it
+      // rather than shipping garbage; the row stays queued for manual review.
+      return [];
+    }
+  }
+
   async function append(domain, actions) {
     if (!domain || !Array.isArray(actions) || actions.length === 0) {
       throw new Error("rmcWAL.append: domain+actions required");
@@ -92,11 +184,21 @@
       txn_id,
       vector_clock,
       domain,
-      actions,
       tenant_hash: await tenantHash(),
+      author_user_id: currentUserId(),
       status: "queued",
       created_at: Date.now(),
     };
+    // Seal the PII-bearing actions at rest when enabled; otherwise store plain.
+    if (encEnabled()) {
+      try {
+        envelope.actions_sealed = await sealActions(actions);
+      } catch (e) {
+        envelope.actions = actions; // crypto unavailable → fall back to plaintext
+      }
+    } else {
+      envelope.actions = actions;
+    }
     const db = await openDb();
     await new Promise((resolve, reject) => {
       const tx = db.transaction(STORE, "readwrite");
@@ -186,6 +288,8 @@
   }
 
   async function flush() {
+    // Bound outbox growth even while permanently offline (throttled internally).
+    maybeEvict().catch(() => {});
     const socket = ensureSocket();
     if (!socket || socket.readyState !== WebSocket.OPEN) return { shipped: 0, queued: await pendingCount() };
     const db = await openDb();
@@ -195,15 +299,29 @@
       rq.onsuccess = () => resolve(rq.result || []);
       rq.onerror = () => reject(rq.error);
     });
+    const me = currentUserId();
     let shipped = 0;
     for (const row of queued) {
       try {
+        // Shared-device guard: do not ship a row authored by a different signed-in
+        // user. Leave it queued for when its real author returns. (The server
+        // enforces this too; this just avoids a pointless rejected round-trip.)
+        if (row.author_user_id && me && String(row.author_user_id) !== me) continue;
+        const actions = await openActions(row); // unseal if encrypted, else passthrough
+        if (!actions || actions.length === 0) continue; // skip undecryptable rows
         socket.send(JSON.stringify({
           txn_id: row.txn_id,
           vector_clock: row.vector_clock,
           domain: row.domain,
-          actions: row.actions,
+          actions: actions,
           tenant_hash: row.tenant_hash,
+          // Author of this offline write — the server rejects shipping it over a
+          // different user's socket (cross-user attribution defense).
+          author_user_id: row.author_user_id || "",
+          // When this write was captured offline (epoch ms). The server uses it
+          // for last-writer-wins so a stale offline upsert never clobbers newer
+          // online state. Falls back to row.created_at for rows queued earlier.
+          captured_at: row.captured_at || row.created_at,
         }));
         shipped += 1;
       } catch (e) {
@@ -213,12 +331,109 @@
     return { shipped, queued: queued.length - shipped };
   }
 
+  // ── Outbox eviction (bounded growth) ────────────────────────────────────
+  // Without this the outbox grows forever: acked rows are never removed, and a
+  // row that can never ship (author signed out for good, undecryptable) stays
+  // queued — eventually tripping the IndexedDB quota, at which point EVERY new
+  // offline write fails. Eviction drops synced rows, ages out very old unsynced
+  // rows (loudly, never silently), and caps the backlog as a last resort.
+  const ACKED_RETENTION_MS = 60 * 60 * 1000;            // keep acked rows 1h, then drop
+  const MAX_OUTBOX_AGE_MS = 30 * 24 * 60 * 60 * 1000;   // 30d ceiling for any unsynced row
+  let lastEvictAt = 0;
+
+  function maxQueueItems() {
+    try {
+      var n = parseInt(window.SMS_OFFLINE_CONFIG && window.SMS_OFFLINE_CONFIG.maxQueueItems, 10);
+      return n > 0 ? n : 500;
+    } catch (e) {
+      return 500;
+    }
+  }
+
+  // Pure decision: given the current rows, return the txn_ids to evict. Kept
+  // side-effect-free so it can be unit-tested without IndexedDB.
+  function evictionPlan(rows, now, cap) {
+    const toDelete = [];
+    const queued = [];
+    for (const r of rows) {
+      const created = r.created_at || 0;
+      if (r.status === "acked") {
+        if (!r.acked_at || now - r.acked_at > ACKED_RETENTION_MS) toDelete.push(r.txn_id);
+      } else if (created && now - created > MAX_OUTBOX_AGE_MS) {
+        toDelete.push(r.txn_id);
+      } else {
+        queued.push(r);
+      }
+    }
+    let overAge = toDelete.length; // count flagged before the cap pass (acked + >30d)
+    if (queued.length > cap) {
+      // Last resort: drop the OLDEST unsynced rows beyond the cap so a runaway
+      // backlog cannot exhaust storage and brick all future writes.
+      queued.sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
+      const overflow = queued.slice(0, queued.length - cap);
+      for (const r of overflow) toDelete.push(r.txn_id);
+    }
+    return { toDelete, cappedOverflow: toDelete.length - overAge };
+  }
+
+  async function evictOutbox() {
+    try {
+      const db = await openDb();
+      const now = Date.now();
+      const rows = await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readonly");
+        const rq = tx.objectStore(STORE).getAll();
+        rq.onsuccess = () => resolve(rq.result || []);
+        rq.onerror = () => reject(rq.error);
+      });
+      const cap = maxQueueItems();
+      const { toDelete, cappedOverflow } = evictionPlan(rows, now, cap);
+      if (cappedOverflow > 0) {
+        // Dropping UNSYNCED rows is data loss — never silent.
+        try { console.warn("rmcWAL: outbox over cap " + cap + ", evicting " + cappedOverflow + " oldest unsynced rows"); } catch (e) {}
+      }
+      if (!toDelete.length) return 0;
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, "readwrite");
+        const os = tx.objectStore(STORE);
+        for (const id of toDelete) os.delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+      return toDelete.length;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // Throttled wrapper so the full-store scan runs at most once a minute even when
+  // flush() fires on every append during a bulk operation.
+  function maybeEvict() {
+    const now = Date.now();
+    if (now - lastEvictAt < 60_000) return Promise.resolve(0);
+    lastEvictAt = now;
+    return evictOutbox();
+  }
+
   window.rmcWAL = {
     append,
     flush,
     pending: pendingCount,
+    evict: evictOutbox,
     onAck: (cb) => { ackListeners.add(cb); return () => ackListeners.delete(cb); },
   };
+
+  // Test-only hook: exposes the at-rest encryption internals so the outbox
+  // seal/open round-trip can be exercised in CI (vitest + Playwright) against
+  // the REAL shipped code rather than a re-implementation. Inert in production
+  // — `window.__RMC_OUTBOX_TEST__` is never set outside the test harness.
+  if (window.__RMC_OUTBOX_TEST__) {
+    window.rmcWAL.__test = {
+      sealActions, openActions, getEncKey, encEnabled,
+      evictionPlan, currentUserId,
+      ACKED_RETENTION_MS, MAX_OUTBOX_AGE_MS,
+    };
+  }
 
   function shouldBootWalSocket() {
     if (document.querySelector("[data-rmc-auth-landing]")) return false;

@@ -503,10 +503,13 @@ def migration_wizard(request):
                     )
                 else:
                     try:
-                        from apps.evals.importers import apply_import, preview_import
+                        from apps.evals.importers import (
+                            apply_import_from_preview,
+                            preview_import,
+                        )
 
                         preview = preview_import(transformed)
-                        apply_result = apply_import(preview, active_year)
+                        apply_result = apply_import_from_preview(preview, active_year)
                         result["created"] = apply_result.get("created", 0)
                         result["updated"] = apply_result.get("updated", 0)
                         result["duration_seconds"] = apply_result.get(

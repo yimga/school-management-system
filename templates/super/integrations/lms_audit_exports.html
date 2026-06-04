@@ -3,7 +3,7 @@
 {% block title %}{% trans "LMS audit retention exports" %} — {{ block.super }}{% endblock %}
 {% block content %}
 <div class="container-fluid rmc-page" style="max-width: 1280px;">
-  <nav style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+  <nav style="margin-bottom: 10px; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">
     <a href="/portal/super/wedges/" style="color: var(--text-secondary); text-decoration: none;">{% trans "Wedge registry" %}</a>
     <span aria-hidden="true">›</span>
     <a href="{% url 'portal:lms_index' %}" style="color: var(--text-secondary); text-decoration: none;">{% trans "LMS integrations" %}</a>
@@ -13,7 +13,7 @@
     <span style="color: var(--text-primary);">{% trans "Retention exports" %}</span>
   </nav>
   <header class="rmc-page__header" style="margin-bottom: 14px;">
-    <h1 class="rmc-page__title" style="font-size: 1.4rem; letter-spacing: -0.01em;">{% trans "LMS audit retention exports" %}</h1>
+    <h1 class="rmc-page__title" style="font-size: var(--type-size-headline-m); letter-spacing: -0.01em;">{% trans "LMS audit retention exports" %}</h1>
     <p class="rmc-page__subtitle" style="color: var(--text-secondary); margin-top: 4px; max-width: 70ch;">
       {% trans "JSONL snapshots written before the FERPA 7-year retention sweep purges rows from the live audit table. Each file is a forensic record of what left the live store." %}
     </p>
@@ -22,7 +22,7 @@
   {% if error_reason %}
     <div role="alert" style="padding: 12px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated); color: var(--text-primary); margin-bottom: 14px;">
       <strong>{% trans "Exports unavailable." %}</strong>
-      <div style="margin-top: 6px; font-family: monospace; font-size: 12px; color: var(--text-secondary);">{{ error_reason }}</div>
+      <div style="margin-top: 6px; font-family: monospace; font-size: var(--type-size-eyebrow); color: var(--text-secondary);">{{ error_reason }}</div>
       {% if error_reason == "export_dir_not_configured" %}
         <p style="margin-top: 8px; margin-bottom: 0;">
           {% trans "Set the" %} <code>RMC_LMS_AUDIT_RETENTION_EXPORT_DIR</code> {% trans "env var to a writable directory on every beat worker, then re-run the sweep. The directory is opt-in by design — without it the retention purge runs without an export." %}
@@ -32,8 +32,8 @@
   {% endif %}
 
   {% if export_dir %}
-    <section style="margin-bottom: 14px; padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated); font-family: monospace; font-size: 12px;">
-      <div style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px;">{% trans "Export directory" %}</div>
+    <section style="margin-bottom: 14px; padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-elevated); font-family: monospace; font-size: var(--type-size-eyebrow);">
+      <div style="color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; font-size: var(--type-size-micro);">{% trans "Export directory" %}</div>
       <div style="color: var(--text-primary); margin-top: 4px; word-break: break-all;">{{ export_dir }}</div>
     </section>
   {% endif %}
@@ -42,7 +42,7 @@
     <section>
       <table class="rmc-data-table" style="width: 100%; border-collapse: collapse;">
         <thead>
-          <tr style="text-align: left; font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
+          <tr style="text-align: left; font-size: var(--type-size-micro); color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em;">
             <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "File" %}</th>
             <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">{% trans "Modified (UTC)" %}</th>
             <th style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); text-align: right;">{% trans "Bytes" %}</th>
@@ -51,13 +51,13 @@
         </thead>
         <tbody>
           {% for f in files %}
-            <tr style="font-size: 13px;">
+            <tr style="font-size: var(--type-size-caption);">
               <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); font-family: monospace; word-break: break-all;">{{ f.name }}</td>
               <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); font-family: monospace; color: var(--text-secondary);">{{ f.modified_iso }}</td>
               <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline); text-align: right; font-family: monospace;">{{ f.size_bytes }}</td>
               <td style="padding: 8px 10px; border-bottom: 1px solid var(--hairline);">
                 <a href="{% url 'portal:lms_audit_export_download' filename=f.name %}" rel="nofollow"
-                   style="display: inline-block; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); text-decoration: none; font-size: 12px;">
+                   style="display: inline-block; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--hairline); background: var(--surface-canvas); color: var(--text-primary); text-decoration: none; font-size: var(--type-size-eyebrow);">
                   {% trans "Download" %}
                 </a>
               </td>

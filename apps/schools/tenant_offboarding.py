@@ -702,6 +702,61 @@ def apply_purge(
     dual_approved: bool = False,
     purge_source: str = "operator",
 ) -> PurgeReceipt | PurgePreview:
+    wf_run = None
+    if not dry_run:
+        try:
+            from apps.platform_runtime.workflow_tracker import begin_run
+
+            from apps.platform_runtime.workflow_tracker import push_workflow_run
+
+            wf_run = begin_run(
+                workflow_key="tenant_school_purge",
+                steps=("preview", "purge", "finalize"),
+                school_id=str(getattr(school, "id", "") or ""),
+                expected_duration_seconds=300,
+                payload={"slug": getattr(school, "slug", "") or "", "source": purge_source},
+            )
+            push_workflow_run(wf_run)
+        except Exception:
+            wf_run = None
+
+    try:
+        return _apply_purge_tracked(
+            school,
+            actor=actor,
+            confirm_slug=confirm_slug,
+            dry_run=dry_run,
+            force_provisioning=force_provisioning,
+            dual_approved=dual_approved,
+            purge_source=purge_source,
+            wf_run=wf_run,
+        )
+    except Exception as exc:
+        if wf_run is not None:
+            try:
+                from apps.platform_runtime.workflow_tracker import finalize_run, pop_workflow_run
+
+                finalize_run(wf_run, status="failed", error=exc, email_on_failure=True)
+                pop_workflow_run(wf_run)
+            except Exception:
+                pass
+        raise
+
+
+def _apply_purge_tracked(
+    school,
+    *,
+    actor,
+    confirm_slug: str,
+    dry_run: bool = False,
+    force_provisioning: bool = False,
+    dual_approved: bool = False,
+    purge_source: str = "operator",
+    wf_run=None,
+) -> PurgeReceipt | PurgePreview:
+    from apps.platform_runtime.workflow_tracker import pulse_workflow_step
+
+    pulse_workflow_step(wf_run, "preview", payload={"dry_run": dry_run})
     preview = dry_run_purge(
         school,
         confirm_slug=confirm_slug,
@@ -714,6 +769,8 @@ def apply_purge(
         raise ValueError(
             "Purge blocked: " + ", ".join(preview.purge_blocked_reasons)
         )
+
+    pulse_workflow_step(wf_run, "purge", payload={"row_total": preview.row_total})
 
     SchoolProvisioningEvent.log_event(
         school=school,
@@ -732,7 +789,28 @@ def apply_purge(
     inventory = preview.inventory
     row_total = preview.row_total
 
-    with transaction.atomic():
+    # A2 (RLS purge completeness): the scheduled/operator purge runs outside
+    # request middleware, so app.current_school_id is unset. Under FORCE RLS +
+    # default-deny, ORM cascade child-row deletes would be denied and the purge
+    # would silently half-complete. A purge legitimately must remove the
+    # tenant's ENTIRE footprint (including through-tables that carry no direct
+    # school_id column), and is already gated by confirm-slug + dual-approval +
+    # purge blockers + dry-run preview — so the destructive mutation runs under
+    # rls_bypass(). No-op on non-PostgreSQL. Scoped strictly to this atomic block.
+    from apps.schools.rls_context import rls_bypass
+
+    # Cancel platform subscriptions BEFORE the CASCADE delete so the external
+    # (Stripe) ref is captured for reconciliation; otherwise the remote sub keeps
+    # billing with no local trace once the row is gone.
+    try:
+        from apps.billing.offboarding import cancel_subscriptions_for_offboarding
+
+        subscription_cancel_result = cancel_subscriptions_for_offboarding(school)
+    except Exception as exc:  # noqa: BLE001 - cleanup must never fail the purge
+        logger.warning("tenant_offboarding subscription cancel failed slug=%s: %s", school_slug, exc)
+        subscription_cancel_result = {"canceled": 0, "error": str(exc)[:200]}
+
+    with rls_bypass(), transaction.atomic():
         try:
             with transaction.atomic():
                 schema_dropped = drop_tenant_schema_for_school(school)
@@ -774,11 +852,23 @@ def apply_purge(
         )
         delete_school_record_resilient(school)
 
+    # Purge the tenant's Redis WAL keys (unsynced offline ops = tenant PII the
+    # schema/row purge never reached). Best-effort; outside the DB txn.
+    try:
+        from apps.wal_stream.tasks import purge_streams_for_school
+
+        wal_purge_result = purge_streams_for_school(school_id)
+    except Exception as exc:  # noqa: BLE001 - cleanup must never fail the purge
+        logger.warning("tenant_offboarding wal purge failed slug=%s: %s", school_slug, exc)
+        wal_purge_result = {"deleted": 0, "error": 1}
+
     receipt_extra = {
         "purge_receipt": True,
         "actor_id": actor_id,
         "actor_username": actor_username,
         "schema_dropped": schema_dropped,
+        "wal_streams_purged": wal_purge_result,
+        "subscriptions_canceled": subscription_cancel_result,
         "deleted_at": datetime.now(tz=timezone.utc).isoformat(),
     }
     Path(manifest_path).write_text(
@@ -823,6 +913,15 @@ def apply_purge(
             school_slug,
             exc_info=True,
         )
+    pulse_workflow_step(wf_run, "finalize", payload={"manifest_path": manifest_path})
+    if wf_run is not None:
+        try:
+            from apps.platform_runtime.workflow_tracker import finalize_run, pop_workflow_run
+
+            finalize_run(wf_run, status="succeeded")
+            pop_workflow_run(wf_run)
+        except Exception:
+            logger.debug("tenant_offboarding workflow finalize failed", exc_info=True)
     return receipt
 
 

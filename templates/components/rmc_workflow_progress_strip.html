@@ -1,0 +1,9 @@
+{% load i18n %}
+{% comment %}
+  Live workflow progress strip — populated by ``rmc-workflow-progress.js`` via SSE.
+  Shown only when at least one run is RUNNING/STUCK for the current user scope.
+{% endcomment %}
+{% if request.user.is_staff %}
+<script type="application/json" id="page-data-rmc-workflow-flight-deck" nonce="{{ csp_nonce }}">{"page_url":"{% url 'platform_runtime:workflow_progress_flight_deck' %}"}</script>
+{% endif %}
+<div class="rmc-wfp-inline" data-rmc-wfp-inline hidden aria-live="polite" aria-label="{% trans 'Active platform workflows' %}"></div>

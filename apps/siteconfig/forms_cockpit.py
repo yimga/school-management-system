@@ -3065,13 +3065,13 @@ class CockpitPayloadForm(forms.ModelForm):
     atk_enabled_on_tenant = forms.BooleanField(
         required=False,
         widget=_CHECK,
-        initial=False,
+        initial=True,
         label=_("Show activity ticker on tenant shell"),
         help_text=_(
-            "Off by default — tenant operators must opt in. When on, "
-            "the tenant ticker renders at the top of every authenticated "
-            "tenant-shell page using tenant-scoped events (NEVER "
-            "operator-platform data). Anonymous pages stay silent."
+            "On by default — Tier 1 inline badge, Tier 2 landing marquee, and "
+            "Tier 3 incident banner on authenticated tenant pages using "
+            "tenant-scoped events only (never operator-platform data). Turn "
+            "off to suppress the ticker on the tenant shell."
         ),
     )
     atk_realdata_enabled = forms.BooleanField(
@@ -4222,7 +4222,7 @@ class CockpitPayloadForm(forms.ModelForm):
         # These persist directly under the activity_ticker section so the
         # cockpit_context orchestrator + the partial can read them via the
         # already-resolved `cockpit.activity_ticker` namespace.
-        # Defaults mirror the field declarations (manager=True / tenant=False
+        # Defaults mirror the field declarations (manager=True / tenant=True
         # / realdata=True) — first-render with no existing payload uses the
         # widget `initial=` value.
         if "enabled_on_manager" in atk:
@@ -4854,6 +4854,8 @@ class CockpitPayloadForm(forms.ModelForm):
         )
         if atk_overlay:
             payload.setdefault("activity_ticker", {}).update(atk_overlay)
+        tat_enabled = bool(cleaned.get("atk_enabled_on_tenant"))
+        payload.setdefault("tenant_activity_ticker", {})["enabled"] = tat_enabled
 
         # 24) tenant_v3_extended.gradebook_trend
         gbt_overlay: dict[str, Any] = {}

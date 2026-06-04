@@ -36,7 +36,7 @@ def _user_is_admin(request: HttpRequest) -> bool:
     try:
         getter = getattr(user, "has_role", None)
         if callable(getter):
-            return bool(getter("ADMIN"))
+            return bool(getter("ADMIN"))  # role-string-allow: rbac-role-check-argument
         return str(getattr(user, "role", "")).upper() == "ADMIN"  # role-string-allow: institution-type-admin-fallback
     except Exception:  # noqa: BLE001
         return False

@@ -4,35 +4,35 @@
 {% block surface_label %}{% trans "Multi-campus academics" %}{% endblock %}
 {% block surface_title %}{% trans "Multi-campus group academic rollup" %}{% endblock %}
 {% block surface_body %}
-  <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px;">
+  <p style="font-size: var(--type-size-caption); color: var(--text-secondary); margin: 0 0 12px;">
     {% trans "Group label" %}: <strong style="color: var(--text-primary);">{{ tree.group_label }}</strong>
     {% if tree.descendant_count %}<span style="color: var(--text-secondary);"> · {{ tree.descendant_count }} {% trans "school(s)" %}</span>{% endif %}
   </p>
 
   <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 18px;">
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Evaluations" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700;">{{ tree.grade_rollup.evaluation_count|default:"0" }}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Evaluations" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700;">{{ tree.grade_rollup.evaluation_count|default:"0" }}</div>
     </div>
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Avg final" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.grade_rollup.avg_final_score|default:"—" }}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Avg final" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.grade_rollup.avg_final_score|default:"—" }}</div>
     </div>
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Pass rate" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{% if tree.grade_rollup.pass_rate %}{{ tree.grade_rollup.pass_rate }}%{% else %}—{% endif %}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Pass rate" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700; font-variant-numeric: tabular-nums;">{% if tree.grade_rollup.pass_rate %}{{ tree.grade_rollup.pass_rate }}%{% else %}—{% endif %}</div>
     </div>
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Attendance" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{% if tree.attendance_rollup.attendance_rate %}{{ tree.attendance_rollup.attendance_rate }}%{% else %}—{% endif %}</div>
-      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{{ tree.attendance_rollup.record_count|default:"0" }} {% trans "rec." %}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Attendance" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700; font-variant-numeric: tabular-nums;">{% if tree.attendance_rollup.attendance_rate %}{{ tree.attendance_rollup.attendance_rate }}%{% else %}—{% endif %}</div>
+      <div style="font-size: var(--type-size-micro); color: var(--text-secondary); margin-top: 2px;">{{ tree.attendance_rollup.record_count|default:"0" }} {% trans "rec." %}</div>
     </div>
   </section>
 
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
       <thead>
-        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+        <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "School" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline); text-align: right;">{% trans "Eval #" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline); text-align: right;">{% trans "Avg" %}</th>
@@ -52,7 +52,7 @@
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); text-align: right; font-variant-numeric: tabular-nums;">{{ child.attendance.record_count|default:"0" }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); text-align: right; font-variant-numeric: tabular-nums;">{% if child.attendance.attendance_rate %}{{ child.attendance.attendance_rate }}%{% else %}—{% endif %}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">
-              {% if not tree.parent %}<a href="?wedge=22&parent={{ child.id }}" style="font-size: 11px; color: var(--text-secondary);">{% trans "drill" %} →</a>{% endif %}
+              {% if not tree.parent %}<a href="?wedge=22&parent={{ child.id }}" style="font-size: var(--type-size-micro); color: var(--text-secondary);">{% trans "drill" %} →</a>{% endif %}
             </td>
           </tr>
         {% empty %}

@@ -34,6 +34,7 @@ services:
         value: "gthread"
       - key: WEB_CONCURRENCY
         value: "2"
+        # Dashboard value must be digits only (e.g. "2") — never paste inline comments.
       - key: GUNICORN_THREADS
         value: "4"
       # SSE streams may use at most (GUNICORN_THREADS - SSE_THREAD_RESERVE)
@@ -114,7 +115,30 @@ services:
         value: "True"
       - key: DEFAULT_FROM_EMAIL
         value: "noreply@runmycampus.com"
-      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: Brevo SMTP key (see docs/RENDER_EMAIL_SETUP.md).
+      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: Brevo SMTP login + key (see docs/RENDER_EMAIL_SETUP.md).
+      # Declared sync:false so Render prompts for them as secrets — REQUIRED for
+      # real delivery; until both are set, prod mail silently no-ops at SMTP auth.
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      # Operator alert recipient (audit H8) — matrix operator alerts (signup-
+      # verification-stale, workflow-stuck/failed, SLA breach) + Django 500
+      # mails dead-end without this. Set to the ops inbox in the Dashboard.
+      - key: RMC_OPERATOR_ALERT_EMAIL
+        sync: false
+      # Legal sender identity for email footers (CAN-SPAM / CASL / GDPR — audit).
+      - key: RMC_COMPANY_LEGAL_NAME
+        value: "RunMyCampus"
+      - key: RMC_COMPANY_POSTAL_ADDRESS
+        sync: false
+      - key: RMC_PUBLIC_SITE_URL
+        value: "https://runmycampus.com"
+      # Async transactional sends become durable Celery tasks when the worker
+      # is always-on (audit C2). Leave "0" on free tier (daemon-thread + queued
+      # marker row); flip to "1" once the worker is a paid always-on plan.
+      - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
+        value: "0"
       # Tenant lifecycle / offboarding (Lane 2) — explicit defaults; see docs/TENANT_OFFBOARDING.md
       - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
         value: "1"
@@ -173,6 +197,25 @@ services:
         value: "True"
       - key: DEFAULT_FROM_EMAIL
         value: "noreply@runmycampus.com"
+      # EMAIL_HOST_USER / EMAIL_HOST_PASSWORD: same Brevo secret as web. The
+      # worker sends welcome / reactivation / digest mail, so it MUST have these
+      # too (set the same values on both services in the Dashboard).
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      # Same operator-alert + sender-identity config as web (worker sends
+      # welcome / reactivation / digest mail too — audit H8).
+      - key: RMC_OPERATOR_ALERT_EMAIL
+        sync: false
+      - key: RMC_COMPANY_LEGAL_NAME
+        value: "RunMyCampus"
+      - key: RMC_COMPANY_POSTAL_ADDRESS
+        sync: false
+      - key: RMC_PUBLIC_SITE_URL
+        value: "https://runmycampus.com"
+      - key: SCHOOLOPS_EMAIL_ASYNC_USE_CELERY
+        value: "0"
       - key: TENANT_SELF_SERVICE_OFFBOARDING_ENABLED
         value: "1"
       - key: TENANT_AUTO_PURGE_ENABLED

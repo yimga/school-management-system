@@ -161,6 +161,24 @@ def _studio_os_data_shell_host(host_kind: str) -> str:
     return "control-plane" if (host_kind or "school").strip().lower() == "manager" else "tenant"
 
 
+VERTICAL_WORKSPACE_POLICY_VERSION = "1"
+
+
+def vertical_workspace_policy() -> dict[str, Any]:
+    """
+    North star for every authenticated shell (operator, tenant, future tenant):
+    maximize body/canvas height — heavy chrome is landing-only, not global header/canvas.
+    """
+    return {
+        "version": VERTICAL_WORKSPACE_POLICY_VERSION,
+        "scope": "all-authenticated-shells",
+        "heavy_chrome_rule": "landing-only",
+        "global_marquee_rule": "landing-only",
+        "pulse_rule": "landing-only",
+        "footer_tier": "compact",
+    }
+
+
 def manager_header_hide_config_chip(path: str) -> bool:
     """
     Hide the CCC Config shortcut in the manager topbar when the operator is in
@@ -230,6 +248,17 @@ def resolve_shell_contract(request) -> dict[str, Any]:
         "manager_header_hide_config_chip": (
             host_kind == "manager" and manager_header_hide_config_chip(path)
         ),
+        # Consolidated operator header (single 48px band) on manager surfaces.
+        "cp_header_mode": "consolidated" if host_kind == "manager" else "standard",
+        "layout_density": {
+            "viewport_height": "100dvh",
+            "header_height": "48px",
+            "footer_height": "24px",
+            "sidebar_width": "240px",
+            "content_padding": "16px",
+            "density_tier": "high-density" if host_kind == "manager" else "human-centric",
+        },
+        "vertical_workspace_policy": vertical_workspace_policy(),
     }
 
 

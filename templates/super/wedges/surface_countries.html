@@ -5,9 +5,9 @@
 {% block surface_title %}{% trans "Country localization — wedge-scoped" %}{% endblock %}
 {% block surface_body %}
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
       <thead>
-        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+        <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "CC" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "Calendar" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline); text-align: right;">{% trans "Types" %}</th>
@@ -22,7 +22,7 @@
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); color: var(--text-secondary);">{{ r.calendar_label }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ r.school_type_count }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ r.education_level_count }}</td>
-            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px;">{{ r.languages|join:", "|default:"—" }}</td>
+            <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); color: var(--text-secondary); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--type-size-micro);">{{ r.languages|join:", "|default:"—" }}</td>
           </tr>
         {% empty %}
           <tr><td colspan="5" style="padding: 18px; text-align: center; color: var(--text-secondary);">{% trans "No countries match this filter." %}</td></tr>

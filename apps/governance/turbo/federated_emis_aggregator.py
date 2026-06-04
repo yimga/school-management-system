@@ -52,7 +52,7 @@ def aggregate(rows: Iterable[dict[str, Any]], *, metric: str, epsilon: float = 1
 
 
 def runtime_health() -> dict[str, Any]:
-    rows = [{"enrollment": 100}, {"enrollment": 250}, {"enrollment": 60}]
+    rows = [{"enrollment": 100}, {"enrollment": 250}, {"enrollment": 60}]  # magic-number-allow: test-fixture-numeric-value
     result = aggregate(rows, metric="enrollment", epsilon=1.0, sensitivity=1.0, seed=42)
     healthy = result.get("row_count") == 3 and isinstance(result.get("noised_total"), float)
     return {"contract_id": CONTRACT_ID, "healthy": healthy, "sample": result}

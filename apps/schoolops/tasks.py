@@ -424,6 +424,8 @@ def dispatch_bulk_email(
     reply_to: Any = None,
     from_email: Any = None,
     headers: Any = None,
+    priority: str = "bulk",
+    idempotency_key: str = "",
 ) -> dict[str, Any]:
     """Worker entry-point for ``send_bulk`` — runs ``send_transactional``.
 
@@ -442,11 +444,61 @@ def dispatch_bulk_email(
             reply_to=reply_to,
             from_email=from_email,
             headers=headers,
-            priority="bulk",
+            priority=priority or "bulk",
+            idempotency_key=idempotency_key,
         )
     except Exception as exc:  # noqa: BLE001  — worker boundary
         logger.exception(
             "schoolops.dispatch_bulk_email crashed exc_type=%s",
+            type(exc).__name__,
+        )
+        return {
+            "ok": False,
+            "attempts": 0,
+            "delivery_event_id": None,
+            "error_kind": "task_crashed",
+        }
+
+
+@shared_task(name="schoolops.dispatch_transactional_email")
+def dispatch_transactional_email(
+    *,
+    subject: str,
+    body: str,
+    to: Any,
+    html_body: Any = None,
+    reply_to: Any = None,
+    from_email: Any = None,
+    headers: Any = None,
+    priority: str = "transactional",
+    school: Any = None,
+    idempotency_key: str = "",
+) -> dict[str, Any]:
+    """Durable worker entry-point for ``send_transactional(async_send=True)``.
+
+    Audit C2 — when ``SCHOOLOPS_EMAIL_ASYNC_USE_CELERY`` is set (an always-on
+    worker is available), async transactional sends route here instead of a
+    daemon thread so they survive a web-worker restart. ``school`` is dropped
+    on the wire (not JSON-serializable); the resolved SMTP config falls back
+    to env/operator settings, which is correct for platform-level mail.
+    """
+    try:
+        from apps.schoolops.email_delivery import send_transactional
+
+        return send_transactional(
+            subject=subject,
+            body=body,
+            to=to,
+            html_body=html_body,
+            reply_to=reply_to,
+            from_email=from_email,
+            headers=headers,
+            priority=priority or "transactional",
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:  # noqa: BLE001  — worker boundary
+        logger.exception(
+            "schoolops.dispatch_transactional_email crashed exc_type=%s",
             type(exc).__name__,
         )
         return {

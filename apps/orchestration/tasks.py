@@ -10,12 +10,18 @@ from __future__ import annotations
 import logging
 
 from celery import shared_task
+from apps.platform_runtime.workflow_tracker import track_workflow, workflow_step
 from django.core.management import call_command
 
 logger = logging.getLogger(__name__)
 
 
 @shared_task(name="orchestration.process_due_runs", bind=True, max_retries=3)
+@track_workflow(
+    "orchestration_process_due",
+    steps=("scan", "execute", "finalize"),
+    expected_duration_seconds=300,
+)
 def process_due_runs(self, limit: int = 50) -> int:
     """Process up to `limit` pending OrchestrationRuns.
 
@@ -26,7 +32,12 @@ def process_due_runs(self, limit: int = 50) -> int:
     """
 
     try:
-        call_command("process_orchestration_runs", "--limit", str(int(limit)))
+        with workflow_step(None, "scan", payload={"limit": int(limit)}):
+            pass
+        with workflow_step(None, "execute"):
+            call_command("process_orchestration_runs", "--limit", str(int(limit)))
+        with workflow_step(None, "finalize"):
+            pass
     except Exception as exc:
         logger.warning("orchestration.process_due_runs failed: %s", exc)
         try:
@@ -34,6 +45,9 @@ def process_due_runs(self, limit: int = 50) -> int:
         except Exception:
             return 0
     return int(limit)
+
+
+process_due_runs.rmc_workflow_explicit = True
 
 
 @shared_task(name="orchestration.trigger_runs_for_definition")

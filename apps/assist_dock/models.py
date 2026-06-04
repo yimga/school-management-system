@@ -266,7 +266,7 @@ class AssistDockShortLinkRecipient(models.Model):
         on_delete=models.CASCADE,
         related_name="recipients",
     )
-    address = models.CharField(max_length=320)            # RFC 5321 max
+    address = models.CharField(max_length=320)            # RFC 5321 max  # magic-number-allow: charfield-max-length
     sent_at = models.DateTimeField(auto_now_add=True)
     send_status = models.CharField(max_length=32, default="queued")
     notes = models.CharField(max_length=256, blank=True, default="")
@@ -314,6 +314,6 @@ def apply_prefs_to_slots(slots, payload):
             pinned.append(slot)
         else:
             rest.append(slot)
-    pinned.sort(key=lambda s: pinned_rank.get(s.id, 99999))
+    pinned.sort(key=lambda s: pinned_rank.get(s.id, 99999))  # magic-number-allow: sentinel-sort-rank
     rest.sort(key=lambda s: (s.order, s.id))
     return pinned + rest

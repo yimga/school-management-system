@@ -75,7 +75,7 @@ def workflow_status_payload(workflow: Optional[WorkflowDefinition], request: Any
     steps = list(workflow.steps or ())
     return {
         "workflow_title": workflow.title,
-        "current_step": steps[0].label if steps else "",
+        "current_step": steps[0].title if steps else "",
         "step_index": 1 if steps else None,
         "step_total": len(steps) if steps else None,
         "completion": "in-progress" if steps else "not-started",

@@ -18,7 +18,8 @@
        value: "168",              # big value (string or number)
        label: "Healthy",          # sub-label below value
        delta: "▲ +3 this week",   # delta line (optional)
-       delta_direction: "up"      # up | down | flat — colors the delta
+       delta_direction: "up",      # up | down | flat — colors the delta
+       spark_points: "158,160,162,164,166,167,168"  # optional CSV → corner sparkline
      }
    If `cards` is empty/missing, the section doesn't render. {% endcomment %}
 
@@ -28,12 +29,12 @@
     {% if cockpit.pulse_metrics.show_live_dot|default:True %}<span class="rmc-cockpit-pulse__live-dot" aria-hidden="true"></span>{% endif %}
     {{ cockpit.pulse_metrics.label|default:_("Platform pulse · live") }}
   </div>
-  <div class="rmc-cockpit-pulse__cards">
+  <div class="rmc-cockpit-pulse__cards" data-rmc-cp-pulse-rail="1" data-rmc-scroll-policy="discovery">
     {% comment %} v3.59.x Wave 11 Agent X (2026-05-22): mono-pill v8 200x preview parity.
        `.rmc-stat-card--mono` adds the radial gradient + JetBrains Mono count pill
        without removing the existing `.rmc-cockpit-pulse-card` layout primitive. {% endcomment %}
     {% for card in cockpit.pulse_metrics.cards %}
-    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono{% if card.severity == 'muted' or card.value == '—' %} rmc-cockpit-pulse-card--muted{% endif %}" data-rmc-cp-pulse-drill="1" tabindex="0" role="button"{% if card.severity == 'muted' or card.value == '—' %} data-rmc-pulse-empty="1" aria-label="{{ card.head }}: {% trans 'no value yet' %}"{% else %} aria-label="{{ card.head }}: {{ card.value|default:'—' }}"{% endif %}>
+    <article class="rmc-cockpit-pulse-card rmc-stat-card--mono{% if card.spark_points %} rmc-cockpit-pulse-card--with-spark{% endif %}{% if card.severity == 'muted' or card.value == '—' %} rmc-cockpit-pulse-card--muted{% endif %}" data-rmc-cp-pulse-drill="1" tabindex="0" role="button"{% if card.severity == 'muted' or card.value == '—' %} data-rmc-pulse-empty="1" aria-label="{{ card.head }}: {% trans 'no value yet' %}"{% else %} aria-label="{{ card.head }}: {{ card.value|default:'—' }}"{% endif %}>
       <div class="rmc-cockpit-pulse-card__head">
         <span class="rmc-cockpit-pulse-card__dot{% if card.severity %} rmc-cockpit-pulse-card__dot--{{ card.severity }}{% endif %}" aria-hidden="true"></span>
         {{ card.head }}
@@ -41,10 +42,10 @@
       <div class="rmc-cockpit-pulse-card__value rmc-stat-card__count--mono">{{ card.value|default:"—" }}</div>
       {% if card.label %}<div class="rmc-cockpit-pulse-card__label">{{ card.label }}</div>{% endif %}
       {% if card.delta %}<div class="rmc-cockpit-pulse-card__delta{% if card.delta_direction %} rmc-cockpit-pulse-card__delta--{{ card.delta_direction }}{% endif %}">{{ card.delta }}</div>{% endif %}
-      {% comment %} v3.59.x Wave 11 Agent V: optional sparkline + status pill enhancement.
-         Backward-compatible — only renders when operator/payload supplies the new keys. {% endcomment %}
       {% if card.spark_points %}
-        {% include "partials/dataviz/_sparkline.html" with points=card.spark_points direction=card.delta_direction|default:'flat' label=card.head width=160 height=24 %}
+      <div class="rmc-cockpit-pulse-card__spark" aria-hidden="true">
+        {% include "partials/dataviz/_sparkline.html" with points=card.spark_points direction=card.delta_direction|default:'flat' label=card.head width=56 height=18 %}
+      </div>
       {% endif %}
       {% if card.status_pill_label %}
         <div class="rmc-cockpit-pulse-card__status-row">

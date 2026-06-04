@@ -1,0 +1,16 @@
+Workflow SLA exceeded
+=====================
+
+A workflow run exceeded its registry service-level objective (SLO).
+
+Workflow:       {{ workflow_label|default:workflow_key }}
+Run ID:         {{ run_id|default:"(unknown)" }}
+Tenant:         {{ tenant_schema|default:"(operator)" }}
+Status:         {{ status|default:"(unknown)" }}
+Current step:   {{ current_step_name|default:"(unknown)" }}
+SLO:            {{ slo_seconds|default:0 }}s
+Actual duration: {{ actual_seconds|default:0 }}s
+
+Open Workflow Flight Deck or the assist-dock Workflow chip to inspect active runs.
+
+— RunMyCampus Workflow Progress Bus

@@ -74,7 +74,21 @@ def sweep_lms_diag_action_retention(
     from django.utils import timezone as _tz
 
     if years is None:
-        years = _env_int("RMC_LMS_DIAG_ACTION_RETENTION_YEARS", DEFAULT_YEARS)
+        # Resolution precedence:
+        #   1. legacy module env RMC_LMS_DIAG_ACTION_RETENTION_YEARS (documented
+        #      operator knob — wins when explicitly set, for back-compat)
+        #   2. unified resolver — TenantRetentionOverride platform row
+        #      (tenant_schema="") → RMC_LMS_RETENTION_DIAG_ACTION_AUDIT_YEARS → 7y
+        from apps.integrations_marketplace.lms_retention_resolver import (
+            resolve_retention_years,
+        )
+
+        years = _env_int(
+            "RMC_LMS_DIAG_ACTION_RETENTION_YEARS",
+            resolve_retention_years(
+                tenant_schema="", target_table="lms_diag_action_audit"
+            ),
+        )
     if dry_run is None:
         dry_run = _env_bool("RMC_LMS_DIAG_ACTION_RETENTION_DRY_RUN")
     now = now or _tz.now()
@@ -117,6 +131,22 @@ def sweep_lms_diag_action_retention(
             "years": int(years),
             "error": str(exc),
         }
+
+    # v4.01 — emit an operator escalation alert when a large batch is about to
+    # be purged (fires in dry-run too, so operators see the warning BEFORE
+    # enabling live deletion). Alert emission never breaks the sweep.
+    try:
+        from apps.integrations_marketplace.retention_escalation_alerts import (
+            check_large_batch_threshold,
+        )
+
+        check_large_batch_threshold(
+            tenant_schema="",
+            target_table="lms_diag_action_audit",
+            count=considered,
+        )
+    except Exception as _alert_exc:  # noqa: BLE001
+        logger.debug("lms_diag_action_retention: batch alert emission failed: %s", _alert_exc)
 
     if dry_run or considered == 0:
         return {

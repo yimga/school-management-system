@@ -1,7 +1,7 @@
 {
   "finding_count": 0,
   "findings": [],
-  "generated_at": "2026-05-28T20:24:22+00:00",
+  "generated_at": "2026-06-02T16:57:36+00:00",
   "rule": "code paths that have a viewport context AND call the AI gateway must use the streaming entry point (services.ai_gateway_stream)",
   "scan_dirs": [
     "apps",

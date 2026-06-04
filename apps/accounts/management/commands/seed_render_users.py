@@ -193,39 +193,84 @@ class Command(BaseCommand):
         tenant_admin_username = (
             os.environ.get("DEFAULT_TENANT_ADMIN_USERNAME") or "tenant_admin"
         ).strip()
-        tenant_admin_password = (
-            os.environ.get("DEFAULT_TENANT_ADMIN_PASSWORD") or "Sch00l_1234"
+        # SECURITY: no hardcoded weak default in production. Dev keeps a
+        # convenience default; prod requires DEFAULT_TENANT_ADMIN_PASSWORD or the
+        # tenant-admin bootstrap is skipped (see step 2).
+        from django.conf import settings as _settings_ta
+
+        tenant_admin_password = (os.environ.get("DEFAULT_TENANT_ADMIN_PASSWORD") or "").strip()
+        if not tenant_admin_password and _settings_ta.DEBUG:
+            tenant_admin_password = "Sch00l_1234"
+
+        # 1. Ensure platform super-admin. SECURITY: the password is sourced from
+        # env (ADMIN_PASSWORD / DEFAULT_SUPERUSER_PASSWORD). It is NEVER hardcoded
+        # to "admin" — that previously reset the admin password to "admin" on
+        # EVERY deploy, an instant full-platform compromise. With no env password
+        # set: in DEBUG we use a dev convenience default; in production we pass no
+        # password, so ensure_superuser leaves an existing admin untouched and
+        # refuses to create a known-credential admin (it errors safely under
+        # --no-input). A weak password is never written in production.
+        from django.conf import settings as _settings
+
+        admin_username = (os.environ.get("DEFAULT_SUPERUSER_USERNAME") or "admin").strip()
+        admin_email = (
+            os.environ.get("DEFAULT_SUPERUSER_EMAIL") or "admin@example.com"
         ).strip()
+        admin_password = (
+            os.environ.get("ADMIN_PASSWORD")
+            or os.environ.get("DEFAULT_SUPERUSER_PASSWORD")
+            or ""
+        ).strip()
+        if not admin_password and _settings.DEBUG:
+            admin_password = "admin"  # dev-only convenience; never reached in prod
 
-        # 1. Always ensure platform super-admin: username=admin, password=admin (no env override)
-        call_command(
+        ensure_args = [
             "ensure_superuser",
-            "--username",
-            "admin",
-            "--password",
-            "admin",
-            "--email",
-            "admin@example.com",
+            "--username", admin_username,
+            "--email", admin_email,
             "--no-input",
-            verbosity=options.get("verbosity", 1),
-        )
-        self.stdout.write(
-            self.style.SUCCESS(
-                "Super-admin ready: log in with admin / admin at /authentication/login/ or /super/."
-            )
-        )
-
-        # 2. Tenant admin: configurable bootstrap account for one tenant login surface.
-        ensure_tenant_admin_args = [
-            "ensure_default_tenant_admin",
-            "--username",
-            tenant_admin_username,
-            "--password",
-            tenant_admin_password,
         ]
-        if tenant_slug:
-            ensure_tenant_admin_args.extend(["--slug", tenant_slug])
-        call_command(*ensure_tenant_admin_args, verbosity=options.get("verbosity", 1))
+        if admin_password:
+            ensure_args += ["--password", admin_password]
+        call_command(*ensure_args, verbosity=options.get("verbosity", 1))
+
+        if admin_password:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Super-admin ensured for '%s'. Log in at /authentication/login/ or /super/."
+                    % admin_username
+                )
+            )
+        else:
+            self.stdout.write(
+                self.style.WARNING(
+                    "No ADMIN_PASSWORD/DEFAULT_SUPERUSER_PASSWORD set and not DEBUG: "
+                    "the super-admin password was NOT changed (existing admin left "
+                    "intact; no weak default written). Set ADMIN_PASSWORD to manage it."
+                )
+            )
+
+        # 2. Tenant admin: configurable bootstrap account for one tenant login
+        # surface. Skipped in production when no password is configured, so a
+        # known-credential tenant admin is never created on a real deployment.
+        if tenant_admin_password:
+            ensure_tenant_admin_args = [
+                "ensure_default_tenant_admin",
+                "--username",
+                tenant_admin_username,
+                "--password",
+                tenant_admin_password,
+            ]
+            if tenant_slug:
+                ensure_tenant_admin_args.extend(["--slug", tenant_slug])
+            call_command(*ensure_tenant_admin_args, verbosity=options.get("verbosity", 1))
+        else:
+            self.stdout.write(
+                self.style.WARNING(
+                    "No DEFAULT_TENANT_ADMIN_PASSWORD set and not DEBUG: tenant-admin "
+                    "bootstrap skipped (no weak default created)."
+                )
+            )
 
         # 3. Tenant demo users: only when ADMIN_PASSWORD is set (separate credential)
         tenant_password = (os.environ.get("ADMIN_PASSWORD") or "").strip()

@@ -19,6 +19,7 @@ from django.views.decorators.http import require_GET
 
 from apps.compliance.decorators import audit_pii_view
 from apps.compliance.models import FerpaDisclosure
+from apps.compliance.tenant_scope import get_compliance_scope_school
 
 
 def _is_ferpa_officer(user) -> bool:
@@ -42,7 +43,11 @@ def _is_ferpa_officer(user) -> bool:
 )
 def ferpa_disclosure_detail(request, pk: int):
     """Show a single FERPA disclosure row with all §99.32-required fields."""
-    school = getattr(request, "school", None)
+    # v4.01 SECURITY — fail closed. Previously scoped only when request.school
+    # was set, so a staff user with no school context could read any tenant's
+    # disclosure by PK. The resolver returns None only for control-plane
+    # operators (cross-tenant by design) and raises PermissionDenied otherwise.
+    school = get_compliance_scope_school(request)
     qs = FerpaDisclosure.objects.select_related(
         "school", "student", "student__user", "disclosed_by"
     )

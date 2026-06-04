@@ -82,7 +82,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _SIGNER_SALT = "rmc.oneroster.v1p2.access_token.v4.00.92"
-_TOKEN_TTL_SECONDS = 3600
+_TOKEN_TTL_SECONDS = 3600  # magic-number-allow: ttl-seconds
 _SUPPORTED_GRANT_TYPE = "client_credentials"
 
 # IMS-standard OneRoster v1.2 scope vocabulary. New scopes added here MUST

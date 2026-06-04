@@ -48,7 +48,9 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "platform_runtime/pack_preview.html",
         "platform_runtime/pack_rollback.html",
         "platform_runtime/pack_simulation.html",
+        "platform_runtime/platform_health_center.html",
         "platform_runtime/registry_health.html",
+        "platform_runtime/workflow_flight_deck.html",
         "schools/super_advancement_hub.html",
         "schools/super_advancement_phase2_placeholder.html",
         "schools/super_ai_gateway_console.html",
@@ -126,6 +128,8 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         # Feedback / VoC hubs — operator-facing intake/roadmap surfaces, not Phase 7 DE strips.
         "feedback/product_roadmap.html",
         "feedback/voice_of_customer.html",
+        # Communication operator delivery audit — CP chrome list surface, not Phase 7 DE strip.
+        "communication/super/delivery_receipts.html",
         # Manager operator control-plane page wrapper (CRUD-shaped; not a dashboard).
         "siteconfig/operator_control_plane_page.html",
         # Control-plane shell, AI center CRUD/workbench, migration/operator flows,
@@ -140,6 +144,9 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "apicenter/super/ai_center_query.html",
         "apicenter/super/ai_center_settings.html",
         "archetypes/cp_operator_dashboard.html",
+        # Assist Dock power tools — CP chrome operator utilities, not Phase 7 dashboards.
+        "assist_dock/power/impersonate.html",
+        "assist_dock/power/inspect.html",
         "backend_base_manager.html",
         "integrations_marketplace/manager_bulk_prestage.html",
         "integrations_marketplace/manager_rollup.html",
@@ -148,6 +155,7 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "lifecycle/jobs_dashboard.html",
         "lifecycle/rapid_create.html",
         "lifecycle/timeline.html",
+        "lti_admin/tool_registration.html",
         "migration_cloud/anomaly_nudge.html",
         "migration_cloud/assets.html",
         "migration_cloud/attach_source.html",

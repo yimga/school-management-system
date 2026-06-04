@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-31T12:57:28.740092+00:00",
+  "generated_at": "2026-06-03T18:47:19.059976+00:00",
   "verdict": "SUPPORT_PIPELINE_PASS",
   "pass_count": 14,
   "fail_count": 0,
@@ -74,7 +74,7 @@
       "id": "6",
       "label": "Vitest support pipeline green",
       "status": "PASS",
-      "proof": "/beta/school-management-system\n\n \u00e2\u0153\u201c tests/support-ai-engine.test.tsx (3 tests) 10ms\n \u00e2\u0153\u201c tests/support-pipeline-integrity.test.tsx (4 tests) 147ms\n \u00e2\u0153\u201c src/components/support/support.test.tsx (2 tests) 175ms\n\n Test Files  3 passed (3)\n      Tests  9 passed (9)\n   Start at  08:56:44\n   Duration  36.19s (transform 2.02s, setup 18.37s, collect 3.69s, tests 332ms, environment 72.03s, prepare 4.32s)\n\n"
+      "proof": "\u0153\u201c SupportErrorBoundary > exports a React error boundary component 567ms\n \u00e2\u0153\u201c src/components/support/support.test.tsx (2 tests) 402ms\n   \u00e2\u0153\u201c SupportErrorBoundary > renders fallback when a child throws 383ms\n\n Test Files  3 passed (3)\n      Tests  9 passed (9)\n   Start at  14:44:55\n   Duration  87.34s (transform 5.88s, setup 42.27s, collect 7.51s, tests 1.40s, environment 153.18s, prepare 15.10s)\n\n"
     },
     {
       "id": "7",
@@ -86,7 +86,7 @@
       "id": "8",
       "label": "Django support pipeline unit tests green",
       "status": "PASS",
-      "proof": "ebhook_query) ... ok\ntest_troubleshooting_from_error_token (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_troubleshooting_from_error_token) ... ok\ntest_ui_help_from_navigation_phrase (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_ui_help_from_navigation_phrase) ... ok\ntest_active_locale_read_for_sse_meta (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_active_locale_read_for_sse_meta) ... ok\ntest_meta_frame_includes_language_on_escalation_path (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_meta_frame_includes_language_on_escalation_path) ... ok\ntest_search_returns_list (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_search_returns_list) ... ok\ntest_staff_visibility_skips_operator_only_paths (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_staff_visibility_skips_operator_only_paths) ... ok\ntest_sliding_window_overlap (apps.portal.tests.test_support_ingest.SupportIngestChunkTests.test_sliding_window_overlap) ... ok\n\n----------------------------------------------------------------------\nRan 26 tests in 2.473s\n\nOK"
+      "proof": "bhook_query) ... ok\ntest_troubleshooting_from_error_token (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_troubleshooting_from_error_token) ... ok\ntest_ui_help_from_navigation_phrase (services.ai.tests.test_support_intent_router.SupportIntentRouterTests.test_ui_help_from_navigation_phrase) ... ok\ntest_active_locale_read_for_sse_meta (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_active_locale_read_for_sse_meta) ... ok\ntest_meta_frame_includes_language_on_escalation_path (services.ai.tests.test_support_stream_language.SupportStreamLanguageTests.test_meta_frame_includes_language_on_escalation_path) ... ok\ntest_search_returns_list (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_search_returns_list) ... ok\ntest_staff_visibility_skips_operator_only_paths (services.ai.tests.test_code_index_role_fence.CodeIndexRoleFenceTests.test_staff_visibility_skips_operator_only_paths) ... ok\ntest_sliding_window_overlap (apps.portal.tests.test_support_ingest.SupportIngestChunkTests.test_sliding_window_overlap) ... ok\n\n----------------------------------------------------------------------\nRan 26 tests in 22.712s\n\nOK"
     }
   ]
 }

@@ -13,6 +13,7 @@ GATES = (
     "scripts/verify_marketing_personality_pages.py",
     "scripts/verify_marketing_intent_viewport.py",
     "scripts/verify_marketing_intent_homepage_optin.py",
+    "scripts/verify_marketing_simulated_benchmark_disclosure.py",
     "scripts/verify_lane2_external_honesty.py",
     "scripts/verify_lane2_residuals_on_disk.py",
     "scripts/verify_pilot_defect_intake.py",

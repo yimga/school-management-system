@@ -1,0 +1,61 @@
+/**
+ * Workflow Flight Deck — operator mission control (10x wave 3).
+ */
+
+.rmc-wfp-flight-deck {
+  display: grid;
+  gap: var(--rmc-assist-gap, 12px);
+}
+
+@media (min-width: 992px) {
+  .rmc-wfp-flight-deck {
+    grid-template-columns: 1.1fr 1fr 0.9fr;
+    align-items: start;
+  }
+}
+
+.rmc-wfp-flight-deck__panel {
+  background: var(--surface-elevated, var(--surface-bg));
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg, 14px);
+  padding: 1rem;
+  box-shadow: var(--elev-1, 0 2px 8px rgba(0, 0, 0, 0.06));
+}
+
+.rmc-wfp-flight-deck__panel h2 {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem;
+}
+
+.rmc-wfp-flight-deck__run {
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-wfp-flight-deck__run:last-child {
+  border-bottom: 0;
+}
+
+.rmc-wfp-flight-deck__run[data-status="degrading"] {
+  border-left: 3px solid var(--color-warning-border, var(--hairline));
+  padding-left: 0.5rem;
+}
+
+.rmc-wfp-flight-deck__run[data-status="stuck"] {
+  border-left: 3px solid var(--color-danger, var(--hairline));
+  padding-left: 0.5rem;
+}
+
+.rmc-wfp-flight-deck__incident {
+  font-size: 0.85rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--hairline);
+}
+
+.rmc-wfp-flight-deck__empty {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}

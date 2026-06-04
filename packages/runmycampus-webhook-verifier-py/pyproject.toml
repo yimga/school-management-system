@@ -44,9 +44,9 @@ dependencies = []
 [project.urls]
 Homepage = "https://runmycampus.com"
 Documentation = "https://docs.runmycampus.com/webhooks/verification/"
-Repository = "https://github.com/runmycampus/runmycampus"
-Issues = "https://github.com/runmycampus/runmycampus/issues"
-Changelog = "https://github.com/runmycampus/runmycampus/blob/main/packages/runmycampus-webhook-verifier-py/CHANGELOG.md"
+Repository = "https://github.com/yimga/school-management-system"
+Issues = "https://github.com/yimga/school-management-system/issues"
+Changelog = "https://github.com/yimga/school-management-system/blob/main/packages/runmycampus-webhook-verifier-py/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [

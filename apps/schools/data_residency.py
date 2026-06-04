@@ -97,7 +97,20 @@ def derive_default_region(country_code: str) -> str:
                     return explicit.strip()
     except (ImportError, RuntimeError, AttributeError, ValueError):
         pass
-    return DEFAULT_REGION_BY_COUNTRY.get(code, GLOBAL_DATA_REGION)
+    mapped = DEFAULT_REGION_BY_COUNTRY.get(code)
+    if mapped is None:
+        # No static map entry and no RuntimeDefaults override. Falling back
+        # to the global region is safe by default, but for a real country
+        # code this may breach a data-residency requirement the operator
+        # hasn't configured yet — surface it instead of swallowing it.
+        logger.warning(
+            "data_residency: no region mapping for country=%s; defaulting to %s "
+            "(add an override in RuntimeDefaults['data_residency.country_overrides'])",
+            code,
+            GLOBAL_DATA_REGION,
+        )
+        return GLOBAL_DATA_REGION
+    return mapped
 
 
 def effective_region(school: Any) -> str:

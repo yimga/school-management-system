@@ -307,8 +307,8 @@
 }
 .rmc-signup-type-card:has(input:checked),
 .rmc-signup-type-card--selected {
-  border-color: var(--rmc-page-accent, var(--color-primary-500, #6366f1)) !important; /* style-allow: signup-multi-select */
-  background: var(--rmc-page-accent-soft, var(--color-primary-50, rgba(99, 102, 241, 0.08))) !important; /* style-allow: signup-multi-select */
+  border-color: var(--rmc-page-accent, var(--color-primary-500, #6366f1)) !important; /* style-allow: signup-multi-select */ /* theme-locked-allow: brand-accent-selected-card */
+  background: var(--rmc-page-accent-soft, var(--color-primary-50, rgba(99, 102, 241, 0.08))) !important; /* style-allow: signup-multi-select */ /* theme-locked-allow: brand-accent-selected-card */
   box-shadow: 0 0 0 1px var(--rmc-page-accent, #6366f1), 0 6px 18px var(--rmc-page-accent-soft, rgba(99, 102, 241, 0.18)); /* style-allow: signup-multi-select */
 }
 .rmc-signup-type-card__check {

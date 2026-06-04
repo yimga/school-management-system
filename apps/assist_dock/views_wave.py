@@ -27,7 +27,7 @@ from .presence import list_present
 
 logger = logging.getLogger(__name__)
 
-_MAX_BODY_BYTES = 2 * 1024
+_MAX_BODY_BYTES = 2 * 1024  # magic-number-allow: byte-size-cap
 _WAVE_RATE_LIMIT_SECONDS = 30
 _WAVE_INSIGHT_TTL_SECONDS = 30 * 60
 
@@ -58,8 +58,8 @@ def _rate_limited(key: tuple, now: float) -> bool:
         return True
     _LAST_WAVE_AT[key] = now
     # Best-effort prune so the dict doesn't grow unbounded.
-    if len(_LAST_WAVE_AT) > 5000:
-        cutoff = now - 600
+    if len(_LAST_WAVE_AT) > 5000:  # magic-number-allow: in-memory-ring-buffer-cap
+        cutoff = now - 600  # magic-number-allow: cooldown-window-seconds
         stale = [k for k, t in _LAST_WAVE_AT.items() if t < cutoff]
         for k in stale:
             _LAST_WAVE_AT.pop(k, None)

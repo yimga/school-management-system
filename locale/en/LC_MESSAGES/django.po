@@ -49588,3 +49588,871 @@ msgstr "{{ counter }} row{% plural %}{{ counter }} rows"
 
 msgid "← Back to delivery log"
 msgstr "← Back to delivery log"
+
+# === Appended by i18n catalog sync (verify_i18n_catalog_fresh gate) ===
+msgid "24h short link"
+msgstr "24h short link"
+
+msgid "Academic Matrix"
+msgstr "Academic Matrix"
+
+msgid "Academic rules"
+msgstr "Academic rules"
+
+msgid "Active platform workflows"
+msgstr "Active platform workflows"
+
+msgid ""
+"Add a meal using the form above to start building the canteen menu and "
+"pricing."
+msgstr ""
+"Add a meal using the form above to start building the canteen menu and "
+"pricing."
+
+msgid ""
+"Add a region with its Ollama endpoint, default model, and fallback to begin "
+"routing AI traffic."
+msgstr ""
+"Add a region with its Ollama endpoint, default model, and fallback to begin "
+"routing AI traffic."
+
+msgid ""
+"Add a title using the form above to start tracking copies in the library."
+msgstr ""
+"Add a title using the form above to start tracking copies in the library."
+
+msgid ""
+"Add an item using the form above to start tracking stock and locations."
+msgstr ""
+"Add an item using the form above to start tracking stock and locations."
+
+msgid "Add regional config"
+msgstr "Add regional config"
+
+msgid "Appearance and aesthetic"
+msgstr "Appearance and aesthetic"
+
+msgid "Approved by"
+msgstr "Approved by"
+
+msgid "Approved — ready to start"
+msgstr "Approved — ready to start"
+
+msgid "Attendance {{ pct }}% overall"
+msgstr "Attendance {{ pct }}% overall"
+
+msgid "Auth decorators"
+msgstr "Auth decorators"
+
+msgid "Back to page"
+msgstr "Back to page"
+
+msgid "Back to webhook delivery log"
+msgstr "Back to webhook delivery log"
+
+msgid "Behaviour"
+msgstr "Behaviour"
+
+msgid "CSV export"
+msgstr "CSV export"
+
+msgid "Check in a visitor using the form above to start tracking arrivals."
+msgstr "Check in a visitor using the form above to start tracking arrivals."
+
+msgid "Chips"
+msgstr "Chips"
+
+msgid "Class-based auth mixins"
+msgstr "Class-based auth mixins"
+
+msgid "Close detail sheet"
+msgstr "Close detail sheet"
+
+msgid "Content blocks"
+msgstr "Content blocks"
+
+msgid "Cozy"
+msgstr "Cozy"
+
+msgid ""
+"Create a school lead from the pipeline board and tag notes with region, "
+"type, and pilot status to surface it here."
+msgstr ""
+"Create a school lead from the pipeline board and tag notes with region, "
+"type, and pilot status to surface it here."
+
+msgid "Dead-letter queue entries in {{ status_filter }} status"
+msgstr "Dead-letter queue entries in {{ status_filter }} status"
+
+msgid "Deep utility, multi-tenant monitoring, raw computing metrics."
+msgstr "Deep utility, multi-tenant monitoring, raw computing metrics."
+
+msgid "Density"
+msgstr "Density"
+
+msgid "Dock settings"
+msgstr "Dock settings"
+
+msgid "Dock side"
+msgstr "Dock side"
+
+msgid ""
+"Drag to reorder. Tick to hide. Flip predictive halo + voice. Saved against "
+"your account."
+msgstr ""
+"Drag to reorder. Tick to hide. Flip predictive halo + voice. Saved against "
+"your account."
+
+msgid ""
+"Dual-control flow: requesting an impersonation creates a grant another "
+"SUPERADMIN must approve before it can be started."
+msgstr ""
+"Dual-control flow: requesting an impersonation creates a grant another "
+"SUPERADMIN must approve before it can be started."
+
+msgid "Email link"
+msgstr "Email link"
+
+msgid "Email this view"
+msgstr "Email this view"
+
+msgid "Enable voice chip (Web Speech API)"
+msgstr "Enable voice chip (Web Speech API)"
+
+msgid "End impersonation"
+msgstr "End impersonation"
+
+msgid ""
+"Entries are created from integrated clinic workflows or the Django admin. "
+"Access is restricted to leadership and staff."
+msgstr ""
+"Entries are created from integrated clinic workflows or the Django admin. "
+"Access is restricted to leadership and staff."
+
+msgid ""
+"Every state transition is recorded in ImpersonationAuditEvent. Dual control "
+"means the approver MUST be a different SUPERADMIN than the grantor."
+msgstr ""
+"Every state transition is recorded in ImpersonationAuditEvent. Dual control "
+"means the approver MUST be a different SUPERADMIN than the grantor."
+
+msgid "Every subject is above the alert threshold — keep it up."
+msgstr "Every subject is above the alert threshold — keep it up."
+
+msgid ""
+"Feature toggle changes will be recorded here once operators flip flags on "
+"the control panel."
+msgstr ""
+"Feature toggle changes will be recorded here once operators flip flags on "
+"the control panel."
+
+msgid "Financial Ledger"
+msgstr "Financial Ledger"
+
+msgid "Fluidity, multi-dimensional tracking, metric grouping."
+msgstr "Fluidity, multi-dimensional tracking, metric grouping."
+
+msgid "Front-office 200x"
+msgstr "Front-office 200x"
+
+msgid ""
+"Generate or validate a schedule via the scheduler API in Integrations to "
+"populate this list."
+msgstr ""
+"Generate or validate a schedule via the scheduler API in Integrations to "
+"populate this list."
+
+msgid "Hide"
+msgstr "Hide"
+
+msgid "Impersonate"
+msgstr "Impersonate"
+
+msgid "Impersonation"
+msgstr "Impersonation"
+
+msgid "Impersonation active"
+msgstr "Impersonation active"
+
+msgid "Impersonation active in this session."
+msgstr "Impersonation active in this session."
+
+msgid "Impersonation — dual-control"
+msgstr "Impersonation — dual-control"
+
+msgid "Inspect this page"
+msgstr "Inspect this page"
+
+msgid ""
+"Install a blueprint from the marketplace to seed this school with a tested "
+"configuration package."
+msgstr ""
+"Install a blueprint from the marketplace to seed this school with a tested "
+"configuration package."
+
+msgid "Install flow"
+msgstr "Install flow"
+
+msgid "Launch hero"
+msgstr "Launch hero"
+
+msgid "Left edge"
+msgstr "Left edge"
+
+msgid ""
+"Light follows the OS, dark is editorial, system tracks your platform "
+"preference."
+msgstr ""
+"Light follows the OS, dark is editorial, system tracks your platform "
+"preference."
+
+msgid "Loading workspace"
+msgstr "Loading workspace"
+
+msgid "Migration & interoperability"
+msgstr "Migration & interoperability"
+
+msgid "Ministry registration"
+msgstr "Ministry registration"
+
+msgid "Mint short link"
+msgstr "Mint short link"
+
+msgid ""
+"Mints a 24h link AND emails each recipient. Up to 12 addresses; we record "
+"per-recipient receipts so you can see who got it."
+msgstr ""
+"Mints a 24h link AND emails each recipient. Up to 12 addresses; we record "
+"per-recipient receipts so you can see who got it."
+
+msgid ""
+"Mints a tokenised URL that auto-expires. Token is single-use-aware; the "
+"recipient still passes the page's own auth."
+msgstr ""
+"Mints a tokenised URL that auto-expires. Token is single-use-aware; the "
+"recipient still passes the page's own auth."
+
+msgid "Newsletter"
+msgstr "Newsletter"
+
+msgid "No URL pattern matched this path."
+msgstr "No URL pattern matched this path."
+
+msgid "No approved grants ready to start."
+msgstr "No approved grants ready to start."
+
+msgid "No archived smoke runs yet"
+msgstr "No archived smoke runs yet"
+
+msgid "No audit entries yet"
+msgstr "No audit entries yet"
+
+msgid "No blueprint installations yet"
+msgstr "No blueprint installations yet"
+
+msgid "No clinic records yet"
+msgstr "No clinic records yet"
+
+msgid "No cover assignments yet"
+msgstr "No cover assignments yet"
+
+msgid "No evaluation records yet"
+msgstr "No evaluation records yet"
+
+msgid "No friction signals yet"
+msgstr "No friction signals yet"
+
+msgid "No grants awaiting approval."
+msgstr "No grants awaiting approval."
+
+msgid ""
+"No impersonation route is currently wired on this build. The chip will "
+"activate automatically as soon as the platform registers a recognized URL "
+"name (e.g. accounts:impersonate)."
+msgstr ""
+"No impersonation route is currently wired on this build. The chip will "
+"activate automatically as soon as the platform registers a recognized URL "
+"name (e.g. accounts:impersonate)."
+
+msgid "No improvements tracked yet"
+msgstr "No improvements tracked yet"
+
+msgid "No inventory items yet"
+msgstr "No inventory items yet"
+
+msgid "No leads in the first-100 pipeline yet"
+msgstr "No leads in the first-100 pipeline yet"
+
+msgid "No maintenance requests yet"
+msgstr "No maintenance requests yet"
+
+msgid "No master schedules yet"
+msgstr "No master schedules yet"
+
+msgid "No meals on the menu yet"
+msgstr "No meals on the menu yet"
+
+msgid "No recent grants."
+msgstr "No recent grants."
+
+msgid "No regional AI configurations yet"
+msgstr "No regional AI configurations yet"
+
+msgid "No results for \"{{ q }}\""
+msgstr "No results for \"{{ q }}\""
+
+msgid "No runs match this filter"
+msgstr "No runs match this filter"
+
+msgid "No sale lines recorded yet"
+msgstr "No sale lines recorded yet"
+
+msgid "No specialty pass rates yet"
+msgstr "No specialty pass rates yet"
+
+msgid "No tenant scope detected."
+msgstr "No tenant scope detected."
+
+msgid "No term rankings yet"
+msgstr "No term rankings yet"
+
+msgid "No titles in the catalog yet"
+msgstr "No titles in the catalog yet"
+
+msgid "No visit history yet"
+msgstr "No visit history yet"
+
+msgid "No visitors on site"
+msgstr "No visitors on site"
+
+msgid "No weak subjects identified"
+msgstr "No weak subjects identified"
+
+msgid "Nobody else is on this page right now."
+msgstr "Nobody else is on this page right now."
+
+msgid "Open marketplace"
+msgstr "Open marketplace"
+
+msgid "Open pipeline board"
+msgstr "Open pipeline board"
+
+msgid "Operator Shell"
+msgstr "Operator Shell"
+
+msgid "Optional note"
+msgstr "Optional note"
+
+msgid ""
+"Other operators looking at the same page in the last {{ heartbeat_seconds }}"
+" seconds."
+msgstr ""
+"Other operators looking at the same page in the last {{ heartbeat_seconds }}"
+" seconds."
+
+msgid "PDF snapshot"
+msgstr "PDF snapshot"
+
+msgid "Page"
+msgstr "Page"
+
+msgid "Page URL"
+msgstr "Page URL"
+
+msgid "Page path"
+msgstr "Page path"
+
+msgid "Past check-ins will appear here once visitors begin signing in."
+msgstr "Past check-ins will appear here once visitors begin signing in."
+
+msgid "Pick a role to preview how a tenant sees this surface."
+msgstr "Pick a role to preview how a tenant sees this surface."
+
+msgid "Picking a language pins it as your sticky locale across sessions."
+msgstr "Picking a language pins it as your sticky locale across sessions."
+
+msgid "Precision, density, absolute financial clarity."
+msgstr "Precision, density, absolute financial clarity."
+
+msgid "Predictive halo (highlight your likely next chip)"
+msgstr "Predictive halo (highlight your likely next chip)"
+
+msgid "Press ⌘ + K to open the global console"
+msgstr "Press ⌘ + K to open the global console"
+
+msgid "RBAC scope"
+msgstr "RBAC scope"
+
+msgid "Rankings appear once the first term's grades are computed."
+msgstr "Rankings appear once the first term's grades are computed."
+
+msgid "Rates appear after the first round of grades is entered."
+msgstr "Rates appear after the first round of grades is entered."
+
+msgid "Ready to switch to RunMyCampus?"
+msgstr "Ready to switch to RunMyCampus?"
+
+msgid "Recent grants"
+msgstr "Recent grants"
+
+msgid "Recipients (comma- or newline-separated)"
+msgstr "Recipients (comma- or newline-separated)"
+
+msgid ""
+"Record a sale using the form above. When Inventory is enabled, link a stock "
+"line to prefill the item label."
+msgstr ""
+"Record a sale using the form above. When Inventory is enabled, link a stock "
+"line to prefill the item label."
+
+msgid "Records appear here once marks are captured for this class and term."
+msgstr "Records appear here once marks are captured for this class and term."
+
+msgid "Replay dead-letter row {{ row.id }}"
+msgstr "Replay dead-letter row {{ row.id }}"
+
+msgid "Request a grant"
+msgstr "Request a grant"
+
+msgid "Request grant"
+msgstr "Request grant"
+
+msgid "Right edge"
+msgstr "Right edge"
+
+msgid ""
+"Routes with elevated friction scores will appear once analytics start "
+"collecting telemetry from live traffic."
+msgstr ""
+"Routes with elevated friction scores will appear once analytics start "
+"collecting telemetry from live traffic."
+
+msgid "RunMyCampus view"
+msgstr "RunMyCampus view"
+
+msgid ""
+"Send the current page to a colleague — choose a format and a delivery "
+"channel."
+msgstr ""
+"Send the current page to a colleague — choose a format and a delivery "
+"channel."
+
+msgid "Share this view"
+msgstr "Share this view"
+
+msgid "Short URL (expires in 24h)"
+msgstr "Short URL (expires in 24h)"
+
+msgid "Signup form"
+msgstr "Signup form"
+
+msgid "SiteSettings keys"
+msgstr "SiteSettings keys"
+
+msgid "Start impersonation"
+msgstr "Start impersonation"
+
+msgid "Status: {{ row.status }}"
+msgstr "Status: {{ row.status }}"
+
+msgid ""
+"Sticky locale: <code>{{ code }}</code> — applied on every page until you "
+"pick another or clear it."
+msgstr ""
+"Sticky locale: <code>{{ code }}</code> — applied on every page until you "
+"pick another or clear it."
+
+msgid "Submit Article"
+msgstr "Submit Article"
+
+msgid "Submit Question"
+msgstr "Submit Question"
+
+msgid ""
+"Submit a new request using the form above to track facilities work and "
+"status."
+msgstr ""
+"Submit a new request using the form above to track facilities work and "
+"status."
+
+msgid "Super-only RBAC + settings introspection. Not a write surface."
+msgstr "Super-only RBAC + settings introspection. Not a write surface."
+
+msgid ""
+"Switch languages mid-session — every page repaints in the chosen locale."
+msgstr ""
+"Switch languages mid-session — every page repaints in the chosen locale."
+
+msgid "Switch theme"
+msgstr "Switch theme"
+
+msgid "Syllabus progress {{ pct }}%"
+msgstr "Syllabus progress {{ pct }}%"
+
+msgid "TTL (seconds)"
+msgstr "TTL (seconds)"
+
+msgid "Target user id"
+msgstr "Target user id"
+
+msgid "Tel"
+msgstr "Tel"
+
+msgid "Tenant v3 100x"
+msgstr "Tenant v3 100x"
+
+msgid "Term-over-term deltas appear once at least two terms have been graded."
+msgstr ""
+"Term-over-term deltas appear once at least two terms have been graded."
+
+msgid ""
+"The nightly Celery task writes results to var/smoke-results/ once enabled. "
+"Trigger a run now to seed the history."
+msgstr ""
+"The nightly Celery task writes results to var/smoke-results/ once enabled. "
+"Trigger a run now to seed the history."
+
+msgid ""
+"The platform exposes one or more impersonation routes — pick one to land in "
+"the audit-logged role-switch flow."
+msgstr ""
+"The platform exposes one or more impersonation routes — pick one to land in "
+"the audit-logged role-switch flow."
+
+msgid ""
+"To keep student and parent data safe, reach the minimum score before using "
+"school workflows — enable MFA, verify your email, and use a strong password."
+msgstr ""
+"To keep student and parent data safe, reach the minimum score before using "
+"school workflows — enable MFA, verify your email, and use a strong password."
+
+msgid "Translate this page"
+msgstr "Translate this page"
+
+msgid ""
+"Try different keywords, browse by category, or open the AI help assistant "
+"for guided answers."
+msgstr ""
+"Try different keywords, browse by category, or open the AI help assistant "
+"for guided answers."
+
+msgid ""
+"Try widening the status filter — there may be archived runs outside the "
+"currently selected scope."
+msgstr ""
+"Try widening the status filter — there may be archived runs outside the "
+"currently selected scope."
+
+msgid "URL resolution"
+msgstr "URL resolution"
+
+msgid ""
+"Use the form above to record an absent teacher and assign cover for a period"
+" or full day."
+msgstr ""
+"Use the form above to record an absent teacher and assign cover for a period"
+" or full day."
+
+msgid "Wave"
+msgstr "Wave"
+
+msgid ""
+"Waves push an in-dock notification to the recipient. Full co-browse needs a "
+"WebSocket bridge and is still on the roadmap."
+msgstr ""
+"Waves push an in-dock notification to the recipient. Full co-browse needs a "
+"WebSocket bridge and is still on the roadmap."
+
+msgid "Who's here"
+msgstr "Who's here"
+
+msgid "Who's here right now"
+msgstr "Who's here right now"
+
+msgid ""
+"Your preference is stored against your account so it follows you across "
+"devices."
+msgstr ""
+"Your preference is stored against your account so it follows you across "
+"devices."
+
+msgid "chars max"
+msgstr "chars max"
+
+msgid "default"
+msgstr "default"
+
+msgid "max"
+msgstr "max"
+
+msgid "target"
+msgstr "target"
+
+msgid "%(n)s assignments"
+msgstr "%(n)s assignments"
+
+msgid "Academics accent"
+msgstr "Academics accent"
+
+msgid "Active conversations"
+msgstr "Active conversations"
+
+msgid "Admissions accent"
+msgstr "Admissions accent"
+
+msgid "All clear"
+msgstr "All clear"
+
+msgid "Broken feature-gap proofs"
+msgstr "Broken feature-gap proofs"
+
+msgid ""
+"Broken feature-gap proofs (promises that no longer resolve) and over-SLA "
+"backlog items, aggregated into one operator signal. This is the same data "
+"the bottom-right dock badge surfaces."
+msgstr ""
+"Broken feature-gap proofs (promises that no longer resolve) and over-SLA "
+"backlog items, aggregated into one operator signal. This is the same data "
+"the bottom-right dock badge surfaces."
+
+msgid "CLASS"
+msgstr "CLASS"
+
+msgid "Chat with your department, classroom, or custom groups"
+msgstr "Chat with your department, classroom, or custom groups"
+
+msgid "Checklist pulse"
+msgstr "Checklist pulse"
+
+msgid "Class attendance"
+msgstr "Class attendance"
+
+msgid "Closed without refund — document rationale for audit."
+msgstr "Closed without refund — document rationale for audit."
+
+msgid "Column"
+msgstr "Column"
+
+msgid "Communication accent"
+msgstr "Communication accent"
+
+msgid "Create Group"
+msgstr "Create Group"
+
+msgid "Current step"
+msgstr "Current step"
+
+msgid "Days / max"
+msgstr "Days / max"
+
+msgid "Decision notes / clarification reason"
+msgstr "Decision notes / clarification reason"
+
+msgid "Deny"
+msgstr "Deny"
+
+msgid "Department groups"
+msgstr "Department groups"
+
+msgid "Dismiss alert"
+msgstr "Dismiss alert"
+
+msgid "Dispute closed — retention window applies per policy."
+msgstr "Dispute closed — retention window applies per policy."
+
+msgid "Dispute under review — confirm ledger and PSP status."
+msgstr "Dispute under review — confirm ledger and PSP status."
+
+msgid "Explain the decision or request clarification"
+msgstr "Explain the decision or request clarification"
+
+msgid ""
+"Fast embed view: current progress, blockers, and the highest-impact next "
+"actions."
+msgstr ""
+"Fast embed view: current progress, blockers, and the highest-impact next "
+"actions."
+
+msgid "Forecast"
+msgstr "Forecast"
+
+msgid "Homeroom"
+msgstr "Homeroom"
+
+msgid "Latest platform activity — open feed"
+msgstr "Latest platform activity — open feed"
+
+msgid "Latest school activity — open feed"
+msgstr "Latest school activity — open feed"
+
+msgid "Launch readiness snapshot"
+msgstr "Launch readiness snapshot"
+
+msgid ""
+"Live mission control for platform workflows — active runs, incidents, and "
+"fixes."
+msgstr ""
+"Live mission control for platform workflows — active runs, incidents, and "
+"fixes."
+
+msgid "Live operator activity feed"
+msgstr "Live operator activity feed"
+
+msgid "Live school activity feed"
+msgstr "Live school activity feed"
+
+msgid "Loading workflows…"
+msgstr "Loading workflows…"
+
+msgid "MRR waterfall"
+msgstr "MRR waterfall"
+
+msgid "Marking completion"
+msgstr "Marking completion"
+
+msgid "Mine"
+msgstr "Mine"
+
+msgid "My groups"
+msgstr "My groups"
+
+msgid "New dispute — assign reviewer and gather payment evidence."
+msgstr "New dispute — assign reviewer and gather payment evidence."
+
+msgid "No active step yet."
+msgstr "No active step yet."
+
+msgid ""
+"No backlog evaluation snapshot is cached, so SLA breaches can't be shown. "
+"Run it once:"
+msgstr ""
+"No backlog evaluation snapshot is cached, so SLA breaches can't be shown. "
+"Run it once:"
+
+msgid "No backlog items are over their SLA."
+msgstr "No backlog items are over their SLA."
+
+msgid "No blockers — launch is clear."
+msgstr "No blockers — launch is clear."
+
+msgid "No broken proofs — every shipped feature resolves its proof."
+msgstr "No broken proofs — every shipped feature resolves its proof."
+
+msgid "No checklist items yet."
+msgstr "No checklist items yet."
+
+msgid "No live data yet"
+msgstr "No live data yet"
+
+msgid "Open study assist"
+msgstr "Open study assist"
+
+msgid "Our finance team is reviewing your dispute."
+msgstr "Our finance team is reviewing your dispute."
+
+msgid "Over-SLA backlog items"
+msgstr "Over-SLA backlog items"
+
+msgid "Overdue fees"
+msgstr "Overdue fees"
+
+msgid "People / roster"
+msgstr "People / roster"
+
+msgid "People / roster accent"
+msgstr "People / roster accent"
+
+msgid "Platform Health"
+msgstr "Platform Health"
+
+msgid "Public"
+msgstr "Public"
+
+msgid "Re-check"
+msgstr "Re-check"
+
+msgid ""
+"Re-check runs a tracked workflow that re-resolves the proof. It appears in "
+"the workflow progress chip; if the proof still fails, the run is recorded as"
+" failed."
+msgstr ""
+"Re-check runs a tracked workflow that re-resolves the proof. It appears in "
+"the workflow progress chip; if the proof still fails, the run is recorded as"
+" failed."
+
+msgid ""
+"Re-checked <code>{{ slug }}</code> — proof now resolves. A tracked workflow "
+"run was recorded."
+msgstr ""
+"Re-checked <code>{{ slug }}</code> — proof now resolves. A tracked workflow "
+"run was recorded."
+
+msgid ""
+"Re-checked <code>{{ slug }}</code> — proof still does not resolve. The "
+"tracked workflow run was marked failed."
+msgstr ""
+"Re-checked <code>{{ slug }}</code> — proof still does not resolve. The "
+"tracked workflow run was marked failed."
+
+msgid "Refund completed — check your statement for the credit."
+msgstr "Refund completed — check your statement for the credit."
+
+msgid "Refund could not be completed — contact the school bursar."
+msgstr "Refund could not be completed — contact the school bursar."
+
+msgid "Refund failed — escalate to PSP support with evidence."
+msgstr "Refund failed — escalate to PSP support with evidence."
+
+msgid "Refund issued — reconcile ledger and notify parent."
+msgstr "Refund issued — reconcile ledger and notify parent."
+
+msgid "Refund pending — verify PSP webhook and ledger hold."
+msgstr "Refund pending — verify PSP webhook and ledger hold."
+
+msgid "Refund requested — processing may take a few business days."
+msgstr "Refund requested — processing may take a few business days."
+
+msgid "Refund succeeded — confirm settlement and close ticket."
+msgstr "Refund succeeded — confirm settlement and close ticket."
+
+msgid "Request clarification"
+msgstr "Request clarification"
+
+msgid "School workflows"
+msgstr "School workflows"
+
+msgid "Snooze 1h"
+msgstr "Snooze 1h"
+
+msgid "Snooze for one hour"
+msgstr "Snooze for one hour"
+
+msgid "This dispute is closed."
+msgstr "This dispute is closed."
+
+msgid "View activity"
+msgstr "View activity"
+
+msgid "View school activity"
+msgstr "View school activity"
+
+msgid "We received your dispute and will review it shortly."
+msgstr "We received your dispute and will review it shortly."
+
+msgid "Workflow Flight Deck"
+msgstr "Workflow Flight Deck"
+
+msgid "Your dispute was resolved and a refund was issued."
+msgstr "Your dispute was resolved and a refund was issued."
+
+msgid "Your dispute was reviewed and closed without a refund."
+msgstr "Your dispute was reviewed and closed without a refund."
+
+msgid "broken proof(s)"
+msgstr "broken proof(s)"
+
+msgid "or schedule the daily refresh by setting"
+msgstr "or schedule the daily refresh by setting"
+
+msgid "over-SLA backlog"
+msgstr "over-SLA backlog"

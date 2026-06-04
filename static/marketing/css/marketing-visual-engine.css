@@ -185,7 +185,7 @@ html[dir="rtl"] .mkt-ve-split {
 .mkt-ve-network__btn.is-active {
   background: var(--mkt-accent, #4f46e5);
   border-color: transparent;
-  color: #fff;
+  color: var(--text-on-brand, #fff);
 }
 
 .mkt-ve-network.is-offline .mkt-ve-network__viz {
@@ -210,7 +210,7 @@ html[dir="rtl"] .mkt-ve-split {
 
 .mkt-ve-gradebook__tabs button.is-active {
   background: var(--mkt-accent, #4f46e5);
-  color: #fff;
+  color: var(--text-on-brand, #fff);
   border-color: transparent;
 }
 

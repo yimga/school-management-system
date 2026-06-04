@@ -26,7 +26,7 @@ body.admin-manager-shell .rmc-app-shell__sidebar::before {
   position: absolute;
   inset: 0 0 0 auto;
   width: 1px;
-  background: linear-gradient(
+  background: linear-gradient( /* off-token-allow: decorative-gradient-stop */
     180deg,
     transparent 0%,
     rgba(255, 255, 255, 0.10) 18%,

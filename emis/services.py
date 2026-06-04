@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from decimal import Decimal, InvalidOperation
 
 from django.utils import timezone
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count
 
 from apps.people.models import StudentProfile, TeacherProfile
 from apps.academics.models import AcademicYear, Term, Classroom, SubjectAssignment

@@ -2680,7 +2680,7 @@
         "support_success",
         "tenant_school_admin"
       ],
-      "entry_route": "/siteconfig/guided-onboarding/",
+      "entry_route": "/super/customer-success/",
       "completion_route_or_state": "onboarding_complete_for_tenant",
       "primary_goal": "Success rep walks a tenant through guided onboarding.",
       "owner": "customersuccess",

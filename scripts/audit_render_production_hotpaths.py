@@ -8,6 +8,7 @@ Exits 0 when the tree satisfies known fixes; 1 when actionable drift is found.
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -53,6 +54,31 @@ def main() -> int:
         failures.append(
             "control_plane_skeleton.html: rmc-workflow-progress.js must load inside "
             "request.user.is_authenticated block"
+        )
+    if 'include "components/rmc_workflow_progress_strip.html"' in skeleton:
+        strip_tpl = ROOT / "templates/components/rmc_workflow_progress_strip.html"
+        if not strip_tpl.is_file():
+            failures.append(
+                "templates/components/rmc_workflow_progress_strip.html: missing "
+                "(included by control_plane_skeleton.html and portal_base.html)"
+            )
+
+    settings_txt = _read("config/settings.py")
+    csp_mod = _read("apps/security/csp_middleware.py")
+    if "csp_middleware.csp_nonce" in settings_txt and "def csp_nonce" not in csp_mod:
+        failures.append(
+            "csp_middleware.py: settings registers csp_nonce context processor "
+            "but module lacks def csp_nonce"
+        )
+
+    ctx = _read("apps/siteconfig/cockpit_context.py")
+    if '"tenant_incident_banner": None' not in ctx:
+        failures.append(
+            "cockpit_context.py: manager branch must export tenant_incident_banner=None"
+        )
+    if '"operator_incident_banner": None' not in ctx:
+        failures.append(
+            "cockpit_context.py: tenant branch must export operator_incident_banner=None"
         )
 
     viewport = _read("templates/partials/rmc_viewport_engine.html")
@@ -109,6 +135,13 @@ def main() -> int:
         print("RENDER_HOTPATH_AUDIT_FAIL")
         for item in failures:
             print(f"  - {item}")
+        return 1
+
+    deploy_ready = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "verify_render_deploy_readiness.py")],
+        cwd=str(ROOT),
+    )
+    if deploy_ready.returncode != 0:
         return 1
 
     print("RENDER_HOTPATH_AUDIT_PASS")

@@ -1,9 +1,9 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-05-29T19:06:36Z",
+  "generated_utc": "2026-06-03T17:51:03Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
-    "bytes": 21451,
+    "bytes": 21386,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
@@ -34,17 +34,17 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 348701,
+    "bytes": 348498,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
-        "sha256": "62dfc4f09e7d6c9543cf569e3b871579b3b5ae3a1caa03b4926074092b4445cf",
-        "bytes": 141469
+        "sha256": "8cc5c7e13d0ce54056943d36c284467be95a64dca2205e9d9775205b25423cf2",
+        "bytes": 144963
       },
       {
         "path": "static/css/rmc-platform-header.css",
-        "sha256": "b4a8ad5c67f79338011ea23d2e3f2af25362c01b86638bda91d6a7676934096c",
-        "bytes": 13300
+        "sha256": "91880898773834f81d9550ae00ebc6010f0ac33a3fb48f94805be7fe93c2a01c",
+        "bytes": 17106
       },
       {
         "path": "static/css/statement-header.css",
@@ -78,8 +78,8 @@
       },
       {
         "path": "static/marketing/css/marketing-visual-engine.css",
-        "sha256": "23a3b0972bc525e87f29c549b4e76d1105df8a2bfcb1e79dd95d5ac292ae41a8",
-        "bytes": 7845
+        "sha256": "bc28947c6673c248a04aa87c098b5ecf1e00b2cf62d46bf39a63ffc21364ddc5",
+        "bytes": 7889
       },
       {
         "path": "static/marketing/css/marketing-intent-home.css",
@@ -118,13 +118,13 @@
       },
       {
         "path": "static/css/rmc-cool-apple-polish.css",
-        "sha256": "6496751a5bdb8c6ec1ea775f25f8611a2e357094650a1a6390e2ddea2aae2659",
-        "bytes": 23166
+        "sha256": "869d8904b9bac5dfc7996f44fb719525bbc205e0f94e6a85bea1b36d2b87aafa",
+        "bytes": 22184
       },
       {
         "path": "static/css/design-tokens-luxury.css",
-        "sha256": "97ce301a704a2fd8b9e8de085c7b0224211de446f8d73b0ddf0f52ec462d3d0f",
-        "bytes": 5467
+        "sha256": "af20a690a146e723b502c55b116168ffdd6d79f432319a7749dd8c033000142e",
+        "bytes": 5520
       },
       {
         "path": "static/marketing/css/marketing-v3-dashboards.css",

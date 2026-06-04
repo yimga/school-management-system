@@ -33,7 +33,7 @@ DEFAULT_SCOPES = (
 )
 
 OAUTH_STATE_SALT = "rmc.lms.ms_teams_edu.oauth_state.v4.00.91"
-OAUTH_STATE_TTL_SECONDS = 600
+OAUTH_STATE_TTL_SECONDS = 600  # magic-number-allow: ttl-seconds
 
 IS_SCAFFOLD = True
 

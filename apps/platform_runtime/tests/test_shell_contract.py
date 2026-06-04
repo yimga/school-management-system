@@ -9,6 +9,7 @@ from apps.platform_runtime.shell_contract import (
     manager_header_hide_config_chip,
     resolve_shell_contract,
     resolve_shell_dataclass,
+    vertical_workspace_policy,
 )
 
 
@@ -65,6 +66,9 @@ class ShellContractResolverTests(unittest.TestCase):
             "control_plane_breadcrumb_surface",
             "studio_os_sidebar_token",
             "manager_header_hide_config_chip",
+            "cp_header_mode",
+            "layout_density",
+            "vertical_workspace_policy",
         ):
             self.assertIn(key, ctx["rmc_shell"], f"rmc_shell must include {key!r} for shell inventory")
         self.assertEqual(ctx["rmc_shell"]["host_kind"], "school")
@@ -109,4 +113,18 @@ class ShellContractResolverTests(unittest.TestCase):
         self.assertEqual(ctx["rmc_shell"]["portal_wrap_authenticated_shell"], "manager-embedded")
         self.assertEqual(ctx["rmc_shell"]["authenticated_surface"], "manager-control-plane")
         self.assertEqual(ctx["rmc_shell"]["shell_data_studio_host"], "control-plane")
+        self.assertEqual(ctx["rmc_shell"]["cp_header_mode"], "consolidated")
+        self.assertEqual(ctx["rmc_shell"]["layout_density"]["header_height"], "48px")
+
+    def test_vertical_workspace_policy_all_hosts(self):
+        policy = vertical_workspace_policy()
+        self.assertEqual(policy["version"], "1")
+        self.assertEqual(policy["heavy_chrome_rule"], "landing-only")
+        rf = RequestFactory()
+        for host in ("manager", "school"):
+            req = rf.get("/")
+            req.public_host_kind = host
+            ctx = resolve_shell_contract(req)
+            self.assertEqual(ctx["vertical_workspace_policy"]["scope"], "all-authenticated-shells")
+            self.assertEqual(ctx["vertical_workspace_policy"]["global_marquee_rule"], "landing-only")
 

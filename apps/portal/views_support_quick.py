@@ -62,7 +62,7 @@ def _parse_context(raw: str) -> dict[str, Any]:
             text = str(value)
         except Exception:  # noqa: BLE001 — defensive against weird inputs
             continue
-        cleaned[key] = text[:480]
+        cleaned[key] = text[:480]  # magic-number-allow: string-truncation-cap
     return cleaned
 
 
@@ -155,7 +155,7 @@ def support_quick_create(request: HttpRequest) -> JsonResponse:
         uploaded = request.FILES.getlist("attachments") if request.FILES else []
         for upload in uploaded[:5]:
             try:
-                if upload.size and upload.size > 10 * 1024 * 1024:
+                if upload.size and upload.size > 10 * 1024 * 1024:  # magic-number-allow: byte-size-cap
                     continue
                 row = GlobalSupportTicketAttachment.objects.create(
                     ticket=ticket,
@@ -281,7 +281,7 @@ def kb_search_inline(request: HttpRequest) -> JsonResponse:
                 url = ""
             results.append(
                 {
-                    "title": (getattr(article, "title", "") or "")[:140],
+                    "title": (getattr(article, "title", "") or "")[:140],  # magic-number-allow: string-truncation-cap
                     "summary": (getattr(article, "summary", "") or "")[:200],
                     "url": url,
                 }

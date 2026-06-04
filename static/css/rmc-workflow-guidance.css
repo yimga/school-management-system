@@ -7,8 +7,7 @@
  *   - .rmc-workflow-next-action        — workflow-scoped primary/secondary/blocker
  *   - .rmc-workflow-status-strip       — current-step + completion + owner
  *
- * Scaffolding only — NOT loaded by any shell yet. Phase 4 wires the bundle
- * into the four dashboard shells + marketing as part of the rebuild wave.
+ * Loaded on control-plane skeleton (operator shell) + per-page workflow templates.
  *
  * Token contract:
  *   - All surfaces via var(--surface-bg/canvas/elevated/popover).

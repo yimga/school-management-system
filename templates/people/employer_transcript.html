@@ -23,7 +23,7 @@
       <p class="mb-2"><strong>{% trans "Annual average" %}:</strong> {{ context.annual_average|floatformat:2|default:"—" }}</p>
       <p class="mb-2"><strong>{% trans "Promotion status" %}:</strong> {{ context.promotion_status|default:"—" }}</p>
       {% if context.term_rows %}
-      <table class="table table-sm table-family align-middle">
+      <table class="table table-sm table-family align-middle rmc-data-table">
         <caption class="visually-hidden">{% trans_term "Transcript" key="transcript" %}</caption>
         <thead><tr><th>{% trans_term "Term" key="term" %}</th><th>{% trans "Average" %}</th></tr></thead>
         <tbody>

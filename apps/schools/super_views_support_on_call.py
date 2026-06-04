@@ -89,7 +89,7 @@ def support_on_call_save(request):
     is_primary = request.POST.get("is_primary") in ("1", "true", "on", "yes")
     starts_raw = request.POST.get("starts_at") or ""
     ends_raw = request.POST.get("ends_at") or ""
-    notes = (request.POST.get("notes") or "").strip()[:240]
+    notes = (request.POST.get("notes") or "").strip()[:240]  # magic-number-allow: string-truncation-cap
 
     starts_at = _parse_dt(starts_raw)
     ends_at = _parse_dt(ends_raw)

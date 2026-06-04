@@ -17,16 +17,16 @@
   <div class="card-body">
     <form method="get" class="row g-2 align-items-end" data-rmc-autosubmit="1">
       <div class="col-md-4">
-        <label class="form-label small">Academic year</label>
-        <select class="form-select" name="year">
+        <label class="form-label small" for="deadlines-year">Academic year</label>
+        <select id="deadlines-year" class="form-select" name="year">
           {% for y in years %}
             <option value="{{ y.id }}" {% if y.id == year.id %}selected{% endif %}>{{ y.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label small">Term</label>
-        <select class="form-select" name="term">
+        <label class="form-label small" for="deadlines-term">Term</label>
+        <select id="deadlines-term" class="form-select" name="term">
           {% for t in terms %}
             <option value="{{ t.id }}" {% if t.id == term.id %}selected{% endif %}>{{ t.get_name_display }}</option>
           {% endfor %}
@@ -46,8 +46,8 @@
       <input type="hidden" name="year" value="{{ year.id }}">
       <input type="hidden" name="term" value="{{ term.id }}">
       <div class="col-md-4">
-        <label class="form-label small">Classroom</label>
-        <select class="form-select" name="classroom">
+        <label class="form-label small" for="deadlines-classroom">Classroom</label>
+        <select id="deadlines-classroom" class="form-select" name="classroom">
           <option value="">Whole school</option>
           {% for c in classrooms %}
             <option value="{{ c.id }}">{{ c.name }}</option>
@@ -55,8 +55,8 @@
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label small">Deadline</label>
-        <input class="form-control" type="datetime-local" name="deadline_at" required>
+        <label class="form-label small" for="deadlines-deadline-at">Deadline</label>
+        <input id="deadlines-deadline-at" class="form-control" type="datetime-local" name="deadline_at" required>
       </div>
       <div class="col-md-4 d-grid">
         <button class="btn btn-primary" type="submit">Save Deadline</button>
@@ -68,7 +68,7 @@
 <div class="card">
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-sm align-middle table-family" aria-label="Grading deadlines by scope and date">
+      <table class="table table-sm align-middle table-family rmc-data-table" aria-label="Grading deadlines by scope and date">
         <thead>
           <tr>
             <th scope="col">Scope</th>

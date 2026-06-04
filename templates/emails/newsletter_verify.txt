@@ -11,3 +11,5 @@ This link expires in 7 days. If you didn't sign up, ignore this email
 and you won't hear from us again.
 
 — The RunMyCampus team
+
+{% include "emails/_legal_footer.txt" %}

@@ -586,11 +586,11 @@ urlpatterns = [
         name="api-roster-v1p2-oauth-introspect",
     ),
     # v4.00.36: OneRoster v1.2 read-only Rostering endpoints (wedge 44)
-    path("roster/v1p2/orgs/", _oneroster.orgs, name="api-roster-v1p2-orgs"),
+    path("roster/v1p2/orgs/", _oneroster.orgs, name="api-roster-v1p2-orgs"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.70 — single-org detail endpoint per spec § 4.13.
     path("roster/v1p2/orgs/<str:sourced_id>/", _oneroster.org_detail, name="api-roster-v1p2-org-detail"),
     path("roster/v1p2/schools/", _oneroster.schools, name="api-roster-v1p2-schools"),
-    path("roster/v1p2/users/", _oneroster.users, name="api-roster-v1p2-users"),
+    path("roster/v1p2/users/", _oneroster.users, name="api-roster-v1p2-users"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.82 Wave 14 T2 — delta surface per spec § 4.13.4 (?modifiedSince=<ISO>
     # returns active + tombstone rows). Registered BEFORE the
     # `users/<str:sourced_id>/` catch-all so the literal "delta" segment wins.
@@ -599,14 +599,14 @@ urlpatterns = [
     # BEFORE the `users/<str:sourced_id>/` catch-all so "bulk" isn't parsed
     # as a sourcedId.
     path("roster/v1p2/users/bulk/", _oneroster.users_bulk_post, name="api-roster-v1p2-users-bulk"),
-    path("roster/v1p2/students/", _oneroster.students, name="api-roster-v1p2-students"),
-    path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),
+    path("roster/v1p2/students/", _oneroster.students, name="api-roster-v1p2-students"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
+    path("roster/v1p2/teachers/", _oneroster.teachers, name="api-roster-v1p2-teachers"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.77 — staff convenience endpoint (users w/ administrator/staff role).
     path("roster/v1p2/staff/", _oneroster.staff, name="api-roster-v1p2-staff"),
-    path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),
+    path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.75 — single-class detail endpoint per spec § 4.13.
     path("roster/v1p2/classes/<str:sourced_id>/", _oneroster.class_detail, name="api-roster-v1p2-class-detail"),
-    path("roster/v1p2/academic-sessions/", _oneroster.academic_sessions, name="api-roster-v1p2-academic-sessions"),
+    path("roster/v1p2/academic-sessions/", _oneroster.academic_sessions, name="api-roster-v1p2-academic-sessions"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.71 — single-academicSession detail endpoint per spec § 4.13.
     path("roster/v1p2/academic-sessions/<str:sourced_id>/", _oneroster.academic_session_detail, name="api-roster-v1p2-academic-session-detail"),
     # v4.00.72 — terms convenience endpoint (academicSessions w/ type=term).
@@ -614,9 +614,9 @@ urlpatterns = [
     # v4.00.73 — gradingPeriods convenience endpoint.
     path("roster/v1p2/grading-periods/", _oneroster.grading_periods, name="api-roster-v1p2-grading-periods"),
     # v4.00.74 — courses GET endpoint per spec § 4.13.
-    path("roster/v1p2/courses/", _oneroster.courses, name="api-roster-v1p2-courses"),
+    path("roster/v1p2/courses/", _oneroster.courses, name="api-roster-v1p2-courses"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.76 — enrollments GET endpoint per spec § 4.13.
-    path("roster/v1p2/enrollments/", _oneroster.enrollments, name="api-roster-v1p2-enrollments"),
+    path("roster/v1p2/enrollments/", _oneroster.enrollments, name="api-roster-v1p2-enrollments"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.79 Wave 11 T2 — Categories GET (list + detail) per Result Service
     # spec § 4.13.6 on the Roster Service path. Synthesizes from LineItem
     # category strings unioned with the 6 seed types so the surface is non-empty.

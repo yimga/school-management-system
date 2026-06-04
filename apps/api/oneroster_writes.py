@@ -38,7 +38,7 @@ from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from apps.api.oneroster import _gate
+from apps.api.oneroster import _gate, _require_write_scope
 
 logger = logging.getLogger(__name__)
 
@@ -173,13 +173,13 @@ def _upsert_user(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any],
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
-    username = (body.get("username") or "").strip()[:150]
+    username = (body.get("username") or "").strip()[:150]  # magic-number-allow: string-truncation-cap
     if not username:
         return {"error": "missing_username"}, 400
 
-    given = (body.get("givenName") or "")[:150]
-    family = (body.get("familyName") or "")[:150]
-    email = (body.get("email") or "")[:254]
+    given = (body.get("givenName") or "")[:150]  # magic-number-allow: string-truncation-cap
+    family = (body.get("familyName") or "")[:150]  # magic-number-allow: string-truncation-cap
+    email = (body.get("email") or "")[:254]  # magic-number-allow: string-truncation-cap
 
     with _PROCESS_LOCK:
         obj, created = User.objects.get_or_create(  # tenant-isolation-allow: roster-write-platform-scope
@@ -280,6 +280,9 @@ def _handle_put(
     gate = _gate(request)
     if gate is not None:
         return gate
+    scope_gate = _require_write_scope(request)
+    if scope_gate is not None:
+        return scope_gate
 
     body = _body_json(request)
     if body is None:

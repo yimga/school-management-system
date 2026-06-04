@@ -54,18 +54,6 @@ _PRESET_TEMPLATES: dict[str, dict[str, dict[str, Any]]] = {
     },
 }
 
-_DEFAULT_TEST_CONTEXTS: list[dict[str, Any]] = [
-    {
-        "weighted_sum": 42.0,
-        "coefficient_total": 6.0,
-        "scale_max": 20.0,
-        "scores_by_subject": {},
-        "coefficients": {},
-    },
-    {"value": 14.5, "scale_max": 20.0, "scores_by_subject": {}, "coefficients": {}},
-]
-
-
 def grading_nuance_templates_for_preset(preset_key: str) -> dict[str, dict[str, Any]]:
     """Return hook_point → {logic_data, description} for a grading preset."""
     key = (preset_key or "american").strip().lower()
@@ -74,7 +62,10 @@ def grading_nuance_templates_for_preset(preset_key: str) -> dict[str, dict[str, 
 
 def attach_grading_nuance_to_policy(policy: dict[str, Any], preset_key: str) -> None:
     """Merge verified JSON-Logic templates into policy['grading']['nuance_templates']."""
-    from apps.siteconfig.nuance_engine import verify_nuance_safety
+    from apps.siteconfig.nuance_engine import (
+        default_test_contexts_for_hook,
+        verify_nuance_safety,
+    )
 
     templates = grading_nuance_templates_for_preset(preset_key)
     verified: dict[str, Any] = {}
@@ -82,7 +73,11 @@ def attach_grading_nuance_to_policy(policy: dict[str, Any], preset_key: str) -> 
         logic = spec.get("logic_data")
         if not isinstance(logic, dict):
             continue
-        ok, _err = verify_nuance_safety(logic, _DEFAULT_TEST_CONTEXTS, reject_negative_fee=False)
+        ok, _err = verify_nuance_safety(
+            logic,
+            default_test_contexts_for_hook(hook_point),
+            reject_negative_fee=False,
+        )
         if not ok:
             continue
         verified[hook_point] = {
@@ -104,7 +99,10 @@ def sync_grading_nuance_from_policy(school) -> dict[str, Any]:
     """
     from apps.policies.resolver import get_effective_policy
     from apps.siteconfig.models import CustomNuance
-    from apps.siteconfig.nuance_engine import verify_nuance_safety
+    from apps.siteconfig.nuance_engine import (
+        default_test_contexts_for_hook,
+        verify_nuance_safety,
+    )
 
     if school is None:
         return {"synced": 0}
@@ -118,7 +116,11 @@ def sync_grading_nuance_from_policy(school) -> dict[str, Any]:
         logic = spec.get("logic_data")
         if not isinstance(logic, dict):
             continue
-        ok, _err = verify_nuance_safety(logic, _DEFAULT_TEST_CONTEXTS, reject_negative_fee=False)
+        ok, _err = verify_nuance_safety(
+            logic,
+            default_test_contexts_for_hook(str(hook_point)),
+            reject_negative_fee=False,
+        )
         if not ok:
             continue
         CustomNuance.objects.update_or_create(

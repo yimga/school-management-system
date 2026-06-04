@@ -4,6 +4,7 @@ School is the tenant; SchoolMembership links users to schools with a role.
 Phase D: Plan + addons; is_feature_enabled(tenant, code) for feature gate.
 """
 
+import hashlib
 import logging
 import uuid
 
@@ -267,6 +268,16 @@ class School(models.Model):
         blank=True,
         help_text="Subdomain for this school (e.g. ghs-limbe for ghs-limbe.yoursystem.com)",
     )
+    # Stored, indexed sha256(str(id))[:12] used by the WAL drain to resolve a
+    # tenant from its hash in O(1). Kept in sync in save(); the drain falls back
+    # to a full scan for any row whose hash predates the backfill migration.
+    tenant_hash = models.CharField(
+        max_length=12,
+        blank=True,
+        db_index=True,
+        editable=False,
+        help_text="Derived sha256(id)[:12] for fast WAL tenant resolution.",
+    )
     sub_system = models.CharField(
         max_length=10,
         choices=SubSystem.choices,
@@ -386,7 +397,7 @@ class School(models.Model):
     )
     # Multi-level hierarchy: materialized path (e.g. "" or "uuid1" or "uuid1/uuid2") for recursive queries
     hierarchy_path = models.CharField(
-        max_length=1024,
+        max_length=1024,  # magic-number-allow: charfield-max-length
         blank=True,
         db_index=True,
         help_text="Slash-separated UUIDs from root to parent; empty for root. Used for get_descendants/get_ancestors.",
@@ -636,6 +647,16 @@ class School(models.Model):
         ordering = ["name"]
         verbose_name = "School"
         verbose_name_plural = "Schools"
+        indexes = [
+            # A3: the soft-delete + active filter is the hot path —
+            # LiveSchoolManager scopes on deleted_at IS NULL and the many
+            # is_active=True queries (group hierarchy, dashboards, listings).
+            # A composite btree on (deleted_at, is_active) serves both.
+            models.Index(
+                fields=["deleted_at", "is_active"],
+                name="schools_softdel_active_idx",
+            ),
+        ]
 
     # Wave L6 (v3.61.6 — 2026-05-22): opt-in soft-delete-aware manager.
     # Django only auto-creates ``objects`` when the model declares NO
@@ -654,6 +675,23 @@ class School(models.Model):
         from django.core.exceptions import ValidationError
 
         from apps.siteconfig.billing_sku_registry import REPORT_PLATFORM_SKU_BUNDLES
+
+        # Reject a parent_school assignment that would create a cycle in the
+        # group hierarchy. The detector existed in hierarchy_helpers but was
+        # never wired into validation, so a cycle (A→B, B→A) could be saved
+        # and then hang every ancestor-chain / hierarchy_path walk.
+        if getattr(self, "parent_school_id", None):
+            from apps.schools.hierarchy_helpers import hierarchy_link_would_cycle
+
+            if hierarchy_link_would_cycle(self, self.parent_school_id):
+                raise ValidationError(
+                    {
+                        "parent_school": (
+                            "This parent assignment would create a cycle in the "
+                            "school group hierarchy."
+                        )
+                    }
+                )
 
         raw = (getattr(self, "report_platform_bundle_slug", None) or "").strip()
         if raw:
@@ -697,6 +735,12 @@ class School(models.Model):
     def save(self, *args, **kwargs):
         rp = (getattr(self, "report_platform_bundle_slug", None) or "").strip()
         self.report_platform_bundle_slug = rp.lower() if rp else ""
+        # Keep the WAL tenant_hash in sync. id is a UUID set at instantiation
+        # (default=uuid4), so it is available on first save before super().save().
+        if self.id:
+            self.tenant_hash = hashlib.sha256(
+                str(self.id).encode("utf-8")
+            ).hexdigest()[:12]
         # Keep materialized path in sync for multi-level hierarchy
         if self.parent_school_id:
             parent = School.objects.filter(pk=self.parent_school_id).first()

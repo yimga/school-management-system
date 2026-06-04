@@ -74,6 +74,11 @@ RISK_ORDER = {"critical": 0, "high": 1, "medium": 2, "low": 3}
 
 TOP_N = 40  # Promote the top 40 weak workflows by risk
 
+# Matrix ``entry_route`` paths that collide with another workflow — use named routes.
+_ENTRY_ROUTE_TO_URL_NAME: dict[str, str] = {
+    "/super/customer-success/": "super:customer_success_dashboard",
+}
+
 
 def map_audience(matrix_audiences: list[str]) -> str:
     """Pick a single registry audience from the matrix's list."""
@@ -245,6 +250,15 @@ def render_definition(entry: dict) -> str:
     audience = map_audience(entry.get("audience", []))
     module = slugify_module(entry.get("module", ""))
     route = entry.get("entry_route", "")
+    if route in _ENTRY_ROUTE_TO_URL_NAME:
+        route_for_def = _ENTRY_ROUTE_TO_URL_NAME[route]
+        entry_path = route
+    elif route.startswith("/"):
+        route_for_def = route
+        entry_path = route
+    else:
+        route_for_def = route
+        entry_path = None
     raw_purpose = entry.get("primary_goal", "")
     purpose = improve_purpose_copy(raw_purpose, audience)
     prerequisites = tuple(entry.get("prerequisites", []) or ())
@@ -257,12 +271,12 @@ def render_definition(entry: dict) -> str:
         f'        title={emit_py_repr(title)},\n'
         f'        audience={emit_py_repr(audience)},\n'
         f'        module={emit_py_repr(module)},\n'
-        f'        route={emit_py_repr(route)},\n'
+        f'        route={emit_py_repr(route_for_def)},\n'
         f'        purpose={emit_py_repr(purpose)},\n'
         f'        prerequisites={emit_py_repr(prerequisites)},\n'
         f'        success_state={emit_py_repr(success_state)},\n'
         f'        default_tags={emit_py_repr(tags)},\n'
-        f'        entry_path={emit_py_repr(route if route.startswith("/") else None)},\n'
+        f'        entry_path={emit_py_repr(entry_path)},\n'
         f'        source="matrix-promoted",\n'
         f'    ),\n'
     )

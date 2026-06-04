@@ -71,7 +71,7 @@ JWT_BEARER_ASSERTION_TYPE = (
 )
 GRANT_CLIENT_CREDENTIALS = "client_credentials"
 
-DEFAULT_TOKEN_TTL_SECONDS = 3600
+DEFAULT_TOKEN_TTL_SECONDS = 3600  # magic-number-allow: ttl-seconds
 
 
 # --- Helpers -----------------------------------------------------------------

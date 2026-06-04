@@ -86,7 +86,7 @@ def _color_hash_for(user_id: int) -> int:
     """Stable 0-360 hue per user id so the client can paint a consistent dot."""
     if not user_id:
         return 0
-    return (int(user_id) * 137) % 360
+    return (int(user_id) * 137) % 360  # magic-number-allow: hue-degree-rotation
 
 
 def heartbeat(

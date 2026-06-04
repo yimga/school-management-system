@@ -80,6 +80,7 @@ def _student_360_finance(student):
 
 
 @login_required
+@audit_pii_view(model_name="StudentProfile", object_id_kwarg="student_id", sensitivity="HIGH", reason="Student 360 full profile view")
 def student_360_page(request, student_id):
     """
     Full Student 360 page: tabbed Summary, Academic, Finance, Attendance, Timeline.
@@ -127,6 +128,7 @@ def student_360_page(request, student_id):
 
 
 @login_required
+@audit_pii_view(model_name="StudentProfile", object_id_kwarg="student_id", sensitivity="HIGH", reason="Student 360 full-PII export pack")
 def student_360_export(request, student_id):
     """Permission-gated export pack (JSON) for Student 360."""
     school = getattr(request, "school", None)
@@ -175,8 +177,10 @@ def transcript_archive(request, student_id):
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
 
+    # v4.01 — the archive exists to serve withdrawn/graduated students, who are
+    # exactly the ones with is_active=False. Scope by school (tenant) only.
     student = get_object_or_404(
-        StudentProfile, pk=student_id, school=school, is_active=True
+        StudentProfile, pk=student_id, school=school
     )
     user = request.user
     if not user.is_staff:
@@ -212,8 +216,9 @@ def transcript_archive_year(request, student_id, year_id):
     from apps.people.models import StudentProfile
     from .models import ImmutableTranscript
 
+    # v4.01 — single-year archive must reach withdrawn/graduated students too.
     student = get_object_or_404(
-        StudentProfile, pk=student_id, school=school, is_active=True
+        StudentProfile, pk=student_id, school=school
     )
     user = request.user
     if not user.is_staff:
@@ -252,14 +257,19 @@ def transcript_freeze(request, student_id):
         return HttpResponseForbidden("School context required.")
     from apps.people.models import StudentProfile
 
+    # v4.01 — a transcript freeze happens at graduation/withdrawal, so the
+    # student is often NO LONGER is_active. Scope by school (tenant) only.
     student = get_object_or_404(
-        StudentProfile, pk=student_id, school=school, is_active=True
+        StudentProfile, pk=student_id, school=school
     )
     user = request.user
     if not user.is_staff:
-        from apps.accounts.permissions import can_view_student_data
+        # v4.01 AUTHZ — freezing an immutable transcript is a WRITE to the
+        # student's academic record. Gate on edit permission, not the READ-only
+        # can_view_student_data (which let a PARENT/STUDENT freeze a transcript).
+        from apps.accounts.permissions import can_edit_student_grades
 
-        if not can_view_student_data(user, student_id):
+        if not can_edit_student_grades(user, student_id):
             return HttpResponseForbidden(
                 "You do not have permission to update this student's transcript."
             )

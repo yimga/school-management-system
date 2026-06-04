@@ -78,6 +78,15 @@ class _WebhookCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "webhook URL must be https:// — refuse cleartext delivery"
             )
+        # SSRF guard: a tenant must not register a delivery target that resolves
+        # to a private / loopback / link-local (cloud-metadata) address.
+        from apps.security.ssrf import is_safe_public_url
+
+        safe, _reason = is_safe_public_url(value, allow_http=False)
+        if not safe:
+            raise serializers.ValidationError(
+                "webhook URL must be a public address (private/internal hosts are refused)"
+            )
         return value
 
 

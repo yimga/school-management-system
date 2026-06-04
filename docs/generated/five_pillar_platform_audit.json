@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-30T12:29:11.799120+00:00",
+  "generated_at": "2026-06-03T18:53:51.859222+00:00",
   "verdict": "FIVE_PILLAR_PLATFORM_PASS",
-  "passed": 42,
+  "passed": 49,
   "failed": 0,
   "rows": [
     {
@@ -59,6 +59,55 @@
       "description": "Middleware stack order gate",
       "status": "PASS",
       "proof": "agement-system\\apps\\integrations_marketplace\\startup_checks.py\", line 116, in warn_if_oauth_callback_base_url_missing\n    logger.info(msg)\nMessage: \"integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\"\nArguments: ()"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "websocket_tenant_scope",
+      "description": "WebSocket tenant ASGI binding",
+      "status": "PASS",
+      "proof": "WEBSOCKET_TENANT_SCOPE_PASS"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "staff_bypass_guards",
+      "description": "No bare is_staff tenant bypass",
+      "status": "PASS",
+      "proof": "scan_staff_bypass_tenant_guards: OK (0)"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "delta_sync_school",
+      "description": "Delta sync requires tenant context",
+      "status": "PASS",
+      "proof": "verify_delta_sync_requires_school: OK"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "graphql_cp_host",
+      "description": "GraphQL registry manager-host only",
+      "status": "PASS",
+      "proof": "verify_graphql_control_plane_host: OK"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "authenticated_realdata",
+      "description": "Authenticated surfaces realdata defaults + merge order",
+      "status": "PASS",
+      "proof": "PLATFORM_AUTHENTICATED_REALDATA_PASS"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "sse_tenant_ingress",
+      "description": "SSE tenant host fail-closed guards",
+      "status": "PASS",
+      "proof": "verify_sse_tenant_ingress: OK"
+    },
+    {
+      "pillar": "AWS",
+      "check_id": "celery_tenant_tasks",
+      "description": "Celery task queryset scoping baseline",
+      "status": "PASS",
+      "proof": "audit_celery_tenant_task_scoping: OK"
     },
     {
       "pillar": "Shopify",

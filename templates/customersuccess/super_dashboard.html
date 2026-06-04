@@ -11,12 +11,12 @@
 {{ block.super }}
 <script src="{% static 'js/_pages/rmc-collapsable.js' %}" defer></script>
 {% endblock %}
-{% comment %} v3.58.0 (2026-05-22): live activity ticker lives INSIDE the dark header chrome
-   on landing pages (matches v8 200x preview). Self-gates on cockpit.activity_ticker.cards. {% endcomment %}
 {% block cp_shell_header_ticker %}
-  {% include "partials/cockpit/_activity_ticker.html" %}
+<div class="cp-header__row cp-header__row--live" data-rmc-cp-header-live="1">
+  {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+</div>
+{{ block.super }}
 {% endblock %}
-
 {% block cp_content %}
 {% comment %} v3.57.18 (2026-05-22): CS team's operator landing earns landing-peer parity
    with super_dashboard.html — gets platform_pulse + activity_ticker. Each partial
@@ -26,6 +26,7 @@
 
    v3.58.x Wave 10 Agent T (2026-05-22): platform_pulse wrapped in the collapsable primitive
    so operators can fold the section. State persists per-section via localStorage. {% endcomment %}
+{% comment %}v4.01.43: LIVE banner moved to cp_shell_header_ticker header row.{% endcomment %}
 {% include "partials/cockpit/_collapsable_section.html" with title=_("Platform pulse") key="cs_super__platform_pulse" include_partial="partials/cockpit/_platform_pulse.html" chrome="section" %}
 
 {% comment %} v3.58.10: 8 remaining manager 200x panels — landing-peer parity with super_dashboard.html. {% endcomment %}
@@ -91,7 +92,7 @@
         <div class="card-header">Risk alerts</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle">
+            <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
               <caption class="visually-hidden">{% trans "Risk alerts" %}</caption>
               <thead class="table-light"><tr><th>School</th><th>Severity</th><th>Reason</th><th>When</th></tr></thead>
               <tbody>
@@ -116,7 +117,7 @@
         <div class="card-header">Intervention suggestions</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle">
+            <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
               <caption class="visually-hidden">{% trans "Intervention suggestions" %}</caption>
               <thead class="table-light"><tr><th>School</th><th>Category</th><th>Title</th><th>When</th></tr></thead>
               <tbody>
@@ -144,7 +145,7 @@
         <div class="card-header">Recent workflow failures</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle">
+            <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
               <caption class="visually-hidden">{% trans "Recent workflow failures" %}</caption>
               <thead class="table-light"><tr><th>School</th><th>Workflow</th><th>Error</th><th>When</th></tr></thead>
               <tbody>
@@ -172,7 +173,7 @@
         <div class="card-header">School health scores (latest)</div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 table-family align-middle">
+            <table class="table table-hover mb-0 table-family align-middle rmc-data-table">
               <caption class="visually-hidden">{% trans "School health scores (latest)" %}</caption>
               <thead class="table-light"><tr><th>School</th><th>Score</th><th>Dimensions</th><th>Computed</th></tr></thead>
               <tbody>

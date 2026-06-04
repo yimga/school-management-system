@@ -439,7 +439,7 @@ class SupportOnCallShift(models.Model):
     is_primary = models.BooleanField(default=True, db_index=True)
     starts_at = models.DateTimeField(db_index=True)
     ends_at = models.DateTimeField(db_index=True)
-    notes = models.CharField(max_length=240, blank=True, default="")
+    notes = models.CharField(max_length=240, blank=True, default="")  # magic-number-allow: charfield-max-length
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -486,7 +486,7 @@ class PublicIncident(models.Model):
         blank=True,
         related_name="public_incidents",
     )
-    title = models.CharField(max_length=180)
+    title = models.CharField(max_length=180)  # magic-number-allow: charfield-max-length
     summary = models.TextField(blank=True, default="")
     severity = models.CharField(
         max_length=12, choices=Severity.choices, default=Severity.MINOR
@@ -557,7 +557,7 @@ class PublicIncidentSubscription(models.Model):
         default="",
         help_text="Phone (E.164) for SMS, webhook URL for Slack/Discord. EMAIL rows mirror the email field here.",
     )
-    email = models.EmailField(max_length=240, blank=True, default="")
+    email = models.EmailField(max_length=240, blank=True, default="")  # magic-number-allow: charfield-max-length
     verification_token = models.CharField(max_length=64, unique=True)
     unsubscribe_token = models.CharField(max_length=64, unique=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)

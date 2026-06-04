@@ -22,6 +22,12 @@
 
 *Single reference for "where things stand" with the plan and backlog. Update when reconciling.*
 
+### Parked / active deferrals
+
+| Item | Status | Owner action to resume | Detail |
+|------|--------|------------------------|--------|
+| **ASGI async SSE streaming** | **PARTIAL — PARKED 2026-06-01** | Deploy branch `asgi-streaming` to a **staging** service with `WEB_SERVER_MODE=asgi` + a **separate** DB; run the staging test plan (multi-tenant correctness under ASGI + `/health/` non-starvation); then merge **PR #169** and set `WEB_SERVER_MODE=asgi` on prod (rollback = unset env). | Code-complete on branch `asgi-streaming` / **PR #169**: `uvicorn[standard]`, async `login_required_api`, `guarded_async_sse_response`, both SSE views `async def` (DB via `sync_to_async`, `thread_sensitive=True` for django-tenants), `WEB_SERVER_MODE=asgi` start toggle. Validated locally: 63/63 smoke + concurrency proof (3 streams/cap 2 → 2 stream + 1 busy, `/health/`-like coroutine 0.0007s). Full doc + test plan: `docs/ASGI_STREAMING.md` (on the branch). **Not urgent** — the SSE concurrency cap already on `main` (`services/sse_wsgi_limits.py`) prevents the prod `/health/` starvation; ASGI is the bulletproofing upgrade, $0 (all OSS). |
+
 | Area | Status | Notes |
 |------|--------|--------|
 | **RUNMYCAMPUS ?1 table (?1 below)** | 27 rows | Every unchecked item has status (DONE/PARTIAL/NOT DONE/BLOCKED) + closure note. No open loops. |

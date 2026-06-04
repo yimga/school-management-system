@@ -40,9 +40,9 @@ if [[ -x .venv/bin/gunicorn.real ]]; then
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
+# shellcheck source=scripts/release/sanitize_gunicorn_env.sh
+source "$ROOT/scripts/release/sanitize_gunicorn_env.sh"
 export RMC_WEB_START_SCRIPT="${RMC_WEB_START_SCRIPT:-gunicorn_conf_wrapper}"
-export GUNICORN_TIMEOUT="${GUNICORN_TIMEOUT:-120}"
-export PORT="${PORT:-10000}"
 exec "$(dirname "$0")/gunicorn.real" -c config/gunicorn.conf.py "$@"
 GUNWRAP
   chmod +x .venv/bin/gunicorn

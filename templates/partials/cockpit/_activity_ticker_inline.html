@@ -1,0 +1,56 @@
+{% load i18n %}
+{% comment %}
+Tier 1 — compact inline badge in header (single-row chrome, operator + tenant + future tenant).
+Click opens #rmcCpActivityDrawer; full marquee is Tier 2 on landing canvas only.
+{% endcomment %}
+{% if request.user.is_authenticated %}
+  {% if request.public_host_kind == 'manager' %}
+    {% if cockpit.activity_ticker.cards and cockpit.activity_ticker.enabled|default_if_none:True %}
+      {% with card=cockpit.activity_ticker.cards.0 badge_label=cockpit.activity_ticker.live_badge_label|default:_("LIVE") %}
+      <button type="button"
+              class="rmc-cp-ticker-inline cp-activity-ticker-inline"
+              aria-live="polite"
+              aria-label="{% trans 'Latest platform activity — open feed' %}"
+              data-rmc-cp-ticker-inline="1"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#rmcCpActivityDrawer"
+              aria-controls="rmcCpActivityDrawer"
+              title="{{ card.text }}{% if card.timestamp %} · {{ card.timestamp }}{% endif %}">
+        <span class="rmc-cp-ticker-inline__badge">{{ badge_label }}</span>
+        <span class="rmc-cp-ticker-inline__text rmc-text-shield" data-rmc-text-shield="1">{{ card.text }}</span>
+      </button>
+      {% endwith %}
+    {% elif cockpit.activity_feed.enabled and cockpit.activity_feed.events %}
+      {% with event=cockpit.activity_feed.events.0 %}
+      <button type="button"
+              class="rmc-cp-ticker-inline cp-activity-ticker-inline"
+              aria-live="polite"
+              aria-label="{% trans 'Latest platform activity — open feed' %}"
+              data-rmc-cp-ticker-inline="1"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#rmcCpActivityDrawer"
+              aria-controls="rmcCpActivityDrawer"
+              title="{% firstof event.text event.label %}">
+        <span class="rmc-cp-ticker-inline__badge">{% trans "LIVE" %}</span>
+        <span class="rmc-cp-ticker-inline__text rmc-text-shield" data-rmc-text-shield="1">{% firstof event.text event.label %}</span>
+      </button>
+      {% endwith %}
+    {% endif %}
+  {% elif cockpit.tenant_activity_ticker.cards and cockpit.tenant_activity_ticker.enabled|default_if_none:True %}
+    {% with card=cockpit.tenant_activity_ticker.cards.0 badge_label=cockpit.tenant_activity_ticker.live_badge_label|default:_("LIVE") %}
+    <button type="button"
+            class="rmc-cp-ticker-inline cp-activity-ticker-inline rmc-cp-ticker-inline--tenant"
+            aria-live="polite"
+            aria-label="{% trans 'Latest school activity — open feed' %}"
+            data-rmc-cp-ticker-inline="1"
+            data-rmc-tenant-ticker-inline="1"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#rmcCpActivityDrawer"
+            aria-controls="rmcCpActivityDrawer"
+            title="{{ card.text }}{% if card.timestamp %} · {{ card.timestamp }}{% endif %}">
+      <span class="rmc-cp-ticker-inline__badge">{{ badge_label }}</span>
+      <span class="rmc-cp-ticker-inline__text rmc-text-shield" data-rmc-text-shield="1">{{ card.text }}</span>
+    </button>
+    {% endwith %}
+  {% endif %}
+{% endif %}

@@ -89,7 +89,7 @@ class GuardianLander(Lander):
                 from ._helpers import record_id_mapping
                 record_id_mapping(
                     ctx=ctx,
-                    legacy_id=f"{external_id}:{defaults.get('email', '')}",
+                    legacy_id=f"{student_external_id}:{defaults.get('email', '')}",
                     canonical_obj=obj, domain="guardians",
                 )
             except Exception as exc:  # noqa: BLE001

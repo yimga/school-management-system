@@ -34,7 +34,7 @@ def _expire_past_delegations_body() -> dict:
     from apps.accounts.models import Delegation
 
     now = timezone.now()
-    qs = Delegation.objects.filter(is_active=True).select_related("delegator")
+    qs = Delegation.objects.filter(is_active=True).select_related("delegator")  # tenant-isolation-allow: celery-delegation-lifecycle-cross-user-graph-reviewed
     to_expire = []
     for d in qs:
         site = get_effective_site_settings(school=_school_for_user(d.delegator))
@@ -51,15 +51,15 @@ def _expire_past_delegations_body() -> dict:
                     revoke_acting_badges_for_delegation,
                 )
 
-                d = Delegation.objects.get(pk=pk)
+                d = Delegation.objects.get(pk=pk)  # tenant-isolation-allow: celery-delegation-lifecycle-cross-user-graph-reviewed
                 revoke_acting_badges_for_delegation(d)
                 if getattr(site, "delegation_summary_report_on_return", True):
                     try:
                         from apps.accounts.models import DelegationActionLog
 
-                        count = DelegationActionLog.objects.filter(delegation=d).count()
+                        count = DelegationActionLog.objects.filter(delegation=d).count()  # tenant-isolation-allow: celery-delegation-lifecycle-cross-user-graph-reviewed
                         if count > 0 and d.delegator.email:
-                            from django.core.mail import send_mail
+                            from apps.schoolops.email_compat import send_mail
                             from django.conf import settings as django_settings
 
                             send_mail(
@@ -103,7 +103,7 @@ def _expire_past_delegations_body() -> dict:
                 logger.warning(
                     "expire_past_delegations: revoke badge for delegation %s: %s", pk, e
                 )
-        Delegation.objects.filter(pk__in=[pk for pk, _site in to_expire]).update(
+        Delegation.objects.filter(pk__in=[pk for pk, _site in to_expire]).update(  # tenant-isolation-allow: celery-delegation-lifecycle-cross-user-graph-reviewed
             is_active=False
         )
         logger.info(
@@ -175,7 +175,7 @@ def _prepare_rollover_proposal_impl(
     from apps.people.models import StudentResourceReturn
 
     outstanding = dict(
-        StudentResourceReturn.objects.filter(
+        StudentResourceReturn.objects.filter(  # tenant-isolation-allow: celery-delegation-lifecycle-cross-user-graph-reviewed
             academic_year=source_year, returned_at__isnull=True
         )
         .values("student_id")

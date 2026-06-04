@@ -165,6 +165,50 @@ class PayWithWalletTests(TestCase):
             )
         self.assertIn("positive", str(ctx.exception).lower())
 
+    def test_two_wallets_cannot_overpay_same_invoice(self):
+        """Cross-wallet double-pay guard: after one parent pays the invoice
+        in full, a second parent's wallet pay on the SAME invoice must be
+        rejected as exceeding the (now zero) balance. Exercises the
+        invoice-level re-fetch under the row lock that serializes
+        concurrent payers (no-op lock on SQLite, but the balance re-read is
+        the load-bearing correctness path)."""
+        second_parent = User.objects.create_user(
+            username="parent_wallet_2",
+            email="parent_w2@example.com",
+            password="pass",
+            role=User.Role.PARENT,
+        )
+        ParentWallet.objects.create(
+            school=self.school,
+            user=self.user,
+            balance=Decimal("100.00"),
+            currency_code="XAF",
+        )
+        ParentWallet.objects.create(
+            school=self.school,
+            user=second_parent,
+            balance=Decimal("100.00"),
+            currency_code="XAF",
+        )
+        # First parent pays the full 50.00 balance.
+        pay_invoice_with_wallet(
+            school=self.school,
+            user=self.user,
+            invoice=self.invoice,
+            amount=Decimal("50.00"),
+        )
+        # Second parent attempts to pay the same invoice — balance is now 0.
+        with self.assertRaises(ValueError) as ctx:
+            pay_invoice_with_wallet(
+                school=self.school,
+                user=second_parent,
+                invoice=self.invoice,
+                amount=Decimal("50.00"),
+            )
+        self.assertIn("exceeds", str(ctx.exception).lower())
+        self.invoice.refresh_from_db()
+        self.assertEqual(self.invoice.computed_balance, Decimal("0.00"))
+
     def test_pay_invoice_with_wallet_wrong_school_raises(self):
         other = School.objects.create(
             name="Other",

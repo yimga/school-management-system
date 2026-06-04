@@ -64,6 +64,7 @@
        BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/design-tokens-personality.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-class-grammar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-class-grammar-ext.css' %}">
     {% comment %} v4.00.12: platform-wide bulk-actions toolbar + status pill grammar. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-bulk-actions.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-world-class-experience.css' %}">
@@ -175,11 +176,15 @@
        hygiene that the manager surface uses, so portal + backend look like one product. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-global-aesthetic.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-portal-bundle.css' %}">
+    {% if request.user.is_authenticated %}
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
+    {% endif %}
     {% if request.public_host_kind == 'manager' %}
     <link rel="stylesheet" href="{% static 'css/manager-control-plane.css' %}">
     <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
+    <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-primary-nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-ultra.css' %}">
     <link rel="stylesheet" href="{% static 'css/control-plane-phase1-shell.css' %}">
@@ -231,6 +236,8 @@
     <link rel="stylesheet" href="{% static 'css/dashboard-topology-shell.css' %}">
     {% include "partials/rmc_security_posture_layout_styles.html" %}
     {% block extrastyle %}{% endblock %}
+    {% comment %} v4.01.44: dual-plane theme must load last in head (before deferred body styles). {% endcomment %}
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
 
     <!-- PWA Support — per-tenant manifest. v2.58 (2026-05-15) -->
     <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
@@ -243,36 +250,23 @@
 
   {% comment %} Pass 8 UX consistency: activate `.form-system` globally so the design system's
      focus rings / hover borders / button polish actually render on every portal form. {% endcomment %}
-  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}portal-sidebar-tone-light{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% elif SITE and SITE.use_dark_mode %}portal-sidebar-tone-dark{% else %}portal-sidebar-tone-light{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="{% block body_scroll_policy %}document{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1" data-rmc-back-to-top-policy="always"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1" data-copilot="collapsed"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="form-system layout-{{ LAYOUT_STYLE|default:'fluid' }} dashboard-preset-{{ USER_DASHBOARD_VISUAL_PRESET|default:'soft-glass' }} portal-body-with-layout {% if request.public_host_kind == 'manager' %}control-plane-shell cp-surface manager-portal-bridge{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}{% elif tp_v3_tenant_shell %}{% if tp_v3_role_home %} tp-v3-role-home{% else %} tp-v3-inner{% endif %}{% endif %} {% block body_extra_class %}{% endblock %}"{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %} data-rmc-cp-scroll="{% block body_scroll_policy %}document{% endblock %}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace"{% if request.user.is_authenticated %} data-rmc-page-help="1" data-rmc-back-to-top-policy="always"{% endif %}{% if request.public_host_kind == 'manager' %} data-rmc-notebook-footer-dock="1" data-copilot="collapsed"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %}{% endif %} data-rmc-page-personality="{{ rmc_page_personality|default:'default' }}" data-rmc-neutral="{{ SITE.neutral_palette|default:'cool' }}" data-click-measurement-phase="{{ click_measurement_phase|default:'current' }}" data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 px-3 py-2 skip-link-theme rounded" href="#main-content" aria-label="{% trans 'Skip to main content' %}">{% trans "Skip to main content" %}</a>
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
     {% include "partials/shell_chrome_site_preview_banner_top.html" %}
     {% if request.public_host_kind == 'manager' %}
     <header class="rmc-app-shell__header" role="banner" data-rmc-shell-header="portal-manager">
-      <div class="cp-header" data-rmc-cp-header-200x="1">
-        <div class="rmc-control-plane-chrome" data-rmc-control-plane-chrome="1" data-rmc-measured-chrome="1">
-          <div class="cp-header__row cp-header__row--utility">
-            {% include "partials/manager_operator_topbar.html" %}
-          </div>
-          {% block portal_shell_header_ticker %}
-            {% comment %} cp-live-strip: manager portal bridge live activity row {% endcomment %}
-            {% include "partials/cockpit/_activity_ticker.html" %}
-          {% endblock %}
-          {% if PRIMARY_CONTROL_PLANE_NAV %}
-          <div class="cp-header__row cp-nav-row" data-rmc-cp-nav-row="1">
-            {% include "partials/control_plane_primary_nav.html" %}
-          </div>
-          {% endif %}
-        </div>
-      </div>
+      {% include "partials/control_plane_unified_header.html" %}
     </header>
     {% else %}
     <div class="tp-header" data-rmc-tenant-header-100x="1">
       {% block portal_shell_header_ticker_tenant %}
-        {% comment %} v3 100x preview: no header ticker on role-home landings (canvas owns the story). {% endcomment %}
-        {% if not tp_v3_tenant_shell %}
-        {% include "partials/cockpit/_activity_ticker.html" %}
+        {% comment %}v4.01.43: Tier-2 LIVE banner embedded in header on role-home landings only.{% endcomment %}
+        {% if tenant_role_home_landing and request.public_host_kind != 'manager' %}
+        <div class="tp-header__live-banner" data-rmc-tenant-header-live="1">
+          {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
+        </div>
         {% endif %}
       {% endblock %}
     <div id="portalHeader" class="tp-header__row" role="banner" aria-label="{% trans 'Main navigation' %}" data-rmc-shell-header="portal">
@@ -359,6 +353,9 @@
             {% endif %}
 
             <div class="topbar-controls d-flex align-items-center gap-2">
+              {% if request.public_host_kind != 'manager' %}
+              {% include "partials/cockpit/_activity_ticker_inline.html" %}
+              {% endif %}
               {% if SHOW_OFFLINE_STATUS_BAR %}
               {% include 'components/offline_status_bar.html' %}
               {% endif %}
@@ -409,10 +406,7 @@
                  themeToggle / adminMenuDropdown / username / logout buttons that
                  used to live here are now redundant and have been removed.
                  SHOW_HEADER_PROFILE_MENU gate is preserved. {% endcomment %}
-              {% comment %} v4.01.07: unified header theme + aesthetic chip — SOT in
-                 components/header_theme_chip.html. Sits right of the bell / messages
-                 / shell switcher cluster and immediately before the user dropdown. {% endcomment %}
-              {% include "components/header_theme_chip.html" %}
+              {% comment %} v4.01.43: theme + aesthetic in user profile dropdown only. {% endcomment %}
               {% if SHOW_HEADER_PROFILE_MENU and request.user.is_authenticated %}
                 {% include "components/user_dropdown.html" %}
               {% endif %}
@@ -511,6 +505,9 @@
             {% include "components/demo_guided_hints.html" %}
             {% endif %}
             {% include "partials/shell_chrome_django_messages_tenant_portal.html" %}
+            {% if request.user.is_authenticated %}
+            {% include "partials/cockpit/_operator_incident_banner.html" %}
+            {% endif %}
             {% include "partials/shell_chrome_security_posture_banner.html" %}
 
             {% if request.user.is_authenticated and not tp_v3_tenant_shell %}
@@ -547,8 +544,14 @@
             {% endif %}
             {% endblock %}
 
+            {% block portal_landing_activity_ticker %}
+            {% comment %}v4.01.43: Tier-2 LIVE banner moved to tp-header (portal_shell_header_ticker_tenant).{% endcomment %}
+            {% endblock %}
+
             <div class="portal-page-body{% if tp_v3_tenant_shell %} tp-canvas-body{% endif %}" data-rmc-portal-page-body="1" data-rmc-cp-page-body="1" data-rmc-page-fold-nav="required">
             {% include "components/_workflow_auto_chrome.html" %}
+            {% if request.user.is_authenticated %}{% include "components/rmc_workflow_progress_strip.html" %}{% endif %}
+            {% if request.user.is_authenticated %}{% include "components/rmc_workflow_tenant_trust_strip.html" %}{% endif %}
             {% if wind_down_mode %}
             {% include "partials/rmc_wind_down_banner.html" %}
             {% endif %}
@@ -617,6 +620,7 @@
     <link rel="stylesheet" href="{% static 'css/theme-platform-contrast.css' %}">
     <link rel="stylesheet" href="{% static 'css/theme-platform-readability.css' %}">
     <link rel="stylesheet" href="{% static 'css/migration-cloud-ui.css' %}">
+    {% comment %} v4.01.44: final cascade pass — wins over deferred chrome CSS promoted at runtime. {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
     {% if SHOW_OFFLINE_STATUS_BAR %}
     <link rel="stylesheet" href="{% static 'css/reduce-motion-low-power.css' %}">
@@ -666,9 +670,6 @@
     }</script>
     <script src="{% static 'js/rmc-service-worker-registration.js' %}"></script>
     
-    {% comment %} Floating Back to top - visible after scrolling down {% endcomment %}
-    {% include 'components/back_to_top.html' %}
-
     {% comment %} Messages chathead: staff/teacher only (RBAC); parents use Contact School. Hidden on v3 tenant shell (header + ⌘K). {% endcomment %}
     {% if request.user.is_authenticated and request.user.role != 'PARENT' and not tp_v3_tenant_shell %}
     <a href="{% url 'accounts:user_messages' %}" class="portal-chathead" aria-label="{% trans 'Open Messages' %}" title="{% trans 'Messages' %}">
@@ -693,7 +694,6 @@
       <script src="{% static 'js/rmc-page-context-help.js' %}" defer></script>
       {% include "partials/rmc_platform_chrome_scripts.html" %}
       <script src="{% static 'js/rmc-section-nav.js' %}" defer></script>
-      <script src="{% static 'js/rmc-page-fold-standards.js' %}" defer></script>
       {% include "partials/rmc_isomorphic_grid_boot.html" %}
       {% comment %} Phase K (2026-05-12): density toggle for .rmc-data-table tables. {% endcomment %}
       <script src="{% static 'js/rmc-data-table.js' %}" defer></script>
@@ -732,12 +732,7 @@
     {% comment %} Main Footer with Accreditation and Support {% endcomment %}
     <div data-rmc-shell-footer="portal">
       {% if request.public_host_kind == 'manager' and SHOW_MANAGER_CORPORATE_FOOTER %}
-      <div class="rmc-footer-notebook-anchor" data-rmc-footer-notebook-anchor>
-        {% include "partials/cockpit/_operator_notebook.html" %}
-      </div>
-      <footer class="cp-corporate-footer" role="contentinfo" data-rmc-manager-operator-footer data-rmc-footer-surface="operator-compact">
-        {% include "partials/rmc_operator_footer_compact.html" %}
-      </footer>
+      {% include "partials/rmc_operator_footer_civic.html" %}
       {% else %}
       {% with portal_footer_partial=PORTAL_FOOTER_PARTIAL|default:"components/footer.html" %}
       {% include portal_footer_partial %}
@@ -748,6 +743,9 @@
     {% if request.public_host_kind == 'manager' and cockpit.ai_copilot_rail.enabled %}
     <div class="rmc-manager-portal-copilot-mount" data-rmc-manager-copilot-mount="1" aria-hidden="false">
       {% include "partials/cockpit/_ai_copilot_rail.html" %}
+      {% if request.user.is_authenticated %}
+      {% include "partials/cockpit/_operator_notebook.html" %}
+      {% endif %}
     </div>
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
     <script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
@@ -757,6 +755,10 @@
     {% include "partials/help_proactive_nudge.html" %}
     {% endif %}
     {% include "partials/help_contextual_drawer.html" %}
+    {% if request.user.is_authenticated %}
+    {% include "partials/cockpit/_activity_ticker_drawer.html" %}
+    <script src="{% static 'js/rmc-cp-activity-drawer.js' %}" defer></script>
+    {% endif %}
     {% if show_module_inline_help_assistant and show_kb_ai_assistant_panel %}
     {% include "partials/help_module_inline_assistant.html" %}
     {% endif %}
@@ -785,7 +787,9 @@
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
     {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
     {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
+    <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>
     <script src="{% static 'js/rmc-workflow-progress.js' %}" defer></script>
+    <script src="{% static 'js/rmc-workflow-tenant-trust.js' %}" defer></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar overlay. {% endcomment %}
     {% include "partials/rmc_command_bar.html" %}
     {% endif %}
@@ -797,5 +801,7 @@
     {% endif %}
     {% comment %} v4.00.37: universal "Report issue" chip — auto-attaches URL + role + browser context. {% endcomment %}
     {% include "partials/rmc_support_quick_create.html" %}
+    {% comment %} v4.01.44: terminal dual-plane pass after late-loaded concierge/support CSS. {% endcomment %}
+    {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </body>
 </html>

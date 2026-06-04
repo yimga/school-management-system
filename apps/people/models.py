@@ -183,6 +183,10 @@ class TeacherProfile(models.Model):
         blank=True,
         help_text="School-defined custom fields (key/value). Use in reports and exports.",
     )
+    # First-class offline idempotency anchor (DB-enforced via the partial unique
+    # constraint in Meta) — a JSON sub-key cannot be uniquely constrained, so the
+    # offline create dedupes on this instead.
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
 
     class PaymentMethod(models.TextChoices):
         MTN_MOMO = "MTN_MOMO", "MTN Mobile Money"
@@ -233,6 +237,15 @@ class TeacherProfile(models.Model):
             if suggested != self.default_dashboard_view:
                 self.default_dashboard_view = suggested
         super().save(*args, **kwargs)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_teacherprofile_school_offline_id",
+            ),
+        ]
 
     def clean(self):
         # Ensure the linked user is a teacher-aligned role
@@ -333,6 +346,12 @@ class TeacherAttendance(models.Model):
         max_length=20, choices=Status.choices, default=Status.PRESENT
     )
     remarks = models.CharField(max_length=255, blank=True)
+    # Nullable on purpose: existing rows backfill to NULL (no one-off default
+    # prompt). The WAL drain treats a NULL updated_at as "no known online time"
+    # → the offline write wins, which is the safe last-writer-wins default. Every
+    # save() from here on stamps it (auto_now), so conflict detection engages for
+    # all rows touched after this migration.
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
         unique_together = ("teacher", "date")
@@ -430,6 +449,8 @@ class StudentProfile(models.Model):
         blank=True,
         help_text="School-defined custom fields (key/value). Use in reports and exports.",
     )
+    # First-class offline idempotency anchor (DB-enforced via Meta constraint).
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
     exam_candidate_number = models.CharField(
         max_length=50,
         blank=True,
@@ -511,6 +532,13 @@ class StudentProfile(models.Model):
 
     class Meta:
         ordering = ["last_name", "first_name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_studentprofile_school_offline_id",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.last_name} {self.first_name} ({self.student_code})"
@@ -1060,6 +1088,8 @@ class Applicant(models.Model):
         related_name="assigned_applicants",
     )
     extra_data = models.JSONField(default=dict, blank=True)
+    # First-class offline idempotency anchor (DB-enforced via Meta constraint).
+    client_offline_id = models.CharField(max_length=128, blank=True, db_index=True)
     # v4.00.34: country-aware exam-score capture.
     exam_scores = models.JSONField(
         default=dict, blank=True,
@@ -1084,6 +1114,13 @@ class Applicant(models.Model):
             models.Index(fields=["school", "stage"]),
             models.Index(fields=["email", "school"]),
             models.Index(fields=["school", "exam_schema_code"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "client_offline_id"],
+                condition=~models.Q(client_offline_id=""),
+                name="uniq_applicant_school_offline_id",
+            ),
         ]
 
     def __str__(self):

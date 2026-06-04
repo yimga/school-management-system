@@ -30,7 +30,7 @@ from .insights import clear_insight, insight_as_jsonable, list_insights
 logger = logging.getLogger(__name__)
 
 # Cap body payload size so a runaway page_excerpt can't OOM the worker.
-_MAX_BODY_BYTES = 8 * 1024
+_MAX_BODY_BYTES = 8 * 1024  # magic-number-allow: byte-size-cap
 
 
 @login_required
@@ -92,7 +92,7 @@ def list_insights_view(request):
 def clear_insight_view(request):
     """Dismiss an insight by id. Body: ``{"insight_id": "..."}``."""
     raw = request.body or b""
-    if len(raw) > 1024:
+    if len(raw) > 1024:  # magic-number-allow: byte-size-cap
         return HttpResponseBadRequest("payload too large")
     try:
         body = json.loads(raw.decode("utf-8") or "{}")

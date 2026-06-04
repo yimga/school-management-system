@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-20T00:14:51.451801+00:00",
+  "generated_at": "2026-06-01T16:04:09.355011+00:00",
   "verdict": "MANAGER_HEADER_ACCOUNT_PASS",
   "pass_count": 23,
   "fail_count": 0,
@@ -110,13 +110,13 @@
       "id": "migrations-applied",
       "label": "Help-slice apps feedback+portal fully migrated (showmigrations)",
       "status": "PASS",
-      "proof": "st_scheme=- server_name=- (0.000) SELECT \"django_migrations\".\"id\", \"django_migrations\".\"app\", \"django_migrations\".\"name\", \"django_migrations\".\"applied\" FROM \"django_migrations\"; args=(); alias=default"
+      "proof": "st_scheme=- server_name=- (0.001) SELECT \"django_migrations\".\"id\", \"django_migrations\".\"app\", \"django_migrations\".\"name\", \"django_migrations\".\"applied\" FROM \"django_migrations\"; args=(); alias=default"
     },
     {
       "id": "kb-seeded",
       "label": "Knowledge base has seeded articles for Help Center",
       "status": "PASS",
-      "proof": "11 articles (min 8)"
+      "proof": "75 articles (min 8)"
     },
     {
       "id": "allow-authentication-profile-password",
@@ -140,7 +140,7 @@
       "id": "tests",
       "label": "Manager header + interaction contract tests",
       "status": "PASS",
-      "proof": "ferer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\n........................\n----------------------------------------------------------------------\nRan 24 tests in 2.809s\n\nOK"
+      "proof": "upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\nINFO 2026-06-01 12:03:55,436 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- wizard registry: loaded 36 wizards\n........................\n----------------------------------------------------------------------\nRan 24 tests in 3.268s\n\nOK"
     }
   ]
 }

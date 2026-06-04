@@ -4,47 +4,47 @@
 {% block surface_label %}{% trans "Multi-campus operations" %}{% endblock %}
 {% block surface_title %}{% trans "Multi-campus group operational rollup" %}{% endblock %}
 {% block surface_body %}
-  <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 12px;">
+  <p style="font-size: var(--type-size-caption); color: var(--text-secondary); margin: 0 0 12px;">
     {% trans "Group label" %}: <strong style="color: var(--text-primary);">{{ tree.group_label }}</strong>
     {% if tree.descendant_count %}<span style="color: var(--text-secondary);"> · {{ tree.descendant_count }} {% trans "school(s)" %}</span>{% endif %}
   </p>
 
   <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 18px;">
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Events" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700;">{{ tree.events_rollup.event_count|default:"0" }}</div>
-      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{{ tree.events_rollup.published|default:"0" }} {% trans "pub." %} / {{ tree.events_rollup.draft|default:"0" }} {% trans "draft" %}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Events" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700;">{{ tree.events_rollup.event_count|default:"0" }}</div>
+      <div style="font-size: var(--type-size-micro); color: var(--text-secondary); margin-top: 2px;">{{ tree.events_rollup.published|default:"0" }} {% trans "pub." %} / {{ tree.events_rollup.draft|default:"0" }} {% trans "draft" %}</div>
     </div>
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Payments" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.fees_rollup.payment_total|default:"0.00" }}</div>
-      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{{ tree.fees_rollup.payment_count|default:"0" }} {% trans "rec." %}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Payments" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.fees_rollup.payment_total|default:"0.00" }}</div>
+      <div style="font-size: var(--type-size-micro); color: var(--text-secondary); margin-top: 2px;">{{ tree.fees_rollup.payment_count|default:"0" }} {% trans "rec." %}</div>
     </div>
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Collection %" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{% if tree.fees_rollup.collection_rate %}{{ tree.fees_rollup.collection_rate }}%{% else %}—{% endif %}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Collection %" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700; font-variant-numeric: tabular-nums;">{% if tree.fees_rollup.collection_rate %}{{ tree.fees_rollup.collection_rate }}%{% else %}—{% endif %}</div>
     </div>
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Staff" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.staff_rollup.teacher_active|default:"0" }}</div>
-      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{% trans "active" %} / {{ tree.staff_rollup.teacher_total|default:"0" }} {% trans "total" %}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Staff" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.staff_rollup.teacher_active|default:"0" }}</div>
+      <div style="font-size: var(--type-size-micro); color: var(--text-secondary); margin-top: 2px;">{% trans "active" %} / {{ tree.staff_rollup.teacher_total|default:"0" }} {% trans "total" %}</div>
     </div>
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Discipline" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.discipline_rollup.open|default:"0" }}</div>
-      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{% trans "open" %} / {{ tree.discipline_rollup.incident_count|default:"0" }} {% trans "total" %} · {{ tree.discipline_rollup.high_severity|default:"0" }} {% trans "high" %}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Discipline" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.discipline_rollup.open|default:"0" }}</div>
+      <div style="font-size: var(--type-size-micro); color: var(--text-secondary); margin-top: 2px;">{% trans "open" %} / {{ tree.discipline_rollup.incident_count|default:"0" }} {% trans "total" %} · {{ tree.discipline_rollup.high_severity|default:"0" }} {% trans "high" %}</div>
     </div>
     <div class="rmc-stat-card" style="padding: 12px; border-radius: 10px; border: 1px solid var(--hairline); background: var(--surface-elevated);">
-      <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Transport" %}</div>
-      <div style="font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.transport_rollup.active_routes|default:"0" }}</div>
-      <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">{% trans "active routes" %} · {{ tree.transport_rollup.stop_count|default:"0" }} {% trans "stops" %}</div>
+      <div style="font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary);">{% trans "Transport" %}</div>
+      <div style="font-size: var(--type-size-headline-m); font-weight: 700; font-variant-numeric: tabular-nums;">{{ tree.transport_rollup.active_routes|default:"0" }}</div>
+      <div style="font-size: var(--type-size-micro); color: var(--text-secondary); margin-top: 2px;">{% trans "active routes" %} · {{ tree.transport_rollup.stop_count|default:"0" }} {% trans "stops" %}</div>
     </div>
   </section>
 
   <div style="overflow-x: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--surface-elevated);">
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+    <table style="width: 100%; border-collapse: collapse; font-size: var(--type-size-caption);">
       <thead>
-        <tr style="text-align: left; color: var(--text-secondary); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">
+        <tr style="text-align: left; color: var(--text-secondary); font-size: var(--type-size-micro); text-transform: uppercase; letter-spacing: 0.04em;">
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline);">{% trans "School" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline); text-align: right;">{% trans "Events" %}</th>
           <th style="padding: 10px 12px; border-bottom: 1px solid var(--hairline); text-align: right;">{% trans "Pub" %}</th>
@@ -66,7 +66,7 @@
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); text-align: right; font-variant-numeric: tabular-nums;">{{ child.staff.teacher_active|default:"0" }} / {{ child.staff.teacher_total|default:"0" }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline); text-align: right; font-variant-numeric: tabular-nums;">{{ child.staff.department_count|default:"0" }}</td>
             <td style="padding: 8px 12px; border-bottom: 1px solid var(--hairline);">
-              {% if not tree.parent %}<a href="?wedge=22&parent={{ child.id }}" style="font-size: 11px; color: var(--text-secondary);">{% trans "drill" %} →</a>{% endif %}
+              {% if not tree.parent %}<a href="?wedge=22&parent={{ child.id }}" style="font-size: var(--type-size-micro); color: var(--text-secondary);">{% trans "drill" %} →</a>{% endif %}
             </td>
           </tr>
         {% empty %}

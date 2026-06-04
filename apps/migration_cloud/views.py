@@ -34,7 +34,10 @@ from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
+from django.utils.decorators import method_decorator
 from django.views import View
+
+from apps.platform_runtime.workflow_tracker import track_workflow
 
 from .ai_bridge import AIProposal, record_operator_feedback, remember_mapping_decision
 from .reliability import (
@@ -471,7 +474,7 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
             "form": form_data,
             "is_super_shell": shell != "portal",
             "max_upload_bytes": max_upload_bytes,
-            "max_upload_mb": max(1, round(max_upload_bytes / (1024 * 1024))),
+            "max_upload_mb": max(1, round(max_upload_bytes / (1024 * 1024))),  # magic-number-allow: byte-size-cap
             "upload_guardrails": [
                 "Per-file cap is enforced before storage.",
                 "SHA-256 idempotency prevents double-submit duplicates.",
@@ -667,7 +670,7 @@ class MigrationCloudIntakeView(LoginRequiredMixin, View):
 
             return int(mc_defaults.get("migration_cloud.intake.max_artifact_bytes"))
         except Exception:  # noqa: BLE001 — defensive default
-            return 1024 * 1024 * 1024  # 1 GiB
+            return 1024 * 1024 * 1024  # 1 GiB  # magic-number-allow: byte-size-cap
 
     def _looks_like_supported_url(self, value: str) -> bool:
         v = value.strip().lower()
@@ -816,6 +819,15 @@ class MigrationCloudBundleDetailView(LoginRequiredMixin, View):
         )
 
 
+@method_decorator(
+    track_workflow(
+        "migration_bundle_advance",
+        steps=("profile", "classify", "map"),
+        expected_duration_seconds=900,  # magic-number-allow: workflow-expected-duration-seconds
+        email_on_failure=True,
+    ),
+    name="post",
+)
 class MigrationCloudAdvanceView(LoginRequiredMixin, View):
     """POST endpoint: advance bundle through profile → classify → map.
 
@@ -837,6 +849,15 @@ class MigrationCloudAdvanceView(LoginRequiredMixin, View):
         return JsonResponse(summary)
 
 
+@method_decorator(
+    track_workflow(
+        "migration_bundle_apply",
+        steps=("prepare", "apply_waves", "finalize"),
+        expected_duration_seconds=1800,  # magic-number-allow: workflow-expected-duration-seconds
+        email_on_failure=True,
+    ),
+    name="post",
+)
 class MigrationCloudApplyView(LoginRequiredMixin, View):
     """POST endpoint: apply the MAPPED bundle to the tenant.
 
@@ -1051,7 +1072,7 @@ class MigrationCloudShadowView(LoginRequiredMixin, View):
                 state = shadow.start_shadow_window(
                     bundle_id=bundle_id,
                     target_parity_pct=float(payload.get("target_parity_pct", 99.0)),
-                    max_window_hours=int(payload.get("max_window_hours", 168)),
+                    max_window_hours=int(payload.get("max_window_hours", 168)),  # magic-number-allow: window-duration-hours
                     auto_cutover_armed=bool(payload.get("auto_cutover_armed", False)),
                     source_pull=source_pull,
                 )
@@ -1724,7 +1745,7 @@ class MigrationCloudAIVendorFromImageView(LoginRequiredMixin, View):
     can then pre-fill the source_hint on the intake wizard.
     """
 
-    MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MiB
+    MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MiB  # magic-number-allow: byte-size-cap
     ALLOWED_SUFFIXES = (".png", ".jpg", ".jpeg", ".pdf", ".gif", ".bmp", ".tiff", ".webp")
 
     @idempotent_post

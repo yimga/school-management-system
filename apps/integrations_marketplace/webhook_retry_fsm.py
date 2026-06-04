@@ -41,7 +41,11 @@ def next_retry_seconds(attempt: int) -> int | None:
         return RETRY_SCHEDULE_SECONDS[0]
     if attempt >= MAX_ATTEMPTS:
         return None  # exhausted
-    return RETRY_SCHEDULE_SECONDS[attempt]
+    # v4.01 — attempt is 1-indexed, so the delay after attempt N is
+    # SCHEDULE[N-1]. The previous SCHEDULE[attempt] skipped SCHEDULE[0]
+    # entirely (the first interval was never used) and disagreed with
+    # retry_schedule_summary(), which maps attempt i+1 -> SCHEDULE[i].
+    return RETRY_SCHEDULE_SECONDS[attempt - 1]
 
 
 def is_exhausted(attempt: int) -> bool:

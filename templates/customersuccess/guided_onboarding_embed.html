@@ -1,0 +1,115 @@
+{% extends "studio_os/studio_embed_minimal.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Setup Studio" %}{% endblock %}
+
+{% block studio_embed_extrahead %}
+  <link rel="stylesheet" href="{% static 'css/setup-studio-onboarding.css' %}">
+{% endblock %}
+
+{% block studio_embed_content %}
+<section class="container-fluid py-3 setup-studio-shell" data-page-archetype="setup-studio-embed">
+  <div class="setup-studio-panel setup-studio-launch mb-3">
+    <div class="setup-studio-eyebrow">
+      <i class="bi bi-rocket-takeoff" aria-hidden="true"></i>
+      <span>{% trans "Setup Studio" %}</span>
+    </div>
+    <h1 class="setup-studio-title mb-2">{% trans "Launch readiness snapshot" %}</h1>
+    <p class="setup-studio-subtitle mb-3">
+      {% trans "Fast embed view: current progress, blockers, and the highest-impact next actions." %}
+    </p>
+    {% if launch_studio_url %}
+    <p class="setup-studio-subtitle small mb-0">
+      <a href="{{ launch_studio_url }}" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Open in Launch Studio (full shell)" %}</a>
+      <span class="text-white-50 mx-1" aria-hidden="true">·</span>
+      <a href="{{ launch_studio_url }}?pane=plan" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Select plan pane" %}</a>
+      <span class="text-white-50 mx-1" aria-hidden="true">·</span>
+      <a href="{{ launch_studio_url }}?pane=checklist" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Launch checklist pane" %}</a>
+      <span class="text-white-50 mx-1" aria-hidden="true">·</span>
+      <a href="{{ launch_studio_url }}?pane=role_preview" class="text-white text-decoration-underline" target="_parent" rel="noopener">{% trans "Preview by role pane" %}</a>
+    </p>
+    {% endif %}
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-4">
+      <article class="setup-studio-panel h-100">
+        <div class="setup-studio-section-head">
+          <div class="fw-semibold">{% trans "Current step" %}</div>
+          <span class="badge text-bg-light">{{ progress_percent|default:0 }}%</span>
+        </div>
+        {% if current_step %}
+        <div class="setup-studio-mini-title">{{ current_step.label }}</div>
+        <p class="setup-studio-muted mb-2">{{ current_step.description }}</p>
+        <p class="setup-studio-muted mb-2">{{ current_step.evidence }}</p>
+        <div class="setup-studio-actions">
+          <a href="{{ current_step.link }}" class="btn btn-primary btn-sm" target="_parent" rel="noopener">{{ current_step.cta_label }}</a>
+        </div>
+        {% else %}
+        <p class="setup-studio-muted mb-0">{% trans "No active step yet." %}</p>
+        {% endif %}
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <article class="setup-studio-panel h-100">
+        <div class="setup-studio-section-head">
+          <div class="fw-semibold">{% trans "Launch blockers" %}</div>
+          <span class="badge text-bg-warning">{{ launch_blockers|length }}</span>
+        </div>
+        <div class="setup-studio-list">
+          {% for blocker in launch_blockers|slice:":4" %}
+          <div class="setup-studio-blocker">
+            <div class="setup-studio-mini-title">{{ blocker.label }}</div>
+            <div class="setup-studio-muted">{{ blocker.detail }}</div>
+          </div>
+          {% empty %}
+          <div class="rmc-empty rmc-empty--inline" role="status">
+            <p class="rmc-empty__message mb-0">{% trans "No blockers — launch is clear." %}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <article class="setup-studio-panel h-100">
+        <div class="setup-studio-section-head">
+          <div class="fw-semibold">{% trans "Checklist pulse" %}</div>
+          <span class="badge text-bg-light">{{ launch_checklist|length }}</span>
+        </div>
+        <div class="setup-studio-list">
+          {% for item in launch_checklist|slice:":6" %}
+          <div class="setup-studio-checklist-item">
+            <div class="d-flex justify-content-between align-items-start gap-2">
+              <div class="setup-studio-mini-title">{{ item.label }}</div>
+              <span class="badge {% if item.done %}text-bg-success{% elif item.is_blocker %}text-bg-warning{% else %}text-bg-light{% endif %}">{{ item.status }}</span>
+            </div>
+          </div>
+          {% empty %}
+          <div class="rmc-empty rmc-empty--inline" role="status">
+            <p class="rmc-empty__message mb-0">{% trans "No checklist items yet." %}</p>
+          </div>
+          {% endfor %}
+        </div>
+      </article>
+    </div>
+  </div>
+
+  {% if recommendations %}
+  <div class="setup-studio-panel mt-3">
+    <div class="setup-studio-section-head">
+      <div class="fw-semibold">{% trans "Recommendations" %}</div>
+    </div>
+    <div class="setup-studio-list">
+      {% for recommendation in recommendations|slice:":4" %}
+      <div class="setup-studio-recommendation">
+        <div class="setup-studio-mini-title">{{ recommendation.title }}</div>
+        <div class="setup-studio-muted">{{ recommendation.detail }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

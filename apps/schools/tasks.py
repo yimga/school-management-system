@@ -268,7 +268,7 @@ def _maybe_apply_onboarding_blueprint_pack(school, actor=None) -> None:
     except (ImportError, ModuleNotFoundError):
         return
     try:
-        pack = BlueprintPack.objects.filter(slug=pack_slug, is_active=True).first()
+        pack = BlueprintPack.objects.filter(slug=pack_slug, is_active=True).first()  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
     except (DatabaseError, AttributeError, TypeError, ValueError):
         pack = None
     if pack is None:
@@ -437,11 +437,7 @@ def dispatch_provision_school(
 
 
 def _do_provision(school_id: str, contact_email: str = "", **kwargs):
-    from .models import School, SchoolMembership
-    from apps.academics.models import AcademicYear, Term, Subject
-    from apps.siteconfig.education_profile_engine import resolve_profile_for_school
-    from django.utils import timezone
-    from datetime import date, timedelta
+    from .models import School
 
     school = School.objects.filter(id=school_id).first()
     if not school:
@@ -463,6 +459,58 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             )
         logger.info("School %s already active, skip provisioning", school_id)
         return
+
+    from apps.platform_runtime.workflow_tracker import (
+        begin_run,
+        finalize_run,
+        pulse_workflow_step,
+    )
+
+    wf_run = begin_run(
+        workflow_key="tenant_school_provision",
+        steps=("admin_user", "profile", "tenant_schema", "seed_data", "activate"),
+        school_id=str(school_id),
+        expected_duration_seconds=180,  # magic-number-allow: workflow-expected-duration-seconds
+        payload={"slug": getattr(school, "slug", "") or ""},
+    )
+    try:
+        _do_provision_tracked(
+            school,
+            school_id,
+            contact_email=contact_email,
+            wf_run=wf_run,
+            pulse_workflow_step=pulse_workflow_step,
+            **kwargs,
+        )
+        finalize_run(wf_run, status="succeeded")
+    except Exception as exc:
+        finalize_run(wf_run, status="failed", error=exc, email_on_failure=True)
+        raise
+
+
+def _do_provision_tracked(
+    school,
+    school_id: str,
+    *,
+    contact_email: str = "",
+    wf_run=None,
+    pulse_workflow_step=None,
+    **kwargs,
+):
+    """Body of ``_do_provision`` with workflow-progress step pulses."""
+    # These names are used throughout this function. They were originally
+    # imported locally inside ``_do_provision`` before this body was extracted
+    # into its own function; the extraction left them out of scope here, which
+    # crashed synchronous provisioning (the broker-unavailable fallback path,
+    # e.g. when no Celery worker is running) with a NameError on
+    # ``resolve_profile_for_school``. Re-declare the same local imports here.
+    from .models import SchoolMembership
+    from apps.academics.models import AcademicYear, Term, Subject
+    from apps.siteconfig.education_profile_engine import resolve_profile_for_school
+    from django.utils import timezone
+    from datetime import date, timedelta
+
+    pulse = pulse_workflow_step or (lambda *a, **k: None)
     _record_school_event(
         school,
         event_type="STARTED",
@@ -482,14 +530,16 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     except (ImportError, AttributeError, TypeError, ValueError):
         pass
 
+    pulse(wf_run, "admin_user")
+
     # Create default admin user if contact_email provided and no user exists
     admin_user = None
     if contact_email:
-        admin_user = User.objects.filter(email=contact_email).first()
+        admin_user = User.objects.filter(email=contact_email).first()  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
         if not admin_user:
-            username = contact_email.split("@")[0][:150] or f"admin_{school.slug}"
-            if User.objects.filter(username=username).exists():
-                username = f"{username}_{school.slug}"[:150]
+            username = contact_email.split("@")[0][:150] or f"admin_{school.slug}"  # magic-number-allow: string-truncation-cap
+            if User.objects.filter(username=username).exists():  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
+                username = f"{username}_{school.slug}"[:150]  # magic-number-allow: string-truncation-cap
             admin_user = User.objects.create_user(
                 username=username,
                 email=contact_email,
@@ -536,6 +586,8 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 "schools.tasks: apply_wedge_14_22_sector_access_roles_to_user failed",
                 school_id=getattr(school, "id", None),
             )
+
+    pulse(wf_run, "profile")
 
     # Seed academic year and terms from education profile + region defaults.
     # W1-9: When no education_profile_code is set, resolve_profile_for_school uses school.default_region_id
@@ -635,6 +687,8 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
             payload={"sub_system": school.sub_system},
         )
 
+    pulse(wf_run, "tenant_schema")
+
     # Schema-per-tenant: ensure Client and Domain exist so tenant schema is available
     tenant_client = _ensure_tenant_client(school)
     if tenant_client is None:
@@ -664,6 +718,8 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
     ):
         logger.exception("DNS auto-provision raised for school %s", school.id)
 
+    pulse(wf_run, "seed_data")
+
     # Tenant-scoped creation: schema mode uses tenant_context(client); RLS mode pins
     # app.current_school_id to the new school so FORCE'd WITH CHECK clauses pass.
     with _optional_tenant_context(tenant_client), rls_school(school.id):
@@ -682,7 +738,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
                 TenantSystem,
             )
 
-            approved = EducationSystemProfile.objects.filter(
+            approved = EducationSystemProfile.objects.filter(  # tenant-isolation-allow: celery-platform-provisioning-beat-cross-tenant
                 code__in=profile_codes,
                 is_active=True,
                 approval_status=EducationSystemProfile.ApprovalStatus.APPROVED,
@@ -999,6 +1055,7 @@ def _do_provision(school_id: str, contact_email: str = "", **kwargs):
         # Pass 7: seed demo users + a populated sample class when the user opted in.
         _maybe_seed_onboarding_sample_data(school)
 
+        pulse(wf_run, "activate")
         school.is_active = True
         school.save(update_fields=["is_active", "settings", "updated_at"])
         try:
@@ -1106,11 +1163,21 @@ try:
 
         return cleanup_tenant_media(school_slug, manifest)
 
+    from apps.platform_runtime.workflow_tracker import track_workflow
+
     @shared_task(name="schools.run_scheduled_tenant_purges")
+    @track_workflow(
+        "tenant_school_offboard_purge",
+        steps=("scan", "purge", "notify"),
+        expected_duration_seconds=600,  # magic-number-allow: workflow-expected-duration-seconds
+        email_on_failure=True,
+    )
     def run_scheduled_tenant_purges_task(*, dry_run: bool = False, limit: int = 10) -> dict:
         from apps.schools.tenant_offboarding import run_scheduled_purges
 
         return run_scheduled_purges(actor=None, dry_run=dry_run, limit=limit)
+
+    provision_school_task.rmc_workflow_explicit = True
 
     @shared_task(name="schools.ensure_demo_environment_scheduled")
     def ensure_demo_environment_scheduled() -> dict:

@@ -30,6 +30,20 @@ def role_home_show_legacy(request: HttpRequest) -> bool:
     return str(raw).strip().lower() in {"1", "true", "yes", "legacy"}
 
 
+def is_tenant_role_home_landing_request(request: HttpRequest) -> bool:
+    """True on any authenticated tenant role-home URL (v3 canvas or legacy stack)."""
+    if getattr(request, "public_host_kind", None) == "manager":
+        return False
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    match = getattr(request, "resolver_match", None)
+    if match is None:
+        return False
+    url_name = getattr(match, "url_name", None) or ""
+    return url_name in TP_V3_ROLE_HOME_URL_NAMES
+
+
 def is_tp_v3_role_home_request(request: HttpRequest) -> bool:
     """True on tenant role-home landings when the v3 100x canvas should own the page."""
     if getattr(request, "public_host_kind", None) == "manager":
@@ -108,6 +122,7 @@ def tp_v3_role_home_shell_context(request: HttpRequest) -> dict[str, object]:
     return {
         "tp_v3_role_home": active,
         "tp_v3_tenant_shell": tenant_shell,
+        "tenant_role_home_landing": is_tenant_role_home_landing_request(request),
         "page_provides_own_h1": active,
         "tp_brand_surface_pill": _tp_brand_surface_pill(role),
         "tp_brand_tagline": _tp_brand_tagline(role),

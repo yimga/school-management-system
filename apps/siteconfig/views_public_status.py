@@ -132,7 +132,7 @@ def public_status_subscribe(request):
             request.POST.get("email")
             or request.POST.get("address")
             or ""
-        ).strip().lower()[:240]
+        ).strip().lower()[:240]  # magic-number-allow: string-truncation-cap
     else:
         address = (request.POST.get("address") or "").strip()[:500]
 
@@ -174,7 +174,7 @@ def public_status_subscribe(request):
     if channel == "EMAIL":
         try:
             from django.conf import settings
-            from django.core.mail import send_mail
+            from apps.schoolops.email_compat import send_mail
 
             verify_url = request.build_absolute_uri(
                 reverse("public_status_verify", args=[sub.verification_token])

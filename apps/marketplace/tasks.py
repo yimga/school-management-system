@@ -9,6 +9,8 @@ from celery import shared_task
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, IntegrityError
 
+from apps.platform_runtime.workflow_tracker import track_workflow, workflow_step
+
 from apps.marketplace.models import AppInstallation
 from apps.marketplace.services import record_installation_health
 from apps.platform_runtime.structured_logging import log_exception_with_context
@@ -72,13 +74,27 @@ def deliver_install_hooks_task(
 
 
 @shared_task(name="marketplace.webhook_deliver_due", bind=True)
+@track_workflow(
+    "marketplace_webhook_deliver_due",
+    steps=("scan", "deliver", "finalize"),
+    expected_duration_seconds=120,
+)
 def webhook_deliver_due(self, limit: int = 50) -> int:
     """Move 1 — drain due WebhookDelivery rows with exponential-backoff retry."""
 
     try:
         from apps.marketplace.webhooks import deliver_due
 
-        return deliver_due(limit=int(limit))
+        with workflow_step(None, "scan", payload={"limit": int(limit)}):
+            pass
+        with workflow_step(None, "deliver"):
+            delivered = deliver_due(limit=int(limit))
+        with workflow_step(None, "finalize", payload={"delivered": int(delivered)}):
+            pass
+        return int(delivered)
     except Exception as exc:
         logging.getLogger(__name__).warning("webhook_deliver_due failed: %s", exc)
         return 0
+
+
+webhook_deliver_due.rmc_workflow_explicit = True

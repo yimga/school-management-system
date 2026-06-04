@@ -644,3 +644,6 @@ from apps.accounts.models_rebac import (  # noqa: E402,F401
 
 # v4.00.50 — SSO-provisioned user → tenant binding.
 from apps.accounts.models_sso import UserTenantBinding  # noqa: E402,F401
+
+# Suspicious-login alerting fingerprint (audit residual closeout).
+from apps.accounts.models_login_context import KnownLoginContext  # noqa: E402,F401

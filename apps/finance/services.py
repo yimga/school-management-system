@@ -3,10 +3,11 @@ from __future__ import annotations
 import hashlib
 import hmac
 import logging
+import uuid
 from collections import defaultdict
 from datetime import date
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
-from typing import Iterable
+from typing import TYPE_CHECKING, Iterable
 
 from django.conf import settings
 from django.db import transaction
@@ -23,6 +24,8 @@ from apps.integrations_marketplace.models import Integration
 from apps.people.models import StudentProfile, StudentGuardian
 from apps.platform_runtime.helpers import get_platform_defaults
 from apps.siteconfig.config_service import get_effective_site_settings
+
+from .json_decimal import quantize_money
 
 from .models import (
     ComplianceProfile,
@@ -43,6 +46,12 @@ from .models import (
     RefundRequest,
     WalletTransaction,
 )
+
+if TYPE_CHECKING:  # annotation-only; not evaluated at runtime (PEP 563)
+    from apps.accounts.models import User
+    from apps.schools.models import School
+
+logger = logging.getLogger(__name__)
 
 
 PAYMENT_METHOD_PROVIDER_SLUGS = {
@@ -270,6 +279,17 @@ def pay_invoice_with_wallet(
     """
     if getattr(invoice, "school_id", None) and invoice.school_id != school.pk:
         raise ValueError("Invoice does not belong to this school.")
+    # Lock the invoice row for the duration of this atomic block. Two
+    # DIFFERENT parents paying the SAME invoice concurrently each lock only
+    # their own wallet row (below), so without an invoice-level lock the
+    # balance is read twice and both pays are admitted — overpaying the
+    # invoice. Re-reading the locked row also picks up any payment that
+    # committed while we were blocked on the lock, so the balance check
+    # below is against current truth. (No-op on SQLite test DB.)
+    try:
+        invoice = Invoice.objects.select_for_update().get(pk=invoice.pk)
+    except Invoice.DoesNotExist:
+        raise ValueError("Invoice no longer exists.")
     amount_val = (
         Decimal(str(amount)) if amount is not None else invoice.computed_balance
     )
@@ -290,7 +310,10 @@ def pay_invoice_with_wallet(
         raise ValueError(
             f"Insufficient wallet balance: {wallet.balance} (need {amount_val})."
         )
-    ref = f"WALLET-{invoice.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+    # uuid suffix guarantees uniqueness — second-granular timestamps collide
+    # for concurrent same-invoice pays and would violate the (invoice,
+    # external_reference) unique constraint with an IntegrityError.
+    ref = f"WALLET-{invoice.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8]}"
     payment = Payment.objects.create(
         invoice=invoice,
         school=getattr(invoice, "school", None) or school,
@@ -299,7 +322,10 @@ def pay_invoice_with_wallet(
         reference=ref,
         external_reference=ref,
     )
-    new_balance = wallet.balance - amount_val
+    # Quantize the running balance to the 2dp currency step so an >2dp
+    # value from upstream arithmetic (FX-converted top-up, split remainder)
+    # can't be persisted unrounded and drift the next balance comparison.
+    new_balance = quantize_money(wallet.balance - amount_val)
     WalletTransaction.objects.create(
         wallet=wallet,
         amount=-amount_val,
@@ -328,7 +354,10 @@ def top_up_wallet(
     amount_val = Decimal(str(amount))
     if amount_val <= 0:
         raise ValueError("Top-up amount must be positive.")
-    wallet, _ = ParentWallet.objects.get_or_create(
+    # Row-lock the wallet for the duration of this atomic block so two
+    # concurrent top-ups for the same (school, user) cannot read the same
+    # balance and lose one credit (mirrors pay_invoice_with_wallet).
+    wallet, _ = ParentWallet.objects.select_for_update().get_or_create(
         school=school,
         user=user,
         defaults={
@@ -336,8 +365,8 @@ def top_up_wallet(
             or get_platform_defaults(use_db=False)["currency"]
         },
     )
-    new_balance = wallet.balance + amount_val
-    ref = reference or f"TOPUP-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+    new_balance = quantize_money(wallet.balance + amount_val)
+    ref = reference or f"TOPUP-{timezone.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:8]}"
     txn = WalletTransaction.objects.create(
         wallet=wallet,
         amount=amount_val,
@@ -350,7 +379,11 @@ def top_up_wallet(
     return wallet, txn
 
 
+@transaction.atomic
 def post_invoice_to_ledger(invoice: Invoice) -> None:
+    # Atomic so the JournalEntry + its debit/credit JournalLines are
+    # all-or-nothing; a partial failure must never leave an unbalanced entry
+    # (double-entry invariant). Safe under nested calls — Django uses savepoints.
     if invoice.status in {Invoice.Status.DRAFT, Invoice.Status.VOID}:
         return
     if invoice.total_amount <= 0:
@@ -408,7 +441,11 @@ def post_invoice_to_ledger(invoice: Invoice) -> None:
     )
 
 
+@transaction.atomic
 def post_payment_to_ledger(payment: Payment) -> None:
+    # Atomic so the JournalEntry + its debit/credit JournalLines are
+    # all-or-nothing (double-entry invariant); never leave an entry with only
+    # one side on a partial failure. Safe under nesting (savepoints).
     if payment.amount <= 0:
         return
     entry = JournalEntry.objects.filter(
@@ -588,7 +625,11 @@ def _invoice_status(total: Decimal, balance: Decimal) -> str:
     return Invoice.Status.ISSUED
 
 
+@transaction.atomic
 def recalculate_invoice(invoice: Invoice) -> None:
+    # Atomic so the invoice total/balance/status write + reconcile + ledger
+    # re-post commit together. Load-bearing on the Payment.delete() path, which
+    # calls this without an outer transaction of its own.
     if not invoice:
         return
     # Query by invoice_id so totals match the DB. `invoice.lines.all()` can return a stale
@@ -613,8 +654,15 @@ def recalculate_invoice(invoice: Invoice) -> None:
             total = subtotal + tax_amount
 
     paid = Decimal("0.00")
+    # Exclude soft-deleted payments AND not-received statuses (failed/cancelled/
+    # refunded) so a reversed/failed payment stops counting toward paid — mirrors
+    # Invoice.computed_balance.
+    from apps.finance.models import _NON_RECEIVED_PAYMENT_STATUSES
+
     # tenant-isolation-allow: service-scoped-via-request-school-context
-    for payment in Payment.objects.filter(invoice_id=invoice.pk):
+    for payment in Payment.objects.filter(
+        invoice_id=invoice.pk, deleted_at__isnull=True
+    ).exclude(status__in=_NON_RECEIVED_PAYMENT_STATUSES):
         paid += payment.amount
 
     balance = max(total - paid, Decimal("0.00"))
@@ -632,7 +680,13 @@ def recalculate_invoice(invoice: Invoice) -> None:
     post_invoice_to_ledger(invoice)
 
 
+@transaction.atomic
 def apply_payment(payment: Payment) -> None:
+    # Envelope transaction: recalc + payer-share allocation + ledger post must
+    # commit together or roll back together, so a mid-execution failure cannot
+    # leave a half-applied payment (stale invoice balance / unbalanced ledger).
+    # Called from the post_save signal and webhook path which have no outer
+    # atomic block of their own, so this decorator is load-bearing.
     if not payment or not payment.invoice:
         return
     recalculate_invoice(payment.invoice)
@@ -784,11 +838,16 @@ def allocate_payment_to_payer_shares(payment: Payment) -> None:
     """
     if not payment or not payment.invoice_id:
         return
+    # Row-lock the shares for the duration of this atomic block so two payments
+    # against the same invoice can't both read a stale paid_amount and clobber
+    # each other's allocation (lost update on share.paid_amount).
     shares = list(
-        InvoicePayerShare.objects.filter(
+        InvoicePayerShare.objects.select_for_update()
+        .filter(
             invoice_id=payment.invoice_id,
             is_active=True,
-        ).select_related("guardian", "guardian__guardian_user")
+        )
+        .select_related("guardian", "guardian__guardian_user")
     )
     if not shares:
         return
@@ -976,7 +1035,7 @@ def create_payment_from_receipt(
         external_reference=verification_data.get("reference")
         or proof_upload.transaction_reference
         or "",
-        status=Payment.STATUS_CHOICES[2][0],
+        status="completed",  # canonical Payment status value (cf. Payment.mark_completed)
         created_by=proof_upload.uploaded_by,
         processed_by=verified_by,
         paid_at=timezone.now(),

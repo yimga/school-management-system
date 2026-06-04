@@ -137,7 +137,7 @@ def _apply_users(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
     skipped = 0
     for r in upserts:
         sid = (r.get("sourcedId") or "").strip()
-        username = (r.get("username") or "").strip()[:150]
+        username = (r.get("username") or "").strip()[:150]  # magic-number-allow: string-truncation-cap
         if not sid or not username:
             skipped += 1
             continue
@@ -145,9 +145,9 @@ def _apply_users(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
             obj, created = User.objects.get_or_create(  # tenant-isolation-allow: roster-import-platform-scope
                 username=username,
                 defaults={
-                    "first_name": (r.get("givenName") or "")[:150],
-                    "last_name": (r.get("familyName") or "")[:150],
-                    "email": (r.get("email") or "")[:254],
+                    "first_name": (r.get("givenName") or "")[:150],  # magic-number-allow: string-truncation-cap
+                    "last_name": (r.get("familyName") or "")[:150],  # magic-number-allow: string-truncation-cap
+                    "email": (r.get("email") or "")[:254],  # magic-number-allow: string-truncation-cap
                 },
             )
             changed = False
@@ -157,7 +157,7 @@ def _apply_users(rows: list[dict[str, str]], report: dict[str, Any]) -> None:
                 ("email", r.get("email") or ""),
             ):
                 if hasattr(obj, field) and getattr(obj, field) != raw:
-                    setattr(obj, field, raw[:254])
+                    setattr(obj, field, raw[:254])  # magic-number-allow: string-truncation-cap
                     changed = True
             if changed:
                 obj.save(update_fields=[f for f in ("first_name", "last_name", "email") if hasattr(obj, f)])

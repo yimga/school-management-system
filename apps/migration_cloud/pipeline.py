@@ -54,6 +54,12 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
     if bundle.status in (BundleStatus.INGESTING, BundleStatus.PENDING):
         _emit_progress(bundle_id=bundle_id, kind="stage_started", stage="PROFILED",
                        message="Profiling artifacts")
+        try:
+            from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
+
+            pulse_workflow_step(active_workflow_run(), "profile")
+        except Exception:
+            pass
         profiled = profile_bundle(bundle)
         summary["stages_run"].append("profile")
         summary["artifacts_profiled"] = profiled
@@ -64,6 +70,12 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
 
     # --- Phase U3: source classification ----------------------------------
     if bundle.status == BundleStatus.PROFILED:
+        try:
+            from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
+
+            pulse_workflow_step(active_workflow_run(), "classify")
+        except Exception:
+            pass
         artifacts = list(bundle.artifacts.filter(quarantined=False))
         source_result = classify_source(bundle=bundle, artifacts=artifacts)
         bundle.discovery_summary = {
@@ -129,6 +141,12 @@ def advance_bundle(*, bundle_id: int, use_accelerator: bool = True) -> dict[str,
 
     # --- Phase U4: mapping (per artifact) ---------------------------------
     if bundle.status == BundleStatus.CLASSIFIED:
+        try:
+            from apps.platform_runtime.workflow_tracker import active_workflow_run, pulse_workflow_step
+
+            pulse_workflow_step(active_workflow_run(), "map")
+        except Exception:
+            pass
         all_mappings: dict[str, list[dict[str, Any]]] = {}
         per_artifact_domain = (
             (bundle.discovery_summary or {}).get("per_artifact_domain") or {}

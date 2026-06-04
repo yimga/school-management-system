@@ -22,7 +22,7 @@ DEFAULT_SCOPES = ("sakai:read", "sakai:write")
 
 # v4.00.81 — OAuth state mint TimestampSigner salt + TTL.
 OAUTH_STATE_SALT = "rmc.lms.sakai.oauth_state.v4.00.81"
-OAUTH_STATE_TTL_SECONDS = 600  # 10 min
+OAUTH_STATE_TTL_SECONDS = 600  # 10 min  # magic-number-allow: ttl-seconds
 
 # Honest declaration — surfaced via ``lms_supported_providers`` and the
 # diagnostics dashboard's "Scaffold (coming soon)" pill.

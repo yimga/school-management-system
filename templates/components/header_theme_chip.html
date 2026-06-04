@@ -1,32 +1,19 @@
 {% load i18n static %}
 {% comment %}
-  Shared theme + aesthetic chip — single source of truth across all 5 shells
-  (portal_base, control_plane via manager_operator_topbar, admin/base,
-  marketing_header, base). Hoisted out of components/user_dropdown.html
-  (lines L120-161 pre-v4.01.07) and out of the standalone
-  `cp-topbar-theme-toggle` button in manager_operator_topbar.html so theme
-  control has ONE render location per shell, ONE include, ONE SOT.
+  Shared theme + aesthetic controls — single source of truth across all shells.
 
-  Contract:
-    - Renders only when authenticated OR when PUBLIC_BRAND_MODE so the
-      marketing surface (anonymous visitors) still gets the chip.
-    - Preserves the JS data-attribute contract read by
-      static/js/rmc-theme-toggle.js — DO NOT rename:
-        data-rmc-theme="light|dark|system"           (per-button)
-        data-rmc-theme-current                       (live label)
-        data-rmc-aesthetic="warm-bright|cool-apple|stone"  (per-button)
-        data-rmc-aesthetic-current                   (live label)
-      and the inline cycle hook used by the legacy topbar button:
-        data-rmc-theme-cycle                          (one-shot cycle)
-    - Sits inside the .rmc-header-theme-chip container so shell CSS can
-      position it consistently (visually right of the notification bell,
-      before the user dropdown).
+  v4.01.43: rendered from components/user_dropdown.html (profile menu, above logout)
+  on every authenticated surface. Anonymous marketing visitors use the nav-drawer
+  include in marketing_header.html (not the header toolbar row).
+
+  Contract (unchanged — read by static/js/rmc-theme-toggle.js):
+    data-rmc-theme="light|dark|system"
+    data-rmc-theme-current
+    data-rmc-aesthetic="warm-bright|cool-apple|stone"
+    data-rmc-aesthetic-current
 {% endcomment %}
 {% if request.user.is_authenticated or PUBLIC_BRAND_MODE %}
-<div class="rmc-header-theme-chip" data-rmc-header-theme-chip="1" role="group" aria-label="{% trans 'Appearance and aesthetic' %}">
-  {% comment %} Theme: Light / Dark / System segmented toggle.
-     Writes to localStorage via window.RMCTheme.set() (theme-preference-bootstrap.js)
-     and lets <html data-theme=...> cascade across every CSS surface. {% endcomment %}
+<div class="rmc-header-theme-chip{% if theme_chip_layout == 'dropdown' %} rmc-header-theme-chip--dropdown{% endif %}{% if theme_chip_layout == 'nav-drawer' %} rmc-header-theme-chip--nav-drawer{% endif %}" data-rmc-header-theme-chip="1" role="group" aria-label="{% trans 'Appearance and aesthetic' %}">
   <div class="rmc-header-theme-chip__group rmc-theme-toggle-row" role="group" aria-label="{% trans 'Appearance' %}">
     <span class="visually-hidden" data-rmc-theme-current aria-live="polite"></span>
     <div class="btn-group btn-group-sm rmc-header-theme-chip__segmented" role="group">
@@ -42,10 +29,6 @@
     </div>
   </div>
 
-  {% comment %} Aesthetic-profile picker — per-user override of the tenant default.
-     Writes to localStorage["runmycampus-aesthetic-preference"] and fires
-     rmc:aesthetic-change; theme-preference-bootstrap.js re-projects
-     data-rmc-aesthetic + --site-aesthetic-* on <html> live. {% endcomment %}
   <div class="rmc-header-theme-chip__group rmc-aesthetic-toggle-row" role="group" aria-label="{% trans 'Aesthetic' %}">
     <span class="visually-hidden" data-rmc-aesthetic-current aria-live="polite"></span>
     <div class="btn-group btn-group-sm rmc-header-theme-chip__segmented" role="group">

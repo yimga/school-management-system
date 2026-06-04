@@ -508,6 +508,9 @@
 
 .rmc-lux-quick__label {
   white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rmc-lux-quick__kbd {

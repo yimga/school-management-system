@@ -597,6 +597,20 @@ def _apply_split_allocation(
     if not profile:
         return {"ok": False, "error": "no_compliance_profile"}
 
+    # Idempotency P0: short-circuit BEFORE any money side effect. Previously the
+    # invoice + payment were created first and the capture recorded afterward, so
+    # a WAL/queue retry or two-device replay created a SECOND invoice + payment.
+    client_key = _client_key(payload)
+    existing = _existing_capture(school_id, client_key)
+    if existing:
+        return {
+            "ok": True,
+            "dedup": True,
+            "workflow_applied": "finance_split_allocation",
+            "capture_id": existing.pk,
+            **(existing.result_summary or {}),
+        }
+
     # tenant-isolation-allow: split-allocation-active-year-scoped-to-school-tenant
     active_year = AcademicYear.objects.filter(
         school_id=school_id,
@@ -648,50 +662,76 @@ def _apply_split_allocation(
         equal_parts = split_amount_equally(total_amount, len(student_guardians))
         payer_allocations = list(zip(student_guardians, equal_parts))
 
-    with transaction.atomic():
-        invoice = Invoice.objects.create(
-            profile=profile,
-            academic_year=active_year,
-            student=student,
-            school_id=school_id,
-            reference=reference,
-            invoice_type=Invoice.InvoiceType.AR,
-            issued_date=today,
-            due_date=today,
-            status=Invoice.Status.ISSUED,
-            total_amount=total_amount,
-            created_by_id=user_id,
-        )
-        for desc, amount in allocations:
-            InvoiceLine.objects.create(
-                invoice=invoice,
-                description=desc,
-                quantity=Decimal("1.00"),
-                unit_price=amount,
-                amount=amount,
-            )
-        if payer_allocations:
-            assign_invoice_payer_shares(invoice, payer_allocations, due_date=today)
-        payment = Payment.objects.create(
-            invoice=invoice,
-            student=student,
-            amount=total_amount,
-            method=method,
-            paid_at=timezone.now(),
-            created_by_id=user_id,
-        )
-        apply_payment(payment)
+    from django.db import IntegrityError
 
-    capture = _record_capture(
-        school_id=school_id,
-        user_id=user_id,
-        workflow="finance_split_allocation",
-        client_offline_id=_client_key(payload),
-        status=FinanceOfflineCaptureRecord.Status.APPLIED,
-        fields=fields,
-        result_summary={"invoice_id": invoice.pk, "payment_id": str(payment.pk)},
-        profile_id=profile.pk,
-    )
+    try:
+        with transaction.atomic():
+            # Create the capture FIRST inside the same transaction. The partial
+            # unique constraint on (school, client_offline_id) makes a concurrent
+            # replay raise IntegrityError here and roll the whole block back, so
+            # the invoice + payment below can never be created twice for one key.
+            capture = FinanceOfflineCaptureRecord.objects.create(
+                school_id=school_id,
+                workflow="finance_split_allocation",
+                client_offline_id=client_key,
+                status=FinanceOfflineCaptureRecord.Status.APPLIED,
+                source=FinanceOfflineCaptureRecord.Source.OFFLINE,
+                fields_snapshot=fields,
+                result_summary={},
+                profile_id=profile.pk,
+                created_by_id=user_id,
+            )
+            invoice = Invoice.objects.create(
+                profile=profile,
+                academic_year=active_year,
+                student=student,
+                school_id=school_id,
+                reference=reference,
+                invoice_type=Invoice.InvoiceType.AR,
+                issued_date=today,
+                due_date=today,
+                status=Invoice.Status.ISSUED,
+                total_amount=total_amount,
+                created_by_id=user_id,
+            )
+            for desc, amount in allocations:
+                InvoiceLine.objects.create(
+                    invoice=invoice,
+                    description=desc,
+                    quantity=Decimal("1.00"),
+                    unit_price=amount,
+                    amount=amount,
+                )
+            if payer_allocations:
+                assign_invoice_payer_shares(invoice, payer_allocations, due_date=today)
+            payment = Payment.objects.create(
+                invoice=invoice,
+                student=student,
+                amount=total_amount,
+                method=method,
+                # Offline split allocation records cash already collected, so the
+                # payment is "completed" — not the default "pending" (which, after
+                # the balance-status fix, must reflect money actually received).
+                status="completed",
+                paid_at=timezone.now(),
+                created_by_id=user_id,
+            )
+            apply_payment(payment)
+            capture.result_summary = {"invoice_id": invoice.pk, "payment_id": str(payment.pk)}
+            capture.save(update_fields=["result_summary"])
+    except IntegrityError:
+        # A concurrent replay won the unique-constraint race and already did the
+        # work — return its result instead of double-charging.
+        existing = _existing_capture(school_id, client_key)
+        if existing:
+            return {
+                "ok": True,
+                "dedup": True,
+                "workflow_applied": "finance_split_allocation",
+                "capture_id": existing.pk,
+                **(existing.result_summary or {}),
+            }
+        raise
     return {
         "ok": True,
         "workflow_applied": "finance_split_allocation",

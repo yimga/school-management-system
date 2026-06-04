@@ -320,6 +320,22 @@
     document.addEventListener("rmc:copilot-lens-prompt", function (ev) {
       if (ev.detail && ev.detail.text) { fillInput(ev.detail.text); }
     });
+    document.addEventListener("rmc-workflow-copilot-context", function (ev) {
+      var detail = ev.detail || window.__rmcWorkflowCopilotContext;
+      if (!detail) { return; }
+      var stuck = detail.stuck_count || 0;
+      var degrading = detail.degrading_count || 0;
+      var ids = (detail.active_run_ids || []).join(", ");
+      var prompt =
+        "Explain active platform workflows. Stuck: " +
+        stuck +
+        ", slowing: " +
+        degrading +
+        (ids ? ". Run ids: " + ids : "") +
+        ". Suggest the next operator action.";
+      fillInput(prompt);
+      openLensChrome();
+    });
     document.querySelectorAll("[data-ai-copilot-view]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         var view = btn.getAttribute("data-ai-copilot-view");

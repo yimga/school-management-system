@@ -1,0 +1,38 @@
+{
+  "operation": "OMNI-LIFECYCLE-FORENSIC",
+  "date": "2026-06-02",
+  "note": "Lane 2 = items that require live external resources or production-only verification and cannot be closed inside the repo/CI. Recorded honestly per the audit contract; NOT faked DONE.",
+  "residuals": [
+    {
+      "id": "A2-purge-rls",
+      "title": "Purge path RLS context under Postgres FORCE RLS",
+      "why_lane2": "RLS is a no-op on the SQLite test DB; correctness of the destructive purge under FORCE RLS + default-deny can only be confirmed on Postgres with the actual Celery worker DB role. Code fix is staged as a recommendation (wrap in rls_school(target.id)) but applying it changes destructive-delete behavior and needs a Postgres integration test + owner sign-off.",
+      "blocker": "Postgres test environment + confirmation of Celery worker DB role (BYPASSRLS?)."
+    },
+    {
+      "id": "purge-45s-at-scale",
+      "title": "Mega-tenant purge < 45s SLA",
+      "why_lane2": "Throughput SLA only measurable against a large real dataset; PARTIAL until benchmarked. Index recommendation A3 (School (deleted_at, is_active)) is the first lever and is queued for the migration wave."
+    },
+    {
+      "id": "redis-sub-ms-meter",
+      "title": "Redis HINCRBY < 1ms hot-path metering at load",
+      "why_lane2": "hot_increment is correct and unit-covered; sub-ms-at-load is a load-test assertion requiring a Redis-backed staging environment."
+    },
+    {
+      "id": "live-psp",
+      "title": "Live PSP (MTN/Orange MoMo) outbound",
+      "why_lane2": "Requires real partner credentials/sandbox; code paths exist and are signature-verified, but live settlement is an external dependency."
+    },
+    {
+      "id": "edge-failover-50ms",
+      "title": "Sub-50ms AI model failover at edge",
+      "why_lane2": "AI gateway has a per-tier circuit breaker (opens at 3 fails, 30s cooldown) but sub-50ms edge failover is Lane 2 (Cloudflare Workers / measured latency), per AI_DEPLOYMENT_POSTURE.md."
+    }
+  ],
+  "lane1_completed_this_wave": [
+    "Finance concurrency hardening: AI premium/request budget atomic add+incr; cross-wallet same-invoice select_for_update; quantize_money on wallet balance_after.",
+    "B1 Payment status enum-literal; D3 unified-FSM validator wired; A1 hierarchy-cycle guard; D5 data-residency fallback warning; C1 RTL logical properties.",
+    "All green: 7 zero-tolerance scanners at 0, manage.py check clean, affected test suites passing."
+  ]
+}

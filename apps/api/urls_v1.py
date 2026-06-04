@@ -114,7 +114,7 @@ urlpatterns = [
         views_v1.TenantsProvisionView.as_view(),
         name="tenants-provision",
     ),
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "config/education-dna",
         views_v1.EducationDNAView.as_view(),
         name="config-education-dna",
@@ -129,7 +129,7 @@ urlpatterns = [
         views_v1.IntegrationCatalogView.as_view(),
         name="config-integration-catalog",
     ),
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "config/risk-thresholds",
         views_v1.RiskThresholdsConfigView.as_view(),
         name="config-risk-thresholds",
@@ -159,27 +159,27 @@ urlpatterns = [
         views_v1.FinanceExchangeRateView.as_view(),
         name="finance-exchange-rate",
     ),
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "intervention/red-flags",
         views_v1_intervention.InterventionRedFlagsView.as_view(),
         name="intervention-red-flags",
     ),
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "intervention/action-center",
         views_v1_intervention.InterventionActionCenterView.as_view(),
         name="intervention-action-center",
     ),
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "intervention/action-center/<int:id>",
         views_v1_intervention.InterventionActionCenterDetailView.as_view(),
         name="intervention-action-center-detail",
     ),
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "intervention/calculate-risk",
         views_v1_intervention.InterventionCalculateRiskView.as_view(),
         name="intervention-calculate-risk",
     ),
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "intervention/generate-roadmap",
         views_v1_intervention.InterventionGenerateRoadmapView.as_view(),
         name="intervention-generate-roadmap",
@@ -254,13 +254,13 @@ urlpatterns = [
         name="super-schools-list",
     ),
     # Plan XII: GDPR "Export my school data"
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "compliance/export-school",
         views_v1.ComplianceExportSchoolView.as_view(),
         name="compliance-export-school",
     ),
     # Plan XVII: Enrollment forecasting stub
-    path(
+    path(  # rbac-allow: auth-gated-via-_require_auth_and_tenant_member-inline-check
         "enrollment/forecast",
         views_v1.EnrollmentForecastView.as_view(),
         name="enrollment-forecast",
@@ -389,7 +389,7 @@ urlpatterns = [
         name="social-attribution",
     ),
     # v3.62.2 — country-adaptive signup form data (local-first wave 1).
-    path(
+    path(  # rbac-allow: intentionally-public-signup-localization-pack-no-pii-no-tenant
         "localization/<str:country_code>/",
         country_localization_pack,
         name="localization-country-pack",
