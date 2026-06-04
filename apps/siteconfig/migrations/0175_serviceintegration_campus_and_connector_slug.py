@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
             name="campus",
             field=models.ForeignKey(
                 blank=True,
+                db_constraint=False,
                 help_text=(
                     "Optional campus scope. NULL = applies to all campuses of the school. "
                     "Campus rows override the school-level row in the cascade resolver."
