@@ -12,6 +12,10 @@ is the single entry for bounded config; "Open in backoffice" only for rare/legac
 from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 
+# Cockpit shell (v8 200x): default emoji glyph per primary-nav id. SOT lives in
+# apps/siteconfig/cockpit_config.py; imported lazily-safe at module load.
+from apps.siteconfig.cockpit_config import DEFAULT_COCKPIT_NAV_GLYPHS as _DEFAULT_COCKPIT_NAV_GLYPHS
+
 
 def _safe_reverse(url_name, urlconf=None, kwargs=None, args=None):
     try:
@@ -348,6 +352,10 @@ def build_primary_control_plane_nav(request):
                 "label": row["label"],
                 "url": url,
                 "icon": row["icon"],
+                # Configurable emoji glyph (v8 cockpit). Default from the SOT;
+                # per-tenant override / hide / glyph-vs-icon toggle is applied in
+                # the context processor against the resolved cockpit blueprint.
+                "glyph": _DEFAULT_COCKPIT_NAV_GLYPHS.get(row["id"], ""),
                 "is_current": _primary_nav_is_current(path, row["id"]),
             }
         )

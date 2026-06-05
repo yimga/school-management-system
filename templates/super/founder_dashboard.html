@@ -86,6 +86,8 @@
       {% else %}
       <a class="btn btn-sm btn-outline-secondary ds-btn" href="{{ command_center_url }}" data-task="founder" data-task-step="dashboard:command-center">{% trans "Command center" %}</a>
       {% endif %}
+      {% comment %} v8 cockpit page-header actions (Export PDF + Quick action), config-driven. {% endcomment %}
+      {% include "partials/cockpit/_page_actions.html" %}
     </nav>
   </header>
   <!-- rmc-ux-above-fold-end -->

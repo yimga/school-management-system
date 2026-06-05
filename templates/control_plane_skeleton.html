@@ -1,6 +1,6 @@
 {% load i18n static workflow_guidance_tags %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if not request.user.is_authenticated %} data-rmc-auth-landing="1"{% endif %}{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-rmc-admin-density="comfortable" data-surface="control-plane" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane" data-rmc-isomorphic-template="operator-control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if not request.user.is_authenticated %} data-rmc-auth-landing="1"{% endif %}{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-theme="light" data-bs-theme="light" data-rmc-aesthetic="cool-apple" data-rmc-admin-density="comfortable" data-surface="control-plane" data-cockpit-skin="{{ cockpit_shell.skin|default:'dark' }}" data-rmc-shell-root="control-plane-skeleton" data-shell-layout="control-plane" data-rmc-isomorphic-template="operator-control-plane"{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -98,6 +98,7 @@
     <link rel="stylesheet" href="{% static 'css/control-plane-skeleton-root.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
+    {% include "partials/rmc_operator_tools_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
     <link rel="stylesheet" href="{% static 'css/phase2-control-plane-bundle.css' %}">
@@ -124,6 +125,9 @@
        platform pulse, workspace context, breadcrumb). Loaded after shell so cockpit components
        can override shell defaults where needed. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
+    {% comment %} v8 cockpit: skin-driven chrome ([data-cockpit-skin]) + page-action buttons.
+       Loaded after v7 so the per-surface skin layers on top. SOT: apps/siteconfig/cockpit_config.py {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -161,7 +165,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
   </head>
-  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-back-to-top-policy="always" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
+  <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
     {% include "partials/shell_skip_link.html" with skip_href="#cp-main-content" skip_link_class="skip-link visually-hidden-focusable" %}
     <div class="htmx-progress-bar" aria-hidden="true">{% include "components/_rmc_bell_clock_spinner.html" %}</div>
@@ -265,6 +269,8 @@
     <script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
     <script src="{% static 'js/rmc-copilot-context-lens.js' %}" defer></script>
     <script src="{% static 'js/rmc-list-bulk-select.js' %}" defer></script>
+    {% comment %} v8 cockpit: Export PDF (print path) + Quick action (⌘K palette) button wiring. {% endcomment %}
+    <script src="{% static 'js/rmc-cockpit-page-actions.js' %}" defer></script>
     {% comment %} v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. {% endcomment %}
     <script src="{% static 'js/_pages/rmc-data-viz.js' %}" defer></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
@@ -278,6 +284,7 @@
     {% if request.user.is_authenticated %}
     {% comment %} v4.00.91: registry SOT island for the assist dock. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
+    {% include "partials/rmc_operator_tools_scripts.html" %}
     {% comment %} v4.00.97 Wave G2: impersonation banner partial — renders only when active. {% endcomment %}
     {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>

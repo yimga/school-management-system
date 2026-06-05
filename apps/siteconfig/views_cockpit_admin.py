@@ -350,3 +350,66 @@ class MarketingVoiceConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormV
                 messages.info(request, _("Marketing voice cleared — country defaults will apply."))
             return HttpResponseRedirect(request.path)
         return super().post(request, *args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# v8 cockpit shell chrome settings (skin per surface, header composition,
+# emoji nav glyphs, page-header action buttons). Sister of CockpitConfigureView
+# but targets the ``cockpit_*`` brand_experience virtual keys (chrome behaviour)
+# rather than the ``cockpit_payload`` content dict. SOT: cockpit_config.py.
+# ---------------------------------------------------------------------------
+
+
+class CockpitShellConfigureView(LoginRequiredMixin, UserPassesTestMixin, FormView):
+    """GET renders the cockpit shell settings; POST persists the cockpit_* keys.
+
+    Same access policy as ``CockpitConfigureView`` — staff OR superuser.
+    """
+
+    template_name = "siteconfig/super/cockpit_shell_configure.html"
+    raise_exception = True
+
+    def get_form_class(self) -> Any:
+        from .forms_cockpit_shell import CockpitShellSettingsForm
+
+        return CockpitShellSettingsForm
+
+    def test_func(self) -> bool:
+        user = self.request.user
+        if not user.is_authenticated:
+            return False
+        return bool(getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+
+    def get_initial(self) -> dict[str, Any]:
+        from .forms_cockpit_shell import CockpitShellSettingsForm
+
+        site = _resolve_site_settings_instance(self.request)
+        return CockpitShellSettingsForm.initial_from_site(site)
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["page_title"] = _("Cockpit shell")
+        ctx["cockpit_shell_configure_url"] = self.request.path
+        return ctx
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        from .models import SiteSettings
+
+        SiteSettings.update_cockpit_shell_settings(form.to_updates())
+        messages.success(self.request, _("Cockpit shell settings saved."))
+        return HttpResponseRedirect(self.request.path)
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if request.POST.get("action") == "reset_cockpit_shell":
+            from .cockpit_config import all_cockpit_keys
+            from .models import SiteSettings
+
+            # Reset by writing each knob back to its module default.
+            from .cockpit_config import cockpit_setting_default
+
+            SiteSettings.update_cockpit_shell_settings(
+                {key: cockpit_setting_default(key) for key in all_cockpit_keys()}
+            )
+            messages.info(request, _("Cockpit shell settings reset to defaults."))
+            return HttpResponseRedirect(request.path)
+        return super().post(request, *args, **kwargs)

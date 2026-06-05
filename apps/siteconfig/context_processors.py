@@ -267,6 +267,38 @@ def _resolve_backend_feature_flags(request, site) -> dict:
     return dict(fallback_flags) if isinstance(fallback_flags, dict) else {}
 
 
+def _resolve_cockpit_surface(request, ctx, public_host_kind, path):
+    """Map the current request to a cockpit surface (drives skin + brand pill).
+
+    Deterministic: manager host → manager/studio; tenant host → by path prefix,
+    then by user role for the generic portal landing. Surfaces are defined in
+    apps/siteconfig/cockpit_config.py; admins override the per-surface skin there.
+    """
+    p = (path or "").split("?", 1)[0]
+    if public_host_kind == "manager":
+        return "studio" if ctx.get("STUDIO_FOCUS_SHELL") else "manager"
+    if p.startswith("/studio"):
+        return "studio"
+    if p.startswith("/teacher"):
+        return "teacher"
+    if p.startswith("/parent"):
+        return "parent"
+    if p.startswith("/student"):
+        return "student"
+    if p.startswith("/backend") or p.startswith("/admin"):
+        return "backend"
+    role = str(getattr(getattr(request, "user", None), "role", "") or "").lower()
+    if "teacher" in role:
+        return "teacher"
+    if "parent" in role or "guardian" in role:
+        return "parent"
+    if "student" in role:
+        return "student"
+    if "admin" in role or "proprietor" in role:
+        return "backend"
+    return "portal"
+
+
 def site_settings(request):
     """
     Provides SITE to all templates.
@@ -907,6 +939,45 @@ def site_settings(request):
                 )
         except OPTIONAL_CONTEXT_ERRORS:
             ctx["PRIMARY_CONTROL_PLANE_NAV"] = []
+    # ------------------------------------------------------------------
+    # Cockpit shell blueprint (v8 200x app-shell) — fully config-driven.
+    # Resolves the per-surface skin, header composition, page-header actions and
+    # primary-nav glyph overrides from the brand_experience cascade. SOT lives in
+    # apps/siteconfig/cockpit_config.py; admins change any knob there. Nothing in
+    # the shell templates is hardcoded — they all read ``cockpit.*``.
+    # ------------------------------------------------------------------
+    # Namespaced as ``cockpit_shell`` — the existing ``cockpit`` object
+    # (apps/siteconfig/cockpit_context.py: brand tagline + pulse + workspace)
+    # is left untouched; this adds the per-surface skin + composition + actions.
+    try:
+        from apps.siteconfig.cockpit_config import build_cockpit_blueprint
+
+        cockpit_surface = _resolve_cockpit_surface(
+            request, ctx, public_host_kind, path
+        )
+        cockpit_shell = build_cockpit_blueprint(site, surface=cockpit_surface)
+    except OPTIONAL_CONTEXT_ERRORS:
+        cockpit_shell = None
+    ctx["cockpit_shell"] = cockpit_shell
+    if cockpit_shell:
+        nav = ctx.get("PRIMARY_CONTROL_PLANE_NAV") or []
+        if nav:
+            hidden = set(cockpit_shell.get("nav_hidden_ids") or [])
+            glyphs = cockpit_shell.get("nav_glyphs") or {}
+            use_glyphs = cockpit_shell.get("nav_use_glyphs", True)
+            filtered = []
+            for item in nav:
+                if item.get("id") in hidden:
+                    continue
+                if use_glyphs:
+                    glyph = glyphs.get(item.get("id"))
+                    if glyph:
+                        item["glyph"] = glyph
+                else:
+                    # Clear glyph so the template falls back to the Bootstrap icon.
+                    item["glyph"] = ""
+                filtered.append(item)
+            ctx["PRIMARY_CONTROL_PLANE_NAV"] = filtered
     # v2.65 Wave 1a (2026-05-15): platform-wide gate for the redundant
     # "RunMyCampus workspace / role" strip that rmc_os_page_header.html
     # renders. Pages whose canvas has its own h1 + page-context (Studio

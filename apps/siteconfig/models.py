@@ -221,6 +221,24 @@ class SiteSettings(models.Model):
         cls._persist_runtime_payload_updates({"cockpit_payload": value or {}})
 
     @classmethod
+    def update_cockpit_shell_settings(cls, updates: dict) -> None:
+        """Persist cockpit shell chrome knobs (``cockpit_*`` brand_experience keys).
+
+        Canonical writer for the v8 cockpit shell config (skin per surface, nav
+        glyphs, header composition toggles, page-header actions). Only keys that
+        start with ``cockpit_`` are accepted; everything else is dropped so this
+        can't be used to write arbitrary payload. Read back via ``SITE.cockpit_*``
+        and assembled by apps/siteconfig/cockpit_config.build_cockpit_blueprint.
+        """
+        safe = {
+            key: val
+            for key, val in (updates or {}).items()
+            if isinstance(key, str) and key.startswith("cockpit_") and key != "cockpit_payload"
+        }
+        if safe:
+            cls._persist_runtime_payload_updates(safe)
+
+    @classmethod
     def set_email_delivery(cls, value: dict) -> None:
         cls._persist_runtime_payload_updates({"email_delivery": value or {}})
 

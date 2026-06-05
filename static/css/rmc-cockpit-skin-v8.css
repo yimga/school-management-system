@@ -1,0 +1,177 @@
+/* ============================================================
+   rmc-cockpit-skin-v8.css — skin-driven cockpit chrome (platform-wide)
+   ------------------------------------------------------------
+   Makes the cockpit chrome render DARK or LIGHT per the
+   [data-cockpit-skin] attribute on the shell root, so the same
+   .rmc-cockpit-* / .cp-* components work on every surface — not just
+   the manager control plane. The skin value comes from
+   ``cockpit_shell.skin`` (SOT: apps/siteconfig/cockpit_config.py),
+   emitted as data-cockpit-skin on the shell <html>/root.
+
+   Recommendation shipped as default: staff/operator surfaces dark,
+   family-facing (parent/student) light — all per-tenant overridable.
+   The tenant brand always wins via the *accent* (active pill, glows,
+   primary button), regardless of frame tone.
+
+   "auto" intentionally emits NO chrome tokens here — it defers to the
+   surface/theme defaults (existing [data-surface] + [data-resolved-theme]).
+
+   Loaded after manager-cockpit-v7.css so it can layer the skin on top.
+   ============================================================ */
+
+/* ---- DARK skin chrome tokens (mirror the manager dark glass) ---- */
+[data-cockpit-skin="dark"] {
+  --rmc-cockpit-chrome-glass:        rgba(255, 255, 255, 0.04);  /* off-token-allow: dark-chrome-surface */
+  --rmc-cockpit-chrome-glass-strong: rgba(255, 255, 255, 0.09);  /* off-token-allow: dark-chrome-surface-hover */
+  --rmc-cockpit-chrome-hairline:     rgba(255, 255, 255, 0.08);  /* off-token-allow: dark-chrome-hairline */
+  --rmc-cockpit-chrome-ink:          rgba(255, 255, 255, 0.92);  /* off-token-allow: dark-chrome-text-strong */
+  --rmc-cockpit-chrome-text:         rgba(255, 255, 255, 0.85);  /* off-token-allow: dark-chrome-text */
+  --rmc-cockpit-chrome-text-bright:  rgba(255, 255, 255, 0.88);  /* off-token-allow: dark-chrome-text-bright */
+  --rmc-cockpit-chrome-muted:        rgba(255, 255, 255, 0.55);  /* off-token-allow: dark-chrome-text-muted */
+  --rmc-cockpit-chrome-faint:        rgba(255, 255, 255, 0.45);  /* off-token-allow: dark-chrome-text-faint */
+  --rmc-cockpit-chrome-mask-edge:    rgba(0, 0, 0, 1);           /* off-token-allow: mask-gradient-edge */
+}
+
+/* ---- LIGHT skin chrome tokens (tenant brand-forward) ----
+   These reference semantic theme tokens so the chrome flips correctly
+   with the active theme; the two faint tints are decorative dark-on-light. */
+[data-cockpit-skin="light"] {
+  --rmc-cockpit-chrome-glass:        rgba(15, 23, 42, 0.04);  /* off-token-allow: light-chrome-surface-tint */
+  --rmc-cockpit-chrome-glass-strong: rgba(15, 23, 42, 0.08);  /* off-token-allow: light-chrome-surface-hover */
+  --rmc-cockpit-chrome-hairline:     var(--hairline);
+  --rmc-cockpit-chrome-ink:          var(--text-primary);
+  --rmc-cockpit-chrome-text:         var(--text-secondary);
+  --rmc-cockpit-chrome-text-bright:  var(--text-primary);
+  --rmc-cockpit-chrome-muted:        var(--text-tertiary);
+  --rmc-cockpit-chrome-faint:        var(--text-muted);
+  --rmc-cockpit-chrome-mask-edge:    rgba(0, 0, 0, 1);  /* off-token-allow: mask-gradient-edge */
+}
+
+/* ---- Shell header + sidebar background per skin ----
+   The base .rmc-app-shell__header/__sidebar (rmc-app-shell.css) is light
+   (--surface-elevated). Dark skin layers the cockpit glass gradient. */
+[data-cockpit-skin="dark"] .rmc-app-shell__header {
+  background:
+    radial-gradient(900px 220px at 8% -10%, rgba(99, 102, 241, 0.20), transparent 60%),   /* off-token-allow: cockpit-dark-glow-indigo */
+    radial-gradient(700px 200px at 92% -20%, rgba(16, 185, 129, 0.16), transparent 60%),   /* off-token-allow: cockpit-dark-glow-emerald */
+    linear-gradient(180deg, #0a0d22 0%, #07091a 100%);                                     /* off-token-allow: always-dark-cockpit-chrome */
+  color: var(--rmc-cockpit-chrome-ink);
+  border-bottom: 1px solid var(--rmc-cockpit-chrome-hairline);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+          backdrop-filter: blur(18px) saturate(140%);
+}
+[data-cockpit-skin="dark"] .rmc-app-shell__sidebar {
+  background: linear-gradient(180deg, #07091a 0%, #04060f 100%);  /* off-token-allow: always-dark-cockpit-chrome */
+  color: var(--rmc-cockpit-chrome-ink);
+  border-right: 1px solid var(--rmc-cockpit-chrome-hairline);
+}
+
+[data-cockpit-skin="light"] .rmc-app-shell__header {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--hairline);
+}
+[data-cockpit-skin="light"] .rmc-app-shell__sidebar {
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  border-right: 1px solid var(--hairline);
+}
+
+/* ============================================================
+   Page-header action buttons (v8 body: "⤓ Export PDF" + "＋ Quick action")
+   ------------------------------------------------------------
+   Rendered by partials/cockpit/_page_actions.html, driven by
+   cockpit_shell.actions. Theme-aware so they read correctly on the
+   light canvas and on a dark hero card alike.
+   ============================================================ */
+.rmc-cockpit-page-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================================
+   Tenant header + sidebar dark skin (the "re-point" wave)
+   ------------------------------------------------------------
+   The tenant shells render their own mature, role-aware header
+   (.tp-header, rmc-tenant-header-100x.css) and a glass sidebar
+   (.rmc-glass-sidebar-shell) — NOT the manager .rmc-app-shell
+   chrome. Both already consume the SEMANTIC tokens (--text-*,
+   --surface-*, --hairline). So we bring them under the cockpit
+   skin by RE-POINTING those tokens to dark values, scoped to the
+   header/sidebar subtree, under [data-cockpit-skin="dark"]. The
+   components flip dark via their own token usage — no bespoke
+   per-element dark rules. Light skin emits no override, so the
+   existing light appearance is byte-for-byte unchanged.
+   ============================================================ */
+[data-cockpit-skin="dark"] .tp-header,
+[data-cockpit-skin="dark"] .rmc-glass-sidebar-shell,
+[data-cockpit-skin="dark"] .tp-sidebar-inner {
+  --surface-elevated: #0f1530;                 /* off-token-allow: always-dark-cockpit-chrome */
+  --surface-popover: #131a35;                  /* off-token-allow: always-dark-cockpit-chrome */
+  --surface-bg: #07091a;                       /* off-token-allow: always-dark-cockpit-chrome */
+  --text-primary: rgba(255, 255, 255, 0.92);   /* off-token-allow: dark-chrome-text-strong */
+  --text-secondary: rgba(255, 255, 255, 0.85); /* off-token-allow: dark-chrome-text */
+  --text-tertiary: rgba(255, 255, 255, 0.55);  /* off-token-allow: dark-chrome-text-muted */
+  --text-muted: rgba(255, 255, 255, 0.55);     /* off-token-allow: dark-chrome-text-muted */
+  --hairline: rgba(255, 255, 255, 0.08);       /* off-token-allow: dark-chrome-hairline */
+  --hairline-strong: rgba(255, 255, 255, 0.14);/* off-token-allow: dark-chrome-hairline-strong */
+}
+[data-cockpit-skin="dark"] .tp-header {
+  background: linear-gradient(180deg, #0a0d22 0%, #07091a 100%);  /* off-token-allow: always-dark-cockpit-chrome */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);             /* off-token-allow: dark-chrome-hairline */
+}
+[data-cockpit-skin="dark"] .rmc-glass-sidebar-shell {
+  background: linear-gradient(180deg, #07091a 0%, #04060f 100%);  /* off-token-allow: always-dark-cockpit-chrome */
+}
+
+.cp-detailed-board-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-elevated);
+  border: 1px solid var(--hairline);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--motion-fast), background var(--motion-fast);
+}
+.cp-detailed-board-btn:hover {
+  border-color: var(--hairline-strong, var(--hairline));
+  background: var(--surface-canvas);
+}
+
+.cp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  /* Brand-as-accent: tenant primary → gradient end. Falls back to platform indigo. */
+  background: linear-gradient(
+    135deg,
+    var(--school-primary, #4f46e5),
+    var(--brand-gradient-end, #7c3aed)
+  );  /* off-token-allow: brand-accent-gradient */
+  color: #ffffff;  /* off-token-allow: always-white-on-brand-gradient */
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.30);  /* off-token-allow: brand-accent-glow */
+  transition: transform var(--motion-fast), box-shadow var(--motion-fast);
+}
+.cp-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.38);  /* off-token-allow: brand-accent-glow-hover */
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-btn-primary:hover { transform: none; }
+}

@@ -152,6 +152,11 @@ EXACT_FIELD_OWNERS: Final[dict[str, str]] = {
 PREFIX_FIELD_OWNERS: Final[tuple[tuple[str, str], ...]] = (
     ("theme_", "brand_experience"),
     ("brand_", "brand_experience"),
+    # Cockpit shell chrome (v8 200x app-shell): header composition, LIVE ticker,
+    # emoji nav glyphs, per-surface dark/light skin, page-header actions.
+    # SOT: apps/siteconfig/cockpit_config.py. All brand_experience-owned so the
+    # knobs cascade through the BrandProfile / SiteSettings overlay + per-tenant.
+    ("cockpit_", "brand_experience"),
     ("logo_", "brand_experience"),
     ("logo", "brand_experience"),
     ("background_", "brand_experience"),

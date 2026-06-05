@@ -33,6 +33,9 @@
         <a href="{% url 'siteconfig:cockpit_health' %}" class="btn btn-outline-secondary btn-sm">
           {% trans "Health diagnostic →" %}
         </a>
+        <a href="{% url 'siteconfig:cockpit_shell_configure' %}" class="btn btn-outline-primary btn-sm">
+          {% trans "Shell skin & nav →" %}
+        </a>
         {% comment %} v3.59.x Wave 11 Agent W: cross-link to the theme personality editor. {% endcomment %}
         <a href="{% url 'siteconfig:theme_personality_configure' %}" class="btn btn-outline-secondary btn-sm rmc-button rmc-button--secondary">
           {% trans "Theme personality →" %}

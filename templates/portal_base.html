@@ -1,6 +1,6 @@
 {% load static i18n accounts_extras control_console workflow_guidance_tags %}
 <!doctype html>
-<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% if request.public_host_kind == 'manager' %} data-rmc-isomorphic-template="operator-control-plane"{% else %} data-rmc-isomorphic-template="tenant-admin-hub"{% endif %}{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
+<html lang="{{ rmc_locale|default:LANGUAGE_CODE|default:default_language|default:'en' }}" dir="{{ rmc_text_direction|default:'ltr' }}"{% if rmc_low_bandwidth %} data-rmc-low-bandwidth="1"{% endif %} data-rmc-regional-ui="1" data-surface="{% if request.public_host_kind == 'manager' %}control-plane{% else %}tenant{% endif %}" data-cockpit-skin="{{ cockpit_shell.skin|default:'light' }}" data-portal-header-variant="{{ PORTAL_HEADER_VARIANT|default:'statement' }}" data-portal-footer-variant="{{ PORTAL_FOOTER_VARIANT|default:'standard' }}" data-rmc-premium-shell="portal" data-rmc-page-purpose="authenticated-workspace" data-rmc-aesthetic="v2" data-rmc-shell-root="{{ rmc_shell.portal_shell_root|default:'portal' }}"{% if request.public_host_kind == 'manager' %} data-rmc-isomorphic-template="operator-control-plane"{% else %} data-rmc-isomorphic-template="tenant-admin-hub"{% endif %}{% if tp_v3_role_home %} data-rmc-tp-v3-role-home="1"{% endif %}{% if tp_v3_tenant_shell %} data-rmc-tp-v3-shell="1"{% endif %}{% include "partials/shell_rmc_registry_html_attrs.html" %}>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -24,6 +24,8 @@
     <script defer src="{% static 'js/rmc-localization-bootstrap.js' %}"></script>
     {% comment %} v3.53.0 (2026-05-21): Universal Command Bar — synchronous per armed-attribute pattern. {% endcomment %}
     <script src="{% static 'js/rmc-command-bar.js' %}"></script>
+    {% comment %} v8 cockpit: Export PDF (print path) + Quick action (⌘K) button wiring on tenant surfaces. {% endcomment %}
+    <script src="{% static 'js/rmc-cockpit-page-actions.js' %}" defer></script>
     <script src="{% static 'js/rmc-metric-ticker.js' %}" defer></script>
     <script src="{% static 'js/rmc-page-progress.js' %}" defer></script>
     <script src="{% static 'js/rmc-bottom-sheet.js' %}" defer></script>
@@ -59,6 +61,8 @@
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/css/bootstrap-icons.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    {% comment %} v8 cockpit: skin-driven chrome ([data-cockpit-skin]) + page-action buttons on tenant surfaces. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
     {% comment %} v3.59.x Wave 11 Agent U (2026-05-22): per-page-personality accent layer.
        Loads AFTER design-tokens.css so personality overrides the defaults, but
        BEFORE shell-specific bundles so per-shell CSS can compose on top. {% endcomment %}

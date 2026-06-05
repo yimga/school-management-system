@@ -358,6 +358,13 @@ def virtual_site_setting_default(name: str) -> object:
     Safe defaults for legacy tenant-settings payload keys that live in RuntimeDefaults.payload when the key
     is absent. Keeps templates and owned_payload(getattr) from raising or returning unusable nulls.
     """
+    # Cockpit shell chrome knobs (cockpit_*) resolve their platform defaults from
+    # the dedicated SOT so the registry stays in one place. See cockpit_config.py.
+    if isinstance(name, str) and name.startswith("cockpit_"):
+        from .cockpit_config import cockpit_setting_default
+
+        return cockpit_setting_default(name)
+
     from decimal import Decimal
 
     from .models import (

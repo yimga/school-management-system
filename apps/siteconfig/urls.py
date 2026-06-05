@@ -157,7 +157,11 @@ from .views_tenant_studio_hub import (
     TenantStudioDay1Act3LockView,
     TenantStudioDay1ResetView,
 )
-from .views_cockpit_admin import CockpitConfigureView, MarketingVoiceConfigureView
+from .views_cockpit_admin import (
+    CockpitConfigureView,
+    CockpitShellConfigureView,
+    MarketingVoiceConfigureView,
+)
 from .views_dashboard_defaults_admin import DashboardDefaultsAdminView
 from .views_cockpit_previews import CockpitPreviewIndexView, CockpitPreviewServeView
 from .views_cockpit_health import CockpitHealthView
@@ -650,6 +654,14 @@ urlpatterns = [
         "super/configure/cockpit/",
         CockpitConfigureView.as_view(),
         name="cockpit_configure",
+    ),
+    # v8 cockpit shell chrome — skin per surface, header composition toggles,
+    # emoji nav glyphs, page-header action buttons (cockpit_* brand_experience keys).
+    # Realized URL on the control plane: /siteconfig/super/configure/cockpit/shell/
+    path(
+        "super/configure/cockpit/shell/",
+        CockpitShellConfigureView.as_view(),
+        name="cockpit_shell_configure",
     ),
     # Wave 15 (v3.62.20 — 2026-05-23): per-tenant marketing voice rich-edit.
     # Sister surface of cockpit_configure; targets only the marketing_voice

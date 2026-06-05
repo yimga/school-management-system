@@ -1,0 +1,68 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% comment %}
+v8 cockpit shell settings — operator UI for the cockpit_* brand_experience keys.
+Skin per surface, header composition toggles, emoji nav glyphs, page-header
+action buttons. Form: apps/siteconfig/forms_cockpit_shell.CockpitShellSettingsForm.
+SOT: apps/siteconfig/cockpit_config.py. Renders raw form fields (Bootstrap
+classes assigned in the form widgets) so there are no inline styles.
+{% endcomment %}
+
+{% block cp_title %}{% trans "Cockpit shell" %} — RunMyCampus Manager{% endblock %}
+
+{% block breadcrumbs %}
+<nav aria-label="{% trans 'Breadcrumb' %}">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a href="/super/">{% trans "Home" %}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'siteconfig:cockpit_configure' %}">{% trans "Cockpit configuration" %}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Cockpit shell" %}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block cp_content %}
+<div class="container-fluid py-3" data-page-archetype="configuration-form" data-rmc-page="cockpit-shell-configure">
+  <header class="mb-4 pb-3 border-bottom">
+    <div class="h6 text-uppercase mb-1 text-muted">{% trans "Cockpit shell chrome" %}</div>
+    <h1 class="h4 mb-1 fw-bold page-h1">{% trans "Cockpit shell" %}</h1>
+    <p class="small mb-0 text-muted">
+      {% trans "Per-surface dark/light skin, header composition, emoji navigation glyphs, and the page-header action buttons. Every value cascades through tenant settings — nothing here is hardcoded." %}
+    </p>
+  </header>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-3">
+      {% for field in form %}
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="mb-1">
+          {% if field.field.widget.input_type == 'checkbox' %}
+          <div class="form-check">
+            {{ field }}
+            <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          </div>
+          {% else %}
+          <label class="form-label small fw-semibold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% endif %}
+          {% if field.help_text %}<div class="form-text small">{{ field.help_text }}</div>{% endif %}
+          {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mt-4 pt-3 border-top">
+      <button type="submit" class="btn btn-primary">{% trans "Save cockpit shell settings" %}</button>
+      <button type="submit" name="action" value="reset_cockpit_shell" class="btn btn-outline-secondary"
+              formnovalidate>{% trans "Reset to defaults" %}</button>
+      <a href="{% url 'siteconfig:cockpit_configure' %}" class="btn btn-link">{% trans "Back to cockpit configuration" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
