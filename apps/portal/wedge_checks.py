@@ -73,6 +73,10 @@ def _url_registered(name: str) -> bool:
         return False
 
 
+def _url_registered_any(*names: str) -> bool:
+    return any(_url_registered(name) for name in names)
+
+
 def _module_importable(dotted: str) -> bool:
     try:
         __import__(dotted)
@@ -282,9 +286,18 @@ def _check_wedge_22() -> dict[int, bool]:
     # operational extension (events + fees + staff headcount) v4.00.43.
     return {
         0: _module_importable("apps.schools.models"),
-        1: _url_registered("portal:wedge_surface_multicampus_billing"),
-        2: _url_registered("portal:wedge_surface_multicampus_academics"),
-        3: _url_registered("portal:wedge_surface_multicampus_extension"),
+        1: _url_registered_any(
+            "portal:wedge_surface_multicampus_billing",
+            "super:wedge_surface_multicampus_billing",
+        ),
+        2: _url_registered_any(
+            "portal:wedge_surface_multicampus_academics",
+            "super:wedge_surface_multicampus_academics",
+        ),
+        3: _url_registered_any(
+            "portal:wedge_surface_multicampus_extension",
+            "super:wedge_surface_multicampus_extension",
+        ),
     }
 
 

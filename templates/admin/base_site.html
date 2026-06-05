@@ -113,6 +113,7 @@
   <link rel="stylesheet" href="{% static 'css/admin-base-site-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/portal-ui-components.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-assist-dock.css' %}">
+  {% if is_manager_host %}{% include "partials/rmc_operator_tools_styles.html" %}{% endif %}
   <link rel="stylesheet" href="{% static 'css/rmc-workflow-progress.css' %}">
   <link rel="stylesheet" href="{% static 'css/phase2-admin-bundle.css' %}">
   {% comment %} Phase G (2026-05-12): platform-wide long-page grammar. {% endcomment %}
@@ -185,6 +186,7 @@
   <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
   {% endif %}
   {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+  {% if is_manager_host %}<link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">{% endif %}
   <script nonce="{{ csp_nonce }}">(function(){document.documentElement.setAttribute('data-surface','control-plane');})();</script>
   {% comment %} Server-resolved semantic brand colors only (rest in admin-base-site-shell.css). {% endcomment %}
   <style id="admin-brand-resolved-tokens">
@@ -370,6 +372,9 @@
     <script src="{% static 'js/rmc-haptics.js' %}" defer></script>
     {% include "partials/rmc_platform_chrome_scripts.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
+    {% if is_manager_host %}{% include "partials/rmc_operator_tools_scripts.html" %}{% endif %}
+    {% if is_manager_host %}{% include "partials/rmc_nav_sidebar_page_data.html" %}{% endif %}
+    {% if is_manager_host %}<script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>{% endif %}
     {% comment %} v4.01.03: g-chord → chip click bridge — closes advertised-but-unbound shortcut gap. {% endcomment %}
     {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
     <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>

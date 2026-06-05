@@ -19,7 +19,7 @@
       "evidence": "apps/registries SubdivisionRegistry",
       "phase": "3B",
       "register_id": "P3-subdivisions-all-sovereigns",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "GG-003",
@@ -37,7 +37,7 @@
       "evidence": "docs/SCHOOL_TENANT_CAMPUS_CANONICAL.md",
       "phase": "1",
       "register_id": "P1-doc-truth-reconciliation",
-      "status": "in_progress"
+      "status": "closed"
     },
     {
       "id": "GG-005",
@@ -46,7 +46,7 @@
       "evidence": "parent_school vs mat_groups vs Campus",
       "phase": "2B",
       "register_id": "P2-hierarchy-unification",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "GG-006",
@@ -55,7 +55,7 @@
       "evidence": "apps/schools/mat_group_hub.py",
       "phase": "1",
       "register_id": "P1-wedge22-mat-hub",
-      "status": "open"
+      "status": "closed"
     },
     {
       "id": "GG-007",
@@ -64,7 +64,7 @@
       "evidence": "apps/governance/ absent",
       "phase": "2A",
       "register_id": "P2-governance-org-models",
-      "status": "open"
+      "status": "closed"
     }
   ]
 }

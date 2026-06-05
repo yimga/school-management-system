@@ -1,19 +1,19 @@
 {
   "baseline_counts": {
     "allow_any": 173,
-    "csrf_exempt": 676,
-    "cursor_execute": 407,
-    "except_exception": 2410,
-    "get_solo": 212,
+    "csrf_exempt": 681,
+    "cursor_execute": 411,
+    "except_exception": 2498,
+    "get_solo": 213,
     "gilead": 16836,
     "gilead_files": 231,
-    "html_files": 1604,
-    "management_commands": 278,
-    "markdown_files": 1585,
-    "migration_files": 973,
-    "print_calls": 4089,
-    "python_files": 6030,
-    "site_settings": 2434
+    "html_files": 1611,
+    "management_commands": 282,
+    "markdown_files": 1599,
+    "migration_files": 983,
+    "print_calls": 4160,
+    "python_files": 6107,
+    "site_settings": 2464
   },
   "doc_drift": {
     "actual_installed_app_count": 54,
@@ -28,19 +28,19 @@
       "path": "apps/siteconfig/_seed_country_localization.py"
     },
     {
-      "bytes": 206503,
+      "bytes": 206605,
       "lines": 5088,
       "path": "apps/siteconfig/forms_cockpit.py"
+    },
+    {
+      "bytes": 168275,
+      "lines": 3460,
+      "path": "config/settings.py"
     },
     {
       "bytes": 165744,
       "lines": 4135,
       "path": "apps/schools/marketing_views.py"
-    },
-    {
-      "bytes": 163226,
-      "lines": 3374,
-      "path": "config/settings.py"
     },
     {
       "bytes": 147039,
@@ -78,8 +78,8 @@
       "path": "apps/migration_cloud/views.py"
     },
     {
-      "bytes": 109725,
-      "lines": 3112,
+      "bytes": 110777,
+      "lines": 3129,
       "path": "apps/finance/models.py"
     }
   ],
@@ -411,8 +411,23 @@
     },
     {
       "app": "communication",
+      "command": "encrypt_channel_secrets",
+      "path": "apps/communication/management/commands/encrypt_channel_secrets.py"
+    },
+    {
+      "app": "communication",
       "command": "purge_thread_message_retention",
       "path": "apps/communication/management/commands/purge_thread_message_retention.py"
+    },
+    {
+      "app": "communication",
+      "command": "redrive_outbound_messages",
+      "path": "apps/communication/management/commands/redrive_outbound_messages.py"
+    },
+    {
+      "app": "communication",
+      "command": "send_parent_digests",
+      "path": "apps/communication/management/commands/send_parent_digests.py"
     },
     {
       "app": "communication",
@@ -1086,6 +1101,11 @@
     },
     {
       "app": "schoolops",
+      "command": "redrive_email_dead_letters",
+      "path": "apps/schoolops/management/commands/redrive_email_dead_letters.py"
+    },
+    {
+      "app": "schoolops",
       "command": "test_email_health",
       "path": "apps/schoolops/management/commands/test_email_health.py"
     },
@@ -1511,18 +1531,18 @@
         "security_observability",
         "setup_studio"
       ],
-      "reviewed_endpoints": 107,
-      "reviewed_files": 36
+      "reviewed_endpoints": 110,
+      "reviewed_files": 37
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 107,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 110,
     "cursor_execute_apps_config_py_excl_migrations": 42,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 3908,
-    "site_settings_refs_apps_py_excl_migrations": 194,
-    "site_settings_refs_apps_py_excl_migrations_tests": 146
+    "print_calls_scripts_py": 3976,
+    "site_settings_refs_apps_py_excl_migrations": 208,
+    "site_settings_refs_apps_py_excl_migrations_tests": 161
   },
   "site_settings_fields": [
     {
@@ -1532,18 +1552,6 @@
     {
       "field_name": "updated_at",
       "owner": "delete"
-    },
-    {
-      "field_name": "cockpit_payload",
-      "owner": "metadata_governance"
-    },
-    {
-      "field_name": "email_delivery",
-      "owner": "metadata_governance"
-    },
-    {
-      "field_name": "theme_personality",
-      "owner": "brand_experience"
     }
   ],
   "successor_domain_imports": {

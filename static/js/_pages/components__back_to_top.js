@@ -284,6 +284,14 @@
       } else {
         state.btn.classList.remove("rmc-back-to-top--idle");
       }
+      if (document.body.getAttribute("data-rmc-assist-layout") === "edge-tray" && progress < 0.02) {
+        state.btn.classList.add("rmc-back-to-top--at-top");
+        state.btn.setAttribute("hidden", "");
+        state.btn.setAttribute("aria-hidden", "true");
+        state.btn.classList.remove("rmc-back-to-top--visible");
+      } else {
+        state.btn.classList.remove("rmc-back-to-top--at-top");
+      }
       document.documentElement.setAttribute("data-rmc-back-to-top-armed", "1");
     } else {
       state.btn.setAttribute("hidden", "");

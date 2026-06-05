@@ -46466,3 +46466,42 @@ msgstr ""
 
 msgid "{{ n }} in the last 7 days"
 msgstr ""
+
+msgid "Back to cockpit configuration"
+msgstr ""
+
+msgid "Cockpit shell"
+msgstr ""
+
+msgid "Cockpit shell chrome"
+msgstr ""
+
+msgid "Cockpit shell settings reset to defaults."
+msgstr ""
+
+msgid "Cockpit shell settings saved."
+msgstr ""
+
+msgid "Command palette (⌘K)"
+msgstr ""
+
+msgid "Link to a menu URL"
+msgstr ""
+
+msgid "Open quick actions"
+msgstr ""
+
+msgid ""
+"Per-surface dark/light skin, header composition, emoji navigation glyphs, "
+"and the page-header action buttons. Every value cascades through tenant "
+"settings — nothing here is hardcoded."
+msgstr ""
+
+msgid "Quick action"
+msgstr ""
+
+msgid "Save cockpit shell settings"
+msgstr ""
+
+msgid "Shell skin & nav →"
+msgstr ""

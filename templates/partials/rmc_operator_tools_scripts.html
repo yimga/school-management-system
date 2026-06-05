@@ -1,0 +1,9 @@
+{% load static %}
+{% comment %}
+v4.02.0 — Operator Tools edge-tray boot (manager control plane + manager /admin/ only).
+Not loaded on tenant subdomains or auth landing pages.
+{% endcomment %}
+{% if request.user.is_authenticated and request.public_host_kind == 'manager' %}
+{% include "partials/rmc_operator_tools_page_data.html" %}
+<script src="{% static 'js/rmc-operator-tools-tray.js' %}" defer></script>
+{% endif %}

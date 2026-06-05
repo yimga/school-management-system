@@ -1,5 +1,85 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Multi-campus Wedge 22 HTTP batch 1626 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1626** — control-plane HTTP contract for multicampus billing/academics/extension wedges.
+
+**B. Shipped:** manager routes on `super_urls.py`; wedge registry + `wedge_checks` dual-namespace; `test_multicampus_wedge_http.py`; `verify_multicampus_wedge_http_contract.py` (`--fresh` DB); poly-institution stack + CI wire.
+
+**C. Proof:** **MULTICAMPUS_WEDGE_HTTP_CONTRACT_PASS**; 5/5 HTTP tests; **POLY_INSTITUTION_GOVERNANCE_STACK_PASS**.
+
+**D. SOT:** batch **1626** **DONE**. **E. Honest:** wedge surfaces remain staff-only on manager host; live Playwright sweep external.
+
+## Slice — Group Console HTTP + dead-href batch 1625 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1625** — Phase 4A tenant Group Console HTTP proof + cockpit Export PDF dead-href fix.
+
+**B. Shipped:** `test_group_console_http.py`; `verify_group_console_http_contract.py`; `_page_actions.html` button instead of `href="#"`.
+
+**C. Proof:** **GROUP_CONSOLE_HTTP_CONTRACT_PASS**; 6/6 tests; **PREDEPLOY_CORE_GATES_PASS**; dead hrefs **0**.
+
+**D. SOT:** batch **1625** **DONE**. **E. Honest:** upgrade wizard HTTP smoke optional depth only.
+
+## Slice — Scheduling DB constraints batch 1624 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1624** — Phase 4E schedule conflict DB enforcement (EXCLUDE-adjacent partial uniques).
+
+**B. Shipped:** `ScheduleEntry.term`/`instruction_shift` denorm; 4 partial unique constraints; migration 0055; `verify_scheduling_exclude_constraints.py`; 3 new tests.
+
+**C. Proof:** **SCHEDULING_EXCLUDE_CONSTRAINTS_PASS**; 5/5 scheduling tests; **POLY_INSTITUTION_GOVERNANCE_STACK_PASS**.
+
+**D. SOT:** batch **1624** **DONE**. **E. Honest:** gist EXCLUDE for overlapping intervals deferred; no-shift term-wide cross-shift conflicts still ORM-only.
+
+## Slice — Nav sidebar visual integrity batch 1627 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1627** — close gap/leak/bleed between sidebar mounts and canvas after batch **1623** rail wiring.
+
+**B. Shipped:** `rmc-nav-sidebar.css` integrity block; `manager-control-plane.css` `--portal-sidebar-width` grid + zero gap; `portal_base.html` Bootstrap col retirement + single scroll owner; terminal CSS load order on portal/skeleton/admin; luxury mask disable on mounts; zero-ticket inner wrapper; `backend-shell-parity.css` 72px→44px rail; extended verifier + 5 SimpleTestCase tests.
+
+**C. Proof:** **verify_nav_sidebar_contract OK**; **17/17** SimpleTestCase (`NavSidebarCockpitDefaultsTests` + `NavSidebarShellTemplateTests` + `NavSidebarRenderContractTests`); SW **v4.02.7**.
+
+**D. SOT:** batch **1627** **DONE**. **E. Honest:** HTTP TestCase pair + live smoke need running Django / `--fresh` migrate on Windows dev.
+
+## Slice — Nav sidebar rail + resize batch 1623 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1623** — Phases A–D platform-wide: manager CP + admin + tenant portal + zero-ticket diagnostics; canvas reflow via CSS container queries (not per-page patches).
+
+**B. Shipped:** `rmc-nav-sidebar.{css,js}`; partials; all authenticated shells (`skeleton`, `cp_base`, `admin/base`, `portal_base`, `zero_ticket_shell`); retired duplicate portal collapse + deleted `portal-resize-keyboard.js`; `rmc-shell-canvas-container` on CP/portal/admin canvas; platform grid reflow rules; expanded `verify_nav_sidebar_contract.py` template scan; `smoke_nav_sidebar.py` (+ zero-ticket route); **`test_nav_sidebar_contract`** (12 tests).
+
+**C. Proof:** **verify_nav_sidebar_contract OK** (platform scan); **12/12** Django tests; **NAV_SIDEBAR_SMOKE_PASS** (`/super/`, zero-ticket hub, `/admin/`, tenant backend); **verify_operator_tools_tray OK**; SW **v4.02.5**.
+
+**D. SOT:** batch **1623** **DONE**. **E. Honest:** tenant Unfold `/admin/` (non-manager host) keeps native sidebar by design; marketing/auth have no sidebar.
+
+## Slice — Org backfill operator smoke batch 1622 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1622** — operator smoke for `backfill_organizations_from_hierarchy` dry-run + apply contract.
+
+**B. Shipped:** `verify_org_backfill_operator_smoke.py`; audit JSON; poly-institution stack + CI wire.
+
+**C. Proof:** **ORG_BACKFILL_OPERATOR_SMOKE_PASS**; **POLY_INSTITUTION_GOVERNANCE_STACK_PASS**.
+
+**D. SOT:** batch **1622** **DONE**. **E. Honest:** `--apply` on real prod data remains operator-supervised.
+
+## Slice — Poly-institution governance stack batch 1621 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1621** — close poly-institution regression (`fractional_capacity` deleted by aggressive audit); bundle gate + CI wire; doc truth refresh.
+
+**B. Shipped:** `fractional_capacity.py` restore; `test_fractional_capacity`; `verify_poly_institution_governance_stack.py`; blind-spots import smoke + sys fix; CI global-governance job extended; crosswalk + audit findings + aggressive-audit protection note.
+
+**C. Proof:** **POLY_INSTITUTION_GOVERNANCE_STACK_PASS**; **GLOBAL_OPERATIONAL_BLIND_SPOTS_PASS** (`--granular-ops`); **45** focused poly tests OK; **GEOS_99_MATRIX_PASS** (google repo 100%).
+
+**D. SOT:** batch **1621** **DONE**. **E. Honest:** operator org backfill `--apply` per env; Postgres RLS not exercised on SQLite dev.
+
+## Slice — Operator Tools edge-tray batch 1620 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1620** — manager control-plane + manager `/admin/` edge-tray; tenant exclusion; live smoke + mechanical gates.
+
+**B. Shipped:** `rmc-operator-tools-tray.{css,js}`; partials; `operator_tools_slots.py`; cockpit `operator_tools`; `verify_operator_tools_tray.py`; `smoke_operator_tools_tray.py`; `tests/e2e/operator-tools-tray.spec.js`; **`test_operator_tools_tray`** (12 tests).
+
+**C. Proof:** **verify_operator_tools_tray OK**; **12/12** Django tests; **OPERATOR_TOOLS_SMOKE_PASS** (`/super/`, `/admin/`, tenant exclusion); Playwright HTTP e2e green; **scan_operator_shell_dead_hrefs 0**; **WORKFLOW_PROGRESS_SHELL_STRIP_PASS**.
+
+**D. SOT:** batch **1620** **DONE**. **E. Honest:** full operator abrupt-end sweep needs TOTP-seeded E2E user or `OPERATOR_MFA_REQUIRED_ON_MANAGER=0` + no MFA device; browser tray click gated **`RMC_OPERATOR_TOOLS_E2E_BROWSER=1`**.
+
 ## Slice — Admin changelist evidence batch 1619 (2026-06-04)
 
 **A. Claim:** §11.4 batch **1619** — close batch **1617** admin Playwright residual with full render crawl + honest audit JSON; route classifier + TOTP seed for local/CI layout sweep.

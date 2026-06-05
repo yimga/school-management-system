@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-06-05T14:08:35.768209+00:00",
+  "verdict": "ORG_BACKFILL_OPERATOR_SMOKE_PASS",
+  "finding_count": 0,
+  "checks": [
+    {
+      "id": "mgmt_command_dry_run",
+      "status": "PASS",
+      "proof": "dry-run JSON contract OK",
+      "organizations_created": "0"
+    },
+    {
+      "id": "in_process_apply_smoke",
+      "status": "PASS",
+      "proof": "in-process apply + idempotence OK (rolled back)"
+    }
+  ],
+  "failures": []
+}

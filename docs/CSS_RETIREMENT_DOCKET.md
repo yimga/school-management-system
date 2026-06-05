@@ -1,6 +1,21 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-05 (v4.02.3 — Cockpit Shell v8: platform-wide configurable cockpit chrome — per-surface skin, emoji nav, page-header actions).
+**Last updated:** 2026-06-05 (v4.02.6 — platform wave close-out: ships the accumulated uncommitted tree — Agentic Phase-1, wizard NL-intake, Operator Tools Tray, Nav Sidebar, fractional capacity, scheduling DB-conflict constraints, governance verifiers).
+
+## 2026-06-05 — v4.02.6 — Platform wave close-out (commit + ship the accumulated tree)
+
+**Context:** the working tree had accumulated ~9 features of mixed provenance across prior in-progress waves (Agentic Phase-1 read-only, wizard NL-intake, Operator Tools Tray, Nav Sidebar platform-wide, fractional capacity, scheduling `ScheduleEntry` DB-conflict constraints, group-console HTTP contract, org-backfill operator smoke, poly-institution governance stack) plus repo-meta refreshes. This close-out validates and ships them.
+
+**What landed (this close-out pass):**
+
+| Item | Detail |
+|---|---|
+| Off-registry gate fix | `static/js/rmc-operator-tools-tray.js` — the messages chip targeted the legacy `.portal-chathead` source node directly; re-pointed to the registry-adopted slot `[data-rmc-assist-slot-id="messages"]` (the assist dock stamps that attribute on adopt). `scan_assist_dock_offregistry` 1→**0**. |
+| Scheduling migration cleanup | Deleted the throwaway `academics/0056__drift_probe.py` (cosmetic constraint remove/re-add + auto-index rename). Regenerated as the properly-named `0056_remove_scheduleentry_uniq_schedentry_teacher_slot_shift_and_more.py`. `makemigrations --check` → "No changes detected" (convergent). `0055` (term/shift denorm + RunPython backfill + partial-unique conflict constraints) retained. |
+| Scratch swept | Removed test-scratch `var/` artifacts (`_t*.txt`, `agentic_*_out.txt`) so they don't enter the commit. |
+| SW | `sms-v4.02.5-nav-sidebar-platformwide-2026-06-02` → `sms-v4.02.6-platform-wave-closeout-2026-06-05`; `verify_service_worker_version --check-monotonic` PASS. |
+
+**Validation:** `manage.py check` 0 · `makemigrations --check` clean · zero-tolerance scanners green (off-token / inline-style / undefined-css / theme-locked / theme-attribute-contract / print / bare-except / assert / ai-gateway-boundary / pii-logging-smell / repo-secrets / **assist-dock-offregistry 0**) · no baseline counts moved (timestamp-only churn restored) · Agentic Phase-1 tests 9/9 OK · agentic+wizard suite exit 0. Operator Tools Tray + poly-institution + nav-sidebar verifiers/smokes green. Full 50-app Django suite not re-run end-to-end in this sandbox (schema-build timeout — environment limit, not a code regression).
 
 ## 2026-06-05 — v4.02.3 — Cockpit Shell v8 (configurable, platform-wide)
 
@@ -36,7 +51,7 @@
 - **Tests:** `apps/platform_runtime/tests/test_ai_agentic_phase1.py` (gates on/off, read-only surface, mutating-proposal filtered out, read-only match, execute writes audit + server-side confirm, mutating refused + audited as blocked, audit row append-only). No-DB smoke confirmed gates + read-only filter independently.
 - **Held for an explicit owner decision:** Phases 2–3 (AI *executing* mutations/destructive) — a deliberate expansion beyond the current "drafts only, no execution" posture, not something to drift into. Design doc § 4 open decisions unchanged.
 
-**(a) Wizard natural-language intake.** `structured_form` steps gain a "describe it in plain language" control (own form, `intent=nl_intake`) that calls `wizard_ai.request_natural_language_intake` with the step's field names as targets and **pre-fills the form fields as DRAFT values the user reviews and edits — nothing is persisted until they submit the step normally** (never a silent overwrite). New partial `templates/setup_studio/partials/wizard_nl_intake.html` (reuses existing `rmc-wizard-field*` classes — zero new CSS), included above the main form in both `operator_wizard.html` + `tenant_wizard.html`; shared `wizard_views._maybe_handle_nl_intake` wired into both `OperatorWizardView.post` + `TenantWizardView.post` (assistive + fail-soft; returns the re-rendered step or `None` to fall through to normal save). Shows mapped-field count, confidence, and unresolved phrases.
+**(a) Wizard natural-language intake.** `structured_form` steps gain a "describe it in plain language" control (own form, `intent=nl_intake`) that calls `wizard_ai.request_natural_language_intake` with the step's field names as targets and **pre-fills the form fields as DRAFT values the user reviews and edits — nothing is persisted until they submit the step normally** (never a silent overwrite). New partial `templates/setup_studio/partials/wizard_nl_intake.html` (reuses existing `rmc-wizard-field*` classes — zero new CSS), included above the main form in both `operator_wizard.html` + `tenant_wizard.html`; shared `wizard_views._maybe_handle_nl_intake` wired into both `OperatorWizardView.post` + `TenantWizardView.post` (assistive + fail-soft; returns the re-rendered step or `None` to fall through to normal save). Shows mapped-field count, confidence, and unresolved phrases. Tests: 3 new `NaturalLanguageIntakeTests` in `apps/setup_studio/tests/test_wizard_ai_helpers.py` (fallback / valid-JSON parse / invalid-JSON fallback) covering `request_natural_language_intake`; the view helper is thin fail-soft glue over it.
 
 **Validation:** all touched Python `ast.parse` clean; `makemigrations platform_runtime --dry-run --check` → "No changes detected" (0080 matches model); AI-gateway-boundary **0**, bare-except **0**, print **0**, pii-logging **0**, template-render-safety **0**; new templates introduce **zero** undefined-css / inline-style-off-token findings; magic-numbers unchanged by these files (my 3 modules absent from the flagged list). No new CSS/JS → no SW bump.
 

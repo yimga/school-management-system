@@ -202,14 +202,12 @@ body.portal-backend-dark .portal-layout-wrap #main-content::-webkit-scrollbar-th
 
 /* ===== Collapsible portal sidebar (B1): icon-only strip when collapsed ===== */
 @media (min-width: 992px) {
-  .portal-sidebar-col.portal-sidebar-collapsed {
-    flex: 0 0 64px !important;
-    width: 64px !important;
-    min-width: 64px !important;
-    max-width: 64px !important;
-  }
-  .portal-sidebar-col.portal-sidebar-collapsed + .portal-resize-handle {
-    display: none !important;
+  .portal-sidebar-col.portal-sidebar-collapsed,
+  .portal-sidebar-col.rmc-nav-sidebar--rail {
+    flex: 0 0 var(--rmc-nav-sidebar-rail-w, 44px) !important;
+    width: var(--rmc-nav-sidebar-rail-w, 44px) !important;
+    min-width: var(--rmc-nav-sidebar-rail-w, 44px) !important;
+    max-width: var(--rmc-nav-sidebar-rail-w, 44px) !important;
   }
   .portal-sidebar-collapsed .sidebar-header .sidebar-info,
   .portal-sidebar-collapsed .sidebar-section-title {

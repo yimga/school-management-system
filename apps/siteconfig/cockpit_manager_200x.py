@@ -171,6 +171,60 @@ def _manager_notebook_defaults() -> dict[str, Any]:
         # per-operator via localStorage. Snap-to-corner on release within
         # 80px of any edge.
         "draggable": True,
+        # v4.02.0: tray mode disables drag — notebook lives inside Tools panel.
+        "tray_mode": True,
+    }
+
+
+# ============================================================
+# Element 4a — Nav sidebar rail + resize (v4.02.1)
+# ============================================================
+
+def _nav_sidebar_defaults() -> dict[str, Any]:
+    """Left nav sidebar icon rail + drag resize contract.
+
+    Shape:
+        enabled         bool  — master switch for rail/resize UX
+        default_mode    str   — ``normal`` | ``rail``
+        default_width   int   — px when expanded (200–420)
+        min_width       int
+        max_width       int
+        rail_width      int   — icon rail width (44)
+    """
+    return {
+        "enabled": True,
+        "default_mode": "normal",
+        "default_width": 280,
+        "min_width": 200,
+        "max_width": 420,
+        "rail_width": 44,
+    }
+
+
+# ============================================================
+# Element 4b — Operator Tools edge-tray (v4.02.0)
+# ============================================================
+
+def _operator_tools_defaults() -> dict[str, Any]:
+    """Vertical edge tab + horizontal tray consolidating page utilities.
+
+    Shape:
+        enabled                 bool  — master switch for edge-tray layout
+        layout                  str   — ``edge-tray`` (only supported value)
+        tab_label               str   — vertical tab caption
+        tray_notebook           bool  — render notebook inside tray panel
+        hide_floating_notebook  bool  — suppress fixed-position notebook card
+        workflow_header_only    bool  — workflow chip in header, not dock
+        back_to_top_corner      str   — ``bottom-left`` | ``bottom-right``
+    """
+    return {
+        "enabled": True,
+        "layout": "edge-tray",
+        "tab_label": _("Tools"),
+        "tray_notebook": True,
+        "hide_floating_notebook": True,
+        "workflow_header_only": True,
+        "back_to_top_corner": "bottom-left",
     }
 
 
@@ -482,6 +536,8 @@ def manager_200x_defaults() -> dict[str, Any]:
         "live_world_map": _manager_world_map_defaults(),
         "forecast_lane": _manager_forecast_defaults(),
         "operator_notebook": _manager_notebook_defaults(),
+        "nav_sidebar": _nav_sidebar_defaults(),
+        "operator_tools": _operator_tools_defaults(),
         "tenant_heatmap": _manager_heatmap_defaults(),
         "revenue_waterfall": _manager_waterfall_defaults(),
         "audit_feed": _manager_audit_feed_defaults(),

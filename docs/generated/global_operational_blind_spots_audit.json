@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-05-29T13:05:55.211921+00:00",
+  "generated_at": "2026-06-05T13:28:57.603081+00:00",
   "verdict": "GLOBAL_OPERATIONAL_BLIND_SPOTS_PASS",
   "finding_count": 0,
   "checks": {
@@ -11,6 +11,10 @@
     "blind_spot_6_ledger": true,
     "blind_spot_7_grading": true,
     "granular_sms_router": true,
+    "granular_fast_switch": true,
+    "granular_fractional_capacity": true,
+    "granular_instruction_day": true,
+    "granular_operational_time": true,
     "granular_scheduling": true
   },
   "failures": []

@@ -45,6 +45,14 @@ def main() -> int:
         if not ok:
             failures.append(f"missing kernel for {key}")
 
+    if checks.get("granular_fractional_capacity"):
+        try:
+            if str(REPO) not in sys.path:
+                sys.path.insert(0, str(REPO))
+            from apps.academics.fractional_capacity import effective_room_capacity  # noqa: F401
+        except Exception as exc:
+            failures.append(f"fractional_capacity import failed: {exc}")
+
     if args.granular_ops and not args.allow_pending:
         required = (
             "granular_sms_router",
@@ -61,12 +69,9 @@ def main() -> int:
     # Language regression (Phase 1 fix target)
     try:
         import os
-        import sys
-        from pathlib import Path
 
-        repo = Path(__file__).resolve().parents[1]
-        if str(repo) not in sys.path:
-            sys.path.insert(0, str(repo))
+        if str(REPO) not in sys.path:
+            sys.path.insert(0, str(REPO))
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
         import django
 

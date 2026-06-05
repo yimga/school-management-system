@@ -19,7 +19,6 @@ __all__ = [
     "emit_wizard_abandoned",
     "emit_ai_smart_defaults_outcome",
     "emit_ai_branch_rationale_outcome",
-    "emit_ai_translate_mesh_outcome",
     "emit_persistence_failed",
     "emit_gate_blocked",
     "emit_state_cache_event",
@@ -104,15 +103,6 @@ def emit_ai_branch_rationale_outcome(
         "wizard.ai.branch_rationale.latency_ms",
         {"wizard_key": wizard_key, "step_key": step_key, "outcome": outcome},
         float(latency_ms),
-    )
-
-
-def emit_ai_translate_mesh_outcome(
-    wizard_key: str, source_locale: str, target_locale: str, outcome: str,
-) -> None:
-    _safe_emit_counter(
-        f"wizard.ai.translate_mesh.{outcome}",
-        {"wizard_key": wizard_key, "source_locale": source_locale, "target_locale": target_locale},
     )
 
 

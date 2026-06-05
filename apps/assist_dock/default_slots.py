@@ -73,7 +73,7 @@ register_slot(
         surfaces=frozenset({SURFACE_MANAGER}),
         source=SOURCE_EXTERNAL,
         href="/platform-runtime/platform-health/",
-        pinned_default=True,
+        pinned_default=False,
         order=28,
         description=_("Broken feature proofs and over-SLA backlog items."),
     )

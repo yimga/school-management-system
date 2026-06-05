@@ -134,6 +134,13 @@ body[data-rmc-assist-dock="mounted"] .lx-notebook {
   z-index: 10479;
 }
 
+body[data-rmc-assist-layout="edge-tray"] .lx-notebook {
+  position: static !important;
+  inset: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+}
+
 /* --- Unified circular actions --- */
 .rmc-assist-dock__btn {
   --rmc-assist-btn-bg: var(--surface-elevated, #1a2234);

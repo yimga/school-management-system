@@ -317,9 +317,6 @@
       ev.preventDefault();
       fillInput(chip.textContent.trim());
     });
-    document.addEventListener("rmc:copilot-lens-prompt", function (ev) {
-      if (ev.detail && ev.detail.text) { fillInput(ev.detail.text); }
-    });
     document.addEventListener("rmc-workflow-copilot-context", function (ev) {
       var detail = ev.detail || window.__rmcWorkflowCopilotContext;
       if (!detail) { return; }

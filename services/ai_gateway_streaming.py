@@ -285,11 +285,24 @@ def invoke_stream(
 
     # Resolve tier order via the existing posture module — the source of truth
     # for "what's available right now" is shared with the non-streaming path.
+    # (Previously imported a non-existent `_resolve_tier_order_for_task`, which
+    # always raised and silently pinned a hardcoded ollama-first order — wrong
+    # for the `online` cloud-first profile. Use the real per-task chain.)
     try:
-        from services.ai_gateway import _resolve_tier_order_for_task
-        tiers = _resolve_tier_order_for_task(task_type, md_in)
+        from services.ai_gateway import _task_tiers
+
+        _key = (
+            getattr(task_type, "value", None)
+            or getattr(task_type, "name", None)
+            or str(task_type)
+        )
+        tiers = _task_tiers().get(_key)
+        if not tiers:
+            from services.ai_deployment_posture import default_tier_chain_for_profile
+
+            tiers = default_tier_chain_for_profile()
     except Exception:  # noqa: BLE001
-        tiers = ["ollama", "litellm"]
+        tiers = ["litellm", "ollama", "rules"]
 
     streamers = {
         "ollama": stream_ollama,

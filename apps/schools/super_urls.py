@@ -29,6 +29,9 @@ from .super_views_catalog import (
     super_registries_overview,
     super_workflow_packs_catalog,
 )
+from apps.portal.views_multicampus_academics import multicampus_academics
+from apps.portal.views_multicampus_billing import multicampus_billing
+from apps.portal.views_multicampus_extension import multicampus_extension
 from .super_views_wedge import (
     super_advancement_hub,
     super_advancement_phase2_placeholder,
@@ -189,6 +192,21 @@ urlpatterns = [
         "wedge/<int:wedge_id>/",
         require_super_access_with_host(super_wedge_operator_detail),
         name="wedge_operator_detail",
+    ),
+    path(
+        "wedges/multicampus-billing/",
+        require_super_access_with_host(multicampus_billing),
+        name="wedge_surface_multicampus_billing",
+    ),
+    path(
+        "wedges/multicampus-academics/",
+        require_super_access_with_host(multicampus_academics),
+        name="wedge_surface_multicampus_academics",
+    ),
+    path(
+        "wedges/multicampus-extension/",
+        require_super_access_with_host(multicampus_extension),
+        name="wedge_surface_multicampus_extension",
     ),
     path(
         "native-roster-connectors/",

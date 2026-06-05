@@ -1,0 +1,137 @@
+{
+  "generated_at": "2026-06-05T15:50:42.523139+00:00",
+  "verdict": "POLY_INSTITUTION_GOVERNANCE_STACK_FAIL",
+  "finding_count": 2,
+  "checks": [
+    {
+      "id": "apps/governance/models.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/governance/mat_groups_sync.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/governance/backfill_organizations.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/governance/management/commands/backfill_organizations_from_hierarchy.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/schools/group_console.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/schools/views_group_console.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/schools/mat_group_hub.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/billing/group_consolidation.py",
+      "status": "PASS"
+    },
+    {
+      "id": "emis/org_aggregate.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/interop/transfer_apply.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/people/staff_compliance.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/communication/sms_router.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/governance/fast_switch.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/academics/fractional_capacity.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/academics/instruction_day_ledger.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/siteconfig/operational_time.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/portal/views_multicampus_billing.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/portal/views_multicampus_academics.py",
+      "status": "PASS"
+    },
+    {
+      "id": "apps/portal/views_multicampus_extension.py",
+      "status": "PASS"
+    },
+    {
+      "id": "fractional_capacity_smoke",
+      "status": "PASS",
+      "proof": "effective_room_capacity + cross_campus_allocation_ok"
+    },
+    {
+      "id": "verify_hierarchy_silo_drift.py",
+      "status": "PASS",
+      "proof": "_base_url_missing\n    logger.info(msg)\nMessage: \"integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\"\nArguments: ()"
+    },
+    {
+      "id": "verify_global_operational_blind_spots.py",
+      "status": "PASS",
+      "proof": "_scheme=- server_name=- (0.009) SELECT \"registries_countryregistry\".\"code\", \"registries_countryregistry\".\"cockpit_override_payload\" FROM \"registries_countryregistry\" WHERE \"registries_countryregistry\".\"code\" = 'CM' ORDER BY \"registries_countryregistry\".\"name\" ASC LIMIT 1; args=('CM',); alias=default"
+    },
+    {
+      "id": "verify_school_operating_modes.py",
+      "status": "PASS",
+      "proof": "verify_school_operating_modes: PASS (governance_operating_mode present)"
+    },
+    {
+      "id": "verify_org_lifecycle_events.py",
+      "status": "PASS",
+      "proof": "verify_org_lifecycle_events: ORG_LIFECYCLE_EVENTS_PASS (scope=1)"
+    },
+    {
+      "id": "verify_governance_doc_truth.py",
+      "status": "PASS",
+      "proof": "verify_governance_doc_truth: GOVERNANCE_DOC_TRUTH_PASS"
+    },
+    {
+      "id": "verify_org_backfill_operator_smoke.py",
+      "status": "PASS",
+      "proof": "te_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.003) ROLLBACK; args=None; alias=default"
+    },
+    {
+      "id": "verify_scheduling_exclude_constraints.py",
+      "status": "PASS",
+      "proof": "verify_scheduling_exclude_constraints: SCHEDULING_EXCLUDE_CONSTRAINTS_PASS"
+    },
+    {
+      "id": "verify_group_console_http_contract.py",
+      "status": "FAIL",
+      "proof": ")\n           ~~~~~~~~~~~~~~~~~~~^^^^^\n  File \"C:\\Users\\yimga\\AppData\\Roaming\\Python\\Python314\\site-packages\\django\\db\\backends\\sqlite3\\base.py\", line 356, in execute\n    return super().execute(query)\n           ~~~~~~~~~~~~~~~^^^^^^^\ndjango.db.utils.OperationalError: duplicate column name: school_id"
+    },
+    {
+      "id": "verify_multicampus_wedge_http_contract.py",
+      "status": "FAIL",
+      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_multicampus_wedge_http_contract.py']' timed out after 300 seconds"
+    }
+  ],
+  "failures": [
+    "verify_group_console_http_contract.py failed: )\n           ~~~~~~~~~~~~~~~~~~~^^^^^\n  File \"C:\\Users\\yimga\\AppData\\Roaming\\Python\\Python314\\site-packages\\django\\db\\backends\\sqlite3\\base.py\", line 356, in execute\n    return super().execute(query)\n           ~~~~~~~~~~~~~~~^^^^^^^\ndjango.db.utils.OperationalError: duplicate column name: school_id",
+    "verify_multicampus_wedge_http_contract.py failed: Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_multicampus_wedge_http_contract.py']' timed out after 300 seconds"
+  ]
+}

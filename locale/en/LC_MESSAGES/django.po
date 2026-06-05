@@ -50573,3 +50573,45 @@ msgstr "{{ n }} failed / undelivered"
 
 msgid "{{ n }} in the last 7 days"
 msgstr "{{ n }} in the last 7 days"
+
+msgid "Back to cockpit configuration"
+msgstr "Back to cockpit configuration"
+
+msgid "Cockpit shell"
+msgstr "Cockpit shell"
+
+msgid "Cockpit shell chrome"
+msgstr "Cockpit shell chrome"
+
+msgid "Cockpit shell settings reset to defaults."
+msgstr "Cockpit shell settings reset to defaults."
+
+msgid "Cockpit shell settings saved."
+msgstr "Cockpit shell settings saved."
+
+msgid "Command palette (⌘K)"
+msgstr "Command palette (⌘K)"
+
+msgid "Link to a menu URL"
+msgstr "Link to a menu URL"
+
+msgid "Open quick actions"
+msgstr "Open quick actions"
+
+msgid ""
+"Per-surface dark/light skin, header composition, emoji navigation glyphs, "
+"and the page-header action buttons. Every value cascades through tenant "
+"settings — nothing here is hardcoded."
+msgstr ""
+"Per-surface dark/light skin, header composition, emoji navigation glyphs, "
+"and the page-header action buttons. Every value cascades through tenant "
+"settings — nothing here is hardcoded."
+
+msgid "Quick action"
+msgstr "Quick action"
+
+msgid "Save cockpit shell settings"
+msgstr "Save cockpit shell settings"
+
+msgid "Shell skin & nav →"
+msgstr "Shell skin & nav →"

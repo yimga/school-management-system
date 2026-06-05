@@ -2209,3 +2209,8 @@ from .models_reactivation import (  # noqa: E402,F401
     TenantReactivationAttempt,
     TenantReactivationCadence,
 )
+from .models_agentic_audit import (  # noqa: E402,F401
+    AIAgenticActionAudit,
+    AIAgenticActionAuditReadOnlyError,
+    AIAgenticActionOutcome,
+)

@@ -540,6 +540,7 @@
 
   function mount() {
     if (!shouldConnectStream()) return;
+    var headerSlot = document.querySelector("[data-rmc-wfp-header-slot]");
     if (document.getElementById("rmc-wfp-chip")) return;
     var card = buildCard();
     document.body.appendChild(card);
@@ -547,7 +548,14 @@
     var adopted = adoptRegisteredSlotChip();
     var chip = adopted || buildChip();
 
-    if (adopted) {
+    if (
+      headerSlot &&
+      (document.body.classList.contains("control-plane-shell") ||
+        document.body.getAttribute("data-rmc-wfp-header-only") === "1")
+    ) {
+      headerSlot.appendChild(chip);
+      chip.addEventListener("click", toggleCard);
+    } else if (adopted) {
       adopted.addEventListener("click", toggleCard);
     } else {
       // Park the chip into the assist-dock host if it exists; otherwise float bottom-right.

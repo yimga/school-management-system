@@ -26,6 +26,32 @@
   </div>
 
   <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-light fw-semibold">{% trans "Policy copilot" %}</div>
+    <div class="card-body small">
+      <p class="text-muted mb-2">{% trans "Ask a governance / compliance question. Answers are grounded in this country's governance matrix — no AI generation, no external call." %}</p>
+      <form method="post" class="mb-2">
+        {% csrf_token %}
+        <label class="form-label" for="policy-question">{% trans "Question" %}</label>
+        <input id="policy-question" name="policy_question" class="form-control form-control-sm" value="{{ policy_copilot_question }}" placeholder="{% trans 'e.g. Can we store student biometrics?' %}" />
+        <button type="submit" class="btn btn-sm btn-primary mt-2">{% trans "Ask" %}</button>
+      </form>
+      {% if policy_copilot_result %}
+      <div class="border-top pt-2">
+        {% if policy_copilot_result.honest_refusal %}
+        <p class="mb-1"><span class="badge text-bg-warning">{% trans "No grounded answer" %}</span> <code>{{ policy_copilot_result.answer }}</code></p>
+        {% else %}
+        <p class="mb-1"><strong>{% trans "Intent" %}</strong>: <code>{{ policy_copilot_result.intent }}</code></p>
+        <p class="mb-1">{{ policy_copilot_result.answer }}</p>
+        {% if policy_copilot_result.citations %}
+        <p class="text-muted mb-0"><strong>{% trans "Citations" %}</strong>: {{ policy_copilot_result.citations|join:", " }}</p>
+        {% endif %}
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm mb-3">
     <div class="card-header bg-light fw-semibold">{% trans "Provider status (safe)" %}</div>
     <div class="card-body small">
       <p class="mb-1"><strong>{% trans "Deployment profile" %}</strong>: <code>{{ provider_status.deployment_profile|default:"online" }}</code></p>

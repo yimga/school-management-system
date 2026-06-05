@@ -136,7 +136,7 @@
   {% include "components/apple_class_quick_profile_drawer.html" with drawer_id="super-risk-drawer" role=_("Risk drawer") title=_("Tenant risk quick profile") body=_("Operators can review owner, risk, proof, and next action from a side panel instead of page hopping.") primary_url=command_center_url primary_label=_("Open risk queue") %}
 
   {% comment %} Story cards — these tell the situation, not the numbers. {% endcomment %}
-  <section id="cmd-product-moments" data-rmc-section-anchor class="rmc-wcx-grid mb-4 rmc-reveal-stagger" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
+  <section id="cmd-product-moments" data-rmc-section-anchor class="rmc-wcx-grid mb-4 rmc-reveal-stagger rmc-canvas-adaptive-grid rmc-canvas-adaptive-grid--dashboard" data-world-class-super-sections="platform-pulse tenant-risk implementation-pipeline revenue-payment-readiness marketplace-governance security-compliance proof-ledger">
     {% include "components/world_class_product_moment_card.html" with title=_("Platform Pulse") outcome=_("Health, incidents, open approvals, and support pressure are visible immediately.") status=platform_health.overall_status action_url=command_center_url action_label=_("Open queues") %}
     {% include "components/world_class_risk_blocker_card.html" with title=_("External blockers") severity="medium" owner=_("Platform operator") boundary=_("PSP, settlement, and live certification remain external proof") next_step=_("Collect proof before claiming readiness") %}
     {% include "components/world_class_product_moment_card.html" with title=_("Proof Ledger") outcome=_("Local proof and pending live parity stay separate so buyers see honest readiness.") status=_("Local only") action_url="/docs/generated/live_browser_ux_certification_report.md" action_label=_("View proof") %}
@@ -229,7 +229,7 @@
             <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-panel-stat text-decoration-none" title="{% trans 'Open operational queues' %}">{% blocktrans with count=command_center.provisioning_sla_breaches %}Provisioning breaches {{ count }}{% endblocktrans %}</a>
           </div>
         </div>
-        <div class="cp-queue-grid">
+        <div class="cp-queue-grid rmc-canvas-adaptive-grid rmc-canvas-adaptive-grid--dashboard">
           <article class="cp-queue-card rmc-reveal">
             <a href="{{ command_center_url|default:wcx_command_center_url }}" class="cp-queue-card-header text-decoration-none d-flex justify-content-between align-items-center" title="{% trans 'Open operational queues' %}">
               <h3 class="mb-0">{% trans "Pending approvals" %}</h3>
@@ -349,7 +349,7 @@
             <span class="cp-panel-stat">{% blocktrans with count=command_center.tenant_churn_risk_count %}Churn risk {{ count }}{% endblocktrans %}</span>
           </div>
         </div>
-        <div class="cp-health-grid">
+        <div class="cp-health-grid rmc-canvas-adaptive-grid rmc-canvas-adaptive-grid--dashboard">
           {% for card in platform_health_cards %}
           <article class="cp-health-card cp-health-card-{{ card.tone|default:'neutral' }} rmc-reveal">
             <span class="cp-health-label">{{ card.label }}</span>
@@ -716,7 +716,7 @@
             <h2 class="cp-panel-title">{% trans "Operator workstreams" %}</h2>
           </div>
         </div>
-        <div class="cp-workstream-grid">
+        <div class="cp-workstream-grid rmc-canvas-adaptive-grid rmc-canvas-adaptive-grid--dashboard">
           {% for workstream in workstream_cards %}
           <a href="{{ workstream.url|default:wcx_command_center_url }}" class="cp-workstream-card">
             <span class="cp-workstream-title">{{ workstream.title }}</span>
@@ -737,7 +737,7 @@
             <h2 class="cp-panel-title">{% trans "Platform adoption and consistency" %}</h2>
           </div>
         </div>
-        <div class="cp-readiness-grid">
+        <div class="cp-readiness-grid rmc-canvas-adaptive-grid rmc-canvas-adaptive-grid--dashboard">
           {% for card in readiness_cards %}
           <article class="cp-readiness-card cp-readiness-card-{{ card.tone|default:'neutral' }} rmc-reveal">
             <span class="cp-readiness-label">{{ card.label }}</span>

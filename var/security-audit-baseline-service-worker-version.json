@@ -1,12 +1,12 @@
 {
   "date": "2026-06-02",
-  "generated_at": "2026-06-02T23:40:10+00:00",
+  "generated_at": "2026-06-05T15:46:06+00:00",
   "major": 4,
-  "minor": 1,
-  "patch": 46,
-  "raw": "sms-v4.01.46-dual-plane-theme-sweep3-2026-06-02",
+  "minor": 2,
+  "patch": 7,
+  "raw": "sms-v4.02.7-nav-sidebar-integrity-2026-06-02",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "dual-plane-theme-sweep3",
+  "slug": "nav-sidebar-integrity",
   "valid": true
 }

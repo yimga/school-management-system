@@ -1,0 +1,57 @@
+{
+  "generated_at": "2026-06-05T14:18:34.394369+00:00",
+  "verdict": "SCHEDULING_EXCLUDE_CONSTRAINTS_PASS",
+  "finding_count": 0,
+  "checks": [
+    {
+      "id": "model:uniq_schedentry_teacher_slot_shift",
+      "status": "PASS"
+    },
+    {
+      "id": "model:uniq_schedentry_teacher_slot_termwide",
+      "status": "PASS"
+    },
+    {
+      "id": "model:uniq_schedentry_room_slot_shift",
+      "status": "PASS"
+    },
+    {
+      "id": "model:uniq_schedentry_room_slot_termwide",
+      "status": "PASS"
+    },
+    {
+      "id": "scheduling:def _sync_scope_from_schedule",
+      "status": "PASS"
+    },
+    {
+      "id": "scheduling:instruction_shift",
+      "status": "PASS"
+    },
+    {
+      "id": "scheduling:term = models.ForeignKey",
+      "status": "PASS"
+    },
+    {
+      "id": "migration:0055",
+      "status": "PASS"
+    },
+    {
+      "id": "migration:uniq_schedentry_teacher_slot_shift",
+      "status": "PASS"
+    },
+    {
+      "id": "migration:uniq_schedentry_teacher_slot_termwide",
+      "status": "PASS"
+    },
+    {
+      "id": "migration:uniq_schedentry_room_slot_shift",
+      "status": "PASS"
+    },
+    {
+      "id": "migration:uniq_schedentry_room_slot_termwide",
+      "status": "PASS"
+    }
+  ],
+  "failures": [],
+  "note": "Partial unique constraints on discrete TimeSlot; gist EXCLUDE deferred."
+}

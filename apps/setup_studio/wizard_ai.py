@@ -31,11 +31,9 @@ __all__ = [
     "SmartDefaultsResult",
     "BranchRationaleResult",
     "NaturalLanguageIntakeResult",
-    "TranslationMeshResult",
     "request_smart_defaults",
     "request_branch_rationale",
     "request_natural_language_intake",
-    "request_translation_mesh",
     "refresh_setup_recommendations",
 ]
 
@@ -72,14 +70,6 @@ class NaturalLanguageIntakeResult:
     parsed_fields: dict[str, Any]
     unresolved_phrases: list[str]
     confidence: float
-    used_fallback: bool
-    latency_ms: int
-
-
-@dataclass(frozen=True)
-class TranslationMeshResult:
-    translations: dict[str, str]
-    failed_locales: list[str]
     used_fallback: bool
     latency_ms: int
 
@@ -329,59 +319,6 @@ def request_natural_language_intake(
         confidence=float(parsed.get("confidence") or 0.0),
         used_fallback=False,
         latency_ms=latency_ms,
-    )
-
-
-def request_translation_mesh(
-    *,
-    request: Any | None,
-    school: Any | None,
-    wizard_key: str,
-    source_locale: str,
-    target_locales: list[str],
-    message: str,
-) -> TranslationMeshResult:
-    t0 = time.monotonic()
-    sanitized = _sanitize_context({
-        "source_locale": source_locale,
-        "target_locales": list(target_locales),
-        "message": message[:4000],
-    })
-    try:
-        prompt = ai_prompts.build_prompt(
-            "prompt.comms.translate_template", context=sanitized, options=[],
-        )
-    except KeyError:
-        latency_ms = int((time.monotonic() - t0) * 1000)
-        return TranslationMeshResult(
-            translations={}, failed_locales=list(target_locales),
-            used_fallback=True, latency_ms=latency_ms,
-        )
-
-    text, _meta = _call_gateway(
-        request=request, school=school, prompt=prompt, prompt_type="wizard.translate_mesh",
-    )
-    parsed = _parse_json(text)
-    latency_ms = int((time.monotonic() - t0) * 1000)
-
-    if parsed is None or not isinstance(parsed.get("translations"), dict):
-        for loc in target_locales:
-            wizard_telemetry.emit_ai_translate_mesh_outcome(wizard_key, source_locale, loc, "fallback")
-        return TranslationMeshResult(
-            translations={}, failed_locales=list(target_locales),
-            used_fallback=True, latency_ms=latency_ms,
-        )
-
-    translations = {k: str(v) for k, v in parsed["translations"].items() if isinstance(v, str)}
-    failed = [loc for loc in target_locales if loc not in translations]
-    for loc in translations:
-        wizard_telemetry.emit_ai_translate_mesh_outcome(wizard_key, source_locale, loc, "success")
-    for loc in failed:
-        wizard_telemetry.emit_ai_translate_mesh_outcome(wizard_key, source_locale, loc, "fallback")
-
-    return TranslationMeshResult(
-        translations=translations, failed_locales=failed,
-        used_fallback=False, latency_ms=latency_ms,
     )
 
 

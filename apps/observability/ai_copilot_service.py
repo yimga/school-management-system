@@ -14,7 +14,6 @@ from django.utils.translation import gettext_lazy as _
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "build_copilot_rail_payload",
     "build_copilot_suggestion_card",
     "build_copilot_activity_event",
     "enrich_manager_copilot_rail",
@@ -177,21 +176,3 @@ def enrich_manager_copilot_rail(request: Any | None = None) -> dict[str, Any]:
     }
 
 
-def build_copilot_rail_payload(*, request: Any | None = None) -> dict[str, Any]:
-    """Full copilot rail payload; enriches when request is a staff manager session."""
-    user = getattr(request, "user", None) if request is not None else None
-    is_staff = bool(user and getattr(user, "is_authenticated", False) and (
-        getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
-    ))
-    host = getattr(request, "public_host_kind", None) if request is not None else None
-    if is_staff and host == "manager":
-        return enrich_manager_copilot_rail(request)
-    return {
-        "enabled": False,
-        "intro_text": _("Operator copilot"),
-        "suggestions": [],
-        "activity": [],
-        "shortcut_hint": "Cmd/Ctrl + K",
-        "empty_state_text": _("Enable ai_copilot_rail in cockpit settings."),
-        "deferred_marker": "",
-    }

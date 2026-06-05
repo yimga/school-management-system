@@ -118,6 +118,24 @@ def _build_context(
                         ai_suggested_value = result.suggestions[opt_key]
                         break
 
+    # Branch rationale: for steps WITHOUT field-level smart defaults, once the
+    # user has prior answers, explain why they're on this step. Surfaces through
+    # the same wizard_ai_rationale.html partial. Fallback-safe; never breaks the
+    # wizard (gateway-routed, budget-gated, decorative).
+    step_has_smart_defaults = bool(step.ai_recommend and step.ai_recommend.get("enabled"))
+    if ai_rationale is None and not step_has_smart_defaults and (state.get("answers") or {}):
+        try:
+            branch_result = wizard_ai.request_branch_rationale(
+                request=request, school=school,
+                wizard_key=wizard.wizard_key, step_key=step.key,
+                prior_answers=state.get("answers") or {},
+                branch_taken=step.key,
+            )
+            if branch_result.rationale_text:
+                ai_rationale = branch_result.rationale_text
+        except Exception as exc:  # noqa: BLE001 — rationale is decorative; never break the wizard
+            logger.debug("wizard branch rationale failed: %s", exc)
+
     is_final_step = (wizard.steps[-1].key == step.key) if wizard.steps else True
     form_action_url = _make_url(audience, "wizard_step", wizard.wizard_key, step.key)
 
@@ -230,6 +248,68 @@ def _parse_post_payload(request: HttpRequest, step: wizard_engine.StepDefinition
     return {"value": request.POST.get("value")}
 
 
+def _maybe_handle_nl_intake(
+    request: HttpRequest,
+    *,
+    wizard: wizard_engine.WizardDefinition,
+    step: wizard_engine.StepDefinition,
+    school: Any,
+    audience: str,
+    template: str,
+) -> HttpResponse | None:
+    """Natural-language intake for ``structured_form`` steps.
+
+    When the step's NL-intake control is submitted (``intent=nl_intake``), parse
+    the free-text description into DRAFT field values and re-render the SAME step
+    with those values pre-filled for the user to review and edit. Nothing is
+    persisted — the user must still submit the step normally to save. Returns a
+    response when it handled the POST, else ``None`` so the caller proceeds with
+    the normal save path. Assistive + fail-soft: never breaks the wizard.
+    """
+    if request.POST.get("intent") != "nl_intake":
+        return None
+    if step.input_type != "structured_form":
+        return None
+
+    free_text = (request.POST.get("nl_intake_text") or "").strip()
+    target_fields = [
+        f.get("name")
+        for f in (step.fields or [])
+        if isinstance(f.get("name"), str)
+    ]
+    state = wizard_state_resolver.get_wizard_state(school, wizard.wizard_key)
+    context = _build_context(
+        request=request, wizard=wizard, step=step,
+        audience=audience, school=school, state=state,
+    )
+    context["nl_intake_text"] = free_text
+
+    if free_text and target_fields:
+        try:
+            intake = wizard_ai.request_natural_language_intake(
+                request=request, school=school, wizard_key=wizard.wizard_key,
+                free_text=free_text, target_fields=target_fields,
+            )
+            prefill = {
+                k: v
+                for k, v in (intake.parsed_fields or {}).items()
+                if k in target_fields and v not in (None, "")
+            }
+            # Merge as DRAFT values into the form — user still submits to save.
+            merged = dict(context.get("prior_answer") or {})
+            merged.update(prefill)
+            context["prior_answer"] = merged
+            context["nl_prefill"] = prefill
+            context["nl_applied_fields"] = sorted(prefill.keys())
+            context["nl_unresolved"] = list(intake.unresolved_phrases or [])
+            context["nl_confidence"] = round(float(intake.confidence or 0.0), 2)
+            context["nl_used_fallback"] = bool(intake.used_fallback)
+        except Exception as exc:  # noqa: BLE001 — intake is assistive; never break the wizard
+            logger.debug("wizard nl intake failed: %s", exc)
+
+    return render(request, template, context)
+
+
 # ---------- Views ----------
 
 
@@ -290,6 +370,12 @@ class OperatorWizardView(LoginRequiredMixin, View):
         wizard, step, school = self._resolve(request, wizard_key, step_key)
         if wizard is None or school is None:
             return redirect("setup_studio:operator_wizard_index")
+        nl_response = _maybe_handle_nl_intake(
+            request, wizard=wizard, step=step, school=school,
+            audience=self.audience, template=self.template,
+        )
+        if nl_response is not None:
+            return nl_response
         payload = _parse_post_payload(request, step)
         try:
             wizard_state_resolver.apply_step_answer(
@@ -436,6 +522,12 @@ class TenantWizardView(LoginRequiredMixin, View):
         wizard, step, school = self._resolve(request, wizard_key, step_key)
         if wizard is None or school is None:
             return redirect("setup_studio:tenant_wizard_index")
+        nl_response = _maybe_handle_nl_intake(
+            request, wizard=wizard, step=step, school=school,
+            audience=self.audience, template=self.template,
+        )
+        if nl_response is not None:
+            return nl_response
         payload = _parse_post_payload(request, step)
         try:
             wizard_state_resolver.apply_step_answer(

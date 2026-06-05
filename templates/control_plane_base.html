@@ -38,7 +38,8 @@
 {% endblock %}
 
 {% block cp_shell_sidebar %}
-<div id="cp-sidebar-col" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
+<div id="cp-sidebar-col" class="rmc-nav-sidebar__mount" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
+  {% include "partials/rmc_nav_sidebar_toolbar.html" %}
   {% block control_plane_sidebar %}
     {% include "partials/control_plane_sidebar.html" %}
   {% endblock %}
@@ -61,7 +62,7 @@
 {% include "components/rmc_operator_surface_strip.html" %}
 {% endblock %}
 
-<div class="container-fluid px-3 py-2 cp-layout d-flex flex-column" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
+<div class="container-fluid px-3 py-2 cp-layout d-flex flex-column rmc-shell-canvas-container" data-rmc-authenticated-shell="{{ rmc_shell.cp_layout_authenticated_shell|default:'manager-control-plane' }}" {% block cp_layout_attrs %}{% endblock %}>
   <main id="cp-main-content" class="cp-main-col rmc-shell-main" role="main" data-shell-main="control-plane" data-page-archetype="{% block cp_page_archetype %}decision-console{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'manager-control-plane' }}" data-rmc-shell-main="control-plane" data-rmc-static-chrome="1">
     {% include "partials/shell_chrome_django_messages_control_plane.html" %}
     {% include "partials/cockpit/_operator_incident_banner.html" %}

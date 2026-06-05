@@ -164,6 +164,7 @@
     <link rel="stylesheet" href="{% static 'css/rmc-backoffice-scroll-10x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-list-bulk-select.css' %}">
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
   </head>
   <body class="control-plane-shell cp-surface{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-has-operator-footer{% endif %}" data-rmc-shell-body="control-plane-skeleton" data-rmc-shell-main="control-plane" data-rmc-cp-scroll="{% block cp_scroll_mode %}canvas{% endblock %}" data-rmc-page-personality="{{ rmc_page_personality|default:'control-plane' }}" data-rmc-page-help="1"{% if rmc_page_help_on_copilot_rail %} data-rmc-copilot-page-help="1"{% endif %} data-rmc-conversion-strict="{% if rmc_conversion_single_action_enforced|default:False %}1{% else %}0{% endif %}"{% if AI_COPILOT_QUERY_URL %} data-ai-copilot-url="{{ AI_COPILOT_QUERY_URL }}"{% endif %} data-rmc-country="{{ localization.country_code|default:'' }}" data-rmc-language="{{ localization.language_code|default:'' }}" data-rmc-week-start="{{ localization.week_start|default:1 }}" data-rmc-date-format="{{ localization.date_format|default:'%d/%m/%Y' }}" data-rmc-currency="{{ localization.currency_code|default:'USD' }}" data-rmc-is-rtl="{% if localization.is_rtl %}1{% else %}0{% endif %}">
     {% include "partials/rmc_launch_splash.html" %}
@@ -181,8 +182,9 @@
         {% include "partials/control_plane_unified_header.html" %}
         {% endblock %}
       </header>
-      <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Control plane navigation' %}">
+      <aside class="rmc-app-shell__sidebar rmc-nav-sidebar-host" aria-label="{% trans 'Control plane navigation' %}">
         {% block cp_shell_sidebar %}{% endblock %}
+        {% include "partials/rmc_nav_sidebar_resize_handle.html" with nav_sidebar_controls_id="cp-sidebar-col" %}
       </aside>
       <div class="rmc-app-shell__canvas">
         {% block cp_shell_canvas_chrome %}{% endblock %}
@@ -284,10 +286,12 @@
     {% if request.user.is_authenticated %}
     {% comment %} v4.00.91: registry SOT island for the assist dock. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
+    {% include "partials/rmc_nav_sidebar_page_data.html" %}
     {% include "partials/rmc_operator_tools_scripts.html" %}
     {% comment %} v4.00.97 Wave G2: impersonation banner partial — renders only when active. {% endcomment %}
     {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
+    <script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>
     {% comment %} v4.01.03: g-chord → chip click bridge — bridge no-ops on control-plane surface so existing g-ladder stays authoritative. {% endcomment %}
     {% include "partials/rmc_assist_dock_shortcut_bridge.html" %}
     <script src="{% static 'js/rmc-workflow-track-headers.js' %}" nonce="{{ csp_nonce }}"></script>

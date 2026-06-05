@@ -16,11 +16,16 @@
 {% if cockpit_shell.actions.export_pdf or cockpit_shell.actions.quick_action %}
 <div class="rmc-cockpit-page-actions" data-rmc-cockpit-page-actions="1">
   {% if cockpit_shell.actions.export_pdf %}
-  <a class="cp-detailed-board-btn"
-     {% if cockpit_export_pdf_url %}href="{{ cockpit_export_pdf_url }}"{% else %}href="#" role="button"{% endif %}
-     data-rmc-export-pdf="1"{% if cockpit_export_pdf_url %} data-export-url="{{ cockpit_export_pdf_url }}"{% endif %}>
+    {% if cockpit_export_pdf_url %}
+  <a class="cp-detailed-board-btn" href="{{ cockpit_export_pdf_url }}"
+     data-rmc-export-pdf="1" data-export-url="{{ cockpit_export_pdf_url }}">
     <span aria-hidden="true">⤓</span> {% trans "Export PDF" %}
   </a>
+    {% else %}
+  <button type="button" class="cp-detailed-board-btn" data-rmc-export-pdf="1">
+    <span aria-hidden="true">⤓</span> {% trans "Export PDF" %}
+  </button>
+    {% endif %}
   {% endif %}
   {% if cockpit_shell.actions.quick_action %}
     {% if cockpit_shell.actions.quick_action_mode == 'menu' and cockpit_quick_action_url %}

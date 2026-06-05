@@ -180,6 +180,22 @@ class ScheduleEntry(models.Model):
     schedule = models.ForeignKey(
         Schedule, on_delete=models.CASCADE, related_name="entries"
     )
+    term = models.ForeignKey(
+        "academics.Term",
+        on_delete=models.CASCADE,
+        related_name="schedule_entries",
+        editable=False,
+        help_text="Denormalized from schedule.term for DB conflict constraints.",
+    )
+    instruction_shift = models.ForeignKey(
+        InstructionShift,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="schedule_entries",
+        editable=False,
+        help_text="Denormalized from schedule.shift; NULL = term-wide booking scope.",
+    )
     classroom = models.ForeignKey("academics.Classroom", on_delete=models.CASCADE)
     subject = models.ForeignKey("academics.Subject", on_delete=models.CASCADE)
     teacher = models.ForeignKey(
@@ -205,6 +221,32 @@ class ScheduleEntry(models.Model):
             models.Index(fields=["schedule", "time_slot"]),
             models.Index(fields=["teacher", "time_slot"]),
             models.Index(fields=["room", "time_slot"]),
+            models.Index(fields=["term", "teacher", "time_slot"]),
+            models.Index(fields=["term", "room", "time_slot"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["term", "teacher", "time_slot", "instruction_shift"],
+                condition=models.Q(is_cancelled=False)
+                & ~models.Q(instruction_shift__isnull=True),
+                name="uniq_schedentry_teacher_slot_shift",
+            ),
+            models.UniqueConstraint(
+                fields=["term", "teacher", "time_slot"],
+                condition=models.Q(is_cancelled=False, instruction_shift__isnull=True),
+                name="uniq_schedentry_teacher_slot_termwide",
+            ),
+            models.UniqueConstraint(
+                fields=["term", "room", "time_slot", "instruction_shift"],
+                condition=models.Q(is_cancelled=False)
+                & ~models.Q(instruction_shift__isnull=True),
+                name="uniq_schedentry_room_slot_shift",
+            ),
+            models.UniqueConstraint(
+                fields=["term", "room", "time_slot"],
+                condition=models.Q(is_cancelled=False, instruction_shift__isnull=True),
+                name="uniq_schedentry_room_slot_termwide",
+            ),
         ]
 
     def __str__(self):
@@ -212,37 +254,46 @@ class ScheduleEntry(models.Model):
             f"{self.classroom.name} - {self.subject.name} ({self.time_slot.slot_name})"
         )
 
+    def _sync_scope_from_schedule(self) -> None:
+        if not self.schedule_id:
+            return
+        self.term_id = self.schedule.term_id
+        self.instruction_shift_id = self.schedule.shift_id
+
+    def save(self, *args, **kwargs):
+        self._sync_scope_from_schedule()
+        super().save(*args, **kwargs)
+
     def clean(self):
-        """Validate no conflicts"""
-        if self.pk is None:  # Only for new entries
-            # Check teacher conflict
+        """Validate no conflicts (ORM layer; DB partial uniques enforce on save)."""
+        if self.pk is None:
+            self._sync_scope_from_schedule()
             teacher_qs = ScheduleEntry.objects.filter(
-                schedule__term=self.schedule.term,
+                term_id=self.term_id,
                 teacher=self.teacher,
                 time_slot=self.time_slot,
                 is_cancelled=False,
             )
-            if self.schedule.shift_id:
-                teacher_qs = teacher_qs.filter(schedule__shift_id=self.schedule.shift_id)
-            teacher_conflict = teacher_qs.exists()
+            if self.instruction_shift_id:
+                teacher_qs = teacher_qs.filter(
+                    instruction_shift_id=self.instruction_shift_id
+                )
 
-            if teacher_conflict:
+            if teacher_qs.exists():
                 raise ValidationError(
                     f"Teacher {self.teacher.username} is already scheduled for {self.time_slot.slot_name}"
                 )
 
-            # Check room conflict (scoped by shift when configured)
             room_qs = ScheduleEntry.objects.filter(
-                schedule__term=self.schedule.term,
+                term_id=self.term_id,
                 room=self.room,
                 time_slot=self.time_slot,
                 is_cancelled=False,
             )
-            if self.schedule.shift_id:
-                room_qs = room_qs.filter(schedule__shift_id=self.schedule.shift_id)
-            room_conflict = room_qs.exists()
+            if self.instruction_shift_id:
+                room_qs = room_qs.filter(instruction_shift_id=self.instruction_shift_id)
 
-            if room_conflict:
+            if room_qs.exists():
                 raise ValidationError(
                     f"Room {self.room.name} is already booked for {self.time_slot.slot_name}"
                 )

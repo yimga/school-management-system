@@ -97,46 +97,6 @@ class FallbackOnUnavailableTests(SimpleTestCase):
             self.assertEqual(result.suggestions["recommended_apm_key"], "upi_rupay")
 
 
-class TranslationMeshTests(SimpleTestCase):
-    def test_fallback_returns_failed_locales(self):
-        with patch.object(wizard_ai, "_call_gateway", return_value=(None, {})):
-            r = wizard_ai.request_translation_mesh(
-                request=None, school=None,
-                wizard_key="x", source_locale="en",
-                target_locales=["fr", "es"],
-                message="Hello",
-            )
-            self.assertTrue(r.used_fallback)
-            self.assertEqual(set(r.failed_locales), {"fr", "es"})
-            self.assertEqual(r.translations, {})
-
-    def test_success_path(self):
-        ai_text = '{"translations": {"fr": "Bonjour", "es": "Hola"}, "confidence": 0.9}'
-        with patch.object(wizard_ai, "_call_gateway", return_value=(ai_text, {})):
-            r = wizard_ai.request_translation_mesh(
-                request=None, school=None,
-                wizard_key="x", source_locale="en",
-                target_locales=["fr", "es"],
-                message="Hello",
-            )
-            self.assertFalse(r.used_fallback)
-            self.assertEqual(r.translations.get("fr"), "Bonjour")
-            self.assertEqual(r.translations.get("es"), "Hola")
-            self.assertEqual(r.failed_locales, [])
-
-    def test_partial_translation_partial_failure(self):
-        ai_text = '{"translations": {"fr": "Bonjour"}, "confidence": 0.7}'
-        with patch.object(wizard_ai, "_call_gateway", return_value=(ai_text, {})):
-            r = wizard_ai.request_translation_mesh(
-                request=None, school=None,
-                wizard_key="x", source_locale="en",
-                target_locales=["fr", "es"],
-                message="Hello",
-            )
-            self.assertFalse(r.used_fallback)
-            self.assertEqual(r.failed_locales, ["es"])
-
-
 class BranchRationaleTests(SimpleTestCase):
     def test_fallback_returns_generic_text(self):
         with patch.object(wizard_ai, "_call_gateway", return_value=(None, {})):
@@ -159,3 +119,42 @@ class BranchRationaleTests(SimpleTestCase):
                 branch_taken="default",
             )
             self.assertLessEqual(len(r.rationale_text), 280)
+
+
+class NaturalLanguageIntakeTests(SimpleTestCase):
+    def test_no_gateway_falls_back_to_unresolved(self):
+        with patch.object(wizard_ai, "_call_gateway", return_value=(None, {})):
+            r = wizard_ai.request_natural_language_intake(
+                request=None, school=None, wizard_key="x",
+                free_text="open Monday to Friday 8am",
+                target_fields=["open_days", "open_time"],
+            )
+        self.assertTrue(r.used_fallback)
+        self.assertEqual(r.parsed_fields, {})
+        self.assertEqual(r.unresolved_phrases, ["open Monday to Friday 8am"])
+        self.assertEqual(r.confidence, 0.0)
+
+    def test_valid_json_parses_fields(self):
+        ai_text = (
+            '{"parsed_fields": {"open_days": "Mon-Fri", "open_time": "08:00"}, '
+            '"unresolved_phrases": [], "confidence": 0.82}'
+        )
+        with patch.object(wizard_ai, "_call_gateway", return_value=(ai_text, {})):
+            r = wizard_ai.request_natural_language_intake(
+                request=None, school=None, wizard_key="x",
+                free_text="open Monday to Friday 8am",
+                target_fields=["open_days", "open_time"],
+            )
+        self.assertFalse(r.used_fallback)
+        self.assertEqual(r.parsed_fields.get("open_days"), "Mon-Fri")
+        self.assertEqual(r.parsed_fields.get("open_time"), "08:00")
+        self.assertAlmostEqual(r.confidence, 0.82, places=2)
+
+    def test_invalid_json_falls_back(self):
+        with patch.object(wizard_ai, "_call_gateway", return_value=("not json {", {})):
+            r = wizard_ai.request_natural_language_intake(
+                request=None, school=None, wizard_key="x",
+                free_text="something", target_fields=["a"],
+            )
+        self.assertTrue(r.used_fallback)
+        self.assertEqual(r.parsed_fields, {})

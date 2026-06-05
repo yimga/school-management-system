@@ -109,12 +109,18 @@ body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .
 /* ---------- Static sidebar with own scroll ---------- */
 body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col {
   min-height: 0;
-  /* Don't override Bootstrap's column width — only the scroll behavior. */
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   transition: scrollbar-color var(--motion-normal);
+}
+
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col.rmc-nav-sidebar__mount > .tp-sidebar-inner,
+body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col.rmc-nav-sidebar__mount > .sidebar {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col:hover,
 body.portal-body-with-layout:not(.control-plane-shell):not(.marketing-surface) .portal-sidebar-col:focus-within {

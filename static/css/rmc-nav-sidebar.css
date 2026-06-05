@@ -1,0 +1,327 @@
+/**
+ * rmc-nav-sidebar.css — Left nav sidebar rail + resize contract (v4.02.1)
+ * Mirrors AI copilot rail semantics: 44px icon rail | resizable normal width.
+ * Pairs with static/js/rmc-nav-sidebar.js
+ */
+
+:root {
+  --rmc-nav-sidebar-rail-w: 44px;
+  --rmc-nav-sidebar-min-w: 200px;
+  --rmc-nav-sidebar-max-w: 420px;
+  --rmc-nav-sidebar-default-w: 280px;
+}
+
+/* ---------- App-shell grid surfaces (manager /super/, manager /admin/) ---------- */
+.rmc-app-shell[data-rmc-nav-sidebar] {
+  transition: grid-template-columns var(--motion-slow, 420ms) var(--ease-standard, ease);
+}
+
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] {
+  --rmc-app-shell-sidebar-w: var(--rmc-nav-sidebar-rail-w);
+}
+
+.rmc-app-shell__sidebar.rmc-nav-sidebar-host {
+  position: relative;
+  min-width: 0;
+  padding: 0;
+}
+
+.rmc-nav-sidebar__mount {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  min-width: 0;
+}
+
+.rmc-nav-sidebar__toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.5rem 0.45rem 0.35rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .rmc-nav-sidebar__toolbar {
+  flex-direction: column;
+  padding: 0.35rem 0.2rem;
+}
+
+.rmc-nav-sidebar__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--motion-fast), color var(--motion-fast), border-color var(--motion-fast);
+}
+
+.rmc-nav-sidebar__toggle:hover,
+.rmc-nav-sidebar__toggle:focus-visible {
+  background: color-mix(in srgb, var(--school-primary, var(--color-indigo-600)) 10%, var(--surface-elevated));
+  color: var(--text-primary);
+  border-color: var(--hairline-strong);
+}
+
+.rmc-nav-sidebar__toggle-label {
+  font-size: var(--type-size-xs, 0.75rem);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .rmc-nav-sidebar__toggle-label {
+  display: none;
+}
+
+.rmc-nav-sidebar__resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 5;
+  touch-action: none;
+}
+
+.rmc-nav-sidebar__resize-handle::after {
+  content: "";
+  position: absolute;
+  top: 12%;
+  bottom: 12%;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  transition: background var(--motion-fast);
+}
+
+.rmc-nav-sidebar__resize-handle:hover::after,
+.rmc-nav-sidebar__resize-handle:focus-visible::after {
+  background: var(--hairline-strong);
+}
+
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .rmc-nav-sidebar__resize-handle {
+  display: none;
+}
+
+/* Icon rail — control plane sidebar */
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-sidebar-nav,
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] #cp-sidebar-col.sidebar-collapsed .cp-sidebar-nav,
+#cp-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar-nav,
+#portal-sidebar-col.rmc-nav-sidebar--rail .sidebar,
+#portal-sidebar-col.rmc-nav-sidebar--rail nav {
+  padding-inline: 0.25rem;
+}
+
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-sidebar__section,
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-nav-label,
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-sidebar__pin,
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-sidebar__group > summary,
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-nav-recent,
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .sidebar-section-title,
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .portal-sidebar-collapse-wrap,
+#cp-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__section,
+#cp-sidebar-col.rmc-nav-sidebar--rail .cp-nav-label,
+#cp-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__pin,
+#cp-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__group > summary,
+#portal-sidebar-col.rmc-nav-sidebar--rail .sidebar-section-title,
+#portal-sidebar-col.rmc-nav-sidebar--rail .nav-link span:not(.bi),
+#portal-sidebar-col.rmc-nav-sidebar--rail .sidebar-pin-btn {
+  display: none !important;
+}
+
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-sidebar__item,
+#cp-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__item {
+  justify-content: center;
+  padding-inline: 0.35rem;
+  min-height: 2.5rem;
+}
+
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-sidebar__item-label,
+#cp-sidebar-col.rmc-nav-sidebar--rail .cp-sidebar__item-label {
+  justify-content: center;
+  gap: 0;
+}
+
+.rmc-app-shell[data-rmc-nav-sidebar="rail"] .cp-nav-icon,
+#cp-sidebar-col.rmc-nav-sidebar--rail .cp-nav-icon {
+  margin-inline: auto;
+  font-size: 1.05rem;
+}
+
+/* Portal bootstrap column sync */
+@media (min-width: 992px) {
+  #cp-sidebar-col.rmc-nav-sidebar--rail,
+  #portal-sidebar-col.rmc-nav-sidebar--rail,
+  .portal-sidebar-col.rmc-nav-sidebar--rail {
+    flex: 0 0 var(--rmc-nav-sidebar-rail-w) !important;
+    width: var(--rmc-nav-sidebar-rail-w) !important;
+    min-width: var(--rmc-nav-sidebar-rail-w) !important;
+    max-width: var(--rmc-nav-sidebar-rail-w) !important;
+  }
+}
+
+body.control-plane-shell .cp-sidebar-col.rmc-nav-sidebar--rail,
+body.manager-portal-bridge .cp-sidebar-col.rmc-nav-sidebar--rail {
+  flex: 0 0 var(--rmc-nav-sidebar-rail-w) !important;
+  width: var(--rmc-nav-sidebar-rail-w) !important;
+  max-width: var(--rmc-nav-sidebar-rail-w) !important;
+}
+
+#portal-sidebar-col.rmc-nav-sidebar__mount .portal-sidebar-collapse-wrap,
+#cp-sidebar-col.rmc-nav-sidebar__mount .portal-sidebar-collapse-wrap {
+  display: none !important;
+}
+
+.rmc-nav-sidebar__mount .rmc-nav-sidebar__resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+}
+
+body[data-rmc-nav-sidebar="rail"] #cp-sidebar-col,
+body[data-rmc-nav-sidebar="rail"] #portal-sidebar-col {
+  flex: 0 0 var(--rmc-nav-sidebar-rail-w) !important;
+  width: var(--rmc-nav-sidebar-rail-w) !important;
+  max-width: var(--rmc-nav-sidebar-rail-w) !important;
+}
+
+@media (min-width: 992px) {
+  body[data-rmc-nav-sidebar="normal"] #cp-sidebar-col:not(.rmc-nav-sidebar--rail),
+  body[data-rmc-nav-sidebar="normal"] #portal-sidebar-col:not(.rmc-nav-sidebar--rail) {
+    flex: 0 0 var(--portal-sidebar-width, var(--rmc-nav-sidebar-default-w)) !important;
+    width: var(--portal-sidebar-width, var(--rmc-nav-sidebar-default-w)) !important;
+    max-width: var(--rmc-nav-sidebar-max-w) !important;
+  }
+}
+
+/* ---------- Canvas adapts to available inline size (platform-wide) ---------- */
+.rmc-shell-canvas-container,
+.rmc-app-shell__canvas-body,
+.rmc-app-shell__canvas-body .cp-layout,
+.rmc-app-shell__canvas-body .cp-main-col,
+body.manager-portal-bridge .portal-main-col,
+body.manager-portal-bridge .portal-main-col > .page-wrap,
+body.portal-body-with-layout .portal-main-col > .page-wrap.rmc-shell-content-grid {
+  container-type: inline-size;
+  container-name: rmc-shell-canvas;
+}
+
+/* Named CP / operator grid primitives — reflow when sidebar is wide or rail-narrow */
+@container rmc-shell-canvas (max-width: 720px) {
+  .cp-overview-grid,
+  .cp-health-grid,
+  .cp-queue-grid,
+  .cp-workstream-grid,
+  .cp-readiness-grid,
+  .rmc-grid--3col,
+  .rmc-grid--2col,
+  .cp-grid-4,
+  .cp-grid-3,
+  .cp-grid-2,
+  .rmc-wcx-grid,
+  .dashboard-auto-grid,
+  .rmc-canvas-adaptive-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .rmc-shell-canvas-container > .row > [class*="col-lg"],
+  .rmc-shell-canvas-container > .row > [class*="col-xl"],
+  .rmc-shell-canvas-container .cp-page-body > .row > [class*="col-lg"],
+  .rmc-shell-canvas-container .cp-page-body > .row > [class*="col-xl"],
+  .rmc-shell-canvas-container [data-rmc-cp-page-body="1"] > .row > [class*="col-lg"],
+  .rmc-shell-canvas-container [data-rmc-cp-page-body="1"] > .row > [class*="col-xl"] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@container rmc-shell-canvas (min-width: 721px) and (max-width: 1080px) {
+  .cp-overview-grid,
+  .cp-health-grid,
+  .cp-queue-grid,
+  .cp-workstream-grid,
+  .cp-readiness-grid,
+  .rmc-grid--3col,
+  .cp-grid-3,
+  .cp-grid-4,
+  .rmc-wcx-grid,
+  .rmc-canvas-adaptive-grid,
+  .rmc-canvas-adaptive-grid--dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-app-shell[data-rmc-nav-sidebar] {
+    transition: none;
+  }
+}
+
+/* ---------- v4.02.7 Sidebar visual integrity (gap / leak / bleed) ---------- */
+.rmc-nav-sidebar-host,
+.rmc-nav-sidebar__mount,
+#cp-sidebar-col.rmc-nav-sidebar__mount,
+#portal-sidebar-col.rmc-nav-sidebar__mount {
+  overflow: hidden;
+  isolation: isolate;
+  align-self: stretch;
+  min-height: 0;
+  background: var(--surface-canvas, var(--surface-bg));
+  border-inline-end: 1px solid var(--hairline);
+}
+
+body.control-plane-shell .cp-sidebar-col.rmc-nav-sidebar__mount,
+body.manager-portal-bridge .cp-sidebar-col.rmc-nav-sidebar__mount {
+  background: var(--cp-chrome-bg, var(--surface-canvas, var(--surface-bg)));
+  border-inline-end-color: var(--cp-chrome-hairline, var(--hairline));
+}
+
+.rmc-nav-sidebar__mount > .cp-sidebar-inner,
+.rmc-nav-sidebar__mount > .tp-sidebar-inner,
+.rmc-nav-sidebar__mount > .cp-sidebar-inner--surface,
+.rmc-nav-sidebar__mount > nav.cp-sidebar-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rmc-nav-sidebar__mount .rmc-nav-sidebar__resize-handle {
+  z-index: 12;
+}
+
+.rmc-nav-sidebar__mount:not(.rmc-nav-sidebar--rail) {
+  padding-inline-end: 8px;
+}
+
+.portal-layout-wrap .portal-layout-row:has(.rmc-nav-sidebar__mount) {
+  --bs-gutter-x: 0;
+  gap: 0 !important;
+}
+
+@media (min-width: 992px) {
+  .portal-layout-wrap .portal-layout-row:has(.rmc-nav-sidebar__mount) > .rmc-nav-sidebar__mount {
+    flex: 0 0 var(--portal-sidebar-width, var(--rmc-nav-sidebar-default-w)) !important;
+    width: var(--portal-sidebar-width, var(--rmc-nav-sidebar-default-w)) !important;
+    max-width: var(--rmc-nav-sidebar-max-w) !important;
+  }
+
+  .portal-layout-wrap .portal-layout-row:has(.rmc-nav-sidebar__mount) > .portal-main-col {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}

@@ -586,9 +586,16 @@ body.control-plane-shell.manager-portal-bridge .cp-sidebar-col .sidebar {
   border-color: var(--cp-chrome-hairline, rgba(255, 255, 255, 0.08));
 }
 
-body.manager-portal-bridge .cp-sidebar-col .nav-link,
 body.manager-portal-bridge .cp-sidebar-col .cp-sidebar__item {
   color: var(--cp-chrome-text-muted, #94a3b8);
+}
+
+body.manager-portal-bridge #cp-sidebar-col.rmc-nav-sidebar__mount > .cp-sidebar-inner,
+body.manager-portal-bridge #cp-sidebar-col.rmc-nav-sidebar__mount > .cp-sidebar-inner--surface {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 body.manager-portal-bridge .cp-sidebar-col .nav-link.active,

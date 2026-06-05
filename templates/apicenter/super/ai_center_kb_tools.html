@@ -1,0 +1,102 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main">
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <h1 class="rmc-h1">{% trans "KB authoring tools" %}</h1>
+  <p class="text-muted">{% trans "Generate draft knowledge-base content from platform evidence. Drafts are for operator review only — they are never published to tenants." %}</p>
+
+  {% if error %}<p class="text-danger" role="alert">{{ error }}</p>{% endif %}
+
+  {% if draft %}
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{{ draft.title }}</div>
+    <div class="card-body">
+      <pre class="mb-2">{{ draft.body }}</pre>
+      <p class="small text-muted mb-0">{% trans "Module" %}: {{ draft.module }} · {{ draft.evidence_ids|length }} {% trans "evidence doc(s)" %} · {% trans "draft (not tenant-visible)" %}</p>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if topics %}
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Proposed help topics" %}</div>
+    <ul class="list-group list-group-flush">
+      {% for t in topics %}<li class="list-group-item">{{ t.topic }} <span class="badge text-bg-secondary">{{ t.status }}</span></li>{% empty %}<li class="list-group-item text-muted">{% trans "No topics — enter one or more error codes." %}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <form method="post" class="card h-100">
+        {% csrf_token %}
+        <input type="hidden" name="gen" value="tenant_guide" />
+        <div class="card-body">
+          <h2 class="h6">{% trans "Tenant guide" %}</h2>
+          <label class="form-label" for="tg-module">{% trans "Module" %}</label>
+          <input id="tg-module" name="module" class="form-control" value="{{ module }}" />
+          <label class="form-label mt-2" for="tg-route">{% trans "Route (optional)" %}</label>
+          <input id="tg-route" name="route" class="form-control" placeholder="/finance/" />
+          <button type="submit" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-md-6">
+      <form method="post" class="card h-100">
+        {% csrf_token %}
+        <input type="hidden" name="gen" value="operator_runbook" />
+        <div class="card-body">
+          <h2 class="h6">{% trans "Operator runbook" %}</h2>
+          <label class="form-label" for="rb-module">{% trans "Module" %}</label>
+          <input id="rb-module" name="module" class="form-control" value="{{ module }}" />
+          <button type="submit" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-md-6">
+      <form method="post" class="card h-100">
+        {% csrf_token %}
+        <input type="hidden" name="gen" value="release_note" />
+        <div class="card-body">
+          <h2 class="h6">{% trans "Release note" %}</h2>
+          <label class="form-label" for="rn-feature">{% trans "Feature key" %}</label>
+          <input id="rn-feature" name="feature_key" class="form-control" value="{{ feature_key }}" placeholder="apicenter" />
+          <button type="submit" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-md-6">
+      <form method="post" class="card h-100">
+        {% csrf_token %}
+        <input type="hidden" name="gen" value="code_change" />
+        <div class="card-body">
+          <h2 class="h6">{% trans "KB from code change" %}</h2>
+          <label class="form-label" for="cc-module">{% trans "Module" %}</label>
+          <input id="cc-module" name="module" class="form-control" value="{{ module }}" />
+          <label class="form-label mt-2" for="cc-summary">{% trans "Change summary" %}</label>
+          <textarea id="cc-summary" name="change_summary" class="form-control" rows="2">{{ change_summary }}</textarea>
+          <button type="submit" class="btn btn-primary mt-3">{% trans "Generate" %}</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-md-6">
+      <form method="post" class="card h-100">
+        {% csrf_token %}
+        <input type="hidden" name="gen" value="help_topics" />
+        <div class="card-body">
+          <h2 class="h6">{% trans "Help topics from errors" %}</h2>
+          <label class="form-label" for="ht-codes">{% trans "Error codes (comma-separated)" %}</label>
+          <input id="ht-codes" name="error_codes" class="form-control" value="{{ error_codes }}" placeholder="E101, E404" />
+          <button type="submit" class="btn btn-primary mt-3">{% trans "Propose" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

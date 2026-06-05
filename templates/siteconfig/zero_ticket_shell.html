@@ -4,33 +4,38 @@
 {% block cp_page_archetype %}diagnostic-workbench{% endblock %}
 
 {% block cp_shell_sidebar %}
-<nav class="cp-sidebar-nav cp-sidebar-nav--focused" id="cpSidebarNav" aria-label="{% trans 'Diagnostics navigation' %}" data-sidebar-nav="true" data-rmc-zero-ticket-nav="1">
-  <div class="cp-sidebar__identity" data-rmc-sidebar-identity="1">
-    <div class="cp-sidebar__user">
-      <div class="cp-sidebar__avatar" aria-hidden="true"><i class="bi bi-heart-pulse"></i></div>
-      <div class="cp-sidebar__user-meta">
-        <strong>{% trans "Zero-ticket" %}</strong>
-        <span>{% trans "Diagnostics" %}</span>
+<div id="cp-sidebar-col" class="rmc-nav-sidebar__mount" data-shell-sidebar="{{ rmc_shell.shell_sidebar_control_plane|default:'control-plane' }}" data-shell-sidebar-mount="desktop">
+  {% include "partials/rmc_nav_sidebar_toolbar.html" %}
+  <div class="cp-sidebar-inner cp-sidebar-inner--surface d-flex flex-column flex-grow-1 min-h-0 p-2">
+    <nav class="cp-sidebar-nav cp-sidebar-nav--focused flex-grow-1 min-h-0 overflow-auto" id="cpSidebarNav" aria-label="{% trans 'Diagnostics navigation' %}" data-sidebar-nav="true" data-rmc-zero-ticket-nav="1">
+      <div class="cp-sidebar__identity" data-rmc-sidebar-identity="1">
+        <div class="cp-sidebar__user">
+          <div class="cp-sidebar__avatar" aria-hidden="true"><i class="bi bi-heart-pulse"></i></div>
+          <div class="cp-sidebar__user-meta">
+            <strong>{% trans "Zero-ticket" %}</strong>
+            <span>{% trans "Diagnostics" %}</span>
+          </div>
+        </div>
       </div>
-    </div>
+      <a class="cp-sidebar__item" href="{% url 'siteconfig:zero_ticket_hub' %}">
+        <i class="bi bi-speedometer2" aria-hidden="true"></i>
+        <span class="cp-sidebar__item-label">{% trans "Health canvas" %}</span>
+      </a>
+      <a class="cp-sidebar__item" href="{% url 'siteconfig:permission_matrix_simulator' %}">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>
+        <span class="cp-sidebar__item-label">{% trans "Permissions" %}</span>
+      </a>
+      <a class="cp-sidebar__item" href="{% url 'siteconfig:campus_workflow_canvas_hub' %}">
+        <i class="bi bi-diagram-3" aria-hidden="true"></i>
+        <span class="cp-sidebar__item-label">{% trans "Workflows" %}</span>
+      </a>
+      <a class="cp-sidebar__item" href="{% url 'siteconfig:tenant_health_dashboard' %}">
+        <i class="bi bi-activity" aria-hidden="true"></i>
+        <span class="cp-sidebar__item-label">{% trans "Tenant health" %}</span>
+      </a>
+    </nav>
   </div>
-  <a class="cp-sidebar__item" href="{% url 'siteconfig:zero_ticket_hub' %}">
-    <i class="bi bi-speedometer2" aria-hidden="true"></i>
-    <span class="cp-sidebar__item-label">{% trans "Health canvas" %}</span>
-  </a>
-  <a class="cp-sidebar__item" href="{% url 'siteconfig:permission_matrix_simulator' %}">
-    <i class="bi bi-shield-check" aria-hidden="true"></i>
-    <span class="cp-sidebar__item-label">{% trans "Permissions" %}</span>
-  </a>
-  <a class="cp-sidebar__item" href="{% url 'siteconfig:campus_workflow_canvas_hub' %}">
-    <i class="bi bi-diagram-3" aria-hidden="true"></i>
-    <span class="cp-sidebar__item-label">{% trans "Workflows" %}</span>
-  </a>
-  <a class="cp-sidebar__item" href="{% url 'siteconfig:tenant_health_dashboard' %}">
-    <i class="bi bi-activity" aria-hidden="true"></i>
-    <span class="cp-sidebar__item-label">{% trans "Tenant health" %}</span>
-  </a>
-</nav>
+</div>
 {% endblock %}
 
 {% block control_plane_sidebar_mobile %}

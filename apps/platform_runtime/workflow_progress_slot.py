@@ -37,7 +37,7 @@ def register_workflow_progress_assist_dock_slot() -> None:
             badge_source="workflow_progress_badge",
             shortcut="g w",
             aria_keyshortcuts="g w",
-            pinned_default=True,
+            pinned_default=False,
             order=45,
             description="Live workflow progress + AI-suggested fixes when something gets stuck.",
         )

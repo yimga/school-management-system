@@ -651,6 +651,21 @@
     });
   }
 
+  /* Fill the rail input with a caller-supplied prompt and send it through
+     the gateway, surfacing the reply in the chat thread. Returns false when
+     no copilot rail input is present on this surface so callers can fall
+     back gracefully instead of silently doing nothing. */
+  function sendPromptFromEvent(text) {
+    var input = document.querySelector("[data-rmc-copilot-input]");
+    if (!input || !text) { return false; }
+    var shell = findShell(findRail());
+    if (shell) { setShellState(shell, "expanded"); }
+    setRailActiveTab("chat");
+    input.value = text;
+    sendCopilotMessage();
+    return true;
+  }
+
   /* === Click delegation ======================================== */
   function onClick(ev) {
     var target = ev.target;
@@ -790,4 +805,9 @@
   document.addEventListener("click", onClick, false);
   document.addEventListener("keydown", onKeydown, false);
   document.addEventListener("keydown", onRailInputKeydown, false);
+  /* Bulk-action bar (and other surfaces) can ask the copilot a question
+     directly — open the rail, drop the prompt in, and send it. */
+  document.addEventListener("rmc:copilot-send-prompt", function (ev) {
+    if (ev && ev.detail && ev.detail.text) { sendPromptFromEvent(ev.detail.text); }
+  }, false);
 })();

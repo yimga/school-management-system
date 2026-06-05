@@ -979,9 +979,9 @@ body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .p
 @media (min-width: 992px) {
   body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .portal-layout-row {
     display: grid;
-    grid-template-columns: clamp(16rem, 18vw, 20rem) minmax(0, 1fr);
-    gap: clamp(0.85rem, 1.4vw, 1.25rem);
-    align-items: start;
+    grid-template-columns: var(--portal-sidebar-width, var(--rmc-nav-sidebar-default-w, 280px)) minmax(0, 1fr);
+    gap: 0;
+    align-items: stretch;
   }
 
   body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .cp-sidebar-col,
@@ -990,10 +990,6 @@ body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .p
     max-width: none !important;
     flex: none !important;
     min-width: 0 !important;
-  }
-
-  body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-resize-handle {
-    display: none !important;
   }
 
   body.control-plane-shell.manager-portal-bridge[data-rmc-cp-scroll="document"] .portal-layout-wrap .page-wrap {

@@ -24,11 +24,12 @@ body.backend-shell .portal-sidebar-col .sidebar {
     transition: width 0.12s ease, flex-basis 0.12s ease;
   }
 
-  body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed {
-    flex: 0 0 72px !important;
-    width: 72px !important;
-    min-width: 72px !important;
-    max-width: 72px !important;
+  body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed,
+  body.backend-shell .portal-sidebar-col.rmc-nav-sidebar--rail {
+    flex: 0 0 var(--rmc-nav-sidebar-rail-w, 44px) !important;
+    width: var(--rmc-nav-sidebar-rail-w, 44px) !important;
+    min-width: var(--rmc-nav-sidebar-rail-w, 44px) !important;
+    max-width: var(--rmc-nav-sidebar-rail-w, 44px) !important;
   }
 
   body.backend-shell .portal-sidebar-col.portal-sidebar-collapsed .sidebar {

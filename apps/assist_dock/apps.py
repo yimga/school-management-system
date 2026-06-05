@@ -35,6 +35,11 @@ class AssistDockConfig(AppConfig):
             from . import power_chips  # noqa: F401
         except (ImportError, RuntimeError) as exc:
             logger.debug("assist_dock power chips load skipped: %s", exc)
+        # v4.02.0: Operator Tools edge-tray extensions (notebook, shortcuts, …).
+        try:
+            from . import operator_tools_slots  # noqa: F401
+        except (ImportError, RuntimeError) as exc:
+            logger.debug("assist_dock operator tools slots load skipped: %s", exc)
         # Wave D: built-in AI actions (summarize / explain / draft / translate).
         try:
             from . import default_ai_actions  # noqa: F401

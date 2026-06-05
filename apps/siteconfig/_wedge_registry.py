@@ -473,9 +473,9 @@ _RAW_WEDGES: tuple[dict[str, Any], ...] = (
         "facets": {"institution": "multi-campus"},
         "deep_links": [
             ("Multi-campus group config", "/super/configure/multi-campus/"),
-            ("Group billing rollup", "/portal/super/wedges/multicampus-billing/"),
-            ("Group academic rollup", "/portal/super/wedges/multicampus-academics/"),
-            ("Group operational rollup", "/portal/super/wedges/multicampus-extension/"),
+            ("Group billing rollup", "/super/wedges/multicampus-billing/"),
+            ("Group academic rollup", "/super/wedges/multicampus-academics/"),
+            ("Group operational rollup", "/super/wedges/multicampus-extension/"),
         ],
         "checklist": [
             "Multi-campus group model present (parent_school FK)",

@@ -1,0 +1,8 @@
+{
+  "generated_at": "2026-06-05T15:40:36.592508+00:00",
+  "verdict": "MULTICAMPUS_WEDGE_HTTP_CONTRACT_FAIL",
+  "finding_count": 1,
+  "failures": [
+    "multicampus wedge HTTP tests failed: ango\\db\\backends\\utils.py\", line 103, in _execute\n    return self.cursor.execute(sql)\n           ~~~~~~~~~~~~~~~~~~~^^^^^\n  File \"C:\\Users\\yimga\\AppData\\Roaming\\Python\\Python314\\site-packages\\django\\db\\backends\\sqlite3\\base.py\", line 356, in execute\n    return super().execute(query)\n           ~~~~~~~~~~~~~~~^^^^^^^\ndjango.db.utils.OperationalError: table \"finance_cashofficeclosure\" already exists"
+  ]
+}

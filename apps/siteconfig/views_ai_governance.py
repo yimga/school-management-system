@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from apps.accounts.decorators import permission_required
+from apps.governance.turbo import ai_policy_copilot
 from apps.siteconfig.control_plane_render import (
     default_operator_breadcrumbs,
     operator_cp_breadcrumb,
@@ -24,7 +25,7 @@ from apps.siteconfig.ai_assistants import iter_assistants, user_may_use_assistan
 
 @login_required
 @permission_required("settings.manage")
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def ai_governance(request: HttpRequest) -> HttpResponse:
     school = getattr(request, "school", None)
     ai_policy: dict = {}
@@ -73,12 +74,47 @@ def ai_governance(request: HttpRequest) -> HttpResponse:
     except (AttributeError, TypeError, ValueError):
         pass
 
+    # Read-only policy copilot: grounded lookup in the country governance matrix
+    # (no AI generation, no external call). Posts back to this same page.
+    policy_copilot_question = ""
+    policy_copilot_result = None
+    if request.method == "POST":
+        policy_copilot_question = (request.POST.get("policy_question") or "").strip()
+        iso = ""
+        if school is not None:
+            iso = (
+                getattr(school, "canonical_country_code", "")
+                or getattr(school, "country_code", "")
+                or ""
+            ).strip().upper()
+        if policy_copilot_question and iso:
+            try:
+                policy_copilot_result = ai_policy_copilot.answer(
+                    policy_copilot_question, country_iso=iso
+                )
+            except Exception:  # noqa: BLE001 — grounded lookup must never break the page
+                policy_copilot_result = {
+                    "honest_refusal": True,
+                    "answer": "error",
+                    "intent": "unavailable",
+                    "citations": [],
+                }
+        elif policy_copilot_question:
+            policy_copilot_result = {
+                "honest_refusal": True,
+                "answer": "no_country",
+                "intent": "unavailable",
+                "citations": [],
+            }
+
     return render_siteconfig_operator_page(
         request,
         portal_template="siteconfig/ai_governance.html",
         body_template="siteconfig/partials/ai_governance_body.html",
         context={
             "school": school,
+            "policy_copilot_question": policy_copilot_question,
+            "policy_copilot_result": policy_copilot_result,
             "ai_policy": ai_policy,
             "provider_status": provider_status,
             "assistants": assistant_rows,

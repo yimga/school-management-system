@@ -2245,6 +2245,14 @@ if os.getenv("ENABLE_RISK_DIGEST_BEAT", "").strip().lower() in ("1", "true", "ye
         "schedule": 86400.0,
         "options": {"expires": 3600},
     }
+if os.getenv("ENABLE_FRICTION_DIGEST_BEAT", "").strip().lower() in ("1", "true", "yes"):
+    from celery.schedules import crontab as _friction_crontab
+
+    CELERY_BEAT_SCHEDULE["observability-friction-digest-weekly"] = {
+        "task": "observability.friction_digest_weekly",
+        "schedule": _friction_crontab(hour=8, minute=0, day_of_week="mon"),
+        "options": {"expires": 3600},
+    }
 if os.getenv("ENABLE_AT_RISK_DRIFT_WATCHDOG_BEAT", "").strip().lower() in ("1", "true", "yes"):
     CELERY_BEAT_SCHEDULE["analytics-at-risk-drift-watchdog"] = {
         "task": "analytics.check_at_risk_drift_watchdog",

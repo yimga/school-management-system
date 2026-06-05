@@ -50,8 +50,8 @@
       ]
     }
   },
-  "generated_at": "2026-06-03T18:42:03.271776+00:00",
-  "high_impact_templates_total": 253,
+  "generated_at": "2026-06-05T14:54:15.532741+00:00",
+  "high_impact_templates_total": 254,
   "inline_styles": {
     "count": 55,
     "needs_review_count": 55,
@@ -118,8 +118,8 @@
   "luxury_gate_min_score": 13,
   "luxury_gate_passed": true,
   "missing_ds_btn": {
-    "count": 119,
-    "needs_review_count": 119,
+    "count": 120,
+    "needs_review_count": 120,
     "needs_review_paths": [
       "templates/base.html",
       "templates/control_plane_base.html",
@@ -194,6 +194,7 @@
       "templates/siteconfig/super/cockpit_configure.html",
       "templates/siteconfig/super/cockpit_health.html",
       "templates/siteconfig/super/cockpit_previews.html",
+      "templates/siteconfig/super/cockpit_shell_configure.html",
       "templates/siteconfig/super/marketing_voice_configure.html",
       "templates/siteconfig/super/theme_personality_configure.html",
       "templates/siteconfig/super_dashboard_defaults_admin.html",

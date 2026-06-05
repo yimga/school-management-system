@@ -1,0 +1,10 @@
+{% load i18n %}
+<div class="rmc-nav-sidebar__resize-handle d-none d-lg-block"
+     role="separator"
+     aria-orientation="vertical"
+     aria-controls="{{ nav_sidebar_controls_id|default:'cp-sidebar-col' }}"
+     aria-valuemin="200"
+     aria-valuemax="420"
+     aria-valuenow="280"
+     tabindex="0"
+     title="{% trans 'Drag, or focus and use arrow keys, to resize navigation' %}"></div>

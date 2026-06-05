@@ -1,0 +1,132 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main">
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <h1 class="rmc-h1">{% trans "Agentic insights" %}</h1>
+  <p class="text-muted">{% trans "Phase 1 — read-only. The assistant proposes read-only actions; you run one explicitly. Nothing here can send, change, or delete data. Every attempt is audited." %}</p>
+
+  {% if error %}<p class="text-danger" role="alert">{{ error }}</p>{% endif %}
+
+  {% if not agentic_enabled %}
+  <section class="card mt-3 mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Agentic layer is off" %}</h2>
+      <p class="mb-1">{% blocktrans %}Set the platform flag to enable read-only agentic insights. This surface stays inert until then.{% endblocktrans %}</p>
+      <p class="small text-muted mb-0">{% trans "Flag" %}: <code>{{ flag_name }}</code> · {% trans "also requires" %} <code>RUNMYCAMPUS_AI_ENABLED</code></p>
+    </div>
+  </section>
+  {% else %}
+
+  <section class="card mt-3 mb-4">
+    <form method="post" class="card-body">
+      {% csrf_token %}
+      <input type="hidden" name="gen" value="propose" />
+      <h2 class="h6">{% trans "Ask for a read-only insight" %}</h2>
+      <label class="form-label" for="ag-prompt">{% trans "Describe what you want to know" %}</label>
+      <textarea id="ag-prompt" name="prompt" class="form-control" rows="2" placeholder="{% trans 'e.g. attendance summary for a class, or outstanding fees' %}">{{ prompt_text }}</textarea>
+      <label class="form-label mt-2" for="ag-class">{% trans "Class id (optional)" %}</label>
+      <input id="ag-class" name="class_id" class="form-control" />
+      <button type="submit" class="btn btn-primary mt-3">{% trans "Propose" %}</button>
+    </form>
+  </section>
+
+  {% if proposals is not None %}
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Proposed read-only actions" %}</div>
+    <div class="card-body">
+      {% if proposals %}
+      {% for p in proposals %}
+      <div class="border rounded p-3 mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">{{ p.action }}</span>
+          <span class="badge text-bg-secondary">{% trans "confidence" %} {{ p.confidence }}</span>
+        </div>
+        {% if p.rationale %}<p class="small text-muted mb-2">{{ p.rationale }}</p>{% endif %}
+        <form method="post" class="d-flex flex-wrap gap-2 align-items-end">
+          {% csrf_token %}
+          <input type="hidden" name="gen" value="execute" />
+          <input type="hidden" name="action" value="{{ p.action }}" />
+          {% for key, value in p.params.items %}
+          <div>
+            <label class="form-label small mb-0" for="ex-{{ p.action }}-{{ key }}">{{ key }}</label>
+            <input id="ex-{{ p.action }}-{{ key }}" name="{{ key }}" class="form-control form-control-sm" value="{{ value }}" />
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-outline-primary btn-sm">{% trans "Run (read-only)" %}</button>
+        </form>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p class="text-muted mb-0">{% trans "No read-only action matched. Try mentioning attendance, fees, or an announcement draft." %}</p>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if exec_result %}
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">
+      {% trans "Result" %}: {{ exec_result.action }}
+      {% if exec_result.ok %}<span class="badge text-bg-success">{% trans "ok" %}</span>{% else %}<span class="badge text-bg-danger">{{ exec_result.blocked_reason|default:_("error") }}</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if exec_result.ok %}
+      <pre class="mb-2">{{ exec_result.result }}</pre>
+      {% else %}
+      <p class="text-danger mb-2">{{ exec_result.error }}</p>
+      {% endif %}
+      {% if exec_result.audit_id %}<p class="small text-muted mb-0">{% trans "Audit id" %}: <code>{{ exec_result.audit_id }}</code></p>{% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Available read-only actions" %}</div>
+    <ul class="list-group list-group-flush">
+      {% for a in readonly_actions %}
+      <li class="list-group-item">
+        <span class="fw-semibold">{{ a.name }}</span> — {{ a.description }}
+        {% if a.parameters %}<span class="small text-muted">({{ a.parameters|join:", " }})</span>{% endif %}
+      </li>
+      {% empty %}
+      <li class="list-group-item text-muted">{% trans "No read-only actions are bridged." %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Recent audit (read-only, PII-free)" %}</div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Action" %}</th>
+            <th scope="col">{% trans "Impact" %}</th>
+            <th scope="col">{% trans "Outcome" %}</th>
+            <th scope="col">{% trans "Executed" %}</th>
+            <th scope="col">{% trans "Actor" %}</th>
+            <th scope="col">{% trans "When" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in audit_rows %}
+          <tr>
+            <td>{{ r.action }}</td>
+            <td>{{ r.impact }}</td>
+            <td>{{ r.outcome }}{% if r.blocked_reason %} <span class="small text-muted">({{ r.blocked_reason }})</span>{% endif %}</td>
+            <td>{% if r.executed %}{% trans "yes" %}{% else %}{% trans "no" %}{% endif %}</td>
+            <td><code>{{ r.actor }}</code></td>
+            <td>{{ r.created_at }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-muted">{% trans "No agentic actions recorded yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

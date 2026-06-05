@@ -20,10 +20,12 @@
 
         {% comment %} ---------- Grid row 2, column 1 — static sidebar (own scroll) ---------- {% endcomment %}
         {% if is_manager_host %}
-        <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
-            <div class="cp-sidebar">
+        <aside class="rmc-app-shell__sidebar rmc-nav-sidebar-host" aria-label="{% trans 'Platform backoffice navigation' %}" data-shell-sidebar="platform-admin" data-shell-sidebar-mount="desktop">
+            <div id="cp-sidebar-col" class="rmc-nav-sidebar__mount cp-sidebar">
+                {% include "partials/rmc_nav_sidebar_toolbar.html" %}
                 {% include "partials/manager_platform_admin_sidebar.html" %}
             </div>
+            {% include "partials/rmc_nav_sidebar_resize_handle.html" with nav_sidebar_controls_id="cp-sidebar-col" %}
         </aside>
         {% else %}{% if not is_popup %}
         <aside class="rmc-app-shell__sidebar" aria-label="{% trans 'Admin navigation' %}" data-shell-sidebar="django-admin">
@@ -87,7 +89,7 @@
                         {% include "admin/includes/admin_operator_steering_strip.html" %}
                     {% endif %}
                 {% endblock admin_operator_steering %}
-                <div class="cp-page-body cp-admin-page-body @container px-4 pb-4" data-rmc-cp-page-body="1" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required">
+                <div class="cp-page-body cp-admin-page-body @container px-4 pb-4 rmc-shell-canvas-container" data-rmc-cp-page-body="1" data-rmc-backoffice-page-body="1" data-rmc-page-fold-nav="required">
                 {% endif %}
 
                     {% comment %} v4.00.19 admin canvas defaults to full width on manager/change-form surfaces. {% endcomment %}

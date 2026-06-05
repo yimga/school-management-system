@@ -28,7 +28,6 @@ _REQUIRED_FILES = (
 _OPTIONAL_GAPS = (
     "onboarding_step_catalog: no dedicated academic-structure-confirm step",
     "scheduling_solver: shift dimension not propagated to CP-SAT solver",
-    "phase_4e: PostgreSQL EXCLUDE gist migration path not documented",
     "verify_global_academic_kernel_assumptions: no AST school.settings grading scan",
     "tier1_burndown: dissection ledger skeleton→verified is operator cadence",
 )

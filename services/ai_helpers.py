@@ -284,6 +284,21 @@ def invoke_with_request(
         else:
             resolved_task = task_type
         md = normalize_gateway_metadata(metadata, request=request, school=resolved_school)
+        # Bind structured workflow context for this request so the gateway's
+        # dispatch/audit can read md["workflow_context"] ("what should I do next
+        # on this workflow?"). Best-effort: lazy import keeps services→apps off
+        # the module-load path, and a failure must never break the AI call.
+        if request is not None and "workflow_context" not in md:
+            try:
+                from apps.platform_runtime.ai_workflow_bridge import (
+                    bind_workflow_context_for_ai,
+                )
+
+                wf_ctx = bind_workflow_context_for_ai(request=request)
+                if isinstance(wf_ctx, dict) and wf_ctx.get("workflow_key"):
+                    md["workflow_context"] = wf_ctx
+            except Exception:  # noqa: BLE001 — workflow context is best-effort
+                logger.debug("ai_helpers: workflow context bind failed", exc_info=True)
         if looks_like_pii(prompt, user_query) and md.get("content_sensitivity") != "low_pii_ok":
             prompt = redact_pii(prompt)
             if user_query:

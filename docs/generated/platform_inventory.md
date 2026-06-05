@@ -1,23 +1,23 @@
 # Platform Inventory
 
 - Installed app modules: `54`
-- Python files: `6030`
-- HTML templates: `1604`
-- Markdown files: `1585`
-- Migration files: `973`
-- Management commands: `278` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2434`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `194`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `146`
-- `get_solo()` refs: `212`
-- `except Exception`: `2410`
-- `cursor.execute()` (gross): `407`
+- Python files: `6107`
+- HTML templates: `1611`
+- Markdown files: `1599`
+- Migration files: `983`
+- Management commands: `282` (full list in JSON key `management_commands_list`)
+- `SiteSettings` refs (gross scan): `2464`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `208`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `161`
+- `get_solo()` refs: `213`
+- `except Exception`: `2498`
+- `cursor.execute()` (gross): `411`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `42`
-- `csrf_exempt` (substring, gross): `676`
-- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `107`
+- `csrf_exempt` (substring, gross): `681`
+- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `110`
 - `AllowAny`: `173`
-- `print()` (gross all `.py`): `4089`
-- `print()` (`apps` product paths): `0`; `scripts/`: `3908`
+- `print()` (gross all `.py`): `4160`
+- `print()` (`apps` product paths): `0`; `scripts/`: `3976`
 - `gilead` matches (gross corpus): `16836` across `231` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
@@ -26,7 +26,7 @@ Gross totals include migrations and broad file pools; use **scoped** lines aroun
 
 ## Management Commands (full list)
 
-Total: `278` commands. First 25 by app/command:
+Total: `282` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -53,20 +53,18 @@ Total: `278` commands. First 25 by app/command:
 - `analytics` / `ai_narrate_risk_digest` — `apps/analytics/management/commands/ai_narrate_risk_digest.py`
 - `analytics` / `bootstrap_at_risk_registry` — `apps/analytics/management/commands/bootstrap_at_risk_registry.py`
 - `analytics` / `build_student_embeddings` — `apps/analytics/management/commands/build_student_embeddings.py`
-- … and 253 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 257 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
-- Reviewed `csrf_exempt` files: `36`
-- Reviewed `csrf_exempt` endpoints: `107`
+- Reviewed `csrf_exempt` files: `37`
+- Reviewed `csrf_exempt` endpoints: `110`
 - Reviewed `AllowAny` files: `4`
 - Reviewed `AllowAny` occurrences: `10`
 
 ## SiteSettings Ownership
 
-- `brand_experience`: `1` fields
 - `delete`: `1` fields
-- `metadata_governance`: `2` fields
 - `safe_platform_default`: `1` fields
 
 ## Successor Domain Imports Still Touching siteconfig
@@ -80,9 +78,9 @@ Total: `278` commands. First 25 by app/command:
 ## Largest Python Files
 
 - `apps/siteconfig/_seed_country_localization.py`: `16897` lines / `1225693` bytes
-- `apps/siteconfig/forms_cockpit.py`: `5088` lines / `206503` bytes
+- `apps/siteconfig/forms_cockpit.py`: `5088` lines / `206605` bytes
+- `config/settings.py`: `3460` lines / `168275` bytes
 - `apps/schools/marketing_views.py`: `4135` lines / `165744` bytes
-- `config/settings.py`: `3374` lines / `163226` bytes
 - `apps/api/saml.py`: `3487` lines / `147039` bytes
 - `apps/schools/marketing_page_definitions.py`: `3056` lines / `143830` bytes
 - `apps/accounts/views.py`: `3557` lines / `141001` bytes
@@ -90,7 +88,7 @@ Total: `278` commands. First 25 by app/command:
 - `apps/evals/views.py`: `3416` lines / `131340` bytes
 - `apps/api/views_v1.py`: `2905` lines / `119916` bytes
 - `apps/migration_cloud/views.py`: `2696` lines / `114910` bytes
-- `apps/finance/models.py`: `3112` lines / `109725` bytes
+- `apps/finance/models.py`: `3129` lines / `110777` bytes
 
 ## Documentation Drift
 

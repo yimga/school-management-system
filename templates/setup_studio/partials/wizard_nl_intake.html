@@ -1,0 +1,29 @@
+{% comment %}
+Natural-language intake for structured_form steps. Its OWN form (HTML forbids
+nested forms) posting intent=nl_intake. The view parses the description into DRAFT
+field values and re-renders the SAME step with the fields below pre-filled — the
+user reviews/edits and must still submit the step to save. Nothing is persisted here.
+{% endcomment %}
+{% load i18n %}
+{% if step.input_type == "structured_form" %}
+<form method="post" action="{{ form_action_url }}" class="rmc-wizard-field" data-rmc-wizard-nl-intake>
+  {% csrf_token %}
+  <input type="hidden" name="intent" value="nl_intake">
+  <label class="rmc-wizard-field__label" for="rmc-wizard-nl-intake-text">{% trans "Describe it in plain language" %}</label>
+  <p class="rmc-wizard-field__helper">{% trans "Type what you want in your own words; the assistant drafts the fields below. You review and edit before saving — nothing is saved until you submit the step." %}</p>
+  <textarea id="rmc-wizard-nl-intake-text" name="nl_intake_text" rows="2">{{ nl_intake_text|default:'' }}</textarea>
+  <button type="submit" name="action" value="nl_intake" class="rmc-wizard-nav__save-draft" data-rmc-wizard-nav="nl-intake">{% trans "Draft fields from description" %}</button>
+
+  {% if nl_prefill %}
+    <p class="rmc-wizard-field__helper" role="status">
+      {% blocktrans count counter=nl_applied_fields|length %}Drafted 1 field — review and edit below, then submit the step to save.{% plural %}Drafted {{ counter }} fields — review and edit below, then submit the step to save.{% endblocktrans %}
+      {% if nl_confidence %} · {% trans "confidence" %} {{ nl_confidence }}{% endif %}
+    </p>
+    {% if nl_unresolved %}
+      <p class="rmc-wizard-field__helper">{% trans "Couldn't map" %}: {{ nl_unresolved|join:"; " }}</p>
+    {% endif %}
+  {% elif nl_intake_text %}
+    <p class="rmc-wizard-field__helper" role="status">{% trans "The assistant couldn't draft fields from that — fill them in manually below." %}</p>
+  {% endif %}
+</form>
+{% endif %}

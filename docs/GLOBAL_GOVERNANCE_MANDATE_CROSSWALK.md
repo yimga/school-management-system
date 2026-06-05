@@ -6,18 +6,18 @@ Maps external global-governance audit prompts to RunMyCampus repo truth. **Schoo
 
 | External concept | RunMyCampus mapping | Status | Phase |
 |------------------|---------------------|--------|-------|
-| `organizations` (holding entity) | `apps/governance.Organization` (planned) | **Missing** | 2A |
-| `campus_nodes` + school tier | `School` tenant + `schoolops.Campus` physical site + institution packs | **Partial** | 2–3 |
+| `organizations` (holding entity) | `apps/governance.Organization` + `OrgMembership` + `GovernanceNode` | **Implemented** | 2A–2C |
+| `campus_nodes` + school tier | `School` tenant + `schoolops.Campus` + multicampus wedge surfaces | **Implemented** | 2–3 |
 | `global_users` | `accounts.User` | **Implemented** | — |
-| `user_context_profiles` | `SchoolMembership` + session bind | **Partial** | 3C |
-| `staff_compliance_registry` | Scattered compliance; no unified registry | **Missing** | 4F |
-| `class_schedules` + EXCLUDE | `apps/academics/scheduling.py` binary conflicts | **Partial** | 4E |
+| `user_context_profiles` | `SchoolContextProfile` + `SchoolMembership` + fast switch | **Implemented** | 3C |
+| `staff_compliance_registry` | `apps/people/staff_compliance.py` + `StaffComplianceRecord` | **Implemented** | 4F |
+| `class_schedules` + EXCLUDE | `ScheduleEntry` partial unique constraints + `instruction_day_ledger` | **Implemented** (discrete slots; gist EXCLUDE deferred) | 4E |
 
 ## Five vulnerability mandate (Phase 1 audit)
 
 | # | Mandate | Evidence | Status | Phase |
 |---|---------|----------|--------|-------|
-| 1 | Polymorphic org hierarchy | `parent_school`, `mat_groups`, wedge 22 | Partial | 2 |
+| 1 | Polymorphic org hierarchy | `Organization`, `parent_school`, `mat_groups_sync`, MAT hub wedge 22 | **Implemented** | 2–6 |
 | 2 | Multi-currency rollups | `regional_payment_profiles.json`, PSP dispatchers | Partial | 3C |
 | 3 | Multi-context permissions | `SchoolMembership`, tenant switcher | Partial | 3C |
 | 4 | Localized academic matrix | `terminology_service`, institution packs | Partial | 3–4 |

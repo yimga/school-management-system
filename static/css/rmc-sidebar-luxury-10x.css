@@ -72,6 +72,15 @@ body.admin-manager-shell nav[data-rmc-platform-admin-sidebar="1"],
   );
 }
 
+/* v4.02.7: nav-sidebar mount owns scroll + background — mask fade reads as bleed */
+.rmc-nav-sidebar__mount > .tp-sidebar-inner,
+#cp-sidebar-col.rmc-nav-sidebar__mount > .cp-sidebar-inner,
+#cp-sidebar-col.rmc-nav-sidebar__mount nav.cp-sidebar-inner,
+#cp-sidebar-col.rmc-nav-sidebar__mount > nav.cp-sidebar-nav {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
 .cp-sidebar__identity {
   margin: 0 0 10px;
   padding: 0 4px 10px;

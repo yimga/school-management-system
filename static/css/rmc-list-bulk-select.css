@@ -108,3 +108,66 @@ tr[data-rmc-bulk-selected="1"] {
   text-align: left;
   cursor: pointer;
 }
+
+/* Direct "Ask copilot" answer modal — shown on surfaces without the copilot
+   rail, so the bulk action is useful everywhere. */
+.rmc-copilot-answer-dialog {
+  width: min(36rem, calc(100vw - 2rem));
+  max-width: 36rem;
+  padding: 0;
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.12));
+  border-radius: var(--radius-lg, 12px);
+  background: var(--surface-elevated, #fff);
+  color: var(--text-primary, inherit);
+  box-shadow: var(--elev-3, 0 12px 32px rgba(0, 0, 0, 0.22));
+}
+
+.rmc-copilot-answer-dialog::backdrop {
+  background: var(--scrim, rgba(15, 23, 42, 0.45));
+}
+
+.rmc-copilot-answer-dialog__inner {
+  margin: 0;
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem) var(--space-4, 1rem);
+}
+
+.rmc-copilot-answer-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 0.5rem);
+  margin-bottom: var(--space-2, 0.5rem);
+}
+
+.rmc-copilot-answer-dialog__title {
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+}
+
+.rmc-copilot-answer-dialog__prompt {
+  font-size: var(--type-size-sm, 0.8125rem);
+  color: var(--text-secondary, #64748b);
+  margin: 0 0 var(--space-2, 0.5rem);
+}
+
+.rmc-copilot-answer-dialog__body {
+  font-size: var(--type-size-base, 0.9375rem);
+  line-height: 1.5;
+  color: var(--text-primary, inherit);
+  white-space: pre-wrap;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.rmc-copilot-answer-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2, 0.5rem);
+  margin-top: var(--space-3, 0.75rem);
+  padding-top: var(--space-3, 0.75rem);
+  border-top: 1px solid var(--hairline, rgba(0, 0, 0, 0.12));
+}
+
+.rmc-copilot-answer-dialog__actions:empty {
+  display: none;
+}

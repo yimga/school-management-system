@@ -13,13 +13,7 @@ SiteSettings.cockpit_payload.
 {% include "partials/cockpit/_workspace_context_tenant.html" %}
 {% endif %}
 
-<!-- Collapse toggle (desktop): toggles icon-only strip -->
-<div class="portal-sidebar-collapse-wrap d-none d-lg-block mb-2">
-  <button type="button" class="btn btn-sm btn-outline-secondary portal-sidebar-collapse-toggle" aria-label="{% trans 'Collapse sidebar' %}" title="{% trans 'Collapse sidebar to icons' %}">
-    <i class="bi bi-chevron-left" aria-hidden="true"></i>
-    <i class="bi bi-chevron-right" aria-hidden="true"></i>
-  </button>
-</div>
+{% comment %} v4.02.5: collapse/rail toggle lives in rmc_nav_sidebar_toolbar (portal_base mount). {% endcomment %}
 {% if sidebar_record_context %}
 <div class="sidebar-record-context rmc-glass-surface mb-3 p-2 small" role="region" aria-label="{% trans 'Record quick links' %}">
   <div class="text-uppercase text-muted fw-semibold" style="font-size:var(--type-size-micro);letter-spacing:0.04em;">{{ sidebar_record_context.title }}</div>

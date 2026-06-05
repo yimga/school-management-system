@@ -69,7 +69,7 @@ Each proven zero-reference (sub-agent AST scan + manual grep across
 - `apps/evals/advanced_evaluations.py` (~360) — "Phase 8" scaffold, imported nowhere
 - `apps/evals/performance_optimization.py` (~250) — `@receiver`s in a module never imported (signals never connected)
 - `apps/evals/stats.py` (49)
-- `apps/academics/fractional_capacity.py` (43)
+- ~~`apps/academics/fractional_capacity.py` (43)~~ **RESTORED 2026-06-05** — Phase 4E gate kernel; protected by `verify_global_operational_blind_spots --granular-ops` + `verify_poly_institution_governance_stack.py` (do not delete)
 - `apps/finance/payment_dispute_local_copy.py` — orphaned copy
 - `apps/schoolops/sms_templates.py` — removed a **verbatim duplicate** of `render_payment_received_sms` + its locale dict
 

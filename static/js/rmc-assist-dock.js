@@ -175,6 +175,10 @@
     annotateAdoptedSlots: annotateAdoptedSlots,
   };
 
+  function shouldForceOperatorToolsMount() {
+    return !!document.getElementById("page-data-rmc-operator-tools");
+  }
+
   function mountDock(L) {
     var aiWrap = document.querySelector(".ai-copilot-wrapper");
     var contextToggle = document.querySelector(".cp-context-drawer-toggle");
@@ -194,7 +198,17 @@
     }
     var backBtn = document.getElementById("back-to-top-btn");
     var chat = document.querySelector(".portal-chathead");
-    if (!aiWrap && !voc && !helpBtn && !backBtn && !chat) return;
+    if (
+      !aiWrap &&
+      !voc &&
+      !helpBtn &&
+      !backBtn &&
+      !chat &&
+      !contextToggle &&
+      !shouldForceOperatorToolsMount()
+    ) {
+      return;
+    }
 
     var dock = document.createElement("div");
     dock.className = "rmc-assist-dock";

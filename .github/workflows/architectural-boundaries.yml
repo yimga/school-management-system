@@ -534,9 +534,14 @@ jobs:
           python scripts/verify_federated_emis_aggregator.py --json
           python scripts/verify_competitor_tracker.py --json
           python -m unittest discover -s apps/governance/turbo/tests -t .
+          python scripts/verify_org_backfill_operator_smoke.py --write
+          python scripts/verify_poly_institution_governance_stack.py --write
           python scripts/verify_global_governance_plan_completion.py --strict --json
           python scripts/verify_doc_plan_density_discipline.py
-          python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_group_console apps.interop.tests.test_transfer_apply apps.billing.tests.test_group_consolidation emis.tests.test_org_aggregate apps.people.tests.test_staff_compliance apps.schools.tests.test_governance_matrix_runtime apps.governance.tests.test_prompt_shaping_terminology apps.finance.tests.test_org_fx_rollup apps.schools.tests.test_context_profiles.ContextProfileServiceTests apps.registries.tests.test_seed_iso3166_subdivisions apps.governance.tests.test_models apps.siteconfig.tests.test_country_language_overlay_regression
+          python scripts/verify_scheduling_exclude_constraints.py --write
+          python scripts/verify_group_console_http_contract.py --write
+          python scripts/verify_multicampus_wedge_http_contract.py --write
+          python scripts/run_sqlite_memory_tests.py apps.schools.tests.test_group_console apps.schools.tests.test_group_console_http apps.portal.tests.test_multicampus_wedge_http apps.interop.tests.test_transfer_apply apps.billing.tests.test_group_consolidation emis.tests.test_org_aggregate apps.people.tests.test_staff_compliance apps.schools.tests.test_governance_matrix_runtime apps.governance.tests.test_prompt_shaping_terminology apps.finance.tests.test_org_fx_rollup apps.schools.tests.test_context_profiles.ContextProfileServiceTests apps.registries.tests.test_seed_iso3166_subdivisions apps.governance.tests.test_models apps.siteconfig.tests.test_country_language_overlay_regression apps.academics.test_fractional_capacity apps.governance.tests.test_backfill_organizations apps.governance.tests.test_mat_groups_sync apps.academics.tests.test_scheduling_db_constraints apps.academics.tests.test_instruction_shift_conflicts
 
   studio-os-10x-completion:
     name: "Studio OS 10X program closure (5-wave sweep gate)"

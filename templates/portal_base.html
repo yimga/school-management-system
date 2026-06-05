@@ -242,6 +242,7 @@
     {% block extrastyle %}{% endblock %}
     {% comment %} v4.01.44: dual-plane theme must load last in head (before deferred body styles). {% endcomment %}
     {% include "partials/rmc_theme_experience_dual_plane_styles.html" %}
+    <link rel="stylesheet" href="{% static 'css/rmc-nav-sidebar.css' %}">
 
     <!-- PWA Support — per-tenant manifest. v2.58 (2026-05-15) -->
     <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
@@ -426,34 +427,22 @@
     {% endif %}
 
     {% include "partials/shell_portal_layout_wrap_open.html" %}
-        <!-- Sidebar (desktop) - Resizable, collapsible to icon strip -->
-        <div class="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %} col-lg-3 col-xl-2 d-none d-lg-block {% if request.public_host_kind != 'manager' %}rmc-glass-sidebar-shell{% endif %}" id="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %}" data-collapsible="true" data-shell-sidebar="{% if request.public_host_kind == 'manager' %}control-plane{% else %}portal{% endif %}" data-shell-sidebar-mount="desktop"{% if request.public_host_kind == 'manager' %} aria-label="{% trans 'Control plane navigation' %}"{% endif %}{% if cockpit_shell.skin == 'dark' and request.public_host_kind != 'manager' %} data-bs-theme="dark"{% endif %}>
+        <!-- Sidebar (desktop) - Resizable, collapsible to icon rail -->
+        <div class="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %} d-none d-lg-block rmc-nav-sidebar-host rmc-nav-sidebar__mount position-relative {% if request.public_host_kind != 'manager' %}rmc-glass-sidebar-shell{% endif %}" id="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %}" data-collapsible="true" data-shell-sidebar="{% if request.public_host_kind == 'manager' %}control-plane{% else %}portal{% endif %}" data-shell-sidebar-mount="desktop"{% if request.public_host_kind == 'manager' %} aria-label="{% trans 'Control plane navigation' %}"{% endif %}{% if cockpit_shell.skin == 'dark' and request.public_host_kind != 'manager' %} data-bs-theme="dark"{% endif %}>
+          {% include "partials/rmc_nav_sidebar_toolbar.html" %}
           {% if request.public_host_kind == 'manager' %}
-          <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
             {% include "partials/control_plane_sidebar.html" %}
-          </div>
           {% else %}
           <div class="tp-sidebar-inner sidebar p-3{% if tp_v3_tenant_shell %} tp-sidebar-inner--v3{% endif %}">
             {% include "partials/portal_sidebar.html" %}
           </div>
           {% endif %}
+          {% if request.public_host_kind == 'manager' %}
+          {% include "partials/rmc_nav_sidebar_resize_handle.html" with nav_sidebar_controls_id="cp-sidebar-col" %}
+          {% else %}
+          {% include "partials/rmc_nav_sidebar_resize_handle.html" with nav_sidebar_controls_id="portal-sidebar-col" %}
+          {% endif %}
         </div>
-        <!-- Resize handle (desktop only; hidden when sidebar collapsed).
-             Pass 10: WCAG 2.1.1 keyboard equivalence — separator is focusable
-             via Tab and resizes the sidebar with ArrowLeft/ArrowRight (32px step)
-             and Home/End (jump to min/max). The init script is loaded near the
-             bottom of this file. -->
-        <div class="portal-resize-handle d-none d-lg-flex"
-             aria-label="{% trans 'Resize sidebar' %}"
-             role="separator"
-             aria-orientation="vertical"
-             aria-controls="portal-sidebar-col"
-             aria-valuemin="200"
-             aria-valuemax="480"
-             aria-valuenow="280"
-             tabindex="0"
-             title="{% trans 'Drag, or focus and use arrow keys, to resize the sidebar' %}"
-             data-portal-resize-handle="1"></div>
 
         <!-- Sidebar (mobile) -->
         <div class="offcanvas offcanvas-start" tabindex="-1" id="portalSidebar" role="dialog" aria-modal="true" aria-labelledby="portalSidebarLabel" data-shell-sidebar="portal" data-shell-sidebar-mount="offcanvas">
@@ -471,8 +460,8 @@
       </div>
 
       <!-- Content -->
-      <div class="portal-main-col col-lg-9 col-xl-10 rmc-shell-main" id="main-content" role="main" tabindex="-1" data-shell-main="portal" data-rmc-shell-main="portal">
-        <div class="page-wrap rmc-shell-content-grid" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'tenant-portal' }}" data-rmc-shell-content-grid="1">
+      <div class="portal-main-col rmc-shell-main" id="main-content" role="main" tabindex="-1" data-shell-main="portal" data-rmc-shell-main="portal">
+        <div class="page-wrap rmc-shell-content-grid rmc-shell-canvas-container" data-page-archetype="{% block page_archetype %}operational-workbench{% endblock %}" data-authenticated-surface="{{ rmc_shell.authenticated_surface|default:'tenant-portal' }}" data-rmc-shell-content-grid="1">
           {% include "partials/shell_chrome_impersonation_session_strip.html" %}
           {% if tp_v3_tenant_shell %}
             {% include "partials/tenant/tp_breadcrumb.html" %}
@@ -590,7 +579,6 @@
     <script src="{% static 'js/statement-header-scroll.js' %}" defer></script>
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/portal-sidebar.js' %}"></script>
-    <script src="{% static 'js/portal-resize-keyboard.js' %}" defer></script>
     {% comment %} Pass 11.B: forward uncaught errors + SW errors to /api/observability/client-event/. {% endcomment %}
     <script src="{% static 'js/sentry-browser-bridge.js' %}" defer></script>
 
@@ -612,6 +600,7 @@
     Externalised from portal_base.html so the shell is CSP-friendly.
     {% endcomment %}
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
+    <script src="{% static 'js/rmc-nav-sidebar.js' %}" defer></script>
     <script src="{% static 'js/portal-shell-bootstrap.js' %}" defer></script>
     {% comment %} Legacy inline theme+search+sidebar block fully retired 2026-05-12. Live
        behavior: theme = theme-preference-bootstrap.js + RMCTheme; Ctrl+K =
@@ -786,6 +775,7 @@
     {% include "partials/rmc_assist_dock_labels.html" %}
     {% comment %} v4.00.91: registry SOT island — JS hydrates chips from this payload. {% endcomment %}
     {% include "partials/rmc_assist_dock_slots.html" %}
+    {% include "partials/rmc_nav_sidebar_page_data.html" %}
     {% comment %} v4.00.97 Wave G2: impersonation banner partial — renders only when active. {% endcomment %}
     {% include "assist_dock/partials/impersonation_banner.html" %}
     <script src="{% static 'js/rmc-assist-dock.js' %}" defer></script>
