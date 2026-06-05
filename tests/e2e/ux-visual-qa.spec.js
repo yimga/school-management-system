@@ -90,7 +90,7 @@ const PUBLIC_SURFACES = [
 ];
 
 const AUTHENTICATED_SURFACES = [
-  { slug: 'backend-role-home', url: '/authentication/backend/', marker: 'Command center' },
+  { slug: 'backend-role-home', url: '/authentication/backend/', marker: 'Command center', markerSelector: '[data-luxury-major-contract="1"] h1' },
   { slug: 'setup-studio', url: '/siteconfig/guided-onboarding/?embed=1', marker: 'Setup Studio', markerSelector: '[data-ux-qa-marker="setup-studio"]', skipOverflowCheck: true },
   { slug: 'control-plane-app-catalog', url: '/super/marketplace/apps/', marker: 'App catalog', markerSelector: '[data-ux-qa-marker="app-catalog"]' },
 ];
@@ -101,7 +101,7 @@ const AUTHENTICATED_SCROLL_SURFACES = [
   { slug: 'manager-dashboard-packs', url: '/super/dashboard-packs/', marker: 'Dashboard Packs', scrollRoot: '#cp-main-content' },
   { slug: 'manager-blueprint-marketplace', url: '/super/marketplace/blueprints/', marker: 'Blueprint marketplace', scrollRoot: '#cp-main-content' },
   { slug: 'manager-tenant-studio', url: '/super/create/', marker: 'Tenant Studio', markerSelector: '[data-ux-qa-marker="tenant-studio"]', scrollRoot: '#cp-main-content' },
-  { slug: 'tenant-backend-role-home', url: '/authentication/backend/', marker: 'Command center', scrollRoot: '#main-content' },
+  { slug: 'tenant-backend-role-home', url: '/authentication/backend/', marker: 'Command center', scrollRoot: '#main-content', markerSelector: '[data-luxury-major-contract="1"] h1' },
   { slug: 'tenant-setup-studio', url: '/siteconfig/guided-onboarding/?embed=1', marker: 'Setup Studio', scrollRoot: '#main-content', markerSelector: '[data-ux-qa-marker="setup-studio"]', skipOverflowCheck: true },
 ];
 
@@ -113,20 +113,47 @@ async function assertNoHorizontalOverflow(page, label) {
   const metrics = await page.evaluate(() => {
     const doc = document.documentElement;
     const body = document.body;
+    const iw = window.innerWidth;
+    // On overflow, name the widest offenders so failures are actionable
+    // (which element pushes body wider than the viewport) instead of just a
+    // number. Cheap: single pass, only collects elements past the right edge.
+    const offenders = [];
+    if ((body ? body.scrollWidth : doc.scrollWidth) > iw + 1) {
+      for (const el of document.querySelectorAll("*")) {
+        const r = el.getBoundingClientRect();
+        if (r.right > iw + 1 && r.width > 0) {
+          const id = el.id ? `#${el.id}` : "";
+          const cls = (el.className && typeof el.className === "string")
+            ? "." + el.className.trim().split(/\s+/).slice(0, 3).join(".")
+            : "";
+          offenders.push({
+            sel: `${el.tagName.toLowerCase()}${id}${cls}`,
+            right: Math.round(r.right),
+            width: Math.round(r.width),
+          });
+        }
+      }
+      offenders.sort((a, b) => b.right - a.right);
+    }
     return {
-      innerWidth: window.innerWidth,
+      innerWidth: iw,
       scrollWidth: doc.scrollWidth,
       bodyScrollWidth: body ? body.scrollWidth : doc.scrollWidth,
+      offenders: offenders.slice(0, 8),
     };
   });
 
+  const offenderText = metrics.offenders && metrics.offenders.length
+    ? ` | widest past edge: ${metrics.offenders.map((o) => `${o.sel}(right=${o.right},w=${o.width})`).join(" ; ")}`
+    : "";
+
   expect(
     metrics.scrollWidth,
-    `${label} has horizontal overflow (scrollWidth=${metrics.scrollWidth}, innerWidth=${metrics.innerWidth})`
+    `${label} has horizontal overflow (scrollWidth=${metrics.scrollWidth}, innerWidth=${metrics.innerWidth})${offenderText}`
   ).toBeLessThanOrEqual(metrics.innerWidth + 1);
   expect(
     metrics.bodyScrollWidth,
-    `${label} body has horizontal overflow (bodyScrollWidth=${metrics.bodyScrollWidth}, innerWidth=${metrics.innerWidth})`
+    `${label} body has horizontal overflow (bodyScrollWidth=${metrics.bodyScrollWidth}, innerWidth=${metrics.innerWidth})${offenderText}`
   ).toBeLessThanOrEqual(metrics.innerWidth + 1);
 }
 
