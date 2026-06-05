@@ -3,8 +3,7 @@
 {% comment %}
   Router: child templates use {% block backend_page %} so they never replace
   control_plane_base's outer {% block content %} shell on the manager host.
-  Note: workflow auto-chrome is wired at the root-shell level
-  (portal_base.html / control_plane_skeleton.html) — adding it here would
-  double-render because backend_base_tenant extends portal_base.
+  Note: workflow auto-chrome is wired in the Tools tray only
+  (partials/rmc_tools_tray_context_stack.html via tenant/operator tools scripts).
 {% endcomment %}
 {% block backend_main %}{% block backend_page %}{% endblock %}{% endblock %}

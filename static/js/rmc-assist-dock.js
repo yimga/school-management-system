@@ -596,6 +596,23 @@
     );
   }
 
+  function dispatchAssistDockContext(payload) {
+    if (!payload || typeof payload !== "object") return;
+    applyBadges(payload.badges || {});
+    renderQuickActions(payload.quick_actions || []);
+    applyHalo();
+    window.dispatchEvent(
+      new CustomEvent("rmc-assist-dock-context", { detail: payload })
+    );
+    if (payload.tools_tray && typeof payload.tools_tray === "object") {
+      document.dispatchEvent(
+        new CustomEvent("rmc-tools-tray-page-sync", {
+          detail: { page: payload.tools_tray },
+        })
+      );
+    }
+  }
+
   function fetchContext() {
     if (_authRealtimeStopped || isAuthLanding()) return Promise.resolve();
     var url = CONTEXT_URL + "?page=" + encodeURIComponent(pageKey());
@@ -617,12 +634,7 @@
         })
         .then(function (payload) {
           if (!payload) return;
-          applyBadges(payload.badges || {});
-          renderQuickActions(payload.quick_actions || []);
-          applyHalo();
-          window.dispatchEvent(
-            new CustomEvent("rmc-assist-dock-context", { detail: payload })
-          );
+          dispatchAssistDockContext(payload);
         })
         .catch(function () {
           /* network failure — silent, next poll will retry */
@@ -943,9 +955,7 @@
     _sseSource.addEventListener("snapshot", function (ev) {
       try {
         var payload = JSON.parse(ev.data);
-        applyBadges(payload.badges || {});
-        renderQuickActions(payload.quick_actions || []);
-        applyHalo();
+        dispatchAssistDockContext(payload);
       } catch (_e) {
         /* malformed frame — ignore */
       }
@@ -1615,6 +1625,16 @@
       if (!startSSE()) {
         startPolling();
       }
+      var _assistDockPageKey = pageKey();
+      function refreshAssistDockForNavigation() {
+        var next = pageKey();
+        if (next === _assistDockPageKey) return;
+        _assistDockPageKey = next;
+        fetchContext();
+      }
+      window.addEventListener("popstate", refreshAssistDockForNavigation);
+      document.addEventListener("htmx:afterSettle", refreshAssistDockForNavigation);
+      document.addEventListener("rmc-soft-navigation", refreshAssistDockForNavigation);
       // Wave E4 + E5: bind settings DnD + share mint on the relevant pages.
       bindShareMintTriggers();
       bindSettingsForm();

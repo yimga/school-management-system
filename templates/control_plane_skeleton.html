@@ -189,7 +189,8 @@
       <div class="rmc-app-shell__canvas">
         {% block cp_shell_canvas_chrome %}{% endblock %}
         <div class="rmc-app-shell__canvas-body cp-shell-content{% if SHOW_MANAGER_CORPORATE_FOOTER %} cp-shell-content--with-public-footer{% endif %}" data-rmc-cp-page-body="1">
-          {% include "components/_workflow_auto_chrome.html" %}
+          {% comment %} v4.02.10: workflow guidance + incident alerts render in Tools tray only
+             (partials/rmc_tools_tray_context_stack.html). {% endcomment %}
           {% comment %} Workflow strip: manager_operator_topbar header slot (via unified header). {% endcomment %}
           {% comment %} Quarterly posture: collapsible inline banner in cp-main-content
              (control_plane_base / portal_base / manager admin). Corner toast suppressed

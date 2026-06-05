@@ -76,13 +76,16 @@ class OperatorToolsShellTemplateTests(SimpleTestCase):
         self.assertIn("rmc_operator_tools_scripts.html", source)
         self.assertIn("is_manager_host", source)
 
-    def test_portal_base_excludes_operator_tools_tray(self) -> None:
+    def test_portal_base_wires_tenant_tools_not_operator_inline(self) -> None:
         from django.template.loader import get_template
 
         source = get_template("portal_base.html").template.source
-        self.assertNotIn("page-data-rmc-operator-tools", source)
-        self.assertNotIn("rmc-operator-tools-tray.js", source)
-        self.assertNotIn("rmc_operator_tools_scripts.html", source)
+        self.assertIn("rmc_tenant_tools_styles.html", source)
+        self.assertIn("rmc_tenant_tools_scripts.html", source)
+        self.assertIn("rmc_operator_tools_scripts.html", source)
+        self.assertNotIn('id="page-data-rmc-operator-tools"', source)
+        self.assertNotIn('id="page-data-rmc-tenant-tools"', source)
+        self.assertIn("cockpit.tenant_tools.enabled", source)
 
 
 class OperatorToolsRenderContractTests(SimpleTestCase):

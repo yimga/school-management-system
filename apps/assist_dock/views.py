@@ -24,6 +24,7 @@ from .context_processors import _resolve_role, _resolve_surface
 from .cursors import list_cursors, pings_as_jsonable
 from .quick_actions import actions_as_jsonable, actions_for
 from .registry import all_slots, get_slots_for, slots_as_jsonable
+from .tools_tray_page_context import build_tools_tray_page_payload
 
 logger = logging.getLogger(__name__)
 
@@ -118,6 +119,7 @@ def dock_context_view(request):
                 "page_path": "",
                 "badges": {},
                 "quick_actions": [],
+                "tools_tray": {},
             }
         )
 
@@ -133,6 +135,9 @@ def dock_context_view(request):
         page_path=page_path,
         limit=_QUICK_ACTIONS_LIMIT,
     )
+    from .tools_tray_page_context import build_tools_tray_page_payload
+
+    tools_tray = build_tools_tray_page_payload(request, page_path=page_path)
     return JsonResponse(
         {
             "surface": surface,
@@ -140,6 +145,7 @@ def dock_context_view(request):
             "page_path": page_path,
             "badges": badges,
             "quick_actions": actions_as_jsonable(quick),
+            "tools_tray": tools_tray,
         }
     )
 
@@ -194,6 +200,9 @@ def dock_context_stream_view(request):
                     "page_path": page_path,
                     "badges": initial_badges,
                     "quick_actions": actions_as_jsonable(quick),
+                    "tools_tray": build_tools_tray_page_payload(
+                        request, page_path=page_path
+                    ),
                 },
             )
         except Exception as exc:  # noqa: BLE001 — never tear down the stream

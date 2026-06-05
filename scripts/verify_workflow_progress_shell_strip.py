@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 """Workflow progress strip shell contract.
 
-Manager control plane: strip lives in ``manager_operator_topbar`` header slot
-(transitively via ``control_plane_unified_header``). Canvas body must not
-duplicate the include (Render deploy + UX).
-
-Tenant portal: direct include in ``portal_base.html``.
+v4.02.16 — Live workflow progress (chip + inline strip) lives in the Tools
+edge-tray context stack only — not manager header or page canvas.
 """
 
 from __future__ import annotations
@@ -21,6 +18,9 @@ CANVAS_BODY_DUP_RE = re.compile(
     re.MULTILINE,
 )
 
+TRAY_STACK = "templates/partials/rmc_tools_tray_context_stack.html"
+WFP = "rmc_workflow_progress_strip.html"
+
 
 def _read(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8", errors="replace")
@@ -28,28 +28,32 @@ def _read(rel: str) -> str:
 
 def main() -> int:
     failures: list[str] = []
-    wfp = "rmc_workflow_progress_strip.html"
 
-    portal = _read("templates/portal_base.html")
-    if wfp not in portal:
-        failures.append("portal_base.html: missing workflow progress strip include")
+    stack = _read(TRAY_STACK)
+    if WFP not in stack:
+        failures.append(f"{TRAY_STACK}: missing workflow progress strip include")
+    if "data-rmc-wfp-tray-slot" not in stack:
+        failures.append(f"{TRAY_STACK}: missing data-rmc-wfp-tray-slot mount point")
 
     topbar = _read("templates/partials/manager_operator_topbar.html")
-    if wfp not in topbar:
-        failures.append("manager_operator_topbar.html: missing workflow progress strip include")
-    if "data-rmc-wfp-header-slot" not in topbar:
-        failures.append("manager_operator_topbar.html: missing rmc-wfp-header-slot")
+    if WFP in topbar:
+        failures.append("manager_operator_topbar.html: workflow strip must not render in header")
+    if "data-rmc-wfp-header-slot" in topbar:
+        failures.append("manager_operator_topbar.html: header workflow slot retired (tray-only)")
+
+    portal = _read("templates/portal_base.html")
+    if WFP in portal:
+        failures.append("portal_base.html: workflow strip must be tray-only (not canvas)")
 
     skeleton = _read("templates/control_plane_skeleton.html")
-    if "control_plane_unified_header.html" not in skeleton:
+    if WFP in skeleton and CANVAS_BODY_DUP_RE.search(skeleton):
         failures.append(
-            "control_plane_skeleton.html: missing control_plane_unified_header include"
+            "control_plane_skeleton.html: duplicate workflow strip in canvas body"
         )
-    if wfp in skeleton and CANVAS_BODY_DUP_RE.search(skeleton):
-        failures.append(
-            "control_plane_skeleton.html: duplicate workflow strip in canvas body "
-            "(header slot via unified header is canonical)"
-        )
+
+    wfp_js = _read("static/js/rmc-workflow-progress.js")
+    if "data-rmc-wfp-tray-slot" not in wfp_js:
+        failures.append("rmc-workflow-progress.js: missing tray slot mount")
 
     if failures:
         print("WORKFLOW_PROGRESS_SHELL_STRIP_FAIL")

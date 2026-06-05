@@ -41,8 +41,10 @@ def main() -> int:
         body = _read(rel)
         if "btn " not in body and "rmc-btn" not in body:
             failures.append(f"{rel} missing actionable controls")
-        if rel in WORKFLOW_REQUIRED and "workflow_next_action" not in body:
-            failures.append(f"{rel} missing workflow_next_action partial")
+        if rel in WORKFLOW_REQUIRED and "rmc_tools_tray_context_stack.html" not in _read(
+            "templates/partials/rmc_tenant_tools_scripts.html"
+        ):
+            failures.append(f"{rel}: tenant tools tray must ship workflow context stack")
 
     finance = _read("templates/parent/finance.html")
     if finance and "parent_finance_pay_all" not in finance and "pay-all" not in finance.lower():

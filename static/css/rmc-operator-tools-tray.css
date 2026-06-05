@@ -4,7 +4,8 @@
  */
 
 html[data-surface="control-plane"],
-body.admin-manager-shell {
+body.admin-manager-shell,
+body[data-rmc-workspace-tools="tenant"] {
   --rmc-operator-tools-tab-w: 44px;
   --rmc-operator-tools-tray-max-w: min(520px, calc(100vw - 3.5rem));
   --rmc-operator-tools-tray-bottom: max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 4.75rem));
@@ -267,10 +268,66 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-assist-dock__backdrop {
   height: auto;
 }
 
-/* Hide workflow chip in tray when header owns it */
-body[data-rmc-assist-layout="edge-tray"][data-rmc-wfp-header-only="1"]
-  .rmc-operator-tools__slot--workflow-progress {
-  display: none !important;
+/* Workflow progress chip + inline strip in Tools tray context stack */
+.rmc-operator-tools__wfp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.rmc-operator-tools__wfp-chip-slot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.rmc-operator-tools__wfp-chip-slot .rmc-wfp-chip,
+.rmc-operator-tools__wfp-chip-slot .rmc-assist-dock__btn {
+  min-height: 2rem;
+}
+
+.rmc-operator-tools__context-stack .rmc-wfp-inline {
+  width: 100%;
+}
+
+.rmc-operator-tools__context-stack .rmc-wfp-inline:not([hidden]) {
+  display: block;
+}
+
+.rmc-operator-tools__context-stack .rmc-wfp-inline__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 10px;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  background: color-mix(
+    in oklab,
+    var(--surface-elevated, #1a2234) 92%,
+    var(--school-primary, #4f46e5) 8%
+  );
+}
+
+.rmc-operator-tools__context-stack .rmc-wfp-inline__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.rmc-operator-tools__context-stack .rmc-wfp-inline__title {
+  font-size: var(--type-size-sm, 0.8125rem);
+  font-weight: 650;
+  color: var(--text-primary, #f1f5f9);
+}
+
+.rmc-operator-tools__context-stack .rmc-wfp-inline__step {
+  font-size: var(--type-size-xs, 0.6875rem);
+  color: var(--text-secondary, rgba(241, 245, 249, 0.72));
+}
+
+.rmc-operator-tools__context-stack .rmc-wfp-inline__open {
+  align-self: flex-start;
 }
 
 /* Hide platform-health when healthy (badge-only contract) */
@@ -379,6 +436,141 @@ body[data-rmc-assist-layout="edge-tray"].cp-shell-has-operator-footer
   .rmc-operator-tools__edge-tab {
     min-height: 6rem;
   }
+}
+
+/* v4.02.10 — Tools tray context stack (workflow guidance + incidents). */
+.rmc-operator-tools__context-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+}
+
+.rmc-operator-tools__context-stack:empty {
+  display: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rmc-operator-tools__context-stack .rmc-workflow-status-strip,
+.rmc-operator-tools__context-stack .rmc-workflow-next-action,
+.rmc-operator-tools__context-stack .rmc-workflow-help-panel {
+  margin-bottom: 0;
+}
+
+.rmc-operator-tools__context-stack .rmc-cp-incident-banner {
+  margin-bottom: 0;
+}
+
+.rmc-operator-tools__context-stack .rmc-wfp-tenant-trust {
+  margin-bottom: 0;
+}
+
+/* Belt-and-suspenders: workflow/incident chrome must not leak into page canvas. */
+.rmc-app-shell__canvas-body > .rmc-workflow-auto-chrome,
+.rmc-app-shell__canvas-body > .rmc-cp-incident-banner,
+.rmc-app-shell__canvas-body > .rmc-operator-tools__context-stack,
+.cp-main-col > .rmc-cp-incident-banner,
+[data-rmc-portal-page-body] > .rmc-workflow-auto-chrome,
+[data-rmc-portal-page-body] > .rmc-cp-incident-banner,
+[data-rmc-cp-page-body] > .rmc-workflow-auto-chrome,
+[data-rmc-cp-page-body] > .rmc-cp-incident-banner {
+  display: none !important;
+}
+
+.rmc-operator-tools__edge-tab[data-rmc-tools-context-incident="1"]
+  .rmc-operator-tools__edge-tab-badge {
+  display: inline-flex;
+}
+
+/* v4.02.14 — page- and dashboard-aware tray header + group emphasis. */
+.rmc-operator-tools__page-head {
+  margin-bottom: 0.35rem;
+}
+
+.rmc-operator-tools__page-head-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.rmc-operator-tools__page-kind {
+  align-self: flex-start;
+  font-size: var(--type-size-xs, 0.6875rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary, rgba(241, 245, 249, 0.72));
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+  background: color-mix(
+    in oklab,
+    var(--surface-elevated, #1a2234) 88%,
+    var(--school-primary, #4f46e5) 12%
+  );
+}
+
+.rmc-operator-tools__page-kind[data-kind="landing"] {
+  color: var(--text-primary, #f1f5f9);
+  border-color: color-mix(
+    in oklab,
+    var(--school-primary, #4f46e5) 40%,
+    var(--hairline, rgba(255, 255, 255, 0.12)) 60%
+  );
+}
+
+.rmc-operator-tools__page-title {
+  font-size: var(--type-size-md, 0.9375rem);
+  font-weight: 650;
+  line-height: 1.25;
+  color: var(--text-primary, #f1f5f9);
+}
+
+.rmc-operator-tools__page-workflow {
+  font-size: var(--type-size-sm, 0.8125rem);
+  color: var(--text-secondary, rgba(241, 245, 249, 0.72));
+}
+
+.rmc-operator-tools__page-role {
+  align-self: flex-start;
+  font-size: var(--type-size-xs, 0.6875rem);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-secondary, rgba(241, 245, 249, 0.65));
+}
+
+.rmc-operator-tools__page-quick {
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.12));
+}
+
+.rmc-operator-tools__page-quick[hidden] {
+  display: none !important;
+}
+
+.rmc-operator-tools__group--emphasized {
+  padding: 0.45rem;
+  border-radius: 10px;
+  border: 1px solid
+    color-mix(
+      in oklab,
+      var(--school-primary, #4f46e5) 28%,
+      var(--hairline, rgba(255, 255, 255, 0.12)) 72%
+    );
+  background: color-mix(
+    in oklab,
+    var(--surface-elevated, #1a2234) 90%,
+    var(--school-primary, #4f46e5) 10%
+  );
+}
+
+.rmc-operator-tools__group--emphasized > .rmc-operator-tools__group-label {
+  color: var(--text-primary, #f1f5f9);
 }
 
 @media (prefers-reduced-motion: reduce) {

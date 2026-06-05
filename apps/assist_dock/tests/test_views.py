@@ -93,15 +93,17 @@ class DockContextViewTests(SimpleTestCase):
         self.assertEqual(payload["badges"], {})
         self.assertEqual(payload["quick_actions"], [])
         self.assertEqual(payload["role"], "anonymous")
+        self.assertEqual(payload["tools_tray"], {})
 
     def test_authed_payload_shape(self):
         view = dock_context_view.__wrapped__
         req = self._authed_request("/portal/dashboard/?page=/portal/dashboard/")
         response = view(req)
         payload = json.loads(response.content)
-        for key in ("surface", "role", "page_path", "badges", "quick_actions"):
+        for key in ("surface", "role", "page_path", "badges", "quick_actions", "tools_tray"):
             self.assertIn(key, payload)
         self.assertEqual(payload["role"], "TEACHER")
+        self.assertIn("dashboard_kind", payload["tools_tray"])
 
     def test_quick_actions_filtered_by_path(self):
         register_quick_action(

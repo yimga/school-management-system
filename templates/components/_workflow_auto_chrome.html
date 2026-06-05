@@ -1,27 +1,8 @@
 {% load workflow_guidance_tags %}{% comment %}
-  Phase 4 Wave D — auto-resolve workflow chrome partial.
+  Phase 4 Wave D — auto-resolve workflow chrome partial (v4.02.10 tray-only).
 
-  Include this once near the top of a base template's content block. It
-  resolves a workflow registered under the current request.path via
-  ``workflow_guidance.resolve_workflow_for_route`` (which matches either the
-  URL view_name OR a registered ``entry_path`` prefix). If no workflow
-  resolves, the partial renders NOTHING — every {% include %} below is
-  guarded by ``{% if status %}`` / ``{% if next_action %}`` / ``{% if panel %}``.
-
-  Visibility safety:
-  * The 3-layer gate in ``workflow_guidance.is_visible_for`` hides operator
-    workflows on tenant hosts and tenant workflows on the manager host.
-  * ``platform-only`` tag chips are stripped from tenant-host renders by
-    ``tags_for``.
-
-  Wiring policy (Phase 4 Wave D):
-  * Tenant portal:    templates/portal_base.html
-  * Operator shell:   templates/control_plane_skeleton.html
-  * Backend (admin):  templates/backend_base.html
-  * Studio OS shell:  templates/studio_os/shell.html
-  Pages that already include a workflow component explicitly (the 8 Phase 4
-  Wave B + C templates) are NOT affected — explicit includes resolve the
-  same workflow object, so double-include is functionally idempotent.
+  Rendered exclusively via ``partials/rmc_tools_tray_context_stack.html`` inside
+  the Tools edge-tray. Must NOT be included in page canvas shells.
 {% endcomment %}
 {% workflow_resolve_for_request as rmc_wf_auto %}
 {% if rmc_wf_auto %}

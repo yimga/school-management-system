@@ -126,13 +126,8 @@ def _check_shell_static_assets(failures: list[str]) -> None:
 
 
 def _control_plane_skeleton_has_workflow_strip(skeleton_text: str) -> bool:
-    wfp_needle = "rmc_workflow_progress_strip.html"
-    if wfp_needle in skeleton_text:
-        return True
-    if "control_plane_unified_header.html" not in skeleton_text:
-        return False
-    topbar = _read("templates/partials/manager_operator_topbar.html")
-    return wfp_needle in topbar
+    stack = _read("templates/partials/rmc_tools_tray_context_stack.html")
+    return "rmc_workflow_progress_strip.html" in stack
 
 
 def _check_shell_references(failures: list[str]) -> None:
@@ -144,8 +139,10 @@ def _check_shell_references(failures: list[str]) -> None:
             "(direct include or via manager_operator_topbar in unified header)"
         )
     portal = _read("templates/portal_base.html")
-    if wfp_needle not in portal:
-        failures.append(f"templates/portal_base.html: missing workflow progress strip include")
+    if wfp_needle in portal:
+        failures.append(
+            "templates/portal_base.html: workflow progress strip must be tray-only"
+        )
 
 
 def main() -> int:

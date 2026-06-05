@@ -46,10 +46,10 @@ def main() -> int:
     if ease_action_count < 20:
         failures.append(f"command bar navigate actions too few ({ease_action_count})")
 
-    if not _contains("templates/parent/contact_school.html", "workflow_next_action"):
-        failures.append("contact_school.html missing workflow_next_action partial")
-    if not _contains("templates/parent/finance.html", "workflow_next_action"):
-        failures.append("finance.html missing workflow_next_action partial")
+    if not _contains("templates/partials/rmc_tools_tray_context_stack.html", "_workflow_auto_chrome.html"):
+        failures.append("tools tray context stack missing workflow auto-chrome")
+    if not _contains("templates/partials/rmc_tenant_tools_scripts.html", "rmc_tools_tray_context_stack.html"):
+        failures.append("tenant tools scripts missing context stack partial")
     if not _contains("templates/parent/finance.html", "data-rmc-offline-form"):
         failures.append("finance.html missing data-rmc-offline-form")
     if not _contains("templates/parent/finance_pay_all_confirm.html", "data-rmc-offline-form"):

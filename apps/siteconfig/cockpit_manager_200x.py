@@ -214,7 +214,7 @@ def _operator_tools_defaults() -> dict[str, Any]:
         tab_label               str   — vertical tab caption
         tray_notebook           bool  — render notebook inside tray panel
         hide_floating_notebook  bool  — suppress fixed-position notebook card
-        workflow_header_only    bool  — workflow chip in header, not dock
+        workflow_header_only    bool  — legacy; workflow UI is Tools-tray-only platform-wide
         back_to_top_corner      str   — ``bottom-left`` | ``bottom-right``
     """
     return {
@@ -223,7 +223,7 @@ def _operator_tools_defaults() -> dict[str, Any]:
         "tab_label": _("Tools"),
         "tray_notebook": True,
         "hide_floating_notebook": True,
-        "workflow_header_only": True,
+        "workflow_header_only": False,
         "back_to_top_corner": "bottom-left",
     }
 

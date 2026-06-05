@@ -1,0 +1,37 @@
+{% load i18n static %}
+{% comment %}
+v4.02.8 — Tenant workspace Tools edge-tray configuration island.
+Pairs with rmc-operator-tools-tray.js on tenant portal shells (not manager host).
+{% endcomment %}
+{% if request.user.is_authenticated and request.public_host_kind != 'manager' and cockpit.tenant_tools.enabled|default:False %}
+<script type="application/json" id="page-data-rmc-tenant-tools" nonce="{{ csp_nonce }}">{
+  "enabled": true,
+  "surface": "tenant",
+  "layout": "{{ cockpit.tenant_tools.layout|default:'edge-tray'|escapejs }}",
+  "tab_label": "{% filter escapejs %}{{ cockpit.tenant_tools.tab_label|default:_('Tools') }}{% endfilter %}",
+  "tray_notebook": {% if cockpit.tenant_tools.tray_notebook|default:False %}true{% else %}false{% endif %},
+  "hide_floating_notebook": {% if cockpit.tenant_tools.hide_floating_notebook|default:False %}true{% else %}false{% endif %},
+  "workflow_header_only": {% if cockpit.tenant_tools.workflow_header_only|default:True %}true{% else %}false{% endif %},
+  "back_to_top_corner": "{{ cockpit.tenant_tools.back_to_top_corner|default:'bottom-left'|escapejs }}",
+  "groups": {
+    "primary": ["ai-copilot", "messages", "workflow-progress"],
+    "page": ["help", "context", "feedback", "on-this-page", "share-this-view", "tenant-kb", "tenant-support"],
+    "workspace": ["tenant-command", "keyboard-shortcuts", "security-posture", "live-cursors", "theme", "translate", "copy-page-link"],
+    "actions": ["voice", "settings", "back-to-top"]
+  },
+  "group_labels": {
+    "primary": "{% filter escapejs %}{% trans 'Primary' %}{% endfilter %}",
+    "workflow": "{% filter escapejs %}{% trans 'Workflow' %}{% endfilter %}",
+    "page": "{% filter escapejs %}{% trans 'Page' %}{% endfilter %}",
+    "workspace": "{% filter escapejs %}{% trans 'Workspace' %}{% endfilter %}",
+    "actions": "{% filter escapejs %}{% trans 'Actions' %}{% endfilter %}"
+  },
+  "urls": {
+    "kb_home": "{% filter escapejs %}{% url 'kb:kb_home' %}{% endfilter %}",
+    "security_posture": "{% filter escapejs %}{% url 'accounts:security_posture_review' %}{% endfilter %}",
+    "messages": "{% filter escapejs %}{% url 'accounts:user_messages' %}{% endfilter %}"
+  },
+  "counts": {},
+  "page": {{ TOOLS_TRAY_PAGE_JSON|default:"{}"|safe }}
+}</script>
+{% endif %}

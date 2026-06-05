@@ -46,6 +46,17 @@ class QuickAction:
 _ACTIONS: dict[str, QuickAction] = {}
 
 
+def normalize_workspace_path(path: str) -> str:
+    """Strip ``/t/<tenant-slug>/`` so path rules work on subdomains and path tenants."""
+    raw = (path or "").strip()
+    if not raw.startswith("/t/"):
+        return raw
+    parts = raw.split("/")
+    if len(parts) < 4:
+        return "/"
+    return "/" + "/".join(parts[3:])
+
+
 def register_quick_action(action: QuickAction) -> QuickAction:
     if not isinstance(action, QuickAction):
         raise TypeError("register_quick_action requires a QuickAction")
@@ -87,6 +98,7 @@ def actions_for(*, surface: str, role: str, page_path: str = "", limit: int = 6)
     """Return ordered visible quick actions, capped at ``limit``."""
     surface = (surface or "*").strip() or "*"
     role = (role or "*").strip() or "*"
+    page_path = normalize_workspace_path(page_path)
     out: list[QuickAction] = []
     for action in _ACTIONS.values():
         if not _surface_matches(action, surface):
@@ -142,4 +154,5 @@ __all__ = [
     "resolve_href",
     "action_as_jsonable",
     "actions_as_jsonable",
+    "normalize_workspace_path",
 ]

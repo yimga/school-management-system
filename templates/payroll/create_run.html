@@ -5,7 +5,6 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -16,13 +15,6 @@
   </div>
   <a class="btn btn-outline-secondary btn-sm" href="{% url 'payroll:dashboard' %}">Back</a>
 </div>
-{% workflow_resolve "payroll-create-run" as wf %}
-{% if wf %}
-  {% with status=wf|workflow_status_payload:request panel=wf|workflow_help_panel_payload:request %}
-    {% if status %}{% include "components/workflow_status_strip.html" %}{% endif %}
-    {% if panel %}{% include "components/workflow_help_panel.html" %}{% endif %}
-  {% endwith %}
-{% endif %}
 
 <form method="post" class="card"
       data-rmc-offline-form="field_capture"

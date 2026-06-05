@@ -79,8 +79,11 @@ def main() -> int:
                 findings.append("control_plane_skeleton.html: missing activity drawer JS")
 
     base = _read("templates/control_plane_base.html")
-    if "_operator_incident_banner.html" not in base:
-        findings.append("control_plane_base.html: missing Tier-3 incident banner")
+    tray_stack = _read("templates/partials/rmc_tools_tray_context_stack.html")
+    if "_operator_incident_banner.html" not in tray_stack:
+        findings.append("rmc_tools_tray_context_stack.html: missing Tier-3 incident banner")
+    if "_operator_incident_banner.html" in base:
+        findings.append("control_plane_base.html: incident banner must not render in canvas")
     if "_platform_pulse.html" in base and "cp_shell_canvas_chrome" in base:
         chrome_block = base.split("cp_shell_canvas_chrome", 1)[1][:600]
         if "_platform_pulse.html" in chrome_block:
@@ -119,8 +122,8 @@ def main() -> int:
         findings.append("activity drawer: missing tenant branch")
 
     admin_base = _read("templates/admin/base.html")
-    if "_operator_incident_banner.html" not in admin_base:
-        findings.append("admin/base.html: manager host missing incident banner")
+    if "_operator_incident_banner.html" in admin_base:
+        findings.append("admin/base.html: incident banner must not render in canvas")
 
     portal = _read("templates/portal_base.html")
     if "tenant_role_home_landing" not in portal:
@@ -128,8 +131,8 @@ def main() -> int:
     incident = _read("templates/partials/cockpit/_operator_incident_banner.html")
     if "tenant_incident_banner" not in incident:
         findings.append("incident banner partial: missing tenant_incident_banner branch")
-    if portal.count("_operator_incident_banner.html") < 1:
-        findings.append("portal_base.html: incident banner must render for authenticated users")
+    if portal.count("_operator_incident_banner.html") > 0:
+        findings.append("portal_base.html: incident banner must not render in canvas (use Tools tray)")
 
     tenant_defaults = _read("apps/siteconfig/cockpit_tenant_dashboard.py")
     start = tenant_defaults.find("def _tenant_activity_ticker_defaults")

@@ -5,21 +5,15 @@ from __future__ import annotations
 
 import argparse
 import os
-import re
 import sys
-import time
 import urllib.error
-import urllib.parse
-import urllib.request
-from http.cookiejar import CookieJar
 
 # Reuse operator-tools smoke transport helpers (stdlib-only).
 from smoke_operator_tools_tray import (  # noqa: E402
+    _bootstrap_qa,
     _build_opener,
-    _csrf_from_body,
-    _csrf_from_cookies,
     _env,
-    _login_manager,
+    _login_surface,
     _request,
     _wait_ready,
 )
@@ -49,6 +43,11 @@ def _assert_nav_sidebar(body: str, label: str, *, manager: bool = True) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--wait-secs", type=int, default=int(_env("SMOKE_WAIT_SECS", "120")))
+    parser.add_argument(
+        "--no-bootstrap",
+        action="store_true",
+        help="Skip QA seed (seed_apple_class_qa or seed_demo_tenant_users)",
+    )
     args = parser.parse_args()
 
     port = _env("VISUAL_QA_PORT", "8012")
@@ -60,10 +59,22 @@ def main() -> int:
     username = _env("E2E_LOGIN_USER", "admin")
     password = _env("E2E_LOGIN_PASSWORD", "Sch00l_1234")
 
+    bootstrap = not args.no_bootstrap and _env("SMOKE_BOOTSTRAP", "1") != "0"
+    if bootstrap:
+        _bootstrap_qa(tenant_slug)
+
     _wait_ready(base, manager_host, loopback, port, args.wait_secs)
 
     mgr = _build_opener(manager_host, loopback, port)
-    _login_manager(mgr, base, manager_host, username, password)
+    _login_surface(
+        mgr,
+        base,
+        manager_host,
+        username,
+        password,
+        next_path="/super/",
+        label="manager",
+    )
 
     code, super_body, _ = _request(mgr, "GET", f"{base}/super/", host=manager_host)
     if code != 200:
@@ -83,39 +94,27 @@ def main() -> int:
     print("OK: manager /admin/ ships nav sidebar contract")
 
     tenant = _build_opener(tenant_host, loopback, port)
-    tenant_user = _env("TENANT_SMOKE_USER", "teacher")
+    tenant_user = _env("TENANT_SMOKE_USER", "demo.teacher")
     tenant_pass = _env("TENANT_SMOKE_PASSWORD", "Test1234")
-    login_path = f"{base}/t/{tenant_slug}/authentication/login/"
-    backend_path = f"{base}/t/{tenant_slug}/authentication/backend/"
-    code, body, _ = _request(tenant, "GET", login_path, host=tenant_host)
-    if code == 200:
-        csrf = _csrf_from_body(body) or _csrf_from_cookies(tenant)
-        if csrf:
-            form = urllib.parse.urlencode(
-                {
-                    "username": tenant_user,
-                    "password": tenant_pass,
-                    "csrfmiddlewaretoken": csrf,
-                    "next": backend_path,
-                }
-            ).encode("utf-8")
-            _request(
-                tenant,
-                "POST",
-                login_path,
-                host=tenant_host,
-                data=form,
-                headers={
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Referer": login_path,
-                    "X-CSRFToken": csrf,
-                },
-            )
-    code, tenant_body, _ = _request(tenant, "GET", backend_path, host=tenant_host)
+    backend_path = "/authentication/backend/"
+    _login_surface(
+        tenant,
+        base,
+        tenant_host,
+        tenant_user,
+        tenant_pass,
+        next_path=backend_path,
+        label=f"tenant ({tenant_slug})",
+    )
+
+    code, tenant_body, _ = _request(tenant, "GET", f"{base}{backend_path}", host=tenant_host)
     if code != 200:
-        raise SystemExit(f"FAIL: tenant backend HTTP {code}")
+        raise SystemExit(
+            f"FAIL: tenant backend HTTP {code} for {tenant_slug} "
+            "(set TENANT_SWEEP_SLUG / TENANT_SMOKE_USER/PASSWORD or run bootstrap)"
+        )
     _assert_nav_sidebar(tenant_body, "tenant backend", manager=False)
-    print("OK: tenant portal ships nav sidebar contract")
+    print("OK: tenant backend ships nav sidebar contract")
 
     print("NAV_SIDEBAR_SMOKE_PASS")
     return 0

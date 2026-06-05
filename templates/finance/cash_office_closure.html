@@ -6,7 +6,6 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -14,13 +13,6 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1">
 {% url 'finance:payments' as cash_closure_back_url %}
 {% include "studio_os/components/page_header.html" with title="Cash Office Closure" subtitle="Daily reconciliation between cash desk receipts and bank deposit." action_url=cash_closure_back_url action_text="Back to Payments" %}
-{% workflow_resolve "finance-cash-closure" as wf %}
-{% if wf %}
-  {% with status=wf|workflow_status_payload:request next_action=wf|workflow_next_action_payload:request %}
-    {% if status %}{% include "components/workflow_status_strip.html" %}{% endif %}
-    {% if next_action %}{% include "components/workflow_next_action.html" %}{% endif %}
-  {% endwith %}
-{% endif %}
 
 <div class="row g-3 mb-3 rmc-reveal-stagger">
   <div class="col-md-4 rmc-reveal">

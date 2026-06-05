@@ -67,6 +67,71 @@ test.describe("Operator Tools edge-tray", () => {
     expect(body).not.toContain('data-rmc-back-to-top-policy="always"');
   });
 
+  test("tenant backend ships tenant tools island", async ({ request }) => {
+    const tenantSlug = process.env.TENANT_SWEEP_SLUG || "apple-class-qa";
+    const tenantHost = {
+      Host: process.env.VISUAL_QA_TENANT_HOST || `${tenantSlug}.runmycampus.com`,
+    };
+    let ready;
+    try {
+      ready = await request.get(`${MGR_API}/ready/`, {
+        headers: tenantHost,
+        timeout: 8000,
+      });
+    } catch (_err) {
+      test.skip(true, `Django not reachable at ${MGR_API}`);
+      return;
+    }
+    if (!ready || !ready.ok()) {
+      test.skip(true, `/ready/ not OK on ${MGR_API}`);
+      return;
+    }
+
+    const loginPath = `/authentication/login/`;
+    const portalPath = `/portal/teacher/`;
+    const tenantUser = process.env.TENANT_SMOKE_USER || "demo.teacher";
+    const tenantPass = process.env.TENANT_SMOKE_PASSWORD || "Test1234";
+    const loginPage = await request.get(`${MGR_API}${loginPath}`, {
+      headers: tenantHost,
+    });
+    if (!loginPage.ok()) {
+      test.skip(true, `tenant login page not OK for ${tenantSlug}`);
+      return;
+    }
+    const loginHtml = await loginPage.text();
+    const csrfMatch = loginHtml.match(/name="csrfmiddlewaretoken"\s+value="([^"]+)"/);
+    if (csrfMatch) {
+      const csrf = csrfMatch[1];
+      await request.post(`${MGR_API}${loginPath}`, {
+        headers: {
+          ...tenantHost,
+          "Content-Type": "application/x-www-form-urlencoded",
+          Referer: `${MGR_API}${loginPath}`,
+        },
+        form: {
+          username: tenantUser,
+          password: tenantPass,
+          csrfmiddlewaretoken: csrf,
+          next: portalPath,
+        },
+      });
+    }
+
+    const portal = await request.get(`${MGR_API}${portalPath}`, {
+      headers: tenantHost,
+      timeout: 120000,
+    });
+    if (portal.status() !== 200) {
+      test.skip(true, `tenant portal not 200 for ${tenantSlug}`);
+      return;
+    }
+    const body = await portal.text();
+    expect(body).toContain('id="page-data-rmc-tenant-tools"');
+    expect(body).toContain("rmc-operator-tools-tray.js");
+    expect(body).not.toContain('id="page-data-rmc-operator-tools"');
+    expect(body).not.toContain('data-rmc-back-to-top-policy="always"');
+  });
+
   test("browser opens Tools edge tab on /super/", async ({ page }) => {
     test.skip(
       process.env.RMC_OPERATOR_TOOLS_E2E_BROWSER !== "1",

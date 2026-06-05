@@ -76,6 +76,7 @@ from django.utils.translation import gettext_lazy as _
 # v3.56.0 (2026-05-21): helper modules from the parallel trifecta wave.
 # Each module returns a dict keyed by cockpit section name. Imported here so
 # the context processor merges them into the appropriate host branch.
+from .cockpit_tenant_tools import tenant_tools_defaults
 from .cockpit_tenant_dashboard import build_tenant_dashboard_cockpit
 from .cockpit_manager_200x import manager_200x_defaults
 
@@ -828,6 +829,7 @@ def cockpit_context(request) -> dict[str, Any]:
     tenant_cockpit.update(build_tenant_dashboard_cockpit())
     # v3.57.0: 10 NEW v3 100x tenant cockpit sections (all enabled=False).
     tenant_cockpit.update(build_tenant_v3_extended_cockpit())
+    tenant_cockpit["tenant_tools"] = tenant_tools_defaults()
     # v3.58.x Wave 9: sibling_compare operator-editable copy overlay.
     # Privacy-contract: this overlay carries copy + chrome only (title /
     # subtitle / CTA / consent banner / denied-state). `opt_in` /

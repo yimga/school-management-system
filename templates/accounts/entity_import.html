@@ -9,19 +9,10 @@
 
 {% block extrastyle %}
 {{ block.super }}
-<link rel="stylesheet" href="{% static 'css/rmc-workflow-guidance.css' %}">
 {% endblock %}
 
 {% block backend_page %}
   {% include 'components/admin_nav_bridge.html' %}
-  {% workflow_resolve "accounts-entity-import" as wf %}
-  {% if wf %}
-    {% with status=wf|workflow_status_payload:request next_action=wf|workflow_next_action_payload:request panel=wf|workflow_help_panel_payload:request %}
-      {% if status %}{% include "components/workflow_status_strip.html" %}{% endif %}
-      {% if next_action %}{% include "components/workflow_next_action.html" %}{% endif %}
-      {% if panel %}{% include "components/workflow_help_panel.html" %}{% endif %}
-    {% endwith %}
-  {% endif %}
   <div class="mb-4 d-flex flex-wrap justify-content-between align-items-start gap-2">
     <div>
       <h1 class="fw-bold mb-1">Entity import (beta)</h1>

@@ -412,6 +412,7 @@
         strips[h].hidden = true;
         strips[h].innerHTML = "";
       }
+      document.dispatchEvent(new CustomEvent("rmc-wfp-inline-updated"));
       return;
     }
     var html = buildInlineStripHtml(primary);
@@ -427,6 +428,7 @@
         });
       }
     }
+    document.dispatchEvent(new CustomEvent("rmc-wfp-inline-updated"));
   }
 
   function applySnapshot(payload) {
@@ -538,9 +540,58 @@
     return slotChip;
   }
 
+  function mountChipTarget() {
+    return document.querySelector("[data-rmc-wfp-tray-slot]");
+  }
+
+  function attachChip(chip) {
+    if (!chip) return;
+    chip.addEventListener("click", toggleCard);
+  }
+
+  function placeChip(chip, adopted) {
+    var traySlot = mountChipTarget();
+    if (traySlot) {
+      traySlot.appendChild(chip);
+      attachChip(chip);
+      return;
+    }
+    if (adopted) {
+      attachChip(adopted);
+      return;
+    }
+    // Park the chip into the assist-dock host if it exists; otherwise float bottom-right.
+    var dock = document.querySelector(
+      '[data-rmc-assist-dock-host],[data-rmc-assist-dock="mounted"]'
+    );
+    if (dock) {
+      dock.appendChild(chip);
+    } else {
+      chip.style.position = "fixed";
+      chip.style.right = "1rem";
+      chip.style.bottom = "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)";
+      chip.style.zIndex = "10465";
+      document.body.appendChild(chip);
+    }
+    attachChip(chip);
+    // The dock may finish painting AFTER us; if its labeled `workflow-progress`
+    // slot chip appears later, re-adopt it and drop the floating duplicate.
+    document.addEventListener("rmc-assist-dock-mounted", function onDockReady() {
+      document.removeEventListener("rmc-assist-dock-mounted", onDockReady);
+      var slot = document.querySelector('[data-rmc-assist-slot-id="workflow-progress"]');
+      if (!slot || slot.id === "rmc-wfp-chip") return;
+      chip.removeEventListener("click", toggleCard);
+      if (chip.parentNode) chip.parentNode.removeChild(chip);
+      var late = adoptRegisteredSlotChip();
+      if (late) {
+        placeChip(late, true);
+        updateChip();
+      }
+    });
+  }
+
   function mount() {
     if (!shouldConnectStream()) return;
-    var headerSlot = document.querySelector("[data-rmc-wfp-header-slot]");
     if (document.getElementById("rmc-wfp-chip")) return;
     var card = buildCard();
     document.body.appendChild(card);
@@ -548,43 +599,15 @@
     var adopted = adoptRegisteredSlotChip();
     var chip = adopted || buildChip();
 
-    if (
-      headerSlot &&
-      (document.body.classList.contains("control-plane-shell") ||
-        document.body.getAttribute("data-rmc-wfp-header-only") === "1")
-    ) {
-      headerSlot.appendChild(chip);
-      chip.addEventListener("click", toggleCard);
-    } else if (adopted) {
-      adopted.addEventListener("click", toggleCard);
-    } else {
-      // Park the chip into the assist-dock host if it exists; otherwise float bottom-right.
-      var dock = document.querySelector('[data-rmc-assist-dock-host],[data-rmc-assist-dock="mounted"]');
-      if (dock) {
-        dock.appendChild(chip);
-      } else {
-        chip.style.position = "fixed";
-        chip.style.right = "1rem";
-        chip.style.bottom = "calc(env(safe-area-inset-bottom, 0px) + 5.5rem)";
-        chip.style.zIndex = "10465";
-        document.body.appendChild(chip);
-      }
-      chip.addEventListener("click", toggleCard);
-      // The dock may finish painting AFTER us; if its labeled `workflow-progress`
-      // slot chip appears later, re-adopt it and drop the floating duplicate.
-      document.addEventListener("rmc-assist-dock-mounted", function onDockReady() {
-        document.removeEventListener("rmc-assist-dock-mounted", onDockReady);
-        var slot = document.querySelector('[data-rmc-assist-slot-id="workflow-progress"]');
-        if (!slot || slot.id === "rmc-wfp-chip") return;
-        chip.removeEventListener("click", toggleCard);
-        if (chip.parentNode) chip.parentNode.removeChild(chip);
-        var late = adoptRegisteredSlotChip();
-        if (late) {
-          late.addEventListener("click", toggleCard);
-          updateChip();
-        }
-      });
-    }
+    placeChip(chip, adopted);
+
+    document.addEventListener("rmc-operator-tools-ready", function onToolsReady() {
+      document.removeEventListener("rmc-operator-tools-ready", onToolsReady);
+      var existing = document.getElementById("rmc-wfp-chip");
+      var traySlot = mountChipTarget();
+      if (!existing || !traySlot || traySlot.contains(existing)) return;
+      traySlot.appendChild(existing);
+    });
 
     var closeBtn = card.querySelector(".rmc-wfp-card__close");
     if (closeBtn) closeBtn.addEventListener("click", toggleCard);

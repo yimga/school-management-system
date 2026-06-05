@@ -40,6 +40,17 @@ class AssistDockConfig(AppConfig):
             from . import operator_tools_slots  # noqa: F401
         except (ImportError, RuntimeError) as exc:
             logger.debug("assist_dock operator tools slots load skipped: %s", exc)
+        try:
+            from . import tenant_tools_slots  # noqa: F401
+        except (ImportError, RuntimeError) as exc:
+            logger.debug("assist_dock tenant tools slots load skipped: %s", exc)
+        # v4.02.15: page-aware quick actions for Tools tray Page actions row.
+        try:
+            from .default_quick_actions import register_default_quick_actions
+
+            register_default_quick_actions()
+        except (ImportError, RuntimeError, ValueError) as exc:
+            logger.debug("assist_dock default quick actions load skipped: %s", exc)
         # Wave D: built-in AI actions (summarize / explain / draft / translate).
         try:
             from . import default_ai_actions  # noqa: F401

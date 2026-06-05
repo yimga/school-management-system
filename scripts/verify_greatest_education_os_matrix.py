@@ -335,10 +335,10 @@ def build_pillars() -> list[PillarResult]:
             ),
             (
                 "ce_parent_workflows",
-                "Parent contact + pay-all workflow partials",
-                _file_ok("templates/parent/contact_school.html", "workflow_next_action")
-                and _file_ok("templates/parent/finance.html", "workflow_next_action"),
-                "parent templates",
+                "Parent workflow guidance in tenant Tools tray",
+                _file_ok("templates/partials/rmc_tools_tray_context_stack.html", "_workflow_auto_chrome")
+                and _file_ok("templates/partials/rmc_tenant_tools_scripts.html", "rmc_tools_tray_context_stack"),
+                "tools tray context stack",
             ),
         ],
     )

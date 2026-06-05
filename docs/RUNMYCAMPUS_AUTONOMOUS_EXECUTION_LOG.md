@@ -1,5 +1,35 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Final sweep II batch 1630 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1630** — second closure sweep; fix multicampus `?parent=` UUID parse bug + green all poly gates.
+
+**B. Shipped:** `views_multicampus_common.py`; UUID parse on billing/academics/extension; Ruff F401 fix; verifier keepdb cache; test `setUp()` resilience.
+
+**C. Proof:** **POLY_INSTITUTION_FINAL_SWEEP_PASS**; stack PASS; 12/12 HTTP tests; predeploy PASS.
+
+**D. SOT:** batch **1630** **DONE**. **E. Honest:** partials **1175**/**1199** external only.
+
+## Slice — Poly-institution final sweep batch 1629 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1629** — nothing-missed poly-institution / global-governance closure sweep.
+
+**B. Shipped:** `verify_poly_institution_final_sweep.py`; `run_sqlite_memory_tests.py` isolated-DB fix; HTTP/backfill/poly-stack timeout bumps; CI wire; `poly_institution_final_sweep_audit.json`.
+
+**C. Proof:** **GLOBAL_GOVERNANCE_PLAN_COMPLETION_PASS**; **SCHEDULING_EXCLUDE_CONSTRAINTS_PASS**; hierarchy PASS; group-console HTTP audit PASS; closure map partials only **1175**/**1199**.
+
+**D. SOT:** batch **1629** **DONE**. **E. Honest:** full sweep cold-migrate bundle ~20min/test on Windows — CI Ubuntu is proof path.
+
+## Slice — Tenant Tools 10X batch 1628 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1628** — tenant workspace Tools edge-tray platform-wide on `portal_base` (parity with manager operator tray).
+
+**B. Shipped:** `cockpit_tenant_tools.py`; `tenant_tools_slots.py`; `rmc_tenant_tools_*` partials; `portal_base` styles/scripts + conditional back-to-top; generalized `rmc-operator-tools-tray.js`/CSS; verifier + smoke tenant assertions; `test_tenant_tools_tray.py`.
+
+**C. Proof:** **verify_operator_tools_tray OK**; **21/21** assist_dock tests OK; **`smoke_operator_tools_tray.py`** **OPERATOR_TOOLS_SMOKE_PASS**; **`smoke_nav_sidebar.py`** import/login alignment; SW **v4.02.9**.
+
+**D. SOT:** batch **1628** **DONE**. **E. Honest:** live smokes need Django **8012** + `OPERATOR_MFA_REQUIRED_ON_MANAGER=0`; auto-bootstrap seeds **`demo.teacher`** on **`apple-class-qa`**.
+
 ## Slice — Multi-campus Wedge 22 HTTP batch 1626 (2026-06-05)
 
 **A. Claim:** §11.4 batch **1626** — control-plane HTTP contract for multicampus billing/academics/extension wedges.

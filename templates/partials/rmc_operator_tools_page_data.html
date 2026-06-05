@@ -18,7 +18,7 @@ Pairs with rmc-operator-tools-tray.js on manager / control-plane shells.
     "page": ["help", "context", "feedback", "on-this-page", "share-this-view"],
     "operator": ["platform-health", "open-incidents", "security-posture", "live-activity", "platform-status", "translate", "theme", "copy-page-link", "command-search", "keyboard-shortcuts", "live-cursors"],
     "super": ["presence", "inspect", "impersonate"],
-    "actions": ["voice", "settings", "back-to-top"]
+    "actions": ["voice", "settings"]
   },
   "group_labels": {
     "primary": "{% filter escapejs %}{% trans 'Primary' %}{% endfilter %}",
@@ -36,6 +36,7 @@ Pairs with rmc-operator-tools-tray.js on manager / control-plane shells.
   },
   "counts": {
     "incidents": {% if platform_incidents %}{{ platform_incidents|length }}{% elif attention_school_count %}{{ attention_school_count }}{% else %}0{% endif %}
-  }
+  },
+  "page": {{ TOOLS_TRAY_PAGE_JSON|default:"{}"|safe }}
 }</script>
 {% endif %}

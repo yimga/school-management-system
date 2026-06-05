@@ -33,12 +33,6 @@
 </section>
 <script src="{% static 'js/rmc-pwa-install-cta.js' %}" defer></script>
 {% endif %}
-{% workflow_resolve "parent-portal-pay-invoice" as wf %}
-{% if wf %}
-  {% with next_action=wf|workflow_next_action_payload:request %}
-    {% if next_action %}{% include "components/workflow_next_action.html" %}{% endif %}
-  {% endwith %}
-{% endif %}
 {% with widgets=display_widgets %}
 {% comment %} v3.56.0 (2026-05-21): tenant dashboard v2 cockpit cascade (today snapshot + quick actions + upcoming events + activity timeline + achievements + teacher spotlight). Each partial reads from cockpit.<section>.* with internal enabled flag — renders nothing until the operator opts in via SiteSettings.
 

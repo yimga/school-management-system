@@ -9,12 +9,20 @@ from apps.assist_dock.quick_actions import (
     action_as_jsonable,
     actions_as_jsonable,
     actions_for,
+    normalize_workspace_path,
     register_quick_action,
     reset_actions_for_tests,
 )
 
 
 class QuickActionValidationTests(SimpleTestCase):
+    def test_normalize_workspace_path_strips_tenant_prefix(self):
+        self.assertEqual(
+            normalize_workspace_path("/t/demo-school/portal/parent/"),
+            "/portal/parent/",
+        )
+        self.assertEqual(normalize_workspace_path("/portal/parent/"), "/portal/parent/")
+
     def test_id_required(self):
         with self.assertRaises(ValueError):
             QuickAction(id="", label="x", icon="bi-x", href="/x/")
