@@ -515,7 +515,13 @@ class SiteSettings(models.Model):
                         continue
                     field_names.append(key)
                     seen.add(key)
-            except (AttributeError, ImportError, TypeError, ValueError):
+            except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
+                # DatabaseError included so a degraded/aborted connection (e.g. a
+                # poisoned RLS transaction upstream, missing table on a non-tenant
+                # host, or lock contention) falls back to column-derived field
+                # names instead of escaping — matching owned_payload() below and
+                # the platform-wide convention of catching DatabaseError at
+                # RuntimeDefaults.get_singleton() lookups.
                 pass
         else:
             for key, dom in EXACT_FIELD_OWNERS.items():
@@ -537,7 +543,9 @@ class SiteSettings(models.Model):
                         continue
                     field_names.append(key)
                     seen.add(key)
-            except (AttributeError, ImportError, TypeError, ValueError):
+            except (AttributeError, DatabaseError, ImportError, TypeError, ValueError):
+                # See note above: DatabaseError included so a degraded/aborted
+                # connection degrades gracefully instead of escaping this read.
                 pass
         return field_names
 
