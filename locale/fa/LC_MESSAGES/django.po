@@ -44930,3 +44930,183 @@ msgstr ""
 
 msgid "Shell skin & nav →"
 msgstr ""
+
+msgid "Agentic"
+msgstr ""
+
+msgid "Agentic insights"
+msgstr ""
+
+msgid "Agentic insights are disabled. Set RMC_AI_AGENTIC_ENABLED to enable."
+msgstr ""
+
+msgid "Agentic layer is off"
+msgstr ""
+
+msgid ""
+"Ask a governance / compliance question. Answers are grounded in this "
+"country's governance matrix — no AI generation, no external call."
+msgstr ""
+
+msgid "Ask for a read-only insight"
+msgstr ""
+
+msgid "Audit id"
+msgstr ""
+
+msgid "Available read-only actions"
+msgstr ""
+
+msgid "Change summary"
+msgstr ""
+
+msgid "Choose a generator."
+msgstr ""
+
+msgid "Citations"
+msgstr ""
+
+msgid "Class id (optional)"
+msgstr ""
+
+msgid "Collapse navigation to icon rail"
+msgstr ""
+
+msgid "Couldn't map"
+msgstr ""
+
+msgid "Describe it in plain language"
+msgstr ""
+
+msgid "Describe what you want to know"
+msgstr ""
+
+msgid "Draft fields from description"
+msgstr ""
+
+msgid ""
+"Drafted 1 field — review and edit below, then submit the step to save.{% "
+"plural %}Drafted {{ counter }} fields — review and edit below, then submit "
+"the step to save."
+msgstr ""
+
+msgid "Drag, or focus and use arrow keys, to resize navigation"
+msgstr ""
+
+msgid "Error codes (comma-separated)"
+msgstr ""
+
+msgid "Executed"
+msgstr ""
+
+msgid "Feature key"
+msgstr ""
+
+msgid ""
+"Generate draft knowledge-base content from platform evidence. Drafts are for"
+" operator review only — they are never published to tenants."
+msgstr ""
+
+msgid "Help topics from errors"
+msgstr ""
+
+msgid "KB authoring tools"
+msgstr ""
+
+msgid "KB from code change"
+msgstr ""
+
+msgid "KB tools"
+msgstr ""
+
+msgid "No agentic actions recorded yet."
+msgstr ""
+
+msgid "No grounded answer"
+msgstr ""
+
+msgid ""
+"No read-only action matched. Try mentioning attendance, fees, or an "
+"announcement draft."
+msgstr ""
+
+msgid "No read-only actions are bridged."
+msgstr ""
+
+msgid "No topics — enter one or more error codes."
+msgstr ""
+
+msgid "Operator runbook"
+msgstr ""
+
+msgid ""
+"Phase 1 — read-only. The assistant proposes read-only actions; you run one "
+"explicitly. Nothing here can send, change, or delete data. Every attempt is "
+"audited."
+msgstr ""
+
+msgid "Policy copilot"
+msgstr ""
+
+msgid "Propose"
+msgstr ""
+
+msgid "Proposed help topics"
+msgstr ""
+
+msgid "Proposed read-only actions"
+msgstr ""
+
+msgid "Recent audit (read-only, PII-free)"
+msgstr ""
+
+msgid "Release note"
+msgstr ""
+
+msgid "Route (optional)"
+msgstr ""
+
+msgid "Run (read-only)"
+msgstr ""
+
+msgid ""
+"Set the platform flag to enable read-only agentic insights. This surface "
+"stays inert until then."
+msgstr ""
+
+msgid "Super"
+msgstr ""
+
+msgid "Tenant guide"
+msgstr ""
+
+msgid "That action is not a Phase-1 read-only action."
+msgstr ""
+
+msgid ""
+"The assistant couldn't draft fields from that — fill them in manually below."
+msgstr ""
+
+msgid "Tools"
+msgstr ""
+
+msgid ""
+"Type what you want in your own words; the assistant drafts the fields below."
+" You review and edit before saving — nothing is saved until you submit the "
+"step."
+msgstr ""
+
+msgid "also requires"
+msgstr ""
+
+msgid "draft (not tenant-visible)"
+msgstr ""
+
+msgid "e.g. Can we store student biometrics?"
+msgstr ""
+
+msgid "e.g. attendance summary for a class, or outstanding fees"
+msgstr ""
+
+msgid "evidence doc(s)"
+msgstr ""

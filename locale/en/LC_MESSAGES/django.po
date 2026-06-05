@@ -50615,3 +50615,201 @@ msgstr "Save cockpit shell settings"
 
 msgid "Shell skin & nav →"
 msgstr "Shell skin & nav →"
+
+msgid "Agentic"
+msgstr "Agentic"
+
+msgid "Agentic insights"
+msgstr "Agentic insights"
+
+msgid "Agentic insights are disabled. Set RMC_AI_AGENTIC_ENABLED to enable."
+msgstr "Agentic insights are disabled. Set RMC_AI_AGENTIC_ENABLED to enable."
+
+msgid "Agentic layer is off"
+msgstr "Agentic layer is off"
+
+msgid ""
+"Ask a governance / compliance question. Answers are grounded in this "
+"country's governance matrix — no AI generation, no external call."
+msgstr ""
+"Ask a governance / compliance question. Answers are grounded in this "
+"country's governance matrix — no AI generation, no external call."
+
+msgid "Ask for a read-only insight"
+msgstr "Ask for a read-only insight"
+
+msgid "Audit id"
+msgstr "Audit id"
+
+msgid "Available read-only actions"
+msgstr "Available read-only actions"
+
+msgid "Change summary"
+msgstr "Change summary"
+
+msgid "Choose a generator."
+msgstr "Choose a generator."
+
+msgid "Citations"
+msgstr "Citations"
+
+msgid "Class id (optional)"
+msgstr "Class id (optional)"
+
+msgid "Collapse navigation to icon rail"
+msgstr "Collapse navigation to icon rail"
+
+msgid "Couldn't map"
+msgstr "Couldn't map"
+
+msgid "Describe it in plain language"
+msgstr "Describe it in plain language"
+
+msgid "Describe what you want to know"
+msgstr "Describe what you want to know"
+
+msgid "Draft fields from description"
+msgstr "Draft fields from description"
+
+msgid ""
+"Drafted 1 field — review and edit below, then submit the step to save.{% "
+"plural %}Drafted {{ counter }} fields — review and edit below, then submit "
+"the step to save."
+msgstr ""
+"Drafted 1 field — review and edit below, then submit the step to save.{% "
+"plural %}Drafted {{ counter }} fields — review and edit below, then submit "
+"the step to save."
+
+msgid "Drag, or focus and use arrow keys, to resize navigation"
+msgstr "Drag, or focus and use arrow keys, to resize navigation"
+
+msgid "Error codes (comma-separated)"
+msgstr "Error codes (comma-separated)"
+
+msgid "Executed"
+msgstr "Executed"
+
+msgid "Feature key"
+msgstr "Feature key"
+
+msgid ""
+"Generate draft knowledge-base content from platform evidence. Drafts are for"
+" operator review only — they are never published to tenants."
+msgstr ""
+"Generate draft knowledge-base content from platform evidence. Drafts are for"
+" operator review only — they are never published to tenants."
+
+msgid "Help topics from errors"
+msgstr "Help topics from errors"
+
+msgid "KB authoring tools"
+msgstr "KB authoring tools"
+
+msgid "KB from code change"
+msgstr "KB from code change"
+
+msgid "KB tools"
+msgstr "KB tools"
+
+msgid "No agentic actions recorded yet."
+msgstr "No agentic actions recorded yet."
+
+msgid "No grounded answer"
+msgstr "No grounded answer"
+
+msgid ""
+"No read-only action matched. Try mentioning attendance, fees, or an "
+"announcement draft."
+msgstr ""
+"No read-only action matched. Try mentioning attendance, fees, or an "
+"announcement draft."
+
+msgid "No read-only actions are bridged."
+msgstr "No read-only actions are bridged."
+
+msgid "No topics — enter one or more error codes."
+msgstr "No topics — enter one or more error codes."
+
+msgid "Operator runbook"
+msgstr "Operator runbook"
+
+msgid ""
+"Phase 1 — read-only. The assistant proposes read-only actions; you run one "
+"explicitly. Nothing here can send, change, or delete data. Every attempt is "
+"audited."
+msgstr ""
+"Phase 1 — read-only. The assistant proposes read-only actions; you run one "
+"explicitly. Nothing here can send, change, or delete data. Every attempt is "
+"audited."
+
+msgid "Policy copilot"
+msgstr "Policy copilot"
+
+msgid "Propose"
+msgstr "Propose"
+
+msgid "Proposed help topics"
+msgstr "Proposed help topics"
+
+msgid "Proposed read-only actions"
+msgstr "Proposed read-only actions"
+
+msgid "Recent audit (read-only, PII-free)"
+msgstr "Recent audit (read-only, PII-free)"
+
+msgid "Release note"
+msgstr "Release note"
+
+msgid "Route (optional)"
+msgstr "Route (optional)"
+
+msgid "Run (read-only)"
+msgstr "Run (read-only)"
+
+msgid ""
+"Set the platform flag to enable read-only agentic insights. This surface "
+"stays inert until then."
+msgstr ""
+"Set the platform flag to enable read-only agentic insights. This surface "
+"stays inert until then."
+
+msgid "Super"
+msgstr "Super"
+
+msgid "Tenant guide"
+msgstr "Tenant guide"
+
+msgid "That action is not a Phase-1 read-only action."
+msgstr "That action is not a Phase-1 read-only action."
+
+msgid ""
+"The assistant couldn't draft fields from that — fill them in manually below."
+msgstr ""
+"The assistant couldn't draft fields from that — fill them in manually below."
+
+msgid "Tools"
+msgstr "Tools"
+
+msgid ""
+"Type what you want in your own words; the assistant drafts the fields below."
+" You review and edit before saving — nothing is saved until you submit the "
+"step."
+msgstr ""
+"Type what you want in your own words; the assistant drafts the fields below."
+" You review and edit before saving — nothing is saved until you submit the "
+"step."
+
+msgid "also requires"
+msgstr "also requires"
+
+msgid "draft (not tenant-visible)"
+msgstr "draft (not tenant-visible)"
+
+msgid "e.g. Can we store student biometrics?"
+msgstr "e.g. Can we store student biometrics?"
+
+msgid "e.g. attendance summary for a class, or outstanding fees"
+msgstr "e.g. attendance summary for a class, or outstanding fees"
+
+msgid "evidence doc(s)"
+msgstr "evidence doc(s)"
