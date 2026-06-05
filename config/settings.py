@@ -3008,6 +3008,16 @@ REQUEST_TIMEOUT_SECONDS = (
     0 if RUNNING_TESTS else int(os.getenv("REQUEST_TIMEOUT_SECONDS", "120"))
 )
 
+# Quarterly security-posture review NAG (SecurityPostureReviewMiddleware soft-
+# redirects authenticated users to the review page once per session when a review
+# is due). Disabled under the test runner: it is a cross-cutting UX prompt that
+# otherwise hijacks the FIRST authenticated request of any test to the review
+# page (test users always have "review due" — no prior acknowledgement),
+# breaking ~128 unrelated studio_os / schools / marketplace tests with 302s.
+# The review evaluation FUNCTION and acknowledgement VIEW remain fully testable
+# directly; a test that needs the nag can re-enable via override_settings.
+SECURITY_POSTURE_REVIEW_NAG_ENABLED = not RUNNING_TESTS
+
 # --- AI Gateway (RunMyCampus Open-Source AI Adoption Blueprint) ---
 # All product AI goes through services.ai_gateway. No browser calls Ollama/vLLM/LiteLLM directly.
 # In-product chat (general_chat): Ollama + rules only — Google Gemini removed; see docs/OLLAMA_OPERATIONS_AND_UPDATES.md.

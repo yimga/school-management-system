@@ -31,6 +31,14 @@ class SecurityPostureReviewMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        from django.conf import settings
+
+        # Disabled under the test runner (settings flag) so this cross-cutting
+        # quarterly nag does not hijack the first authenticated request of every
+        # unrelated test to the review page. See SECURITY_POSTURE_REVIEW_NAG_ENABLED.
+        if not getattr(settings, "SECURITY_POSTURE_REVIEW_NAG_ENABLED", True):
+            return self.get_response(request)
+
         user = getattr(request, "user", None)
         if (
             getattr(user, "is_authenticated", False)
