@@ -1,12 +1,12 @@
 {
-  "date": "2026-06-02",
-  "generated_at": "2026-06-05T15:46:06+00:00",
+  "date": "2026-06-05",
+  "generated_at": "2026-06-05T22:55:32+00:00",
   "major": 4,
   "minor": 2,
-  "patch": 7,
-  "raw": "sms-v4.02.7-nav-sidebar-integrity-2026-06-02",
+  "patch": 19,
+  "raw": "sms-v4.02.19-cockpit-v8-completion-2026-06-05",
   "reason": null,
   "rule": "static/js/service-worker.js CACHE_VERSION must match sms-vMAJOR.MINOR.PATCH[-slug]-YYYY-MM-DD and only move forward",
-  "slug": "nav-sidebar-integrity",
+  "slug": "cockpit-v8-completion",
   "valid": true
 }

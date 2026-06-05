@@ -680,9 +680,15 @@ def cockpit_context(request) -> dict[str, Any]:
                 "cards": _resolve_pulse_cards_safely(),
             },
             "workspace_context": {
-                "enabled": False,
+                # v8 reference shows the operator workspace block at the sidebar
+                # top (identity + collapse). Enabled by default to match the
+                # reference; fully operator-configurable via the cockpit payload.
+                # scope_dropdown stays off until a tenant-scope switcher handler
+                # ships (data-rmc-tenant-scope-trigger has no JS yet — a dead
+                # button would be worse than omitting it).
+                "enabled": True,
                 "show_role": True,
-                "scope_dropdown": True,
+                "scope_dropdown": False,
                 "collapse_toggle": True,
                 "scope_label": _("All tenants · Global"),
             },

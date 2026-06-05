@@ -268,7 +268,10 @@
       {% include "partials/control_plane_unified_header.html" %}
     </header>
     {% else %}
-    <div class="tp-header" data-rmc-tenant-header-100x="1">
+    {% comment %} Scope Bootstrap dark tokens onto the tenant header when the cockpit skin
+       is dark, so BS components (buttons/dropdowns/forms) inside the header flip too —
+       mirrors the tenant sidebar scoping. CONFIGURABLE via cockpit_shell.skin. {% endcomment %}
+    <div class="tp-header" data-rmc-tenant-header-100x="1"{% if cockpit_shell.skin == 'dark' and request.public_host_kind != 'manager' %} data-bs-theme="dark"{% endif %}>
       {% block portal_shell_header_ticker_tenant %}
         {% comment %}v4.01.43: Tier-2 LIVE banner embedded in header on role-home landings only.{% endcomment %}
         {% if tenant_role_home_landing and request.public_host_kind != 'manager' %}

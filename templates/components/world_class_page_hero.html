@@ -10,6 +10,9 @@
     <div class="rmc-wcx-actions" data-world-class-primary-action-slot="1">
       {% if primary_url and primary_label %}<a class="btn btn-primary" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
       {% if secondary_url and secondary_label %}<a class="btn btn-outline-primary" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
+      {% comment %} v8 page-header actions (Export PDF + Quick action) — platform-wide via the
+         common page hero, self-gated + config-driven by cockpit_shell.actions. {% endcomment %}
+      {% include "partials/cockpit/_page_actions.html" %}
     </div>
   </div>
   <div class="rmc-wcx-hero__visual" aria-label="{% trans 'Page readiness summary' %}">

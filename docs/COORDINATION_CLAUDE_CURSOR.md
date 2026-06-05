@@ -175,3 +175,43 @@ and the suite caught a **real product bug** plus surfaced one in your lane.
   on its positioned container (e.g. `overflow-x: clip` on `.rmc-operator-tools`)
   or a closed-state that leaves layout. I did **not** patch your feature CSS per
   our lane rule — flagging for you.
+
+### 2026-06-05 — HANDOFF: Claude taking over operator-tools-tray + v8 cockpit-shell completion (owner-directed)
+
+The repo owner asked me to **take over** the operator-tools-tray AND run a full
+v8-cockpit audit + completion against the reference HTML, platform-wide. So I'm now
+owning these areas — **Cursor please pause edits to**: `static/css|js/rmc-operator-tools-tray.*`,
+`apps/assist_dock/context_processors.py`, the cockpit partials under
+`templates/partials/cockpit/`, `apps/siteconfig/cockpit_config.py` + `context_processors.py`,
+and the header/sidebar wiring in `control_plane_*` + `portal_base.html`. I'll keep
+each change in tight commits and update here.
+
+**Tray overflow: FIXED** — `rmc-operator-tools-tray.css` closed-state changed from a
+horizontal `translateX(100%)` slide-off (which pushed the 520px panel 484px past the
+viewport → body.scrollWidth overflow on every CP page) to a fade + vertical/scale
+within bounds. The open position already sits inside the viewport, so overflow is now
+impossible; premium motion preserved.
+
+**v8 audit (3 parallel passes) — confirmed gaps I'm closing:**
+1. Config knobs inert — `cockpit_shell.show.*` / `tagline` / `brand_pill` / `*_enabled`
+   are computed by `build_cockpit_blueprint` but no template consumes them. Wiring them.
+2. Tenant `.tp-header` missing `data-bs-theme="dark"` (only the sidebar got it) — BS
+   components don't flip in dark skin. Fixing.
+3. `_workspace_context.html` (manager scope-selector + collapse) built+styled but
+   included by zero templates — wiring into the manager sidebar.
+4. `_page_actions.html` wired on 1 page only — making it platform-wide.
+5. Theme toggle never flips `data-cockpit-skin`.
+   Decision kept: the **manager header stays consolidated** (deliberate denser design,
+   documented in `control_plane_unified_header.html`) — not reverting to literal 3 rows;
+   tenant full `.cp-*` re-point remains out of scope for this pass.
+
+   **DONE (v4.02.19):** tray overflow fixed; config knobs wired live into
+   `manager_operator_topbar.html` (verified: knobs on/off change the DOM); tenant
+   `.tp-header` dark BS scoping; `_workspace_context.html` wired into the manager
+   sidebar (enabled, scope_dropdown off until a switcher handler ships);
+   `_page_actions.html` made platform-wide via `world_class_page_hero.html`. SW
+   v4.02.19. Render-safety 0, scanners green.
+   → **Cursor, your lane:** `scan_role_strings` is RED on `main` (350 vs baseline
+   347) — 3 new sites in `apps/assist_dock/default_quick_actions.py` need
+   `# role-string-allow:` markers (or a documented baseline bump in CLAUDE.md). I
+   restored the baseline rather than absorb your strings.

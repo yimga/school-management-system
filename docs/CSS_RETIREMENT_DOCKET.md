@@ -1,6 +1,56 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-05 (v4.02.6 — platform wave close-out: ships the accumulated uncommitted tree — Agentic Phase-1, wizard NL-intake, Operator Tools Tray, Nav Sidebar, fractional capacity, scheduling DB-conflict constraints, governance verifiers).
+**Last updated:** 2026-06-05 (v4.02.19 — v8 cockpit completion: operator-tools-tray overflow fix + audit-gap closures).
+
+## 2026-06-05 — v4.02.19 — v8 cockpit completion (took over operator-tools-tray + closed audit gaps)
+
+Owner-directed: took over the operator-tools-tray from the parallel Cursor agent and ran a full v8-cockpit audit (3 parallel passes) against the reference `rmc-shell-preview-v8-200x.html`, then closed the real gaps.
+
+| Item | Detail |
+|---|---|
+| **Tray overflow — FIXED** | `rmc-operator-tools-tray.css`: closed-state changed from a horizontal `translateX(100%+12px)` slide-off (pushed the 520px panel ~484px past the viewport → `body.scrollWidth` overflow on every control-plane page) to a fade + `translateY/scale` within the horizontal bounds. The open position already sits inside the viewport, so overflow is now structurally impossible; premium open/close motion preserved. |
+| **Configurability made live** | The blueprint computed `cockpit_shell.{tagline,brand_pill,search_enabled,presence_enabled,live_ticker_enabled,show.*}` but **no template consumed them**. Wired them into `manager_operator_topbar.html` (brand pill, tagline, search, presence, config chip, bell, ticker) with an `or not cockpit_shell` safety fallback. Verified live: rendering with knobs on vs off changes the DOM (search/bell/tagline appear/disappear). |
+| **Tenant dark header** | `portal_base.html`: `.tp-header` now gets `data-bs-theme="dark"` when `cockpit_shell.skin == 'dark'` (mirrors the sidebar) so Bootstrap components in the tenant header flip in dark skin. |
+| **Workspace-context wired** | `_workspace_context.html` (operator identity + collapse) was built+styled but included by zero templates — now included at the top of `control_plane_sidebar.html`; `cockpit_context.py` default `enabled=True` (scope_dropdown left off until a scope-switch handler ships — no dead button). |
+| **Page-actions platform-wide** | `_page_actions.html` (Export PDF + Quick action) was on one page only; now included in the common `world_class_page_hero.html` actions slot → platform-wide, self-gated by `cockpit_shell.actions`. `#super-command-center-title` marker preserved. |
+| SW | `v4.02.18` → `v4.02.19`; monotonic OK. |
+
+**Conscious decisions (not regressions):** the manager header stays **consolidated** (deliberate denser band, documented in `control_plane_unified_header.html`) rather than the reference's literal 3 separate rows; the full tenant `.cp-*` chrome re-point remains out of scope; the cockpit **skin** stays server-driven per-surface (dark staff / light family) — "theme mode" is the existing user theme chip; making the skin a user toggle is a product decision. Flagged to Cursor: role-strings gate is red on `main` (350 vs 347) from their `apps/assist_dock/default_quick_actions.py` — needs `# role-string-allow:` markers or a baselined bump.
+
+Validation: render-safety 0/1597 · `manage.py check` 0 · `makemigrations --check` clean · scanners green (off-token/inline-style/undefined-css/theme-locked/theme-attr/assist-dock-offregistry) · SW monotonic OK · header knobs verified live via render test.
+
+## 2026-06-05 — v4.02.18 — Manager /admin/ blank-render fix (assist-dock tray reparent + URL namespace + back-to-top)
+
+## 2026-06-05 — v4.02.18 — Manager /admin/ blank-render fix (assist-dock tray reparent + URL namespace + back-to-top)
+
+**Context:** closes the bug flagged-not-fixed in v4.02.12. Every manager `/admin/` page (e.g. `/admin/accounts/user/`) rendered **blank** in a real browser. Root-caused live (runserver + Playwright, real authenticated manager session): the operator-tools edge-tray JS reparented the **entire `#cp-main-content` canvas into the hidden tray**. Mechanism: the `back-to-top` slot adopts `#back-to-top-btn`, which the back-to-top JS relocates into the canvas scroll container; the tray's `findSlotWrap()` then climbed from that adopted chip to its parent (`#cp-main-content`) and `row.appendChild()` moved the whole page inside `rmc-operator-tools__row` → `__group` → `__groups` (the tray), `visibility:hidden` all the way down.
+
+**What landed:**
+
+| Item | Detail |
+|---|---|
+| Tray JS bulletproofed | `rmc-operator-tools-tray.js`: NEW `isUnmovableHost(el)` (main/body/html, `#content`/`#cp-main-content`/`#content-main`, `.rmc-app-shell*`, `.cp-page-body`, `.cp-admin-canvas-main`, `[data-rmc-cp-scroll]`). `findSlotWrap()` returns the real `.rmc-assist-dock__slot` wrapper or **null** when the only candidate is a layout container (caller then wraps the chip alone — never the canvas). `moveChipToRow()` refuses outright if the resolved chip is itself structural. Defense-in-depth for **every** DOM-adopted slot, not just back-to-top. |
+| back-to-top out of tray | `rmc_operator_tools_page_data.html`: removed `back-to-top` from `groups.actions` — it is a floating corner control (per the registry's own comment), never a tray chip. |
+| assist_dock URLs resolve | `KeyError: 'assist_dock'` was a caught `NoReverseMatch` — the `assist_dock` namespace was registered only in `config.urls`, NOT the host urlconfs, so `resolve_assist_dock_client_urls()` reversed every dock endpoint to `""` on the manager/tenant hosts (dead context/insights/presence/ai-invoke/share/prefs/wave). Added the `assist-dock/` include to **`config.manager_urls`** and **`config.tenant_urls`**. |
+| back-to-top → bottom-right | `cockpit_manager_200x.py` default `back_to_top_corner` `bottom-left`→**`bottom-right`**; NEW `rmc-operator-tools-tray.css` `[data-rmc-back-to-top-corner="bottom-right"]` rule placing it inboard of the vertical Tools edge tab (`right: calc(var(--rmc-operator-tools-tab-w) + edge-right + 0.85rem)`), bottom in the operator-footer band — sits **below** both the edge tab and the open tray, no overlap/bleed. SW `sms-v4.02.18`. |
+
+**Deploy / validation:** `manage.py check` 0 issues; off-token 0 / theme-locked 0 / render-safety 0; SW version gate monotonic OK; `verify_operator_tools_tray.py` OK; `reverse('assist_dock:context')` now resolves on all three urlconfs. **Verified live on the real running admin** (runserver + Playwright, authenticated manager session) across all four surface types — user-list, changelist, changeform, index: content **visible**, `#cp-main-content` **not reparented**, table/form/app-list present, dock context URLs resolve, back-to-top bottom-right (right≈57.6px, bottom≈24.8px). Interaction smoke: edge tab opens the tray (25 chips, 9 working links incl. `/assist-dock/share/`, `/platform-runtime/platform-health/`, `/status/`). assist_dock test suite 295+ pass (residual batch errors are stale-server DB-lock artifacts; all pass in isolation). `index` shows 2 pre-existing dev-only CSP `unsafe-eval` console warnings (unrelated, non-fatal).
+
+## 2026-06-05 — v4.02.12 — Admin full-width operator-workspace (10x)
+
+**Context:** operator screenshots showed the manager Django admin wasting ~40% of wide screens — change forms capped at 1180px with single-column field ladders, and changelists squeezed by the filter rail so columns truncated while space sat empty. Directive: fix everywhere, creatively. Design proven first in `admin_fullwidth_preview.html` (workspace root, 3 iterations), then implemented and verified on the real running admin.
+
+**What landed:**
+
+| Item | Detail |
+|---|---|
+| Form full-width + field grid | `admin-cp-parity.css`: `--rmc-backoffice-form-max` 1180px→**100%**; Unfold `fieldset.module .form-rows`→responsive auto-fit grid (`minmax(min(100%,26rem),1fr)`); textarea/related-widget/multi-field rows span full; inner Unfold border dropped (de-nest). |
+| Canvas caps removed | `admin-manager-shell.css:489` `#content>div/form` `min(1600px,100%)`→**100%**; `phase2-admin-bundle.css:49` index `.cp-admin-index` 960px→none + `.cp-admin-app-list` responsive card grid. |
+| Changelist fills width | `rmc-admin-changelist-live.css`: `.rmc-admin-changelist-main` `flex-basis:0`→`flex:1 1 auto;min-width:0`; filter rail pinned `flex:0 0 auto;width:min(20rem,100%)`. |
+| NEW workspace layer | `rmc-admin-workspace-10x.css` (token-only, light/dark safe): two-pane workspace (form + sticky context rail), **container-query** collapse (against `@container` `cp-page-body`, not the viewport) + `@supports` fallback, validation states (`.form-row.errors`→`var(--danger)`), inline-formset full-width, sticky save bar, changelist paginator/actions polish. |
+| Rail + nav | `templates/admin/change_form.html` wraps form in `.rmc-admin-workspace`; NEW `admin/includes/admin_change_form_rail.html` (on-this-page nav + quick actions); NEW `static/js/rmc-admin-workspace.js` (nav builder + scroll-spy, additive/graceful). Wired in `base_site.html`. SW `sms-v4.02.12`. |
+
+**Deploy / validation:** `manage.py check` 0 issues; off-token 0 / theme-locked 0 / render-safety 0 (baseline 0); subagent audit found no class collisions or regressions. Verified on the REAL manager admin (the app runs locally — workspace-root `.venv`, sqlite, `config.settings`) via the test client (`session["mfa_verified"]=True`, since the manager host gates on MFA) → change form/list/index all 200 with `rmc-admin-workspace`/`rmc-admin-context-rail`/`data-rmc-onthispage`/`premium-form-frame` markers, plus a runserver+Playwright live-DOM diagnostic (`.form-rows`=grid, rail built 7 section links). **Fixed-by-testing:** rail-collapse container-query bug (was viewport-keyed → squeezed the form to ~20px in a narrow canvas); defensive `ImportError` guard in `apps/schools/marketing_geo_context.py::build_geo_context` (a context processor was 500-ing every runserver page on a cold-start partial-import of `apm_primary_static_for_country`). **Pre-existing bug FLAGGED, NOT fixed:** the assist-dock `rmc-operator-tools__tray` wraps + cloaks the whole admin canvas (blank render) + `KeyError: 'assist_dock'` — separate subsystem, needs the owner.
 
 ## 2026-06-05 — v4.02.6 — Platform wave close-out (commit + ship the accumulated tree)
 

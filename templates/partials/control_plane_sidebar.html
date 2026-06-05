@@ -13,6 +13,10 @@
      data-rmc-complete-sidebar="1"
      data-rmc-sidebar-luxury="10x">
 
+  {% comment %} v8 reference: operator workspace block (identity + collapse) at sidebar top.
+     Self-gates on cockpit.workspace_context.enabled (configurable). {% endcomment %}
+  {% include "partials/cockpit/_workspace_context.html" %}
+
   <div class="cp-nav-recent d-none" id="cpNavRecentWrap" aria-hidden="true">
     <span class="cp-sidebar__section">{% trans "Recent" %}</span>
     <ul class="nav flex-column gap-1 ps-0 mt-1" id="cpNavRecentList" aria-label="{% trans 'Recently visited pages' %}"></ul>

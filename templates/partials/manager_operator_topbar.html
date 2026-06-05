@@ -16,11 +16,12 @@
           </span>
         </a>
         {% else %}
-        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" lockup_layout="inline" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=rmc_shell.control_plane_product_subtitle|default:_("Manager") %}
-        {% comment %} v3.55.0: brand tagline under the wordmark/pill. CONFIGURABLE: cockpit.brand.tagline (SiteSettings).
-           Renders only when configured non-empty so existing surfaces aren't visually changed. {% endcomment %}
-        {% if cockpit.brand.tagline %}
-        <span class="rmc-cockpit-tagline cp-brand__tagline">{{ cockpit.brand.tagline }}</span>
+        {% include "components/rmc_brand_mark.html" with size=40 variant="lockup" lockup_layout="inline" href=bm_dashboard_url label="RunMyCampus" wordmark_style="platform" surface_badge=cockpit_shell.brand_pill|default:rmc_shell.control_plane_product_subtitle|default:_("Manager") %}
+        {% comment %} Brand tagline under the wordmark/pill. CONFIGURABLE via the per-surface
+           cockpit_shell.tagline (brand_experience cascade) with legacy cockpit.brand.tagline
+           fallback. Renders only when non-empty so existing surfaces aren't visually changed. {% endcomment %}
+        {% if cockpit_shell.tagline or cockpit.brand.tagline %}
+        <span class="rmc-cockpit-tagline cp-brand__tagline">{{ cockpit_shell.tagline|default:cockpit.brand.tagline }}</span>
         {% endif %}
         {% endif %}
       </div>
@@ -28,6 +29,8 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="rmc-platform-header__toolbar" id="cpNavbarToolbar">
+        {% comment %} Command search — CONFIGURABLE via cockpit_shell.search_enabled (per-surface). {% endcomment %}
+        {% if cockpit_shell.search_enabled or not cockpit_shell %}
         <div class="rmc-platform-header__command d-none d-md-flex" id="cpNavbarContent">
           <div class="cp-header-search cp-topbar-search-wrap position-relative w-100">
             <label class="visually-hidden" for="cpSearchInput">{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans "Search models and records" %}{% else %}{% trans "Search schools and incidents" %}{% endif %}</label>
@@ -36,6 +39,7 @@
             <div id="cpSearchResults" class="dropdown-menu position-absolute start-0 mt-1 shadow cp-search-results-panel cp-search-results-panel--sized" aria-label="{% trans 'Search results' %}"></div>
           </div>
         </div>
+        {% endif %}
           {% if request.user.is_authenticated and SHOW_HEADER_CONTEXT_STRIP %}
           <div class="rmc-platform-header__context d-none d-lg-flex align-items-center" data-rmc-header-context-compact="1">
             {% include "components/header_weather_widget.html" with SHOW_HEADER_CONTEXT_QUOTE=False %}
@@ -43,7 +47,10 @@
           {% endif %}
         <div class="rmc-platform-header__actions" id="cpNavbarActions">
           {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
+          {% comment %} Operator presence — CONFIGURABLE via cockpit_shell.presence_enabled. {% endcomment %}
+          {% if cockpit_shell.presence_enabled or not cockpit_shell %}
           {% include "partials/cockpit/_operator_presence.html" %}
+          {% endif %}
           {% endif %}
           <div class="cp-header-search cp-topbar-search-wrap position-relative d-md-none flex-grow-1 w-100">
             <input type="search" class="cp-topbar-search-input form-control form-control-sm w-100" placeholder="{% trans 'Search…' %}" aria-label="{% trans 'Search' %}" autocomplete="off" data-cp-search-mobile="1">
@@ -68,16 +75,21 @@
             <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" id="cpShowShortcutsHelp" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
               <i class="bi bi-command" aria-hidden="true"></i>
             </button>
-            {% comment %} v4.00.24 Studio chip removed from manager header (Workspace + Cmd+K). {% endcomment %}
+            {% comment %} v4.00.24 Studio chip removed from manager header (Workspace + Cmd+K).
+               Config chip — CONFIGURABLE via cockpit_shell.show.config_chip (per-surface). {% endcomment %}
+            {% if cockpit_shell.show.config_chip or not cockpit_shell %}
             {% if not rmc_shell.manager_header_hide_config_chip %}
             <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-lg-inline-flex" title="{% trans 'Configuration Control Center' %}" data-rmc-header-config-chip="1">
               <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
               <span class="d-none d-xl-inline">{% trans "Config" %}</span>
             </a>
             {% endif %}
+            {% endif %}
             {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
             {% include "components/rmc_operator_workspace_dropdown.html" %}
             {% endif %}
+            {% comment %} Notification bell — CONFIGURABLE via cockpit_shell.show.bell. {% endcomment %}
+            {% if cockpit_shell.show.bell or not cockpit_shell %}
             {% if platform_incidents_url %}
               <a href="{{ platform_incidents_url }}" class="cp-topbar-bell rmc-platform-header__icon-btn" aria-label="{% blocktrans count count=platform_incidents|length %}{{ count }} open incident{% plural %}{{ count }} open incidents{% endblocktrans %}" title="{% trans 'Open incident console' %}">
                 <i class="bi bi-bell" aria-hidden="true"></i>
@@ -89,8 +101,11 @@
                 {% if attention_school_count %}<span class="cp-topbar-bell__badge" aria-hidden="true">{{ attention_school_count }}</span>{% endif %}
               </a>
             {% endif %}
-            {% comment %} v4.01.43: Tier-1 LIVE badge embedded in header utility row (not canvas). {% endcomment %}
+            {% endif %}
+            {% comment %} Tier-1 LIVE badge in header — CONFIGURABLE via cockpit_shell.live_ticker_enabled. {% endcomment %}
+            {% if cockpit_shell.live_ticker_enabled or not cockpit_shell %}
             {% include "partials/cockpit/_activity_ticker_inline.html" %}
+            {% endif %}
             {% comment %} v4.01.43: theme + aesthetic controls moved to user profile dropdown. {% endcomment %}
             {% comment %} v4.02.16: workflow progress chip + inline strip live in Tools tray only. {% endcomment %}
             {% include "components/user_dropdown.html" %}

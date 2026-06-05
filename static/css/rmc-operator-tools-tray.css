@@ -148,7 +148,14 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-assist-dock__backdrop {
   -webkit-backdrop-filter: blur(calc(var(--material-blur, 12px) + 4px));
           backdrop-filter: blur(calc(var(--material-blur, 12px) + 4px));
   overflow: hidden;
-  transform: translateX(calc(100% + 12px));
+  /* Closed state hides via fade + subtle rise/scale (NOT a horizontal slide-off).
+     The open position already sits fully inside the viewport; a translateX(100%)
+     slide-off pushed the 520px panel past the right edge and was counted in
+     body.scrollWidth (horizontal-overflow gate failure on every CP page). Keeping
+     the tray within the horizontal bounds at all times makes overflow impossible
+     while preserving a premium open/close motion. */
+  transform-origin: bottom right;
+  transform: translateY(12px) scale(0.985);
   opacity: 0;
   visibility: hidden;
   transition:
@@ -159,7 +166,7 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-assist-dock__backdrop {
 }
 
 .rmc-operator-tools__tray[aria-hidden="false"] {
-  transform: translateX(0);
+  transform: none;
   opacity: 1;
   visibility: visible;
 }
@@ -404,6 +411,17 @@ body[data-rmc-assist-layout="edge-tray"][data-rmc-back-to-top-corner="bottom-lef
   .back-to-top-btn.rmc-back-to-top {
   right: auto;
   left: max(1rem, env(safe-area-inset-left, 0px));
+}
+
+/* --- Back to top: bottom-right (default v4.02.13). Sits inboard of the
+   vertical Tools edge tab so the two never overlap on the right edge. --- */
+body[data-rmc-assist-layout="edge-tray"][data-rmc-back-to-top-corner="bottom-right"]
+  .back-to-top-btn.rmc-back-to-top {
+  left: auto;
+  right: calc(
+    var(--rmc-operator-tools-tab-w, 44px) +
+      var(--rmc-operator-tools-edge-right, 0px) + 0.85rem
+  );
 }
 
 body[data-rmc-assist-layout="edge-tray"].cp-shell-has-operator-footer
