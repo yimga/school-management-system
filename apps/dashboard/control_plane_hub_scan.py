@@ -23,6 +23,9 @@ _EXTENDS_CP = re.compile(r'extends\s+["\']control_plane_base\.html["\']', re.MUL
 # Intentionally not Phase-7 "full-page dashboard" registry targets.
 EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
     {
+        # AI center operator tool/console pages (no Phase 7 dashboard archetype).
+        "apicenter/super/ai_center_agentic.html",
+        "apicenter/super/ai_center_kb_tools.html",
         "marketplace/blueprint_marketplace.html",
         "marketplace/compatibility_matrix.html",
         "marketplace/monetization_inspector.html",
@@ -51,6 +54,9 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "platform_runtime/platform_health_center.html",
         "platform_runtime/registry_health.html",
         "platform_runtime/workflow_flight_deck.html",
+        # v8 configurable cockpit shell admin/config form — a CRUD/shell config
+        # page, not a Phase 7 dashboard role-home surface, so it stays exempt.
+        "siteconfig/super/cockpit_shell_configure.html",
         "schools/super_advancement_hub.html",
         "schools/super_advancement_phase2_placeholder.html",
         "schools/super_ai_gateway_console.html",
