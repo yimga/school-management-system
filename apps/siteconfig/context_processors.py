@@ -1212,37 +1212,34 @@ def region_settings(request):
             grading_scale = getattr(region, "grading_scale", "default")
             default_language = getattr(region, "default_language", "en")
     except (RegionConfig.DoesNotExist, DatabaseError) as _region_exc:
-        # Either there is no RegionConfig row (fresh tenant) or the DB is
-        # momentarily unavailable (sqlite lock contention during the CI gate's
-        # portal crawl). Fallback is RegionConfig.get_default(), but that does a
-        # get_or_create (a WRITE) which can ITSELF raise DatabaseError under lock
-        # contention. Previously get_default() was called bare inside the
-        # DoesNotExist handler, so that DatabaseError escaped as a 500. Try the
-        # DB default once, but never let a DB error here 500 the page — degrade
-        # to in-memory platform defaults instead.
+        # No RegionConfig row (fresh tenant), or the DB is momentarily
+        # unavailable (sqlite lock contention during the CI gate's portal crawl).
+        # Do NOT call RegionConfig.get_default() here: it does a get_or_create
+        # (a WRITE), and this context processor runs on EVERY request. On a fresh
+        # tenant or under sqlite lock contention that write blocks for the whole
+        # DB busy-timeout, hanging the request to a Gateway Timeout (and earlier
+        # 500ing when the lock raised immediately on /portal/student/onboarding/).
+        # The region here is only needed for display (grading scale / language /
+        # currency), so degrade to in-memory platform defaults — no DB write.
+        # Materializing the GLOBAL RegionConfig row is a seed/migration concern,
+        # not a per-request one.
         if isinstance(_region_exc, DatabaseError):
             _reset_db_state()
-        try:
-            region = RegionConfig.get_default()
-            grading_scale = getattr(region, "grading_scale", "default")
-            default_language = getattr(region, "default_language", "en")
-        except (AttributeError, DatabaseError, TypeError, ValueError):
-            _reset_db_state()
-            _pd = get_platform_defaults(use_db=False)
-            region = SimpleNamespace(
-                code=_pd["region_code"],
-                name="Default",
-                default_currency=_pd["currency"],
-                date_format="YYYY-MM-DD",
-                timezone=_pd["timezone"],
-                default_language="en",
-                grading_scale=_pd["grading_scale"],
-                decimal_separator=".",
-                thousands_separator=",",
-                is_rtl=False,
-            )
-            grading_scale = _pd["grading_scale"]
-            default_language = "en"
+        _pd = get_platform_defaults(use_db=False)
+        region = SimpleNamespace(
+            code=_pd["region_code"],
+            name="Default",
+            default_currency=_pd["currency"],
+            date_format="YYYY-MM-DD",
+            timezone=_pd["timezone"],
+            default_language="en",
+            grading_scale=_pd["grading_scale"],
+            decimal_separator=".",
+            thousands_separator=",",
+            is_rtl=False,
+        )
+        grading_scale = _pd["grading_scale"]
+        default_language = "en"
     if school and not (school.default_region_id):
         grading_scale = (policy.get("grading") or {}).get(
             "grading_scale"
