@@ -427,7 +427,7 @@
 
     {% include "partials/shell_portal_layout_wrap_open.html" %}
         <!-- Sidebar (desktop) - Resizable, collapsible to icon strip -->
-        <div class="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %} col-lg-3 col-xl-2 d-none d-lg-block {% if request.public_host_kind != 'manager' %}rmc-glass-sidebar-shell{% endif %}" id="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %}" data-collapsible="true" data-shell-sidebar="{% if request.public_host_kind == 'manager' %}control-plane{% else %}portal{% endif %}" data-shell-sidebar-mount="desktop"{% if request.public_host_kind == 'manager' %} aria-label="{% trans 'Control plane navigation' %}"{% endif %}>
+        <div class="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %} col-lg-3 col-xl-2 d-none d-lg-block {% if request.public_host_kind != 'manager' %}rmc-glass-sidebar-shell{% endif %}" id="{% if request.public_host_kind == 'manager' %}cp-sidebar-col{% else %}portal-sidebar-col{% endif %}" data-collapsible="true" data-shell-sidebar="{% if request.public_host_kind == 'manager' %}control-plane{% else %}portal{% endif %}" data-shell-sidebar-mount="desktop"{% if request.public_host_kind == 'manager' %} aria-label="{% trans 'Control plane navigation' %}"{% endif %}{% if cockpit_shell.skin == 'dark' and request.public_host_kind != 'manager' %} data-bs-theme="dark"{% endif %}>
           {% if request.public_host_kind == 'manager' %}
           <div class="cp-sidebar-inner cp-sidebar-inner--surface p-2 rounded">
             {% include "partials/control_plane_sidebar.html" %}
