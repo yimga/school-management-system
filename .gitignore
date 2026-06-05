@@ -134,3 +134,6 @@ var/audit-1310-*
 var/single-staff-*
 var/last-test-*
 var/verify-interaction-*
+var/test_*.sqlite3*
+var/*.sqlite3-shm
+var/*.sqlite3-wal
