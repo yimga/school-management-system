@@ -10,6 +10,13 @@ const fs = require('fs');
 const path = require('path');
 const { test, expect } = require('@playwright/test');
 
+// Authenticated control-plane shells hold a persistent workflow-progress SSE
+// (EventSource) open, so the page never reaches 'networkidle' — navigations that
+// waited on it timed out (~30s) and the worker tore down, cascading 'Test ended'
+// into later tests. We navigate on 'domcontentloaded' and rely on the explicit
+// per-surface marker `toBeVisible` waits below to confirm the page rendered.
+const NAV_WAIT_UNTIL = 'domcontentloaded';
+
 const DATE_STAMP = new Date().toISOString().slice(0, 10);
 const OUTPUT_ROOT = path.join(process.cwd(), 'artifacts', 'visual-qa', DATE_STAMP);
 const DEFAULT_USERNAME = process.env.TEST_USERNAME || 'visualqa_admin';
@@ -36,7 +43,7 @@ function tenantPasswordCandidates() {
  */
 async function tryTenantLogin(page, baseUrl, role, username, passwords) {
   for (const pw of passwords) {
-    await page.goto(`${baseUrl}/authentication/login/`, { waitUntil: 'networkidle' });
+    await page.goto(`${baseUrl}/authentication/login/`, { waitUntil: NAV_WAIT_UNTIL });
     const roleSelect = page.locator('select[name="role"]');
     if (await roleSelect.count()) {
       await roleSelect.selectOption(role);
@@ -44,7 +51,7 @@ async function tryTenantLogin(page, baseUrl, role, username, passwords) {
     await page.locator('input[name="username"]').fill(username);
     await page.locator('input[name="password"]').fill(pw);
     await page.getByRole('button', { name: /log in/i }).click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState(NAV_WAIT_UNTIL);
     if (!/\/authentication\/login\/?$/i.test(page.url())) return true;
   }
   return false;
@@ -265,7 +272,7 @@ async function assertVerticalShellScroll(page, label, scrollRootSelector) {
 }
 
 async function captureSurface(page, viewportName, surface, category) {
-  const navOpts = { waitUntil: 'networkidle' };
+  const navOpts = { waitUntil: NAV_WAIT_UNTIL };
   const longTimeoutSlugs = ['setup-studio', 'control-plane-app-catalog'];
   const visibilityTimeout = longTimeoutSlugs.includes(surface.slug) ? 15000 : 5000;
   await page.goto(surface.url, navOpts);
@@ -313,7 +320,7 @@ async function captureSurface(page, viewportName, surface, category) {
 }
 
 async function login(page) {
-  await page.goto(`${MANAGER_BASE_URL}/authentication/login/`, { waitUntil: 'networkidle' });
+  await page.goto(`${MANAGER_BASE_URL}/authentication/login/`, { waitUntil: NAV_WAIT_UNTIL });
   const roleSelect = page.locator('select[name="role"]');
   if (await roleSelect.count()) {
     await roleSelect.selectOption('staff');
@@ -321,7 +328,7 @@ async function login(page) {
   await page.locator('input[name="username"]').fill(DEFAULT_USERNAME);
   await page.locator('input[name="password"]').fill(DEFAULT_PASSWORD);
   await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState(NAV_WAIT_UNTIL);
 
   const stillOnLogin = /\/authentication\/login\/?$/.test(page.url());
   if (stillOnLogin) {
@@ -381,7 +388,7 @@ test.describe('UX visual QA', () => {
       for (const surface of AUTHENTICATED_SCROLL_SURFACES) {
         const longTimeoutSlugs = ['tenant-setup-studio', 'setup-studio', 'manager-tenant-studio'];
         const visibilityTimeout = longTimeoutSlugs.includes(surface.slug) ? 15000 : 5000;
-        await page.goto(`${MANAGER_BASE_URL}${surface.url}`, { waitUntil: 'networkidle' });
+        await page.goto(`${MANAGER_BASE_URL}${surface.url}`, { waitUntil: NAV_WAIT_UNTIL });
         try {
           if (surface.markerSelector) {
             await expect(page.locator(surface.markerSelector).first()).toBeVisible({ timeout: visibilityTimeout });
@@ -452,7 +459,7 @@ test.describe('UX visual QA', () => {
         `Tenant login failed for ${tenantUserTeacher}@${TENANT_BASE_URL}. Seed: seed_render_users / create_teacher_parent_accounts; align ADMIN_PASSWORD.`
       ).toBe(true);
 
-      await page.goto(`${TENANT_BASE_URL}/portal/teacher/`, { waitUntil: 'networkidle' });
+      await page.goto(`${TENANT_BASE_URL}/portal/teacher/`, { waitUntil: NAV_WAIT_UNTIL });
       await expect(page.locator('body')).not.toContainText('Server Error (500)');
       await expect(page.getByText(/workflow|teacher|dashboard|portal/i).first()).toBeVisible({
         timeout: 10000,
@@ -479,7 +486,7 @@ test.describe('UX visual QA', () => {
         `Tenant parent login failed for ${tenantUserParent}. Seed parent demo user; same password as ADMIN_PASSWORD when using seed_render_users.`
       ).toBe(true);
 
-      await page2.goto(`${TENANT_BASE_URL}/portal/parent/`, { waitUntil: 'networkidle' });
+      await page2.goto(`${TENANT_BASE_URL}/portal/parent/`, { waitUntil: NAV_WAIT_UNTIL });
       await expect(page2.locator('body')).not.toContainText('Server Error (500)');
       await expect(page2.getByText(/parent|home|dashboard|portal|child/i).first()).toBeVisible({
         timeout: 10000,
