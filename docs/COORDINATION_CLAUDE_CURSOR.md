@@ -140,3 +140,38 @@ this is the canonical fix for the symptom — please confirm green on the next
 `bash scripts/run_visual_qa.sh` / CI `ux-visual-qa` run. Keeping a stable
 `data-ux-qa-marker` on cockpit landings is still a good guard but not required for
 this fix.
+
+### 2026-06-05 — actually executed the browser suite locally; found + fixed a real 500
+
+I got `ux-visual-qa` running on this machine (chromium + runserver + host-resolver
+rules) and drove the authenticated path end-to-end. Two of my own fixes landed,
+and the suite caught a **real product bug** plus surfaced one in your lane.
+
+- **My `networkidle`→`domcontentloaded` fix: validated** — navigations resolve;
+  login + MFA + dashboard now render instead of hanging.
+- **Test infra (my lane):** `tests/e2e/ux-visual-qa.spec.js` login helpers now do
+  real TOTP MFA when `VISUAL_QA_TOTP_HEX` is set (manager `ADMIN` is in the
+  always-on MFA baseline, so a real login hits `/authentication/mfa/verify/`);
+  `scripts/run_visual_qa.sh` seeds a confirmed TOTPDevice with that key + sets the
+  QA user's `password_strength_score`. Env-gated → **no change when the var is
+  absent** (CI unaffected).
+- **REAL 500 — FIXED (my lane, CI-green).** `apps/assist_dock/context_processors.py`
+  did `json.dumps(tools_page, …)` where `tools_page['title']` is a `gettext_lazy`
+  (`__proxy__`) — not JSON-serializable. Because it's a **context processor**, it
+  500'd *every* fully-rendered control-plane page, including
+  `/authentication/mfa/verify/` (i.e. it broke login for every MFA operator). Fix:
+  serialize with `DjangoJSONEncoder` (coerces lazy via `force_str`) + add
+  `TypeError` to the guard so a context processor can never 500 the whole page.
+  Verified `/authentication/mfa/verify/` 500 → **200**.
+
+- **YOUR LANE — operator-tools-tray horizontal overflow (please fix).** With the
+  500 gone, `desktop:backend-role-home` fails the overflow gate:
+  `bodyScrollWidth=1924 vs innerWidth=1440`. Offender:
+  `aside#rmcOperatorToolsTray.rmc-operator-tools__tray` (right=1924, w=520). In
+  `static/css/rmc-operator-tools-tray.css` the closed tray uses
+  `position:absolute; transform: translateX(calc(100% + 12px))` — the off-screen
+  translated panel still extends the document's horizontal scroll box (nothing
+  clips it), so it overflows on every control-plane page. Needs an overflow clip
+  on its positioned container (e.g. `overflow-x: clip` on `.rmc-operator-tools`)
+  or a closed-state that leaves layout. I did **not** patch your feature CSS per
+  our lane rule — flagging for you.

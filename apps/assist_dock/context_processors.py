@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 import logging
 
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.translation import gettext_lazy as _
 
 from .client_urls import resolve_assist_dock_client_urls
@@ -147,11 +148,22 @@ def assist_dock_context(request) -> dict:
             "urls": resolve_assist_dock_client_urls(request),
         }
         urls = payload.get("urls") or {}
+        tools_page = _safe_tools_tray_page(request)
+        # DjangoJSONEncoder coerces lazy gettext_lazy (__proxy__) values via
+        # force_str — tools_page/urls carry translated labels (e.g. 'title'),
+        # which the stdlib encoder cannot serialize and would 500 every
+        # control-plane page (incl. /authentication/mfa/verify/).
         return {
             "assist_dock": payload,
-            "ASSIST_DOCK_URLS_JSON": json.dumps(urls, separators=(",", ":")),
+            "ASSIST_DOCK_URLS_JSON": json.dumps(
+                urls, cls=DjangoJSONEncoder, separators=(",", ":")
+            ),
+            "tools_tray_page": tools_page,
+            "TOOLS_TRAY_PAGE_JSON": json.dumps(
+                tools_page, cls=DjangoJSONEncoder, separators=(",", ":")
+            ),
         }
-    except (AttributeError, RuntimeError, ValueError) as exc:
+    except (AttributeError, RuntimeError, ValueError, TypeError) as exc:
         logger.debug("assist_dock context processor failed: %s", exc)
         return {"assist_dock": {
             "surface": SURFACE_ANY,
@@ -163,7 +175,17 @@ def assist_dock_context(request) -> dict:
             "version": DOCK_PAYLOAD_VERSION,
             "prefs": {},
             "urls": {},
-        }, "ASSIST_DOCK_URLS_JSON": "{}"}
+        }, "ASSIST_DOCK_URLS_JSON": "{}", "tools_tray_page": {}, "TOOLS_TRAY_PAGE_JSON": "{}"}
+
+
+def _safe_tools_tray_page(request) -> dict:
+    try:
+        from .tools_tray_page_context import build_tools_tray_page_payload
+
+        return build_tools_tray_page_payload(request)
+    except Exception as exc:
+        logger.debug("tools_tray_page payload failed: %s", exc)
+        return {}
 
 
 def _safe_get_prefs(request) -> dict:

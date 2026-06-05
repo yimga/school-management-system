@@ -80,7 +80,22 @@ user.role = "ADMIN"
 user.is_staff = True
 user.is_superuser = True
 user.set_password(password)
+user.password_strength_score = 100
 user.save()
+
+# Optional: when VISUAL_QA_TOTP_HEX is set, seed a confirmed TOTP device so the
+# Playwright login helper can satisfy the always-on MFA baseline for ADMIN
+# (apps/accounts/mfa_defaults.py) by computing codes from the same hex key.
+# Absent the env, MFA is left to the environment (e.g. CI) — unchanged behavior.
+_totp_hex = (os.environ.get("VISUAL_QA_TOTP_HEX") or "").strip()
+if _totp_hex:
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    TOTPDevice.objects.filter(user=user).delete()
+    TOTPDevice.objects.create(
+        user=user, name="visualqa", key=_totp_hex, step=30, digits=6, confirmed=True
+    )
+    print(f"visual_qa: seeded confirmed TOTP device for {username}")
 PY
 
 "${PYTHON_CMD}" - <<PY

@@ -34,6 +34,40 @@ function tenantPasswordCandidates() {
   return ['Test1234', 'changeme'];
 }
 
+// MFA (TOTP) support. The manager ADMIN role is in the always-on MFA baseline
+// (apps/accounts/mfa_defaults.py), so a real login lands on
+// /authentication/mfa/verify/. When VISUAL_QA_TOTP_HEX is set (run_visual_qa.sh
+// seeds a confirmed TOTPDevice with that hex key), the login helpers compute and
+// submit the current 6-digit code. Absent the env (e.g. CI that disables MFA),
+// this is a no-op and login behavior is unchanged.
+const crypto = require('crypto');
+function _totpNow(hexKey, step = 30, digits = 6) {
+  const counter = Math.floor(Date.now() / 1000 / step);
+  const buf = Buffer.alloc(8);
+  buf.writeBigUInt64BE(BigInt(counter));
+  const hmac = crypto.createHmac('sha1', Buffer.from(hexKey, 'hex')).update(buf).digest();
+  const off = hmac[hmac.length - 1] & 0xf;
+  const bin =
+    ((hmac[off] & 0x7f) << 24) |
+    ((hmac[off + 1] & 0xff) << 16) |
+    ((hmac[off + 2] & 0xff) << 8) |
+    (hmac[off + 3] & 0xff);
+  return String(bin % 10 ** digits).padStart(digits, '0');
+}
+async function completeMfaIfPresent(page) {
+  const hexKey = (process.env.VISUAL_QA_TOTP_HEX || '').trim();
+  if (!hexKey) return;
+  if (!/\/authentication\/mfa\/verify\//.test(page.url())) return;
+  const tokenField = page.locator('input[name="token"]');
+  if (!(await tokenField.count())) return;
+  await tokenField.fill(_totpNow(hexKey));
+  await page
+    .getByRole('button', { name: /verify and continue|verify|continue/i })
+    .first()
+    .click();
+  await page.waitForLoadState(NAV_WAIT_UNTIL);
+}
+
 /**
  * @param {import('@playwright/test').Page} page
  * @param {string} baseUrl
@@ -52,6 +86,7 @@ async function tryTenantLogin(page, baseUrl, role, username, passwords) {
     await page.locator('input[name="password"]').fill(pw);
     await page.getByRole('button', { name: /log in/i }).click();
     await page.waitForLoadState(NAV_WAIT_UNTIL);
+    await completeMfaIfPresent(page);
     if (!/\/authentication\/login\/?$/i.test(page.url())) return true;
   }
   return false;
@@ -329,6 +364,7 @@ async function login(page) {
   await page.locator('input[name="password"]').fill(DEFAULT_PASSWORD);
   await page.getByRole('button', { name: /log in/i }).click();
   await page.waitForLoadState(NAV_WAIT_UNTIL);
+  await completeMfaIfPresent(page);
 
   const stillOnLogin = /\/authentication\/login\/?$/.test(page.url());
   if (stillOnLogin) {
