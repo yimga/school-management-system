@@ -3,8 +3,10 @@
 import json
 import re
 
+import uuid
+
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
@@ -17,19 +19,35 @@ from apps.platform_runtime.phase_b_domain_snapshots import (
     PHASE_B_SNAPSHOT_DOMAINS,
     sync_phase_b_domain_snapshots_from_site,
 )
+from apps.schools.tests.manager_client import login_manager_control_plane
+
+_MANAGER_HOST = "manager.runmycampus.com"
+_PASSWORD = "testpass123"
 
 
-@override_settings(ALLOWED_HOSTS=["*"])
+@override_settings(
+    ALLOWED_HOSTS=["*", "testserver", "127.0.0.1", "localhost", _MANAGER_HOST],
+    MULTI_TENANT_BASE_DOMAIN="runmycampus.com",
+    SECURE_SSL_REDIRECT=False,
+    SESSION_PINNING_ENABLED=False,
+    OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
+)
 class SuperPhaseBSnapshotDiffViewTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username="phase_b_diff_tester",
-            password="testpass123",
+            username=f"phase_b_diff_tester_{uuid.uuid4().hex[:10]}",
+            password=_PASSWORD,
             is_staff=True,
             is_superuser=True,
         )
-        self.client.force_login(self.user)
-        self.host = "manager.runmycampus.com"
+        self.host = _MANAGER_HOST
+        self.client = Client(HTTP_HOST=_MANAGER_HOST)
+        login_manager_control_plane(
+            self.client,
+            self.user,
+            password=_PASSWORD,
+            host=_MANAGER_HOST,
+        )
         cache.clear()
 
     def test_phase_b_snapshot_diff_summary_table_headings_stable(self):

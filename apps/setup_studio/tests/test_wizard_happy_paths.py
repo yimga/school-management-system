@@ -26,7 +26,134 @@ from django.test import TestCase
 from apps.schools.models import School
 from apps.setup_studio import wizard_engine, wizard_state_resolver
 
+# Python moved the regex parser from the public ``sre_parse`` shim to the
+# private ``re._parser`` module in 3.11+. Import whichever is available so the
+# synthetic-payload generator can build a string that satisfies a step's
+# anchored ``pattern`` validator without an external dependency.
+try:  # Python 3.11+
+    import re._parser as _sre_parse  # type: ignore[import-not-found]
+    import re._constants as _sre_constants  # type: ignore[import-not-found]
+except ImportError:  # pragma: no cover - older interpreters
+    import sre_parse as _sre_parse  # type: ignore[no-redef]
+    import sre_constants as _sre_constants  # type: ignore[no-redef]
+
 _MAX_STEPS = 50
+
+
+def _sample_from_pattern(pattern: str) -> str:
+    """Build the shortest string that satisfies ``pattern`` (anchored match).
+
+    Walks the parsed regex tree and emits one valid character (or the minimum
+    required repetition) per node. Covers the constructs the wizard step
+    validators actually use: literals, character classes (``IN``/ranges),
+    ``{n}`` / ``+`` / ``*`` repeats, subpatterns, branches, and ``^``/``$``
+    anchors. Raises ``ValueError`` on anything it can't synthesize so a new,
+    unsupported pattern fails loudly instead of producing an invalid value.
+    """
+
+    def char_for(category) -> str:
+        mapping = {
+            _sre_constants.CATEGORY_DIGIT: "0",
+            _sre_constants.CATEGORY_WORD: "a",
+            _sre_constants.CATEGORY_SPACE: " ",
+        }
+        if category in mapping:
+            return mapping[category]
+        raise ValueError(f"unsupported regex category {category!r} in {pattern!r}")
+
+    def char_from_in(items) -> str:
+        for op, av in items:
+            if op == _sre_constants.LITERAL:
+                return chr(av)
+            if op == _sre_constants.RANGE:
+                return chr(av[0])
+            if op == _sre_constants.CATEGORY:
+                return char_for(av)
+        raise ValueError(f"cannot synthesize char class {items!r} in {pattern!r}")
+
+    def emit(tokens) -> str:
+        out = []
+        for op, av in tokens:
+            if op in (_sre_constants.AT,):  # anchors ^ $ \b — zero width
+                continue
+            if op == _sre_constants.LITERAL:
+                out.append(chr(av))
+            elif op == _sre_constants.NOT_LITERAL:
+                out.append("a" if chr(av) != "a" else "b")
+            elif op == _sre_constants.IN:
+                # Negated class begins with a NEGATE marker.
+                if av and av[0][0] == _sre_constants.NEGATE:
+                    out.append("a")
+                else:
+                    out.append(char_from_in(av))
+            elif op == _sre_constants.ANY:
+                out.append("a")
+            elif op in (_sre_constants.MAX_REPEAT, _sre_constants.MIN_REPEAT):
+                lo, _hi, sub = av
+                # ``+``/``{n,}`` emit exactly ``lo`` (>=1); ``*``/``?`` (lo==0)
+                # emit one rep so non-empty/required fields still pass.
+                reps = lo if lo > 0 else 1
+                out.append(emit(sub) * reps)
+            elif op == _sre_constants.SUBPATTERN:
+                # av = (group, add_flags, del_flags, subtokens)
+                out.append(emit(av[3]))
+            elif op == _sre_constants.BRANCH:
+                # av = (None, [alt_tokens, ...]) — take the first branch.
+                out.append(emit(av[1][0]))
+            elif op == _sre_constants.GROUPREF:
+                continue
+            else:
+                raise ValueError(f"unsupported regex op {op!r} in {pattern!r}")
+        return "".join(out)
+
+    return emit(_sre_parse.parse(pattern))
+
+
+def _value_for_text_validation(validation: dict) -> str:
+    """Return a string satisfying a text field/step's declared validators.
+
+    The wizard engine routes these rules through ``wizard_validators``:
+    ``pattern`` (anchored ``re.match``), ``email_shape``, ``domain_format``,
+    ``color_hex``, plus length bounds. The synthetic walker must emit a value
+    that passes them, otherwise ``apply_step_answer`` raises ``WizardError``
+    before the state machine can advance. Production wizards are correct — it's
+    the test's payload generator that has to honour each validator.
+    """
+    validation = validation or {}
+
+    if validation.get("color_hex"):
+        return "#4F46E5"
+    if validation.get("domain_format"):
+        return "test.example.com"
+    if validation.get("email_shape"):
+        return "wizard.test@example.com"
+
+    min_len = validation.get("min_length")
+    max_len = validation.get("max_length")
+
+    pattern = validation.get("pattern")
+    if isinstance(pattern, str) and pattern:
+        # Generate the shortest string the (anchored) pattern accepts, then
+        # pad/clamp it into the [min_length, max_length] window if possible.
+        s = _sample_from_pattern(pattern)
+        if isinstance(min_len, int) and len(s) < min_len:
+            # Value too short for min_length — repeat the final char. This only
+            # keeps satisfying the pattern for open-ended classes (``+``/``*``);
+            # fixed-length patterns won't carry a min_length in these wizards.
+            pad_char = s[-1] if s else "0"
+            while len(s) < min_len:
+                s = s + pad_char
+        if isinstance(max_len, int) and len(s) > max_len:
+            s = s[:max_len]
+        return s
+
+    # No pattern: plain text honouring length bounds.
+    s = "test value"
+    if isinstance(min_len, int) and len(s) < min_len:
+        s = s + ("x" * (min_len - len(s)))
+    if isinstance(max_len, int) and len(s) > max_len:
+        s = s[:max_len]
+    return s
 
 
 def _synthesize_field_value(field_def: dict):
@@ -60,12 +187,8 @@ def _synthesize_field_value(field_def: dict):
         return "test.example.com"
     if field_type == "select":
         return "default"
-    # text + long_text + everything else
-    max_len = validation.get("max_length")
-    s = "test value"
-    if isinstance(max_len, int) and len(s) > max_len:
-        s = s[:max_len]
-    return s
+    # text + long_text + everything else — honour declared validators.
+    return _value_for_text_validation(validation)
 
 
 def _synthesize_payload(step) -> dict:
@@ -96,11 +219,9 @@ def _synthesize_payload(step) -> dict:
         return {"value": ["a"]}
 
     if input_type in ("text", "long_text", "rich_select"):
-        max_len = validation.get("max_length")
-        s = "test value"
-        if isinstance(max_len, int) and len(s) > max_len:
-            s = s[:max_len]
-        return {"value": s}
+        # Step-level ``validation`` may declare pattern/email/length rules
+        # (e.g. mfa_setup ``scan_qr`` requires ``^[0-9]{6}$``).
+        return {"value": _value_for_text_validation(validation)}
 
     if input_type == "number":
         return {"value": 1}

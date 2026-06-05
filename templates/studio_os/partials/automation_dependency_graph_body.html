@@ -2,8 +2,8 @@
 {% comment %} v3.54 (2026-05-21, Agent 3): wrap in .rmc-automation-graph-scroll. {% endcomment %}
 {% comment %} overflow-x: auto + overflow-y: visible (NEVER overflow: hidden — v3.27.1 trap). {% endcomment %}
 <div class="studio-os__card py-3 px-3 h-100">
-  {% if graph %}
   <div class="rmc-automation-graph-scroll" role="region" aria-label="{% trans 'Workflow pack dependency graph' %}" tabindex="0">
+    {% if graph %}
     <ul class="list-unstyled mb-0">
       {% for node in graph %}
       <li class="mb-3">
@@ -24,8 +24,8 @@
       </li>
       {% endfor %}
     </ul>
+    {% else %}
+    <p class="text-muted mb-0">{% trans "No workflow packs to show. Seed workflow packs or add active packs in the catalog." %}</p>
+    {% endif %}
   </div>
-  {% else %}
-  <p class="text-muted mb-0">{% trans "No workflow packs to show. Seed workflow packs or add active packs in the catalog." %}</p>
-  {% endif %}
 </div>
