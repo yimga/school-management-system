@@ -166,3 +166,16 @@ body.portal-body-with-layout
   flex-wrap: wrap !important;
   gap: 0.5rem;
 }
+
+/* Marketplace operator workbench: hard horizontal-overflow guard.
+   The governance console root must never exceed the content column width.
+   `overflow-x: clip` (not hidden) keeps the #cp-main-content vertical scroll
+   contract intact — it clips the horizontal axis only and leaves overflow-y
+   visible, so any rogue fixed/min-width descendant cannot push body width. */
+:is(body.control-plane-shell, body.admin-manager-shell, body.manager-portal-bridge)
+  :is(#cp-main-content, #main-content, .cp-page-body, .portal-page-body, .rmc-app-shell__canvas-body)
+  [data-rmc-marketplace-operator-frame="1"] {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}

@@ -124,7 +124,7 @@
 
   {% comment %} Quick-action bar. Single row of operator destinations. {% endcomment %}
   <div class="ds-action-bar d-flex flex-wrap gap-2 mb-4" role="toolbar" aria-label="{% trans 'Operator quick actions' %}">
-    <a href="{{ command_center_url|default:wcx_command_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Queues" %}</a>
+    <a href="{{ command_center_url|default:wcx_command_center_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Command center" %}</a>
     <a href="{% url 'super:billing_dashboard' %}" class="btn btn-outline-secondary btn-sm">{% trans "Billing" %}</a>
     <a href="{% url 'super:migration_cloud' %}" class="btn btn-outline-secondary btn-sm">{% trans "Migration" %}</a>
     <a href="{% url 'super:marketplace_governance' %}" class="btn btn-outline-secondary btn-sm">{% trans "Marketplace" %}</a>
