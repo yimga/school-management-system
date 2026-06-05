@@ -15,6 +15,7 @@ from apps.marketplace.models import (
 )
 from apps.marketplace.services import install_app, submit_marketplace_review
 from apps.schools.models import School
+from apps.schools.tests.manager_client import login_manager_control_plane
 
 
 @override_settings(ALLOWED_HOSTS=["*"], DEBUG=False, SECURE_SSL_REDIRECT=False)
@@ -156,7 +157,10 @@ class MarketplaceGovernanceTests(TestCase):
             status=MarketplaceListing.Status.APPROVED,
             security_review_status=MarketplaceListing.ReviewStatus.APPROVED,
         )
-        self.client.force_login(self.manager)
+        # Manager host reads the manager-named session cookie; force_login only
+        # writes the default cookie, so the install POST would be anonymous (200
+        # via follow to login) and create nothing. Bind the manager session.
+        login_manager_control_plane(self.client, self.manager, password="pass1234")
 
         response = self.client.post(
             reverse("super:app_catalog"),
