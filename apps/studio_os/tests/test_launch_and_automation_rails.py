@@ -5,7 +5,7 @@ visual builder, natural-language workflow, simulation engine.
 """
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import Permission
@@ -197,10 +197,17 @@ class StudioLaunchAndAutomationRailsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "studio-launch-cockpit.css")
 
+    @override_settings(
+        MULTI_TENANT_BASE_DOMAIN="example.test",
+        ALLOWED_HOSTS=["manager.example.test", "example.test", "testserver", "localhost", "127.0.0.1"],
+    )
     def test_launch_infrastructure_pane_carries_request_apply_confirm_for_operator(self):
         """Operator host: 'Request platform apply' confirms before invoking platform action."""
         self.client.force_login(self.user)
         url = reverse("studio_os:launch") + "?pane=infrastructure"
+        # manager.example.test only classifies as the manager host when example.test
+        # is the canonical base domain (public_host_kind matches manager.<base>),
+        # and must be in ALLOWED_HOSTS — both set via override_settings above.
         response = self.client.get(url, HTTP_HOST="manager.example.test")
         self.assertEqual(response.status_code, 200)
         # JS hooks always present (preview is read-only)

@@ -153,6 +153,7 @@ class AIChatConsumer(AsyncWebsocketConsumer):
                 school=school,
                 user_query=message,
                 metadata=extra_md,
+                require_available=False,
             )
             if outcome is None:
                 return None, {"provider": "none", "error": "unavailable"}, "unavailable"

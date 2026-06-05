@@ -21,8 +21,9 @@ jobs:
     # integration classes (the portal-role crawl alone is ~12 min). 35 min was a
     # mid-suite job timeout (GitHub reports it as "cancelled"), NOT a hang (the
     # RequestTimeoutMiddleware deadlock is fixed; 0 Gateway Timeouts now). Give the
-    # serial suite a realistic budget.
-    timeout-minutes: 75
+    # serial suite a realistic budget (75 min still timed out mid-suite; the
+    # reliable runner forbids parallelism, so the full ~10k serial run needs more).
+    timeout-minutes: 110
     steps:
       - uses: actions/checkout@v4
 
