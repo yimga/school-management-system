@@ -16,7 +16,13 @@ on:
 jobs:
   django-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    # The reliable runner forces parallel=0 (config/reliable_test_runner.py), so
+    # the full ~10,168-test suite runs serially on sqlite — including multi-minute
+    # integration classes (the portal-role crawl alone is ~12 min). 35 min was a
+    # mid-suite job timeout (GitHub reports it as "cancelled"), NOT a hang (the
+    # RequestTimeoutMiddleware deadlock is fixed; 0 Gateway Timeouts now). Give the
+    # serial suite a realistic budget.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
 

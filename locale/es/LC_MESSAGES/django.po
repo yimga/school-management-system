@@ -44998,3 +44998,108 @@ msgstr ""
 
 msgid "over-SLA backlog"
 msgstr ""
+
+msgid "By channel & status (7d)"
+msgstr ""
+
+msgid ""
+"Choose how we contact you. Transactional messages (sign-in, security, "
+"billing, and account notices) are always sent regardless of these settings."
+msgstr ""
+
+msgid "Communication preferences"
+msgstr ""
+
+msgid "Delivery-receipt model not loadable in this environment."
+msgstr ""
+
+msgid "Marketing &amp; newsletter email to your account address."
+msgstr ""
+
+msgid "Message delivery receipts"
+msgstr ""
+
+msgid "Message id"
+msgstr ""
+
+msgid "No delivery receipts in the last 7 days."
+msgstr ""
+
+msgid "No failed or undelivered messages recorded."
+msgstr ""
+
+msgid "Pick any step below"
+msgstr ""
+
+msgid "Re-subscribe to email"
+msgstr ""
+
+msgid "Recipient (hash)"
+msgstr ""
+
+msgid "SMS & WhatsApp"
+msgstr ""
+
+msgid ""
+"SMS / WhatsApp / push delivery outcomes reported by providers. Recipients "
+"shown as SHA-256 hashes — never raw numbers. Auto-refreshes every 60 "
+"seconds."
+msgstr ""
+
+msgid "Set up your parent account"
+msgstr ""
+
+msgid "Staff invite emailed to %(email)s. Link: %(url)s"
+msgstr ""
+
+msgid "Subscribed"
+msgstr ""
+
+msgid ""
+"Teacher details (except photo) stay on this device until you reconnect. "
+"Upload photo when online."
+msgstr ""
+
+msgid "Terminal (7d)"
+msgstr ""
+
+msgid ""
+"To stop SMS or WhatsApp messages, reply STOP to any message from us. Reply "
+"START to opt back in. We honour this from the phone itself so no one else "
+"can change it."
+msgstr ""
+
+msgid "Unsubscribe from marketing email"
+msgstr ""
+
+msgid "Unsubscribed"
+msgstr ""
+
+msgid "Visitor check-in saves on this device and syncs when you reconnect."
+msgstr ""
+
+msgid "Volume"
+msgstr ""
+
+msgid "Workflow step map"
+msgstr ""
+
+msgid "Your account has no email address on file."
+msgstr ""
+
+msgid ""
+"Your school created a parent account for you. Choose a password to finish "
+"setting it up — after this you can sign in to follow your child's progress."
+msgstr ""
+
+msgid "reached a final state"
+msgstr ""
+
+msgid "receipts (24h)"
+msgstr ""
+
+msgid "{{ n }} failed / undelivered"
+msgstr ""
+
+msgid "{{ n }} in the last 7 days"
+msgstr ""

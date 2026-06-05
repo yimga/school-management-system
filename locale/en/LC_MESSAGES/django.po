@@ -50456,3 +50456,120 @@ msgstr "or schedule the daily refresh by setting"
 
 msgid "over-SLA backlog"
 msgstr "over-SLA backlog"
+
+msgid "By channel & status (7d)"
+msgstr "By channel & status (7d)"
+
+msgid ""
+"Choose how we contact you. Transactional messages (sign-in, security, "
+"billing, and account notices) are always sent regardless of these settings."
+msgstr ""
+"Choose how we contact you. Transactional messages (sign-in, security, "
+"billing, and account notices) are always sent regardless of these settings."
+
+msgid "Communication preferences"
+msgstr "Communication preferences"
+
+msgid "Delivery-receipt model not loadable in this environment."
+msgstr "Delivery-receipt model not loadable in this environment."
+
+msgid "Marketing &amp; newsletter email to your account address."
+msgstr "Marketing &amp; newsletter email to your account address."
+
+msgid "Message delivery receipts"
+msgstr "Message delivery receipts"
+
+msgid "Message id"
+msgstr "Message id"
+
+msgid "No delivery receipts in the last 7 days."
+msgstr "No delivery receipts in the last 7 days."
+
+msgid "No failed or undelivered messages recorded."
+msgstr "No failed or undelivered messages recorded."
+
+msgid "Pick any step below"
+msgstr "Pick any step below"
+
+msgid "Re-subscribe to email"
+msgstr "Re-subscribe to email"
+
+msgid "Recipient (hash)"
+msgstr "Recipient (hash)"
+
+msgid "SMS & WhatsApp"
+msgstr "SMS & WhatsApp"
+
+msgid ""
+"SMS / WhatsApp / push delivery outcomes reported by providers. Recipients "
+"shown as SHA-256 hashes — never raw numbers. Auto-refreshes every 60 "
+"seconds."
+msgstr ""
+"SMS / WhatsApp / push delivery outcomes reported by providers. Recipients "
+"shown as SHA-256 hashes — never raw numbers. Auto-refreshes every 60 "
+"seconds."
+
+msgid "Set up your parent account"
+msgstr "Set up your parent account"
+
+msgid "Staff invite emailed to %(email)s. Link: %(url)s"
+msgstr "Staff invite emailed to %(email)s. Link: %(url)s"
+
+msgid "Subscribed"
+msgstr "Subscribed"
+
+msgid ""
+"Teacher details (except photo) stay on this device until you reconnect. "
+"Upload photo when online."
+msgstr ""
+"Teacher details (except photo) stay on this device until you reconnect. "
+"Upload photo when online."
+
+msgid "Terminal (7d)"
+msgstr "Terminal (7d)"
+
+msgid ""
+"To stop SMS or WhatsApp messages, reply STOP to any message from us. Reply "
+"START to opt back in. We honour this from the phone itself so no one else "
+"can change it."
+msgstr ""
+"To stop SMS or WhatsApp messages, reply STOP to any message from us. Reply "
+"START to opt back in. We honour this from the phone itself so no one else "
+"can change it."
+
+msgid "Unsubscribe from marketing email"
+msgstr "Unsubscribe from marketing email"
+
+msgid "Unsubscribed"
+msgstr "Unsubscribed"
+
+msgid "Visitor check-in saves on this device and syncs when you reconnect."
+msgstr "Visitor check-in saves on this device and syncs when you reconnect."
+
+msgid "Volume"
+msgstr "Volume"
+
+msgid "Workflow step map"
+msgstr "Workflow step map"
+
+msgid "Your account has no email address on file."
+msgstr "Your account has no email address on file."
+
+msgid ""
+"Your school created a parent account for you. Choose a password to finish "
+"setting it up — after this you can sign in to follow your child's progress."
+msgstr ""
+"Your school created a parent account for you. Choose a password to finish "
+"setting it up — after this you can sign in to follow your child's progress."
+
+msgid "reached a final state"
+msgstr "reached a final state"
+
+msgid "receipts (24h)"
+msgstr "receipts (24h)"
+
+msgid "{{ n }} failed / undelivered"
+msgstr "{{ n }} failed / undelivered"
+
+msgid "{{ n }} in the last 7 days"
+msgstr "{{ n }} in the last 7 days"
