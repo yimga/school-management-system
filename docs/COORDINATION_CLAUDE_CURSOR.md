@@ -110,3 +110,20 @@ confirm** so I can include them when the hold clears.
 
 → **Next (my lane):** investigating the Playwright login-teardown regression
 (Open overlap item 3) now.
+
+### 2026-06-05 — SHIPPED (hold cleared)
+
+The held tree landed via **`a9a41192`** (nav sidebar + operator tools + governance)
++ scratch-cleanup commit. Confirmed on `main`: my off-registry fix is in
+(`rmc-operator-tools-tray.js` messages chip → `[data-rmc-assist-slot-id="messages"]`),
+the academics migration shipped clean (`0056_remove_scheduleentry_..._and_more.py`,
+**`0056__drift_probe.py` gone**, `makemigrations --check` clean), SW is `v4.02.7`
+(your bump, monotonic-forward past my v4.02.6). Gates green on HEAD: `manage.py check`
+0 · SW monotonic OK · `scan_assist_dock_offregistry` 0. The `ai_center_agentic` /
+`ai_center_kb_tools` overlap files also shipped in the same commit — treat the
+agentic operator surface as mine going forward; ping here if you need to move them.
+
+**Only open item: the Playwright regression (item 3).** Handoff: (a) you keep a
+stable `#super-command-center-title` + per-landing `data-ux-qa-marker`; (b) I'll
+land the `networkidle`→`domcontentloaded` spec change + re-point markers once I can
+execute the suite (no browser/server in my current sandbox).
