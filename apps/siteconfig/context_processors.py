@@ -103,11 +103,19 @@ def _get_pinned_sidebar_items(request, all_items):
         prefs_created = False
         if not prefs:
             try:
-                prefs, prefs_created = DashboardUserPreference.objects.get_or_create(
+                prefs = DashboardUserPreference.objects.filter(
                     user=request.user
-                )
+                ).first()
             except DatabaseError:
                 prefs = None
+            # Treat an absent row as first-time so default pins seed for DISPLAY,
+            # but do NOT create it here. A write in this read-path context
+            # processor deadlocks LiveServerTestCase + sqlite (the test holds an
+            # open transaction while the live-server thread's write waits on the
+            # row lock -> 120s request timeout) and hangs fresh-tenant requests
+            # on lock contention. The row is created when the user actually saves
+            # a preference.
+            prefs_created = prefs is None
 
         raw_pinned_ids = (
             getattr(prefs, "pinned_sidebar_items", None) if prefs is not None else None
@@ -362,10 +370,18 @@ def site_settings(request):
             pass
         try:
             default_collapsed = getattr(site, "default_sidebar_collapsed", False)
-            dashboard_pref, _created = DashboardUserPreference.objects.get_or_create(
-                user=user,
-                defaults={"sidebar_collapsed": default_collapsed},
-            )
+            # get-only (no create): a write in this read-path context processor
+            # deadlocks LiveServerTestCase + sqlite and hangs fresh-tenant
+            # requests on lock contention. Fall back to an unsaved instance
+            # carrying the defaults; the row is persisted when the user saves a
+            # preference.
+            dashboard_pref = DashboardUserPreference.objects.filter(
+                user=user
+            ).first()
+            if dashboard_pref is None:
+                dashboard_pref = DashboardUserPreference(
+                    user=user, sidebar_collapsed=default_collapsed
+                )
             theme_pref = (dashboard_pref.theme_preference or "system").lower()
             high_contrast_mode = high_contrast_mode or bool(
                 getattr(dashboard_pref, "high_contrast", False)
