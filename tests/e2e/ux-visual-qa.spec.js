@@ -90,7 +90,11 @@ const PUBLIC_SURFACES = [
 ];
 
 const AUTHENTICATED_SURFACES = [
-  { slug: 'backend-role-home', url: '/authentication/backend/', marker: 'Command center', markerSelector: '[data-luxury-major-contract="1"] h1' },
+  // Operators on the manager host are redirected from /authentication/backend/
+  // to super:dashboard (backend_dashboard view), which renders the visible hero
+  // h1 "Platform Command Center" (#super-command-center-title). The tenant
+  // backend (tenant-backend-role-home, below) renders the luxury page header.
+  { slug: 'backend-role-home', url: '/authentication/backend/', marker: 'Command center', markerSelector: '#super-command-center-title' },
   { slug: 'setup-studio', url: '/siteconfig/guided-onboarding/?embed=1', marker: 'Setup Studio', markerSelector: '[data-ux-qa-marker="setup-studio"]', skipOverflowCheck: true },
   { slug: 'control-plane-app-catalog', url: '/super/marketplace/apps/', marker: 'App catalog', markerSelector: '[data-ux-qa-marker="app-catalog"]' },
 ];

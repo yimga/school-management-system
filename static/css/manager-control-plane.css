@@ -748,6 +748,21 @@ a.cp-queue-card-header:hover {
     grid-template-columns: 1fr !important;
   }
 }
+/* Closed off-canvas-end drawers (Bootstrap .offcanvas.offcanvas-end) sit at
+   transform: translateX(100%) off the right viewport edge while hidden. Because
+   they are position:fixed they escape ancestor overflow-x:clip, so their full
+   width (e.g. 400px) is still counted in document/body scrollWidth — manifesting
+   as a phantom horizontal overflow on every page that mounts one (row-detail and
+   activity drawers on the marketplace governance console, portal row-detail, …).
+   Collapse the *fully closed* drawer to zero width so translateX(100%) resolves
+   to 0px and it contributes nothing to scrollWidth. The :not(.showing):not(.hiding)
+   guard keeps the slide-in / slide-out animation intact (Bootstrap restores the
+   real width the instant either transition class is present). */
+.offcanvas.offcanvas-end:not(.show):not(.showing):not(.hiding) {
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
 /* Mobile/tablet: contain horizontal overflow (E2E viewport 390px and up to 991px) */
 @media (max-width: 991px) {
   body.control-plane-shell { overflow-x: clip; max-width: 100vw; }
