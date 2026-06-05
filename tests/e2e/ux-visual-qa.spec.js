@@ -61,6 +61,9 @@ async function completeMfaIfPresent(page) {
   const tokenField = page.locator('input[name="token"]');
   if (!(await tokenField.count())) return;
   await tokenField.fill(_totpNow(hexKey));
+  // Trust the device so sensitive routes don't re-prompt MFA mid-run.
+  const remember = page.locator('input[name="remember_device"]');
+  if (await remember.count()) await remember.check().catch(() => {});
   await page
     .getByRole('button', { name: /verify and continue|verify|continue/i })
     .first()
