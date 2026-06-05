@@ -61,7 +61,11 @@ jobs:
     env:
       PGCONNECT_TIMEOUT: "15"
       SECRET_KEY: "ci-tenants-rls-not-for-production-64chars________________________________"
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/ci_tenants_rls
+      # Connect as a NON-superuser, NON-BYPASSRLS role. Postgres superusers (and
+      # the default `postgres` service user) bypass RLS unconditionally, so the
+      # default-deny / scoped-visibility tests can only be validated as rls_app.
+      # The role is provisioned in the step below.
+      DATABASE_URL: postgresql://rls_app:rls_app@127.0.0.1:5432/ci_tenants_rls
       USE_DJANGO_TENANTS: "0"
       # DEBUG=1 only so settings computes ssl_require=not DEBUG=False at import time:
       # the CI postgres:15 service offers no SSL, but ssl_require=True forces
@@ -83,6 +87,31 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Provision non-superuser RLS app role + pgvector
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          PSQL="psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 -X -q"
+          # pgvector is an UNTRUSTED extension (superuser-only). Pre-create it as
+          # the postgres superuser in template1 (so the test DB the runner creates
+          # inherits it) and in the maintenance DB, so migration 0123's
+          # `CREATE EXTENSION IF NOT EXISTS vector` is a privilege-free no-op for
+          # the non-superuser app role.
+          $PSQL -d template1 -c "CREATE EXTENSION IF NOT EXISTS vector;"
+          $PSQL -d ci_tenants_rls -c "CREATE EXTENSION IF NOT EXISTS vector;"
+          # Non-superuser, non-BYPASSRLS role that owns the schema so it can run
+          # migrations (incl. FORCE ROW LEVEL SECURITY) yet remains SUBJECT to RLS.
+          $PSQL -d postgres -tc "SELECT 1 FROM pg_roles WHERE rolname='rls_app'" | grep -q 1 \
+            || $PSQL -d postgres -c "CREATE ROLE rls_app LOGIN PASSWORD 'rls_app' NOSUPERUSER NOBYPASSRLS CREATEDB;"
+          # rls_app must own the maintenance DB + public schema to migrate it, and
+          # have createdb (granted above) to build the test database.
+          $PSQL -d postgres -c "ALTER DATABASE ci_tenants_rls OWNER TO rls_app;"
+          $PSQL -d ci_tenants_rls -c "GRANT ALL ON SCHEMA public TO rls_app; ALTER SCHEMA public OWNER TO rls_app;"
+          # template1's public schema owned by rls_app so freshly-created test DBs
+          # let rls_app create tables under PG15's locked-down public-schema rules.
+          $PSQL -d template1 -c "GRANT ALL ON SCHEMA public TO rls_app;"
 
       - name: Apply migrations (incl. RLS policy migrations)
         run: |
