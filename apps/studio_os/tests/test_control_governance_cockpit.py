@@ -67,6 +67,15 @@ class ControlGovernanceCockpitTests(TestCase):
     # ---- 1. Operator can reach control mode and cockpit markers render ----
 
     def test_control_mode_renders_for_operator(self):
+        # This is the "data present" path (see module docstring): seed one
+        # FeatureControlAudit row so the cockpit renders the audit *list* rather
+        # than the honest empty state. The empty-state path is covered separately
+        # by test_audit_list_empty_state_is_honest, which seeds nothing.
+        from apps.siteconfig.models_dashboard import FeatureControlAudit
+
+        FeatureControlAudit.objects.create(
+            user=self.operator, action="save", changes={}
+        )
         self.client.login(username="ctl_cockpit_op", password="x" * 12)
         url = reverse("studio_os:control", urlconf="config.manager_urls")
         resp = self.client.get(url)
