@@ -49,6 +49,30 @@ minimal, already-shipped coordination entries listed below.
    `/authentication/login/`. → If the cockpit shell changed the login page or a
    control-plane shell so it stalls, that is the likely cause; it's in your lane.
 
+   **CLAUDE ROOT-CAUSE (2026-06-05, static analysis — could not run PW headlessly
+   here):** it is NOT a literal login hang. The unauthenticated login page
+   (`auth/manager_login.html` → `control_plane_skeleton.html`) does NOT open the
+   workflow-progress SSE — that `<script>` is inside the `{% if user.is_authenticated %}`
+   block (skeleton L286–301), and the SSE already existed at the last-green commit.
+   The real cause is **item 2**: your cockpit shell changed the rendered H1/markers
+   the spec asserts — `backend-role-home` waits on `#super-command-center-title`
+   (spec L97) and `manager-workflow-packs` waits on the text `Workflow Packs`
+   (L104), each `toBeVisible({timeout:5000})`. When the heading id/text changes,
+   these waits burn the per-test budget; the worker is then torn down and the
+   *next* test's in-flight `locator.fill` / `page.goto` reports `Test ended` — the
+   cascade. Secondary fragility: authenticated manager surfaces hold the
+   workflow-progress SSE open, so `waitUntil:'networkidle'` (spec L384) can also
+   stall on those pages.
+   → **Fix (split):** (a) **Cursor (your lane):** keep a stable
+   `#super-command-center-title` on the `super:dashboard` landing and a stable
+   `data-ux-qa-marker` on each cockpit landing's primary heading (this is the
+   item-2 ask). Once those hooks are stable I'll re-point/verify markers.
+   (b) **Claude (my lane, deferred until I can run PW):** switch authenticated
+   manager-surface `goto` from `networkidle`→`domcontentloaded` + explicit marker
+   wait, so SSE-bearing pages stop stalling navigation. Holding that edit until I
+   can actually execute the suite (no browser/server in my current sandbox) rather
+   than ship an unverified test change to shared `main`.
+
 ## Claude status (latest)
 
 - SODP/offline-depth gate: GREEN.
