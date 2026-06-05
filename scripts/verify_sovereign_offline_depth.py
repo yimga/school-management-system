@@ -40,8 +40,19 @@ def main() -> int:
     oqc = _text("static/js/offline-queue-client.js")
     if "runProcessQueue" not in oqc or "rmc-offline-conflicts-updated" not in oqc:
         findings.append("offline-queue-client must refresh conflict count after process")
-    if "offlineConflictsUrl" not in _text("templates/portal_base.html"):
-        findings.append("portal_base SMS_OFFLINE_CONFIG missing offlineConflictsUrl")
+
+    # The SMS offline config is built server-side by platform_surface_config and
+    # rendered as a JSON island through the rmc_sms_offline_config.html partial that
+    # portal_base includes — it is no longer inline literal JS in portal_base.html
+    # (refactored to "no hardcoded hydrate paths"). Verify the identical end-to-end
+    # wiring at its real source of truth: portal_base mounts the island AND the
+    # surface-config builder emits the keys.
+    portal = _text("templates/portal_base.html")
+    surface = _text("apps/siteconfig/platform_surface_config.py")
+    if "rmc_sms_offline_config.html" not in portal:
+        findings.append("portal_base must include the rmc_sms_offline_config.html offline island")
+    if "offlineConflictsUrl" not in surface:
+        findings.append("platform_surface_config SMS offline config missing offlineConflictsUrl")
 
     status_js = _text("static/js/offline-status-bar.js")
     if "conflictsPortalUrl" not in status_js:
@@ -61,15 +72,14 @@ def main() -> int:
     if form_hits < 20:
         findings.append(f"expected >=20 templates with data-rmc-offline-form (found {form_hits})")
 
-    portal = _text("templates/portal_base.html")
     forms = _text("static/js/rmc-offline-portal-forms.js")
 
     if 'data-rmc-offline-form="field_capture"' not in _text("templates/schoolops/substitute_handover_form.html"):
         findings.append("schoolops substitute_handover missing field_capture")
     if "wireFieldCapture" not in forms:
         findings.append("rmc-offline-portal-forms missing wireFieldCapture")
-    if "deltaEndpointUrl" not in portal or "hydrateEndpoints" not in portal:
-        findings.append("portal_base missing deltaEndpointUrl or hydrateEndpoints")
+    if "deltaEndpointUrl" not in surface or "hydrateEndpoints" not in surface:
+        findings.append("platform_surface_config SMS offline config missing deltaEndpointUrl or hydrateEndpoints")
 
     for needle in (
         "form-draft-save.js",

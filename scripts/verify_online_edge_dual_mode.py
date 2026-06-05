@@ -42,14 +42,22 @@ def main() -> int:
     if "litellm_api_key" not in gw_text and "LITELLM_API_KEY" not in gw_text:
         errors.append("ai_gateway._call_litellm missing litellm API key wiring")
 
+    # The SMS offline config is built server-side by platform_surface_config and
+    # mounted via the rmc_sms_offline_config.html island that portal_base includes
+    # (refactored away from inline literal JS). Verify the wiring at its real SOT:
+    # portal_base mounts the island AND the surface-config builder emits the keys.
     portal = ROOT / "templates/portal_base.html"
     portal_text = portal.read_text(encoding="utf-8")
-    if "deploymentProfile" not in portal_text:
-        errors.append("portal_base SMS_OFFLINE_CONFIG missing deploymentProfile")
-    if "maxQueueItems" not in portal_text:
-        errors.append("portal_base SMS_OFFLINE_CONFIG missing maxQueueItems")
-    if "meshEnabled" not in portal_text:
-        errors.append("portal_base SMS_OFFLINE_CONFIG missing meshEnabled")
+    if "rmc_sms_offline_config.html" not in portal_text:
+        errors.append("portal_base must include the rmc_sms_offline_config.html offline island")
+    surface = ROOT / "apps/siteconfig/platform_surface_config.py"
+    surface_text = surface.read_text(encoding="utf-8") if surface.is_file() else ""
+    if "deploymentProfile" not in surface_text:
+        errors.append("platform_surface_config SMS offline config missing deploymentProfile")
+    if "maxQueueItems" not in surface_text:
+        errors.append("platform_surface_config SMS offline config missing maxQueueItems")
+    if "meshEnabled" not in surface_text:
+        errors.append("platform_surface_config SMS offline config missing meshEnabled")
 
     hub_doc_text = hub_doc.read_text(encoding="utf-8")
     if "mDNS" not in hub_doc_text and "_runmycampus-hub._tcp.local." not in hub_doc_text:
