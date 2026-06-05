@@ -269,10 +269,34 @@ async function captureSurface(page, viewportName, surface, category) {
   const longTimeoutSlugs = ['setup-studio', 'control-plane-app-catalog'];
   const visibilityTimeout = longTimeoutSlugs.includes(surface.slug) ? 15000 : 5000;
   await page.goto(surface.url, navOpts);
-  if (surface.markerSelector) {
-    await expect(page.locator(surface.markerSelector).first()).toBeVisible({ timeout: visibilityTimeout });
-  } else {
-    await expect(page.getByText(surface.marker, { exact: false }).first()).toBeVisible({ timeout: visibilityTimeout });
+  try {
+    if (surface.markerSelector) {
+      await expect(page.locator(surface.markerSelector).first()).toBeVisible({ timeout: visibilityTimeout });
+    } else {
+      await expect(page.getByText(surface.marker, { exact: false }).first()).toBeVisible({ timeout: visibilityTimeout });
+    }
+  } catch (markerErr) {
+    // Marker not found/visible: dump the page's actual landing state so the
+    // failure names what DID render (final URL, title, visible headings, error
+    // banners) instead of just "element not found". Makes marker drift fixable
+    // from the CI log in one run.
+    const diag = await page.evaluate(() => {
+      const vis = (el) => {
+        const r = el.getBoundingClientRect();
+        const s = window.getComputedStyle(el);
+        return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none';
+      };
+      const heads = Array.from(document.querySelectorAll('h1,h2,[data-ux-qa-marker],[id*="title"]'))
+        .filter(vis)
+        .map((el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}="${(el.textContent || '').trim().slice(0, 60)}"`)
+        .slice(0, 8);
+      const body = (document.body.innerText || '').slice(0, 300).replace(/\s+/g, ' ');
+      return { url: location.href, title: document.title, heads, body };
+    }).catch(() => ({ url: 'n/a', title: 'n/a', heads: [], body: 'n/a' }));
+    throw new Error(
+      `[${viewportName}:${surface.slug}] marker not visible (${surface.markerSelector || surface.marker}). ` +
+      `landed url=${diag.url} title="${diag.title}" visibleHeads=[${diag.heads.join(' ; ')}] bodyHead="${diag.body}" :: ${markerErr.message}`
+    );
   }
   await expect(page.locator('body')).not.toContainText('Server Error (500)');
   await expect(page.locator('body')).not.toContainText('Traceback');
@@ -358,10 +382,30 @@ test.describe('UX visual QA', () => {
         const longTimeoutSlugs = ['tenant-setup-studio', 'setup-studio', 'manager-tenant-studio'];
         const visibilityTimeout = longTimeoutSlugs.includes(surface.slug) ? 15000 : 5000;
         await page.goto(`${MANAGER_BASE_URL}${surface.url}`, { waitUntil: 'networkidle' });
-        if (surface.markerSelector) {
-          await expect(page.locator(surface.markerSelector).first()).toBeVisible({ timeout: visibilityTimeout });
-        } else {
-          await expect(page.getByText(surface.marker, { exact: false }).first()).toBeVisible({ timeout: visibilityTimeout });
+        try {
+          if (surface.markerSelector) {
+            await expect(page.locator(surface.markerSelector).first()).toBeVisible({ timeout: visibilityTimeout });
+          } else {
+            await expect(page.getByText(surface.marker, { exact: false }).first()).toBeVisible({ timeout: visibilityTimeout });
+          }
+        } catch (markerErr) {
+          const diag = await page.evaluate(() => {
+            const vis = (el) => {
+              const r = el.getBoundingClientRect();
+              const s = window.getComputedStyle(el);
+              return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none';
+            };
+            const heads = Array.from(document.querySelectorAll('h1,h2,[data-ux-qa-marker],[id*="title"]'))
+              .filter(vis)
+              .map((el) => `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}="${(el.textContent || '').trim().slice(0, 60)}"`)
+              .slice(0, 8);
+            const body = (document.body.innerText || '').slice(0, 300).replace(/\s+/g, ' ');
+            return { url: location.href, title: document.title, heads, body };
+          }).catch(() => ({ url: 'n/a', title: 'n/a', heads: [], body: 'n/a' }));
+          throw new Error(
+            `[${view.name}:${surface.slug}] marker not visible (${surface.markerSelector || surface.marker}). ` +
+            `landed url=${diag.url} title="${diag.title}" visibleHeads=[${diag.heads.join(' ; ')}] bodyHead="${diag.body}" :: ${markerErr.message}`
+          );
         }
         await expect(page.locator('body')).not.toContainText('Server Error (500)');
         await expect(page.locator('body')).not.toContainText('Traceback');
