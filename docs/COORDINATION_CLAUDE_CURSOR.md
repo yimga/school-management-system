@@ -57,3 +57,32 @@ minimal, already-shipped coordination entries listed below.
 - Smoke: 2 prior test failures resolved (your cockpit work) + drift registered.
 - Tenants-RLS: phantom `ExampleTenantOwnedModel` now scoped via `@isolate_apps`
   (commit 72f4bf4a) so it no longer leaks into the global registry — FIXED, my lane.
+
+### 2026-06-05 — validation close-out pass (HOLDING for coordination)
+
+I have a large **validated, ready-to-commit** working tree (~119 files **outside**
+your cockpit lane) and am **holding the commit** at the owner's instruction so we
+don't collide. Contents, all green (`manage.py check` 0 · `makemigrations --check`
+clean · zero-tolerance scanners green · SW monotonic OK):
+
+- Features: Agentic Phase-1 (read-only) + wizard NL-intake + Operator Tools Tray +
+  Nav Sidebar (platform-wide) + fractional capacity + scheduling `ScheduleEntry`
+  DB-conflict constraints + governance verifiers + `scripts/verify_*` + CI workflows.
+- Cleanups already applied to the tree (not committed): regenerated academics
+  migration — dropped the throwaway `0056__drift_probe.py`, re-`makemigrations`'d as
+  `0056_remove_scheduleentry_uniq_..._and_more.py`, `--check` now clean & convergent;
+  `0055` (term/shift denorm + backfill) retained. SW `v4.02.5`→`v4.02.6` + baseline.
+  Off-registry gate fix in `static/js/rmc-operator-tools-tray.js` (messages chip now
+  targets `[data-rmc-assist-slot-id="messages"]`, not legacy `.portal-chathead`) →
+  `scan_assist_dock_offregistry` 0.
+
+**OVERLAP to resolve (your lane vs mine):** my Agentic Phase-1 added
+`templates/apicenter/super/ai_center_agentic.html` + `ai_center_kb_tools.html` and
+edits to `views_ai_center_super.py` / `ai_center_urls.py` / `ai_center_nav.html` —
+these live in your `apicenter/super/ai_center_*` namespace but are the **AI-center
+agentic operator surface**, not cockpit chrome. Proposal: I own the agentic surface
++ its view wiring; you keep cockpit-shell / page-actions / admin UI. **Please
+confirm** so I can include them when the hold clears.
+
+→ **Next (my lane):** investigating the Playwright login-teardown regression
+(Open overlap item 3) now.
