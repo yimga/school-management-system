@@ -59,18 +59,17 @@ COCKPIT_SKINS: tuple[str, ...] = (SKIN_DARK, SKIN_LIGHT, SKIN_AUTO)
 # tenant brand always wins via the *accent* regardless of frame tone. Each is a
 # per-tenant-overridable knob, so a school can flip any surface.
 #
-# DEFAULTS NOTE: only the MANAGER control plane defaults to dark (it has always
-# been dark, and its chrome is the verified .rmc-app-shell). Every tenant-rendered
-# surface defaults to LIGHT so enabling the cockpit skin platform-wide is a no-op
-# for existing tenant portals (brand-wins stays intact). The dark tenant skin is
-# fully built (see rmc-cockpit-skin-v8.css [data-cockpit-skin="dark"] .tp-header)
-# and one admin toggle away per surface in the Cockpit Shell settings — flip a
-# staff surface (backend/teacher/studio) to dark once it's been eyeballed.
+# DEFAULTS: the agreed model — staff/operator surfaces DARK (cockpit frame),
+# family-facing + generic portal LIGHT (brand leads via accent). The dark tenant
+# header is hardened: rmc-cockpit-skin-v8.css re-points the semantic tokens AND
+# the templates scope data-bs-theme="dark" onto .tp-header + the tenant sidebar
+# so Bootstrap components flip too. Every surface is per-tenant overridable in the
+# Cockpit Shell admin settings, so any school can flip its own surfaces back.
 _DEFAULT_SKIN_BY_SURFACE: dict[str, str] = {
     SURFACE_MANAGER: SKIN_DARK,
-    SURFACE_BACKEND: SKIN_LIGHT,
-    SURFACE_TEACHER: SKIN_LIGHT,
-    SURFACE_STUDIO: SKIN_LIGHT,
+    SURFACE_BACKEND: SKIN_DARK,
+    SURFACE_TEACHER: SKIN_DARK,
+    SURFACE_STUDIO: SKIN_DARK,
     SURFACE_PORTAL: SKIN_LIGHT,
     SURFACE_PARENT: SKIN_LIGHT,
     SURFACE_STUDENT: SKIN_LIGHT,
