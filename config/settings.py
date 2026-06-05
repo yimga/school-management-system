@@ -2996,7 +2996,17 @@ EXCHANGE_RATES = {
     "THB": 36,
 }
 # Wall-clock request cap for WSGI (0 = disabled). Rural / high-latency UX; see RequestTimeoutMiddleware.
-REQUEST_TIMEOUT_SECONDS = int(os.getenv("REQUEST_TIMEOUT_SECONDS", "120"))
+# Forced to 0 under the test runner: the middleware runs the view in a
+# ThreadPoolExecutor worker thread, which opens its OWN DB connection. Under a
+# TestCase (single outer atomic transaction) + sqlite (single-writer), that
+# second connection deadlocks against the test's transaction and every request
+# hangs the full timeout (120s) -> Gateway Timeout. This broke the smoke gate's
+# portal-role crawl and the django-tests suite (each hung test blew the 35-min
+# budget -> reported as "cancelled"). Prod (Postgres, no outer test txn) is
+# unaffected; a test that needs the cap can still set it via override_settings.
+REQUEST_TIMEOUT_SECONDS = (
+    0 if RUNNING_TESTS else int(os.getenv("REQUEST_TIMEOUT_SECONDS", "120"))
+)
 
 # --- AI Gateway (RunMyCampus Open-Source AI Adoption Blueprint) ---
 # All product AI goes through services.ai_gateway. No browser calls Ollama/vLLM/LiteLLM directly.
