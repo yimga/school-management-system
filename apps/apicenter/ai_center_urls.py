@@ -15,4 +15,5 @@ urlpatterns = [
     path("faq-candidates/", views.ai_center_faq_candidates, name="ai_center_faq_candidates"),
     path("kb-tools/", views.ai_center_kb_tools, name="ai_center_kb_tools"),
     path("agentic/", views.ai_center_agentic, name="ai_center_agentic"),
+    path("agentic/destructive/", views.ai_center_destructive, name="ai_center_destructive"),
 ]

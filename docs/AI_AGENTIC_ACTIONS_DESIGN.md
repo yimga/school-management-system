@@ -182,11 +182,58 @@ Gate every `impact=mutating` action behind **all** of:
 5. Durable audit row written **before** the runner executes and updated after.
 6. Rate limit + the existing AI budget gate.
 
-### Phase 3 — destructive (high risk) — dual control
-- `impact=destructive` actions require **two distinct approvers** (mirror the
-  existing dual-control pattern used for tenant offboarding / purge), a typed
-  confirm phrase, and a reversal/runbook entry. Default: **not enabled** until a
-  named owner signs off.
+### Phase 3 — destructive (high risk) — dual control — **IMPLEMENTED 2026-06-05**
+- `impact=destructive` actions require **two distinct approvers**, a typed confirm
+  phrase, and a cooling-off TTL. Default: **off** (`RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED`).
+- **As built (owner-approved, all four open decisions accepted):**
+  - **No new delete path.** The sole eligible action `purge_student_record` routes
+    through the existing compliance pipeline: the *request* step creates a PENDING
+    `apps.compliance.models.EraseRequest`; the *approve* step calls
+    `apps.compliance.gdpr_services.fulfill_pending_erasure` (GDPR Art. 17
+    anonymization that preserves referential integrity — not a hard row delete),
+    via `services/ai_agentic_runners_destructive.py` (opt-in, like the mutating
+    siblings). No `Student.objects.delete()` anywhere.
+  - **Dual control.** `services/ai_agentic_service.py::request_destructive_action`
+    (party A) → `approve_destructive_action` (party B). The approver≠requester
+    check is **server-side** (`sha256[:12]` of the user id, compared to the request
+    row's actor hash). `reject_destructive_action` cancels a pending request.
+  - **Typed phrase + expiry.** Both parties type `ERASE <student_id>` (bound to the
+    target, can't be a blind resubmit). Requests expire after 30 min
+    (`_DESTRUCTIVE_REQUEST_TTL_SECONDS`); rate-limited via
+    `RMC_AI_AGENTIC_DESTRUCTIVE_MAX_PER_HOUR` (default 5).
+  - **Operator-only.** Surface at `/super/ai-center/agentic/destructive/`
+    (`ai_center_destructive`, super-access gated) — request form + a pending-approvals
+    table where a *different* operator approves/rejects. Not exposed to tenant admins.
+  - **Audit.** Three append-only rows share one `audit_id`: `request` (party A,
+    PENDING) / `approval` (party B) / `outcome` (ok|blocked). New phases
+    `request`/`approval` added to `AIAgenticActionPhase` (migration
+    `platform_runtime/0082`). PII-free; `reversal_payload` holds only the
+    `erase_request_id` + pseudonymous `student_pk`.
+  - **DPO dual-control (closed 2026-06-06).** `DPO` is now a first-class
+    `User.Role` (migration `accounts/0042_user_role_dpo`). The approve step enforces
+    that **at least one of the requester or approver is a DPO** — the requester's DPO
+    status is captured at request time (`requester_is_dpo` in the request row) and
+    the approver's is read from their roles. Toggle via
+    `RMC_AI_AGENTIC_DESTRUCTIVE_REQUIRE_DPO` (default on); blocked as `dpo_required`
+    (audited on the `approval` phase, non-finalizing) when neither party is a DPO.
+    The role token is referenced via `User.Role.DPO.value`, never hardcoded.
+  - **Blocked-attempt audit (hardening, 2026-06-06):** failed `approve`/`reject`
+    attempts (self-approval, wrong phrase, expired, permission) now write an audit
+    row too — on the **`approval`** phase, never `outcome`, so a blocked attempt
+    cannot falsely finalize the request and bar a legitimate later approval.
+  - Tests: `apps/platform_runtime/tests/test_ai_agentic_phase3.py` — gates,
+    typed-phrase, self-approval-forbidden, expiry, single-finalize, reject,
+    blocked-attempt-audited-but-not-finalized, plus a real-fixture pair proving the
+    EraseRequest goes PENDING→COMPLETED and the student is anonymized.
+
+**Validation (2026-06-06):** full agentic logic+integration suite **44/44 green**
+(Phase 1 + 2 + 3 + tenant helpers) on an isolated test DB; `makemigrations --check`
+clean (0082 matches); scanners all 0 for the new code (ai-gateway-boundary,
+bare-except, print, render-safety) with role-strings 347 / magic-numbers both
+contributing 0 new sites. NOTE: 5 pre-existing render-test errors in
+`AgenticSurfaceRenderTests` are an **external** parallel-wave regression in shared
+operator chrome (`manager_operator_topbar.html` `cockpit.brand` eager `default:`
+resolution, commit fe5b5b62) — not caused by and not within Phases 1–3.
 
 ## 4. Open decisions (need an owner before Phase 2)
 - **Which actions** are in scope, and their exact `required_roles` per

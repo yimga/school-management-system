@@ -1,0 +1,140 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block cp_shell_page %}
+<main class="rmc-page" id="main">
+  {% include "apicenter/super/ai_center_nav.html" %}
+  <h1 class="rmc-h1">{% trans "Destructive actions" %} <span class="badge text-bg-danger align-middle">{% trans "dual-control" %}</span></h1>
+  <p class="text-muted">{% blocktrans %}Phase 3 — irreversible. One operator requests; a different operator must approve before anything runs. Approval routes through the platform's GDPR Art. 17 erasure pipeline (anonymization, audited). Every step is recorded.{% endblocktrans %}</p>
+
+  {% if error %}<p class="text-danger" role="alert">{{ error }}</p>{% endif %}
+
+  {% if not destructive_enabled %}
+  <section class="card mt-3 mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Destructive layer is off" %}</h2>
+      <p class="mb-1">{% blocktrans %}This surface stays inert until the destructive flag is set. It is independent of the read-only and mutating tiers — turning it on is a deliberate, separate decision.{% endblocktrans %}</p>
+      <p class="small text-muted mb-0">{% trans "Flag" %}: <code>{{ flag_name }}</code> · {% trans "also requires" %} <code>RMC_AI_AGENTIC_ENABLED</code> + <code>RUNMYCAMPUS_AI_ENABLED</code></p>
+    </div>
+  </section>
+  {% else %}
+
+  <section class="card mt-3 mb-4 border-danger">
+    <form method="post" class="card-body">
+      {% csrf_token %}
+      <input type="hidden" name="gen" value="request" />
+      <h2 class="h6">{% trans "Request a destructive action" %}</h2>
+      <label class="form-label" for="dx-action">{% trans "Action" %}</label>
+      <select id="dx-action" name="action" class="form-select form-select-sm mb-2">
+        {% for a in destructive_actions %}
+        <option value="{{ a.name }}">{{ a.name }} — {{ a.description }}</option>
+        {% endfor %}
+      </select>
+      <label class="form-label" for="dx-student">{% trans "Student id" %}</label>
+      <input id="dx-student" name="student_id" class="form-control form-control-sm mb-2" />
+      <label class="form-label" for="dx-just">{% trans "Justification" %}</label>
+      <textarea id="dx-just" name="justification" class="form-control form-control-sm mb-2" rows="2" placeholder="{% trans 'Why this record must be erased (recorded on the erase request).' %}"></textarea>
+      <label class="form-label" for="dx-phrase">{% trans "Confirmation phrase" %}</label>
+      <input id="dx-phrase" name="confirm_phrase" class="form-control form-control-sm" placeholder="ERASE &lt;student id&gt;" />
+      <p class="small text-muted mt-1 mb-2">{% blocktrans %}Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE 42</code>) to confirm.{% endblocktrans %}</p>
+      <button type="submit" class="btn btn-danger btn-sm">{% trans "Submit request (needs a second approver)" %}</button>
+    </form>
+  </section>
+
+  {% if op_result %}
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">
+      {% trans "Result" %}: {{ op_result.action }}
+      {% if op_result.ok %}<span class="badge text-bg-success">{% trans "ok" %}</span>{% else %}<span class="badge text-bg-danger">{{ op_result.blocked_reason|default:_("error") }}</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if op_result.ok %}<pre class="mb-2">{{ op_result.result }}</pre>{% else %}<p class="text-danger mb-2">{{ op_result.error }}</p>{% endif %}
+      {% if op_result.audit_id %}<p class="small text-muted mb-0">{% trans "Audit id" %}: <code>{{ op_result.audit_id }}</code></p>{% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Pending requests (awaiting a second operator)" %}</div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0 align-middle">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Action" %}</th>
+            <th scope="col">{% trans "Student pk" %}</th>
+            <th scope="col">{% trans "Requested by" %}</th>
+            <th scope="col">{% trans "When" %}</th>
+            <th scope="col">{% trans "Approve / Reject" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pending_requests %}
+          <tr>
+            <td>{{ p.action }}</td>
+            <td><code>{{ p.student_pk }}</code></td>
+            <td><code>{{ p.requester }}</code></td>
+            <td>{{ p.created_at }}{% if p.expired %} <span class="badge text-bg-warning">{% trans "expired" %}</span>{% endif %}</td>
+            <td>
+              <form method="post" class="d-flex flex-wrap gap-1 align-items-center">
+                {% csrf_token %}
+                <input type="hidden" name="audit_id" value="{{ p.audit_id }}" />
+                <input name="confirm_phrase" class="form-control form-control-sm" style="max-width:11rem" placeholder="ERASE {{ p.student_pk }}" />
+                <button type="submit" name="gen" value="approve" class="btn btn-danger btn-sm"{% if p.expired %} disabled{% endif %}>{% trans "Approve" %}</button>
+                <button type="submit" name="gen" value="reject" class="btn btn-outline-secondary btn-sm">{% trans "Reject" %}</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-muted">{% trans "No requests awaiting approval." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Available destructive actions" %}</div>
+    <ul class="list-group list-group-flush">
+      {% for a in destructive_actions %}
+      <li class="list-group-item">
+        <span class="fw-semibold">{{ a.name }}</span> — {{ a.description }}
+        {% if a.parameters %}<span class="small text-muted">({{ a.parameters|join:", " }})</span>{% endif %}
+      </li>
+      {% empty %}
+      <li class="list-group-item text-muted">{% trans "No destructive actions are bound." %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Recent audit (PII-free)" %}</div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Action" %}</th>
+            <th scope="col">{% trans "Phase" %}</th>
+            <th scope="col">{% trans "Outcome" %}</th>
+            <th scope="col">{% trans "Actor" %}</th>
+            <th scope="col">{% trans "When" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in audit_rows %}
+          <tr>
+            <td>{{ r.action }}</td>
+            <td>{{ r.phase }}</td>
+            <td>{{ r.outcome }}{% if r.blocked_reason %} <span class="small text-muted">({{ r.blocked_reason }})</span>{% endif %}</td>
+            <td><code>{{ r.actor }}</code></td>
+            <td>{{ r.created_at }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-muted">{% trans "No agentic actions recorded yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

@@ -166,6 +166,7 @@ class User(AbstractUser):
         VIRTUAL_ASSISTANT = "VIRTUAL_ASSISTANT", "Virtual Assistant"
         TEACHER = "TEACHER", "Teacher"
         IT_ADMIN = "IT_ADMIN", "IT Administrator"
+        DPO = "DPO", "Data Protection Officer"
         BOARDING_MANAGER = "BOARDING_MANAGER", "Boarding Manager"
         ACCOUNTANT = "ACCOUNTANT", "Accountant"
         PROPRIETOR = "PROPRIETOR", "Proprietor"

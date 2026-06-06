@@ -39,6 +39,8 @@ class AIAgenticActionPhase(models.TextChoices):
     OUTCOME = "outcome", "Outcome"  # default — read-only Phase-1 + the post-run row
     INTENT = "intent", "Intent"  # Phase-2: written BEFORE a mutating runner runs
     REVERSAL = "reversal", "Reversal"  # Phase-2: a reverse_action attempt
+    REQUEST = "request", "Request"  # Phase-3: party A requests a destructive action
+    APPROVAL = "approval", "Approval"  # Phase-3: party B (distinct) approves it
 
 
 class AIAgenticActionAudit(AppendOnlyModelMixin, models.Model):
