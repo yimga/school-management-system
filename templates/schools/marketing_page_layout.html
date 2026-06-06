@@ -12,7 +12,11 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-global-os.css' %}">
 {% endblock %}
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ seo_title|default:"RunMyCampus" }}</h1>
+  {% comment %}Marketing's canonical h1 is the visible hero on each page (editorial
+  surface), so no hidden duplicate is injected here — that produced a double-h1 on the
+  32 pages that carry their own visible hero h1. Overridable for any rare page with no
+  visible heading.{% endcomment %}
+  {% block document_sr_h1 %}{% endblock %}
 <section class="py-2 py-lg-3">
   <div class="page-stack mkt-personality-shell mkt-personality-shell--{{ marketing_personality_id|default:'platform-hub' }}{% block marketing_page_stack_class %}{% endblock %}">
     {% comment %} v2.37 — hero figure adoption; renders for the 7 known surfaces only. {% endcomment %}
