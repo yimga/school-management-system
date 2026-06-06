@@ -47085,3 +47085,9 @@ msgstr ""
 
 msgid "{{ name }} logo"
 msgstr ""
+
+msgid "Rated {{ rating }} out of 5"
+msgstr ""
+
+msgid "via {{ label }}"
+msgstr ""

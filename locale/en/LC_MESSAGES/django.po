@@ -51245,3 +51245,9 @@ msgstr "weeks to switch from legacy SIS"
 
 msgid "{{ name }} logo"
 msgstr "{{ name }} logo"
+
+msgid "Rated {{ rating }} out of 5"
+msgstr "Rated {{ rating }} out of 5"
+
+msgid "via {{ label }}"
+msgstr "via {{ label }}"
