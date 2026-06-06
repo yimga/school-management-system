@@ -27,7 +27,7 @@
   var OUTAGE_BACKOFF_MS = 30000;
 
   function isPlatformOutageStatus(status) {
-    return !status || (status >= 502 && status <= 504);
+    return !status || status === 503 || (status >= 502 && status <= 504);
   }
 
   function scheduleStreamReconnect(delayMs) {
@@ -77,6 +77,22 @@
     eventSource: null,
     pollTimer: null,
     everyConnected: false,
+    // Run ids we've already auto-popped the card for, so a still-active run
+    // doesn't re-open the card after the user manually closes it on this page.
+    autoShownRunIds: {},
+  };
+
+  // Statuses that mean the run is finished — a NEW run in one of these states
+  // should NOT trigger the attention popup (nothing to watch).
+  var TERMINAL_STATUSES = {
+    completed: true,
+    complete: true,
+    succeeded: true,
+    success: true,
+    done: true,
+    finished: true,
+    cancelled: true,
+    canceled: true,
   };
 
   function escapeHtml(value) {
@@ -434,9 +450,26 @@
   function applySnapshot(payload) {
     if (!payload || !Array.isArray(payload.runs)) return;
     state.runs = payload.runs;
+    // Auto-popup: when a workflow is freshly engaged, jump the progress card
+    // open so the user always gets a live progress report without hunting for
+    // the chip. Honors a manual close (we only re-open for a genuinely new run
+    // id, tracked in state.autoShownRunIds), so it stays visible but never
+    // becomes a fight. Disable per-deploy via the data flag if ever needed.
+    var hasNewActiveRun = detectNewActiveRun(state.runs);
     updateChip();
     updateInlineStrip();
-    if (state.open) renderCard();
+    if (hasNewActiveRun && !state.open && !autoPopupDisabled()) {
+      setCardOpen(true);
+    } else if (state.open) {
+      renderCard();
+    }
+  }
+
+  function autoPopupDisabled() {
+    // Opt-out hook: <body data-rmc-wfp-autopopup="off"> or a global flag.
+    if (window.__rmcWfpAutoPopupOff) return true;
+    var body = document.body;
+    return !!(body && body.getAttribute("data-rmc-wfp-autopopup") === "off");
   }
 
   function shouldConnectStream() {
@@ -483,14 +516,36 @@
     pollActiveOnce();
   }
 
-  function toggleCard() {
-    state.open = !state.open;
+  function setCardOpen(open) {
+    state.open = !!open;
     var chip = document.getElementById("rmc-wfp-chip");
     var card = document.getElementById("rmc-wfp-card");
     if (!chip || !card) return;
     chip.setAttribute("aria-expanded", state.open ? "true" : "false");
     card.dataset.rmcWfpOpen = state.open ? "true" : "false";
     if (state.open) renderCard();
+  }
+
+  function toggleCard() {
+    setCardOpen(!state.open);
+  }
+
+  // Returns true when the snapshot carries an ACTIVE run we have not yet popped
+  // the card for — the trigger for the auto-attention behavior. Marks every
+  // current run id as seen so the same run won't re-pop after a manual close.
+  function detectNewActiveRun(runs) {
+    var foundNew = false;
+    for (var i = 0; i < runs.length; i++) {
+      var run = runs[i];
+      if (!run || !run.id) continue;
+      var status = String(run.status || "running").toLowerCase();
+      var alreadyShown = !!state.autoShownRunIds[run.id];
+      state.autoShownRunIds[run.id] = true;
+      if (!alreadyShown && !TERMINAL_STATUSES[status]) {
+        foundNew = true;
+      }
+    }
+    return foundNew;
   }
 
   function onKeydown(evt) {

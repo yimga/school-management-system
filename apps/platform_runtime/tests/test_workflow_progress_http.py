@@ -30,6 +30,68 @@ class WorkflowProgressMiddlewareContractTests(SimpleTestCase):
         self.assertFalse(_should_track_request(req))
 
 
+class TransientDatabaseGuardTests(SimpleTestCase):
+    def test_detects_postgres_recovery_mode(self):
+        from django.db.utils import OperationalError
+
+        from apps.platform_runtime.transient_db import is_transient_database_error
+
+        exc = OperationalError('connection failed: FATAL:  the database system is in recovery mode')
+        self.assertTrue(is_transient_database_error(exc))
+
+    def test_detects_connection_closed(self):
+        from django.db.utils import OperationalError
+
+        from apps.platform_runtime.transient_db import is_transient_database_error
+
+        exc = OperationalError("the connection is closed")
+        self.assertTrue(is_transient_database_error(exc))
+
+    def test_middleware_maps_workflow_path_to_503(self):
+        from django.db.utils import OperationalError
+
+        from apps.platform_runtime.middleware_transient_db import (
+            TransientDatabaseUnavailableMiddleware,
+        )
+
+        req = RequestFactory().get(
+            "/platform-runtime/workflow-progress/active/",
+            HTTP_ACCEPT="application/json",
+        )
+        exc = OperationalError("consuming input failed: SSL error: unexpected eof while reading")
+        resp = TransientDatabaseUnavailableMiddleware(lambda get_response: None).process_exception(
+            req, exc
+        )
+        self.assertIsNotNone(resp)
+        self.assertEqual(resp.status_code, 503)
+        self.assertEqual(resp["Retry-After"], "30")
+
+    def test_middleware_maps_super_path_to_503_html(self):
+        from unittest.mock import patch
+
+        from django.db.utils import OperationalError
+        from django.http import HttpResponse
+
+        from apps.platform_runtime.middleware_transient_db import (
+            TransientDatabaseUnavailableMiddleware,
+        )
+
+        req = RequestFactory().get("/super/")
+        exc = OperationalError("the connection is closed")
+        with patch(
+            "apps.platform_runtime.middleware_transient_db.render",
+            return_value=HttpResponse("unavailable", status=503),
+        ) as mock_render:
+            resp = TransientDatabaseUnavailableMiddleware(
+                lambda get_response: None
+            ).process_exception(req, exc)
+        self.assertIsNotNone(resp)
+        self.assertEqual(resp.status_code, 503)
+        self.assertEqual(resp["Retry-After"], "30")
+        mock_render.assert_called_once()
+        self.assertEqual(mock_render.call_args[0][1], "errors/503_control_plane.html")
+
+
 class WorkflowProgressActiveApiTests(SimpleTestCase):
     def test_active_runs_anonymous_401(self):
         from apps.platform_runtime.views_workflow_progress import active_runs_view

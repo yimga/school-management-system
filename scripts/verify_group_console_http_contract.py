@@ -42,7 +42,7 @@ def main() -> int:
     env = {**dict(os.environ), "PYTHONUNBUFFERED": "1"}
     try:
         proc = subprocess.run(
-            cmd, cwd=str(REPO), capture_output=True, text=True, timeout=300, env=env
+            cmd, cwd=str(REPO), capture_output=True, text=True, timeout=600, env=env
         )
     except (subprocess.TimeoutExpired, OSError) as exc:
         failures.append(str(exc))

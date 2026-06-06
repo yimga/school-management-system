@@ -7,9 +7,21 @@ checks. These caches trim repeated platform-wide aggregates on every refresh.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from django.core.cache import cache
+from django.db import DatabaseError
+
+from apps.platform_runtime.transient_db import is_transient_database_error
+
+logger = logging.getLogger(__name__)
+
+_EMPTY_INCIDENT_BUNDLE: dict[str, Any] = {
+    "platform_incidents": [],
+    "incident_counts": {},
+    "critical_incident_count": 0,
+}
 
 from apps.registries.models import (
     CountryRegistry,
@@ -100,14 +112,25 @@ def get_cached_registry_counts() -> dict[str, int]:
     cached = cache.get(_REGISTRY_COUNTS_KEY)
     if cached is not None:
         return cached
-    counts = {
-        "countries": CountryRegistry.objects.filter(is_active=True).count(),
-        "subdivisions": SubdivisionRegistry.objects.filter(is_active=True).count(),
-        "education_levels": EducationLevelRegistry.objects.filter(is_active=True).count(),
-        "education_system_types": EducationSystemTypeRegistry.objects.filter(
-            is_active=True
-        ).count(),
-    }
+    try:
+        counts = {
+            "countries": CountryRegistry.objects.filter(is_active=True).count(),
+            "subdivisions": SubdivisionRegistry.objects.filter(is_active=True).count(),
+            "education_levels": EducationLevelRegistry.objects.filter(is_active=True).count(),
+            "education_system_types": EducationSystemTypeRegistry.objects.filter(
+                is_active=True
+            ).count(),
+        }
+    except DatabaseError as exc:
+        if not is_transient_database_error(exc):
+            raise
+        logger.warning("super_dashboard_registry_counts_transient_db: %s", exc)
+        counts = {
+            "countries": 0,
+            "subdivisions": 0,
+            "education_levels": 0,
+            "education_system_types": 0,
+        }
     cache.set(_REGISTRY_COUNTS_KEY, counts, _REGISTRY_COUNTS_TTL)
     return counts
 
@@ -125,39 +148,45 @@ def get_cached_incident_bundle() -> dict[str, Any]:
         PlatformIncident.Status.ACKNOWLEDGED,
         PlatformIncident.Status.MITIGATED,
     )
-    incidents = list(
-        PlatformIncident.objects.select_related("affected_school")
-        .filter(status__in=statuses)
-        .order_by("-detected_at", "-created_at")[:12]
-        .values(
-            "id",
-            "title",
-            "incident_type",
-            "severity",
-            "status",
-            "affected_school_id",
-            "affected_school__name",
+    try:
+        incidents = list(
+            PlatformIncident.objects.select_related("affected_school")
+            .filter(status__in=statuses)
+            .order_by("-detected_at", "-created_at")[:12]
+            .values(
+                "id",
+                "title",
+                "incident_type",
+                "severity",
+                "status",
+                "affected_school_id",
+                "affected_school__name",
+            )
         )
-    )
-    for row in incidents:
-        row["affected_school_name"] = row.pop("affected_school__name", "")
+        for row in incidents:
+            row["affected_school_name"] = row.pop("affected_school__name", "")
 
-    counts = {
-        row["status"]: row["total"]
-        for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
-    }
-    critical_count = PlatformIncident.objects.filter(
-        status__in=statuses,
-        severity__in=[
-            PlatformIncident.Severity.CRITICAL,
-            PlatformIncident.Severity.HIGH,
-        ],
-    ).count()
-    payload = {
-        "platform_incidents": incidents,
-        "incident_counts": counts,
-        "critical_incident_count": critical_count,
-    }
+        counts = {
+            row["status"]: row["total"]
+            for row in PlatformIncident.objects.values("status").annotate(total=Count("id"))
+        }
+        critical_count = PlatformIncident.objects.filter(
+            status__in=statuses,
+            severity__in=[
+                PlatformIncident.Severity.CRITICAL,
+                PlatformIncident.Severity.HIGH,
+            ],
+        ).count()
+        payload = {
+            "platform_incidents": incidents,
+            "incident_counts": counts,
+            "critical_incident_count": critical_count,
+        }
+    except DatabaseError as exc:
+        if not is_transient_database_error(exc):
+            raise
+        logger.warning("super_dashboard_incident_bundle_transient_db: %s", exc)
+        payload = dict(_EMPTY_INCIDENT_BUNDLE)
     cache.set(_INCIDENT_BUNDLE_KEY, payload, _INCIDENT_BUNDLE_TTL)
     return payload
 
@@ -181,15 +210,21 @@ def get_cached_country_rollup() -> list[dict[str, Any]]:
 
     from apps.schools.models import School
 
-    payload = list(
-        School.objects.exclude(country_code="")
-        .values("country_code")
-        .annotate(
-            school_count=Count("id"),
-            student_count=Count("student_profiles", distinct=True),
+    try:
+        payload = list(
+            School.objects.exclude(country_code="")
+            .values("country_code")
+            .annotate(
+                school_count=Count("id"),
+                student_count=Count("student_profiles", distinct=True),
+            )
+            .order_by("-school_count", "country_code")[:12]
         )
-        .order_by("-school_count", "country_code")[:12]
-    )
+    except DatabaseError as exc:
+        if not is_transient_database_error(exc):
+            raise
+        logger.warning("super_dashboard_country_rollup_transient_db: %s", exc)
+        payload = []
     cache.set(_COUNTRY_ROLLUP_KEY, payload, _COUNTRY_ROLLUP_TTL)
     return payload
 

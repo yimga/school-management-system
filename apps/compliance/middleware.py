@@ -36,6 +36,23 @@ def _access_log_middleware_writes_enabled() -> bool:
     )
 
 
+def _should_persist_access_log(request, response) -> bool:
+    """Sample successful GET/HEAD traffic; always log mutations and errors."""
+    method = (getattr(request, "method", "") or "GET").upper()
+    if method not in {"GET", "HEAD", "OPTIONS"}:
+        return True
+    if getattr(response, "status_code", 200) >= 400:
+        return True
+    rate = float(getattr(settings, "COMPLIANCE_ACCESS_LOG_GET_SAMPLE_RATE", 1.0))
+    if rate >= 1.0:
+        return True
+    if rate <= 0.0:
+        return False
+    import random
+
+    return random.random() < rate
+
+
 # §2.4: Typed tuples for compliance middleware (allowlist 0).
 _RESET_DB_STATE_ERRORS = (
     TransactionManagementError,
@@ -140,6 +157,9 @@ class AuditLoggingMiddleware(MiddlewareMixin):
             if any(path.startswith(skip) for skip in self.SKIP_PATHS):
                 return response
 
+            if not _should_persist_access_log(request, response):
+                return response
+
             # Calculate response time
             start_time = getattr(request, "_start_time", None)
             response_time_ms = None
@@ -201,6 +221,11 @@ class AuditLoggingMiddleware(MiddlewareMixin):
         if not _access_log_middleware_writes_enabled():
             return None
         try:
+            from apps.platform_runtime.transient_db import is_transient_database_error
+
+            if is_transient_database_error(exception):
+                _reset_db_state()
+                return None
             if connection.needs_rollback:
                 _reset_db_state()
                 return None

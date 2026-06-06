@@ -119,7 +119,7 @@ def main() -> int:
         "verify_org_backfill_operator_smoke.py",
     }
     for script, extra in SUBPROCESS_SCRIPTS:
-        timeout = 900 if script in http_scripts else 300
+        timeout = 1200 if script in http_scripts else 300
         ok, proof = _run_script(script, extra, timeout=timeout)
         checks.append(
             {

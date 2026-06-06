@@ -26,6 +26,7 @@ import threading
 import time
 from typing import Any
 
+from django.db import DatabaseError
 from django.http import JsonResponse
 from services.http_auth_guards import login_required_api, login_required_sse
 from services.sse_response import guarded_sse_response
@@ -33,6 +34,26 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 logger = logging.getLogger(__name__)
+
+_DB_UNAVAILABLE_RETRY_AFTER = "30"
+
+
+def _transient_db_json_response(exc: BaseException) -> JsonResponse | None:
+    from apps.platform_runtime.transient_db import is_transient_database_error
+
+    if not is_transient_database_error(exc):
+        return None
+    logger.warning("workflow_progress_db_unavailable: %s", str(exc)[:200])
+    response = JsonResponse(
+        {
+            "error": "database_unavailable",
+            "retryable": True,
+            "detail": "Database is temporarily unavailable. Retry shortly.",
+        },
+        status=503,
+    )
+    response["Retry-After"] = _DB_UNAVAILABLE_RETRY_AFTER
+    return response
 
 
 def _request_dry_run(request) -> bool:
@@ -101,7 +122,13 @@ def active_runs_view(request):
     # Tenant-host users see only their own runs by default; staff see the tenant-wide set.
     is_staff = bool(getattr(request.user, "is_staff", False))
     actor_filter = "" if is_staff else actor_id
-    runs = list_active_runs(tenant_schema=schema, actor_user_id=actor_filter, limit=25)
+    try:
+        runs = list_active_runs(tenant_schema=schema, actor_user_id=actor_filter, limit=25)
+    except DatabaseError as exc:
+        unavailable = _transient_db_json_response(exc)
+        if unavailable is not None:
+            return unavailable
+        raise
 
     counts = {"running": 0, "degrading": 0, "stuck": 0}
     for row in runs:

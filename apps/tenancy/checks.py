@@ -38,11 +38,17 @@ def tenancy_strategy_checks(app_configs, **kwargs):
     engine = (settings.DATABASES.get("default") or {}).get("ENGINE", "")
 
     if use_tenants:
-        if not any("TenantMainMiddleware" in m for m in mw):
+        if not any(
+            "TenantMainMiddleware" in m or "HealthAwareTenantMainMiddleware" in m for m in mw
+        ):
             errors.append(
                 Error(
                     "USE_DJANGO_TENANTS is True but TenantMainMiddleware is missing.",
-                    hint="Add django_tenants.middleware.main.TenantMainMiddleware when using schema-per-tenant.",
+                    hint=(
+                        "Add apps.schools.middleware_tenant_main.HealthAwareTenantMainMiddleware "
+                        "(or django_tenants.middleware.main.TenantMainMiddleware) when using "
+                        "schema-per-tenant."
+                    ),
                     id="tenancy.E001",
                 )
             )

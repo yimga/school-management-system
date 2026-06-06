@@ -39,14 +39,32 @@ def verify_middleware_order(stack: list[str], *, django_tenants_mode: bool) -> l
         if ia >= ib:
             errors.append(f"{a} must precede {b}: {reason}")
 
-    if django_tenants_mode or _index(stack, "TenantMainMiddleware") >= 0:
-        if _index(stack, "TenantMainMiddleware") != 0:
-            errors.append("TenantMainMiddleware must be first in MIDDLEWARE")
+    tenant_main_markers = ("TenantMainMiddleware", "HealthAwareTenantMainMiddleware")
+
+    def _tenant_main_index() -> int:
+        for marker in tenant_main_markers:
+            idx = _index(stack, marker)
+            if idx >= 0:
+                return idx
+        return -1
+
+    if django_tenants_mode or _tenant_main_index() >= 0:
+        if _tenant_main_index() != 0:
+            errors.append(
+                "TenantMainMiddleware (or HealthAwareTenantMainMiddleware subclass) "
+                "must be first in MIDDLEWARE"
+            )
         require_before(
-            "TenantMainMiddleware",
+            "HealthAwareTenantMainMiddleware",
             "TenantSchemaSchoolBridgeMiddleware",
             "schema tenant before request.school bridge",
         )
+        if _index(stack, "HealthAwareTenantMainMiddleware") < 0:
+            require_before(
+                "TenantMainMiddleware",
+                "TenantSchemaSchoolBridgeMiddleware",
+                "schema tenant before request.school bridge",
+            )
         require_before(
             "TenantSchemaSchoolBridgeMiddleware",
             "SessionSchoolBindingMiddleware",

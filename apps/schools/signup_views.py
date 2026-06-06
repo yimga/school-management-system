@@ -16,6 +16,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, login as auth_login
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError
+from django.db.transaction import TransactionManagementError
 from django.core.mail import send_mail  # noqa: F401 — retained for legacy callsites
 # v3.57.x Wave 8 Agent C — route signup verification email through the
 # canonical reliability-hardened sender (retries + EmailDeliveryEvent
@@ -109,6 +110,7 @@ from apps.siteconfig.country_localization_service import (
     get_default_calendar_code,
     get_default_language,
     get_india_state_options,
+    parse_signup_language_selection,
     resolve_country_pack,
     resolve_language_pack,
     resolve_primary_sector_for_school_type,
@@ -361,6 +363,10 @@ def signup_school(request: HttpRequest):
         else:
             country_pack = resolve_country_pack(cc)
             language_code = ""
+        language_codes_csv = language_code or get_default_language(cc)
+        if not language_codes_csv:
+            language_codes_csv = ""
+        primary_language_code = language_codes_csv
         if not tp:
             tp = get_default_calendar_code(cc)
         signup_localization_json = _signup_localization_json(request, cc, country_pack)
@@ -371,6 +377,8 @@ def signup_school(request: HttpRequest):
                 "country_code": cc,
                 "term_preset": tp,
                 "language_code": language_code,
+                "language_codes_csv": language_codes_csv,
+                "primary_language_code": primary_language_code,
                 "signup_localization_json": signup_localization_json,
                 "signup_region_hint": (request.GET.get("region") or "").strip()[:64],
                 "curriculum_hint": (request.GET.get("curriculum") or "").strip()[:128],
@@ -462,14 +470,22 @@ def signup_school(request: HttpRequest):
     school_type = validated_types[0] if validated_types else ""
     school_type_raw = "|".join(validated_types)
 
-    # v3.62.8 (Wave 6) — language picker. For multilingual countries this
-    # value drives the per-language education-system overlay (CM Anglo vs
-    # Franco, CA EN vs FR/Quebec, BE NL vs FR vs DE, CH 4 lang, IN 11 lang).
-    # Falls open silently when country is monolingual (validate returns "").
-    language_code_raw = (request.POST.get("language_code") or "").strip().lower()[:8]
-    language_code = validate_language_code(country_code, language_code_raw)
-    if not language_code:
-        language_code = get_default_language(country_code)
+    # v4.02.51 (2026-06-02) — multi-language signup. Operators may select every
+    # official language their school uses; primary (★) drives education-system
+    # overlay + School.primary_language (India state picker auto-stars regional
+    # language of instruction when it is among the selected codes).
+    india_state = (request.POST.get("india_state") or "").strip().upper()[:8]
+    region_hint = (request.POST.get("signup_region_hint") or request.GET.get("region") or "").strip()[:64]
+    language_codes, language_code = parse_signup_language_selection(
+        country_code=country_code,
+        language_codes=request.POST.getlist("language_codes"),
+        primary_language_code=(request.POST.get("primary_language_code") or "").strip().lower()[:8],
+        language_code_legacy=(request.POST.get("language_code") or "").strip().lower()[:8],
+        state_code=india_state,
+        region_hint=region_hint,
+    )
+    language_codes_csv = "|".join(language_codes)
+    primary_language_code = language_code
 
     errors = []
     if not name:
@@ -507,6 +523,9 @@ def signup_school(request: HttpRequest):
                     request, country_code, country_pack
                 ),
                 "school_type": school_type_raw,
+                "language_codes_csv": language_codes_csv,
+                "primary_language_code": primary_language_code,
+                "language_code": primary_language_code,
             },
         )
     if (
@@ -541,6 +560,9 @@ def signup_school(request: HttpRequest):
                     request, country_code, country_pack
                 ),
                 "school_type": school_type_raw,
+                "language_codes_csv": language_codes_csv,
+                "primary_language_code": primary_language_code,
+                "language_code": primary_language_code,
             },
         )
 
@@ -566,6 +588,8 @@ def signup_school(request: HttpRequest):
             "school_type_code": school_type or "",
             "education_cycles": list(validated_types),
             "language_code": language_code or "",
+            "primary_language_code": language_code or "",
+            "language_codes": list(language_codes),
             "_seeded_at_signup": True,
         }
     if country_code:
@@ -624,6 +648,7 @@ def signup_school(request: HttpRequest):
         locale_ctx = build_migration_locale_context(
             country_code or "",
             language_code=language_code or "",
+            language_codes=list(language_codes),
             calendar_code=term_preset or get_default_calendar_code(country_code),
             education_cycles=list(validated_types),
         )
@@ -744,49 +769,7 @@ def signup_school(request: HttpRequest):
         request.session.pop(key, None)
     request.session.modified = True
 
-    base = request.build_absolute_uri("/").rstrip("/")
-    verify_url = f"{base}/verify-signup/?token={verification.token}"
-
-    subject = f"Verify your school: {name}"
-    body = (
-        f"Hello,\n\n"
-        f"You requested to create a school on RunMyCampus: {name}.\n\n"
-        f"Click the link below to verify your email and activate your school (link valid for 2 days):\n\n"
-        f"{verify_url}\n\n"
-        f"If you did not request this, you can ignore this email.\n"
-    )
-    try:
-        # v3.58.x Wave 9 Agent K — async_send=True moves the SMTP attempt
-        # off the request lifecycle so a hung / blocked / misconfigured
-        # SMTP host can NEVER stall the signup POST past the gateway
-        # timeout (the "network unreachable" symptom the user reported
-        # was caused by the BACKOFF list [1, 5, 30] running synchronously
-        # on top of a 10s socket timeout — ≈46s worst case, well past
-        # Render's 30s HTTP gateway cutoff). The async daemon thread
-        # runs the canonical retry sequence and writes an
-        # EmailDeliveryEvent audit row on completion; operators monitor
-        # delivery via the email-health + signup-diagnostics dashboards.
-        send_transactional(
-            subject=subject,
-            body=body,
-            to=email,
-            from_email=settings.DEFAULT_FROM_EMAIL or "noreply@runmycampus.com",
-            priority="transactional",
-            async_send=True,
-        )
-    except (OSError, ConnectionError, ValueError, TypeError) as exc:
-        # send_transactional async-dispatches the actual SMTP attempt on a
-        # daemon thread and writes an EmailDeliveryEvent on completion, so
-        # any exception here is a synchronous-side fault: misconfigured
-        # backend, malformed envelope, missing settings. The async path
-        # has its own audit; surface the sync fault explicitly so
-        # operators can spot the regression in the request log.
-        logger.warning(
-            "signup send_transactional sync raise err=%s school_id=%s",
-            type(exc).__name__,
-            school.id,
-            exc_info=True,
-        )
+    _send_signup_verification_email(request, verification)
 
     t1 = time.monotonic()
     request_latency_ms = int((t1 - t0) * 1000)
@@ -1230,6 +1213,180 @@ def _redirect_verified_admin_to_tenant_surface(request: HttpRequest, school, url
     return redirect(build_tenant_backend_url(request, school, path=path))
 
 
+def _send_signup_verification_email(request: HttpRequest, verification) -> None:
+    """Send (or re-send) the signup verification email for a SignupVerification.
+
+    Centralized so the initial signup and the resend endpoint emit a
+    byte-identical message through the canonical reliability-hardened sender.
+    ``send_transactional`` never raises (returns a status dict) and async-
+    dispatches the SMTP attempt on a daemon thread, writing an
+    EmailDeliveryEvent audit row on completion — so a hung / misconfigured SMTP
+    host can NEVER stall the request past the gateway timeout. The try/except
+    only guards the synchronous envelope-construction path.
+    """
+    school_name = getattr(verification.school, "name", "") or "your school"
+    base = request.build_absolute_uri("/").rstrip("/")
+    verify_url = f"{base}/verify-signup/?token={verification.token}"
+    subject = f"Verify your school: {school_name}"
+    body = (
+        f"Hello,\n\n"
+        f"You requested to create a school on RunMyCampus: {school_name}.\n\n"
+        f"Click the link below to verify your email and activate your school "
+        f"(link valid for 2 days):\n\n"
+        f"{verify_url}\n\n"
+        f"If you did not request this, you can ignore this email.\n"
+    )
+    try:
+        send_transactional(
+            subject=subject,
+            body=body,
+            to=verification.email,
+            from_email=settings.DEFAULT_FROM_EMAIL or "noreply@runmycampus.com",
+            priority="transactional",
+            async_send=True,
+        )
+    except (OSError, ConnectionError, ValueError, TypeError) as exc:
+        logger.warning(
+            "signup verification email sync raise err=%s school_id=%s",
+            type(exc).__name__,
+            getattr(verification.school, "id", None),
+            exc_info=True,
+        )
+
+
+# Resend-verification abuse protection (cache-backed; sane defaults, overridable
+# via settings). A per-email + per-IP cooldown blocks bursts; a per-email daily
+# cap blocks slow-drip abuse. All gates fail OPEN to the generic success message
+# so the endpoint never becomes an account-enumeration or timing oracle.
+_RESEND_COOLDOWN_SECONDS = 120
+_RESEND_DAILY_CAP = 5
+
+
+def _resend_client_ip(request: HttpRequest) -> str:
+    """Best-effort client IP for per-IP throttling (proxy-aware, first hop)."""
+    xff = (request.META.get("HTTP_X_FORWARDED_FOR") or "").split(",")[0].strip()
+    return xff or (request.META.get("REMOTE_ADDR") or "")
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def resend_signup_verification(request: HttpRequest):
+    """Re-send a signup verification email instead of forcing a fresh signup.
+
+    A user whose 2-day verification link expired (or who never received it) can
+    request a new one here — no need to re-run signup and collide with the
+    half-created tenant. When a pending, unverified, not-yet-activated signup is
+    found we ROTATE the token (so old links die) and extend the 2-day expiry,
+    then re-send through the canonical sender.
+
+    Enumeration-safe: the response is identical whether or not a matching signup
+    exists. Abuse-protected by a per-email + per-IP cooldown and a per-email
+    daily cap (both cache-backed and configurable).
+    """
+    generic_msg = (
+        "If a pending school signup exists for that email and it hasn't been "
+        "verified yet, we've sent a fresh verification link. Please check your "
+        "inbox (and your spam folder)."
+    )
+    if request.method == "GET":
+        return render(request, "schools/resend_verification.html", {})
+
+    email = (request.POST.get("email") or "").strip().lower()
+    if not email or "@" not in email or len(email) > 254:
+        return render(
+            request,
+            "schools/resend_verification.html",
+            {"error": "Please enter a valid email address."},
+            status=400,
+        )
+
+    import hashlib
+
+    from django.core.cache import cache
+
+    cooldown_seconds = int(
+        getattr(settings, "SIGNUP_RESEND_COOLDOWN_SECONDS", _RESEND_COOLDOWN_SECONDS)
+    )
+    daily_cap = int(getattr(settings, "SIGNUP_RESEND_DAILY_CAP", _RESEND_DAILY_CAP))
+
+    email_key = hashlib.sha256(email.encode("utf-8")).hexdigest()[:24]
+    ip = _resend_client_ip(request)
+    ip_key = hashlib.sha256(ip.encode("utf-8")).hexdigest()[:24] if ip else "noip"
+    cooldown_key = f"resend_verify_cd:{email_key}"
+    ip_cooldown_key = f"resend_verify_ipcd:{ip_key}"
+    daily_key = f"resend_verify_day:{email_key}"
+
+    throttled = (
+        cache.get(cooldown_key) is not None
+        or cache.get(ip_cooldown_key) is not None
+        or (cache.get(daily_key) or 0) >= daily_cap
+    )
+    if throttled:
+        # Same generic response on throttle — keeps the endpoint
+        # enumeration-safe and prevents it from becoming a timing oracle.
+        return render(
+            request,
+            "schools/resend_verification.html",
+            {"sent": True, "message": generic_msg},
+        )
+
+    # Arm the cooldowns BEFORE any work so a burst of concurrent posts can't
+    # each fire a send.
+    cache.set(cooldown_key, 1, cooldown_seconds)
+    if ip:
+        cache.set(ip_cooldown_key, 1, cooldown_seconds)
+    try:
+        cache.incr(daily_key)
+    except ValueError:
+        cache.set(daily_key, 1, 24 * 60 * 60)
+
+    verification = (
+        # tenant-isolation-allow: public-signup-verification-keyed-by-unique-email-not-tenant-scoped
+        SignupVerification.objects.filter(
+            email__iexact=email,
+            verified_at__isnull=True,
+            school__is_active=False,
+        )
+        .select_related("school")
+        .order_by("-created_at")
+        .first()
+    )
+    if verification is not None:
+        # Rotate the token so any previously-mailed (possibly leaked) link dies,
+        # and refresh the 2-day window.
+        verification.token = uuid.uuid4()
+        verification.expires_at = timezone.now() + timedelta(days=2)
+        verification.save(update_fields=["token", "expires_at"])
+        _send_signup_verification_email(request, verification)
+        logger.info(
+            "resend_signup_verification sent school_id=%s",
+            getattr(verification.school, "id", None),
+        )
+
+    return render(
+        request,
+        "schools/resend_verification.html",
+        {"sent": True, "message": generic_msg},
+    )
+
+
+def _verify_signup_retryable_unavailable(request: HttpRequest):
+    """503 when Postgres blips mid-verification so the magic link can be retried."""
+    response = render(
+        request,
+        "schools/verify_signup.html",
+        {
+            "error": (
+                "Our servers are briefly unavailable. "
+                "Please wait a moment and open your verification link again."
+            ),
+        },
+        status=503,
+    )
+    response["Retry-After"] = "30"
+    return response
+
+
 def verify_signup(request: HttpRequest):
     """
     GET ?token=xxx: look up SignupVerification, run provisioning (which marks
@@ -1244,6 +1401,11 @@ def verify_signup(request: HttpRequest):
     Activation now happens inside ``_do_provision`` (tasks.py) right before
     the welcome email send, restoring the original contract.
     """
+    from apps.platform_runtime.transient_db import (
+        is_transient_database_error,
+        reset_broken_database_state,
+    )
+
     token_str = (request.GET.get("token") or "").strip()
     if not token_str:
         return render(
@@ -1265,16 +1427,23 @@ def verify_signup(request: HttpRequest):
             status=400,
         )
 
-    verification = (
-        # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-        SignupVerification.objects.filter(
-            token=token_uuid,
-            verified_at__isnull=True,
-            expires_at__gt=timezone.now(),
+    try:
+        verification = (
+            # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
+            SignupVerification.objects.filter(
+                token=token_uuid,
+                verified_at__isnull=True,
+                expires_at__gt=timezone.now(),
+            )
+            .select_related("school")
+            .first()
         )
-        .select_related("school")
-        .first()
-    )
+    except (DatabaseError, TransactionManagementError) as exc:
+        reset_broken_database_state()
+        if isinstance(exc, TransactionManagementError) or is_transient_database_error(exc):
+            logger.warning("verify_signup_lookup_transient_db: %s", exc)
+            return _verify_signup_retryable_unavailable(request)
+        raise
 
     if not verification:
         return render(
@@ -1290,7 +1459,14 @@ def verify_signup(request: HttpRequest):
     # _do_provision).  Premature activation here caused _do_provision to
     # short-circuit and skip the welcome email send.
     verification.verified_at = timezone.now()
-    verification.save(update_fields=["verified_at"])
+    try:
+        verification.save(update_fields=["verified_at"])
+    except (DatabaseError, TransactionManagementError) as exc:
+        reset_broken_database_state()
+        if isinstance(exc, TransactionManagementError) or is_transient_database_error(exc):
+            logger.warning("verify_signup_save_transient_db: %s", exc)
+            return _verify_signup_retryable_unavailable(request)
+        raise
     try:
         from apps.schools.funnel_events import (
             record_marketing_funnel_event,
@@ -1299,8 +1475,8 @@ def verify_signup(request: HttpRequest):
 
         record_school_funnel_once("signup_completed", school, request)
         record_marketing_funnel_event("activation", request, school=school)
-    except (ImportError, AttributeError, TypeError, ValueError):
-        pass
+    except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
+        reset_broken_database_state()
 
     # v4.00.98 Phase 5 — fan out tenant.signup.completed through the matrix.
     # Sends the welcome email to the tenant admin. Best-effort.
@@ -1323,7 +1499,8 @@ def verify_signup(request: HttpRequest):
             strict_catalog=True,
             source="schools.verify_signup",
         )
-    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError):
+    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError, DatabaseError):
+        reset_broken_database_state()
         logger.warning("verify_signup_publish_event_failed", exc_info=True)
 
     # v3.58.x Wave 9 Agent K — route provisioning through the canonical
@@ -1373,9 +1550,16 @@ def verify_signup(request: HttpRequest):
     # in apps/schools/tasks.py). Falls back to the legacy login redirect when the
     # admin user cannot be resolved.
     User = get_user_model()
-    admin_user = (
-        User.objects.filter(email__iexact=verification.email).order_by("id").first()
-    )
+    try:
+        admin_user = (
+            User.objects.filter(email__iexact=verification.email).order_by("id").first()
+        )
+    except (DatabaseError, TransactionManagementError) as exc:
+        reset_broken_database_state()
+        if isinstance(exc, TransactionManagementError) or is_transient_database_error(exc):
+            logger.warning("verify_signup_admin_lookup_transient_db: %s", exc)
+            return _verify_signup_retryable_unavailable(request)
+        raise
     if admin_user is not None and admin_user.is_active:
         try:
             auth_login(request, admin_user)

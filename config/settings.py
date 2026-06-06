@@ -383,6 +383,7 @@ MIDDLEWARE += [
     # requests where the flag isn't set, so cheap to wire globally.
     "apps.migration_cloud.api.rate_limiting.SoftWarnHeaderMiddleware",
     "apps.observability.middleware_agent_template_debug.AgentTemplateMissingDebugMiddleware",
+    "apps.platform_runtime.middleware_transient_db.TransientDatabaseUnavailableMiddleware",
 ]
 
 # CSP defaults — enforced by default since v2.57 (inline-style backlog at 0).
@@ -1022,6 +1023,10 @@ COMPLIANCE_AUDIT_ACCESS_LOG_MIDDLEWARE_WRITES = (
     or os.getenv("RMC_ENABLE_TEST_ACCESS_LOG", "").strip().lower()
     in ("1", "true", "yes")
 )
+# Successful GET/HEAD/OPTIONS AccessLog rows: sample rate (0–1). Mutations and 4xx/5xx always log.
+COMPLIANCE_ACCESS_LOG_GET_SAMPLE_RATE = float(
+    os.getenv("COMPLIANCE_ACCESS_LOG_GET_SAMPLE_RATE", "0.25")
+)
 # Cookies must not be readable by JavaScript — defense-in-depth for XSS.
 SESSION_COOKIE_HTTPONLY = os.getenv("SESSION_COOKIE_HTTPONLY", "1") == "1"
 CSRF_COOKIE_HTTPONLY = os.getenv("CSRF_COOKIE_HTTPONLY", "1") == "1"
@@ -1498,6 +1503,10 @@ RMC_COMPANY_POSTAL_ADDRESS = os.getenv("RMC_COMPANY_POSTAL_ADDRESS", "")
 RMC_PUBLIC_SITE_URL = os.getenv("RMC_PUBLIC_SITE_URL", "https://runmycampus.com")
 RMC_LIST_ID = os.getenv("RMC_LIST_ID", "")
 RMC_LIST_UNSUBSCRIBE_MAILTO = os.getenv("RMC_LIST_UNSUBSCRIBE_MAILTO", "")
+# https one-click (RFC 8058) unsubscribe endpoint. When set, BULK / MARKETING
+# class mail (never transactional/security mail) carries List-Unsubscribe +
+# List-Unsubscribe-Post — a major Gmail/Yahoo 2024 inbox-placement signal.
+RMC_LIST_UNSUBSCRIBE_URL = os.getenv("RMC_LIST_UNSUBSCRIBE_URL", "")
 # DKIM posture: extra SMTP relay hostnames that sign DKIM at the edge.
 EMAIL_DKIM_RELAY_TRUSTED = os.getenv("EMAIL_DKIM_RELAY_TRUSTED", "")
 # Durable async transactional sends via Celery when the worker is always-on.
@@ -3169,6 +3178,10 @@ COCKPIT_200X_RENDER_PREVIEW_DEMO = os.getenv(
 COCKPIT_100X_RENDER_PREVIEW_DEMO = os.getenv(
     "COCKPIT_100X_RENDER_PREVIEW_DEMO", "0"
 ).strip().lower() in ("1", "true", "yes", "on")
+# Cockpit context processor: DB-backed realdata only on dashboard/landing paths.
+COCKPIT_CONTEXT_REALDATA_ENABLED = os.getenv(
+    "COCKPIT_CONTEXT_REALDATA_ENABLED", "1"
+).strip().lower() not in ("0", "false", "no", "off")
 AI_CENTER_LOG_PROMPTS = os.getenv("AI_CENTER_LOG_PROMPTS", "0").strip().lower() in (
     "1",
     "true",
@@ -3379,7 +3392,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
     ]
     # Middleware: TenantMain first (strict tenant resolution), then URLConf switch, then school bridge.
     MIDDLEWARE = [
-        "django_tenants.middleware.main.TenantMainMiddleware",
+        "apps.schools.middleware_tenant_main.HealthAwareTenantMainMiddleware",
         "apps.schools.middleware.LegacyBaseDomainRedirectMiddleware",
         "apps.schools.middleware.UrlConfSwitcherMiddleware",
         "apps.schools.middleware.ReservedPublicHostAccessMiddleware",
@@ -3435,6 +3448,7 @@ if USE_DJANGO_TENANTS and _db_engine.endswith("postgresql"):
         "apps.observability.middleware.ObservabilityMiddleware",
         "django.middleware.clickjacking.XFrameOptionsMiddleware",
         "apps.security.embed_frame_middleware.EmbedSameOriginFrameMiddleware",
+        "apps.platform_runtime.middleware_transient_db.TransientDatabaseUnavailableMiddleware",
     ]
     # TenantMiddleware is not used; TenantMainMiddleware + TenantSchemaSchoolBridgeMiddleware provide request.school
 
