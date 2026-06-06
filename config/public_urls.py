@@ -20,6 +20,7 @@ from apps.schools.competitive_marketing_views import (
     marketing_story_page,
     marketing_trust_dedicated,
 )
+from apps.schools.marketing_competitor_views import competitor_compare_page
 from apps.schools.marketing_kb_views import (
     marketing_kb_article_view,
     marketing_kb_category_view,
@@ -513,6 +514,11 @@ urlpatterns = [
         name="marketing_pricing_packages_clarity",
     ),
     path("trust/", marketing_trust_dedicated, name="marketing_trust_dedicated"),
+    path(
+        "compare/<slug:slug>/",
+        competitor_compare_page,
+        name="marketing_competitor_compare",
+    ),
     path(
         "implementation/",
         marketing_story_page,

@@ -1,0 +1,44 @@
+{% extends "schools/marketing_page_layout.html" %}
+{% load i18n static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-competitor-compare.css' %}">{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-compare mkt-compare-page{% endblock %}
+{% block marketing_page_inner %}
+<article class="mkt-compare" data-mkt-compare="{{ slug }}">
+  <header class="mkt-compare__hero mkt-edt-container rmc-reveal" data-mkt-reveal>
+    <p class="mkt-compare__eyebrow">{% trans "Honest comparison" %}</p>
+    <h1 class="mkt-compare__headline">{{ hero_headline }}</h1>
+    <p class="mkt-compare__intro">{{ intro }}</p>
+    <div class="mkt-compare__cta">
+      <a href="{% url cta_route %}" class="mkt-edt-cta mkt-edt-cta--primary" data-cta="compare" data-page="compare-{{ slug }}">{{ cta_label }}</a>
+      <a href="{% url 'marketing_pricing' %}" class="mkt-edt-cta mkt-edt-cta--ghost">{% trans "See pricing" %}</a>
+    </div>
+  </header>
+
+  <section class="mkt-compare__table-wrap mkt-edt-container rmc-reveal" data-mkt-reveal aria-label="{% trans 'Capability comparison' %}">
+    <table class="mkt-compare__table">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Capability" %}</th>
+          <th scope="col">{% trans "RunMyCampus" %}</th>
+          <th scope="col">{{ competitor_name }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <th scope="row" class="mkt-compare__cap">{{ row.capability }}</th>
+          <td class="mkt-compare__ours">{{ row.runmycampus }}</td>
+          <td class="mkt-compare__theirs">{{ row.competitor }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <p class="mkt-compare__disclaimer mkt-edt-container">{{ disclaimer }}</p>
+
+  <footer class="mkt-compare__foot mkt-edt-container">
+    <a href="{% url cta_route %}" class="mkt-edt-cta mkt-edt-cta--primary" data-cta="compare-foot" data-page="compare-{{ slug }}">{{ cta_label }}</a>
+  </footer>
+</article>
+{% endblock %}

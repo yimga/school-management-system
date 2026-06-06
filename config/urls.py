@@ -47,6 +47,7 @@ from apps.schools.competitive_marketing_views import (
     marketing_story_page,
     marketing_trust_dedicated,
 )
+from apps.schools.marketing_competitor_views import competitor_compare_page
 from apps.schools.marketing_region import MARKETING_LEGACY_REGIONAL_SHORTCUTS
 from apps.schools.marketing_views import (
     marketing_landing,
@@ -1241,6 +1242,11 @@ urlpatterns = [
         marketing_story_page,
         {"story_slug": "pilot-program"},
         name="marketing_story_pilot_program",
+    ),
+    path(
+        "compare/<slug:slug>/",
+        competitor_compare_page,
+        name="marketing_competitor_compare",
     ),
     path(
         "procurement-checklist/",
