@@ -110,7 +110,7 @@
 
   <div class="mkt-tour__controls">
     <button type="button" class="mkt-tour__nav mkt-tour__nav--prev" data-mkt-tour-prev aria-label="{% trans 'Previous step' %}">&#8592;</button>
-    <div class="mkt-tour__dots" role="tablist" aria-label="{% trans 'Tour steps' %}">
+    <div class="mkt-tour__dots" role="group" aria-label="{% trans 'Tour steps' %}">
       {% for frame in product_tour.frames %}
       <button type="button" class="mkt-tour__step-dot{% if forloop.first %} is-active{% endif %}" data-mkt-tour-dot data-step="{{ forloop.counter0 }}" aria-label="{% blocktrans with n=forloop.counter %}Go to step {{ n }}{% endblocktrans %}"{% if forloop.first %} aria-current="true"{% endif %}></button>
       {% endfor %}
