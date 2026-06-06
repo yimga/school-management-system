@@ -54,7 +54,7 @@ SUBPROCESS_SCRIPTS = (
 )
 
 
-def _run_script(name: str, extra_args: list[str]) -> tuple[bool, str]:
+def _run_script(name: str, extra_args: list[str], *, timeout: int = 300) -> tuple[bool, str]:
     cmd = [sys.executable, str(REPO / "scripts" / name), *extra_args]
     try:
         proc = subprocess.run(
@@ -62,7 +62,7 @@ def _run_script(name: str, extra_args: list[str]) -> tuple[bool, str]:
             cwd=str(REPO),
             capture_output=True,
             text=True,
-            timeout=900,
+            timeout=timeout,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:
         return False, str(exc)
@@ -113,8 +113,14 @@ def main() -> int:
     if not ok:
         failures.append(f"fractional_capacity smoke failed: {proof}")
 
+    http_scripts = {
+        "verify_group_console_http_contract.py",
+        "verify_multicampus_wedge_http_contract.py",
+        "verify_org_backfill_operator_smoke.py",
+    }
     for script, extra in SUBPROCESS_SCRIPTS:
-        ok, proof = _run_script(script, extra)
+        timeout = 900 if script in http_scripts else 300
+        ok, proof = _run_script(script, extra, timeout=timeout)
         checks.append(
             {
                 "id": script,

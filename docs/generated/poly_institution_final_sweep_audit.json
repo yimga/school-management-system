@@ -1,0 +1,83 @@
+{
+  "generated_at": "2026-06-06T00:32:33.863310+00:00",
+  "verdict": "POLY_INSTITUTION_FINAL_SWEEP_PASS",
+  "finding_count": 0,
+  "checks": [
+    {
+      "id": "sqlite_gate_session_warm_migrate",
+      "status": "PASS",
+      "proof": "System check identified no issues (0 silenced).\n----------------------------------------------------------------------\nRan 2 tests in 8.247s\n\nOK"
+    },
+    {
+      "id": "verify_country_governance_matrix.py",
+      "status": "PASS",
+      "proof": "verify_country_governance_matrix: PASS (249 rows)"
+    },
+    {
+      "id": "verify_hierarchy_silo_drift.py",
+      "status": "PASS",
+      "proof": "verify_hierarchy_silo_drift: PASS (Organization-derived mat_groups + legacy JSON merge)"
+    },
+    {
+      "id": "verify_global_operational_blind_spots.py",
+      "status": "PASS",
+      "proof": "verify_global_operational_blind_spots: GLOBAL_OPERATIONAL_BLIND_SPOTS_PASS"
+    },
+    {
+      "id": "verify_school_operating_modes.py",
+      "status": "PASS",
+      "proof": "verify_school_operating_modes: PASS (governance_operating_mode present)"
+    },
+    {
+      "id": "verify_org_lifecycle_events.py",
+      "status": "PASS",
+      "proof": "verify_org_lifecycle_events: ORG_LIFECYCLE_EVENTS_PASS (scope=1)"
+    },
+    {
+      "id": "verify_governance_doc_truth.py",
+      "status": "PASS",
+      "proof": "verify_governance_doc_truth: GOVERNANCE_DOC_TRUTH_PASS"
+    },
+    {
+      "id": "verify_org_backfill_operator_smoke.py",
+      "status": "PASS",
+      "proof": "verify_org_backfill_operator_smoke: ORG_BACKFILL_OPERATOR_SMOKE_PASS"
+    },
+    {
+      "id": "verify_scheduling_exclude_constraints.py",
+      "status": "PASS",
+      "proof": "verify_scheduling_exclude_constraints: SCHEDULING_EXCLUDE_CONSTRAINTS_PASS"
+    },
+    {
+      "id": "verify_group_console_http_contract.py",
+      "status": "PASS",
+      "proof": "verify_group_console_http_contract: GROUP_CONSOLE_HTTP_CONTRACT_PASS"
+    },
+    {
+      "id": "verify_multicampus_wedge_http_contract.py",
+      "status": "PASS",
+      "proof": "verify_multicampus_wedge_http_contract: MULTICAMPUS_WEDGE_HTTP_CONTRACT_PASS"
+    },
+    {
+      "id": "verify_global_governance_plan_completion.py",
+      "status": "PASS",
+      "proof": "verify_global_governance_plan_completion: GLOBAL_GOVERNANCE_PLAN_COMPLETION_PASS"
+    },
+    {
+      "id": "verify_doc_plan_density_discipline.py",
+      "status": "PASS",
+      "proof": "verify_doc_plan_density_discipline: PASS (SOT/log/rule markers + size OK; matching_docs_total=164, matching_docs_root=89)"
+    },
+    {
+      "id": "verify_predeploy_core_gates.py",
+      "status": "PASS",
+      "proof": " system check\n\n--- Migrations check ---\nNo changes detected\nOK: Migrations check\n\n--- No print() in apps ---\nOK: No print() in application code (apps/ excluding tests, management, migrations).\nOK: No print() in apps\n\n--- Ruff F401/F841 ---\nAll checks passed!\nOK: Ruff F401/F841\n\n--- Dead hrefs strict ---\nscan_operator_shell_dead_hrefs: 0 finding(s) (baseline 0)\nOK: Dead hrefs strict\n\n--- Print statements baseline ---\nprint() scan: 0 call(s)\nOK: Print statements baseline\n\nPREDEPLOY_CORE_GATES_PASS"
+    },
+    {
+      "id": "poly_unit_tests_bundle",
+      "status": "PASS",
+      "proof": "p_host=manager.runmycampus.com content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=wedge=22 server_protocol=HTTP/1.1 request_scheme=http server_name=testserver portal_sidebar_items_fallback\n...............................................................\n----------------------------------------------------------------------\nRan 70 tests in 32.716s\n\nOK\nPreserving test database for alias 'default'..."
+    }
+  ],
+  "failures": []
+}

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-05T15:50:42.523139+00:00",
+  "generated_at": "2026-06-05T19:10:49.695646+00:00",
   "verdict": "POLY_INSTITUTION_GOVERNANCE_STACK_FAIL",
   "finding_count": 2,
   "checks": [
@@ -92,7 +92,7 @@
     {
       "id": "verify_global_operational_blind_spots.py",
       "status": "PASS",
-      "proof": "_scheme=- server_name=- (0.009) SELECT \"registries_countryregistry\".\"code\", \"registries_countryregistry\".\"cockpit_override_payload\" FROM \"registries_countryregistry\" WHERE \"registries_countryregistry\".\"code\" = 'CM' ORDER BY \"registries_countryregistry\".\"name\" ASC LIMIT 1; args=('CM',); alias=default"
+      "proof": "_scheme=- server_name=- (0.004) SELECT \"registries_countryregistry\".\"code\", \"registries_countryregistry\".\"cockpit_override_payload\" FROM \"registries_countryregistry\" WHERE \"registries_countryregistry\".\"code\" = 'CM' ORDER BY \"registries_countryregistry\".\"name\" ASC LIMIT 1; args=('CM',); alias=default"
     },
     {
       "id": "verify_school_operating_modes.py",
@@ -112,7 +112,7 @@
     {
       "id": "verify_org_backfill_operator_smoke.py",
       "status": "PASS",
-      "proof": "te_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.003) ROLLBACK; args=None; alias=default"
+      "proof": "te_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.000) ROLLBACK; args=None; alias=default"
     },
     {
       "id": "verify_scheduling_exclude_constraints.py",
@@ -122,16 +122,16 @@
     {
       "id": "verify_group_console_http_contract.py",
       "status": "FAIL",
-      "proof": ")\n           ~~~~~~~~~~~~~~~~~~~^^^^^\n  File \"C:\\Users\\yimga\\AppData\\Roaming\\Python\\Python314\\site-packages\\django\\db\\backends\\sqlite3\\base.py\", line 356, in execute\n    return super().execute(query)\n           ~~~~~~~~~~~~~~~^^^^^^^\ndjango.db.utils.OperationalError: duplicate column name: school_id"
+      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_group_console_http_contract.py']' timed out after 900 seconds"
     },
     {
       "id": "verify_multicampus_wedge_http_contract.py",
       "status": "FAIL",
-      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_multicampus_wedge_http_contract.py']' timed out after 300 seconds"
+      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_multicampus_wedge_http_contract.py']' timed out after 900 seconds"
     }
   ],
   "failures": [
-    "verify_group_console_http_contract.py failed: )\n           ~~~~~~~~~~~~~~~~~~~^^^^^\n  File \"C:\\Users\\yimga\\AppData\\Roaming\\Python\\Python314\\site-packages\\django\\db\\backends\\sqlite3\\base.py\", line 356, in execute\n    return super().execute(query)\n           ~~~~~~~~~~~~~~~^^^^^^^\ndjango.db.utils.OperationalError: duplicate column name: school_id",
-    "verify_multicampus_wedge_http_contract.py failed: Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_multicampus_wedge_http_contract.py']' timed out after 300 seconds"
+    "verify_group_console_http_contract.py failed: Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_group_console_http_contract.py']' timed out after 900 seconds",
+    "verify_multicampus_wedge_http_contract.py failed: Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_multicampus_wedge_http_contract.py']' timed out after 900 seconds"
   ]
 }
