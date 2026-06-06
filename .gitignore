@@ -77,8 +77,17 @@ db_working.sqlite3
 db_*.sqlite3
 *.sqlite3
 *.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
 *.sqlite3.malformed
 *.sqlite3.corrupted
+
+# Throwaway debug / audit artifacts (live HTML captures, runserver logs, probes)
+/artifacts/*.html
+/artifacts/*.log
+/artifacts/*.log.err
+/artifacts/*.txt
+/artifacts/*.cjs
 /data/db_live.sqlite3
 db_fresh.sqlite3
 db_buea_seed.sqlite3

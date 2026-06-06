@@ -617,6 +617,7 @@ html[data-cockpit-skin] body.control-plane-shell .rmc-admin-catalog-section > su
   min-width: 0;
 }
 .cp-header__nav-flank--end { justify-content: flex-end; }
+.cp-header__nav-flank--start { justify-content: flex-start; }
 
 .cp-nav-status-chip,
 .cp-nav-flank-action {
@@ -669,6 +670,22 @@ html[data-cockpit-skin] body.control-plane-shell .rmc-admin-catalog-section > su
 .cp-nav-flank-stat__label {
   font-size: 11px;
   color: var(--rmc-cockpit-chrome-muted, rgba(255, 255, 255, 0.55));
+}
+/* Sub-element grammar referenced by control_plane_unified_header.html
+   (v4.02.x nav-flank status chip text + command-action label) — bases above. */
+.cp-nav-status-chip__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-nav-flank-action__label {
+  font-weight: 600;
+}
+/* Header LIVE-row ticker: fill the row beside the right-anchored context strip. */
+.rmc-cp-header-ticker {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 @media (prefers-reduced-motion: reduce) {
   .cp-nav-status-chip__dot { animation: none; }
