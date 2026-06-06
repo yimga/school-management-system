@@ -91,6 +91,22 @@ class ContentSecurityPolicyMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
+    def _is_bypassed(self, path: str) -> bool:
+        """True when ``path`` is under a bypass prefix.
+
+        Matches the prefix root exactly AND any descendant — so the bare
+        ``/admin/`` index is bypassed, not just ``/admin/<app>/...``. The
+        previous ``path.rstrip('/').startswith('/admin/')`` form silently
+        FAILED for the exact index (``/admin/`` → ``/admin`` which does not
+        start with the trailing-slash prefix), leaking the strict CSP onto the
+        admin home and breaking Unfold's Alpine.js (needs ``eval``).
+        """
+        for prefix in self.BYPASS_PREFIXES:
+            root = prefix.rstrip("/")
+            if path == root or path.startswith(root + "/"):
+                return True
+        return False
+
     def __call__(self, request):
         # Generate the per-request nonce BEFORE the view/template renders so the
         # ``csp_nonce`` context processor can expose it to inline <script nonce>
@@ -98,8 +114,7 @@ class ContentSecurityPolicyMiddleware:
         nonce = secrets.token_urlsafe(16)
         request.csp_nonce = nonce
         response = self.get_response(request)
-        path = (request.path or "").rstrip("/") or "/"
-        if any(path.startswith(p) for p in self.BYPASS_PREFIXES):
+        if self._is_bypassed(request.path or "/"):
             return response
 
         # Only apply CSP to HTML / XHTML — adding it to JSON responses is noise.

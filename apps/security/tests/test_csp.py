@@ -47,6 +47,25 @@ class CspMiddlewareTests(SimpleTestCase):
         self.assertNotIn("Content-Security-Policy", resp)
 
     @override_settings(CSP_ENFORCE=True)
+    def test_admin_index_root_bypassed(self):
+        # Regression: the bare admin index "/admin/" must bypass too. The old
+        # rstrip('/').startswith('/admin/') form failed for the exact root
+        # ("/admin/" -> "/admin", not a prefix-match), leaking the strict CSP
+        # onto the admin home and breaking Unfold's Alpine.js (needs eval).
+        mw = ContentSecurityPolicyMiddleware(_get_response)
+        for path in ("/admin/", "/admin"):
+            resp = mw(self.factory.get(path))
+            self.assertNotIn("Content-Security-Policy", resp, path)
+            self.assertNotIn("Content-Security-Policy-Report-Only", resp, path)
+
+    @override_settings(CSP_ENFORCE=True)
+    def test_non_admin_lookalike_not_bypassed(self):
+        # "/administrators/" must NOT be treated as under "/admin/".
+        mw = ContentSecurityPolicyMiddleware(_get_response)
+        resp = mw(self.factory.get("/administrators/"))
+        self.assertIn("Content-Security-Policy", resp)
+
+    @override_settings(CSP_ENFORCE=True)
     def test_static_path_bypassed(self):
         mw = ContentSecurityPolicyMiddleware(_get_response)
         resp = mw(self.factory.get("/static/css/x.css"))
