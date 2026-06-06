@@ -32,7 +32,8 @@ Pairs with rmc-operator-tools-tray.js on manager / control-plane shells.
     "platform_status": "{% filter escapejs %}{% marketing_public_href 'status' %}{% endfilter %}",
     "incidents": "{% filter escapejs %}{% if platform_incidents_url %}{{ platform_incidents_url }}{% else %}{% url 'super:command_center' %}{% endif %}{% endfilter %}",
     "security_posture": "{% filter escapejs %}{% url 'accounts:security_posture_review' %}{% endfilter %}",
-    "activity_drawer_id": "rmcCpActivityDrawer"
+    "activity_drawer_id": "rmcCpActivityDrawer",
+    "messages": "{% filter escapejs %}{% url 'accounts:user_messages' %}{% endfilter %}"
   },
   "counts": {
     "incidents": {% if platform_incidents %}{{ platform_incidents|length }}{% elif attention_school_count %}{{ attention_school_count }}{% else %}0{% endif %}

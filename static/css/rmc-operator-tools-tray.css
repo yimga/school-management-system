@@ -215,6 +215,69 @@ body[data-rmc-assist-layout="edge-tray"] .rmc-assist-dock__backdrop {
   min-height: 0;
 }
 
+/* --- Type-to-filter (pinned between header and scrollable body) --- */
+.rmc-operator-tools__filter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid var(--hairline, rgba(255, 255, 255, 0.1));
+  flex-shrink: 0;
+}
+
+.rmc-operator-tools__filter-icon {
+  position: absolute;
+  left: 1.55rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.55));
+  pointer-events: none;
+}
+
+.rmc-operator-tools__filter-input {
+  flex: 1 1 auto;
+  width: 100%;
+  padding: 0.45rem 0.65rem 0.45rem 1.95rem;
+  border: 1px solid var(--hairline, rgba(255, 255, 255, 0.14));
+  border-radius: 9px;
+  background: color-mix(
+    in oklab,
+    var(--surface-canvas, #0f172a) 80%,
+    var(--surface-elevated, #1a2234) 20%
+  );
+  color: var(--text-primary, #f1f5f9);
+  font-size: var(--type-size-body-sm, 0.9375rem);
+  line-height: 1.3;
+}
+
+.rmc-operator-tools__filter-input::placeholder {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.5));
+}
+
+.rmc-operator-tools__filter-input:focus-visible {
+  outline: 2px solid var(--school-primary, #6366f1);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.rmc-operator-tools__filter-empty {
+  margin: 0.5rem 0 0;
+  padding: 0 0.15rem;
+  font-size: var(--type-size-body-sm, 0.9375rem);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+}
+
+.rmc-operator-tools__filter .visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .rmc-operator-tools__group + .rmc-operator-tools__group {
   margin-top: 0.75rem;
   padding-top: 0.75rem;

@@ -162,12 +162,79 @@
     return null;
   }
 
+  // Build a navigable anchor chip (used for external slots and for dom-adopt
+  // slots that fall back to a URL when their source node is absent).
+  function buildAnchorChip(meta, href) {
+    var el = document.createElement("a");
+    el.href = href;
+    el.className =
+      "rmc-assist-dock__btn rmc-assist-dock__btn--" + (meta.id || "x");
+    el.setAttribute("data-rmc-assist-slot-id", meta.id || "");
+    if (meta.description) el.setAttribute("title", meta.description);
+    el.innerHTML =
+      '<i class="bi ' +
+      escapeHtml(meta.icon || "bi-circle") +
+      '" aria-hidden="true"></i><span class="rmc-assist-dock__label">' +
+      escapeHtml(meta.label || "") +
+      "</span>";
+    return el;
+  }
+
+  // Resolve a URL fallback for a dom-adopt slot whose source node never
+  // mounted on this surface (e.g. `messages` adopts `.portal-chathead`, which
+  // only exists on tenant/portal shells — on the manager host there is no
+  // chathead, so the chip must navigate to the inbox instead of dying).
+  function domAdoptFallbackHref(slotId, urls) {
+    if (slotId === "messages" && urls.messages && urls.messages !== "#") {
+      return urls.messages;
+    }
+    return "";
+  }
+
+  // Dom-adopt slots whose bindTrayActions handler works WITHOUT the adopted
+  // source node (ai-copilot toggles the copilot rail; help opens the rail/page
+  // help). These must still render as buttons when their source is absent —
+  // unlike context/feedback, which are inert without their adopted widget and
+  // are skipped to avoid dead buttons.
+  var DOM_ADOPT_BUTTON_FALLBACK = {
+    "ai-copilot": true,
+    help: true,
+    "back-to-top": true,
+  };
+
   function createTrayChip(slotId, reg, cfg) {
     var meta = slotMeta(slotId, reg);
     if (!meta) return null;
+    var urls = (cfg && cfg.urls) || {};
     var btn;
     if (meta.source === "external" && meta.href) {
       btn = buildRegistryButton(meta, cfg);
+    } else if (meta.source === "dom-adopt") {
+      // We only reach createTrayChip when getChip() found no already-adopted
+      // node — i.e. the adopted source never existed on this surface. Never
+      // paint a dead button: render a real link when the slot has a URL
+      // fallback, keep a plain button when the slot has a working handler that
+      // doesn't need the adopted node, otherwise skip it so the tray shows
+      // only controls that actually do something.
+      var fallbackHref = domAdoptFallbackHref(slotId, urls);
+      if (fallbackHref) {
+        btn = buildAnchorChip(meta, fallbackHref);
+      } else if (DOM_ADOPT_BUTTON_FALLBACK[slotId]) {
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.className =
+          "rmc-assist-dock__btn rmc-assist-dock__btn--" + (slotId || "x");
+        btn.setAttribute("data-rmc-assist-slot-id", slotId);
+        if (meta.description) btn.setAttribute("title", meta.description);
+        btn.innerHTML =
+          '<i class="bi ' +
+          escapeHtml(meta.icon || "bi-circle") +
+          '" aria-hidden="true"></i><span class="rmc-assist-dock__label">' +
+          escapeHtml(meta.label || "") +
+          "</span>";
+      } else {
+        return null;
+      }
     } else {
       btn = document.createElement("button");
       btn.type = "button";
@@ -449,14 +516,26 @@
     }
 
     var messagesChip = getChip("messages");
-    if (messagesChip) {
+    if (messagesChip && messagesChip.tagName !== "A") {
+      // An <a> chip (URL-fallback case from createTrayChip) navigates natively
+      // — no handler needed. Otherwise the chip is either the adopted chathead
+      // (let its own handler open the in-page panel) or a button that must be
+      // routed to a real destination.
       messagesChip.addEventListener("click", function (ev) {
-        if (messagesChip.getAttribute("data-rmc-assist-slot-id") === "messages") return;
-        ev.preventDefault();
-        // Target the registry-adopted messages slot, not the raw legacy node:
-        // rmc-assist-dock.js stamps the chathead with this attribute on adopt.
-        var chathead = document.querySelector('[data-rmc-assist-slot-id="messages"]');
-        if (chathead) chathead.click();
+        // The adopted chathead carries its native click handler — defer to it.
+        if (messagesChip.classList.contains("portal-chathead")) return;
+        // A chathead mounted elsewhere on the page? Open it in place.
+        var chathead = document.querySelector(".portal-chathead");
+        if (chathead && chathead !== messagesChip) {
+          ev.preventDefault();
+          chathead.click();
+          return;
+        }
+        // No in-page messages panel on this surface — go to the inbox.
+        if (urls.messages && urls.messages !== "#") {
+          ev.preventDefault();
+          window.location.href = urls.messages;
+        }
       });
     }
 
@@ -776,6 +855,143 @@
     document.body.removeAttribute("data-rmc-back-to-top-policy");
   }
 
+  function normalizeFilterText(value) {
+    return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
+  // Type-to-filter for dense trays. Returns { apply, sync, focus, reset }.
+  // The filter row sits between the tray header and the scrollable body so it
+  // stays pinned while chips scroll. It only appears once the tray carries
+  // enough chips to be worth filtering, and it hides empty groups + announces
+  // the match count to assistive tech.
+  function buildTrayFilter(tray, trayBody) {
+    var head = tray.querySelector(".rmc-operator-tools__tray-head");
+    var wrap = document.createElement("div");
+    wrap.className = "rmc-operator-tools__filter";
+    wrap.hidden = true;
+    wrap.innerHTML =
+      '<i class="bi bi-search rmc-operator-tools__filter-icon" aria-hidden="true"></i>' +
+      '<input type="search" class="rmc-operator-tools__filter-input" ' +
+      'data-rmc-tools-filter placeholder="' +
+      escapeHtml("Filter tools…") +
+      '" aria-label="' +
+      escapeHtml("Filter tools") +
+      '" autocomplete="off" spellcheck="false">' +
+      '<span class="rmc-operator-tools__filter-status visually-hidden" ' +
+      'data-rmc-tools-filter-status aria-live="polite"></span>';
+    if (head && head.parentNode) {
+      head.parentNode.insertBefore(wrap, head.nextSibling);
+    } else {
+      trayBody.insertBefore(wrap, trayBody.firstChild);
+    }
+
+    var input = wrap.querySelector("[data-rmc-tools-filter]");
+    var status = wrap.querySelector("[data-rmc-tools-filter-status]");
+
+    function allSlots() {
+      return trayBody.querySelectorAll(".rmc-operator-tools__slot");
+    }
+
+    function apply(rawQuery) {
+      var query = normalizeFilterText(
+        rawQuery != null ? rawQuery : input ? input.value : ""
+      );
+      var slots = allSlots();
+      var shown = 0;
+      for (var i = 0; i < slots.length; i++) {
+        var slot = slots[i];
+        var match = true;
+        if (query) {
+          var labelEl = slot.querySelector(".rmc-assist-dock__label");
+          var chipEl = slot.querySelector("[data-rmc-assist-slot-id]");
+          var hay = normalizeFilterText(
+            (labelEl ? labelEl.textContent : "") +
+              " " +
+              (chipEl ? chipEl.getAttribute("title") || "" : "") +
+              " " +
+              (chipEl ? chipEl.getAttribute("data-rmc-assist-slot-id") || "" : "")
+          );
+          match = hay.indexOf(query) !== -1;
+        }
+        slot.hidden = !match;
+        if (match) shown++;
+      }
+      var groups = trayBody.querySelectorAll(".rmc-operator-tools__group");
+      for (var g = 0; g < groups.length; g++) {
+        var visible = groups[g].querySelectorAll(
+          ".rmc-operator-tools__slot:not([hidden])"
+        ).length;
+        groups[g].hidden = query ? visible === 0 : false;
+      }
+      var none = trayBody.querySelector("[data-rmc-tools-filter-empty]");
+      if (query && shown === 0) {
+        if (!none) {
+          none = document.createElement("p");
+          none.className = "rmc-operator-tools__filter-empty";
+          none.setAttribute("data-rmc-tools-filter-empty", "1");
+          trayBody.appendChild(none);
+        }
+        none.hidden = false;
+        none.textContent = "No tools match “" + query + "”.";
+      } else if (none) {
+        none.hidden = true;
+      }
+      if (status) {
+        status.textContent = query
+          ? shown + " tool" + (shown === 1 ? "" : "s") + " match"
+          : "";
+      }
+    }
+
+    function sync() {
+      var count = allSlots().length;
+      wrap.hidden = count < 7;
+      if (wrap.hidden && input) input.value = "";
+      apply(wrap.hidden ? "" : input ? input.value : "");
+    }
+
+    if (input) {
+      input.addEventListener("input", function () {
+        apply(input.value);
+      });
+      input.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          var firstChip = trayBody.querySelector(
+            ".rmc-operator-tools__slot:not([hidden]) [data-rmc-assist-slot-id]"
+          );
+          if (firstChip) firstChip.click();
+        } else if (ev.key === "Escape" && input.value) {
+          // Clear the query first; only a second Escape (empty input) bubbles
+          // up to the tray-close handler.
+          ev.preventDefault();
+          ev.stopPropagation();
+          input.value = "";
+          apply("");
+        }
+      });
+    }
+
+    return {
+      apply: apply,
+      sync: sync,
+      focus: function () {
+        if (input && !wrap.hidden) {
+          try {
+            input.focus();
+            input.select();
+          } catch (_e) {}
+          return true;
+        }
+        return false;
+      },
+      reset: function () {
+        if (input) input.value = "";
+        apply("");
+      },
+    };
+  }
+
   function transform(cfg) {
     var dock = document.querySelector(".rmc-assist-dock");
     if (!dock || dock.getAttribute(TRANSFORMED) === "1") return false;
@@ -856,6 +1072,8 @@
 
     mountContextStack(trayBody, cfg);
     applyPageContext(cfg, trayBody, tab, reg);
+    var trayFilter = buildTrayFilter(tray, trayBody);
+    trayFilter.sync();
     integrateNotebook(cfg);
     bindTrayActions(cfg);
     syncContextStackBadge(tab);
@@ -872,20 +1090,44 @@
         cfg.page.quick_actions = detail.quick_actions;
       }
       applyPageContext(cfg, trayBody, tab, reg);
+      trayFilter.sync();
       syncEdgeTabBadge();
     });
 
     var closeBtn = tray.querySelector(".rmc-operator-tools__tray-close");
     function closeTray() {
+      // Return focus to the edge tab if it was inside the tray, so keyboard
+      // users aren't stranded on a now-hidden control.
+      var focusWasInside =
+        tray.contains(document.activeElement) && document.activeElement !== tab;
       tray.setAttribute("aria-hidden", "true");
       tab.setAttribute("aria-expanded", "false");
       dock.classList.remove("rmc-operator-tools--open");
+      if (focusWasInside && typeof tab.focus === "function") {
+        try {
+          tab.focus();
+        } catch (_e) {}
+      }
     }
     function openTray() {
       tray.setAttribute("aria-hidden", "false");
       tab.setAttribute("aria-expanded", "true");
       dock.classList.add("rmc-operator-tools--open");
       syncEdgeTabBadge();
+      // Move focus into the tray: the filter input when present, else the
+      // first chip. Deferred a frame so the element is visible/focusable.
+      window.requestAnimationFrame(function () {
+        if (!trayFilter.focus()) {
+          var firstChip = tray.querySelector(
+            ".rmc-operator-tools__tray-body [data-rmc-assist-slot-id]"
+          );
+          if (firstChip && typeof firstChip.focus === "function") {
+            try {
+              firstChip.focus();
+            } catch (_e) {}
+          }
+        }
+      });
     }
     function toggleTray() {
       if (tab.getAttribute("aria-expanded") === "true") closeTray();
