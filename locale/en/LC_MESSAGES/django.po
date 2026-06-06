@@ -50930,3 +50930,378 @@ msgstr "e.g. mark a student absent today, or schedule a parent callback"
 
 msgid "reversed"
 msgstr "reversed"
+
+msgid "Accepted payment rails"
+msgstr "Accepted payment rails"
+
+msgid "Active classes"
+msgstr "Active classes"
+
+msgid ""
+"Ambient, phone-free capture — QR sweeps and passive RFID taps without a "
+"single student device."
+msgstr ""
+"Ambient, phone-free capture — QR sweeps and passive RFID taps without a "
+"single student device."
+
+msgid "Attendance capture log"
+msgstr "Attendance capture log"
+
+msgid "Attendance today"
+msgstr "Attendance today"
+
+msgid "Brazil — NF-e (SEFAZ)"
+msgstr "Brazil — NF-e (SEFAZ)"
+
+msgid "Bus check-in"
+msgstr "Bus check-in"
+
+msgid "Cambridge A*–G"
+msgstr "Cambridge A*–G"
+
+msgid "Capture: QR + passive RFID — no student phone required"
+msgstr "Capture: QR + passive RFID — no student phone required"
+
+msgid "Charged"
+msgstr "Charged"
+
+msgid "Class average"
+msgstr "Class average"
+
+msgid "Class teachers"
+msgstr "Class teachers"
+
+msgid "Collections this term"
+msgstr "Collections this term"
+
+msgid "Competency"
+msgstr "Competency"
+
+msgid "Dedicated lab"
+msgstr "Dedicated lab"
+
+msgid "Deployment matrix · sandbox"
+msgstr "Deployment matrix · sandbox"
+
+msgid ""
+"Drag an invoice and see 80/10/10 routing + a regional e-invoice tax stamp "
+"across 10 authorities."
+msgstr ""
+"Drag an invoice and see 80/10/10 routing + a regional e-invoice tax stamp "
+"across 10 authorities."
+
+msgid "Edge Mesh Map"
+msgstr "Edge Mesh Map"
+
+msgid "Enterprise Constellation"
+msgstr "Enterprise Constellation"
+
+msgid "Every claim is a sim you can run."
+msgstr "Every claim is a sim you can run."
+
+msgid "Go to step {{ n }}"
+msgstr "Go to step {{ n }}"
+
+msgid "Guided product tour of the real RunMyCampus workspace"
+msgstr "Guided product tour of the real RunMyCampus workspace"
+
+msgid "Heavy charts collapse to lightweight text fragments on degraded links."
+msgstr ""
+"Heavy charts collapse to lightweight text fragments on degraded links."
+
+msgid "IB 1–7"
+msgstr "IB 1–7"
+
+msgid "Illustrative split + e-invoice stamp. No real charge."
+msgstr "Illustrative split + e-invoice stamp. No real charge."
+
+msgid "India — GST (GSTN)"
+msgstr "India — GST (GSTN)"
+
+msgid "Indonesia — PPN (DJP)"
+msgstr "Indonesia — PPN (DJP)"
+
+msgid "Invoice amount"
+msgstr "Invoice amount"
+
+msgid "Kenya — VAT (KRA)"
+msgstr "Kenya — VAT (KRA)"
+
+msgid "Lab fee"
+msgstr "Lab fee"
+
+msgid "Line item"
+msgstr "Line item"
+
+msgid "Live dashboard"
+msgstr "Live dashboard"
+
+msgid "Live on this page"
+msgstr "Live on this page"
+
+msgid "Local sync queue"
+msgstr "Local sync queue"
+
+msgid ""
+"Map multi-campus networks, shared ledgers and district roll-ups across one "
+"governance fabric."
+msgstr ""
+"Map multi-campus networks, shared ledgers and district roll-ups across one "
+"governance fabric."
+
+msgid "Mark attendance"
+msgstr "Mark attendance"
+
+msgid "Messages sent"
+msgstr "Messages sent"
+
+msgid "Mexico — CFDI (SAT)"
+msgstr "Mexico — CFDI (SAT)"
+
+msgid ""
+"Model packages, seats and add-ons against regional currency — see the bill "
+"before you ever talk to us."
+msgstr ""
+"Model packages, seats and add-ons against regional currency — see the bill "
+"before you ever talk to us."
+
+msgid "Network-Drop Terminal"
+msgstr "Network-Drop Terminal"
+
+msgid "Nigeria — VAT (FIRS)"
+msgstr "Nigeria — VAT (FIRS)"
+
+msgid ""
+"No demo gatekeeping, no “contact sales” wall. Each runs 100% in your browser"
+" — region-aware, offline-proof, and honest about what it shows."
+msgstr ""
+"No demo gatekeeping, no “contact sales” wall. Each runs 100% in your browser"
+" — region-aware, offline-proof, and honest about what it shows."
+
+msgid "Offer"
+msgstr "Offer"
+
+msgid ""
+"One record, re-expressed instantly across US letters, IB, Cambridge and "
+"competency — zero re-entry."
+msgstr ""
+"One record, re-expressed instantly across US letters, IB, Cambridge and "
+"competency — zero re-entry."
+
+msgid "Open applications"
+msgstr "Open applications"
+
+msgid "Open lab"
+msgstr "Open lab"
+
+msgid "Outcome statistics"
+msgstr "Outcome statistics"
+
+msgid "Parent communication channels"
+msgstr "Parent communication channels"
+
+msgid "Pay fees (M-Pesa / MTN)"
+msgstr "Pay fees (M-Pesa / MTN)"
+
+msgid "Payment distribution bar"
+msgstr "Payment distribution bar"
+
+msgid "Payment split simulator"
+msgstr "Payment split simulator"
+
+msgid ""
+"Pick region → size → modules and watch the workspace, currency, terms and "
+"RTL reshape in seconds."
+msgstr ""
+"Pick region → size → modules and watch the workspace, currency, terms and "
+"RTL reshape in seconds."
+
+msgid "Polymorphic Gradebook"
+msgstr "Polymorphic Gradebook"
+
+msgid "Previous step"
+msgstr "Previous step"
+
+msgid "Pricing & Entitlement"
+msgstr "Pricing & Entitlement"
+
+msgid "Process payment"
+msgstr "Process payment"
+
+msgid "Push"
+msgstr "Push"
+
+msgid "Quiz 1"
+msgstr "Quiz 1"
+
+msgid "Reaches 28 families"
+msgstr "Reaches 28 families"
+
+msgid "Region / tax authority"
+msgstr "Region / tax authority"
+
+msgid "Regional payment rails"
+msgstr "Regional payment rails"
+
+msgid ""
+"Reminder: Year 9 swimming starts Thursday. Please send kit. — Front Office"
+msgstr ""
+"Reminder: Year 9 swimming starts Thursday. Please send kit. — Front Office"
+
+msgid "Run a live simulation"
+msgstr "Run a live simulation"
+
+msgid "Run sim"
+msgstr "Run sim"
+
+msgid "STAMPED"
+msgstr "STAMPED"
+
+msgid "Saudi Arabia — VAT (ZATCA)"
+msgstr "Saudi Arabia — VAT (ZATCA)"
+
+msgid "See the platform"
+msgstr "See the platform"
+
+msgid "Send now"
+msgstr "Send now"
+
+msgid "Simulated · runs in your browser · not a live tenant"
+msgstr "Simulated · runs in your browser · not a live tenant"
+
+msgid "Simulations hub"
+msgstr "Simulations hub"
+
+msgid "Sovereign kernel · region-aware"
+msgstr "Sovereign kernel · region-aware"
+
+msgid "Split-Gateway Ledger"
+msgstr "Split-Gateway Ledger"
+
+msgid "Sync when back online"
+msgstr "Sync when back online"
+
+msgid ""
+"Toggle fiber → blackout; attendance keeps logging via QR + RFID and drains "
+"the queue on reconnect."
+msgstr ""
+"Toggle fiber → blackout; attendance keeps logging via QR + RFID and drains "
+"the queue on reconnect."
+
+msgid "Total outstanding"
+msgstr "Total outstanding"
+
+msgid "Tour steps"
+msgstr "Tour steps"
+
+msgid "US letters · GPA"
+msgstr "US letters · GPA"
+
+msgid "USSD fallback · no data plan"
+msgstr "USSD fallback · no data plan"
+
+msgid "United Arab Emirates — VAT (FTA)"
+msgstr "United Arab Emirates — VAT (FTA)"
+
+msgid "United Kingdom — VAT (HMRC)"
+msgstr "United Kingdom — VAT (HMRC)"
+
+msgid "United States — Sales Tax (IRS)"
+msgstr "United States — Sales Tax (IRS)"
+
+msgid ""
+"Watch campuses peer-sync over local mesh during load-shedding — no "
+"continuous internet required."
+msgstr ""
+"Watch campuses peer-sync over local mesh during load-shedding — no "
+"continuous internet required."
+
+msgid "What schools say"
+msgstr "What schools say"
+
+msgid "Workspace preview"
+msgstr "Workspace preview"
+
+msgid "Year 9 — B guardians"
+msgstr "Year 9 — B guardians"
+
+msgid "Zero-UI Lab"
+msgstr "Zero-UI Lab"
+
+msgid "currencies, region-aware by default"
+msgstr "currencies, region-aware by default"
+
+msgid "languages, RTL native"
+msgstr "languages, RTL native"
+
+msgid "same record · re-expressed"
+msgstr "same record · re-expressed"
+
+msgid "synced live"
+msgstr "synced live"
+
+msgid "weeks to switch from legacy SIS"
+msgstr "weeks to switch from legacy SIS"
+
+msgid "{{ name }} logo"
+msgstr "{{ name }} logo"
+
+msgid "Rated {{ rating }} out of 5"
+msgstr "Rated {{ rating }} out of 5"
+
+msgid "via {{ label }}"
+msgstr "via {{ label }}"
+
+msgid "Accept all"
+msgstr "Accept all"
+
+msgid "Cookie and privacy preferences"
+msgstr "Cookie and privacy preferences"
+
+msgid "Necessary"
+msgstr "Necessary"
+
+msgid "Reject non-essential"
+msgstr "Reject non-essential"
+
+msgid "We respect your privacy"
+msgstr "We respect your privacy"
+
+msgid ""
+"We use essential cookies to run this site. With your consent we also use "
+"analytics to understand what's useful. You can change this anytime."
+msgstr ""
+"We use essential cookies to run this site. With your consent we also use "
+"analytics to understand what's useful. You can change this anytime."
+
+msgid "always on; required for the site to work."
+msgstr "always on; required for the site to work."
+
+msgid "helps us understand which pages are useful."
+msgstr "helps us understand which pages are useful."
+
+msgid "lets us measure campaigns."
+msgstr "lets us measure campaigns."
+
+msgid "Honest comparison"
+msgstr "Honest comparison"
+
+msgid ""
+"Indicative only — not a quote. Final pricing depends on modules, student "
+"numbers, region and term."
+msgstr ""
+"Indicative only — not a quote. Final pricing depends on modules, student "
+"numbers, region and term."
+
+msgid ""
+"Per student, per month — modular, so you only pay for what you switch on. "
+"Figures are indicative; use the calculator or talk to us for an exact quote."
+msgstr ""
+"Per student, per month — modular, so you only pay for what you switch on. "
+"Figures are indicative; use the calculator or talk to us for an exact quote."
+
+msgid "See pricing"
+msgstr "See pricing"
+
+msgid "Transparent, indicative pricing"
+msgstr "Transparent, indicative pricing"

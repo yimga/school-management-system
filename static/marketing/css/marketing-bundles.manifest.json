@@ -1,14 +1,14 @@
 {
   "version": "2026-05-19",
-  "generated_utc": "2026-06-03T17:51:03Z",
+  "generated_utc": "2026-06-06T17:05:29Z",
   "critical": {
     "path": "static/marketing/css/marketing-critical.min.css",
     "bytes": 21386,
     "sources": [
       {
         "path": "static/marketing/css/tokens-marketing.css",
-        "sha256": "4ba4f2e2a434680c5a6bf8d41c2971b8ba232ac03f11222d09374dfc9fbdc1c4",
-        "bytes": 7422
+        "sha256": "4d625fb56810ef16700aca961c82000300418cd47a887b5831e787a385d58200",
+        "bytes": 7574
       },
       {
         "path": "static/marketing/css/marketing-v3-shell.css",
@@ -22,8 +22,8 @@
       },
       {
         "path": "static/marketing/css/marketing-accessibility-hardening.css",
-        "sha256": "ef50f5355e81a199e793db5058cd34f4faeab875f6f7a4adf05449ce644e03b2",
-        "bytes": 12691
+        "sha256": "da5b360163877776a4e4add973b0b6d854f534d7ea31db2619bbca151f3dcc36",
+        "bytes": 12751
       },
       {
         "path": "static/marketing/css/marketing-fonts.css",
@@ -34,7 +34,7 @@
   },
   "enhanced": {
     "path": "static/marketing/css/marketing-enhanced.min.css",
-    "bytes": 348498,
+    "bytes": 348692,
     "sources": [
       {
         "path": "static/css/rmc-class-grammar.css",
@@ -63,8 +63,8 @@
       },
       {
         "path": "static/marketing/css/marketing-impact.css",
-        "sha256": "4c6f31d59c5550cbcb7fd9df9294adc0798aa1cec376ccdd9edb9259defa92e9",
-        "bytes": 10820
+        "sha256": "5e6f45b5a80b60e6a14708538e33f053599eeb3e81d20a0de7f26e3fc2688c3f",
+        "bytes": 10833
       },
       {
         "path": "static/marketing/css/marketing-page-personality.css",
@@ -73,23 +73,23 @@
       },
       {
         "path": "static/marketing/css/marketing-media-viz.css",
-        "sha256": "d61ec57e97e4b334d8d16d472aceaa6ac93c0c00b9724cf1c56971583847ce0a",
-        "bytes": 6542
+        "sha256": "61950bcaa999df42fcc25cd780a140fabd71ad35ffbfad836b25796630fdcabe",
+        "bytes": 6549
       },
       {
         "path": "static/marketing/css/marketing-visual-engine.css",
-        "sha256": "bc28947c6673c248a04aa87c098b5ecf1e00b2cf62d46bf39a63ffc21364ddc5",
-        "bytes": 7889
+        "sha256": "3ca2eb223df48a2d8e68762571937837e17c769a9bf1e285a8607cc4239474a4",
+        "bytes": 9504
       },
       {
         "path": "static/marketing/css/marketing-intent-home.css",
-        "sha256": "a24b94d8fb70635be6a74c940e7de75685143c0b7d71b9eae76ba337f7b3d327",
-        "bytes": 1274
+        "sha256": "3b3189f934db382b1a8f89bdb1f1afec65e0c185605ed8a3625b9486fd1c6f21",
+        "bytes": 1561
       },
       {
         "path": "static/marketing/css/marketing-personality-pages.css",
-        "sha256": "24a61756f5ee591520df90187c80e3d81cb7a06cbc155bccbd7b9199b2e602ef",
-        "bytes": 3503
+        "sha256": "074a0e0ac2eee6d4fd7b73e95d8046781763f9419e32687f05e8beca6e06143f",
+        "bytes": 3718
       },
       {
         "path": "static/marketing/css/marketing-edge-layout.css",
@@ -108,8 +108,8 @@
       },
       {
         "path": "static/marketing/css/tokens-editorial.css",
-        "sha256": "f5ed0813e104527a1572acf9a4a47b10008e8984572959d209b0220eab789403",
-        "bytes": 50241
+        "sha256": "47c7133f0aafe62623d301509083e6a5cf02c6cd6794c6b8541711ad57575eae",
+        "bytes": 50242
       },
       {
         "path": "static/css/rmc-warm-bright-school.css",
@@ -143,8 +143,8 @@
       },
       {
         "path": "static/marketing/css/proof-pages.css",
-        "sha256": "bd5ad577ec32dc2a75e81bd051cb4f8cc6db12e2251cccdcf0fe62390ae070e9",
-        "bytes": 8897
+        "sha256": "a818de118e0b19fd1216bbae7a20fd4e6012aabf472ad9b2abeef94e81ad38e9",
+        "bytes": 9294
       },
       {
         "path": "static/css/platform-high-end.css",
