@@ -51251,3 +51251,34 @@ msgstr "Rated {{ rating }} out of 5"
 
 msgid "via {{ label }}"
 msgstr "via {{ label }}"
+
+msgid "Accept all"
+msgstr "Accept all"
+
+msgid "Cookie and privacy preferences"
+msgstr "Cookie and privacy preferences"
+
+msgid "Necessary"
+msgstr "Necessary"
+
+msgid "Reject non-essential"
+msgstr "Reject non-essential"
+
+msgid "We respect your privacy"
+msgstr "We respect your privacy"
+
+msgid ""
+"We use essential cookies to run this site. With your consent we also use "
+"analytics to understand what's useful. You can change this anytime."
+msgstr ""
+"We use essential cookies to run this site. With your consent we also use "
+"analytics to understand what's useful. You can change this anytime."
+
+msgid "always on; required for the site to work."
+msgstr "always on; required for the site to work."
+
+msgid "helps us understand which pages are useful."
+msgstr "helps us understand which pages are useful."
+
+msgid "lets us measure campaigns."
+msgstr "lets us measure campaigns."

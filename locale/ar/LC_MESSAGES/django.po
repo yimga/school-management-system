@@ -45653,3 +45653,32 @@ msgstr ""
 
 msgid "via {{ label }}"
 msgstr ""
+
+msgid "Accept all"
+msgstr ""
+
+msgid "Cookie and privacy preferences"
+msgstr ""
+
+msgid "Necessary"
+msgstr ""
+
+msgid "Reject non-essential"
+msgstr ""
+
+msgid "We respect your privacy"
+msgstr ""
+
+msgid ""
+"We use essential cookies to run this site. With your consent we also use "
+"analytics to understand what's useful. You can change this anytime."
+msgstr ""
+
+msgid "always on; required for the site to work."
+msgstr ""
+
+msgid "helps us understand which pages are useful."
+msgstr ""
+
+msgid "lets us measure campaigns."
+msgstr ""
