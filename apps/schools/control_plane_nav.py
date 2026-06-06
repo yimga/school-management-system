@@ -26,66 +26,6 @@ def _safe_reverse(url_name, urlconf=None, kwargs=None, args=None):
         return None
 
 
-def _platform_admin_bridge_nav_items():
-    """
-    Sidebar entries for ``super:admin_bridge`` (registry keys with ``show_in_nav``).
-    Keeps ids/labels/icons aligned with ``super_admin_bridge_registry``.
-    """
-    from apps.schools.super_admin_bridge_registry import (
-        PLATFORM_ADMIN_BRIDGE_ORDER,
-        PLATFORM_ADMIN_BRIDGES,
-    )
-
-    items = []
-    for key in PLATFORM_ADMIN_BRIDGE_ORDER:
-        meta = PLATFORM_ADMIN_BRIDGES.get(key)
-        if not meta or not meta.get("show_in_nav"):
-            continue
-        items.append(
-            {
-                "id": meta["nav_id"],
-                "label": str(meta["nav_label"]),
-                "url_name": "super:admin_bridge",
-                "kwargs": {"bridge_key": key},
-                "icon": meta.get("nav_icon", "bi-box-arrow-up-right"),
-            }
-        )
-    return items
-
-
-def _platform_admin_bridge_nav_items_direct(urlconf=None):
-    """
-    Advanced /super/ sidebar: link straight to platform-admin changelists.
-
-    Avoids an extra 302 via ``super:admin_bridge`` (bookmarks and hub tiles still use bridges).
-    """
-    from apps.schools.super_admin_bridge_registry import (
-        PLATFORM_ADMIN_BRIDGE_ORDER,
-        PLATFORM_ADMIN_BRIDGES,
-    )
-
-    items = []
-    for key in PLATFORM_ADMIN_BRIDGE_ORDER:
-        meta = PLATFORM_ADMIN_BRIDGES.get(key)
-        if not meta or not meta.get("show_in_nav"):
-            continue
-        admin_url_name = meta.get("admin_url")
-        if not admin_url_name:
-            continue
-        url = _safe_reverse(str(admin_url_name), urlconf=urlconf)
-        if not url:
-            continue
-        items.append(
-            {
-                "id": meta["nav_id"],
-                "label": str(meta["nav_label"]),
-                "url": url,
-                "icon": meta.get("nav_icon", "bi-box-arrow-up-right"),
-            }
-        )
-    return items
-
-
 def cp_nav_item_is_current(request_path: str, item_url: str) -> bool:
     """Highlight control-plane sidebar links when path matches or is under changelist."""
     p = (request_path or "").split("?", 1)[0].rstrip("/") or "/"
@@ -1152,7 +1092,6 @@ def build_control_plane_nav(request):
                 "icon": "bi-journal-text",
             }
         )
-    _advanced_resolved.extend(_platform_admin_bridge_nav_items_direct(urlconf=urlconf))
     if _advanced_resolved:
         for row in _advanced_resolved:
             row["is_current"] = cp_nav_item_is_current(

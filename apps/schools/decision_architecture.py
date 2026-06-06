@@ -41,7 +41,7 @@ _PRESETS: Dict[str, Dict[str, str]] = {
         "who_is_this_for": "Platform operator / super",
         "what_question_are_they_asking": "Where do global defaults live after slimming the tenant site settings row?",
         "what_state_are_they_in": "Reviewing RuntimeDefaults.payload + slim tenant site settings row",
-        "what_action_should_they_take_next": "Open platform admin playbooks or execution logs, or runtime inspector for a tenant drill-down",
+        "what_action_should_they_take_next": "Use platform admin playbooks or execution logs, or runtime inspector for a tenant drill-down",
         "what_confidence_signal_do_we_show": "Key counts, payload key preview, maintenance flag, playbook audit counts",
         "what_happens_if_they_are_wrong": "Empty payload or missing row — still valid for fresh envs",
         "what_is_the_fallback_path": "Studio Automation rail, workflow simulator, Phase B diff, bounded config center",

@@ -38,7 +38,7 @@ def register_default_quick_actions() -> None:
             href="/portal/parent/",
             path_prefixes=("/portal/parent",),
             surfaces=frozenset({SURFACE_PORTAL}),
-            roles=frozenset({"PARENT", "*"}),
+            roles=frozenset({"PARENT", "*"}),  # role-string-allow: quick-action-visibility-filter-not-authz
             description=_("Parent portal home"),
             order=20,
         ),
@@ -49,7 +49,7 @@ def register_default_quick_actions() -> None:
             href="/portal/teacher/",
             path_prefixes=("/portal/teacher", "/evals/teacher"),
             surfaces=frozenset({SURFACE_PORTAL}),
-            roles=frozenset({"TEACHER", "*"}),
+            roles=frozenset({"TEACHER", "*"}),  # role-string-allow: quick-action-visibility-filter-not-authz
             description=_("Teacher workspace home"),
             order=25,
         ),
@@ -60,7 +60,7 @@ def register_default_quick_actions() -> None:
             href="/portal/student-portal/grades/",
             path_prefixes=("/portal/student-portal",),
             surfaces=frozenset({SURFACE_PORTAL}),
-            roles=frozenset({"STUDENT", "*"}),
+            roles=frozenset({"STUDENT", "*"}),  # role-string-allow: quick-action-visibility-filter-not-authz
             description=_("Student grades portal"),
             order=30,
         ),

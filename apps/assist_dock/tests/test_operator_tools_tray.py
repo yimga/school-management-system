@@ -40,11 +40,11 @@ class OperatorToolsSlotsTests(SimpleTestCase):
         self.assertIsNotNone(health)
         self.assertFalse(health.pinned_default)
 
-    def test_workflow_progress_unpinned_by_default(self) -> None:
+    def test_workflow_progress_pinned_by_default(self) -> None:
         slots = {s.id: s for s in get_slots_for(surface=SURFACE_MANAGER, role="SUPERADMIN")}
         wf = slots.get("workflow-progress")
         self.assertIsNotNone(wf)
-        self.assertFalse(wf.pinned_default)
+        self.assertTrue(wf.pinned_default)
 
 
 class OperatorToolsCockpitDefaultsTests(SimpleTestCase):
