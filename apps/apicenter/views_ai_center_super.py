@@ -41,6 +41,7 @@ def _cp_context(request: HttpRequest, *, title: str, active: str) -> dict:
         "ai_faq_candidates_url": reverse("super:ai_center_faq_candidates"),
         "ai_kb_tools_url": reverse("super:ai_center_kb_tools"),
         "ai_agentic_url": reverse("super:ai_center_agentic"),
+        "ai_destructive_url": reverse("super:ai_center_destructive"),
     }
 
 
@@ -316,6 +317,104 @@ def ai_center_agentic(request: HttpRequest) -> HttpResponse:
         ctx["audit_rows"] = svc.recent_audit(limit=20)
 
     return render(request, "apicenter/super/ai_center_agentic.html", ctx)
+
+
+@require_super_access_with_host
+@login_required
+@require_http_methods(["GET", "POST"])
+def ai_center_destructive(request: HttpRequest) -> HttpResponse:
+    """Agentic AI — Phase 3 (destructive, DUAL-CONTROL).
+
+    Operator-only. Flag-gated by ``RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED`` (default
+    off) on top of the base agentic gate. One operator *requests* a destructive
+    action (typed confirm phrase); a DIFFERENT operator must *approve* it before
+    anything runs. Approval routes through the platform's GDPR erasure pipeline.
+    """
+    from services import ai_agentic_service as svc
+    from services.ai_agentic import ProposedAction
+
+    school = getattr(request, "school", None)
+    enabled = svc.agentic_destructive_enabled(school=school)
+    actions = svc.available_destructive_actions()
+    tenant_id = str(getattr(school, "id", "") or "platform")
+
+    ctx = _cp_context(request, title=_("Destructive actions (dual-control)"), active="destructive")
+    ctx.update(
+        {
+            "destructive_enabled": enabled,
+            "flag_name": "RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED",
+            "destructive_actions": [
+                {"name": a.name, "description": a.description, "parameters": list(a.parameters)}
+                for a in actions
+            ],
+            "op_result": None,
+            "pending_requests": svc.pending_destructive_requests(tenant_id=tenant_id, limit=25),
+            "audit_rows": svc.recent_audit(limit=20, tenant_id=tenant_id),
+        }
+    )
+
+    if request.method == "POST":
+        if not enabled:
+            ctx["error"] = _("Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to enable.")
+            return render(request, "apicenter/super/ai_center_destructive.html", ctx)
+
+        gen = (request.POST.get("gen") or "").strip()
+        action_ctx = _build_agentic_ctx(request, school)
+        user_id = str(getattr(request.user, "id", ""))
+        confirm_phrase = (request.POST.get("confirm_phrase") or "").strip()
+
+        if gen == "request":
+            action_name = (request.POST.get("action") or "").strip()
+            spec = next((a for a in actions if a.name == action_name), None)
+            if spec is None:
+                ctx["error"] = _("That action is not a Phase-3 destructive action.")
+            else:
+                params = {
+                    k: (request.POST.get(k) or "").strip()
+                    for k in spec.parameters
+                    if (request.POST.get(k) or "").strip()
+                }
+                result = svc.request_destructive_action(
+                    proposed=ProposedAction(action=action_name, params=params),
+                    ctx=action_ctx,
+                    requested_by_user_id=user_id,
+                    confirm_phrase=confirm_phrase,
+                    school=school,
+                )
+                ctx["op_result"] = _result_to_dict(result)
+        elif gen == "approve":
+            result = svc.approve_destructive_action(
+                audit_id=(request.POST.get("audit_id") or "").strip(),
+                ctx=action_ctx,
+                approver_user_id=user_id,
+                confirm_phrase=confirm_phrase,
+                school=school,
+            )
+            ctx["op_result"] = _result_to_dict(result)
+        elif gen == "reject":
+            result = svc.reject_destructive_action(
+                audit_id=(request.POST.get("audit_id") or "").strip(),
+                ctx=action_ctx,
+                actor_user_id=user_id,
+                school=school,
+            )
+            ctx["op_result"] = _result_to_dict(result)
+
+        ctx["pending_requests"] = svc.pending_destructive_requests(tenant_id=tenant_id, limit=25)
+        ctx["audit_rows"] = svc.recent_audit(limit=20, tenant_id=tenant_id)
+
+    return render(request, "apicenter/super/ai_center_destructive.html", ctx)
+
+
+def _result_to_dict(result) -> dict:
+    return {
+        "ok": result.ok,
+        "action": result.action,
+        "result": result.result,
+        "error": result.error,
+        "audit_id": result.audit_id,
+        "blocked_reason": result.blocked_reason,
+    }
 
 
 def _build_agentic_ctx(request: HttpRequest, school):

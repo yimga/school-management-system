@@ -746,6 +746,444 @@ def _reverse_schedule_parent_callback(payload: dict, school) -> ExecutionResult:
                                error=str(exc), blocked_reason="reversal_exception")
 
 
+# ===========================================================================
+# Phase 3 — destructive actions (irreversible, DUAL-CONTROL, audited)
+# ===========================================================================
+#
+# Owner-approved model (docs/AI_AGENTIC_ACTIONS_DESIGN.md):
+#   * Gated by RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED in addition to the base
+#     Phase-1 gate (independent of the Phase-2 mutating sub-flag).
+#   * TWO distinct humans: party A `request`s, a DIFFERENT party B `approve`s.
+#     The approver≠requester check is enforced SERVER-SIDE (user-id hashes).
+#   * A typed confirm phrase ("ERASE <student_id>") is required from BOTH parties.
+#   * Requests EXPIRE if not approved within a TTL (cooling-off).
+#   * Operator-only surface (super-access gated) for the first cut.
+#   * NO new delete path: `purge_student_record` routes through the existing
+#     compliance EraseRequest → fulfill_pending_erasure pipeline (GDPR Art. 17
+#     anonymization), via services.ai_agentic_runners_destructive.
+
+_DESTRUCTIVE = "destructive"
+_DESTRUCTIVE_REQUEST_TTL_SECONDS = 1800  # 30 min cooling-off window
+
+
+def _agentic_destructive_flag_on() -> bool:
+    return os.environ.get("RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def agentic_destructive_enabled(*, school=None) -> bool:
+    """Phase-3 gate: the dedicated destructive flag AND the base Phase-1 gate.
+
+    Independent of the Phase-2 mutating sub-flag — destructive is its own tier and
+    must be turned on explicitly, but it does not require Phase-2 to be on.
+    """
+    if not _agentic_destructive_flag_on():
+        return False
+    return agentic_phase1_enabled(school=school)
+
+
+def _destructive_require_dpo() -> bool:
+    """When on (default), the dual-control pair for a destructive action MUST
+    include at least one Data Protection Officer. Toggle via
+    ``RMC_AI_AGENTIC_DESTRUCTIVE_REQUIRE_DPO`` (set to 0 only if DPOs aren't yet
+    assigned in a tenant)."""
+    return os.environ.get("RMC_AI_AGENTIC_DESTRUCTIVE_REQUIRE_DPO", "1").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _roles_include_dpo(roles) -> bool:
+    """True if the role tuple includes the DPO role. Uses the ``User.Role`` enum
+    (canonical token), never a hardcoded role string."""
+    from apps.accounts.models import User
+
+    return User.Role.DPO.value in set(roles or ())
+
+
+def _opt_in_destructive_runners() -> dict:
+    try:
+        from services.ai_agentic_runners_destructive import OPT_IN_DESTRUCTIVE_RUNNERS
+
+        return dict(OPT_IN_DESTRUCTIVE_RUNNERS)
+    except Exception:  # noqa: BLE001
+        logger.debug("destructive runners unavailable", exc_info=True)
+        return {}
+
+
+def available_destructive_actions() -> tuple[ActionSpec, ...]:
+    """Registered ``destructive`` (non-reversible) actions with an opt-in runner.
+
+    This is the ENTIRE Phase-3 surface. Reversible/mutating/read-only actions are
+    never here.
+    """
+    runners = set(_opt_in_destructive_runners().keys())
+    return tuple(
+        spec
+        for spec in list_actions()
+        if spec.impact == _DESTRUCTIVE and not spec.reversible and spec.name in runners
+    )
+
+
+def _is_destructive_eligible(spec: ActionSpec | None) -> bool:
+    if spec is None:
+        return False
+    if spec.impact != _DESTRUCTIVE or spec.reversible:
+        return False
+    return spec.name in _opt_in_destructive_runners()
+
+
+def _destructive_confirm_phrase(student_id: str) -> str:
+    """The exact phrase BOTH parties must type. Friction against fat-finger; the
+    value is the student id the action targets, so it can't be a blind resubmit."""
+    return f"ERASE {str(student_id or '').strip()}"
+
+
+def _destructive_rate_limit_ok(tenant_id: str, user_id: str) -> bool:
+    from django.core.cache import cache
+
+    try:
+        cap = int(os.environ.get("RMC_AI_AGENTIC_DESTRUCTIVE_MAX_PER_HOUR", "5"))
+    except (TypeError, ValueError):
+        cap = 5
+    bucket = int(time.time() // 3600)
+    key = f"agentic_destr_rl:{tenant_id}:{user_id}:{bucket}"
+    try:
+        count = cache.get(key) or 0
+        if count >= cap:
+            return False
+        cache.set(key, count + 1, timeout=3600)
+    except Exception:  # noqa: BLE001 — cache outage: fail SAFE (allow), signature gates remain
+        logger.debug("destructive rate-limit cache unavailable; allowing", exc_info=True)
+    return True
+
+
+def request_destructive_action(
+    *,
+    proposed: ProposedAction,
+    ctx: ActionContext,
+    requested_by_user_id: str,
+    confirm_phrase: str,
+    school=None,
+) -> ExecutionResult:
+    """Party-A step: record an intent to run a destructive action (no erasure yet).
+
+    Gate order (each failure is audited as blocked, nothing is created):
+    enabled → eligible(destructive + runner) → role → server-side confirmation
+    → typed confirm phrase → rate limit. Then create a PENDING ``EraseRequest``
+    and write a REQUEST audit row holding its id. A distinct operator must
+    ``approve_destructive_action`` before anything is erased.
+    """
+    spec = get_action(proposed.action)
+    confirmed_ctx = _with_confirmation(ctx, requested_by_user_id)
+
+    def _blocked(reason: str, msg: str) -> ExecutionResult:
+        r = ExecutionResult(ok=False, action=proposed.action, error=msg, blocked_reason=reason)
+        _write_audit(audit_id="ag_" + uuid.uuid4().hex[:16], ctx=confirmed_ctx,
+                     proposed=proposed, spec=spec, result=r)
+        return r
+
+    if not agentic_destructive_enabled(school=school):
+        return _blocked("destructive_disabled", "Destructive agentic actions are disabled.")
+    if not _is_destructive_eligible(spec):
+        return _blocked("not_destructive_eligible",
+                        "Phase 3 permits destructive actions with a bound runner only.")
+    perm_err = verify_permission(spec, confirmed_ctx)
+    if perm_err:
+        return _blocked("permission_denied", perm_err)
+    if not confirmed_ctx.confirmed_by:
+        return _blocked("confirmation_required", "Server-side confirmation missing.")
+    student_id = str((proposed.params or {}).get("student_id") or "").strip()
+    if not student_id:
+        return _blocked("student_id_required", "student_id required.")
+    if (confirm_phrase or "").strip() != _destructive_confirm_phrase(student_id):
+        return _blocked("bad_confirm_phrase", "Confirmation phrase does not match.")
+    if not _destructive_rate_limit_ok(confirmed_ctx.tenant_id, confirmed_ctx.user_id):
+        return _blocked("rate_limited", "Destructive request rate limit reached; try again later.")
+
+    from services.ai_agentic_runners_destructive import create_purge_request
+
+    created = create_purge_request(proposed, confirmed_ctx)
+    if not created.get("ok"):
+        return _blocked("request_failed", created.get("error") or "Could not create erase request.")
+
+    audit_id = "ag_" + uuid.uuid4().hex[:16]
+    reversal_payload = {
+        "action": proposed.action,
+        "erase_request_id": str(created.get("erase_request_id") or ""),
+        "student_pk": str(created.get("student_pk") or ""),
+        # Persist whether party A held DPO so the approve step can enforce
+        # "≥1 DPO in the pair" without re-deriving the requester's role. Role
+        # tokens are not PII.
+        "requester_is_dpo": _roles_include_dpo(confirmed_ctx.user_roles),
+    }
+    from apps.platform_runtime.models_agentic_audit import (
+        AIAgenticActionOutcome,
+        AIAgenticActionPhase,
+    )
+    _write_audit(
+        audit_id=audit_id, ctx=confirmed_ctx, proposed=proposed, spec=spec,
+        result=ExecutionResult(ok=False, action=proposed.action, result={"request": True}),
+        phase=AIAgenticActionPhase.REQUEST,
+        reversal_payload=reversal_payload,
+        outcome_override=AIAgenticActionOutcome.PENDING,
+    )
+    return ExecutionResult(
+        ok=True, action=proposed.action,
+        result={"pending_approval": True,
+                "erase_request_id": created.get("erase_request_id")},
+        audit_id=audit_id,
+    )
+
+
+def approve_destructive_action(
+    *,
+    audit_id: str,
+    ctx: ActionContext,
+    approver_user_id: str,
+    confirm_phrase: str,
+    school=None,
+) -> ExecutionResult:
+    """Party-B step: a DIFFERENT operator approves → the erasure actually runs.
+
+    Re-checks every gate, enforces approver≠requester server-side, re-requires the
+    typed confirm phrase, and refuses expired or already-finalized requests. On
+    success it runs the sanctioned compliance erasure via the opt-in runner.
+    """
+    confirmed_ctx = _with_confirmation(ctx, approver_user_id)
+
+    def _blocked(reason: str, msg: str, action: str = "") -> ExecutionResult:
+        r = ExecutionResult(ok=False, action=action, error=msg, blocked_reason=reason)
+        # Record blocked approval attempts (self-approval, wrong phrase, expired,
+        # permission) for the security trail — correlated to the request's audit_id.
+        # MUST use the APPROVAL phase, never OUTCOME: an OUTCOME row would falsely
+        # finalize the request and bar a legitimate later approval.
+        if action:
+            try:
+                from apps.platform_runtime.models_agentic_audit import (
+                    AIAgenticActionPhase as _Phase,
+                )
+
+                _write_audit(audit_id=audit_id, ctx=confirmed_ctx,
+                             proposed=ProposedAction(action=action, params={}),
+                             spec=get_action(action), result=r, phase=_Phase.APPROVAL)
+            except Exception:  # noqa: BLE001
+                logger.debug("destructive approve block-audit failed", exc_info=True)
+        return r
+
+    if not agentic_destructive_enabled(school=school):
+        return _blocked("destructive_disabled", "Destructive agentic actions are disabled.")
+
+    try:
+        from apps.platform_runtime.models_agentic_audit import (
+            AIAgenticActionAudit,
+            AIAgenticActionPhase,
+        )
+    except Exception:  # noqa: BLE001
+        return _blocked("audit_unavailable", "Audit store unavailable.")
+
+    req = AIAgenticActionAudit.objects.filter(
+        audit_id=audit_id, phase=AIAgenticActionPhase.REQUEST,
+    ).first()
+    if req is None:
+        return _blocked("not_found", "No destructive request for that id.")
+    action = req.action
+
+    if AIAgenticActionAudit.objects.filter(
+        audit_id=audit_id, phase=AIAgenticActionPhase.OUTCOME,
+    ).exists():
+        return _blocked("already_finalized", "That request was already approved or rejected.", action)
+
+    from django.utils import timezone
+
+    age = (timezone.now() - req.created_at).total_seconds()
+    if age > _DESTRUCTIVE_REQUEST_TTL_SECONDS:
+        return _blocked("request_expired", "That destructive request has expired.", action)
+
+    spec = get_action(action)
+    perm_err = verify_permission(spec, confirmed_ctx) if spec else "unknown action"
+    if perm_err:
+        return _blocked("permission_denied", perm_err, action)
+    if not confirmed_ctx.confirmed_by:
+        return _blocked("confirmation_required", "Server-side confirmation missing.", action)
+    # Dual control: the approver MUST be a different human than the requester.
+    if _hash12(confirmed_ctx.user_id) == req.actor_user_id_hash:
+        return _blocked("self_approval_forbidden",
+                        "The approver must be a different operator than the requester.", action)
+
+    payload = req.reversal_payload or {}
+
+    # Data-protection dual-control: at least one of the two parties must be a DPO
+    # (the requester's DPO status was captured at request time).
+    if _destructive_require_dpo():
+        requester_was_dpo = bool(payload.get("requester_is_dpo"))
+        if not (requester_was_dpo or _roles_include_dpo(confirmed_ctx.user_roles)):
+            return _blocked(
+                "dpo_required",
+                "At least one of the requester or approver must be a Data Protection Officer.",
+                action,
+            )
+
+    student_pk = str(payload.get("student_pk") or "")
+    erase_request_id = str(payload.get("erase_request_id") or "")
+    if (confirm_phrase or "").strip() != _destructive_confirm_phrase(student_pk):
+        return _blocked("bad_confirm_phrase", "Confirmation phrase does not match.", action)
+    if not erase_request_id:
+        return _blocked("request_corrupt", "Request is missing its erase reference.", action)
+
+    # APPROVAL row (party B) — recorded BEFORE the irreversible run.
+    _write_audit(
+        audit_id=audit_id, ctx=confirmed_ctx,
+        proposed=ProposedAction(action=action, params={}), spec=spec,
+        result=ExecutionResult(ok=True, action=action, result={"approval": True}),
+        phase=AIAgenticActionPhase.APPROVAL,
+    )
+
+    runner = _opt_in_destructive_runners().get(action)
+    if runner is None:
+        r = _blocked("no_runner", "No destructive runner bound for this action.", action)
+        _write_audit(audit_id=audit_id, ctx=confirmed_ctx,
+                     proposed=ProposedAction(action=action, params={}), spec=spec,
+                     result=r, phase=AIAgenticActionPhase.OUTCOME)
+        return r
+
+    proposed = ProposedAction(action=action, params={"_erase_request_id": erase_request_id})
+    result = execute_action(proposed, ctx=confirmed_ctx, runner=runner)
+    result.audit_id = audit_id
+    _write_audit(audit_id=audit_id, ctx=confirmed_ctx, proposed=proposed, spec=spec,
+                 result=result, phase=AIAgenticActionPhase.OUTCOME)
+    return result
+
+
+def reject_destructive_action(
+    *,
+    audit_id: str,
+    ctx: ActionContext,
+    actor_user_id: str,
+    school=None,
+) -> ExecutionResult:
+    """Cancel a still-pending destructive request (the underlying EraseRequest is
+    marked REJECTED; nothing is erased). Any authorized operator may reject —
+    including the original requester."""
+    confirmed_ctx = _with_confirmation(ctx, actor_user_id)
+
+    def _blocked(reason: str, msg: str, action: str = "") -> ExecutionResult:
+        r = ExecutionResult(ok=False, action=action, error=msg, blocked_reason=reason)
+        # Blocked reject attempts go in the trail too, on the APPROVAL phase (never
+        # OUTCOME — that would finalize the request).
+        if action:
+            try:
+                from apps.platform_runtime.models_agentic_audit import (
+                    AIAgenticActionPhase as _Phase,
+                )
+
+                _write_audit(audit_id=audit_id, ctx=confirmed_ctx,
+                             proposed=ProposedAction(action=action, params={}),
+                             spec=get_action(action), result=r, phase=_Phase.APPROVAL)
+            except Exception:  # noqa: BLE001
+                logger.debug("destructive reject block-audit failed", exc_info=True)
+        return r
+
+    if not agentic_destructive_enabled(school=school):
+        return _blocked("destructive_disabled", "Destructive agentic actions are disabled.")
+
+    try:
+        from apps.platform_runtime.models_agentic_audit import (
+            AIAgenticActionOutcome,
+            AIAgenticActionAudit,
+            AIAgenticActionPhase,
+        )
+    except Exception:  # noqa: BLE001
+        return _blocked("audit_unavailable", "Audit store unavailable.")
+
+    req = AIAgenticActionAudit.objects.filter(
+        audit_id=audit_id, phase=AIAgenticActionPhase.REQUEST,
+    ).first()
+    if req is None:
+        return _blocked("not_found", "No destructive request for that id.")
+    action = req.action
+    if AIAgenticActionAudit.objects.filter(
+        audit_id=audit_id, phase=AIAgenticActionPhase.OUTCOME,
+    ).exists():
+        return _blocked("already_finalized", "That request was already approved or rejected.", action)
+
+    spec = get_action(action)
+    perm_err = verify_permission(spec, confirmed_ctx) if spec else "unknown action"
+    if perm_err:
+        return _blocked("permission_denied", perm_err, action)
+
+    payload = req.reversal_payload or {}
+    erase_request_id = str(payload.get("erase_request_id") or "")
+    rej = {"ok": True}
+    if erase_request_id:
+        from services.ai_agentic_runners_destructive import reject_purge_request
+
+        rej = reject_purge_request(erase_request_id)
+
+    _write_audit(
+        audit_id=audit_id, ctx=confirmed_ctx,
+        proposed=ProposedAction(action=action, params={}), spec=spec,
+        result=ExecutionResult(ok=False, action=action, result={"rejected": True},
+                               error="rejected by operator", blocked_reason="rejected"),
+        phase=AIAgenticActionPhase.OUTCOME,
+        outcome_override=AIAgenticActionOutcome.BLOCKED,
+    )
+    return ExecutionResult(
+        ok=bool(rej.get("ok", True)), action=action,
+        result={"rejected": True, "erase": rej}, blocked_reason="rejected", audit_id=audit_id,
+    )
+
+
+def pending_destructive_requests(*, tenant_id: str | None = None, limit: int = 25) -> list[dict]:
+    """REQUEST rows awaiting approval (no terminal OUTCOME yet), for the operator
+    surface. PII-free — exposes only hashes + the pseudonymous student pk."""
+    try:
+        from django.utils import timezone
+
+        from apps.platform_runtime.models_agentic_audit import (
+            AIAgenticActionAudit,
+            AIAgenticActionPhase,
+        )
+    except Exception:  # noqa: BLE001
+        return []
+
+    reqs = AIAgenticActionAudit.objects.filter(phase=AIAgenticActionPhase.REQUEST)
+    if tenant_id:
+        reqs = reqs.filter(tenant_id=tenant_id)
+    reqs = reqs.order_by("-created_at")[: max(1, min(limit, 100))]
+
+    finalized_qs = AIAgenticActionAudit.objects.filter(phase=AIAgenticActionPhase.OUTCOME)
+    if tenant_id:
+        finalized_qs = finalized_qs.filter(tenant_id=tenant_id)
+    finalized = set(finalized_qs.values_list("audit_id", flat=True))
+
+    now = timezone.now()
+    out: list[dict] = []
+    for r in reqs:
+        if r.audit_id in finalized:
+            continue
+        payload = r.reversal_payload or {}
+        age = (now - r.created_at).total_seconds()
+        out.append(
+            {
+                "audit_id": r.audit_id,
+                "action": r.action,
+                "student_pk": str(payload.get("student_pk") or ""),
+                "erase_request_id": str(payload.get("erase_request_id") or ""),
+                "requester": r.actor_user_id_hash,
+                "created_at": r.created_at,
+                "expired": age > _DESTRUCTIVE_REQUEST_TTL_SECONDS,
+            }
+        )
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Operator surface helpers
 # ---------------------------------------------------------------------------
