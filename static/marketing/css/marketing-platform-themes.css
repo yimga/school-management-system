@@ -30,9 +30,11 @@
    (attendance / communications / grading / offline-first / student-portal /
    workflows). `color` on the container makes descendants inherit the family ink
    so dark families never bleed dark-text-on-dark. */
-.mkt-page-type-platform-detail .mkt-personality-hero.mkt-edt-container,
+/* admissions keeps its bespoke transparent grid hero (marketing-platform-
+   admissions.css) — excluded so the family band doesn't override its layout */
+.mkt-page-type-platform-detail .mkt-personality-hero.mkt-edt-container:not(.mkt-admissions-hero),
 .mkt-page-type-platform-detail .mkt-v3-archetype__hero.mkt-edt-container,
-.mkt-page-type-platform-detail .mkt-personality-hero,
+.mkt-page-type-platform-detail .mkt-personality-hero:not(.mkt-admissions-hero),
 .mkt-page-type-platform-detail .mkt-v3-archetype__hero {
   color: var(--mkt-plat-ink, inherit);
   border-radius: 20px;
@@ -57,7 +59,7 @@
     radial-gradient(60% 78% at 96% -10%,
       color-mix(in srgb, var(--mkt-plat-accent) 13%, transparent), transparent 60%);
 }
-.mkt-page-type-platform-detail .mkt-personality-hero::after,
+.mkt-page-type-platform-detail .mkt-personality-hero:not(.mkt-admissions-hero)::after,
 .mkt-page-type-platform-detail .mkt-v3-archetype__hero::after {
   content: "";
   position: absolute;

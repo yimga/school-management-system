@@ -18,7 +18,7 @@
     </style>
   </defs>
   <rect width="520" height="420" fill="#020617"/>
-  <text class="t" x="260" y="28" text-anchor="middle" font-size="13">Parent portal  mobile-first clarity</text>
+  <text class="t" x="260" y="28" text-anchor="middle" font-size="13">Parent portal — mobile-first clarity</text>
   <rect class="phone" x="130" y="48" width="260" height="352"/>
   <rect class="in" x="150" y="72" width="220" height="36"/>
   <text class="ts" x="260" y="94" text-anchor="middle">Child profile � Grade 8</text>

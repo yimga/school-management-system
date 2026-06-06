@@ -24,7 +24,7 @@
     </marker>
   </defs>
   <rect width="920" height="340" fill="#020617" rx="0"/>
-  <text class="t" x="460" y="28" text-anchor="middle" font-size="13">Enrollment pipeline  every stage visible to staff and families</text>
+  <text class="t" x="460" y="28" text-anchor="middle" font-size="13">Enrollment pipeline — every stage visible to staff and families</text>
 
   <!-- Stages -->
   <g transform="translate(24,52)">
@@ -71,5 +71,5 @@
   <rect class="row" x="376" y="206" width="480" height="10"/>
   <rect class="row" x="376" y="224" width="420" height="10"/>
   <rect class="row" x="376" y="242" width="460" height="10"/>
-  <text class="ts" x="376" y="278">Connected to SIS, billing, and parent portal  no duplicate entry</text>
+  <text class="ts" x="376" y="278">Connected to SIS, billing, and parent portal — no duplicate entry</text>
 </svg>
