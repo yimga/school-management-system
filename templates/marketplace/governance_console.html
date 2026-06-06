@@ -30,7 +30,7 @@
 {% phase8_dashboard_declaration "marketplace/governance_console.html" %}
 
   {% url 'super:app_catalog' as app_catalog_url %}
-  {% include "components/rmc_operational_center_frame.html" with os_center_key="marketplace_governance" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#gov-queues" primary_label=_("Review queues") secondary_url=app_catalog_url secondary_label=_("App catalog") tertiary_url=tertiary_url tertiary_label=tertiary_label tertiary_icon=tertiary_icon jump_a_id="gov-glance" jump_a_label=_("At a glance") jump_b_id="gov-queues" jump_b_label=_("Queues") jump_c_id="gov-listings" jump_c_label=_("Listings") jump_d_id="gov-guide" jump_d_label=_("Operator guide") %}
+  {% include "components/rmc_operational_center_frame.html" with os_center_key="marketplace_governance" center_eyebrow=center_eyebrow center_title=center_title center_purpose=center_purpose status_badge_text=status_badge_text nav_groups=operational_nav_groups primary_url="#gov-queues" primary_label=_("Review queues") secondary_url=app_catalog_url secondary_label=_("App catalog") jump_a_id="gov-glance" jump_a_label=_("At a glance") jump_b_id="gov-queues" jump_b_label=_("Queues") jump_c_id="gov-listings" jump_c_label=_("Listings") jump_d_id="gov-guide" jump_d_label=_("Operator guide") %}
 
   <section id="gov-glance" data-rmc-section-anchor class="rmc-reveal mb-3">
     {% include "components/world_class_summary_strip.html" with readiness=_("Reviews") readiness_label=_("Pending queue") risk=_("Kill switch") risk_label=_("Blast radius") next_step=_("Payouts") next_step_label=_("Revenue share") blockers=_("Security") blockers_label=_("Third-party") %}

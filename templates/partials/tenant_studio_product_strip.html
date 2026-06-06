@@ -12,7 +12,4 @@
   <a href="{% url 'tenant_offboarding' %}">{% trans "Offboarding" %}</a>
   <a href="{% url 'tenant_provisioning_status' %}">{% trans "Provisioning" %}</a>
   <a href="{% url 'siteconfig:console_domains_hub' %}">{% trans "Config center" %}</a>
-  {% if request.user.is_superuser %}
-  <a href="{% url 'admin:index' %}">{% trans "Platform admin" %}</a>
-  {% endif %}
 </nav>
