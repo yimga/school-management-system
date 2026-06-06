@@ -187,7 +187,7 @@ def is_query_allowed(user, query):
     enforce server-side data scoping in the code that builds context and answers.
     Returns: (bool, str) - (is_allowed, denial_reason)
     """
-    from services.ai_copilot_rbac import build_copilot_permissions, validate_copilot_query
+    from services.ai_copilot_rbac import validate_copilot_query
 
     permissions = get_ai_permissions(user)
     return validate_copilot_query(

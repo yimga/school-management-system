@@ -28,7 +28,6 @@ from __future__ import annotations
 
 import logging
 
-from django.contrib.staticfiles.storage import ManifestStaticFilesStorage
 from whitenoise.storage import CompressedManifestStaticFilesStorage
 
 logger = logging.getLogger("siteconfig.staticfiles")
