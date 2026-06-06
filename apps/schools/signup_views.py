@@ -117,7 +117,6 @@ from apps.siteconfig.country_localization_service import (
     validate_school_type,
 )
 from apps.governance.country_matrix_service import signup_governance_defaults
-
 # v3.17 (2026-05-17): public onboarding gained a Migration step.
 # Order: 1 Region/type → 2 Plan/look → 3 Migration → 4 Review → signup.
 ONBOARDING_TOTAL_STEPS = 4
@@ -160,6 +159,13 @@ def _resolved_marketing_demo_tenant_url() -> str:
     if url:
         return url
     return derive_marketing_demo_tenant_url("", "demo-school", base)
+
+
+def _signup_localization_json(request: HttpRequest, cc: str, country_pack: dict) -> str:
+    """Embedded bootstrap for rmc-signup-country-adapter (offline-first fallback)."""
+    from apps.siteconfig.signup_localization_bootstrap import signup_localization_json
+
+    return signup_localization_json(request, cc, country_pack)
 
 
 # Wave L7 (v3.61.8 — 2026-05-22): public signup 2.0.
@@ -357,6 +363,7 @@ def signup_school(request: HttpRequest):
             language_code = ""
         if not tp:
             tp = get_default_calendar_code(cc)
+        signup_localization_json = _signup_localization_json(request, cc, country_pack)
         return render(
             request,
             "schools/signup_school.html",
@@ -364,6 +371,7 @@ def signup_school(request: HttpRequest):
                 "country_code": cc,
                 "term_preset": tp,
                 "language_code": language_code,
+                "signup_localization_json": signup_localization_json,
                 "signup_region_hint": (request.GET.get("region") or "").strip()[:64],
                 "curriculum_hint": (request.GET.get("curriculum") or "").strip()[:128],
                 "onboarding_prefill_hint": bool(
@@ -481,6 +489,7 @@ def signup_school(request: HttpRequest):
             return JsonResponse({"ok": False, "errors": errors}, status=400)
         for e in errors:
             messages.error(request, e)
+        country_pack = resolve_country_pack(country_code)
         return render(
             request,
             "schools/signup_school.html",
@@ -493,7 +502,10 @@ def signup_school(request: HttpRequest):
                 "signup_ref": signup_ref,
                 "marketing_demo_tenant_url": _resolved_marketing_demo_tenant_url(),
                 "signup_countries": _signup_countries(),
-                "country_pack": resolve_country_pack(country_code),
+                "country_pack": country_pack,
+                "signup_localization_json": _signup_localization_json(
+                    request, country_code, country_pack
+                ),
                 "school_type": school_type_raw,
             },
         )
@@ -505,6 +517,7 @@ def signup_school(request: HttpRequest):
         if request.headers.get("Accept", "").find("application/json") >= 0:
             return JsonResponse({"ok": False, "errors": errors}, status=400)
         messages.error(request, errors[0])
+        country_pack = resolve_country_pack(country_code)
         return render(
             request,
             "schools/signup_school.html",
@@ -523,7 +536,10 @@ def signup_school(request: HttpRequest):
                 "signup_countries": _signup_countries(),
                 # v3.62.2: country pack on slug-taken re-render so cards
                 # stay localized in the error state.
-                "country_pack": resolve_country_pack(country_code),
+                "country_pack": country_pack,
+                "signup_localization_json": _signup_localization_json(
+                    request, country_code, country_pack
+                ),
                 "school_type": school_type_raw,
             },
         )
@@ -543,11 +559,12 @@ def signup_school(request: HttpRequest):
     # v3.62.8 (Wave 6) — also persist language_code for multilingual countries
     # so the per-language education-system overlay (CM Anglo/Franco, CA EN/FR,
     # BE NL/FR/DE, CH 4 lang, IN 11 lang) is preserved across logins.
-    if country_code or term_preset or school_type or language_code:
+    if country_code or term_preset or school_type or language_code or validated_types:
         school_settings["localization"] = {
             "country_code": country_code or "",
             "calendar_code": term_preset or get_default_calendar_code(country_code),
             "school_type_code": school_type or "",
+            "education_cycles": list(validated_types),
             "language_code": language_code or "",
             "_seeded_at_signup": True,
         }
@@ -600,11 +617,22 @@ def signup_school(request: HttpRequest):
     # shape so apps.lifecycle.signals.school_post_save_record_lifecycle
     # auto-launches a draft MigrationBundle on creation.
     if migration_vendor:
+        from apps.siteconfig.signup_localization_bootstrap import (
+            build_migration_locale_context,
+        )
+
+        locale_ctx = build_migration_locale_context(
+            country_code or "",
+            language_code=language_code or "",
+            calendar_code=term_preset or get_default_calendar_code(country_code),
+            education_cycles=list(validated_types),
+        )
         school_settings["migration_intent"] = {
             "vendor": migration_vendor,
             "intake_method": "file_upload",
             "expected_students": 0,
             "label": f"{name} initial migration from {migration_vendor}"[:200],
+            "locale_context": locale_ctx,
         }
     country_defaults = GlobalGeoCatalog.country_defaults(country_code)
     create_kwargs = dict(
@@ -1128,6 +1156,15 @@ def onboarding_wizard(request: HttpRequest):
     # v3.17 (2026-05-17): vendor + step-indicator context for the migration step.
     selected_vendor_slug = session.get("onboarding_migrate_vendor")
     selected_vendor = resolve_vendor(selected_vendor_slug) if selected_vendor_slug else None
+    ob_country = session.get("onboarding_country_code") or ""
+    from apps.siteconfig.signup_migration_recommendations import (
+        migration_hint_for_country,
+        order_onboarding_vendors,
+    )
+    from apps.siteconfig.signup_localization_bootstrap import signup_localization_json
+
+    ob_pack = resolve_country_pack(ob_country) if ob_country else resolve_country_pack("US")
+    ordered_vendors = order_onboarding_vendors(ONBOARDING_VENDORS, ob_country)
     wizard_steps = [
         {"id": 1, "label": "Region"},
         {"id": 2, "label": "Plan"},
@@ -1166,7 +1203,11 @@ def onboarding_wizard(request: HttpRequest):
             "onboarding_import_site_name": session.get("onboarding_import_site_name"),
             "onboarding_correlation_id": session.get("onboarding_correlation_id"),
             # v3.17 migration-step context
-            "vendors": ONBOARDING_VENDORS,
+            "vendors": ordered_vendors,
+            "migration_hint": migration_hint_for_country(ob_country),
+            "signup_localization_json": signup_localization_json(
+                request, ob_country or "US", ob_pack
+            ),
             "selected_vendor": selected_vendor,
             "selected_vendor_slug": selected_vendor_slug,
             "data_domains": ONBOARDING_DATA_DOMAINS,

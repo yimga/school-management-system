@@ -4191,18 +4191,18 @@ COUNTRY_REGIONAL_DEFAULT.pop("KR", None)
 # China (PRC) — Mandarin+English, 6-3-3, gaokao.
 COUNTRY_LOCALIZATION["CN"] = {
     "calendar_system": {
-        "code": "cn-2-semester", "label": "2-semester (PRC)",
+        "code": "cn-2-semester", "label": "两学期制 (2 semesters / 学期)",
         "term_count": 2, "term_names": ["第一学期", "第二学期"],
         "week_start": 1, "academic_year_starts_month": 9,
     },
     "school_types": [
-        {"code": "youeryuan",   "label": "Youeryuan (Kindergarten)",       "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
-        {"code": "xiaoxue",     "label": "Xiaoxue (Primary, 小学 6y)",     "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
-        {"code": "chuzhong",    "label": "Chuzhong (Junior High, 初中 3y)","glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
-        {"code": "gaozhong",    "label": "Gaozhong (Senior High, 高中 / 高考)","glyph": "\U0001F393","primary_sector": "secondary",     "typical_ages": "15-18"},
-        {"code": "zhongzhuan",  "label": "Zhongzhuan (Specialized Secondary)","glyph": "\U0001F527","primary_sector": "vocational",     "typical_ages": "15-19"},
-        {"code": "international","label": "International / Cambridge / IB","glyph": "\U0001F4DA", "primary_sector": "k12",             "typical_ages": "3-18"},
-        {"code": "daxue",       "label": "Daxue (University, 大学)",       "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
+        {"code": "youeryuan",   "label": "幼儿园 (Yòu'éryuán)",              "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+        {"code": "xiaoxue",     "label": "小学 (Xiǎoxué — 6 years)",         "glyph": "\U0001F3EB", "primary_sector": "primary",         "typical_ages": "6-12"},
+        {"code": "chuzhong",    "label": "初中 (Chūzhōng — 3 years)",        "glyph": "\U0001F4DA", "primary_sector": "middle",          "typical_ages": "12-15"},
+        {"code": "gaozhong",    "label": "高中 (Gāozhōng — 高考)",           "glyph": "\U0001F393","primary_sector": "secondary",     "typical_ages": "15-18"},
+        {"code": "zhongzhuan",  "label": "中专 (Zhōngzhuān — vocational)",   "glyph": "\U0001F527","primary_sector": "vocational",     "typical_ages": "15-19"},
+        {"code": "international","label": "国际学校 (International / IB)",   "glyph": "\U0001F310", "primary_sector": "k12",             "typical_ages": "3-18"},
+        {"code": "daxue",       "label": "大学 (Dàxué)",                     "glyph": "\U0001F3DB", "primary_sector": "higher_ed",       "typical_ages": "18+"},
     ],
     "education_levels": [
         {"code": "cn-yey","label": "Youeryuan",        "order": 0},

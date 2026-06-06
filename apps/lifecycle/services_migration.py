@@ -95,6 +95,28 @@ def ensure_draft_migration_bundle(school) -> Optional["object"]:
             idempotency_key=idempotency_key,
             status=BundleStatus.PENDING,
         )
+        locale_ctx = intent.get("locale_context")
+        if not isinstance(locale_ctx, dict) or not locale_ctx:
+            loc = (getattr(school, "settings", None) or {}).get("localization") or {}
+            if isinstance(loc, dict) and loc.get("country_code"):
+                from apps.siteconfig.signup_localization_bootstrap import (
+                    build_migration_locale_context,
+                )
+
+                cycles = loc.get("education_cycles") or []
+                if not cycles and loc.get("school_type_code"):
+                    cycles = [str(loc.get("school_type_code"))]
+                locale_ctx = build_migration_locale_context(
+                    str(loc.get("country_code") or ""),
+                    language_code=str(loc.get("language_code") or ""),
+                    calendar_code=str(loc.get("calendar_code") or ""),
+                    education_cycles=[str(c) for c in cycles if c],
+                )
+        if isinstance(locale_ctx, dict) and locale_ctx:
+            snap = dict(bundle.progress_snapshot or {})
+            snap["signup_locale_context"] = locale_ctx
+            bundle.progress_snapshot = snap
+            bundle.save(update_fields=["progress_snapshot"])
         record_stage(
             school,
             SchoolLifecycleStage.Stage.MIGRATING,

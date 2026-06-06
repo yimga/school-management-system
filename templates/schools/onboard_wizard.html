@@ -4,6 +4,10 @@
 {% block extrastyle %}{{ block.super }}
 <link rel="stylesheet" href="{% static 'css/onboarding-migration.css' %}">
 {% endblock %}
+{% block extrahead %}{{ block.super }}
+<script nonce="{{ csp_nonce }}" type="application/json" id="page-data-rmc-signup-localization">{{ signup_localization_json|default:"{}"|safe }}</script>
+<script defer src="{% static 'js/_pages/rmc-signup-localization-prefetch.js' %}"></script>
+{% endblock %}
 {% block content %}
 {# primary-cta-allow: wizard-step-mutually-exclusive-branches step==1/2/3/4 #}
 <div class="container py-5" data-shell-page="onboarding-wizard">
@@ -170,8 +174,8 @@
                 {% endfor %}
               </div>
               <div class="ovendor-actions">
-                <p class="ovendor-actions__hint mb-0">
-                  <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{% trans "Don’t see your platform? Pick \"Spreadsheets / Other\" — we handle CSV exports." %}
+                <p class="ovendor-actions__hint mb-0" data-rmc-migration-hint>
+                  <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ migration_hint|default:_("Don't see your platform? Pick \"Spreadsheets / Other\" — we handle CSV exports.") }}
                 </p>
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                   <button type="submit" name="skip_migration" value="1" class="btn btn-link p-0 text-decoration-none">{% trans "Set up migration later" %}</button>

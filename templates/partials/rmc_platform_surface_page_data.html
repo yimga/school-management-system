@@ -2,8 +2,14 @@
 {% comment %}
   Platform surface page-data — named API URLs (platform_surface_config SOT).
   AI chrome remains in rmc_ai_chrome_page_data.html for backward-compatible JS ids.
+
+  Public /signup/ is anonymous but needs localization_country for the country
+  adapter — include the same JSON + reader there without opening the full
+  authenticated chrome (command bar, AI page-data).
 {% endcomment %}
-{% if request.user.is_authenticated and PLATFORM_SURFACE_CONFIG_JSON %}
+{% if PLATFORM_SURFACE_CONFIG_JSON %}
+{% if request.user.is_authenticated or request.resolver_match.url_name == 'signup_school' %}
 <script type="application/json" id="page-data-rmc-platform-surface" nonce="{{ csp_nonce }}">{{ PLATFORM_SURFACE_CONFIG_JSON|safe }}</script>
 <script src="{% static 'js/rmc-platform-surface-reader.js' %}"></script>
+{% endif %}
 {% endif %}

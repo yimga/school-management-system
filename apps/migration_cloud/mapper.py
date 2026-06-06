@@ -41,6 +41,7 @@ from apps.migration_cloud.ontology import (
     all_synonyms,
     iter_canonical_fields,
 )
+from apps.migration_cloud.signup_locale_bridge import extra_synonyms_for_canonical
 
 
 @dataclass
@@ -101,6 +102,38 @@ def map_artifact(
 
 # --- Single-column resolution -------------------------------------------
 
+def _header_match_keys(col: dict[str, Any]) -> list[str]:
+    """Candidate header strings for exact alias matching (ASCII + CJK)."""
+    keys: list[str] = []
+    normalized = (col.get("normalized") or "").strip().lower()
+    raw = (col.get("name") or "").strip()
+    if normalized:
+        keys.append(normalized)
+    raw_lower = raw.lower()
+    if raw_lower and raw_lower not in keys:
+        keys.append(raw_lower)
+    if raw and raw not in keys:
+        keys.append(raw)
+    return keys
+
+
+def _synonym_set_for_field(
+    artifact: MigrationArtifact,
+    *,
+    canonical_field: str,
+    domain: str,
+) -> set[str]:
+    syns = {s.lower() for s in all_synonyms(canonical_field, domain=domain)}
+    for extra in extra_synonyms_for_canonical(
+        artifact.bundle,
+        canonical_field=canonical_field,
+        domain=domain,
+    ):
+        syns.add(extra.lower())
+        syns.add(extra)
+    return syns
+
+
 def _map_one_column(
     col: dict[str, Any],
     canonical_fields: list[dict[str, Any]],
@@ -112,11 +145,17 @@ def _map_one_column(
     normalized = (col.get("normalized") or "").lower()
     inferred_type = col.get("inferred_type", "string")
     samples = col.get("samples") or []
+    header_keys = _header_match_keys(col)
 
     # Layer 1: exact alias.
     for cf in canonical_fields:
-        syns = {s.lower() for s in all_synonyms(cf["canonical_field"], domain=domain)}
-        if normalized and normalized in syns:
+        syns = _synonym_set_for_field(
+            artifact,
+            canonical_field=cf["canonical_field"],
+            domain=domain,
+        )
+        matched = next((key for key in header_keys if key in syns), "")
+        if matched:
             mapping = ColumnMapping(
                 source_column=source_name,
                 canonical_field=cf["canonical_field"],
@@ -125,14 +164,20 @@ def _map_one_column(
                 method="alias",
                 transformer=_suggest_transformer(cf, inferred_type, samples),
                 transformer_options=_suggest_transformer_options(cf),
-                reasoning=f"normalized header {normalized!r} matches synonym list exactly",
+                reasoning=f"header {matched!r} matches synonym list exactly",
             )
             _remember(mapping, artifact, samples)
             return mapping
 
     # Layer 2 + 3: token similarity scored against every canonical field,
     # then value-shape sanity check applied as a multiplier.
-    ranked = _score_token_similarity(normalized, canonical_fields, domain, inferred_type)
+    ranked = _score_token_similarity(
+        normalized,
+        canonical_fields,
+        domain,
+        inferred_type,
+        artifact=artifact,
+    )
     if ranked:
         top = ranked[0]
         if top["score"] >= threshold:
@@ -238,13 +283,23 @@ def _score_token_similarity(
     canonical_fields: list[dict[str, Any]],
     domain: str,
     inferred_type: str,
+    *,
+    artifact: MigrationArtifact | None = None,
 ) -> list[dict[str, Any]]:
     if not normalized:
         return []
     source_tokens = set(normalized.split("_"))
     ranked: list[dict[str, Any]] = []
     for cf in canonical_fields:
-        syns = all_synonyms(cf["canonical_field"], domain=domain)
+        syns = list(all_synonyms(cf["canonical_field"], domain=domain))
+        if artifact is not None:
+            syns.extend(
+                extra_synonyms_for_canonical(
+                    artifact.bundle,
+                    canonical_field=cf["canonical_field"],
+                    domain=domain,
+                )
+            )
         best_jaccard = 0.0
         best_syn = ""
         for syn in syns:

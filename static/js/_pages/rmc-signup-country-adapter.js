@@ -42,15 +42,45 @@
   // request per keystroke. Keyed by `code` or `code|lang`, value is a Promise.
   var inflight = Object.create(null);
   var memo = Object.create(null);
+  var bootstrapCache = null;
+
+  function readBootstrap() {
+    if (bootstrapCache !== null) return bootstrapCache;
+    bootstrapCache = {};
+    var node = document.getElementById("page-data-rmc-signup-localization");
+    if (!node) return bootstrapCache;
+    try {
+      bootstrapCache = JSON.parse(node.textContent || "{}") || {};
+    } catch (_e) {
+      bootstrapCache = {};
+    }
+    return bootstrapCache;
+  }
+
+  function resolveLocalizationUrl(code) {
+    if (window.RMCPlatformSurface && window.RMCPlatformSurface.localizationUrl) {
+      var fromSurface = window.RMCPlatformSurface.localizationUrl(code);
+      if (fromSurface) return fromSurface;
+    }
+    var boot = readBootstrap();
+    var pattern = boot.urls && boot.urls.localization_country;
+    if (!pattern) return "";
+    return String(pattern).replace(
+      "{country_code}",
+      encodeURIComponent(code || "")
+    );
+  }
 
   function init() {
     if (document.documentElement.dataset[INIT_FLAG] === "1") return;
     document.documentElement.dataset[INIT_FLAG] = "1";
 
     bindAllSelects();
-    // Wave 14 — sync IN state picker visibility with pre-selected country.
-    toggleIndiaStatePicker(currentCountryCode() === "IN");
-    document.body.addEventListener("htmx:afterSwap", bindAllSelects);
+    syncSelectedCountry();
+    document.body.addEventListener("htmx:afterSwap", function () {
+      bindAllSelects();
+      syncSelectedCountry();
+    });
   }
 
   function bindAllSelects() {
@@ -73,14 +103,19 @@
     var sel = ev.currentTarget;
     var code = String((sel && sel.value) || "").trim().toUpperCase();
     if (!code || code.length !== 2) return;
-    // Wave 14 — IN per-state mini-picker visibility tied to country pick.
+    applyCountryPack(code, "");
+  }
+
+  function syncSelectedCountry() {
+    var code = currentCountryCode();
+    if (!code || code.length !== 2) return;
+    applyCountryPack(code, "");
+  }
+
+  function applyCountryPack(code, lang) {
     toggleIndiaStatePicker(code === "IN");
-    fetchPack(code, "").then(function (pack) {
+    fetchPack(code, lang).then(function (pack) {
       if (!pack) return;
-      // First emit: render language picker (uses baseline pack `languages`)
-      // and calendar + school-type with baseline data. If a non-default
-      // language is selected later, the language onChange refetches with
-      // `?lang=` and overlays.
       renderGrids(pack);
     });
   }
@@ -142,12 +177,12 @@
     var key = lang ? (code + "|" + lang) : code;
     if (memo[key]) return Promise.resolve(memo[key]);
     if (inflight[key]) return inflight[key];
-    var url = "";
-    if (window.RMCPlatformSurface && window.RMCPlatformSurface.localizationUrl) {
-      url = window.RMCPlatformSurface.localizationUrl(code);
+    var url = resolveLocalizationUrl(code);
+    if (!url) {
+      var embedded = embeddedPackFor(code, lang);
+      return embedded ? Promise.resolve(embedded) : Promise.resolve(null);
     }
-    if (!url) return;
-    if (lang) url += "?lang=" + encodeURIComponent(lang);
+    if (lang) url += (url.indexOf("?") >= 0 ? "&" : "?") + "lang=" + encodeURIComponent(lang);
     var p = fetch(url, {
       credentials: "same-origin",
       headers: { Accept: "application/json" },
@@ -163,10 +198,81 @@
       })
       .catch(function () {
         delete inflight[key];
+        var fallback = embeddedPackFor(code, lang);
+        if (fallback) {
+          memo[key] = fallback;
+          return fallback;
+        }
         return null;
       });
     inflight[key] = p;
     return p;
+  }
+
+  function embeddedPackFor(code, lang) {
+    var boot = readBootstrap();
+    if (!boot.pack || String(boot.country_code || "").toUpperCase() !== code) {
+      return null;
+    }
+    if (lang) return null;
+    return boot.pack;
+  }
+
+  function renderTerminologyStrip(terminology) {
+    var node = document.querySelector("[data-rmc-signup-terminology]");
+    if (!node) return;
+    var term = String((terminology && terminology.term) || "").trim();
+    var grade = String((terminology && terminology.grade_level) || "").trim();
+    var teacher = String((terminology && terminology.teacher) || "").trim();
+    var parts = [];
+    if (term) parts.push(term);
+    if (grade) parts.push(grade);
+    if (teacher) parts.push(teacher);
+    if (!parts.length) {
+      node.hidden = true;
+      node.textContent = "";
+      return;
+    }
+    node.hidden = false;
+    node.textContent = "Local terms: " + parts.join(" · ");
+  }
+
+  function renderMigrationVendorHints(migration) {
+    var select = document.getElementById("migration_vendor");
+    var hint = document.querySelector("[data-rmc-migration-vendor-hint]");
+    if (!migration || !select) return;
+    if (hint && migration.hint) {
+      hint.textContent = String(migration.hint);
+    }
+    var rec = migration.recommended_vendors;
+    if (!rec || !rec.length) return;
+    var current = select.value;
+    var frag = document.createDocumentFragment();
+    var blank = document.createElement("option");
+    blank.value = "";
+    blank.textContent = select.options[0] ? select.options[0].textContent : "No — starting fresh";
+    frag.appendChild(blank);
+    var seen = Object.create(null);
+    for (var i = 0; i < rec.length; i++) {
+      var slug = String(rec[i] || "").toLowerCase();
+      if (!slug || seen[slug]) continue;
+      seen[slug] = true;
+      var opt = select.querySelector('option[value="' + cssEscape(slug) + '"]');
+      if (!opt) continue;
+      var clone = opt.cloneNode(true);
+      if (i === 0 && clone.textContent.indexOf("★") !== 0) {
+        clone.textContent = "★ " + clone.textContent;
+      }
+      frag.appendChild(clone);
+    }
+    for (var j = 0; j < select.options.length; j++) {
+      var val = String(select.options[j].value || "").toLowerCase();
+      if (!val || seen[val]) continue;
+      frag.appendChild(select.options[j].cloneNode(true));
+    }
+    select.innerHTML = "";
+    select.appendChild(frag);
+    if (current) select.value = current;
   }
 
   function renderGrids(pack) {
@@ -182,6 +288,8 @@
         renderSchoolTypeGrid(g, pack.school_types || []);
       }
     }
+    renderTerminologyStrip(pack.terminology || {});
+    renderMigrationVendorHints(pack.migration || null);
   }
 
   function renderLanguageGrid(grid, languages, defaultLangCode) {
@@ -350,37 +458,46 @@
 
   function renderSchoolTypeGrid(grid, schoolTypes) {
     if (!schoolTypes.length) return;
-    var radioName = grid.getAttribute("data-rmc-country-cards-radio") || "school_type";
-    var prev = grid.querySelector("input[name=\"" + radioName + "\"]:checked");
-    var prevValue = prev ? prev.value : "";
-    var preserve = "";
-    for (var i = 0; i < schoolTypes.length; i++) {
-      if (String(schoolTypes[i].code || "") === prevValue) {
-        preserve = prevValue;
-        break;
+    var radioName =
+      grid.getAttribute("data-rmc-country-cards-multi") ||
+      grid.getAttribute("data-rmc-country-cards-radio") ||
+      "school_type";
+    var isMulti = grid.getAttribute("data-rmc-multi-select") === "1";
+    var selected = new Set();
+    if (isMulti) {
+      var checked = grid.querySelectorAll(
+        'input[name="' + radioName + '"]:checked'
+      );
+      for (var i = 0; i < checked.length; i++) {
+        selected.add(String(checked[i].value || ""));
       }
+    } else {
+      var prev = grid.querySelector('input[name="' + radioName + '"]:checked');
+      if (prev) selected.add(String(prev.value || ""));
     }
     var frag = document.createDocumentFragment();
     for (var j = 0; j < schoolTypes.length; j++) {
-      frag.appendChild(buildSchoolTypeCard(schoolTypes[j], radioName, preserve));
+      frag.appendChild(
+        buildSchoolTypeCard(schoolTypes[j], radioName, selected, isMulti)
+      );
     }
     grid.innerHTML = "";
     grid.appendChild(frag);
   }
 
-  function buildSchoolTypeCard(st, radioName, selectedCode) {
+  function buildSchoolTypeCard(st, inputName, selectedSet, isMulti) {
     var code = String(st.code || "");
     var label = String(st.label || code);
     var glyph = String(st.glyph || "");
     var ages = String(st.typical_ages || "");
-    var isSelected = code === selectedCode;
+    var isSelected = selectedSet.has(code);
     var lbl = document.createElement("label");
     lbl.className =
       "rmc-signup-type-card" +
       (isSelected ? " rmc-signup-type-card--selected" : "");
     var input = document.createElement("input");
-    input.type = "radio";
-    input.name = radioName;
+    input.type = isMulti ? "checkbox" : "radio";
+    input.name = inputName;
     input.value = code;
     input.className = "rmc-signup-type-card__input";
     if (isSelected) input.checked = true;
@@ -401,6 +518,13 @@
       sub.textContent = ages;
       lbl.appendChild(sub);
     }
+    if (isMulti) {
+      var check = document.createElement("span");
+      check.className = "rmc-signup-type-card__check";
+      check.setAttribute("aria-hidden", "true");
+      check.textContent = "\u2713";
+      lbl.appendChild(check);
+    }
     return lbl;
   }
 
@@ -412,6 +536,7 @@
     var siblings = document.querySelectorAll(
       "input[name=\"" + input.name + "\"]"
     );
+    var isCheckbox = input.type === "checkbox";
     for (var i = 0; i < siblings.length; i++) {
       var lbl = siblings[i].closest(".rmc-calendar-card, .rmc-signup-type-card");
       if (!lbl) continue;
@@ -419,6 +544,15 @@
       var addCls = isCalendar ? "rmc-calendar-card--selected" : "rmc-signup-type-card--selected";
       var rmCls1 = "rmc-calendar-card--selected";
       var rmCls2 = "rmc-signup-type-card--selected";
+      if (isCheckbox) {
+        if (siblings[i].checked) {
+          lbl.classList.add(addCls);
+        } else {
+          lbl.classList.remove(rmCls1);
+          lbl.classList.remove(rmCls2);
+        }
+        continue;
+      }
       if (siblings[i] === input) {
         lbl.classList.add(addCls);
       } else {

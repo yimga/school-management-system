@@ -349,6 +349,21 @@ def _coerce_seed_pack(raw: dict[str, Any]) -> dict[str, Any]:
     else:
         out["calendar_systems"] = list(_GENERIC_FALLBACK_PACK["calendar_systems"])
 
+    # Display polish: derive calendar card subtitle from term_names when absent
+    # so bilingual countries show side-by-side period labels (e.g. 第一学期 / 第二学期).
+    enriched_cals: list[dict[str, Any]] = []
+    for cal in out.get("calendar_systems") or []:
+        if not isinstance(cal, dict):
+            continue
+        row = dict(cal)
+        if not str(row.get("sub") or "").strip():
+            names = row.get("term_names")
+            if isinstance(names, list) and names:
+                row["sub"] = " / ".join(str(n).strip() for n in names[:6] if str(n).strip())
+        enriched_cals.append(row)
+    if enriched_cals:
+        out["calendar_systems"] = enriched_cals
+
     # School types.
     school_types = raw.get("school_types")
     if isinstance(school_types, list) and school_types:

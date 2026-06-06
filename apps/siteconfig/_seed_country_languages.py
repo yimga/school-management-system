@@ -954,6 +954,33 @@ COUNTRY_LANGUAGES: dict[str, list[dict]] = {
 
     # ─── Asia: heavily multilingual ─────────────────────────────────────────
 
+    "CN": [  # China (PRC) — Mandarin national + English international/bilingual
+        {"code": "zh-hans", "native_name": "简体中文", "is_official": True,
+         "is_default": True, "region": "普通话 / 国语（公立学校）"},
+        {"code": "en", "native_name": "English", "is_official": False,
+         "is_default": False, "region": "International / bilingual schools",
+         "education_system": {
+             "system_name": "International / English-medium (Cambridge / IB)",
+             "school_types": [
+                 {"code": "preschool", "label": "Preschool / Kindergarten", "glyph": "\U0001F9F8", "primary_sector": "early_childhood", "typical_ages": "3-6"},
+                 {"code": "primary", "label": "Primary (Grades 1-6)", "glyph": "\U0001F3EB", "primary_sector": "primary", "typical_ages": "6-12"},
+                 {"code": "middle", "label": "Middle School (Grades 7-9)", "glyph": "\U0001F4DA", "primary_sector": "middle", "typical_ages": "12-15"},
+                 {"code": "high", "label": "High School (IGCSE / A Level / AP)", "glyph": "\U0001F393", "primary_sector": "secondary", "typical_ages": "15-18"},
+                 {"code": "international", "label": "International School (K-12)", "glyph": "\U0001F310", "primary_sector": "k12", "typical_ages": "3-18"},
+                 {"code": "university", "label": "University", "glyph": "\U0001F3DB", "primary_sector": "higher_ed", "typical_ages": "18+"},
+             ],
+             "calendar_system": {
+                 "code": "cn-intl-3-term", "label": "3 Terms (International schools)",
+                 "term_count": 3, "term_names": ["Term 1", "Term 2", "Term 3"],
+                 "week_start": 1, "academic_year_starts_month": 9,
+             },
+             "terminology": {
+                 "teacher": "Teacher", "principal": "Principal",
+                 "term": "Term", "report_card": "Report card", "grade_level": "Grade",
+             },
+         }},
+    ],
+
     "IN": [  # India — Hindi + English + 22 8th-schedule languages; medium varies
         {"code": "en", "native_name": "English", "is_official": True,
          "is_default": True, "region": "English-medium (CBSE/ICSE + IB schools)"},

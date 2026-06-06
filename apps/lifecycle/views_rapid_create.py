@@ -40,6 +40,10 @@ from apps.siteconfig.country_localization_service import (
     validate_language_code,
     validate_school_type,
 )
+from apps.siteconfig.signup_localization_bootstrap import (
+    build_migration_locale_context,
+    signup_localization_json,
+)
 
 from .services import record_stage
 from .services_migration import ensure_draft_migration_bundle
@@ -129,6 +133,33 @@ def _next_demo_slug() -> str:
     return f"{base}-{counter}"
 
 
+def _rapid_create_context(request, **overrides):
+    """Shared template context for GET + POST error re-renders."""
+    country_code = (overrides.pop("country_code", None) or "").strip()[:2].upper()
+    language_code = (overrides.pop("language_code", None) or "").strip().lower()
+    if not language_code:
+        language_code = get_default_language(country_code)
+    if validate_language_code(country_code, language_code):
+        pack = resolve_language_pack(country_code, language_code)
+    else:
+        pack = resolve_country_pack(country_code)
+        language_code = ""
+    ctx = {
+        "templates": _TEMPLATES,
+        "vendor_choices": _VENDOR_CHOICES,
+        "country_choices": _country_choices(),
+        "country_code": country_code,
+        "language_code": language_code,
+        "country_pack": pack,
+        "india_state_options": get_india_state_options(),
+        "signup_localization_json": signup_localization_json(
+            request, country_code, pack
+        ),
+    }
+    ctx.update(overrides)
+    return ctx
+
+
 @method_decorator(staff_member_required, name="dispatch")
 class RapidCreateView(View):
     """GET → form. POST → create school + redirect to lifecycle timeline."""
@@ -136,35 +167,16 @@ class RapidCreateView(View):
     template_name = "lifecycle/rapid_create.html"
 
     def get(self, request):
-        # v3.62.2: operator-side rapid create now also adapts to country.
-        # v3.62.8 (Wave 6): also resolves to per-language education-system
-        # overlay when the country is multilingual + the operator passed
-        # ?lang=<bcp47> (or uses the country default otherwise).
         initial_country = (request.GET.get("country") or "").strip()[:2].upper()
         initial_lang = (request.GET.get("lang") or "").strip().lower()
-        if not initial_lang:
-            initial_lang = get_default_language(initial_country)
-        if validate_language_code(initial_country, initial_lang):
-            pack = resolve_language_pack(initial_country, initial_lang)
-        else:
-            pack = resolve_country_pack(initial_country)
-            initial_lang = ""
         return render(
             request,
             self.template_name,
-            {
-                "templates": _TEMPLATES,
-                "vendor_choices": _VENDOR_CHOICES,
-                "country_choices": _country_choices(),
-                "country_code": initial_country,
-                "language_code": initial_lang,
-                "country_pack": pack,
-                # Wave 15 (v3.62.20) — IN per-state mini-picker on rapid-create.
-                # Template gates on `india_state_options` + hidden by default;
-                # the existing rmc-signup-country-adapter.js shows it when
-                # country = IN and auto-flips the calendar radio on state pick.
-                "india_state_options": get_india_state_options(),
-            },
+            _rapid_create_context(
+                request,
+                country_code=initial_country,
+                language_code=initial_lang,
+            ),
         )
 
     def post(self, request):
@@ -234,14 +246,12 @@ class RapidCreateView(View):
             return render(
                 request,
                 self.template_name,
-                {
-                    "templates": _TEMPLATES,
-                    "vendor_choices": _VENDOR_CHOICES,
-                    "country_choices": _country_choices(),
-                    "country_code": country_code,
-                    "country_pack": resolve_country_pack(country_code),
-                    "errors": errors,
-                    "form": {
+                _rapid_create_context(
+                    request,
+                    country_code=country_code,
+                    language_code=language_code,
+                    errors=errors,
+                    form={
                         "name": name,
                         "slug": slug,
                         "template": template_slug,
@@ -250,10 +260,11 @@ class RapidCreateView(View):
                         "vendor": vendor,
                         "country_code": country_code,
                     },
-                },
+                ),
                 status=400,
             )
         school_settings: dict = {}
+        education_cycles = [school_type] if school_type else []
         if template is not None:
             school_settings["rmc_rapid_create_template"] = template.slug
         # v3.62.2 — persist resolved localization so downstream services can
@@ -265,6 +276,7 @@ class RapidCreateView(View):
                 "country_code": country_code or "",
                 "calendar_code": calendar_code or "",
                 "school_type_code": school_type or "",
+                "education_cycles": education_cycles,
                 "language_code": language_code or "",
                 "_seeded_at_rapid_create": True,
             }
@@ -274,6 +286,12 @@ class RapidCreateView(View):
                 "intake_method": "file_upload",
                 "expected_students": 0,
                 "label": f"{name} — initial migration from {vendor}"[:200],
+                "locale_context": build_migration_locale_context(
+                    country_code or "",
+                    language_code=language_code or "",
+                    calendar_code=calendar_code or "",
+                    education_cycles=education_cycles,
+                ),
             }
         # v3.62.2 — primary_sector: country-pack first, template fallback.
         primary_sector = ""

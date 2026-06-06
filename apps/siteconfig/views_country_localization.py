@@ -25,6 +25,12 @@ from .country_localization_service import (
     resolve_country_pack,
     resolve_language_pack,
 )
+from .signup_migration_recommendations import migration_context_for_country
+
+
+def serialize_country_localization_pack(cc: str, pack: dict) -> dict:
+    """Public wrapper for signup page-data + API responses."""
+    return _serialize_pack(cc, pack)
 
 
 def _serialize_pack(cc: str, pack: dict) -> dict:
@@ -55,6 +61,7 @@ def _serialize_pack(cc: str, pack: dict) -> dict:
         "education_levels": list(pack.get("education_levels") or []),
         "terminology":      dict(pack.get("terminology") or {}),
         "languages":        out_langs,
+        "migration":        migration_context_for_country(cc),
         "_source":          pack.get("_source", ""),
     }
 

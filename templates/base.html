@@ -392,6 +392,8 @@
     {% include "partials/rmc_platform_surface_page_data.html" %}
     {% include "partials/rmc_ai_chrome_page_data.html" %}
     {% include "partials/rmc_command_bar.html" %}
+    {% elif request.resolver_match.url_name == 'signup_school' %}
+    {% include "partials/rmc_platform_surface_page_data.html" %}
     {% endif %}
     {% comment %} v3.57.x Wave 8 (2026-05-22): live slug-availability check on signup form. {% endcomment %}
     {% if request.resolver_match.url_name == 'signup_school' %}

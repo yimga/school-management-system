@@ -10,6 +10,8 @@
 
 {% block extrahead %}{{ block.super }}
 {% comment %} v3.62.2 Wave 1 local-first — adapter re-renders country-driven cards. {% endcomment %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="page-data-rmc-signup-localization">{{ signup_localization_json|default:"{}"|safe }}</script>
+<script defer src="{% static 'js/_pages/rmc-signup-localization-prefetch.js' %}"></script>
 <script defer src="{% static 'js/_pages/rmc-signup-country-adapter.js' %}"></script>
 {% endblock %}
 

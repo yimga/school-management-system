@@ -506,6 +506,9 @@ def _looks_pii(name: str, samples: Iterable[str]) -> bool:
 
 def _normalize_header(name: str) -> str:
     s = (name or "").strip().lower()
+    # Preserve non-ASCII headers (CJK, Arabic, etc.) for locale-aware mapping.
+    if re.search(r"[^\x00-\x7f]", s):
+        return s
     s = re.sub(r"[^a-z0-9]+", "_", s)
     s = re.sub(r"_+", "_", s).strip("_")
     return s
