@@ -35,6 +35,7 @@ from apps.schools.marketing_channel_rails import (
 from apps.schools.marketing_social_proof import (
     case_study_for_slug,
     logos_for_slug,
+    review_schema_for_slug,
     testimonials_for_slug,
 )
 from apps.schools.marketing_page_definitions import (
@@ -2679,6 +2680,17 @@ def marketing_page(request, page_slug: str):
         "testimonials": testimonials_for_slug(page_slug),
         "proof_logos": logos_for_slug(page_slug),
         "case_study": case_study_for_slug(page_slug),
+        # Review/AggregateRating JSON-LD — emitted ONLY when real approved, rated
+        # testimonials exist for the page (returns None otherwise → no schema).
+        "review_schema_json": (
+            json.dumps(_review_schema)
+            if (
+                _review_schema := review_schema_for_slug(
+                    page_slug, page_copy.get("label") or "RunMyCampus", _marketing_lang
+                )
+            )
+            else ""
+        ),
         "blog_posts": blog_posts,
         "blog_list_intro_html": blog_list_intro_html,
         **(

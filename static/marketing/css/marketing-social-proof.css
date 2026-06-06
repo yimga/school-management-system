@@ -125,6 +125,47 @@
   overflow-wrap: break-word;
 }
 
+.mkt-proof-attribution__source {
+  margin-top: 0.3rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--text-tertiary, var(--text-secondary));
+  overflow-wrap: break-word;
+}
+
+.mkt-proof-attribution__source--link {
+  color: var(--mkt-personality-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.mkt-proof-attribution__source--link:hover,
+.mkt-proof-attribution__source--link:focus-visible {
+  text-decoration-thickness: 0.12em;
+}
+
+/* ---- Star rating -------------------------------------------------------- */
+.mkt-proof-rating {
+  display: flex;
+  align-items: center;
+}
+
+.mkt-proof-rating__stars {
+  display: inline-flex;
+  gap: 0.08em;
+  font-size: var(--type-size-body-l, 1.0625rem);
+  line-height: 1;
+}
+
+.mkt-proof-rating__star {
+  color: color-mix(in srgb, var(--mkt-personality-accent) 24%, transparent);
+}
+
+.mkt-proof-rating__star--on {
+  color: var(--mkt-personality-accent);
+}
+
 /* ---- Art-directed image slot ------------------------------------------- */
 .mkt-proof-image-slot {
   display: block;

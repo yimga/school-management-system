@@ -16,6 +16,13 @@
       {% for t in testimonials %}
       <li class="mkt-proof-card">
         <figure class="mkt-proof-figure">
+          {% if t.rating %}
+          <div class="mkt-proof-rating" role="img" aria-label="{% blocktrans with rating=t.rating %}Rated {{ rating }} out of 5{% endblocktrans %}">
+            <span class="mkt-proof-rating__stars" aria-hidden="true">
+              {% for star in "12345"|make_list %}<span class="mkt-proof-rating__star{% if forloop.counter <= t.rating %} mkt-proof-rating__star--on{% endif %}">&#9733;</span>{% endfor %}
+            </span>
+          </div>
+          {% endif %}
           <blockquote class="mkt-proof-quote-text">
             <p>{{ t.quote }}</p>
           </blockquote>
@@ -31,6 +38,13 @@
             <span class="mkt-proof-attribution__school">{{ t.school_name }}</span>
             {% if t.metric %}
             <span class="mkt-proof-attribution__metric">{{ t.metric }}</span>
+            {% endif %}
+            {% if t.badge_label %}
+            {% if t.source_url %}
+            <a class="mkt-proof-attribution__source mkt-proof-attribution__source--link" href="{{ t.source_url }}" target="_blank" rel="nofollow noopener">{% blocktrans with label=t.badge_label %}via {{ label }}{% endblocktrans %}</a>
+            {% else %}
+            <span class="mkt-proof-attribution__source">{% blocktrans with label=t.badge_label %}via {{ label }}{% endblocktrans %}</span>
+            {% endif %}
             {% endif %}
           </figcaption>
         </figure>
