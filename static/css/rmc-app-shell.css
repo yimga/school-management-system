@@ -175,8 +175,16 @@ html[data-rmc-shell="off"] body {
   color: var(--text-secondary);
   z-index: 35; /* above canvas content, below header (40) + modals (1050) */
   /* Defensive: if footer content is taller than expected, allow internal scroll
-     instead of pushing layout. Rarely needed; safety net. */
+     instead of pushing layout. Rarely needed; safety net.
+     The cap MUST use the same dynamic viewport unit (dvh) as the shell grid
+     (height: 100dvh). With vh the cap tracks the LARGE viewport, so on mobile
+     browsers whose toolbar shrinks the visible viewport (dvh < vh) the footer
+     band can exceed its grid share and creep up over the canvas seam — and at
+     z-index 35 it then paints over (and steals taps from) interactive content
+     sitting at the bottom of the canvas. That was the mobile MFA "Verify"
+     button overlap. `vh` stays first as the fallback for engines without dvh. */
   max-height: 50vh;
+  max-height: 50dvh;
   overflow-y: auto;
 }
 
@@ -287,6 +295,15 @@ html[data-rmc-shell="off"] body {
   }
   [data-rmc-shell-sidebar="offcanvas"][data-rmc-shell-sidebar-open="true"] .rmc-app-shell__sidebar {
     transform: translateX(0);
+  }
+  /* On a phone the multi-tier civic footer wraps tall; left uncapped it can eat
+     half the screen and crowd the canvas CTA. Keep the footer to a minority of
+     the (dynamic) viewport so the canvas — and the action button at its bottom —
+     always keeps usable room. dvh first; vh fallback ordering is reversed here
+     because the tighter cap is the intent and dvh is the accurate unit. */
+  .rmc-app-shell__footer {
+    max-height: 38vh;
+    max-height: 38dvh;
   }
 }
 
