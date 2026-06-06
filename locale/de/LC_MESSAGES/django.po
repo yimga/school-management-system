@@ -45356,3 +45356,289 @@ msgstr ""
 
 msgid "reversed"
 msgstr ""
+
+msgid ""
+"Ambient, phone-free capture — QR sweeps and passive RFID taps without a "
+"single student device."
+msgstr ""
+
+msgid "Approve / Reject"
+msgstr ""
+
+msgid "Attendance capture log"
+msgstr ""
+
+msgid "Available destructive actions"
+msgstr ""
+
+msgid "Brazil — NF-e (SEFAZ)"
+msgstr ""
+
+msgid "Bus check-in"
+msgstr ""
+
+msgid "Cambridge A*–G"
+msgstr ""
+
+msgid "Capture: QR + passive RFID — no student phone required"
+msgstr ""
+
+msgid "Class average"
+msgstr ""
+
+msgid "Competency"
+msgstr ""
+
+msgid "Dedicated lab"
+msgstr ""
+
+msgid "Deployment matrix · sandbox"
+msgstr ""
+
+msgid "Destructive actions"
+msgstr ""
+
+msgid "Destructive actions (dual-control)"
+msgstr ""
+
+msgid ""
+"Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to "
+"enable."
+msgstr ""
+
+msgid "Destructive layer is off"
+msgstr ""
+
+msgid ""
+"Drag an invoice and see 80/10/10 routing + a regional e-invoice tax stamp "
+"across 10 authorities."
+msgstr ""
+
+msgid "Edge Mesh Map"
+msgstr ""
+
+msgid "Enterprise Constellation"
+msgstr ""
+
+msgid "Every claim is a sim you can run."
+msgstr ""
+
+msgid "Heavy charts collapse to lightweight text fragments on degraded links."
+msgstr ""
+
+msgid "IB 1–7"
+msgstr ""
+
+msgid "Illustrative split + e-invoice stamp. No real charge."
+msgstr ""
+
+msgid "India — GST (GSTN)"
+msgstr ""
+
+msgid "Indonesia — PPN (DJP)"
+msgstr ""
+
+msgid "Invoice amount"
+msgstr ""
+
+msgid "Justification"
+msgstr ""
+
+msgid "Kenya — VAT (KRA)"
+msgstr ""
+
+msgid "Live dashboard"
+msgstr ""
+
+msgid "Live on this page"
+msgstr ""
+
+msgid "Local sync queue"
+msgstr ""
+
+msgid ""
+"Map multi-campus networks, shared ledgers and district roll-ups across one "
+"governance fabric."
+msgstr ""
+
+msgid "Mark attendance"
+msgstr ""
+
+msgid "Mexico — CFDI (SAT)"
+msgstr ""
+
+msgid ""
+"Model packages, seats and add-ons against regional currency — see the bill "
+"before you ever talk to us."
+msgstr ""
+
+msgid "Network-Drop Terminal"
+msgstr ""
+
+msgid "Nigeria — VAT (FIRS)"
+msgstr ""
+
+msgid ""
+"No demo gatekeeping, no “contact sales” wall. Each runs 100% in your browser"
+" — region-aware, offline-proof, and honest about what it shows."
+msgstr ""
+
+msgid "No destructive actions are bound."
+msgstr ""
+
+msgid "No requests awaiting approval."
+msgstr ""
+
+msgid ""
+"One record, re-expressed instantly across US letters, IB, Cambridge and "
+"competency — zero re-entry."
+msgstr ""
+
+msgid "Open lab"
+msgstr ""
+
+msgid "Pay fees (M-Pesa / MTN)"
+msgstr ""
+
+msgid "Payment distribution bar"
+msgstr ""
+
+msgid "Payment split simulator"
+msgstr ""
+
+msgid "Pending requests (awaiting a second operator)"
+msgstr ""
+
+msgid ""
+"Phase 3 — irreversible. One operator requests; a different operator must "
+"approve before anything runs. Approval routes through the platform's GDPR "
+"Art. 17 erasure pipeline (anonymization, audited). Every step is recorded."
+msgstr ""
+
+msgid ""
+"Pick region → size → modules and watch the workspace, currency, terms and "
+"RTL reshape in seconds."
+msgstr ""
+
+msgid "Polymorphic Gradebook"
+msgstr ""
+
+msgid "Pricing & Entitlement"
+msgstr ""
+
+msgid "Process payment"
+msgstr ""
+
+msgid "Recent audit (PII-free)"
+msgstr ""
+
+msgid "Region / tax authority"
+msgstr ""
+
+msgid "Regional payment rails"
+msgstr ""
+
+msgid "Request a destructive action"
+msgstr ""
+
+msgid "Run a live simulation"
+msgstr ""
+
+msgid "Run sim"
+msgstr ""
+
+msgid "STAMPED"
+msgstr ""
+
+msgid "Saudi Arabia — VAT (ZATCA)"
+msgstr ""
+
+msgid "See the platform"
+msgstr ""
+
+msgid "Simulated · runs in your browser · not a live tenant"
+msgstr ""
+
+msgid "Simulations hub"
+msgstr ""
+
+msgid "Sovereign kernel · region-aware"
+msgstr ""
+
+msgid "Split-Gateway Ledger"
+msgstr ""
+
+msgid "Student pk"
+msgstr ""
+
+msgid "Submit request (needs a second approver)"
+msgstr ""
+
+msgid "Sync when back online"
+msgstr ""
+
+msgid "That action is not a Phase-3 destructive action."
+msgstr ""
+
+msgid ""
+"This surface stays inert until the destructive flag is set. It is "
+"independent of the read-only and mutating tiers — turning it on is a "
+"deliberate, separate decision."
+msgstr ""
+
+msgid ""
+"Toggle fiber → blackout; attendance keeps logging via QR + RFID and drains "
+"the queue on reconnect."
+msgstr ""
+
+msgid ""
+"Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE "
+"42</code>) to confirm."
+msgstr ""
+
+msgid "US letters · GPA"
+msgstr ""
+
+msgid "USSD fallback · no data plan"
+msgstr ""
+
+msgid "United Arab Emirates — VAT (FTA)"
+msgstr ""
+
+msgid "United Kingdom — VAT (HMRC)"
+msgstr ""
+
+msgid "United States — Sales Tax (IRS)"
+msgstr ""
+
+msgid ""
+"Watch campuses peer-sync over local mesh during load-shedding — no "
+"continuous internet required."
+msgstr ""
+
+msgid "Why this record must be erased (recorded on the erase request)."
+msgstr ""
+
+msgid "Zero-UI Lab"
+msgstr ""
+
+msgid "currencies, region-aware by default"
+msgstr ""
+
+msgid "dual-control"
+msgstr ""
+
+msgid "expired"
+msgstr ""
+
+msgid "languages, RTL native"
+msgstr ""
+
+msgid "same record · re-expressed"
+msgstr ""
+
+msgid "synced live"
+msgstr ""
+
+msgid "weeks to switch from legacy SIS"
+msgstr ""
