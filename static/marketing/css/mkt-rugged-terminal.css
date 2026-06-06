@@ -1,0 +1,237 @@
+/**
+ * Rugged Terminal personality (2026-06-05). Scoped to #mkt-rugged-engine.
+ * A near-black neon-mono ops console — deliberately the opposite of the bright
+ * Clinical Ledger and distinct from the premium-navy Sovereign hero. This
+ * surface is ALWAYS dark (high-contrast terminal), so its fixed charcoal/neon
+ * values carry off-token-allow markers. Responsive-flow only: no viewport lock,
+ * no text clipping.
+ */
+
+#mkt-rugged-engine.mkt-rt {
+  --rt-bg: #070b14;        /* off-token-allow: always-dark terminal canvas */
+  --rt-panel: #0c1322;     /* off-token-allow: always-dark terminal panel */
+  --rt-line: #1e2b3f;      /* off-token-allow: always-dark terminal hairline */
+  --rt-neon: #36f29a;      /* off-token-allow: terminal neon-green accent */
+  --rt-neon-dim: #1c7a52;  /* off-token-allow: terminal neon dim */
+  --rt-amber: #f5b14c;     /* off-token-allow: terminal warning amber */
+  --rt-red: #ff5c5c;       /* off-token-allow: terminal blackout red */
+  --rt-ink: #c7d6ea;       /* off-token-allow: terminal mono ink */
+  --rt-muted: #62748f;     /* off-token-allow: terminal muted ink */
+  background: radial-gradient(900px 480px at 88% -10%, rgba(54, 242, 154, 0.08), transparent 60%), var(--rt-bg); /* off-token-allow: decorative neon glow on always-dark terminal */
+  color: var(--rt-ink);
+}
+
+#mkt-rugged-engine .mkt-rt-head { max-width: 46rem; margin: 0 0 clamp(22px, 3.5vh, 36px); }
+#mkt-rugged-engine .mkt-rt-eyebrow {
+  display: inline-block;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--rt-neon);
+  margin: 0 0 0.6rem;
+}
+#mkt-rugged-engine .mkt-rt-headline {
+  font-size: clamp(1.85rem, 4vw, 2.8rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.6rem;
+  color: #f2f7ff; /* off-token-allow: terminal headline on always-dark surface */
+}
+#mkt-rugged-engine .mkt-rt-lead { font-size: 1.0rem; line-height: 1.6; color: var(--rt-muted); margin: 0; }
+
+/* Console shell */
+#mkt-rugged-engine .mkt-rt-console {
+  border: 1px solid var(--rt-line);
+  border-radius: 10px;
+  background: var(--rt-panel);
+  overflow: hidden;
+  box-shadow: 0 30px 70px -34px rgba(0, 0, 0, 0.8); /* off-token-allow: depth shadow on always-dark terminal */
+}
+
+/* Terminal title bar */
+#mkt-rugged-engine .mkt-rt-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--rt-line);
+  background: #0a1120; /* off-token-allow: terminal title bar on always-dark surface */
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+}
+#mkt-rugged-engine .mkt-rt-bar__dots { display: inline-flex; gap: 6px; }
+#mkt-rugged-engine .mkt-rt-bar__dots i {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--rt-line);
+}
+#mkt-rugged-engine .mkt-rt-bar__title { color: var(--rt-muted); }
+#mkt-rugged-engine .mkt-rt-bar__net { margin-left: auto; color: var(--rt-neon); font-weight: 700; letter-spacing: 0.04em; }
+
+/* Two-pane grid */
+#mkt-rugged-engine .mkt-rt-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+@media (min-width: 920px) {
+  #mkt-rugged-engine .mkt-rt-grid { grid-template-columns: 1fr 1fr; }
+  #mkt-rugged-engine .mkt-rt-right { border-left: 1px solid var(--rt-line); }
+}
+#mkt-rugged-engine .mkt-rt-left,
+#mkt-rugged-engine .mkt-rt-right { padding: clamp(16px, 2.2vw, 26px); }
+#mkt-rugged-engine .mkt-rt-right { border-top: 1px solid var(--rt-line); }
+@media (min-width: 920px) {
+  #mkt-rugged-engine .mkt-rt-right { border-top: 0; }
+}
+
+/* Connectivity toggle */
+#mkt-rugged-engine .mkt-rt-toggle { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+#mkt-rugged-engine .mkt-rt-btn {
+  min-height: 40px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--rt-line);
+  background: transparent;
+  color: var(--rt-ink);
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color var(--motion-fast, 160ms) var(--ease-standard, ease),
+              color var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-rugged-engine .mkt-rt-btn:hover { border-color: var(--rt-neon-dim); }
+#mkt-rugged-engine .mkt-rt-btn.is-active {
+  border-color: var(--rt-neon);
+  color: var(--rt-neon);
+  box-shadow: inset 0 0 0 1px var(--rt-neon-dim); /* off-token-allow: active terminal key glow */
+}
+
+/* Device mode panel */
+#mkt-rugged-engine .mkt-rt-device {
+  border: 1px solid var(--rt-line);
+  border-radius: 8px;
+  padding: 16px;
+  background: #0a1322; /* off-token-allow: device panel on always-dark terminal */
+  min-height: 168px;
+}
+#mkt-rugged-engine .mkt-rt-device__tag {
+  display: block;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rt-muted);
+  margin-bottom: 12px;
+}
+#mkt-rugged-engine .mkt-rt-device__rich[hidden],
+#mkt-rugged-engine .mkt-rt-device__ussd[hidden] { display: none; }
+
+/* Rich graphical bars (online) */
+#mkt-rugged-engine .mkt-rt-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 110px;
+}
+#mkt-rugged-engine .mkt-rt-bars span {
+  flex: 1;
+  height: var(--h, 50%);
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg, var(--rt-neon), var(--rt-neon-dim)); /* off-token-allow: terminal data bar on always-dark surface */
+  transition: height var(--motion-standard, 320ms) var(--ease-standard, ease);
+}
+
+/* USSD text collapse (offline) */
+#mkt-rugged-engine .mkt-rt-ussd {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent; /* override any global pre{} background on the marketing shell */
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.84rem;
+  line-height: 1.7;
+  color: var(--rt-neon);
+  white-space: pre-wrap;
+}
+
+#mkt-rugged-engine .mkt-rt-capture {
+  margin: 14px 0 0;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  color: var(--rt-amber);
+}
+
+/* Local sync queue */
+#mkt-rugged-engine .mkt-rt-queue {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--rt-line);
+  border-radius: 8px;
+  margin-bottom: 14px;
+  background: #0a1322; /* off-token-allow: queue panel on always-dark terminal */
+}
+#mkt-rugged-engine .mkt-rt-queue__label {
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--rt-muted);
+}
+#mkt-rugged-engine .mkt-rt-queue__n {
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--rt-neon);
+  margin-left: auto;
+  transition: color var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-rugged-engine .mkt-rt-queue.is-holding .mkt-rt-queue__n { color: var(--rt-amber); }
+#mkt-rugged-engine .mkt-rt-queue__note {
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.72rem;
+  color: var(--rt-muted);
+}
+
+/* Live capture log */
+#mkt-rugged-engine .mkt-rt-log {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--rt-line);
+  border-radius: 8px;
+  background: #050a13; /* off-token-allow: terminal log canvas on always-dark surface */
+  height: 188px;
+  overflow: hidden;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.65;
+  color: var(--rt-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+#mkt-rugged-engine .mkt-rt-log .ok { color: var(--rt-neon); }
+#mkt-rugged-engine .mkt-rt-log .hold { color: var(--rt-amber); }
+#mkt-rugged-engine .mkt-rt-log .drain { color: #7cc4ff; /* off-token-allow: terminal sync-drain line on always-dark surface */ }
+#mkt-rugged-engine .mkt-rt-log .muted { color: var(--rt-muted); }
+
+/* Blackout intensifies the shell */
+#mkt-rugged-engine .mkt-rt-console.is-blackout { border-color: var(--rt-red); }
+#mkt-rugged-engine .mkt-rt-console.is-blackout .mkt-rt-bar__net { color: var(--rt-red); }
+
+#mkt-rugged-engine .mkt-rt-note {
+  margin: 0;
+  padding: 12px clamp(16px, 2.2vw, 26px);
+  border-top: 1px solid var(--rt-line);
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.74rem;
+  color: var(--rt-muted);
+}
+#mkt-rugged-engine .mkt-rt-note[hidden] { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #mkt-rugged-engine .mkt-rt-bars span,
+  #mkt-rugged-engine .mkt-rt-queue__n { transition: none; }
+}

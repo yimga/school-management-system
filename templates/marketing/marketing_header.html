@@ -96,7 +96,10 @@
           {% endif %}
         </li>
         {% endif %}
-        <li class="nav-item mkt-nav-appearance px-3 py-2">
+        {% comment %} Theme chip belongs in the collapsed nav drawer (guest) per v4.01.43,
+           not the desktop top-nav. `d-lg-none` keeps it out of the horizontal header on
+           lg+ where it was rendering as an intrusive floating "APPEARANCE" panel. {% endcomment %}
+        <li class="nav-item mkt-nav-appearance px-3 py-2 d-lg-none">
           <span class="d-block small text-uppercase text-white-50 mb-2">{% trans "Appearance" %}</span>
           {% include "components/header_theme_chip.html" with theme_chip_layout="nav-drawer" %}
         </li>

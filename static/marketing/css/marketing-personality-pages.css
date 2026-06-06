@@ -4,9 +4,11 @@
  */
 
 .mkt-personality-page__viewport {
-  min-height: 100dvh;
-  max-height: 100dvh;
-  overflow: hidden;
+  /* responsive-flow (2026-06-05): full-screen feel via min-height, but content
+     grows freely. The old max-height:100dvh + overflow:hidden clipped every
+     dedicated personality page into a one-screen box that hid overflow. */
+  min-height: 100svh;
+  overflow: visible;
   display: flex;
   flex-direction: column;
 }
@@ -55,7 +57,7 @@
 
 .mkt-ve-gradebook__viz--max5 {
   max-width: min(100%, 960px);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .mkt-ve-section--governance .mkt-ve-governance {

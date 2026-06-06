@@ -1,45 +1,95 @@
 {% load i18n static marketing_media %}
+{% comment %}
+  Clinical Ledger personality (2026-06-05). Responsive-flow: NO viewport-lock,
+  NO text-shield clipping. Bright clinical surface (cool whites/grays) that
+  contrasts the dark Sovereign hero above it. The split-payment proof runs 100%
+  client-side in mkt-split-ledger.js (region-aware currency + e-invoice tax),
+  so it never depends on a backend and never shows a "could not reach" error.
+{% endcomment %}
 <section
   id="mkt-clinical-ledger"
-  class="mkt-ve-section mkt-ve-section--clinical mkt-ve-section--viewport-lock"
+  class="mkt-ve-section mkt-ve-section--clinical mkt-cl"
   data-mkt-personality="clinical"
-  data-mkt-scroll-policy="viewport-lock"
   aria-labelledby="mkt-clinical-headline"
 >
   <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
-    <header class="mkt-ve-section__header">
-      <p class="mkt-edt-eyebrow">{% trans "Clinical ledger" %}</p>
-      <h2 id="mkt-clinical-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+    <header class="mkt-cl-head">
+      <p class="mkt-cl-eyebrow">{% trans "Clinical ledger" %}</p>
+      <h2 id="mkt-clinical-headline" class="mkt-cl-headline">
         {% marketing_copy "txt_clinical_headline" %}
       </h2>
-      <p class="mkt-ve-section__lead mkt-edos-text-shield">
-        {% marketing_copy "txt_clinical_lead" %}
-        {% if geo.currency_symbol %} · {{ geo.currency_symbol }}{% endif %}
-      </p>
+      <p class="mkt-cl-lead">{% marketing_copy "txt_clinical_lead" %}</p>
     </header>
-    <div class="mkt-ve-split" data-mkt-split-ledger>
-      <div class="mkt-ve-split__viz">
-        {% marketing_viz "split_ledger_viz" %}
-        {% if geo.apm_image %}
-        <img
-          src="{% static geo.apm_image %}"
-          alt="{% trans 'Regional payout rail (illustrative)' %}"
-          class="mkt-ve-clinical-apm"
-          loading="lazy"
-          decoding="async"
-        >
-        {% endif %}
-      </div>
-      <div class="mkt-ve-split__controls">
-        <label class="mkt-ve-split__slider-label">
-          <span>{% trans "Tuition vs activity split (illustrative)" %}</span>
-          <input type="range" min="10" max="90" value="65" data-mkt-split-slider aria-valuemin="10" aria-valuemax="90" aria-valuenow="65">
-        </label>
-        <ul class="mkt-ve-apm-strip" aria-label="{% trans 'Illustrative payment methods' %}">
-          {% for icon in geo.apm_icons %}
-          <li class="mkt-ve-apm-strip__item" data-apm="{{ icon.id }}">{{ icon.label }}</li>
-          {% endfor %}
-        </ul>
+
+    <div
+      class="mkt-cl-layout"
+      data-mkt-split-ledger
+      data-mkt-default-region="{{ geo.country_code|default:'US' }}"
+    >
+      <!-- LEFT: clinical control panel -->
+      <form class="mkt-cl-panel" data-mkt-cl-form aria-label="{% trans 'Payment split simulator' %}">
+        <div class="mkt-cl-panel__row">
+          <label class="mkt-cl-field">
+            <span class="mkt-cl-field__label">{% trans "Region / tax authority" %}</span>
+            <select class="mkt-cl-select" data-mkt-cl-region>
+              <option value="US">{% trans "United States — Sales Tax (IRS)" %}</option>
+              <option value="GB">{% trans "United Kingdom — VAT (HMRC)" %}</option>
+              <option value="AE">{% trans "United Arab Emirates — VAT (FTA)" %}</option>
+              <option value="SA">{% trans "Saudi Arabia — VAT (ZATCA)" %}</option>
+              <option value="NG">{% trans "Nigeria — VAT (FIRS)" %}</option>
+              <option value="KE">{% trans "Kenya — VAT (KRA)" %}</option>
+              <option value="IN">{% trans "India — GST (GSTN)" %}</option>
+              <option value="BR">{% trans "Brazil — NF-e (SEFAZ)" %}</option>
+              <option value="MX">{% trans "Mexico — CFDI (SAT)" %}</option>
+              <option value="ID">{% trans "Indonesia — PPN (DJP)" %}</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="mkt-cl-panel__row">
+          <label class="mkt-cl-field">
+            <span class="mkt-cl-field__label">
+              {% trans "Invoice amount" %}
+              <strong class="mkt-cl-amount" data-mkt-cl-amount>—</strong>
+            </span>
+            <input
+              type="range"
+              class="mkt-cl-slider"
+              min="500" max="50000" step="500" value="12000"
+              data-mkt-cl-slider
+              aria-label="{% trans 'Invoice amount' %}"
+            >
+          </label>
+        </div>
+
+        <ul class="mkt-cl-rails" data-mkt-cl-rails aria-label="{% trans 'Regional payment rails' %}"></ul>
+
+        <button type="button" class="mkt-cl-process" data-mkt-cl-process>
+          {% trans "Process payment" %}
+        </button>
+        <p class="mkt-cl-note">{% trans "Illustrative split + e-invoice stamp. No real charge." %}</p>
+      </form>
+
+      <!-- RIGHT: live ledger + split bar + e-tax stamp -->
+      <div class="mkt-cl-ledger" aria-live="polite">
+        <div class="mkt-cl-ledger__bar" data-mkt-cl-bar role="img"
+             aria-label="{% trans 'Payment distribution bar' %}">
+          <span class="mkt-cl-seg mkt-cl-seg--tuition" data-seg="tuition"></span>
+          <span class="mkt-cl-seg mkt-cl-seg--transport" data-seg="transport"></span>
+          <span class="mkt-cl-seg mkt-cl-seg--uniform" data-seg="uniform"></span>
+        </div>
+
+        <table class="mkt-cl-table">
+          <tbody data-mkt-cl-rows>
+            <!-- rows injected client-side -->
+          </tbody>
+        </table>
+
+        <div class="mkt-cl-stamp" data-mkt-cl-stamp aria-hidden="true">
+          <span class="mkt-cl-stamp__auth" data-mkt-cl-stamp-auth>E-INVOICE</span>
+          <span class="mkt-cl-stamp__id" data-mkt-cl-stamp-id>UUID —</span>
+          <span class="mkt-cl-stamp__seal">{% trans "STAMPED" %}</span>
+        </div>
       </div>
     </div>
   </div>

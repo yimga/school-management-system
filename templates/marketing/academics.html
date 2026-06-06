@@ -7,6 +7,7 @@
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-pages.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-fluid-classroom.css' %}">
 {% endblock %}
 
 {% block extrajs %}
@@ -17,7 +18,7 @@
 {% block marketing_main_extra_classes %}mkt-personality-page mkt-personality-page--fluid px-0 py-0{% endblock %}
 
 {% block content %}
-<article class="mkt-personality-page__viewport" data-mkt-personality-page="academics" data-rmc-scroll-policy="viewport-lock">
+<article class="mkt-personality-page__viewport" data-mkt-personality-page="academics">
   {% include "marketing/partials/sections/_fluid_classroom.html" %}
 </article>
 {% include "marketing/partials/_personality_page_nav.html" with active="academics" %}

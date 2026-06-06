@@ -1,41 +1,93 @@
 {% load i18n marketing_media %}
+{% comment %}
+  Rugged Terminal personality (2026-06-05). Responsive-flow: NO viewport-lock,
+  NO text-shield clipping. Near-black neon-mono ops console that contrasts both
+  the dark-but-premium Sovereign hero and the bright Clinical Ledger. The
+  network-drop sim runs 100% client-side: attendance keeps logging through
+  Degraded → Offline → total Blackout (QR sweeps / passive RFID), a local sync
+  queue grows while offline and drains on reconnect — proving the phone-ban-
+  immune, load-shedding-proof local-first edge. mkt-network-state.js keeps its
+  existing contract for the other 5 surfaces and only lights up the richer
+  terminal when these data-mkt-terminal-* / data-mkt-queue / data-mkt-device
+  hooks are present.
+{% endcomment %}
 <section
   id="mkt-rugged-engine"
-  class="mkt-ve-section mkt-ve-section--rugged mkt-ve-section--viewport-lock"
+  class="mkt-ve-section mkt-ve-section--rugged mkt-rt"
   data-mkt-personality="rugged"
-  data-mkt-scroll-policy="viewport-lock"
   aria-labelledby="mkt-rugged-headline"
 >
   <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
-    <header class="mkt-ve-section__header">
-      <p class="mkt-edt-eyebrow">{% trans "Rugged engine" %}</p>
-      <h2 id="mkt-rugged-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+    <header class="mkt-rt-head">
+      <p class="mkt-rt-eyebrow">{% trans "Rugged engine" %}</p>
+      <h2 id="mkt-rugged-headline" class="mkt-rt-headline">
         {% marketing_copy "txt_edge_headline" %}
       </h2>
-      <p class="mkt-ve-section__lead mkt-edos-text-shield">
-        {% marketing_copy "txt_edge_lead" %}
-      </p>
+      <p class="mkt-rt-lead">{% marketing_copy "txt_edge_lead" %}</p>
     </header>
-    <div class="mkt-ve-network" data-mkt-network-state data-mkt-drop-simulator>
-      <div class="mkt-ve-network__viz" data-mkt-network-viz>
-        {% marketing_viz "transit_viz" %}
+
+    <div class="mkt-rt-console" data-mkt-network-state data-mkt-drop-simulator>
+      <!-- terminal chrome -->
+      <div class="mkt-rt-bar">
+        <span class="mkt-rt-bar__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="mkt-rt-bar__title">campus-edge@runmycampus:~$</span>
+        <span
+          class="mkt-rt-bar__net"
+          data-mkt-network-status
+          data-fiber-label="● FIBER / 5G — live sync"
+          data-degraded-label="◐ DEGRADED — queued"
+          data-offline-label="○ OFFLINE — local capture"
+          data-blackout-label="✕ BLACKOUT — RFID only"
+        >● FIBER / 5G — live sync</span>
       </div>
-      <div class="mkt-ve-network__toggle" role="group" aria-label="{% trans 'Network drop simulator' %}">
-        <button type="button" class="mkt-ve-network__btn is-active" data-mkt-network="fiber" aria-pressed="true">{% trans "Fiber / 5G" %}</button>
-        <button type="button" class="mkt-ve-network__btn" data-mkt-network="degraded" aria-pressed="false">{% trans "Degraded" %}</button>
-        <button type="button" class="mkt-ve-network__btn" data-mkt-network="offline" aria-pressed="false">{% trans "Offline" %}</button>
-        <button type="button" class="mkt-ve-network__btn" data-mkt-network="blackout" aria-pressed="false">{% trans "Blackout" %}</button>
+
+      <div class="mkt-rt-grid">
+        <!-- LEFT: connectivity control + device mode -->
+        <div class="mkt-rt-left">
+          <div class="mkt-rt-toggle" role="group" aria-label="{% trans 'Network state' %}">
+            <button type="button" class="mkt-rt-btn is-active" data-mkt-network="fiber" aria-pressed="true">{% trans "Fiber / 5G" %}</button>
+            <button type="button" class="mkt-rt-btn" data-mkt-network="degraded" aria-pressed="false">{% trans "Degraded" %}</button>
+            <button type="button" class="mkt-rt-btn" data-mkt-network="offline" aria-pressed="false">{% trans "Offline" %}</button>
+            <button type="button" class="mkt-rt-btn" data-mkt-network="blackout" aria-pressed="false">{% trans "Blackout" %}</button>
+          </div>
+
+          <div class="mkt-rt-device" data-mkt-device>
+            <!-- online: rich graphical dashboard -->
+            <div class="mkt-rt-device__rich" data-mkt-device-rich>
+              <span class="mkt-rt-device__tag">{% trans "Live dashboard" %}</span>
+              <div class="mkt-rt-bars" aria-hidden="true">
+                <span style="--h:62%"></span><span style="--h:80%"></span>
+                <span style="--h:48%"></span><span style="--h:94%"></span>
+                <span style="--h:71%"></span><span style="--h:55%"></span>
+              </div>
+            </div>
+            <!-- offline: USSD text menu collapse -->
+            <div class="mkt-rt-device__ussd" data-mkt-device-ussd hidden>
+              <span class="mkt-rt-device__tag">{% trans "USSD fallback · no data plan" %}</span>
+<pre class="mkt-rt-ussd">*384*7263#
+1 ▸ {% trans "Pay fees (M-Pesa / MTN)" %}
+2 ▸ {% trans "Mark attendance" %}
+3 ▸ {% trans "Bus check-in" %}
+4 ▸ {% trans "Sync when back online" %}</pre>
+            </div>
+          </div>
+
+          <p class="mkt-rt-capture" data-mkt-capture>{% trans "Capture: QR + passive RFID — no student phone required" %}</p>
+        </div>
+
+        <!-- RIGHT: live capture log + local sync queue -->
+        <div class="mkt-rt-right">
+          <div class="mkt-rt-queue">
+            <span class="mkt-rt-queue__label">{% trans "Local sync queue" %}</span>
+            <strong class="mkt-rt-queue__n" data-mkt-queue>0</strong>
+            <span class="mkt-rt-queue__note" data-mkt-queue-note>{% trans "synced live" %}</span>
+          </div>
+          <pre class="mkt-rt-log" data-mkt-terminal-log aria-live="polite" aria-label="{% trans 'Attendance capture log' %}"></pre>
+        </div>
       </div>
-      <p
-        class="mkt-ve-network__status mkt-edos-text-shield"
-        data-mkt-network-status
-        data-fiber-label="{% trans 'Simulated · fiber sync · QR + RFID ready' %}"
-        data-degraded-label="{% trans 'Simulated · intermittent · queued attendance' %}"
-        data-offline-label="{% trans 'Simulated · offline · cardstock QR sweeps' %}"
-        data-blackout-label="{% trans 'Simulated · total blackout · passive RFID taps only' %}"
-      >{% trans "Simulated · fiber sync · QR + RFID ready" %}</p>
-      <p class="mkt-ve-network__fragment mkt-edos-text-shield" data-mkt-network-fragment hidden>
-        {% trans "Heavy charts collapse to text fragments on narrow viewports." %}
+
+      <p class="mkt-rt-note" data-mkt-network-fragment hidden>
+        {% trans "Heavy charts collapse to lightweight text fragments on degraded links." %}
       </p>
     </div>
   </div>

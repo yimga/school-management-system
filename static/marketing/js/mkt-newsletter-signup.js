@@ -6,6 +6,15 @@
     return match ? decodeURIComponent(match[1]) : "";
   }
 
+  // Prefer the form's hidden {% csrf_token %} input — the csrftoken cookie is
+  // HttpOnly (CSRF_COOKIE_HTTPONLY=1) in production, so document.cookie can't
+  // read it and the cookie fallback yields an empty header → 403 "incorrect length".
+  function csrfToken(form) {
+    var field = form && form.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (field && field.value) return field.value;
+    return readCookie("csrftoken");
+  }
+
   function showStatus(form, message, ok) {
     var status = form.querySelector("[data-newsletter-status]");
     if (!status) {
@@ -38,7 +47,7 @@
       payload[key] = value;
     });
 
-    var csrf = readCookie("csrftoken");
+    var csrf = csrfToken(form);
     fetch(action, {
       method: "POST",
       credentials: "same-origin",

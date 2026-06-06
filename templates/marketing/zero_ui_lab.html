@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-pages.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-acquisition-engine.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-zero-ui-lab.css' %}">
 {% endblock %}
 
 {% block extrajs %}
@@ -18,7 +19,7 @@
 {% block marketing_main_extra_classes %}mkt-personality-page mkt-personality-page--zero-ui px-0 py-0{% endblock %}
 
 {% block content %}
-<article class="mkt-personality-page__viewport" data-mkt-personality-page="zero-ui" data-rmc-scroll-policy="viewport-lock">
+<article class="mkt-personality-page__viewport" data-mkt-personality-page="zero-ui">
   {% include "marketing/partials/sections/_zero_ui_lab.html" %}
 </article>
 {% include "marketing/partials/_personality_page_nav.html" with active="zero-ui" %}

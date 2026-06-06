@@ -11,12 +11,30 @@ from typing import Any
 
 def build_geo_context(request) -> dict[str, Any]:
     # Lazy import avoids circular init with marketing template processors at Django startup.
-    from apps.schools.marketing_media_matrix import (
-        apm_icons_for_country,
-        apm_primary_static_for_country,
-        assets_for_country,
-        loop_bucket_for_country,
-    )
+    # Guarded: during a cold-start request the matrix module can still be mid-import
+    # (partial module → ImportError). A context processor must never 500 the whole
+    # request, so degrade to neutral defaults for that first request; subsequent
+    # requests resolve normally once the module is fully loaded.
+    try:
+        from apps.schools.marketing_media_matrix import (
+            apm_icons_for_country,
+            apm_primary_static_for_country,
+            assets_for_country,
+            loop_bucket_for_country,
+        )
+    except ImportError:
+        return {
+            "country_code": "US",
+            "locale": "en",
+            "direction": "ltr",
+            "currency": "USD",
+            "currency_symbol": "$",
+            "loop_bucket": "",
+            "assets": {},
+            "apm_icons": {},
+            "apm_image": "",
+            "is_rtl": False,
+        }
     try:
         from apps.siteconfig.country_localization_service import resolve_country_for_request
         from apps.siteconfig.localization_context_processor import localization_context

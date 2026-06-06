@@ -1,0 +1,282 @@
+/**
+ * Clinical Ledger personality (2026-06-05). Scoped to #mkt-clinical-ledger.
+ * A bright, cool, high-density "financial console" that deliberately contrasts
+ * the dark Sovereign hero above it: clean whites + cool grays, thin hairlines,
+ * sharp 4px corners, monospace numerics, emerald (positive) + amber (tax)
+ * data badges. This surface is ALWAYS light (like the sovereign hero is always
+ * dark), so its fixed clinical tones carry off-token-allow markers.
+ * Responsive-flow only: no viewport lock, no text clipping.
+ */
+
+#mkt-clinical-ledger.mkt-cl {
+  --cl-surface: #f1f5f9;   /* off-token-allow: clinical always-light console surface */
+  --cl-card: #ffffff;      /* off-token-allow: clinical always-light card */
+  --cl-ink: #0f172a;       /* off-token-allow: clinical always-light ink */
+  --cl-muted: #64748b;     /* off-token-allow: clinical always-light muted ink */
+  --cl-line: #e2e8f0;      /* off-token-allow: clinical always-light hairline */
+  --cl-emerald: #059669;   /* off-token-allow: clinical positive accent */
+  --cl-emerald-soft: #d1fae5; /* off-token-allow: clinical positive tint */
+  --cl-amber: #b45309;     /* off-token-allow: clinical tax accent */
+  --cl-amber-soft: #fef3c7;   /* off-token-allow: clinical tax tint */
+  --cl-blue: #1d4ed8;      /* off-token-allow: clinical transport accent */
+  --cl-blue-soft: #dbeafe;    /* off-token-allow: clinical transport tint */
+  background: var(--cl-surface);
+  color: var(--cl-ink);
+}
+
+#mkt-clinical-ledger .mkt-cl-head {
+  max-width: 46rem;
+  margin: 0 0 clamp(24px, 4vh, 40px);
+}
+#mkt-clinical-ledger .mkt-cl-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cl-emerald);
+  margin: 0 0 0.6rem;
+}
+#mkt-clinical-ledger .mkt-cl-headline {
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.6rem;
+  color: var(--cl-ink);
+}
+#mkt-clinical-ledger .mkt-cl-lead {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--cl-muted);
+  margin: 0;
+}
+
+/* Two-pane console */
+#mkt-clinical-ledger .mkt-cl-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(20px, 3vw, 36px);
+  align-items: start;
+  width: 100%;
+}
+@media (min-width: 920px) {
+  #mkt-clinical-ledger .mkt-cl-layout {
+    grid-template-columns: 0.82fr 1.18fr;
+  }
+}
+
+/* LEFT control panel */
+#mkt-clinical-ledger .mkt-cl-panel {
+  background: var(--cl-card);
+  border: 1px solid var(--cl-line);
+  border-radius: 6px;
+  padding: clamp(18px, 2.4vw, 28px);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); /* off-token-allow: clinical card lift on always-light surface */
+}
+#mkt-clinical-ledger .mkt-cl-panel__row { margin-bottom: 18px; }
+#mkt-clinical-ledger .mkt-cl-field { display: block; }
+#mkt-clinical-ledger .mkt-cl-field__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cl-muted);
+  margin-bottom: 0.5rem;
+}
+#mkt-clinical-ledger .mkt-cl-amount {
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--cl-ink);
+  letter-spacing: 0;
+  text-transform: none;
+}
+#mkt-clinical-ledger .mkt-cl-select {
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 1px solid var(--cl-line);
+  border-radius: 4px;
+  background: var(--cl-card);
+  color: var(--cl-ink);
+  font-size: 0.92rem;
+}
+#mkt-clinical-ledger .mkt-cl-slider {
+  width: 100%;
+  margin-top: 4px;
+  accent-color: var(--cl-emerald);
+}
+
+/* Regional rails chips */
+#mkt-clinical-ledger .mkt-cl-rails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+}
+#mkt-clinical-ledger .mkt-cl-rails li {
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--cl-line);
+  background: var(--cl-surface);
+  color: var(--cl-muted);
+}
+
+#mkt-clinical-ledger .mkt-cl-process {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--cl-emerald);
+  color: #ffffff; /* off-token-allow: text on emerald clinical button */
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-clinical-ledger .mkt-cl-process:hover { filter: brightness(0.94); }
+#mkt-clinical-ledger .mkt-cl-process:active { filter: brightness(0.88); }
+#mkt-clinical-ledger .mkt-cl-note {
+  font-size: 0.74rem;
+  color: var(--cl-muted);
+  margin: 10px 0 0;
+}
+
+/* RIGHT ledger */
+#mkt-clinical-ledger .mkt-cl-ledger {
+  background: var(--cl-card);
+  border: 1px solid var(--cl-line);
+  border-radius: 6px;
+  padding: clamp(18px, 2.4vw, 28px);
+  position: relative;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); /* off-token-allow: clinical card lift on always-light surface */
+}
+
+/* Split distribution bar */
+#mkt-clinical-ledger .mkt-cl-ledger__bar {
+  display: flex;
+  height: 18px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--cl-line);
+  margin-bottom: 18px;
+}
+#mkt-clinical-ledger .mkt-cl-seg {
+  height: 100%;
+  width: 0;
+  transition: width var(--motion-standard, 320ms) var(--ease-standard, ease);
+}
+#mkt-clinical-ledger .mkt-cl-seg--tuition { background: var(--cl-emerald); }
+#mkt-clinical-ledger .mkt-cl-seg--transport { background: var(--cl-blue); }
+#mkt-clinical-ledger .mkt-cl-seg--uniform { background: var(--cl-amber); }
+
+/* Ledger table */
+#mkt-clinical-ledger .mkt-cl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+#mkt-clinical-ledger .mkt-cl-table td {
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--cl-line);
+  vertical-align: middle;
+}
+#mkt-clinical-ledger .mkt-cl-table tr:last-child td { border-bottom: 0; }
+#mkt-clinical-ledger .mkt-cl-row__dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 9px;
+  vertical-align: middle;
+}
+#mkt-clinical-ledger .mkt-cl-row__dot--tuition { background: var(--cl-emerald); }
+#mkt-clinical-ledger .mkt-cl-row__dot--transport { background: var(--cl-blue); }
+#mkt-clinical-ledger .mkt-cl-row__dot--uniform { background: var(--cl-amber); }
+#mkt-clinical-ledger .mkt-cl-row__label { color: var(--cl-ink); font-weight: 600; }
+#mkt-clinical-ledger .mkt-cl-row__pct {
+  color: var(--cl-muted);
+  font-size: 0.78rem;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+}
+#mkt-clinical-ledger .mkt-cl-row__val {
+  text-align: end;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-weight: 700;
+  color: var(--cl-ink);
+  white-space: nowrap;
+}
+
+/* Badge rows (tax + total) */
+#mkt-clinical-ledger .mkt-cl-table tr.is-tax td { background: var(--cl-amber-soft); }
+#mkt-clinical-ledger .mkt-cl-table tr.is-total td {
+  background: var(--cl-emerald-soft);
+  font-size: 0.96rem;
+}
+#mkt-clinical-ledger .mkt-cl-table tr.is-tax .mkt-cl-row__val { color: var(--cl-amber); }
+#mkt-clinical-ledger .mkt-cl-table tr.is-total .mkt-cl-row__val { color: var(--cl-emerald); }
+#mkt-clinical-ledger .mkt-cl-badge {
+  display: inline-block;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  margin-left: 8px;
+  vertical-align: middle;
+  text-transform: uppercase;
+}
+#mkt-clinical-ledger .mkt-cl-badge--tax {
+  background: var(--cl-amber);
+  color: #ffffff; /* off-token-allow: text on amber clinical badge */
+}
+#mkt-clinical-ledger .mkt-cl-badge--ok {
+  background: var(--cl-emerald);
+  color: #ffffff; /* off-token-allow: text on emerald clinical badge */
+}
+
+/* Animated government e-invoice stamp */
+#mkt-clinical-ledger .mkt-cl-stamp {
+  margin-top: 18px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 16px;
+  border: 2px solid var(--cl-emerald);
+  border-radius: 6px;
+  color: var(--cl-emerald);
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  transform: rotate(-3deg) scale(0.96);
+  opacity: 0;
+  transition:
+    opacity var(--motion-standard, 320ms) var(--ease-standard, ease),
+    transform var(--motion-standard, 320ms) var(--ease-emphasized, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+#mkt-clinical-ledger .mkt-cl-stamp.is-stamped {
+  opacity: 1;
+  transform: rotate(-3deg) scale(1);
+}
+#mkt-clinical-ledger .mkt-cl-stamp__auth { font-size: 0.82rem; font-weight: 800; letter-spacing: 0.06em; }
+#mkt-clinical-ledger .mkt-cl-stamp__id { font-size: 0.66rem; color: var(--cl-muted); }
+#mkt-clinical-ledger .mkt-cl-stamp__seal {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #mkt-clinical-ledger .mkt-cl-seg,
+  #mkt-clinical-ledger .mkt-cl-stamp { transition: none; }
+}
+
+/* RTL: bar + numerics flip naturally via logical props */
+html[dir="rtl"] #mkt-clinical-ledger .mkt-cl-row__dot { margin-right: 0; margin-left: 9px; }

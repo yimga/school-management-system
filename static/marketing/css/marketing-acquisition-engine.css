@@ -419,9 +419,11 @@
 }
 
 .mkt-personality-page__stack {
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
-  max-height: 100dvh;
+  /* responsive-flow (2026-06-05): natural document flow on every dedicated
+     personality page (academics / enterprise / edge / zero-ui / pricing /
+     compliance). The old scroll-snap + max-height:100dvh viewport-lock clipped
+     each page to one screen and produced the blank-box truncation. */
+  display: block;
 }
 
 .mkt-personality-page--zero-ui {

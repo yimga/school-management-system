@@ -1,0 +1,184 @@
+/**
+ * Sovereign hero personality (2026-06-05). Scoped to #mkt-sovereign-kernel.
+ * Responsive-flow: NO viewport lock, NO text clipping. Animated data-grid
+ * backdrop replaces the broken regional video so there is no blank panel and
+ * no missing-asset dependency. Decorative always-dark values carry
+ * off-token-allow markers (this surface is always dark, like the existing
+ * .mkt-ve-section--sovereign base rule).
+ */
+
+#mkt-sovereign-kernel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden; /* clip ONLY the decorative grid, content sits in flow above */
+  background:
+    radial-gradient(1100px 560px at 80% -8%, color-mix(in srgb, var(--mkt-accent, #4f46e5) 28%, transparent), transparent 60%),
+    radial-gradient(820px 460px at 8% 112%, rgba(245, 158, 11, 0.10), transparent 55%), /* off-token-allow: decorative warm glow on always-dark hero */
+    var(--mkt-surface-canvas, var(--color-base-900, #0b1020));
+  color: var(--mkt-ink-on-dark, #e6edf6);
+}
+
+#mkt-sovereign-kernel .mkt-sov-grid,
+#mkt-sovereign-kernel .mkt-sov-scan {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+#mkt-sovereign-kernel .mkt-sov-grid {
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.10) 1px, transparent 1px), /* off-token-allow: decorative grid line on always-dark hero */
+    linear-gradient(90deg, rgba(99, 102, 241, 0.10) 1px, transparent 1px); /* off-token-allow: decorative grid line on always-dark hero */
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(900px 600px at 72% 32%, #000, transparent 75%);
+          mask-image: radial-gradient(900px 600px at 72% 32%, #000, transparent 75%);
+}
+
+#mkt-sovereign-kernel .mkt-sov-scan {
+  height: 200%;
+  background: linear-gradient(180deg, transparent, rgba(96, 165, 250, 0.06) 50%, transparent); /* off-token-allow: decorative scan sheen on always-dark hero */
+  animation: mkt-sov-scan 9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #mkt-sovereign-kernel .mkt-sov-scan { animation: none; }
+}
+
+@keyframes mkt-sov-scan {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+
+/* Two-pane: copy + wizard */
+#mkt-sovereign-kernel .mkt-sov-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
+  width: 100%;
+}
+
+@media (min-width: 960px) {
+  #mkt-sovereign-kernel .mkt-sov-layout {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+}
+
+#mkt-sovereign-kernel .mkt-sov-copy {
+  min-width: 0; /* allow the copy column to shrink instead of forcing overflow */
+}
+
+#mkt-sovereign-kernel .mkt-sov-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--mkt-accent, #4f46e5) 60%, var(--mkt-ink-on-dark, #e6edf6));
+  border: 1px solid color-mix(in srgb, var(--mkt-accent, #4f46e5) 35%, transparent);
+  background: color-mix(in srgb, var(--mkt-accent, #4f46e5) 12%, transparent);
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+}
+#mkt-sovereign-kernel .mkt-sov-eyebrow::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--mkt-success, #34d399); /* off-token-allow: status dot on always-dark hero */
+}
+
+#mkt-sovereign-kernel .mkt-sov-headline {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--mkt-ink-on-dark, #fff);
+  margin: 1rem 0 0.9rem;
+}
+#mkt-sovereign-kernel .mkt-sov-headline::after {
+  content: "";
+  display: block;
+  width: 84px;
+  height: 4px;
+  margin-top: 0.85rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--mkt-accent, #60a5fa), color-mix(in srgb, var(--mkt-accent, #a78bfa) 55%, #a78bfa)); /* off-token-allow: decorative accent underline */
+}
+
+#mkt-sovereign-kernel .mkt-sov-lead {
+  color: color-mix(in srgb, var(--mkt-ink-on-dark, #e6edf6) 64%, transparent);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 32rem;
+}
+
+#mkt-sovereign-kernel .mkt-sov-cta {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+#mkt-sovereign-kernel .mkt-sov-stats {
+  display: flex;
+  gap: clamp(1.2rem, 3vw, 2.2rem);
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+#mkt-sovereign-kernel .mkt-sov-stats .n {
+  font-family: var(--font-display, "Source Serif 4", Georgia, serif);
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--mkt-ink-on-dark, #fff);
+}
+#mkt-sovereign-kernel .mkt-sov-stats .l {
+  font-size: 0.74rem;
+  color: color-mix(in srgb, var(--mkt-ink-on-dark, #e6edf6) 48%, transparent);
+  max-width: 9.5rem;
+  margin-top: 0.15rem;
+}
+
+/* Wizard card elevation on the dark canvas */
+#mkt-sovereign-kernel .mkt-ve-wizard {
+  background: linear-gradient(180deg, rgba(19, 28, 51, 0.92), rgba(15, 23, 48, 0.92)); /* off-token-allow: glass wizard card on always-dark hero */
+  border: 1px solid color-mix(in srgb, var(--mkt-accent, #4f46e5) 22%, rgba(148, 163, 184, 0.28));
+  box-shadow: 0 30px 60px -28px rgba(0, 0, 0, 0.7); /* off-token-allow: depth shadow on always-dark hero */
+  backdrop-filter: blur(8px);
+}
+
+/* Deployment-matrix result (filled client-side by mkt-sandbox-wizard.js) */
+#mkt-sovereign-kernel .mkt-sov-result {
+  margin-top: var(--mkt-space-2, 16px);
+  border-top: 1px dashed color-mix(in srgb, var(--mkt-ink-on-dark, #e6edf6) 16%, transparent);
+  padding-top: var(--mkt-space-2, 16px);
+}
+#mkt-sovereign-kernel .mkt-sov-result__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.86rem;
+  padding: 0.34rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--mkt-ink-on-dark, #e6edf6) 8%, transparent);
+}
+#mkt-sovereign-kernel .mkt-sov-result__k {
+  color: color-mix(in srgb, var(--mkt-ink-on-dark, #e6edf6) 58%, transparent);
+}
+#mkt-sovereign-kernel .mkt-sov-result__v {
+  color: var(--mkt-ink-on-dark, #fff);
+  font-weight: 600;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  text-align: end;
+}
+#mkt-sovereign-kernel .mkt-sov-result__v.is-em {
+  color: var(--mkt-success, #34d399); /* off-token-allow: positive metric on always-dark hero */
+}
+#mkt-sovereign-kernel .mkt-sov-result__rtl {
+  margin-top: 0.6rem;
+  font-size: 0.74rem;
+  color: color-mix(in srgb, var(--mkt-accent, #60a5fa) 70%, var(--mkt-ink-on-dark, #e6edf6));
+}
+#mkt-sovereign-kernel .mkt-sov-result[hidden] { display: none; }

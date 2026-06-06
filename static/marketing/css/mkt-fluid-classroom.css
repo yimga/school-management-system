@@ -1,0 +1,196 @@
+/**
+ * Fluid Classroom personality (2026-06-05). Scoped to #mkt-fluid-classroom.
+ * Bright, human-centric, rounded and spacious with soft violet/indigo — the
+ * opposite of the near-black rugged terminal and distinct from the clinical
+ * ledger's cool grays. This is an always-light personality surface, so its
+ * fixed soft tints carry off-token-allow markers (same convention the sovereign
+ * hero uses for always-dark). Responsive-flow only: no viewport lock, no text
+ * clipping. Markers sit inside the braces on the declaration line.
+ */
+
+#mkt-fluid-classroom.mkt-fc {
+  --fc-surface: #f6f7fe;   /* off-token-allow: always-light fluid classroom canvas */
+  --fc-card: #ffffff;      /* off-token-allow: always-light fluid card */
+  --fc-ink: #1e1b3a;       /* off-token-allow: always-light fluid ink */
+  --fc-muted: #6b6a8a;     /* off-token-allow: always-light fluid muted ink */
+  --fc-line: #ece9fb;      /* off-token-allow: always-light fluid hairline */
+  --fc-violet: #7c3aed;    /* off-token-allow: fluid violet accent */
+  --fc-violet-soft: #f0e9ff; /* off-token-allow: fluid violet tint */
+  --fc-emerald: #0e9f6e;   /* off-token-allow: fluid mastery accent */
+  --fc-emerald-soft: #e3f7ef; /* off-token-allow: fluid mastery tint */
+  --fc-blue: #2563eb;      /* off-token-allow: fluid developing accent */
+  --fc-blue-soft: #e6efff; /* off-token-allow: fluid developing tint */
+  --fc-amber: #c2700a;     /* off-token-allow: fluid emerging accent */
+  --fc-amber-soft: #fcefda; /* off-token-allow: fluid emerging tint */
+  background: radial-gradient(840px 420px at 12% -8%, var(--fc-violet-soft), transparent 60%), var(--fc-surface); /* off-token-allow: soft fluid wash on always-light surface */
+  color: var(--fc-ink);
+}
+
+#mkt-fluid-classroom .mkt-fc-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(24px, 3.5vw, 48px);
+  align-items: center;
+  width: 100%;
+}
+@media (min-width: 940px) {
+  #mkt-fluid-classroom .mkt-fc-layout { grid-template-columns: 0.86fr 1.14fr; }
+}
+
+#mkt-fluid-classroom .mkt-fc-copy { min-width: 0; }
+
+#mkt-fluid-classroom .mkt-fc-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--fc-violet);
+  margin: 0 0 0.7rem;
+}
+#mkt-fluid-classroom .mkt-fc-headline {
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.7rem;
+  color: var(--fc-ink);
+}
+#mkt-fluid-classroom .mkt-fc-lead {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--fc-muted);
+  margin: 0 0 1.4rem;
+  max-width: 30rem;
+}
+
+/* Framework switcher */
+#mkt-fluid-classroom .mkt-fc-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+#mkt-fluid-classroom .mkt-fc-tabs button {
+  min-height: 42px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--fc-line);
+  background: var(--fc-card);
+  color: var(--fc-ink);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--motion-fast, 160ms) var(--ease-standard, ease),
+              border-color var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-fluid-classroom .mkt-fc-tabs button:hover { border-color: var(--fc-violet); }
+#mkt-fluid-classroom .mkt-fc-tabs button.is-active {
+  background: var(--fc-violet);
+  border-color: var(--fc-violet);
+  color: #ffffff; /* off-token-allow: text on active fluid violet tab */
+}
+
+#mkt-fluid-classroom .mkt-fc-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 1.4rem 0 0;
+}
+#mkt-fluid-classroom .mkt-fc-summary__label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fc-muted);
+}
+#mkt-fluid-classroom .mkt-fc-summary__val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--fc-violet);
+}
+#mkt-fluid-classroom .mkt-fc-summary__note { font-size: 0.78rem; color: var(--fc-muted); }
+
+/* Board card */
+#mkt-fluid-classroom .mkt-fc-board {
+  background: var(--fc-card);
+  border: 1px solid var(--fc-line);
+  border-radius: 18px;
+  padding: clamp(16px, 2vw, 24px);
+  box-shadow: 0 24px 50px -30px rgba(76, 29, 149, 0.25); /* off-token-allow: soft violet card lift on always-light surface */
+}
+
+/* Polymorphic gradebook grid (cols = 1 name + N subjects) */
+#mkt-fluid-classroom .mkt-fc-grade {
+  display: grid;
+  gap: 10px;
+}
+#mkt-fluid-classroom .mkt-fc-grow {
+  display: grid;
+  grid-template-columns: 9.5rem repeat(var(--cols, 4), 1fr);
+  gap: 8px;
+  align-items: center;
+}
+#mkt-fluid-classroom .mkt-fc-ghead {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fc-muted);
+  text-align: center;
+  padding-bottom: 4px;
+}
+#mkt-fluid-classroom .mkt-fc-ghead:first-child { text-align: start; }
+
+#mkt-fluid-classroom .mkt-fc-student {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+#mkt-fluid-classroom .mkt-fc-av {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #ffffff; /* off-token-allow: initials on fluid avatar */
+  flex: none;
+}
+#mkt-fluid-classroom .mkt-fc-av--0 { background: #7c3aed; /* off-token-allow: fluid avatar palette */ }
+#mkt-fluid-classroom .mkt-fc-av--1 { background: #2563eb; /* off-token-allow: fluid avatar palette */ }
+#mkt-fluid-classroom .mkt-fc-av--2 { background: #0e9f6e; /* off-token-allow: fluid avatar palette */ }
+#mkt-fluid-classroom .mkt-fc-av--3 { background: #db2777; /* off-token-allow: fluid avatar palette */ }
+#mkt-fluid-classroom .mkt-fc-av--4 { background: #ea580c; /* off-token-allow: fluid avatar palette */ }
+#mkt-fluid-classroom .mkt-fc-sname {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--fc-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Score pill — same cell footprint across all frameworks (zero layout shift) */
+#mkt-fluid-classroom .mkt-fc-pill {
+  display: block;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition: background var(--motion-fast, 160ms) var(--ease-standard, ease),
+              color var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-fluid-classroom .mkt-fc-pill--4 { background: var(--fc-emerald-soft); color: var(--fc-emerald); }
+#mkt-fluid-classroom .mkt-fc-pill--3 { background: var(--fc-violet-soft); color: var(--fc-violet); }
+#mkt-fluid-classroom .mkt-fc-pill--2 { background: var(--fc-blue-soft); color: var(--fc-blue); }
+#mkt-fluid-classroom .mkt-fc-pill--1 { background: var(--fc-amber-soft); color: var(--fc-amber); }
+
+@media (prefers-reduced-motion: reduce) {
+  #mkt-fluid-classroom .mkt-fc-pill { transition: none; }
+}
+
+@media (max-width: 540px) {
+  #mkt-fluid-classroom .mkt-fc-grow { grid-template-columns: 6.5rem repeat(var(--cols, 4), 1fr); }
+  #mkt-fluid-classroom .mkt-fc-sname { font-size: 0.8rem; }
+  #mkt-fluid-classroom .mkt-fc-pill { font-size: 0.74rem; padding: 6px 2px; }
+}

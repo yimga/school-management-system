@@ -2,10 +2,13 @@
  * Intent-driven marketing homepage — scroll-snap stack of 100dvh personalities.
  * Uses 8px grid (--mkt-space-*) from marketing-visual-engine.css.
  */
+/* responsive-flow (2026-06-05): the homepage scrolls in the NORMAL document
+   flow. The old `scroll-snap-type:y mandatory + overflow-y:auto + max-height:
+   100dvh` created a nested viewport-locked scroller that clipped each section
+   into a single screen (the blank-panel bug). Natural flow lets every section
+   size to its content. */
 .mkt-intent-home__stack {
-  scroll-snap-type: y mandatory;
-  overflow-y: auto;
-  max-height: 100dvh;
+  display: block;
 }
 
 .mkt-intent-home__cta {

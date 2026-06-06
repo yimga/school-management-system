@@ -3,13 +3,15 @@
  * Uses marketing semantic tokens; no raw hex in layout rules.
  */
 .mkt-ve-section {
-  min-height: 100dvh;
-  max-height: 100dvh;
-  padding: calc(var(--mkt-space-8, 64px) * 1) 0;
+  /* responsive-flow (2026-06-05): full-screen FEEL via min-height, but content
+     is free to grow. Removing max-height:100dvh + overflow:hidden eliminates
+     the blank-box clipping that hid section content on the live homepage. */
+  min-height: 100svh;
+  padding: clamp(48px, 8vh, 96px) 0;
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .mkt-ve-section--viewport-lock {
@@ -17,13 +19,18 @@
   scroll-margin-top: 0;
 }
 
+/* responsive-flow (2026-06-05): headings & prose MUST wrap, never clip. The old
+   nowrap + ellipsis + overflow:hidden here is what truncated and visually
+   doubled the marketing headings (e.g. "Finance cockpit" twice). RTL safety
+   comes from logical layout + flexible wrapping, not from clipping text. Genuine
+   single-line tabular cells that need truncation should use a dedicated cell
+   class with a hover tooltip instead. */
 .mkt-edos-text-shield {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
   max-width: 100%;
-  display: inline-block;
-  vertical-align: bottom;
+  display: block;
 }
 
 html[dir="rtl"] .mkt-ve-section__grid,

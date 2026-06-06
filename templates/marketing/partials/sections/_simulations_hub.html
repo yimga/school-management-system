@@ -1,0 +1,76 @@
+{% load i18n %}
+{% comment %}
+  Simulations Hub (2026-06-05). The dedicated "everything is a working sim"
+  section the owner asked for. Warm amber personality — a 5th distinct look that
+  bookends the page. It is a DIRECTORY: the first four cards anchor straight to
+  the live in-page sims (guaranteed present on this homepage); the rest open the
+  dedicated personality labs. Pure links/anchors — no backend, nothing to fail.
+  Responsive-flow: no viewport lock, no text clipping.
+{% endcomment %}
+<section
+  id="mkt-simulations-hub"
+  class="mkt-ve-section mkt-sh"
+  data-mkt-personality="simulations"
+  aria-labelledby="mkt-sh-headline"
+>
+  <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
+    <header class="mkt-sh-head">
+      <p class="mkt-sh-eyebrow">{% trans "Simulations hub" %}</p>
+      <h2 id="mkt-sh-headline" class="mkt-sh-headline">{% trans "Every claim is a sim you can run." %}</h2>
+      <p class="mkt-sh-lead">
+        {% trans "No demo gatekeeping, no “contact sales” wall. Each runs 100% in your browser — region-aware, offline-proof, and honest about what it shows." %}
+      </p>
+    </header>
+
+    <ul class="mkt-sh-grid">
+      <li class="mkt-sh-card">
+        <span class="mkt-sh-card__tag">{% trans "Live on this page" %}</span>
+        <h3 class="mkt-sh-card__title">{% trans "Setup Studio" %}</h3>
+        <p class="mkt-sh-card__desc">{% trans "Pick region → size → modules and watch the workspace, currency, terms and RTL reshape in seconds." %}</p>
+        <a class="mkt-sh-card__cta" href="#mkt-sovereign-kernel">{% trans "Run sim" %} →</a>
+      </li>
+      <li class="mkt-sh-card">
+        <span class="mkt-sh-card__tag">{% trans "Live on this page" %}</span>
+        <h3 class="mkt-sh-card__title">{% trans "Split-Gateway Ledger" %}</h3>
+        <p class="mkt-sh-card__desc">{% trans "Drag an invoice and see 80/10/10 routing + a regional e-invoice tax stamp across 10 authorities." %}</p>
+        <a class="mkt-sh-card__cta" href="#mkt-clinical-ledger">{% trans "Run sim" %} →</a>
+      </li>
+      <li class="mkt-sh-card">
+        <span class="mkt-sh-card__tag">{% trans "Live on this page" %}</span>
+        <h3 class="mkt-sh-card__title">{% trans "Network-Drop Terminal" %}</h3>
+        <p class="mkt-sh-card__desc">{% trans "Toggle fiber → blackout; attendance keeps logging via QR + RFID and drains the queue on reconnect." %}</p>
+        <a class="mkt-sh-card__cta" href="#mkt-rugged-engine">{% trans "Run sim" %} →</a>
+      </li>
+      <li class="mkt-sh-card">
+        <span class="mkt-sh-card__tag">{% trans "Live on this page" %}</span>
+        <h3 class="mkt-sh-card__title">{% trans "Polymorphic Gradebook" %}</h3>
+        <p class="mkt-sh-card__desc">{% trans "One record, re-expressed instantly across US letters, IB, Cambridge and competency — zero re-entry." %}</p>
+        <a class="mkt-sh-card__cta" href="#mkt-fluid-classroom">{% trans "Run sim" %} →</a>
+      </li>
+      <li class="mkt-sh-card">
+        <span class="mkt-sh-card__tag">{% trans "Dedicated lab" %}</span>
+        <h3 class="mkt-sh-card__title">{% trans "Zero-UI Lab" %}</h3>
+        <p class="mkt-sh-card__desc">{% trans "Ambient, phone-free capture — QR sweeps and passive RFID taps without a single student device." %}</p>
+        <a class="mkt-sh-card__cta" href="{% url 'marketing_personality_page' 'zero-ui' %}">{% trans "Open lab" %} →</a>
+      </li>
+      <li class="mkt-sh-card">
+        <span class="mkt-sh-card__tag">{% trans "Dedicated lab" %}</span>
+        <h3 class="mkt-sh-card__title">{% trans "Pricing & Entitlement" %}</h3>
+        <p class="mkt-sh-card__desc">{% trans "Model packages, seats and add-ons against regional currency — see the bill before you ever talk to us." %}</p>
+        <a class="mkt-sh-card__cta" href="{% url 'marketing_personality_page' 'pricing' %}">{% trans "Open lab" %} →</a>
+      </li>
+      <li class="mkt-sh-card">
+        <span class="mkt-sh-card__tag">{% trans "Dedicated lab" %}</span>
+        <h3 class="mkt-sh-card__title">{% trans "Enterprise Constellation" %}</h3>
+        <p class="mkt-sh-card__desc">{% trans "Map multi-campus networks, shared ledgers and district roll-ups across one governance fabric." %}</p>
+        <a class="mkt-sh-card__cta" href="{% url 'marketing_personality_page' 'enterprise-ledger' %}">{% trans "Open lab" %} →</a>
+      </li>
+      <li class="mkt-sh-card">
+        <span class="mkt-sh-card__tag">{% trans "Dedicated lab" %}</span>
+        <h3 class="mkt-sh-card__title">{% trans "Edge Mesh Map" %}</h3>
+        <p class="mkt-sh-card__desc">{% trans "Watch campuses peer-sync over local mesh during load-shedding — no continuous internet required." %}</p>
+        <a class="mkt-sh-card__cta" href="{% url 'marketing_personality_page' 'edge-mesh' %}">{% trans "Open lab" %} →</a>
+      </li>
+    </ul>
+  </div>
+</section>

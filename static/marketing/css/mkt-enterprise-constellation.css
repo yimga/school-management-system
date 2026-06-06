@@ -1,0 +1,104 @@
+/**
+ * Enterprise "Constellation" personality (2026-06-05). Scoped to
+ * #mkt-enterprise-constellation. A premium deep-space institutional network —
+ * one parent org, many institution types, one unified login — with a
+ * platinum/gold accent that reads as enterprise/HoldCo. Deliberately dark so it
+ * contrasts the bright Clinical Ledger beneath it on the enterprise page.
+ * Always-dark surface → fixed tints carry off-token-allow markers (inside braces).
+ * Responsive-flow only.
+ */
+
+#mkt-enterprise-constellation.mkt-ve-section--enterprise {
+  --ec-gold: #e3c178;    /* off-token-allow: constellation platinum-gold accent */
+  --ec-ink: #e8edf6;     /* off-token-allow: constellation ink on always-dark surface */
+  --ec-muted: #8090a6;   /* off-token-allow: constellation muted ink */
+  --ec-line: #20304a;    /* off-token-allow: constellation hairline */
+  --ec-card: #0e1726;    /* off-token-allow: constellation panel */
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: radial-gradient(900px 520px at 78% -12%, rgba(227, 193, 120, 0.12), transparent 60%), #070d18; /* off-token-allow: constellation deep-space canvas */
+  color: var(--ec-ink);
+}
+/* starfield */
+#mkt-enterprise-constellation::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.4px 1.4px at 20% 30%, rgba(255, 255, 255, 0.5), transparent), /* off-token-allow: decorative star on always-dark surface */
+    radial-gradient(1.4px 1.4px at 68% 18%, rgba(255, 255, 255, 0.4), transparent), /* off-token-allow: decorative star on always-dark surface */
+    radial-gradient(1.2px 1.2px at 44% 62%, rgba(227, 193, 120, 0.6), transparent), /* off-token-allow: decorative gold star on always-dark surface */
+    radial-gradient(1.6px 1.6px at 84% 54%, rgba(255, 255, 255, 0.35), transparent), /* off-token-allow: decorative star on always-dark surface */
+    radial-gradient(1.2px 1.2px at 12% 78%, rgba(255, 255, 255, 0.4), transparent); /* off-token-allow: decorative star on always-dark surface */
+  opacity: 0.7;
+}
+
+#mkt-enterprise-constellation .mkt-edt-eyebrow { color: var(--ec-gold); font-weight: 800; letter-spacing: 0.18em; }
+#mkt-enterprise-constellation .mkt-ve-section__title {
+  font-family: var(--font-display, "Source Serif 4", Georgia, serif);
+  font-size: clamp(2rem, 4.4vw, 3.2rem);
+  letter-spacing: -0.01em;
+  color: #f7f3ea; /* off-token-allow: constellation headline on always-dark surface */
+}
+#mkt-enterprise-constellation .mkt-ve-section__lead { color: var(--ec-muted); max-width: 40rem; }
+
+#mkt-enterprise-constellation .mkt-ve-enterprise {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(20px, 3vw, 36px);
+  align-items: center;
+}
+@media (min-width: 920px) {
+  #mkt-enterprise-constellation .mkt-ve-enterprise { grid-template-columns: 1.15fr 0.85fr; }
+}
+#mkt-enterprise-constellation .mkt-ve-enterprise__detail {
+  background: var(--ec-card);
+  border: 1px solid var(--ec-line);
+  border-radius: 14px;
+  padding: 22px;
+}
+#mkt-enterprise-constellation .mkt-ve-enterprise__detail-title { margin: 0 0 0.5rem; color: var(--ec-gold); font-size: 1.05rem; }
+#mkt-enterprise-constellation .mkt-ve-enterprise__detail-body { color: var(--ec-muted); margin: 0 0 1rem; }
+#mkt-enterprise-constellation .mkt-ve-enterprise__roles { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+#mkt-enterprise-constellation .mkt-ve-enterprise__roles li {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--ec-line);
+  background: rgba(227, 193, 120, 0.06); /* off-token-allow: constellation role chip on always-dark surface */
+  font-size: 0.86rem;
+}
+
+/* multi-wallet rollup ledger */
+#mkt-enterprise-constellation .mkt-ve-enterprise__ledger {
+  margin-top: clamp(20px, 3vh, 32px);
+  background: var(--ec-card);
+  border: 1px solid var(--ec-line);
+  border-radius: 14px;
+  padding: 20px;
+}
+#mkt-enterprise-constellation .mkt-ve-enterprise__ledger-title { margin: 0 0 12px; font-size: 0.96rem; color: var(--ec-ink); }
+#mkt-enterprise-constellation .mkt-ve-enterprise__wallets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+#mkt-enterprise-constellation .mkt-ve-enterprise__wallets li {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ec-line);
+  font-size: 0.82rem;
+  font-family: ui-monospace, monospace;
+  color: var(--ec-ink);
+}
+#mkt-enterprise-constellation .mkt-ve-enterprise__wallets li.is-active {
+  border-color: var(--ec-gold);
+  background: rgba(227, 193, 120, 0.12); /* off-token-allow: constellation active wallet on always-dark surface */
+}
+#mkt-enterprise-constellation .mkt-ve-enterprise__rollup { color: var(--ec-gold); font-weight: 700; font-family: ui-monospace, monospace; margin: 0; }
+#mkt-enterprise-constellation .mkt-edt-illustrative-pill { color: var(--ec-muted); }

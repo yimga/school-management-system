@@ -1,0 +1,101 @@
+/**
+ * Governance "Ministry Seal" personality (2026-06-05). Scoped to
+ * #mkt-governance-auditor. Official, cool-slate, institutional — an inspector
+ * magic-link panel beside a data-residency map, signed off with an audit seal.
+ * Slate-blue accent with a gold seal. Always-light personality surface → fixed
+ * tints carry off-token-allow markers (inside braces). Responsive-flow only.
+ */
+
+#mkt-governance-auditor.mkt-ve-section--governance {
+  --gv-slate: #334155;    /* off-token-allow: governance slate accent */
+  --gv-blue: #1d4ed8;     /* off-token-allow: governance authority blue */
+  --gv-seal: #b08400;     /* off-token-allow: governance audit-seal gold */
+  --gv-ink: #1e293b;      /* off-token-allow: governance ink on light surface */
+  --gv-muted: #64748b;    /* off-token-allow: governance muted ink */
+  --gv-card: #ffffff;     /* off-token-allow: governance light card */
+  --gv-line: #dbe3ee;     /* off-token-allow: governance light hairline */
+  background: linear-gradient(180deg, #f4f7fb, #eef2f8); /* off-token-allow: governance slate wash on light surface */
+  color: var(--gv-ink);
+}
+
+#mkt-governance-auditor .mkt-edt-eyebrow { color: var(--gv-blue); font-weight: 800; letter-spacing: 0.16em; }
+#mkt-governance-auditor .mkt-ve-section__title {
+  font-family: var(--font-display, "Source Serif 4", Georgia, serif);
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  letter-spacing: -0.01em;
+  color: var(--gv-ink);
+}
+#mkt-governance-auditor .mkt-ve-section__lead { color: var(--gv-muted); }
+
+#mkt-governance-auditor .mkt-ve-governance {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(18px, 2.6vw, 28px);
+  align-items: start;
+}
+@media (min-width: 900px) {
+  #mkt-governance-auditor .mkt-ve-governance { grid-template-columns: 1.1fr 0.9fr; }
+}
+
+#mkt-governance-auditor .mkt-ve-governance__panel {
+  background: var(--gv-card);
+  border: 1px solid var(--gv-line);
+  border-radius: 14px;
+  padding: 24px;
+  border-top: 3px solid var(--gv-blue);
+  box-shadow: 0 20px 44px -30px rgba(51, 65, 85, 0.3); /* off-token-allow: governance panel lift on light surface */
+}
+#mkt-governance-auditor .mkt-ve-governance__panel-title { margin: 0 0 14px; font-size: 1.05rem; color: var(--gv-ink); }
+#mkt-governance-auditor .mkt-ve-governance__meta { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 10px; }
+#mkt-governance-auditor .mkt-ve-governance__meta li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--gv-line);
+  font-size: 0.9rem;
+}
+#mkt-governance-auditor .mkt-ve-governance__meta span { color: var(--gv-muted); }
+#mkt-governance-auditor .mkt-ve-governance__meta strong { color: var(--gv-ink); text-align: end; }
+
+/* audit seal */
+#mkt-governance-auditor .mkt-ve-governance__stamp {
+  position: relative;
+  margin: 0;
+  padding: 12px 14px 12px 46px;
+  border: 1px dashed var(--gv-seal);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--gv-slate);
+  background: color-mix(in srgb, var(--gv-seal) 7%, var(--gv-card));
+}
+#mkt-governance-auditor .mkt-ve-governance__stamp::before {
+  content: "✓";
+  position: absolute;
+  inset-inline-start: 12px;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--gv-seal);
+  color: var(--gv-seal);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+/* data residency map */
+#mkt-governance-auditor .mkt-ve-governance__map-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+#mkt-governance-auditor .mkt-ve-governance__tile {
+  min-height: 54px;
+  border-radius: 10px;
+  border: 1px solid var(--gv-line);
+  background: color-mix(in srgb, var(--gv-blue) 8%, var(--gv-card));
+}
+#mkt-governance-auditor .mkt-edt-illustrative-pill { color: var(--gv-muted); }

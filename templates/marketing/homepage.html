@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-intent-home.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-acquisition-engine.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-hero-sovereign.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-clinical-ledger.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-rugged-terminal.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-fluid-classroom.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-simulations-hub.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-hero-velocity.css' %}">
 {% endblock %}
 
 {% block extrajs %}
@@ -17,16 +23,19 @@
   <script src="{% static 'marketing/js/mkt-sandbox-wizard.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-split-ledger.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-network-state.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-gradebook-morph.js' %}" defer></script>
 {% endblock %}
 
 {% block marketing_main_extra_classes %}mkt-intent-home px-0 py-0{% endblock %}
 
 {% block content %}
-<div class="mkt-intent-home__stack" data-mkt-intent-home data-rmc-scroll-policy="viewport-lock">
+<div class="mkt-intent-home__stack" data-mkt-intent-home>
   {% include "marketing/partials/sections/_hero_speed_duel.html" %}
   {% include "marketing/partials/sections/_sovereign_kernel.html" %}
   {% include "marketing/partials/sections/_clinical_ledger.html" %}
   {% include "marketing/partials/sections/_rugged_engine.html" %}
+  {% include "marketing/partials/sections/_fluid_classroom.html" %}
+  {% include "marketing/partials/sections/_simulations_hub.html" %}
 </div>
 {% include "marketing/partials/_personality_page_nav.html" with active="homepage" %}
 <nav class="mkt-intent-home__cta mkt-edt-container mkt-edt-container--wide" aria-label="{% trans 'Next steps' %}">

@@ -1,18 +1,17 @@
 {% load i18n marketing_media %}
 <section
   id="mkt-entitlement-calculator"
-  class="mkt-ve-section mkt-ve-section--clinical mkt-ve-section--viewport-lock"
+  class="mkt-ve-section mkt-ve-section--clinical"
   data-mkt-personality="clinical"
-  data-mkt-scroll-policy="viewport-lock"
   aria-labelledby="mkt-pricing-headline"
 >
   <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
     <header class="mkt-ve-section__header">
       <p class="mkt-edt-eyebrow">{% trans "Pricing studio" %}</p>
-      <h2 id="mkt-pricing-headline" class="mkt-ve-section__title mkt-edos-text-shield">
+      <h2 id="mkt-pricing-headline" class="mkt-ve-section__title">
         {% marketing_copy "txt_pricing_headline" %}
       </h2>
-      <p class="mkt-ve-section__lead mkt-edos-text-shield">
+      <p class="mkt-ve-section__lead">
         {% marketing_copy "txt_pricing_lead" %}
       </p>
     </header>
@@ -23,13 +22,10 @@
         <button type="button" data-mkt-module="comms" aria-pressed="false">{% trans "Comms" %}</button>
         <button type="button" data-mkt-module="billing" aria-pressed="false">{% trans "Billing" %}</button>
       </div>
-      <output class="mkt-ve-entitlement__result mkt-edos-text-shield" data-mkt-entitlement-output>
+      <output class="mkt-ve-entitlement__result" data-mkt-entitlement-output>
         {% blocktrans with sym=geo.currency_symbol cur=geo.currency %}Indicative tier · {{ sym }} {{ cur }} / student / month{% endblocktrans %}
       </output>
       <p class="mkt-edt-illustrative-pill">{% trans "Illustrative bands only — final quote in procurement." %}</p>
-      <div class="mkt-ve-split mkt-ve-split--compact" data-mkt-split-ledger>
-        <div class="mkt-ve-split__viz">{% marketing_viz "split_ledger_viz" %}</div>
-      </div>
     </div>
   </div>
 </section>

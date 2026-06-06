@@ -1,0 +1,73 @@
+/**
+ * Pricing Studio personality (2026-06-05). Scoped to #mkt-entitlement-calculator.
+ * A calm, transparent pricing bench — toggle the operational modules and the
+ * indicative per-student band updates live. Teal/emerald accent so it reads as
+ * "money, but friendly", distinct from the Clinical Ledger's emerald-on-grey.
+ * Always-light personality surface → fixed tints carry off-token-allow markers
+ * (inside braces). Responsive-flow only.
+ */
+
+#mkt-entitlement-calculator.mkt-ve-section--clinical {
+  --ps-teal: #0d9488;     /* off-token-allow: pricing-studio teal accent */
+  --ps-emerald: #059669;  /* off-token-allow: pricing-studio emerald accent */
+  --ps-ink: #0f2420;      /* off-token-allow: pricing-studio ink on light surface */
+  --ps-muted: #5a7068;    /* off-token-allow: pricing-studio muted ink */
+  --ps-card: #ffffff;     /* off-token-allow: pricing-studio light card */
+  --ps-line: #d7e8e2;     /* off-token-allow: pricing-studio light hairline */
+  background: radial-gradient(820px 420px at 88% -10%, rgba(13, 148, 136, 0.1), transparent 60%), #f3faf7; /* off-token-allow: pricing-studio wash */
+  color: var(--ps-ink);
+}
+
+#mkt-entitlement-calculator .mkt-edt-eyebrow { color: var(--ps-teal); font-weight: 800; letter-spacing: 0.16em; }
+#mkt-entitlement-calculator .mkt-ve-section__title {
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  letter-spacing: -0.02em;
+  color: var(--ps-ink);
+}
+#mkt-entitlement-calculator .mkt-ve-section__lead { color: var(--ps-muted); }
+
+#mkt-entitlement-calculator .mkt-ve-entitlement {
+  background: var(--ps-card);
+  border: 1px solid var(--ps-line);
+  border-radius: 18px;
+  padding: clamp(20px, 3vw, 32px);
+  box-shadow: 0 24px 50px -32px rgba(13, 148, 136, 0.3); /* off-token-allow: pricing-studio card lift on light surface */
+  max-width: 40rem;
+}
+#mkt-entitlement-calculator .mkt-ve-entitlement__toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+#mkt-entitlement-calculator .mkt-ve-entitlement__toggles button {
+  min-height: 46px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--ps-line);
+  background: #f6fbf9; /* off-token-allow: pricing-studio toggle on light surface */
+  color: var(--ps-ink);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--motion-fast, 160ms) var(--ease-standard, ease),
+              border-color var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-entitlement-calculator .mkt-ve-entitlement__toggles button:hover { border-color: var(--ps-teal); }
+#mkt-entitlement-calculator .mkt-ve-entitlement__toggles button.is-active {
+  background: var(--ps-teal);
+  border-color: var(--ps-teal);
+  color: #ffffff; /* off-token-allow: text on active pricing-studio toggle */
+}
+#mkt-entitlement-calculator .mkt-ve-entitlement__result {
+  display: block;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  font-weight: 800;
+  color: var(--ps-emerald);
+  padding: 16px 0;
+  border-top: 1px dashed var(--ps-line);
+  border-bottom: 1px dashed var(--ps-line);
+  margin-bottom: 14px;
+}
+#mkt-entitlement-calculator .mkt-edt-illustrative-pill { color: var(--ps-muted); }

@@ -1,0 +1,108 @@
+/**
+ * Zero-UI "Command Compiler" personality (2026-06-05). Scoped to #mkt-zero-ui-lab.
+ * A light editorial surface where a plain sentence compiles, in front of you,
+ * into a governed tool-call (dark JSON editor pane) and a live result canvas.
+ * Electric indigo/violet accent. Mixed light page + always-dark code inset →
+ * the dark inset's fixed tints carry off-token-allow markers (inside braces).
+ * Responsive-flow only.
+ */
+
+#mkt-zero-ui-lab.mkt-ve-section--zero-ui {
+  --zu-accent: #6366f1;   /* off-token-allow: zero-ui electric indigo accent */
+  --zu-violet: #a855f7;   /* off-token-allow: zero-ui violet accent */
+  --zu-ink: #1e1b2e;      /* off-token-allow: zero-ui ink on light surface */
+  --zu-muted: #6b6880;    /* off-token-allow: zero-ui muted ink on light surface */
+  --zu-card: #ffffff;     /* off-token-allow: zero-ui light card */
+  --zu-line: #e7e4f5;     /* off-token-allow: zero-ui light hairline */
+  --zu-code-bg: #0d1326;  /* off-token-allow: zero-ui dark code editor inset */
+  --zu-code-ink: #c7d2fe; /* off-token-allow: zero-ui code ink */
+  background: radial-gradient(820px 420px at 10% -10%, color-mix(in srgb, var(--zu-accent) 14%, transparent), transparent 60%), var(--mkt-surface-cream, #f7f6fe); /* off-token-allow: zero-ui wash */
+  color: var(--zu-ink);
+}
+
+#mkt-zero-ui-lab .mkt-edt-eyebrow { color: var(--zu-accent); font-weight: 800; letter-spacing: 0.16em; }
+#mkt-zero-ui-lab .mkt-ve-section__title {
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  letter-spacing: -0.02em;
+  color: var(--zu-ink);
+}
+#mkt-zero-ui-lab .mkt-ve-section__lead { color: var(--zu-muted); }
+
+/* command prompt */
+#mkt-zero-ui-lab .mkt-ve-zero-ui__prompt {
+  background: var(--zu-card);
+  border: 1px solid var(--zu-line);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 20px 44px -30px rgba(99, 102, 241, 0.4); /* off-token-allow: zero-ui prompt lift on light surface */
+  margin-bottom: 18px;
+}
+#mkt-zero-ui-lab .mkt-ve-zero-ui__prompt label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--zu-muted);
+  margin-bottom: 8px;
+}
+#mkt-zero-ui-lab .mkt-ve-zero-ui__input {
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 14px;
+  border: 1px solid var(--zu-line);
+  border-radius: 10px;
+  font-size: 1rem;
+  color: var(--zu-ink);
+  background: #fbfaff; /* off-token-allow: zero-ui input field on light surface */
+}
+#mkt-zero-ui-lab .mkt-ve-zero-ui__input:focus-visible { outline: 2px solid var(--zu-accent); outline-offset: 1px; }
+#mkt-zero-ui-lab .mkt-ve-zero-ui__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#mkt-zero-ui-lab .mkt-ve-zero-ui__chip {
+  font-size: 0.8rem;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--zu-line);
+  background: color-mix(in srgb, var(--zu-accent) 7%, var(--zu-card));
+  color: var(--zu-accent);
+  cursor: pointer;
+  transition: background var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-zero-ui-lab .mkt-ve-zero-ui__chip:hover { background: color-mix(in srgb, var(--zu-accent) 16%, var(--zu-card)); }
+
+/* split: code editor + result canvas */
+#mkt-zero-ui-lab .mkt-ve-zero-ui__split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 900px) {
+  #mkt-zero-ui-lab .mkt-ve-zero-ui__split { grid-template-columns: 1fr 1fr; }
+}
+#mkt-zero-ui-lab .mkt-ve-zero-ui__json {
+  margin: 0;
+  background: var(--zu-code-bg);
+  color: var(--zu-code-ink);
+  border: 1px solid #1c2547; /* off-token-allow: zero-ui code editor border (dark inset) */
+  border-radius: 12px;
+  padding: 16px;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 200px;
+  overflow: auto;
+}
+#mkt-zero-ui-lab .mkt-ve-zero-ui__canvas {
+  background: var(--zu-card);
+  border: 1px solid var(--zu-line);
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#mkt-zero-ui-lab .mkt-ve-zero-ui__canvas-placeholder { color: var(--zu-muted); font-size: 0.9rem; margin: auto; text-align: center; }
+#mkt-zero-ui-lab .mkt-edt-illustrative-pill { color: var(--zu-muted); }

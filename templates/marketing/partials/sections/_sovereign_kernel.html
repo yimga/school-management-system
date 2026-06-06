@@ -1,54 +1,41 @@
-{% load i18n static marketing_media %}{% comment %} get_static_prefix for loop bucket swap {% endcomment %}
+{% load i18n static marketing_media %}
 <section
   id="mkt-sovereign-kernel"
-  class="mkt-ve-section mkt-ve-section--sovereign mkt-ve-section--viewport-lock"
+  class="mkt-ve-section mkt-ve-section--sovereign"
   data-mkt-personality="sovereign"
-  data-mkt-scroll-policy="viewport-lock"
   aria-labelledby="mkt-sovereign-headline"
 >
+  <div class="mkt-sov-grid" aria-hidden="true"></div>
+  <div class="mkt-sov-scan" aria-hidden="true"></div>
   <div class="mkt-ve-section__inner mkt-edt-container mkt-edt-container--wide">
-    <header class="mkt-ve-section__header">
-      <p class="mkt-edt-eyebrow">{% trans "Sovereign kernel" %}</p>
-      <h2 id="mkt-sovereign-headline" class="mkt-ve-section__title mkt-edos-text-shield">
-        {% marketing_copy "txt_hero_headline" %}
-      </h2>
-      <p class="mkt-ve-section__lead mkt-edos-text-shield">
-        {% marketing_copy "txt_hero_subheadline" %}
-      </p>
-    </header>
-    <div class="mkt-ve-section__grid">
-      <div class="mkt-ve-section__media">
-        <picture class="mkt-ve-loop mkt-ve-loop--poster-first">
-          <img
-            src="{% marketing_asset 'sovereign_hero_poster' %}"
-            alt="{% trans 'Illustrative campus operations' %}"
-            loading="eager"
-            decoding="async"
-            class="mkt-ve-loop__poster"
-          >
-        </picture>
-        <video
-          class="mkt-ve-loop mkt-ve-loop--enhance"
-          data-mkt-regional-loop
-          data-mkt-loop-prefix="{% get_static_prefix %}marketing/video/loops/"
-          autoplay
-          muted
-          loop
-          playsinline
-          preload="none"
-          poster="{% marketing_asset 'sovereign_hero_poster' %}"
-          aria-label="{% trans 'Illustrative campus operations loop' %}"
-          hidden
-        >
-          <source src="{% marketing_asset 'sovereign_hero_loop_webm' %}" type="video/webm">
-          <source src="{% marketing_asset 'sovereign_hero_loop_mp4' %}" type="video/mp4">
-        </video>
-        <p class="mkt-edt-illustrative-pill">{% trans "Simulated campus · not a live tenant" %}</p>
+    <div class="mkt-sov-layout">
+      <div class="mkt-sov-copy mkt-reveal">
+        <p class="mkt-sov-eyebrow">{% trans "Sovereign kernel · region-aware" %}</p>
+        <h1 id="mkt-sovereign-headline" class="mkt-sov-headline">
+          {% marketing_copy "txt_hero_headline" %}
+        </h1>
+        <p class="mkt-sov-lead">
+          {% marketing_copy "txt_hero_subheadline" %}
+        </p>
+        <div class="mkt-sov-cta">
+          <a href="#mkt-sovereign-kernel-wizard" class="mkt-edt-cta mkt-edt-cta--primary">
+            {% trans "Run a live simulation" %}
+          </a>
+          <a href="{% url 'marketing_landing_v2' %}" class="mkt-edt-cta mkt-edt-cta--ghost">
+            {% trans "See the platform" %}
+          </a>
+        </div>
+        <div class="mkt-sov-stats">
+          <div><span class="n" data-mkt-count="8">8</span><span class="l">{% trans "weeks to switch from legacy SIS" %}</span></div>
+          <div><span class="n" data-mkt-count="180">180</span><span class="l">{% trans "currencies, region-aware by default" %}</span></div>
+          <div><span class="n" data-mkt-count="29">29</span><span class="l">{% trans "languages, RTL native" %}</span></div>
+        </div>
       </div>
-      <div class="mkt-ve-wizard" data-mkt-sandbox-wizard>
+
+      <div class="mkt-ve-wizard" id="mkt-sovereign-kernel-wizard" data-mkt-sandbox-wizard>
         <div class="mkt-ve-wizard__head">
-          <h3 class="mkt-ve-wizard__title mkt-edos-text-shield">{% marketing_copy "txt_governing_body" %}</h3>
-          <span class="mkt-ve-wizard__badge mkt-edos-text-shield">{{ geo.country_code }} {% trans "Core Active" %}</span>
+          <h2 class="mkt-ve-wizard__title">{% trans "Deployment matrix · sandbox" %}</h2>
+          <span class="mkt-ve-wizard__badge" data-mkt-sandbox-badge>{{ geo.country_code }} {% trans "Core Active" %}</span>
         </div>
         <form class="mkt-ve-wizard__form" data-mkt-sandbox-form novalidate>
           {% csrf_token %}
@@ -71,7 +58,7 @@
             <span>{% trans "School size" %}</span>
             <select name="school_size">
               <option value="small">{% trans "Under 500 students" %}</option>
-              <option value="medium">{% trans "500–2,000" %}</option>
+              <option value="medium" selected>{% trans "500–2,000" %}</option>
               <option value="large">{% trans "2,000+" %}</option>
             </select>
           </label>
@@ -85,8 +72,10 @@
           <button type="submit" class="mkt-edt-cta mkt-edt-cta--primary" data-mkt-sandbox-submit>
             {% blocktrans with sym=geo.currency_symbol cur=geo.currency %}Initialize deployment matrix ({{ sym }} {{ cur }}){% endblocktrans %}
           </button>
+          <div class="mkt-sov-result" data-mkt-sov-result hidden></div>
           <p class="mkt-ve-wizard__status" data-mkt-sandbox-status hidden></p>
         </form>
+        <p class="mkt-edt-illustrative-pill">{% trans "Simulated · runs in your browser · not a live tenant" %}</p>
       </div>
     </div>
   </div>

@@ -1,0 +1,151 @@
+/**
+ * Velocity / Conversion-Engine personality (2026-06-05). Scoped to
+ * #mkt-hero-speed-duel. A dark "benchmark duel" lane race — legacy stack vs the
+ * RunMyCampus command line — with a cyan→lime racing accent that deliberately
+ * differs from the indigo Sovereign hero directly below it, so two dark heroes
+ * never read as the same band. Always-dark surface → fixed tints carry
+ * off-token-allow markers (inside the braces, on the declaration line).
+ * Responsive-flow only.
+ */
+
+#mkt-hero-speed-duel.mkt-ve-section--hero-duel {
+  --vel-cyan: #22d3ee;   /* off-token-allow: velocity cyan accent on always-dark hero */
+  --vel-lime: #a3e635;   /* off-token-allow: velocity lime accent on always-dark hero */
+  --vel-ink: #e6f0f6;    /* off-token-allow: velocity ink on always-dark hero */
+  --vel-muted: #6b7d8c;  /* off-token-allow: velocity muted ink on always-dark hero */
+  --vel-line: #1c2b38;   /* off-token-allow: velocity hairline on always-dark hero */
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: radial-gradient(900px 460px at 84% -10%, rgba(34, 211, 238, 0.14), transparent 60%), var(--mkt-hero-bg, #08121a); /* off-token-allow: velocity glow on always-dark hero */
+  color: var(--vel-ink);
+}
+
+/* moving speed streaks behind the lanes */
+#mkt-hero-speed-duel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(115deg, rgba(34, 211, 238, 0.05) 0 2px, transparent 2px 60px); /* off-token-allow: decorative speed streaks on always-dark hero */
+  -webkit-mask-image: radial-gradient(800px 500px at 70% 40%, #000, transparent 78%);
+          mask-image: radial-gradient(800px 500px at 70% 40%, #000, transparent 78%);
+  animation: mkt-vel-streak 14s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  #mkt-hero-speed-duel::before { animation: none; }
+}
+@keyframes mkt-vel-streak {
+  0% { background-position: 0 0; }
+  100% { background-position: 240px 0; }
+}
+
+#mkt-hero-speed-duel .mkt-edt-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--vel-cyan);
+}
+#mkt-hero-speed-duel .mkt-ve-section__title {
+  font-size: clamp(2rem, 4.6vw, 3.4rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: #f4fbff; /* off-token-allow: velocity headline on always-dark hero */
+}
+#mkt-hero-speed-duel .mkt-ve-section__lead { color: var(--vel-muted); max-width: 40rem; }
+
+/* the two lanes */
+#mkt-hero-speed-duel .mkt-ve-speed-duel__panel {
+  border: 1px solid var(--vel-line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(13, 24, 33, 0.9), rgba(8, 16, 23, 0.9)); /* off-token-allow: velocity lane panel on always-dark hero */
+  position: relative;
+  overflow: hidden;
+}
+/* lane number stripe */
+#mkt-hero-speed-duel .mkt-ve-speed-duel__panel::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 0;
+  width: 3px;
+}
+#mkt-hero-speed-duel .mkt-ve-speed-duel__panel--legacy::after { background: var(--vel-muted); }
+#mkt-hero-speed-duel .mkt-ve-speed-duel__panel--rmc::after { background: linear-gradient(180deg, var(--vel-cyan), var(--vel-lime)); } /* off-token-allow: velocity rmc lane stripe */
+
+#mkt-hero-speed-duel .mkt-ve-speed-duel__panel--legacy { opacity: 0.78; }
+#mkt-hero-speed-duel .mkt-ve-speed-duel__label { color: var(--vel-muted); font-weight: 700; }
+#mkt-hero-speed-duel .mkt-ve-speed-duel__panel--rmc .mkt-ve-speed-duel__label { color: var(--vel-cyan); }
+
+#mkt-hero-speed-duel .mkt-ve-speed-duel__trail li.is-active { color: var(--vel-ink); }
+#mkt-hero-speed-duel .mkt-ve-speed-duel__metric {
+  font-size: 0.92rem;
+  color: var(--vel-ink);
+}
+#mkt-hero-speed-duel .mkt-ve-speed-duel__metric span { color: var(--vel-lime); font-weight: 700; }
+
+#mkt-hero-speed-duel .mkt-ve-speed-duel__command input {
+  background: rgba(2, 8, 13, 0.6); /* off-token-allow: velocity command field on always-dark hero */
+  border-color: var(--vel-line);
+  color: var(--vel-ink);
+}
+#mkt-hero-speed-duel .mkt-ve-speed-duel__stream {
+  background: #02080d; /* off-token-allow: velocity stream canvas on always-dark hero */
+  border: 1px solid var(--vel-line);
+  color: var(--vel-cyan);
+  /* allow the live stream to wrap rather than clip mid-token */
+  white-space: pre-wrap;
+  text-overflow: clip;
+  overflow: hidden;
+}
+#mkt-hero-speed-duel .mkt-ve-speed-duel__card {
+  border-color: color-mix(in srgb, var(--vel-cyan) 50%, transparent);
+  color: var(--vel-ink);
+}
+#mkt-hero-speed-duel .mkt-ve-speed-duel__card--action {
+  background: color-mix(in srgb, var(--vel-lime) 18%, transparent);
+  border-color: var(--vel-lime);
+}
+
+/* embedded edge map → polished mini telemetry panel */
+#mkt-hero-speed-duel .mkt-ve-edge-map { border-top: 1px solid var(--vel-line); }
+#mkt-hero-speed-duel .mkt-ve-edge-map__title { color: var(--vel-muted); }
+#mkt-hero-speed-duel .mkt-ve-edge-map__city {
+  border: 1px solid var(--vel-line);
+  background: transparent;
+  color: var(--vel-muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  min-height: 38px;
+  cursor: pointer;
+  transition: border-color var(--motion-fast, 160ms) var(--ease-standard, ease),
+              color var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-hero-speed-duel .mkt-ve-edge-map__city:hover { border-color: var(--vel-cyan); }
+#mkt-hero-speed-duel .mkt-ve-edge-map__city.is-active {
+  border-color: var(--vel-cyan);
+  color: var(--vel-cyan);
+}
+#mkt-hero-speed-duel .mkt-ve-edge-map__cities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+}
+#mkt-hero-speed-duel .mkt-ve-edge-map__panel {
+  border: 1px solid var(--vel-line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: rgba(13, 24, 33, 0.6); /* off-token-allow: velocity telemetry panel on always-dark hero */
+}
+#mkt-hero-speed-duel .mkt-ve-edge-map__stats { display: flex; flex-wrap: wrap; gap: 1.4rem; margin: 0; }
+#mkt-hero-speed-duel .mkt-ve-edge-map__stats dt { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--vel-muted); }
+#mkt-hero-speed-duel .mkt-ve-edge-map__stats dd { margin: 2px 0 0; font-family: ui-monospace, monospace; font-weight: 700; color: var(--vel-cyan); }
+#mkt-hero-speed-duel .mkt-ve-edge-map__disclaimer { color: var(--vel-muted); font-size: 0.72rem; margin: 10px 0 0; }

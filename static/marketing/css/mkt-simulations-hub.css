@@ -1,0 +1,119 @@
+/**
+ * Simulations Hub personality (2026-06-05). Scoped to #mkt-simulations-hub.
+ * Warm amber-on-near-white directory grid — a 5th distinct look that bookends
+ * the page (vs navy hero / clinical white / near-black terminal / cool violet
+ * classroom). Always-light personality surface, so its fixed warm tints carry
+ * off-token-allow markers (markers sit INSIDE the braces on the declaration
+ * line). Responsive-flow only: no viewport lock, no text clipping.
+ */
+
+#mkt-simulations-hub.mkt-sh {
+  --sh-surface: #fffaf2;   /* off-token-allow: always-light warm hub canvas */
+  --sh-card: #ffffff;      /* off-token-allow: always-light hub card */
+  --sh-ink: #2a1c08;       /* off-token-allow: always-light warm ink */
+  --sh-muted: #7c6a52;     /* off-token-allow: always-light warm muted ink */
+  --sh-line: #f1e4d0;      /* off-token-allow: always-light warm hairline */
+  --sh-amber: #b45309;     /* off-token-allow: hub amber accent */
+  --sh-amber-soft: #fdeecf; /* off-token-allow: hub amber tint */
+  background: radial-gradient(900px 460px at 88% -10%, var(--sh-amber-soft), transparent 62%), var(--sh-surface); /* off-token-allow: warm hub wash on always-light surface */
+  color: var(--sh-ink);
+}
+
+#mkt-simulations-hub .mkt-sh-head {
+  max-width: 44rem;
+  margin: 0 0 clamp(26px, 4vh, 44px);
+}
+#mkt-simulations-hub .mkt-sh-eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--sh-amber);
+  margin: 0 0 0.7rem;
+}
+#mkt-simulations-hub .mkt-sh-headline {
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.7rem;
+  color: var(--sh-ink);
+}
+#mkt-simulations-hub .mkt-sh-lead {
+  font-size: 1.04rem;
+  line-height: 1.6;
+  color: var(--sh-muted);
+  margin: 0;
+}
+
+/* Card grid */
+#mkt-simulations-hub .mkt-sh-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(12px, 1.6vw, 18px);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+@media (min-width: 640px) {
+  #mkt-simulations-hub .mkt-sh-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1040px) {
+  #mkt-simulations-hub .mkt-sh-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+#mkt-simulations-hub .mkt-sh-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--sh-card);
+  border: 1px solid var(--sh-line);
+  border-radius: 14px;
+  padding: 20px;
+  transition: transform var(--motion-fast, 160ms) var(--ease-standard, ease),
+              box-shadow var(--motion-fast, 160ms) var(--ease-standard, ease),
+              border-color var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-simulations-hub .mkt-sh-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--sh-amber);
+  box-shadow: 0 22px 44px -26px rgba(180, 83, 9, 0.4); /* off-token-allow: warm hub card lift on always-light surface */
+}
+
+#mkt-simulations-hub .mkt-sh-card__tag {
+  align-self: flex-start;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--sh-amber-soft);
+  color: var(--sh-amber);
+}
+#mkt-simulations-hub .mkt-sh-card__title {
+  font-size: 1.06rem;
+  font-weight: 700;
+  margin: 4px 0 0;
+  color: var(--sh-ink);
+}
+#mkt-simulations-hub .mkt-sh-card__desc {
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--sh-muted);
+  margin: 0;
+  flex: 1 1 auto;
+}
+#mkt-simulations-hub .mkt-sh-card__cta {
+  margin-top: 6px;
+  align-self: flex-start;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--sh-amber);
+  text-decoration: none;
+}
+#mkt-simulations-hub .mkt-sh-card__cta:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  #mkt-simulations-hub .mkt-sh-card { transition: none; }
+}

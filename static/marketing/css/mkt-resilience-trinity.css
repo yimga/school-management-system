@@ -1,0 +1,121 @@
+/**
+ * Resilience Trinity personality (2026-06-05). Scoped to #mkt-viewport-trinity.
+ * The same platform, fit to every device it has to survive on — a 2G phone, a
+ * classroom Chromebook, a 4K district NOC — plus a live RTL mirror. Premium
+ * technical dark with a teal accent. Always-dark surface → fixed tints carry
+ * off-token-allow markers (inside braces). Responsive-flow only.
+ */
+
+#mkt-viewport-trinity.mkt-ve-section--trinity {
+  --rt3-teal: #2dd4bf;   /* off-token-allow: trinity teal accent on always-dark surface */
+  --rt3-ink: #e2e8f0;    /* off-token-allow: trinity ink on always-dark surface */
+  --rt3-muted: #7689a0;  /* off-token-allow: trinity muted ink */
+  --rt3-line: #233247;   /* off-token-allow: trinity hairline */
+  --rt3-card: #0f1b2a;   /* off-token-allow: trinity device panel */
+  background: radial-gradient(820px 440px at 14% -10%, rgba(45, 212, 191, 0.1), transparent 60%), #0a1422; /* off-token-allow: trinity canvas */
+  color: var(--rt3-ink);
+}
+
+#mkt-viewport-trinity .mkt-edt-eyebrow { color: var(--rt3-teal); font-weight: 800; letter-spacing: 0.16em; }
+#mkt-viewport-trinity .mkt-ve-section__title {
+  font-size: clamp(1.9rem, 4vw, 2.9rem);
+  letter-spacing: -0.02em;
+  color: #f1f6fb; /* off-token-allow: trinity headline on always-dark surface */
+}
+#mkt-viewport-trinity .mkt-ve-section__lead { color: var(--rt3-muted); max-width: 40rem; }
+
+/* device tabs */
+#mkt-viewport-trinity .mkt-ve-trinity__tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+#mkt-viewport-trinity .mkt-ve-trinity__tab {
+  min-height: 42px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--rt3-line);
+  background: transparent;
+  color: var(--rt3-ink);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: border-color var(--motion-fast, 160ms) var(--ease-standard, ease),
+              color var(--motion-fast, 160ms) var(--ease-standard, ease);
+}
+#mkt-viewport-trinity .mkt-ve-trinity__tab:hover { border-color: var(--rt3-teal); }
+#mkt-viewport-trinity .mkt-ve-trinity__tab.is-active { border-color: var(--rt3-teal); color: var(--rt3-teal); }
+
+/* device stage */
+#mkt-viewport-trinity .mkt-ve-trinity__stage {
+  border: 1px solid var(--rt3-line);
+  border-radius: 16px;
+  background: var(--rt3-card);
+  padding: clamp(18px, 2.4vw, 28px);
+  min-height: 180px;
+}
+#mkt-viewport-trinity .mkt-ve-trinity__device[hidden] { display: none; }
+#mkt-viewport-trinity .mkt-ve-trinity__status {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: var(--rt3-teal);
+  margin: 0 0 12px;
+}
+#mkt-viewport-trinity .mkt-ve-trinity__chat {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 12px 12px 12px 4px;
+  background: color-mix(in srgb, var(--rt3-teal) 14%, transparent);
+  border: 1px solid var(--rt3-line);
+  margin: 0 0 12px;
+}
+#mkt-viewport-trinity .mkt-ve-trinity__metric { font-family: ui-monospace, monospace; color: var(--rt3-muted); font-size: 0.82rem; margin: 0; }
+#mkt-viewport-trinity .mkt-ve-trinity__touch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+#mkt-viewport-trinity .mkt-ve-trinity__touch-grid span {
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--rt3-line);
+  background: color-mix(in srgb, var(--rt3-teal) 8%, transparent);
+}
+#mkt-viewport-trinity .mkt-ve-trinity__noc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  gap: 10px;
+}
+#mkt-viewport-trinity .mkt-ve-trinity__noc-grid > div {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--rt3-line);
+  background: rgba(45, 212, 191, 0.06); /* off-token-allow: trinity NOC tile on always-dark surface */
+  font-size: 0.86rem;
+}
+
+/* RTL mirror */
+#mkt-viewport-trinity .mkt-ve-trinity__rtl { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#mkt-viewport-trinity .mkt-ve-trinity__rtl-toggle {
+  min-height: 38px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--rt3-line);
+  background: transparent;
+  color: var(--rt3-ink);
+  cursor: pointer;
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+#mkt-viewport-trinity .mkt-ve-trinity__rtl-toggle.is-active { border-color: var(--rt3-teal); color: var(--rt3-teal); }
+#mkt-viewport-trinity .mkt-ve-trinity__mirror {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-inline-start: auto;
+}
+#mkt-viewport-trinity .mkt-ve-trinity__mirror p {
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--rt3-line);
+  background: var(--rt3-card);
+  font-size: 0.84rem;
+}

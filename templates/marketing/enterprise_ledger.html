@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-pages.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-acquisition-engine.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-enterprise-constellation.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/mkt-clinical-ledger.css' %}">
 {% endblock %}
 
 {% block extrajs %}
@@ -19,7 +21,7 @@
 {% block marketing_main_extra_classes %}mkt-personality-page mkt-personality-page--enterprise px-0 py-0{% endblock %}
 
 {% block content %}
-<div class="mkt-personality-page__viewport mkt-personality-page__viewport--stacked mkt-personality-page__stack" data-mkt-personality-page="enterprise-ledger" data-rmc-scroll-policy="viewport-lock">
+<div class="mkt-personality-page__viewport mkt-personality-page__viewport--stacked mkt-personality-page__stack" data-mkt-personality-page="enterprise-ledger">
   {% include "marketing/partials/sections/_enterprise_constellation.html" %}
   {% include "marketing/partials/sections/_clinical_ledger.html" %}
 </div>
