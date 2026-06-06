@@ -2,7 +2,7 @@
 {% load i18n static marketing_media %}
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">{% endblock %}
 {% block extrajs %}{{ block.super }}<script src="{% static 'marketing/js/mkt-gradebook-morph.js' %}" defer></script>{% endblock %}
-{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-grading{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-grading mkt-platform-theme--platform-grading-report-cards{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-archetype" data-mkt-archetype="gradebook-reports">
   <header class="mkt-v3-archetype__hero mkt-edt-container">

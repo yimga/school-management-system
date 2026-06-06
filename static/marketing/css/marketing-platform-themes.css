@@ -41,6 +41,21 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  /* family band — blocking-loaded so it lands reliably; the deferred
+     personality wash only enriches pages that also carry .mkt-personality-hero.
+     Bare vars (no hex) keep this off-token-clean; --mkt-plat-accent is always
+     set per family, with the unmapped-slug default rule as the floor. */
+  border: 1px solid color-mix(in srgb, var(--mkt-plat-accent) 22%, transparent);
+  /* gradient-only (no opaque base layer): the semi-transparent washes sit over
+     the page cream. A trailing var(--mkt-edt-bg) with no fallback would be
+     undefined on the platform stack and invalidate the whole shorthand. */
+  background:
+    linear-gradient(118deg,
+      color-mix(in srgb, var(--mkt-plat-accent) 17%, transparent) 0%,
+      color-mix(in srgb, var(--mkt-plat-accent) 6%, transparent) 38%,
+      transparent 64%),
+    radial-gradient(60% 78% at 96% -10%,
+      color-mix(in srgb, var(--mkt-plat-accent) 13%, transparent), transparent 60%);
 }
 .mkt-page-type-platform-detail .mkt-personality-hero::after,
 .mkt-page-type-platform-detail .mkt-v3-archetype__hero::after {
@@ -78,6 +93,21 @@
   font-size: 1.04rem;
   line-height: 1.6;
   max-width: 44rem;
+}
+
+/* the "Simulated data" visual-engine strip reads as an intentional, framed
+   accent panel per family rather than a bare caption floating on cream */
+.mkt-page-type-platform-detail .mkt-ve-platform-strip {
+  border: 1px solid color-mix(in srgb, var(--mkt-plat-accent) 18%, transparent);
+  border-radius: 16px;
+  padding: clamp(16px, 2.4vw, 28px);
+  margin-block: clamp(20px, 3vh, 36px);
+  background: color-mix(in srgb, var(--mkt-plat-accent) 4%, transparent);
+}
+.mkt-page-type-platform-detail .mkt-ve-platform-strip .mkt-edt-illustrative-pill {
+  border: 1px solid color-mix(in srgb, var(--mkt-plat-accent) 30%, transparent);
+  color: var(--mkt-plat-muted, inherit);
+  border-radius: 999px;
 }
 
 /* themed section dividers + segment cards pick up the accent */
@@ -137,6 +167,30 @@
 }
 .mkt-platform-theme--platform-analytics { --mkt-plat-accent: #b45309; } /* off-token-allow: sovereign analytics accent */
 .mkt-platform-theme--platform-workflows { --mkt-plat-accent: #7c3aed; } /* off-token-allow: sovereign workflows accent */
+
+/* --- previously-unmapped slugs (control plane / runtime / integrations /
+   education OS / marketplace / migration cloud) now folded into families so
+   they stop falling back to the generic sky default --- */
+.mkt-platform-theme--platform-control-plane,
+.mkt-platform-theme--platform-runtime {
+  --mkt-plat-ink: #1e293b;     /* off-token-allow: governance platform ink */
+  --mkt-plat-muted: #5b6b80;   /* off-token-allow: governance platform muted */
+  --mkt-plat-accent: #475569;  /* off-token-allow: governance operator accent */
+}
+.mkt-platform-theme--platform-integrations,
+.mkt-platform-theme--platform-education-os,
+.mkt-platform-theme--marketplace {
+  --mkt-plat-ink: #1a1f3a;     /* off-token-allow: sovereign platform ink */
+  --mkt-plat-muted: #565d82;   /* off-token-allow: sovereign platform muted */
+  --mkt-plat-accent: #4f46e5;  /* off-token-allow: sovereign indigo accent */
+}
+.mkt-platform-theme--platform-integrations { --mkt-plat-accent: #0284c7; } /* off-token-allow: integrations connector accent */
+.mkt-platform-theme--marketplace { --mkt-plat-accent: #8b5cf6; } /* off-token-allow: marketplace ecosystem accent */
+.mkt-platform-theme--migration-cloud {
+  --mkt-plat-ink: #0c2a22;     /* off-token-allow: rugged platform ink */
+  --mkt-plat-muted: #4d6b62;   /* off-token-allow: rugged platform muted */
+  --mkt-plat-accent: #0d9488;  /* off-token-allow: migration teal accent */
+}
 
 /* default for any unmapped platform slug → light clinical-ish */
 .mkt-page-type-platform-detail:not([class*="theme--platform-"]) {
