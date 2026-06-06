@@ -74,6 +74,11 @@ from apps.schoolops.views_email_health import (
 )
 from apps.schoolops.views_email_webhook import EmailProviderWebhookView
 from .views_signup_diagnostics import SignupDiagnosticsView
+from .super_views_signup_verifications import (
+    SignupVerificationActionView,
+    SignupVerificationConsoleView,
+)
+from .super_views_invite_school import InviteSchoolConsoleView
 
 app_name = "super"
 
@@ -1194,6 +1199,23 @@ urlpatterns = [
         name="schoolops_meal_plan_analytics",
     ),  # rbac-allow: staff-only-meal-plan-analytics-dashboard
     # v3.57.x Wave 8 Agent C — email delivery health + config endpoints.
+    # 2026-06-06 — operator signup email-verification console (resend/regenerate).
+    path(
+        "signup-verifications/",
+        SignupVerificationConsoleView.as_view(),
+        name="signup_verifications",
+    ),  # rbac-allow: super-staff-signup-verification-console
+    path(
+        "signup-verifications/<uuid:pk>/action/",
+        SignupVerificationActionView.as_view(),
+        name="signup_verification_action",
+    ),  # rbac-allow: super-staff-signup-verification-action
+    # 2026-06-06 — invite a whole school onto the platform (vs self-signup).
+    path(
+        "invite-school/",
+        InviteSchoolConsoleView.as_view(),
+        name="invite_school",
+    ),  # rbac-allow: super-staff-invite-school-console
     path(
         "email/health/",
         EmailHealthDashboardView.as_view(),

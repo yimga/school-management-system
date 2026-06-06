@@ -95,7 +95,7 @@ def _signup_countries() -> list[dict[str, str]]:
         return out
     except (DatabaseError, ImportError, AttributeError, TypeError, ValueError):
         return []
-from apps.schools.models import School, SignupVerification
+from apps.schools.models import School, SignupVerification, TenantInvite
 from apps.schools.onboarding_vendors import (
     DOMAINS_BY_SLUG,
     ONBOARDING_DATA_DOMAINS,
@@ -739,6 +739,10 @@ def signup_school(request: HttpRequest):
         email=email,
         expires_at=expires_at,
     )
+    # 2026-06-06 — if this signup originated from an operator school-invite,
+    # bind it now so the invite flips to "accepted" and the audit links the
+    # invite → the created school. Best-effort; never blocks signup.
+    _bind_tenant_invite_if_present(request, school)
     try:
         from apps.schools.funnel_events import record_marketing_funnel_event
 
@@ -1213,19 +1217,105 @@ def _redirect_verified_admin_to_tenant_surface(request: HttpRequest, school, url
     return redirect(build_tenant_backend_url(request, school, path=path))
 
 
-def _send_signup_verification_email(request: HttpRequest, verification) -> None:
+def _bind_tenant_invite_if_present(request: HttpRequest, school) -> None:
+    """Mark an operator school-invite accepted when its recipient completes signup.
+
+    Reads the invite token stashed in the session by :func:`accept_school_invite`,
+    binds it to the freshly-created school, and emits ``tenant.invite.accepted``.
+    Best-effort: a missing/expired invite (or any failure) never blocks signup.
+    """
+    token = (request.session.get("tenant_invite_token") or "").strip()
+    if not token:
+        return
+    try:
+        invite = TenantInvite.objects.filter(
+            token=token, accepted_at__isnull=True, revoked_at__isnull=True
+        ).first()
+    except (ValueError, TypeError):
+        invite = None
+    request.session.pop("tenant_invite_token", None)
+    request.session.pop("tenant_invite_email", None)
+    request.session.modified = True
+    if invite is None:
+        return
+    invite.school = school
+    invite.accepted_at = timezone.now()
+    invite.save(update_fields=["school", "accepted_at"])
+    try:
+        from apps.platform_runtime.event_bus import publish_event
+
+        publish_event(
+            "tenant.invite.accepted",
+            {
+                "school_id": str(school.pk),
+                "school_name": getattr(school, "name", ""),
+                "email": invite.email,
+            },
+            school_id=str(school.pk),
+            source="schools.accept_school_invite",
+        )
+    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError):
+        logger.warning("tenant_invite_accepted_publish_failed", exc_info=True)
+
+
+@never_cache
+@require_GET
+def accept_school_invite(request: HttpRequest):
+    """Public landing for an operator-issued school invitation.
+
+    Validates the token, stashes it in the session so ``signup_school`` can bind
+    it on tenant creation, and routes the recipient into the standard guided
+    onboarding/signup workflow. Invalid / expired / revoked / already-accepted
+    invites get a friendly fallback that still links to self-signup.
+    """
+    token_str = (request.GET.get("token") or "").strip()
+    invite = None
+    if token_str:
+        try:
+            token_uuid = uuid.UUID(token_str)
+        except (ValueError, TypeError):
+            token_uuid = None
+        if token_uuid is not None:
+            invite = TenantInvite.objects.filter(token=token_uuid).first()
+    if invite is None or not invite.is_pending:
+        return render(
+            request, "schools/accept_invite.html", {"invalid": True}, status=400
+        )
+    request.session["tenant_invite_token"] = str(invite.token)
+    request.session["tenant_invite_email"] = invite.email
+    request.session.modified = True
+    return render(
+        request,
+        "schools/accept_invite.html",
+        {
+            "invite_email": invite.email,
+            "invite_school_name": invite.school_name,
+            "signup_url": reverse("signup_school"),
+        },
+    )
+
+
+def _send_signup_verification_email(
+    request: HttpRequest, verification, base_url: str = ""
+) -> None:
     """Send (or re-send) the signup verification email for a SignupVerification.
 
-    Centralized so the initial signup and the resend endpoint emit a
-    byte-identical message through the canonical reliability-hardened sender.
-    ``send_transactional`` never raises (returns a status dict) and async-
-    dispatches the SMTP attempt on a daemon thread, writing an
-    EmailDeliveryEvent audit row on completion — so a hung / misconfigured SMTP
-    host can NEVER stall the request past the gateway timeout. The try/except
-    only guards the synchronous envelope-construction path.
+    Centralized so the initial signup, the public resend endpoint, AND the
+    operator console emit a byte-identical message through the canonical
+    reliability-hardened sender. ``send_transactional`` never raises (returns a
+    status dict) and async-dispatches the SMTP attempt on a daemon thread,
+    writing an EmailDeliveryEvent audit row on completion — so a hung /
+    misconfigured SMTP host can NEVER stall the request past the gateway
+    timeout. The try/except only guards the synchronous envelope-construction
+    path.
+
+    ``base_url`` overrides the link host. The public signup/resend paths leave
+    it empty (link built from the request host = the public site). The OPERATOR
+    console runs on the manager host, where ``/verify-signup/`` does not route,
+    so it passes the public site URL to keep the link clickable.
     """
     school_name = getattr(verification.school, "name", "") or "your school"
-    base = request.build_absolute_uri("/").rstrip("/")
+    base = (base_url or request.build_absolute_uri("/")).rstrip("/")
     verify_url = f"{base}/verify-signup/?token={verification.token}"
     subject = f"Verify your school: {school_name}"
     body = (

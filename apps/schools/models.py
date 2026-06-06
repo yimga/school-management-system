@@ -1059,6 +1059,72 @@ class SignupVerification(models.Model):
         return f"{self.email} → {self.school.name}"
 
 
+class TenantInvite(models.Model):
+    """Operator-issued invitation for a NEW school to join the platform.
+
+    Distinct from ``accounts.TenantStaffInvite`` (which invites STAFF to an
+    EXISTING tenant). This invites a whole school: an operator sends it by
+    email with optional prefill (school name / country); the recipient opens
+    the accept link and is routed into the standard onboarding/signup workflow.
+    The ``school`` FK is null until the invite is accepted and the tenant is
+    created, at which point it's bound for audit.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField()
+    # Optional operator-supplied prefill carried into the onboarding form.
+    school_name = models.CharField(max_length=255, blank=True, default="")
+    country_code = models.CharField(max_length=2, blank=True, default="")
+    note = models.CharField(max_length=500, blank=True, default="")
+    invited_by = models.ForeignKey(
+        _AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tenant_invites_sent",
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
+    expires_at = models.DateTimeField()
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    school = models.ForeignKey(
+        School,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tenant_invites",
+        help_text="Bound to the created school once the invite is accepted.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Tenant invite"
+        verbose_name_plural = "Tenant invites"
+        indexes = [
+            models.Index(fields=["email", "accepted_at"]),
+        ]
+
+    def __str__(self):
+        return f"invite:{self.email}"
+
+    @property
+    def status(self) -> str:
+        from django.utils import timezone
+
+        if self.accepted_at is not None:
+            return "accepted"
+        if self.revoked_at is not None:
+            return "revoked"
+        if self.expires_at and self.expires_at < timezone.now():
+            return "expired"
+        return "pending"
+
+    @property
+    def is_pending(self) -> bool:
+        return self.status == "pending"
+
+
 class TenantQuotaLimit(models.Model):
     """Per-tenant API/quota limits for SaaS billing and fairness (Plan I)."""
 

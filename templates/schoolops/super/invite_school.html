@@ -1,0 +1,104 @@
+{% extends "control_plane_base.html" %}
+{% load i18n %}
+
+{% block cp_title %}{% trans "Invite a school" %}{% endblock %}
+
+{% block cp_content %}
+<section class="rmc-card mb-3" aria-labelledby="inv-heading">
+  <h1 id="inv-heading" class="h4 mb-1">{% trans "Invite a school" %}</h1>
+  <p class="text-muted small mb-3">
+    {% blocktrans trimmed %}
+    Invite a school by email instead of waiting for them to sign up. They'll get
+    a link to accept and walk through the same guided onboarding workflow.
+    {% endblocktrans %}
+  </p>
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} py-2">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" action="{% url 'super:invite_school' %}" class="row g-2 align-items-end mb-2" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="send">
+    <div class="col-md-4">
+      <label for="inv-email" class="form-label small">{% trans "Admin email" %} <span aria-hidden="true">*</span></label>
+      <input type="email" class="form-control" id="inv-email" name="email" required maxlength="254" autocomplete="email">
+    </div>
+    <div class="col-md-3">
+      <label for="inv-name" class="form-label small">{% trans "School name" %} <span class="text-muted">({% trans "optional" %})</span></label>
+      <input type="text" class="form-control" id="inv-name" name="school_name" maxlength="255">
+    </div>
+    <div class="col-md-2">
+      <label for="inv-cc" class="form-label small">{% trans "Country" %} <span class="text-muted">({% trans "ISO-2" %})</span></label>
+      <input type="text" class="form-control text-uppercase" id="inv-cc" name="country_code" maxlength="2" pattern="[A-Za-z]{2}">
+    </div>
+    <div class="col-md-3">
+      <label for="inv-note" class="form-label small">{% trans "Note" %} <span class="text-muted">({% trans "optional" %})</span></label>
+      <input type="text" class="form-control" id="inv-note" name="note" maxlength="500">
+    </div>
+    <div class="col-12">
+      <button type="submit" class="btn btn-primary btn-sm">{% trans "Send invitation" %}</button>
+    </div>
+  </form>
+</section>
+
+<section class="rmc-card" aria-labelledby="inv-list-heading">
+  <h2 id="inv-list-heading" class="h5 mb-2">
+    {% trans "Invitations" %}
+    <span class="text-muted small fw-normal">
+      ({{ counts.pending }} {% trans "pending" %} · {{ counts.accepted }} {% trans "accepted" %} · {{ counts.expired }} {% trans "expired" %} · {{ counts.revoked }} {% trans "revoked" %})
+    </span>
+  </h2>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th scope="col">{% trans "Email" %}</th>
+          <th scope="col">{% trans "School" %}</th>
+          <th scope="col">{% trans "Status" %}</th>
+          <th scope="col">{% trans "Sent" %}</th>
+          <th scope="col">{% trans "Expires" %}</th>
+          <th scope="col" class="text-end">{% trans "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ row.email }}</td>
+          <td>
+            {{ row.school_name|default:"—" }}{% if row.country_code %} <span class="text-muted small">{{ row.country_code }}</span>{% endif %}
+            {% if row.bound_school %}<br><span class="text-success small">→ {{ row.bound_school }}</span>{% endif %}
+          </td>
+          <td>
+            {% if row.status == 'accepted' %}<span class="badge bg-success">{% trans "Accepted" %}</span>
+            {% elif row.status == 'expired' %}<span class="badge bg-danger">{% trans "Expired" %}</span>
+            {% elif row.status == 'revoked' %}<span class="badge bg-dark">{% trans "Revoked" %}</span>
+            {% else %}<span class="badge bg-secondary">{% trans "Pending" %}</span>{% endif %}
+          </td>
+          <td><span class="small text-muted">{{ row.created_at|date:"Y-m-d H:i" }}</span></td>
+          <td><span class="small text-muted">{{ row.expires_at|date:"Y-m-d H:i" }}</span></td>
+          <td class="text-end">
+            {% if row.status != 'accepted' %}
+            <form method="post" action="{% url 'super:invite_school' %}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="invite_id" value="{{ row.id }}">
+              <button type="submit" name="action" value="resend" class="btn btn-sm btn-outline-primary">{% trans "Resend" %}</button>
+              {% if row.status != 'revoked' %}
+              <button type="submit" name="action" value="revoke" class="btn btn-sm btn-outline-dark">{% trans "Revoke" %}</button>
+              {% endif %}
+            </form>
+            {% else %}
+            <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">{% trans "No invitations yet." %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

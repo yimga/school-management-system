@@ -82,6 +82,7 @@ from apps.schools.signup_views import (
     signup_slug_check,
     verify_signup,
     resend_signup_verification,
+    accept_school_invite,
     api_trial_school,
     onboarding_wizard,
     onboard_migration_handoff,
@@ -1693,6 +1694,7 @@ urlpatterns = [
     path("signup/", signup_school, name="signup_school"),
     path("signup/slug-check/", signup_slug_check, name="signup_slug_check"),
     path("verify-signup/", verify_signup, name="verify_signup"),
+    path("accept-invite/", accept_school_invite, name="accept_school_invite"),
     path("api/trial/", api_trial_school, name="api_trial_school"),
     path("lti/launch/<str:tool_id>/", lti_launch, name="lti_launch"),
     path(

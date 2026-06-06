@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Accept invitation" %}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      {% if invalid %}
+      <h1 class="h3 mb-3">{% trans "Invitation not valid" %}</h1>
+      <div class="alert alert-danger">{% trans "This invitation link is invalid, expired, revoked, or has already been accepted." %}</div>
+      <p><a href="{% url 'signup_school' %}">{% trans "You can still sign up your school here" %}</a>.</p>
+      {% else %}
+      <h1 class="h3 mb-2">{% trans "You're invited to RunMyCampus" %}</h1>
+      {% if invite_school_name %}
+      <p class="text-muted">{% blocktrans trimmed with name=invite_school_name %}Set up {{ name }} on RunMyCampus. Click below to start the guided onboarding — no separate sign-up needed.{% endblocktrans %}</p>
+      {% else %}
+      <p class="text-muted">{% trans "Set up your school on RunMyCampus. Click below to start the guided onboarding — no separate sign-up needed." %}</p>
+      {% endif %}
+      <p class="small text-muted">{% trans "Invited:" %} {{ invite_email }}</p>
+      <a href="{{ signup_url }}" class="btn btn-primary">{% trans "Accept & set up my school" %}</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
