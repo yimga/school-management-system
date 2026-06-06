@@ -2,6 +2,20 @@
  * Token-driven; raw values carry off-token-allow. No viewport-lock, no text-clipping
  * (cells wrap and flow); table scrolls horizontally only as a container, never clips text. */
 
+/* The editorial CTAs (.mkt-edt-cta) fill their background from --mkt-accent, which
+   defaults to gold (#f59e0b) — and the marketing on-accent ink is white, giving
+   white-on-gold at 2.14:1. Pin this page's accent to its own indigo personality
+   accent so every CTA fills indigo, where white ink is 6.3:1. */
+.mkt-compare {
+  --mkt-accent: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: indigo page accent so on-accent white passes */
+}
+/* Belt-and-suspenders: guarantee white ink on every editorial CTA on the page
+   (hero + footer), regardless of which hardening rule wins; all now sit on the
+   indigo accent fill (white-on-indigo 6.3:1). */
+body.marketing-surface .mkt-compare .mkt-edt-cta {
+  color: #ffffff !important; /* off-token-allow: white on indigo accent (6.3:1) */
+}
+
 .mkt-compare__hero {
   text-align: center;
   margin-block: 1.5rem 1.75rem;
