@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Resend verification" %}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <h1 class="h3 mb-3">{% trans "Resend verification link" %}</h1>
+      {% if sent %}
+      <div class="alert alert-success">{{ message }}</div>
+      <p><a href="{% url 'global_login_discovery' %}">{% trans "Go to login" %}</a></p>
+      {% else %}
+      {% if error %}<div class="alert alert-danger">{{ error }}</div>{% endif %}
+      <p class="text-muted">{% trans "Your signup verification link is valid for 2 days. If it expired or never arrived, enter the email you signed up with and we'll send a fresh link — no need to sign up again." %}</p>
+      <form method="post" action="{% url 'resend_signup_verification' %}" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="resend-email" class="form-label">{% trans "Email address" %}</label>
+          <input type="email" class="form-control" id="resend-email" name="email" required autocomplete="email" maxlength="254" inputmode="email">
+        </div>
+        <button type="submit" class="btn btn-primary">{% trans "Send new link" %}</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -33,6 +33,7 @@ from apps.siteconfig.country_localization_service import (
     get_default_calendar_code,
     get_default_language,
     get_india_state_options,
+    parse_signup_language_selection,
     resolve_country_pack,
     resolve_language_pack,
     resolve_primary_sector_for_school_type,
@@ -137,8 +138,14 @@ def _rapid_create_context(request, **overrides):
     """Shared template context for GET + POST error re-renders."""
     country_code = (overrides.pop("country_code", None) or "").strip()[:2].upper()
     language_code = (overrides.pop("language_code", None) or "").strip().lower()
+    language_codes_csv = (overrides.pop("language_codes_csv", None) or "").strip()
+    primary_language_code = (overrides.pop("primary_language_code", None) or "").strip().lower()
+    if not language_codes_csv and language_code:
+        language_codes_csv = language_code
+    if not primary_language_code:
+        primary_language_code = language_code or language_codes_csv.split("|")[0] if language_codes_csv else ""
     if not language_code:
-        language_code = get_default_language(country_code)
+        language_code = primary_language_code or get_default_language(country_code)
     if validate_language_code(country_code, language_code):
         pack = resolve_language_pack(country_code, language_code)
     else:
@@ -150,6 +157,8 @@ def _rapid_create_context(request, **overrides):
         "country_choices": _country_choices(),
         "country_code": country_code,
         "language_code": language_code,
+        "language_codes_csv": language_codes_csv or language_code,
+        "primary_language_code": primary_language_code or language_code,
         "country_pack": pack,
         "india_state_options": get_india_state_options(),
         "signup_localization_json": signup_localization_json(
@@ -216,10 +225,16 @@ class RapidCreateView(View):
         # v3.62.8 (Wave 6) — language picker validates against country's
         # `languages` overlay; empty when monolingual; falls through to country
         # default when invalid.
-        language_code_raw = (request.POST.get("language_code") or "").strip().lower()[:8]
-        language_code = validate_language_code(country_code, language_code_raw)
-        if not language_code:
-            language_code = get_default_language(country_code)
+        india_state = (request.POST.get("india_state") or "").strip().upper()[:8]
+        language_codes, language_code = parse_signup_language_selection(
+            country_code=country_code,
+            language_codes=request.POST.getlist("language_codes"),
+            primary_language_code=(request.POST.get("primary_language_code") or "").strip().lower()[:8],
+            language_code_legacy=(request.POST.get("language_code") or "").strip().lower()[:8],
+            state_code=india_state,
+        )
+        language_codes_csv = "|".join(language_codes)
+        primary_language_code = language_code
         school_type_raw = (request.POST.get("school_type") or "").strip().lower()
         school_type = validate_school_type(country_code, school_type_raw)
         # v3.62.2 — calendar pack
@@ -259,6 +274,9 @@ class RapidCreateView(View):
                         "calendar_code": calendar_code,
                         "vendor": vendor,
                         "country_code": country_code,
+                        "language_code": primary_language_code,
+                        "language_codes_csv": language_codes_csv,
+                        "primary_language_code": primary_language_code,
                     },
                 ),
                 status=400,
@@ -278,6 +296,8 @@ class RapidCreateView(View):
                 "school_type_code": school_type or "",
                 "education_cycles": education_cycles,
                 "language_code": language_code or "",
+                "primary_language_code": language_code or "",
+                "language_codes": list(language_codes),
                 "_seeded_at_rapid_create": True,
             }
         if vendor:
@@ -289,6 +309,7 @@ class RapidCreateView(View):
                 "locale_context": build_migration_locale_context(
                     country_code or "",
                     language_code=language_code or "",
+                    language_codes=list(language_codes),
                     calendar_code=calendar_code or "",
                     education_cycles=education_cycles,
                 ),

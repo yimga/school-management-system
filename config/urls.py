@@ -81,6 +81,7 @@ from apps.schools.signup_views import (
     signup_school,
     signup_slug_check,
     verify_signup,
+    resend_signup_verification,
     api_trial_school,
     onboarding_wizard,
     onboard_migration_handoff,
@@ -1661,6 +1662,13 @@ urlpatterns = [
     ),
     path(
         "solutions/<str:topic_slug>/", topical_marketing_landing, name="marketing_topic"
+    ),
+    # NOTE: must precede the two-segment "<language_code>/<country_code>/"
+    # marketing catch-all below, which would otherwise swallow this route.
+    path(
+        "verify-signup/resend/",
+        resend_signup_verification,
+        name="resend_signup_verification",
     ),
     *[
         path(

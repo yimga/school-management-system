@@ -171,6 +171,24 @@ def check_send_urls_in_template() -> list[str]:
         findings.append(
             f"{js_path.relative_to(REPO_ROOT)}: hardcoded studio copilot send path"
         )
+    if "rmc_manager_csrftoken" not in js_text:
+        findings.append(
+            f"{js_path.relative_to(REPO_ROOT)}: getCSRFToken must read rmc_manager_csrftoken (manager host isolation)"
+        )
+    if 'meta[name="csrf-token"]' not in js_text:
+        findings.append(
+            f"{js_path.relative_to(REPO_ROOT)}: getCSRFToken must fall back to meta csrf-token"
+        )
+    views_path = REPO_ROOT / "apps" / "studio_os" / "views_copilot_rail.py"
+    views_text = _read(views_path)
+    if "response_schema=\"guided_assistant\"" not in views_text:
+        findings.append(
+            f"{views_path.relative_to(REPO_ROOT)}: copilot rail send must use guided_assistant rules fallback"
+        )
+    if "extract_copilot_rail_reply" not in views_text and "_reply_text_from_invoke" not in views_text:
+        findings.append(
+            f"{views_path.relative_to(REPO_ROOT)}: missing guided reply formatter for rail send"
+        )
     return findings
 
 

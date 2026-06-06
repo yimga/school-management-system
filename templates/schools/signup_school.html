@@ -218,26 +218,48 @@
          when the operator picks a bilingual country after a monolingual default.{% endcomment %}
       <div class="mb-3 rmc-signup-field" data-rmc-signup-field="language" data-rmc-language-block="1"{% if country_pack.languages|length < 2 %} hidden{% endif %}>
         <div class="rmc-signup-field__label-row">
-          <span class="rmc-signup-field__label-text">{% trans "Language of instruction" %}</span>
-          <span class="rmc-signup-field__optional">({% trans "auto-selected" %})</span>
+          <span class="rmc-signup-field__label-text">{% trans "Languages of instruction" %}</span>
+          <span class="rmc-signup-field__optional">({% trans "select all that apply" %})</span>
         </div>
+        <p class="rmc-signup-field__help small text-muted mb-2">
+          {% blocktrans trimmed %}
+          Choose every language your school uses. The starred primary language
+          drives calendar and education-system defaults; for India, picking your
+          state auto-stars the regional language when selected.
+          {% endblocktrans %}
+        </p>
+        <input type="hidden" name="primary_language_code" id="primary_language_code"
+               value="{{ primary_language_code|default:language_code|default:'' }}">
         <div class="rmc-signup-type-cards rmc-signup-type-cards--language"
-             role="radiogroup"
-             aria-label="{% trans 'Official language' %}"
+             role="group"
+             aria-label="{% trans 'Official languages' %}"
              data-rmc-country-cards="language"
-             data-rmc-country-cards-radio="language_code">
+             data-rmc-country-cards-multi="language_codes"
+             data-rmc-multi-select="1">
           {% if country_pack.languages|length > 1 %}
-          {% for lang in country_pack.languages %}
-            <label class="rmc-signup-type-card {% if language_code == lang.code or not language_code and lang.is_default %}rmc-signup-type-card--selected{% endif %}">
-              <input type="radio" name="language_code" value="{{ lang.code }}"
-                     class="rmc-signup-type-card__input"
-                     {% if language_code == lang.code or not language_code and lang.is_default %}checked{% endif %}>
-              <span class="rmc-signup-type-card__title">{{ lang.native_name }}</span>
-              {% if lang.region %}<span class="rmc-signup-type-card__sub">{{ lang.region }}</span>{% endif %}
-              {% if lang.is_default %}<span class="rmc-signup-type-card__badge">{% trans "Recommended" %}</span>{% endif %}
-              {% if lang.education_system %}<span class="rmc-signup-type-card__hint">{% trans "Region-specific education system" %}</span>{% endif %}
-            </label>
-          {% endfor %}
+          {% with chosen_csv=language_codes_csv|default:language_code|default:'' primary=primary_language_code|default:language_code|default:'' %}
+            {% for lang in country_pack.languages %}
+              {% with code_marker="|"|add:lang.code|add:"|" chosen_marker="|"|add:chosen_csv|add:"|" %}
+              <label class="rmc-signup-type-card {% if code_marker in chosen_marker or not chosen_csv and lang.is_default %}rmc-signup-type-card--selected{% endif %}{% if primary == lang.code %} rmc-signup-type-card--primary{% endif %}"
+                     data-rmc-language-code="{{ lang.code }}">
+                <input type="checkbox" name="language_codes" value="{{ lang.code }}"
+                       class="rmc-signup-type-card__input"
+                       {% if code_marker in chosen_marker or not chosen_csv and lang.is_default %}checked{% endif %}>
+                <span class="rmc-signup-type-card__title">{{ lang.native_name }}</span>
+                {% if lang.region %}<span class="rmc-signup-type-card__sub">{{ lang.region }}</span>{% endif %}
+                {% if primary == lang.code %}
+                  <span class="rmc-signup-type-card__badge" data-rmc-language-primary-badge="1">★ {% trans "Primary" %}</span>
+                {% else %}
+                  <button type="button" class="rmc-signup-type-card__star btn btn-link btn-sm p-0"
+                          data-rmc-set-primary-language="{{ lang.code }}"
+                          hidden>{% trans "Set primary" %}</button>
+                {% endif %}
+                {% if lang.education_system %}<span class="rmc-signup-type-card__hint">{% trans "Region-specific education system" %}</span>{% endif %}
+                <span class="rmc-signup-type-card__check" aria-hidden="true">✓</span>
+              </label>
+              {% endwith %}
+            {% endfor %}
+          {% endwith %}
           {% endif %}
         </div>
       </div>

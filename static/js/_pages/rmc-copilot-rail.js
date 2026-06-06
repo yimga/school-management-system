@@ -432,16 +432,26 @@
   })();
   var sending = false;
 
-  function getCSRFToken() {
-    var name = "csrftoken=";
+  function readCookie(name) {
+    var prefix = name + "=";
     var cookies = (document.cookie || "").split(";");
     for (var i = 0; i < cookies.length; i++) {
       var c = cookies[i].trim();
-      if (c.indexOf(name) === 0) {
-        return decodeURIComponent(c.substring(name.length));
+      if (c.indexOf(prefix) === 0) {
+        return decodeURIComponent(c.substring(prefix.length));
       }
     }
     return "";
+  }
+
+  /* Manager host isolates cookies (rmc_manager_csrftoken); tenant hosts use csrftoken.
+     Meta tag is always present on authenticated shells — match other platform POST helpers. */
+  function getCSRFToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content && meta.content !== "NOTPROVIDED") {
+      return meta.content;
+    }
+    return readCookie("csrftoken") || readCookie("rmc_manager_csrftoken") || "";
   }
 
   function appendThreadMessage(role, text) {
@@ -533,6 +543,7 @@
       body: JSON.stringify({ message: text, mode: mode }),
     }).then(function (r) {
       if (!r.body || !r.body.getReader) { throw new Error("stream-unsupported"); }
+      if (!r.ok && r.status !== 403) { throw new Error("stream-http-" + r.status); }
       var reader = r.body.getReader();
       var decoder = new TextDecoder("utf-8");
 
@@ -566,7 +577,9 @@
               }
               if (payload.source) { updatePostureFromSendReply(payload.source); }
             } else if (ev.name === "error") {
-              if (bubble) { bubble.textContent = "The assistant returned an error."; }
+              if (bubble && !payload.reply) {
+                bubble.textContent = "The assistant returned an error.";
+              }
               updatePostureFromSendReply("unavailable");
             }
           }

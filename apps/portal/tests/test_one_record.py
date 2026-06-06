@@ -37,6 +37,28 @@ class OneRecordDataTests(TestCase):
         self.assertEqual(prof["first_name"], "Alex")
         self.assertEqual(prof["last_name"], "Story")
         self.assertEqual(prof["student_code"], "OR-STU-1")
+        self.assertIn("information_tags", prof)
+        self.assertIn("tags", out["data"])
+        self.assertIn("tags", out["sections"])
+
+    def test_one_record_includes_assigned_tags(self):
+        from apps.people.models import InformationTag
+        from apps.portal.one_record import build_student_one_record_data
+
+        tag = InformationTag.objects.create(
+            school=self.school,
+            name="Scholarship",
+            category=InformationTag.Category.FINANCIAL,
+            color_hex="#336699",
+        )
+        self.student.tags.add(tag)
+        out = build_student_one_record_data(
+            StudentProfile.objects.prefetch_related("tags").get(pk=self.student.pk),
+            self.school,
+        )
+        items = out["data"]["tags"]["items"]
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["name"], "Scholarship")
 
     def test_story_preview_lines(self):
         from apps.portal.one_record import build_student_story_preview

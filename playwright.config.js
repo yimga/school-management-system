@@ -67,6 +67,7 @@ module.exports = defineConfig({
         '**/manager-bulk-confirm-dialog.spec.js',
         '**/manager-surface-parity.spec.js',
         '**/manager-theme-visibility.spec.js',
+        '**/control-plane-layout-audit.spec.js',
       ],
       use: {
         channel: 'chromium',

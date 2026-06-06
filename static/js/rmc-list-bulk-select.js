@@ -60,6 +60,8 @@
   function csrfToken() {
     var input = document.querySelector("[name=csrfmiddlewaretoken]");
     if (input && input.value) { return input.value; }
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content && meta.content !== "NOTPROVIDED") { return meta.content; }
     return readCookie("csrftoken") || readCookie("rmc_manager_csrftoken") || "";
   }
 

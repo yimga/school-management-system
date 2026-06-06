@@ -1,27 +1,27 @@
 {
-  "generated_at": "2026-06-06T00:32:33.863310+00:00",
+  "generated_at": "2026-06-06T20:31:04.165858+00:00",
   "verdict": "POLY_INSTITUTION_FINAL_SWEEP_PASS",
   "finding_count": 0,
   "checks": [
     {
       "id": "sqlite_gate_session_warm_migrate",
       "status": "PASS",
-      "proof": "System check identified no issues (0 silenced).\n----------------------------------------------------------------------\nRan 2 tests in 8.247s\n\nOK"
+      "proof": "_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- encrypted_jsonfield_decrypt_skipped reason=pre_encryption_plaintext_row\n----------------------------------------------------------------------\nRan 2 tests in 41.587s\n\nOK"
     },
     {
       "id": "verify_country_governance_matrix.py",
       "status": "PASS",
-      "proof": "verify_country_governance_matrix: PASS (249 rows)"
+      "proof": "- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
     },
     {
       "id": "verify_hierarchy_silo_drift.py",
       "status": "PASS",
-      "proof": "verify_hierarchy_silo_drift: PASS (Organization-derived mat_groups + legacy JSON merge)"
+      "proof": "- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
     },
     {
       "id": "verify_global_operational_blind_spots.py",
       "status": "PASS",
-      "proof": "verify_global_operational_blind_spots: GLOBAL_OPERATIONAL_BLIND_SPOTS_PASS"
+      "proof": "_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.000) SELECT \"registries_countryregistry\".\"code\", \"registries_countryregistry\".\"cockpit_override_payload\" FROM \"registries_countryregistry\" WHERE \"registries_countryregistry\".\"code\" = 'CM' ORDER BY \"registries_countryregistry\".\"name\" ASC LIMIT 1; args=('CM',); alias=default"
     },
     {
       "id": "verify_school_operating_modes.py",
@@ -41,7 +41,7 @@
     {
       "id": "verify_org_backfill_operator_smoke.py",
       "status": "PASS",
-      "proof": "verify_org_backfill_operator_smoke: ORG_BACKFILL_OPERATOR_SMOKE_PASS"
+      "proof": "\"name\" ASC LIMIT 1; args=('org-backfill-smoke-root-20260606201830259814',); alias=default\nDEBUG 2026-06-06 16:18:30,511 request_id=- tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.000) ROLLBACK; args=None; alias=default"
     },
     {
       "id": "verify_scheduling_exclude_constraints.py",
@@ -71,12 +71,12 @@
     {
       "id": "verify_predeploy_core_gates.py",
       "status": "PASS",
-      "proof": " system check\n\n--- Migrations check ---\nNo changes detected\nOK: Migrations check\n\n--- No print() in apps ---\nOK: No print() in application code (apps/ excluding tests, management, migrations).\nOK: No print() in apps\n\n--- Ruff F401/F841 ---\nAll checks passed!\nOK: Ruff F401/F841\n\n--- Dead hrefs strict ---\nscan_operator_shell_dead_hrefs: 0 finding(s) (baseline 0)\nOK: Dead hrefs strict\n\n--- Print statements baseline ---\nprint() scan: 0 call(s)\nOK: Print statements baseline\n\nPREDEPLOY_CORE_GATES_PASS"
+      "proof": " tenant_id=- user_id=- school_id=- http_method=- request_path=- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- (0.001) SELECT \"django_migrations\".\"id\", \"django_migrations\".\"app\", \"django_migrations\".\"name\", \"django_migrations\".\"applied\" FROM \"django_migrations\"; args=(); alias=default"
     },
     {
       "id": "poly_unit_tests_bundle",
       "status": "PASS",
-      "proof": "p_host=manager.runmycampus.com content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=wedge=22 server_protocol=HTTP/1.1 request_scheme=http server_name=testserver portal_sidebar_items_fallback\n...............................................................\n----------------------------------------------------------------------\nRan 70 tests in 32.716s\n\nOK\nPreserving test database for alias 'default'..."
+      "proof": " http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- transfer_envelope.build kind=teacher source=1cdcdfcb975b target=3cd588042708 checksum=1db7af9b7b91\n.....................................\n----------------------------------------------------------------------\nRan 70 tests in 290.400s\n\nOK\nPreserving test database for alias 'default'..."
     }
   ],
   "failures": []

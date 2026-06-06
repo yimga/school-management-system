@@ -213,6 +213,53 @@ def _message_id_prefix(message_id: str) -> str:
     return cleaned.strip()[:64]
 
 
+# Priority classes that are BULK / MARKETING (List-Unsubscribe applies).
+# Transactional + security mail (verification, password reset, alerts) is
+# intentionally absent — those must never carry an unsubscribe affordance.
+_BULK_EMAIL_PRIORITIES = frozenset(
+    {
+        "marketing",
+        "bulk",
+        "newsletter",
+        "digest",
+        "announcement",
+        "campaign",
+        "promotional",
+    }
+)
+
+
+def _resolve_list_unsubscribe_target(priority: str) -> str:
+    """Return a wrapped ``List-Unsubscribe`` header value for bulk/marketing mail.
+
+    Gmail/Yahoo's 2024 bulk-sender rules treat a *missing* ``List-Unsubscribe``
+    as a strong spam signal. Conversely, attaching one to TRANSACTIONAL security
+    mail (verification, password reset) is wrong — those must not be
+    unsubscribable. So we emit ONLY for the bulk priority classes above, and
+    only when a platform unsubscribe endpoint is configured.
+
+    Targets are read from settings (env-configurable, empty by default), reusing
+    the existing ``RMC_LIST_*`` identity config:
+      * ``RMC_LIST_UNSUBSCRIBE_URL``    — an https one-click endpoint
+      * ``RMC_LIST_UNSUBSCRIBE_MAILTO`` — a mailto fallback
+
+    Returns the value already wrapped per RFC 2369 (``<https://…>, <mailto:…>``),
+    or ``""`` when the class is not bulk OR nothing is configured. CR/LF-bearing
+    values are dropped defensively.
+    """
+    if (priority or "").strip().lower() not in _BULK_EMAIL_PRIORITIES:
+        return ""
+    parts: list[str] = []
+    url = (getattr(settings, "RMC_LIST_UNSUBSCRIBE_URL", "") or "").strip()
+    mailto = (getattr(settings, "RMC_LIST_UNSUBSCRIBE_MAILTO", "") or "").strip()
+    if url and url.lower().startswith("https://") and not _has_crlf(url):
+        parts.append(f"<{url}>")
+    if mailto and not _has_crlf(mailto):
+        target = mailto if mailto.lower().startswith("mailto:") else f"mailto:{mailto}"
+        parts.append(f"<{target}>")
+    return ", ".join(parts)
+
+
 def _coerce_to_int(value: Any, default: int) -> int:
     """Coerce a value to int, returning default on failure."""
     try:
@@ -1185,6 +1232,18 @@ def _send_transactional_sync_core(
     # UTC Date (audit P3 — localtime leaked the host timezone).
     msg_headers.setdefault("Date", _email_utils.formatdate(usegmt=True))
     msg_headers.setdefault("X-RMC-Email-Priority", priority)
+    # List-Unsubscribe (RFC 2369 + RFC 8058 one-click) for BULK / MARKETING
+    # classes ONLY — a major Gmail/Yahoo 2024 inbox-placement signal. Gated by
+    # priority class so transactional security mail is never made unsubscribable.
+    # A caller that already set its own List-Unsubscribe (e.g. the newsletter
+    # sender, with a per-subscriber token) always wins via setdefault.
+    unsub = _resolve_list_unsubscribe_target(priority)
+    if unsub:
+        msg_headers.setdefault("List-Unsubscribe", unsub)
+        if unsub.lower().startswith("<https"):
+            msg_headers.setdefault(
+                "List-Unsubscribe-Post", "List-Unsubscribe=One-Click"
+            )
     # Persist the Message-ID local-part so a later provider bounce webhook can
     # correlate the bounce to this exact row (audit residual closeout).
     message_id_prefix_value = _message_id_prefix(msg_headers.get("Message-ID", ""))

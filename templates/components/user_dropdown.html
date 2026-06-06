@@ -79,6 +79,21 @@
        far-right corner (the default left-align cuts off Settings/Logout
        items off-screen on most desktop widths).{% endcomment %}
     <ul class="dropdown-menu dropdown-menu-end user-dropdown-menu" aria-labelledby="userDropdownBtn">
+      {% comment %} v4.02.x (2026-06-06): the compact operator header hides the trigger's name/role
+         to save horizontal space, so the identity is surfaced HERE at the top of the menu — nothing
+         is lost, it just moves one click away. Mirrors the trigger's display-name fallback chain. {% endcomment %}
+      <li class="user-dropdown-identity">
+        <div class="user-dropdown-identity__name">
+          {% with full_name=request.user.get_full_name %}
+            {% if full_name %}{{ full_name }}
+            {% elif request.user.username %}{{ request.user.username }}
+            {% elif request.user.email %}{{ request.user.email }}
+            {% else %}{% trans "Account" %}{% endif %}
+          {% endwith %}
+        </div>
+        <div class="user-dropdown-identity__role">{{ request.user.get_role_display|default:request.user.role|default:_("Member") }}</div>
+      </li>
+      <li><hr class="dropdown-divider"></li>
       <!-- User stats section -->
       <li class="user-stats">
         <div class="stat-item">

@@ -262,6 +262,95 @@ _DEFAULT_ACTIVITY_EVENTS: list[dict[str, Any]] = [
 # (the orchestrator below replaces these cards with all-"—" placeholders in
 # that branch). Live aggregates from apps/observability/metrics.py will land
 # in a follow-up wave per the cockpit configurability contract.
+_COCKPIT_REALDATA_PATH_MARKERS: tuple[str, ...] = (
+    "/super/dashboard",
+    "/super/command_center",
+    "/super/command-center",
+    "/authentication/backend",
+    "/accounts/backend",
+    "/backend-dashboard",
+    "/portal/teacher",
+    "/portal/parent",
+    "/portal/student",
+)
+
+
+def _empty_pulse_cards() -> list[dict[str, Any]]:
+    return [
+        {
+            "head": _("Schools"),
+            "severity": "muted",
+            "value": "—",
+            "label": _("Healthy"),
+            "delta": "",
+            "delta_direction": None,
+        },
+        {
+            "head": _("Incidents"),
+            "severity": "muted",
+            "value": "—",
+            "label": _("Open"),
+            "delta": "",
+            "delta_direction": None,
+        },
+        {
+            "head": _("Countries"),
+            "severity": "muted",
+            "value": "—",
+            "label": _("Live coverage"),
+            "delta": "",
+            "delta_direction": None,
+        },
+        {
+            "head": _("MRR"),
+            "severity": "muted",
+            "value": "—",
+            "label": _("Recurring"),
+            "delta": "",
+            "delta_direction": None,
+        },
+        {
+            "head": _("Webhooks"),
+            "severity": "muted",
+            "value": "—",
+            "label": _("Drift"),
+            "delta": "",
+            "delta_direction": None,
+        },
+        {
+            "head": _("Pipeline"),
+            "severity": "muted",
+            "value": "—",
+            "label": _("Onboarding"),
+            "delta": "",
+            "delta_direction": None,
+        },
+    ]
+
+
+def _request_wants_cockpit_realdata(request) -> bool:
+    from django.conf import settings as django_settings
+
+    if not getattr(django_settings, "COCKPIT_CONTEXT_REALDATA_ENABLED", True):
+        return False
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    path = (getattr(request, "path", "") or "").lower()
+    if any(marker in path for marker in _COCKPIT_REALDATA_PATH_MARKERS):
+        return True
+    # FIX(realdata-landing): super_dashboard_v2 (the main control-plane landing)
+    # is mounted at the EMPTY sub-path, so request.path is exactly "/super/" — the
+    # "/super/dashboard" marker above never matches it, and the landing fell back
+    # to static defaults (the "—" world map + fake "168" pulse). Treat the bare
+    # /super/ landing as a real-data surface so it shows live tenant numbers.
+    if path.rstrip("/") == "/super":
+        return True
+    if getattr(request, "tenant_role_home_landing", False):
+        return True
+    return False
+
+
 # v3.58.0 (2026-05-22): real-data resolver bridge. The service module ships
 # 6 query-based resolvers + a deterministic empty-state contract. We wrap the
 # import + call in a top-level try/except so even a module-load failure cannot
@@ -714,7 +803,11 @@ def cockpit_context(request) -> dict[str, Any]:
                 # fail or models aren't migrated on this environment.
                 # The demo payload below still wins when
                 # COCKPIT_200X_RENDER_PREVIEW_DEMO is True.
-                "cards": _resolve_pulse_cards_safely(),
+                "cards": (
+                    _resolve_pulse_cards_safely()
+                    if _request_wants_cockpit_realdata(request)
+                    else _empty_pulse_cards()
+                ),
             },
             "workspace_context": {
                 # v8 reference shows the operator workspace block at the sidebar
@@ -757,14 +850,15 @@ def cockpit_context(request) -> dict[str, Any]:
         )
 
         # v3.58.2 (2026-05-22): real-data resolver overlay BEFORE optional demo.
-        try:
-            from .cockpit_panels_realdata_service import resolve_panel_overrides
+        if _request_wants_cockpit_realdata(request):
+            try:
+                from .cockpit_panels_realdata_service import resolve_panel_overrides
 
-            real_panels = resolve_panel_overrides()
-        except Exception:
-            real_panels = {}
-        if real_panels:
-            manager_cockpit = _deep_merge(manager_cockpit, real_panels)
+                real_panels = resolve_panel_overrides()
+            except Exception:
+                real_panels = {}
+            if real_panels:
+                manager_cockpit = _deep_merge(manager_cockpit, real_panels)
 
         from django.conf import settings as _atk_settings
         _atk_pre_payload = _resolve_cockpit_payload(request).get(
@@ -774,7 +868,7 @@ def cockpit_context(request) -> dict[str, Any]:
             getattr(_atk_settings, "ATK_REALDATA_ENABLED", True)
             and _atk_pre_payload.get("realdata_enabled", True)
         )
-        if _atk_realdata_ok:
+        if _atk_realdata_ok and _request_wants_cockpit_realdata(request):
             try:
                 from .cockpit_activity_ticker_realdata import (
                     merge_activity_ticker_sections,
@@ -893,7 +987,7 @@ def cockpit_context(request) -> dict[str, Any]:
         getattr(_atk_settings, "ATK_REALDATA_ENABLED", True)
         and _atk_pre_payload.get("realdata_enabled", True)
     )
-    if _atk_realdata_ok:
+    if _atk_realdata_ok and _request_wants_cockpit_realdata(request):
         try:
             from .cockpit_activity_ticker_realdata import (
                 merge_activity_ticker_sections,
@@ -938,23 +1032,24 @@ def cockpit_context(request) -> dict[str, Any]:
     if tat_section:
         tenant_cockpit["tenant_activity_ticker"] = tat_section
 
-    try:
-        from .cockpit_calendar_weather_runtime import resolve_calendar_weather_runtime
+    if _request_wants_cockpit_realdata(request):
+        try:
+            from .cockpit_calendar_weather_runtime import resolve_calendar_weather_runtime
 
-        cw_runtime = resolve_calendar_weather_runtime(request)
-        tenant_cockpit["calendar_weather"] = _deep_merge(
-            cw_runtime,
-            tenant_cockpit.get("calendar_weather") or {},
-        )
-    except Exception:
-        pass
+            cw_runtime = resolve_calendar_weather_runtime(request)
+            tenant_cockpit["calendar_weather"] = _deep_merge(
+                cw_runtime,
+                tenant_cockpit.get("calendar_weather") or {},
+            )
+        except Exception:
+            pass
 
-    try:
-        from apps.portal.tenant_cockpit_enrichment import enrich_tenant_cockpit_for_request
+        try:
+            from apps.portal.tenant_cockpit_enrichment import enrich_tenant_cockpit_for_request
 
-        tenant_cockpit = enrich_tenant_cockpit_for_request(request, tenant_cockpit)
-    except Exception:
-        pass
+            tenant_cockpit = enrich_tenant_cockpit_for_request(request, tenant_cockpit)
+        except Exception:
+            pass
 
     tenant_cockpit["ai_copilot_rail"] = _deep_merge(
         _tenant_ai_copilot_rail_defaults(),

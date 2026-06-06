@@ -1,0 +1,9 @@
+{% load static %}
+{% comment %}Optional feature bundles — loaded only when DOM markers exist (see rmc-conditional-feature-loader.js).{% endcomment %}
+<script nonce="{{ csp_nonce }}" type="application/json" id="rmc-conditional-features-config">[
+  {"selector": "[data-rmc-sparkline-points]", "js": "{% static 'js/_pages/rmc-data-viz.js' %}", "css": "{% static 'css/rmc-data-viz.css' %}"},
+  {"selector": "[data-rmc-admissions-intake=\"1\"]", "js": "{% static 'js/rmc-admissions-intake.js' %}", "css": "{% static 'css/rmc-admissions-intake.css' %}"},
+  {"selector": "[data-rmc-testimonial]", "js": "{% static 'js/_pages/rmc-testimonial-rotate.js' %}"}
+]</script>
+<script src="{% static 'js/rmc-conditional-feature-config-boot.js' %}"></script>
+<script src="{% static 'js/rmc-conditional-feature-loader.js' %}" defer></script>

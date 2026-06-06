@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Manager copilot CSRF + guided fallback batch 1634 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1634** — fix manager copilot send failure; rules-layer answers for tenant provisioning when LiteLLM offline.
+
+**B. Shipped:** `rmc-copilot-rail.js` manager CSRF + stream hardening; rail views **`guided_assistant`** + reply formatter; `ai_guided_fallback` Rapid Create / wizard / jobs paths; assist-dock + bulk-select CSRF parity; verifier + SW bump.
+
+**C. Proof:** **verify_copilot_rail_contract** PASS; **AI_COPILOT_RBAC_COVERAGE_PASS**; **scan_ai_gateway_boundary** **0**; **AI_CHROME_NO_HARDCODING_PASS**; **UNIFIED_AI_ASSISTANT_PASS**; **6/6** guided/reply tests OK; SW monotonic OK.
+
+**D. SOT:** batch **1634** **DONE**. **E. Honest:** generative tier still needs **`LITELLM_*`** on Render; DB-backed rail view test may SQLite-lock under parallel local runs.
+
 ## Slice — Agentic Phase 3 PR #175 merge batch 1633 (2026-06-06)
 
 **A. Claim:** Reconcile **`agentic-phase3-clean`** with **`origin/main`**, merge **[PR #175](https://github.com/yimga/school-management-system/pull/175)** to **`main`**, align local checkout.

@@ -807,10 +807,15 @@
   // and resolves with the response envelope. ``listInsights`` / ``clearInsight``
   // expose the proactive-insights ring to the AI panel.
   function csrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content && meta.content !== "NOTPROVIDED") {
+      return meta.content;
+    }
     var m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
     if (m) return decodeURIComponent(m[1]);
-    var meta = document.querySelector('meta[name="csrf-token"]');
-    return meta ? meta.getAttribute("content") || "" : "";
+    m = document.cookie.match(/(?:^|; )rmc_manager_csrftoken=([^;]+)/);
+    if (m) return decodeURIComponent(m[1]);
+    return "";
   }
 
   function runAIAction(actionId, ctx) {

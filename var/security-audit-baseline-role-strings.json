@@ -7,7 +7,7 @@
   "excluded_tails": [
     "management/commands"
   ],
-  "finding_count": 347,
+  "finding_count": 349,
   "findings": [
     {
       "line": 44,
@@ -950,6 +950,11 @@
       "role": "ADMIN"
     },
     {
+      "line": 695,
+      "path": "apps/people/views_backend.py",
+      "role": "ADMIN"
+    },
+    {
       "line": 57,
       "path": "apps/platform_runtime/action_engine.py",
       "role": "TEACHER"
@@ -1380,7 +1385,7 @@
       "role": "ADMIN"
     },
     {
-      "line": 297,
+      "line": 298,
       "path": "apps/siteconfig/admin.py",
       "role": "ADMIN"
     },
@@ -1743,9 +1748,14 @@
       "line": 184,
       "path": "apps/siteconfig/views_zero_ticket_hub.py",
       "role": "TEACHER"
+    },
+    {
+      "line": 110,
+      "path": "apps/student360/views.py",
+      "role": "ADMIN"
     }
   ],
-  "generated_at": "2026-06-06T10:13:27+00:00",
+  "generated_at": "2026-06-06T22:57:09+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

@@ -42,7 +42,13 @@
 <div class="rmc-cp-200x-landing" data-rmc-cp-200x-landing="1" data-rmc-section-nav="off">
 {% comment %}v4.01.43: LIVE banner moved to cp_shell_header_ticker header row.{% endcomment %}
 {% if cockpit.pulse_metrics.cards %}
-<div class="rmc-cp-landing-pulse mb-3" data-rmc-cp-landing-pulse="1">
+{% comment %}FIX(pulse-collapse): wrapper was 'rmc-cp-landing-pulse' — a class
+   defined in rmc-cp-activity-tiers.css as an 8px green status DOT
+   (width/height:8px, border-radius:50%), which crushed the whole pulse strip to
+   an 8px column and spilled the cards. The intended wrapper is
+   'rmc-cp-canvas-pulse', which the v8 layout-contract / full-width CSS styles as
+   a full-width 6-col grid.{% endcomment %}
+<div class="rmc-cp-canvas-pulse mb-3" data-rmc-cp-landing-pulse="1">
   {% include "partials/cockpit/_platform_pulse.html" %}
 </div>
 {% endif %}

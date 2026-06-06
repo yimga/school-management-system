@@ -1,0 +1,4 @@
+{% load static %}
+{% comment %}Non-blocking stylesheet — promoted after first paint (marketing pattern).{% endcomment %}
+<link rel="stylesheet" href="{% static stylesheet %}" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="{% static stylesheet %}"></noscript>

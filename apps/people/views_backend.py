@@ -680,6 +680,7 @@ def backend_student_detail(request, student_id):
         return redirect("accounts:backend_dashboard")
     st = (
         StudentProfile.objects.select_related("classroom", "academic_year", "specialty")
+        .prefetch_related("tags")
         .filter(pk=student_id, school_id=school.id)
         .first()
     )
@@ -689,6 +690,12 @@ def backend_student_detail(request, student_id):
 
     record = build_student_one_record_data(st, school)
     detail_urls = _student_360_link_urls(request, st, record)
+    role = (getattr(request.user, "role", "") or "").upper()
+    can_see_private_tags = request.user.is_staff or role in (
+        "ADMIN",
+        "IT_ADMIN",
+        "LEADERSHIP",
+    )
     return render(
         request,
         "people/backend_student_detail.html",
@@ -697,6 +704,7 @@ def backend_student_detail(request, student_id):
             "student_display_name": f"{st.first_name} {st.last_name}".strip(),
             "record": record,
             "detail_urls": detail_urls,
+            "can_see_private_tags": can_see_private_tags,
         },
     )
 

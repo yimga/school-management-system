@@ -62,3 +62,26 @@ class IntelligentGuidedFallbackTests(SimpleTestCase):
         )
         titles = [a.get("title") for a in out.get("actions") or []]
         self.assertTrue(any("AI Center" in (t or "") for t in titles))
+
+    def test_add_tenant_query_includes_rapid_create_path(self):
+        request = RequestFactory().get("/")
+        request.user = MagicMock(is_authenticated=True, is_staff=True, is_superuser=True)
+        request.public_host_kind = "manager"
+        request.school = None
+        out = build_guided_fallback(
+            task_type="studio_os_assistant",
+            user_query="how can i add a tenant",
+            live_provider_available=False,
+            metadata={
+                "request": request,
+                "permissions": {
+                    "can_provision_tenants": True,
+                    "can_view_fleet_ops": True,
+                    "scope": "admin",
+                },
+            },
+        )
+        summary = out.get("summary") or ""
+        self.assertIn("Rapid Create", summary)
+        actions = out.get("actions") or []
+        self.assertTrue(any("Rapid" in (a.get("title") or "") for a in actions))

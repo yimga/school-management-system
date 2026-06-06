@@ -1,0 +1,399 @@
+{
+  "version": "2026-06-02",
+  "generated_utc": "2026-06-06T19:58:20Z",
+  "enhanced": {
+    "path": "static/css/portal-shell-enhanced.min.css",
+    "bytes": 744131,
+    "sources": [
+      {
+        "path": "static/css/rmc-bulk-actions.css",
+        "sha256": "180a7d42090b121ce6e1fa15eb013fd60e6631c4f094d9a8793e4136b7f08c2e",
+        "bytes": 3579
+      },
+      {
+        "path": "static/css/rmc-world-class-experience.css",
+        "sha256": "af7dbc4cfad51fb1f0f714e098391aade4b7424febfd605ca55907fb67049e7e",
+        "bytes": 27278
+      },
+      {
+        "path": "static/css/rmc-warm-bright-school.css",
+        "sha256": "cb05dd58023ebf8ac0ecdf2a5bafae88be463a71e68e5ceb9e98296dfbd5468b",
+        "bytes": 20658
+      },
+      {
+        "path": "static/css/rmc-cool-apple-polish.css",
+        "sha256": "869d8904b9bac5dfc7996f44fb719525bbc205e0f94e6a85bea1b36d2b87aafa",
+        "bytes": 22184
+      },
+      {
+        "path": "static/css/portal-chrome-variants.css",
+        "sha256": "a725102aa53b42443aa580947adc18ccb7f732fce2ffc61130600645cc7dc473",
+        "bytes": 1075
+      },
+      {
+        "path": "static/css/rmc-footer-surfaces.css",
+        "sha256": "3b4f02ddcb96460a7e3f20dd9725b625dd960c6c99c2d6f19d88828b356ecdc3",
+        "bytes": 9394
+      },
+      {
+        "path": "static/css/rmc-civic-footer.css",
+        "sha256": "bf264c4469559a9df04801b33a09857ea1628d09778cc0e1c48f55ccff5ec93b",
+        "bytes": 9832
+      },
+      {
+        "path": "static/css/rmc-cp-operator-footer.css",
+        "sha256": "446fb03c7f6823113f5cfafc69143a7e4d129b2998d0fd129cf59ef43e2c609e",
+        "bytes": 11640
+      },
+      {
+        "path": "static/css/rmc-vertical-density-platform.css",
+        "sha256": "e9223e28a4f931c06f1503163d380088f1a192f2dc64d6b1a98eb7c3aa36a730",
+        "bytes": 6817
+      },
+      {
+        "path": "static/css/rmc-platform-vertical-compact.css",
+        "sha256": "2d57330368e02fef84b64cf27f0da371e75651ba091914adcae920f0ae6e1427",
+        "bytes": 15129
+      },
+      {
+        "path": "static/css/portal-app-shell-bridge.css",
+        "sha256": "8f676cdc5a8d4f2b2565bb82c11a021a25e3b73dfd8939f189901e058bc56aa2",
+        "bytes": 8496
+      },
+      {
+        "path": "static/css/rmc-tenant-canvas-100x.css",
+        "sha256": "7a30d7d4bfa1c8f48a12e10f242be5606e5c2f72f60cd73c1dcb820e8dc3b819",
+        "bytes": 22508
+      },
+      {
+        "path": "static/css/rmc-tenant-header-100x.css",
+        "sha256": "6305634e56fb66f088f299f873db31a2f394dcb37128a3e83cc396d77deddbf5",
+        "bytes": 7829
+      },
+      {
+        "path": "static/css/rmc-tenant-v3-100x-role-home.css",
+        "sha256": "59d85f57b0cade2ca4f13c072c7f5b14babd20cf606c6e33aae200e69d2c9cab",
+        "bytes": 23307
+      },
+      {
+        "path": "static/css/rmc-platform-inner-pages.css",
+        "sha256": "9b0f431c23aeda141d56988d1b5bc95a29ccbc0fd5dc37f8f7974a97114fc084",
+        "bytes": 11578
+      },
+      {
+        "path": "static/css/rmc-tenant-dashboard-v2.css",
+        "sha256": "2d647dfded4bfa05a711f3b844d3999773accfc39e80ce0351d78d27c3a615f4",
+        "bytes": 28092
+      },
+      {
+        "path": "static/css/rmc-calendar-weather-dashboard.css",
+        "sha256": "4f756d921e60d0ccd2f654bb5075bf3b4e40d1652cecea784f9ac63c3723c660",
+        "bytes": 3947
+      },
+      {
+        "path": "static/css/rmc-pagination-grammar.css",
+        "sha256": "cddc69b88c0ca32330a34533d8a0ead471ea5812f34cdc4aa9c0fb050dbf9e4b",
+        "bytes": 11246
+      },
+      {
+        "path": "static/css/design-tokens-luxury.css",
+        "sha256": "af20a690a146e723b502c55b116168ffdd6d79f432319a7749dd8c033000142e",
+        "bytes": 5520
+      },
+      {
+        "path": "static/css/patterns.css",
+        "sha256": "044514c1f05921bb6e853e450d00f13454010853e469205798731e1f607d98a1",
+        "bytes": 70997
+      },
+      {
+        "path": "static/css/glass-surface-recipe.css",
+        "sha256": "526073d02f0c95bc4b5eec29637cd62dca3c278d024d88e638b3a06276dd32b7",
+        "bytes": 2053
+      },
+      {
+        "path": "static/css/design-system-unified.css",
+        "sha256": "3496813aabd1296337edb3b9765d5a356eb9251a428c275c45979540c3238cb5",
+        "bytes": 25992
+      },
+      {
+        "path": "static/css/utilities-extras.css",
+        "sha256": "243f457cb52175674a64ccbfc640380cd773eaf48cbbff7ee429b3dab13bbe40",
+        "bytes": 1252
+      },
+      {
+        "path": "static/css/next-action-strip.css",
+        "sha256": "72d3735101af3b3e7fcce7f40e0542fa8d83c461dec3300b5b150c32dd541c1b",
+        "bytes": 2512
+      },
+      {
+        "path": "static/css/toggle-colors.css",
+        "sha256": "e601bc9960348503f145f81f3bc29884dfca999cb9c5fbf793cfe3f544577542",
+        "bytes": 8894
+      },
+      {
+        "path": "static/css/bootstrap-theme-bridge.css",
+        "sha256": "89c3754fdc603a47689f1ac6e208a7250c30fb9ed6bce5005f69a95e67200558",
+        "bytes": 2429
+      },
+      {
+        "path": "static/css/mobile-tables-forms.css",
+        "sha256": "cd9d375ac1352b4fae045385a614c81ed6297a5aed7251cf3d04134864f42a6c",
+        "bytes": 11055
+      },
+      {
+        "path": "static/css/dashboard-responsive.css",
+        "sha256": "912935c1cd7bc52e8b8aa6b2c08f4485282950ffbdba9155df1025cc00cc34aa",
+        "bytes": 3477
+      },
+      {
+        "path": "static/css/portal-layout-professional.css",
+        "sha256": "b9c16851d45f88c6933688673d6b34ef928a1b400c18682b2ffb9ead74dbd93d",
+        "bytes": 13370
+      },
+      {
+        "path": "static/css/platform-premium-content.css",
+        "sha256": "8d33b10e2defac4784a9c66d619f9d60a39440e16bc7df44dc58beca8c749b0a",
+        "bytes": 6751
+      },
+      {
+        "path": "static/css/rmc-sidebar-luxury-10x.css",
+        "sha256": "d42dbb3fd04066520bc40cb537d3469b505c5d54c49e1bb3cfbe91d6d39c83a0",
+        "bytes": 15919
+      },
+      {
+        "path": "static/css/rmc-sidebar-rail-contract.css",
+        "sha256": "23703ec29918bac804589cb26dc7637a560fb27036bb049e9c2db4070ccb44c8",
+        "bytes": 3913
+      },
+      {
+        "path": "static/css/rmc-list-bulk-select.css",
+        "sha256": "a0e6022974ec9b41afccdd30a7ace2238e1cb00595e0114f4d9aa39ea1ada772",
+        "bytes": 4527
+      },
+      {
+        "path": "static/css/rmc-account-security-chip.css",
+        "sha256": "bc32b1e70680f97d989f3743d1a1ac8e1f8db48fbaf47c7360384c8cc085ef84",
+        "bytes": 924
+      },
+      {
+        "path": "static/css/header-footer-visibility.css",
+        "sha256": "20cbb36190cc6b238d620b8605c05a97160bf6cb6e36727230969b4ffc409f63",
+        "bytes": 3876
+      },
+      {
+        "path": "static/css/dashboard-text-visibility.css",
+        "sha256": "a2d428521cab59f91ed711200027752f2519b8aa4c7221f7f84b202355374020",
+        "bytes": 13998
+      },
+      {
+        "path": "static/css/platform-high-end.css",
+        "sha256": "3307cc539d114510a1961570010e06d8abfe7be36442d2aa446f99f35dfe574b",
+        "bytes": 18745
+      },
+      {
+        "path": "static/css/portal-premium-shell.css",
+        "sha256": "77e781f66d5caccbd795a7ae3c13e87f580684527233d944f2d5b10cbc951f2f",
+        "bytes": 5552
+      },
+      {
+        "path": "static/css/tenant-ux-upgrade.css",
+        "sha256": "2cf7a5dc50f3058f7575dc43a63100b3aebc1c1ee8d5144e73ceec66d695088f",
+        "bytes": 7158
+      },
+      {
+        "path": "static/css/surface-themes.css",
+        "sha256": "35813c37e481764b3adf9a4ae8062a569283c3b6dcbf72bf47e2d164112e1bb3",
+        "bytes": 3082
+      },
+      {
+        "path": "static/css/table-system.css",
+        "sha256": "9e2e9545e3c12880f0f90c7a8f9eaf461b8597e9f9b182a76b72e69abb661326",
+        "bytes": 4877
+      },
+      {
+        "path": "static/css/form-system.css",
+        "sha256": "714fcedd55377baeae4e37c57da00007c8a285acc0af09eca8247e2426b742e1",
+        "bytes": 7360
+      },
+      {
+        "path": "static/css/card-grammar.css",
+        "sha256": "a954fcade6c109dee8b55d5b368d99b4dada2b84075047478ca8cd3e814faced",
+        "bytes": 3799
+      },
+      {
+        "path": "static/css/design-system-phase2-enforcement.css",
+        "sha256": "9143aac6d4f66e4de68e2322e5a3ffe414e017af64773a7380e6cf60d697fcf6",
+        "bytes": 8455
+      },
+      {
+        "path": "static/css/chart-rules.css",
+        "sha256": "63d872ef8b7ac3bb83378709fc84cdac3a14d0a38903f1367e077c6c7011b4ea",
+        "bytes": 5197
+      },
+      {
+        "path": "static/css/platform-responsive-touch.css",
+        "sha256": "85e32123d48672ccb7474a254ce216b4b4d6dd712b02519e98a78bb9ac433a3b",
+        "bytes": 4308
+      },
+      {
+        "path": "static/css/accessibility.css",
+        "sha256": "82863f14c1877cc4848cf5b4dd8204d52a31a49bbc625cf08334b56c98b64bbc",
+        "bytes": 1478
+      },
+      {
+        "path": "static/css/header-no-spillage.css",
+        "sha256": "80f69baffd9b7ffafce638c1efc1d0ad914930c71742396e8e20be20c65724c5",
+        "bytes": 3756
+      },
+      {
+        "path": "static/css/ultra-luxury-ui-system.css",
+        "sha256": "08e40124e7b2aee5acfd2183cd799e3539bf835c17a4a74b737c848a8a72dd75",
+        "bytes": 9228
+      },
+      {
+        "path": "static/css/mobile-luxury-surfaces.css",
+        "sha256": "a9e585018a00dc1e024b381ce67c9dc52b0f2d99a6968d740223391246b3b483",
+        "bytes": 910
+      },
+      {
+        "path": "static/css/north-star-touch-targets.css",
+        "sha256": "1e1123b4d75c753d0adfd8b1d53a9f9e3a9822aa51fadf72590b199aa5709c11",
+        "bytes": 481
+      },
+      {
+        "path": "static/css/tooltips.css",
+        "sha256": "8e1368775bd6df8bbb01d316a46604a0578a0a6d88792603a7fadce5c7a59103",
+        "bytes": 2497
+      },
+      {
+        "path": "static/css/rmc-corporate-os.css",
+        "sha256": "abcab8cf5dae7c00b84d7cbcd268f17cffe05fb54622f24ede7ec319da3b7403",
+        "bytes": 3537
+      },
+      {
+        "path": "static/css/rmc-os-shell.css",
+        "sha256": "b54d80d4476e7b51980082e0f5ce3acf7c2c4365e0f5763772e0215ba1b19251",
+        "bytes": 912
+      },
+      {
+        "path": "static/css/rmc-premium-os.css",
+        "sha256": "067d63f2657f30f7904cbbf93e13b1d032db3b8a4e732d51fdb5957e085f7988",
+        "bytes": 5242
+      },
+      {
+        "path": "static/css/rmc-premium-polish.css",
+        "sha256": "00be76a1c2a9cf63d03434f70d1b28db399ae20ab69b1f828c0645c13dbce57a",
+        "bytes": 3477
+      },
+      {
+        "path": "static/css/portal-ui-components.css",
+        "sha256": "dac1a8379eb84ac2e002fb489fa92f300bd580e4aba13ac8726708738022dd3e",
+        "bytes": 94204
+      },
+      {
+        "path": "static/css/rmc-assist-dock.css",
+        "sha256": "0a3e66330603f423b614a6d184984d2c47b22446321bc49aa53be03e1b104b3a",
+        "bytes": 20335
+      },
+      {
+        "path": "static/css/rmc-workflow-progress.css",
+        "sha256": "32f1eb4f5e9f50244ba3090dfe078d697cc1d48827e3e381161129ac062c1e1e",
+        "bytes": 14051
+      },
+      {
+        "path": "static/css/rmc-long-page-grammar.css",
+        "sha256": "d87cbb94a1e29f3e9fa98433de39153619915d50866ef045c7dd906039c4d24e",
+        "bytes": 50741
+      },
+      {
+        "path": "static/css/rmc-horizontal-nav-rail.css",
+        "sha256": "dcc7b49e18de26c99e1a02a9afe3600c2523b801df9745ba5b9498765abbd8ed",
+        "bytes": 4094
+      },
+      {
+        "path": "static/css/rmc-global-aesthetic.css",
+        "sha256": "7046234d10b3f68fa1a38b431ac001a20751eb1869d18ebc725afb5d2c6da914",
+        "bytes": 9797
+      },
+      {
+        "path": "static/css/phase2-portal-bundle.css",
+        "sha256": "9025d8ffb97490afd98d095ade0041b12de74a9ba1940290b2cc9f1d35724034",
+        "bytes": 88028
+      },
+      {
+        "path": "static/css/rmc-cp-activity-tiers.css",
+        "sha256": "6b0690eab7c3473c42c29b58bbd52c67a60fa069d41375da023ad26e4c7d9986",
+        "bytes": 8252
+      },
+      {
+        "path": "static/css/manager-control-plane.css",
+        "sha256": "9e7d8bc0b38c6c9ad8d780657d4dde9a81e0e7be12458858054634a770aabed9",
+        "bytes": 37069
+      },
+      {
+        "path": "static/css/manager-cockpit-v7.css",
+        "sha256": "309c64b093e25cdbb31470b956a60112a55cd189d060f2daec67767b75ea2eb4",
+        "bytes": 17287
+      },
+      {
+        "path": "static/css/rmc-cp-200x.css",
+        "sha256": "ad5e085bc90bbda6e51e9c19d7beb22cb27d2e30e9d828418a89b1c3b0e6887a",
+        "bytes": 70549
+      },
+      {
+        "path": "static/css/rmc-cp-header-200x.css",
+        "sha256": "b43a8e4feaedd1f666c8d415a2c4805836d7f5d5f7357d593b93c1d789f41c50",
+        "bytes": 21918
+      },
+      {
+        "path": "static/css/rmc-cp-consolidated-operator-shell.css",
+        "sha256": "3f0cdbb3928d98a6c713ba321bd9d4b20875cb869b41ed1576d20657544a0a4a",
+        "bytes": 16653
+      },
+      {
+        "path": "static/css/control-plane-primary-nav.css",
+        "sha256": "439d2725d1375b49c59d3f7d1df5341f2c2cbfdb6224e4bf1084e2646988a5ff",
+        "bytes": 805
+      },
+      {
+        "path": "static/css/control-plane-ultra.css",
+        "sha256": "1a9256c6eb2f167830f06e813293a49c78d45ffde49ebf42ddac36858666d169",
+        "bytes": 24540
+      },
+      {
+        "path": "static/css/control-plane-phase1-shell.css",
+        "sha256": "4f61e52aeed9728411dedf8cc4f52f4e4dcfbd46a0b87c4dcc51703664e4cbaf",
+        "bytes": 2061
+      },
+      {
+        "path": "static/css/rmc-cp-sidebar-200x.css",
+        "sha256": "39c499d17d02f938df0fba6f5a7ddeaa9221000a0a6128c8cc797d320132404f",
+        "bytes": 11808
+      },
+      {
+        "path": "static/css/manager-corporate-footer.css",
+        "sha256": "fe73660ad462aceaa4e6874f4f0f3d550012d6e8a0504686ddbd5ff92a7a6d44",
+        "bytes": 1475
+      },
+      {
+        "path": "static/css/rmc-bell-clock-product.css",
+        "sha256": "d24763ec260c96136502a2a07224c2038c4f15331f00c588ff21d3b1e8fc30fd",
+        "bytes": 8618
+      },
+      {
+        "path": "static/css/rmc-signature-motion.css",
+        "sha256": "4059d2afdf2e34c68f3926ee07c7a79431e2e7cfe05113fdecbf71fccdefb7fc",
+        "bytes": 2258
+      },
+      {
+        "path": "static/css/rmc-command-bar.css",
+        "sha256": "e2f29878f4db1b4faa709edd42c7bb971975e6a6d1dbb1b0c107d2d289771fdb",
+        "bytes": 4684
+      }
+    ]
+  },
+  "budgets": {
+    "enhanced_max": 900000,
+    "comment": "Deferred single request; still smaller than 70+ sequential blocking round-trips."
+  }
+}

@@ -224,6 +224,7 @@ class CopilotRailSendView(LoginRequiredMixin, View):
                 request=request,
                 user_query=message,
                 metadata=envelope.metadata,
+                response_schema="guided_assistant",
                 require_available=False,
             )
         except Exception:  # noqa: BLE001
@@ -247,22 +248,14 @@ class CopilotRailSendView(LoginRequiredMixin, View):
         except (TypeError, ValueError):
             ai_result, md = result, {}
 
-        reply_text = ""
-        if hasattr(ai_result, "text") and isinstance(ai_result.text, str):
-            reply_text = ai_result.text
-        elif isinstance(ai_result, dict):
-            reply_text = str(ai_result.get("text") or ai_result.get("reply") or "")
-        elif isinstance(ai_result, str):
-            reply_text = ai_result
-        if not reply_text:
-            reply_text = "I didn't have a useful reply for that. Try rephrasing or ask about a specific tenant."
+        reply_text = _reply_text_from_invoke(ai_result)
 
         source = "cloud"
         if isinstance(md, dict):
             provider = (md.get("provider") or "").lower()
             if "ollama" in provider or md.get("posture_mode") == "live_local":
                 source = "local"
-            elif md.get("posture_mode") == "guided" or provider == "none":
+            elif md.get("posture_mode") == "guided" or provider in {"none", "rules"} or md.get("tier") == "rules":
                 source = "rules"
             elif md.get("posture_mode") in {"unavailable", "off"}:
                 source = "unavailable"
@@ -322,11 +315,20 @@ def _derive_source(md: dict) -> str:
     posture = md.get("posture_mode") or ""
     if "ollama" in provider or posture == "live_local":
         return "local"
-    if posture == "guided" or provider == "none":
+    if posture == "guided" or provider in {"none", "rules"} or md.get("tier") == "rules":
         return "rules"
     if posture in {"unavailable", "off"}:
         return "unavailable"
     return "cloud"
+
+
+def _reply_text_from_invoke(ai_result) -> str:
+    from services.ai_copilot_reply_format import extract_copilot_rail_reply
+
+    reply_text = extract_copilot_rail_reply(ai_result)
+    if not reply_text:
+        reply_text = "I didn't have a useful reply for that. Try rephrasing or ask about a specific tenant."
+    return reply_text
 
 
 @method_decorator(never_cache, name="dispatch")
@@ -468,6 +470,7 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
                     request=request,
                     user_query=message,
                     metadata={**stream_md, "surface": "studio_os_copilot_rail_stream_fallback"},
+                    response_schema="guided_assistant",
                     require_available=False,
                 )
             except Exception:  # noqa: BLE001
@@ -495,15 +498,7 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
             except (TypeError, ValueError):
                 ai_result, md = result, {}
 
-            reply_text = ""
-            if hasattr(ai_result, "text") and isinstance(ai_result.text, str):
-                reply_text = ai_result.text
-            elif isinstance(ai_result, dict):
-                reply_text = str(ai_result.get("text") or ai_result.get("reply") or "")
-            elif isinstance(ai_result, str):
-                reply_text = ai_result
-            if not reply_text:
-                reply_text = "I didn't have a useful reply for that. Try rephrasing or ask about a specific tenant."
+            reply_text = _reply_text_from_invoke(ai_result)
 
             source = _derive_source(md if isinstance(md, dict) else {})
             posture_mode = ""

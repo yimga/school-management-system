@@ -51421,3 +51421,89 @@ msgstr "need attention"
 
 msgid "{{ count }} incident{% plural %}{{ count }} incidents"
 msgstr "{{ count }} incident{% plural %}{{ count }} incidents"
+
+msgid "%(n)d countries"
+msgstr "%(n)d countries"
+
+msgid "%(n)d country"
+msgstr "%(n)d country"
+
+msgid "%(n)d region"
+msgstr "%(n)d region"
+
+msgid "%(n)d regions"
+msgstr "%(n)d regions"
+
+msgid "Across %(reg)s · %(cty)s today"
+msgstr "Across %(reg)s · %(cty)s today"
+
+msgid ""
+"Choose every language your school uses. The starred primary language drives "
+"calendar and education-system defaults; for India, picking your state auto-"
+"stars the regional language when selected."
+msgstr ""
+"Choose every language your school uses. The starred primary language drives "
+"calendar and education-system defaults; for India, picking your state auto-"
+"stars the regional language when selected."
+
+msgid "Go to login"
+msgstr "Go to login"
+
+msgid "Languages of instruction"
+msgstr "Languages of instruction"
+
+msgid "Link expired or didn't arrive?"
+msgstr "Link expired or didn't arrive?"
+
+msgid "No tags assigned."
+msgstr "No tags assigned."
+
+msgid "Official languages"
+msgstr "Official languages"
+
+msgid "Or start a new signup"
+msgstr "Or start a new signup"
+
+msgid "Resend my verification link"
+msgstr "Resend my verification link"
+
+msgid "Resend verification"
+msgstr "Resend verification"
+
+msgid "Resend verification link"
+msgstr "Resend verification link"
+
+msgid "Select all languages your school uses. Starred language is primary."
+msgstr "Select all languages your school uses. Starred language is primary."
+
+msgid "Send new link"
+msgstr "Send new link"
+
+msgid "Set primary"
+msgstr "Set primary"
+
+msgid "Step 2a — Languages of instruction"
+msgstr "Step 2a — Languages of instruction"
+
+msgid ""
+"Your signup verification link is valid for 2 days. If it expired or never "
+"arrived, enter the email you signed up with and we'll send a fresh link — no"
+" need to sign up again."
+msgstr ""
+"Your signup verification link is valid for 2 days. If it expired or never "
+"arrived, enter the email you signed up with and we'll send a fresh link — no"
+" need to sign up again."
+
+msgid "critical"
+msgstr "critical"
+
+msgid "no need to sign up again."
+msgstr "no need to sign up again."
+
+msgid "private"
+msgstr "private"
+
+msgid ""
+"{{ counter }} operator online{% plural %}{{ counter }} operators online"
+msgstr ""
+"{{ counter }} operator online{% plural %}{{ counter }} operators online"

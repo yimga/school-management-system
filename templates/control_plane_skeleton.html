@@ -35,7 +35,7 @@
     <script src="{% static 'js/rmc-form-validation.js' %}" defer></script>
     {% comment %} v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). {% endcomment %}
     <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
-    <script src="{% static 'js/shell-data-dashboard-page.js' %}"></script>
+    <script src="{% static 'js/shell-data-dashboard-page.js' %}" defer></script>
     <title>{% block title %}RunMyCampus Manager{% endblock %}</title>
     <link rel="manifest" href="{% url 'pwa_manifest_platform' %}">
     {% comment %} v3.57.1 (2026-05-21): PWA install-prompt chrome (manager/control plane). {% endcomment %}
@@ -129,9 +129,7 @@
        Loaded after v7 so the per-surface skin layers on top. SOT: apps/siteconfig/cockpit_config.py {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-operator-theme-coherence.css' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    {% comment %} Self-hosted Inter covers body UI; Source Serif / JetBrains fall back to Georgia / ui-monospace (no blocking CDN). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-activity-tiers.css' %}">
@@ -146,8 +144,7 @@
     {% comment %} v3.58.x Wave 10 (2026-05-22): trust pillars alerts feed — closes v8 200x preview gap.
        Loaded AFTER rmc-cp-200x.css so .lx-trust-pillars composes with shared .lx-card chrome. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-trust-pillars.css' %}">
-    {% comment %} v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives library — composes with v7/200x cards. {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/rmc-data-viz.css' %}">
+    {% comment %} rmc-data-viz.css loads via rmc_conditional_feature_boot when sparklines present. {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-cp-sidebar-200x.css' %}">
     {% include "partials/rmc_sidebar_disclosure_contract_styles.html" %}
     <link rel="stylesheet" href="{% static 'css/rmc-platform-inner-pages.css' %}">
@@ -258,11 +255,11 @@
     {% endif %}
     {% include "partials/rmc_interaction_shell_scripts.html" %}
     {% if request.user.is_authenticated %}
-    <script src="{% static 'js/authenticated-shell-manager.js' %}"></script>
+    <script src="{% static 'js/authenticated-shell-manager.js' %}" defer></script>
     {% endif %}
     <script src="{% static 'js/rmc-dashboard-widget-boundary.js' %}" defer></script>
     <script src="{% static 'js/rmc-surface-overlay-guard.js' %}"></script>
-    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
     {% include "partials/rmc_dropdown_viewport_safe_boot.html" %}
     {% comment %} v3.55.0 (2026-05-21): App-shell runtime — anchor-scroll retarget + modal portal + scroll helper.
        Loaded AFTER Bootstrap so the show.bs.modal / show.bs.offcanvas listeners are bound after BS init. {% endcomment %}
@@ -270,13 +267,14 @@
     {% comment %} v3.55.0+ (2026-05-21): AI Copilot rail expand/collapse + Cmd/Ctrl+K focus. {% endcomment %}
     <script src="{% static 'js/_pages/rmc-copilot-rail.js' %}" defer></script>
     {% comment %} v3.99.15: Copilot services bridge + contextual lens (list row sync). {% endcomment %}
-    <script src="{% static 'js/rmc-copilot-rail.js' %}"></script>
+    <script src="{% static 'js/rmc-copilot-rail.js' %}" defer></script>
     <script src="{% static 'js/rmc-copilot-context-lens.js' %}" defer></script>
     <script src="{% static 'js/rmc-list-bulk-select.js' %}" defer></script>
     {% comment %} v8 cockpit: Export PDF (print path) + Quick action (⌘K palette) button wiring. {% endcomment %}
     <script src="{% static 'js/rmc-cockpit-page-actions.js' %}" defer></script>
-    {% comment %} v3.59.x Wave 11 Agent V (2026-05-22): data-viz primitives runtime (sparklines + heatmap tooltips + chart-palette bridge). No-op on pages without [data-rmc-sparkline-points]. {% endcomment %}
-    <script src="{% static 'js/_pages/rmc-data-viz.js' %}" defer></script>
+    {% if not rmc_low_bandwidth %}
+    {% include "partials/rmc_conditional_feature_boot.html" %}
+    {% endif %}
     <script src="{% static 'js/return-to-origin.js' %}" defer></script>
     <script src="{% static 'js/rmc-launch-splash.js' %}" defer></script>
     {% include "partials/rmc_tour_bootstrap.html" %}

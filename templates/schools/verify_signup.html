@@ -8,7 +8,8 @@
       <h1 class="h3 mb-4">{% trans "Verification" %}</h1>
       {% if error %}
       <div class="alert alert-danger">{{ error }}</div>
-      <p><a href="{% url 'signup_school' %}">Try signing up again</a>.</p>
+      <p>{% trans "Link expired or didn't arrive?" %} <a href="{% url 'resend_signup_verification' %}">{% trans "Resend my verification link" %}</a> — {% trans "no need to sign up again." %}</p>
+      <p class="text-muted small"><a href="{% url 'signup_school' %}">{% trans "Or start a new signup" %}</a>.</p>
       {% else %}
       <p class="text-muted">Your school has been activated. Redirecting to login…</p>
       {% endif %}

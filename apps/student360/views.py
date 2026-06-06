@@ -92,7 +92,10 @@ def student_360_page(request, student_id):
     from apps.people.models import StudentProfile
 
     student = get_object_or_404(
-        StudentProfile, pk=student_id, school=school, is_active=True
+        StudentProfile.objects.prefetch_related("tags"),
+        pk=student_id,
+        school=school,
+        is_active=True,
     )
     user = request.user
     if not user.is_staff:
@@ -102,6 +105,17 @@ def student_360_page(request, student_id):
             return HttpResponseForbidden(
                 "You do not have permission to view this student."
             )
+    role = (getattr(user, "role", "") or "").upper()
+    can_see_private_tags = user.is_staff or role in (
+        "ADMIN",
+        "IT_ADMIN",
+        "LEADERSHIP",
+    )
+    information_tags = [
+        tag
+        for tag in student.tags.filter(is_active=True).order_by("name")
+        if not tag.is_private or can_see_private_tags
+    ]
     summary = get_student_360_summary(
         school.id,
         student_id,
@@ -123,6 +137,8 @@ def student_360_page(request, student_id):
             "academic": academic,
             "finance": finance,
             "show_passport_vault_links": _staff_may_view_student(request, student),
+            "information_tags": information_tags,
+            "can_see_private_tags": can_see_private_tags,
         },
     )
 

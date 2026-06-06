@@ -371,23 +371,43 @@ def _resolve_world_map() -> dict[str, Any] | None:
             "AU": "Asia · Oceania", "NZ": "Asia · Oceania", "IN": "Asia · Oceania",
             "SG": "Asia · Oceania", "PH": "Asia · Oceania",
         }
+        # v4.02.x ENRICH: count distinct real countries in the SAME pass so the
+        # subline reports a true footprint ("Across N regions · M countries
+        # today") instead of a static label. Blank country_code rows (schools
+        # created without a country) still bucket to "Other" but do NOT count
+        # toward distinct-countries — keeping the number honest.
+        distinct_countries: set[str] = set()
         # tenant-isolation-allow: platform-cockpit-cross-tenant-world-map
         for cc in active_schools.values_list("country_code", flat=True):
             cc_upper = (cc or "").upper()
             region = bucket_for.get(cc_upper, "Other")
             buckets[region] = buckets.get(region, 0) + 1
+            if cc_upper.strip():
+                distinct_countries.add(cc_upper.strip())
         regional_rows = [
             {"region": r, "count": c}
             for r, c in buckets.items() if c > 0
         ]
         regional_rows.sort(key=lambda row: row["count"], reverse=True)
         dot_tokens = ("indigo", "emerald", "amber", "rose")
+        # Honest subline: only report counts we actually have. When NO school
+        # carries a country_code (distinct_countries == 0) we fall back to the
+        # neutral "Across all regions" rather than printing "0 countries".
+        n_regions = len(regional_rows)
+        n_countries = len(distinct_countries)
+        if n_countries:
+            from django.utils.translation import ngettext
+            reg_txt = ngettext("%(n)d region", "%(n)d regions", n_regions) % {"n": n_regions}
+            cty_txt = ngettext("%(n)d country", "%(n)d countries", n_countries) % {"n": n_countries}
+            subline = _("Across %(reg)s · %(cty)s today") % {"reg": reg_txt, "cty": cty_txt}
+        else:
+            subline = _("Across all regions")
         return {
             "enabled": True,
             "eyebrow": _("Global footprint"),
             "schools_live": str(total),
             "schools_live_label": _("schools live"),
-            "subline": _("Across all regions"),
+            "subline": subline,
             "regional_breakdown": [
                 {
                     "label": row["region"],

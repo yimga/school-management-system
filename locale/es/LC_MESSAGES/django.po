@@ -45882,3 +45882,82 @@ msgstr ""
 
 msgid "{{ count }} incident{% plural %}{{ count }} incidents"
 msgstr ""
+
+msgid "%(n)d countries"
+msgstr ""
+
+msgid "%(n)d country"
+msgstr ""
+
+msgid "%(n)d region"
+msgstr ""
+
+msgid "%(n)d regions"
+msgstr ""
+
+msgid "Across %(reg)s · %(cty)s today"
+msgstr ""
+
+msgid ""
+"Choose every language your school uses. The starred primary language drives "
+"calendar and education-system defaults; for India, picking your state auto-"
+"stars the regional language when selected."
+msgstr ""
+
+msgid "Go to login"
+msgstr ""
+
+msgid "Languages of instruction"
+msgstr ""
+
+msgid "Link expired or didn't arrive?"
+msgstr ""
+
+msgid "No tags assigned."
+msgstr ""
+
+msgid "Official languages"
+msgstr ""
+
+msgid "Or start a new signup"
+msgstr ""
+
+msgid "Resend my verification link"
+msgstr ""
+
+msgid "Resend verification"
+msgstr ""
+
+msgid "Resend verification link"
+msgstr ""
+
+msgid "Select all languages your school uses. Starred language is primary."
+msgstr ""
+
+msgid "Send new link"
+msgstr ""
+
+msgid "Set primary"
+msgstr ""
+
+msgid "Step 2a — Languages of instruction"
+msgstr ""
+
+msgid ""
+"Your signup verification link is valid for 2 days. If it expired or never "
+"arrived, enter the email you signed up with and we'll send a fresh link — no"
+" need to sign up again."
+msgstr ""
+
+msgid "critical"
+msgstr ""
+
+msgid "no need to sign up again."
+msgstr ""
+
+msgid "private"
+msgstr ""
+
+msgid ""
+"{{ counter }} operator online{% plural %}{{ counter }} operators online"
+msgstr ""

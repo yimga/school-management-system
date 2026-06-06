@@ -445,8 +445,15 @@ body.control-plane-shell .rmc-app-shell__canvas-chrome .cp-primary-nav {
 }
 
 body.control-plane-shell .cp-header .rmc-app-shell__header,
-body.control-plane-shell .cp-header {
-  overflow: hidden;
+body.admin-manager-shell .cp-header .rmc-app-shell__header,
+body.control-plane-shell .cp-header,
+body.admin-manager-shell .cp-header {
+  /* v4.02.x (2026-06-06): was `overflow: hidden`, which clipped the primary-nav
+     "More ▾" dropdown (it drops below the band) so the menu was invisible and the
+     button read as "not clickable". Clip only the X axis (keep horizontal
+     containment — no h-scroll) and let the Y axis overflow so the menu escapes. */
+  overflow-x: clip;
+  overflow-y: visible;
   max-width: 100%;
 }
 
@@ -650,5 +657,111 @@ body.control-plane-shell .cp-header__row--utility .cp-brand__crumb {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ============================================================
+   v4.02.x — COMPACT OPERATOR BAND (2026-06-06, owner-approved)
+   ------------------------------------------------------------
+   Collapse the former 3-row /super/ header into ONE band that
+   mirrors /admin/: search trimmed ~50%, clock/weather relocated
+   to the live row, operator presence + profile compacted, the
+   primary nav inlined as the icon rail (rail CSS already lives
+   in rmc-cockpit-skin-v8.css). Reclaims a whole nav row of
+   vertical height so pages start higher. Dark chrome only.
+   ============================================================ */
+
+/* (1) Command search trimmed ~50% (was min(420px, 35vw)). Explicit
+   width keeps it deterministic whether or not the :has(rail) rule
+   in rmc-cockpit-skin-v8.css has flipped the flex basis to auto. */
+body.control-plane-shell .cp-header__row--utility .rmc-platform-header__command,
+body.admin-manager-shell .cp-header__row--utility .rmc-platform-header__command {
+  flex: 0 1 auto;
+  width: clamp(180px, 22vw, 280px);
+  max-width: 280px !important; /* style-allow: header-compact-search-2026-06-06 */
+  margin-right: var(--space-2, 8px);
+}
+
+/* (2) Clock / weather relocated to the right edge of the LIVE row. */
+.cp-header__row--live {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+.cp-header__row--live .rmc-cp-landing-ticker {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cp-header__live-context {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-right: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+.cp-header__live-context .header-context-dock__trigger {
+  padding: 2px 8px;
+  font-size: 11px;
+}
+@media (max-width: 991.98px) {
+  .cp-header__live-context { display: none; }
+}
+
+/* (3) Operator presence shrunk: avatars + count stay; the verbose
+   "All systems handling well" status collapses to its pulse dot
+   (full text remains in the capsule title + aria-label). */
+body.control-plane-shell .cp-header__row--utility .cp-presence {
+  gap: 7px;
+  padding: 3px 9px 3px 5px;
+}
+body.control-plane-shell .cp-header__row--utility .cp-presence__avatar {
+  width: 19px;
+  height: 19px;
+  font-size: 9px;
+  margin-left: -7px;
+}
+body.control-plane-shell .cp-header__row--utility .cp-presence__count {
+  font-size: 11px;
+}
+body.control-plane-shell .cp-header__row--utility .cp-presence__status {
+  padding-left: 0;
+  border-left: 0;
+  gap: 0;
+  font-size: 0; /* hide the verbose text; the px-sized ::before pulse dot stays */
+}
+
+/* (4) Profile trigger compacted to avatar + chevron on the band
+   (name/role move into the menu's identity header). */
+.cp-header__row--utility .user-dropdown-trigger {
+  padding: 3px 8px 3px 4px;
+  gap: 4px;
+}
+.cp-header__row--utility .user-dropdown-trigger .user-info {
+  display: none;
+}
+.cp-header__row--utility .user-dropdown-trigger .user-avatar {
+  width: 32px;
+  height: 32px;
+}
+.cp-header__row--utility .user-dropdown-trigger .user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Identity header at the top of the user dropdown menu (theme-aware —
+   the menu surface flips light/dark, so use semantic ink tokens). */
+.user-dropdown-identity {
+  padding: 10px 14px 4px;
+}
+.user-dropdown-identity__name {
+  font-size: var(--type-size-md, 15px);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.user-dropdown-identity__role {
+  font-size: var(--type-size-sm, 12px);
+  color: var(--text-secondary);
+  margin-top: 1px;
 }
 

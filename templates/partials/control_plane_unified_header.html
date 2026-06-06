@@ -23,15 +23,23 @@ Replaces the former triple stack: utility row + marquee ticker + canvas primary 
         <div class="rmc-cp-landing-ticker rmc-cp-header-ticker" data-rmc-cp-landing-ticker="1">
           {% include "partials/cockpit/_activity_ticker.html" %}
         </div>
+        {% comment %} v4.02.x (2026-06-06): clock / weather relocated here from the utility band
+           (owner approved: ambient, not a workflow control). Anchored to the right edge of the
+           always-visible LIVE row so it costs zero extra header height. {% endcomment %}
+        {% if request.user.is_authenticated and SHOW_HEADER_CONTEXT_STRIP %}
+        <div class="cp-header__live-context" data-rmc-header-context-compact="1">
+          {% include "components/header_weather_widget.html" with SHOW_HEADER_CONTEXT_QUOTE=False %}
+        </div>
+        {% endif %}
       </div>
       {% endblock %}
       {% endblock %}
-      {% comment %} v4.02.x: on the manager /admin/ BACKOFFICE shell this dedicated nav row is a
-         NARROW-SCREEN FALLBACK only — at xl+ the nav renders as a compact icon rail inside the
-         utility row (manager_operator_topbar.html), so we hide this row with d-xl-none to reclaim
-         its height. On /super/ (control-plane) the rail is NOT injected, so this full nav row stays
-         visible at ALL widths — the owner prefers the polished full nav there. {% endcomment %}
-      <div class="cp-header__row cp-header__row--inline-chrome{% if MANAGER_PLATFORM_ADMIN_SHELL %} d-xl-none{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-header__row--nav-flanked{% endif %}" data-rmc-cp-inline-chrome="1">
+      {% comment %} v4.02.x (2026-06-06): this dedicated nav row is now a NARROW-SCREEN FALLBACK on
+         BOTH shells — at xl+ the nav renders as a compact icon rail inside the utility row
+         (manager_operator_topbar.html), so the row is d-xl-none everywhere to reclaim its height.
+         /super/ keeps the cp-header__row--nav-flanked treatment (status chip + Command flanks) for
+         the <xl fallback only; at xl+ the relocated status chip lives in the utility band. {% endcomment %}
+      <div class="cp-header__row cp-header__row--inline-chrome d-xl-none{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-header__row--nav-flanked{% endif %}" data-rmc-cp-inline-chrome="1">
         {% if PRIMARY_CONTROL_PLANE_NAV %}
         {% comment %} v4.02.x: the nav row used to be JUST centred pills with big dead flanks.
            On the control-plane (/super/) we now claim the flanks with VALUE — a live system-status

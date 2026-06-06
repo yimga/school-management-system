@@ -543,6 +543,133 @@ def validate_language_code(country_code: str | None, language_code: str | None) 
     return ""
 
 
+def validate_language_codes(
+    country_code: str | None, language_codes: list[str] | None
+) -> list[str]:
+    """Return de-duplicated valid language codes for the country (order preserved)."""
+    out: list[str] = []
+    for raw in language_codes or []:
+        code = validate_language_code(country_code, raw)
+        if code and code not in out:
+            out.append(code)
+    return out
+
+
+# Wave 16 (v4.02.49 — 2026-06-02): India state → primary language of instruction
+# when the operator selects multiple official languages at signup.
+INDIA_STATE_LANGUAGE_MAP: dict[str, str] = {
+    "IN-AN": "hi",
+    "IN-AP": "te",
+    "IN-AR": "hi",
+    "IN-AS": "bn",
+    "IN-BR": "hi",
+    "IN-CH": "hi",
+    "IN-CT": "hi",
+    "IN-DH": "hi",
+    "IN-DL": "hi",
+    "IN-GA": "hi",
+    "IN-GJ": "gu",
+    "IN-HP": "hi",
+    "IN-HR": "hi",
+    "IN-JH": "hi",
+    "IN-JK": "hi",
+    "IN-KA": "kn",
+    "IN-KL": "ml",
+    "IN-LA": "hi",
+    "IN-LD": "ml",
+    "IN-MH": "mr",
+    "IN-ML": "hi",
+    "IN-MN": "hi",
+    "IN-MP": "hi",
+    "IN-MZ": "hi",
+    "IN-NL": "hi",
+    "IN-OR": "or",
+    "IN-PB": "pa",
+    "IN-PY": "ta",
+    "IN-RJ": "hi",
+    "IN-SK": "hi",
+    "IN-TG": "te",
+    "IN-TN": "ta",
+    "IN-TR": "bn",
+    "IN-UP": "hi",
+    "IN-UT": "hi",
+    "IN-WB": "bn",
+}
+
+
+def resolve_primary_language_code(
+    country_code: str | None,
+    language_codes: list[str] | None,
+    *,
+    state_code: str = "",
+    region_hint: str = "",
+) -> str:
+    """Pick the starred/default language from a multi-select signup list."""
+    codes = validate_language_codes(country_code, language_codes)
+    if not codes:
+        return get_default_language(country_code)
+    if len(codes) == 1:
+        return codes[0]
+
+    cc = normalize_country_code(country_code)
+    state = (state_code or "").strip().upper()
+    if cc == "IN" and state in INDIA_STATE_LANGUAGE_MAP:
+        mapped = INDIA_STATE_LANGUAGE_MAP[state]
+        if mapped in codes:
+            return mapped
+
+    hint = (region_hint or "").strip().lower()
+    if hint:
+        for lang in get_languages(cc):
+            code = str(lang.get("code") or "").strip().lower()
+            if code not in codes:
+                continue
+            region = str(lang.get("region") or "").strip().lower()
+            native = str(lang.get("native_name") or "").strip().lower()
+            if hint in region or hint in native or region in hint:
+                return code
+
+    default = get_default_language(cc)
+    if default in codes:
+        return default
+    for lang in get_languages(cc):
+        if lang.get("is_default"):
+            code = str(lang.get("code") or "").strip().lower()
+            if code in codes:
+                return code
+    return codes[0]
+
+
+def parse_signup_language_selection(
+    *,
+    country_code: str | None,
+    language_codes: list[str] | None = None,
+    primary_language_code: str = "",
+    language_code_legacy: str = "",
+    state_code: str = "",
+    region_hint: str = "",
+) -> tuple[list[str], str]:
+    """Normalize multi-language signup POST fields → (codes, primary_code)."""
+    raw = [str(v).strip().lower() for v in (language_codes or []) if str(v).strip()]
+    if not raw and language_code_legacy:
+        raw = [language_code_legacy.strip().lower()]
+    validated = validate_language_codes(country_code, raw)
+    if not validated:
+        default = get_default_language(country_code)
+        validated = [default] if default else []
+    primary = validate_language_code(country_code, primary_language_code)
+    if primary and primary not in validated:
+        primary = ""
+    if not primary:
+        primary = resolve_primary_language_code(
+            country_code,
+            validated,
+            state_code=state_code,
+            region_hint=region_hint,
+        )
+    return validated, primary
+
+
 # Wave 13 (v3.62.17 — 2026-05-23) — per-state India calendar variance.
 # India's 11 state-board systems cluster into 3 distinct academic-year start
 # months: June (KN/ML/MR/OR), January (BN/AS), April (PA/UR/HI most belt

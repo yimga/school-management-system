@@ -36,7 +36,8 @@
   var CARD_KIND_LANGUAGE = "language";
   var CARD_KIND_CALENDAR = "calendar";
   var CARD_KIND_SCHOOL_TYPE = "school-type";
-  var LANGUAGE_RADIO_DEFAULT = "language_code";
+  var LANGUAGE_CODES_NAME = "language_codes";
+  var PRIMARY_LANGUAGE_FIELD = "primary_language_code";
 
   // In-flight fetch cache so rapid back-and-forth flips don't fire a
   // request per keystroke. Keyed by `code` or `code|lang`, value is a Promise.
@@ -76,6 +77,7 @@
     document.documentElement.dataset[INIT_FLAG] = "1";
 
     bindAllSelects();
+    bindPrimaryLanguageButtons();
     syncSelectedCountry();
     document.body.addEventListener("htmx:afterSwap", function () {
       bindAllSelects();
@@ -141,6 +143,122 @@
     }
   }
 
+  function indiaStateLanguageMap() {
+    var boot = readBootstrap();
+    return boot.india_state_language_map || {};
+  }
+
+  function primaryLanguageField() {
+    return document.getElementById(PRIMARY_LANGUAGE_FIELD)
+      || document.querySelector('input[name="' + PRIMARY_LANGUAGE_FIELD + '"]');
+  }
+
+  function selectedLanguageCodes(grid) {
+    if (!grid) return [];
+    var out = [];
+    var checked = grid.querySelectorAll(
+      'input[name="' + LANGUAGE_CODES_NAME + '"]:checked'
+    );
+    for (var i = 0; i < checked.length; i++) {
+      var code = String(checked[i].value || "").toLowerCase();
+      if (code && out.indexOf(code) < 0) out.push(code);
+    }
+    return out;
+  }
+
+  function resolveAutoPrimary(codes, pack) {
+    if (!codes.length) return "";
+    if (codes.length === 1) return codes[0];
+    var cc = currentCountryCode();
+    var picker = document.querySelector("[data-rmc-india-state-picker]");
+    var state = picker && picker.value ? String(picker.value).trim().toUpperCase() : "";
+    if (cc === "IN" && state) {
+      var mapped = indiaStateLanguageMap()[state];
+      if (mapped && codes.indexOf(mapped) >= 0) return mapped;
+    }
+    var defaultLang = String((pack && pack.language_code) || "").toLowerCase();
+    if (defaultLang && codes.indexOf(defaultLang) >= 0) return defaultLang;
+    var langs = (pack && pack.languages) || [];
+    for (var i = 0; i < langs.length; i++) {
+      if (!langs[i].is_default) continue;
+      var dc = String(langs[i].code || "").toLowerCase();
+      if (dc && codes.indexOf(dc) >= 0) return dc;
+    }
+    return codes[0];
+  }
+
+  function paintPrimaryLanguageBadges(grid, primaryCode) {
+    if (!grid) return;
+    var cards = grid.querySelectorAll("[data-rmc-language-code]");
+    for (var i = 0; i < cards.length; i++) {
+      var card = cards[i];
+      var code = String(card.getAttribute("data-rmc-language-code") || "").toLowerCase();
+      var input = card.querySelector('input[name="' + LANGUAGE_CODES_NAME + '"]');
+      var isPrimary = code && code === primaryCode && input && input.checked;
+      card.classList.toggle("rmc-signup-type-card--primary", !!isPrimary);
+      var badge = card.querySelector("[data-rmc-language-primary-badge]");
+      var starBtn = card.querySelector("[data-rmc-set-primary-language]");
+      if (badge) badge.hidden = !isPrimary;
+      if (starBtn) starBtn.hidden = !input || !input.checked || isPrimary;
+    }
+  }
+
+  function setPrimaryLanguage(code, pack, grid) {
+    var primary = String(code || "").toLowerCase();
+    var field = primaryLanguageField();
+    if (field) field.value = primary;
+    paintPrimaryLanguageBadges(grid, primary);
+    if (primary && pack) {
+      fetchPrimaryLanguageOverlay(primary);
+    }
+  }
+
+  function fetchPrimaryLanguageOverlay(lang) {
+    var cc = currentCountryCode();
+    if (!cc || !lang) return;
+    fetchPack(cc, lang).then(function (overlay) {
+      if (!overlay) return;
+      var grids = document.querySelectorAll(CARD_GRID_SELECTOR);
+      for (var i = 0; i < grids.length; i++) {
+        var kind = (grids[i].getAttribute("data-rmc-country-cards") || "").trim();
+        if (kind === CARD_KIND_CALENDAR) {
+          renderCalendarGrid(grids[i], overlay.calendar_systems || []);
+        } else if (kind === CARD_KIND_SCHOOL_TYPE) {
+          renderSchoolTypeGrid(grids[i], overlay.school_types || []);
+        }
+      }
+      renderTerminologyStrip(overlay.terminology || {});
+    });
+  }
+
+  function syncPrimaryFromSelection(pack, grid) {
+    var codes = selectedLanguageCodes(grid);
+    if (!codes.length) {
+      var langs = (pack && pack.languages) || [];
+      if (langs[0]) codes = [String(langs[0].code || "").toLowerCase()];
+    }
+    var field = primaryLanguageField();
+    var current = field ? String(field.value || "").toLowerCase() : "";
+    var next = current && codes.indexOf(current) >= 0
+      ? current
+      : resolveAutoPrimary(codes, pack);
+    setPrimaryLanguage(next, pack, grid);
+  }
+
+  function bindPrimaryLanguageButtons() {
+    document.body.addEventListener("click", function (ev) {
+      var btn = ev.target && ev.target.closest
+        ? ev.target.closest("[data-rmc-set-primary-language]")
+        : null;
+      if (!btn) return;
+      ev.preventDefault();
+      var code = String(btn.getAttribute("data-rmc-set-primary-language") || "").toLowerCase();
+      var grid = document.querySelector('[data-rmc-country-cards="' + CARD_KIND_LANGUAGE + '"]');
+      setPrimaryLanguage(code, null, grid);
+      fetchPrimaryLanguageOverlay(code);
+    });
+  }
+
   function onIndiaStateChange(ev) {
     var sel = ev.currentTarget;
     var opt = sel && sel.options[sel.selectedIndex];
@@ -164,6 +282,12 @@
     var ownCard = radio.closest(".rmc-calendar-card");
     if (ownCard) ownCard.classList.add("rmc-calendar-card--selected");
     radio.dispatchEvent(new Event("change", { bubbles: true }));
+    var langGrid = document.querySelector('[data-rmc-country-cards="' + CARD_KIND_LANGUAGE + '"]');
+    if (langGrid) {
+      fetchPack(currentCountryCode(), "").then(function (pack) {
+        syncPrimaryFromSelection(pack, langGrid);
+      });
+    }
   }
 
   function cssEscape(v) {
@@ -293,68 +417,73 @@
   }
 
   function renderLanguageGrid(grid, languages, defaultLangCode) {
-    // No languages -> hide the picker block entirely (monolingual + missing).
     var hostBlock = grid.closest("[data-rmc-language-block]");
     if (!languages || !languages.length) {
       if (hostBlock) hostBlock.hidden = true;
       grid.innerHTML = "";
       return;
     }
-    if (hostBlock) hostBlock.hidden = languages.length < 2;  // monolingual: hide picker; keep value implicit
-    var radioName = grid.getAttribute("data-rmc-country-cards-radio") || LANGUAGE_RADIO_DEFAULT;
-    // Preserve existing user pick when re-rendering for same country.
-    var prev = grid.querySelector("input[name=\"" + radioName + "\"]:checked");
-    var prevValue = prev ? prev.value : "";
-    var selected = "";
-    for (var i = 0; i < languages.length; i++) {
-      var code = String(languages[i].code || "").toLowerCase();
-      if (code === prevValue) { selected = code; break; }
+    if (hostBlock) hostBlock.hidden = languages.length < 2;
+    var checkboxName =
+      grid.getAttribute("data-rmc-country-cards-multi") || LANGUAGE_CODES_NAME;
+    var isMulti = grid.getAttribute("data-rmc-multi-select") === "1";
+    var selected = new Set();
+    var checked = grid.querySelectorAll(
+      'input[name="' + checkboxName + '"]:checked'
+    );
+    for (var i = 0; i < checked.length; i++) {
+      selected.add(String(checked[i].value || "").toLowerCase());
     }
-    if (!selected) selected = String(defaultLangCode || "").toLowerCase();
-    if (!selected && languages[0]) selected = String(languages[0].code || "").toLowerCase();
+    if (!selected.size) {
+      var fallback = String(defaultLangCode || "").toLowerCase();
+      if (fallback) selected.add(fallback);
+      else if (languages[0]) selected.add(String(languages[0].code || "").toLowerCase());
+    }
+    var field = primaryLanguageField();
+    var primary = field ? String(field.value || "").toLowerCase() : "";
+    if (!primary || !selected.has(primary)) {
+      primary = resolveAutoPrimary(Array.from(selected), {
+        language_code: defaultLangCode,
+        languages: languages,
+      });
+    }
     var frag = document.createDocumentFragment();
     for (var j = 0; j < languages.length; j++) {
-      frag.appendChild(buildLanguageCard(languages[j], radioName, selected));
+      frag.appendChild(
+        buildLanguageCard(
+          languages[j],
+          checkboxName,
+          selected,
+          primary,
+          isMulti
+        )
+      );
     }
     grid.innerHTML = "";
     grid.appendChild(frag);
-    // If we just landed a non-default language as the preserved pick,
-    // re-fetch the per-language overlay so calendar + school-type reflect it.
-    if (selected && selected !== String(defaultLangCode || "").toLowerCase()) {
-      var cc = currentCountryCode();
-      if (cc) {
-        fetchPack(cc, selected).then(function (overlay) {
-          if (!overlay) return;
-          var cgrids = document.querySelectorAll(CARD_GRID_SELECTOR);
-          for (var k = 0; k < cgrids.length; k++) {
-            var kind = (cgrids[k].getAttribute("data-rmc-country-cards") || "").trim();
-            if (kind === CARD_KIND_CALENDAR) {
-              renderCalendarGrid(cgrids[k], overlay.calendar_systems || []);
-            } else if (kind === CARD_KIND_SCHOOL_TYPE) {
-              renderSchoolTypeGrid(cgrids[k], overlay.school_types || []);
-            }
-          }
-        });
-      }
-    }
+    setPrimaryLanguage(primary, { language_code: defaultLangCode, languages: languages }, grid);
   }
 
-  function buildLanguageCard(lang, radioName, selectedCode) {
+  function buildLanguageCard(lang, inputName, selectedSet, primaryCode, isMulti) {
     var code = String(lang.code || "").toLowerCase();
     var native = String(lang.native_name || code);
     var region = String(lang.region || "");
-    var isDefault = !!lang.is_default;
     var hasOverlay = !!lang.has_education_system_overlay;
-    var isSelected = code === selectedCode;
+    var isSelected = selectedSet.has(code);
+    var isPrimary = code === primaryCode && isSelected;
     var lbl = document.createElement("label");
-    lbl.className = "rmc-signup-type-card" + (isSelected ? " rmc-signup-type-card--selected" : "");
+    lbl.className =
+      "rmc-signup-type-card" +
+      (isSelected ? " rmc-signup-type-card--selected" : "") +
+      (isPrimary ? " rmc-signup-type-card--primary" : "");
+    lbl.setAttribute("data-rmc-language-code", code);
     var input = document.createElement("input");
-    input.type = "radio";
-    input.name = radioName;
+    input.type = isMulti ? "checkbox" : "radio";
+    input.name = inputName;
     input.value = code;
     input.className = "rmc-signup-type-card__input";
     if (isSelected) input.checked = true;
-    input.addEventListener("change", onLanguageRadioChange);
+    input.addEventListener("change", onLanguageCheckboxChange);
     var title = document.createElement("span");
     title.className = "rmc-signup-type-card__title";
     title.textContent = native;
@@ -366,11 +495,20 @@
       sub.textContent = region;
       lbl.appendChild(sub);
     }
-    if (isDefault) {
+    if (isPrimary) {
       var badge = document.createElement("span");
       badge.className = "rmc-signup-type-card__badge";
-      badge.textContent = "Recommended";
+      badge.setAttribute("data-rmc-language-primary-badge", "1");
+      badge.textContent = "\u2605 Primary";
       lbl.appendChild(badge);
+    } else if (isMulti) {
+      var star = document.createElement("button");
+      star.type = "button";
+      star.className = "rmc-signup-type-card__star btn btn-link btn-sm p-0";
+      star.setAttribute("data-rmc-set-primary-language", code);
+      star.textContent = "Set primary";
+      star.hidden = !isSelected;
+      lbl.appendChild(star);
     }
     if (hasOverlay) {
       var hint = document.createElement("span");
@@ -378,27 +516,33 @@
       hint.textContent = "Region-specific education system";
       lbl.appendChild(hint);
     }
+    if (isMulti) {
+      var check = document.createElement("span");
+      check.className = "rmc-signup-type-card__check";
+      check.setAttribute("aria-hidden", "true");
+      check.textContent = "\u2713";
+      lbl.appendChild(check);
+    }
     return lbl;
   }
 
-  function onLanguageRadioChange(ev) {
+  function onLanguageCheckboxChange(ev) {
     onCardRadioChange(ev);
+    var grid = ev.currentTarget && ev.currentTarget.closest
+      ? ev.currentTarget.closest('[data-rmc-country-cards="' + CARD_KIND_LANGUAGE + '"]')
+      : document.querySelector('[data-rmc-country-cards="' + CARD_KIND_LANGUAGE + '"]');
     var input = ev.currentTarget;
-    if (!input || !input.value) return;
-    var lang = String(input.value).toLowerCase();
+    if (input && input.type === "checkbox" && !input.checked) {
+      var codes = selectedLanguageCodes(grid);
+      if (!codes.length) {
+        input.checked = true;
+        return;
+      }
+    }
     var cc = currentCountryCode();
     if (!cc) return;
-    fetchPack(cc, lang).then(function (overlay) {
-      if (!overlay) return;
-      var grids = document.querySelectorAll(CARD_GRID_SELECTOR);
-      for (var i = 0; i < grids.length; i++) {
-        var kind = (grids[i].getAttribute("data-rmc-country-cards") || "").trim();
-        if (kind === CARD_KIND_CALENDAR) {
-          renderCalendarGrid(grids[i], overlay.calendar_systems || []);
-        } else if (kind === CARD_KIND_SCHOOL_TYPE) {
-          renderSchoolTypeGrid(grids[i], overlay.school_types || []);
-        }
-      }
+    fetchPack(cc, "").then(function (pack) {
+      syncPrimaryFromSelection(pack, grid);
     });
   }
 

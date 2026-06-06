@@ -43,8 +43,8 @@ _TASK_HINTS: dict[str, str] = {
         "Control plane dashboards summarize fleet posture: tenants, migration cloud, marketplace, support."
     ),
     "setup_recommend": (
-        "New schools: enable branding, academic year, roles, and data import before go-live. "
-        "Tenant Studio wizard on the manager host walks provisioning when you have super-admin access."
+        "New schools on the manager host: use **Schools → Rapid Create** for a one-form tenant, "
+        "or **Create school wizard** for staged provisioning. Track async jobs under **Provisioning jobs**."
     ),
     "config_explain": (
         "Configuration Control Center groups bounded settings domains; avoid scattered raw admin edits."
@@ -55,7 +55,11 @@ _TASK_HINTS: dict[str, str] = {
 }
 
 _QUERY_TOPICS: tuple[tuple[re.Pattern[str], str], ...] = (
-    (re.compile(r"\b(tenant studio|create school|provision|wizard)\b", re.I), "setup_recommend"),
+    (
+        re.compile(r"\b(add tenant|new tenant|create tenant|provision tenant|how can i add a tenant)\b", re.I),
+        "setup_recommend",
+    ),
+    (re.compile(r"\b(tenant studio|create school|provision|wizard|rapid create)\b", re.I), "setup_recommend"),
     (re.compile(r"\b(studio os|theme builder|theme experience|branding|portal theme)\b", re.I), "studio_os_assistant"),
     (re.compile(r"\b(oneroster|interop|sis|lms|clever|classlink)\b", re.I), "interop_assistant"),
     (re.compile(r"\b(slo|observability|latency|metrics|health dashboard)\b", re.I), "observability_assistant"),
@@ -85,6 +89,60 @@ def _infer_task_from_query(query: str, task_key: str, metadata: dict[str, Any] |
         if not guided_task_allowed_for_permissions(inferred, perms):
             return "general_chat"
     return inferred
+
+
+def _operator_provisioning_guidance(
+    *,
+    metadata: dict[str, Any] | None,
+    query: str,
+) -> tuple[str, list[dict[str, str]], list[str]]:
+    """Concrete manager-host paths for tenant provisioning questions."""
+    request = (metadata or {}).get("request")
+    if request is None:
+        return "", [], []
+    if getattr(request, "public_host_kind", None) != "manager":
+        return "", [], []
+    perms = (metadata or {}).get("permissions")
+    if not isinstance(perms, dict):
+        return "", [], []
+    if not perms.get("can_provision_tenants") and not perms.get("can_view_fleet_ops"):
+        return "", [], []
+
+    q = (query or "").lower()
+    if not re.search(r"\b(tenant|school|provision|rapid create|add tenant|create school)\b", q):
+        return "", [], []
+
+    try:
+        from django.urls import reverse
+
+        rapid = reverse("super:schools_rapid_create")
+        wizard = reverse("super:create_school_wizard")
+        jobs = reverse("super:provisioning_jobs")
+    except Exception:
+        return "", [], []
+
+    text = (
+        "**Add a tenant on the manager host**\n"
+        f"1. **Rapid Create** — `{rapid}` — fastest path: name, slug, country, optional template.\n"
+        f"2. **Create school wizard** — `{wizard}` — staged provisioning with review checkpoints.\n"
+        f"3. **Provisioning jobs** — `{jobs}` — monitor async migrations and seed tasks.\n"
+        "After the tenant exists, open it from **Schools list** or use **Open as school** to finish Setup Studio."
+    )
+    actions = [
+        {
+            "title": "Open Rapid Create",
+            "detail": f"One-form tenant provisioning — {rapid}",
+        },
+        {
+            "title": "Open Create school wizard",
+            "detail": f"Staged provisioning with checkpoints — {wizard}",
+        },
+        {
+            "title": "View provisioning jobs",
+            "detail": f"Track queued migrations — {jobs}",
+        },
+    ]
+    return text, actions, [rapid, wizard, jobs]
 
 
 def _format_rag_snippets(rag_snippets: list[dict[str, Any]] | None) -> tuple[str, list[str], list[dict[str, str]]]:
@@ -247,6 +305,17 @@ def build_guided_fallback(
         rag_snippets = (rag_snippets or []) + list(extra_rows)
 
     topology_text, topo_actions, topo_refs = _topology_guidance(metadata=metadata, query=query)
+    provision_text, provision_actions, provision_refs = _operator_provisioning_guidance(
+        metadata=metadata,
+        query=query,
+    )
+    if provision_text:
+        if topology_text:
+            topology_text = provision_text + "\n\n" + topology_text
+        else:
+            topology_text = provision_text
+        topo_actions = provision_actions + topo_actions
+        topo_refs = list(dict.fromkeys(provision_refs + topo_refs))
 
     summary = _compose_summary(
         query=query,

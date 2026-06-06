@@ -49,6 +49,26 @@ def build_student_one_record_data(
     if getattr(student, "academic_year_id", None):
         profile["academic_year_name"] = getattr(student.academic_year, "name", "") or ""
 
+    information_tags: list[dict[str, Any]] = []
+    try:
+        tag_qs = getattr(student, "tags", None)
+        if tag_qs is not None:
+            for tag in tag_qs.filter(is_active=True).order_by("name"):
+                information_tags.append(
+                    {
+                        "id": tag.pk,
+                        "name": tag.name,
+                        "category": tag.category,
+                        "category_display": tag.get_category_display(),
+                        "color_hex": tag.color_hex or "",
+                        "is_private": bool(tag.is_private),
+                        "is_critical": bool(tag.is_critical),
+                    }
+                )
+    except Exception:
+        pass
+    profile["information_tags"] = information_tags
+
     academics: dict[str, Any] = {"recent_evaluations": []}
     try:
         from apps.evals.models import Evaluation
@@ -185,9 +205,17 @@ def build_student_one_record_data(
     return {
         "student_id": str(sid),
         "school_id": str(school_id) if school_id else "",
-        "sections": ["profile", "academics", "attendance", "finance", "communications"],
+        "sections": [
+            "profile",
+            "tags",
+            "academics",
+            "attendance",
+            "finance",
+            "communications",
+        ],
         "data": {
             "profile": profile,
+            "tags": {"items": information_tags},
             "academics": academics,
             "attendance": attendance,
             "finance": finance,
@@ -245,11 +273,19 @@ def build_student_story_preview(
     if att.get("last_date"):
         attendance_line = f"{att.get('last_status_display', att.get('last_status', ''))} ({att['last_date']})"
 
+    tags_line = "—"
+    tag_items = (prof.get("information_tags") or []) if isinstance(prof, dict) else []
+    if tag_items:
+        tags_line = ", ".join(str(t.get("name") or "") for t in tag_items[:4] if t.get("name"))
+        if len(tag_items) > 4:
+            tags_line += f" (+{len(tag_items) - 4})"
+
     return {
         "academic_line": academic_line,
         "finance_line": finance_line,
         "communication_line": comm_line,
         "attendance_line": attendance_line,
+        "tags_line": tags_line,
     }
 
 

@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-05T19:10:49.695646+00:00",
-  "verdict": "POLY_INSTITUTION_GOVERNANCE_STACK_FAIL",
-  "finding_count": 2,
+  "generated_at": "2026-06-06T22:22:17.362121+00:00",
+  "verdict": "POLY_INSTITUTION_GOVERNANCE_STACK_PASS",
+  "finding_count": 0,
   "checks": [
     {
       "id": "apps/governance/models.py",
@@ -87,12 +87,12 @@
     {
       "id": "verify_hierarchy_silo_drift.py",
       "status": "PASS",
-      "proof": "_base_url_missing\n    logger.info(msg)\nMessage: \"integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\"\nArguments: ()"
+      "proof": "query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
     },
     {
       "id": "verify_global_operational_blind_spots.py",
       "status": "PASS",
-      "proof": "_scheme=- server_name=- (0.004) SELECT \"registries_countryregistry\".\"code\", \"registries_countryregistry\".\"cockpit_override_payload\" FROM \"registries_countryregistry\" WHERE \"registries_countryregistry\".\"code\" = 'CM' ORDER BY \"registries_countryregistry\".\"name\" ASC LIMIT 1; args=('CM',); alias=default"
+      "proof": "_scheme=- server_name=- (0.006) SELECT \"registries_countryregistry\".\"code\", \"registries_countryregistry\".\"cockpit_override_payload\" FROM \"registries_countryregistry\" WHERE \"registries_countryregistry\".\"code\" = 'CM' ORDER BY \"registries_countryregistry\".\"name\" ASC LIMIT 1; args=('CM',); alias=default"
     },
     {
       "id": "verify_school_operating_modes.py",
@@ -121,17 +121,14 @@
     },
     {
       "id": "verify_group_console_http_contract.py",
-      "status": "FAIL",
-      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_group_console_http_contract.py']' timed out after 900 seconds"
+      "status": "PASS",
+      "proof": "verify_group_console_http_contract: GROUP_CONSOLE_HTTP_CONTRACT_PASS"
     },
     {
       "id": "verify_multicampus_wedge_http_contract.py",
-      "status": "FAIL",
-      "proof": "Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_multicampus_wedge_http_contract.py']' timed out after 900 seconds"
+      "status": "PASS",
+      "proof": "verify_multicampus_wedge_http_contract: MULTICAMPUS_WEDGE_HTTP_CONTRACT_PASS"
     }
   ],
-  "failures": [
-    "verify_group_console_http_contract.py failed: Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_group_console_http_contract.py']' timed out after 900 seconds",
-    "verify_multicampus_wedge_http_contract.py failed: Command '['C:\\\\Python314\\\\python.exe', 'C:\\\\Users\\\\yimga\\\\Documents\\\\HY_DOC_MAINPC\\\\Docs for Others_Friends_family\\\\Gilead Tech High\\\\beta\\\\school-management-system\\\\scripts\\\\verify_multicampus_wedge_http_contract.py']' timed out after 900 seconds"
-  ]
+  "failures": []
 }

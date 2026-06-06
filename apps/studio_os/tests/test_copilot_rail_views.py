@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 
 from apps.studio_os.views_copilot_rail import (
@@ -217,3 +217,55 @@ class CopilotRailSendRbacTests(TestCase):
         body = json.loads(response.content.decode("utf-8"))
         self.assertEqual(body.get("error"), "permission_denied")
         mock_invoke.assert_not_called()
+
+
+class CopilotRailSendGuidedReplyTests(SimpleTestCase):
+    """Rail send must surface guided_assistant payloads as readable chat text."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.operator = SimpleNamespace(
+            is_authenticated=True,
+            is_staff=True,
+            is_superuser=True,
+            pk=1,
+            role="ADMIN",
+        )
+
+    @patch("apps.studio_os.views_copilot_rail._prepare_rail_invoke")
+    @patch("services.ai_helpers.invoke_with_request")
+    def test_send_view_formats_guided_assistant_dict(self, mock_invoke, mock_prepare):
+        from services.ai_copilot_rbac import CopilotRbacEnvelope
+
+        mock_prepare.return_value = CopilotRbacEnvelope(
+            allowed=True,
+            denial_reason="",
+            permissions={"scope": "admin"},
+            prompt="test prompt",
+            metadata={"surface": "studio_os_copilot_rail"},
+        )
+        mock_invoke.return_value = (
+            {
+                "summary": "Use Rapid Create to add a tenant.",
+                "actions": [{"title": "Open Rapid Create", "detail": "/super/schools/rapid/"}],
+                "cautions": [],
+                "references": [],
+            },
+            {"provider": "rules", "tier": "rules", "posture_mode": "guided"},
+        )
+        request = self.factory.post(
+            "/studio/copilot/rail/send/",
+            data=json.dumps({"message": "how can i add a tenant"}),
+            content_type="application/json",
+        )
+        request.user = self.operator
+        request.public_host_kind = "manager"
+        _attach_school(request, None)
+        response = CopilotRailSendView.as_view()(request)
+        self.assertEqual(response.status_code, 200)
+        body = json.loads(response.content.decode("utf-8"))
+        self.assertIn("Rapid Create", body.get("reply", ""))
+        self.assertEqual(body.get("source"), "rules")
+        mock_invoke.assert_called_once()
+        _kwargs = mock_invoke.call_args.kwargs
+        self.assertEqual(_kwargs.get("response_schema"), "guided_assistant")
