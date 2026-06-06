@@ -51305,3 +51305,119 @@ msgstr "See pricing"
 
 msgid "Transparent, indicative pricing"
 msgstr "Transparent, indicative pricing"
+
+msgid "Approve / Reject"
+msgstr "Approve / Reject"
+
+msgid "Ask a question about your school…"
+msgstr "Ask a question about your school…"
+
+msgid "Available destructive actions"
+msgstr "Available destructive actions"
+
+msgid "Destructive actions"
+msgstr "Destructive actions"
+
+msgid "Destructive actions (dual-control)"
+msgstr "Destructive actions (dual-control)"
+
+msgid ""
+"Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to "
+"enable."
+msgstr ""
+"Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to "
+"enable."
+
+msgid "Destructive layer is off"
+msgstr "Destructive layer is off"
+
+msgid "Justification"
+msgstr "Justification"
+
+msgid "More navigation"
+msgstr "More navigation"
+
+msgid "More navigation items"
+msgstr "More navigation items"
+
+msgid "No destructive actions are bound."
+msgstr "No destructive actions are bound."
+
+msgid "No requests awaiting approval."
+msgstr "No requests awaiting approval."
+
+msgid "Open incidents"
+msgstr "Open incidents"
+
+msgid "Pending requests (awaiting a second operator)"
+msgstr "Pending requests (awaiting a second operator)"
+
+msgid ""
+"Phase 3 — irreversible. One operator requests; a different operator must "
+"approve before anything runs. Approval routes through the platform's GDPR "
+"Art. 17 erasure pipeline (anonymization, audited). Every step is recorded."
+msgstr ""
+"Phase 3 — irreversible. One operator requests; a different operator must "
+"approve before anything runs. Approval routes through the platform's GDPR "
+"Art. 17 erasure pipeline (anonymization, audited). Every step is recorded."
+
+msgid "Recent audit (PII-free)"
+msgstr "Recent audit (PII-free)"
+
+msgid "Request a destructive action"
+msgstr "Request a destructive action"
+
+msgid "Schools needing attention"
+msgstr "Schools needing attention"
+
+msgid "Student pk"
+msgstr "Student pk"
+
+msgid "Submit request (needs a second approver)"
+msgstr "Submit request (needs a second approver)"
+
+msgid "Suspended"
+msgstr "Suspended"
+
+msgid "Tenant status colour key"
+msgstr "Tenant status colour key"
+
+msgid "That action is not a Phase-3 destructive action."
+msgstr "That action is not a Phase-3 destructive action."
+
+msgid ""
+"This surface stays inert until the destructive flag is set. It is "
+"independent of the read-only and mutating tiers — turning it on is a "
+"deliberate, separate decision."
+msgstr ""
+"This surface stays inert until the destructive flag is set. It is "
+"independent of the read-only and mutating tiers — turning it on is a "
+"deliberate, separate decision."
+
+msgid ""
+"Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE "
+"42</code>) to confirm."
+msgstr ""
+"Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE "
+"42</code>) to confirm."
+
+msgid "What this means"
+msgstr "What this means"
+
+msgid "Why this record must be erased (recorded on the erase request)."
+msgstr "Why this record must be erased (recorded on the erase request)."
+
+msgid "dual-control"
+msgstr "dual-control"
+
+msgid "expired"
+msgstr "expired"
+
+msgid "here to help"
+msgstr "here to help"
+
+msgid "need attention"
+msgstr "need attention"
+
+msgid "{{ count }} incident{% plural %}{{ count }} incidents"
+msgstr "{{ count }} incident{% plural %}{{ count }} incidents"

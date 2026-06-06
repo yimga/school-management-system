@@ -45705,3 +45705,109 @@ msgstr ""
 
 msgid "Transparent, indicative pricing"
 msgstr ""
+
+msgid "Approve / Reject"
+msgstr ""
+
+msgid "Ask a question about your school…"
+msgstr ""
+
+msgid "Available destructive actions"
+msgstr ""
+
+msgid "Destructive actions"
+msgstr ""
+
+msgid "Destructive actions (dual-control)"
+msgstr ""
+
+msgid ""
+"Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to "
+"enable."
+msgstr ""
+
+msgid "Destructive layer is off"
+msgstr ""
+
+msgid "Justification"
+msgstr ""
+
+msgid "More navigation"
+msgstr ""
+
+msgid "More navigation items"
+msgstr ""
+
+msgid "No destructive actions are bound."
+msgstr ""
+
+msgid "No requests awaiting approval."
+msgstr ""
+
+msgid "Open incidents"
+msgstr ""
+
+msgid "Pending requests (awaiting a second operator)"
+msgstr ""
+
+msgid ""
+"Phase 3 — irreversible. One operator requests; a different operator must "
+"approve before anything runs. Approval routes through the platform's GDPR "
+"Art. 17 erasure pipeline (anonymization, audited). Every step is recorded."
+msgstr ""
+
+msgid "Recent audit (PII-free)"
+msgstr ""
+
+msgid "Request a destructive action"
+msgstr ""
+
+msgid "Schools needing attention"
+msgstr ""
+
+msgid "Student pk"
+msgstr ""
+
+msgid "Submit request (needs a second approver)"
+msgstr ""
+
+msgid "Suspended"
+msgstr ""
+
+msgid "Tenant status colour key"
+msgstr ""
+
+msgid "That action is not a Phase-3 destructive action."
+msgstr ""
+
+msgid ""
+"This surface stays inert until the destructive flag is set. It is "
+"independent of the read-only and mutating tiers — turning it on is a "
+"deliberate, separate decision."
+msgstr ""
+
+msgid ""
+"Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE "
+"42</code>) to confirm."
+msgstr ""
+
+msgid "What this means"
+msgstr ""
+
+msgid "Why this record must be erased (recorded on the erase request)."
+msgstr ""
+
+msgid "dual-control"
+msgstr ""
+
+msgid "expired"
+msgstr ""
+
+msgid "here to help"
+msgstr ""
+
+msgid "need attention"
+msgstr ""
+
+msgid "{{ count }} incident{% plural %}{{ count }} incidents"
+msgstr ""

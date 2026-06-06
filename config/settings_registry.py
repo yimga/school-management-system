@@ -753,6 +753,33 @@ SETTINGS_REGISTRY: tuple[SettingSpec, ...] = (
     SettingSpec("SOCIAL_LIVE_PUBLISH_ENABLED", "bool", "False", "marketing", "Enable live publishing to social-media providers."),
     # Tenant offboarding
     SettingSpec("TENANT_OFFBOARDING_PLATFORM_EMAILS", "str", '""', "ops", "Comma-separated platform notification emails for tenant offboarding."),
+    # Messaging / email infrastructure (schoolops + communication waves)
+    SettingSpec("SCHOOLOPS_EMAIL_ASYNC_USE_CELERY", "bool", "False", "communication", "Route transactional email sends through Celery instead of a daemon thread."),
+    SettingSpec("SCHOOLOPS_EMAIL_DLQ_ENABLED", "bool", "False", "communication", "Enable the email dead-letter queue for failed sends."),
+    SettingSpec("SCHOOLOPS_EMAIL_DLQ_MAX_REDRIVES", "int", "5", "communication", "Max redrive attempts before an email dead-letter is abandoned."),
+    SettingSpec("SCHOOLOPS_EMAIL_SMTP_HOST_ALLOWLIST", "str", '""', "security", "Comma-separated SMTP host allowlist (SSRF guard for relay config)."),
+    SettingSpec("SCHOOLOPS_EMAIL_STUCK_QUEUED_MINUTES", "int", "30", "communication", "Minutes a queued email may sit before the stuck-queue beat alerts."),
+    SettingSpec("RMC_AUTO_ENQUEUE_OUTBOUND", "bool", "True", "communication", "Auto-enqueue SMS/WhatsApp to the outbound queue on provider failure."),
+    SettingSpec("EMAIL_DKIM_RELAY_TRUSTED", "bool", "False", "communication", "Trust the upstream relay to apply DKIM signing (skip local signing check)."),
+    SettingSpec("RMC_LIST_ID", "str", '""', "communication", "List-ID header value for bulk/newsletter email."),
+    SettingSpec("RMC_LIST_UNSUBSCRIBE_MAILTO", "str", '""', "communication", "List-Unsubscribe mailto: target for bulk email."),
+    SettingSpec("RMC_COMPANY_LEGAL_NAME", "str", '"RunMyCampus"', "ops", "Legal company name for email footers / legal documents."),
+    SettingSpec("RMC_COMPANY_POSTAL_ADDRESS", "str", '""', "ops", "Postal address for the CAN-SPAM-compliant email footer."),
+    # SMS inbound webhook (communication wave)
+    SettingSpec("RMC_SMS_HELP_REPLY", "str", '""', "communication", "Auto-reply body sent for an inbound SMS HELP keyword."),
+    SettingSpec("RMC_SMS_WEBHOOK_ALLOW_QUERY_SECRET", "bool", "False", "security", "Allow SMS inbound webhook auth via a query-string secret (legacy fallback)."),
+    SettingSpec("RMC_SMS_WEBHOOK_REQUIRE_TWILIO_SIGNATURE", "bool", "True", "security", "Require a valid Twilio signature on inbound SMS webhooks."),
+    SettingSpec("RMC_SMS_WEBHOOK_SHARED_SECRET", "str", '""', "security", "Shared secret for verifying inbound SMS webhook requests."),
+    # Security / auth posture
+    SettingSpec("RMC_SUSPICIOUS_LOGIN_ALERTS_ENABLED", "bool", "True", "security", "Email the user on a new-device / suspicious login."),
+    SettingSpec("RMC_SCIM_ALLOW_DEV_OPEN", "bool", "False", "security", "Allow open (unauthenticated) SCIM in dev only — never enable in prod."),
+    SettingSpec("RATE_LIMIT_TRUSTED_PROXY_COUNT", "int", "0", "security", "Number of trusted reverse proxies when parsing X-Forwarded-For."),
+    SettingSpec("SECURITY_POSTURE_REVIEW_NAG_ENABLED", "bool", "True", "security", "Nag operators to complete the periodic security-posture review."),
+    SettingSpec("SIGNUP_MAX_PER_WINDOW", "int", "5", "security", "Max self-service signups permitted per rate-limit window."),
+    SettingSpec("SIGNUP_RATE_WINDOW_SECONDS", "int", "3600", "security", "Signup rate-limit window length in seconds."),
+    # Compliance
+    SettingSpec("COMPLIANCE_AUDIT_ACCESS_LOG_MIDDLEWARE_WRITES", "bool", "True", "compliance", "Whether the audit-access-log middleware persists access rows."),
+    SettingSpec("COMPLIANCE_ERASURE_SLA_DAYS", "int", "30", "compliance", "SLA window (days) for fulfilling a GDPR erasure request."),
 )
 
 

@@ -31,14 +31,29 @@ logger = logging.getLogger(__name__)
 
 
 def _scope_school(tenant_id: str):
-    """Resolve the School for tenant-scoped lookups. Reuses the mutating-sibling
-    resolver (pk-first, slug fallback) so UUID + int + slug tenants all work."""
-    try:
-        from services.ai_agentic_runners_mutating import _scope_school as _mut_scope
+    """Resolve the School for tenant-scoped lookups.
 
-        return _mut_scope(tenant_id)
+    Resolves by primary key first — this handles BOTH UUID pks (``School.id`` is
+    a UUIDField) and integer pks, since Django coerces the string form. Falls
+    back to slug for non-pk tenant handles (e.g. ``"platform"``). Self-contained
+    (does not delegate to the mutating sibling) so a destructive lookup never
+    silently no-ops on a UUID tenant if that sibling's resolver lags behind."""
+    tid = str(tenant_id or "").strip()
+    if not tid:
+        return None
+    try:
+        from django.core.exceptions import ValidationError
+        from apps.schools.models import School  # type: ignore
+
+        try:
+            school = School.objects.filter(pk=tid).first()
+        except (ValueError, TypeError, ValidationError):
+            school = None
+        if school is not None:
+            return school
+        return School.objects.filter(slug=tid).first()
     except Exception as exc:  # noqa: BLE001
-        logger.warning("destructive _scope_school failed tenant=%s err=%s", tenant_id, exc)
+        logger.warning("destructive _scope_school failed tenant=%s err=%s", tid, exc)
         return None
 
 

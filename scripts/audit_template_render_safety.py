@@ -50,6 +50,14 @@ THIRD_PARTY_STATIC_PREFIXES = (
     "unfold/",
 )
 
+# Gitignored build-output directories (vite/rollup bundles). These are produced
+# at build/deploy time and are absent at lint time, so a "file not found" here
+# is a build-timing artifact, not a real broken reference. The gate still
+# catches genuinely-missing COMMITTED assets (typos, deleted images).
+BUILD_ARTIFACT_STATIC_PREFIXES = (
+    "js/dist/",
+)
+
 
 def iter_templates() -> list[Path]:
     out: list[Path] = []
@@ -267,6 +275,8 @@ def find_missing_refs(text: str) -> list[tuple[int, str]]:
         if "{" in path or "}" in path:
             continue
         if any(path.startswith(prefix) for prefix in THIRD_PARTY_STATIC_PREFIXES):
+            continue
+        if any(path.startswith(prefix) for prefix in BUILD_ARTIFACT_STATIC_PREFIXES):
             continue
         candidate = STATIC_ROOT / path
         if not candidate.exists():

@@ -74,7 +74,7 @@
 .rmc-nav-sidebar__toggle-label {
   font-size: var(--type-size-xs, 0.75rem);
   color: var(--text-tertiary);
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short nav toggle label, hidden entirely in rail mode */
 }
 
 .rmc-app-shell[data-rmc-nav-sidebar="rail"] .rmc-nav-sidebar__toggle-label {

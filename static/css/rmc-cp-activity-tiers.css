@@ -137,7 +137,7 @@ button.rmc-cp-ticker-inline:focus-visible {
   border-radius: var(--radius-sm, 8px);
   font-size: var(--type-size-xs, 11px);
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: single-row inline ticker badge, truncated via max-width + ellipsis on __text */
   flex-shrink: 1;
 }
 
@@ -173,4 +173,113 @@ button.rmc-cp-ticker-inline:focus-visible {
 .rmc-cp-activity-feed__item--warn .rmc-cp-activity-feed__text,
 .rmc-cp-activity-feed__item--warning .rmc-cp-activity-feed__text {
   color: var(--warning, #f59e0b);
+}
+
+/* ---------------------------------------------------------------------------
+ * Activity-feed container + BEM elements (siblings of __item / __text above).
+ * ------------------------------------------------------------------------- */
+.rmc-cp-activity-feed {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rmc-cp-activity-feed__icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--space-2, 8px) * 2.5);
+  font-size: var(--type-size-sm, 13px);
+  line-height: 1;
+}
+
+.rmc-cp-activity-feed__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.rmc-cp-activity-feed__time {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--type-size-xs, 11px);
+}
+
+/* Drawer tenant variant — recessive accent so tenant brand wins. */
+.rmc-cp-activity-drawer--tenant .rmc-cp-activity-feed__item {
+  border-bottom-color: color-mix(in oklab, var(--accent, #4f46e5) 18%, var(--hairline));
+}
+
+/* ---------------------------------------------------------------------------
+ * Inline ticker — legacy companion class + tenant modifier.
+ * ------------------------------------------------------------------------- */
+.cp-activity-ticker-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--space-2, 8px) * 0.75);
+  min-width: 0;
+}
+
+.rmc-cp-ticker-inline--tenant {
+  max-width: min(220px, 28vw);
+}
+
+/* ---------------------------------------------------------------------------
+ * Landing ticker tenant companion + landing pulse dot.
+ * ------------------------------------------------------------------------- */
+.rmc-tenant-landing-ticker {
+  width: 100%;
+}
+
+.rmc-cp-landing-pulse {
+  display: inline-block;
+  width: calc(var(--space-2, 8px));
+  height: calc(var(--space-2, 8px));
+  border-radius: 50%;
+  background: var(--success, #22c55e);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--success, #22c55e) 60%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+ * Incident-banner snooze / dismiss controls (siblings of __open above).
+ * ------------------------------------------------------------------------- */
+.rmc-cp-incident-banner__snooze,
+.rmc-cp-incident-banner__dismiss {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--type-size-xs, 11px);
+}
+
+.rmc-cp-incident-banner__snooze:hover,
+.rmc-cp-incident-banner__snooze:focus-visible,
+.rmc-cp-incident-banner__dismiss:hover,
+.rmc-cp-incident-banner__dismiss:focus-visible {
+  color: var(--text-primary);
+}
+
+.rmc-cp-incident-banner__dismiss {
+  margin-inline-start: calc(var(--space-2, 8px) * 0.5);
+}
+
+/* ---------------------------------------------------------------------------
+ * Workflow flight-deck loading state + signup local-terminology hint.
+ * ------------------------------------------------------------------------- */
+.rmc-wfp-flight-deck__loading {
+  padding: calc(var(--space-2, 8px) * 2);
+  color: var(--text-muted);
+  font-size: var(--type-size-sm, 13px);
+  text-align: center;
+}
+
+.rmc-wfp-tenant-trust__body {
+  min-width: 0;
+  color: var(--text-secondary, var(--text-muted));
+}
+
+.rmc-signup-local-terminology {
+  color: var(--text-muted);
+  font-size: var(--type-size-sm, 13px);
 }
