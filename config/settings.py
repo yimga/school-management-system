@@ -882,17 +882,38 @@ if _USE_S3_MEDIA:
 else:
     _media_storage = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
 
-# NOTE: the legacy STATICFILES_STORAGE = whitenoise.CompressedManifestStaticFilesStorage
-# setting was removed in Django 5.1 and was already inert here on Django 5.2 —
-# static files are still compressed/served by WhiteNoiseMiddleware. Restoring the
-# hashed-manifest backend (and a test-safe override) is tracked separately in
-# docs/OPEN_SOURCE_POSTURE_AUDIT_2026_06_03.md so it can be validated against
-# collectstatic on its own. Here we keep the framework-default staticfiles
-# backend (current effective behaviour) and only make media storage swappable.
+# Static-files backend — PERFORMANCE-CRITICAL.
+#
+# Operator pages reference ~200 static assets. Under the framework-default
+# StaticFilesStorage the filenames carry no content hash, so WhiteNoise serves
+# them with a short/zero max-age and the browser revalidates EVERY asset on EVERY
+# navigation — the dominant cause of slow page loads. The hashed-manifest backend
+# lets WhiteNoise mark each asset `immutable` (max-age=31536000) + pre-compress it
+# (gzip/brotli), so repeat visits make ~zero asset requests.
+#
+# It was previously left disabled because the *strict* manifest backend aborts
+# collectstatic on a missing referenced file (vendored unfold chart.js points at a
+# source map upstream omits). apps.siteconfig.staticfiles_storage provides a
+# FORGIVING subclass that leaves such stray references un-hashed instead of failing
+# the build — verified: collectstatic OK, 1173 hashed entries, gzip+brotli emitted.
+#
+# Enabled for PRODUCTION ONLY. Dev (DEBUG) and test runs keep the plain backend so
+# runserver / the test client resolve {% static %} without a pre-built manifest
+# (the manifest backend raises if staticfiles.json is absent). Escape hatch:
+# STATIC_MANIFEST=0 forces plain even in prod (e.g. if a deploy can't run collectstatic).
+_USE_MANIFEST_STATIC = (
+    (os.getenv("STATIC_MANIFEST", "").strip() not in ("0", "false", "False"))
+    and not DEBUG
+    and not RUNNING_TESTS
+)
 STORAGES = {
     "default": _media_storage,
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+        "BACKEND": (
+            "apps.siteconfig.staticfiles_storage.ForgivingCompressedManifestStaticFilesStorage"
+            if _USE_MANIFEST_STATIC
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        )
     },
 }
 
