@@ -2033,6 +2033,7 @@ from .models_ai import (  # noqa: F401
 from .models_feature_controls import FeatureUsageEvent  # noqa: F401
 from .models_runtime_ops import BreakGlassOverride, BroadcastCampaign  # noqa: F401
 from .models_marketing import ProductFeedback, MarketingContent, BlogPost  # noqa: F401
+from .models_marketing_testimonial import MarketingTestimonial  # noqa: F401
 from .models_global_experience import (  # noqa: F401
     GlobalSyllabus,
     ImpersonationLog,
