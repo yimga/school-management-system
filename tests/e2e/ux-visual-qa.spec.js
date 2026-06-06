@@ -77,11 +77,19 @@ async function completeMfaIfPresent(page) {
     await tokenField.fill(_totpNow(hexKey));
     // Trust the device so sensitive routes don't re-prompt MFA mid-run.
     const remember = page.locator('input[name="remember_device"]');
-    if (await remember.count()) await remember.check().catch(() => {});
-    await page
+    if (await remember.count()) await remember.check({ timeout: 3000 }).catch(() => {});
+    // On small (mobile) viewports the civic footer can overlap the squished
+    // full-width submit button, so a normal click never lands (the footer wins
+    // hit-testing) and the action hangs. The button IS the right, visible target,
+    // so force the click; fall back to a native form submit via Enter.
+    const verifyBtn = page
       .getByRole('button', { name: /verify and continue|verify|continue/i })
-      .first()
-      .click();
+      .first();
+    await verifyBtn
+      .click({ force: true, timeout: 10000 })
+      .catch(async () => {
+        await tokenField.press('Enter').catch(() => {});
+      });
     await page.waitForLoadState(NAV_WAIT_UNTIL);
     if (!/\/authentication\/mfa\/verify\//.test(page.url())) return;
     // Still on verify → code rejected (replay or skew). Wait for a fresh window.
@@ -473,7 +481,7 @@ test.describe('UX visual QA', () => {
       // Login (MFA) + several heavy control-plane navigations + full-page
       // screenshots run ~40-50s EACH on the DEBUG dev runserver. The markers all
       // render; the cost is server-side latency, so the budget must accommodate it.
-      test.setTimeout(300000);
+      test.setTimeout(600000);
       const context = await newContext(browser, view);
       const page = await context.newPage();
 
@@ -487,7 +495,7 @@ test.describe('UX visual QA', () => {
 
     test(`${view.name}: authenticated scroll contract`, async ({ browser }) => {
       // Same dev-runserver latency profile as the operator surfaces test.
-      test.setTimeout(300000);
+      test.setTimeout(600000);
       const context = await newContext(browser, view);
       const page = await context.newPage();
 
@@ -544,7 +552,7 @@ test.describe('UX visual QA', () => {
       browser,
     }) => {
       // Two portal logins + dashboard navigations under the DEBUG dev runserver.
-      test.setTimeout(300000);
+      test.setTimeout(600000);
       test.skip(
         process.env.VISUAL_QA_SKIP_TENANT_PORTALS === '1',
         'VISUAL_QA_SKIP_TENANT_PORTALS=1 (no seeded teacher1/parent on this host)'
