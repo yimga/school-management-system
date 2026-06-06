@@ -1,18 +1,50 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
 {% load i18n %}
-
-{% block title %}{% trans "Too many requests" %}{% endblock %}
-
-{% block content %}
-<section class="error-page" aria-labelledby="error-429-title">
-  <div>
-    <div class="error-code-display" aria-hidden="true">429</div>
-    <h1 id="error-429-title" class="error-title">{% trans "Slow down for a moment." %}</h1>
-    <p class="error-message">{{ message|default:_("You've made too many requests in a short window. Please wait about a minute, then try again — this protects fair access for everyone.") }}</p>
-    <div class="error-actions">
-      <a href="javascript:history.back()" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>{% trans "Go back" %}</a>
-      <a href="{% url 'accounts:redirect' %}" class="btn btn-primary"><i class="bi bi-house me-1"></i>{% trans "Go to dashboard" %}</a>
+{% comment %}
+Standalone, dependency-free 429. This page is reachable on hot PUBLIC paths
+(e.g. the signup slug-availability endpoint behind a per-IP rate limit). It must
+NOT extend the full dashboard shell (base.html) — rendering ~400 lines of
+operator chrome + every context processor for a logged-out visitor who tripped a
+throttle is exactly the worker-starving render storm we are eliminating. Colours
+defer to the OS via `color-scheme` so the page is dark-mode-safe without any
+hardcoded literals.
+{% endcomment %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <title>{% trans "Too many requests" %}</title>
+  <style>
+    :root { color-scheme: light dark; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      display: grid; place-items: center; padding: 2rem;
+      line-height: 1.5; -webkit-font-smoothing: antialiased;
+    }
+    main { max-width: 32rem; text-align: center; }
+    .code { font-size: 3.5rem; font-weight: 700; letter-spacing: -0.02em; opacity: 0.35; }
+    h1 { font-size: 1.5rem; font-weight: 600; margin: 0.25rem 0 0.75rem; }
+    p { margin: 0 auto 1.5rem; opacity: 0.8; }
+    .actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    a.btn {
+      display: inline-block; padding: 0.6rem 1.1rem; border-radius: 0.6rem;
+      text-decoration: none; border: 1px solid currentColor; font-weight: 600;
+      opacity: 0.85;
+    }
+    a.btn:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <main role="main" aria-labelledby="error-429-title">
+    <div class="code" aria-hidden="true">429</div>
+    <h1 id="error-429-title">{% trans "Slow down for a moment." %}</h1>
+    <p>{{ message|default:_("You've made too many requests in a short window. Please wait about a minute, then try again — this protects fair access for everyone.") }}</p>
+    <div class="actions">
+      <a class="btn" href="/">{% trans "Back to home" %}</a>
     </div>
-  </div>
-</section>
-{% endblock %}
+  </main>
+</body>
+</html>

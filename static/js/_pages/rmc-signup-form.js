@@ -192,6 +192,17 @@
 
     var debounceHandle = null;
     var inflight = null;
+    // Last normalized slug we actually sent to the server — so an unchanged
+    // value (e.g. typing then deleting back to the same slug, or the name
+    // field re-deriving an identical slug) does not re-hit the endpoint. This
+    // is the dominant source of redundant load: every keystroke on `name`
+    // derives a slug, and many keystrokes yield the same normalized value.
+    var lastCheckedSlug = null;
+    // When the endpoint rate-limits us (HTTP 429), stop hammering it until this
+    // timestamp passes. Shared-NAT networks (a whole school behind one public
+    // IP) blow the per-IP budget collectively; backing off keeps the form
+    // responsive instead of firing doomed requests on every keystroke.
+    var backoffUntil = 0;
     // Track whether the user has manually edited the slug input. We do NOT
     // overwrite their typed value with an auto-derived one.
     if (typeof slugInput.dataset.rmcUserTouched === 'undefined') {
@@ -206,6 +217,19 @@
       var normalized = slugifyClient(rawSlug);
       if (!normalized) {
         setPillState(pill, '', '');
+        lastCheckedSlug = null;
+        return;
+      }
+
+      // Skip a redundant round-trip when the normalized slug hasn't changed
+      // since the last check (idle pill state already reflects the answer).
+      if (normalized === lastCheckedSlug) {
+        return;
+      }
+
+      // Respect an active backoff window after a 429 — don't pile on.
+      var nowTs = (Date.now && Date.now()) || +new Date();
+      if (backoffUntil && nowTs < backoffUntil) {
         return;
       }
 
@@ -214,6 +238,7 @@
         inflight = null;
       }
 
+      lastCheckedSlug = normalized;
       setPillState(pill, 'rmc-slug-pill--checking', 'Checking…');
 
       var controller = null;
@@ -231,12 +256,28 @@
         url += '&country_code=' + encodeURIComponent(ccInput.value);
       }
 
-      var opts = { credentials: 'same-origin' };
+      // Declare we want JSON. The endpoint's rate-limit handler returns a tiny
+      // JSON 429 to JSON clients but a full-page HTML error to browsers — the
+      // Accept header keeps us on the lightweight path even when throttled.
+      var opts = {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' }
+      };
       if (controller) opts.signal = controller.signal;
 
       fetch(url, opts)
         .then(function (resp) {
+          if (resp.status === 429) {
+            // Rate-limited: back off ~60s before trying again and leave the
+            // pill quiet. The slug will still be validated server-side on submit.
+            backoffUntil = ((Date.now && Date.now()) || +new Date()) + 60000;
+            lastCheckedSlug = null;
+            setPillState(pill, '', '');
+            throw new Error('rate-limited');
+          }
           if (!resp.ok) {
+            // Don't cache a failed attempt — allow a retry on next input.
+            lastCheckedSlug = null;
             throw new Error('bad-status');
           }
           return resp.json();
@@ -260,8 +301,13 @@
           }
           setPillState(pill, '', '');
         })
-        .catch(function (_err) {
-          // Silent on abort or network error — never break the form.
+        .catch(function (err) {
+          // Silent on abort or network error — never break the form. Allow a
+          // future retry of the same slug unless we're intentionally backing
+          // off after a 429 (in which case the timer above gates retries).
+          if (!err || err.message !== 'rate-limited') {
+            lastCheckedSlug = null;
+          }
           setPillState(pill, '', '');
         });
     }
