@@ -481,6 +481,12 @@ urlpatterns = [
     ),
     path("api/", include(("apps.api.urls", "api"), namespace="api")),
     path("api/v1/", include(("apps.api.urls_v1", "api_v1"), namespace="api_v1")),
+    # v4.02.13: assist-dock client endpoints on the tenant host (portal + tenant
+    # admin render the dock) so dock actions are not silently dead.
+    path(
+        "assist-dock/",
+        include(("apps.assist_dock.urls", "assist_dock"), namespace="assist_dock"),
+    ),
     path(
         "siteconfig/school-configuration/",
         school_configuration_center,

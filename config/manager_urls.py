@@ -544,7 +544,7 @@ def _manager_search_static_catalog(urlconf=None):
             "description": "Curated super URLs plus platform-admin changelists in one screen (single-pane entry).",
             "url": url("super:platform_operator_hub"),
             "type": "class",
-            "meta": ["Operator hub", "Super", "Platform admin"],
+            "meta": ["Operator hub", "Super"],
         },
         {
             "title": "Playbook operator hub",
@@ -725,6 +725,14 @@ urlpatterns = [
         {"shell": "super"},
     ),
     path("sales/", include(("apps.sales.urls", "sales"), namespace="sales")),
+    # v4.02.13: assist-dock client endpoints must resolve on the manager host
+    # too — without this, resolve_assist_dock_client_urls() reverses to "" and
+    # every dock action (context/insights/presence/ai-invoke/share/prefs/wave)
+    # is silently dead on /super/ and manager /admin/.
+    path(
+        "assist-dock/",
+        include(("apps.assist_dock.urls", "assist_dock"), namespace="assist_dock"),
+    ),
     path(
         "siteconfig/",
         include(("apps.siteconfig.urls", "siteconfig"), namespace="siteconfig"),
