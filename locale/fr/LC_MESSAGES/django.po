@@ -47120,3 +47120,22 @@ msgstr ""
 
 msgid "lets us measure campaigns."
 msgstr ""
+
+msgid "Honest comparison"
+msgstr ""
+
+msgid ""
+"Indicative only — not a quote. Final pricing depends on modules, student "
+"numbers, region and term."
+msgstr ""
+
+msgid ""
+"Per student, per month — modular, so you only pay for what you switch on. "
+"Figures are indicative; use the calculator or talk to us for an exact quote."
+msgstr ""
+
+msgid "See pricing"
+msgstr ""
+
+msgid "Transparent, indicative pricing"
+msgstr ""
