@@ -659,56 +659,12 @@ MARKETPLACE_OPERATIONAL_FRAME_URL_NAMES = frozenset(
 )
 
 
-def marketplace_operational_frame_suppresses_paired_strip(request) -> bool:
-    """True when paired admin CTA is inlined on the operational center frame."""
-    match = getattr(request, "resolver_match", None)
-    if not match or getattr(match, "app_name", "") != "super":
-        return False
-    return (getattr(match, "url_name", "") or "") in MARKETPLACE_OPERATIONAL_FRAME_URL_NAMES
-
-
-def operational_admin_bridge_link(request) -> dict[str, str] | None:
-    """Platform admin bridge URL for the current super marketplace workbench."""
-    try:
-        from django.utils.translation import gettext as _
-
-        from apps.schools.super_admin_paired_surfaces import (
-            _safe_reverse,
-            resolve_bridge_key_for_super_view,
-        )
-    except ImportError:
-        return None
-
-    match = getattr(request, "resolver_match", None)
-    if not match or getattr(match, "app_name", "") != "super":
-        return None
-    url_name = getattr(match, "url_name", "") or ""
-    bridge_key = resolve_bridge_key_for_super_view(
-        url_name, getattr(request, "path", None)
-    )
-    if not bridge_key:
-        return None
-    admin_url = _safe_reverse("super:admin_bridge", kwargs={"bridge_key": bridge_key})
-    if not admin_url:
-        return None
-    return {
-        "url": admin_url,
-        "label": str(_("Open platform admin")),
-        "icon": "bi-box-arrow-in-right",
-    }
-
-
 def enrich_operational_frame_context(
     request, frame_ctx: dict[str, Any]
 ) -> dict[str, Any]:
-    """Merge tertiary platform-admin CTA into operational frame template context."""
-    out = dict(frame_ctx)
-    link = operational_admin_bridge_link(request)
-    if link:
-        out["tertiary_url"] = link["url"]
-        out["tertiary_label"] = link["label"]
-        out["tertiary_icon"] = link.get("icon", "bi-box-arrow-in-right")
-    return out
+    """Operational frame context (platform-admin tertiary CTA retired)."""
+    del request
+    return dict(frame_ctx)
 
 
 def pricing_packages_frame_context(*, live_psp_caveat: str = "") -> dict[str, Any]:

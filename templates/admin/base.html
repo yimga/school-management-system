@@ -52,12 +52,6 @@
 
                 {% if is_manager_host and request.user.is_authenticated %}
                 <div class="px-4">
-                    {% include "partials/cockpit/_operator_incident_banner.html" %}
-                </div>
-                {% endif %}
-
-                {% if is_manager_host and request.user.is_authenticated %}
-                <div class="px-4">
                     {% include "partials/shell_chrome_security_posture_banner.html" %}
                 </div>
                 {% endif %}

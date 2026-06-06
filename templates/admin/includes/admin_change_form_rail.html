@@ -1,0 +1,28 @@
+{% load i18n admin_urls %}
+{% comment %} v4.02.12 manager change-form context rail: on-this-page nav (filled by
+   rmc-admin-workspace.js from the rendered fieldsets) + generic quick actions. {% endcomment %}
+<aside class="rmc-admin-context-rail" data-rmc-rail="1">
+  <div class="rmc-rail-card">
+    <div class="rmc-rail-h">{% trans "On this page" %}</div>
+    <div class="rmc-rail-b">
+      <nav class="rmc-onthispage" data-rmc-onthispage="1" aria-label="{% trans 'Form sections' %}"></nav>
+    </div>
+  </div>
+  <div class="rmc-rail-card">
+    <div class="rmc-rail-h">{% trans "Quick actions" %}</div>
+    <div class="rmc-rail-b">
+      <div class="rmc-rail-actions">
+        {% if change and original %}
+          {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+          {% if history_url %}<a href="{{ history_url }}"><span aria-hidden="true">↺</span> {% trans 'View history' %}</a>{% endif %}
+          {% if has_absolute_url %}<a href="{{ absolute_url }}" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> {% trans 'View on site' %}</a>{% endif %}
+        {% endif %}
+        <a href="#content-main"><span aria-hidden="true">↑</span> {% trans 'Back to top' %}</a>
+        {% if has_delete_permission and change and original %}
+          {% url opts|admin_urlname:'delete' original.pk|admin_urlquote as delete_url %}
+          {% if delete_url %}<a href="{{ delete_url }}" class="is-danger"><span aria-hidden="true">🗑</span> {% trans 'Delete…' %}</a>{% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</aside>

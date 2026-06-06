@@ -2213,4 +2213,5 @@ from .models_agentic_audit import (  # noqa: E402,F401
     AIAgenticActionAudit,
     AIAgenticActionAuditReadOnlyError,
     AIAgenticActionOutcome,
+    AIAgenticActionPhase,
 )

@@ -486,8 +486,11 @@ body.admin-manager-shell .admin-cp-unified-page #content {
 }
 body.admin-manager-shell .admin-cp-unified-page #content > form,
 body.admin-manager-shell .admin-cp-unified-page #content > div {
-  max-width: min(1600px, 100%);
-  margin-inline: auto;
+  /* v4.02.12: was min(1600px, 100%), which re-stranded wide screens. The
+     workspace (form grid + context rail) and changelist already manage their
+     own internal max widths, so the canvas itself goes edge-to-edge. */
+  max-width: 100%;
+  margin-inline: 0;
 }
 
 /* ── D. Text-spill defense ──

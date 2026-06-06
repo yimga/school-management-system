@@ -46,7 +46,10 @@
 
 /* ========== templates/admin/index_superadmin.html ========== */
 body.admin-manager-shell #content { padding: 0 !important; margin: 0 !important; max-width: none !important; }
-  .cp-admin-index { padding: 1.5rem; max-width: 960px; }
+  /* v4.02.12: was max-width 960px (stranded ~470px/side on wide screens). The app
+     list flows in a responsive grid below, so the index uses the full canvas. */
+  .cp-admin-index { padding: 1.5rem; max-width: none; }
+  .cp-admin-app-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 0.5rem; }
   .cp-admin-index .cp-hero { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cp-panel-border, rgba(255,255,255,0.1)); }
   .cp-admin-index .cp-hero-title { font-size: var(--type-size-body-l); font-weight: 700; margin-bottom: 0.35rem; }
   .cp-admin-index .cp-hero-copy { font-size: var(--type-size-caption); color: var(--cp-muted, rgba(255,255,255,0.6)); margin-bottom: 1rem; }

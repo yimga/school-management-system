@@ -20,16 +20,10 @@
       {% if center_purpose %}
       <div class="cp-steering__copy" data-rmc-os-center-purpose="1">{{ center_purpose }}</div>
       {% endif %}
-      {% if primary_url and primary_label or secondary_url and secondary_label or tertiary_url and tertiary_label or jump_a_id and jump_a_label or jump_b_id and jump_b_label or jump_c_id and jump_c_label or jump_d_id and jump_d_label %}
+      {% if primary_url and primary_label or secondary_url and secondary_label or jump_a_id and jump_a_label or jump_b_id and jump_b_label or jump_c_id and jump_c_label or jump_d_id and jump_d_label %}
       <div class="cp-hero__actions cp-hero__actions--toolbar rmc-ops-frame__actions" role="group" aria-label="{% trans 'Workbench actions' %}">
         {% if primary_url and primary_label %}<a class="cp-btn cp-btn--primary" href="{{ primary_url }}">{{ primary_label }}</a>{% endif %}
         {% if secondary_url and secondary_label %}<a class="cp-btn cp-btn--ghost" href="{{ secondary_url }}">{{ secondary_label }}</a>{% endif %}
-        {% if tertiary_url and tertiary_label %}
-        <a class="cp-btn cp-btn--ghost rmc-ops-frame__admin-bridge" href="{{ tertiary_url }}" title="{% trans 'Open raw records in platform admin' %}">
-          {% if tertiary_icon %}<i class="bi {{ tertiary_icon }}" aria-hidden="true"></i>{% endif %}
-          <span>{{ tertiary_label }}</span>
-        </a>
-        {% endif %}
         {% if jump_a_id and jump_a_label or jump_b_id and jump_b_label or jump_c_id and jump_c_label or jump_d_id and jump_d_label %}
         <span class="cp-hero__actions-sep" aria-hidden="true"></span>
         <span class="cp-hero__actions-group cp-hero__actions-group--sections" role="group" aria-label="{% trans 'Jump to section' %}">

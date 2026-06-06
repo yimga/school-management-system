@@ -98,7 +98,7 @@
     display: none;
   }
 
-  /* Contextual paired chips (e.g. Open platform admin) use the right rail */
+  /* Contextual paired chips (e.g. Open operator view from /admin/) use the right rail */
   .rmc-operator-workspace-nav:has(.cp-primary-nav__pill--paired) {
     justify-content: flex-end;
     flex-wrap: nowrap;

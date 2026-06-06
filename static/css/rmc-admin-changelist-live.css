@@ -85,7 +85,12 @@ body.admin-manager-shell.change-list .results {
 
 body.admin-manager-shell.change-list .rmc-admin-changelist-main {
   overflow: hidden;
-  flex-basis: 0;
+  /* Was `flex-basis: 0`, which made the table column and the filter sidebar
+     split the row ~50/50 — the table squeezed into the left half (clipping the
+     right columns) while space sat empty. Grow to fill instead; the filter
+     sidebar is pinned to a fixed width below so the table takes the remainder. */
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 body.admin-manager-shell.change-list .results {
@@ -262,6 +267,12 @@ body.admin-manager-shell.change-list [data-change-list-filter] {
   border-radius: var(--radius-lg, 16px);
   border: 1px solid var(--hairline);
   box-shadow: var(--elev-2);
+  /* Pin the filter rail to a fixed width so the results table (flex: 1 1 auto)
+     claims all remaining horizontal space instead of the old 50/50 split.
+     Below 1080px the container stacks to a column (see media query above). */
+  flex: 0 0 auto;
+  width: min(20rem, 100%);
+  align-self: flex-start;
 }
 
 body.admin-manager-shell.change-list .changelist-form-container {

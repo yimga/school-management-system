@@ -841,15 +841,6 @@ body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .cp-btn {
   min-height: 28px;
 }
 
-body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .rmc-ops-frame__admin-bridge {
-  max-width: 100%;
-}
-
-body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .rmc-ops-frame__admin-bridge .bi {
-  font-size: 0.9em;
-  opacity: 0.9;
-}
-
 /* Inline section-jump anchors in the workbench toolbar (replaces the standalone "Jump to" frame). */
 body.control-plane-shell #cp-main-content .rmc-ops-frame__actions .rmc-ops-frame__jump,
 :is(body.portal-body-with-layout, body.manager-portal-bridge)

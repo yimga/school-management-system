@@ -797,11 +797,17 @@ body.admin-manager-shell[data-rmc-cp-scroll="canvas"] #page.admin-cp-unified-pag
   max-width: none !important;
 }
 
-/* Backoffice frame v2: dense, calm, and bounded manager /admin/ workspace. */
+/* Backoffice frame v2: dense, calm manager /admin/ workspace.
+   v4.02.11: the form frame now fills the canvas (was capped at 1180px, which
+   stranded ~40% of wide screens as dead space). Density is recovered by laying
+   each fieldset's rows into a responsive auto-fit grid (see `.form-rows` below)
+   instead of one field per full-width row. `--rmc-backoffice-field-min` is the
+   smallest a single field column may get before the grid drops a column. */
 body.admin-manager-shell {
   --rmc-backoffice-gutter: clamp(0.85rem, 1.35vw, 1.4rem);
   --rmc-backoffice-gap: clamp(0.75rem, 1vw, 1rem);
-  --rmc-backoffice-form-max: 1180px;
+  --rmc-backoffice-form-max: 100%;
+  --rmc-backoffice-field-min: 26rem;
   --rmc-backoffice-control-h: 2.45rem;
 }
 
@@ -867,6 +873,38 @@ body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract=
   background: var(--surface-elevated);
   box-shadow: var(--elev-1);
   overflow: clip;
+}
+
+/* v4.02.11 — creative full-width field layout.
+   Unfold renders each fieldset's rows inside `.form-rows`, one `.form-row` per
+   field line. Flow them into a responsive auto-fit grid so a wide form uses
+   2–3 columns and fills the canvas instead of a single tall column with a dead
+   right margin. The inner Unfold border is dropped (the fieldset card already
+   frames it — no card-in-card), and long/structured rows claim the full width. */
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--rmc-backoffice-field-min)), 1fr));
+  column-gap: clamp(1rem, 2.2vw, 2.5rem);
+  row-gap: 0.35rem;
+  align-items: start;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* In a multi-column grid a per-row underline reads as a broken horizontal rule,
+   so the grid's row-gap does the separating instead. */
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row {
+  border-block-end-width: 0;
+}
+
+/* Multi-field lines (already internally gridded by Unfold), free-text, and
+   related-object pickers are too wide for one column — span the whole row. */
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row.grid,
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(textarea),
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.related-widget-wrapper),
+body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] .form-rows > .form-row:has(.vLargeTextField) {
+  grid-column: 1 / -1;
 }
 
 body.admin-manager-shell.change-form #content-main[data-rmc-admin-form-contract="premium-form-frame"] fieldset.module h2,
