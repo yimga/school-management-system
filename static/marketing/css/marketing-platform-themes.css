@@ -1,7 +1,17 @@
 /**
- * Platform capability pages: subtle per-page visual identity (no route changes).
- * Class: .mkt-platform-theme--<slug> on .page-stack (see type_platform_generic.html).
+ * Platform capability pages — per-personality-family surface system (2026-06-05).
+ *
+ * Previously each of the 13 platform slugs set ONLY `--mkt-plat-accent` (one hue),
+ * so every platform page looked identical apart from a colour — the "every menu
+ * looks the same" complaint. This maps each slug onto one of the homepage
+ * personality FAMILIES (Clinical / Fluid / Rugged / Governance / Sovereign) and
+ * gives the shared `.mkt-personality-hero` a premium, family-specific surface.
+ * One file, all 37 platform pages. Personality surfaces are intentional fixed
+ * tints (always-light or always-dark bands) → off-token-allow markers inside
+ * the braces. Class hook: `.mkt-platform-theme--<slug>` on the page stack.
  */
+
+/* accent top-rule (kept) */
 .mkt-page-type-platform-detail {
   position: relative;
 }
@@ -11,44 +21,124 @@
   height: 3px;
   border-radius: 3px;
   margin-bottom: 1rem;
-  background: linear-gradient(90deg, var(--mkt-plat-accent, #38bdf8), transparent);
+  background: linear-gradient(90deg, var(--mkt-plat-accent, #38bdf8), transparent); /* off-token-allow: themed accent rule, accent is a per-family var */
 }
-.mkt-platform-theme--platform-admissions {
-  --mkt-plat-accent: #22c55e;
+
+/* ---- shared premium hero band (consumes the per-family vars) ----
+   Two hero hooks cover 13 of the platform pages with known inner markup:
+   `.mkt-personality-hero` (generic + admissions) and `.mkt-v3-archetype__hero`
+   (attendance / communications / grading / offline-first / student-portal /
+   workflows). `color` on the container makes descendants inherit the family ink
+   so dark families never bleed dark-text-on-dark. */
+.mkt-page-type-platform-detail .mkt-personality-hero.mkt-edt-container,
+.mkt-page-type-platform-detail .mkt-v3-archetype__hero.mkt-edt-container,
+.mkt-page-type-platform-detail .mkt-personality-hero,
+.mkt-page-type-platform-detail .mkt-v3-archetype__hero {
+  color: var(--mkt-plat-ink, inherit);
+  border-radius: 20px;
+  padding: clamp(28px, 5vw, 60px) clamp(22px, 4vw, 48px);
+  margin-bottom: clamp(24px, 4vh, 44px);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
 }
-.mkt-platform-theme--platform-fees-payments {
-  --mkt-plat-accent: #f59e0b;
+.mkt-page-type-platform-detail .mkt-personality-hero::after,
+.mkt-page-type-platform-detail .mkt-v3-archetype__hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(720px 360px at 88% -20%, color-mix(in srgb, var(--mkt-plat-accent, #38bdf8) 22%, transparent), transparent 62%);
 }
-.mkt-platform-theme--platform-parent-portal {
-  --mkt-plat-accent: #a78bfa;
+.mkt-page-type-platform-detail .mkt-personality-hero__eyebrow,
+.mkt-page-type-platform-detail .mkt-v3-eyebrow,
+.mkt-page-type-platform-detail .detail-eyebrow {
+  color: var(--mkt-plat-accent, #38bdf8);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.74rem;
 }
-.mkt-platform-theme--platform-teacher-portal {
-  --mkt-plat-accent: #38bdf8;
+.mkt-page-type-platform-detail .mkt-personality-hero .mkt-v3-section-headline,
+.mkt-page-type-platform-detail .mkt-v3-archetype__hero .mkt-v3-section-headline,
+.mkt-page-type-platform-detail .mkt-personality-hero .detail-headline,
+.mkt-page-type-platform-detail .mkt-personality-hero h1,
+.mkt-page-type-platform-detail .mkt-v3-archetype__hero h1 {
+  color: var(--mkt-plat-ink, inherit);
+  font-size: clamp(2rem, 4.6vw, 3.3rem);
+  line-height: 1.07;
+  letter-spacing: -0.02em;
 }
-.mkt-platform-theme--platform-student-portal {
-  --mkt-plat-accent: #2dd4bf;
+.mkt-page-type-platform-detail .mkt-personality-hero .mkt-v3-lead,
+.mkt-page-type-platform-detail .mkt-v3-archetype__hero .mkt-v3-lead,
+.mkt-page-type-platform-detail .mkt-personality-hero .detail-subheadline,
+.mkt-page-type-platform-detail .mkt-v3-archetype__hero p {
+  color: var(--mkt-plat-muted, inherit);
+  font-size: 1.04rem;
+  line-height: 1.6;
+  max-width: 44rem;
 }
-.mkt-platform-theme--platform-analytics {
-  --mkt-plat-accent: #c47f1c;
+
+/* themed section dividers + segment cards pick up the accent */
+.mkt-page-type-platform-detail .mkt-v3-segment-card,
+.mkt-page-type-platform-detail .segment-card {
+  border-top: 3px solid color-mix(in srgb, var(--mkt-plat-accent, #38bdf8) 70%, transparent);
 }
-.mkt-platform-theme--platform-security {
-  --mkt-plat-accent: #f472b6;
-}
+
+/* ============================ FAMILIES ============================ */
+
+/* --- CLINICAL: cool bright money/records (admissions · fees · SIS) --- */
+.mkt-platform-theme--platform-admissions,
+.mkt-platform-theme--platform-fees-payments,
 .mkt-platform-theme--platform-student-information-system {
-  --mkt-plat-accent: #60a5fa;
+  --mkt-plat-ink: #0f2236;     /* off-token-allow: clinical platform ink */
+  --mkt-plat-muted: #51657a;   /* off-token-allow: clinical platform muted */
 }
-.mkt-platform-theme--platform-attendance {
-  --mkt-plat-accent: #34d399;
-}
+.mkt-platform-theme--platform-admissions { --mkt-plat-accent: #059669; } /* off-token-allow: clinical admissions accent */
+.mkt-platform-theme--platform-fees-payments { --mkt-plat-accent: #b45309; } /* off-token-allow: clinical fees accent */
+.mkt-platform-theme--platform-student-information-system { --mkt-plat-accent: #2563eb; } /* off-token-allow: clinical SIS accent */
+
+/* --- FLUID: light violet human/learning (portals · grading) --- */
+.mkt-platform-theme--platform-parent-portal,
+.mkt-platform-theme--platform-teacher-portal,
+.mkt-platform-theme--platform-student-portal,
 .mkt-platform-theme--platform-grading-report-cards {
-  --mkt-plat-accent: #fbbf24;
+  --mkt-plat-ink: #1e1b3a;     /* off-token-allow: fluid platform ink */
+  --mkt-plat-muted: #635f86;   /* off-token-allow: fluid platform muted */
+  --mkt-plat-accent: #7c3aed;  /* off-token-allow: fluid violet accent */
 }
-.mkt-platform-theme--platform-communications {
-  --mkt-plat-accent: #a8a092;
-}
-.mkt-platform-theme--platform-workflows {
-  --mkt-plat-accent: #c084fc;
-}
+.mkt-platform-theme--platform-teacher-portal { --mkt-plat-accent: #6d28d9; } /* off-token-allow: fluid teacher accent */
+.mkt-platform-theme--platform-student-portal { --mkt-plat-accent: #0d9488; } /* off-token-allow: fluid student accent */
+.mkt-platform-theme--platform-grading-report-cards { --mkt-plat-accent: #9333ea; } /* off-token-allow: fluid grading accent */
+
+/* --- RUGGED: cool mint resilience (attendance · offline-first) --- */
+.mkt-platform-theme--platform-attendance,
 .mkt-platform-theme--platform-offline-first {
-  --mkt-plat-accent: #2dd4bf;
+  --mkt-plat-ink: #0c2a22;     /* off-token-allow: rugged platform ink */
+  --mkt-plat-muted: #4d6b62;   /* off-token-allow: rugged platform muted */
+  --mkt-plat-accent: #0d9488;  /* off-token-allow: rugged teal accent */
+}
+
+/* --- GOVERNANCE: official slate trust (security) --- */
+.mkt-platform-theme--platform-security {
+  --mkt-plat-ink: #1e293b;     /* off-token-allow: governance platform ink */
+  --mkt-plat-muted: #5b6b80;   /* off-token-allow: governance platform muted */
+  --mkt-plat-accent: #1d4ed8;  /* off-token-allow: governance authority accent */
+}
+
+/* --- SOVEREIGN: cool indigo data/orchestration (analytics · workflows · comms) --- */
+.mkt-platform-theme--platform-analytics,
+.mkt-platform-theme--platform-workflows,
+.mkt-platform-theme--platform-communications {
+  --mkt-plat-ink: #1a1f3a;     /* off-token-allow: sovereign platform ink */
+  --mkt-plat-muted: #565d82;   /* off-token-allow: sovereign platform muted */
+  --mkt-plat-accent: #4f46e5;  /* off-token-allow: sovereign indigo accent */
+}
+.mkt-platform-theme--platform-analytics { --mkt-plat-accent: #b45309; } /* off-token-allow: sovereign analytics accent */
+.mkt-platform-theme--platform-workflows { --mkt-plat-accent: #7c3aed; } /* off-token-allow: sovereign workflows accent */
+
+/* default for any unmapped platform slug → light clinical-ish */
+.mkt-page-type-platform-detail:not([class*="theme--platform-"]) {
+  --mkt-plat-accent: #38bdf8; /* off-token-allow: default platform accent */
 }
