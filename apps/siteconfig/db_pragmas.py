@@ -36,7 +36,7 @@ def apply_sqlite_pragmas(sender, connection, **kwargs):
     try:
         with connection.cursor() as cursor:
             for pragma in _SQLITE_PRAGMAS:
-                cursor.execute(pragma)
+                cursor.execute(pragma)  # rls-bypass-allow: static SQLite PRAGMA strings (no tenant data / no interpolation), dev concurrency tuning only
     except Exception as exc:  # noqa: BLE001 — pragmas are best-effort dev tuning
         logger.debug("SQLite pragma application skipped: %s", exc)
 
