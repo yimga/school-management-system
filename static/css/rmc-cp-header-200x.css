@@ -242,6 +242,49 @@ body.admin-manager-shell[data-rmc-nav-bridge-host="manager"] .rmc-app-shell__sid
   }
 }
 
+/* Phone: reclaim operator-header height so page content — and primary CTAs
+   like the MFA "Verify" button — isn't pushed below the fold behind the
+   bottom-anchored footer. On a 390px screen the consolidated header stacked to
+   ~180px (utility-row wrap + live ticker + inline-chrome). The footer is
+   anchored at viewport-bottom, so a shorter header lets the canvas grow upward
+   and pulls the CTA up with it.
+   NB: the live ticker / inline-chrome rows are force-shown by
+   rmc-cockpit-skin-v8.css at specificity ~32 with no mobile breakpoint, so the
+   hide selectors below are qualified to match (html[data-cockpit-skin] +
+   body.control-plane-shell + .cp-header--consolidated) and win the cascade.
+   No operator control is removed: the toolbar's command + action chips stay,
+   just on single horizontally-scrollable lines instead of wrapping. */
+@media (max-width: 991.98px) {
+  html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--live,
+  html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--inline-chrome,
+  html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--live,
+  html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--inline-chrome {
+    display: none;
+  }
+
+  .cp-header__row--utility .rmc-platform-header__inner {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .cp-header__row--utility .rmc-platform-header__toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 6px;
+  }
+
+  .cp-header__row--utility .rmc-platform-header__command {
+    min-width: 0;
+  }
+
+  .cp-header__row--utility .rmc-platform-header__actions {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    min-width: 0;
+  }
+}
+
 /* v3.62.12 — /super/ header stack: utility → live strip → primary nav (v8 200x).
    /admin/ backoffice: utility → nav row → live strip (admin v1 200x preview). */
 .cp-header .cp-nav-row {
