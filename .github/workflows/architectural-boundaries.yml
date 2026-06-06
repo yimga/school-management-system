@@ -535,6 +535,7 @@ jobs:
           python scripts/verify_competitor_tracker.py --json
           python -m unittest discover -s apps/governance/turbo/tests -t .
           python scripts/verify_org_backfill_operator_smoke.py --write
+          python scripts/verify_poly_institution_final_sweep.py --write
           python scripts/verify_poly_institution_governance_stack.py --write
           python scripts/verify_global_governance_plan_completion.py --strict --json
           python scripts/verify_doc_plan_density_discipline.py

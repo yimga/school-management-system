@@ -73,7 +73,12 @@ WAVE_CONTENT_MARKERS: dict[str, tuple[tuple[str, str], ...]] = {
         ("static/js/rmc-workflow-progress.js", "flightDeckPageUrl"),
     ),
     "wave4_trust_sla": (
-        ("templates/portal_base.html", "rmc_workflow_tenant_trust_strip.html"),
+        (
+            "templates/partials/rmc_tools_tray_context_stack.html",
+            "rmc_workflow_tenant_trust_strip.html",
+        ),
+        ("templates/portal_base.html", "rmc-workflow-tenant-trust.js"),
+        ("templates/partials/rmc_tenant_tools_scripts.html", "rmc_tools_tray_context_stack.html"),
         ("apps/platform_runtime/workflow_registry.py", "slo_seconds"),
         ("apps/platform_runtime/workflow_tracker.py", "maybe_record_sla_breach"),
         ("apps/platform_runtime/workflow_sla.py", "workflow.sla.breached"),

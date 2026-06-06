@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Poly unit + phases tail batch 1631 (2026-06-05)
+
+**A. Claim:** §11.4 batch **1631** — full poly unit bundle proof; phases 3–11 tail drift (i18n + workflow 10x).
+
+**B. Shipped:** poly sweep with **70** unit tests; **sync_i18n_catalog** agentic UI strings; workflow wave4 verifier tray-only markers; **`pinned_default=True`** on workflow-progress assist slot.
+
+**C. Proof:** **POLY_INSTITUTION_FINAL_SWEEP_PASS**; **WORKFLOW_PROGRESS_10X_PASS**; **verify_i18n_catalog_fresh** OK; phases tail orchestrator green through workflow gate.
+
+**D. SOT:** batch **1631** **DONE**. **E. Honest:** full **`verify_phases_3_11_gates.py`** monolith still flaky on Windows cold pytest; CI authoritative.
+
 ## Slice — Final sweep II batch 1630 (2026-06-05)
 
 **A. Claim:** §11.4 batch **1630** — second closure sweep; fix multicampus `?parent=` UUID parse bug + green all poly gates.

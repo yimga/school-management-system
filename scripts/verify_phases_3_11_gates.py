@@ -109,6 +109,19 @@ def main(argv: list[str] | None = None) -> int:
         print(f"verify_phases_3_11_gates FAILED: {exc}", file=sys.stderr)
         return 1
 
+    scripts_dir = REPO / "scripts"
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+    from sqlite_gate_db import bootstrap_gate_session_env, sqlite_sidecars_busy  # noqa: E402
+
+    stable = REPO / ".django_test_dbs" / "rmc_sqlite_test_runner.sqlite3"
+    gate_db = bootstrap_gate_session_env(
+        REPO,
+        session_id="phases_3_11_gates",
+        force_fresh=sqlite_sidecars_busy(stable),
+    )
+    print(f"verify_phases_3_11_gates: sqlite gate DB {gate_db}", flush=True)
+
     py = sys.executable
     base_args = ["--base", str(REPO)]
 

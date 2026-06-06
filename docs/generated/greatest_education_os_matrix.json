@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-06-05T14:58:52.503975+00:00",
+  "generated_at": "2026-06-06T00:54:42.773247+00:00",
   "repo_target_pct": 99.0,
   "verdict": "GEOS_99_MATRIX_PASS",
   "overall": {
@@ -145,7 +145,7 @@
           "check_id": "middleware",
           "description": "verify_middleware_stack_order.py",
           "passed": true,
-          "proof": "\\Users\\yimga\\Documents\\HY_DOC_MAINPC\\Docs for Others_Friends_family\\Gilead Tech High\\beta\\school-management-system\\apps\\integrations_marketplace\\startup_checks.py\", line 116, in warn_if_oauth_callback_base_url_missing\n    logger.info(msg)\nMessage: \"integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered.\"\nArguments: ()"
+          "proof": "verify_middleware_stack_order: OK (mode=single-schema)"
         },
         {
           "check_id": "tenant_offboarding",
@@ -401,9 +401,9 @@
         },
         {
           "check_id": "ce_parent_workflows",
-          "description": "Parent contact + pay-all workflow partials",
+          "description": "Parent workflow guidance in tenant Tools tray",
           "passed": true,
-          "proof": "parent templates"
+          "proof": "tools tray context stack"
         }
       ],
       "honest": {

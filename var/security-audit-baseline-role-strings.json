@@ -145,32 +145,32 @@
       "role": "PROPRIETOR"
     },
     {
-      "line": 45,
+      "line": 159,
       "path": "apps/accounts/signals.py",
       "role": "ADMIN"
     },
     {
-      "line": 46,
+      "line": 160,
       "path": "apps/accounts/signals.py",
       "role": "ADMIN"
     },
     {
-      "line": 58,
+      "line": 172,
       "path": "apps/accounts/signals.py",
       "role": "TEACHER"
     },
     {
-      "line": 62,
+      "line": 176,
       "path": "apps/accounts/signals.py",
       "role": "PROPRIETOR"
     },
     {
-      "line": 67,
+      "line": 181,
       "path": "apps/accounts/signals.py",
       "role": "PARENT"
     },
     {
-      "line": 68,
+      "line": 182,
       "path": "apps/accounts/signals.py",
       "role": "STUDENT"
     },
@@ -225,27 +225,27 @@
       "role": "PROPRIETOR"
     },
     {
-      "line": 37,
+      "line": 40,
       "path": "apps/accounts/views_tenant_identity.py",
       "role": "ADMIN"
     },
     {
-      "line": 249,
+      "line": 252,
       "path": "apps/accounts/views_tenant_identity.py",
       "role": "ADMIN"
     },
     {
-      "line": 249,
+      "line": 252,
       "path": "apps/accounts/views_tenant_identity.py",
       "role": "TEACHER"
     },
     {
-      "line": 253,
+      "line": 256,
       "path": "apps/accounts/views_tenant_identity.py",
       "role": "TEACHER"
     },
     {
-      "line": 259,
+      "line": 262,
       "path": "apps/accounts/views_tenant_identity.py",
       "role": "TEACHER"
     },
@@ -560,7 +560,7 @@
       "role": "ADMIN"
     },
     {
-      "line": 56,
+      "line": 55,
       "path": "apps/apicenter/views.py",
       "role": "ADMIN"
     },
@@ -640,17 +640,17 @@
       "role": "PARENT"
     },
     {
-      "line": 61,
+      "line": 60,
       "path": "apps/communication/forms_groups.py",
       "role": "TEACHER"
     },
     {
-      "line": 62,
+      "line": 61,
       "path": "apps/communication/forms_groups.py",
       "role": "PARENT"
     },
     {
-      "line": 63,
+      "line": 62,
       "path": "apps/communication/forms_groups.py",
       "role": "STUDENT"
     },
@@ -890,12 +890,12 @@
       "role": "ADMIN"
     },
     {
-      "line": 241,
+      "line": 249,
       "path": "apps/finance/models.py",
       "role": "STUDENT"
     },
     {
-      "line": 1364,
+      "line": 1375,
       "path": "apps/finance/services.py",
       "role": "PARENT"
     },
@@ -935,12 +935,12 @@
       "role": "ADMIN"
     },
     {
-      "line": 878,
+      "line": 906,
       "path": "apps/people/models.py",
       "role": "STUDENT"
     },
     {
-      "line": 217,
+      "line": 225,
       "path": "apps/people/signals.py",
       "role": "ADMIN"
     },
@@ -1270,7 +1270,7 @@
       "role": "ADMIN"
     },
     {
-      "line": 1331,
+      "line": 1332,
       "path": "apps/reports/views.py",
       "role": "ADMIN"
     },
@@ -1385,17 +1385,17 @@
       "role": "ADMIN"
     },
     {
-      "line": 129,
+      "line": 137,
       "path": "apps/siteconfig/context_processors.py",
       "role": "TEACHER"
     },
     {
-      "line": 130,
+      "line": 138,
       "path": "apps/siteconfig/context_processors.py",
       "role": "PARENT"
     },
     {
-      "line": 131,
+      "line": 139,
       "path": "apps/siteconfig/context_processors.py",
       "role": "STUDENT"
     },
@@ -1695,12 +1695,12 @@
       "role": "ADMIN"
     },
     {
-      "line": 439,
+      "line": 440,
       "path": "apps/siteconfig/views.py",
       "role": "ADMIN"
     },
     {
-      "line": 509,
+      "line": 510,
       "path": "apps/siteconfig/views.py",
       "role": "ADMIN"
     },
@@ -1745,7 +1745,7 @@
       "role": "TEACHER"
     }
   ],
-  "generated_at": "2026-06-02T17:00:05+00:00",
+  "generated_at": "2026-06-05T23:17:14+00:00",
   "role_tokens": [
     "ADMIN",
     "PARENT",

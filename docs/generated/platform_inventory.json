@@ -3,17 +3,17 @@
     "allow_any": 173,
     "csrf_exempt": 681,
     "cursor_execute": 411,
-    "except_exception": 2498,
+    "except_exception": 2518,
     "get_solo": 213,
-    "gilead": 16836,
-    "gilead_files": 231,
-    "html_files": 1611,
+    "gilead": 16839,
+    "gilead_files": 232,
+    "html_files": 1624,
     "management_commands": 282,
-    "markdown_files": 1599,
-    "migration_files": 983,
-    "print_calls": 4160,
-    "python_files": 6107,
-    "site_settings": 2464
+    "markdown_files": 1600,
+    "migration_files": 986,
+    "print_calls": 4198,
+    "python_files": 6141,
+    "site_settings": 2469
   },
   "doc_drift": {
     "actual_installed_app_count": 54,
@@ -33,8 +33,8 @@
       "path": "apps/siteconfig/forms_cockpit.py"
     },
     {
-      "bytes": 168275,
-      "lines": 3460,
+      "bytes": 168762,
+      "lines": 3469,
       "path": "config/settings.py"
     },
     {
@@ -1540,8 +1540,8 @@
     "cursor_execute_apps_config_py_excl_migrations": 42,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 3976,
-    "site_settings_refs_apps_py_excl_migrations": 208,
+    "print_calls_scripts_py": 4013,
+    "site_settings_refs_apps_py_excl_migrations": 214,
     "site_settings_refs_apps_py_excl_migrations_tests": 161
   },
   "site_settings_fields": [

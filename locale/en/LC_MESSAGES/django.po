@@ -50813,3 +50813,120 @@ msgstr "e.g. attendance summary for a class, or outstanding fees"
 
 msgid "evidence doc(s)"
 msgstr "evidence doc(s)"
+
+msgid "Administration"
+msgstr "Administration"
+
+msgid "Agentic actions"
+msgstr "Agentic actions"
+
+msgid "Agentic actions are off"
+msgstr "Agentic actions are off"
+
+msgid "Available actions"
+msgstr "Available actions"
+
+msgid "Confirm & run"
+msgstr "Confirm & run"
+
+msgid "Current page"
+msgstr "Current page"
+
+msgid "Delete…"
+msgstr "Delete…"
+
+msgid "Describe what you want to do"
+msgstr "Describe what you want to do"
+
+msgid "Form sections"
+msgstr "Form sections"
+
+msgid "Founder dashboard"
+msgstr "Founder dashboard"
+
+msgid "Mutating actions are enabled (Phase 2)"
+msgstr "Mutating actions are enabled (Phase 2)"
+
+msgid ""
+"No action matched your description, or none are available to your role."
+msgstr ""
+"No action matched your description, or none are available to your role."
+
+msgid "No actions are available to your role."
+msgstr "No actions are available to your role."
+
+msgid "No agentic actions yet."
+msgstr "No agentic actions yet."
+
+msgid ""
+"No records yet. Create one from platform admin (Fleet governed changes)."
+msgstr ""
+"No records yet. Create one from platform admin (Fleet governed changes)."
+
+msgid ""
+"Operational quick links only (configuration-tier destinations live under "
+"Configuration center or Operator hub)."
+msgstr ""
+"Operational quick links only (configuration-tier destinations live under "
+"Configuration center or Operator hub)."
+
+msgid "Parent id"
+msgstr "Parent id"
+
+msgid "Proposed actions — confirm to run"
+msgstr "Proposed actions — confirm to run"
+
+msgid ""
+"Reversible mutating actions run on a tenant, not from the control plane. "
+"Principals / leadership / admins perform and undo them from the tenant's "
+"Agentic actions page; their attempts appear in the audit tail below."
+msgstr ""
+"Reversible mutating actions run on a tenant, not from the control plane. "
+"Principals / leadership / admins perform and undo them from the tenant's "
+"Agentic actions page; their attempts appear in the audit tail below."
+
+msgid "School backend"
+msgstr "School backend"
+
+msgid "Site configuration"
+msgstr "Site configuration"
+
+msgid "Student id"
+msgstr "Student id"
+
+msgid "The action was undone."
+msgstr "The action was undone."
+
+msgid ""
+"The assistant proposes a small set of reversible actions for your school. "
+"You confirm each one explicitly before it runs, and every action can be "
+"undone. Nothing happens without your confirmation."
+msgstr ""
+"The assistant proposes a small set of reversible actions for your school. "
+"You confirm each one explicitly before it runs, and every action can be "
+"undone. Nothing happens without your confirmation."
+
+msgid ""
+"This feature is disabled. An administrator can enable it; until then this "
+"page stays inert."
+msgstr ""
+"This feature is disabled. An administrator can enable it; until then this "
+"page stays inert."
+
+msgid "This is reversible — you can undo it from the activity list below."
+msgstr "This is reversible — you can undo it from the activity list below."
+
+msgid "View history"
+msgstr "View history"
+
+msgid "View on site"
+msgstr "View on site"
+
+msgid "done"
+msgstr "done"
+
+msgid "e.g. mark a student absent today, or schedule a parent callback"
+msgstr "e.g. mark a student absent today, or schedule a parent callback"
+
+msgid "reversed"
+msgstr "reversed"

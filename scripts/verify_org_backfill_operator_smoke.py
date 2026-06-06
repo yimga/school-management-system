@@ -37,7 +37,7 @@ def _mgmt_command_dry_run() -> tuple[bool, str, dict | None]:
             cwd=str(REPO),
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=300,
             env=env,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:

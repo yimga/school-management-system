@@ -45110,3 +45110,108 @@ msgstr ""
 
 msgid "evidence doc(s)"
 msgstr ""
+
+msgid "Administration"
+msgstr ""
+
+msgid "Agentic actions"
+msgstr ""
+
+msgid "Agentic actions are off"
+msgstr ""
+
+msgid "Available actions"
+msgstr ""
+
+msgid "Confirm & run"
+msgstr ""
+
+msgid "Current page"
+msgstr ""
+
+msgid "Delete…"
+msgstr ""
+
+msgid "Describe what you want to do"
+msgstr ""
+
+msgid "Form sections"
+msgstr ""
+
+msgid "Founder dashboard"
+msgstr ""
+
+msgid "Mutating actions are enabled (Phase 2)"
+msgstr ""
+
+msgid ""
+"No action matched your description, or none are available to your role."
+msgstr ""
+
+msgid "No actions are available to your role."
+msgstr ""
+
+msgid "No agentic actions yet."
+msgstr ""
+
+msgid ""
+"No records yet. Create one from platform admin (Fleet governed changes)."
+msgstr ""
+
+msgid ""
+"Operational quick links only (configuration-tier destinations live under "
+"Configuration center or Operator hub)."
+msgstr ""
+
+msgid "Parent id"
+msgstr ""
+
+msgid "Proposed actions — confirm to run"
+msgstr ""
+
+msgid ""
+"Reversible mutating actions run on a tenant, not from the control plane. "
+"Principals / leadership / admins perform and undo them from the tenant's "
+"Agentic actions page; their attempts appear in the audit tail below."
+msgstr ""
+
+msgid "School backend"
+msgstr ""
+
+msgid "Site configuration"
+msgstr ""
+
+msgid "Student id"
+msgstr ""
+
+msgid "The action was undone."
+msgstr ""
+
+msgid ""
+"The assistant proposes a small set of reversible actions for your school. "
+"You confirm each one explicitly before it runs, and every action can be "
+"undone. Nothing happens without your confirmation."
+msgstr ""
+
+msgid ""
+"This feature is disabled. An administrator can enable it; until then this "
+"page stays inert."
+msgstr ""
+
+msgid "This is reversible — you can undo it from the activity list below."
+msgstr ""
+
+msgid "View history"
+msgstr ""
+
+msgid "View on site"
+msgstr ""
+
+msgid "done"
+msgstr ""
+
+msgid "e.g. mark a student absent today, or schedule a parent callback"
+msgstr ""
+
+msgid "reversed"
+msgstr ""

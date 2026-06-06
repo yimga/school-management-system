@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `54`
-- Python files: `6107`
-- HTML templates: `1611`
-- Markdown files: `1599`
-- Migration files: `983`
+- Python files: `6141`
+- HTML templates: `1624`
+- Markdown files: `1600`
+- Migration files: `986`
 - Management commands: `282` (full list in JSON key `management_commands_list`)
-- `SiteSettings` refs (gross scan): `2464`
-- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `208`
+- `SiteSettings` refs (gross scan): `2469`
+- `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `214`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `161`
 - `get_solo()` refs: `213`
-- `except Exception`: `2498`
+- `except Exception`: `2518`
 - `cursor.execute()` (gross): `411`
 - `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `42`
 - `csrf_exempt` (substring, gross): `681`
 - `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `110`
 - `AllowAny`: `173`
-- `print()` (gross all `.py`): `4160`
-- `print()` (`apps` product paths): `0`; `scripts/`: `3976`
-- `gilead` matches (gross corpus): `16836` across `231` files
+- `print()` (gross all `.py`): `4198`
+- `print()` (`apps` product paths): `0`; `scripts/`: `4013`
+- `gilead` matches (gross corpus): `16839` across `232` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -79,7 +79,7 @@ Total: `282` commands. First 25 by app/command:
 
 - `apps/siteconfig/_seed_country_localization.py`: `16897` lines / `1225693` bytes
 - `apps/siteconfig/forms_cockpit.py`: `5088` lines / `206605` bytes
-- `config/settings.py`: `3460` lines / `168275` bytes
+- `config/settings.py`: `3469` lines / `168762` bytes
 - `apps/schools/marketing_views.py`: `4135` lines / `165744` bytes
 - `apps/api/saml.py`: `3487` lines / `147039` bytes
 - `apps/schools/marketing_page_definitions.py`: `3056` lines / `143830` bytes
