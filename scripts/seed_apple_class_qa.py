@@ -166,9 +166,31 @@ def ensure_tenant_user(school: School) -> None:
     print(f"tenant user: {TENANT_USERNAME} ({'created' if created else 'updated'}) -> {school.slug}")
 
 
+def ensure_demo_teacher(school: School) -> None:
+    """Teacher without MFA — used by operator/tenant tools smoke on /portal/teacher/."""
+    from apps.schools.demo_user_seeding import seed_demo_users_for_school
+
+    seed_demo_users_for_school(
+        school,
+        password=os.environ.get("APPLE_QA_DEMO_PASSWORD", "Test1234"),
+        username_prefix="demo",
+        stdout=sys.stdout,
+        style=type(
+            "Style",
+            (),
+            {
+                "SUCCESS": lambda self, x: x,
+                "WARNING": lambda self, x: x,
+                "ERROR": lambda self, x: x,
+            },
+        )(),
+    )
+
+
 if __name__ == "__main__":
     ensure_local_browser_mfa_policy()
     ensure_platform_user()
     school = ensure_tenant_school()
     ensure_tenant_user(school)
+    ensure_demo_teacher(school)
     print("seed_apple_class_qa: OK")

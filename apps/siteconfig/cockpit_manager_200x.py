@@ -224,7 +224,7 @@ def _operator_tools_defaults() -> dict[str, Any]:
         "tray_notebook": True,
         "hide_floating_notebook": True,
         "workflow_header_only": False,
-        "back_to_top_corner": "bottom-left",
+        "back_to_top_corner": "bottom-right",
     }
 
 

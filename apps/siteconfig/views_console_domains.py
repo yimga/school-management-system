@@ -405,10 +405,6 @@ def console_domains_hub(request: HttpRequest) -> HttpResponse:
         context["platform_operator_hub_url"] = None
     context["platform_config"] = _build_platform_config_context(request)
     context["operational_links"] = _build_operational_links_context(request)
-    try:
-        context["admin_index_url"] = reverse("admin:index")
-    except NoReverseMatch:
-        context["admin_index_url"] = None
     context["compact"] = getattr(request, "public_host_kind", None) != "manager"
     return render_siteconfig_operator_page(
         request,

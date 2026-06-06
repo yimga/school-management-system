@@ -54,21 +54,39 @@ function _totpNow(hexKey, step = 30, digits = 6) {
     (hmac[off + 3] & 0xff);
   return String(bin % 10 ** digits).padStart(digits, '0');
 }
+// Wait until the wall clock crosses into a fresh TOTP step so the next code we
+// submit has a strictly higher counter than any already consumed by the device.
+async function _waitForNextTotpWindow(step = 30) {
+  const msIntoStep = (Date.now() / 1000 % step) * 1000;
+  // Sleep to the boundary plus a 750ms cushion to clear server/client skew.
+  const waitMs = step * 1000 - msIntoStep + 750;
+  await new Promise((resolve) => setTimeout(resolve, waitMs));
+}
+
 async function completeMfaIfPresent(page) {
   const hexKey = (process.env.VISUAL_QA_TOTP_HEX || '').trim();
   if (!hexKey) return;
   if (!/\/authentication\/mfa\/verify\//.test(page.url())) return;
   const tokenField = page.locator('input[name="token"]');
   if (!(await tokenField.count())) return;
-  await tokenField.fill(_totpNow(hexKey));
-  // Trust the device so sensitive routes don't re-prompt MFA mid-run.
-  const remember = page.locator('input[name="remember_device"]');
-  if (await remember.count()) await remember.check().catch(() => {});
-  await page
-    .getByRole('button', { name: /verify and continue|verify|continue/i })
-    .first()
-    .click();
-  await page.waitForLoadState(NAV_WAIT_UNTIL);
+  // django_otp replay defense (last_t) rejects any code whose counter was
+  // already consumed — which happens when a prior login this run (or a rapid
+  // re-run) verified within the same 30s window. Submit, and if we're still on
+  // the verify page, roll into the next window with a fresh code and retry.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await tokenField.fill(_totpNow(hexKey));
+    // Trust the device so sensitive routes don't re-prompt MFA mid-run.
+    const remember = page.locator('input[name="remember_device"]');
+    if (await remember.count()) await remember.check().catch(() => {});
+    await page
+      .getByRole('button', { name: /verify and continue|verify|continue/i })
+      .first()
+      .click();
+    await page.waitForLoadState(NAV_WAIT_UNTIL);
+    if (!/\/authentication\/mfa\/verify\//.test(page.url())) return;
+    // Still on verify → code rejected (replay or skew). Wait for a fresh window.
+    if (attempt < 2) await _waitForNextTotpWindow();
+  }
 }
 
 /**
@@ -309,17 +327,42 @@ async function assertVerticalShellScroll(page, label, scrollRootSelector) {
   ).toBeGreaterThanOrEqual(minScroll);
 }
 
+// Resolve a surface's marker to its first VISIBLE match. Page headings often
+// share their text with a (collapsed/hidden) sidebar nav or "recent" link, so a
+// bare .first() can latch onto the hidden link and report it as not-visible.
+// Filtering to visible elements first targets the on-screen heading we mean.
+function markerLocator(page, surface) {
+  const base = surface.markerSelector
+    ? page.locator(surface.markerSelector)
+    : page.getByText(surface.marker, { exact: false });
+  return base.filter({ visible: true }).first();
+}
+
+// Navigate, clearing any MFA step-up, and retry a few times on the SQLite-only
+// transient "database is locked" 500. The threaded dev runserver on file-backed
+// SQLite intermittently throws OperationalError when a page writes during GET
+// while concurrent telemetry/SSE requests also write — a dev artifact only
+// (production is PostgreSQL; the serial Django test client returns 200). Real
+// 500s carry a different message and fall through immediately, so they still fail.
+async function gotoWithTransientRetry(page, url, navOpts) {
+  for (let attempt = 0; ; attempt += 1) {
+    const resp = await page.goto(url, navOpts);
+    // Some operator routes force an MFA step-up even after remember-device; clear it.
+    await completeMfaIfPresent(page);
+    if (!resp || resp.status() < 500 || attempt >= 4) return resp;
+    const body = await page.locator('body').innerText().catch(() => '');
+    if (!/database is locked|OperationalError/i.test(body)) return resp;
+    await page.waitForTimeout(1200);
+  }
+}
+
 async function captureSurface(page, viewportName, surface, category) {
   const navOpts = { waitUntil: NAV_WAIT_UNTIL };
   const longTimeoutSlugs = ['setup-studio', 'control-plane-app-catalog'];
   const visibilityTimeout = longTimeoutSlugs.includes(surface.slug) ? 15000 : 5000;
-  await page.goto(surface.url, navOpts);
+  await gotoWithTransientRetry(page, surface.url, navOpts);
   try {
-    if (surface.markerSelector) {
-      await expect(page.locator(surface.markerSelector).first()).toBeVisible({ timeout: visibilityTimeout });
-    } else {
-      await expect(page.getByText(surface.marker, { exact: false }).first()).toBeVisible({ timeout: visibilityTimeout });
-    }
+    await expect(markerLocator(page, surface)).toBeVisible({ timeout: visibilityTimeout });
   } catch (markerErr) {
     // Marker not found/visible: dump the page's actual landing state so the
     // failure names what DID render (final URL, title, visible headings, error
@@ -358,37 +401,52 @@ async function captureSurface(page, viewportName, surface, category) {
 }
 
 async function login(page) {
-  await page.goto(`${MANAGER_BASE_URL}/authentication/login/`, { waitUntil: NAV_WAIT_UNTIL });
-  const roleSelect = page.locator('select[name="role"]');
-  if (await roleSelect.count()) {
-    await roleSelect.selectOption('staff');
+  // Retry the whole login a few times: under the busy dev runserver the POST can
+  // race (we land back on the login page with no error) or the MFA submit can be
+  // momentarily slow. Re-driving the form is the reliable fix — the server stays
+  // up, it's just transiently loaded after a prior heavy test.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await page.goto(`${MANAGER_BASE_URL}/authentication/login/`, { waitUntil: NAV_WAIT_UNTIL });
+    const roleSelect = page.locator('select[name="role"]');
+    if (await roleSelect.count()) {
+      await roleSelect.selectOption('staff');
+    }
+    await page.locator('input[name="username"]').fill(DEFAULT_USERNAME);
+    await page.locator('input[name="password"]').fill(DEFAULT_PASSWORD);
+    await page.getByRole('button', { name: /log in/i }).click();
+    await page.waitForLoadState(NAV_WAIT_UNTIL);
+    await completeMfaIfPresent(page);
+    if (!/\/authentication\/login\/?$/.test(page.url())) return; // logged in
+    if (attempt < 2) await page.waitForTimeout(2000);
   }
-  await page.locator('input[name="username"]').fill(DEFAULT_USERNAME);
-  await page.locator('input[name="password"]').fill(DEFAULT_PASSWORD);
-  await page.getByRole('button', { name: /log in/i }).click();
-  await page.waitForLoadState(NAV_WAIT_UNTIL);
-  await completeMfaIfPresent(page);
-
-  const stillOnLogin = /\/authentication\/login\/?$/.test(page.url());
-  if (stillOnLogin) {
-    const errorText = await page.locator('body').textContent();
-    throw new Error(`Login did not complete for visual QA user. Current page text starts with: ${(errorText || '').slice(0, 240)}`);
-  }
+  const errorText = await page.locator('body').textContent();
+  throw new Error(`Login did not complete for visual QA user after retries. Current page text starts with: ${(errorText || '').slice(0, 240)}`);
 }
 
+// Authenticated shells open persistent SSE EventSources (workflow-progress +
+// assist-dock context). Each holds a dev-runserver worker thread open for the
+// life of the tab; across a long multi-viewport sweep they accumulate and
+// starve the threaded `runserver` until it stops accepting connections — which
+// killed the back half of the suite (tablet/mobile) with ECONNREFUSED while the
+// view code was fine. Abort the streams at the browser so the server never holds
+// the thread; the pages fall back to lightweight polling and render identically.
+const SSE_STREAM_RE = /\/(?:workflow-progress|context)\/stream\//;
+
 async function newContext(browser, view) {
-  return browser.newContext({
+  const context = await browser.newContext({
     viewport: view.viewport,
     isMobile: view.isMobile,
     hasTouch: view.hasTouch,
     deviceScaleFactor: view.isMobile ? 2 : 1,
   });
+  await context.route(SSE_STREAM_RE, (route) => route.abort());
+  return context;
 }
 
 test.describe('UX visual QA', () => {
   test('server is reachable (run bash scripts/run_visual_qa.sh if this fails)', async ({ page }) => {
     try {
-      await page.goto(PUBLIC_BASE_URL + '/migrate/', { waitUntil: 'domcontentloaded', timeout: 8000 });
+      await page.goto(PUBLIC_BASE_URL + '/migrate/', { waitUntil: 'domcontentloaded', timeout: 30000 });
     } catch (e) {
       if (e.message && (e.message.includes('ERR_CONNECTION_REFUSED') || e.message.includes('net::ERR'))) {
         throw new Error(SERVER_REQUIRED_MSG);
@@ -399,6 +457,10 @@ test.describe('UX visual QA', () => {
 
   for (const view of VIEWPORTS) {
     test(`${view.name}: public proof surfaces`, async ({ browser }) => {
+      // Heavy pages under the DEBUG dev runserver render in 10-20s each; the
+      // default 45s budget is for snappy specs. Give these visual sweeps room
+      // so a slow-but-correct page never reads as a failure.
+      test.setTimeout(180000);
       for (const surface of PUBLIC_SURFACES) {
         const context = await newContext(browser, view);
         const page = await context.newPage();
@@ -408,6 +470,10 @@ test.describe('UX visual QA', () => {
     });
 
     test(`${view.name}: authenticated operator surfaces`, async ({ browser }) => {
+      // Login (MFA) + several heavy control-plane navigations + full-page
+      // screenshots run ~40-50s EACH on the DEBUG dev runserver. The markers all
+      // render; the cost is server-side latency, so the budget must accommodate it.
+      test.setTimeout(300000);
       const context = await newContext(browser, view);
       const page = await context.newPage();
 
@@ -420,20 +486,25 @@ test.describe('UX visual QA', () => {
     });
 
     test(`${view.name}: authenticated scroll contract`, async ({ browser }) => {
+      // Same dev-runserver latency profile as the operator surfaces test.
+      test.setTimeout(300000);
       const context = await newContext(browser, view);
       const page = await context.newPage();
 
       await login(page);
       for (const surface of AUTHENTICATED_SCROLL_SURFACES) {
+        // tenant-* surfaces validate the TENANT shell (luxury header, #main-content
+        // scroll root) and need a tenant-host login. This loop is operator-
+        // authenticated on the manager host, where /authentication/backend/
+        // resolves to the operator dashboard — so the tenant markers can't match
+        // here. Skip them without a tenant host (Postgres); their manager-host
+        // equivalents are already covered by the operator-surfaces test above.
+        if (surface.slug.startsWith('tenant-') && !TENANT_BASE_URL) continue;
         const longTimeoutSlugs = ['tenant-setup-studio', 'setup-studio', 'manager-tenant-studio'];
         const visibilityTimeout = longTimeoutSlugs.includes(surface.slug) ? 15000 : 5000;
-        await page.goto(`${MANAGER_BASE_URL}${surface.url}`, { waitUntil: NAV_WAIT_UNTIL });
+        await gotoWithTransientRetry(page, `${MANAGER_BASE_URL}${surface.url}`, { waitUntil: NAV_WAIT_UNTIL });
         try {
-          if (surface.markerSelector) {
-            await expect(page.locator(surface.markerSelector).first()).toBeVisible({ timeout: visibilityTimeout });
-          } else {
-            await expect(page.getByText(surface.marker, { exact: false }).first()).toBeVisible({ timeout: visibilityTimeout });
-          }
+          await expect(markerLocator(page, surface)).toBeVisible({ timeout: visibilityTimeout });
         } catch (markerErr) {
           const diag = await page.evaluate(() => {
             const vis = (el) => {
@@ -472,6 +543,8 @@ test.describe('UX visual QA', () => {
     test(`${view.name}: tenant host — teacher + parent portals (DASHBOARDS_AND_LINKS)`, async ({
       browser,
     }) => {
+      // Two portal logins + dashboard navigations under the DEBUG dev runserver.
+      test.setTimeout(300000);
       test.skip(
         process.env.VISUAL_QA_SKIP_TENANT_PORTALS === '1',
         'VISUAL_QA_SKIP_TENANT_PORTALS=1 (no seeded teacher1/parent on this host)'
@@ -500,7 +573,7 @@ test.describe('UX visual QA', () => {
 
       await page.goto(`${TENANT_BASE_URL}/portal/teacher/`, { waitUntil: NAV_WAIT_UNTIL });
       await expect(page.locator('body')).not.toContainText('Server Error (500)');
-      await expect(page.getByText(/workflow|teacher|dashboard|portal/i).first()).toBeVisible({
+      await expect(page.getByText(/workflow|teacher|dashboard|portal/i).filter({ visible: true }).first()).toBeVisible({
         timeout: 10000,
       });
       await assertNoHorizontalOverflow(page, `${view.name}:tenant-teacher-portal`);
@@ -527,7 +600,7 @@ test.describe('UX visual QA', () => {
 
       await page2.goto(`${TENANT_BASE_URL}/portal/parent/`, { waitUntil: NAV_WAIT_UNTIL });
       await expect(page2.locator('body')).not.toContainText('Server Error (500)');
-      await expect(page2.getByText(/parent|home|dashboard|portal|child/i).first()).toBeVisible({
+      await expect(page2.getByText(/parent|home|dashboard|portal|child/i).filter({ visible: true }).first()).toBeVisible({
         timeout: 10000,
       });
       await assertNoHorizontalOverflow(page2, `${view.name}:tenant-parent-portal`);

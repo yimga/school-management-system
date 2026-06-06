@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -35,10 +37,13 @@ def main() -> int:
         str(REPO / "scripts" / "run_sqlite_memory_tests.py"),
         "apps.schools.tests.test_group_console_http",
         "apps.schools.tests.test_group_console",
-        "--fresh",
+        "--keepdb",
     ]
+    env = {**dict(os.environ), "PYTHONUNBUFFERED": "1"}
     try:
-        proc = subprocess.run(cmd, cwd=str(REPO), capture_output=True, text=True, timeout=300)
+        proc = subprocess.run(
+            cmd, cwd=str(REPO), capture_output=True, text=True, timeout=300, env=env
+        )
     except (subprocess.TimeoutExpired, OSError) as exc:
         failures.append(str(exc))
     else:
