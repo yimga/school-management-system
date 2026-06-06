@@ -1,5 +1,10 @@
 {% load static %}
 {% load i18n %}
+{% load emit_once_tags %}
+{% comment %} Guarded once-per-request: this component is included directly by shells AND by
+   partials/rmc_platform_chrome_scripts.html, so it previously emitted the #back-to-top-btn
+   (a duplicate DOM id) + re-executed its scripts several times per page. {% endcomment %}
+{% emit_once "back-to-top" %}
 <svg width="0" height="0" aria-hidden="true" focusable="false" class="rmc-back-to-top-defs">
   <defs>
     <linearGradient id="rmc-back-to-top-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -46,5 +51,6 @@
 </button>
 
 {% comment %} Scroll-container SOT must load before back-to-top (canvas vs document scroll). {% endcomment %}
-<script src="{% static 'js/rmc-scroll-container.js' %}"></script>
+{% emit_once "js-scroll-container" %}<script src="{% static 'js/rmc-scroll-container.js' %}"></script>{% endemit_once %}
 <script src="{% static 'js/_pages/components__back_to_top.js' %}"></script>
+{% endemit_once %}
