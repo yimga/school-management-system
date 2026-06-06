@@ -4,8 +4,8 @@ AI provider abstraction for sovereign/local-first execution.
 Priority order is configurable and defaults to:
     ollama -> rules (local-first on edge/hub).
 
-All generative chat goes through ``services.ai_gateway.invoke`` when
-``AI_GATEWAY_ENABLED`` is true. Gateway tier chains follow ``RMC_DEPLOYMENT_PROFILE``
+User-facing generative chat routes through ``services.ai_helpers.invoke_with_request``
+(RBAC guard + gateway) when ``AI_GATEWAY_ENABLED`` is true. Gateway tier chains follow ``RMC_DEPLOYMENT_PROFILE``
 (see ``services.ai_deployment_posture``): **online** Render SaaS prefers LiteLLM
 when ``LITELLM_PROXY_URL`` is set, then Ollama, then rules; **edge** hubs prefer
 Ollama then rules. This module supplies reachability probes and operator-facing status.
@@ -618,16 +618,47 @@ def generate_ai_response(
                 "gateway": False,
             },
         )
+    request_obj = normalized_metadata.get("request")
     try:
-        from services.ai_gateway import invoke
+        from services.ai_helpers import invoke_with_request
 
-        result, meta = invoke(
-            "general_chat",
-            prompt,
+        outcome = invoke_with_request(
+            task_type="general_chat",
+            prompt=prompt,
+            request=request_obj,
+            school=normalized_metadata.get("school"),
             user_query=user_query,
             metadata=normalized_metadata,
+            require_available=False,
         )
+        if outcome is None:
+            if ai_rules_fallback_allowed():
+                return _rules_fallback(user_query), {
+                    "provider": "rules",
+                    "errors": {"gateway": "unavailable"},
+                    "fallback": True,
+                    "gateway": True,
+                }
+            from services.ai_unavailable import ollama_unavailable_message
+
+            return (
+                ollama_unavailable_message(),
+                {
+                    "provider": "none",
+                    "errors": {"gateway": "unavailable"},
+                    "fallback": False,
+                    "gateway": True,
+                    "live_ai_unavailable": True,
+                },
+            )
+
+        result, meta = outcome
         gateway_meta = {**meta, "gateway": True}
+        if meta.get("outcome") == "permission_refusal":
+            return (
+                result or "You don't have permission to perform that action.",
+                {**gateway_meta, "denied": True, "provider": "none"},
+            )
         if isinstance(result, str):
             return result, gateway_meta
         if meta.get("prompt_injection_blocked"):
@@ -641,6 +672,13 @@ def generate_ai_response(
                 gateway_meta,
             )
         if result is None:
+            if ai_rules_fallback_allowed():
+                return _rules_fallback(user_query), {
+                    "provider": "rules",
+                    "errors": {"gateway": "unavailable"},
+                    "fallback": True,
+                    "gateway": True,
+                }
             return (
                 "AI providers are currently unavailable and rules fallback is disabled.",
                 gateway_meta,
@@ -688,7 +726,7 @@ def get_workflow_clues(
     if not getattr(settings, "AI_GATEWAY_ENABLED", True):
         return None, {"gateway": False, "error": "disabled"}
     try:
-        from services.ai_gateway import invoke
+        from services.ai_helpers import invoke_with_request
 
         effective_school = school or getattr(request, "school", None)
         school_id = (
@@ -699,21 +737,29 @@ def get_workflow_clues(
         user = getattr(request, "user", None)
         user_id = getattr(user, "pk", None) or getattr(user, "id", None)
 
-        result, meta = invoke(
-            "setup_recommend",
-            prompt,
+        outcome = invoke_with_request(
+            task_type="setup_recommend",
+            prompt=prompt,
+            request=request,
+            school=effective_school,
             user_query=prompt[:200],
             metadata=normalize_gateway_metadata(
                 {
-                "request": request,
-                "school": effective_school,
-                "school_id": school_id,
-                "tenant_id": school_id,
-                "user_id": str(user_id) if user_id is not None else None,
-                "country_code": country_code,
+                    "request": request,
+                    "school": effective_school,
+                    "school_id": school_id,
+                    "tenant_id": school_id,
+                    "user_id": str(user_id) if user_id is not None else None,
+                    "country_code": country_code,
                 }
             ),
+            require_available=False,
         )
+        if outcome is None:
+            return None, {"gateway": True, "error": "unavailable"}
+        result, meta = outcome
+        if meta.get("outcome") == "permission_refusal":
+            return None, {**meta, "gateway": True, "error": "permission_denied"}
         text = result if isinstance(result, str) else None
         if text:
             return text.strip(), {**meta, "gateway": True}
@@ -760,7 +806,16 @@ def suggest_support_ticket_response(
     text = None
     meta: dict[str, Any] = {}
     try:
-        from services.ai_gateway import invoke
+        from services.ai_copilot_rbac import invoke_service_layer_ai
+
+        user = None
+        if user_id is not None:
+            try:
+                from django.contrib.auth import get_user_model
+
+                user = get_user_model().objects.filter(pk=user_id).first()
+            except Exception:
+                user = None
 
         md_ai = normalize_gateway_metadata(
             {
@@ -772,12 +827,20 @@ def suggest_support_ticket_response(
                 "role": role,
             }
         )
-        result, meta = invoke(
-            "support_suggest",
-            prompt,
+        result, meta = invoke_service_layer_ai(
+            user=user,
+            school=school,
+            task_type="support_suggest",
+            prompt=prompt,
             user_query=subject[:200],
             metadata=md_ai,
+            require_available=False,
+            surface="support_ticket_suggest",
+            skip_rbac=True,
+            skip_reason="support-ticket-ai-triage-batch",
         )
+        if meta.get("outcome") == "permission_refusal":
+            return None, {**meta, "gateway": True, "error": "permission_denied"}
         text = (
             result
             if isinstance(result, str)

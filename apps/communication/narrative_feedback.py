@@ -65,6 +65,7 @@ def generate_narrative_for_achievement(
                 "school_id": str(school_id) if school_id is not None else None,
                 "tenant_id": str(school_id) if school_id is not None else None,
                 "country_code": country_code,
+                "copilot_rbac_skip": "system-achievement-narrative-draft",
             }
         ),
     )

@@ -2,9 +2,8 @@
 {% comment %} v3.58 (2026-05-22): 200x Element 1 — AI Copilot persistent rail.
 
    Right-column persistent rail (44px collapsed / 360px expanded). Lives
-   inside the .rmc-app-shell grid as a sibling of canvas. Manager-host
-   only — gated by request.public_host_kind == "manager" via the cockpit
-   context processor.
+   inside the .rmc-app-shell grid as a sibling of canvas on manager/admin
+   hosts, or as a fixed mount on tenant portal pages when enabled.
 
    v3.58 additions on top of v3.55.0+ baseline:
      - Collapsed icons each route to a distinct tab (chat / actions /
@@ -75,10 +74,12 @@
               data-rmc-copilot-tab="context"
               title="{% trans 'Context — about this page' %}"
               aria-label="{% trans 'Context — about this page' %}">◈</button>
+      {% if request.public_host_kind == 'manager' %}
       <button class="lx-copilot__rail-icon" type="button"
               data-rmc-operator-notebook-toggle
               title="{% trans 'Toggle operator notebook' %}"
               aria-label="{% trans 'Toggle operator notebook' %}">✎</button>
+      {% endif %}
       <a class="lx-copilot__rail-icon lx-copilot__rail-icon--help" href="{{ rmc_copilot_page_help_url }}"
               data-rmc-page-help
               title="{% trans 'Need help on this page?' %}"
@@ -374,6 +375,6 @@
         data-insights-url="{{ copilot_rail_insights_url }}"
         data-send-url="{{ copilot_rail_send_url }}"
         data-send-stream-url="{{ copilot_rail_send_stream_url }}"
-        data-current-mode="operator"></span>
+        data-current-mode="{% if request.public_host_kind == 'manager' %}operator{% else %}experience{% endif %}"></span>
 </aside>
 {% endif %}

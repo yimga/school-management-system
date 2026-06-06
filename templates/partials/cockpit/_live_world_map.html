@@ -47,8 +47,8 @@
       <circle cx="400" cy="140" r="80" fill="url(#lx-heat-1)"/>
       {% for dot in cockpit.live_world_map.tenant_dots %}
       <g>
-        <circle class="lx-world__ring" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="4" fill="none" stroke="{{ dot.ring_color|default:'#6366f1' }}" stroke-width="1.5"/>
-        <circle class="lx-world__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="4" fill="{{ dot.color_token|default:'#a5b4fc' }}" stroke="#fff" stroke-width="0.6"/>
+        <circle class="lx-world__ring" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="4" fill="none" stroke="{{ dot.ring_color|default:'#6366f1' }}" stroke-width="1.5" style="animation-delay: {{ dot.delay_s|default:0 }}s"/>
+        <circle class="lx-world__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="4" fill="{{ dot.color_token|default:'#a5b4fc' }}" stroke="#fff" stroke-width="0.6" style="animation-delay: {{ dot.delay_s|default:0 }}s"><title>{{ dot.status_label }}</title></circle>
       </g>
       {% endfor %}
       <g stroke="rgba(99,102,241,0.10)" stroke-width="0.5" fill="none">
@@ -71,6 +71,12 @@
       <strong>{{ row.count }}</strong>
     </div>
     {% endfor %}
+    {% comment %} v4.02.x: status colour key for the pulsing tenant dots (active/suspended/frozen). {% endcomment %}
+    <div class="lx-world__status-key" aria-label="{% trans 'Tenant status colour key' %}">
+      <span class="lx-world__status-chip"><span class="lx-world__status-swatch" style="background:#6ee7b7"></span>{% trans "Active" %}</span>
+      <span class="lx-world__status-chip"><span class="lx-world__status-swatch" style="background:#fcd34d"></span>{% trans "Suspended" %}</span>
+      <span class="lx-world__status-chip"><span class="lx-world__status-swatch" style="background:#93c5fd"></span>{% trans "Frozen" %}</span>
+    </div>
   </div>
 </section>
 {% endif %}

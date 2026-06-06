@@ -320,8 +320,13 @@
   margin: 0;
   padding: 0.55rem 0.85rem;
   border-radius: var(--radius-md, 12px);
-  background: var(--mkt-tour-accent);
-  color: var(--color-on-accent, #fff); /* off-token-allow: on-accent text with named-token fallback */
+  /* Deep accent-tinted ink rather than the raw accent: several personality
+     accents (emerald/teal) are mid-tone and fail white text, and the shared
+     --color-on-accent token resolves dark on the marketing surface. A dark
+     base keeps the accent identity while guaranteeing white text passes (≈12:1)
+     across every personality. */
+  background: color-mix(in srgb, var(--mkt-tour-accent) 26%, #15131c); /* off-token-allow: dark accent-tinted tooltip base */
+  color: #ffffff; /* off-token-allow: white tooltip ink on dark accent-tinted base */
   font-size: var(--type-size-small, 0.875rem);
   line-height: 1.45;
   box-shadow: var(--elev-2, 0 6px 18px rgba(0, 0, 0, 0.12)); /* off-token-allow: shadow fallback only, primary path is elev token */
@@ -334,7 +339,16 @@
   inline-size: 0.8rem;
   block-size: 0.8rem;
   transform: rotate(45deg);
-  background: var(--mkt-tour-accent);
+  /* Match the darkened tooltip base so the arrow reads as one seamless callout. */
+  background: color-mix(in srgb, var(--mkt-tour-accent) 26%, #15131c); /* off-token-allow: dark accent-tinted tooltip arrow */
+}
+
+/* The marketing contrast-hardening layer forces `article p` / `.mkt-section p`
+   to dark ink (#2c241d) with !important. The tour tooltip now sits on a dark
+   accent base, so it needs white. Beat the hardening !important with higher
+   specificity via the tooltip's own data attribute. */
+body.marketing-surface p.mkt-tour__tooltip[data-mkt-tour-tooltip] {
+  color: #ffffff !important; /* off-token-allow: white tooltip ink on dark accent base, overrides hardening !important */
 }
 
 .mkt-tour__caption {

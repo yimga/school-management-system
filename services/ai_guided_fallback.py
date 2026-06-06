@@ -65,14 +65,26 @@ _QUERY_TOPICS: tuple[tuple[re.Pattern[str], str], ...] = (
 )
 
 
-def _infer_task_from_query(query: str, task_key: str) -> str:
+def _infer_task_from_query(query: str, task_key: str, metadata: dict[str, Any] | None = None) -> str:
     key = (task_key or "general_chat").strip().lower()
     if key != "general_chat" and key in _TASK_HINTS:
-        return key
-    for pattern, topic in _QUERY_TOPICS:
-        if pattern.search(query or ""):
-            return topic
-    return key if key in _TASK_HINTS else "general_chat"
+        inferred = key
+    else:
+        inferred = key
+        for pattern, topic in _QUERY_TOPICS:
+            if pattern.search(query or ""):
+                inferred = topic
+                break
+        if inferred not in _TASK_HINTS:
+            inferred = key if key in _TASK_HINTS else "general_chat"
+
+    perms = (metadata or {}).get("permissions")
+    if isinstance(perms, dict):
+        from services.ai_copilot_rbac import guided_task_allowed_for_permissions
+
+        if not guided_task_allowed_for_permissions(inferred, perms):
+            return "general_chat"
+    return inferred
 
 
 def _format_rag_snippets(rag_snippets: list[dict[str, Any]] | None) -> tuple[str, list[str], list[dict[str, str]]]:
@@ -225,7 +237,7 @@ def build_guided_fallback(
 ) -> dict[str, Any]:
     """Return a validated guided_assistant payload for rules/degraded mode."""
     query = (user_query or "").strip()
-    task_key = _infer_task_from_query(query, (task_type or "general_chat").strip().lower())
+    task_key = _infer_task_from_query(query, (task_type or "general_chat").strip().lower(), metadata)
     hint = _TASK_HINTS.get(task_key) or _TASK_HINTS["general_chat"]
 
     rag_text, rag_refs, rag_actions = _format_rag_snippets(rag_snippets)

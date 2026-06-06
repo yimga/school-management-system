@@ -1,0 +1,37 @@
+{% load i18n %}
+{% comment %}
+Reusable empty-state card — fills a blank/zero-record panel with a purposeful,
+centered prompt instead of dead space. Token-driven + theme-aware (light/dark
+via the cockpit skin), 8px scale. NO viewport-lock, NO text-clipping shield.
+
+Usage:
+  {% include "components/rmc_empty_state_card.html" with
+       title=_("No schools yet")
+       description=_("Provision your first campus to see it here.")
+       cta_label=_("Add a school")
+       cta_url=add_school_url
+       icon="bi-buildings" %}
+
+Params (all optional except title):
+  title        — heading text (required)
+  description  — supporting line
+  icon         — Bootstrap-icon class (e.g. "bi-inbox"); defaults to bi-inbox
+  cta_label    — primary action label
+  cta_url      — primary action href (renders the CTA only when both set)
+  cta_id       — optional id on the CTA anchor (for JS wizard launchers)
+  compact      — truthy → tighter padding for inline/small panels
+{% endcomment %}
+<div class="rmc-empty-state{% if compact %} rmc-empty-state--compact{% endif %}" role="status" data-rmc-empty-state="1">
+  <span class="rmc-empty-state__icon" aria-hidden="true">
+    <i class="bi {{ icon|default:'bi-inbox' }}"></i>
+  </span>
+  <h3 class="rmc-empty-state__title">{{ title }}</h3>
+  {% if description %}
+  <p class="rmc-empty-state__desc">{{ description }}</p>
+  {% endif %}
+  {% if cta_url and cta_label %}
+  <a href="{{ cta_url }}" class="rmc-empty-state__cta cp-btn-primary"{% if cta_id %} id="{{ cta_id }}"{% endif %}>
+    {{ cta_label }}
+  </a>
+  {% endif %}
+</div>

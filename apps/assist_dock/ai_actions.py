@@ -156,6 +156,30 @@ def invoke_action(
             "surface": "",
         },
     )
+    combined_query = " ".join(
+        part for part in (user_query.strip(), page_excerpt.strip()[:240]) if part
+    ).strip() or action.label
+    try:
+        from services.ai_copilot_rbac import guard_copilot_invoke
+    except ImportError:
+        guard_copilot_invoke = None  # type: ignore[assignment,misc]
+    if guard_copilot_invoke is not None:
+        guard = guard_copilot_invoke(
+            request=request,
+            task_type=action.task_type,
+            prompt=prompt,
+            user_query=combined_query,
+            metadata={"surface": "assist_dock", "mode": action.id},
+        )
+        if not guard.allowed:
+            return {
+                "ok": False,
+                "text": guard.denial_reason,
+                "action_id": action_id,
+                "task_type": action.task_type,
+                "error": "permission_denied",
+            }
+        prompt = guard.prompt
     try:
         from services.ai_helpers import invoke_with_request
     except (ImportError, RuntimeError) as exc:
@@ -172,9 +196,10 @@ def invoke_action(
             task_type=action.task_type,
             prompt=prompt,
             request=request,
-            user_query=user_query or action.label,
+            user_query=combined_query,
             response_schema=action.response_schema or None,
             require_available=False,
+            metadata={"surface": "assist_dock", "copilot_rbac_enforced": True},
         )
     except Exception as exc:  # noqa: BLE001 — gateway can raise broad classes
         logger.debug("ai action %s invoke failed: %s", action_id, exc)

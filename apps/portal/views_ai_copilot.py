@@ -174,56 +174,9 @@ def get_ai_permissions(user):
     Determine what AI copilot features are available for the user's role.
     Returns a dict of available features and scopes.
     """
-    role = get_user_role(user) or "USER"
-    is_admin_like = _is_copilot_admin_like(user)
+    from services.ai_copilot_rbac import build_copilot_permissions
 
-    permissions = {
-        "can_access_ai": user.is_authenticated,
-        "can_analyze_data": False,
-        "can_view_financial": False,
-        "can_view_compliance": False,
-        "can_access_grades": False,
-        "can_access_roster": False,
-        "scope": "general",
-    }
-
-    if is_admin_like:
-        permissions.update(
-            {
-                "can_analyze_data": True,
-                "can_view_financial": True,
-                "can_view_compliance": True,
-                "can_access_grades": True,
-                "can_access_roster": True,
-                "scope": "admin",
-            }
-        )
-    elif role == "BURSAR":
-        permissions.update(
-            {
-                "can_analyze_data": True,
-                "can_view_financial": True,
-                "scope": "finance",
-            }
-        )
-    elif role == User.Role.TEACHER:
-        permissions.update(
-            {
-                "can_access_grades": True,
-                "can_access_roster": True,
-                "scope": "teacher",
-            }
-        )
-    elif role == User.Role.PARENT:
-        permissions.update(
-            {
-                "can_access_grades": True,  # Only their child's grades
-                "can_view_financial": True,  # Only their child's fees
-                "scope": "parent",
-            }
-        )
-
-    return permissions
+    return build_copilot_permissions(user)
 
 
 def is_query_allowed(user, query):
@@ -234,47 +187,16 @@ def is_query_allowed(user, query):
     enforce server-side data scoping in the code that builds context and answers.
     Returns: (bool, str) - (is_allowed, denial_reason)
     """
+    from services.ai_copilot_rbac import build_copilot_permissions, validate_copilot_query
+
     permissions = get_ai_permissions(user)
-
-    if not permissions["can_access_ai"]:
-        return False, "You are not authenticated to use AI Copilot."
-
-    query_lower = query.lower()
-
-    # Keyword-based restrictions
-    financial_keywords = ["invoice", "payment", "fee", "financial"]
-    payroll_keywords = ["salary", "payroll"]
-    compliance_keywords = [
-        "audit",
-        "compliance",
-        "permission",
-        "access log",
-        "security",
-    ]
-    all_grades_keywords = ["all grades", "all students grade", "every student"]
-
-    if any(kw in query_lower for kw in payroll_keywords):
-        if permissions.get("scope") not in {"admin", "finance"}:
-            return False, "You don't have permission to access payroll data."
-
-    if any(kw in query_lower for kw in financial_keywords):
-        if not permissions["can_view_financial"]:
-            return False, "You don't have permission to access financial data."
-
-    if any(kw in query_lower for kw in compliance_keywords):
-        if not permissions["can_view_compliance"]:
-            return False, "You don't have permission to access compliance data."
-
-    if any(kw in query_lower for kw in all_grades_keywords):
-        if permissions["scope"] == "parent":
-            return (
-                False,
-                "Parents can only view their child's grades, not all students.",
-            )
-        if permissions["scope"] == "teacher" and "all" in query_lower:
-            return False, "Teachers can only view their own classes' grades."
-
-    return True, ""
+    return validate_copilot_query(
+        user,
+        query,
+        permissions,
+        school=None,
+        task_type="general_chat",
+    )
 
 
 @require_http_methods(["POST"])
@@ -303,6 +225,12 @@ def ai_copilot_query(request):
     except (AttributeError, ImportError, TypeError, ValueError):
         pass
     try:
+        from services.ai_copilot_rbac import (
+            build_copilot_permissions,
+            rbac_directives_for_permissions,
+            validate_copilot_query,
+        )
+
         data = json.loads(request.body)
         user_query = data.get("query", "").strip()
 
@@ -337,7 +265,14 @@ def ai_copilot_query(request):
             )
 
         # Validate query is allowed for this user
-        is_allowed, denial_reason = is_query_allowed(request.user, user_query)
+        permissions = build_copilot_permissions(request.user, request=request)
+        is_allowed, denial_reason = validate_copilot_query(
+            request.user,
+            user_query,
+            permissions,
+            school=getattr(request, "school", None),
+            task_type="general_chat",
+        )
 
         if not is_allowed:
             # Log the denied attempt
@@ -370,15 +305,20 @@ def ai_copilot_query(request):
         )
 
         # Build contextual prompt and call configured provider chain
-        permissions = get_ai_permissions(request.user)
         from apps.portal.ai_surface_context import build_ai_surface_context
 
         surface = build_ai_surface_context(request)
+        directives = rbac_directives_for_permissions(
+            permissions,
+            active_url=str(surface.get("current_path") or ""),
+            host_kind=getattr(request, "public_host_kind", None),
+        )
         prompt = build_contextual_prompt(
             request.user,
             user_query,
             current_path=surface.get("current_path") or "",
         )
+        prompt = f"{directives}\n\n{prompt}"
         rag_block = ""
         try:
             from services.ai_memory import AIMemoryService, get_embedding_for_text
@@ -420,6 +360,10 @@ def ai_copilot_query(request):
                     "school": getattr(request, "school", None),
                     "user_id": getattr(request.user, "id", None),
                     "role": getattr(request.user, "role", "USER"),
+                    "permissions": permissions,
+                    "rbac_scope": permissions.get("scope"),
+                    "copilot_rbac_enforced": True,
+                    **surface,
                 }
             ),
         )
@@ -691,6 +635,11 @@ def build_contextual_prompt(
         context += (
             f"The user is a parent named {user_name}. "
             "Focus responses on their child's information only, including progress, fee payment status, communication with teachers, and school events. "
+        )
+    elif role == User.Role.STUDENT:
+        context += (
+            f"The user is a student named {user_name}. "
+            "Help with their own grades, assignments, schedule, and school navigation only — never other students or staff records. "
         )
     else:
         context += f"The user is {user_name}. Help with general system navigation and common tasks. "

@@ -2,7 +2,8 @@
 AI provider abstraction — local-first, disabled by default.
 
 - ``RUNMYCAMPUS_AI_ENABLED=1`` gates the North Star assistant layer.
-- When enabled, prompts route through ``services.ai_gateway.invoke`` with
+- When enabled, prompts route through ``services.ai_copilot_rbac.invoke_service_layer_ai``
+  (RBAC guard + ``services.ai_helpers.invoke_with_request``) with
   ``allowed_backends`` defaulting to ollama + rules only unless
   ``RUNMYCAMPUS_AI_ALLOW_EXTERNAL=1``.
 """
@@ -143,15 +144,23 @@ def run_ai_prompt(
         f"{prompt}\n\nAdditional context:\n{(context or '')[:8000]}"
     ).strip()
     user_query = (context or "")[:2000]
+    authenticated = user is not None and getattr(user, "is_authenticated", False)
+    task_type = "general_chat" if authenticated else "narrative"
 
     try:
-        from services.ai_gateway import TaskType, invoke
+        from services.ai_copilot_rbac import invoke_service_layer_ai
 
-        result, meta = invoke(
-            TaskType.NARRATIVE,
-            combined,
-            user_query=user_query,
+        result, meta = invoke_service_layer_ai(
+            user=user,
+            school=school,
+            task_type=task_type,
+            prompt=combined,
+            user_query=user_query if authenticated else "",
             metadata=md,
+            require_available=False,
+            surface=f"northstar_{prompt_type}",
+            skip_rbac=not authenticated,
+            skip_reason="northstar-batch-no-actor",
         )
     except Exception as exc:  # noqa: BLE001
         return (
@@ -159,6 +168,17 @@ def run_ai_prompt(
             {
                 "provider": "error",
                 "error": str(exc)[:200],
+                "prompt_type": prompt_type,
+            },
+        )
+
+    if meta.get("outcome") == "permission_refusal":
+        return (
+            result or "You don't have permission to perform that action.",
+            {
+                **meta,
+                "provider": "none",
+                "denied": True,
                 "prompt_type": prompt_type,
             },
         )

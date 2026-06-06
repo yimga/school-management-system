@@ -242,6 +242,55 @@ body.manager-portal-bridge[data-copilot="expanded"] #main-content {
   }
 }
 
+/* === Tenant portal bridge: fixed copilot rail (Bootstrap layout) ====== */
+body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
+  position: fixed;
+  top: var(--rmc-app-shell-header-h, 72px);
+  right: 0;
+  bottom: 8px;
+  width: var(--rmc-app-shell-copilot-w, 44px);
+  z-index: 45;
+  pointer-events: none;
+}
+
+body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount .rmc-app-shell__copilot,
+body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount .lx-copilot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .rmc-tenant-portal-copilot-mount {
+  --rmc-app-shell-copilot-w: 360px;
+  width: 360px;
+}
+
+body[data-rmc-tenant-copilot-rail="1"][data-rmc-copilot-page-help="1"] .rmc-help-contextual-drawer {
+  display: none !important;
+}
+
+body[data-rmc-tenant-copilot-rail="1"] .portal-main-col,
+body[data-rmc-tenant-copilot-rail="1"] #main-content {
+  padding-right: calc(var(--rmc-app-shell-copilot-w, 44px) + 8px);
+}
+
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] .portal-main-col,
+body[data-rmc-tenant-copilot-rail="1"][data-copilot="expanded"] #main-content {
+  padding-right: calc(360px + 8px);
+}
+
+@media (max-width: 1199.98px) {
+  body[data-rmc-tenant-copilot-rail="1"] .rmc-tenant-portal-copilot-mount {
+    display: none;
+  }
+  body[data-rmc-tenant-copilot-rail="1"] .portal-main-col,
+  body[data-rmc-tenant-copilot-rail="1"] #main-content {
+    padding-right: 0;
+  }
+}
+
 /* === Manager /admin/ copilot rail (3rd grid column) ===================== */
 body.admin-manager-shell .rmc-app-shell.admin-cp-unified-page {
   grid-template-columns: var(--rmc-app-shell-sidebar-w, clamp(240px, 18vw, 320px)) 1fr var(--rmc-app-shell-copilot-w, 44px);
@@ -269,4 +318,109 @@ body.admin-manager-shell .rmc-app-shell__copilot {
 body.control-plane-shell[data-rmc-copilot-page-help="1"] .rmc-help-contextual-drawer,
 body.admin-manager-shell[data-rmc-copilot-page-help="1"] .rmc-help-contextual-drawer {
   display: none !important;
+}
+
+/* ============================================================
+   v4.02.x — PUSH CONTENT UP (platform-wide, every manager.runmycampus.com page)
+   ------------------------------------------------------------
+   The page hero (rmc-wcx-hero, e.g. "Platform Command Center") + its top
+   margins left a tall dead band between the header chrome and the first real
+   content (Platform Pulse, changelists, dashboards). Tighten the hero and zero
+   the first-child top margin so content hugs the header — like the v8 200x
+   mockup where the dashboard begins right under the header. Compact, NOT
+   cramped: real padding is kept, just trimmed. No viewport-lock, no clipping.
+   Scope = all manager-host operator shells.
+   ============================================================ */
+body.control-plane-shell #cp-main-content > *:first-child,
+body.admin-manager-shell #cp-main-content > *:first-child,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) #cp-main-content > *:first-child,
+body.control-plane-shell .rmc-app-shell__canvas-body > *:first-child,
+body.admin-manager-shell .cp-admin-page-body > *:first-child {
+  margin-top: 0 !important;
+}
+
+/* Slim the world-class page hero on operator surfaces (it's a band, not a
+   landing splash here). */
+body.control-plane-shell .rmc-wcx-hero,
+body.admin-manager-shell .rmc-wcx-hero,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-wcx-hero {
+  padding: clamp(0.55rem, 1vw, 0.85rem) !important;
+  margin-bottom: 0.6rem !important;
+}
+body.control-plane-shell .rmc-wcx-hero__title,
+body.admin-manager-shell .rmc-wcx-hero__title,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-wcx-hero__title {
+  font-size: clamp(1.3rem, 1.7vw, 1.7rem) !important;
+  margin: 0.1rem 0 !important;
+  line-height: 1.12 !important;
+}
+body.control-plane-shell .rmc-wcx-hero__copy,
+body.admin-manager-shell .rmc-wcx-hero__copy,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-wcx-hero__copy {
+  margin-bottom: 0.4rem !important;
+}
+
+/* Tighten the canvas/page-body top padding that opens the header gap. */
+body.control-plane-shell .cp-page-body,
+body.control-plane-shell .cp-canvas-body,
+body.admin-manager-shell .cp-page-body {
+  padding-top: 0.35rem !important;
+}
+
+/* Collapsable cockpit sections (Platform pulse, world map, …) shouldn't carry
+   a big top margin on the first band either. */
+body.control-plane-shell .cp-content > .rmc-collapsable:first-child,
+body.control-plane-shell #cp-main-content > .rmc-collapsable:first-child {
+  margin-top: 0 !important;
+}
+
+/* ------------------------------------------------------------------
+   MEASURED top-gap killers (headless: header bottom 177px, first
+   content band 267px = 90px gap). The existing rmc-cp-200x rules only
+   pin `.cp-platform-pulse`, but the operator landing uses
+   rmc-cockpit-pulse inside cp-page-body — so these contributors were
+   never tightened. Reclaim ~65px so the first band hugs the header
+   (compact, not cramped — a small 4–6px breath is kept).
+   ------------------------------------------------------------------ */
+body[data-rmc-shell-main="control-plane"] #cp-main-content,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) #cp-main-content {
+  padding-top: 4px !important;          /* was ~17px */
+}
+/* Empty/idle operator status stack (offline-sync bar is d-none when all
+   synced) — kill its dead 16px top margin + collapse the empty wrapper. */
+body[data-rmc-shell-main="control-plane"] .rmc-os-status-stack,
+body.admin-manager-shell .rmc-os-status-stack {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+body[data-rmc-shell-main="control-plane"] .rmc-os-status-stack:not(:has(.rmc-offline-sync-bar:not(.d-none))):not(:has(.rmc-os-payment-readiness-slot:not([hidden]) *)) {
+  display: none !important;
+}
+/* The page-body band carried a 16px top margin above the first card. */
+body[data-rmc-shell-main="control-plane"] .cp-page-body,
+body[data-rmc-host-kind="manager"]:not(.marketing-surface) .cp-page-body {
+  margin-top: 0 !important;
+  padding-top: 2px !important;
+}
+/* Empty breadcrumb/page-header wrapper (height 0 on landing) — no margin. */
+body[data-rmc-shell-main="control-plane"] .cp-page-header:empty {
+  margin: 0 !important;
+}
+
+/* ------------------------------------------------------------------
+   /admin/ BACKOFFICE top-gap (measured: header 114 → content 218 = 104px).
+   The Unfold breadcrumb carries a 16px top margin (the earlier rule only
+   tightened its bottom) and the admin page-body adds top padding. Same
+   push-up intent as the control-plane landing, applied to the admin shell
+   so the reclaim is truly platform-wide across manager.runmycampus.com.
+   ------------------------------------------------------------------ */
+body.admin-manager-shell .rmc-admin-breadcrumb-nav {
+  margin-top: 2px !important;
+}
+body.admin-manager-shell .cp-admin-page-body,
+body.admin-manager-shell .cp-page-body {
+  padding-top: 2px !important;
+}
+body.admin-manager-shell #cp-main-content {
+  padding-top: 4px !important;
 }

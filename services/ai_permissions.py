@@ -95,6 +95,9 @@ def get_ai_permission_for_user(
     if task in TENANT_STUDIO_AI_TASKS:
         if _staff_super_or_control_plane(user):
             return True
+        # Co-pilot rail: any authenticated user inside a tenant school context.
+        if task == "studio_os_assistant" and school is not None:
+            return True
         if school is not None and _user_is_tenant_config_role(user):
             return True
         return False

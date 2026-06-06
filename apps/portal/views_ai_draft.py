@@ -67,6 +67,12 @@ def _can_draft(user) -> bool:
     return bool(user.is_staff or user.is_superuser or role)
 
 
+def _permission_refusal_response(text: str, meta: dict) -> JsonResponse | None:
+    if isinstance(meta, dict) and meta.get("outcome") == "permission_refusal":
+        return JsonResponse({"error": text or "Permission denied."}, status=403)
+    return None
+
+
 def _resolve_student(school, payload: dict):
     raw_student_id = payload.get("student_id")
     if raw_student_id in (None, ""):
@@ -120,7 +126,11 @@ def ai_draft_parent_message(request):
         student=student,
         intent=intent,
         key_facts=key_facts,
+        user=request.user,
     )
+    denied = _permission_refusal_response(text, meta)
+    if denied:
+        return denied
     if not text:
         return JsonResponse(
             {"error": meta.get("error") or "No draft returned."}, status=503
@@ -151,8 +161,16 @@ def ai_draft_announcement(request):
     except ImportError:
         return JsonResponse({"error": "Draft service unavailable."}, status=503)
     text, meta = draft_announcement(
-        school=school, audience=audience, intent=intent, key_facts=facts, tone=tone,
+        school=school,
+        audience=audience,
+        intent=intent,
+        key_facts=facts,
+        tone=tone,
+        user=request.user,
     )
+    denied = _permission_refusal_response(text, meta)
+    if denied:
+        return denied
     if not text:
         return JsonResponse({"error": meta.get("error") or "No draft returned."}, status=503)
     return JsonResponse({"draft": text, "provider": meta.get("provider", "")})
@@ -177,7 +195,7 @@ def ai_suggest_subject_lines(request):
         from services.messaging_ai import suggest_subject_lines
     except ImportError:
         return JsonResponse({"error": "Suggestion service unavailable."}, status=503)
-    return JsonResponse({"subjects": suggest_subject_lines(school=school, body_excerpt=body)})
+    return JsonResponse({"subjects": suggest_subject_lines(school=school, body_excerpt=body, user=request.user)})
 
 
 @login_required
@@ -200,7 +218,12 @@ def ai_rewrite_plain_language(request):
         from services.messaging_ai import rewrite_plain_language
     except ImportError:
         return JsonResponse({"error": "Rewrite service unavailable."}, status=503)
-    out, meta = rewrite_plain_language(school=school, text=text, reading_level=reading_level)
+    out, meta = rewrite_plain_language(
+        school=school, text=text, reading_level=reading_level, user=request.user
+    )
+    denied = _permission_refusal_response(out, meta)
+    if denied:
+        return denied
     return JsonResponse({"draft": out, "provider": meta.get("provider", "")})
 
 
@@ -225,7 +248,12 @@ def ai_suggest_replies(request):
     except ImportError:
         return JsonResponse({"error": "Suggestion service unavailable."}, status=503)
     return JsonResponse(
-        {"replies": suggest_replies(school=school, inbound_text=inbound_text, context=context)}
+        {"replies": suggest_replies(
+            school=school,
+            inbound_text=inbound_text,
+            context=context,
+            user=request.user,
+        )}
     )
 
 
@@ -269,7 +297,11 @@ def ai_draft_report_card_comment(request):
         student=student,
         term_name=intent[:60],
         evaluations=evaluations,
+        user=request.user,
     )
+    denied = _permission_refusal_response(text, meta)
+    if denied:
+        return denied
     if not text:
         return JsonResponse(
             {"error": meta.get("error") or "No draft returned."}, status=503
@@ -318,7 +350,11 @@ def ai_draft_lesson_outline(request):
         grade_level=grade_level,
         intent=intent,
         objectives=objectives,
+        user=request.user,
     )
+    denied = _permission_refusal_response(text, meta)
+    if denied:
+        return denied
     if not text:
         return JsonResponse(
             {"error": meta.get("error") or "No draft returned."}, status=503

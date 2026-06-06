@@ -15,6 +15,9 @@ on:
       - "apps/**/*.py"
       - "services/**/*.py"
       - "scripts/scan_ai_gateway_boundary.py"
+      - "scripts/verify_ai_copilot_rbac_coverage.py"
+      - "var/security-audit-baseline-ai-copilot-rbac-coverage.json"
+      - "services/ai_copilot_rbac.py"
       - "scripts/scan_sentry_boundary.py"
       - "scripts/scan_print_statements.py"
       - "scripts/scan_bare_except.py"
@@ -149,6 +152,20 @@ jobs:
       - name: Run scanner --compare
         run: |
           python scripts/scan_ai_gateway_boundary.py --compare
+
+  ai-copilot-rbac-coverage:
+    name: AI copilot RBAC invoke coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify copilot RBAC coverage
+        run: |
+          python scripts/verify_ai_copilot_rbac_coverage.py --strict
 
   sentry-boundary:
     name: Sentry SDK import boundary

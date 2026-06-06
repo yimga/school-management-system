@@ -250,6 +250,7 @@ def _try_cloud_generation(
     metadata: dict[str, str] = {"northstar_prompt_type": "intelligent_palette_v1"}
     if tone is not None:
         metadata["palette_tone"] = str(tone)
+    metadata["copilot_rbac_skip"] = "system-palette-generation-no-user-query"
     try:
         invocation = invoke_with_request(
             task_type="STUDIO_OS_ASSISTANT",

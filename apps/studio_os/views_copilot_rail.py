@@ -129,6 +129,18 @@ class CopilotRailInsightsRefreshView(LoginRequiredMixin, View):
 _MAX_PROMPT_CHARS = 4000
 
 
+def _prepare_rail_invoke(request: HttpRequest, message: str, *, mode: str, surface: str):
+    from services.ai_copilot_rbac import prepare_copilot_invoke
+
+    return prepare_copilot_invoke(
+        request,
+        message,
+        mode=mode,
+        surface=surface,
+        task_type="studio_os_assistant",
+    )
+
+
 @method_decorator(never_cache, name="dispatch")
 class CopilotRailSendView(LoginRequiredMixin, View):
     """Operator chat — POSTs a message, returns a single AI reply.
@@ -178,6 +190,23 @@ class CopilotRailSendView(LoginRequiredMixin, View):
             )
 
         mode = _resolve_mode(request) or "operator"
+        envelope = _prepare_rail_invoke(
+            request,
+            message,
+            mode=mode,
+            surface="studio_os_copilot_rail",
+        )
+        if not envelope.allowed:
+            return JsonResponse(
+                {
+                    "reply": envelope.denial_reason,
+                    "source": "unavailable",
+                    "error": "permission_denied",
+                    "posture_mode": "unavailable",
+                },
+                status=403,
+            )
+
         try:
             from services.ai_helpers import TaskType, invoke_with_request
         except ImportError:
@@ -191,14 +220,10 @@ class CopilotRailSendView(LoginRequiredMixin, View):
         try:
             result = invoke_with_request(
                 task_type=TaskType.STUDIO_OS_ASSISTANT,
-                prompt=message,
+                prompt=envelope.prompt,
                 request=request,
                 user_query=message,
-                metadata={
-                    "surface": "studio_os_copilot_rail",
-                    "mode": mode,
-                    "content_sensitivity": "standard",
-                },
+                metadata=envelope.metadata,
                 require_available=False,
             )
         except Exception:  # noqa: BLE001
@@ -346,6 +371,14 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
             return self._error_stream("message_too_long", status=400, extra={"max_chars": _MAX_PROMPT_CHARS})
 
         mode = _resolve_mode(request) or "operator"
+        envelope = _prepare_rail_invoke(
+            request,
+            message,
+            mode=mode,
+            surface="studio_os_copilot_rail_stream",
+        )
+        if not envelope.allowed:
+            return self._permission_denied_stream(envelope.denial_reason)
 
         def stream():
             t_start = time.monotonic()
@@ -372,11 +405,10 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
 
             yield _sse("ready", {"posture_mode": "pending", "request_id": ""})
 
-            stream_md = {
-                "surface": "studio_os_copilot_rail_stream",
-                "mode": mode,
-                "content_sensitivity": "standard",
-            }
+            stream_md = dict(envelope.metadata)
+            stream_md["surface"] = "studio_os_copilot_rail_stream"
+            stream_md["mode"] = mode
+            rail_prompt = envelope.prompt
 
             # ---- Attempt true streaming first ----
             assembled_parts: list[str] = []
@@ -386,7 +418,7 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
             try:
                 gen = invoke_with_request_stream(
                     task_type=TaskType.STUDIO_OS_ASSISTANT,
-                    prompt=message,
+                    prompt=rail_prompt,
                     request=request,
                     user_query=message,
                     metadata=stream_md,
@@ -432,7 +464,7 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
             try:
                 result = invoke_with_request(
                     task_type=TaskType.STUDIO_OS_ASSISTANT,
-                    prompt=message,
+                    prompt=rail_prompt,
                     request=request,
                     user_query=message,
                     metadata={**stream_md, "surface": "studio_os_copilot_rail_stream_fallback"},
@@ -499,6 +531,22 @@ class CopilotRailSendStreamView(LoginRequiredMixin, View):
         response = StreamingHttpResponse(stream(), content_type="text/event-stream")
         response["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response["X-Accel-Buffering"] = "no"  # nginx: disable response buffering
+        return response
+
+    @staticmethod
+    def _permission_denied_stream(message: str) -> StreamingHttpResponse:
+        def _gen():
+            yield _sse("error", {"code": "permission_denied"})
+            yield _sse("done", {
+                "reply": message,
+                "source": "unavailable",
+                "posture_mode": "unavailable",
+                "request_id": "",
+            })
+
+        response = StreamingHttpResponse(_gen(), content_type="text/event-stream", status=403)
+        response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response["X-Accel-Buffering"] = "no"
         return response
 
     @staticmethod

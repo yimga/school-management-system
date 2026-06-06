@@ -101,6 +101,7 @@ def api_onboarding_coach(request):
 
     if getattr(settings, "AI_GATEWAY_ENABLED", True):
         try:
+            from services.ai_copilot_rbac import guard_copilot_invoke
             from services.ai_helpers import invoke_with_request
 
             prompt = (
@@ -108,11 +109,19 @@ def api_onboarding_coach(request):
                 f"Health score ~{score}. Dominant task: {(payload.get('recommended_next') or {}).get('label', 'setup')}. "
                 "Reply in 2–4 short sentences: what to do next and why. Plain text only."
             )
-            result = invoke_with_request(
+            guard = guard_copilot_invoke(
+                request=request,
                 task_type="setup_recommend",
                 prompt=prompt,
+                user_query="",
+                metadata={"surface": "onboarding_coach"},
+            )
+            result = invoke_with_request(
+                task_type="setup_recommend",
+                prompt=guard.prompt,
                 request=request,
                 school=school,
+                metadata=guard.metadata,
                 require_available=False,
             )
             if result is not None:

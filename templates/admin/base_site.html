@@ -76,6 +76,7 @@
      AFTER manager-cockpit-v7.css below so the skin layers on top. {% endcomment %}
   {% if not is_manager_host %}
   <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-operator-theme-coherence.css' %}">
   {% endif %}
   {% if is_manager_host %}
   {% comment %} v3.59.x: grid + single canvas scroll contract (pairs with data-rmc-cp-scroll=canvas).
@@ -142,6 +143,7 @@
      [data-cockpit-skin="dark"] rules layer the dark header+sidebar / light body chrome onto the
      manager /admin/ shell (parity with /super/ control_plane_skeleton.html). {% endcomment %}
   <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-operator-theme-coherence.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">

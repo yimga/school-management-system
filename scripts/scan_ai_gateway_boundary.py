@@ -48,18 +48,12 @@ ALLOWLIST = frozenset(
     {
         # The wrapper itself.
         "services/ai_helpers.py",
-        # Low-level provider tier — wraps the gateway with portal-specific
-        # rules-fallback and policy guards.
-        "apps/portal/ai_provider.py",
         # Explicit admin gateway surface.
         "apps/portal/views_ai_gateway.py",
         # Migration mapping bridge — uses TaskType.MIGRATION_MAPPING +
         # record_feedback hooks; this is the gateway's "real" consumer
         # for the migration_cloud app.
         "apps/migration_cloud/ai_bridge.py",
-        # Provider runtime config — reads TaskType + tier metadata to
-        # surface live status to portal widgets.
-        "apps/platform_runtime/ai_providers.py",
         # Ops/metrics rollup command — needs `_cost_class_for_tier` to
         # bucket AIGatewayMetric rows per tier.
         "apps/siteconfig/management/commands/aggregate_ai_metrics.py",

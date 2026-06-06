@@ -110,7 +110,10 @@
 
 .mkt-tiers__cta--primary {
   background: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
-  color: #ffffff; /* off-token-allow: on-accent text white by design */
+  /* !important so white wins over the marketing link-colour hardening rule
+     (a:not(.btn)...) which otherwise tints this anchor-CTA link-blue (1.35:1)
+     on its indigo accent fill. White on the indigo/teal accent is 5.5-6.3:1. */
+  color: #ffffff !important; /* off-token-allow: on-accent text white, overrides link-colour hardening */
 }
 
 .mkt-tiers__cta:focus-visible {

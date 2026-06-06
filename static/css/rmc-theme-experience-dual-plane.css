@@ -84,6 +84,42 @@ html[data-resolved-theme="light"] body.admin-manager-shell .cp-sidebar-nav .nav-
   color: var(--cp-chrome-text, #f1f5f9);
 }
 
+/* The primary nav (pills + "More" trigger + the More dropdown items) lives
+   ENTIRELY inside the always-dark chrome header. The generic light-theme link
+   color (#0f172a) would otherwise paint its labels/glyphs dark-on-dark, and the
+   dark More-menu panel is darker still. Lock every text leaf inside .cp-primary-nav
+   to the chrome text token in light mode. The leaf spans (.rmc-text-container /
+   .cp-nav-pill__glyph) are targeted directly so they win over the high-specificity
+   a:not() luxury link rule via explicit-over-inherited. .cp-primary-nav only ever
+   renders in the header, so scoping to the manager body is safe. The active pill
+   keeps its own light-on-indigo treatment (higher specificity, unaffected). */
+html[data-resolved-theme="light"] body.control-plane-shell :is(.cp-primary-nav .cp-primary-nav__pill span, .cp-primary-nav .rmc-text-container, .cp-primary-nav .cp-nav-pill__glyph, .cp-primary-nav__more-item, .cp-primary-nav__more-item span),
+html[data-resolved-theme="light"] body.admin-manager-shell :is(.cp-primary-nav .cp-primary-nav__pill span, .cp-primary-nav .rmc-text-container, .cp-primary-nav .cp-nav-pill__glyph, .cp-primary-nav__more-item, .cp-primary-nav__more-item span),
+html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) :is(.cp-primary-nav .cp-primary-nav__pill span, .cp-primary-nav .rmc-text-container, .cp-primary-nav .cp-nav-pill__glyph, .cp-primary-nav__more-item, .cp-primary-nav__more-item span),
+html[data-bs-theme="light"] body.control-plane-shell :is(.cp-primary-nav .cp-primary-nav__pill span, .cp-primary-nav .rmc-text-container, .cp-primary-nav .cp-nav-pill__glyph, .cp-primary-nav__more-item, .cp-primary-nav__more-item span),
+html[data-bs-theme="light"] body.admin-manager-shell :is(.cp-primary-nav .cp-primary-nav__pill span, .cp-primary-nav .rmc-text-container, .cp-primary-nav .cp-nav-pill__glyph, .cp-primary-nav__more-item, .cp-primary-nav__more-item span),
+html[data-bs-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) :is(.cp-primary-nav .cp-primary-nav__pill span, .cp-primary-nav .rmc-text-container, .cp-primary-nav .cp-nav-pill__glyph, .cp-primary-nav__more-item, .cp-primary-nav__more-item span) {
+  color: var(--cp-chrome-text, #f1f5f9);
+}
+
+/* Sidebar identity block (operator name + "Profile & security" link) sits in the
+   dark chrome sidebar. Its own rule falls back to var(--text-primary) (dark) when
+   --cp-chrome-text is unset → dark-on-dark. Lock it light in light mode. */
+html[data-resolved-theme="light"] body.control-plane-shell :is(.cp-sidebar__user-meta, .cp-sidebar__user-meta strong, .cp-sidebar__user-meta a, .cp-sidebar__identity),
+html[data-resolved-theme="light"] body.admin-manager-shell :is(.cp-sidebar__user-meta, .cp-sidebar__user-meta strong, .cp-sidebar__user-meta a, .cp-sidebar__identity),
+html[data-bs-theme="light"] body.control-plane-shell :is(.cp-sidebar__user-meta, .cp-sidebar__user-meta strong, .cp-sidebar__user-meta a, .cp-sidebar__identity),
+html[data-bs-theme="light"] body.admin-manager-shell :is(.cp-sidebar__user-meta, .cp-sidebar__user-meta strong, .cp-sidebar__user-meta a, .cp-sidebar__identity) {
+  color: var(--cp-chrome-text, #f1f5f9);
+}
+/* The "Profile & security" link is an <a>, so the high-specificity (0,7,1)
+   a:not(.btn):not(.nav-link)... luxury content-link rule out-ranks the rule
+   above and repaints it dark. Borrow the sidebar nav ID (#cpSidebarNav) to land
+   an ID in the selector → (1,x,y) beats the luxury rule cleanly, no !important. */
+html[data-resolved-theme="light"] #cpSidebarNav .cp-sidebar__user-meta a,
+html[data-bs-theme="light"] #cpSidebarNav .cp-sidebar__user-meta a {
+  color: var(--cp-chrome-text-muted, #cbd5e1);
+}
+
 /* ----- B) Light canvas plane (operator + manager admin) ----- */
 
 html[data-resolved-theme="light"] body.control-plane-shell .rmc-app-shell__canvas,

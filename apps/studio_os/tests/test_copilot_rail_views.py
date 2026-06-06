@@ -19,6 +19,8 @@ from django.urls import reverse
 from apps.studio_os.views_copilot_rail import (
     CopilotRailContextView,
     CopilotRailInsightsRefreshView,
+    CopilotRailSendView,
+    _prepare_rail_invoke,
 )
 
 
@@ -145,3 +147,73 @@ class CopilotRailUrlResolutionTests(TestCase):
     def test_insights_url_resolves(self):
         url = reverse("studio_os:copilot_rail_insights")
         self.assertTrue(url.endswith("/copilot/rail/insights/"))
+
+
+class CopilotRailSendRbacTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        User = get_user_model()
+        self.school = SimpleNamespace(pk=1, slug="demo")
+        self.teacher = User.objects.create_user(
+            username="rail-teacher",
+            email="teacher@example.com",
+            password="x",
+        )
+        self.teacher.role = "TEACHER"
+        self.teacher.save(update_fields=["role"])
+        self.parent = User.objects.create_user(
+            username="rail-parent",
+            email="parent@example.com",
+            password="x",
+        )
+        self.parent.role = "PARENT"
+        self.parent.save(update_fields=["role"])
+
+    def test_teacher_allowed_general_question(self):
+        request = self.factory.post(
+            "/studio/copilot/rail/send/",
+            data=json.dumps({"message": "How do I take attendance?"}),
+            content_type="application/json",
+        )
+        request.user = self.teacher
+        _attach_school(request, self.school)
+        envelope = _prepare_rail_invoke(
+            request,
+            "How do I take attendance?",
+            mode="operator",
+            surface="studio_os_copilot_rail",
+        )
+        self.assertTrue(envelope.allowed, envelope.denial_reason)
+        self.assertEqual(envelope.permissions.get("scope"), "teacher")
+
+    def test_parent_denied_payroll_keyword(self):
+        request = self.factory.post(
+            "/studio/copilot/rail/send/",
+            data=json.dumps({"message": "Show me staff payroll totals"}),
+            content_type="application/json",
+        )
+        request.user = self.parent
+        _attach_school(request, self.school)
+        envelope = _prepare_rail_invoke(
+            request,
+            "Show me staff payroll totals",
+            mode="operator",
+            surface="studio_os_copilot_rail",
+        )
+        self.assertFalse(envelope.allowed)
+        self.assertIn("payroll", envelope.denial_reason.lower())
+
+    @patch("services.ai_helpers.invoke_with_request")
+    def test_send_view_returns_403_on_rbac_deny(self, mock_invoke):
+        request = self.factory.post(
+            "/studio/copilot/rail/send/",
+            data=json.dumps({"message": "List every student salary"}),
+            content_type="application/json",
+        )
+        request.user = self.parent
+        _attach_school(request, self.school)
+        response = CopilotRailSendView.as_view()(request)
+        self.assertEqual(response.status_code, 403)
+        body = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(body.get("error"), "permission_denied")
+        mock_invoke.assert_not_called()

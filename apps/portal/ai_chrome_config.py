@@ -87,81 +87,33 @@ def _manager_rail_enabled(request, flags: dict[str, Any]) -> bool:
     return bool(_flag(flags, "enable_manager_ai_copilot_rail", True))
 
 
+def _tenant_rail_enabled(request, flags: dict[str, Any]) -> bool:
+    if getattr(request, "public_host_kind", None) == "manager":
+        return False
+    if getattr(request, "school", None) is None:
+        return False
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    if not ai_help_enabled_for_request(request):
+        return False
+    try:
+        from apps.siteconfig.cockpit_context import cockpit_context
+
+        ctx = cockpit_context(request)
+        acr = (ctx.get("cockpit") or {}).get("ai_copilot_rail") or {}
+        if "enabled" in acr:
+            return bool(acr.get("enabled"))
+    except _FLAG_ERRORS:
+        logger.debug("ai_chrome_config: tenant rail flag read failed", exc_info=True)
+    return bool(_flag(flags, "enable_tenant_ai_copilot_rail", True))
+
+
 def ai_copilot_permissions_for_user(user) -> dict[str, Any]:
     """RBAC map for floating copilot (mirrors ai_copilot_settings)."""
-    user_role = "USER"
-    if user is not None and getattr(user, "is_authenticated", False):
-        user_role = (getattr(user, "role", "USER") or "").upper()
+    from services.ai_copilot_rbac import build_copilot_permissions
 
-    admin_roles = {
-        "ADMIN",  # role-string-allow: rbac-role-comparison
-        "LEADERSHIP",
-        "PRINCIPAL",
-        "VICE_PRINCIPAL",
-        "DEAN",
-        "IT_ADMIN",
-        "SUPERADMIN",
-    }
-    is_admin_like = False
-    if user is not None and getattr(user, "is_authenticated", False):
-        is_admin_like = (
-            getattr(user, "is_superuser", False)
-            or getattr(user, "is_staff", False)
-            or user_role in admin_roles
-        )
-        if not is_admin_like:
-            try:
-                from apps.schools.control_plane import user_has_control_plane_access
-
-                is_admin_like = user_has_control_plane_access(user)
-            except ImportError:
-                pass
-
-    permissions: dict[str, Any] = {
-        "can_access_ai": bool(user and getattr(user, "is_authenticated", False)),
-        "can_analyze_data": False,
-        "can_view_financial": False,
-        "can_view_compliance": False,
-        "can_access_grades": False,
-        "can_access_roster": False,
-        "scope": "general",
-    }
-    if is_admin_like:
-        permissions.update(
-            {
-                "can_analyze_data": True,
-                "can_view_financial": True,
-                "can_view_compliance": True,
-                "can_access_grades": True,
-                "can_access_roster": True,
-                "scope": "admin",
-            }
-        )
-    elif user_role == "BURSAR":
-        permissions.update(
-            {
-                "can_analyze_data": True,
-                "can_view_financial": True,
-                "scope": "finance",
-            }
-        )
-    elif user_role == "TEACHER":  # role-string-allow: rbac-role-comparison
-        permissions.update(
-            {
-                "can_access_grades": True,
-                "can_access_roster": True,
-                "scope": "teacher",
-            }
-        )
-    elif user_role == "PARENT":  # role-string-allow: rbac-role-comparison
-        permissions.update(
-            {
-                "can_access_grades": True,
-                "can_view_financial": True,
-                "scope": "parent",
-            }
-        )
-    return permissions
+    return build_copilot_permissions(user)
 
 
 def _provider_status() -> dict[str, Any]:
@@ -251,6 +203,7 @@ def resolve_ai_chrome_config(request) -> dict[str, Any]:
             "help_assistant": ai_help_enabled_for_request(request),
             "floating_panel": ai_assistant_panel_enabled_for_request(request),
             "manager_rail": _manager_rail_enabled(request, flags),
+            "tenant_rail": _tenant_rail_enabled(request, flags),
             "copilot_api_enabled": bool(
                 _flag(flags, "enable_ai_copilot_query_api", True)
             ),

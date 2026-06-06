@@ -259,6 +259,7 @@ def _llm_fallback(query: str, request: Any) -> dict[str, Any] | None:
     if not query:
         return None
     try:
+        from services.ai_copilot_rbac import guard_copilot_invoke
         from services.ai_helpers import invoke_with_request
     except ImportError:
         return None
@@ -274,12 +275,22 @@ def _llm_fallback(query: str, request: Any) -> dict[str, Any] | None:
         f"Query: {query}\n\n"
         "JSON:"
     )
+    guard = guard_copilot_invoke(
+        request=request,
+        task_type="admin_copilot",
+        prompt=prompt,
+        user_query=query,
+        metadata={"surface": "ai_line"},
+    )
+    if not guard.allowed:
+        return None
     try:
         result = invoke_with_request(
             task_type="admin_copilot",
-            prompt=prompt,
+            prompt=guard.prompt,
             request=request,
             user_query=query,
+            metadata=guard.metadata,
             require_available=True,
         )
     except Exception as exc:  # noqa: BLE001

@@ -199,6 +199,29 @@ def process_platform_query(
         out["meta"]["gateway_enabled"] = False
         return out
 
+    from services.ai_copilot_rbac import prepare_engine_room_rbac
+
+    rbac = prepare_engine_room_rbac(
+        user_profile,
+        query,
+        school=school,
+        active_url=active,
+        task_type="support_suggest",
+    )
+    if not rbac.allowed:
+        out["success"] = True
+        out["response"] = rbac.denial_reason
+        out["meta"].update(
+            {
+                "outcome": "permission_refusal",
+                "skipped_model": True,
+                "copilot_rbac_enforced": True,
+                "rbac_scope": rbac.permissions.get("scope"),
+                "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+            }
+        )
+        return out
+
     enforcer = TenantContextEnforcer(user_profile, school=school)
     scope = enforcer.resolve_scope()
     perm_labels = permission_labels_for_user(user_profile, school=school)
@@ -212,7 +235,7 @@ def process_platform_query(
         permission_labels=perm_labels + route_perms,
     )
     tier_block = build_tier_context_block(scope, school)
-    user_context_block = f"{context_header}\n{tier_block}"
+    user_context_block = f"{rbac.prompt}\n\n{context_header}\n{tier_block}"
 
     denial = _query_permission_denied(user_profile, query) or _route_permission_denied(
         user_profile,
@@ -306,6 +329,7 @@ def process_platform_query(
             prompt,
             user_query=query,
             metadata={
+                **rbac.metadata,
                 "tenant_id": school_id,
                 "school_id": school_id,
                 "school": school,
@@ -326,6 +350,8 @@ def process_platform_query(
         out["meta"]["truncated_context"] = compressed.truncated
         out["meta"]["latency_ms"] = round((time.perf_counter() - started) * 1000, 2)
         out["meta"]["tier_scope"] = scope.tier.value
+        out["meta"]["copilot_rbac_enforced"] = True
+        out["meta"]["rbac_scope"] = rbac.permissions.get("scope")
         if escalation:
             out["meta"]["outcome"] = "escalation_model_output"
         return out
