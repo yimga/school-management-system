@@ -45355,3 +45355,298 @@ msgstr ""
 
 msgid "reversed"
 msgstr ""
+
+msgid "Accepted payment rails"
+msgstr ""
+
+msgid "Active classes"
+msgstr ""
+
+msgid ""
+"Ambient, phone-free capture — QR sweeps and passive RFID taps without a "
+"single student device."
+msgstr ""
+
+msgid "Attendance capture log"
+msgstr ""
+
+msgid "Attendance today"
+msgstr ""
+
+msgid "Brazil — NF-e (SEFAZ)"
+msgstr ""
+
+msgid "Bus check-in"
+msgstr ""
+
+msgid "Cambridge A*–G"
+msgstr ""
+
+msgid "Capture: QR + passive RFID — no student phone required"
+msgstr ""
+
+msgid "Charged"
+msgstr ""
+
+msgid "Class average"
+msgstr ""
+
+msgid "Class teachers"
+msgstr ""
+
+msgid "Collections this term"
+msgstr ""
+
+msgid "Competency"
+msgstr ""
+
+msgid "Dedicated lab"
+msgstr ""
+
+msgid "Deployment matrix · sandbox"
+msgstr ""
+
+msgid ""
+"Drag an invoice and see 80/10/10 routing + a regional e-invoice tax stamp "
+"across 10 authorities."
+msgstr ""
+
+msgid "Edge Mesh Map"
+msgstr ""
+
+msgid "Enterprise Constellation"
+msgstr ""
+
+msgid "Every claim is a sim you can run."
+msgstr ""
+
+msgid "Go to step {{ n }}"
+msgstr ""
+
+msgid "Guided product tour of the real RunMyCampus workspace"
+msgstr ""
+
+msgid "Heavy charts collapse to lightweight text fragments on degraded links."
+msgstr ""
+
+msgid "IB 1–7"
+msgstr ""
+
+msgid "Illustrative split + e-invoice stamp. No real charge."
+msgstr ""
+
+msgid "India — GST (GSTN)"
+msgstr ""
+
+msgid "Indonesia — PPN (DJP)"
+msgstr ""
+
+msgid "Invoice amount"
+msgstr ""
+
+msgid "Kenya — VAT (KRA)"
+msgstr ""
+
+msgid "Lab fee"
+msgstr ""
+
+msgid "Line item"
+msgstr ""
+
+msgid "Live dashboard"
+msgstr ""
+
+msgid "Live on this page"
+msgstr ""
+
+msgid "Local sync queue"
+msgstr ""
+
+msgid ""
+"Map multi-campus networks, shared ledgers and district roll-ups across one "
+"governance fabric."
+msgstr ""
+
+msgid "Mark attendance"
+msgstr ""
+
+msgid "Messages sent"
+msgstr ""
+
+msgid "Mexico — CFDI (SAT)"
+msgstr ""
+
+msgid ""
+"Model packages, seats and add-ons against regional currency — see the bill "
+"before you ever talk to us."
+msgstr ""
+
+msgid "Network-Drop Terminal"
+msgstr ""
+
+msgid "Nigeria — VAT (FIRS)"
+msgstr ""
+
+msgid ""
+"No demo gatekeeping, no “contact sales” wall. Each runs 100% in your browser"
+" — region-aware, offline-proof, and honest about what it shows."
+msgstr ""
+
+msgid "Offer"
+msgstr ""
+
+msgid ""
+"One record, re-expressed instantly across US letters, IB, Cambridge and "
+"competency — zero re-entry."
+msgstr ""
+
+msgid "Open applications"
+msgstr ""
+
+msgid "Open lab"
+msgstr ""
+
+msgid "Outcome statistics"
+msgstr ""
+
+msgid "Parent communication channels"
+msgstr ""
+
+msgid "Pay fees (M-Pesa / MTN)"
+msgstr ""
+
+msgid "Payment distribution bar"
+msgstr ""
+
+msgid "Payment split simulator"
+msgstr ""
+
+msgid ""
+"Pick region → size → modules and watch the workspace, currency, terms and "
+"RTL reshape in seconds."
+msgstr ""
+
+msgid "Polymorphic Gradebook"
+msgstr ""
+
+msgid "Previous step"
+msgstr ""
+
+msgid "Pricing & Entitlement"
+msgstr ""
+
+msgid "Process payment"
+msgstr ""
+
+msgid "Push"
+msgstr ""
+
+msgid "Quiz 1"
+msgstr ""
+
+msgid "Reaches 28 families"
+msgstr ""
+
+msgid "Region / tax authority"
+msgstr ""
+
+msgid "Regional payment rails"
+msgstr ""
+
+msgid ""
+"Reminder: Year 9 swimming starts Thursday. Please send kit. — Front Office"
+msgstr ""
+
+msgid "Run a live simulation"
+msgstr ""
+
+msgid "Run sim"
+msgstr ""
+
+msgid "STAMPED"
+msgstr ""
+
+msgid "Saudi Arabia — VAT (ZATCA)"
+msgstr ""
+
+msgid "See the platform"
+msgstr ""
+
+msgid "Send now"
+msgstr ""
+
+msgid "Simulated · runs in your browser · not a live tenant"
+msgstr ""
+
+msgid "Simulations hub"
+msgstr ""
+
+msgid "Sovereign kernel · region-aware"
+msgstr ""
+
+msgid "Split-Gateway Ledger"
+msgstr ""
+
+msgid "Sync when back online"
+msgstr ""
+
+msgid ""
+"Toggle fiber → blackout; attendance keeps logging via QR + RFID and drains "
+"the queue on reconnect."
+msgstr ""
+
+msgid "Total outstanding"
+msgstr ""
+
+msgid "Tour steps"
+msgstr ""
+
+msgid "US letters · GPA"
+msgstr ""
+
+msgid "USSD fallback · no data plan"
+msgstr ""
+
+msgid "United Arab Emirates — VAT (FTA)"
+msgstr ""
+
+msgid "United Kingdom — VAT (HMRC)"
+msgstr ""
+
+msgid "United States — Sales Tax (IRS)"
+msgstr ""
+
+msgid ""
+"Watch campuses peer-sync over local mesh during load-shedding — no "
+"continuous internet required."
+msgstr ""
+
+msgid "What schools say"
+msgstr ""
+
+msgid "Workspace preview"
+msgstr ""
+
+msgid "Year 9 — B guardians"
+msgstr ""
+
+msgid "Zero-UI Lab"
+msgstr ""
+
+msgid "currencies, region-aware by default"
+msgstr ""
+
+msgid "languages, RTL native"
+msgstr ""
+
+msgid "same record · re-expressed"
+msgstr ""
+
+msgid "synced live"
+msgstr ""
+
+msgid "weeks to switch from legacy SIS"
+msgstr ""
+
+msgid "{{ name }} logo"
+msgstr ""
