@@ -29,15 +29,27 @@ logger = logging.getLogger(__name__)
 
 def _scope_school(tenant_id: str):
     """Resolve the School row for tenant-scoped writes. Returns None when
-    the tenant can't be resolved (which the runner must treat as a no-op)."""
+    the tenant can't be resolved (which the runner must treat as a no-op).
+
+    Resolves by primary key first — this handles BOTH UUID pks (School.id is a
+    UUIDField) and integer pks, since Django coerces the string form. Falls back
+    to slug for non-pk tenant handles (e.g. ``"platform"``)."""
+    tid = str(tenant_id or "").strip()
+    if not tid:
+        return None
     try:
+        from django.core.exceptions import ValidationError
         from apps.schools.models import School  # type: ignore
-        if tenant_id.isdigit():
-            return School.objects.filter(id=int(tenant_id)).first()
-        return School.objects.filter(slug=tenant_id).first()
+
+        try:
+            school = School.objects.filter(pk=tid).first()
+        except (ValueError, TypeError, ValidationError):
+            school = None
+        if school is not None:
+            return school
+        return School.objects.filter(slug=tid).first()
     except Exception as exc:  # noqa: BLE001
-        logger.warning("scope_school lookup failed tenant=%s err=%s",
-                       tenant_id, exc)
+        logger.warning("scope_school lookup failed tenant=%s err=%s", tid, exc)
         return None
 
 
