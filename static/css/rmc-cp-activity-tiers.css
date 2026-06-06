@@ -137,7 +137,7 @@ button.rmc-cp-ticker-inline:focus-visible {
   border-radius: var(--radius-sm, 8px);
   font-size: var(--type-size-xs, 11px);
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: single-row inline ticker badge, truncated via max-width + ellipsis on __text */
   flex-shrink: 1;
 }
 
