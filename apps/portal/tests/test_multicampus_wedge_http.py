@@ -9,10 +9,10 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from apps.accounts.models import User
+from apps.schools.models import School
 from apps.schools.tests.manager_client import login_manager_control_plane
 from apps.siteconfig.models import Plan
 from apps.siteconfig.models_platform_catalog import RegionConfig
-from apps.schools.models import School
 
 
 _ALLOWED_HOSTS = ["*", "testserver", "127.0.0.1", "localhost", "manager.runmycampus.com"]
@@ -30,41 +30,43 @@ _PASSWORD = "passwordxx"
     OPERATOR_MFA_REQUIRED_ON_MANAGER=False,
 )
 class MulticampusWedgeHttpTests(TestCase):
+    """Per-test fixtures in setUp() so --keepdb reruns stay deterministic."""
+
     databases = {"default"}
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.staff = User.objects.create_user(
-            username=f"mcw_{uuid.uuid4().hex[:8]}",
+    def setUp(self):
+        suffix = uuid.uuid4().hex[:8]
+        self.staff = User.objects.create_user(
+            username=f"mcw_{suffix}",
             password=_PASSWORD,
             is_staff=True,
             is_superuser=True,
         )
         plan = Plan.objects.create(
-            name="McPlan",
-            slug=f"mc-plan-{uuid.uuid4().hex[:8]}",
+            name=f"McPlan {suffix}",
+            slug=f"mc-plan-{suffix}",
             included_features=["core"],
             is_active=True,
         )
         region = RegionConfig.objects.create(
-            code=f"M{uuid.uuid4().hex[:6].upper()}",
+            code=f"M{suffix[:6].upper()}",
             name="McRegion",
             timezone="UTC",
             default_currency="USD",
         )
-        cls.parent = School.objects.create(
-            name="Metro Group",
-            slug=f"metro-{uuid.uuid4().hex[:6]}",
-            subdomain=f"metro-{uuid.uuid4().hex[:6]}",
+        self.parent = School.objects.create(
+            name=f"Metro Group {suffix}",
+            slug=f"metro-{suffix}",
+            subdomain=f"metro-{suffix}",
             is_active=True,
             plan=plan,
             default_region=region,
         )
-        cls.child = School.objects.create(
-            name="North Campus",
-            slug=f"north-{uuid.uuid4().hex[:6]}",
-            subdomain=f"north-{uuid.uuid4().hex[:6]}",
-            parent_school=cls.parent,
+        self.child = School.objects.create(
+            name=f"North Campus {suffix}",
+            slug=f"north-{suffix}",
+            subdomain=f"north-{suffix}",
+            parent_school=self.parent,
             is_active=True,
             plan=plan,
             default_region=region,
@@ -94,7 +96,7 @@ class MulticampusWedgeHttpTests(TestCase):
         self.assertEqual(resp.status_code, 200, msg=resp.content[:600])
         body = resp.content.decode("utf-8", errors="replace")
         self.assertIn("Multi-campus", body)
-        self.assertIn("Metro Group", body)
+        self.assertIn(self.parent.name, body)
 
     def test_billing_json_lists_child_school(self):
         client = self._staff_client()
@@ -107,7 +109,7 @@ class MulticampusWedgeHttpTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         payload = json.loads(resp.content.decode("utf-8"))
         names = [row.get("name") for row in (payload.get("tree") or {}).get("children") or []]
-        self.assertIn("North Campus", names)
+        self.assertIn(self.child.name, names)
 
     def test_academics_surface_200(self):
         client = self._staff_client()

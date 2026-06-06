@@ -16,8 +16,11 @@ JSON: ``?format=json`` returns the rollup tree + totals.
 from __future__ import annotations
 
 import logging
+import uuid
 from decimal import Decimal
 from typing import Any
+
+from apps.portal.views_multicampus_common import parse_parent_school_id
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Sum
@@ -63,7 +66,7 @@ def _aggregate_for_schools(school_ids: list[int]) -> dict[str, Any]:
     }
 
 
-def _build_group_tree(parent_id: int | None) -> dict[str, Any]:
+def _build_group_tree(parent_id: uuid.UUID | None) -> dict[str, Any]:
     """Return the parent + children + rollup aggregates."""
     try:
         from apps.schools.models import School
@@ -124,11 +127,7 @@ def multicampus_billing(request: HttpRequest):
             w = wedge(int(wedge_id_raw))
         except (ValueError, TypeError):
             w = None
-    parent_id: int | None
-    try:
-        parent_id = int(request.GET.get("parent") or 0) or None
-    except (ValueError, TypeError):
-        parent_id = None
+    parent_id = parse_parent_school_id(request.GET.get("parent"))
 
     tree = _build_group_tree(parent_id)
 
@@ -136,7 +135,7 @@ def multicampus_billing(request: HttpRequest):
         return JsonResponse({
             "success": True,
             "wedge": w["id"] if w else None,
-            "parent_id": parent_id,
+            "parent_id": str(parent_id) if parent_id else None,
             "tree": tree,
         })
     return render(request, "super/wedges/surface_multicampus_billing.html", {

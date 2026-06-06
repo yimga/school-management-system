@@ -19,8 +19,11 @@ JSON: ``?format=json`` returns the rollup tree.
 from __future__ import annotations
 
 import logging
+import uuid
 from decimal import Decimal
 from typing import Any
+
+from apps.portal.views_multicampus_common import parse_parent_school_id
 
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Sum
@@ -149,7 +152,7 @@ def _staff_aggregate(school_ids: list[int]) -> dict[str, Any]:
     }
 
 
-def _build_tree(parent_id: int | None) -> dict[str, Any]:
+def _build_tree(parent_id: uuid.UUID | None) -> dict[str, Any]:
     try:
         from apps.schools.models import School
     except Exception as exc:  # noqa: BLE001
@@ -203,17 +206,14 @@ def multicampus_extension(request: HttpRequest):
             w = wedge(int(wedge_id_raw))
         except (ValueError, TypeError):
             w = None
-    try:
-        parent_id = int(request.GET.get("parent") or 0) or None
-    except (ValueError, TypeError):
-        parent_id = None
+    parent_id = parse_parent_school_id(request.GET.get("parent"))
 
     tree = _build_tree(parent_id)
     if (request.GET.get("format") or "").lower() == "json":
         return JsonResponse({
             "success": True,
             "wedge": w["id"] if w else None,
-            "parent_id": parent_id,
+            "parent_id": str(parent_id) if parent_id else None,
             "tree": tree,
         })
     return render(request, "super/wedges/surface_multicampus_extension.html", {
