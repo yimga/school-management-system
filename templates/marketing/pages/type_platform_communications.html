@@ -13,6 +13,7 @@
       <a href="{% url 'marketing_platform' %}" class="mkt-edt-link">{% trans "Platform overview →" %}</a>
     </div>
   </header>
+  {% include "marketing/components/_channel_rails_strip.html" with rails=messaging_channels rails_kind="messaging" rails_title=_("Reach every parent on their channel") %}
   {% marketing_platform_visual_strip %}
   {% include "marketing/components/_platform_archetype_visual.html" with visual_static="images/marketing/platform-communications-orchestration.svg" visual_alt=_("Diagram: message orchestration with audience targeting, composer, and delivery status") %}
   {% include "marketing/components/_dashboard_frame.html" with frame_title="Parent inbox" dashboard_partial="schools/_v2/_artifact_parent_phone_compact.svg.html" %}

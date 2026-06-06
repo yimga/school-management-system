@@ -1,0 +1,24 @@
+{% load i18n %}
+{% if rails %}
+<section class="mkt-rails mkt-rails--{{ rails_kind|default:'payments' }} mkt-edt-container rmc-reveal" aria-label="{% if rails_title %}{{ rails_title }}{% elif rails_kind == 'messaging' %}{% trans 'Parent communication channels' %}{% else %}{% trans 'Accepted payment rails' %}{% endif %}" data-mkt-reveal data-mkt-rails-kind="{{ rails_kind|default:'payments' }}">
+  {% if rails_title %}<p class="mkt-rails__title">{{ rails_title }}</p>{% endif %}
+  <div class="mkt-rails__list">
+    {% for rail in rails %}
+      {% if rail.note %}
+      <div class="mkt-rails__chip mkt-rails__chip--note mkt-rails__chip--{{ rail.kind|default:'channel' }}">
+        <span class="mkt-rails__chip-glyph" aria-hidden="true"></span>
+        <span class="mkt-rails__chip-text">
+          <span class="mkt-rails__chip-label">{{ rail.label }}</span>
+          <span class="mkt-rails__chip-note">{{ rail.note }}</span>
+        </span>
+      </div>
+      {% else %}
+      <span class="mkt-rails__chip mkt-rails__chip--{{ rail.kind|default:'channel' }}">
+        <span class="mkt-rails__chip-glyph" aria-hidden="true"></span>
+        <span class="mkt-rails__chip-label">{{ rail.label }}</span>
+      </span>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

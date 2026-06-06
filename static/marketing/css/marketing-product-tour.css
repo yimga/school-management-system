@@ -1,0 +1,448 @@
+/**
+ * marketing-product-tour.css — Vercel-style guided product tour.
+ *
+ * Renders a browser-chrome mock that crossfades between faithful workspace
+ * frames built from real .rmc-* grammar. Accent is driven by
+ * var(--mkt-personality-accent) so each platform page keeps its personality.
+ * Light + dark safe; mobile frames stay readable (no fixed clipping heights).
+ */
+
+.mkt-tour {
+  --mkt-tour-accent: var(--mkt-personality-accent, var(--mkt-edt-accent, var(--color-primary, #4f46e5))); /* off-token-allow: final fallback only — accent normally inherited from personality token */
+  margin: 0 0 var(--space-6, 1.5rem);
+  border: 1px solid color-mix(in srgb, var(--mkt-tour-accent) 22%, var(--hairline, transparent));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-elevated, var(--mkt-edt-bg-elevated, transparent));
+  overflow: clip;
+}
+
+/* Browser chrome bar */
+.mkt-tour__chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-block-end: 1px solid var(--hairline);
+  background: color-mix(in srgb, var(--mkt-tour-accent) 6%, var(--surface-canvas, transparent));
+}
+
+.mkt-tour__dot {
+  inline-size: 0.7rem;
+  block-size: 0.7rem;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--hairline);
+}
+
+.mkt-tour__dot--red {
+  background: #ff5f57; /* off-token-allow: macOS-style traffic-light decoration, theme-neutral */
+}
+.mkt-tour__dot--amber {
+  background: #febc2e; /* off-token-allow: macOS-style traffic-light decoration, theme-neutral */
+}
+.mkt-tour__dot--green {
+  background: #28c840; /* off-token-allow: macOS-style traffic-light decoration, theme-neutral */
+}
+
+.mkt-tour__addr {
+  margin-inline-start: 0.6rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-bg, var(--surface-canvas, transparent));
+  border: 1px solid var(--hairline);
+  font-size: var(--type-size-micro, 0.72rem);
+  color: var(--text-secondary, inherit);
+  letter-spacing: 0.02em;
+}
+
+/* Stage — crossfade frames; min-height so swap never clips content */
+.mkt-tour__stage {
+  position: relative;
+  padding: var(--space-5, 1.25rem);
+  min-block-size: 22rem;
+}
+
+.mkt-tour__frame {
+  position: absolute;
+  inset-block-start: var(--space-5, 1.25rem);
+  inset-inline: var(--space-5, 1.25rem);
+  inset-block-end: var(--space-5, 1.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--motion-base, 220ms) var(--ease-standard, ease),
+    visibility var(--motion-base, 220ms) var(--ease-standard, ease);
+}
+
+.mkt-tour__frame.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-tour__frame {
+    transition: none;
+  }
+}
+
+.mkt-tour__ui {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1 1 auto;
+}
+
+.mkt-tour__ticker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.mkt-tour__ticker .rmc-metric-ticker__card {
+  min-inline-size: 8rem;
+}
+
+/* Tables */
+.mkt-tour__table {
+  inline-size: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--type-size-small, 0.875rem);
+}
+
+.mkt-tour__table th,
+.mkt-tour__table td {
+  padding: 0.5rem 0.7rem;
+  text-align: start;
+  border-block-end: 1px solid var(--hairline);
+}
+
+.mkt-tour__table thead th {
+  font-size: var(--type-size-micro, 0.72rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary, inherit);
+  background: color-mix(in srgb, var(--mkt-tour-accent) 5%, var(--surface-canvas, transparent));
+}
+
+.mkt-tour__table tfoot th {
+  font-weight: 600;
+}
+
+.mkt-tour__table--ledger th,
+.mkt-tour__table--ledger td {
+  white-space: normal;
+}
+
+.mkt-tour__num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.mkt-tour__num--due {
+  color: var(--color-danger, #b42318); /* off-token-allow: semantic overdue color with named-token fallback */
+  font-weight: 600;
+}
+
+/* Pills + status */
+.mkt-tour__pill,
+.mkt-tour__att,
+.mkt-tour__grade {
+  display: inline-block;
+  border-radius: var(--radius-pill, 999px);
+  font-size: var(--type-size-micro, 0.72rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.mkt-tour__pill {
+  padding: 0.25rem 0.6rem;
+}
+
+.mkt-tour__pill--ok {
+  background: color-mix(in srgb, var(--color-success, #157347) 16%, transparent); /* off-token-allow: success tint with named-token fallback */
+  color: var(--color-success, #157347); /* off-token-allow: success text with named-token fallback */
+}
+
+.mkt-tour__pill--warn {
+  background: color-mix(in srgb, var(--color-warning, #b45309) 16%, transparent); /* off-token-allow: warning tint with named-token fallback */
+  color: var(--color-warning, #b45309); /* off-token-allow: warning text with named-token fallback */
+}
+
+.mkt-tour__att {
+  inline-size: 1.6rem;
+  block-size: 1.6rem;
+  line-height: 1.6rem;
+  text-align: center;
+}
+
+.mkt-tour__att--p {
+  background: color-mix(in srgb, var(--color-success, #157347) 16%, transparent); /* off-token-allow: present tint with named-token fallback */
+  color: var(--color-success, #157347); /* off-token-allow: present text with named-token fallback */
+}
+.mkt-tour__att--a {
+  background: color-mix(in srgb, var(--color-danger, #b42318) 16%, transparent); /* off-token-allow: absent tint with named-token fallback */
+  color: var(--color-danger, #b42318); /* off-token-allow: absent text with named-token fallback */
+}
+.mkt-tour__att--l {
+  background: color-mix(in srgb, var(--color-warning, #b45309) 16%, transparent); /* off-token-allow: late tint with named-token fallback */
+  color: var(--color-warning, #b45309); /* off-token-allow: late text with named-token fallback */
+}
+
+.mkt-tour__grade {
+  padding: 0.25rem 0.55rem;
+  background: color-mix(in srgb, var(--mkt-tour-accent) 14%, transparent);
+  color: var(--mkt-tour-accent);
+}
+
+/* Message composer */
+.mkt-tour__composer {
+  gap: 0.65rem;
+}
+
+.mkt-tour__field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mkt-tour__field-label {
+  font-size: var(--type-size-micro, 0.72rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary, inherit);
+  margin-inline-end: 0.3rem;
+}
+
+.mkt-tour__chip {
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill, 999px);
+  background: color-mix(in srgb, var(--mkt-tour-accent) 12%, transparent);
+  color: var(--mkt-tour-accent);
+  font-size: var(--type-size-small, 0.875rem);
+}
+
+.mkt-tour__seg {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm, 8px);
+  font-size: var(--type-size-small, 0.875rem);
+  color: var(--text-secondary, inherit);
+}
+
+.mkt-tour__seg--on {
+  background: var(--mkt-tour-accent);
+  border-color: var(--mkt-tour-accent);
+  color: var(--color-on-accent, #fff); /* off-token-allow: on-accent text with named-token fallback */
+}
+
+.mkt-tour__textarea {
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-bg, var(--surface-canvas, transparent));
+  color: var(--text-primary, inherit);
+  font-size: var(--type-size-small, 0.875rem);
+  line-height: 1.5;
+}
+
+.mkt-tour__composer-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mkt-tour__hint {
+  font-size: var(--type-size-small, 0.875rem);
+  color: var(--text-tertiary, inherit);
+}
+
+.mkt-tour__send {
+  padding: 0.4rem 0.95rem;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--mkt-tour-accent);
+  color: var(--color-on-accent, #fff); /* off-token-allow: on-accent text with named-token fallback */
+  font-size: var(--type-size-small, 0.875rem);
+  font-weight: 600;
+}
+
+/* Admissions pipeline */
+.mkt-tour__pipeline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.mkt-tour__stagecol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.55rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-canvas, transparent);
+}
+
+.mkt-tour__stagehead {
+  font-size: var(--type-size-micro, 0.72rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary, inherit);
+}
+
+.mkt-tour__card {
+  padding: 0.4rem 0.55rem;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--surface-elevated, transparent);
+  border: 1px solid var(--hairline);
+  font-size: var(--type-size-small, 0.875rem);
+  color: var(--text-primary, inherit);
+}
+
+.mkt-tour__card--done {
+  border-color: color-mix(in srgb, var(--mkt-tour-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--mkt-tour-accent) 10%, transparent);
+}
+
+/* Tooltip callout */
+.mkt-tour__tooltip {
+  position: relative;
+  align-self: flex-start;
+  max-inline-size: 30rem;
+  margin: 0;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-md, 12px);
+  background: var(--mkt-tour-accent);
+  color: var(--color-on-accent, #fff); /* off-token-allow: on-accent text with named-token fallback */
+  font-size: var(--type-size-small, 0.875rem);
+  line-height: 1.45;
+  box-shadow: var(--elev-2, 0 6px 18px rgba(0, 0, 0, 0.12)); /* off-token-allow: shadow fallback only, primary path is elev token */
+}
+
+.mkt-tour__tooltip-arrow {
+  position: absolute;
+  inset-block-start: -0.4rem;
+  inset-inline-start: 1.2rem;
+  inline-size: 0.8rem;
+  block-size: 0.8rem;
+  transform: rotate(45deg);
+  background: var(--mkt-tour-accent);
+}
+
+.mkt-tour__caption {
+  margin: 0;
+  font-size: var(--type-size-small, 0.875rem);
+  color: var(--text-secondary, inherit);
+}
+
+/* Controls */
+.mkt-tour__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.85rem var(--space-5, 1.25rem) var(--space-5, 1.25rem);
+}
+
+.mkt-tour__nav {
+  inline-size: 2.4rem;
+  block-size: 2.4rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--mkt-tour-accent) 35%, var(--hairline, transparent));
+  background: var(--surface-elevated, transparent);
+  color: var(--mkt-tour-accent);
+  font-size: var(--type-size-body, 1rem);
+  cursor: pointer;
+  transition: transform var(--motion-fast, 150ms) var(--ease-standard, ease),
+    background var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+
+.mkt-tour__nav:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--mkt-tour-accent) 12%, transparent);
+}
+
+.mkt-tour__nav--prev,
+.mkt-tour__nav--next {
+  flex: 0 0 auto;
+}
+
+.mkt-tour__nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mkt-tour__next--pulse {
+  animation: mkt-tour-pulse 1.4s var(--ease-standard, ease) infinite;
+}
+
+@keyframes mkt-tour-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mkt-tour-accent) 45%, transparent);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 0.5rem color-mix(in srgb, var(--mkt-tour-accent) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-tour__next--pulse {
+    animation: none;
+  }
+}
+
+.mkt-tour__dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mkt-tour__step-dot {
+  inline-size: 0.6rem;
+  block-size: 0.6rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--mkt-tour-accent) 28%, var(--hairline, transparent));
+  cursor: pointer;
+  transition: transform var(--motion-fast, 150ms) var(--ease-standard, ease),
+    background var(--motion-fast, 150ms) var(--ease-standard, ease);
+}
+
+.mkt-tour__step-dot.is-active {
+  background: var(--mkt-tour-accent);
+  transform: scale(1.4);
+}
+
+/* Mobile — stage becomes a horizontally swipeable flow; frames stack and the
+   absolute crossfade relaxes so nothing clips on small screens. */
+@media (max-width: 47.99rem) {
+  .mkt-tour__stage {
+    min-block-size: 0;
+  }
+  .mkt-tour__frame {
+    position: static;
+    inset: auto;
+    display: none;
+  }
+  .mkt-tour__frame.is-active {
+    display: flex;
+  }
+  .mkt-tour__pipeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .mkt-tour__table {
+    display: block;
+    overflow-x: auto;
+  }
+}
