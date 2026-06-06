@@ -28,6 +28,8 @@ import sys
 import time
 from pathlib import Path
 
+from sqlite_gate_db import ensure_gate_session, sqlite_sidecars_busy
+
 
 def main() -> int:
     root = Path(__file__).resolve().parent.parent
@@ -42,17 +44,15 @@ def main() -> int:
         if "--keepdb" not in argv:
             argv.append("--keepdb")
 
-    # Stable path for --keepdb reuse; fresh runs use a new file so Windows never
-    # blocks on "Destroying old test database" when another process holds the cache.
-    # Callers may set DJANGO_TEST_DB_FILE to isolate a gate from the shared cache.
     stable = tdir / "rmc_sqlite_test_runner.sqlite3"
     if fresh:
+        tfile = ensure_gate_session(root, force_fresh=True)
+    elif os.environ.get("DJANGO_TEST_DB_FILE", "").strip() or os.environ.get("RMC_SQLITE_GATE_SESSION", "").strip():
+        tfile = ensure_gate_session(root)
+    elif sqlite_sidecars_busy(stable):
         tfile = tdir / f"rmc_sqlite_test_runner_fresh_{int(time.time())}.sqlite3"
     else:
-        explicit = (os.environ.get("DJANGO_TEST_DB_FILE") or "").strip()
-        tfile = Path(explicit) if explicit else stable
-        if not tfile.is_absolute():
-            tfile = root / tfile
+        tfile = stable
         if "--keepdb" not in argv:
             argv.append("--keepdb")
 

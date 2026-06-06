@@ -2375,7 +2375,16 @@ LOGGING = {
         },
         "django.db": {
             "handlers": ["console"],
-            "level": "WARNING" if RUNNING_TESTS else ("DEBUG" if DEBUG else "WARNING"),
+            # DEBUG under DEBUG logs every SQL query — invaluable for query
+            # debugging but it makes heavy pages 10-20x slower (thousands of log
+            # lines/request). DB_LOG_LEVEL lets a run keep DEBUG=1 (static serve,
+            # rich error pages) while silencing SQL noise — e.g. the visual-QA
+            # harness sets DB_LOG_LEVEL=WARNING for realistic page latency.
+            "level": (
+                "WARNING"
+                if RUNNING_TESTS
+                else os.getenv("DB_LOG_LEVEL", "DEBUG" if DEBUG else "WARNING")
+            ),
             "propagate": False,
         },
     },
