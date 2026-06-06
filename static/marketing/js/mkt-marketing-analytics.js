@@ -45,6 +45,22 @@
     }
   }
 
+  // GDPR: only the in-page rmc:analytics CustomEvent (no network) fires before
+  // consent. The network-capable sinks (the marketing-analytics bus, which can
+  // sendBeacon, and window.dataLayer/GTM) are gated on explicit analytics
+  // consent. Privacy-safe default: if no consent mechanism has resolved a
+  // choice yet, treat analytics as NOT granted.
+  function analyticsConsentGranted() {
+    try {
+      if (window.rmcConsent && typeof window.rmcConsent.granted === "function") {
+        return !!window.rmcConsent.granted("analytics");
+      }
+    } catch (err) {
+      /* consent layer unavailable — fall through to deny */
+    }
+    return false;
+  }
+
   function pageSlug() {
     var el = document.documentElement;
     var ds = (el && el.dataset) || {};
@@ -66,27 +82,38 @@
       detail.ts = now();
     }
 
+    var allowed = analyticsConsentGranted();
+
     // Sink 1: existing platform marketing-analytics bus (best-effort).
-    try {
-      window.rmcMarketingAnalyticsEvents = window.rmcMarketingAnalyticsEvents || [];
-      window.rmcMarketingAnalyticsEvents.push(detail);
-      window.dispatchEvent(
-        new CustomEvent("rmc:marketing-analytics", { detail: detail })
-      );
-    } catch (err) {
-      /* bus unavailable — fall through to the generic sinks */
+    // GATED: this bus can sendBeacon to an endpoint, so it only runs with
+    // analytics consent.
+    if (allowed) {
+      try {
+        window.rmcMarketingAnalyticsEvents = window.rmcMarketingAnalyticsEvents || [];
+        window.rmcMarketingAnalyticsEvents.push(detail);
+        window.dispatchEvent(
+          new CustomEvent("rmc:marketing-analytics", { detail: detail })
+        );
+      } catch (err) {
+        /* bus unavailable — fall through to the generic sinks */
+      }
+
+      // Sink 2: dataLayer (GTM/GA4 convention). Create if absent. GATED.
+      try {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push(detail);
+      } catch (err) {
+        /* dataLayer push failed — non-fatal */
+      }
     }
 
-    // Sink 2: dataLayer (GTM/GA4 convention). Create if absent.
+    // Sink 3: generic document-level CustomEvent for any subscriber. This is
+    // in-page only (no network), so it always fires — lets first-party code
+    // react without tracking the user externally. Shape unchanged (the payload
+    // itself); a non-enumerable-ish consent hint is attached for subscribers
+    // that care, without disturbing the documented event fields.
     try {
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push(detail);
-    } catch (err) {
-      /* dataLayer push failed — non-fatal */
-    }
-
-    // Sink 3: generic document-level CustomEvent for any subscriber.
-    try {
+      detail.consentGranted = allowed;
       document.dispatchEvent(new CustomEvent("rmc:analytics", { detail: detail }));
     } catch (err) {
       /* CustomEvent unsupported — non-fatal */
