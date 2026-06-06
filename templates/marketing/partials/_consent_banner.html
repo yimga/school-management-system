@@ -1,0 +1,36 @@
+{% load i18n %}
+{% comment %}GDPR consent banner. Hidden by default; mkt-consent.js shows it only when no prior choice exists, and reopens it for [data-mkt-consent-open] triggers. Default-deny: analytics/marketing off until accepted.{% endcomment %}
+<aside class="mkt-consent" data-mkt-consent role="dialog" aria-modal="false"
+       aria-label="{% trans 'Cookie and privacy preferences' %}" hidden aria-hidden="true">
+  <div class="mkt-consent__inner mkt-edt-container">
+    <div class="mkt-consent__copy">
+      <p class="mkt-consent__title">{% trans "We respect your privacy" %}</p>
+      <p class="mkt-consent__text">
+        {% trans "We use essential cookies to run this site. With your consent we also use analytics to understand what's useful. You can change this anytime." %}
+        <a href="{% url 'marketing_privacy' %}" class="mkt-consent__link">{% trans "Privacy policy" %}</a>
+      </p>
+    </div>
+    <div class="mkt-consent__actions">
+      <button type="button" class="mkt-consent__btn mkt-consent__btn--ghost" data-mkt-consent-prefs-open>{% trans "Preferences" %}</button>
+      <button type="button" class="mkt-consent__btn mkt-consent__btn--ghost" data-mkt-consent-reject>{% trans "Reject non-essential" %}</button>
+      <button type="button" class="mkt-consent__btn mkt-consent__btn--primary" data-mkt-consent-accept>{% trans "Accept all" %}</button>
+    </div>
+    <div class="mkt-consent__prefs" data-mkt-consent-prefs hidden>
+      <label class="mkt-consent__pref">
+        <input type="checkbox" checked disabled>
+        <span><strong>{% trans "Necessary" %}</strong> — {% trans "always on; required for the site to work." %}</span>
+      </label>
+      <label class="mkt-consent__pref">
+        <input type="checkbox" data-mkt-consent-toggle="analytics">
+        <span><strong>{% trans "Analytics" %}</strong> — {% trans "helps us understand which pages are useful." %}</span>
+      </label>
+      <label class="mkt-consent__pref">
+        <input type="checkbox" data-mkt-consent-toggle="marketing">
+        <span><strong>{% trans "Marketing" %}</strong> — {% trans "lets us measure campaigns." %}</span>
+      </label>
+      <div class="mkt-consent__prefs-actions">
+        <button type="button" class="mkt-consent__btn mkt-consent__btn--primary" data-mkt-consent-save>{% trans "Save preferences" %}</button>
+      </div>
+    </div>
+  </div>
+</aside>
