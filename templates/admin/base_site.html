@@ -19,6 +19,12 @@
   template owns the <html> tag (third-party), so we toggle the attribute here.
   {% endcomment %}
   <script nonce="{{ csp_nonce }}">document.documentElement.setAttribute('data-rmc-aesthetic','cool-apple');
+    {% comment %} v4.02.x: wire the v8 cockpit skin onto /admin/ (operator + tenant). Unfold
+       owns the <html> tag, so set data-cockpit-skin here in the pre-paint head script — same
+       attribute control_plane_skeleton.html / portal_base.html set on their <html>. This is
+       what lights up the [data-cockpit-skin] rules in rmc-cockpit-skin-v8.css (dark header +
+       sidebar / light body). Resolved from cockpit_shell.skin (SOT cockpit_config.py). {% endcomment %}
+    document.documentElement.setAttribute('data-cockpit-skin','{{ cockpit_shell.skin|default:"dark"|escapejs }}');
     (function () {
       try {
         if (localStorage.getItem('rmc-os-grade') === 'on') {
@@ -65,6 +71,13 @@
   {% comment %} v4.00.12: shell-level bulk-actions primitive (no-op when no opted-in table on the page). {% endcomment %}
   <script src="{% static 'js/rmc-bulk-actions.js' %}" defer></script>
   <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+  {% comment %} v4.02.x: tenant /admin/ has no manager-cockpit-v7 bundle, so load the v8 cockpit
+     skin right after design-tokens.css (semantic tokens defined first). Manager /admin/ loads it
+     AFTER manager-cockpit-v7.css below so the skin layers on top. {% endcomment %}
+  {% if not is_manager_host %}
+  <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-operator-theme-coherence.css' %}">
+  {% endif %}
   {% if is_manager_host %}
   {% comment %} v3.59.x: grid + single canvas scroll contract (pairs with data-rmc-cp-scroll=canvas).
      Without this sheet, .rmc-app-shell in admin/base.html has no layout rules — clicks/scroll break. {% endcomment %}
@@ -126,6 +139,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/manager-cockpit-v7.css' %}">
+  {% comment %} v4.02.x: v8 cockpit skin — loaded AFTER manager-cockpit-v7.css so the
+     [data-cockpit-skin="dark"] rules layer the dark header+sidebar / light body chrome onto the
+     manager /admin/ shell (parity with /super/ control_plane_skeleton.html). {% endcomment %}
+  <link rel="stylesheet" href="{% static 'css/rmc-cockpit-skin-v8.css' %}">
+  <link rel="stylesheet" href="{% static 'css/rmc-operator-theme-coherence.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-header-200x.css' %}">
   <link rel="stylesheet" href="{% static 'css/rmc-cp-consolidated-operator-shell.css' %}">

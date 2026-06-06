@@ -1,0 +1,278 @@
+/* ============================================================
+   rmc-operator-theme-coherence.css — v4.02.x
+   ------------------------------------------------------------
+   Dual-plane coherence fixer. The operator canvas flips with the
+   resolved theme (light in light, dark in dark), but two component
+   families were authored for a single surface and don't flip:
+
+     • cp-* console components (status badges, chips, hero/section
+       titles, eyebrows, risk pills) were built for the DARK chrome
+       → light text + white-overlay bg → unreadable on the LIGHT
+       canvas in light theme.
+     • lx-* / Bootstrap badges / eyebrows use DARK semantic ink
+       → unreadable on the DARK canvas in dark theme.
+
+   Each rule is scoped to the resolved theme + operator body so it
+   only corrects the plane where the component breaks. Loaded LAST
+   so it wins. Colours are explicit semantic shades (token-allow).
+   Found + verified by the headless contrast audit.
+   ============================================================ */
+
+/* =========================================================
+   A) LIGHT theme — dark-authored cp-* components on light body
+   ========================================================= */
+html[data-resolved-theme="light"] body.control-plane-shell .cp-hero__title,
+html[data-resolved-theme="light"] body.control-plane-shell .cp-section__title,
+html[data-resolved-theme="light"] body.admin-manager-shell .cp-hero__title,
+html[data-resolved-theme="light"] body.admin-manager-shell .cp-section__title,
+html[data-bs-theme="light"] body.control-plane-shell .cp-hero__title,
+html[data-bs-theme="light"] body.control-plane-shell .cp-section__title,
+html[data-bs-theme="light"] body.admin-manager-shell .cp-hero__title,
+html[data-bs-theme="light"] body.admin-manager-shell .cp-section__title {
+  color: var(--text-primary) !important;
+}
+
+html[data-resolved-theme="light"] body.control-plane-shell .cp-panel-eyebrow,
+html[data-resolved-theme="light"] body.admin-manager-shell .cp-panel-eyebrow,
+html[data-bs-theme="light"] body.control-plane-shell .cp-panel-eyebrow,
+html[data-bs-theme="light"] body.admin-manager-shell .cp-panel-eyebrow {
+  color: var(--text-tertiary, #6b7280) !important; /* off-token-allow: light-eyebrow */
+}
+
+/* Status badges / chips / risk pills — darken the semantic ink for the
+   light surface (the tinted background already reads fine on light). */
+html[data-resolved-theme="light"] body :is(.cp-status-badge-success, .cp-status-badge-active, .cp-status-badge-resolved, .cp-status-badge-healthy),
+html[data-bs-theme="light"] body :is(.cp-status-badge-success, .cp-status-badge-active, .cp-status-badge-resolved, .cp-status-badge-healthy) {
+  color: #15803d !important;                          /* off-token-allow: green-700 */
+  background: rgba(34, 197, 94, 0.12) !important;     /* off-token-allow: green-tint */
+}
+html[data-resolved-theme="light"] body :is(.cp-status-badge-warning, .cp-status-badge-pending, .cp-status-badge-acknowledged, .cp-status-badge-mitigated, .cp-status-badge-attention, .cp-status-badge-trialing, .cp-chip-warning, .cp-risk-pill),
+html[data-bs-theme="light"] body :is(.cp-status-badge-warning, .cp-status-badge-pending, .cp-status-badge-acknowledged, .cp-status-badge-mitigated, .cp-status-badge-attention, .cp-status-badge-trialing, .cp-chip-warning, .cp-risk-pill) {
+  color: #b45309 !important;                          /* off-token-allow: amber-700 */
+  background: rgba(245, 158, 11, 0.12) !important;    /* off-token-allow: amber-tint */
+}
+html[data-resolved-theme="light"] body :is(.cp-status-badge-danger, .cp-status-badge-open, .cp-status-badge-past_due, .cp-status-badge-suspended, .cp-status-badge-inactive),
+html[data-bs-theme="light"] body :is(.cp-status-badge-danger, .cp-status-badge-open, .cp-status-badge-past_due, .cp-status-badge-suspended, .cp-status-badge-inactive) {
+  color: #b91c1c !important;                          /* off-token-allow: red-700 */
+  background: rgba(239, 68, 68, 0.12) !important;     /* off-token-allow: red-tint */
+}
+html[data-resolved-theme="light"] body :is(.cp-status-badge-neutral, .cp-status-badge-unseeded, .cp-chip),
+html[data-bs-theme="light"] body :is(.cp-status-badge-neutral, .cp-status-badge-unseeded, .cp-chip) {
+  color: var(--text-secondary, #475569) !important;  /* off-token-allow: slate-600 */
+}
+
+/* cp-btn used as a link (ghost / outline) renders light-blue ink on white.
+   Use the brand ink so it reads on the light surface. */
+html[data-resolved-theme="light"] body.admin-manager-shell .cp-btn:not(.cp-btn--primary),
+html[data-resolved-theme="light"] body.control-plane-shell .cp-btn:not(.cp-btn--primary),
+html[data-bs-theme="light"] body.admin-manager-shell .cp-btn:not(.cp-btn--primary),
+html[data-bs-theme="light"] body.control-plane-shell .cp-btn:not(.cp-btn--primary) {
+  color: var(--primary, #4f46e5) !important;          /* off-token-allow: brand-ink */
+}
+
+/* Unfold admin page titles (text-base-900) were forced light somewhere on
+   the manager shell — pin them to the primary ink in light mode. */
+html[data-resolved-theme="light"] body.admin-manager-shell .rmc-admin-changelist-pagehead h1,
+html[data-resolved-theme="light"] body.admin-manager-shell .cp-page-header h1,
+html[data-resolved-theme="light"] body.admin-manager-shell #content h1,
+html[data-bs-theme="light"] body.admin-manager-shell .rmc-admin-changelist-pagehead h1,
+html[data-bs-theme="light"] body.admin-manager-shell .cp-page-header h1,
+html[data-bs-theme="light"] body.admin-manager-shell #content h1 {
+  color: var(--text-primary, #0f172a) !important;     /* off-token-allow: heading-ink */
+}
+
+/* =========================================================
+   B) DARK theme — light-authored components on dark cards
+   ========================================================= */
+html[data-resolved-theme="dark"] body :is(.lx-trust__value--ok, .lx-trust-pillars__value--ok),
+html[data-theme="dark"] body :is(.lx-trust__value--ok, .lx-trust-pillars__value--ok) {
+  color: #4ade80 !important;                          /* off-token-allow: green-400 */
+}
+html[data-resolved-theme="dark"] body :is(.lx-trust__value--warn, .lx-trust-pillars__value--warn),
+html[data-theme="dark"] body :is(.lx-trust__value--warn, .lx-trust-pillars__value--warn) {
+  color: #fbbf24 !important;                          /* off-token-allow: amber-400 */
+}
+html[data-resolved-theme="dark"] body :is(.lx-trust__value--info, .lx-trust-pillars__value--info),
+html[data-theme="dark"] body :is(.lx-trust__value--info, .lx-trust-pillars__value--info) {
+  color: #60a5fa !important;                          /* off-token-allow: blue-400 */
+}
+html[data-resolved-theme="dark"] body :is(.lx-trust__value--danger, .lx-trust-pillars__value--danger),
+html[data-theme="dark"] body :is(.lx-trust__value--danger, .lx-trust-pillars__value--danger) {
+  color: #f87171 !important;                          /* off-token-allow: red-400 */
+}
+
+/* Bootstrap secondary badges + rmc-eyebrow render dark ink on the dark card. */
+html[data-resolved-theme="dark"] body.control-plane-shell .badge.text-bg-secondary,
+html[data-resolved-theme="dark"] body.admin-manager-shell .badge.text-bg-secondary,
+html[data-theme="dark"] body.control-plane-shell .badge.text-bg-secondary,
+html[data-theme="dark"] body.admin-manager-shell .badge.text-bg-secondary {
+  color: #e2e8f0 !important;                          /* off-token-allow: slate-200 */
+  background-color: rgba(148, 163, 184, 0.22) !important; /* off-token-allow: slate-tint */
+}
+html[data-resolved-theme="dark"] body.control-plane-shell .rmc-eyebrow,
+html[data-resolved-theme="dark"] body.admin-manager-shell .rmc-eyebrow,
+html[data-theme="dark"] body.control-plane-shell .rmc-eyebrow,
+html[data-theme="dark"] body.admin-manager-shell .rmc-eyebrow {
+  color: var(--text-tertiary, #94a3b8) !important;    /* off-token-allow: dark-eyebrow */
+}
+
+/* Muted empty-state copy (slate-600) is too dark on the dark card. */
+html[data-resolved-theme="dark"] body.control-plane-shell .cp-empty-hint,
+html[data-resolved-theme="dark"] body.control-plane-shell [data-rmc-empty-hint],
+html[data-theme="dark"] body.control-plane-shell .cp-empty-hint {
+  color: #94a3b8 !important;                          /* off-token-allow: slate-400 */
+}
+
+/* =========================================================
+   C) Systemic — flip dark "ink" body panels to light in light
+   theme by re-pointing the cp ink tokens INSIDE the content
+   canvas only (the chrome keeps its own dark ink). Catches every
+   premium dark panel — settings panels, code/pre surfaces, story
+   cards — in one move, instead of chasing each text node.
+   ========================================================= */
+html[data-resolved-theme="light"] body.control-plane-shell #cp-main-content,
+html[data-resolved-theme="light"] body.admin-manager-shell #cp-main-content,
+html[data-bs-theme="light"] body.control-plane-shell #cp-main-content,
+html[data-bs-theme="light"] body.admin-manager-shell #cp-main-content {
+  /* dark "ink" panels -> light */
+  --cp-ink-canvas: var(--surface-elevated, #ffffff);
+  --cp-ink-sidebar: var(--surface-canvas, #f6f7fb);
+  /* dark control-plane CARD surfaces -> light. Every .cp-panel / .cp-*-card
+     (overview/workstream/readiness/health) paints background:var(--cp-panel-bg)
+     which is authored dark (rgba(8,16,30,...)). On the light canvas that left
+     dark cards under the now-dark re-pointed text → dark-on-dark. Flip the card
+     surface tokens too so the whole panel lands on the light plane. */
+  --cp-panel-bg: var(--surface-elevated, #ffffff);
+  --cp-panel-border: var(--hairline, rgba(15, 23, 42, 0.10));
+  --cp-bg: var(--surface-canvas, #f6f7fb);
+  --cp-shadow: var(--elev-2, 0 4px 12px rgba(15, 23, 42, 0.08));
+  /* cp component TEXT tokens default to light (#e7eefc, authored for dark
+     chrome). Re-point them to the theme ink so every cp-* heading/label/stat
+     that reads color:var(--cp-text|--cp-sky-100) flips dark on the light
+     canvas — regardless of per-rule specificity. */
+  --cp-text: var(--text-primary);
+  --cp-sky-100: var(--text-primary);
+  --cp-text-muted: var(--text-secondary);
+  --cp-muted: var(--text-secondary);
+}
+/* code/pre on the light canvas */
+html[data-resolved-theme="light"] body.control-plane-shell #cp-main-content :is(code, pre, kbd),
+html[data-bs-theme="light"] body.control-plane-shell #cp-main-content :is(code, pre, kbd) {
+  background: var(--surface-canvas, #f1f5f9) !important; /* off-token-allow: code-bg-light */
+  color: var(--text-primary, #0f172a) !important;       /* off-token-allow: code-ink-light */
+}
+
+/* More cp-* light-ink components on the light canvas. */
+html[data-resolved-theme="light"] body :is(.cp-panel-stat, .cp-workstream-cta, .cp-panel-label, .cp-overview-value, .cp-panel-eyebrow),
+html[data-bs-theme="light"] body :is(.cp-panel-stat, .cp-workstream-cta, .cp-panel-label, .cp-overview-value, .cp-panel-eyebrow) {
+  color: var(--text-primary) !important;
+}
+
+/* Bootstrap outline/ghost buttons authored for dark chrome — darken ink for
+   the light canvas so labels read. */
+html[data-resolved-theme="light"] body :is(.btn-outline-info),
+html[data-bs-theme="light"] body :is(.btn-outline-info) { color: #0e7490 !important; }   /* off-token-allow: cyan-700 */
+html[data-resolved-theme="light"] body :is(.btn-outline-warning),
+html[data-bs-theme="light"] body :is(.btn-outline-warning) { color: #b45309 !important; } /* off-token-allow: amber-700 */
+html[data-resolved-theme="light"] body #cp-main-content :is(.btn-outline-light),
+html[data-bs-theme="light"] body #cp-main-content :is(.btn-outline-light),
+html[data-resolved-theme="light"] body :is(.btn-outline-light),
+html[data-bs-theme="light"] body :is(.btn-outline-light) {
+  --bs-btn-color: var(--text-secondary, #475569) !important;       /* off-token-allow: bs-btn-ink */
+  --bs-btn-hover-color: var(--text-primary, #0f172a) !important;   /* off-token-allow: bs-btn-ink */
+  color: var(--text-secondary, #475569) !important;
+  border-color: var(--hairline) !important;
+}
+html[data-resolved-theme="light"] body :is(.btn-outline-primary),
+html[data-bs-theme="light"] body :is(.btn-outline-primary) { color: var(--primary, #4f46e5) !important; } /* off-token-allow: brand-ink */
+
+/* Bootstrap success badge ships white-on-light-green (~1.7) — use dark-green
+   ink on the light-green fill for a readable chip (both themes). */
+body.control-plane-shell .badge.text-bg-success,
+body.admin-manager-shell .badge.text-bg-success {
+  color: #052e16 !important;                          /* off-token-allow: green-950-on-green */
+}
+
+/* Generic muted empty-state hint text on the dark card (no stable class —
+   reachable via the operator empty surfaces). */
+html[data-resolved-theme="dark"] body.control-plane-shell .cp-panel .text-muted,
+html[data-resolved-theme="dark"] body.control-plane-shell .cp-panel-empty,
+html[data-resolved-theme="dark"] body.control-plane-shell [class*="empty"],
+html[data-theme="dark"] body.control-plane-shell [class*="empty"] {
+  color: #94a3b8 !important;                          /* off-token-allow: slate-400 */
+}
+
+/* Empty-state copy hard-codes color:var(--color-base-600) INLINE (Tailwind
+   base scale doesn't flip) → too dark on the dark canvas. Lift it. The inline
+   style needs !important to beat. */
+html[data-resolved-theme="dark"] body.control-plane-shell [style*="--color-base-600"],
+html[data-theme="dark"] body.control-plane-shell [style*="--color-base-600"] {
+  color: #94a3b8 !important;                          /* off-token-allow: slate-400 */
+}
+
+/* Impersonation disclosure popover is a dark "ink" panel — flip it to the
+   light surface with dark ink on the light canvas. */
+html[data-resolved-theme="light"] body :is(.cp-impersonation-form, .cp-impersonation-disclosure[open] .cp-impersonation-form),
+html[data-bs-theme="light"] body :is(.cp-impersonation-form, .cp-impersonation-disclosure[open] .cp-impersonation-form) {
+  background: var(--surface-elevated, #ffffff) !important;
+  border-color: var(--hairline) !important;
+}
+html[data-resolved-theme="light"] body .cp-impersonation-form :is(label, .form-check-label),
+html[data-bs-theme="light"] body .cp-impersonation-form :is(label, .form-check-label) {
+  color: var(--text-primary) !important;
+}
+
+/* cp-nav-label / operator-console-strip links carry chrome-light ink; when
+   they render in the CONTENT canvas (not the dark sidebar) they need dark ink
+   on the light surface. Scoped to #cp-main-content so the dark sidebar nav
+   labels are untouched. */
+html[data-resolved-theme="light"] body #cp-main-content :is(.cp-nav-label, .rmc-operator-console-strip, .rmc-operator-console-strip__link),
+html[data-bs-theme="light"] body #cp-main-content :is(.cp-nav-label, .rmc-operator-console-strip, .rmc-operator-console-strip__link) {
+  color: var(--text-primary) !important;
+}
+
+/* The siteconfig console body sets light ink (designed for a dark surface);
+   its descendants (incl. inheriting buttons/links) read light on the light
+   canvas. Pin the console body + its inheriting controls to dark ink. */
+html[data-resolved-theme="light"] body .operator-siteconfig-cp-body,
+html[data-bs-theme="light"] body .operator-siteconfig-cp-body {
+  color: var(--text-primary) !important;
+}
+html[data-resolved-theme="light"] body .operator-siteconfig-cp-body :is(a.btn-outline-light, .btn-outline-light, .list-group-item),
+html[data-bs-theme="light"] body .operator-siteconfig-cp-body :is(a.btn-outline-light, .btn-outline-light, .list-group-item) {
+  color: var(--text-secondary, #475569) !important;
+}
+
+/* `.bg-dark.bg-opacity-{low}` is a translucent tint (≈ light gray over the
+   light body), but theme-platform-contrast.css treats any .bg-dark as fully
+   dark and forces light ink on the buttons inside it → light-on-light. Restore
+   dark ink for low-opacity bg-dark on the light canvas. The [class] bump beats
+   that rule's (1,3,1) specificity regardless of load order. */
+html[data-resolved-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) :is(.bg-opacity-10, .bg-opacity-25, .bg-opacity-50) .btn-outline-light[class],
+html[data-bs-theme="light"] :is(#cp-main-content, [data-rmc-shell-main]) :is(.bg-opacity-10, .bg-opacity-25, .bg-opacity-50) .btn-outline-light[class] {
+  color: var(--text-primary) !important;
+  border-color: var(--hairline) !important;
+}
+
+/* =========================================================
+   D) Civic footer follows the LIGHT canvas plane. The footer
+   ribbon text (__stat / __est / __muted) is authored light
+   (rgba(255,255,255,.55)) for a dark footer; on manager surfaces
+   in light mode the footer band renders cream → light-on-light.
+   Re-point the civic footer ink tokens to the theme ink so the
+   ribbon stats/links read dark on the cream footer. Chrome/dark
+   mode untouched (this is gated on the light attributes).
+   ========================================================= */
+html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-civic-footer,
+html[data-bs-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) .rmc-civic-footer,
+html[data-resolved-theme="light"] body.control-plane-shell .rmc-civic-footer,
+html[data-bs-theme="light"] body.control-plane-shell .rmc-civic-footer {
+  --rmc-civic-fg: var(--text-primary);
+  --rmc-civic-fg-muted: var(--text-secondary);
+}
+html[data-resolved-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) :is(.rmc-civic-footer__stat, .rmc-civic-footer__est, .rmc-civic-footer__muted),
+html[data-bs-theme="light"] body[data-rmc-host-kind="manager"]:not(.marketing-surface) :is(.rmc-civic-footer__stat, .rmc-civic-footer__est, .rmc-civic-footer__muted),
+html[data-resolved-theme="light"] body.control-plane-shell :is(.rmc-civic-footer__stat, .rmc-civic-footer__est, .rmc-civic-footer__muted),
+html[data-bs-theme="light"] body.control-plane-shell :is(.rmc-civic-footer__stat, .rmc-civic-footer__est, .rmc-civic-footer__muted) {
+  color: var(--text-secondary);
+}
