@@ -1,8 +1,92 @@
 # AI Agentic Actions — Design & Safe Rollout
 
 **Status:** **Phase 1 IMPLEMENTED (read-only), flag-gated default-off** (2026-06-05).
-Phases 2–3 remain design-only pending the Open Decisions in § 4.
+**Phase 2 plan DRAFTED for owner approval** (see "Phase 2 — implementation plan" below) — no Phase-2 code is written until the § 4 Open Decisions are signed off.
 **Author:** platform AI validation audit, 2026-06-05.
+
+---
+
+## Phase 2 — implementation plan (DRAFT — needs owner sign-off before any code)
+
+**Goal:** let the assistant *execute* a **small, reversible, role-gated** set of
+**mutating** actions, with a mandatory human two-step confirm and an audit row
+written **before** the write. This crosses the platform's current "drafts only,
+no execution" line, so it ships **only** after the § 4 Open Decisions are owned.
+Read this as the plan to approve, not work already done.
+
+### A. Eligible action set (grounded in what exists today)
+
+The kernel already seeds 5 non-read-only specs; the mutating runners live in
+`services/ai_agentic_runners_mutating.py` (`OPT_IN_MUTATING_RUNNERS`, deliberately
+NOT auto-bound). Applying Phase-2 gate #3 (**`reversible=True` only**) + "a runner
+must exist" yields a deliberately tiny starter set:
+
+| Action | impact | reversible | runner exists | Phase-2 eligible? |
+|---|---|---|---|---|
+| `mark_student_absent` | mutating | **yes** | yes | **YES (starter)** |
+| `schedule_parent_callback` | mutating | **yes** | yes | **YES (starter)** |
+| `send_parent_message` | mutating | **no** (can't unsend) | yes | **NO** — excluded by the reversibility gate |
+| `apply_fee_waiver` | mutating | yes | **no** | NO — needs a runner + finance reversal first |
+| `purge_student_record` | destructive | no | no | NO — Phase 3 (dual-control) |
+
+So Phase 2 ships **two** actions. `send_parent_message` is intentionally held: an
+un-sendable message fails the reversibility contract — if comms-from-AI is wanted,
+it belongs in a separate "draft → human sends" flow, not auto-execution.
+
+### B. Required code (concrete, builds on the Phase-1 service)
+
+1. **Sub-flag, nested under the main gate.** `RMC_AI_AGENTIC_MUTATING_ENABLED`
+   (default off) AND `RMC_AI_AGENTIC_ENABLED` AND the platform gate. Mutating is
+   off even when read-only Phase-1 is on, until explicitly enabled.
+2. **`ai_agentic_service` additions:**
+   - `available_mutating_actions()` — `reversible=True` ∩ `OPT_IN_MUTATING_RUNNERS` ∩ registered.
+   - `propose_mutating(...)` — same propose pipeline, filtered to the eligible mutating set.
+   - `confirm_and_execute(*, proposed, ctx, confirmed_by_user_id, school)` — distinct
+     from Phase-1 `execute`; binds the mutating runner from `OPT_IN_MUTATING_RUNNERS`,
+     enforces ALL gates below, sets `ctx.confirmed_by` **server-side only**.
+3. **Two-step confirm UI** (operator + tenant surfaces): propose → render an explicit
+   **Confirm** button carrying the action + params + a server-issued one-time
+   `confirm_token` (CSRF-style, single-use, short TTL) → the confirm POST is the
+   *only* place `ctx.confirmed_by = request.user.id` is set. Never from the body.
+4. **Audit-before-execute (Phase-2 gate #5).** `AIAgenticActionAudit` is append-only
+   (no updates), so write **two** linked rows sharing `audit_id`: an **`intent`** row
+   (outcome=`pending`, plus a hashed **pre-state snapshot** for reversal) *before* the
+   runner, then an **`outcome`** row (ok/error) *after*. Add a `phase` field
+   (`intent`/`outcome`) → small migration `0081`. Pre-state is summarized/hashed, never PII.
+5. **Reversal contract (one per action) — required by the `reversible` flag:**
+   - `mark_student_absent` → capture prior `AttendanceRecord.status` in the intent row;
+     reversal restores it (or deletes the row if `created=True`).
+   - `schedule_parent_callback` → reversal removes the appended queue entry by its id.
+   - A `reverse_action(audit_id)` operator control that reads the intent snapshot.
+6. **View-layer re-check (gate #2)** — re-verify `required_roles` against
+   `role_registry` at the view, independent of the kernel's `verify_permission`.
+7. **Tenant-scope guard (gate #4)** — assert the target row belongs to `request.school`
+   (the runners already do `_scope_school`, but the view must also reject cross-tenant ids).
+8. **Rate limit + AI budget (gate #6)** — reuse the platform per-tenant limiter; cap
+   mutating executes/hour; respect the existing AI budget gate.
+
+### C. Tests (mirror Phase-1's rigor)
+
+Confirm-required-or-refused; `confirmed_by` provably server-side (body value ignored);
+non-reversible action refused even if registered; cross-tenant target refused;
+intent row written before outcome; reversal restores prior state; rate-limit trips;
+sub-flag off ⇒ inert even with Phase-1 on.
+
+### D. Open decisions that MUST be owned before writing B (these are the gate)
+
+1. **Action set sign-off** — confirm the 2 starter actions (and their exact
+   `required_roles` from `role_registry`) are the right ones; or trim/extend.
+2. **Reversal definitions** — approve the two reversal paths above as sufficient.
+3. **Who can confirm** — which roles may click Confirm (likely PRINCIPAL/LEADERSHIP/ADMIN
+   + the action's own `required_roles`), and whether tenant admins get it or operators only.
+4. **Comms-from-AI stance** — accept that `send_parent_message` stays a *draft-only*
+   (human sends) capability, not Phase-2 auto-execute.
+
+**Recommendation:** approve B+C for the **two reversible actions only**, keep the
+sub-flag default-off through a staging soak, and revisit `apply_fee_waiver`
+(needs a finance-reversal design) and Phase 3 (destructive, dual-control) separately.
+
+---
 
 ## Phase 1 — as shipped (2026-06-05)
 

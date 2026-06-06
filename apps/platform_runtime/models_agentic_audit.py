@@ -31,6 +31,14 @@ class AIAgenticActionOutcome(models.TextChoices):
     OK = "ok", "Ok"
     BLOCKED = "blocked", "Blocked"
     ERROR = "error", "Error"
+    PENDING = "pending", "Pending"  # intent row, written before a mutating runner runs
+    REVERSED = "reversed", "Reversed"  # an executed action that was later undone
+
+
+class AIAgenticActionPhase(models.TextChoices):
+    OUTCOME = "outcome", "Outcome"  # default — read-only Phase-1 + the post-run row
+    INTENT = "intent", "Intent"  # Phase-2: written BEFORE a mutating runner runs
+    REVERSAL = "reversal", "Reversal"  # Phase-2: a reverse_action attempt
 
 
 class AIAgenticActionAudit(AppendOnlyModelMixin, models.Model):
@@ -40,7 +48,10 @@ class AIAgenticActionAudit(AppendOnlyModelMixin, models.Model):
     Read by the operator AI-Center agentic surface (most-recent-first tail).
     """
 
-    audit_id = models.CharField(max_length=32, unique=True, db_index=True)
+    # Correlation handle, NOT unique: Phase-2 writes an intent row, an outcome
+    # row, and (on undo) a reversal row that all SHARE one audit_id. Phase-1
+    # read-only writes a single row per id.
+    audit_id = models.CharField(max_length=32, db_index=True)
     tenant_id = models.CharField(max_length=128, blank=True, default="")
     actor_user_id_hash = models.CharField(max_length=16, blank=True, default="")
     confirmed_by_hash = models.CharField(max_length=16, blank=True, default="")
@@ -53,6 +64,15 @@ class AIAgenticActionAudit(AppendOnlyModelMixin, models.Model):
         choices=AIAgenticActionOutcome.choices,
         default=AIAgenticActionOutcome.OK,
     )
+    phase = models.CharField(
+        max_length=16,
+        choices=AIAgenticActionPhase.choices,
+        default=AIAgenticActionPhase.OUTCOME,
+    )
+    # Phase-2 reversal metadata. Holds ONLY pseudonymous record references needed
+    # to undo a reversible mutating action (e.g. {"model": "AttendanceRecord",
+    # "pk": 123, "prior_status": "present"}). NEVER names / emails / phones / PII.
+    reversal_payload = models.JSONField(default=dict, blank=True)
     blocked_reason = models.CharField(max_length=64, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 

@@ -241,6 +241,7 @@ def ai_center_agentic(request: HttpRequest) -> HttpResponse:
     ctx.update(
         {
             "agentic_enabled": enabled,
+            "mutating_enabled": svc.agentic_mutating_enabled(school=school),
             "flag_name": "RMC_AI_AGENTIC_ENABLED",
             "readonly_actions": [
                 {
@@ -324,12 +325,13 @@ def _build_agentic_ctx(request: HttpRequest, school):
     the kernel's role check is secondary defense. Super operators carry
     admin-equivalent READ authority, so ADMIN is included alongside their role.
     """
+    from apps.accounts.models import User
     from services.ai_agentic import ActionContext
 
     tenant_id = str(getattr(school, "id", "") or "platform")
     user_id = str(getattr(request.user, "id", ""))
     actual_role = str(getattr(request.user, "role", "") or "")
-    roles = tuple(r for r in ("ADMIN", actual_role) if r)
+    roles = tuple(r for r in (User.Role.ADMIN.value, actual_role) if r)
     return ActionContext(tenant_id=tenant_id, user_id=user_id, user_roles=roles)
 
 

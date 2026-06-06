@@ -28,6 +28,7 @@ import hashlib
 import json
 import logging
 import os
+import time
 import uuid
 from typing import Any, Callable
 
@@ -40,6 +41,7 @@ from services.ai_agentic import (
     get_action,
     list_actions,
     propose_actions,
+    verify_permission,
 )
 from services.ai_agentic_runners import get_runner_for, list_bridged_actions
 
@@ -212,15 +214,21 @@ def _write_audit(
     proposed: ProposedAction,
     spec: ActionSpec | None,
     result: ExecutionResult,
+    phase: str | None = None,
+    reversal_payload: dict | None = None,
+    outcome_override: str | None = None,
 ) -> None:
     """Durable, fail-soft append-only audit write. Never breaks the request."""
     try:
         from apps.platform_runtime.models_agentic_audit import (
             AIAgenticActionAudit,
             AIAgenticActionOutcome,
+            AIAgenticActionPhase,
         )
 
-        if result.ok:
+        if outcome_override is not None:
+            outcome = outcome_override
+        elif result.ok:
             outcome = AIAgenticActionOutcome.OK
         elif result.blocked_reason:
             outcome = AIAgenticActionOutcome.BLOCKED
@@ -237,6 +245,8 @@ def _write_audit(
             params_hash=_params_hash(proposed.params),
             executed=bool(result.ok and result.result not in (None, {"ready_to_run": True})),
             outcome=outcome,
+            phase=phase or AIAgenticActionPhase.OUTCOME,
+            reversal_payload=reversal_payload or {},
             blocked_reason=(result.blocked_reason or "")[:64],
         )
     except Exception:  # noqa: BLE001 — audit must never break the action path
@@ -300,6 +310,442 @@ def _with_confirmation(ctx: ActionContext, confirmed_by_user_id: str) -> ActionC
     )
 
 
+# ===========================================================================
+# Phase 2 — mutating actions (reversible only, confirm-gated, audited)
+# ===========================================================================
+#
+# Everything below is gated by RMC_AI_AGENTIC_MUTATING_ENABLED *in addition to*
+# the Phase-1 gates. It executes a tiny set of reversible mutating actions behind
+# a mandatory server-side confirmation, with an intent row written BEFORE the
+# runner and a reversal path per action. See docs/AI_AGENTIC_ACTIONS_DESIGN.md.
+
+_MUTATING = "mutating"
+_CONFIRM_TOKEN_SALT = "rmc.agentic.confirm.v1"
+_CONFIRM_TOKEN_TTL_SECONDS = 300
+
+
+def _agentic_mutating_flag_on() -> bool:
+    return os.environ.get("RMC_AI_AGENTIC_MUTATING_ENABLED", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def agentic_mutating_enabled(*, school=None) -> bool:
+    """Phase-2 gate: the dedicated mutating sub-flag AND all Phase-1 gates.
+
+    Mutating stays off even when read-only Phase-1 is on, until the operator
+    explicitly sets RMC_AI_AGENTIC_MUTATING_ENABLED.
+    """
+    if not _agentic_mutating_flag_on():
+        return False
+    return agentic_phase1_enabled(school=school)
+
+
+def _opt_in_mutating_runners() -> dict:
+    try:
+        from services.ai_agentic_runners_mutating import OPT_IN_MUTATING_RUNNERS
+
+        return dict(OPT_IN_MUTATING_RUNNERS)
+    except Exception:  # noqa: BLE001
+        logger.debug("mutating runners unavailable", exc_info=True)
+        return {}
+
+
+def available_mutating_actions() -> tuple[ActionSpec, ...]:
+    """Registered ``mutating`` + ``reversible`` actions that have an opt-in runner.
+
+    This is the ENTIRE Phase-2 surface. Non-reversible mutating actions (e.g.
+    ``send_parent_message``) are excluded by the reversibility gate; destructive
+    actions are never here.
+    """
+    runners = set(_opt_in_mutating_runners().keys())
+    return tuple(
+        spec
+        for spec in list_actions()
+        if spec.impact == _MUTATING and spec.reversible and spec.name in runners
+    )
+
+
+def _is_mutating_eligible(spec: ActionSpec | None) -> bool:
+    if spec is None:
+        return False
+    if spec.impact != _MUTATING or not spec.reversible:
+        return False
+    return spec.name in _opt_in_mutating_runners()
+
+
+def propose_mutating(
+    *,
+    prompt: str,
+    ctx: ActionContext,
+    school=None,
+    extra_params: dict | None = None,
+) -> tuple[ProposedAction, ...]:
+    """Like ``propose`` but filtered to the eligible (reversible) mutating set."""
+    if not prompt or not prompt.strip():
+        return ()
+
+    live = False
+    helper = None
+    try:
+        from services import ai_helpers
+
+        live = bool(ai_helpers.is_ai_available())
+    except Exception:  # noqa: BLE001
+        live = False
+    if live:
+        helper = _make_live_propose(school)
+
+    raw = propose_actions(
+        prompt=prompt, ctx=ctx, mock_mode=not live, helper_invoke_json_task=helper,
+    )
+    out: list[ProposedAction] = []
+    for p in raw:
+        if not _is_mutating_eligible(get_action(p.action)):
+            continue
+        params = dict(p.params or {})
+        if extra_params:
+            params.update({k: v for k, v in extra_params.items() if v not in (None, "")})
+        out.append(ProposedAction(action=p.action, params=params,
+                                  rationale=p.rationale, confidence=p.confidence))
+    return tuple(out)
+
+
+# --- Confirmation token (single-use, TTL, bound to action+params+user) -------
+
+def issue_confirm_token(*, action: str, params: dict, user_id: str) -> str:
+    """Server-issued token rendered on the Confirm button. Binds the exact
+    action + params + user; expires; single-use (consumed at validation)."""
+    from django.core.signing import TimestampSigner
+
+    payload = f"{action}|{_params_hash(params)}|{user_id}"
+    return TimestampSigner(salt=_CONFIRM_TOKEN_SALT).sign(payload)
+
+
+def _consume_confirm_token(*, token: str, action: str, params: dict, user_id: str) -> bool:
+    """Validate signature + age + bind, and mark single-use. False if invalid."""
+    from django.core.cache import cache
+    from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+
+    if not token:
+        return False
+    try:
+        value = TimestampSigner(salt=_CONFIRM_TOKEN_SALT).unsign(
+            token, max_age=_CONFIRM_TOKEN_TTL_SECONDS,
+        )
+    except (BadSignature, SignatureExpired):
+        return False
+    expected = f"{action}|{_params_hash(params)}|{user_id}"
+    if value != expected:
+        return False
+    # Single-use: refuse a token already consumed.
+    cache_key = "agentic_confirm_used:" + hashlib.sha256(token.encode()).hexdigest()[:24]
+    try:
+        if cache.get(cache_key):
+            return False
+        cache.set(cache_key, 1, timeout=_CONFIRM_TOKEN_TTL_SECONDS)
+    except Exception:  # noqa: BLE001 — cache outage shouldn't hard-fail; signature already checked
+        logger.debug("confirm-token single-use cache unavailable", exc_info=True)
+    return True
+
+
+# --- Rate limit (per tenant+user, hourly) ------------------------------------
+
+def _mutating_rate_limit_ok(tenant_id: str, user_id: str) -> bool:
+    from django.core.cache import cache
+
+    try:
+        cap = int(os.environ.get("RMC_AI_AGENTIC_MUTATING_MAX_PER_HOUR", "30"))
+    except (TypeError, ValueError):
+        cap = 30
+    bucket = int(time.time() // 3600)
+    key = f"agentic_mut_rl:{tenant_id}:{user_id}:{bucket}"
+    try:
+        count = cache.get(key) or 0
+        if count >= cap:
+            return False
+        cache.set(key, count + 1, timeout=3600)
+    except Exception:  # noqa: BLE001 — cache outage: fail OPEN only for read-side, but here fail SAFE
+        logger.debug("mutating rate-limit cache unavailable; allowing", exc_info=True)
+    return True
+
+
+# --- Pre-state snapshot for reversal -----------------------------------------
+
+def _capture_pre_state(action: str, proposed: ProposedAction, school) -> dict:
+    """Capture the minimal pseudonymous state needed to undo ``action``.
+
+    Returns a reversal_payload dict (no PII). Best-effort; an empty dict means
+    'no reversible snapshot captured' (reversal will then no-op safely).
+    """
+    params = proposed.params or {}
+    if action == "mark_student_absent":
+        return _snapshot_mark_student_absent(params, school)
+    if action == "schedule_parent_callback":
+        # The entry_id is injected into params before the runner stores it.
+        return {"action": action, "entry_id": str(params.get("_entry_id") or "")}
+    return {}
+
+
+def _snapshot_mark_student_absent(params: dict, school) -> dict:
+    student_id = str(params.get("student_id") or "")
+    raw_date = params.get("date")
+    snap = {"action": "mark_student_absent", "student_id": student_id,
+            "date": "", "existed": False, "prior_status": "", "prior_notes": ""}
+    if not student_id or school is None:
+        return snap
+    try:
+        from datetime import date as _date
+        from apps.people.models import Student  # type: ignore
+        from apps.academics.models import AttendanceRecord  # type: ignore
+
+        if raw_date:
+            y, m, d = (int(x) for x in str(raw_date).split("-"))
+            on_date = _date(y, m, d)
+        else:
+            on_date = _date.today()
+        snap["date"] = on_date.isoformat()
+        student = Student.objects.filter(school=school, pk=student_id).first()
+        if student is None:
+            return snap
+        rec = AttendanceRecord.objects.filter(student=student, date=on_date).first()
+        if rec is not None:
+            snap["existed"] = True
+            snap["prior_status"] = str(getattr(rec, "status", "") or "")
+            snap["prior_notes"] = str(getattr(rec, "notes", "") or "")
+    except Exception:  # noqa: BLE001
+        logger.debug("snapshot mark_student_absent failed", exc_info=True)
+    return snap
+
+
+# --- Confirm + execute (the gated mutating path) -----------------------------
+
+def confirm_and_execute(
+    *,
+    proposed: ProposedAction,
+    ctx: ActionContext,
+    confirmed_by_user_id: str,
+    confirm_token: str,
+    school=None,
+) -> ExecutionResult:
+    """Execute ONE reversible mutating action, after all Phase-2 gates pass.
+
+    Gate order (each failure is audited as blocked, runner never runs):
+    enabled → eligible(reversible mutating + runner) → role (verify_permission)
+    → server-side confirmation present → valid single-use confirm token
+    → rate limit. Then: write intent row (pre-state) → run → write outcome row.
+    """
+    spec = get_action(proposed.action)
+    confirmed_ctx = _with_confirmation(ctx, confirmed_by_user_id)
+
+    def _blocked(reason: str, msg: str) -> ExecutionResult:
+        r = ExecutionResult(ok=False, action=proposed.action, error=msg, blocked_reason=reason)
+        _write_audit(audit_id="ag_" + uuid.uuid4().hex[:16], ctx=confirmed_ctx,
+                     proposed=proposed, spec=spec, result=r)
+        return r
+
+    if not agentic_mutating_enabled(school=school):
+        return _blocked("mutating_disabled", "Mutating agentic actions are disabled.")
+    if not _is_mutating_eligible(spec):
+        return _blocked("not_mutating_eligible",
+                        "Phase 2 permits reversible mutating actions with a bound runner only.")
+    perm_err = verify_permission(spec, confirmed_ctx)
+    if perm_err:
+        return _blocked("permission_denied", perm_err)
+    if not confirmed_ctx.confirmed_by:
+        return _blocked("confirmation_required", "Server-side confirmation missing.")
+    if not _consume_confirm_token(token=confirm_token, action=proposed.action,
+                                  params=proposed.params, user_id=confirmed_ctx.user_id):
+        return _blocked("bad_confirm_token", "Confirmation token invalid, expired, or already used.")
+    if not _mutating_rate_limit_ok(confirmed_ctx.tenant_id, confirmed_ctx.user_id):
+        return _blocked("rate_limited", "Mutating action rate limit reached; try again later.")
+
+    runner = _opt_in_mutating_runners().get(proposed.action)
+    if runner is None:
+        return _blocked("no_runner", "No mutating runner bound for this action.")
+
+    # For the callback action, inject a unique entry id so reversal is exact.
+    params = dict(proposed.params or {})
+    if proposed.action == "schedule_parent_callback":
+        params["_entry_id"] = "agc_" + uuid.uuid4().hex[:16]
+    proposed = ProposedAction(action=proposed.action, params=params,
+                              rationale=proposed.rationale, confidence=proposed.confidence)
+
+    audit_id = "ag_" + uuid.uuid4().hex[:16]
+    reversal_payload = _capture_pre_state(proposed.action, proposed, school)
+
+    # INTENT row — written BEFORE the runner runs (Phase-2 gate #5).
+    from apps.platform_runtime.models_agentic_audit import (
+        AIAgenticActionOutcome,
+        AIAgenticActionPhase,
+    )
+    _write_audit(
+        audit_id=audit_id, ctx=confirmed_ctx, proposed=proposed, spec=spec,
+        result=ExecutionResult(ok=False, action=proposed.action, result={"intent": True}),
+        phase=AIAgenticActionPhase.INTENT,
+        reversal_payload=reversal_payload,
+        outcome_override=AIAgenticActionOutcome.PENDING,
+    )
+
+    result = execute_action(proposed, ctx=confirmed_ctx, runner=runner)
+    # Stamp the shared audit_id onto the result for the operator UI + reversal.
+    result.audit_id = audit_id
+
+    # OUTCOME row — after the runner.
+    _write_audit(
+        audit_id=audit_id, ctx=confirmed_ctx, proposed=proposed, spec=spec,
+        result=result, phase=AIAgenticActionPhase.OUTCOME,
+    )
+    return result
+
+
+def reverse_action(
+    *,
+    audit_id: str,
+    ctx: ActionContext,
+    confirmed_by_user_id: str,
+    school=None,
+) -> ExecutionResult:
+    """Undo a previously-executed reversible action, using its intent snapshot."""
+    confirmed_ctx = _with_confirmation(ctx, confirmed_by_user_id)
+
+    def _blocked(reason: str, msg: str, action: str = "") -> ExecutionResult:
+        return ExecutionResult(ok=False, action=action, error=msg, blocked_reason=reason)
+
+    if not agentic_mutating_enabled(school=school):
+        return _blocked("mutating_disabled", "Mutating agentic actions are disabled.")
+
+    try:
+        from apps.platform_runtime.models_agentic_audit import (
+            AIAgenticActionAudit,
+            AIAgenticActionOutcome,
+            AIAgenticActionPhase,
+        )
+    except Exception:  # noqa: BLE001
+        return _blocked("audit_unavailable", "Audit store unavailable.")
+
+    intent = (
+        AIAgenticActionAudit.objects.filter(
+            audit_id=audit_id, phase=AIAgenticActionPhase.INTENT,
+        ).first()
+    )
+    if intent is None:
+        return _blocked("not_found", "No intent record for that audit id.")
+    # Only reverse actions that actually executed ok, and only once.
+    executed_ok = AIAgenticActionAudit.objects.filter(
+        audit_id=audit_id, phase=AIAgenticActionPhase.OUTCOME,
+        outcome=AIAgenticActionOutcome.OK,
+    ).exists()
+    if not executed_ok:
+        return _blocked("not_executed", "That action did not execute successfully.", intent.action)
+    already = AIAgenticActionAudit.objects.filter(
+        audit_id=audit_id, phase=AIAgenticActionPhase.REVERSAL,
+        outcome=AIAgenticActionOutcome.OK,
+    ).exists()
+    if already:
+        return _blocked("already_reversed", "That action was already reversed.", intent.action)
+
+    spec = get_action(intent.action)
+    perm_err = verify_permission(spec, confirmed_ctx) if spec else "unknown action"
+    if perm_err:
+        return _blocked("permission_denied", perm_err, intent.action)
+
+    payload = intent.reversal_payload or {}
+    if school is None:
+        school = _resolve_school(confirmed_ctx.tenant_id)
+    result = _apply_reversal(intent.action, payload, school)
+    result.audit_id = audit_id
+
+    _write_audit(
+        audit_id=audit_id, ctx=confirmed_ctx,
+        proposed=ProposedAction(action=intent.action, params={}),
+        spec=spec, result=result, phase=AIAgenticActionPhase.REVERSAL,
+    )
+    return result
+
+
+def _resolve_school(tenant_id: str):
+    try:
+        from services.ai_agentic_runners_mutating import _scope_school
+
+        return _scope_school(tenant_id)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _apply_reversal(action: str, payload: dict, school) -> ExecutionResult:
+    if action == "mark_student_absent":
+        return _reverse_mark_student_absent(payload, school)
+    if action == "schedule_parent_callback":
+        return _reverse_schedule_parent_callback(payload, school)
+    return ExecutionResult(ok=False, action=action, error="No reversal defined.",
+                           blocked_reason="no_reversal")
+
+
+def _reverse_mark_student_absent(payload: dict, school) -> ExecutionResult:
+    student_id = str(payload.get("student_id") or "")
+    date_iso = str(payload.get("date") or "")
+    if not student_id or not date_iso or school is None:
+        return ExecutionResult(ok=False, action="mark_student_absent",
+                               error="Insufficient reversal data.", blocked_reason="no_reversal")
+    try:
+        from datetime import date as _date
+        from apps.people.models import Student  # type: ignore
+        from apps.academics.models import AttendanceRecord  # type: ignore
+
+        y, m, d = (int(x) for x in date_iso.split("-"))
+        on_date = _date(y, m, d)
+        student = Student.objects.filter(school=school, pk=student_id).first()
+        if student is None:
+            return ExecutionResult(ok=False, action="mark_student_absent",
+                                   error="Student not found.", blocked_reason="no_reversal")
+        rec = AttendanceRecord.objects.filter(student=student, date=on_date).first()
+        if rec is None:
+            return ExecutionResult(ok=True, action="mark_student_absent",
+                                   result={"reversed": True, "note": "record already absent"})
+        if payload.get("existed"):
+            rec.status = payload.get("prior_status") or rec.status
+            rec.notes = payload.get("prior_notes") or ""
+            rec.save(update_fields=["status", "notes"])
+            return ExecutionResult(ok=True, action="mark_student_absent",
+                                   result={"reversed": True, "restored_status": rec.status})
+        rec.delete()
+        return ExecutionResult(ok=True, action="mark_student_absent",
+                               result={"reversed": True, "deleted": True})
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("reverse mark_student_absent failed")
+        return ExecutionResult(ok=False, action="mark_student_absent",
+                               error=str(exc), blocked_reason="reversal_exception")
+
+
+def _reverse_schedule_parent_callback(payload: dict, school) -> ExecutionResult:
+    entry_id = str(payload.get("entry_id") or "")
+    if not entry_id or school is None:
+        return ExecutionResult(ok=False, action="schedule_parent_callback",
+                               error="Insufficient reversal data.", blocked_reason="no_reversal")
+    try:
+        settings = getattr(school, "settings", None) or {}
+        if not isinstance(settings, dict):
+            settings = {}
+        queue = settings.get("callback_queue")
+        if not isinstance(queue, list):
+            queue = []
+        new_queue = [e for e in queue if not (isinstance(e, dict) and e.get("entry_id") == entry_id)]
+        removed = len(queue) - len(new_queue)
+        settings["callback_queue"] = new_queue
+        school.settings = settings
+        school.save(update_fields=["settings"])
+        return ExecutionResult(ok=True, action="schedule_parent_callback",
+                               result={"reversed": True, "removed": removed})
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("reverse schedule_parent_callback failed")
+        return ExecutionResult(ok=False, action="schedule_parent_callback",
+                               error=str(exc), blocked_reason="reversal_exception")
+
+
 # ---------------------------------------------------------------------------
 # Operator surface helpers
 # ---------------------------------------------------------------------------
@@ -320,6 +766,7 @@ def recent_audit(*, limit: int = 25, tenant_id: str | None = None) -> list[dict]
                     "action": r.action,
                     "impact": r.impact,
                     "outcome": r.outcome,
+                    "phase": r.phase,
                     "executed": r.executed,
                     "blocked_reason": r.blocked_reason,
                     "actor": r.actor_user_id_hash,

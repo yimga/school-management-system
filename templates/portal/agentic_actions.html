@@ -1,0 +1,144 @@
+{% extends "portal_base.html" %}
+{% load i18n %}
+{% block title %}{{ page_title }} · {% trans "Studio" %}{% endblock %}
+{% block content %}
+<main class="rmc-page" id="main">
+  <h1 class="rmc-h1">{% trans "Agentic actions" %}</h1>
+  <p class="text-muted">{% trans "The assistant proposes a small set of reversible actions for your school. You confirm each one explicitly before it runs, and every action can be undone. Nothing happens without your confirmation." %}</p>
+
+  {% if error %}<p class="text-danger" role="alert">{{ error }}</p>{% endif %}
+
+  {% if not mutating_enabled %}
+  <section class="card mt-3 mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Agentic actions are off" %}</h2>
+      <p class="mb-1">{% blocktrans %}This feature is disabled. An administrator can enable it; until then this page stays inert.{% endblocktrans %}</p>
+      <p class="small text-muted mb-0">{% trans "Flag" %}: <code>{{ flag_name }}</code></p>
+    </div>
+  </section>
+  {% else %}
+
+  <section class="card mt-3 mb-4">
+    <form method="post" class="card-body">
+      {% csrf_token %}
+      <input type="hidden" name="gen" value="propose" />
+      <h2 class="h6">{% trans "Describe what you want to do" %}</h2>
+      <textarea name="prompt" class="form-control" rows="2" placeholder="{% trans 'e.g. mark a student absent today, or schedule a parent callback' %}">{{ prompt_text }}</textarea>
+      <div class="row g-2 mt-1">
+        <div class="col-sm-4"><label class="form-label small mb-0" for="ag-student">{% trans "Student id" %}</label><input id="ag-student" name="student_id" class="form-control form-control-sm" /></div>
+        <div class="col-sm-4"><label class="form-label small mb-0" for="ag-parent">{% trans "Parent id" %}</label><input id="ag-parent" name="parent_id" class="form-control form-control-sm" /></div>
+        <div class="col-sm-4"><label class="form-label small mb-0" for="ag-reason">{% trans "Reason" %}</label><input id="ag-reason" name="reason" class="form-control form-control-sm" /></div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">{% trans "Propose" %}</button>
+    </form>
+  </section>
+
+  {% if proposals is not None %}
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Proposed actions — confirm to run" %}</div>
+    <div class="card-body">
+      {% if proposals %}
+      {% for p in proposals %}
+      <div class="border rounded p-3 mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-semibold">{{ p.action }}</span>
+          <span class="badge text-bg-secondary">{% trans "confidence" %} {{ p.confidence }}</span>
+        </div>
+        {% if p.rationale %}<p class="small text-muted mb-2">{{ p.rationale }}</p>{% endif %}
+        <form method="post" class="d-flex flex-wrap gap-2 align-items-end">
+          {% csrf_token %}
+          <input type="hidden" name="gen" value="confirm" />
+          <input type="hidden" name="action" value="{{ p.action }}" />
+          <input type="hidden" name="confirm_token" value="{{ p.confirm_token }}" />
+          {% for f in p.param_fields %}
+          <div>
+            <label class="form-label small mb-0" for="c-{{ p.action }}-{{ f.key }}">{{ f.key }}</label>
+            <input id="c-{{ p.action }}-{{ f.key }}" name="{{ f.key }}" class="form-control form-control-sm" value="{{ f.value }}" />
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-warning btn-sm">{% trans "Confirm & run" %}</button>
+        </form>
+        <p class="small text-muted mt-1 mb-0">{% trans "This is reversible — you can undo it from the activity list below." %}</p>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p class="text-muted mb-0">{% trans "No action matched your description, or none are available to your role." %}</p>
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if exec_result %}
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">
+      {% trans "Result" %}: {{ exec_result.action }}
+      {% if exec_result.ok %}<span class="badge text-bg-success">{% trans "done" %}</span>{% else %}<span class="badge text-bg-danger">{{ exec_result.blocked_reason|default:_("error") }}</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if exec_result.ok %}<pre class="mb-2">{{ exec_result.result }}</pre>{% else %}<p class="text-danger mb-2">{{ exec_result.error }}</p>{% endif %}
+      {% if exec_result.audit_id %}<p class="small text-muted mb-0">{% trans "Reference" %}: <code>{{ exec_result.audit_id }}</code></p>{% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if reverse_result %}
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Undo" %}: {% if reverse_result.ok %}<span class="badge text-bg-success">{% trans "reversed" %}</span>{% else %}<span class="badge text-bg-danger">{{ reverse_result.blocked_reason|default:_("error") }}</span>{% endif %}</div>
+    <div class="card-body">
+      {% if reverse_result.ok %}<p class="mb-0">{% trans "The action was undone." %}</p>{% else %}<p class="text-danger mb-0">{{ reverse_result.error }}</p>{% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Available actions" %}</div>
+    <ul class="list-group list-group-flush">
+      {% for a in actions %}
+      <li class="list-group-item"><span class="fw-semibold">{{ a.name }}</span> — {{ a.description }}</li>
+      {% empty %}
+      <li class="list-group-item text-muted">{% trans "No actions are available to your role." %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="card mt-3 mb-4">
+    <div class="card-header fw-semibold">{% trans "Recent activity" %}</div>
+    <div class="table-responsive">
+      <table class="table table-sm mb-0">
+        <thead>
+          <tr>
+            <th scope="col">{% trans "Action" %}</th>
+            <th scope="col">{% trans "Outcome" %}</th>
+            <th scope="col">{% trans "When" %}</th>
+            <th scope="col">{% trans "Undo" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in audit_rows %}
+          {% if r.phase != "intent" %}
+          <tr>
+            <td>{{ r.action }}</td>
+            <td>{{ r.outcome }}{% if r.blocked_reason %} <span class="small text-muted">({{ r.blocked_reason }})</span>{% endif %}</td>
+            <td>{{ r.created_at }}</td>
+            <td>
+              {% if mutating_enabled and r.phase == "outcome" and r.outcome == "ok" and r.executed %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="gen" value="reverse" />
+                <input type="hidden" name="audit_id" value="{{ r.audit_id }}" />
+                <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Undo" %}</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endif %}
+          {% empty %}
+          <tr><td colspan="4" class="text-muted">{% trans "No agentic actions yet." %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

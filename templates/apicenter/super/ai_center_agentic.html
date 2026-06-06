@@ -19,6 +19,15 @@
   </section>
   {% else %}
 
+  {% if mutating_enabled %}
+  <section class="card mt-3 mb-4">
+    <div class="card-body">
+      <h2 class="h6">{% trans "Mutating actions are enabled (Phase 2)" %}</h2>
+      <p class="small text-muted mb-0">{% blocktrans %}Reversible mutating actions run on a tenant, not from the control plane. Principals / leadership / admins perform and undo them from the tenant's Agentic actions page; their attempts appear in the audit tail below.{% endblocktrans %}</p>
+    </div>
+  </section>
+  {% endif %}
+
   <section class="card mt-3 mb-4">
     <form method="post" class="card-body">
       {% csrf_token %}

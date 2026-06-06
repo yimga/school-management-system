@@ -216,6 +216,11 @@ def run_schedule_parent_callback(
         "requested_by_user_id": ctx.user_id,
         "agentic_audit_required": True,
     }
+    # Optional reversal handle injected by the Phase-2 orchestration so an
+    # individual queued entry can be removed precisely on reverse_action.
+    entry_id = str(params.get("_entry_id") or "")
+    if entry_id:
+        entry["entry_id"] = entry_id
     queue.append(entry)
     # Cap to 200 (FIFO).
     if len(queue) > 200:
