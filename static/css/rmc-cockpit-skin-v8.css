@@ -712,3 +712,58 @@ html[data-bs-theme="light"] body.control-plane-shell #cp-main-content .rmc-wcx-r
   background: var(--surface-elevated, #ffffff);
   border-color: var(--hairline);
 }
+
+/* ============================================================
+   v4.02.x — COMPACT OPERATOR BAND chrome bits (2026-06-06)
+   ------------------------------------------------------------
+   Companion to the band layout in rmc-cp-header-200x.css: the
+   relocated status chip, the "More ▾" dropdown click/visibility
+   hardening, and the Workspace control normalised to the icon-
+   button footprint for a consistent right cluster.
+   ============================================================ */
+
+/* Status chip relocated INTO the utility band — trim to sit level with
+   the 32px control cluster (the base chip was sized for the old nav row). */
+.cp-header__row--utility .cp-nav-status-chip--header {
+  padding: 4px 11px;
+  height: 28px;
+  font-size: 11.5px;
+}
+
+/* Keep the inlined rail on a SINGLE line. The control-plane nav carries
+   `flex-wrap: wrap` from rmc-admin-v1-200x.css (specificity 0,3,1) for its
+   legacy full-row layout; in the utility-band rail that makes the pills + More
+   wrap onto a second line. Win the cascade (0,4,1) and force nowrap on both
+   shells so More stays inline with the pills (matching /admin/). */
+body.control-plane-shell .cp-header .rmc-platform-header__nav-rail .cp-primary-nav,
+body.admin-manager-shell .cp-header .rmc-platform-header__nav-rail .cp-primary-nav {
+  flex-wrap: nowrap;
+}
+
+/* "More ▾" overflow dropdown — reliably open + visible. The native <details>
+   toggles fine; the real bug was an ancestor clip (fixed at .cp-header in
+   rmc-cp-header-200x.css). Belt-and-suspenders: keep the rail containers
+   non-clipping and lift the menu above the band + canvas. */
+.rmc-platform-header__nav-rail,
+.rmc-platform-header__nav-rail .cp-primary-nav,
+.cp-header__row--utility .rmc-platform-header__toolbar {
+  overflow: visible;
+}
+.cp-primary-nav__more-menu {
+  z-index: 1200; /* above the header band's own stacking context + canvas */
+}
+.cp-primary-nav__more > summary {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+/* Workspace control normalised to the header icon-button footprint so the
+   right cluster (status · presence · bell · Workspace · profile) reads as one
+   consistent set rather than mismatched sizes. */
+.cp-header__row--utility .rmc-operator-workspace-dropdown > .rmc-platform-header__chip {
+  height: 32px;
+  padding: 0 10px !important; /* style-allow: header-compact-workspace-2026-06-06 */
+  border-radius: var(--rmc-header-control-radius, 999px);
+  gap: 6px;
+  font-size: 12px !important; /* style-allow: header-compact-workspace-2026-06-06 */
+}

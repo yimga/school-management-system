@@ -43,23 +43,30 @@
           {% comment %} v4.02.x: PRIMARY NAV relocated INTO the header utility row as a compact
              icon rail (active section shows its label, others are tooltip'd glyphs), filling the
              gap between the search box and the right-hand cluster. This reclaims the entire former
-             nav ROW of vertical height. SCOPED to the manager /admin/ BACKOFFICE shell only
-             (MANAGER_PLATFORM_ADMIN_SHELL): the /super/ control-plane already ships the polished
-             full nav row, which the owner prefers, so we leave it alone there. Shown at xl+; below
-             xl the dedicated fallback nav row in control_plane_unified_header.html takes over.
-             hide_security=True because the security shield already sits in the actions cluster. {% endcomment %}
-          {% if PRIMARY_CONTROL_PLANE_NAV and MANAGER_PLATFORM_ADMIN_SHELL %}
+             nav ROW of vertical height. Owner-approved 2026-06-06: now PLATFORM-WIDE on BOTH the
+             manager /admin/ backoffice shell AND the /super/ control plane (the owner asked for the
+             /super/ header to match /admin/), so the gate no longer keys on MANAGER_PLATFORM_ADMIN_SHELL.
+             Shown at xl+; below xl the dedicated fallback nav row in control_plane_unified_header.html
+             takes over (it is now d-xl-none on both shells). hide_security=True because the security
+             shield already sits in the actions cluster. {% endcomment %}
+          {% if PRIMARY_CONTROL_PLANE_NAV %}
           <div class="rmc-platform-header__nav-rail d-none d-xl-flex" data-rmc-header-nav-rail="1">
             {% include "partials/control_plane_primary_nav.html" with rail=True hide_security=True %}
           </div>
           {% endif %}
-          {% if request.user.is_authenticated and SHOW_HEADER_CONTEXT_STRIP %}
-          <div class="rmc-platform-header__context d-none d-lg-flex align-items-center" data-rmc-header-context-compact="1">
-            {% include "components/header_weather_widget.html" with SHOW_HEADER_CONTEXT_QUOTE=False %}
-          </div>
-          {% endif %}
+          {% comment %} v4.02.x (2026-06-06): the clock / weather dock was REMOVED from the utility
+             band per owner — it's ambient, not a workflow control, so it no longer holds prime header
+             real estate. It is relocated to the right edge of the LIVE ticker row in
+             control_plane_unified_header.html (always visible at the top, zero added height). {% endcomment %}
         <div class="rmc-platform-header__actions" id="cpNavbarActions">
           {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
+          {% comment %} Incident / all-clear status chip — relocated UP from the former nav row
+             (control_plane_unified_header inline-chrome) so the single compact band keeps the
+             at-a-glance system signal. Control-plane only; /admin/ surfaces incidents via the bell. {% endcomment %}
+          <a href="{% url 'super:command_center' %}" class="cp-nav-status-chip cp-nav-status-chip--header d-none d-xl-inline-flex{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
+            <span class="cp-nav-status-chip__dot" aria-hidden="true"></span>
+            <span class="cp-nav-status-chip__text">{% if platform_incidents|length %}{% blocktrans count count=platform_incidents|length %}{{ count }} incident{% plural %}{{ count }} incidents{% endblocktrans %}{% else %}{% trans "All systems operational" %}{% endif %}</span>
+          </a>
           {% comment %} Operator presence — CONFIGURABLE via cockpit_shell.presence_enabled. {% endcomment %}
           {% if cockpit_shell.presence_enabled or not cockpit_shell %}
           {% include "partials/cockpit/_operator_presence.html" %}
