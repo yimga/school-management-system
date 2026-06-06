@@ -75,3 +75,59 @@ class ProductTourSOTTests(SimpleTestCase):
         slugs = flagship_tour_slugs()
         for slug in FLAGSHIP_SLUGS:
             self.assertIn(slug, slugs)
+
+    # --- Localization -----------------------------------------------------
+
+    def test_default_lang_is_english(self):
+        default = product_tour_for_slug("platform-attendance")
+        explicit = product_tour_for_slug("platform-attendance", lang="en")
+        self.assertEqual(default, explicit)
+
+    def test_french_translates_caption_and_tooltip(self):
+        en = product_tour_for_slug("platform-attendance", lang="en")
+        fr = product_tour_for_slug("platform-attendance", lang="fr")
+        self.assertEqual(en["slug"], fr["slug"])
+        self.assertEqual(len(en["frames"]), len(fr["frames"]))
+        # Stable enum keys are preserved untranslated.
+        self.assertEqual(
+            [f["key"] for f in en["frames"]],
+            [f["key"] for f in fr["frames"]],
+        )
+        self.assertEqual(
+            [f["ui_kind"] for f in en["frames"]],
+            [f["ui_kind"] for f in fr["frames"]],
+        )
+        # But caption + tooltip are translated.
+        self.assertNotEqual(en["frames"][0]["caption"], fr["frames"][0]["caption"])
+        self.assertNotEqual(en["frames"][0]["tooltip"], fr["frames"][0]["tooltip"])
+
+    def test_arabic_returns_proper_arabic(self):
+        ar = product_tour_for_slug("platform-attendance", lang="ar")
+        en = product_tour_for_slug("platform-attendance", lang="en")
+        self.assertNotEqual(en["frames"][0]["caption"], ar["frames"][0]["caption"])
+        self.assertTrue(
+            any("؀" <= ch <= "ۿ" for ch in ar["frames"][0]["caption"]),
+            "Arabic caption must contain Arabic-script characters",
+        )
+
+    def test_unknown_lang_falls_back_to_english(self):
+        en = product_tour_for_slug("platform-attendance", lang="en")
+        zz = product_tour_for_slug("platform-attendance", lang="zz")
+        self.assertEqual(en, zz)
+
+    def test_regional_variant_resolves_to_base_lang(self):
+        pt = product_tour_for_slug("platform-attendance", lang="pt")
+        pt_br = product_tour_for_slug("platform-attendance", lang="pt-BR")
+        self.assertEqual(pt, pt_br)
+
+    def test_localized_frames_are_a_copy(self):
+        fr = product_tour_for_slug("platform-attendance", lang="fr")
+        fr["frames"].append(
+            {"key": "x", "caption": "x", "tooltip": "x", "ui_kind": "x"}
+        )
+        again = product_tour_for_slug("platform-attendance", lang="fr")
+        self.assertEqual(len(again["frames"]), 3)
+
+    def test_unknown_slug_returns_none_for_any_lang(self):
+        self.assertIsNone(product_tour_for_slug("nope", lang="fr"))
+        self.assertIsNone(product_tour_for_slug("", lang="ar"))

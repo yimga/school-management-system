@@ -85,3 +85,85 @@ class MessagingChannelsTests(SimpleTestCase):
                 self.assertTrue(ch["id"], f"empty id for {cc}: {ch}")
                 self.assertTrue(ch["label"], f"empty label for {cc}: {ch}")
                 self.assertTrue(ch["note"], f"empty note for {cc}: {ch}")
+
+
+class PaymentRailsLocalizationTests(SimpleTestCase):
+    def test_default_lang_is_english(self):
+        default = payment_rails_for_country("US")
+        explicit = payment_rails_for_country("US", lang="en")
+        self.assertEqual(default, explicit)
+        ids = {r["id"]: r["label"] for r in explicit}
+        self.assertEqual(ids["card"], "Card")
+
+    def test_french_translates_generic_labels_not_brands(self):
+        # US: only generic Card + ACH (ACH is a brand/scheme name, untranslated).
+        us_fr = payment_rails_for_country("US", lang="fr")
+        labels = {r["id"]: r["label"] for r in us_fr}
+        self.assertEqual(labels["card"], "Carte")
+        self.assertEqual(labels["ach"], "ACH")  # brand name unchanged
+        # KE: M-Pesa brand name must stay verbatim in any language.
+        ke_fr = payment_rails_for_country("KE", lang="fr")
+        ke_labels = {r["id"]: r["label"] for r in ke_fr}
+        self.assertEqual(ke_labels["mpesa"], "M-Pesa")
+
+    def test_arabic_card_label_is_arabic(self):
+        ar = payment_rails_for_country("ZZ", lang="ar")
+        labels = {r["id"]: r["label"] for r in ar}
+        self.assertNotEqual(labels["card"], "Card")
+        self.assertTrue(
+            any("؀" <= ch <= "ۿ" for ch in labels["card"]),
+            "Arabic Card label must contain Arabic-script characters",
+        )
+        self.assertNotEqual(labels["bank"], "Bank transfer")
+
+    def test_unknown_lang_falls_back_to_english(self):
+        en = payment_rails_for_country("US", lang="en")
+        zz = payment_rails_for_country("US", lang="zz")
+        self.assertEqual(en, zz)
+
+    def test_regional_variant_resolves_to_base_lang(self):
+        pt = payment_rails_for_country("BR", lang="pt")
+        pt_br = payment_rails_for_country("BR", lang="pt-BR")
+        self.assertEqual(pt, pt_br)
+
+    def test_order_and_ids_unchanged_by_language(self):
+        for cc in ("KE", "NG", "US", "BR"):
+            en_ids = [r["id"] for r in payment_rails_for_country(cc, lang="en")]
+            fr_ids = [r["id"] for r in payment_rails_for_country(cc, lang="fr")]
+            self.assertEqual(en_ids, fr_ids, cc)
+
+
+class MessagingChannelsLocalizationTests(SimpleTestCase):
+    def test_default_lang_is_english(self):
+        default = messaging_channels_for_country("NG")
+        explicit = messaging_channels_for_country("NG", lang="en")
+        self.assertEqual(default, explicit)
+
+    def test_french_translates_notes_and_inapp_label_not_brands(self):
+        en = messaging_channels_for_country("NG", lang="en")
+        fr = messaging_channels_for_country("NG", lang="fr")
+        self.assertEqual(
+            [c["id"] for c in en], [c["id"] for c in fr]
+        )
+        by_id_en = {c["id"]: c for c in en}
+        by_id_fr = {c["id"]: c for c in fr}
+        # Brand labels stay verbatim.
+        self.assertEqual(by_id_fr["whatsapp"]["label"], "WhatsApp")
+        self.assertEqual(by_id_fr["sms"]["label"], "SMS")
+        self.assertEqual(by_id_fr["email"]["label"], "Email")
+        # In-app label + notes are translated.
+        self.assertNotEqual(by_id_en["inapp"]["label"], by_id_fr["inapp"]["label"])
+        self.assertNotEqual(by_id_en["whatsapp"]["note"], by_id_fr["whatsapp"]["note"])
+
+    def test_arabic_returns_proper_arabic_notes(self):
+        ar = messaging_channels_for_country("NG", lang="ar")
+        by_id = {c["id"]: c for c in ar}
+        self.assertTrue(
+            any("؀" <= ch <= "ۿ" for ch in by_id["whatsapp"]["note"]),
+            "Arabic note must contain Arabic-script characters",
+        )
+
+    def test_unknown_lang_falls_back_to_english(self):
+        en = messaging_channels_for_country("US", lang="en")
+        zz = messaging_channels_for_country("US", lang="zz")
+        self.assertEqual(en, zz)

@@ -1,0 +1,42 @@
+{% load i18n static %}
+{% comment %}
+  Social-proof testimonial band for marketing platform pages.
+  Renders ONLY when the context var `testimonials` is a non-empty list
+  (populated by apps.schools.marketing_social_proof.testimonials_for_slug).
+  Empty/absent -> renders nothing, so pages stay clean until the owner
+  supplies real, approved customer quotes.
+{% endcomment %}
+{% if testimonials %}
+<section class="mkt-proof-band rmc-reveal" aria-labelledby="mkt-proof-band-headline" data-mkt-reveal>
+  <div class="mkt-edt-container mkt-proof-band__inner">
+    <h2 id="mkt-proof-band-headline" class="mkt-proof-band__headline">
+      {% trans "What schools say" %}
+    </h2>
+    <ul class="mkt-proof-grid" role="list">
+      {% for t in testimonials %}
+      <li class="mkt-proof-card">
+        <figure class="mkt-proof-figure">
+          <blockquote class="mkt-proof-quote-text">
+            <p>{{ t.quote }}</p>
+          </blockquote>
+          <figcaption class="mkt-proof-attribution">
+            {% if t.logo %}
+            <img class="mkt-proof-attribution__logo"
+                 src="{% static t.logo %}"
+                 alt="{% blocktrans with name=t.school_name %}{{ name }} logo{% endblocktrans %}"
+                 loading="lazy" decoding="async" width="120" height="40">
+            {% endif %}
+            <span class="mkt-proof-attribution__name">{{ t.attribution_name }}</span>
+            <span class="mkt-proof-attribution__role">{{ t.attribution_role }}</span>
+            <span class="mkt-proof-attribution__school">{{ t.school_name }}</span>
+            {% if t.metric %}
+            <span class="mkt-proof-attribution__metric">{{ t.metric }}</span>
+            {% endif %}
+          </figcaption>
+        </figure>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
