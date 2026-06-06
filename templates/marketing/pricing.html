@@ -1,5 +1,5 @@
 {% extends "marketing/base_marketing.html" %}
-{% load static i18n marketing_media %}
+{% load static i18n marketing_media marketing_pricing_tags %}
 
 {% block title %}RunMyCampus · {% marketing_copy "txt_pricing_headline" %}{% endblock %}
 
@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-personality-pages.css' %}">
   <link rel="stylesheet" href="{% static 'marketing/css/mkt-pricing-studio.css' %}">
+  <link rel="stylesheet" href="{% static 'marketing/css/marketing-pricing-tiers.css' %}">
 {% endblock %}
 
 {% block extrajs %}
@@ -21,6 +22,7 @@
 {% block content %}
 <article class="mkt-personality-page__viewport" data-mkt-personality-page="pricing">
   {% include "marketing/partials/sections/_entitlement_calculator.html" %}
+  {% marketing_pricing_tiers %}
 </article>
 {% include "marketing/partials/_personality_page_nav.html" with active="pricing" %}
 <p class="mkt-personality-page__procurement mkt-edt-container">
