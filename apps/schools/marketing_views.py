@@ -32,6 +32,11 @@ from apps.schools.marketing_channel_rails import (
     messaging_channels_for_country,
     payment_rails_for_country,
 )
+from apps.schools.marketing_social_proof import (
+    case_study_for_slug,
+    logos_for_slug,
+    testimonials_for_slug,
+)
 from apps.schools.marketing_page_definitions import (
     COMPARE_PAGE_DEFINITIONS,
     GETTING_STARTED_SIMULATOR_STEPS,
@@ -2643,6 +2648,10 @@ def marketing_page(request, page_slug: str):
             "status_url": status_url,
         }
 
+    from django.utils.translation import get_language
+
+    _marketing_lang = get_language() or "en"
+    _marketing_country = base_ctx.get("country_code") or _get_country_from_request(request)
     ctx = {
         **base_ctx,
         "seo_title": page_copy.get("seo_title"),
@@ -2658,17 +2667,18 @@ def marketing_page(request, page_slug: str):
         "marketing_page_slug": page_slug,
         **marketing_personality_context(page_slug),
         # Competitive-parity upgrades (2026-06-06): in-section outcome stats,
-        # Vercel-style product tour, and region-aware payment/messaging rails.
-        # Each consumer template is guarded by {% if %}, so non-platform pages
-        # (and countries/slugs with no data) render nothing.
-        "outcome_stats": outcome_stats_for_slug(page_slug),
-        "product_tour": product_tour_for_slug(page_slug),
-        "payment_rails": payment_rails_for_country(
-            base_ctx.get("country_code") or _get_country_from_request(request)
-        ),
-        "messaging_channels": messaging_channels_for_country(
-            base_ctx.get("country_code") or _get_country_from_request(request)
-        ),
+        # Vercel-style product tour, region-aware payment/messaging rails, and
+        # honest (empty-by-default) social-proof slots. All consumer templates
+        # are guarded by {% if %}, so non-platform pages — and countries/slugs/
+        # locales with no data — render nothing. Copy is localized via the active
+        # request language (locale middleware).
+        "outcome_stats": outcome_stats_for_slug(page_slug, lang=_marketing_lang),
+        "product_tour": product_tour_for_slug(page_slug, lang=_marketing_lang),
+        "payment_rails": payment_rails_for_country(_marketing_country, lang=_marketing_lang),
+        "messaging_channels": messaging_channels_for_country(_marketing_country, lang=_marketing_lang),
+        "testimonials": testimonials_for_slug(page_slug),
+        "proof_logos": logos_for_slug(page_slug),
+        "case_study": case_study_for_slug(page_slug),
         "blog_posts": blog_posts,
         "blog_list_intro_html": blog_list_intro_html,
         **(

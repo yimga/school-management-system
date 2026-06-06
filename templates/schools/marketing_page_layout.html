@@ -10,11 +10,12 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-global-os.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-outcome-stats.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-product-tour.css' %}">
-  <link rel="stylesheet" href="{% static 'marketing/css/marketing-channel-rails.css' %}">
+  {% comment %}Component CSS loads only where the component renders (perf: keeps ~18KB off non-platform pages). Channel-rails CSS is loaded by the fees + communications pages that use it.{% endcomment %}
+  {% if outcome_stats %}<link rel="stylesheet" href="{% static 'marketing/css/marketing-outcome-stats.css' %}">{% endif %}
+  {% if product_tour %}<link rel="stylesheet" href="{% static 'marketing/css/marketing-product-tour.css' %}">{% endif %}
+  {% if testimonials %}<link rel="stylesheet" href="{% static 'marketing/css/marketing-social-proof.css' %}">{% endif %}
 {% endblock %}
-{% block extrajs %}{{ block.super }}<script src="{% static 'marketing/js/mkt-product-tour.js' %}" defer></script>{% endblock %}
+{% block extrajs %}{{ block.super }}{% if product_tour %}<script src="{% static 'marketing/js/mkt-product-tour.js' %}" defer></script>{% endif %}{% endblock %}
 {% block content %}
   <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ seo_title|default:"RunMyCampus" }}</h1>
 <section class="py-2 py-lg-3">
@@ -26,6 +27,7 @@
     {% block marketing_page_inner %}{% endblock %}
     {% comment %}Competitive-parity additions — guarded, so they render only on pages that have data.{% endcomment %}
     {% include "marketing/components/_outcome_stat_band.html" %}
+    {% include "marketing/components/_testimonial_band.html" %}
     {% include "marketing/components/_product_tour.html" %}
   </div>
 </section>
