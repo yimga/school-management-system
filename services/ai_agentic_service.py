@@ -763,7 +763,7 @@ def _reverse_schedule_parent_callback(payload: dict, school) -> ExecutionResult:
 #     anonymization), via services.ai_agentic_runners_destructive.
 
 _DESTRUCTIVE = "destructive"
-_DESTRUCTIVE_REQUEST_TTL_SECONDS = 1800  # 30 min cooling-off window
+_DESTRUCTIVE_REQUEST_TTL_SECONDS = 1800  # magic-number-allow: 1800s = 30-min dual-control cooling-off window
 
 
 def _agentic_destructive_flag_on() -> bool:
@@ -852,13 +852,13 @@ def _destructive_rate_limit_ok(tenant_id: str, user_id: str) -> bool:
         cap = int(os.environ.get("RMC_AI_AGENTIC_DESTRUCTIVE_MAX_PER_HOUR", "5"))
     except (TypeError, ValueError):
         cap = 5
-    bucket = int(time.time() // 3600)
+    bucket = int(time.time() // 3600)  # magic-number-allow: 3600s = 1-hour rate-limit bucket
     key = f"agentic_destr_rl:{tenant_id}:{user_id}:{bucket}"
     try:
         count = cache.get(key) or 0
         if count >= cap:
             return False
-        cache.set(key, count + 1, timeout=3600)
+        cache.set(key, count + 1, timeout=3600)  # magic-number-allow: 3600s = 1-hour rate-limit window
     except Exception:  # noqa: BLE001 — cache outage: fail SAFE (allow), signature gates remain
         logger.debug("destructive rate-limit cache unavailable; allowing", exc_info=True)
     return True
@@ -1156,7 +1156,7 @@ def pending_destructive_requests(*, tenant_id: str | None = None, limit: int = 2
     reqs = AIAgenticActionAudit.objects.filter(phase=AIAgenticActionPhase.REQUEST)
     if tenant_id:
         reqs = reqs.filter(tenant_id=tenant_id)
-    reqs = reqs.order_by("-created_at")[: max(1, min(limit, 100))]
+    reqs = reqs.order_by("-created_at")[: max(1, min(limit, 100))]  # magic-number-allow: 100-row pending-list query cap
 
     finalized_qs = AIAgenticActionAudit.objects.filter(phase=AIAgenticActionPhase.OUTCOME)
     if tenant_id:
