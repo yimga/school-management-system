@@ -1,0 +1,126 @@
+/* marketing-pricing-tiers.css — indicative published pricing tier cards.
+ * Token-driven; raw values carry off-token-allow. No viewport-lock, no text-clipping. */
+
+.mkt-tiers {
+  margin-block: 2.5rem;
+}
+
+.mkt-tiers__head {
+  text-align: center;
+  margin-block-end: 1.5rem;
+}
+
+.mkt-tiers__title {
+  margin: 0 0 0.4rem;
+  font-size: var(--type-size-xl, 1.6rem);
+}
+
+.mkt-tiers__lead {
+  margin: 0 auto;
+  max-inline-size: 46rem;
+  color: var(--text-secondary, #475569); /* off-token-allow: secondary ink fallback */
+  font-size: var(--type-size-sm, 0.95rem);
+  line-height: 1.55;
+}
+
+.mkt-tiers__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.mkt-tiers__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  border: 1px solid var(--hairline, rgba(15, 23, 42, 0.12)); /* off-token-allow: hairline fallback */
+  border-radius: 1rem;
+  background: var(--surface-elevated, #ffffff); /* off-token-allow: light surface fallback */
+}
+
+.mkt-tiers__card--featured {
+  border-color: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--mkt-personality-accent, #4f46e5) 18%, transparent);
+}
+
+.mkt-tiers__flag {
+  position: absolute;
+  inset-block-start: -0.7rem;
+  inset-inline-start: 1.5rem;
+  background: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+  color: #ffffff; /* off-token-allow: on-accent text white by design */
+  font-size: var(--type-size-2xs, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.mkt-tiers__name {
+  margin: 0;
+  font-size: var(--type-size-lg, 1.25rem);
+}
+
+.mkt-tiers__price {
+  margin: 0;
+  min-block-size: 1.6rem;
+}
+
+.mkt-tiers__price-note {
+  font-weight: 700;
+  color: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+}
+
+.mkt-tiers__price-custom {
+  font-weight: 700;
+}
+
+.mkt-tiers__who {
+  margin: 0;
+  color: var(--text-secondary, #475569); /* off-token-allow: secondary ink fallback */
+  font-size: var(--type-size-sm, 0.9rem);
+  line-height: 1.5;
+}
+
+.mkt-tiers__included {
+  margin: 0.4rem 0 0;
+  padding-inline-start: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: var(--type-size-sm, 0.9rem);
+  line-height: 1.45;
+}
+
+.mkt-tiers__cta {
+  margin-block-start: auto;
+  display: inline-block;
+  text-align: center;
+  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+  color: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mkt-tiers__cta--primary {
+  background: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+  color: #ffffff; /* off-token-allow: on-accent text white by design */
+}
+
+.mkt-tiers__cta:focus-visible {
+  outline: 2px solid var(--mkt-personality-accent, #4f46e5); /* off-token-allow: focus ring accent fallback */
+  outline-offset: 2px;
+}
+
+.mkt-tiers__disclaimer {
+  margin-block-start: 1rem;
+  text-align: center;
+  font-size: var(--type-size-xs, 0.8rem);
+  color: var(--text-secondary, #475569); /* off-token-allow: secondary ink fallback */
+}
