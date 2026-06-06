@@ -43,6 +43,10 @@
         </div>
         
         <div class="admin-nav-bridge__actions">
+            {% comment %} v4.02.x: LIVE metrics badge on tenant /admin/ — same inline ticker the
+               v8 header carries on /super/ and manager /admin/. Self-gating + tenant branch
+               (cockpit.tenant_activity_ticker). Data already in context via cockpit_context. {% endcomment %}
+            {% if cockpit_shell.live_ticker_enabled %}{% include "partials/cockpit/_activity_ticker_inline.html" %}{% endif %}
             {% comment %}Tenant-admin command palette anchor: keyboard shortcut help + command search input.
                Mirrors the manager-host topbar contract (cpSearchInput / cpShowShortcutsHelp)
                so authenticated-shell-manager.js can bind the same wiring on tenant hosts.

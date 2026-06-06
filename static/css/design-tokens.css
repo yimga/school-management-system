@@ -3719,7 +3719,10 @@ html[data-resolved-theme="dark"] .rmc-logo-adaptive {
 
 body.control-plane-shell .rmc-page-progress,
 body.admin-manager-shell .rmc-page-progress {
-  top: var(--rmc-app-shell-header-h, 0px);
+  /* v4.02.x: pin to the true viewport top (like the marketing page) rather than
+     below the header — the owner wants the load line at the very top, not mid-page.
+     Keep the elevated z-index so it rides above the pinned cockpit header. */
+  top: 0;
   z-index: 10050;
 }
 .rmc-page-progress__fill {
