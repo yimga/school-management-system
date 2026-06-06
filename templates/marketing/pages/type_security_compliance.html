@@ -9,6 +9,7 @@
 {% block marketing_page_inner %}
 <article class="mkt-v3-page mkt-v3-page--security-compliance" data-mkt-security-compliance="1" data-world-class-trust-page="1" data-apple-class-trust-page="1">
   {% include "marketing/components/_personality_hero.html" with eyebrow=_("Security & compliance") headline=page.headline subheadline=page.subheadline extra_class="mkt-v3-page__hero" %}
+  {% include "marketing/components/_personality_viz_panel.html" %}
   <div class="mkt-edt-container mkt-v3-archetype__ctas rmc-reveal" data-mkt-reveal>
     <a href="{% url 'marketing_security_packet_request' %}" class="mkt-edt-cta" data-cta="security-packet">{% trans "Request security packet" %}</a>
     <a href="{% url 'marketing_procurement_checklist' %}" class="mkt-edt-cta mkt-edt-cta--secondary">{% trans "Procurement checklist" %}</a>

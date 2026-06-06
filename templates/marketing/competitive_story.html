@@ -3,19 +3,34 @@
 {% block title %}{{ seo_title }}{% endblock %}
 {% block content %}
 <div class="container py-5">
-  <article>
+  {% if marketing_personality %}
+  {% include "marketing/components/_personality_hero.html" with eyebrow=marketing_personality.label headline=headline subheadline=lede extra_class="mkt-v3-page__hero mb-4" %}
+  {% include "marketing/components/_personality_viz_panel.html" %}
+  {% else %}
+  <header class="mb-4">
     <h1 class="h2 mb-3">{{ headline }}</h1>
-    <p class="lead text-muted">{{ lede }}</p>
-    <ul class="mt-4">
-      {% for line in bullets %}
-      <li class="mb-2">{{ line }}</li>
-      {% endfor %}
-    </ul>
-    <nav class="d-flex flex-wrap gap-2 mt-4" aria-label="{% trans 'Primary actions' %}">
-      {% for c in ctas_resolved %}
-      <a class="btn btn-primary" href="{{ c.url }}">{{ c.label }}</a>
-      {% endfor %}
-    </nav>
-  </article>
+    <p class="lead text-muted mb-0">{{ lede }}</p>
+  </header>
+  {% endif %}
+
+  <div class="row g-4 rmc-reveal-stagger mt-1" aria-label="{% trans 'What this means' %}">
+    {% for line in bullets %}
+    <div class="col-md-6 rmc-reveal">
+      <section class="card h-100 shadow-sm border-0 mkt-v3-segment-card">
+        <div class="card-body">
+          <p class="mb-0">{{ line }}</p>
+        </div>
+      </section>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if ctas_resolved %}
+  <nav class="d-flex flex-wrap gap-2 mt-4" aria-label="{% trans 'Primary actions' %}">
+    {% for c in ctas_resolved %}
+    <a class="btn {% if forloop.first %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ c.url }}">{{ c.label }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
 </div>
 {% endblock %}
