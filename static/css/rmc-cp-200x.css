@@ -62,6 +62,31 @@
   .rmc-app-shell__copilot { display: none; }
 }
 
+/* Phone: collapse the control-plane shell to a single column and hide the
+   static sidebar — matching the base .rmc-app-shell contract in
+   rmc-app-shell.css (@media max-width:991.98px). Without this, the higher-
+   specificity control-plane grid above kept a 2-column layout on phones, so
+   the sidebar (280px) stayed painted over the canvas and squeezed the content
+   pane to a sliver — the MFA "Verify" page rendered its card behind the nav.
+   Sidebar nav remains reachable via the offcanvas toggle. */
+@media (max-width: 991.98px) {
+  [data-rmc-shell-main="control-plane"] .rmc-app-shell {
+    grid-template-columns: 1fr;
+  }
+  [data-rmc-shell-main="control-plane"] .rmc-app-shell__sidebar {
+    display: none;
+  }
+  [data-rmc-shell-main="control-plane"] .rmc-app-shell__canvas {
+    grid-column: 1 / -1;
+  }
+  /* Offcanvas drawer mode (the base rmc-app-shell.css rule for
+     [data-rmc-shell-sidebar="offcanvas"] .rmc-app-shell__sidebar) still slides
+     the sidebar in over the canvas; this collapse only governs the static grid. */
+  [data-rmc-shell-main="control-plane"] .rmc-app-shell[data-rmc-shell-sidebar="offcanvas"] .rmc-app-shell__sidebar {
+    display: block;
+  }
+}
+
 
 /* ============================================================
    Element 10 — Operator presence indicator (header capsule)

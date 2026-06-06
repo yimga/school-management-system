@@ -13,6 +13,25 @@ body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__sidebar {
   overflow: hidden;
 }
 
+/* Phone: the canvas-scroll sidebar above asserts display:flex with no mobile
+   breakpoint (specificity 0,3,1), which overrode the base shell collapse
+   (rmc-app-shell.css @media max-width:991.98px) and every lower-specificity
+   mobile rule — so the 280px sidebar stayed mounted and, once the grid collapses
+   to a single column on phones, stacked ON TOP of the canvas (z-index 30),
+   hiding the page content (the MFA "Verify" card rendered behind the nav).
+   Hide it here at matching specificity + later source so the collapse wins;
+   offcanvas drawer mode still slides it in over the canvas when toggled. */
+@media (max-width: 991.98px) {
+  body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__sidebar,
+  body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell__sidebar {
+    display: none;
+  }
+  body.control-plane-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell[data-rmc-shell-sidebar="offcanvas"] .rmc-app-shell__sidebar,
+  body.admin-manager-shell[data-rmc-cp-scroll="canvas"] .rmc-app-shell[data-rmc-shell-sidebar="offcanvas"] .rmc-app-shell__sidebar {
+    display: flex;
+  }
+}
+
 body.control-plane-shell[data-rmc-cp-scroll="canvas"] #cp-sidebar-col,
 body.admin-manager-shell[data-rmc-cp-scroll="canvas"] #cp-sidebar-col {
   flex: 1 1 auto;
