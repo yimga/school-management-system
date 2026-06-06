@@ -253,8 +253,23 @@ def _gateway_response(
             "role": role,
             "country_code": country_code,
             "rag_snippets": rag_snippets or [],
+            "active_url": getattr(request, "path", "") or "",
         }
     )
+    if user_query:
+        from services.ai_copilot_rbac import guard_copilot_invoke
+
+        guard = guard_copilot_invoke(
+            request=request,
+            task_type=task_type,
+            prompt=prompt,
+            user_query=user_query,
+            metadata=md,
+        )
+        if not guard.allowed:
+            return guard.denial_reason, guard.metadata
+        prompt = guard.prompt
+        md = guard.metadata
     result, meta = invoke(
         task_type,
         prompt,

@@ -1,0 +1,180 @@
+/* marketing-social-proof.css
+ * Social-proof testimonial band + art-directed image slot for marketing
+ * platform pages. Renders nothing when no real customer proof is supplied
+ * (the templates are {% if %}-guarded), so this stylesheet only ever styles
+ * owner-approved content.
+ *
+ * Constraints honoured:
+ *  - No 100dvh/100vh viewport-lock.
+ *  - No nowrap / ellipsis / overflow:hidden text-clipping — quotes wrap and flow.
+ *  - Accent keyed to var(--mkt-personality-accent) so each page's personality
+ *    colours the band.
+ *  - Light + dark safe (semantic surface/text tokens + accent color-mix).
+ */
+
+/* ---- Band shell --------------------------------------------------------- */
+.mkt-proof-band {
+  padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+
+.mkt-proof-band__inner {
+  /* mkt-edt-container supplies max-width + horizontal gutters. */
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+.mkt-proof-band__headline {
+  margin: 0;
+  font-size: var(--type-size-headline-m, clamp(1.5rem, 2.2vw + 0.75rem, 2rem));
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-primary, var(--text-secondary));
+  overflow-wrap: break-word;
+}
+
+/* ---- Testimonial grid --------------------------------------------------- */
+.mkt-proof-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.mkt-proof-card {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.25rem, 2.6vw, 1.85rem);
+  border-radius: var(--radius-lg, 16px);
+  background:
+    color-mix(in srgb, var(--mkt-personality-accent) 6%, transparent),
+    var(--surface-elevated, var(--surface-canvas, transparent));
+  border: 1px solid color-mix(in srgb, var(--mkt-personality-accent) 22%, transparent);
+  border-top: 3px solid color-mix(in srgb, var(--mkt-personality-accent) 70%, transparent);
+}
+
+.mkt-proof-figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.85rem, 2vw, 1.15rem);
+  height: 100%;
+}
+
+.mkt-proof-quote-text {
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.mkt-proof-quote-text p {
+  margin: 0;
+  font-size: var(--type-size-body-l, clamp(1.0625rem, 1.2vw + 0.5rem, 1.1875rem));
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--text-primary, var(--text-secondary));
+  /* Quotes wrap and flow — never clipped. */
+  overflow-wrap: break-word;
+}
+
+.mkt-proof-quote-text p::before { content: "\201C"; }
+.mkt-proof-quote-text p::after  { content: "\201D"; }
+
+/* ---- Attribution -------------------------------------------------------- */
+.mkt-proof-attribution {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.mkt-proof-attribution__logo {
+  width: auto;
+  max-width: 7.5rem;
+  height: auto;
+  margin-bottom: 0.4rem;
+  object-fit: contain;
+}
+
+.mkt-proof-attribution__name {
+  font-size: var(--type-size-body, 0.9375rem);
+  font-weight: 700;
+  color: var(--text-primary, var(--text-secondary));
+  overflow-wrap: break-word;
+}
+
+.mkt-proof-attribution__role,
+.mkt-proof-attribution__school {
+  font-size: var(--type-size-caption, 0.8125rem);
+  line-height: 1.35;
+  color: var(--text-secondary, var(--text-tertiary));
+  overflow-wrap: break-word;
+}
+
+.mkt-proof-attribution__metric {
+  margin-top: 0.35rem;
+  align-self: flex-start;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill, 999px);
+  font-size: var(--type-size-caption, 0.8125rem);
+  font-weight: 650;
+  color: var(--mkt-personality-accent);
+  background: color-mix(in srgb, var(--mkt-personality-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mkt-personality-accent) 30%, transparent);
+  overflow-wrap: break-word;
+}
+
+.mkt-proof-attribution__source {
+  margin-top: 0.3rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--text-tertiary, var(--text-secondary));
+  overflow-wrap: break-word;
+}
+
+.mkt-proof-attribution__source--link {
+  color: var(--mkt-personality-accent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.mkt-proof-attribution__source--link:hover,
+.mkt-proof-attribution__source--link:focus-visible {
+  text-decoration-thickness: 0.12em;
+}
+
+/* ---- Star rating -------------------------------------------------------- */
+.mkt-proof-rating {
+  display: flex;
+  align-items: center;
+}
+
+.mkt-proof-rating__stars {
+  display: inline-flex;
+  gap: 0.08em;
+  font-size: var(--type-size-body-l, 1.0625rem);
+  line-height: 1;
+}
+
+.mkt-proof-rating__star {
+  color: color-mix(in srgb, var(--mkt-personality-accent) 24%, transparent);
+}
+
+.mkt-proof-rating__star--on {
+  color: var(--mkt-personality-accent);
+}
+
+/* ---- Art-directed image slot ------------------------------------------- */
+.mkt-proof-image-slot {
+  display: block;
+  width: 100%;
+}
+
+.mkt-proof-image-slot__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg, 16px);
+}

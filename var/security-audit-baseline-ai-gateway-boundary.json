@@ -1,8 +1,6 @@
 {
   "allowlist": [
     "apps/migration_cloud/ai_bridge.py",
-    "apps/platform_runtime/ai_providers.py",
-    "apps/portal/ai_provider.py",
     "apps/portal/views_ai_gateway.py",
     "apps/siteconfig/management/commands/aggregate_ai_metrics.py",
     "services/ai_helpers.py"
@@ -10,5 +8,5 @@
   "finding_count": 0,
   "findings": [],
   "forbidden_module": "services.ai_gateway",
-  "generated_at": "2026-06-02T16:57:44+00:00"
+  "generated_at": "2026-06-06T10:13:59+00:00"
 }

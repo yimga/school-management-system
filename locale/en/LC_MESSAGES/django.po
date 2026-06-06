@@ -50931,6 +50931,12 @@ msgstr "e.g. mark a student absent today, or schedule a parent callback"
 msgid "reversed"
 msgstr "reversed"
 
+msgid "Accepted payment rails"
+msgstr "Accepted payment rails"
+
+msgid "Active classes"
+msgstr "Active classes"
+
 msgid ""
 "Ambient, phone-free capture — QR sweeps and passive RFID taps without a "
 "single student device."
@@ -50938,14 +50944,11 @@ msgstr ""
 "Ambient, phone-free capture — QR sweeps and passive RFID taps without a "
 "single student device."
 
-msgid "Approve / Reject"
-msgstr "Approve / Reject"
-
 msgid "Attendance capture log"
 msgstr "Attendance capture log"
 
-msgid "Available destructive actions"
-msgstr "Available destructive actions"
+msgid "Attendance today"
+msgstr "Attendance today"
 
 msgid "Brazil — NF-e (SEFAZ)"
 msgstr "Brazil — NF-e (SEFAZ)"
@@ -50959,8 +50962,17 @@ msgstr "Cambridge A*–G"
 msgid "Capture: QR + passive RFID — no student phone required"
 msgstr "Capture: QR + passive RFID — no student phone required"
 
+msgid "Charged"
+msgstr "Charged"
+
 msgid "Class average"
 msgstr "Class average"
+
+msgid "Class teachers"
+msgstr "Class teachers"
+
+msgid "Collections this term"
+msgstr "Collections this term"
 
 msgid "Competency"
 msgstr "Competency"
@@ -50970,22 +50982,6 @@ msgstr "Dedicated lab"
 
 msgid "Deployment matrix · sandbox"
 msgstr "Deployment matrix · sandbox"
-
-msgid "Destructive actions"
-msgstr "Destructive actions"
-
-msgid "Destructive actions (dual-control)"
-msgstr "Destructive actions (dual-control)"
-
-msgid ""
-"Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to "
-"enable."
-msgstr ""
-"Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to "
-"enable."
-
-msgid "Destructive layer is off"
-msgstr "Destructive layer is off"
 
 msgid ""
 "Drag an invoice and see 80/10/10 routing + a regional e-invoice tax stamp "
@@ -51002,6 +50998,12 @@ msgstr "Enterprise Constellation"
 
 msgid "Every claim is a sim you can run."
 msgstr "Every claim is a sim you can run."
+
+msgid "Go to step {{ n }}"
+msgstr "Go to step {{ n }}"
+
+msgid "Guided product tour of the real RunMyCampus workspace"
+msgstr "Guided product tour of the real RunMyCampus workspace"
 
 msgid "Heavy charts collapse to lightweight text fragments on degraded links."
 msgstr ""
@@ -51022,11 +51024,14 @@ msgstr "Indonesia — PPN (DJP)"
 msgid "Invoice amount"
 msgstr "Invoice amount"
 
-msgid "Justification"
-msgstr "Justification"
-
 msgid "Kenya — VAT (KRA)"
 msgstr "Kenya — VAT (KRA)"
+
+msgid "Lab fee"
+msgstr "Lab fee"
+
+msgid "Line item"
+msgstr "Line item"
 
 msgid "Live dashboard"
 msgstr "Live dashboard"
@@ -51046,6 +51051,9 @@ msgstr ""
 
 msgid "Mark attendance"
 msgstr "Mark attendance"
+
+msgid "Messages sent"
+msgstr "Messages sent"
 
 msgid "Mexico — CFDI (SAT)"
 msgstr "Mexico — CFDI (SAT)"
@@ -51070,11 +51078,8 @@ msgstr ""
 "No demo gatekeeping, no “contact sales” wall. Each runs 100% in your browser"
 " — region-aware, offline-proof, and honest about what it shows."
 
-msgid "No destructive actions are bound."
-msgstr "No destructive actions are bound."
-
-msgid "No requests awaiting approval."
-msgstr "No requests awaiting approval."
+msgid "Offer"
+msgstr "Offer"
 
 msgid ""
 "One record, re-expressed instantly across US letters, IB, Cambridge and "
@@ -51083,8 +51088,17 @@ msgstr ""
 "One record, re-expressed instantly across US letters, IB, Cambridge and "
 "competency — zero re-entry."
 
+msgid "Open applications"
+msgstr "Open applications"
+
 msgid "Open lab"
 msgstr "Open lab"
+
+msgid "Outcome statistics"
+msgstr "Outcome statistics"
+
+msgid "Parent communication channels"
+msgstr "Parent communication channels"
 
 msgid "Pay fees (M-Pesa / MTN)"
 msgstr "Pay fees (M-Pesa / MTN)"
@@ -51094,18 +51108,6 @@ msgstr "Payment distribution bar"
 
 msgid "Payment split simulator"
 msgstr "Payment split simulator"
-
-msgid "Pending requests (awaiting a second operator)"
-msgstr "Pending requests (awaiting a second operator)"
-
-msgid ""
-"Phase 3 — irreversible. One operator requests; a different operator must "
-"approve before anything runs. Approval routes through the platform's GDPR "
-"Art. 17 erasure pipeline (anonymization, audited). Every step is recorded."
-msgstr ""
-"Phase 3 — irreversible. One operator requests; a different operator must "
-"approve before anything runs. Approval routes through the platform's GDPR "
-"Art. 17 erasure pipeline (anonymization, audited). Every step is recorded."
 
 msgid ""
 "Pick region → size → modules and watch the workspace, currency, terms and "
@@ -51117,14 +51119,23 @@ msgstr ""
 msgid "Polymorphic Gradebook"
 msgstr "Polymorphic Gradebook"
 
+msgid "Previous step"
+msgstr "Previous step"
+
 msgid "Pricing & Entitlement"
 msgstr "Pricing & Entitlement"
 
 msgid "Process payment"
 msgstr "Process payment"
 
-msgid "Recent audit (PII-free)"
-msgstr "Recent audit (PII-free)"
+msgid "Push"
+msgstr "Push"
+
+msgid "Quiz 1"
+msgstr "Quiz 1"
+
+msgid "Reaches 28 families"
+msgstr "Reaches 28 families"
 
 msgid "Region / tax authority"
 msgstr "Region / tax authority"
@@ -51132,8 +51143,10 @@ msgstr "Region / tax authority"
 msgid "Regional payment rails"
 msgstr "Regional payment rails"
 
-msgid "Request a destructive action"
-msgstr "Request a destructive action"
+msgid ""
+"Reminder: Year 9 swimming starts Thursday. Please send kit. — Front Office"
+msgstr ""
+"Reminder: Year 9 swimming starts Thursday. Please send kit. — Front Office"
 
 msgid "Run a live simulation"
 msgstr "Run a live simulation"
@@ -51150,6 +51163,9 @@ msgstr "Saudi Arabia — VAT (ZATCA)"
 msgid "See the platform"
 msgstr "See the platform"
 
+msgid "Send now"
+msgstr "Send now"
+
 msgid "Simulated · runs in your browser · not a live tenant"
 msgstr "Simulated · runs in your browser · not a live tenant"
 
@@ -51162,27 +51178,9 @@ msgstr "Sovereign kernel · region-aware"
 msgid "Split-Gateway Ledger"
 msgstr "Split-Gateway Ledger"
 
-msgid "Student pk"
-msgstr "Student pk"
-
-msgid "Submit request (needs a second approver)"
-msgstr "Submit request (needs a second approver)"
-
 msgid "Sync when back online"
 msgstr "Sync when back online"
 
-msgid "That action is not a Phase-3 destructive action."
-msgstr "That action is not a Phase-3 destructive action."
-
-msgid ""
-"This surface stays inert until the destructive flag is set. It is "
-"independent of the read-only and mutating tiers — turning it on is a "
-"deliberate, separate decision."
-msgstr ""
-"This surface stays inert until the destructive flag is set. It is "
-"independent of the read-only and mutating tiers — turning it on is a "
-"deliberate, separate decision."
-
 msgid ""
 "Toggle fiber → blackout; attendance keeps logging via QR + RFID and drains "
 "the queue on reconnect."
@@ -51190,12 +51188,11 @@ msgstr ""
 "Toggle fiber → blackout; attendance keeps logging via QR + RFID and drains "
 "the queue on reconnect."
 
-msgid ""
-"Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE "
-"42</code>) to confirm."
-msgstr ""
-"Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE "
-"42</code>) to confirm."
+msgid "Total outstanding"
+msgstr "Total outstanding"
+
+msgid "Tour steps"
+msgstr "Tour steps"
 
 msgid "US letters · GPA"
 msgstr "US letters · GPA"
@@ -51219,20 +51216,20 @@ msgstr ""
 "Watch campuses peer-sync over local mesh during load-shedding — no "
 "continuous internet required."
 
-msgid "Why this record must be erased (recorded on the erase request)."
-msgstr "Why this record must be erased (recorded on the erase request)."
+msgid "What schools say"
+msgstr "What schools say"
+
+msgid "Workspace preview"
+msgstr "Workspace preview"
+
+msgid "Year 9 — B guardians"
+msgstr "Year 9 — B guardians"
 
 msgid "Zero-UI Lab"
 msgstr "Zero-UI Lab"
 
 msgid "currencies, region-aware by default"
 msgstr "currencies, region-aware by default"
-
-msgid "dual-control"
-msgstr "dual-control"
-
-msgid "expired"
-msgstr "expired"
 
 msgid "languages, RTL native"
 msgstr "languages, RTL native"
@@ -51245,3 +51242,182 @@ msgstr "synced live"
 
 msgid "weeks to switch from legacy SIS"
 msgstr "weeks to switch from legacy SIS"
+
+msgid "{{ name }} logo"
+msgstr "{{ name }} logo"
+
+msgid "Rated {{ rating }} out of 5"
+msgstr "Rated {{ rating }} out of 5"
+
+msgid "via {{ label }}"
+msgstr "via {{ label }}"
+
+msgid "Accept all"
+msgstr "Accept all"
+
+msgid "Cookie and privacy preferences"
+msgstr "Cookie and privacy preferences"
+
+msgid "Necessary"
+msgstr "Necessary"
+
+msgid "Reject non-essential"
+msgstr "Reject non-essential"
+
+msgid "We respect your privacy"
+msgstr "We respect your privacy"
+
+msgid ""
+"We use essential cookies to run this site. With your consent we also use "
+"analytics to understand what's useful. You can change this anytime."
+msgstr ""
+"We use essential cookies to run this site. With your consent we also use "
+"analytics to understand what's useful. You can change this anytime."
+
+msgid "always on; required for the site to work."
+msgstr "always on; required for the site to work."
+
+msgid "helps us understand which pages are useful."
+msgstr "helps us understand which pages are useful."
+
+msgid "lets us measure campaigns."
+msgstr "lets us measure campaigns."
+
+msgid "Honest comparison"
+msgstr "Honest comparison"
+
+msgid ""
+"Indicative only — not a quote. Final pricing depends on modules, student "
+"numbers, region and term."
+msgstr ""
+"Indicative only — not a quote. Final pricing depends on modules, student "
+"numbers, region and term."
+
+msgid ""
+"Per student, per month — modular, so you only pay for what you switch on. "
+"Figures are indicative; use the calculator or talk to us for an exact quote."
+msgstr ""
+"Per student, per month — modular, so you only pay for what you switch on. "
+"Figures are indicative; use the calculator or talk to us for an exact quote."
+
+msgid "See pricing"
+msgstr "See pricing"
+
+msgid "Transparent, indicative pricing"
+msgstr "Transparent, indicative pricing"
+
+msgid "Approve / Reject"
+msgstr "Approve / Reject"
+
+msgid "Ask a question about your school…"
+msgstr "Ask a question about your school…"
+
+msgid "Available destructive actions"
+msgstr "Available destructive actions"
+
+msgid "Destructive actions"
+msgstr "Destructive actions"
+
+msgid "Destructive actions (dual-control)"
+msgstr "Destructive actions (dual-control)"
+
+msgid ""
+"Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to "
+"enable."
+msgstr ""
+"Destructive actions are disabled. Set RMC_AI_AGENTIC_DESTRUCTIVE_ENABLED to "
+"enable."
+
+msgid "Destructive layer is off"
+msgstr "Destructive layer is off"
+
+msgid "Justification"
+msgstr "Justification"
+
+msgid "More navigation"
+msgstr "More navigation"
+
+msgid "More navigation items"
+msgstr "More navigation items"
+
+msgid "No destructive actions are bound."
+msgstr "No destructive actions are bound."
+
+msgid "No requests awaiting approval."
+msgstr "No requests awaiting approval."
+
+msgid "Open incidents"
+msgstr "Open incidents"
+
+msgid "Pending requests (awaiting a second operator)"
+msgstr "Pending requests (awaiting a second operator)"
+
+msgid ""
+"Phase 3 — irreversible. One operator requests; a different operator must "
+"approve before anything runs. Approval routes through the platform's GDPR "
+"Art. 17 erasure pipeline (anonymization, audited). Every step is recorded."
+msgstr ""
+"Phase 3 — irreversible. One operator requests; a different operator must "
+"approve before anything runs. Approval routes through the platform's GDPR "
+"Art. 17 erasure pipeline (anonymization, audited). Every step is recorded."
+
+msgid "Recent audit (PII-free)"
+msgstr "Recent audit (PII-free)"
+
+msgid "Request a destructive action"
+msgstr "Request a destructive action"
+
+msgid "Schools needing attention"
+msgstr "Schools needing attention"
+
+msgid "Student pk"
+msgstr "Student pk"
+
+msgid "Submit request (needs a second approver)"
+msgstr "Submit request (needs a second approver)"
+
+msgid "Suspended"
+msgstr "Suspended"
+
+msgid "Tenant status colour key"
+msgstr "Tenant status colour key"
+
+msgid "That action is not a Phase-3 destructive action."
+msgstr "That action is not a Phase-3 destructive action."
+
+msgid ""
+"This surface stays inert until the destructive flag is set. It is "
+"independent of the read-only and mutating tiers — turning it on is a "
+"deliberate, separate decision."
+msgstr ""
+"This surface stays inert until the destructive flag is set. It is "
+"independent of the read-only and mutating tiers — turning it on is a "
+"deliberate, separate decision."
+
+msgid ""
+"Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE "
+"42</code>) to confirm."
+msgstr ""
+"Type <code>ERASE</code> followed by the exact student id (e.g. <code>ERASE "
+"42</code>) to confirm."
+
+msgid "What this means"
+msgstr "What this means"
+
+msgid "Why this record must be erased (recorded on the erase request)."
+msgstr "Why this record must be erased (recorded on the erase request)."
+
+msgid "dual-control"
+msgstr "dual-control"
+
+msgid "expired"
+msgstr "expired"
+
+msgid "here to help"
+msgstr "here to help"
+
+msgid "need attention"
+msgstr "need attention"
+
+msgid "{{ count }} incident{% plural %}{{ count }} incidents"
+msgstr "{{ count }} incident{% plural %}{{ count }} incidents"

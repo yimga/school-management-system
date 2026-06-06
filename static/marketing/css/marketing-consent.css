@@ -1,0 +1,129 @@
+/* marketing-consent.css — GDPR consent banner for the marketing surface.
+ * Token-driven; raw values carry off-token-allow where a fixed value is intended.
+ * No viewport-lock (no 100dvh/100vh), no text-clipping; wraps + flows on mobile. */
+
+.mkt-consent {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 1080; /* magic-number-allow: above marketing chrome, below modal dialogs */
+  background: var(--surface-elevated, #ffffff); /* off-token-allow: light-surface fallback for marketing cream shell */
+  border-block-start: 1px solid var(--hairline, rgba(15, 23, 42, 0.12)); /* off-token-allow: hairline fallback */
+  box-shadow: 0 -8px 30px rgba(15, 23, 42, 0.12); /* off-token-allow: soft top shadow, theme-neutral */
+  color: var(--text-primary, #0f172a); /* off-token-allow: ink fallback */
+}
+
+.mkt-consent[hidden] {
+  display: none;
+}
+
+.mkt-consent__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding-block: 0.9rem;
+}
+
+.mkt-consent__copy {
+  flex: 1 1 22rem;
+  min-inline-size: 0;
+}
+
+.mkt-consent__title {
+  margin: 0 0 0.15rem;
+  font-weight: 700;
+  font-size: var(--type-size-sm, 0.95rem);
+}
+
+.mkt-consent__text {
+  margin: 0;
+  font-size: var(--type-size-xs, 0.85rem);
+  color: var(--text-secondary, #475569); /* off-token-allow: secondary ink fallback */
+  line-height: 1.5;
+}
+
+.mkt-consent__link {
+  color: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+  text-decoration: underline;
+}
+
+.mkt-consent__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mkt-consent__btn {
+  font: inherit;
+  font-size: var(--type-size-xs, 0.85rem);
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.95rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: normal; /* never clip the label */
+}
+
+.mkt-consent__btn--ghost {
+  background: transparent;
+  border-color: var(--hairline, rgba(15, 23, 42, 0.2)); /* off-token-allow: hairline fallback */
+  color: var(--text-primary, #0f172a); /* off-token-allow: ink fallback */
+}
+
+.mkt-consent__btn--primary {
+  background: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+  color: #ffffff; /* off-token-allow: on-accent text is white by design */
+}
+
+.mkt-consent__btn:hover {
+  filter: brightness(0.97);
+}
+
+.mkt-consent__btn:focus-visible {
+  outline: 2px solid var(--mkt-personality-accent, #4f46e5); /* off-token-allow: focus ring accent fallback */
+  outline-offset: 2px;
+}
+
+.mkt-consent__prefs {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-block-start: 0.5rem;
+  padding-block-start: 0.75rem;
+  border-block-start: 1px dashed var(--hairline, rgba(15, 23, 42, 0.15)); /* off-token-allow: hairline fallback */
+}
+
+.mkt-consent__prefs[hidden] {
+  display: none;
+}
+
+.mkt-consent__pref {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: var(--type-size-xs, 0.85rem);
+  line-height: 1.45;
+}
+
+.mkt-consent__pref input {
+  margin-block-start: 0.2rem;
+  flex: 0 0 auto;
+}
+
+.mkt-consent__prefs-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .mkt-consent__actions {
+    inline-size: 100%;
+  }
+  .mkt-consent__btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}

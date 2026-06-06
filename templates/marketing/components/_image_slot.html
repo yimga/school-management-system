@@ -1,0 +1,35 @@
+{% load i18n static %}
+{% comment %}
+  Art-directed <picture> partial for marketing platform pages.
+
+  Include vars:
+    image_sources  (optional) list of {srcset, media, type} dicts. Each becomes
+                   a <source>. `srcset` is a `static` path (or comma-separated
+                   set of them). When absent/empty, only the fallback renders —
+                   so pages work TODAY with the existing SVG and upgrade
+                   automatically the moment raster assets are supplied.
+    fallback_svg   (required) a `static` path to the SVG (or any image) shown
+                   when no raster <source> matches. This is the <img> the
+                   <picture> always falls back to.
+    alt            (required) accessible alt text.
+    slot_width     (optional) intrinsic width  (default 1200) — prevents CLS.
+    slot_height    (optional) intrinsic height (default 750)  — prevents CLS.
+    slot_class     (optional) extra class on the <picture>.
+
+  width/height are always emitted so the slot reserves space and never shifts
+  layout while raster assets load.
+{% endcomment %}
+<picture class="mkt-proof-image-slot{% if slot_class %} {{ slot_class }}{% endif %}">
+  {% for source in image_sources %}
+    {% if source.srcset %}
+    <source srcset="{% static source.srcset %}"{% if source.media %} media="{{ source.media }}"{% endif %}{% if source.type %} type="{{ source.type }}"{% endif %}>
+    {% endif %}
+  {% endfor %}
+  <img class="mkt-proof-image-slot__img"
+       src="{% static fallback_svg %}"
+       alt="{{ alt }}"
+       width="{{ slot_width|default:'1200' }}"
+       height="{{ slot_height|default:'750' }}"
+       loading="lazy"
+       decoding="async">
+</picture>

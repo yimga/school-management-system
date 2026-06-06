@@ -10,16 +10,16 @@
   <rect class="box" x="24" y="72" width="140" height="68" rx="8"/>
   <text class="text-box" x="94" y="96">Schools &amp; Tenants</text>
   <text class="text-small" x="94" y="112">Multi-campus</text>
-  <text class="text-small" x="94" y="126">Health · Usage</text>
+  <text class="text-small" x="94" y="126">Health Â· Usage</text>
   <rect class="box" x="190" y="72" width="140" height="68" rx="8"/>
   <text class="text-box" x="260" y="96">Governance</text>
-  <text class="text-small" x="260" y="112">Policies · RBAC</text>
-  <text class="text-small" x="260" y="126">Audit · Rollback</text>
+  <text class="text-small" x="260" y="112">Policies Â· RBAC</text>
+  <text class="text-small" x="260" y="126">Audit Â· Rollback</text>
   <rect class="box" x="356" y="72" width="140" height="68" rx="8"/>
   <text class="text-box" x="426" y="96">Studio OS</text>
-  <text class="text-small" x="426" y="112">Experience · Output</text>
-  <text class="text-small" x="426" y="126">Launch · Control</text>
+  <text class="text-small" x="426" y="112">Experience Â· Output</text>
+  <text class="text-small" x="426" y="126">Launch Â· Control</text>
   <rect class="box" x="120" y="160" width="280" height="72" rx="8"/>
   <text class="text-box" x="260" y="188">One command center for all schools</text>
-  <text class="text-small" x="260" y="206">Billing · Marketplace · Registries</text>
+  <text class="text-small" x="260" y="206">Billing Â· Marketplace Â· Registries</text>
 </svg>

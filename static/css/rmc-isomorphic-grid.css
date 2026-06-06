@@ -153,6 +153,29 @@ html:not([data-rmc-shell="off"]) .rmc-app-shell__sidebar {
   max-height: 100%;
 }
 
+/* Phone collapse for the operator 3-col bind. The rule above is specificity
+   (0,3,0) and had NO mobile breakpoint, so it overrode every lower-specificity
+   collapse (base rmc-app-shell.css @media, rmc-cp-200x.css) and kept the
+   sidebar+canvas+copilot 3-column layout on phones — crushing the canvas to a
+   ~66px sliver and painting the 280px sidebar over the page content (the MFA
+   "Verify" card rendered behind the nav). Collapse to one column and hide the
+   static sidebar at the same breakpoint the base shell uses; offcanvas drawer
+   mode still slides the sidebar in over the canvas. */
+@media (max-width: 991.98px) {
+  [data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell:not(.rmc-app-shell--no-sidebar) {
+    grid-template-columns: 1fr;
+  }
+  [data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell__sidebar {
+    display: none;
+  }
+  [data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell__canvas {
+    grid-column: 1 / -1;
+  }
+  [data-rmc-isomorphic-template="operator-control-plane"] .rmc-app-shell[data-rmc-shell-sidebar="offcanvas"] .rmc-app-shell__sidebar {
+    display: block;
+  }
+}
+
 /* Onboarding wizard: single centered column */
 [data-rmc-isomorphic-template="onboarding-wizard"] .rmc-iso-wizard-shell,
 [data-rmc-isomorphic-template="onboarding-wizard"] [data-rmc-isomorphic-wizard="1"] {

@@ -9,17 +9,62 @@ Replaces the former triple stack: utility row + marquee ticker + canvas primary 
       <div class="cp-header__row cp-header__row--utility">
         {% include "partials/manager_operator_topbar.html" %}
       </div>
+      {% comment %} v4.02.x: full-width scrolling LIVE marquee row embedded in the header
+         (v8 200x preview parity). Now the DEFAULT on EVERY operator page — not just the
+         dashboards that used to inject it (those overrides are removed to avoid a double row).
+         Self-gating via _activity_ticker_landing_strip (auth + activity cards present). {% endcomment %}
       {% block cp_shell_header_ticker %}
       {% block portal_shell_header_ticker %}
-      <div class="cp-header__row cp-header__row--inline-chrome" data-rmc-cp-inline-chrome="1">
-        {% if PRIMARY_CONTROL_PLANE_NAV %}
-        <div class="cp-header__nav-slot" data-rmc-cp-nav-slot="1">
-          {% include "partials/control_plane_primary_nav.html" %}
+      <div class="cp-header__row cp-header__row--live" data-rmc-cp-live-row="1">
+        {% comment %} Include the base ticker DIRECTLY (not the landing strip): the strip gates
+           on cockpit.activity_ticker.cards and so blocks the legacy activity_feed.events
+           fallback. _activity_ticker.html self-gates + falls back, so the marquee shows the
+           live feed whenever ANY activity exists (matching the old inline badge). {% endcomment %}
+        <div class="rmc-cp-landing-ticker rmc-cp-header-ticker" data-rmc-cp-landing-ticker="1">
+          {% include "partials/cockpit/_activity_ticker.html" %}
         </div>
-        {% endif %}
       </div>
       {% endblock %}
       {% endblock %}
+      {% comment %} v4.02.x: on the manager /admin/ BACKOFFICE shell this dedicated nav row is a
+         NARROW-SCREEN FALLBACK only — at xl+ the nav renders as a compact icon rail inside the
+         utility row (manager_operator_topbar.html), so we hide this row with d-xl-none to reclaim
+         its height. On /super/ (control-plane) the rail is NOT injected, so this full nav row stays
+         visible at ALL widths — the owner prefers the polished full nav there. {% endcomment %}
+      <div class="cp-header__row cp-header__row--inline-chrome{% if MANAGER_PLATFORM_ADMIN_SHELL %} d-xl-none{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-header__row--nav-flanked{% endif %}" data-rmc-cp-inline-chrome="1">
+        {% if PRIMARY_CONTROL_PLANE_NAV %}
+        {% comment %} v4.02.x: the nav row used to be JUST centred pills with big dead flanks.
+           On the control-plane (/super/) we now claim the flanks with VALUE — a live system-status
+           chip (left) and quick operator actions (right) — so the row earns its width. Backoffice
+           /admin/ keeps the plain centred nav (this whole row is its <xl fallback). The redundant
+           "Security" pill is dropped from the nav (hide_security) since the security shield already
+           lives in the utility row above. {% endcomment %}
+        {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
+        <div class="cp-header__nav-flank cp-header__nav-flank--start" data-rmc-cp-nav-flank="start">
+          <a href="{% url 'super:command_center' %}" class="cp-nav-status-chip{% if platform_incidents|length %} cp-nav-status-chip--alert{% endif %}" title="{% if platform_incidents|length %}{% trans 'Open incidents' %}{% else %}{% trans 'All systems operational' %}{% endif %}">
+            <span class="cp-nav-status-chip__dot" aria-hidden="true"></span>
+            <span class="cp-nav-status-chip__text">{% if platform_incidents|length %}{% blocktrans count count=platform_incidents|length %}{{ count }} incident{% plural %}{{ count }} incidents{% endblocktrans %}{% else %}{% trans "All systems operational" %}{% endif %}</span>
+          </a>
+        </div>
+        {% endif %}
+        <div class="cp-header__nav-slot" data-rmc-cp-nav-slot="1">
+          {% include "partials/control_plane_primary_nav.html" with hide_security=True %}
+        </div>
+        {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
+        <div class="cp-header__nav-flank cp-header__nav-flank--end" data-rmc-cp-nav-flank="end">
+          {% if attention_school_count %}
+          <a href="{% url 'super:dashboard' %}" class="cp-nav-flank-stat" title="{% trans 'Schools needing attention' %}">
+            <span class="cp-nav-flank-stat__value">{{ attention_school_count }}</span>
+            <span class="cp-nav-flank-stat__label">{% trans "need attention" %}</span>
+          </a>
+          {% endif %}
+          <a href="{% url 'super:command_center' %}" class="cp-nav-flank-action" title="{% trans 'Command center' %}">
+            <span aria-hidden="true">⌘</span><span class="cp-nav-flank-action__label">{% trans "Command" %}</span>
+          </a>
+        </div>
+        {% endif %}
+        {% endif %}
+      </div>
     </div>
   </div>
 </div>

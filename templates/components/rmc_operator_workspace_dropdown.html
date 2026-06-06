@@ -27,6 +27,30 @@
       </a>
     </li>
     {% endfor %}
+    {% comment %} v4.02.x: the loose standalone header buttons (Config chip, ⌘ shortcuts) are
+       integrated here as an Operator-tools section, decluttering the utility cluster while keeping
+       everything one menu away. {% endcomment %}
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header text-uppercase small">{% trans "Operator tools" %}</h6></li>
+    <li>
+      <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'siteconfig:console_domains_hub' %}">
+        <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
+        <span>{% trans "Configuration Center" %}</span>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item d-flex align-items-center gap-2" href="{% url 'health' %}">
+        <i class="bi bi-heart-pulse" aria-hidden="true"></i>
+        <span>{% trans "System Health" %}</span>
+      </a>
+    </li>
+    <li>
+      <button type="button" class="dropdown-item d-flex align-items-center gap-2" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}">
+        <i class="bi bi-keyboard" aria-hidden="true"></i>
+        <span>{% trans "Keyboard shortcuts" %}</span>
+        <kbd class="ms-auto">?</kbd>
+      </button>
+    </li>
   </ul>
 </div>
 {% endif %}

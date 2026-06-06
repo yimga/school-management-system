@@ -8,7 +8,7 @@
  */
 
 #mkt-entitlement-calculator.mkt-ve-section--clinical {
-  --ps-teal: #0d9488;     /* off-token-allow: pricing-studio teal accent */
+  --ps-teal: #0f766e;     /* off-token-allow: pricing-studio teal accent (teal-700: 4.5:1+ as eyebrow text on wash AND white-on-teal active toggle) */
   --ps-emerald: #059669;  /* off-token-allow: pricing-studio emerald accent */
   --ps-ink: #0f2420;      /* off-token-allow: pricing-studio ink on light surface */
   --ps-muted: #5a7068;    /* off-token-allow: pricing-studio muted ink */

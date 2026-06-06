@@ -107,6 +107,30 @@ def iter_support_assistant_sse(
         event_id="meta",
     )
 
+    from services.ai_copilot_rbac import prepare_engine_room_rbac
+
+    rbac = prepare_engine_room_rbac(
+        user_profile,
+        query,
+        school=school,
+        active_url=active,
+        task_type="support_suggest",
+    )
+    if not rbac.allowed:
+        yield from _early_done(
+            response=rbac.denial_reason,
+            escalation_required=False,
+            meta={
+                "outcome": "permission_refusal",
+                "skipped_model": True,
+                "copilot_rbac_enforced": True,
+                "rbac_scope": rbac.permissions.get("scope"),
+                "language": language,
+                "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+            },
+        )
+        return
+
     enforcer = TenantContextEnforcer(user_profile, school=school)
     scope = enforcer.resolve_scope()
     perm_labels = permission_labels_for_user(user_profile, school=school)
@@ -173,7 +197,7 @@ def iter_support_assistant_sse(
         permission_labels=perm_labels + route_perms,
     )
     tier_block = build_tier_context_block(scope, school)
-    user_context_block = f"{context_header}\n{tier_block}"
+    user_context_block = f"{rbac.prompt}\n\n{context_header}\n{tier_block}"
 
     denial = _query_permission_denied(user_profile, query) or _route_permission_denied(
         user_profile,
@@ -329,6 +353,8 @@ def iter_support_assistant_sse(
         "latency_ms": round((time.perf_counter() - started) * 1000, 2),
         "tier_scope": scope.tier.value,
         "stream": "ollama",
+        "copilot_rbac_enforced": True,
+        "rbac_scope": rbac.permissions.get("scope"),
     }
     if escalation:
         meta["outcome"] = "escalation_model_output"

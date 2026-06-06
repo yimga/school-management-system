@@ -261,8 +261,8 @@ def invoke_with_request(
     App code (views, consumers, Celery tasks) must NEVER import
     ``services.ai_gateway`` directly — always go through this helper. The
     only legitimate direct importers are infrastructure modules under
-    ``services/`` itself, ``apps/portal/ai_provider.py`` (low-level
-    provider tier), and the explicit gateway/metrics surfaces.
+    ``services/`` itself, gateway-boundary allowlisted bridge modules, and
+    the explicit gateway/metrics surfaces.
     """
     resolved_school = school
     if resolved_school is None and request is not None:
@@ -284,6 +284,19 @@ def invoke_with_request(
         else:
             resolved_task = task_type
         md = normalize_gateway_metadata(metadata, request=request, school=resolved_school)
+        from services.ai_copilot_rbac import guard_copilot_invoke
+
+        guard = guard_copilot_invoke(
+            request=request,
+            task_type=resolved_task,
+            prompt=prompt,
+            user_query=user_query,
+            metadata=md,
+        )
+        if not guard.allowed:
+            return guard.denial_reason, guard.metadata
+        md = guard.metadata
+        prompt = guard.prompt
         # Bind structured workflow context for this request so the gateway's
         # dispatch/audit can read md["workflow_context"] ("what should I do next
         # on this workflow?"). Best-effort: lazy import keeps services→apps off
@@ -360,7 +373,23 @@ def invoke_with_request_stream(
             resolved_task = task_type
 
         md = normalize_gateway_metadata(metadata, request=request, school=resolved_school)
-        local_prompt = prompt
+        from services.ai_copilot_rbac import guard_copilot_invoke
+
+        guard = guard_copilot_invoke(
+            request=request,
+            task_type=resolved_task,
+            prompt=prompt,
+            user_query=user_query,
+            metadata=md,
+        )
+        if not guard.allowed:
+            def _deny_stream():
+                yield ("error", {"code": "permission_denied", "message": guard.denial_reason})
+                yield ("done", guard.metadata)
+
+            return _deny_stream()
+        md = guard.metadata
+        local_prompt = guard.prompt
         local_user_query = user_query
         if looks_like_pii(local_prompt, local_user_query) and md.get("content_sensitivity") != "low_pii_ok":
             local_prompt = redact_pii(local_prompt)

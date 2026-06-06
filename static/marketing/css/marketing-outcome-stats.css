@@ -1,0 +1,71 @@
+/* marketing-outcome-stats.css
+ * In-context, quantified outcome-stat band for marketing platform pages.
+ * Each page's personality colours the numbers via var(--mkt-personality-accent).
+ * Light + dark safe. Text wraps and flows — never viewport-locked, never clipped.
+ */
+
+.mkt-outcome-band {
+  padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+
+.mkt-outcome-band__inner {
+  /* mkt-edt-container (defined in the marketing personality bundle) supplies
+     the max-width + horizontal gutters; nothing to add here. */
+}
+
+.mkt-outcome-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+}
+
+.mkt-outcome-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: clamp(1.1rem, 2.4vw, 1.6rem);
+  border-radius: var(--radius-lg, 16px);
+  /* Personality-aware surface: a faint wash of the page accent over the
+     semantic surface token so it reads on both light and dark shells. */
+  background:
+    color-mix(in srgb, var(--mkt-personality-accent) 6%, transparent),
+    var(--surface-elevated, var(--surface-canvas, transparent));
+  border: 1px solid color-mix(in srgb, var(--mkt-personality-accent) 22%, transparent);
+  /* A confident accent edge keyed to the section personality. */
+  border-top: 3px solid color-mix(in srgb, var(--mkt-personality-accent) 70%, transparent);
+}
+
+.mkt-outcome-stat__value {
+  font-size: var(--type-size-headline-xl, clamp(2.25rem, 4.5vw + 0.5rem, 3.5rem));
+  line-height: 1.05;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--mkt-personality-accent);
+  /* Big numbers must still wrap if a translation runs long — never clip. */
+  overflow-wrap: break-word;
+}
+
+.mkt-outcome-stat__label {
+  font-size: var(--type-size-body-l, clamp(1.0625rem, 1.2vw + 0.5rem, 1.1875rem));
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--text-primary, var(--text-secondary));
+}
+
+.mkt-outcome-stat__basis {
+  margin-top: 0.15rem;
+  font-size: var(--type-size-caption, 0.8125rem);
+  line-height: 1.4;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--text-tertiary, var(--text-muted));
+}
+
+@media (max-width: 575.98px) {
+  .mkt-outcome-grid {
+    grid-template-columns: 1fr;
+  }
+}

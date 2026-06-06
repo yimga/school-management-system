@@ -26,26 +26,30 @@ _MAX_PROMPT_CHARS = 4000
 _MAX_OUT_CHARS = 2000
 
 
-def _safe_invoke(task_type, prompt: str, *, school=None, user_query: str = "") -> tuple[str, dict]:
-    """Route a prompt through the AI gateway; never raise."""
-    try:
-        from services.ai_gateway import invoke
-    except ImportError:
-        return "", {"error": "ai_gateway unavailable"}
-    try:
-        result, meta = invoke(
-            task_type,
-            prompt[:_MAX_PROMPT_CHARS],
-            user_query=user_query,
-            metadata={
-                "school_id": str(getattr(school, "id", "") or ""),
-                "tenant_id": str(getattr(school, "id", "") or ""),
-                "sensitivity_class": "medium",
-            },
-        )
-    except Exception as exc:  # noqa: BLE001 — closed-fail
-        logger.warning("messaging_ai: gateway raised %s", type(exc).__name__)
-        return "", {"error": str(exc)[:200]}
+def _safe_invoke(
+    task_type,
+    prompt: str,
+    *,
+    school=None,
+    user=None,
+    user_query: str = "",
+    skip_rbac: bool = False,
+    skip_reason: str = "",
+    surface: str = "messaging_ai",
+) -> tuple[str, dict]:
+    """Route through RBAC envelope + ``ai_helpers``; never raise."""
+    from services.ai_copilot_rbac import invoke_service_layer_ai
+
+    result, meta = invoke_service_layer_ai(
+        user=user,
+        school=school,
+        task_type=task_type,
+        prompt=prompt[:_MAX_PROMPT_CHARS],
+        user_query=user_query,
+        surface=surface,
+        skip_rbac=skip_rbac,
+        skip_reason=skip_reason,
+    )
     text = (result or "").strip() if isinstance(result, str) else ""
     return text[:_MAX_OUT_CHARS], (meta or {})
 
@@ -58,6 +62,7 @@ def draft_announcement(
     intent: str,
     key_facts: Iterable[str] | None = None,
     tone: str = "warm",
+    user=None,
 ) -> tuple[str, dict]:
     """Draft a school announcement to ``audience`` (parents/staff/students).
 
@@ -77,11 +82,17 @@ def draft_announcement(
         from services.ai_gateway import TaskType
     except ImportError:
         return "", {"error": "TaskType unavailable"}
-    return _safe_invoke(TaskType.TEACHER_COMMS_DRAFT, prompt, school=school, user_query=intent)
+    return _safe_invoke(
+        TaskType.TEACHER_COMMS_DRAFT,
+        prompt,
+        school=school,
+        user=user,
+        user_query=intent,
+    )
 
 
 # ── 2. Subject-line assist ──────────────────────────────────────────────────
-def suggest_subject_lines(*, school, body_excerpt: str, count: int = 3) -> list[str]:
+def suggest_subject_lines(*, school, body_excerpt: str, count: int = 3, user=None) -> list[str]:
     """Return up to ``count`` candidate subject lines for an email body.
 
     Empty list on failure (caller keeps their own subject)."""
@@ -95,7 +106,13 @@ def suggest_subject_lines(*, school, body_excerpt: str, count: int = 3) -> list[
         from services.ai_gateway import TaskType
     except ImportError:
         return []
-    text, _meta = _safe_invoke(TaskType.NARRATIVE, prompt, school=school)
+    text, _meta = _safe_invoke(
+        TaskType.NARRATIVE,
+        prompt,
+        school=school,
+        user=user,
+        user_query=body_excerpt[:240],
+    )
     if not text:
         return []
     lines = [
@@ -107,7 +124,9 @@ def suggest_subject_lines(*, school, body_excerpt: str, count: int = 3) -> list[
 
 
 # ── 3. Accessibility / plain-language rewrite ───────────────────────────────
-def rewrite_plain_language(*, school, text: str, reading_level: str = "grade 6") -> tuple[str, dict]:
+def rewrite_plain_language(
+    *, school, text: str, reading_level: str = "grade 6", user=None
+) -> tuple[str, dict]:
     """Rewrite ``text`` at a target reading level (equity for ESL/low-literacy).
 
     Returns (original_text, meta) on failure — never drops the message."""
@@ -123,7 +142,13 @@ def rewrite_plain_language(*, school, text: str, reading_level: str = "grade 6")
         from services.ai_gateway import TaskType
     except ImportError:
         return text, {"error": "TaskType unavailable"}
-    out, meta = _safe_invoke(TaskType.NARRATIVE, prompt, school=school)
+    out, meta = _safe_invoke(
+        TaskType.NARRATIVE,
+        prompt,
+        school=school,
+        user=user,
+        user_query=text[:500],
+    )
     return (out or text), meta
 
 
@@ -153,7 +178,15 @@ def classify_parent_intent(
         from services.ai_gateway import TaskType
     except ImportError:
         return None
-    text, _meta = _safe_invoke(TaskType.SUPPORT_SUGGEST, prompt, school=school, user_query=body[:120])
+    text, _meta = _safe_invoke(
+        TaskType.SUPPORT_SUGGEST,
+        prompt,
+        school=school,
+        user_query=body[:120],
+        skip_rbac=True,
+        skip_reason="inbound-webhook-intent-classification",
+        surface="messaging_ai_webhook",
+    )
     if not text:
         return None
     # Be forgiving: pick the first allowed code that appears in the response.
@@ -228,12 +261,21 @@ def translate_message(*, school, body: str, target_locale: str, source_locale: s
         from services.ai_gateway import TaskType
     except ImportError:
         return body, {"error": "TaskType unavailable"}
-    out, meta = _safe_invoke(TaskType.NARRATIVE, prompt, school=school)
+    out, meta = _safe_invoke(
+        TaskType.NARRATIVE,
+        prompt,
+        school=school,
+        skip_rbac=True,
+        skip_reason="outbound-translation-automation",
+        surface="messaging_ai_translate",
+    )
     return (out or body), meta
 
 
 # ── 7. Reply suggestions for staff inbox ────────────────────────────────────
-def suggest_replies(*, school, inbound_text: str, context: str = "", count: int = 3) -> list[str]:
+def suggest_replies(
+    *, school, inbound_text: str, context: str = "", count: int = 3, user=None
+) -> list[str]:
     """Suggest 2-3 short staff replies to an inbound parent message.
 
     Drafts only — a human sends. Empty list on failure."""
@@ -248,7 +290,14 @@ def suggest_replies(*, school, inbound_text: str, context: str = "", count: int 
         from services.ai_gateway import TaskType
     except ImportError:
         return []
-    text, _meta = _safe_invoke(TaskType.SUPPORT_SUGGEST, prompt, school=school)
+    text, _meta = _safe_invoke(
+        TaskType.SUPPORT_SUGGEST,
+        prompt,
+        school=school,
+        user=user,
+        user_query=inbound_text[:500],
+        surface="messaging_ai_suggest_replies",
+    )
     if not text:
         return []
     lines = [ln.strip(" -*0123456789.").strip() for ln in text.splitlines() if ln.strip()]
@@ -280,7 +329,14 @@ def detect_safeguarding_signal(*, school, body: str) -> dict:
         from services.ai_gateway import TaskType
     except ImportError:
         return safe
-    text, _meta = _safe_invoke(TaskType.RISK_EXPLAIN, prompt, school=school)
+    text, _meta = _safe_invoke(
+        TaskType.RISK_EXPLAIN,
+        prompt,
+        school=school,
+        skip_rbac=True,
+        skip_reason="inbound-safeguarding-triage-automation",
+        surface="messaging_ai_safeguarding",
+    )
     if not text:
         return safe
     head = text.strip().splitlines()[0]
@@ -316,7 +372,14 @@ def summarize_digest(*, school, audience: str, facts: Iterable[str]) -> tuple[st
         from services.ai_gateway import TaskType
     except ImportError:
         return "", {"error": "TaskType unavailable"}
-    return _safe_invoke(TaskType.NARRATIVE, prompt, school=school)
+    return _safe_invoke(
+        TaskType.NARRATIVE,
+        prompt,
+        school=school,
+        skip_rbac=True,
+        skip_reason="celery-digest-batch-automation",
+        surface="messaging_ai_digest",
+    )
 
 
 __all__ = [

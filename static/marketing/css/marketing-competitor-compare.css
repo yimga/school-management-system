@@ -1,0 +1,108 @@
+/* marketing-competitor-compare.css — honest 'vs competitor' comparison pages.
+ * Token-driven; raw values carry off-token-allow. No viewport-lock, no text-clipping
+ * (cells wrap and flow); table scrolls horizontally only as a container, never clips text. */
+
+/* The editorial CTAs (.mkt-edt-cta) fill their background from --mkt-accent, which
+   defaults to gold (#f59e0b) — and the marketing on-accent ink is white, giving
+   white-on-gold at 2.14:1. Pin this page's accent to its own indigo personality
+   accent so every CTA fills indigo, where white ink is 6.3:1. */
+.mkt-compare {
+  --mkt-accent: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: indigo page accent so on-accent white passes */
+}
+/* Belt-and-suspenders: guarantee white ink on every editorial CTA on the page
+   (hero + footer), regardless of which hardening rule wins; all now sit on the
+   indigo accent fill (white-on-indigo 6.3:1). */
+body.marketing-surface .mkt-compare .mkt-edt-cta {
+  color: #ffffff !important; /* off-token-allow: white on indigo accent (6.3:1) */
+}
+
+.mkt-compare__hero {
+  text-align: center;
+  margin-block: 1.5rem 1.75rem;
+}
+
+.mkt-compare__eyebrow {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--type-size-2xs, 0.72rem);
+  font-weight: 700;
+  color: var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+}
+
+.mkt-compare__headline {
+  margin: 0 0 0.6rem;
+  font-size: var(--type-size-2xl, 2rem);
+  line-height: 1.15;
+}
+
+.mkt-compare__intro {
+  margin: 0 auto;
+  max-inline-size: 50rem;
+  color: var(--text-secondary, #475569); /* off-token-allow: secondary ink fallback */
+  line-height: 1.6;
+}
+
+.mkt-compare__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-block-start: 1.1rem;
+}
+
+.mkt-compare__table-wrap {
+  overflow-x: auto; /* horizontal scroll container only; cells below wrap, nothing clipped */
+  margin-block: 1.5rem;
+}
+
+.mkt-compare__table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  min-inline-size: 36rem;
+}
+
+.mkt-compare__table th,
+.mkt-compare__table td {
+  text-align: start;
+  vertical-align: top;
+  padding: 0.85rem 1rem;
+  border-block-end: 1px solid var(--hairline, rgba(15, 23, 42, 0.12)); /* off-token-allow: hairline fallback */
+  line-height: 1.5;
+  font-size: var(--type-size-sm, 0.9rem);
+  white-space: normal; /* never clip cell text */
+}
+
+.mkt-compare__table thead th {
+  font-size: var(--type-size-sm, 0.92rem);
+  font-weight: 700;
+  border-block-end: 2px solid var(--mkt-personality-accent, #4f46e5); /* off-token-allow: accent fallback */
+}
+
+.mkt-compare__cap {
+  font-weight: 600;
+  inline-size: 26%;
+}
+
+.mkt-compare__ours {
+  background: color-mix(in srgb, var(--mkt-personality-accent, #4f46e5) 7%, transparent);
+  font-weight: 500;
+}
+
+.mkt-compare__theirs {
+  color: var(--text-secondary, #475569); /* off-token-allow: secondary ink fallback */
+}
+
+.mkt-compare__disclaimer {
+  margin-block: 0.5rem 1.5rem;
+  font-size: var(--type-size-xs, 0.78rem);
+  color: var(--text-secondary, #475569); /* off-token-allow: secondary ink fallback */
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.mkt-compare__foot {
+  display: flex;
+  justify-content: center;
+  margin-block-end: 2rem;
+}

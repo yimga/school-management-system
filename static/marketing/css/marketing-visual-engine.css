@@ -43,6 +43,16 @@ html[dir="rtl"] .mkt-ve-split {
   color: var(--mkt-ink-on-dark, var(--text-primary, #f8fafc));
 }
 
+/* Sovereign hero CTAs fill from the indigo brand accent (--mkt-accent #4f46e5).
+   The editorial / contrast-hardening layer otherwise inks them dark (#1a1612),
+   giving dark-on-indigo at 2.86:1. Pin white on the indigo accent (6.3:1).
+   ID-scoped to the sovereign-kernel section so other lanes are untouched. */
+#mkt-sovereign-kernel .mkt-edt-cta,
+#mkt-sovereign-kernel button[data-mkt-sandbox-submit] {
+  background: var(--mkt-accent, #4f46e5) !important; /* off-token-allow: sovereign indigo accent fill */
+  color: #ffffff !important; /* off-token-allow: white on sovereign indigo accent (6.3:1) */
+}
+
 .mkt-ve-section--clinical,
 .mkt-ve-section--fluid {
   background: var(--mkt-surface-cream, var(--surface-canvas, #faf8f5));
@@ -50,8 +60,13 @@ html[dir="rtl"] .mkt-ve-split {
 }
 
 .mkt-ve-section--rugged {
-  background: var(--mkt-surface-muted, var(--surface-elevated, #1e293b));
-  color: var(--mkt-ink-on-dark, #f1f5f9);
+  /* Rugged Terminal is an always-dark personality. The previous token chain
+     (--mkt-surface-muted / --surface-elevated) resolves LIGHT on the marketing
+     cream surface, so the dark fallback never fired and the near-white ink
+     rendered invisibly on white. Pin an explicit dark slate so the light ink
+     reads (≈13:1). */
+  background: #1e293b; /* off-token-allow: rugged-terminal always-dark surface */
+  color: #f1f5f9; /* off-token-allow: rugged-terminal always-dark surface ink */
 }
 
 .mkt-ve-section__inner {

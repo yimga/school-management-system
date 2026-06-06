@@ -65,6 +65,7 @@ from .models_ai import (
 )
 from .models_runtime_ops import BreakGlassOverride, BroadcastCampaign
 from .models_marketing import BlogPost, MarketingContent, ProductFeedback
+from .models_marketing_testimonial import MarketingTestimonial
 from .models_dashboard import (
     DashboardUserPreference,
     FeatureControlAudit,
@@ -2712,6 +2713,41 @@ class BlogPostAdmin(ModelAdmin):
 
 
 register_platform_admin(BlogPost, BlogPostAdmin)
+
+
+class MarketingTestimonialAdmin(ModelAdmin):
+    list_display = (
+        "attribution_name",
+        "organization_name",
+        "source",
+        "rating",
+        "is_approved",
+        "page_slugs",
+        "locale",
+        "display_order",
+    )
+    list_filter = ("source", "is_approved", "locale", "is_active")
+    search_fields = ("quote", "attribution_name", "organization_name")
+    list_editable = ("is_approved", "display_order")
+    readonly_fields = ("approved_at", "approved_by", "created_at", "updated_at")
+    ordering = ["display_order", "-created_at"]
+    actions = ["approve_selected"]
+
+    @admin.action(description="Approve selected testimonials")
+    def approve_selected(self, request, queryset):
+        updated = queryset.update(
+            is_approved=True,
+            approved_at=timezone.now(),
+            approved_by=request.user,
+        )
+        self.message_user(
+            request,
+            f"Approved {updated} testimonial(s).",
+            messages.SUCCESS,
+        )
+
+
+register_platform_admin(MarketingTestimonial, MarketingTestimonialAdmin)
 
 
 class GlobalSupportTicketReplyInline(admin.TabularInline):

@@ -342,11 +342,36 @@ def generate_insights(
         return _rules_fallback_insights(snapshot, n=n)
 
     prompt = _build_insight_prompt(snapshot, n=n)
+    permissions = {}
+    if request is not None:
+        try:
+            from services.ai_copilot_rbac import (
+                build_copilot_permissions,
+                rbac_directives_for_permissions,
+            )
+
+            permissions = build_copilot_permissions(getattr(request, "user", None), request=request)
+            host_kind = getattr(request, "public_host_kind", None)
+            active_url = str(getattr(request, "path", "") or "")
+            directives = rbac_directives_for_permissions(
+                permissions,
+                active_url=active_url,
+                host_kind=host_kind,
+            )
+            if directives:
+                prompt = f"{directives}\n\n{prompt}"
+        except Exception:
+            permissions = {}
     metadata = {
         "northstar_prompt_type": "studio_os_copilot_rail",
         "content_sensitivity": "standard",
         "surface_name": snapshot.surface_name,
         "tenant_fingerprint": snapshot.school_slug_hash,
+        "request": request,
+        "permissions": permissions,
+        "rbac_scope": permissions.get("scope") if permissions else "general",
+        "copilot_rbac_enforced": True,
+        "surface": "studio_os_copilot_rail_insights",
     }
 
     try:

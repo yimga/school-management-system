@@ -134,14 +134,32 @@ def _resolve_ctas(pairs: list[tuple[str, str]]):
     return out
 
 
+# Each competitive story borrows a distinct marketing personality so the six
+# pages get their own accent + hero band + viz panel instead of rendering
+# identically (was a flat shared template).
+_STORY_PERSONALITY = {
+    "implementation": "implementation-timelines",
+    "offline-first": "platform-offline-first",
+    "payments-readiness": "platform-fees-payments",
+    "for-private-schools": "solutions-persona",
+    "for-school-networks": "solutions-k12-districts",
+    "pilot-program": "trust",
+}
+
+
 @require_GET
 def marketing_story_page(request, story_slug: str):
+    from apps.schools.marketing_personality import marketing_personality_context
+
     story = _STORIES.get(story_slug)
     if not story:
         raise Http404("Unknown story")
+    personality_slug = _STORY_PERSONALITY.get(story_slug, "compare")
     ctx = {
         **story,
         "ctas_resolved": _resolve_ctas(story["ctas"]),
+        "marketing_page_slug": personality_slug,
+        **marketing_personality_context(personality_slug),
     }
     return render(request, "marketing/competitive_story.html", ctx)
 

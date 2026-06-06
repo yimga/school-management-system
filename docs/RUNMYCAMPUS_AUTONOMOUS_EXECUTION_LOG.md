@@ -1,5 +1,35 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Tenant copilot RBAC batch 1632 North Star closeout (2026-06-06)
+
+**A. Claim:** Close **`run_ai_prompt`** North Star bypass (last non-allowlisted apps generative path without RBAC bridge).
+
+**B. Shipped:** `apps/platform_runtime/ai_providers.run_ai_prompt` → `invoke_service_layer_ai` (`general_chat` + RBAC when user authenticated; `narrative` skip when batch/no actor); trimmed gateway allowlists; **2** North Star RBAC tests.
+
+**C. Proof:** **AI_COPILOT_RBAC_COVERAGE_PASS**; **scan_ai_gateway_boundary** **0**; **38/38** RBAC + provider + stream tests OK.
+
+**D. SOT:** batch **1632** proof updated. **E. Honest:** `views_ai_gateway.py` + `migration_cloud/ai_bridge.py` remain intentional direct-gateway infrastructure (guard / batch allowlist).
+
+## Slice — Tenant copilot RBAC batch 1632 closeout (2026-06-06)
+
+**A. Claim:** Close remaining **`ai_provider.py`** direct-gateway bypass + narrative skip + verifier apps-gateway scan.
+
+**B. Shipped:** `generate_ai_response` / `get_workflow_clues` → `invoke_with_request`; `suggest_support_ticket_response` → `invoke_service_layer_ai` (batch skip); `narrative_feedback` `copilot_rbac_skip`; consumers docstring fix; extended **`verify_ai_copilot_rbac_coverage.py`** apps direct-gateway scan; trimmed **`scan_ai_gateway_boundary`** allowlist (ai_provider no longer direct importer).
+
+**C. Proof:** **AI_COPILOT_RBAC_COVERAGE_PASS**; **scan_ai_gateway_boundary** **0**; **34/34** `test_ai_provider` + **16/16** `test_ai_copilot_rbac` + **2/2** stream RBAC OK; **verify_copilot_rail_contract** PASS.
+
+**D. SOT:** batch **1632** proof line updated. **E. Honest:** DB-backed support-suggest / consumer suites still slow on Windows SQLite — CI Ubuntu authoritative.
+
+## Slice — Tenant copilot RBAC 100% batch 1632 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1632** — close every user-facing AI invoke gap; CI gate + tests green.
+
+**B. Shipped:** `guard_copilot_invoke` + `invoke_service_layer_ai` + helper-layer enforcement; stream/gateway/websocket/assist-dock/ai-line/onboarding-coach/rail insight directives; **`messaging_ai` / `teacher_comms` / `teacher_lesson_plan`** RBAC bridge; `views_ai_draft` passes `request.user` + 403 on refusal; `verify_ai_copilot_rbac_coverage.py` scans apps + services (baseline **0**); CI **`ai-copilot-rbac-coverage`** job; consumer tests updated for `ai_helpers` path.
+
+**C. Proof:** **AI_COPILOT_RBAC_COVERAGE_PASS**; **16/16** `test_ai_copilot_rbac` OK; **verify_copilot_rail_contract** PASS; stream RBAC tests OK.
+
+**D. SOT:** batch **1632** **DONE**. **E. Honest:** no static JS change — SW bump not required; portal validate HTTP tests remain Windows SQLite skip pattern.
+
 ## Slice — Poly unit + phases tail batch 1631 (2026-06-05)
 
 **A. Claim:** §11.4 batch **1631** — full poly unit bundle proof; phases 3–11 tail drift (i18n + workflow 10x).

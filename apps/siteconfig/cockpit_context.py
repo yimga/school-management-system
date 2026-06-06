@@ -565,6 +565,43 @@ def _resolve_footer_language() -> tuple[str, str]:
     return label or "English", code
 
 
+def _tenant_ai_copilot_rail_defaults() -> dict[str, Any]:
+    """Tenant Co-pilot rail — role-aware help for all authenticated portal users."""
+    return {
+        "enabled": True,
+        "default_state": "collapsed",
+        "title": _("Copilot"),
+        "title_em": _("here to help"),
+        "insight_text": "",
+        "insight_em": "",
+        "messages": [],
+        "suggested_actions": [],
+        "input_placeholder": _("Ask a question about your school…"),
+        "cmdk_hint": _("⌘ K · command palette"),
+        "send_label": _("Send →"),
+    }
+
+
+def _tenant_ai_copilot_rail_master_enabled(request) -> bool:
+    """Platform + tenant flags for the tenant-host copilot rail."""
+    try:
+        from apps.portal.help_governance import ai_help_enabled_for_request
+
+        if not ai_help_enabled_for_request(request):
+            return False
+    except Exception:
+        pass
+    try:
+        from apps.platform_runtime.helpers import get_effective_flags
+
+        flags = get_effective_flags(request) or {}
+        if "enable_tenant_ai_copilot_rail" in flags:
+            return bool(flags.get("enable_tenant_ai_copilot_rail"))
+    except Exception:
+        pass
+    return True
+
+
 def _tenant_footer_defaults(site: Any | None) -> dict[str, Any]:
     """Tenant civic footer — pulled from SITE model when available.
 
@@ -919,9 +956,22 @@ def cockpit_context(request) -> dict[str, Any]:
     except Exception:
         pass
 
+    tenant_cockpit["ai_copilot_rail"] = _deep_merge(
+        _tenant_ai_copilot_rail_defaults(),
+        tenant_cockpit.get("ai_copilot_rail") or {},
+    )
+    if not _tenant_ai_copilot_rail_master_enabled(request):
+        acr_off = dict(tenant_cockpit.get("ai_copilot_rail") or {})
+        acr_off["enabled"] = False
+        tenant_cockpit["ai_copilot_rail"] = acr_off
+
+    rmc_page_help_on_copilot_rail = bool(
+        (tenant_cockpit.get("ai_copilot_rail") or {}).get("enabled")
+    )
+
     return {
         "cockpit": tenant_cockpit,
-        "rmc_page_help_on_copilot_rail": False,
+        "rmc_page_help_on_copilot_rail": rmc_page_help_on_copilot_rail,
         "tenant_incident_banner": _pick_tenant_incident_banner(tenant_cockpit, request),
         # Portal templates reference both keys; tenant host has no operator banner.
         "operator_incident_banner": None,

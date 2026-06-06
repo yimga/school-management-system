@@ -1,0 +1,121 @@
+{% load i18n %}
+{% if product_tour %}
+<section class="mkt-tour" data-mkt-tour data-mkt-tour-slug="{{ product_tour.slug }}" aria-roledescription="{% trans 'Product tour' %}" aria-label="{% trans 'Guided product tour of the real RunMyCampus workspace' %}">
+  <div class="mkt-tour__chrome" aria-hidden="true">
+    <span class="mkt-tour__dot mkt-tour__dot--red"></span>
+    <span class="mkt-tour__dot mkt-tour__dot--amber"></span>
+    <span class="mkt-tour__dot mkt-tour__dot--green"></span>
+    <span class="mkt-tour__addr">app.runmycampus.com</span>
+  </div>
+
+  <div class="mkt-tour__stage" data-mkt-tour-stage role="region" aria-label="{% trans 'Workspace preview' %}" aria-live="polite">
+    {% for frame in product_tour.frames %}
+    <article class="mkt-tour__frame{% if forloop.first %} is-active{% endif %}" data-mkt-tour-frame data-step="{{ forloop.counter0 }}" aria-hidden="{% if forloop.first %}false{% else %}true{% endif %}">
+
+      {% if frame.ui_kind == "roster_table" %}
+      <div class="mkt-tour__ui">
+        <div class="rmc-metric-ticker mkt-tour__ticker">
+          <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Enrolled' %}</span><span class="rmc-metric-ticker__value">486</span></div>
+          <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Active classes' %}</span><span class="rmc-metric-ticker__value">22</span></div>
+        </div>
+        <table class="rmc-data-table mkt-tour__table">
+          <thead><tr><th scope="col">{% trans 'Student' %}</th><th scope="col">{% trans 'Class' %}</th><th scope="col">{% trans 'Guardian' %}</th><th scope="col">{% trans 'Status' %}</th></tr></thead>
+          <tbody>
+            <tr><td>Amara Okafor</td><td>Year 9 — B</td><td>N. Okafor</td><td><span class="mkt-tour__pill mkt-tour__pill--ok">{% trans 'Enrolled' %}</span></td></tr>
+            <tr><td>Liam Chen</td><td>Year 9 — B</td><td>W. Chen</td><td><span class="mkt-tour__pill mkt-tour__pill--ok">{% trans 'Enrolled' %}</span></td></tr>
+            <tr><td>Sofia Martins</td><td>Year 9 — A</td><td>R. Martins</td><td><span class="mkt-tour__pill mkt-tour__pill--warn">{% trans 'Pending' %}</span></td></tr>
+            <tr><td>Daniel Abara</td><td>Year 10 — C</td><td>J. Abara</td><td><span class="mkt-tour__pill mkt-tour__pill--ok">{% trans 'Enrolled' %}</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      {% elif frame.ui_kind == "attendance_grid" %}
+      <div class="mkt-tour__ui">
+        <table class="rmc-data-table mkt-tour__table">
+          <thead><tr><th scope="col">{% trans 'Student' %}</th><th scope="col">{% trans 'Mon' %}</th><th scope="col">{% trans 'Tue' %}</th><th scope="col">{% trans 'Wed' %}</th><th scope="col">{% trans 'Thu' %}</th><th scope="col">{% trans 'Fri' %}</th></tr></thead>
+          <tbody>
+            <tr><td>Amara Okafor</td><td><span class="mkt-tour__att mkt-tour__att--p" title="{% trans 'Present' %}">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--l" title="{% trans 'Late' %}">L</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td></tr>
+            <tr><td>Liam Chen</td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--a" title="{% trans 'Absent' %}">A</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td></tr>
+            <tr><td>Sofia Martins</td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td><td><span class="mkt-tour__att mkt-tour__att--p">P</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      {% elif frame.ui_kind == "fee_ledger" %}
+      <div class="mkt-tour__ui">
+        <table class="rmc-data-table mkt-tour__table mkt-tour__table--ledger">
+          <thead><tr><th scope="col">{% trans 'Line item' %}</th><th scope="col">{% trans 'Charged' %}</th><th scope="col">{% trans 'Paid' %}</th><th scope="col">{% trans 'Balance' %}</th></tr></thead>
+          <tbody>
+            <tr><td>{% trans 'Term 2 tuition' %}</td><td class="mkt-tour__num">$1,250.00</td><td class="mkt-tour__num">$1,250.00</td><td class="mkt-tour__num">$0.00</td></tr>
+            <tr><td>{% trans 'Lab fee' %}</td><td class="mkt-tour__num">$85.00</td><td class="mkt-tour__num">$85.00</td><td class="mkt-tour__num">$0.00</td></tr>
+            <tr><td>{% trans 'Transport' %}</td><td class="mkt-tour__num">$320.00</td><td class="mkt-tour__num">$160.00</td><td class="mkt-tour__num mkt-tour__num--due">$160.00</td></tr>
+          </tbody>
+          <tfoot><tr><th scope="row">{% trans 'Total outstanding' %}</th><td></td><td></td><td class="mkt-tour__num mkt-tour__num--due">$160.00</td></tr></tfoot>
+        </table>
+      </div>
+
+      {% elif frame.ui_kind == "message_composer" %}
+      <div class="mkt-tour__ui mkt-tour__composer">
+        <div class="mkt-tour__field"><span class="mkt-tour__field-label">{% trans 'To' %}</span><span class="mkt-tour__chip">{% trans 'Year 9 — B guardians' %}</span><span class="mkt-tour__chip">{% trans 'Class teachers' %}</span></div>
+        <div class="mkt-tour__field"><span class="mkt-tour__field-label">{% trans 'Channel' %}</span><span class="mkt-tour__seg">{% trans 'Email' %}</span><span class="mkt-tour__seg mkt-tour__seg--on">{% trans 'SMS' %}</span><span class="mkt-tour__seg">{% trans 'Push' %}</span></div>
+        <label class="mkt-tour__field-label" for="mkt-tour-msg-{{ product_tour.slug }}-{{ forloop.counter0 }}">{% trans 'Message' %}</label>
+        <div class="mkt-tour__textarea" id="mkt-tour-msg-{{ product_tour.slug }}-{{ forloop.counter0 }}">{% trans 'Reminder: Year 9 swimming starts Thursday. Please send kit. — Front Office' %}</div>
+        <div class="mkt-tour__composer-foot"><span class="mkt-tour__hint">{% trans 'Reaches 28 families' %}</span><span class="mkt-tour__send">{% trans 'Send now' %}</span></div>
+      </div>
+
+      {% elif frame.ui_kind == "admissions_pipeline" %}
+      <div class="mkt-tour__ui mkt-tour__pipeline">
+        <div class="mkt-tour__stagecol"><span class="mkt-tour__stagehead">{% trans 'Enquiry' %} · 12</span><span class="mkt-tour__card">Imani Bello</span><span class="mkt-tour__card">Noah Pratt</span></div>
+        <div class="mkt-tour__stagecol"><span class="mkt-tour__stagehead">{% trans 'Applied' %} · 8</span><span class="mkt-tour__card">Aria Khan</span><span class="mkt-tour__card">Theo Vance</span></div>
+        <div class="mkt-tour__stagecol"><span class="mkt-tour__stagehead">{% trans 'Offer' %} · 5</span><span class="mkt-tour__card">Mei Lin</span></div>
+        <div class="mkt-tour__stagecol"><span class="mkt-tour__stagehead">{% trans 'Enrolled' %} · 4</span><span class="mkt-tour__card mkt-tour__card--done">Ola Diallo</span></div>
+      </div>
+
+      {% elif frame.ui_kind == "gradebook" %}
+      <div class="mkt-tour__ui">
+        <table class="rmc-data-table mkt-tour__table">
+          <thead><tr><th scope="col">{% trans 'Student' %}</th><th scope="col">{% trans 'Quiz 1' %}</th><th scope="col">{% trans 'Project' %}</th><th scope="col">{% trans 'Exam' %}</th><th scope="col">{% trans 'Grade' %}</th></tr></thead>
+          <tbody>
+            <tr><td>Amara Okafor</td><td class="mkt-tour__num">18/20</td><td class="mkt-tour__num">27/30</td><td class="mkt-tour__num">82/100</td><td><span class="mkt-tour__grade">A</span></td></tr>
+            <tr><td>Liam Chen</td><td class="mkt-tour__num">15/20</td><td class="mkt-tour__num">24/30</td><td class="mkt-tour__num">71/100</td><td><span class="mkt-tour__grade">B</span></td></tr>
+            <tr><td>Sofia Martins</td><td class="mkt-tour__num">19/20</td><td class="mkt-tour__num">29/30</td><td class="mkt-tour__num">91/100</td><td><span class="mkt-tour__grade">A</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      {% else %}
+      <div class="mkt-tour__ui">
+        <div class="rmc-metric-ticker mkt-tour__ticker">
+          <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Attendance today' %}</span><span class="rmc-metric-ticker__value">96.4%</span></div>
+          <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Collections this term' %}</span><span class="rmc-metric-ticker__value">$184k</span></div>
+          <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Open applications' %}</span><span class="rmc-metric-ticker__value">29</span></div>
+          <div class="rmc-metric-ticker__card"><span class="rmc-metric-ticker__label">{% trans 'Messages sent' %}</span><span class="rmc-metric-ticker__value">1,204</span></div>
+        </div>
+        <table class="rmc-data-table mkt-tour__table">
+          <thead><tr><th scope="col">{% trans 'Class' %}</th><th scope="col">{% trans 'Present' %}</th><th scope="col">{% trans 'Rate' %}</th></tr></thead>
+          <tbody>
+            <tr><td>Year 9 — B</td><td class="mkt-tour__num">27/28</td><td class="mkt-tour__num">96%</td></tr>
+            <tr><td>Year 10 — C</td><td class="mkt-tour__num">25/26</td><td class="mkt-tour__num">96%</td></tr>
+            <tr><td>Year 11 — A</td><td class="mkt-tour__num">22/24</td><td class="mkt-tour__num mkt-tour__num--due">92%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      <p class="mkt-tour__tooltip" data-mkt-tour-tooltip{% if not forloop.first %} hidden{% endif %}><span class="mkt-tour__tooltip-arrow" aria-hidden="true"></span>{{ frame.tooltip }}</p>
+      <figcaption class="mkt-tour__caption">{{ frame.caption }}</figcaption>
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="mkt-tour__controls">
+    <button type="button" class="mkt-tour__nav mkt-tour__nav--prev" data-mkt-tour-prev aria-label="{% trans 'Previous step' %}">&#8592;</button>
+    <div class="mkt-tour__dots" role="group" aria-label="{% trans 'Tour steps' %}">
+      {% for frame in product_tour.frames %}
+      <button type="button" class="mkt-tour__step-dot{% if forloop.first %} is-active{% endif %}" data-mkt-tour-dot data-step="{{ forloop.counter0 }}" aria-label="{% blocktrans with n=forloop.counter %}Go to step {{ n }}{% endblocktrans %}"{% if forloop.first %} aria-current="true"{% endif %}></button>
+      {% endfor %}
+    </div>
+    <button type="button" class="mkt-tour__nav mkt-tour__nav--next" data-mkt-tour-next aria-label="{% trans 'Next step' %}">&#8594;</button>
+  </div>
+</section>
+{% endif %}

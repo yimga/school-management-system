@@ -539,9 +539,8 @@
       function pump() {
         return reader.read().then(function (step) {
           if (step.done) {
-            /* Stream ended without a "done" frame — treat as best-effort. */
-            if (!sawDone && bubble && !assembled) {
-              bubble.textContent = "(no reply)";
+            if (!sawDone && !assembled) {
+              throw new Error("stream-empty");
             }
             return;
           }
@@ -590,7 +589,18 @@
       },
       body: JSON.stringify({ message: text, mode: mode }),
     }).then(function (r) {
-      return r.json().catch(function () { return null; });
+      return r.json().catch(function () { return { _http_status: r.status }; }).then(function (data) {
+        if (!data) {
+          data = { _http_status: r.status };
+        }
+        if (r.status === 403 && data.reply) {
+          return data;
+        }
+        if (!r.ok && !data.reply) {
+          throw new Error("send-failed");
+        }
+        return data;
+      });
     }).then(function (data) {
       if (!data) {
         appendThreadMessage("ai", "AI is unavailable right now.");
@@ -599,6 +609,7 @@
       }
       if (data.reply) { appendThreadMessage("ai", data.reply); }
       if (data.source) { updatePostureFromSendReply(data.source); }
+      else if (data.error === "permission_denied") { updatePostureFromSendReply("unavailable"); }
     });
   }
 
@@ -623,6 +634,11 @@
     input.value = "";
 
     var mode = "operator";
+    var endpointsNode = document.querySelector("[data-rmc-copilot-rail-endpoints]");
+    if (endpointsNode) {
+      var hostMode = (endpointsNode.getAttribute("data-current-mode") || "").trim();
+      if (hostMode) { mode = hostMode; }
+    }
     var rail = findRail();
     if (rail) {
       var tab = rail.getAttribute("data-rmc-copilot-active-tab");
@@ -633,9 +649,8 @@
     if (SUPPORTS_FETCH_STREAM) {
       pipeline = sendCopilotMessageStreaming(text, mode, sendBtn)
         .catch(function () {
-          /* Streaming fell through (likely unsupported transport on this
-             deployment) — fall back to the legacy JSON endpoint so the
-             operator still gets a reply. */
+          var stale = document.querySelector(".lx-copilot__msg--streaming");
+          if (stale && !stale.textContent) { stale.remove(); }
           return sendCopilotMessageJSON(text, mode);
         });
     } else {

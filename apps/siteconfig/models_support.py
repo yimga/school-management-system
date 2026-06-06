@@ -242,6 +242,7 @@ def default_backend_feature_flags():
         "enable_ai_help_assistant": True,
         "enable_ai_copilot_query_api": True,
         "enable_manager_ai_copilot_rail": True,
+        "enable_tenant_ai_copilot_rail": True,
         "ai_copilot_max_message_chars": 500,
         "ai_copilot_offline_hint": "",
         "ai_copilot_ui": {

@@ -48,11 +48,10 @@
           {% endwith %}
         </div>
         <div class="user-role-badge">
-          {% if account_security_score is not None %}
-          <span class="rmc-security-chip ms-1" data-band="{{ account_security_band|default:'weak' }}" title="{% trans 'Account security strength' %}">
-            <i class="bi bi-shield-fill" aria-hidden="true"></i>{{ account_security_score }}
-          </span>
-          {% endif %}
+          {% comment %} v4.02.x: the security score chip was removed from the avatar trigger —
+             it duplicated the header security shield (which also pulses on risk). The score
+             still lives in the header shield + the "Multi-factor authentication" / "Quarterly
+             security review" items in this menu, so nothing is lost. {% endcomment %}
           {% if request.user.role == 'ADMIN' %}
             <i class="bi bi-shield-check"></i> {% trans "Admin" %}
           {% elif request.user.role == 'LEADERSHIP' %}

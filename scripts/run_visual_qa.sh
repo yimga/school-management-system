@@ -92,8 +92,18 @@ if _totp_hex:
     from django_otp.plugins.otp_totp.models import TOTPDevice
 
     TOTPDevice.objects.filter(user=user).delete()
+    # Wide tolerance (±N 30s windows) so a code stays valid even when a slow dev
+    # server takes longer than one window to process the verify POST — otherwise
+    # the code "expires in transit" under load and the login loops on rejection.
+    # last_t still blocks true replay; this only widens the acceptance window.
     TOTPDevice.objects.create(
-        user=user, name="visualqa", key=_totp_hex, step=30, digits=6, confirmed=True
+        user=user,
+        name="visualqa",
+        key=_totp_hex,
+        step=30,
+        digits=6,
+        tolerance=30,
+        confirmed=True,
     )
     print(f"visual_qa: seeded confirmed TOTP device for {username}")
 PY
@@ -148,33 +158,88 @@ if [[ -n "$TENANT_DOMAIN" ]]; then
   CSRF_TRUSTED_ORIGINS="${CSRF_TRUSTED_ORIGINS},http://${TENANT_DOMAIN}:${PORT}"
 fi
 
-nohup env \
-  SECURE_SSL_REDIRECT=0 \
-  DEBUG=1 \
-  DB_LOG_LEVEL="${VISUAL_QA_DB_LOG_LEVEL:-WARNING}" \
-  CSRF_TRUSTED_ORIGINS="$CSRF_TRUSTED_ORIGINS" \
-  VISUAL_QA_USERNAME="$VISUAL_USERNAME" \
-  VISUAL_QA_PASSWORD="$VISUAL_PASSWORD" \
-  "$PYTHON_CMD" manage.py runserver "127.0.0.1:${PORT}" --noreload >"$RUNSERVER_LOG" 2>&1 &
-SERVER_PID="$!"
-
 READY_PATH="${VISUAL_QA_SERVER_READY_PATH:-/migrate/}"
 READY_MAX="${VISUAL_QA_SERVER_READY_MAX_ATTEMPTS:-60}"
 READY_SLEEP="${VISUAL_QA_SERVER_READY_SLEEP:-2}"
-code=""
-for _ in $(seq 1 "$READY_MAX"); do
-  code="$(curl -s -o /dev/null -w '%{http_code}' -H "Host: ${PUBLIC_HOST}" "http://127.0.0.1:${PORT}${READY_PATH}" || true)"
-  if [[ "$code" == "200" ]]; then
-    break
-  fi
-  sleep "$READY_SLEEP"
-done
 
-if [[ "${code:-}" != "200" ]]; then
+# Server backend selection.
+# Django's dev runserver (single process, threaded, SQLite) degrades under a
+# long sustained browser sweep — requests pile up on threads/locks until it
+# stops accepting connections (the documented SSE thread-starvation failure
+# mode), and on Windows the process additionally dies on the broken pipe from
+# the readiness probe. gunicorn (prefork, multi-worker) is far more robust under
+# the sweep and is what production runs, so prefer it whenever it's usable.
+#
+# gunicorn relies on fork() and does NOT run on native Windows (MSYS/MinGW/
+# Cygwin bash), so there we fall back to runserver. Override either way with
+# VISUAL_QA_SERVER=gunicorn|runserver.
+_uname="$(uname -s 2>/dev/null || echo unknown)"
+case "$_uname" in
+  MINGW* | MSYS* | CYGWIN* | Windows_NT) IS_WINDOWS=1 ;;
+  *) IS_WINDOWS=0 ;;
+esac
+
+if [[ -n "${VISUAL_QA_SERVER:-}" ]]; then
+  SERVER_KIND="$VISUAL_QA_SERVER"
+elif [[ "$IS_WINDOWS" -eq 0 ]] && "$PYTHON_CMD" -m gunicorn --version >/dev/null 2>&1; then
+  SERVER_KIND="gunicorn"
+else
+  SERVER_KIND="runserver"
+fi
+echo "[run_visual_qa] Server backend: ${SERVER_KIND} (uname=${_uname})."
+
+# Per-viewport cycle: a FRESH server comfortably survives one viewport group's
+# ~5 min of load, so we cycle the server per viewport instead of asking one
+# process to last ~17 min. The restart is cheap.
+stop_server() {
+  if [[ -n "$SERVER_PID" ]] && kill -0 "$SERVER_PID" >/dev/null 2>&1; then
+    kill "$SERVER_PID" >/dev/null 2>&1 || true
+    wait "$SERVER_PID" >/dev/null 2>&1 || true
+  fi
+  SERVER_PID=""
+}
+
+start_server() {
+  if [[ "$SERVER_KIND" == "gunicorn" ]]; then
+    nohup env \
+      SECURE_SSL_REDIRECT=0 \
+      DEBUG=1 \
+      DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-config.settings}" \
+      DB_LOG_LEVEL="${VISUAL_QA_DB_LOG_LEVEL:-WARNING}" \
+      CSRF_TRUSTED_ORIGINS="$CSRF_TRUSTED_ORIGINS" \
+      VISUAL_QA_USERNAME="$VISUAL_USERNAME" \
+      VISUAL_QA_PASSWORD="$VISUAL_PASSWORD" \
+      "$PYTHON_CMD" -m gunicorn config.wsgi:application \
+        --bind "127.0.0.1:${PORT}" \
+        --workers "${VISUAL_QA_GUNICORN_WORKERS:-2}" \
+        --threads "${VISUAL_QA_GUNICORN_THREADS:-4}" \
+        --timeout "${VISUAL_QA_GUNICORN_TIMEOUT:-120}" \
+        --graceful-timeout 30 \
+        --access-logfile - --error-logfile - >"$RUNSERVER_LOG" 2>&1 &
+  else
+    nohup env \
+      SECURE_SSL_REDIRECT=0 \
+      DEBUG=1 \
+      DB_LOG_LEVEL="${VISUAL_QA_DB_LOG_LEVEL:-WARNING}" \
+      CSRF_TRUSTED_ORIGINS="$CSRF_TRUSTED_ORIGINS" \
+      VISUAL_QA_USERNAME="$VISUAL_USERNAME" \
+      VISUAL_QA_PASSWORD="$VISUAL_PASSWORD" \
+      "$PYTHON_CMD" manage.py runserver "127.0.0.1:${PORT}" --noreload >"$RUNSERVER_LOG" 2>&1 &
+  fi
+  SERVER_PID="$!"
+
+  local code=""
+  for _ in $(seq 1 "$READY_MAX"); do
+    code="$(curl -s -o /dev/null -w '%{http_code}' -H "Host: ${PUBLIC_HOST}" "http://127.0.0.1:${PORT}${READY_PATH}" || true)"
+    if [[ "$code" == "200" ]]; then
+      return 0
+    fi
+    sleep "$READY_SLEEP"
+  done
   echo "run_visual_qa: server failed to become ready on port ${PORT} (last HTTP ${code:-none} for ${READY_PATH})." >&2
   tail -n 80 "$RUNSERVER_LOG" >&2 || true
-  exit 1
-fi
+  return 1
+}
 
 export TEST_USERNAME="$VISUAL_USERNAME"
 export TEST_PASSWORD="$VISUAL_PASSWORD"
@@ -195,7 +260,37 @@ else
 fi
 export PLAYWRIGHT_HOST_RULES="$RULES"
 
-node node_modules/playwright/cli.js test tests/e2e/ux-visual-qa.spec.js --reporter=line
+# Run the visual-QA spec one viewport group at a time, cycling the dev server
+# before each so every group hits a fresh process. The spec's test titles are
+# prefixed with the viewport name ("desktop: …", "mobile: …"); the standalone
+# "server is reachable" smoke test rides along with the first group.
+OVERALL_RC=0
+VISUAL_QA_VIEWPORTS=("desktop" "tablet-portrait" "tablet-landscape" "mobile")
+for _vp_index in "${!VISUAL_QA_VIEWPORTS[@]}"; do
+  _vp="${VISUAL_QA_VIEWPORTS[$_vp_index]}"
+  if [[ "$_vp_index" -eq 0 ]]; then
+    _grep="(server is reachable|${_vp}:)"
+  else
+    _grep="${_vp}:"
+  fi
+  echo "[run_visual_qa] === viewport group: ${_vp} (fresh server) ==="
+  stop_server
+  start_server || { OVERALL_RC=1; break; }
+  if ! node node_modules/playwright/cli.js test tests/e2e/ux-visual-qa.spec.js --grep "$_grep" --reporter=line; then
+    OVERALL_RC=1
+  fi
+done
 
-export MARKETING_BASE_URL="http://${PUBLIC_HOST}:${PORT}"
-node node_modules/playwright/cli.js test tests/e2e/marketing-visual-truth.spec.js --reporter=line
+# Marketing truth spec — fresh server, single viewport surface.
+echo "[run_visual_qa] === marketing-visual-truth (fresh server) ==="
+stop_server
+if start_server; then
+  export MARKETING_BASE_URL="http://${PUBLIC_HOST}:${PORT}"
+  if ! node node_modules/playwright/cli.js test tests/e2e/marketing-visual-truth.spec.js --reporter=line; then
+    OVERALL_RC=1
+  fi
+else
+  OVERALL_RC=1
+fi
+
+exit "$OVERALL_RC"

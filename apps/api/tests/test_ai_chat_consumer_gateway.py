@@ -1,4 +1,4 @@
-"""Phase 8: WebSocket AI path must use services.ai_gateway.invoke (no direct provider calls)."""
+"""Phase 8: WebSocket AI path must use services.ai_helpers (RBAC envelope)."""
 
 from __future__ import annotations
 
@@ -21,32 +21,35 @@ class AIChatConsumerGatewayTests(TransactionTestCase):
             password="test-pass-123",
         )
 
-    async def test_receive_uses_gateway_invoke(self):
+    async def test_receive_uses_ai_helpers_invoke(self):
         from apps.api import consumers
 
         if not getattr(consumers, "CHANNELS_AVAILABLE", False):
             self.skipTest("channels not available")
 
         consumer = consumers.AIChatConsumer()
-        consumer.scope = {"user": self.user, "request": None}
+        consumer.scope = {"user": self.user, "request": None, "school": None}
         consumer.user = self.user
         consumer.send = AsyncMock()
 
-        with patch("services.ai_gateway.invoke") as mock_invoke:
+        with patch("services.ai_helpers.invoke_with_request") as mock_invoke:
             mock_invoke.return_value = ("assistant reply", {"provider": "rules", "tier": "rules"})
             await consumer.receive(json.dumps({"message": "hello tenant"}))
 
         mock_invoke.assert_called_once()
-        call_args = mock_invoke.call_args
-        self.assertEqual(call_args[0][0], "general_chat")
-        self.assertIn("hello tenant", call_args[0][1])
+        kwargs = mock_invoke.call_args.kwargs
+        self.assertEqual(kwargs.get("task_type"), "general_chat")
+        self.assertEqual(kwargs.get("user_query"), "hello tenant")
+        self.assertTrue(kwargs.get("metadata", {}).get("copilot_rbac_enforced"))
         consumer.send.assert_awaited()
         call_kw = consumer.send.await_args.kwargs
-        raw = call_kw.get("text_data") or (consumer.send.await_args.args[0] if consumer.send.await_args.args else "")
+        raw = call_kw.get("text_data") or (
+            consumer.send.await_args.args[0] if consumer.send.await_args.args else ""
+        )
         payload = json.loads(raw)
         self.assertEqual(payload.get("reply"), "assistant reply")
 
-    async def test_receive_passes_tenant_metadata_to_gateway(self):
+    async def test_receive_passes_school_to_ai_helpers(self):
         from apps.api import consumers
 
         if not getattr(consumers, "CHANNELS_AVAILABLE", False):
@@ -60,49 +63,42 @@ class AIChatConsumerGatewayTests(TransactionTestCase):
         self.user.role = "ADMIN"
         request = SimpleNamespace(school=school)
         consumer = consumers.AIChatConsumer()
-        consumer.scope = {"user": self.user, "request": request}
+        consumer.scope = {"user": self.user, "request": request, "school": school}
         consumer.user = self.user
         consumer.send = AsyncMock()
 
-        with patch("services.ai_gateway.invoke") as mock_invoke:
+        with patch("services.ai_helpers.invoke_with_request") as mock_invoke:
             mock_invoke.return_value = ("assistant reply", {"provider": "rules", "tier": "rules"})
             await consumer.receive(json.dumps({"message": "hello tenant"}))
 
-        metadata = mock_invoke.call_args.kwargs["metadata"]
-        self.assertIs(metadata.get("request"), request)
-        self.assertEqual(metadata.get("school"), school)
-        self.assertEqual(metadata.get("school_id"), "school-123")
-        self.assertEqual(metadata.get("tenant_id"), "school-123")
-        self.assertEqual(metadata.get("user_id"), str(self.user.pk))
-        self.assertEqual(metadata.get("country_code"), "CM")
-        self.assertEqual(metadata.get("role"), "ADMIN")
+        mock_invoke.assert_called_once()
+        kwargs = mock_invoke.call_args.kwargs
+        self.assertEqual(kwargs.get("school"), school)
+        rbac_req = kwargs.get("request")
+        self.assertIsNotNone(rbac_req)
+        self.assertEqual(getattr(rbac_req, "user", None), self.user)
+        self.assertEqual(getattr(rbac_req, "school", None), school)
 
-    async def test_receive_uses_school_pk_when_id_attribute_is_missing(self):
+    async def test_receive_rbac_denies_payroll_query(self):
         from apps.api import consumers
 
         if not getattr(consumers, "CHANNELS_AVAILABLE", False):
             self.skipTest("channels not available")
 
-        school = SimpleNamespace(
-            pk="school-pk-only",
-            country_code="CM",
-            default_region=SimpleNamespace(code="GB"),
-        )
-        self.user.role = "ADMIN"
-        request = SimpleNamespace(school=school)
+        self.user.role = "TEACHER"
         consumer = consumers.AIChatConsumer()
-        consumer.scope = {"user": self.user, "request": request}
+        consumer.scope = {"user": self.user, "request": None, "school": object()}
         consumer.user = self.user
         consumer.send = AsyncMock()
 
-        with patch("services.ai_gateway.invoke") as mock_invoke:
-            mock_invoke.return_value = ("assistant reply", {"provider": "rules", "tier": "rules"})
-            await consumer.receive(json.dumps({"message": "hello tenant"}))
+        with patch("services.ai_permissions.get_ai_permission_for_user", return_value=True):
+            await consumer.receive(json.dumps({"message": "Show staff payroll totals"}))
 
-        metadata = mock_invoke.call_args.kwargs["metadata"]
-        self.assertEqual(metadata.get("school_id"), "school-pk-only")
-        self.assertEqual(metadata.get("tenant_id"), "school-pk-only")
-        self.assertEqual(metadata.get("country_code"), "CM")
+        consumer.send.assert_awaited()
+        raw = consumer.send.await_args.kwargs.get("text_data") or consumer.send.await_args.args[0]
+        payload = json.loads(raw)
+        self.assertEqual(payload.get("reply"), "")
+        self.assertIn("payroll", payload.get("error", "").lower())
 
     async def test_receive_returns_safety_error_when_gateway_blocks_prompt_injection(self):
         from apps.api import consumers
@@ -111,11 +107,11 @@ class AIChatConsumerGatewayTests(TransactionTestCase):
             self.skipTest("channels not available")
 
         consumer = consumers.AIChatConsumer()
-        consumer.scope = {"user": self.user, "request": None}
+        consumer.scope = {"user": self.user, "request": None, "school": None}
         consumer.user = self.user
         consumer.send = AsyncMock()
 
-        with patch("services.ai_gateway.invoke") as mock_invoke:
+        with patch("services.ai_helpers.invoke_with_request") as mock_invoke:
             mock_invoke.return_value = (
                 None,
                 {"provider": "none", "prompt_injection_blocked": True},
@@ -136,11 +132,11 @@ class AIChatConsumerGatewayTests(TransactionTestCase):
             self.skipTest("channels not available")
 
         consumer = consumers.AIChatConsumer()
-        consumer.scope = {"user": self.user, "request": None}
+        consumer.scope = {"user": self.user, "request": None, "school": None}
         consumer.user = self.user
         consumer.send = AsyncMock()
 
-        with patch("services.ai_gateway.invoke") as mock_invoke:
+        with patch("services.ai_helpers.invoke_with_request") as mock_invoke:
             mock_invoke.return_value = (
                 "AI providers are currently unavailable and rules fallback is disabled.",
                 {"provider": "none"},

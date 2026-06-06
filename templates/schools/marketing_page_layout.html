@@ -10,9 +10,18 @@
 {% block extrastyle %}
   {{ block.super }}
   <link rel="stylesheet" href="{% static 'marketing/css/marketing-global-os.css' %}">
+  {% comment %}Component CSS loads only where the component renders (perf: keeps ~18KB off non-platform pages). Channel-rails CSS is loaded by the fees + communications pages that use it.{% endcomment %}
+  {% if outcome_stats %}<link rel="stylesheet" href="{% static 'marketing/css/marketing-outcome-stats.css' %}">{% endif %}
+  {% if product_tour %}<link rel="stylesheet" href="{% static 'marketing/css/marketing-product-tour.css' %}">{% endif %}
+  {% if testimonials %}<link rel="stylesheet" href="{% static 'marketing/css/marketing-social-proof.css' %}">{% endif %}
 {% endblock %}
+{% block extrajs %}{{ block.super }}{% if product_tour %}<script src="{% static 'marketing/js/mkt-product-tour.js' %}" defer></script>{% endif %}{% endblock %}
 {% block content %}
-  <h1 class="visually-hidden" data-rmc-injected-h1="1">{{ seo_title|default:"RunMyCampus" }}</h1>
+  {% comment %}Marketing's canonical h1 is the visible hero on each page (editorial
+  surface), so no hidden duplicate is injected here — that produced a double-h1 on the
+  32 pages that carry their own visible hero h1. Overridable for any rare page with no
+  visible heading.{% endcomment %}
+  {% block document_sr_h1 %}{% endblock %}
 <section class="py-2 py-lg-3">
   <div class="page-stack mkt-personality-shell mkt-personality-shell--{{ marketing_personality_id|default:'platform-hub' }}{% block marketing_page_stack_class %}{% endblock %}">
     {% comment %} v2.37 — hero figure adoption; renders for the 7 known surfaces only. {% endcomment %}
@@ -20,6 +29,10 @@
       {% include "components/marketing_hero_image.html" with hero_slug=page.slug priority=True %}
     {% endif %}
     {% block marketing_page_inner %}{% endblock %}
+    {% comment %}Competitive-parity additions — guarded, so they render only on pages that have data.{% endcomment %}
+    {% include "marketing/components/_outcome_stat_band.html" %}
+    {% include "marketing/components/_testimonial_band.html" %}
+    {% include "marketing/components/_product_tour.html" %}
   </div>
 </section>
 {% endblock %}

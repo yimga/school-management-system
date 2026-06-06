@@ -40,7 +40,7 @@ even when SITE_LOGO_URL / PUBLIC_BRAND_LOGO_URL were configured — which is
 why the manager topbar shipped without a real logo.
 ============================================================================
 {% endcomment %}
-{% with bm_size=size|default:32 bm_variant=variant|default:"mark" %}
+{% with bm_size=size|default:32 bm_variant=variant|default:"mark" bm_loading=loading|default:"lazy" %}
 {% comment %}Resolve the effective light + dark logo URLs through the cascade.
    `firstof` returns the first non-empty value; an explicit empty string at
    a higher layer correctly defers to the next layer below.{% endcomment %}
@@ -55,8 +55,8 @@ why the manager topbar shipped without a real logo.
          on [data-resolved-theme] so the swap is JS-free. When only one URL is
          configured, the cascade above mirrors it into the missing slot so
          both <img> tags have a valid src.{% endcomment %}
-      {% if bm_logo_url %}<img src="{{ bm_logo_url }}" alt="" decoding="async" loading="lazy" class="rmc-brand-mark__tenant-logo rmc-brand-mark__tenant-logo--light" data-rmc-brand-variant="light">{% endif %}
-      {% if bm_logo_dark_url %}<img src="{{ bm_logo_dark_url }}" alt="" decoding="async" loading="lazy" class="rmc-brand-mark__tenant-logo rmc-brand-mark__tenant-logo--dark" data-rmc-brand-variant="dark">{% endif %}
+      {% if bm_logo_url %}<img src="{{ bm_logo_url }}" alt="" decoding="async" loading="{{ bm_loading }}"{% if bm_loading == 'eager' %} fetchpriority="high"{% endif %} class="rmc-brand-mark__tenant-logo rmc-brand-mark__tenant-logo--light" data-rmc-brand-variant="light">{% endif %}
+      {% if bm_logo_dark_url %}<img src="{{ bm_logo_dark_url }}" alt="" decoding="async" loading="{{ bm_loading }}"{% if bm_loading == 'eager' %} fetchpriority="high"{% endif %} class="rmc-brand-mark__tenant-logo rmc-brand-mark__tenant-logo--dark" data-rmc-brand-variant="dark">{% endif %}
     {% else %}
       <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" class="rmc-brand-mark__glyph">
         {% comment %} Monogram — geometric letterform; reads at 16px and 80px alike. {% endcomment %}

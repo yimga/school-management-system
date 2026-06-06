@@ -1,0 +1,32 @@
+{% load i18n %}
+{% comment %}Indicative published pricing tiers (derived from the entitlement-calculator constants). Rendered via {% marketing_pricing_tiers %}. Every figure is INDICATIVE — contact / use the calculator for an exact quote.{% endcomment %}
+{% if tiers %}
+<section class="mkt-tiers mkt-edt-container rmc-reveal" data-mkt-reveal aria-labelledby="mkt-tiers-heading">
+  <header class="mkt-tiers__head">
+    <h2 id="mkt-tiers-heading" class="mkt-tiers__title">{% trans "Transparent, indicative pricing" %}</h2>
+    <p class="mkt-tiers__lead">{% trans "Per student, per month — modular, so you only pay for what you switch on. Figures are indicative; use the calculator or talk to us for an exact quote." %}</p>
+  </header>
+  <div class="mkt-tiers__grid">
+    {% for tier in tiers %}
+    <article class="mkt-tiers__card{% if tier.key == 'growth' %} mkt-tiers__card--featured{% endif %}">
+      {% if tier.key == 'growth' %}<span class="mkt-tiers__flag">{% trans "Most popular" %}</span>{% endif %}
+      <h3 class="mkt-tiers__name">{{ tier.name }}</h3>
+      <p class="mkt-tiers__price">
+        {% if tier.is_custom %}
+          <span class="mkt-tiers__price-custom">{% trans "Custom" %}</span>
+        {% else %}
+          <span class="mkt-tiers__price-note">{{ tier.price_note }}</span>
+        {% endif %}
+      </p>
+      <p class="mkt-tiers__who">{{ tier.who_for }}</p>
+      <ul class="mkt-tiers__included">
+        {% for item in tier.included %}<li>{{ item }}</li>{% endfor %}
+      </ul>
+      <a class="mkt-tiers__cta{% if tier.key == 'growth' %} mkt-tiers__cta--primary{% endif %}"
+         href="{% url tier.cta_route %}" data-cta="pricing" data-page="pricing-tiers">{{ tier.cta_label }}</a>
+    </article>
+    {% endfor %}
+  </div>
+  <p class="mkt-tiers__disclaimer">{% trans "Indicative only — not a quote. Final pricing depends on modules, student numbers, region and term." %}</p>
+</section>
+{% endif %}

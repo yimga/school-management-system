@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-fees-payments.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-gear2-lanes.css' %}">
 <link rel="stylesheet" href="{% static 'marketing/css/marketing-visual-engine.css' %}">
+<link rel="stylesheet" href="{% static 'marketing/css/marketing-channel-rails.css' %}">
 {% endblock %}
 {% block extrajs %}{{ block.super }}<script src="{% static 'marketing/js/mkt-split-ledger.js' %}" defer></script>{% endblock %}
 {% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-fees-payments mkt-platform-theme--platform-fees-payments{% endblock %}
@@ -46,6 +47,8 @@
       {% include "marketing/partials/_mkt_split_ledger_compact.html" %}
     </div>
   </header>
+
+  {% include "marketing/components/_channel_rails_strip.html" with rails=payment_rails rails_kind="payments" rails_title=_("Collect fees on the rails parents already use") %}
 
   <div class="mkt-edt-container">
     <div data-mkt-split-ledger>

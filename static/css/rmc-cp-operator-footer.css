@@ -263,3 +263,24 @@ html[data-surface="control-plane"] :is(.rmc-operator-footer-compact, .rmc-operat
     transition: none;
   }
 }
+
+/* Phone: trim the operator footer's decorative tiers so it doesn't eat ~a
+   third of the screen and crowd page CTAs (the MFA "Verify" button overlap).
+   Keep brand + gateway links + legal; drop the informational stat line and the
+   social/trust icon row, and tighten vertical padding. Full footer at >=992px. */
+@media (max-width: 991.98px) {
+  :is(.rmc-operator-footer-compact, .rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .rmc-civic-footer__stat,
+  :is(.rmc-operator-footer-compact, .rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .rmc-civic-footer__social,
+  :is(.rmc-operator-footer-compact, .rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .rmc-civic-footer__strip {
+    display: none;
+  }
+
+  :is(.rmc-operator-footer-compact, .rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]).rmc-civic-footer {
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  :is(.rmc-operator-footer-compact, .rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .rmc-civic-footer__inner {
+    gap: 4px;
+  }
+}

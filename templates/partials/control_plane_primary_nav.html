@@ -5,11 +5,23 @@
    platform palette); subtle ghost surface for inactive pills (no harsh
    white-on-dark borders). {% endcomment %}
 {% if PRIMARY_CONTROL_PLANE_NAV %}
-<nav class="cp-primary-nav rmc-horizontal-nav-rail{% if MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--admin-backoffice{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--control-plane{% endif %} px-3 py-2 border-bottom" aria-label="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Platform backoffice navigation' %}{% else %}{% trans 'Primary product navigation' %}{% endif %}">
+{% comment %} v4.02.x params (both optional, default off — existing call sites unchanged):
+   rail          → icon-rail mode: only the ACTIVE pill shows its text label; the
+                   rest collapse to glyph-only with a native title tooltip. Used when
+                   the nav is relocated INTO the header utility row (saves a whole row
+                   of vertical height). Active state is still page-aware + highlighted.
+   hide_security → skip the trailing security-posture pill (it already lives in the
+                   header actions cluster, so we don't want it twice on one row). {% endcomment %}
+<nav class="cp-primary-nav rmc-horizontal-nav-rail{% if MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--admin-backoffice{% endif %}{% if not MANAGER_PLATFORM_ADMIN_SHELL %} cp-primary-nav--control-plane{% endif %}{% if rail %} cp-primary-nav--rail{% endif %} px-3 py-2 border-bottom" aria-label="{% if MANAGER_PLATFORM_ADMIN_SHELL %}{% trans 'Platform backoffice navigation' %}{% else %}{% trans 'Primary product navigation' %}{% endif %}">
+  {% comment %} v4.02.x: vertical-space management — show the first 5 primary pills inline and
+     fold the remainder into a native "More ▾" dropdown (details/summary, no JS, CSP-safe).
+     Keeps the nav to a single compact row that never wraps. {% endcomment %}
   {% for item in PRIMARY_CONTROL_PLANE_NAV %}
+  {% if forloop.counter <= 5 %}
   <a href="{{ item.url }}"
      class="cp-primary-nav__pill cp-nav-pill{% if item.is_current %} cp-primary-nav__pill--active cp-nav-pill--active{% endif %}"
      {% if item.is_current %}aria-current="page" data-active{% endif %}
+     title="{% trans item.label %}"
      data-cp-primary-id="{{ item.id }}">
     {% if item.glyph %}
       <span class="cp-nav-pill__glyph" aria-hidden="true">{{ item.glyph }}</span>
@@ -18,7 +30,33 @@
     {% endif %}
     <span class="rmc-text-container">{% trans item.label %}</span>
   </a>
+  {% endif %}
   {% endfor %}
-  {% include "partials/rmc_security_posture_nav_button.html" %}
+  {% if PRIMARY_CONTROL_PLANE_NAV|length > 5 %}
+  <details class="cp-primary-nav__more" data-rmc-cp-nav-more="1">
+    <summary class="cp-primary-nav__pill cp-nav-pill cp-primary-nav__more-trigger" aria-label="{% trans 'More navigation' %}">
+      <span class="cp-nav-pill__glyph" aria-hidden="true">⋯</span>
+      <span class="rmc-text-container">{% trans "More" %}</span>
+    </summary>
+    <div class="cp-primary-nav__more-menu" role="menu" aria-label="{% trans 'More navigation items' %}">
+      {% for item in PRIMARY_CONTROL_PLANE_NAV %}
+      {% if forloop.counter > 5 %}
+      <a href="{{ item.url }}"
+         class="cp-primary-nav__more-item{% if item.is_current %} cp-primary-nav__more-item--active{% endif %}"
+         {% if item.is_current %}aria-current="page"{% endif %}
+         role="menuitem" data-cp-primary-id="{{ item.id }}">
+        {% if item.glyph %}
+          <span class="cp-nav-pill__glyph" aria-hidden="true">{{ item.glyph }}</span>
+        {% elif item.icon %}
+          <i class="bi {{ item.icon }}" aria-hidden="true"></i>
+        {% endif %}
+        <span class="rmc-text-container">{% trans item.label %}</span>
+      </a>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
+  {% if not hide_security %}{% include "partials/rmc_security_posture_nav_button.html" %}{% endif %}
 </nav>
 {% endif %}

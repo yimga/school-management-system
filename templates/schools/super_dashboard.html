@@ -17,12 +17,8 @@
 
 {% block cp_workspace_header %}{% endblock %}
 
-{% block cp_shell_header_ticker %}
-<div class="cp-header__row cp-header__row--live" data-rmc-cp-header-live="1">
-  {% include "partials/cockpit/_activity_ticker_landing_strip.html" %}
-</div>
-{{ block.super }}
-{% endblock %}
+{% comment %} v4.02.x: LIVE marquee row is now the DEFAULT in control_plane_unified_header.html
+   (every operator page) — per-dashboard override removed to avoid a double row. {% endcomment %}
 
 {% block cp_content %}
 <a class="visually-hidden-focusable position-absolute top-0 start-0 m-2 btn btn-sm btn-outline-secondary" href="#super-dashboard-main">{% trans "Skip to control plane dashboard" %}</a>

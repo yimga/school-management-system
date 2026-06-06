@@ -17,6 +17,7 @@
   <meta charset="utf-8">
   {% include "partials/rmc_theme_meta.html" %}
   {% include "partials/rmc_social_meta.html" %}
+  {% include "marketing/partials/_intl_seo_head.html" %}
   {% include "marketing/partials/mkt_structured_data.html" %}
   {% comment %} FOUC-safe theme: mkt-theme-bootstrap (rmc-mkt-theme + platform fallback) then platform bootstrap for logged-in cross-shell sync. {% endcomment %}
   <script src="{% static 'marketing/js/mkt-theme-bootstrap.js' %}"></script>
@@ -62,6 +63,7 @@
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-personality-viz.css" %}
   {% comment %} v3.62.10 Wave 9 local-first: marketing band (deferred — keeps blocking stylesheet count ≤5). {% endcomment %}
   {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/rmc-mkt-local-first-band.css" %}
+  {% include "marketing/partials/mkt_deferred_stylesheet.html" with stylesheet="marketing/css/marketing-consent.css" %}
   {% block extrastyle %}{% endblock %}
 </head>
 {% comment %} data-cta (primary|demo|secondary) and data-page (page slug or home|footer) on CTAs are for GTM/analytics conversion tracking. {% endcomment %}
@@ -116,6 +118,9 @@
   {% include "partials/portal_row_detail_drawer_bundle.html" %}
   <script src="{% static 'marketing/js/mkt-proof-interactions.js' %}" defer></script>
   <script src="{% static 'marketing/js/mkt-newsletter-signup.js' %}" defer></script>
+  {% include "marketing/partials/_consent_banner.html" %}
+  <script src="{% static 'marketing/js/mkt-consent.js' %}" defer></script>
+  <script src="{% static 'marketing/js/mkt-marketing-analytics.js' %}" defer></script>
   {% include 'marketing/partials/marketing_analytics.html' %}
   {% include 'components/rum_beacon.html' %}
   {% include "partials/rmc_tour_bootstrap_marketing.html" %}

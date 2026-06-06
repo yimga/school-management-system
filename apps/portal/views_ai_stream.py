@@ -56,17 +56,34 @@ def _stream_chunks(request: HttpRequest, prompt: str, viewport: str) -> Iterator
     data-tier policy, tenant metadata, injection block + audit inside
     ``invoke_stream``). Always yields a ``[DONE]`` terminator.
     """
+    from services.ai_copilot_rbac import prepare_copilot_invoke
+
+    envelope = prepare_copilot_invoke(
+        request,
+        prompt,
+        mode="stream",
+        surface="portal_ai_stream",
+        task_type="general_chat",
+    )
+    if not envelope.allowed:
+        yield _sse_pack(envelope.denial_reason or "That question isn't allowed for your role.")
+        yield b"data: [DONE]\n\n"
+        return
+
     try:
         from services.ai_helpers import invoke_with_request_stream
     except ImportError:
         yield _sse_pack("[ERROR] streaming gateway unavailable")
         yield b"data: [DONE]\n\n"
         return
+    stream_md = dict(envelope.metadata)
+    stream_md["viewport"] = viewport
     gen = invoke_with_request_stream(
         task_type="general_chat",
-        prompt=prompt,
+        prompt=envelope.prompt,
         request=request,
-        metadata={"viewport": viewport, "surface": "portal_ai_stream"},
+        user_query=prompt,
+        metadata=stream_md,
         require_available=False,
     )
     if gen is None:

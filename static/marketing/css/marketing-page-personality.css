@@ -117,6 +117,121 @@ html[data-mkt-personality="platform-marketplace"] {
   --mkt-personality-accent-soft: rgba(139, 92, 246, 0.12);
 }
 
+/* ── Platform personalities that previously fell through to the shared
+   default (orange accent / transparent wash → identical cream hero). Each
+   now carries its registry accent so the eyebrow, cards and hero band are
+   visually distinct per page. Accents mirror apps/schools/marketing_personality.py. */
+html[data-mkt-personality="platform-workflows"] {
+  --mkt-personality-accent: #7c3aed;
+  --mkt-personality-accent-soft: rgba(124, 58, 237, 0.12);
+}
+html[data-mkt-personality="platform-communications"] {
+  --mkt-personality-accent: #4f46e5;
+  --mkt-personality-accent-soft: rgba(79, 70, 229, 0.12);
+}
+html[data-mkt-personality="platform-grading-report-cards"] {
+  --mkt-personality-accent: #b45309;
+  --mkt-personality-accent-soft: rgba(180, 83, 9, 0.12);
+}
+html[data-mkt-personality="platform-offline-first"] {
+  --mkt-personality-accent: #0f766e;
+  --mkt-personality-accent-soft: rgba(15, 118, 110, 0.12);
+}
+html[data-mkt-personality="platform-student-portal"] {
+  --mkt-personality-accent: #0d9488;
+  --mkt-personality-accent-soft: rgba(13, 148, 136, 0.12);
+}
+html[data-mkt-personality="platform-control-plane"] {
+  --mkt-personality-accent: #334155;
+  --mkt-personality-accent-soft: rgba(51, 65, 85, 0.1);
+}
+html[data-mkt-personality="platform-education-os"] {
+  --mkt-personality-accent: #4338ca;
+  --mkt-personality-accent-soft: rgba(67, 56, 202, 0.12);
+}
+html[data-mkt-personality="platform-integrations"] {
+  --mkt-personality-accent: #0284c7;
+  --mkt-personality-accent-soft: rgba(2, 132, 199, 0.12);
+}
+html[data-mkt-personality="platform-runtime"] {
+  --mkt-personality-accent: #475569;
+  --mkt-personality-accent-soft: rgba(71, 85, 105, 0.12);
+}
+/* security reads as authority (slate-indigo), not the registry's stub pink */
+html[data-mkt-personality="platform-security"] {
+  --mkt-personality-accent: #1d4ed8;
+  --mkt-personality-accent-soft: rgba(29, 78, 216, 0.12);
+}
+
+/* ── Family-shaped hero washes — bold, distinct bands keyed on the per-slug
+   accent var. Previously most platform pages had a transparent wash → a flat
+   cream hero indistinguishable from every other page. Shape varies by family
+   so pages differ by composition, not only hue. All reference the accent var,
+   so they stay theme-token-clean and auto-track any accent change. ── */
+
+/* CLINICAL — crisp diagonal + top-right corner glow (records / money) */
+html[data-mkt-personality="platform-fees-payments"],
+html[data-mkt-personality="platform-student-information-system"] {
+  --mkt-personality-hero-wash:
+    linear-gradient(122deg, color-mix(in srgb, var(--mkt-personality-accent) 16%, transparent) 0%, transparent 52%),
+    radial-gradient(58% 78% at 96% -8%, color-mix(in srgb, var(--mkt-personality-accent) 15%, transparent), transparent 62%);
+}
+
+/* FLUID — soft dual radial blobs (human / learning portals) */
+html[data-mkt-personality="platform-parent-portal"],
+html[data-mkt-personality="platform-teacher-portal"],
+html[data-mkt-personality="platform-student-portal"],
+html[data-mkt-personality="platform-grading-report-cards"] {
+  --mkt-personality-hero-wash:
+    radial-gradient(46% 70% at 8% 12%, color-mix(in srgb, var(--mkt-personality-accent) 16%, transparent), transparent 60%),
+    radial-gradient(40% 64% at 100% 96%, color-mix(in srgb, var(--mkt-personality-accent) 13%, transparent), transparent 58%);
+}
+
+/* RUGGED — engineered scanline texture over a low base tint (resilience) */
+html[data-mkt-personality="platform-attendance"],
+html[data-mkt-personality="platform-offline-first"] {
+  --mkt-personality-hero-wash:
+    repeating-linear-gradient(135deg,
+      color-mix(in srgb, var(--mkt-personality-accent) 9%, transparent) 0,
+      color-mix(in srgb, var(--mkt-personality-accent) 9%, transparent) 2px,
+      transparent 2px, transparent 11px),
+    linear-gradient(180deg, color-mix(in srgb, var(--mkt-personality-accent) 12%, transparent), transparent 46%);
+}
+
+/* GOVERNANCE — authoritative top-down band (security / control plane) */
+html[data-mkt-personality="platform-security"],
+html[data-mkt-personality="platform-control-plane"],
+html[data-mkt-personality="platform-runtime"] {
+  --mkt-personality-hero-wash:
+    linear-gradient(180deg, color-mix(in srgb, var(--mkt-personality-accent) 17%, transparent) 0%, transparent 50%),
+    linear-gradient(90deg, color-mix(in srgb, var(--mkt-personality-accent) 8%, transparent), transparent 70%);
+}
+
+/* SOVEREIGN — wide diagonal data sweep (orchestration / platform breadth) */
+html[data-mkt-personality="platform-analytics"],
+html[data-mkt-personality="platform-workflows"],
+html[data-mkt-personality="platform-communications"],
+html[data-mkt-personality="platform-integrations"],
+html[data-mkt-personality="platform-education-os"],
+html[data-mkt-personality="platform-marketplace"],
+html[data-mkt-personality="platform-hub"] {
+  --mkt-personality-hero-wash:
+    linear-gradient(108deg, color-mix(in srgb, var(--mkt-personality-accent) 18%, transparent) 0%,
+      color-mix(in srgb, var(--mkt-personality-accent) 6%, transparent) 38%, transparent 66%);
+}
+
+/* lane-* parents (shorthand routes) inherit the clinical/fluid shapes too */
+html[data-mkt-personality="lane-finance"] {
+  --mkt-personality-hero-wash:
+    linear-gradient(122deg, color-mix(in srgb, var(--mkt-personality-accent) 16%, transparent) 0%, transparent 52%),
+    radial-gradient(58% 78% at 96% -8%, color-mix(in srgb, var(--mkt-personality-accent) 15%, transparent), transparent 62%);
+}
+html[data-mkt-personality="lane-academics"] {
+  --mkt-personality-hero-wash:
+    radial-gradient(46% 70% at 8% 12%, color-mix(in srgb, var(--mkt-personality-accent) 16%, transparent), transparent 60%),
+    radial-gradient(40% 64% at 100% 96%, color-mix(in srgb, var(--mkt-personality-accent) 13%, transparent), transparent 58%);
+}
+
 /* ── Personality shell — top accent + page atmosphere ── */
 .mkt-personality-shell {
   position: relative;

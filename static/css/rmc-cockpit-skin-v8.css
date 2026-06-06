@@ -175,3 +175,540 @@
 @media (prefers-reduced-motion: reduce) {
   .cp-btn-primary:hover { transform: none; }
 }
+
+/* ============================================================
+   v8 HEADER RESTORE — un-collapse the consolidated single band
+   ------------------------------------------------------------
+   rmc-cp-consolidated-operator-shell.css crams the operator header
+   (utility + LIVE + primary nav) into ONE 52.8px line with
+   overflow:hidden — to "recover ~110px". The owner wants the v8 200x
+   header (preview_app_shell_super_v8_200x.html): a spacious vertical
+   stack of rows. We restore that ONLY on the operator shells
+   (control-plane / admin-manager). The consolidated sheet loads AFTER
+   this one, so each selector is prefixed with html[data-cockpit-skin]
+   to win on specificity without !important. Tenant/portal (which also
+   loads this sheet) is untouched — the body shell classes gate it.
+   ============================================================ */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__unified-band,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__unified-band {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  grid-template-columns: none;
+  grid-template-rows: none;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+/* Utility row spans full width with a hairline under it (v8 row separation). */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--utility,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--utility {
+  grid-column: auto;
+  grid-row: auto;
+  width: 100%;
+  border-bottom: 1px solid var(--rmc-cockpit-chrome-hairline, var(--hairline));
+}
+
+/* Primary-nav row spans full width and centers the pills (v8 layout). */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--inline-chrome,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--inline-chrome {
+  grid-column: auto;
+  grid-row: auto;
+  width: 100%;
+  max-width: none;
+  justify-content: center;
+  padding-block: calc(var(--space-2, 8px) * 0.75);
+}
+
+/* Restore the brand tagline the consolidation hid. */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-brand__tagline,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-brand__tagline,
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .rmc-cockpit-tagline,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .rmc-cockpit-tagline {
+  display: block;
+}
+
+/* Give the command search room to breathe (consolidation capped it at 360px). */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--utility .rmc-platform-header__command,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--utility .rmc-platform-header__command {
+  max-width: min(560px, 46vw);
+}
+
+/* Primary nav: spacious v8 pills, allowed to wrap and center instead of a
+   tiny horizontal scroller. */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__nav-slot,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__nav-slot {
+  flex: 0 1 auto;
+  overflow: visible;
+}
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__nav-slot .cp-primary-nav,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__nav-slot .cp-primary-nav {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--space-2, 8px) * 0.75);
+  overflow: visible;
+}
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__nav-slot .cp-primary-nav__pill,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__nav-slot .cp-primary-nav__pill {
+  flex: 0 0 auto;
+  padding: calc(var(--space-2, 8px) * 0.875) calc(var(--space-2, 8px) * 1.75);
+  font-size: var(--type-size-sm, 13px);
+  min-height: 0;
+}
+
+/* ---- Embedded LIVE marquee row (v8 row 2) ----
+   The full scrolling activity marquee now renders as its own header row on every
+   operator page (was a tiny inline badge by the bell, removed per owner). Keep it a
+   slim full-width strip so the 3-row header stays COMPACT but not cramped. */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--live,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--live {
+  grid-column: auto;
+  grid-row: auto;
+  width: 100%;
+  min-width: 0;
+  display: block;
+  border-top: 1px solid var(--rmc-cockpit-chrome-hairline, var(--hairline));
+}
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--live .rmc-cp-landing-ticker,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--live .rmc-cp-landing-ticker {
+  margin: 0;
+  width: 100%;
+}
+/* No activity to show → collapse the row so there's no empty hairline strip. */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--live:not(:has(.cp-live-strip)),
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--live:not(:has(.cp-live-strip)) {
+  display: none;
+}
+
+/* ---- COMPACT (not cramped) header rows — reclaim vertical space ----
+   The owner wants more content height: trim the chrome row heights so the
+   3-row v8 header stays tight. Slim utility row + nav row + marquee. */
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--utility .rmc-platform-header__inner,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--utility .rmc-platform-header__inner {
+  min-height: calc(var(--space-2, 8px) * 6);
+  padding-block: calc(var(--space-2, 8px) * 0.5);
+}
+html[data-cockpit-skin] body.control-plane-shell .cp-header--consolidated .cp-header__row--inline-chrome,
+html[data-cockpit-skin] body.admin-manager-shell .cp-header--consolidated .cp-header__row--inline-chrome {
+  padding-block: calc(var(--space-2, 8px) * 0.5);
+}
+
+/* ============================================================
+   /admin/ CHANGELIST density — kill the wasted space
+   ------------------------------------------------------------
+   The few-column results table was forced to min-width:100% with
+   table-layout:auto, so 4–5 columns stretched across the full canvas
+   leaving big inter-column gaps. Make columns CONTENT-tight, hug the
+   table + filter rail to the left, and tighten the gap so space is
+   "managed" (one clean block, trailing whitespace at the edge) rather
+   than spread between columns. Owner: "compact but not cramped."
+   ============================================================ */
+html[data-cockpit-skin] body.admin-manager-shell.change-list .result-list-wrapper {
+  gap: var(--space-3, 12px);
+  align-items: flex-start;
+}
+html[data-cockpit-skin] body.admin-manager-shell.change-list .rmc-admin-changelist-main {
+  flex: 0 1 auto;            /* hug the table instead of growing into a gap */
+  max-width: 100%;
+}
+html[data-cockpit-skin] body.admin-manager-shell.change-list .results table,
+html[data-cockpit-skin] body.admin-manager-shell.change-list #result_list {
+  min-width: 0;              /* was 100% → columns no longer stretch to fill the canvas */
+}
+/* Trim the vertical breathing room a touch (compact, not cramped). */
+html[data-cockpit-skin] body.admin-manager-shell.change-list #result_list th,
+html[data-cockpit-skin] body.admin-manager-shell.change-list #result_list td {
+  padding-block: calc(var(--space-2, 8px) * 0.75);
+}
+
+/* ============================================================
+   Primary-nav "More ▾" overflow dropdown (native details/summary)
+   ------------------------------------------------------------
+   Keeps the emoji nav to a single compact row that never wraps:
+   first 5 pills inline, the rest fold into this menu. No JS.
+   ============================================================ */
+.cp-primary-nav__more {
+  position: relative;
+  display: inline-flex;
+  /* A generic `details { background: var(--admin-content-bg) }` rule (for admin
+     collapsible fieldsets) otherwise paints this nav <details> cream in light
+     mode → the light "More" label lands on cream. The nav lives in the dark
+     chrome header, so the wrapper must be transparent (the menu carries its own
+     surface). */
+  background: transparent;
+}
+.cp-primary-nav__more > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.cp-primary-nav__more > summary::-webkit-details-marker { display: none; }
+.cp-primary-nav__more > summary::marker { content: ""; }
+.cp-primary-nav__more-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  min-width: 13rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: calc(var(--space-2, 8px) * 0.75);
+  border-radius: var(--radius-md, 12px);
+  background: var(--rmc-cockpit-chrome-surface, #0f1530);  /* off-token-allow: cockpit-dropdown-surface */
+  border: 1px solid var(--rmc-cockpit-chrome-hairline, var(--hairline));
+  box-shadow: 0 18px 48px rgba(8, 11, 28, 0.45);  /* off-token-allow: cockpit-dropdown-elevation */
+}
+[data-cockpit-skin="light"] .cp-primary-nav__more-menu {
+  background: var(--surface-elevated);
+}
+.cp-primary-nav__more-item {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space-2, 8px) * 0.75);
+  padding: calc(var(--space-2, 8px) * 0.75) calc(var(--space-2, 8px));
+  border-radius: var(--radius-sm, 8px);
+  font-size: var(--type-size-sm, 13px);
+  color: var(--rmc-cockpit-chrome-text, var(--text-secondary));
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cp-primary-nav__more-item:hover {
+  background: var(--rmc-cockpit-chrome-glass-strong, rgba(255, 255, 255, 0.09));
+  color: var(--rmc-cockpit-chrome-ink, var(--text-primary));
+}
+.cp-primary-nav__more-item--active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.30), rgba(168, 85, 247, 0.20));  /* off-token-allow: cockpit-active-pill */
+  color: #ddd6fe;  /* off-token-allow: cockpit-active-pill-ink */
+  font-weight: 600;
+}
+
+/* ============================================================
+   /admin/ CONTENT DENSITY — compact, not cramped
+   ------------------------------------------------------------
+   Compress the vertical gaps in the operator content chrome so the
+   body sits tight under the header (more usable height, less dead
+   space) — WITHOUT viewport-locking or clipping text. 8px-scale.
+   ============================================================ */
+html[data-cockpit-skin] body.admin-manager-shell .cp-page-body,
+html[data-cockpit-skin] body.admin-manager-shell .cp-admin-page-body {
+  padding-top: calc(var(--space-2, 8px) * 1.5);
+  padding-bottom: calc(var(--space-2, 8px) * 1.5);
+}
+html[data-cockpit-skin] body.admin-manager-shell .rmc-admin-changelist-pagehead {
+  margin-bottom: calc(var(--space-2, 8px) * 1.5);
+}
+html[data-cockpit-skin] body.admin-manager-shell .rmc-admin-changelist-toolbar {
+  gap: calc(var(--space-2, 8px) * 1.5);
+  margin-bottom: calc(var(--space-2, 8px) * 1.5);
+}
+/* The breadcrumb + operator-steering strips stack a lot of chrome above the
+   content — tighten their vertical rhythm. */
+html[data-cockpit-skin] body.admin-manager-shell .rmc-admin-breadcrumb-nav {
+  padding-top: calc(var(--space-2, 8px) * 0.5);
+  padding-bottom: calc(var(--space-2, 8px) * 0.5);
+}
+
+/* ============================================================
+   Empty-state card (components/rmc_empty_state_card.html)
+   ------------------------------------------------------------
+   Fills a zero-record panel with a centered prompt instead of dead
+   space. Theme-aware via semantic tokens; no clipping, no 100dvh.
+   ============================================================ */
+.rmc-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-2, 8px);
+  padding: calc(var(--space-2, 8px) * 5) calc(var(--space-2, 8px) * 3);
+  min-height: calc(var(--space-2, 8px) * 26);
+  border: 1px dashed var(--hairline-strong, var(--hairline));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-canvas, transparent);
+  color: var(--text-secondary);
+}
+.rmc-empty-state--compact {
+  padding: calc(var(--space-2, 8px) * 2.5) calc(var(--space-2, 8px) * 2);
+  min-height: calc(var(--space-2, 8px) * 14);
+}
+.rmc-empty-state__icon {
+  display: grid;
+  place-items: center;
+  width: calc(var(--space-2, 8px) * 6);
+  height: calc(var(--space-2, 8px) * 6);
+  border-radius: 50%;
+  background: var(--surface-sunken, var(--surface-elevated));
+  color: var(--text-tertiary);
+  font-size: 22px;
+  margin-bottom: calc(var(--space-2, 8px) * 0.5);
+}
+.rmc-empty-state__title {
+  margin: 0;
+  font-size: var(--type-size-md, 15px);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.rmc-empty-state__desc {
+  margin: 0;
+  max-width: 42ch;
+  font-size: var(--type-size-sm, 13px);
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+.rmc-empty-state__cta { margin-top: var(--space-2, 8px); }
+
+/* ============================================================
+   v4.02.x — PRIMARY NAV relocated into the header utility row
+   ------------------------------------------------------------
+   The section nav used to take its own full-width row under the
+   live marquee. It now renders as a compact ICON RAIL inside the
+   utility row, in the gap between the search box and the right-
+   hand actions cluster — reclaiming a whole row of vertical
+   height. Platform-wide: operator /super/ AND manager /admin/
+   both render manager_operator_topbar.html. Page-aware: the
+   active section keeps its text label + the dual-plane gradient
+   (section E of rmc-theme-experience-dual-plane.css); the rest
+   collapse to a glyph with a native tooltip.
+   ============================================================ */
+
+/* Placement: consume the free gap and centre the pills; min-width:0
+   lets the rail shrink before it ever forces a wrap. */
+.rmc-platform-header__nav-rail {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Strip the standalone-row chrome off the embedded nav. */
+.rmc-platform-header__nav-rail .cp-primary-nav {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  flex-wrap: nowrap;
+  gap: 4px;
+  min-width: 0;
+}
+@media (min-width: 1200px) {
+  /* With the rail present, stop the search box greedily eating the
+     gap so the rail has room (page-aware via :has). */
+  .rmc-platform-header__toolbar:has(.rmc-platform-header__nav-rail) .rmc-platform-header__command {
+    flex: 0 1 auto;
+  }
+}
+
+/* ---- ICON RAIL mode (cp-primary-nav--rail) ----
+   Only the ACTIVE pill (+ the More trigger) show their text; every
+   other pill collapses to a glyph. The label is CLIPPED (not
+   display:none) so it stays in the a11y tree, and a native title
+   tooltip is on each pill. */
+.cp-primary-nav--rail .cp-primary-nav__pill,
+.cp-primary-nav--rail .cp-primary-nav__more-trigger {
+  padding-inline: 8px;
+  gap: 6px;
+}
+.cp-primary-nav--rail .cp-primary-nav__pill:not(.cp-primary-nav__pill--active):not(.cp-primary-nav__more-trigger) .rmc-text-container {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.cp-primary-nav--rail .cp-primary-nav__pill .cp-nav-pill__glyph,
+.cp-primary-nav--rail .cp-primary-nav__more-trigger .cp-nav-pill__glyph {
+  font-size: 16px;
+  line-height: 1;
+}
+.cp-primary-nav--rail .cp-primary-nav__pill--active .rmc-text-container {
+  font-weight: 600;
+}
+
+/* ============================================================
+   v4.02.x — Admin model-catalog cards readable on the body plane
+   ------------------------------------------------------------
+   The catalog cards (admin index) were authored for the old all-
+   dark admin and sit on --surface-canvas, which barely lifts off
+   the operator canvas — reading as a wall of dark bars (esp. in
+   dark mode). Lift them onto the ELEVATED surface with explicit,
+   theme-aware text so they read as proper cards on the light body
+   (and still lift off the dark canvas in dark mode). The cards are
+   KEPT — they're the clickable model index, not dead space.
+   ============================================================ */
+html[data-cockpit-skin] body.admin-manager-shell .rmc-admin-catalog-model-card,
+html[data-cockpit-skin] body.control-plane-shell .rmc-admin-catalog-model-card,
+html[data-cockpit-skin] body.admin-manager-shell .cp-catalog-card,
+html[data-cockpit-skin] body.control-plane-shell .cp-catalog-card {
+  background: var(--surface-elevated, #ffffff);
+  color: var(--text-primary);
+  border-color: var(--hairline);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); /* off-token-allow: card-lift-shadow */
+}
+html[data-cockpit-skin] body.admin-manager-shell .rmc-admin-catalog-section,
+html[data-cockpit-skin] body.control-plane-shell .rmc-admin-catalog-section {
+  background: var(--surface-canvas);
+  border-color: var(--hairline);
+}
+html[data-cockpit-skin] body.admin-manager-shell .rmc-admin-catalog-section > summary,
+html[data-cockpit-skin] body.control-plane-shell .rmc-admin-catalog-section > summary {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   v4.02.x — Live world map: tenant status colour key
+   ------------------------------------------------------------
+   Legend for the pulsing, geo-clustered tenant dots that are
+   coloured by lifecycle status (active / suspended / frozen).
+   ============================================================ */
+.lx-world__status-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: var(--space-2, 8px);
+  padding-top: var(--space-2, 8px);
+  border-top: 1px solid var(--hairline, rgba(148, 163, 184, 0.2));
+}
+.lx-world__status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.lx-world__status-swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12); /* off-token-allow: status-swatch-halo */
+}
+
+/* ============================================================
+   v4.02.x — Nav row with VALUE flanks (control-plane / /super/)
+   ------------------------------------------------------------
+   The primary-nav row used to be centred pills with big dead
+   gaps left + right. Claim those flanks: a live system-status
+   chip (left) and quick operator actions (right). Chrome tokens
+   keep it correct on the always-dark cockpit header.
+   ============================================================ */
+.cp-header__row--nav-flanked {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cp-header__row--nav-flanked .cp-header__nav-slot {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+.cp-header__nav-flank {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cp-header__nav-flank--end { justify-content: flex-end; }
+
+.cp-nav-status-chip,
+.cp-nav-flank-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--rmc-cockpit-chrome-hairline, rgba(255, 255, 255, 0.12));
+  background: var(--rmc-cockpit-chrome-glass, rgba(255, 255, 255, 0.05));
+  color: var(--rmc-cockpit-chrome-text, rgba(255, 255, 255, 0.85));
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cp-nav-status-chip:hover,
+.cp-nav-flank-action:hover {
+  background: var(--rmc-cockpit-chrome-glass-strong, rgba(255, 255, 255, 0.09));
+}
+.cp-nav-status-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34d399; /* off-token-allow: status-ok-dot */
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18); /* off-token-allow: status-ok-halo */
+  animation: cp-nav-status-pulse 2.2s ease-in-out infinite;
+}
+.cp-nav-status-chip--alert .cp-nav-status-chip__dot {
+  background: #fbbf24; /* off-token-allow: status-warn-dot */
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2); /* off-token-allow: status-warn-halo */
+}
+@keyframes cp-nav-status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.cp-nav-flank-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  text-decoration: none;
+  white-space: nowrap;
+  color: var(--rmc-cockpit-chrome-text, rgba(255, 255, 255, 0.85));
+}
+.cp-nav-flank-stat__value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fcd34d; /* off-token-allow: attention-amber */
+}
+.cp-nav-flank-stat__label {
+  font-size: 11px;
+  color: var(--rmc-cockpit-chrome-muted, rgba(255, 255, 255, 0.55));
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-nav-status-chip__dot { animation: none; }
+}
+/* Below lg there isn't room for flanks beside the pills — drop them. */
+@media (max-width: 991.98px) {
+  .cp-header__row--nav-flanked .cp-header__nav-flank { display: none; }
+}
+
+/* ============================================================
+   v4.02.x — THEME-AWARE command-center hero (light body fix)
+   ------------------------------------------------------------
+   rmc-platform-chrome-premium.css paints the "premium command
+   center" hero + visual panel + story cards with always-dark ink
+   (--cp-ink-canvas #0b1120). On the LIGHT operator body the text
+   follows the theme (dark) → dark-on-dark "black section". Flip
+   those surfaces to LIGHT in light mode so they match the body
+   plane (dark mode keeps the original premium-dark look). Higher
+   specificity than the premium rules so these win.
+   ============================================================ */
+html[data-resolved-theme="light"] body.control-plane-shell [data-rmc-premium-command-center="1"] .rmc-wcx-hero,
+html[data-bs-theme="light"] body.control-plane-shell [data-rmc-premium-command-center="1"] .rmc-wcx-hero {
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--school-primary, #6366f1) 7%, var(--surface-elevated, #ffffff)),
+      color-mix(in oklab, var(--school-accent, #10b981) 5%, var(--surface-canvas, #f6f7fb)));
+  border-color: var(--hairline);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6), /* off-token-allow: light-hero-inner */
+    0 10px 30px rgba(15, 23, 42, 0.06);      /* off-token-allow: light-hero-lift */
+}
+html[data-resolved-theme="light"] body.control-plane-shell [data-rmc-premium-command-center="1"] .rmc-wcx-visual-panel,
+html[data-bs-theme="light"] body.control-plane-shell [data-rmc-premium-command-center="1"] .rmc-wcx-visual-panel {
+  background: var(--surface-canvas, #f6f7fb);
+  border-color: var(--hairline);
+}
+html[data-resolved-theme="light"] body.control-plane-shell #cp-main-content .rmc-wcx-product-card,
+html[data-resolved-theme="light"] body.control-plane-shell #cp-main-content .rmc-wcx-risk-card,
+html[data-bs-theme="light"] body.control-plane-shell #cp-main-content .rmc-wcx-product-card,
+html[data-bs-theme="light"] body.control-plane-shell #cp-main-content .rmc-wcx-risk-card {
+  background: var(--surface-elevated, #ffffff);
+  border-color: var(--hairline);
+}

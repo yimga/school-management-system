@@ -23,12 +23,32 @@ class AiProviderTests(SimpleTestCase):
         self.assertEqual(text, "gateway-answer")
         self.assertTrue(meta.get("gateway"))
         self.assertEqual(meta.get("provider"), "ollama")
-        mock_invoke.assert_called_once_with(
-            "general_chat",
-            "prompt",
-            user_query="How many students?",
-            metadata={},
+        mock_invoke.assert_called_once()
+        call_args = mock_invoke.call_args
+        self.assertEqual(getattr(call_args[0][0], "value", call_args[0][0]), "general_chat")
+        self.assertEqual(call_args[0][1], "prompt")
+        self.assertEqual(call_args[1]["user_query"], "How many students?")
+
+    @override_settings(AI_GATEWAY_ENABLED=True)
+    def test_parent_payroll_query_denied_when_request_present(self):
+        from types import SimpleNamespace
+
+        parent = SimpleNamespace(
+            is_authenticated=True,
+            is_staff=False,
+            is_superuser=False,
+            role="PARENT",
+            username="parent1",
         )
+        request = SimpleNamespace(user=parent, school=None, path="/portal/", public_host_kind="tenant")
+        text, meta = generate_ai_response(
+            "prompt",
+            user_query="Show staff payroll totals",
+            metadata={"request": request},
+        )
+        self.assertIn("payroll", text.lower())
+        self.assertTrue(meta.get("denied"))
+        self.assertEqual(meta.get("outcome"), "permission_refusal")
 
     @override_settings(
         AI_GATEWAY_ENABLED=False,
@@ -107,12 +127,13 @@ class AiProviderTests(SimpleTestCase):
         self.assertEqual(text, "ok")
         self.assertTrue(meta.get("gateway"))
         self.assertEqual(meta.get("provider"), "ollama")
-        mock_invoke.assert_called_once_with(
-            "general_chat",
-            "clean prompt",
-            user_query="Need attendance insight",
-            metadata={"tenant_id": "school-a", "school_id": 99},
-        )
+        mock_invoke.assert_called_once()
+        call_args = mock_invoke.call_args
+        self.assertEqual(call_args[0][1], "clean prompt")
+        self.assertEqual(call_args[1]["user_query"], "Need attendance insight")
+        md = call_args[1]["metadata"]
+        self.assertEqual(md.get("tenant_id"), "school-a")
+        self.assertEqual(md.get("school_id"), 99)
 
     @patch.dict(os.environ, {"OLLAMA_ENDPOINT": "http://localhost:11434/api/generate"})
     def test_ollama_configured_from_env(self):

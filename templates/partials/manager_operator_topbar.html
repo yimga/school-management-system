@@ -21,7 +21,7 @@
            cockpit_shell.tagline (brand_experience cascade) with legacy cockpit.brand.tagline
            fallback. Renders only when non-empty so existing surfaces aren't visually changed. {% endcomment %}
         {% if cockpit_shell.tagline or cockpit.brand.tagline %}
-        <span class="rmc-cockpit-tagline cp-brand__tagline">{{ cockpit_shell.tagline|default:cockpit.brand.tagline }}</span>
+        <span class="rmc-cockpit-tagline cp-brand__tagline">{% firstof cockpit_shell.tagline cockpit.brand.tagline %}</span>
         {% endif %}
         {% endif %}
       </div>
@@ -40,6 +40,19 @@
           </div>
         </div>
         {% endif %}
+          {% comment %} v4.02.x: PRIMARY NAV relocated INTO the header utility row as a compact
+             icon rail (active section shows its label, others are tooltip'd glyphs), filling the
+             gap between the search box and the right-hand cluster. This reclaims the entire former
+             nav ROW of vertical height. SCOPED to the manager /admin/ BACKOFFICE shell only
+             (MANAGER_PLATFORM_ADMIN_SHELL): the /super/ control-plane already ships the polished
+             full nav row, which the owner prefers, so we leave it alone there. Shown at xl+; below
+             xl the dedicated fallback nav row in control_plane_unified_header.html takes over.
+             hide_security=True because the security shield already sits in the actions cluster. {% endcomment %}
+          {% if PRIMARY_CONTROL_PLANE_NAV and MANAGER_PLATFORM_ADMIN_SHELL %}
+          <div class="rmc-platform-header__nav-rail d-none d-xl-flex" data-rmc-header-nav-rail="1">
+            {% include "partials/control_plane_primary_nav.html" with rail=True hide_security=True %}
+          </div>
+          {% endif %}
           {% if request.user.is_authenticated and SHOW_HEADER_CONTEXT_STRIP %}
           <div class="rmc-platform-header__context d-none d-lg-flex align-items-center" data-rmc-header-context-compact="1">
             {% include "components/header_weather_widget.html" with SHOW_HEADER_CONTEXT_QUOTE=False %}
@@ -72,17 +85,24 @@
                 <i class="bi bi-shield{% if mfa_enrolled %}-check{% endif %}" aria-hidden="true"></i>
               </a>
             {% endif %}
-            <button type="button" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn" id="cpShowShortcutsHelp" data-rmc-kbd-cheatsheet-trigger aria-label="{% trans 'Keyboard shortcuts' %}" title="{% trans 'Keyboard shortcuts' %}">
-              <i class="bi bi-command" aria-hidden="true"></i>
-            </button>
+            {% comment %} v4.02.x: the standalone ⌘ Keyboard-shortcuts icon button was REMOVED from
+               the header — it duplicated the avatar menu's "Keyboard shortcuts" item and is still
+               reachable via the `?` key, the avatar menu, the operator tools tray, and (on /super/)
+               the Workspace dropdown's Operator-tools section. window.cpShowShortcutsHelp() + the
+               [data-rmc-kbd-cheatsheet-trigger] delegation keep working without this button. {% endcomment %}
             {% comment %} v4.00.24 Studio chip removed from manager header (Workspace + Cmd+K).
-               Config chip — CONFIGURABLE via cockpit_shell.show.config_chip (per-surface). {% endcomment %}
+               Config Control Center — CONFIGURABLE via cockpit_shell.show.config_chip (per-surface).
+               v4.02.x: on the manager /admin/ BACKOFFICE shell (which has no Workspace dropdown) it
+               stays as a direct ICON button (text label dropped — icon-only, matches the cluster).
+               On /super/ it's folded into the Workspace dropdown's Operator-tools section instead,
+               so it no longer sits as a loose standalone button in that cluster. {% endcomment %}
+            {% if MANAGER_PLATFORM_ADMIN_SHELL %}
             {% if cockpit_shell.show.config_chip or not cockpit_shell %}
             {% if not rmc_shell.manager_header_hide_config_chip %}
-            <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light rmc-platform-header__chip d-none d-lg-inline-flex" title="{% trans 'Configuration Control Center' %}" data-rmc-header-config-chip="1">
+            <a href="{% url 'siteconfig:console_domains_hub' %}" class="btn btn-sm btn-outline-light rmc-platform-header__icon-btn d-none d-lg-inline-flex" title="{% trans 'Configuration Control Center' %}" aria-label="{% trans 'Configuration Control Center' %}" data-rmc-header-config-chip="1">
               <i class="bi bi-gear-wide-connected" aria-hidden="true"></i>
-              <span class="d-none d-xl-inline">{% trans "Config" %}</span>
             </a>
+            {% endif %}
             {% endif %}
             {% endif %}
             {% if not MANAGER_PLATFORM_ADMIN_SHELL %}
@@ -102,10 +122,11 @@
               </a>
             {% endif %}
             {% endif %}
-            {% comment %} Tier-1 LIVE badge in header — CONFIGURABLE via cockpit_shell.live_ticker_enabled. {% endcomment %}
-            {% if cockpit_shell.live_ticker_enabled or not cockpit_shell %}
-            {% include "partials/cockpit/_activity_ticker_inline.html" %}
-            {% endif %}
+            {% comment %} v4.02.x: the inline Tier-1 LIVE badge that used to sit by the bell
+               ("LIVE New school provisioned …") was REMOVED platform-wide per owner. The live
+               feed now renders as the full scrolling marquee ROW embedded in the header
+               (cp-header__row--live in control_plane_unified_header.html), matching the v8 200x
+               preview. {% endcomment %}
             {% comment %} v4.01.43: theme + aesthetic controls moved to user profile dropdown. {% endcomment %}
             {% comment %} v4.02.16: workflow progress chip + inline strip live in Tools tray only. {% endcomment %}
             {% include "components/user_dropdown.html" %}

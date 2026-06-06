@@ -1,7 +1,7 @@
 {% extends "schools/marketing_page_layout.html" %}
 {% load i18n static marketing_media %}
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'marketing/css/marketing-platform-themes.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-v3-dashboards.css' %}"><link rel="stylesheet" href="{% static 'marketing/css/marketing-gear2-lanes.css' %}">{% endblock %}
-{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-sis{% endblock %}
+{% block marketing_page_stack_class %} mkt-page-type-platform-detail mkt-page-platform-sis mkt-platform-theme--platform-student-information-system{% endblock %}
 {% block marketing_page_inner %}
 <article class="mkt-v3-archetype" data-mkt-archetype="student-information-system">
   {% marketing_platform_visual_strip %}

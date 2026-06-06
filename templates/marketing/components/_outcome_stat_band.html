@@ -1,0 +1,16 @@
+{% load i18n %}
+{% if outcome_stats %}
+<section class="mkt-outcome-band rmc-reveal" data-mkt-reveal aria-label="{% trans 'Outcome statistics' %}">
+  <div class="mkt-edt-container mkt-outcome-band__inner">
+    <ul class="mkt-outcome-grid">
+      {% for stat in outcome_stats %}
+      <li class="mkt-outcome-stat">
+        <span class="mkt-outcome-stat__value">{{ stat.value }}</span>
+        <span class="mkt-outcome-stat__label">{{ stat.label }}</span>
+        {% if stat.basis %}<span class="mkt-outcome-stat__basis">{{ stat.basis }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}

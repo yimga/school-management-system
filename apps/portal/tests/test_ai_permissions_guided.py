@@ -57,3 +57,19 @@ class GuidedAssistantPermissionsTests(SimpleTestCase):
         self.assertTrue(get_ai_permission_for_user(u, "observability_assistant", None))
         self.assertTrue(get_ai_permission_for_user(u, "trust_compliance_assistant", None))
         self.assertTrue(get_ai_permission_for_user(u, "billing_usage_explain", None))
+
+    def test_studio_os_assistant_teacher_with_school_ok(self):
+        u = self._user(role="TEACHER")
+        self.assertTrue(get_ai_permission_for_user(u, "studio_os_assistant", object()))
+
+    def test_studio_os_assistant_parent_with_school_ok(self):
+        u = self._user(role="PARENT")
+        self.assertTrue(get_ai_permission_for_user(u, "studio_os_assistant", object()))
+
+    def test_studio_os_assistant_student_with_school_ok(self):
+        u = self._user(role="STUDENT")
+        self.assertTrue(get_ai_permission_for_user(u, "studio_os_assistant", object()))
+
+    def test_studio_os_assistant_without_school_denied_for_teacher(self):
+        u = self._user(role="TEACHER")
+        self.assertFalse(get_ai_permission_for_user(u, "studio_os_assistant", None))

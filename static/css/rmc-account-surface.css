@@ -173,6 +173,18 @@ body.control-plane-shell #cp-main-content .operator-siteconfig-cp-body [data-rmc
     width: 100%;
     border-radius: var(--token-radius-sm, 8px) !important;
   }
+
+  /* Keep the primary CTA clear of the static footer seam so it stays tappable
+     even when the user scrolls to the very bottom of the canvas on a phone.
+     Pairs with the dvh footer-cap fix in rmc-app-shell.css — defense in depth
+     for the mobile MFA "Verify and continue" overlap. */
+  .rmc-account-auth-shell {
+    padding-bottom: var(--space-5, 1.25rem);
+  }
+
+  .rmc-account-mfa-card__body form .btn[type="submit"] {
+    scroll-margin-bottom: var(--space-6, 1.5rem);
+  }
 }
 
 .profile-shell .rmc-account-role-badge {
@@ -412,4 +424,29 @@ body.control-plane-shell #cp-main-content .operator-siteconfig-cp-body [data-rmc
   border-radius: var(--token-radius-sm, 8px);
   background: color-mix(in oklab, var(--ds-warning, #f59e0b) 8%, transparent);
   border: 1px solid color-mix(in oklab, var(--ds-warning, #f59e0b) 24%, var(--hairline));
+}
+
+/* ------------------------------------------------------------------ */
+/* Responsive collapse — MUST come after the base two-column rules     */
+/* ------------------------------------------------------------------ */
+/* SOURCE-ORDER FIX (mobile auth squish): the base two-column
+   `.rmc-account-auth-shell { grid-template-columns: minmax(0,1fr) minmax(18rem,0.32fr) }`
+   and the sticky `.rmc-account-auth-shell__rail` rules are declared ABOVE this
+   point but BELOW the earlier `@media (max-width:1199.98px)` block — so with
+   equal specificity the later base rules won, nullifying the responsive
+   collapse on every viewport. On a phone the rail's 18rem (288px) minimum then
+   crushed the primary column (the MFA card + "Verify" button) to a ~30px
+   sliver that grew tall and spilled behind the footer. Re-asserting the
+   collapse here — after the base rules — restores single-column layout on
+   small screens and lets the card use the full canvas width. */
+@media (max-width: 1199.98px) {
+  .rmc-account-auth-shell,
+  .rmc-account-auth-shell--verify {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rmc-account-auth-shell__rail {
+    position: static;
+    top: auto;
+  }
 }

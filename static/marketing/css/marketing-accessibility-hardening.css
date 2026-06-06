@@ -46,6 +46,17 @@ body.marketing-surface .link-primary:focus-visible {
   color: #042f78; /* off-token-allow: hex-literal-decorative */
 }
 
+/* On the home lane the editorial CTAs all render on the indigo accent
+   (--mkt-accent #4f46e5). The generic `.mkt-edt-cta{color:#1a1612 !important}`
+   hardening rule below then puts dark ink on indigo (2.86:1). Force white on the
+   home lane only (white-on-indigo = 6.3:1); other lanes' gold/orange accents,
+   where dark ink is correct, stay untouched. Higher specificity + !important
+   wins over the generic rule. */
+html[data-mkt-lane="home"] body.marketing-surface .mkt-edt-cta,
+html[data-mkt-lane="home"] body.marketing-surface button[data-mkt-sandbox-submit] {
+  color: #ffffff !important; /* off-token-allow: white CTA ink on home indigo accent (6.3:1) */
+}
+
 body.marketing-surface .btn-primary,
 body.marketing-surface .btn.btn-primary {
   background-color: #0a4f9e !important; /* off-token-allow: hex-literal-decorative */

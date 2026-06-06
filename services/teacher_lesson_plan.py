@@ -16,27 +16,37 @@ MAX_PROMPT_CHARS = 4000
 MAX_OUTLINE_CHARS = 2500
 
 
-def _safe_invoke(task_type, prompt: str, *, school, user_query: str = "") -> tuple[str, dict[str, Any]]:
-    try:
-        from services.ai_gateway import invoke
-    except ImportError:
-        return "", {"error": "ai_gateway unavailable", "provider": "none"}
-    try:
-        result, meta = invoke(
-            task_type,
-            prompt,
-            user_query=user_query,
-            metadata={
-                "school_id": str(getattr(school, "id", "") or ""),
-                "tenant_id": str(getattr(school, "id", "") or ""),
-                "sensitivity_class": "medium",
-                "audit_feature": "lesson_plan_outline",
-            },
-        )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("teacher_lesson_plan: gateway raised %s", exc)
-        return "", {"error": str(exc)[:200], "provider": "none"}
-    return (result or "").strip() if isinstance(result, str) else "", meta or {}
+def _resolve_user(user, teacher):
+    if user is not None:
+        return user
+    if teacher is not None:
+        return getattr(teacher, "user", None)
+    return None
+
+
+def _safe_invoke(
+    task_type,
+    prompt: str,
+    *,
+    school,
+    user=None,
+    teacher=None,
+    user_query: str = "",
+) -> tuple[str, dict[str, Any]]:
+    from services.ai_copilot_rbac import invoke_service_layer_ai
+
+    actor = _resolve_user(user, teacher)
+    text, meta = invoke_service_layer_ai(
+        user=actor,
+        school=school,
+        task_type=task_type,
+        prompt=prompt,
+        user_query=user_query,
+        surface="teacher_lesson_plan",
+    )
+    if meta.get("outcome") == "permission_refusal":
+        return "", meta
+    return (text or "").strip() if isinstance(text, str) else "", meta or {}
 
 
 def draft_lesson_plan_outline(
@@ -47,6 +57,7 @@ def draft_lesson_plan_outline(
     grade_level: str,
     intent: str,
     objectives: Iterable[str] | None = None,
+    user=None,
 ) -> tuple[str, dict[str, Any]]:
     """Produce a structured lesson outline (objectives, flow, assessment)."""
     teacher_name = getattr(teacher, "get_full_name", lambda: "")() or getattr(
@@ -71,7 +82,12 @@ def draft_lesson_plan_outline(
     except ImportError:
         return "", {"error": "ai_gateway TaskType unavailable"}
     text, meta = _safe_invoke(
-        TaskType.WORKFLOW_DRAFT, prompt, school=school, user_query=intent
+        TaskType.WORKFLOW_DRAFT,
+        prompt,
+        school=school,
+        user=user,
+        teacher=teacher,
+        user_query=intent,
     )
     if text and len(text) > MAX_OUTLINE_CHARS:
         text = text[: MAX_OUTLINE_CHARS - 1].rstrip() + "…"

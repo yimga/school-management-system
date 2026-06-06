@@ -107,7 +107,7 @@ class ClassroomSyncConsumer(_TenantScopedSyncConsumer):
 class AIChatConsumer(AsyncWebsocketConsumer):
     """
     World Engine B.3: Real-time AI chat over WebSocket.
-    On message receive, calls services.ai_gateway.invoke("general_chat", ...) so all AI goes through the gateway.
+    On message receive, calls services.ai_helpers.invoke_with_request (RBAC guard + gateway).
     """
 
     async def connect(self):
@@ -145,14 +145,52 @@ class AIChatConsumer(AsyncWebsocketConsumer):
         )
 
         def _gateway_infer():
-            extra_md = {"country_code": extra_country} if extra_country else None
-            outcome = invoke_with_request(
+            from services.ai_copilot_rbac import copilot_request_shim, guard_copilot_invoke
+
+            rbac_request = request
+            if self.user is not None and (
+                rbac_request is None
+                or getattr(rbac_request, "user", None) is None
+            ):
+                rbac_request = copilot_request_shim(
+                    user=self.user,
+                    school=school
+                    or (
+                        getattr(rbac_request, "school", None)
+                        if rbac_request is not None
+                        else None
+                    ),
+                    active_url=(
+                        str(getattr(rbac_request, "path", "") or "")
+                        if rbac_request is not None
+                        else ""
+                    ),
+                    host_kind=(
+                        getattr(rbac_request, "public_host_kind", None)
+                        if rbac_request is not None
+                        else None
+                    ),
+                )
+
+            extra_md: dict = {"surface": "websocket_general_chat"}
+            if extra_country:
+                extra_md["country_code"] = extra_country
+            guard = guard_copilot_invoke(
+                request=rbac_request,
                 task_type="general_chat",
                 prompt=prompt,
-                request=request,
-                school=school,
                 user_query=message,
                 metadata=extra_md,
+            )
+            if not guard.allowed:
+                return None, guard.metadata, guard.denial_reason or "permission_denied"
+            outcome = invoke_with_request(
+                task_type="general_chat",
+                prompt=guard.prompt,
+                request=rbac_request,
+                school=school,
+                user_query=message,
+                metadata=guard.metadata,
                 require_available=False,
             )
             if outcome is None:

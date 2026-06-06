@@ -242,8 +242,110 @@ def _resolve_audit_feed() -> dict[str, Any] | None:
 # 4. World map — schools per region
 # ============================================================
 
+# Approx cluster centres on the _live_world_map.html 600×280 stylized continents
+# (region buckets → a believable position on the map blobs).
+_WORLD_REGION_CENTERS = {
+    "North America": (112, 115),
+    "Europe": (214, 108),
+    "West Africa": (244, 150),
+    "Asia · Oceania": (416, 136),
+    "Other": (300, 150),
+}
+# Per-region scatter half-extent (rx, ry). Known regions cluster tightly on
+# their blob; unknown-location ("Other") tenants spread across the whole map
+# so they read as distributed pins, not one overlapping clump.
+_WORLD_REGION_SPREAD = {
+    "North America": (46, 30),
+    "Europe": (40, 26),
+    "West Africa": (40, 28),
+    "Asia · Oceania": (56, 32),
+    "Other": (170, 78),
+}
+_WORLD_BUCKET_FOR = {
+    "US": "North America", "CA": "North America", "MX": "North America",
+    "NG": "West Africa", "GH": "West Africa", "CM": "West Africa",
+    "SL": "West Africa", "CI": "West Africa", "SN": "West Africa",
+    "GB": "Europe", "FR": "Europe", "DE": "Europe", "IE": "Europe",
+    "AU": "Asia · Oceania", "NZ": "Asia · Oceania", "IN": "Asia · Oceania",
+    "SG": "Asia · Oceania", "PH": "Asia · Oceania",
+}
+# Low-discrepancy unit offsets (centred in [-1,1]) — spread points evenly with
+# no Math.random jitter (deterministic across requests). One dot per slot keeps
+# pins from overlapping; we cap visible dots per region to this pattern length.
+_WORLD_SPREAD_UNIT = [
+    (0.0, 0.0), (0.62, 0.30), (-0.55, 0.42), (0.40, -0.55), (-0.72, -0.25), (0.86, 0.56),
+    (-0.34, 0.72), (0.55, 0.64), (-0.86, 0.46), (0.22, -0.80), (0.74, -0.40), (-0.60, -0.64),
+    (0.96, 0.12), (-0.18, 0.92), (0.44, -0.92), (-0.94, -0.12), (0.14, 0.50), (-0.46, -0.06),
+    (0.80, -0.72), (-0.74, 0.80),
+]
+
+
+def _world_map_tenant_dots(active_schools) -> list[dict[str, Any]]:
+    """Per-tenant pulse dots for the live world map — geo-clustered by region
+    and COLOUR-CODED BY LIFECYCLE STATUS so operators can read the fleet at a
+    glance (the mockup's blinking-dot behaviour):
+
+        active / live  → emerald   frozen → blue   suspended → amber
+
+    Visual-only + capped so a large fleet stays legible; positions are
+    deterministic (stable across requests).
+    """
+    CAP = 120
+    rows: list[dict[str, Any]] = list(
+        active_schools.values("country_code", "is_frozen")[:CAP]
+    )
+    # Suspended (is_active=False, not soft-deleted) — guarded so a schema
+    # mismatch can never take the whole map down with it.
+    remaining = max(0, CAP - len(rows))
+    if remaining:
+        try:
+            from apps.schools.models import School
+            # tenant-isolation-allow: platform-cockpit-cross-tenant-world-map
+            rows += [
+                {**r, "is_active": False}
+                for r in School.objects.filter(is_active=False, deleted_at__isnull=True)
+                .values("country_code", "is_frozen")[:remaining]
+            ]
+        except Exception:
+            logger.debug("panels: world_map suspended-dots query skipped", exc_info=True)
+
+    per_region: dict[str, int] = {}
+    dots: list[dict[str, Any]] = []
+    slots = len(_WORLD_SPREAD_UNIT)
+    for i, r in enumerate(rows):
+        cc = (r.get("country_code") or "").upper()
+        region = _WORLD_BUCKET_FOR.get(cc, "Other")
+        n = per_region.get(region, 0)
+        per_region[region] = n + 1
+        # Cap visible pins per region to the spread pattern so they never
+        # overlap into a blob; the true per-region total still shows in the
+        # regional_breakdown legend rows.
+        if n >= slots:
+            continue
+        cx0, cy0 = _WORLD_REGION_CENTERS.get(region, _WORLD_REGION_CENTERS["Other"])
+        rx, ry = _WORLD_REGION_SPREAD.get(region, _WORLD_REGION_SPREAD["Other"])
+        ux, uy = _WORLD_SPREAD_UNIT[n]
+        cx = max(20.0, min(580.0, cx0 + ux * rx))
+        cy = max(16.0, min(264.0, cy0 + uy * ry))
+        if r.get("is_frozen"):
+            color, ring_color, status_label = "#93c5fd", "#3b82f6", _("Frozen")
+        elif r.get("is_active") is False:
+            color, ring_color, status_label = "#fcd34d", "#f59e0b", _("Suspended")
+        else:
+            color, ring_color, status_label = "#6ee7b7", "#10b981", _("Active")
+        dots.append({
+            "cx": round(cx, 1),
+            "cy": round(cy, 1),
+            "color_token": color,
+            "ring_color": ring_color,
+            "status_label": status_label,
+            "delay_s": round((i % 12) * 0.18, 2),
+        })
+    return dots
+
+
 def _resolve_world_map() -> dict[str, Any] | None:
-    """Total schools live + per-region breakdown."""
+    """Total schools live + per-region breakdown + status-coloured tenant dots."""
     try:
         from apps.schools.models import School
         # tenant-isolation-allow: platform-cockpit-cross-tenant-world-map
@@ -294,6 +396,7 @@ def _resolve_world_map() -> dict[str, Any] | None:
                 }
                 for idx, row in enumerate(regional_rows)
             ],
+            "tenant_dots": _world_map_tenant_dots(active_schools),
         }
     except Exception:
         logger.warning("panels: world_map resolver failed", exc_info=True)

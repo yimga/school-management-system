@@ -61,7 +61,9 @@ class PermissionEnforcementTests(SimpleTestCase):
                 )
         mock_invoke.assert_not_called()
         self.assertTrue(out.get("success"))
-        self.assertIn("ledger", out.get("response", "").lower())
+        self.assertEqual(out.get("meta", {}).get("outcome"), "permission_refusal")
+        self.assertTrue(out.get("meta", {}).get("copilot_rbac_enforced"))
+        self.assertIn("financial", out.get("response", "").lower())
 
 
 class HotReloadResiliencyTests(SimpleTestCase):
