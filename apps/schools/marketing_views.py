@@ -26,6 +26,12 @@ from django.views.decorators.csrf import csrf_protect
 from apps.schools.domain_resolution_service import get_canonical_base_domain
 from apps.schools.marketing_institution_premium import INSTITUTION_PREMIUM_LAYER
 from apps.schools.marketing_personality import marketing_personality_context
+from apps.schools.marketing_outcome_stats import outcome_stats_for_slug
+from apps.schools.marketing_product_tours import product_tour_for_slug
+from apps.schools.marketing_channel_rails import (
+    messaging_channels_for_country,
+    payment_rails_for_country,
+)
 from apps.schools.marketing_page_definitions import (
     COMPARE_PAGE_DEFINITIONS,
     GETTING_STARTED_SIMULATOR_STEPS,
@@ -2651,6 +2657,18 @@ def marketing_page(request, page_slug: str):
         "marketing_page_type": page_copy.get("schema_type") or "WebPage",
         "marketing_page_slug": page_slug,
         **marketing_personality_context(page_slug),
+        # Competitive-parity upgrades (2026-06-06): in-section outcome stats,
+        # Vercel-style product tour, and region-aware payment/messaging rails.
+        # Each consumer template is guarded by {% if %}, so non-platform pages
+        # (and countries/slugs with no data) render nothing.
+        "outcome_stats": outcome_stats_for_slug(page_slug),
+        "product_tour": product_tour_for_slug(page_slug),
+        "payment_rails": payment_rails_for_country(
+            base_ctx.get("country_code") or _get_country_from_request(request)
+        ),
+        "messaging_channels": messaging_channels_for_country(
+            base_ctx.get("country_code") or _get_country_from_request(request)
+        ),
         "blog_posts": blog_posts,
         "blog_list_intro_html": blog_list_intro_html,
         **(

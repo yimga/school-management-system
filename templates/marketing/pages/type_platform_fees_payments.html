@@ -47,6 +47,8 @@
     </div>
   </header>
 
+  {% include "marketing/components/_channel_rails_strip.html" with rails=payment_rails rails_kind="payments" rails_title=_("Collect fees on the rails parents already use") %}
+
   <div class="mkt-edt-container">
     <div data-mkt-split-ledger>
       {% include "marketing/components/_platform_visual_engine_strip.html" with viz_key="split_ledger_viz" show_apm_strip=True %}
