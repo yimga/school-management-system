@@ -16,7 +16,7 @@
     </style>
   </defs>
   <rect width="920" height="340" fill="url(#tw-bg)"/>
-  <text class="t" x="460" y="26" text-anchor="middle" font-size="13">Teacher workspace  one surface for the school day</text>
+  <text class="t" x="460" y="26" text-anchor="middle" font-size="13">Teacher workspace — one surface for the school day</text>
   <rect class="panel" x="24" y="44" width="200" height="280"/>
   <text class="ts" x="40" y="68">Class list</text>
   <rect class="hot" x="40" y="78" width="168" height="14"/>

@@ -8,17 +8,17 @@
   <text class="text-light" x="260" y="36" text-anchor="middle">RunMyCampus Ecosystem</text>
   <rect class="box" x="24" y="72" width="150" height="72" rx="8"/>
   <text class="text-box" x="99" y="96">Apps &amp; Packs</text>
-  <text class="text-small" x="99" y="112">Blueprint · Workflow</text>
-  <text class="text-small" x="99" y="126">Dashboard · Theme</text>
+  <text class="text-small" x="99" y="112">Blueprint ï¿½ Workflow</text>
+  <text class="text-small" x="99" y="126">Dashboard ï¿½ Theme</text>
   <rect class="box" x="185" y="72" width="150" height="72" rx="8"/>
   <text class="text-box" x="260" y="96">Integrations</text>
-  <text class="text-small" x="260" y="112">LMS · Payments</text>
-  <text class="text-small" x="260" y="126">SSO · Messaging</text>
+  <text class="text-small" x="260" y="112">LMS ï¿½ Payments</text>
+  <text class="text-small" x="260" y="126">SSO ï¿½ Messaging</text>
   <rect class="box" x="346" y="72" width="150" height="72" rx="8"/>
   <text class="text-box" x="421" y="96">API &amp; Webhooks</text>
-  <text class="text-small" x="421" y="112">REST · Events</text>
-  <text class="text-small" x="421" y="126">Docs · Sandbox</text>
+  <text class="text-small" x="421" y="112">REST ï¿½ Events</text>
+  <text class="text-small" x="421" y="126">Docs ï¿½ Sandbox</text>
   <rect class="box" x="80" y="168" width="360" height="88" rx="8"/>
-  <text class="text-box" x="260" y="198">Tenant runtime  one platform, extended</text>
-  <text class="text-small" x="260" y="218">Install from marketplace · Govern from Control Plane</text>
+  <text class="text-box" x="260" y="198">Tenant runtime â€” one platform, extended</text>
+  <text class="text-small" x="260" y="218">Install from marketplace ï¿½ Govern from Control Plane</text>
 </svg>
