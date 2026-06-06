@@ -26,10 +26,7 @@ from apps.platform_runtime.operator_identity import (
 
 _TenantSettingsModel = django_apps.get_model("siteconfig", "Site" + "Settings")
 
-from .super_admin_bridge_registry import (
-    PLATFORM_ADMIN_BRIDGE_ORDER,
-    PLATFORM_ADMIN_BRIDGES,
-)
+from .super_admin_bridge_registry import PLATFORM_ADMIN_BRIDGES
 
 
 def _config_context(request):
@@ -92,10 +89,6 @@ def super_platform_operator_hub(request):
 
     dashboard_url = reverse("super:dashboard")
     system_config_url = reverse("siteconfig:console_domains_hub")
-    try:
-        admin_index_url = reverse("admin:index")
-    except NoReverseMatch:
-        admin_index_url = None
 
     admin_app_list = platform_admin_site.get_app_list(request)
 
@@ -179,24 +172,6 @@ def super_platform_operator_hub(request):
         except NoReverseMatch:
             pass
 
-    # Platform admin changelists — single ``super:admin_bridge`` route (see super_admin_bridge_registry).
-    for bridge_key in PLATFORM_ADMIN_BRIDGE_ORDER:
-        meta = PLATFORM_ADMIN_BRIDGES.get(bridge_key)
-        if not meta:
-            continue
-        try:
-            super_primary.append(
-                {
-                    "url": reverse("super:admin_bridge", kwargs={"bridge_key": bridge_key}),
-                    "label": str(meta["label"]),
-                    "description": str(meta["description"]),
-                    "icon": str(meta["icon"]),
-                    "kind": "admin",
-                }
-            )
-        except NoReverseMatch:
-            pass
-
     operator_platform_operator_hub_links = list(
         PlatformOperatorPlatformHubLink.objects.order_by("sort_order", "slug")
     )
@@ -207,7 +182,6 @@ def super_platform_operator_hub(request):
         {
             "dashboard_url": dashboard_url,
             "system_config_url": system_config_url,
-            "admin_index_url": admin_index_url,
             "super_primary": super_primary,
             "admin_app_list": admin_app_list,
             "operator_platform_operator_hub_links": operator_platform_operator_hub_links,
@@ -694,19 +668,11 @@ def super_fleet_governed_changes(request):
         FleetGovernedChange.objects.select_related("created_by", "approved_by")
         .order_by("-created_at")[:150]
     )
-    admin_bridge_url = None
-    try:
-        admin_bridge_url = reverse(
-            "super:admin_bridge", kwargs={"bridge_key": "fleet_governed_changes"}
-        )
-    except NoReverseMatch:
-        pass
     return render(
         request,
         "schools/super_fleet_governed_changes.html",
         {
             **_config_context(request),
             "changes": changes,
-            "admin_bridge_url": admin_bridge_url,
         },
     )

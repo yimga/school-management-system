@@ -100,7 +100,6 @@ def super_schools_list(request):
                 school,
                 cached_subscription=subscription_map.get(school.pk),
             ).get("state_label", "")
-    admin_schools_url = None
     operator_super_schools_list_links = list(
         PlatformOperatorSuperSchoolsListLink.objects.order_by("sort_order", "slug")
     )
@@ -110,7 +109,6 @@ def super_schools_list(request):
         {
             "page": page,
             "dashboard_url": reverse("super:dashboard"),
-            "admin_schools_url": admin_schools_url,
             "is_active_filter": is_active if is_active is not None else "",
             "country_code_filter": country_code,
             "primary_sector_filter": primary_sector,

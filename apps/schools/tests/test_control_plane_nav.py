@@ -7,10 +7,6 @@ from apps.schools.control_plane_nav import (
     build_control_plane_nav,
     build_manager_platform_admin_nav,
 )
-from apps.schools.super_admin_bridge_registry import (
-    PLATFORM_ADMIN_BRIDGE_ORDER,
-    PLATFORM_ADMIN_BRIDGES,
-)
 
 
 class ControlPlaneNavParityTests(SimpleTestCase):
@@ -42,16 +38,6 @@ class ControlPlaneNavParityTests(SimpleTestCase):
             "cp_entity_catalog",
             "cp_metadata_dynamic_fields",
             "cp_config_mutation_audit_evidence",
-            "cp_platform_backoffice",
-            "cp_admin_bridge_integrations",
-            "cp_admin_bridge_marketplace_apps",
-            "cp_admin_bridge_packages_installed",
-            "cp_admin_bridge_experience_packs",
-            "cp_admin_bridge_runtime_defaults",
-            "cp_admin_bridge_phase_b_domain_snapshots",
-            "cp_admin_bridge_ai_model_registry",
-            "cp_admin_bridge_global_brand_registry",
-            "cp_admin_bridge_platform_global_branding",
             "cp_report_library",
         }
         missing = required - set(all_ids)
@@ -81,7 +67,7 @@ class ControlPlaneNavParityTests(SimpleTestCase):
         self.assertIn("super_support", ids)
         self.assertIn("super_support_csat", ids)
 
-    def test_advanced_group_uses_direct_admin_urls(self):
+    def test_advanced_group_omits_platform_admin_bridge_links(self):
         request = RequestFactory().get("/super/")
         request.urlconf = "config.manager_urls"
         User = get_user_model()
@@ -89,28 +75,18 @@ class ControlPlaneNavParityTests(SimpleTestCase):
         groups = build_control_plane_nav(request)
         advanced = next((g for g in groups if g.get("label") == "Advanced"), None)
         self.assertIsNotNone(advanced)
-        for item in advanced.get("items") or []:
-            self.assertTrue(item.get("url"), msg=item.get("id"))
-            self.assertNotIn("/super/admin-bridge/", item["url"], msg=item.get("id"))
-        bridge_ids = {
-            meta["nav_id"]
-            for key in PLATFORM_ADMIN_BRIDGE_ORDER
-            if (meta := PLATFORM_ADMIN_BRIDGES.get(key)) and meta.get("show_in_nav")
-        }
         nav_ids = {it["id"] for it in advanced.get("items") or []}
-        self.assertTrue(bridge_ids.issubset(nav_ids), bridge_ids - nav_ids)
-
-    def test_advanced_group_expands_when_admin_changelist_active(self):
-        request = RequestFactory().get("/admin/integrations_marketplace/integration/")
-        request.urlconf = "config.manager_urls"
-        User = get_user_model()
-        request.user = User(is_superuser=True, username="nav_advanced_expand")
-        groups = build_control_plane_nav(request)
-        advanced = next((g for g in groups if g.get("label") == "Advanced"), None)
-        self.assertIsNotNone(advanced)
-        self.assertTrue(advanced.get("expanded"))
-        current = [it for it in advanced.get("items") or [] if it.get("is_current")]
-        self.assertTrue(current, msg="expected a current Advanced nav item on admin path")
+        self.assertIn("cp_report_library", nav_ids)
+        self.assertFalse(
+            any(nav_id.startswith("cp_admin_bridge_") for nav_id in nav_ids),
+            msg=f"Advanced nav must not promote platform admin bridges: {nav_ids}",
+        )
+        for item in advanced.get("items") or []:
+            url = item.get("url") or ""
+            self.assertFalse(
+                url.startswith("/admin/"),
+                msg=f"Advanced nav item {item.get('id')} must not link to /admin/",
+            )
 
     def test_manager_platform_admin_nav_quick_links(self):
         request = RequestFactory().get("/admin/")
@@ -159,8 +135,8 @@ class ControlPlaneAdvancedNavHttpTests(SimpleTestCase):
             None,
         )
         self.assertIsNotNone(advanced)
-        sample = list(advanced.get("items") or [])[:3]
-        self.assertGreaterEqual(len(sample), 2)
+        sample = list(advanced.get("items") or [])
+        self.assertGreaterEqual(len(sample), 1)
         for item in sample:
             with self.subTest(nav_id=item.get("id")):
                 response = client.get(

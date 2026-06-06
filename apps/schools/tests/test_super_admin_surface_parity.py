@@ -72,15 +72,20 @@ class SuperAdminSurfaceParityTests(TestCase):
         super_ctx = build_operator_surface_ia_context(super_request)
         self.assertTrue(super_ctx["RMC_OPERATOR_SURFACE_IA"])
         self.assertTrue(super_ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
-        self.assertGreaterEqual(len(super_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 4)
+        self.assertGreaterEqual(len(super_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 3)
 
         admin_request = self.client.get("/admin/", HTTP_HOST=self.host).wsgi_request
         admin_request.user = self.user
         admin_ctx = build_operator_surface_ia_context(admin_request)
         self.assertTrue(admin_ctx["RMC_OPERATOR_SURFACE_IA"])
         self.assertTrue(admin_ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
-        self.assertGreaterEqual(len(admin_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 4)
+        self.assertGreaterEqual(len(admin_ctx["RMC_OPERATOR_SURFACE_SPINE"]), 3)
         self.assertEqual(admin_ctx["RMC_OPERATOR_PAIRED_LINKS"], [])
+        spine_labels = [link.label for link in admin_ctx["RMC_OPERATOR_SURFACE_SPINE"]]
+        self.assertFalse(
+            any("platform admin" in lbl.lower() for lbl in spine_labels),
+            spine_labels,
+        )
 
     def test_manager_admin_changelist_exposes_paired_operator_view(self):
         from django.test import RequestFactory
@@ -138,14 +143,21 @@ class SuperAdminSurfaceParityTests(TestCase):
         chrome_pos = html.rfind("rmc-platform-chrome-layout.css")
         self.assertGreater(chrome_pos, mcp_pos)
 
-    def test_super_schools_list_shows_admin_bridge_chip(self):
+    def test_super_dashboard_workspace_spine_omits_platform_admin(self):
+        response = self.client.get("/super/", HTTP_HOST=self.host)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "rmc-operator-surface-strip")
+        self.assertNotContains(response, "Platform admin")
+        self.assertNotContains(response, "Open platform admin")
+
         response = self.client.get(
             reverse("super:schools_list"), HTTP_HOST=self.host
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "rmc-operator-surface-strip")
         self.assertContains(response, "cp-primary-nav__pill")
-        self.assertContains(response, "Open platform admin")
+        self.assertNotContains(response, "Open platform admin")
+        self.assertNotContains(response, "Platform admin")
 
     def test_admin_schools_changelist_shows_workspace_strip_and_paired_cta(self):
         response = self.client.get(
@@ -277,13 +289,13 @@ class SuperAdminSurfaceParityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "rmc-operator-surface-strip")
 
-    def test_marketplace_workbench_suppresses_operator_surface_strip(self):
+    def test_marketplace_workbench_shows_operator_surface_strip(self):
         path = reverse("super:marketplace_governance")
         ctx = build_operator_surface_ia_context(self._manager_super_request(path))
-        self.assertFalse(ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
+        self.assertTrue(ctx["RMC_OPERATOR_SURFACE_STRIP_VISIBLE"])
         self.assertEqual(ctx["RMC_OPERATOR_PAIRED_LINKS"], [])
 
-    def test_marketplace_app_catalog_operational_frame_includes_admin_bridge(self):
+    def test_marketplace_app_catalog_operational_frame_omits_admin_bridge(self):
         from apps.platform_runtime.operational_center_nav import (
             app_catalog_frame_context,
             enrich_operational_frame_context,
@@ -294,17 +306,17 @@ class SuperAdminSurfaceParityTests(TestCase):
             self._manager_super_request(path),
             app_catalog_frame_context(),
         )
-        self.assertTrue(frame.get("tertiary_url"))
-        self.assertIn("Open platform admin", str(frame.get("tertiary_label", "")))
-        self.assertEqual(frame.get("tertiary_icon"), "bi-box-arrow-in-right")
+        self.assertFalse(frame.get("tertiary_url"))
+        self.assertNotIn("Open platform admin", str(frame.get("tertiary_label", "")))
 
-    def test_security_hub_shows_admin_bridge_chip(self):
+    def test_security_hub_omits_admin_bridge_chip(self):
         response = self.client.get(
             reverse("super:security_hub"), HTTP_HOST=self.host
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "rmc-operator-surface-strip")
-        self.assertContains(response, "Open platform admin")
+        self.assertNotContains(response, "Open platform admin")
+        self.assertNotContains(response, "Platform admin")
 
     def test_nested_marketplace_path_resolves_bridge_key(self):
         self.assertEqual(

@@ -36,7 +36,6 @@ OPERATOR_SURFACE_SPINE_SPECS: tuple[tuple[str, str, str, str], ...] = (
     ("super", "super:dashboard", _("Control plane"), "bi-speedometer2"),
     ("super", "super:platform_operator_hub", _("Operator hub"), "bi-compass"),
     ("configuration", "configuration:center", _("Config center"), "bi-gear-wide-connected"),
-    ("admin", "admin:index", _("Platform admin"), "bi-building-gear"),
     ("super", "super:operator_policy", _("Policies"), "bi-shield-check"),
 )
 
@@ -187,19 +186,19 @@ MANAGER_BROWSER_PARITY_PROBES: tuple[dict[str, Any], ...] = (
         "slug": "super_schools",
         "path_name": "super:schools_list",
         "expect_strip": True,
-        "expect_paired": True,
+        "expect_paired": False,
     },
     {
         "slug": "super_marketplace",
         "path_name": "super:marketplace_governance",
         "expect_strip": True,
-        "expect_paired": True,
+        "expect_paired": False,
     },
     {
         "slug": "super_security",
         "path_name": "super:security_hub",
         "expect_strip": True,
-        "expect_paired": True,
+        "expect_paired": False,
     },
     {
         "slug": "configuration_center",
@@ -413,27 +412,6 @@ def resolve_bridge_key_for_super_view(
     return None
 
 
-def _append_admin_bridge_link(
-    links: list[OperatorSurfaceLink], bridge_key: str
-) -> None:
-    admin_bridge_url = _safe_reverse(
-        "super:admin_bridge", kwargs={"bridge_key": bridge_key}
-    )
-    if not admin_bridge_url:
-        return
-    meta = PLATFORM_ADMIN_BRIDGES.get(bridge_key) or {}
-    links.append(
-        OperatorSurfaceLink(
-            link_id=f"admin_bridge_{bridge_key}",
-            label=_("Open platform admin"),
-            url=admin_bridge_url,
-            surface="admin",
-            description=str(meta.get("description", "")),
-            icon="bi-box-arrow-in-right",
-        )
-    )
-
-
 def build_operator_surface_spine(request) -> list[OperatorSurfaceLink]:
     links: list[OperatorSurfaceLink] = []
     for surface, url_name, label, icon in OPERATOR_SURFACE_SPINE_SPECS:
@@ -464,11 +442,7 @@ def build_paired_surface_links(request) -> list[OperatorSurfaceLink]:
     url_name = getattr(match, "url_name", None) or ""
 
     if namespace == "super" and url_name:
-        bridge_key = resolve_bridge_key_for_super_view(
-            url_name, getattr(request, "path", None)
-        )
-        if bridge_key:
-            _append_admin_bridge_link(links, bridge_key)
+        pass  # Super→admin bridge chip retired; no super-first admin CTA in workspace strip.
 
     if namespace == "admin" and url_name:
         changelist_name = _admin_changelist_url_name_for_resolver(url_name)
@@ -505,20 +479,7 @@ def build_operator_surface_ia_context(request) -> dict[str, Any]:
 
     spine = build_operator_surface_spine(request)
     paired = build_paired_surface_links(request)
-    mkt_workbench_suppresses_strip = False
-    try:
-        from apps.platform_runtime.operational_center_nav import (
-            marketplace_operational_frame_suppresses_paired_strip,
-        )
-
-        if marketplace_operational_frame_suppresses_paired_strip(request):
-            paired = []
-            mkt_workbench_suppresses_strip = True
-    except ImportError:
-        pass
-    strip_visible = (
-        _operator_surface_strip_visible(request) and bool(spine) and not mkt_workbench_suppresses_strip
-    )
+    strip_visible = _operator_surface_strip_visible(request) and bool(spine)
     on_manager_admin = (
         _is_manager_operator_host(request)
         and _detect_operator_surface(request) == "admin"

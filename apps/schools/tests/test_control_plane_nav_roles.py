@@ -23,20 +23,20 @@ class ControlPlaneNavRoleTests(SimpleTestCase):
                     ids.append(iid)
         return ids
 
-    def test_platform_backoffice_link_hidden_for_non_superuser(self):
-        request = RequestFactory().get("/super/dashboard/")
-        request.urlconf = "config.manager_urls"
-        request.user = _UserStub(is_superuser=False)
-        nav = build_control_plane_nav(request)
-        self.assertNotIn(
-            "cp_platform_backoffice",
-            self._all_item_ids(nav),
-            msg="Advanced Django admin sidebar link is superuser-only",
-        )
-
-    def test_platform_backoffice_link_shown_for_superuser(self):
-        request = RequestFactory().get("/super/dashboard/")
-        request.urlconf = "config.manager_urls"
-        request.user = _UserStub(is_superuser=True)
-        nav = build_control_plane_nav(request)
-        self.assertIn("cp_platform_backoffice", self._all_item_ids(nav))
+    def test_advanced_nav_omits_platform_admin_bridges_for_all_roles(self):
+        for is_superuser in (False, True):
+            with self.subTest(is_superuser=is_superuser):
+                request = RequestFactory().get("/super/dashboard/")
+                request.urlconf = "config.manager_urls"
+                request.user = _UserStub(is_superuser=is_superuser)
+                nav = build_control_plane_nav(request)
+                ids = self._all_item_ids(nav)
+                self.assertFalse(
+                    any(iid.startswith("cp_admin_bridge_") for iid in ids),
+                    msg="Platform admin bridge sidebar links retired",
+                )
+                self.assertNotIn(
+                    "cp_platform_backoffice",
+                    ids,
+                    msg="Platform backoffice sidebar link retired",
+                )

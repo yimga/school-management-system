@@ -17,18 +17,9 @@
 <div class="container-fluid py-2" data-page-archetype="operational-workbench" data-rmc-operational-workbench="1" data-rmc-static-chrome="1" data-rmc-scroll-policy="paginate">
   {% include "components/rmc_operational_center_frame.html" with os_center_key="fleet_governed_changes" center_eyebrow=_("Platform operators") center_title=_("Fleet governed changes") center_purpose=_("Draft → approval → apply spine. Execution stays on existing rollout/staging UIs; use the apply path on each row, then update status in platform admin.") primary_url="" primary_label="" status_badge_text=_("Operational") nav_groups=operational_nav_groups %}
 
-    </div>
-    <div class="d-flex flex-wrap gap-2">
-      {% if admin_bridge_url %}
-      <a href="{{ admin_bridge_url }}" class="btn btn-outline-light btn-sm">{% trans "Open in platform admin" %}</a>
-      {% endif %}
-      <a href="{{ system_config_url }}" class="btn btn-outline-secondary btn-sm">{% trans "Config center" %}</a>
-    </div>
-  </header>
-
   {% if not changes %}
   <div class="alert alert-secondary border-secondary">
-    {% trans "No records yet. Create one from platform admin (Fleet governed changes), or use the admin bridge above." %}
+    {% trans "No records yet. Create one from platform admin (Fleet governed changes)." %}
   </div>
   {% else %}
   <div class="table-responsive border border-secondary rounded">
