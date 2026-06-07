@@ -62,6 +62,17 @@ def install_app(
         raise ValueError(
             "Invalid marketplace extension manifest: " + "; ".join(manifest_errors)
         )
+    from apps.marketplace.capability_contract import (
+        enrich_manifest_capability_bindings,
+        validate_capability_bindings,
+    )
+
+    manifest = enrich_manifest_capability_bindings(app.slug, manifest)
+    contract_ok, contract_errors = validate_capability_bindings(manifest)
+    if not contract_ok:
+        raise ValueError(
+            "App manifest missing capability contract: " + "; ".join(contract_errors)
+        )
 
     inst, created = AppInstallation.objects.get_or_create(
         school=school,

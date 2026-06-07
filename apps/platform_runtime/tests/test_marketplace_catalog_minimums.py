@@ -18,6 +18,8 @@ from apps.platform_runtime.catalog_counts import (
 
 def setUpModule():
     """Seed catalog so test DB meets MARKETPLACE_SEED_TARGETS minimums (pre_deploy_gate)."""
+    call_command("seed_marketplace_apps", verbosity=0)
+    call_command("seed_marketplace_catalog_packages", verbosity=0)
     call_command("seed_first_party_apps", verbosity=0)
     call_command("seed_blueprint_policy_packs", verbosity=0)
     call_command("seed_workflow_dashboard_packs", verbosity=0)

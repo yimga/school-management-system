@@ -7,7 +7,16 @@
        (caller passes the body via the `sheet_body` block variable through
        {% include ... only %} or via a wrapping template that supplies it).
 
-   Open from any trigger:
+   Optional 10X params (all backwards-compatible — omit to keep the v2.6 look):
+     sheet_variant  extra classes, e.g. "rmc-sheet--lg rmc-sheet--side" or
+                    "rmc-sheet--snap" (mobile partial-height detent)
+     sheet_eyebrow  small uppercase kicker above the title
+     sheet_subtitle muted line under the title
+     sheet_icon     a Bootstrap-icon class (e.g. "bi-graph-up") shown leading
+     sheet_footer   trusted HTML for a sticky action bar (rendered |safe)
+
+   Open from any trigger (either works):
+     <button onclick="RMCSheet.open('export-options')">…</button>
      <button onclick="document.getElementById('export-options').showModal()">…</button>
 
    Close via:
@@ -15,15 +24,23 @@
      - tap × button (data-rmc-sheet-close)
      - swipe down past 30% of height (mobile)
      - Escape key (native <dialog> behavior) {% endcomment %}
-<dialog class="rmc-sheet" id="{{ sheet_id }}" role="dialog" aria-modal="true"{% if sheet_aria_label %} aria-label="{{ sheet_aria_label }}"{% endif %}>
+<dialog class="rmc-sheet{% if sheet_variant %} {{ sheet_variant }}{% endif %}" id="{{ sheet_id }}" role="dialog" aria-modal="true"{% if sheet_aria_label %} aria-label="{{ sheet_aria_label }}"{% endif %}>
   <div class="rmc-sheet__handle" aria-hidden="true"></div>
-  {% if sheet_title or sheet_close_label %}
+  {% if sheet_title or sheet_close_label or sheet_eyebrow or sheet_subtitle %}
     <header class="rmc-sheet__header">
-      {% if sheet_title %}<h3 class="rmc-sheet__title">{{ sheet_title }}</h3>{% endif %}
+      {% if sheet_icon %}<span class="rmc-sheet__icon" aria-hidden="true"><i class="bi {{ sheet_icon }}"></i></span>{% endif %}
+      <div class="rmc-sheet__title-group">
+        {% if sheet_eyebrow %}<span class="rmc-sheet__eyebrow">{{ sheet_eyebrow }}</span>{% endif %}
+        {% if sheet_title %}<h3 class="rmc-sheet__title">{{ sheet_title }}</h3>{% endif %}
+        {% if sheet_subtitle %}<p class="rmc-sheet__subtitle">{{ sheet_subtitle }}</p>{% endif %}
+      </div>
       <button class="rmc-sheet__close" type="button" aria-label="{{ sheet_close_label|default:_('Close') }}" data-rmc-sheet-close>&times;</button>
     </header>
   {% endif %}
   <div class="rmc-sheet__body">
     {{ sheet_body|safe }}
   </div>
+  {% if sheet_footer %}
+    <footer class="rmc-sheet__footer">{{ sheet_footer|safe }}</footer>
+  {% endif %}
 </dialog>

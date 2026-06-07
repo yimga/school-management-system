@@ -1,0 +1,103 @@
+/* ===========================================================================
+   Footer temporal dock — v4.02.x (2026-06-06)
+   Clock + weather moved OUT of the platform header and CENTERED on the footer
+   line (owner request: ambient temporal belongs on the footer, reclaim header
+   height). Markup: partials/cockpit/_footer_temporal_dock.html wrapping
+   components/header_weather_widget.html with HEADER_CONTEXT_DROPUP=True.
+
+   Two surfaces, one look:
+   - Operator civic footer (.rmc-operator-footer-civic, dark): the dock is
+     ABSOLUTELY centered on the primary ribbon line so it sits dead-center
+     between the brand (left) and the gateway pills (right) regardless of their
+     widths — and costs the ribbon zero extra height.
+   - Tenant dashboard footer ([data-rmc-footer-surface="tenant-standard"]): the
+     dock is a centered tier row.
+
+   The chip is styled to MATCH the existing .cp-footer-pill (semantic tokens), so
+   it stays legible on the dark operator footer AND the lighter tenant footer.
+   =========================================================================== */
+
+.rmc-footer-temporal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+/* Position context so the dropup menu anchors to the chip (self-sufficient —
+   does not rely on the header-context-dock CSS that the header used to load). */
+.header-context-dock--footer { position: relative; }
+
+/* —— The compact dock chip (footer variant) —— */
+.header-context-dock--footer .header-context-dock__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--hairline);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap; /* horizontal-overflow-risk-allow: short-temporal-chip */
+  transition: border-color var(--motion-fast, 140ms) var(--ease-standard, ease),
+    color var(--motion-fast, 140ms) var(--ease-standard, ease);
+}
+.header-context-dock--footer .header-context-dock__trigger:hover,
+.header-context-dock--footer .header-context-dock__trigger:focus-visible {
+  border-color: var(--school-primary, var(--primary));
+  color: var(--text-primary);
+}
+/* Drop the Bootstrap dropdown caret in the footer — the chip is the affordance. */
+.header-context-dock--footer .header-context-dock__trigger.dropdown-toggle::after {
+  display: none;
+}
+.header-context-dock--footer .header-context-dock__clock { font-size: 12px; opacity: 0.9; }
+.header-context-dock--footer .header-context-dock__weather {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Panel opens UPWARD (dropup) so it never falls off the bottom of the viewport. */
+.header-context-dock--footer .header-context-dock__menu {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+/* —— Operator civic footer: dead-center on the primary ribbon line —— */
+:is(.rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .cp-footer-ribbon--primary {
+  position: relative;
+}
+:is(.rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .cp-footer-ribbon--primary > .rmc-footer-temporal {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* —— Tenant dashboard footer: centered tier row —— */
+[data-rmc-footer-surface="tenant-standard"] .rmc-footer-temporal {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  margin: 2px 0;
+}
+
+/* —— Narrow screens: the absolute-center would collide with the brand/pills, so
+      drop the dock to its own centered wrapped row beneath them. —— */
+@media (max-width: 991.98px) {
+  :is(.rmc-operator-footer-civic, [data-rmc-footer-surface="operator-civic"]) .cp-footer-ribbon--primary > .rmc-footer-temporal {
+    position: static;
+    transform: none;
+    order: 9;
+    width: 100%;
+    justify-content: center;
+    margin-top: 3px;
+  }
+}

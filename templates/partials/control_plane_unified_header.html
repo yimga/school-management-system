@@ -23,14 +23,9 @@ Replaces the former triple stack: utility row + marquee ticker + canvas primary 
         <div class="rmc-cp-landing-ticker rmc-cp-header-ticker" data-rmc-cp-landing-ticker="1">
           {% include "partials/cockpit/_activity_ticker.html" %}
         </div>
-        {% comment %} v4.02.x (2026-06-06): clock / weather relocated here from the utility band
-           (owner approved: ambient, not a workflow control). Anchored to the right edge of the
-           always-visible LIVE row so it costs zero extra header height. {% endcomment %}
-        {% if request.user.is_authenticated and SHOW_HEADER_CONTEXT_STRIP %}
-        <div class="cp-header__live-context" data-rmc-header-context-compact="1">
-          {% include "components/header_weather_widget.html" with SHOW_HEADER_CONTEXT_QUOTE=False %}
-        </div>
-        {% endif %}
+        {% comment %} v4.02.x (2026-06-06): clock / weather moved OUT of the header entirely and
+           centered on the operator civic footer ribbon (see partials/cockpit/_footer_temporal_dock.html).
+           Owner request: reclaim header vertical height; the ambient temporal belongs on the footer. {% endcomment %}
       </div>
       {% endblock %}
       {% endblock %}

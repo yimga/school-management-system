@@ -36,6 +36,9 @@ Falls back to SITE-model values when cockpit.footer.* is empty.
         </span>
       </div>
 
+      {% comment %} v4.02.x (2026-06-06): clock / weather centered tier (moved out of the header). {% endcomment %}
+      {% include "partials/cockpit/_footer_temporal_dock.html" %}
+
       {% comment %} Tier 2 — trust pillars + language switcher + app badges + social {% endcomment %}
       <div class="rmc-civic-footer__strip">
         {% comment %} Trust pillars {% endcomment %}

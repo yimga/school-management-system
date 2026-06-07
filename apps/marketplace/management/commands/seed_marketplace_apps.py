@@ -7,6 +7,7 @@ Run: python manage.py seed_marketplace_apps
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
+from apps.marketplace.capability_contract import enrich_manifest_capability_bindings
 from apps.marketplace.models import (
     AppScope,
     AppVersionCompat,
@@ -40,17 +41,32 @@ def _phase9_enrich_catalog(stdout, style) -> None:
         manifest = app.manifest or {}
         scopes = manifest.get("scopes") or []
         if isinstance(scopes, list):
+            from apps.marketplace.scope_normalize import (
+                ensure_permission_scope_row,
+                normalize_scope_code,
+            )
+
             for code in scopes:
                 if not code:
                     continue
-                c = str(code).strip()[:80]
-                sensitive = c.lower() in ("ai", "identity", "evals", "migration_import")
+                c = normalize_scope_code(str(code))
+                perm = ensure_permission_scope_row(c)
+                sensitive = c.lower() in (
+                    "ai",
+                    "identity",
+                    "evals",
+                    "migration_import",
+                ) or any(
+                    x in c.lower()
+                    for x in (":admin", ":write", "identity:", "medical:")
+                )
                 _, created = AppScope.objects.get_or_create(
                     app=app,
                     scope_code=c,
                     defaults={
                         "description": f"Declared in manifest ({app.slug})",
                         "sensitive": sensitive,
+                        "permission_scope": perm,
                     },
                 )
                 if created:
@@ -625,9 +641,11 @@ class Command(BaseCommand):
                 continue
 
             manifest = dict(app_def.get("manifest") or {})
+            manifest = enrich_manifest_capability_bindings(slug, manifest)
             prev = MarketplaceApp.objects.filter(slug=slug).first()
             if prev and isinstance(prev.manifest, dict):
-                manifest = {**prev.manifest, **manifest}
+                merged = {**prev.manifest, **manifest}
+                manifest = enrich_manifest_capability_bindings(slug, merged)
 
             app, app_created = MarketplaceApp.objects.update_or_create(
                 slug=slug,

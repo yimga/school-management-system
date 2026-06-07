@@ -454,7 +454,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-06-04T19:16:10.334460+00:00",
+  "generated_at": "2026-06-07T11:29:21.399627+00:00",
   "raw_sql": {
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,
@@ -517,9 +517,9 @@
       "reason": "Schema repair DDL/backfill adds and enforces one timestamp column using quoted identifiers during controlled startup repair."
     },
     "apps/platform_runtime/sqlite_pragmas.py": {
-      "expected_count": 2,
-      "last_reviewed": "2026-06-02",
-      "reason": "SQLite connection_created hook sets PRAGMA journal_mode=WAL and synchronous=NORMAL on file-backed dev/test DBs only; no user input; reduces test lock contention."
+      "expected_count": 4,
+      "last_reviewed": "2026-06-07",
+      "reason": "SQLite connection_created hook sets PRAGMA journal_mode=WAL, synchronous=NORMAL, busy_timeout, and foreign_keys on file-backed dev/test DBs only; no user input; reduces runserver lock contention."
     },
     "apps/portal/kb_pgvector.py": {
       "expected_count": 2,

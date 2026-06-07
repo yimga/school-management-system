@@ -22,6 +22,9 @@ Tenant and control-plane UIs merge JSON from `MarketplaceApp.manifest` with cano
 | `rollback_supported` | Whether rollback UX treats sandbox / prior version as safe. |
 | `min_platform_version` | Minimum RunMyCampus platform semver (`config.settings.APP_VERSION`). Alias: `min_rmc_version`. |
 | `tenant_editable_config_keys` | Allow-listed keys for tenant config POST. |
+| `capability_bindings` | **Required (wave 1).** List of `{kind, target, mode}` declaring runtime effect on activate: `feature`, `package_id`, `widget`, `extension_hook`, `integration_adapter`, `workflow_trigger`. Inferred at seed via `apps/marketplace/capability_contract.py` when absent. |
+| `enabled_features` | Feature codes flipped on sandbox → active (mirrors feature bindings). |
+| `package_id` | Package engine id attempted on activate when `PackageVersion` payload exists. |
 
 ## Lifecycle and install state
 
@@ -39,9 +42,22 @@ Signals for cards and **Installed apps** are computed in `resolve_tenant_catalog
 
 ## Validation (local / CI)
 
-Fast artifact check (no Django import):
+Fast artifact checks:
 
 `python scripts/verify_marketplace_platform_mission.py`
+
+`python scripts/verify_marketplace_app_capability_contract.py` (73 first-party apps)
+
+`python scripts/verify_marketplace_catalog_10x_closure.py` (waves 1–8 bundle)
+
+`python scripts/verify_marketplace_package_payload_parity.py` (73 catalog slugs ↔ PackageVersion)
+`python scripts/verify_first_party_package_payload_parity.py` (27 legacy package IDs ↔ PackageVersion)
+`python scripts/verify_marketplace_sandbox_embed_registry.py` (TOP_15 sandbox iframe url_name registry)
+
+Seed packages after marketplace apps:
+
+`python manage.py seed_marketplace_catalog_packages`
+`python manage.py seed_first_party_apps` (legacy 27 IDs — non-empty payloads via `first_party_package_payloads.py`)
 
 Full gate (includes billing tenant tests used by marketplace POST routes):
 

@@ -106,6 +106,8 @@
     {% comment %} v3.55.0 (2026-05-21): civic 4-tier centered footer (tenant + manager dark variant). {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/rmc-civic-footer.css' %}">
     <link rel="stylesheet" href="{% static 'css/rmc-cp-operator-footer.css' %}">
+    {% comment %} v4.02.x (2026-06-06): clock/weather temporal dock centered on the footer line. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-footer-temporal-dock.css' %}">
     {% comment %} v3.58.2 (2026-05-22): platform-wide vertical-density spec.
        Pages render as "vertically long and full" — matches the admin v8 200x preview.
        Per-surface opt-out via `data-rmc-density="open"` on any container. {% endcomment %}
@@ -240,9 +242,8 @@
         {% endif %}
 
         <div class="base-topbar-actions text-white d-flex align-items-center gap-2 ms-lg-auto order-2 order-lg-3 justify-content-end">
-          {% if SHOW_HEADER_CONTEXT_STRIP %}
-            {% include 'components/header_weather_widget.html' %}
-          {% endif %}
+          {% comment %} v4.02.x (2026-06-06): clock / weather moved out of the header to the centered
+             footer dock (partials/cockpit/_footer_temporal_dock.html) — reclaim header height. {% endcomment %}
           {% if request.user.is_authenticated %}
             {% include "partials/rmc_security_posture_nav_button.html" %}
             <span class="small text-white-50 d-none d-md-inline align-self-center ms-2">{% trans "Press" %} <kbd>?</kbd> {% trans "for keyboard shortcuts" %}</span>

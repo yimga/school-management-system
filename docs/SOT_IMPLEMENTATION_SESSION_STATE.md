@@ -8,15 +8,15 @@
 
 ## Current state
 
-> **Session update (2026-06-02):** Last completed = **§11.4 batch 1636** — signup multi-language selection (checkbox + India state primary star) + InformationTag platform wiring ledger; **`verify_information_tag_wiring`** + **`test_signup_multilingual_selection`**; merged **`origin/main`** (operator signup-verification surfaces); SW **`sms-v4.02.61-signup-multilang-info-tags-ledger-2026-06-02`**. Prior **1635** (Studio OS deferred closeout) retained in SOT. **Honest external PARTIAL:** batches **1175** (pilot schools), **1199** (hosted Render SHA).
+> **Session update (2026-06-07):** Last completed = **§11.4 batch 1637** — marketplace catalog **`PackageVersion.payload_sections`** parity (**73/73**); prior **1635** Studio OS deferred closeout + **1636** signup/tags ledger on **`origin/main`**. SW **`sms-v4.02.62-studio-marketplace-closeout-2026-06-07`**. **Honest external PARTIAL:** batches **1175** (pilot schools), **1199** (hosted Render SHA).
 
 | Field | Value |
 |-------|--------|
 | **Current goal** | **§0 P0–P6** epic row **COMPLETE**; **§12 repo bar MET**; continuous work = §11.4 depth + Lane 2 operator evidence (PSP / pilot / SOC2) |
-| **Last completed** | **§11.4 batch 1636 (2026-06-02):** Signup multi-language + InformationTag wiring ledger closeout (see SOT §11.4 head + autonomous log). |
+| **Last completed** | **§11.4 batch 1637 (2026-06-07):** Marketplace activate-loop payload parity + batch **1635** Studio OS cockpit deferrals (see SOT §11.4 head + autonomous log). |
 | **Next section** | Lane 2 external evidence per §12; repo depth only when new verifier gaps or §11.4 queue rows appear. |
-| **Date (UTC)** | 2026-06-02 |
-| **Done this session** | Batch **1636** SOT row + autonomous log; **`git merge origin/main`** fast-forward; SW monotonic bump. |
+| **Date (UTC)** | 2026-06-07 |
+| **Done this session** | Full local WIP push: marketplace package payloads, Studio OS services, operator chrome/templates, generated audits, SW bump. |
 
 ### Gap audit progress (Phase GAP — update after each gap closed)
 

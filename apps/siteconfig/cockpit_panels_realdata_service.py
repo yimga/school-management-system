@@ -467,10 +467,238 @@ def _resolve_tenant_heatmap() -> dict[str, Any] | None:
 # ============================================================
 # 6. Forecast lane — 7d MRR / new schools / incidents
 # ============================================================
+#
+# Builds the past+future SVG geometry the partial
+# (templates/partials/cockpit/_forecast_lane.html) renders, from the
+# PlatformPulseSnapshot daily time series written by the
+# `snapshot_platform_pulse` Celery beat. Method: least-squares linear
+# trend + a confidence band that widens toward the horizon. The lane stays
+# hidden (resolver returns None) until there are >= _FC_MIN_POINTS daily
+# snapshots to fit, so it lights up automatically a few days after the beat
+# starts — no fabricated forecast before there is data to forecast from.
+
+# SVG drawing contract — MUST match the partial's viewBox="0 0 240 56".
+# `_FC_TODAY_X` splits the past trace (0 -> 120) from the future trace
+# (120 -> 240); y grows downward so a SMALLER y renders HIGHER on screen.
+_FC_TODAY_X = 120  # magic-number-allow: svg-viewbox-geometry-contract-today-tick
+_FC_END_X = 240  # magic-number-allow: svg-viewbox-geometry-contract-horizon-edge
+_FC_TOP_Y = 10.0
+_FC_BOT_Y = 46.0
+_FC_HORIZON_DAYS = 7
+_FC_FUTURE_STEPS = 6   # 6 intervals -> 7 future points (today + 6 forward)
+_FC_MIN_POINTS = 3     # need >= 3 daily snapshots before a trend is meaningful
+_FC_MRR_THOUSANDS = 1000  # magic-number-allow: currency-thousands-format-threshold
+
+
+def _fc_metric_series(metric_key: str, days: int = 14) -> list[int]:
+    """Oldest -> newest list of raw_value ints for a metric (last `days`)."""
+    from .models_pulse_snapshot import PlatformPulseSnapshot
+
+    today = timezone.now().date()
+    start = today - timedelta(days=days - 1)
+    # tenant-isolation-allow: platform-cockpit-forecast-snapshot-cross-tenant-aggregate
+    rows = list(
+        PlatformPulseSnapshot.objects.filter(
+            metric_key=metric_key,
+            snapshot_date__gte=start,
+            snapshot_date__lte=today,
+        )
+        .order_by("snapshot_date")
+        .values_list("raw_value", flat=True)
+    )
+    return [int(v) for v in rows]
+
+
+def _fc_linear_fit(values: list[float]) -> tuple[float, float, float, float]:
+    """Least-squares fit over x=0..n-1. Returns (slope, intercept, r2, sigma)."""
+    n = len(values)
+    xs = list(range(n))
+    mean_x = sum(xs) / n
+    mean_y = sum(values) / n
+    sxx = sum((x - mean_x) ** 2 for x in xs)
+    sxy = sum((xs[i] - mean_x) * (values[i] - mean_y) for i in range(n))
+    slope = (sxy / sxx) if sxx > 1e-9 else 0.0
+    intercept = mean_y - slope * mean_x
+    preds = [intercept + slope * x for x in xs]
+    ss_res = sum((values[i] - preds[i]) ** 2 for i in range(n))
+    ss_tot = sum((v - mean_y) ** 2 for v in values)
+    # Flat series (ss_tot ~ 0) is perfectly predictable -> r2 = 1.0.
+    r2 = 1.0 if ss_tot < 1e-9 else max(0.0, min(1.0, 1 - ss_res / ss_tot))
+    sigma = (ss_res / n) ** 0.5
+    return slope, intercept, r2, sigma
+
+
+def _fc_confidence_pct(r2: float, n: int) -> int:
+    """Map fit quality + sample size to an honest-ish 70-97% confidence band."""
+    base = 70 + int(round(27 * r2))
+    if n < 4:
+        base = min(base, 80)  # don't over-claim on a 3-point fit
+    return max(70, min(97, base))
+
+
+def _fc_fmt_mrr(value: float) -> str:
+    """Format a monthly-dollar figure like the pulse card ($42k / $1.2k / $850)."""
+    value = max(0.0, value)
+    if value >= _FC_MRR_THOUSANDS:
+        return ("$%.1fk" % (value / _FC_MRR_THOUSANDS)).replace(".0k", "k")
+    return "$%.0f" % value
+
+
+def _fc_value_and_prediction(
+    kind: str, today_val: float, v_end: float, slope: float, hw_end: float, conf: int
+) -> tuple[str, Any]:
+    """Per-metric headline value + italic prediction caption."""
+    if kind == "mrr":
+        value = _fc_fmt_mrr(v_end)
+        tiny = max(1.0, abs(today_val) * 0.01)
+        if slope > tiny:
+            trend = _("rising")
+        elif slope < -tiny:
+            trend = _("easing")
+        else:
+            trend = _("steady")
+        prediction = _("%(trend)s · %(conf)d%% confidence") % {"trend": trend, "conf": conf}
+    elif kind == "new_schools":
+        predicted = max(0, int(round(slope * _FC_HORIZON_DAYS)))
+        spread = max(1, int(round(hw_end / 2)))
+        spread = min(spread, max(2, predicted + 1))  # keep the range sane
+        lo = max(0, predicted - spread)
+        hi = predicted + spread
+        value = ("%d" % predicted) if lo == hi else ("%d–%d" % (lo, hi))
+        prediction = _("expected · %(conf)d%% confidence") % {"conf": conf}
+    else:  # incidents
+        end = max(0, int(round(v_end)))
+        value = "%d" % end
+        if end == 0:
+            level = _("none expected")
+        elif end <= 3:
+            level = _("low")
+        else:
+            level = _("elevated")
+        prediction = _("%(level)s · %(conf)d%% confidence") % {"level": level, "conf": conf}
+    return value, prediction
+
+
+def _fc_build_card(
+    slug: str, label: Any, values: list[int], *, stroke: str, fill: str, kind: str
+) -> dict[str, Any]:
+    """Build one forecast card (geometry + copy) from a real daily series."""
+    n = len(values)
+    fvalues = [float(v) for v in values]
+    today_val = fvalues[-1]
+    slope, _intercept, r2, sigma = _fc_linear_fit(fvalues)
+    v_end = today_val + slope * _FC_HORIZON_DAYS
+
+    # 7 future values: linear walk today -> v_end (the fit is already linear).
+    future_vals = [
+        today_val + (v_end - today_val) * (j / _FC_FUTURE_STEPS)
+        for j in range(_FC_FUTURE_STEPS + 1)
+    ]
+
+    # Confidence band half-widths (value units): 0 at today, widening to horizon.
+    plotted = fvalues + future_vals
+    data_span = max(plotted) - min(plotted)
+    floor = 0.12 * (data_span if data_span > 0 else max(1.0, abs(today_val) * 0.05 + 1.0))
+    band_base = 0.5 * sigma + floor
+    hw = [band_base * (j / _FC_FUTURE_STEPS) for j in range(_FC_FUTURE_STEPS + 1)]
+
+    # y-mapping over EVERY plotted value (incl. band edges) so nothing clips.
+    all_vals = (
+        fvalues
+        + future_vals
+        + [future_vals[j] + hw[j] for j in range(len(hw))]
+        + [future_vals[j] - hw[j] for j in range(len(hw))]
+    )
+    vmin, vmax = min(all_vals), max(all_vals)
+    span = vmax - vmin
+
+    def y_of(v: float) -> float:
+        if span < 1e-9:
+            return round((_FC_TOP_Y + _FC_BOT_Y) / 2, 1)
+        return round(_FC_BOT_Y - (v - vmin) / span * (_FC_BOT_Y - _FC_TOP_Y), 1)
+
+    # Past trace: evenly spaced 0..today_x across the available points.
+    past_points = []
+    for i in range(n):
+        x = round(_FC_TODAY_X * (i / (n - 1)), 1) if n > 1 else float(_FC_TODAY_X)
+        past_points.append([x, y_of(fvalues[i])])
+
+    # Future trace: today_x..end_x. future_points[0] == past_points[-1] (continuity).
+    fx = [
+        round(_FC_TODAY_X + (_FC_END_X - _FC_TODAY_X) * (j / _FC_FUTURE_STEPS), 1)
+        for j in range(_FC_FUTURE_STEPS + 1)
+    ]
+    future_points = [[fx[j], y_of(future_vals[j])] for j in range(len(fx))]
+
+    # Confidence band polygon (upper edge L->R, then back along lower edge).
+    upper = [(fx[j], y_of(future_vals[j] + hw[j])) for j in range(len(fx))]
+    lower = [(fx[j], y_of(future_vals[j] - hw[j])) for j in range(len(fx))]
+    band = "M%s,%s" % (upper[0][0], upper[0][1])
+    for px, py in upper[1:]:
+        band += " L%s,%s" % (px, py)
+    for px, py in reversed(lower):
+        band += " L%s,%s" % (px, py)
+    band += " Z"
+
+    conf = _fc_confidence_pct(r2, n)
+    value, prediction = _fc_value_and_prediction(kind, today_val, v_end, slope, hw[-1], conf)
+
+    return {
+        "slug": slug,
+        "label": label,
+        "value": value,
+        "prediction": prediction,
+        "stroke_color": stroke,
+        "fill_color": fill,
+        "past_points": past_points,
+        "future_points": future_points,
+        "band_path": band,
+        "today_x": _FC_TODAY_X,
+        "caption_left": _("today"),
+        "caption_right": _("+7 days"),
+    }
+
 
 def _resolve_forecast_lane() -> dict[str, Any] | None:
-    """Defer to demo/operator SVG cards until a layout builder emits template keys."""
-    return None
+    """Real 7-day forecast for MRR / new schools / incidents.
+
+    Reads the PlatformPulseSnapshot daily series for each metric, fits a
+    linear trend, and emits the SVG card geometry the partial renders.
+    Returns None (lane hidden) until every metric has >= _FC_MIN_POINTS
+    snapshots — the snapshot beat writes all three together, so the lane
+    appears automatically ~3 days after it starts running.
+    """
+    try:
+        from .models_pulse_snapshot import PlatformPulseSnapshot as Snap
+
+        mrr = _fc_metric_series(Snap.MRR)
+        schools = _fc_metric_series(Snap.SCHOOLS)
+        incidents = _fc_metric_series(Snap.INCIDENTS)
+        if min(len(mrr), len(schools), len(incidents)) < _FC_MIN_POINTS:
+            return None
+
+        cards = [
+            _fc_build_card(
+                "mrr", _("MRR · 7-day forecast"), mrr,
+                stroke="#22c55e", fill="rgba(34,197,94,0.10)", kind="mrr",
+            ),
+            _fc_build_card(
+                "new_schools", _("New schools · 7-day forecast"), schools,
+                stroke="#6366f1", fill="rgba(99,102,241,0.12)", kind="new_schools",
+            ),
+            _fc_build_card(
+                "incidents", _("Incidents · 7-day forecast"), incidents,
+                stroke="#f59e0b", fill="rgba(245,158,11,0.12)", kind="incidents",
+            ),
+        ]
+        return {
+            "enabled": True,
+            "label": _("Forecast · next 7 days"),
+            "cards": cards,
+        }
+    except Exception:
+        logger.warning("panels: forecast_lane resolver failed", exc_info=True)
+        return None
 
 
 # ============================================================

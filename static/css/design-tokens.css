@@ -3701,20 +3701,27 @@ html[data-resolved-theme="dark"] .rmc-logo-adaptive {
    data-logo-dark-src="…">, rmc-shell-polish.js swaps the src attribute in
    response to data-resolved-theme changes so semantic alt-text + sizing intact. */
 
-/* ===== v2.6 (2026-05-12): Top-of-page progress bar.
-   Apple-style indeterminate bar for HTMX swaps + cross-doc navigation. Mounted
-   once to <body> by rmc-page-progress.js; fill driven by `--p` custom prop.
-   Honors prefers-reduced-motion (no shimmer). */
+/* ===== v2.6 (2026-05-12) · 10X v4.02.x (2026-06-06): Top-of-page progress bar.
+   Apple-style bar for HTMX swaps, cross-doc navigation, and arbitrary async
+   work. Mounted once to <body> by rmc-page-progress.js; fill driven by `--p`
+   custom prop; `data-state` ∈ idle|loading|done|error, `data-error` flips the
+   palette to the danger token. 10X adds: a glowing comet head at the leading
+   edge, a layered indeterminate sweep, a visible error flash, a success bloom,
+   and a configurable height (`--rmc-page-progress-height`). Honors
+   prefers-reduced-motion (no shimmer/comet) + prefers-reduced-transparency. */
 .rmc-page-progress {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: var(--rmc-page-progress-height, 3px);
   z-index: 9999;
   pointer-events: none;
   background: transparent;
   --p: 0%;
+  /* Brand-aware palette, resolved once so every layer stays in sync. */
+  --rmc-pp-color: var(--school-primary, #4f46e5);
+  --rmc-pp-color-2: color-mix(in oklab, var(--school-primary, #4f46e5) 62%, var(--school-accent, #10b981));
 }
 
 body.control-plane-shell .rmc-page-progress,
@@ -3725,51 +3732,97 @@ body.admin-manager-shell .rmc-page-progress {
   top: 0;
   z-index: 10050;
 }
+/* When a danger flash is requested the whole bar swaps to the error palette. */
+.rmc-page-progress[data-error] {
+  --rmc-pp-color: var(--danger, #ef4444);
+  --rmc-pp-color-2: color-mix(in oklab, var(--danger, #ef4444) 78%, #000);
+}
 .rmc-page-progress__fill {
   height: 100%;
   width: var(--p);
-  background: linear-gradient(
-    90deg,
-    var(--school-primary, #4f46e5),
-    color-mix(in oklab, var(--school-primary, #4f46e5) 70%, var(--school-accent, #10b981))
-  );
-  box-shadow: 0 0 8px color-mix(in oklab, var(--school-primary, #4f46e5) 60%, transparent),
-              0 0 2px color-mix(in oklab, var(--school-primary, #4f46e5) 80%, transparent);
-  transition: width var(--motion-default, 220ms) var(--ease-standard, ease-out);
+  background: linear-gradient(90deg, var(--rmc-pp-color), var(--rmc-pp-color-2));
+  box-shadow: 0 0 10px color-mix(in oklab, var(--rmc-pp-color) 60%, transparent),
+              0 0 3px color-mix(in oklab, var(--rmc-pp-color) 82%, transparent);
+  transition: width var(--motion-default, 220ms) var(--ease-standard, ease-out),
+              opacity var(--motion-default, 220ms) ease;
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* let the comet head bleed past the fill edge */
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
 }
+/* Comet head — a bright, blurred dot riding the leading edge of the fill. */
+.rmc-page-progress[data-state="loading"] .rmc-page-progress__fill::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: calc(var(--rmc-page-progress-height, 3px) * 6);
+  height: calc(var(--rmc-page-progress-height, 3px) * 6);
+  transform: translateY(-50%) translateX(40%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--rmc-pp-color) 90%, #fff) 0%,
+    color-mix(in oklab, var(--rmc-pp-color) 70%, transparent) 45%,
+    transparent 72%
+  );
+  opacity: 0.9;
+  pointer-events: none;
+}
+/* Layered moving sweep for the indeterminate climb. */
 .rmc-page-progress[data-state="loading"] .rmc-page-progress__fill::after {
   content: "";
   position: absolute;
   inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.55) 50%,
     transparent 100%
   );
-  animation: rmc-page-progress-shimmer 1.4s linear infinite;
+  animation: rmc-page-progress-shimmer 1.25s linear infinite;
 }
 @keyframes rmc-page-progress-shimmer {
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
 }
+/* Completion: a quick success bloom (brightness + glow) before the fade. */
 .rmc-page-progress[data-state="done"] .rmc-page-progress__fill {
   transition: width var(--motion-fast, 180ms) var(--ease-standard, ease-out),
-    opacity var(--motion-default, 220ms) ease 100ms;
+    opacity var(--motion-default, 220ms) ease 90ms,
+    filter 160ms ease;
+  filter: brightness(1.12) saturate(1.1);
   opacity: 0;
+}
+/* Error flash: brief pulse on the danger palette, then fade. */
+.rmc-page-progress[data-error] .rmc-page-progress__fill {
+  animation: rmc-page-progress-error 560ms ease both;
+}
+@keyframes rmc-page-progress-error {
+  0% { opacity: 1; transform: translateX(0); }
+  18% { transform: translateX(-2px); }
+  36% { transform: translateX(2px); }
+  54% { transform: translateX(-1px); }
+  72% { transform: translateX(0); opacity: 1; }
+  100% { opacity: 0; }
 }
 .rmc-page-progress[data-state="idle"] .rmc-page-progress__fill {
   opacity: 0;
+  filter: none;
   transition: opacity 120ms ease;
 }
 @media (prefers-reduced-motion: reduce) {
   .rmc-page-progress[data-state="loading"] .rmc-page-progress__fill::after { animation: none; }
+  .rmc-page-progress[data-state="loading"] .rmc-page-progress__fill::before { display: none; }
+  .rmc-page-progress[data-error] .rmc-page-progress__fill { animation: none; }
+  .rmc-page-progress[data-state="done"] .rmc-page-progress__fill { filter: none; }
 }
-/* Honor prefers-reduced-transparency by dropping the glow. */
+/* Honor prefers-reduced-transparency by dropping the glow + comet. */
 @media (prefers-reduced-transparency: reduce) {
   .rmc-page-progress__fill { box-shadow: none; }
+  .rmc-page-progress .rmc-page-progress__fill::before { display: none; }
 }
 
 /* ===== v2.6 (2026-05-12): Safe-area insets — iOS notch / Android nav bar.
@@ -3908,6 +3961,172 @@ body.admin-manager-shell .rmc-page-progress {
 @media (prefers-reduced-motion: reduce) {
   .rmc-sheet[open] { animation: none !important; }
   .rmc-sheet::backdrop { animation: none !important; }
+}
+
+/* ===== 10X v4.02.x (2026-06-06): Sheet / modal primitive — premium upgrade.
+   Fully additive over the v2.6 base above. Adds: refined material (layered
+   elevation + hairline ring + saturated backdrop), desktop size variants
+   (sm/md/lg/xl/full), a structured header (eyebrow + subtitle + leading icon),
+   a sticky action footer, a right-edge side-drawer variant, mobile snap
+   detents, and body scroll-lock. No markup change is required for existing
+   consumers — they inherit the richer base automatically. JS lives in
+   rmc-bottom-sheet.js (focus wiring, scroll-lock, snap, public RMCSheet API). */
+
+/* Richer material — overrides the base box-shadow with a layered elevation and
+   adds a hairline ring + saturated backdrop. Same specificity as `.rmc-sheet
+   [open]`, later in source order, so it wins cleanly. */
+.rmc-sheet[open] {
+  box-shadow: var(--elev-3, 0 18px 48px rgba(15, 23, 42, 0.18)),
+              0 -1px 0 var(--hairline, rgba(0, 0, 0, 0.06)) inset;
+  background: var(--surface-popover, var(--surface-elevated, #ffffff));
+  -webkit-backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+  backdrop-filter: var(--material-blur, saturate(180%) blur(20px));
+}
+.rmc-sheet::backdrop {
+  background: color-mix(in oklab, var(--cp-chrome-bg-deep, #04060f) 52%, transparent);
+  -webkit-backdrop-filter: saturate(140%) blur(6px);
+  backdrop-filter: saturate(140%) blur(6px);
+}
+
+/* Drag handle: bigger touch affordance + brand-tinted on grab. */
+.rmc-sheet__handle {
+  width: 40px;
+  height: 5px;
+  transition: background var(--motion-fast, 150ms) ease, width var(--motion-fast, 150ms) ease;
+}
+.rmc-sheet__handle:hover,
+.rmc-sheet[data-dragging="1"] .rmc-sheet__handle {
+  background: color-mix(in oklab, var(--school-primary, #4f46e5) 55%, transparent);
+  width: 52px;
+}
+
+/* Structured header grammar: leading icon + (eyebrow / title / subtitle) stack. */
+.rmc-sheet__header { align-items: flex-start; padding-top: 0.75rem; }
+.rmc-sheet__title-group { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; flex: 1 1 auto; }
+.rmc-sheet__eyebrow {
+  font-size: var(--type-size-12, 0.72rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--school-primary, #4f46e5);
+  line-height: 1.1;
+}
+.rmc-sheet__subtitle {
+  margin: 0;
+  font-size: var(--type-size-13, 0.82rem);
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.35;
+}
+.rmc-sheet__icon {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-right: 0.25rem;
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface-overlay, color-mix(in oklab, var(--school-primary, #4f46e5) 8%, transparent));
+  color: var(--school-primary, #4f46e5);
+  font-size: 1.15rem;
+}
+/* Bigger, squarer close target (44px touch min) with a calmer rest state. */
+.rmc-sheet__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  font-size: 1.4rem;
+  flex: 0 0 auto;
+}
+.rmc-sheet__close:focus-visible {
+  outline: 2px solid var(--school-primary, #4f46e5);
+  outline-offset: 2px;
+}
+
+/* Sticky action footer — pinned to the bottom of the sheet above the safe area. */
+.rmc-sheet__footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  padding-bottom: max(var(--safe-area-inset-bottom), 0.75rem);
+  border-top: var(--border-width-hairline, 0.5px) solid var(--hairline, rgba(0, 0, 0, 0.08));
+  background: var(--surface-elevated, #ffffff);
+  position: sticky;
+  bottom: 0;
+}
+.rmc-sheet__footer--split { justify-content: space-between; }
+
+/* Desktop size variants — width only changes on the centered-modal breakpoint. */
+@media (min-width: 768px) {
+  .rmc-sheet--sm[open]   { width: min(420px, calc(100% - 2rem)); }
+  .rmc-sheet--md[open]   { width: min(560px, calc(100% - 2rem)); }
+  .rmc-sheet--lg[open]   { width: min(720px, calc(100% - 2rem)); }
+  .rmc-sheet--xl[open]   { width: min(920px, calc(100% - 2rem)); max-height: 86vh; }
+  .rmc-sheet--full[open] {
+    inset: 1.5rem;
+    transform: none;
+    width: auto;
+    max-width: none;
+    max-height: none;
+    border-radius: var(--radius-xl, 22px);
+    animation: rmc-sheet-pop 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Right-edge side drawer (Linear / Things-style detail panel). */
+  .rmc-sheet--side[open],
+  .rmc-sheet--side-end[open] {
+    inset: 0 0 0 auto;
+    transform: none;
+    width: min(480px, calc(100% - 3rem));
+    max-width: none;
+    max-height: none;
+    height: 100%;
+    border-radius: var(--radius-xl, 22px) 0 0 var(--radius-xl, 22px);
+    animation: rmc-sheet-slide-in 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .rmc-sheet--side.rmc-sheet--lg[open],
+  .rmc-sheet--side-end.rmc-sheet--lg[open] { width: min(640px, calc(100% - 3rem)); }
+  @keyframes rmc-sheet-slide-in {
+    from { opacity: 0; transform: translateX(100%); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .rmc-sheet--side .rmc-sheet__handle { display: none; }
+}
+
+/* Mobile snap detents — open at a partial height, drag up to expand to full.
+   `--rmc-sheet-snap` controls the resting height; rmc-bottom-sheet.js toggles
+   `data-expanded` on drag-up / handle-tap. */
+@media (max-width: 767.98px) {
+  .rmc-sheet--snap[open] {
+    max-height: var(--rmc-sheet-snap, 58vh);
+    transition: max-height 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .rmc-sheet--snap[open][data-expanded="1"] { max-height: 92vh; }
+}
+
+/* Body scroll-lock applied by rmc-bottom-sheet.js while any sheet is open. */
+html.rmc-sheet-scroll-lock,
+html.rmc-sheet-scroll-lock body { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rmc-sheet--side[open],
+  .rmc-sheet--side-end[open],
+  .rmc-sheet--full[open] { animation: none !important; }
+  .rmc-sheet--snap[open] { transition: none !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .rmc-sheet[open] {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: var(--surface-elevated, #ffffff);
+  }
+  .rmc-sheet::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 
 /* ===== v2.6 (2026-05-12): Keyboard cheat sheet — Linear-style `?` overlay.

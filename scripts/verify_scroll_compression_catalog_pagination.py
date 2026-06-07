@@ -59,6 +59,13 @@ WAVE5_SERVICES = (
     ("apps/metadata/services.py", "fields_overflow"),
 )
 
+WAVE6_VIEWS = (
+    ("apps/marketplace/views.py", "tenant_app_catalog", "Paginator"),
+    ("apps/marketplace/views.py", "tenant_app_catalog", "page_obj"),
+)
+
+WAVE6_TEMPLATES = ("templates/marketplace/tenant_app_catalog.html",)
+
 
 def main() -> int:
     findings: list[str] = []
@@ -217,6 +224,37 @@ def main() -> int:
             continue
         if needle not in path.read_text(encoding="utf-8"):
             findings.append(f"{rel}: missing {needle}")
+
+    for rel, fn, needle in WAVE6_VIEWS:
+        path = REPO / rel
+        if not path.is_file():
+            findings.append(f"missing {rel}")
+            continue
+        src = path.read_text(encoding="utf-8")
+        chunk = src.split(f"def {fn}", 1)[-1].split("\ndef ", 1)[0]
+        if needle not in chunk:
+            findings.append(f"{fn}: missing {needle}")
+
+    for rel in WAVE6_TEMPLATES:
+        path = REPO / rel
+        if not path.is_file():
+            findings.append(f"missing template {rel}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if 'data-rmc-scroll-policy="paginate"' not in text:
+            findings.append(f"{rel}: missing data-rmc-scroll-policy=paginate")
+        if "components/pagination.html" not in text:
+            findings.append(f"{rel}: missing pagination partial")
+        if "page_obj" not in text:
+            findings.append(f"{rel}: missing page_obj wiring")
+
+    catalog_counts = REPO / "apps/platform_runtime/catalog_counts.py"
+    if catalog_counts.is_file():
+        cc = catalog_counts.read_text(encoding="utf-8")
+        if "marketplace_listings" not in cc:
+            findings.append("catalog_counts.py: missing marketplace_listings key")
+    else:
+        findings.append("missing apps/platform_runtime/catalog_counts.py")
 
     audit_json = REPO / "docs/generated/template_scroll_compression_audit.json"
     if not audit_json.is_file():

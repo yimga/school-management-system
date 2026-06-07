@@ -67,6 +67,7 @@ _PUBLIC_EXTRA_STEPS = [
     ("seed_studio_os", "Studio OS SetupStepDefinition master rows"),
     ("seed_marketplace_scopes", "Marketplace permission scopes"),
     ("seed_first_party_apps", "First-party PackageVersion records"),
+    ("seed_marketplace_catalog_packages", "Marketplace catalog app PackageVersion payloads"),
     ("seed_phase9_first_party_packages", "Phase 9 package definitions"),
     ("seed_ultra_high_end_experience_packs", "Ultra-high-end experience packs"),
     ("seed_process_definitions", "Orchestration process definitions"),

@@ -13,15 +13,6 @@ class SiteconfigConfig(AppConfig):
     verbose_name = "⚙️ Configuration Control Center"
 
     def ready(self):
-        # SQLite (local/dev) concurrency pragmas — WAL + busy_timeout to stop
-        # spurious "database is locked" 500s under the threaded runserver.
-        # No-op on PostgreSQL (production).
-        try:
-            from .db_pragmas import connect_sqlite_pragmas
-
-            connect_sqlite_pragmas()
-        except (ImportError, RuntimeError) as exc:
-            logger.debug("SQLite pragma wiring skipped: %s", exc)
         # Ensure additional dashboard and workflow models are imported for migrations
         try:
             from . import models_dashboard  # noqa: F401

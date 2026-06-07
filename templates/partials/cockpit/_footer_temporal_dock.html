@@ -1,0 +1,10 @@
+{% load i18n %}
+{% comment %} Centered footer temporal dock — clock + weather, relocated out of the
+   header (owner request 2026-06-06: ambient, belongs on the footer line, not the
+   chrome). Reuses components/header_weather_widget.html so the existing live-update
+   JS (components__header_weather_widget.js) keeps ticking the time + fetching the
+   weather with zero new script. Panel opens UPWARD (dropup) so it never falls off
+   the bottom of the viewport. Self-gates on auth inside the widget. {% endcomment %}
+<div class="rmc-footer-temporal" data-rmc-footer-temporal="1">
+  {% include "components/header_weather_widget.html" with HEADER_CONTEXT_DROPUP=True SHOW_HEADER_CONTEXT_QUOTE=False %}
+</div>

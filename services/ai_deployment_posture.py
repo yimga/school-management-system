@@ -10,6 +10,7 @@ See docs/LOCAL_HUB_MODE.md.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import urllib.error
@@ -146,32 +147,184 @@ def _litellm_models_url(proxy_url: str) -> str:
     return f"{base}/v1/models"
 
 
-def probe_litellm_reachable(timeout_sec: float = 4.0) -> tuple[bool, int | None]:
+def _litellm_probe_timeout() -> float:
+    """Probe timeout in seconds (LITELLM_PROBE_TIMEOUT_SECONDS, default 4.0).
+
+    Env-tunable so a slow / resource-starved worker does not false-flag a
+    healthy cloud provider as down on a single timed-out probe.
     """
-    Lightweight OpenAI-compatible models probe (no prompt spend).
+    raw = _setting_str("LITELLM_PROBE_TIMEOUT_SECONDS")
+    if raw:
+        try:
+            return max(1.0, min(float(raw), 30.0))
+        except (TypeError, ValueError):
+            pass
+    return 4.0
+
+
+def litellm_deep_probe_enabled() -> bool:
+    """When on, the health probe issues a 1-token completion — the only definitive
+    proof that *chat* works (catches wrong-model http_404 / bad-key http_401 that a
+    models-list probe cannot). Default off to keep the health endpoint cheap and
+    fast on constrained workers (``LITELLM_HEALTH_DEEP_PROBE``).
     """
-    proxy = litellm_proxy_url()
-    if not proxy:
-        return False, None
-    url = _litellm_models_url(proxy)
-    if not url.startswith("http"):
-        url = f"https://{url}"
+    return _setting_str("LITELLM_HEALTH_DEEP_PROBE").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _litellm_headers() -> dict[str, str]:
     headers: dict[str, str] = {"Accept": "application/json"}
     api_key = litellm_api_key()
     if api_key:
         headers["Authorization"] = f"Bearer {api_key}"
+    return headers
+
+
+def _litellm_listed_models(
+    proxy: str, headers: dict[str, str], timeout_sec: float
+) -> tuple[bool, set[str], str | None]:
+    """GET /v1/models. Returns (endpoint_ok, model_ids, error).
+
+    error: ``http_<code>`` for a definitive HTTP rejection, ``timeout`` for a
+    network/timeout blip, or ``None`` on success. An unparseable list fails open
+    (endpoint answered) so a proxy with a non-standard catalog is not penalised.
+    """
+    url = _litellm_models_url(proxy)
+    if not url.startswith("http"):
+        url = f"https://{url}"
     req = urllib.request.Request(url, headers=headers, method="GET")
     try:
-        import time
-
-        start = time.perf_counter()
         with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
-            resp.read(4096)
-        latency_ms = int((time.perf_counter() - start) * 1000)
-        return True, latency_ms
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as exc:
+            raw = resp.read()
+    except urllib.error.HTTPError as exc:
+        return False, set(), f"http_{exc.code}"
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
         logger.debug("LiteLLM models probe failed: %s", exc)
-        return False, None
+        return False, set(), "timeout"
+    ids: set[str] = set()
+    try:
+        body = json.loads(raw.decode("utf-8", errors="ignore"))
+        for item in body.get("data") or []:
+            mid = str(item.get("id") or "").strip()
+            if mid:
+                ids.add(mid)
+    except (ValueError, AttributeError, TypeError):
+        return True, set(), None  # answered but unparseable → fail open
+    return True, ids, None
+
+
+def _litellm_completion_probe(
+    proxy: str, headers: dict[str, str], model: str, timeout_sec: float
+) -> tuple[bool, str | None]:
+    """1-token chat completion — definitive proof the configured model is callable."""
+    base = proxy.rstrip("/")
+    url = (
+        f"{base}/v1/chat/completions"
+        if "/v1/" not in base
+        else f"{base}/chat/completions"
+    )
+    if not url.startswith("http"):
+        url = f"https://{url}"
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": "ping"}],
+        "max_completion_tokens": 1,
+    }
+    post_headers = {**headers, "Content-Type": "application/json"}
+    req = urllib.request.Request(
+        url, data=json.dumps(payload).encode("utf-8"), headers=post_headers, method="POST"
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
+            resp.read(512)
+        return True, None
+    except urllib.error.HTTPError as exc:
+        return False, f"http_{exc.code}"
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        logger.debug("LiteLLM completion probe failed: %s", exc)
+        return False, "timeout"
+
+
+def diagnose_litellm_posture(timeout_sec: float | None = None) -> dict[str, Any]:
+    """Honest cloud-AI posture: distinguishes 'endpoint up' from 'chat actually works'.
+
+    Returns ``{reachable, latency_ms, error, model, model_listed, stage}`` where
+    ``error`` is one of ``None | not_configured | timeout | http_<code> |
+    model_not_listed``. A models-list probe alone can be green while real
+    completions 404 (wrong model) or 401 (bad key) — this surfaces that gap so the
+    operator UI stops claiming "Live · cloud AI" for a provider that cannot answer.
+    """
+    proxy = litellm_proxy_url()
+    model = litellm_model()
+    if not proxy:
+        return {
+            "reachable": False,
+            "latency_ms": None,
+            "error": "not_configured",
+            "model": model,
+            "model_listed": False,
+            "stage": "config",
+        }
+    timeout = timeout_sec if timeout_sec is not None else _litellm_probe_timeout()
+    headers = _litellm_headers()
+
+    import time
+
+    start = time.perf_counter()
+    endpoint_ok, model_ids, models_err = _litellm_listed_models(proxy, headers, timeout)
+    latency_ms = int((time.perf_counter() - start) * 1000)
+    if not endpoint_ok:
+        return {
+            "reachable": False,
+            "latency_ms": None,
+            "error": models_err or "timeout",
+            "model": model,
+            "model_listed": False,
+            "stage": "models",
+        }
+
+    # A definitive catalog that omits the configured model means chat will 404.
+    model_listed = (not model_ids) or (model in model_ids)
+    if not model_listed:
+        return {
+            "reachable": False,
+            "latency_ms": latency_ms,
+            "error": "model_not_listed",
+            "model": model,
+            "model_listed": False,
+            "stage": "model",
+        }
+
+    if litellm_deep_probe_enabled():
+        ok, deep_err = _litellm_completion_probe(proxy, headers, model, timeout)
+        if not ok:
+            return {
+                "reachable": False,
+                "latency_ms": latency_ms,
+                "error": deep_err,
+                "model": model,
+                "model_listed": True,
+                "stage": "completion",
+            }
+
+    return {
+        "reachable": True,
+        "latency_ms": latency_ms,
+        "error": None,
+        "model": model,
+        "model_listed": True,
+        "stage": "ok",
+    }
+
+
+def probe_litellm_reachable(timeout_sec: float | None = None) -> tuple[bool, int | None]:
+    """Back-compat 2-tuple reachability wrapper around :func:`diagnose_litellm_posture`."""
+    diag = diagnose_litellm_posture(timeout_sec=timeout_sec)
+    return bool(diag.get("reachable")), diag.get("latency_ms")
 
 
 def operator_setup_kind(profile: str | None = None) -> str:
@@ -193,6 +346,7 @@ def build_posture_fields(
     ollama_configured: bool,
     rules_fallback_enabled: bool,
     fallback_active: bool,
+    provider_error: str | None = None,
 ) -> dict[str, Any]:
     """
     UI-safe posture snapshot (no secrets / internal URLs).

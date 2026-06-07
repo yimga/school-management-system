@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block backend_page %}
-<div class="container-fluid py-2 proof-page tenant-app-catalog-wrap ui-premium-surface" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1" data-apple-class-app-catalog="tenant" data-rmc-zero-click="1">
+<div class="container-fluid py-2 proof-page tenant-app-catalog-wrap ui-premium-surface" data-page-archetype="catalog" data-shell-marketplace="tenant-app-catalog" data-rmc-market-surface="catalog" data-rmc-mkt-catalog-surface="1" data-rmc-component-audit="1" data-apple-class-app-catalog="tenant" data-rmc-zero-click="1" data-rmc-scroll-policy="paginate">
   {% if not school %}
   <div class="proof-panel" data-page-header="1">
     <h1 class="proof-panel-title">{% trans "App catalog" %}</h1>
@@ -397,6 +397,9 @@
       </div>
       {% endfor %}
     </div>
+    {% if page_obj %}
+    {% include "components/pagination.html" with page_obj=page_obj extra_query=pagination_extra_query %}
+    {% endif %}
   </section>
 
   <section class="proof-split rmc-reveal">

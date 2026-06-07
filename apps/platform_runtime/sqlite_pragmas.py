@@ -24,12 +24,18 @@ def _apply_sqlite_pragmas(sender, connection, **kwargs) -> None:
             # Busy timeout is set via DATABASES OPTIONS; WAL reduces writer lock contention.
             cursor.execute("PRAGMA journal_mode=WAL")
             cursor.execute("PRAGMA synchronous=NORMAL")
+            cursor.execute("PRAGMA busy_timeout=30000")
+            cursor.execute("PRAGMA foreign_keys=ON")
     except Exception:
         logger.debug("SQLite PRAGMA setup skipped", exc_info=True)
 
 
 def connect_sqlite_pragma_signal() -> None:
-    connection_created.connect(_apply_sqlite_pragmas)
+    connection_created.connect(
+        _apply_sqlite_pragmas,
+        weak=False,
+        dispatch_uid="platform_runtime.apply_sqlite_pragmas",
+    )
 
 
 __all__ = ["connect_sqlite_pragma_signal"]

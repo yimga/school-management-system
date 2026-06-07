@@ -1,18 +1,18 @@
 {
   "baseline_counts": {
     "allow_any": 173,
-    "csrf_exempt": 681,
-    "cursor_execute": 411,
-    "except_exception": 2518,
+    "csrf_exempt": 680,
+    "cursor_execute": 413,
+    "except_exception": 2550,
     "get_solo": 213,
-    "gilead": 16839,
-    "gilead_files": 232,
-    "html_files": 1624,
-    "management_commands": 282,
-    "markdown_files": 1600,
-    "migration_files": 986,
-    "print_calls": 4198,
-    "python_files": 6141,
+    "gilead": 16835,
+    "gilead_files": 231,
+    "html_files": 1644,
+    "management_commands": 283,
+    "markdown_files": 1602,
+    "migration_files": 991,
+    "print_calls": 4220,
+    "python_files": 6203,
     "site_settings": 2469
   },
   "doc_drift": {
@@ -23,7 +23,7 @@
   },
   "largest_python_files": [
     {
-      "bytes": 1225693,
+      "bytes": 1225749,
       "lines": 16897,
       "path": "apps/siteconfig/_seed_country_localization.py"
     },
@@ -33,13 +33,13 @@
       "path": "apps/siteconfig/forms_cockpit.py"
     },
     {
-      "bytes": 168762,
-      "lines": 3469,
+      "bytes": 170709,
+      "lines": 3504,
       "path": "config/settings.py"
     },
     {
-      "bytes": 165744,
-      "lines": 4135,
+      "bytes": 167786,
+      "lines": 4175,
       "path": "apps/schools/marketing_views.py"
     },
     {
@@ -1131,6 +1131,11 @@
     },
     {
       "app": "schools",
+      "command": "ingest_testimonial_sources",
+      "path": "apps/schools/management/commands/ingest_testimonial_sources.py"
+    },
+    {
+      "app": "schools",
       "command": "migrate_schools_to_tenants",
       "path": "apps/schools/management/commands/migrate_schools_to_tenants.py"
     },
@@ -1537,10 +1542,10 @@
   },
   "scoped_gravity_counts": {
     "csrf_exempt_decorator_lines_apps_config_excl_migrations": 110,
-    "cursor_execute_apps_config_py_excl_migrations": 42,
+    "cursor_execute_apps_config_py_excl_migrations": 44,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 4013,
+    "print_calls_scripts_py": 4035,
     "site_settings_refs_apps_py_excl_migrations": 214,
     "site_settings_refs_apps_py_excl_migrations_tests": 161
   },

@@ -1787,6 +1787,14 @@ def studio_shell(request, mode=None):
             "Run simulation from Workflow center to see impact before activating."
         )
         try:
+            from apps.studio_os.services import get_automation_simulation_preview
+
+            context["automation_simulation_preview"] = get_automation_simulation_preview(
+                request
+            )
+        except (ImportError, AttributeError, TypeError, ValueError, OSError, KeyError):
+            context["automation_simulation_preview"] = None
+        try:
             from apps.studio_os.school_infrastructure import (
                 get_automation_studio_environment,
             )

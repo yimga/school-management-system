@@ -129,8 +129,20 @@ def normalize_platform_manifest(
         "required_commercial_tier": normalize_commercial_tier_slug(
             base.get("required_commercial_tier") or base.get("min_commercial_tier")
         ),
+        "capability_bindings": list(base.get("capability_bindings") or []),
+        "enabled_features": list(base.get("enabled_features") or []),
+        "package_id": (base.get("package_id") or "").strip(),
     }
     merged = {**base, **overlay}
+    if not merged.get("capability_bindings"):
+        try:
+            from apps.marketplace.capability_contract import (
+                enrich_manifest_capability_bindings,
+            )
+
+            merged = enrich_manifest_capability_bindings(app_slug, merged)
+        except ImportError:
+            pass
     return merged
 
 

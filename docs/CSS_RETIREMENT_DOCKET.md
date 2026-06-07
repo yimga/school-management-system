@@ -1,6 +1,27 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-05 (v4.02.19 — v8 cockpit completion: operator-tools-tray overflow fix + audit-gap closures).
+**Last updated:** 2026-06-06 (v4.02.57 — 10X of the page-progress bar + sheet/modal primitive).
+
+## 2026-06-06 — v4.02.57 — Progress bar + sheet/modal primitive 10X (platform-wide, additive)
+
+**Ask:** "10X the status/progress bar and dialog box." Confirmed targets via AskUserQuestion: the **top page-load bar** (`.rmc-page-progress`) and the **sheet/modal primitive** (`.rmc-sheet`). Both are the canonical platform primitives named in the `.rmc-*` grammar, loaded in all four dashboard shells (+marketing for the bar). Fully additive — no existing markup/consumer changed; the DOM contracts are preserved.
+
+**Page-load bar** (`static/js/rmc-page-progress.js` rewrite + `design-tokens.css` block):
+- **Concurrency ref-counting** — overlapping HTMX/async tasks no longer let the first response prematurely finish the bar; the bar completes only when the last in-flight task ends (browser-verified: 1-of-2 `done` stays `loading`).
+- **Determinate mode** — `RMCPageProgress.set(pct)` drives an explicit 0–100 value (real uploads/fetches), sets `aria-valuenow`; auto-trickle stays for indeterminate work.
+- **Visible error state** — `fail()` flips `data-error` to the `--danger` token with a brief shake-then-fade (was a silent no-op before); **success bloom** (brightness+glow) on completion.
+- **Comet head** — a brand-tinted glowing dot rides the leading edge; layered indeterminate sweep; configurable `--rmc-page-progress-height`.
+- **Public API** — `window.RMCPageProgress` = `{ start, set, inc, done, fail, configure, promise, during }`; opt-in `configure({trackFetch:true})` surfaces every `window.fetch`. Honors reduced-motion + reduced-transparency.
+
+**Sheet / modal primitive** (`static/js/rmc-bottom-sheet.js` rewrite + `design-tokens.css` block + `templates/components/rmc_bottom_sheet.html`):
+- **Richer material** — layered `--elev-3` elevation + hairline ring + saturated `--material-blur` backdrop; bigger drag handle that brand-tints on grab.
+- **Desktop size variants** — `rmc-sheet--sm|md|lg|xl|full` (420/560/720/920px / inset-full).
+- **Right-edge side drawer** — `rmc-sheet--side[-end]` full-height Linear/Things-style detail panel on desktop, still a bottom-sheet on mobile.
+- **Mobile snap detents** — `rmc-sheet--snap` opens at `--rmc-sheet-snap` (58vh); drag up / tap handle expands to 92vh; drag down dismisses (verified 460→726px).
+- **Structured header grammar** — leading icon + eyebrow + title + subtitle; **sticky action footer** (`rmc-sheet__footer`).
+- **a11y + UX** — MutationObserver on the dialog `open` attribute catches *every* open path (direct `showModal`, HTMX, API) → ref-counted body **scroll-lock**, auto-wired `aria-labelledby`, and initial-focus to the first control. New public `window.RMCSheet` = `{ open, close, toggle }`. The `rmc_bottom_sheet.html` include gains optional `sheet_variant / sheet_eyebrow / sheet_subtitle / sheet_icon / sheet_footer` params (all backwards-compatible).
+
+**Validation:** JS parses (both files); scanners green — off-token 0, theme-locked 0, undefined-css 0, inline-style 0, render-safety 0; `manage.py check` 0 issues; SW monotonic OK. **Real-browser verified** (Playwright over a self-contained harness loading the actual `design-tokens.css` + both scripts) at 1280px desktop + 390px mobile: determinate aria, comet pseudo, error-token swap, ref-count, scroll-lock/focus/aria wiring, lg width 719px, side-drawer pinned-right full-height, snap expand — **zero page errors**. SW `sms-v4.02.57-primitives-progress-sheet-10x-2026-06-06`. Files: `rmc-page-progress.js`, `rmc-bottom-sheet.js`, `design-tokens.css` (two enhanced blocks), `rmc_bottom_sheet.html`, `service-worker.js`. UNCOMMITTED (working tree also carries unrelated parallel-session edits — isolate own hunks on commit).
 
 ## 2026-06-05 — v4.02.19 — v8 cockpit completion (took over operator-tools-tray + closed audit gaps)
 

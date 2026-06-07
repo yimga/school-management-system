@@ -1311,8 +1311,47 @@ def get_overview_signals(request: Any) -> dict[str, Any]:
             signals["output_readiness_pct"] = int(round(100.0 * ready / len(graph)))
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_overview_signals.output_readiness_pct: %s", e)
-    # Draft experiences + open blockers: not yet implemented backend-side.
-    # Templates render honest unknown state.
+    # Draft experiences: tenants with preview mode still enabled (unpublished theme work).
+    try:
+        from apps.platform_runtime.helpers import get_effective_site_settings  # type: ignore[import-not-found]
+        from apps.schools.models import School  # type: ignore[import-not-found]
+
+        school = getattr(request, "school", None) if request is not None else None
+        if school is not None:
+            settings_obj = get_effective_site_settings(school=school)
+            signals["draft_experiences"] = int(
+                bool(getattr(settings_obj, "preview_mode_enabled", False))
+            )
+        else:
+            draft_count = 0
+            # tenant-isolation-allow: overview-aggregate-readonly-preview-count
+            for sch in School.objects.all()[:50]:
+                try:
+                    settings_obj = get_effective_site_settings(school=sch)
+                    if bool(getattr(settings_obj, "preview_mode_enabled", False)):
+                        draft_count += 1
+                except _STUDIO_SOFT_FAILURES:
+                    continue
+            signals["draft_experiences"] = draft_count
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_overview_signals.draft_experiences: %s", e)
+    # Open blockers: unresolved platform incidents (operator overview aggregate).
+    try:
+        from apps.observability.monitoring import PlatformIncident  # type: ignore[import-not-found]
+
+        open_statuses = (
+            PlatformIncident.Status.OPEN,
+            PlatformIncident.Status.ACKNOWLEDGED,
+            PlatformIncident.Status.MITIGATED,
+        )
+        incident_qs = PlatformIncident.objects.filter(status__in=open_statuses)
+        school = getattr(request, "school", None) if request is not None else None
+        if school is not None:
+            # tenant-isolation-allow: overview-signal-tenant-scoped-incident-count
+            incident_qs = incident_qs.filter(affected_school=school)
+        signals["open_blockers"] = int(incident_qs.count())
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_overview_signals.open_blockers: %s", e)
     return signals
 
 
@@ -1410,7 +1449,83 @@ def get_launch_readiness_summary(request: Any) -> dict[str, Any]:
         summary["service_online"] = True
     except _STUDIO_SOFT_FAILURES as e:
         logger.warning("get_launch_readiness_summary.approvals_pending: %s", e)
-    # Timeline + risk summary: not yet implemented backend-side.
-    # Templates render honest empty list / empty string.
+    if school is not None:
+        try:
+            from apps.setup_studio.services import get_setup_studio_payload
+
+            payload = get_setup_studio_payload(school)
+            step_state = payload.get("step_state") or {}
+            timeline: list[dict[str, Any]] = []
+            for key, state in step_state.items():
+                if not isinstance(state, dict):
+                    continue
+                timeline.append(
+                    {
+                        "label": str(state.get("title") or key.replace("_", " ").title()),
+                        "status": "done" if state.get("done") else "pending",
+                        "due_at": "",
+                    }
+                )
+            summary["timeline"] = timeline
+            blockers = payload.get("launch_blockers") or []
+            if blockers:
+                first = blockers[0]
+                if isinstance(first, dict):
+                    summary["risk_summary"] = str(
+                        first.get("label") or first.get("detail") or first.get("message") or ""
+                    )[:240]
+                else:
+                    summary["risk_summary"] = str(first)[:240]
+            elif payload.get("health_summary"):
+                summary["risk_summary"] = str(payload.get("health_summary"))[:240]
+            summary["service_online"] = True
+        except _STUDIO_SOFT_FAILURES as e:
+            logger.warning("get_launch_readiness_summary.timeline: %s", e)
     return summary
+
+
+def get_automation_simulation_preview(request: Any) -> dict[str, Any] | None:
+    """Latest dry-run workflow simulation for the automation cockpit preview pane."""
+    school = getattr(request, "school", None) if request is not None else None
+    if school is None:
+        return None
+    try:
+        from apps.automation.workflow_graph_models import WorkflowRunLog  # type: ignore[import-not-found]
+
+        run = (
+            WorkflowRunLog.objects.filter(workflow__school=school, dry_run=True)
+            .select_related("workflow")
+            .order_by("-created_at")
+            .first()
+        )
+        if run is None:
+            return None
+        actions = run.actions_run if isinstance(run.actions_run, list) else []
+        payload = run.payload_snapshot if isinstance(run.payload_snapshot, dict) else {}
+        affected = payload.get("affected_record_count")
+        if affected is None:
+            affected = payload.get("affected_records")
+        try:
+            affected_count = int(affected or 0)
+        except (TypeError, ValueError):
+            affected_count = 0
+        risks: list[dict[str, str]] = []
+        if run.status == WorkflowRunLog.Status.FAILED and run.error_message:
+            risks.append(
+                {
+                    "label": "Simulation failed",
+                    "detail": str(run.error_message)[:180],
+                }
+            )
+        ran_at = getattr(run, "created_at", None)
+        return {
+            "trigger_label": str(run.trigger_event or run.workflow.name or "workflow"),
+            "projected_actions": len(actions),
+            "affected_record_count": affected_count,
+            "risks": risks,
+            "ran_at_iso": ran_at.isoformat() if ran_at is not None else "",
+        }
+    except _STUDIO_SOFT_FAILURES as e:
+        logger.warning("get_automation_simulation_preview: %s", e)
+        return None
 

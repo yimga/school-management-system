@@ -21,6 +21,8 @@ Uses cockpit.footer on manager host; tenant hosts keep dashboard_footer.html.
           <span class="rmc-civic-footer__est">· {{ footer.brand.descriptor|default:_("Corporate gateway") }}</span>
         </span>
       </div>
+      {% comment %} v4.02.x (2026-06-06): clock / weather centered on this ribbon line (moved out of the header). {% endcomment %}
+      {% include "partials/cockpit/_footer_temporal_dock.html" %}
       <div class="cp-footer-ribbon__actions rmc-civic-footer__strip" role="navigation" aria-label="{% trans 'Operator gateway shortcuts' %}">
         <a class="rmc-civic-footer__appbadge cp-footer-pill cp-footer-pill--live" href="{% marketing_public_href 'status' %}" data-mkt-status aria-label="{% trans 'Platform status' %}">
           <span class="cp-footer-pill__dot rmc-civic-footer__appbadge-glyph" aria-hidden="true"></span>

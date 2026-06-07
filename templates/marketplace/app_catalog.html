@@ -53,6 +53,12 @@
         <strong>{{ catalog_stats.filtered_total|default:0 }}</strong>
         <span>{% trans "matching filter" %}</span>
       </div>
+      {% if catalog_counts.marketplace_listings %}
+      <div class="rmc-cp-compact__stat" role="listitem" title="{% trans 'Package payloads are a separate engine catalog count' %}">
+        <strong>{{ catalog_counts.first_party_apps|default:0 }}</strong>
+        <span>{% trans "package payloads" %}</span>
+      </div>
+      {% endif %}
     </div>
     <details class="studio-os__card studio-os__card--disclosure mb-2 px-3 py-2" role="region" aria-labelledby="app-catalog-scope-graph-heading">
       <summary class="d-flex align-items-center gap-2 py-1" style="cursor: pointer; list-style: revert;">

@@ -197,8 +197,6 @@ def _probe_ollama_base(base_url: str, *, timeout_sec: float = 2.0) -> tuple[bool
         return True, int((_t.monotonic() - t0) * 1000)
     except _AI_GATEWAY_INVOKE_ERRORS:
         return False, None
-    except Exception:  # noqa: BLE001
-        return False, None
 
 
 def _pick_reachable_ollama_base(candidates: list[str]) -> tuple[str | None, int | None, str | None]:
@@ -812,9 +810,10 @@ def suggest_support_ticket_response(
         if user_id is not None:
             try:
                 from django.contrib.auth import get_user_model
+                from django.db import DatabaseError
 
                 user = get_user_model().objects.filter(pk=user_id).first()
-            except Exception:
+            except (ImportError, AttributeError, TypeError, ValueError, DatabaseError):
                 user = None
 
         md_ai = normalize_gateway_metadata(

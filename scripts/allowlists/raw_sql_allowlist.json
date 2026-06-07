@@ -97,9 +97,9 @@
       "last_reviewed": "2026-05-27"
     },
     "apps/platform_runtime/sqlite_pragmas.py": {
-      "expected_count": 2,
-      "reason": "SQLite connection_created hook sets PRAGMA journal_mode=WAL and synchronous=NORMAL on file-backed dev/test DBs only; no user input; reduces test lock contention.",
-      "last_reviewed": "2026-06-02"
+      "expected_count": 4,
+      "reason": "SQLite connection_created hook sets PRAGMA journal_mode=WAL, synchronous=NORMAL, busy_timeout, and foreign_keys on file-backed dev/test DBs only; no user input; reduces runserver lock contention.",
+      "last_reviewed": "2026-06-07"
     },
     "apps/schools/rls_readiness.py": {
       "expected_count": 3,

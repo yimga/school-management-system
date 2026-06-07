@@ -589,6 +589,20 @@ def install_app(
             if isinstance(app, str)
             else MarketplaceApp.objects.get(pk=app)
         )
+    from apps.marketplace.capability_contract import (
+        enrich_manifest_capability_bindings,
+        validate_capability_bindings,
+    )
+
+    enriched_manifest = enrich_manifest_capability_bindings(app.slug, app.manifest or {})
+    contract_ok, contract_errors = validate_capability_bindings(enriched_manifest)
+    if not contract_ok:
+        raise ValueError(
+            "App manifest missing capability contract: " + "; ".join(contract_errors)
+        )
+    if enriched_manifest != (app.manifest or {}):
+        app.manifest = enriched_manifest
+        app.save(update_fields=["manifest", "updated_at"])
     if not skip_compatibility:
         ok, _warnings, errors = check_app_compatibility(school, app, warn_only=False)
         if not ok and errors:
@@ -794,11 +808,17 @@ def uninstall_app(school, app, *, uninstalled_by=None, run_cleanup=True):
             else MarketplaceApp.objects.get(pk=app)
         )
     installation = AppInstallation.objects.get(school=school, app=app)
+    from apps.marketplace.activation_orchestrator import revert_capability_bindings_on_uninstall
+
+    revert_payload = revert_capability_bindings_on_uninstall(installation)
     installation.status = AppInstallation.Status.UNINSTALLED
     installation.uninstalled_at = timezone.now()
     installation.save(update_fields=["status", "uninstalled_at"])
     cleanup_policy = (app.manifest or {}).get("uninstall_cleanup") or {}
-    payload = {"uninstalled_at": str(installation.uninstalled_at)}
+    payload = {
+        "uninstalled_at": str(installation.uninstalled_at),
+        "capability_revert": revert_payload,
+    }
     if run_cleanup and cleanup_policy:
         payload["cleanup_policy"] = cleanup_policy
         payload["cleanup_deferred"] = True
@@ -963,6 +983,13 @@ def activate_sandbox_installation(installation, activated_by=None):
             or "Cannot activate: plan or module requirements are not met."
         )
 
+    from apps.marketplace.activation_orchestrator import apply_capability_bindings_on_activate
+
+    activation_result = apply_capability_bindings_on_activate(
+        installation,
+        manifest=manifest,
+        actor=activated_by,
+    )
     installation.install_phase = AppInstallation.InstallPhase.ACTIVE
     installation.save(update_fields=["install_phase"])
     AppAuditLog.objects.create(
@@ -970,7 +997,7 @@ def activate_sandbox_installation(installation, activated_by=None):
         school=installation.school,
         app=installation.app,
         action="activate_sandbox",
-        payload={},
+        payload={"capability_activation": activation_result},
         actor=activated_by,
     )
     try:

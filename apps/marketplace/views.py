@@ -1173,6 +1173,9 @@ def tenant_app_catalog(request):
         lst.mkt_listing_pipeline_phase = sig.get("listing_pipeline_phase") or ""
         lst.mkt_compatibility = sig.get("compatibility") or {}
         installable.append(lst)
+    page_obj = Paginator(installable, 12).get_page(request.GET.get("page") or 1)
+    listings_page = list(page_obj.object_list)
+
     catalog_stats = {
         "apps": len(installable),
         "installed": len(installed_slugs),
@@ -1187,6 +1190,8 @@ def tenant_app_catalog(request):
             if getattr(getattr(listing, "publisher", None), "verification_status", "")
             == PublisherOrganization.VerificationStatus.VERIFIED
         ),
+        "showing": len(listings_page),
+        "filtered_total": page_obj.paginator.count,
     }
     catalog_counts = get_platform_catalog_counts()
     platform_pack_catalog = {}
@@ -1202,6 +1207,9 @@ def tenant_app_catalog(request):
         valid_app_ids = {lst.app_id for lst in installable}
         if cand in valid_app_ids:
             catalog_install_app_id = cand
+    browse_q = request.GET.copy()
+    browse_q.pop("page", None)
+    pagination_extra_query = browse_q.urlencode()
     record_tenant_surface_view(
         surface="tenant_app_catalog",
         request=request,
@@ -1216,7 +1224,9 @@ def tenant_app_catalog(request):
         request,
         "marketplace/tenant_app_catalog.html",
         {
-            "listings": installable,
+            "listings": listings_page,
+            "page_obj": page_obj,
+            "pagination_extra_query": pagination_extra_query,
             "school": school,
             "installed_slugs": installed_slugs,
             "catalog_stats": catalog_stats,
@@ -1654,6 +1664,8 @@ def sandbox_embed(request):
     widget_id = (request.GET.get("widget_id") or "").strip()
     iframe_src = None
     if app_slug:
+        from apps.marketplace.sandbox_embed_registry import resolve_sandbox_iframe_src
+
         inst = (
             AppInstallation.objects.filter(
                 school=school,
@@ -1665,15 +1677,12 @@ def sandbox_embed(request):
         )
         if inst:
             wconfig = inst.widget_config or inst.app.manifest.get("widgets") or {}
-            if isinstance(wconfig, dict) and widget_id and widget_id in wconfig:
-                cfg = wconfig[widget_id]
-                if isinstance(cfg, dict) and cfg.get("url"):
-                    iframe_src = cfg["url"]
-            elif isinstance(wconfig, dict):
-                for wid, cfg in wconfig.items():
-                    if isinstance(cfg, dict) and cfg.get("url"):
-                        iframe_src = cfg["url"]
-                        break
+            iframe_src = resolve_sandbox_iframe_src(
+                app_slug=app_slug,
+                widget_config=wconfig if isinstance(wconfig, dict) else {},
+                widget_id=widget_id,
+                request=request,
+            )
     if not iframe_src:
         iframe_src = ""
     frame_ancestors = "'self'"

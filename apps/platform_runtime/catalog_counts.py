@@ -66,6 +66,8 @@ def get_platform_catalog_counts() -> dict[str, Any]:
     """
     counts: dict[str, Any] = {
         "first_party_apps": 0,
+        "marketplace_listings": 0,
+        "marketplace_installable": 0,
         "blueprint_packs": 0,
         "workflow_packs": 0,
         "dashboard_packs": 0,
@@ -88,6 +90,22 @@ def get_platform_catalog_counts() -> dict[str, Any]:
         )
     except _EXC as e:
         logger.debug("catalog_counts first_party_apps: %s", e)
+
+    try:
+        from apps.marketplace.models import MarketplaceApp, MarketplaceListing
+
+        counts["marketplace_listings"] = MarketplaceApp.objects.filter(
+            is_active=True
+        ).count()
+        counts["marketplace_installable"] = sum(
+            1
+            for lst in MarketplaceListing.objects.select_related("app").filter(
+                app__is_active=True
+            )
+            if lst.installable
+        )
+    except _EXC as e:
+        logger.debug("catalog_counts marketplace_listings: %s", e)
 
     # InstalledPackage by type (active only)
     try:

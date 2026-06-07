@@ -149,6 +149,7 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "apicenter/super/ai_center_kb_drafts.html",
         "apicenter/super/ai_center_query.html",
         "apicenter/super/ai_center_settings.html",
+        "apicenter/super/ai_center_destructive.html",
         "archetypes/cp_operator_dashboard.html",
         # Assist Dock power tools — CP chrome operator utilities, not Phase 7 dashboards.
         "assist_dock/power/impersonate.html",
@@ -198,6 +199,8 @@ EXEMPT_CONTROL_PLANE_TEMPLATES: frozenset[str] = frozenset(
         "schoolops/super/email_configure.html",
         "schoolops/super/email_health.html",
         "schoolops/super/signup_diagnostics.html",
+        "schoolops/super/invite_school.html",
+        "schoolops/super/signup_verifications.html",
         "schools/manager_feature_gap_register.html",
         "schools/manager_feedback_loop.html",
         "schools/manager_lane2_readiness.html",

@@ -118,9 +118,11 @@ def main(argv: list[str] | None = None) -> int:
                 )
 
     templates_root = root / "templates"
-    cp_text_direct = _read(cp_base)
     cp_text = _read_with_includes(cp_base, templates_root)
-    if '{% include "partials/control_plane_primary_nav.html" %}' not in cp_text:
+    primary_nav_include = re.compile(
+        r"""\{%\s*include\s+["']partials/control_plane_primary_nav\.html["']"""
+    )
+    if not primary_nav_include.search(cp_text):
         errors.append(
             "control_plane_base.html must include control_plane_primary_nav.html "
             "(directly or via consolidated header partials)."

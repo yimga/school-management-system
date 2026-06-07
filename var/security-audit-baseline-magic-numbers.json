@@ -97,7 +97,7 @@
   "excluded_path_fragments": [
     "management/commands/"
   ],
-  "finding_count": 833,
+  "finding_count": 874,
   "findings": [
     {
       "line": 123,
@@ -526,6 +526,30 @@
       "value": 365
     },
     {
+      "line": 38,
+      "path": "apps/api/consumers.py",
+      "snippet": "await self.close(code=4401)",
+      "value": 4401
+    },
+    {
+      "line": 43,
+      "path": "apps/api/consumers.py",
+      "snippet": "await self.close(code=4403)",
+      "value": 4403
+    },
+    {
+      "line": 116,
+      "path": "apps/api/consumers.py",
+      "snippet": "await self.close(code=4401)",
+      "value": 4401
+    },
+    {
+      "line": 119,
+      "path": "apps/api/consumers.py",
+      "snippet": "await self.close(code=4403)",
+      "value": 4403
+    },
+    {
       "line": 123,
       "path": "apps/api/ministry_placeholders.py",
       "snippet": "limit = min(max(int(request.GET.get(\"limit\", 500)), 1), 5000)",
@@ -550,7 +574,7 @@
       "value": 600
     },
     {
-      "line": 153,
+      "line": 176,
       "path": "apps/api/rate_limit.py",
       "snippet": "window = 86400",
       "value": 86400
@@ -586,10 +610,10 @@
       "value": 160
     },
     {
-      "line": 99,
-      "path": "apps/automation/ai_workflow_suggest.py",
-      "snippet": "reasoning=str(obj.get(\"reasoning\", \"\")).strip()[:280],",
-      "value": 280
+      "line": 160,
+      "path": "apps/assist_dock/ai_actions.py",
+      "snippet": "part for part in (user_query.strip(), page_excerpt.strip()[:240]) if part",
+      "value": 240
     },
     {
       "line": 20,
@@ -640,7 +664,7 @@
       "value": 365
     },
     {
-      "line": 1067,
+      "line": 1098,
       "path": "apps/billing/services.py",
       "snippet": "payee_name=str(pname or \"Publisher\")[:160],",
       "value": 160
@@ -652,7 +676,7 @@
       "value": 150
     },
     {
-      "line": 131,
+      "line": 133,
       "path": "apps/communication/channels.py",
       "snippet": "\"text\": {\"body\": (body or \"\")[:4096]},",
       "value": 4096
@@ -814,24 +838,6 @@
       "value": 3600
     },
     {
-      "line": 33,
-      "path": "apps/evals/performance_optimization.py",
-      "snippet": "CACHE_TIMEOUT = 3600  # 1 hour default",
-      "value": 3600
-    },
-    {
-      "line": 205,
-      "path": "apps/evals/performance_optimization.py",
-      "snippet": "\"CONN_MAX_AGE\": 600,",
-      "value": 600
-    },
-    {
-      "line": 218,
-      "path": "apps/evals/performance_optimization.py",
-      "snippet": "def cache_query_result(query_hash, result, timeout=3600):",
-      "value": 3600
-    },
-    {
       "line": 148,
       "path": "apps/events/remediation_ops.py",
       "snippet": "delivery.operator_resolution_reason = reason[:4000]",
@@ -958,7 +964,7 @@
       "value": 5000
     },
     {
-      "line": 307,
+      "line": 315,
       "path": "apps/finance/models.py",
       "snippet": "name = models.CharField(max_length=160)",
       "value": 160
@@ -1084,7 +1090,7 @@
       "value": 1024
     },
     {
-      "line": 127,
+      "line": 132,
       "path": "apps/lifecycle/views_rapid_create.py",
       "snippet": "if counter > 9999:",
       "value": 9999
@@ -2140,6 +2146,12 @@
       "value": 1000000
     },
     {
+      "line": 23,
+      "path": "apps/observability/tasks.py",
+      "snippet": "call_command(\"digest_friction\", hours=168)",
+      "value": 168
+    },
+    {
       "line": 88,
       "path": "apps/observability/telemetry_buffer.py",
       "snippet": "def __init__(self, *, capacity: int = 10_000) -> None:",
@@ -2200,19 +2212,19 @@
       "value": 10000
     },
     {
-      "line": 809,
+      "line": 817,
       "path": "apps/people/views_backend.py",
       "snippet": "for t in qs[:10000]:",
       "value": 10000
     },
     {
-      "line": 1003,
+      "line": 1011,
       "path": "apps/people/views_backend.py",
       "snippet": "for a in qs[:10000]:",
       "value": 10000
     },
     {
-      "line": 1117,
+      "line": 1125,
       "path": "apps/people/views_backend.py",
       "snippet": "for g in qs[:10000]:",
       "value": 10000
@@ -2224,7 +2236,7 @@
       "value": 1200
     },
     {
-      "line": 143,
+      "line": 144,
       "path": "apps/platform_runtime/ai_providers.py",
       "snippet": "f\"{prompt}\\n\\nAdditional context:\\n{(context or '')[:8000]}\"",
       "value": 8000
@@ -2428,7 +2440,7 @@
       "value": 50000
     },
     {
-      "line": 798,
+      "line": 837,
       "path": "apps/platform_runtime/offline_queue.py",
       "snippet": "body=message[:8000],",
       "value": 8000
@@ -2456,6 +2468,12 @@
       "path": "apps/platform_runtime/ollama_model_sync.py",
       "snippet": "tail = ((proc.stdout or \"\") + \"\\n\" + (proc.stderr or \"\"))[-12000:]",
       "value": -12000
+    },
+    {
+      "line": 277,
+      "path": "apps/platform_runtime/platform_email_matrix.py",
+      "snippet": "ttl = max(1, int(cooldown_minutes)) * 60 if cooldown_minutes else 3600",
+      "value": 3600
     },
     {
       "line": 23,
@@ -2614,7 +2632,7 @@
       "value": 180
     },
     {
-      "line": 750,
+      "line": 796,
       "path": "apps/portal/ai_provider.py",
       "snippet": "f\"Support ticket \u2014 Subject: {subject[:200]}. Body: {body[:800]}.\\n\"",
       "value": 800
@@ -2710,13 +2728,13 @@
       "value": 180
     },
     {
-      "line": 172,
+      "line": 192,
       "path": "apps/portal/one_record.py",
       "snippet": "\"preview\": msg.summary[:160]",
       "value": 160
     },
     {
-      "line": 174,
+      "line": 194,
       "path": "apps/portal/one_record.py",
       "snippet": "else (msg.body or \"\")[:160],",
       "value": 160
@@ -2764,121 +2782,121 @@
       "value": 600
     },
     {
-      "line": 149,
+      "line": 278,
       "path": "apps/portal/views_ai_draft.py",
       "snippet": "existing = (payload.get(\"existing\") or \"\").strip()[:1500]",
       "value": 1500
     },
     {
-      "line": 331,
+      "line": 346,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = \"\\n\".join(context_parts)[:1200] if context_parts else \"\"",
       "value": 1200
     },
     {
-      "line": 391,
+      "line": 406,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": ":1500",
       "value": 1500
     },
     {
-      "line": 459,
+      "line": 474,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or body.get(\"policy_text\") or \"\").strip()[:3000]",
       "value": 3000
     },
     {
-      "line": 495,
+      "line": 510,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = \"\\n\".join(context_parts)[:1200] if context_parts else \"\"",
       "value": 1200
     },
     {
-      "line": 565,
+      "line": 580,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "text = (body.get(\"text\") or \"\").strip()[:8000]",
       "value": 8000
     },
     {
-      "line": 655,
+      "line": 670,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = str(results[0].get(\"metadata\", \"\"))[:1500]",
       "value": 1500
     },
     {
-      "line": 804,
+      "line": 819,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or \"\").strip()[:1500]",
       "value": 1500
     },
     {
-      "line": 960,
+      "line": 975,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or \"\").strip()[:1500]",
       "value": 1500
     },
     {
-      "line": 1171,
+      "line": 1186,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = sanitize_support_query((body.get(\"query\") or \"\").strip()[:8000])",
       "value": 8000
     },
     {
-      "line": 1252,
+      "line": 1267,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "context = \"\\n\".join(context_parts)[:1200] if context_parts else \"\"",
       "value": 1200
     },
     {
-      "line": 1468,
+      "line": 1483,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "query = (body.get(\"query\") or body.get(\"institution_type\") or \"\").strip()[:1500]",
       "value": 1500
     },
     {
-      "line": 1601,
+      "line": 1616,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "blob = json.dumps(snapshot, default=str)[:3500]",
       "value": 3500
     },
     {
-      "line": 1603,
+      "line": 1618,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "blob = str(snapshot)[:3500]",
       "value": 3500
     },
     {
-      "line": 1636,
+      "line": 1651,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "blob = \"\\n\".join(context_parts)[:1200]",
       "value": 1200
     },
     {
-      "line": 1657,
+      "line": 1672,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "f\"Absolute base URL for this request (prefix for relative paths in CONTEXT): {base[:240]}\"",
       "value": 240
     },
     {
-      "line": 2087,
+      "line": 2102,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "\"source_fields\": str(source_fields)[:1500],",
       "value": 1500
     },
     {
-      "line": 2088,
+      "line": 2103,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "\"target_fields\": str(target_fields)[:1500],",
       "value": 1500
     },
     {
-      "line": 2094,
+      "line": 2109,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "f\"Source: {str(source_fields)[:1500]}\\nTarget: {str(target_fields)[:1500]}\\n\\nRespond with JSON array only. No other text.\"",
       "value": 1500
     },
     {
-      "line": 2094,
+      "line": 2109,
       "path": "apps/portal/views_ai_gateway.py",
       "snippet": "f\"Source: {str(source_fields)[:1500]}\\nTarget: {str(target_fields)[:1500]}\\n\\nRespond with JSON array only. No other text.\"",
       "value": 1500
@@ -3148,55 +3166,79 @@
       "value": 160
     },
     {
-      "line": 117,
+      "line": 124,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "_RATE_LIMIT_WINDOW_SECONDS = 3600",
       "value": 3600
     },
     {
-      "line": 249,
+      "line": 312,
+      "path": "apps/schoolops/email_delivery.py",
+      "snippet": "_ALLOWED_SMTP_PORTS = frozenset({25, 465, 587, 2525})",
+      "value": 465
+    },
+    {
+      "line": 312,
+      "path": "apps/schoolops/email_delivery.py",
+      "snippet": "_ALLOWED_SMTP_PORTS = frozenset({25, 465, 587, 2525})",
+      "value": 587
+    },
+    {
+      "line": 312,
+      "path": "apps/schoolops/email_delivery.py",
+      "snippet": "_ALLOWED_SMTP_PORTS = frozenset({25, 465, 587, 2525})",
+      "value": 2525
+    },
+    {
+      "line": 388,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "\"port\": _coerce_to_int(getattr(settings, \"EMAIL_PORT\", 587), 587),",
       "value": 587
     },
     {
-      "line": 249,
+      "line": 388,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "\"port\": _coerce_to_int(getattr(settings, \"EMAIL_PORT\", 587), 587),",
       "value": 587
     },
     {
-      "line": 325,
+      "line": 464,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "\"port\": _coerce_to_int(getattr(settings, \"EMAIL_PORT\", 587), 587),",
       "value": 587
     },
     {
-      "line": 325,
+      "line": 464,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "\"port\": _coerce_to_int(getattr(settings, \"EMAIL_PORT\", 587), 587),",
       "value": 587
     },
     {
-      "line": 517,
+      "line": 667,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "if 500 <= code <= 599:",
       "value": 599
     },
     {
-      "line": 519,
+      "line": 669,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "if 400 <= code <= 499:",
       "value": 499
     },
     {
-      "line": 1159,
+      "line": 1862,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "port = int(cfg.get(\"port\") or 587)",
       "value": 587
     },
     {
-      "line": 1190,
+      "line": 1893,
+      "path": "apps/schoolops/email_delivery.py",
+      "snippet": "if port == 465:",
+      "value": 465
+    },
+    {
+      "line": 1896,
       "path": "apps/schoolops/email_delivery.py",
       "snippet": "if port == 465:",
       "value": 465
@@ -3268,33 +3310,39 @@
       "value": 160
     },
     {
-      "line": 76,
+      "line": 79,
       "path": "apps/schoolops/views_email_webhook.py",
       "snippet": "_MAX_BODY_BYTES = 256 * 1024",
       "value": 1024
     },
     {
-      "line": 136,
+      "line": 139,
       "path": "apps/schoolops/views_email_webhook.py",
       "snippet": "str(payload.get(\"Email\") or \"\")[:320],",
       "value": 320
     },
     {
-      "line": 163,
+      "line": 166,
       "path": "apps/schoolops/views_email_webhook.py",
       "snippet": "str(ev.get(\"email\") or \"\")[:320],",
       "value": 320
     },
     {
-      "line": 199,
+      "line": 202,
       "path": "apps/schoolops/views_email_webhook.py",
       "snippet": "addr = str(first.get(\"emailAddress\") or \"\")[:320]",
       "value": 320
     },
     {
-      "line": 240,
+      "line": 243,
       "path": "apps/schoolops/views_email_webhook.py",
       "snippet": "str(ev.get(\"recipient\") or \"\")[:320],",
+      "value": 320
+    },
+    {
+      "line": 277,
+      "path": "apps/schoolops/views_email_webhook.py",
+      "snippet": "str(payload.get(\"email\") or \"\")[:320],",
       "value": 320
     },
     {
@@ -3682,19 +3730,31 @@
       "value": 900
     },
     {
-      "line": 50,
+      "line": 51,
       "path": "apps/schools/signup_views.py",
       "snippet": "return \"\".join(chr(0x1F1E6 + (ord(ch) - ord(\"A\"))) for ch in value)",
       "value": 127462
     },
     {
-      "line": 573,
+      "line": 277,
+      "path": "apps/schools/signup_views.py",
+      "snippet": "window = int(getattr(settings, \"SIGNUP_RATE_WINDOW_SECONDS\", 3600))",
+      "value": 3600
+    },
+    {
+      "line": 1375,
+      "path": "apps/schools/signup_views.py",
+      "snippet": "if not email or \"@\" not in email or len(email) > 254:",
+      "value": 254
+    },
+    {
+      "line": 547,
       "path": "apps/schools/super_views_config.py",
       "snippet": "timeout=600,",
       "value": 600
     },
     {
-      "line": 695,
+      "line": 669,
       "path": "apps/schools/super_views_config.py",
       "snippet": ".order_by(\"-created_at\")[:150]",
       "value": 150
@@ -3716,6 +3776,12 @@
       "path": "apps/schools/super_views_enterprise_security.py",
       "snippet": "def _decode_session_user_ids(limit: int = 150):",
       "value": 150
+    },
+    {
+      "line": 116,
+      "path": "apps/schools/super_views_invite_school.py",
+      "snippet": "if not email or \"@\" not in email or len(email) > 254:",
+      "value": 254
     },
     {
       "line": 253,
@@ -3814,28 +3880,28 @@
       "value": 3600
     },
     {
+      "line": 49,
+      "path": "apps/security/ssrf.py",
+      "snippet": "port = parsed.port or (443 if scheme == \"https\" else 80)",
+      "value": 443
+    },
+    {
       "line": 210,
       "path": "apps/setup_studio/ai_fallbacks.py",
       "snippet": "return {\"error_threshold\": 0.5, \"latency_threshold_ms\": 1500, \"confidence\": 0.50}",
       "value": 1500
     },
     {
-      "line": 43,
+      "line": 41,
       "path": "apps/setup_studio/wizard_ai.py",
       "snippet": "AI_MAX_TOKENS_DEFAULT = 800",
       "value": 800
     },
     {
-      "line": 287,
+      "line": 277,
       "path": "apps/setup_studio/wizard_ai.py",
       "snippet": "rationale = str(parsed[\"rationale_text\"])[:280]",
       "value": 280
-    },
-    {
-      "line": 348,
-      "path": "apps/setup_studio/wizard_ai.py",
-      "snippet": "\"message\": message[:4000],",
-      "value": 4000
     },
     {
       "line": 126,
@@ -3844,7 +3910,7 @@
       "value": 999999
     },
     {
-      "line": 109,
+      "line": 121,
       "path": "apps/siteconfig/brand_import.py",
       "snippet": "parser.feed(html[: 500 * 1024])",
       "value": 1024
@@ -3856,10 +3922,28 @@
       "value": 127
     },
     {
-      "line": 388,
+      "line": 235,
+      "path": "apps/siteconfig/cockpit_config.py",
+      "snippet": "ticker_speed = max(8, min(ticker_speed, 600))",
+      "value": 600
+    },
+    {
+      "line": 495,
       "path": "apps/siteconfig/cockpit_context.py",
       "snippet": "\"interval_ms\": 7000,",
       "value": 7000
+    },
+    {
+      "line": 197,
+      "path": "apps/siteconfig/cockpit_manager_200x.py",
+      "snippet": "\"default_width\": 280,",
+      "value": 280
+    },
+    {
+      "line": 199,
+      "path": "apps/siteconfig/cockpit_manager_200x.py",
+      "snippet": "\"max_width\": 420,",
+      "value": 420
     },
     {
       "line": 97,
@@ -4102,6 +4186,60 @@
       "value": 680
     },
     {
+      "line": 248,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"North America\": (112, 115),",
+      "value": 112
+    },
+    {
+      "line": 248,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"North America\": (112, 115),",
+      "value": 115
+    },
+    {
+      "line": 249,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"Europe\": (214, 108),",
+      "value": 108
+    },
+    {
+      "line": 249,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"Europe\": (214, 108),",
+      "value": 214
+    },
+    {
+      "line": 250,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"West Africa\": (244, 150),",
+      "value": 150
+    },
+    {
+      "line": 250,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"West Africa\": (244, 150),",
+      "value": 244
+    },
+    {
+      "line": 251,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"Asia \u00b7 Oceania\": (416, 136),",
+      "value": 136
+    },
+    {
+      "line": 252,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"Other\": (300, 150),",
+      "value": 150
+    },
+    {
+      "line": 262,
+      "path": "apps/siteconfig/cockpit_panels_realdata_service.py",
+      "snippet": "\"Other\": (170, 78),",
+      "value": 170
+    },
+    {
       "line": 551,
       "path": "apps/siteconfig/forms.py",
       "snippet": "attrs={\"class\": \"form-control\", \"min\": 1, \"max\": 365}",
@@ -4162,10 +4300,22 @@
       "value": 240
     },
     {
-      "line": 4463,
+      "line": 4464,
       "path": "apps/siteconfig/forms_cockpit.py",
       "snippet": "\"interval_ms\": cleaned.get(\"testimonial_interval_ms\") or 7000,",
       "value": 7000
+    },
+    {
+      "line": 61,
+      "path": "apps/siteconfig/forms_cockpit_shell.py",
+      "snippet": "label=_(\"Brand tagline\"), required=False, max_length=160,",
+      "value": 160
+    },
+    {
+      "line": 72,
+      "path": "apps/siteconfig/forms_cockpit_shell.py",
+      "snippet": "label=_(\"Ticker scroll seconds\"), min_value=8, max_value=600, required=True,",
+      "value": 600
     },
     {
       "line": 42,
@@ -4342,6 +4492,18 @@
       "value": 320
     },
     {
+      "line": 43,
+      "path": "apps/siteconfig/models_marketing_testimonial.py",
+      "snippet": "max_length=160, help_text=\"Person credited with the quote.\"",
+      "value": 160
+    },
+    {
+      "line": 46,
+      "path": "apps/siteconfig/models_marketing_testimonial.py",
+      "snippet": "max_length=160,",
+      "value": 160
+    },
+    {
       "line": 520,
       "path": "apps/siteconfig/models_tooling.py",
       "snippet": "watermark_text = models.CharField(max_length=150, blank=True)",
@@ -4370,6 +4532,12 @@
       "path": "apps/siteconfig/repositories/database_recovery_repository.py",
       "snippet": "_MAX_SQLITE_INTEGRITY_CHECK_RESULT_LEN = 8192",
       "value": 8192
+    },
+    {
+      "line": 200,
+      "path": "apps/siteconfig/signup_migration_recommendations.py",
+      "snippet": "return sorted(vendors, key=lambda vendor: rank.get(vendor.slug, 999))",
+      "value": 999
     },
     {
       "line": 182,
@@ -4528,13 +4696,13 @@
       "value": 150
     },
     {
-      "line": 1420,
+      "line": 1421,
       "path": "apps/siteconfig/views.py",
       "snippet": "BULK_LETTER_BODY_MAX_LENGTH = 100_000",
       "value": 100000
     },
     {
-      "line": 2190,
+      "line": 2191,
       "path": "apps/siteconfig/views.py",
       "snippet": "if gate.get(\"slug\") != slug or (time.time() - gate_ts > 900):",
       "value": 900
@@ -4558,7 +4726,7 @@
       "value": 1500
     },
     {
-      "line": 63,
+      "line": 70,
       "path": "apps/siteconfig/views_country_localization.py",
       "snippet": "@cache_control(public=True, max_age=86_400)  # 24h \u2014 seed only changes on deploys.",
       "value": 86400
@@ -4594,7 +4762,7 @@
       "value": 320
     },
     {
-      "line": 121,
+      "line": 130,
       "path": "apps/siteconfig/views_onboarding_coach.py",
       "snippet": "coach_message = text.strip()[:1200]",
       "value": 1200
@@ -4774,14 +4942,26 @@
       "value": 4401
     },
     {
-      "line": 60,
+      "line": 59,
       "path": "apps/wal_stream/consumers.py",
       "snippet": "await self.close(code=4403)",
       "value": 4403
     },
     {
-      "line": 160,
+      "line": 177,
       "path": "apps/wal_stream/consumers.py",
+      "snippet": "maxlen=10_000,",
+      "value": 10000
+    },
+    {
+      "line": 143,
+      "path": "apps/wal_stream/tasks.py",
+      "snippet": "maxlen=10_000,",
+      "value": 10000
+    },
+    {
+      "line": 203,
+      "path": "apps/wal_stream/tasks.py",
       "snippet": "maxlen=10_000,",
       "value": 10000
     },
@@ -4846,7 +5026,7 @@
       "value": 86400
     },
     {
-      "line": 160,
+      "line": 159,
       "path": "services/ai/mcp_product_server.py",
       "snippet": "return {\"ok\": True, \"outline\": text[:2500], \"provider\": meta.get(\"provider\", \"\")}",
       "value": 2500
@@ -4882,22 +5062,34 @@
       "value": 6000
     },
     {
-      "line": 60,
+      "line": 72,
       "path": "services/ai_agentic_runners_mutating.py",
       "snippet": "body = str(params.get(\"body\") or \"\")[:1500]",
       "value": 1500
     },
     {
-      "line": 137,
+      "line": 149,
       "path": "services/ai_agentic_runners_mutating.py",
       "snippet": "reason = str(params.get(\"reason\") or \"agentic-flagged\")[:240]",
       "value": 240
     },
     {
-      "line": 222,
+      "line": 239,
       "path": "services/ai_agentic_runners_mutating.py",
       "snippet": "queue = queue[-200:]",
       "value": -200
+    },
+    {
+      "line": 464,
+      "path": "services/ai_agentic_service.py",
+      "snippet": "bucket = int(time.time() // 3600)",
+      "value": 3600
+    },
+    {
+      "line": 470,
+      "path": "services/ai_agentic_service.py",
+      "snippet": "cache.set(key, count + 1, timeout=3600)",
+      "value": 3600
     },
     {
       "line": 30,
@@ -4922,6 +5114,18 @@
       "path": "services/ai_center/kb_generator.py",
       "snippet": "body=change_summary[:4000],",
       "value": 4000
+    },
+    {
+      "line": 450,
+      "path": "services/ai_copilot_rbac.py",
+      "snippet": "lines.append(f\"Active screen: {active_url[:240]}\")",
+      "value": 240
+    },
+    {
+      "line": 521,
+      "path": "services/ai_copilot_rbac.py",
+      "snippet": "block = \"\\n\".join(lines)[:1200] if lines else \"\"",
+      "value": 1200
     },
     {
       "line": 169,
@@ -4972,13 +5176,13 @@
       "value": 16000
     },
     {
-      "line": 201,
+      "line": 271,
       "path": "services/ai_guided_fallback.py",
       "snippet": "parts.append(\"**Grounded details**\\n\" + rag_text[:2200])",
       "value": 2200
     },
     {
-      "line": 234,
+      "line": 304,
       "path": "services/ai_guided_fallback.py",
       "snippet": "rag_text = \"\\n\".join(extra_lines)[:2200]",
       "value": 2200
@@ -5068,6 +5272,48 @@
       "value": 8192
     },
     {
+      "line": 25,
+      "path": "services/messaging_ai.py",
+      "snippet": "_MAX_PROMPT_CHARS = 4000",
+      "value": 4000
+    },
+    {
+      "line": 103,
+      "path": "services/messaging_ai.py",
+      "snippet": "f\"line, no numbering.\\n\\nMessage:\\n{body_excerpt[:1500]}\\n\"",
+      "value": 1500
+    },
+    {
+      "line": 114,
+      "path": "services/messaging_ai.py",
+      "snippet": "user_query=body_excerpt[:240],",
+      "value": 240
+    },
+    {
+      "line": 175,
+      "path": "services/messaging_ai.py",
+      "snippet": "f\"Message:\\n{body[:600]}\\n\"",
+      "value": 600
+    },
+    {
+      "line": 258,
+      "path": "services/messaging_ai.py",
+      "snippet": "f\"Message:\\n{body[:1800]}\\n\"",
+      "value": 1800
+    },
+    {
+      "line": 284,
+      "path": "services/messaging_ai.py",
+      "snippet": "f\"A parent sent a school office this message:\\n\\\"{inbound_text[:800]}\\\"\\n\"",
+      "value": 800
+    },
+    {
+      "line": 326,
+      "path": "services/messaging_ai.py",
+      "snippet": "f\"Message:\\n{body[:800]}\\n\"",
+      "value": 800
+    },
+    {
       "line": 24,
       "path": "services/risk_explanation.py",
       "snippet": "MAX_PROMPT_CHARS = 4000",
@@ -5098,7 +5344,7 @@
       "value": 2500
     }
   ],
-  "generated_at": "2026-06-02T16:58:38+00:00",
+  "generated_at": "2026-06-07T10:05:14+00:00",
   "rule": "Integer literals with abs(value) >= 100 in production code should route through the 7-layer configurability contract (RuntimeDefaults / constants.py / SiteSettings)",
   "scan_dirs": [
     "apps",

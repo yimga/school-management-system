@@ -31,8 +31,18 @@ class Command(BaseCommand):
             action="store_true",
             help="Only report count, do not update.",
         )
+        parser.add_argument(
+            "--report-capability",
+            action="store_true",
+            help="Print capability-contract coverage for active MarketplaceApp rows.",
+        )
 
     def handle(self, *args, **options):
+        if options.get("report_capability"):
+            self._report_capability_coverage()
+            if options.get("dry_run") and not options.get("status"):
+                return
+
         status = options["status"] or "ok"
         dry_run = options["dry_run"]
         qs = AppInstallation.objects.filter(
@@ -61,5 +71,28 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Updated health for {updated} installations (status={status})."
+            )
+        )
+
+    def _report_capability_coverage(self):
+        from apps.marketplace.capability_contract import (
+            enrich_manifest_capability_bindings,
+            manifest_has_capability_contract,
+        )
+        from apps.marketplace.models import MarketplaceApp
+
+        total = 0
+        with_contract = 0
+        for app in MarketplaceApp.objects.filter(is_active=True).only(
+            "slug", "manifest"
+        ):
+            total += 1
+            manifest = enrich_manifest_capability_bindings(app.slug, app.manifest or {})
+            if manifest_has_capability_contract(manifest):
+                with_contract += 1
+        pct = round((with_contract / total) * 100, 1) if total else 0.0
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Capability contract coverage: {with_contract}/{total} ({pct}%)"
             )
         )

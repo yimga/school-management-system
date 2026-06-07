@@ -87,9 +87,20 @@ def main() -> int:
     cp_skeleton = (REPO_ROOT / "templates" / "control_plane_skeleton.html").read_text(
         encoding="utf-8"
     )
-    portal_base = (REPO_ROOT / "templates" / "portal_base.html").read_text(encoding="utf-8")
+    portal_base = (REPO_ROOT / "templates" / "portal_base.html").read_text(
+        encoding="utf-8"
+    )
+    chrome_styles = (REPO_ROOT / "templates" / "partials" / "rmc_platform_chrome_styles.html").read_text(
+        encoding="utf-8"
+    )
+
+    def _shell_has_topology_css(text: str) -> bool:
+        if "dashboard-topology-shell.css" in text:
+            return True
+        return 'partials/rmc_platform_chrome_styles.html' in text and "dashboard-topology-shell.css" in chrome_styles
+
     for name, text in (("control_plane_skeleton", cp_skeleton), ("portal_base", portal_base)):
-        if "dashboard-topology-shell.css" not in text:
+        if not _shell_has_topology_css(text):
             return _fail(f"{name} missing dashboard-topology-shell.css")
         if "rmc-dashboard-widget-boundary.js" not in text:
             return _fail(f"{name} missing rmc-dashboard-widget-boundary.js")

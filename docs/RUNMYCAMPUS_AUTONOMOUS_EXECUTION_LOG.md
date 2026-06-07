@@ -1,5 +1,45 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — TOP_15 sandbox embed URL registry batch 1639 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1639** — per-app sandbox iframe demo URLs for all **TOP_15** catalog apps.
+
+**B. Shipped:** `sandbox_embed_registry.py`; manifest enrich merge; `sandbox_embed` url_name resolution; verifier + closure bundle; `test_sandbox_embed_registry`.
+
+**C. Proof:** **MARKETPLACE_SANDBOX_EMBED_REGISTRY_PASS (15)**; **5/5** tests OK; **MARKETPLACE_CATALOG_10X_CLOSURE_PASS**.
+
+**D. SOT:** batch **1639** **DONE**. **E. Honest:** vendor creds operator setup; legacy package ID listing aliases deferred; **1175**/**1199** external.
+
+## Slice — Legacy first-party payloads + Transport/Canteen E2E batch 1638 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1638** — deepen **27** legacy `seed_first_party_apps` payloads; prove full activate path for **Transport** + **Canteen** catalog apps.
+
+**B. Shipped:** `first_party_package_payloads.py`; seed command payload upsert; `verify_first_party_package_payload_parity.py`; closure bundle extension; `test_first_party_package_payload_parity` + `test_activate_transport_canteen_e2e`.
+
+**C. Proof:** **FIRST_PARTY_PACKAGE_PAYLOAD_PARITY_PASS (27)**; **MARKETPLACE_CATALOG_10X_CLOSURE_PASS**; **5/5** tests OK.
+
+**D. SOT:** batch **1638** **DONE**. **E. Honest:** vendor creds + sandbox embed URLs operator depth; **1175**/**1199** external.
+
+## Slice — Marketplace PackageVersion payload parity batch 1637 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1637** — align **73** marketplace slugs with non-empty **`PackageVersion.payload_sections`**.
+
+**B. Shipped:** `marketplace_package_payloads.py`; `seed_marketplace_catalog_packages`; parity verifier; bootstrap wiring; package + orchestrator tests.
+
+**C. Proof:** **MARKETPLACE_PACKAGE_PAYLOAD_PARITY_PASS (73)**; **MARKETPLACE_CATALOG_10X_CLOSURE_PASS**; marketplace tests OK.
+
+**D. SOT:** batch **1637** **DONE**. **E. Honest:** legacy 27 IDs until batch **1638**; vendor creds operator depth.
+
+## Slice — Marketplace PackageVersion payload parity batch 1637 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1637** — align all **73** marketplace `package_id` bindings with non-empty **`PackageVersion.payload_sections`** so sandbox → **Activate** applies real pack content.
+
+**B. Shipped:** `marketplace_package_payloads.py` builder + `seed_marketplace_catalog_packages`; bootstrap/complete seed wiring; `verify_marketplace_package_payload_parity.py`; closure bundle update; orchestrator test asserting `packages_applied` + `InstalledPackage`.
+
+**C. Proof:** **MARKETPLACE_PACKAGE_PAYLOAD_PARITY_PASS (73)**; **MARKETPLACE_CATALOG_10X_CLOSURE_PASS**; **6/6** tests OK (`test_marketplace_package_payload_parity` + `test_activation_orchestrator`).
+
+**D. SOT:** batch **1637** **DONE**. **E. Honest:** legacy `seed_first_party_apps` IDs unchanged; vendor creds + sandbox embed URLs still operator depth; **1175**/**1199** external.
+
 ## Slice — Signup multi-language + InformationTag wiring batch 1636 (2026-06-02)
 
 **A. Claim:** §11.4 batch **1636** — ledger closeout for multi-language signup + platform InformationTag wiring (code in **`7bee1869`**, row missing).
@@ -9,6 +49,16 @@
 **C. Proof:** **5/5** `test_signup_multilingual_selection` OK; **INFORMATION_TAG_WIRING_PASS**; **3/3** `OneRecordDataTests` OK; SW monotonic OK.
 
 **D. SOT:** batch **1636** **DONE**. **E. Honest:** Studio OS workflow overview tag chips are separate optional depth; **1175**/**1199** external.
+
+## Slice — Studio OS deferred closeout + gate hygiene batch 1635 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1635** — complete v3.54.0 Studio OS cockpit deferrals; fix **`lint_broad_except`** + shell-matrix regressions blocking phases bundle.
+
+**B. Shipped:** `get_overview_signals` draft/blocker counts; `get_launch_readiness_summary` timeline/risk; `get_automation_simulation_preview` + views wiring; `ai_provider.py` typed except cleanup; `portal_base.html` design-system + responsive-touch CSS links; SW bump.
+
+**C. Proof:** **lint_broad_except** PASS; **verify_shell_architecture_matrix** PASS; **verify_phase3_navigation_command_conformance** PASS; **verify_dashboard_topology_integrity** PASS; SW monotonic OK.
+
+**D. SOT:** batch **1635** **DONE**. **E. Honest:** **1175**/**1199** external; full phases monolith not re-run to completion on this host.
 
 ## Slice — Manager copilot CSRF + guided fallback batch 1634 (2026-06-02)
 

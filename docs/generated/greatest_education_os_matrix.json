@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-06-06T00:54:42.773247+00:00",
+  "generated_at": "2026-06-07T11:34:54.898210+00:00",
   "repo_target_pct": 99.0,
   "verdict": "GEOS_99_MATRIX_PASS",
   "overall": {
@@ -145,7 +145,7 @@
           "check_id": "middleware",
           "description": "verify_middleware_stack_order.py",
           "passed": true,
-          "proof": "verify_middleware_stack_order: OK (mode=single-schema)"
+          "proof": "- remote_addr=- http_referer=- http_user_agent=- http_host=- content_type=- accept_language=- accept_encoding=- x_forwarded_for=- x_forwarded_proto=- x_forwarded_host=- content_length=- http_origin=- query_string=- server_protocol=- request_scheme=- server_name=- integrations_marketplace: OAUTH_CALLBACK_BASE_URL is not set. OAuth callbacks will use the request's host header, which is fine for dev but will fail in prod if upstreams (Zoom / Google / Microsoft) have a fixed redirect URI registered."
         },
         {
           "check_id": "tenant_offboarding",

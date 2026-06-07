@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from apps.marketplace.capability_contract import capability_summary
 from apps.marketplace.models import MarketplaceListing
 
 
@@ -16,6 +17,8 @@ def catalog_listing_display(listing: MarketplaceListing) -> dict[str, Any]:
     raw = listing.compatibility if isinstance(listing.compatibility, dict) else {}
     vcs = list(listing.app.version_compat.all()[:3])
     primary = vcs[0] if vcs else None
+    manifest = getattr(getattr(listing, "app", None), "manifest", None) or {}
+    cap = capability_summary(manifest if isinstance(manifest, dict) else {})
     return {
         "countries": raw.get("countries") or [],
         "plan_tiers": raw.get("plan_tiers") or [],
@@ -31,6 +34,8 @@ def catalog_listing_display(listing: MarketplaceListing) -> dict[str, Any]:
             "rollback_summary",
             "Sandbox first; uninstall or deactivate from Installed apps; metadata packs use Pack rollback.",
         ),
+        "capability_binding_count": cap.get("binding_count", 0),
+        "capability_kinds": cap.get("kinds") or [],
     }
 
 

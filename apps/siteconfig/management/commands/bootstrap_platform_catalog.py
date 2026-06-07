@@ -47,6 +47,11 @@ BOOTSTRAP_STEPS = [
     ("seed_capability_registry", [], "Marketplace capability codes"),
     ("seed_marketplace_apps", [], "First-party marketplace apps and listings"),
     (
+        "seed_marketplace_catalog_packages",
+        [],
+        "PackageVersion payloads for all marketplace catalog app slugs",
+    ),
+    (
         "seed_provider_registry",
         [],
         "Platform provider registry (payment, email, SMS, document AI, identity, storage)",
@@ -162,6 +167,11 @@ class Command(BaseCommand):
             call_command(
                 "seed_marketplace_apps", *extra, verbosity=options["verbosity"]
             )
+            if not dry_run:
+                call_command(
+                    "seed_marketplace_catalog_packages",
+                    verbosity=options["verbosity"],
+                )
 
         self.stdout.write(self.style.SUCCESS("Platform catalog bootstrap complete."))
 
@@ -188,6 +198,7 @@ class Command(BaseCommand):
             extra = list(extra_args)
             if dry_run and cmd_name in (
                 "seed_marketplace_apps",
+                "seed_marketplace_catalog_packages",
                 "seed_capability_registry",
                 "seed_provider_registry",
                 "seed_migration_profiles",
