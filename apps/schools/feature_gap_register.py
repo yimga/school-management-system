@@ -420,6 +420,14 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
         proof_management_command="export_state_report",
         notes="SHIPPED 2026-06-07: apps/reports/state_reporting.py JURISDICTION_FORMATS (GENERIC / US_EDFACTS / CA_CALPADS column maps) + export_state_report_csv (offline CSV packet) + export_state_report command, on the statutory_tenant_extract + interop/ceds+edfi foundation. Tests test_state_reporting 5/5. Honest scope: real column maps + CSV; authority validation rules + transport layer on top.",
     ),
+    FeatureRow(
+        feature_slug="crdt-offline-convergence",
+        label="CRDT offline convergence (LWW-register + G-set + multi-terminal wallet)",
+        capability_domain="integrations",
+        status="shipped",
+        proof_management_command="verify_crdt_convergence",
+        notes="SHIPPED Wave F 2026-06-07: apps/sync_engine/crdt.py (LWWRegister ordered by Lamport-clock+replica-id — deterministic, NOT wall-clock LWW; GSet union; lamport_tick) + crdt_wallet.py (grow-only unique-op log, union-merge, Decimal-safe effective_balance, multi-terminal offline debit with HONEST overdraft DETECTION on reconciliation — overdraft is uncoordinatable offline per CAP, so detected not faked; online mode reserve_debit can reject). Proven convergent: tests test_crdt 13/13 + verify_crdt_convergence command. Device-to-device mesh TRANSPORT (BLE/Wi-Fi-Direct) rides on top; rmc-lan-mule-sync.js is the LAN transport. This is the correct home for Wave C's deferred multi-terminal wallet reservation.",
+    ),
 )
 
 
