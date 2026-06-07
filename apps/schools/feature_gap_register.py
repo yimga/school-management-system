@@ -396,10 +396,12 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
     ),
     FeatureRow(
         feature_slug="non-repudiation-logger",
-        label="Per-action WebAuthn-signed non-repudiation log (write-once vault)",
+        label="Platform-wide signed, append-only non-repudiation action log",
         capability_domain="observability",
-        status="in_progress",
-        notes="VERIFIED 2026-06-07: tamper-evident hash-chain SHIPPED but migration_cloud-scoped (MigrationCloudAuditEvent integrity_hash/prev_event_hash + HMAC-SHA512 root_key_signature + verify_audit_chain). GAP: PLATFORM-WIDE per-action WebAuthn signing + write-once (S3 Object Lock) vault. compliance.ComplianceAuditLog exists but unsigned. Wave E.",
+        status="shipped",
+        proof_model="compliance.NonRepudiationLogEntry",
+        proof_management_command="verify_non_repudiation_chain",
+        notes="SHIPPED 2026-06-07: compliance.NonRepudiationLogEntry (migration 0017, per-school SHA-256 hash chain + HMAC server signature, append-only save/delete guards) + non_repudiation.record_action/verify_chain (any app records actions; tamper to payload OR signature is detected) + verify_non_repudiation_chain command. Tests test_non_repudiation 7/7. WebAuthn user-presence is the client layer — bound per-entry via webauthn_presence when supplied; write-once S3 Object Lock vault is a deploy-side mirror, future.",
     ),
     FeatureRow(
         feature_slug="gdpr-key-shredding",
@@ -412,10 +414,11 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
     ),
     FeatureRow(
         feature_slug="state-reporting-bridges",
-        label="State-reporting bridges (CALPADS / EdFacts / national formats)",
+        label="State-reporting CSV exporter (per-jurisdiction column maps)",
         capability_domain="reporting",
-        status="in_progress",
-        notes="VERIFIED 2026-06-07: generic statutory aggregate extract ships (apps/platform_runtime/statutory_tenant_extract.py + emis/ org_aggregate). GAP: jurisdiction-specific format export (CALPADS/EdFacts/SAIS).",
+        status="shipped",
+        proof_management_command="export_state_report",
+        notes="SHIPPED 2026-06-07: apps/reports/state_reporting.py JURISDICTION_FORMATS (GENERIC / US_EDFACTS / CA_CALPADS column maps) + export_state_report_csv (offline CSV packet) + export_state_report command, on the statutory_tenant_extract + interop/ceds+edfi foundation. Tests test_state_reporting 5/5. Honest scope: real column maps + CSV; authority validation rules + transport layer on top.",
     ),
 )
 

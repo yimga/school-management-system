@@ -741,3 +741,58 @@ class AuditorAccessLog(models.Model):
 
     def __str__(self):
         return f"{self.grant_id} viewed {self.resource} @ {self.occurred_at}"
+
+
+class NonRepudiationLogReadOnlyError(Exception):
+    """Raised on any attempt to mutate/delete a sealed non-repudiation entry."""
+
+
+class NonRepudiationLogEntry(models.Model):
+    """Platform-wide, append-only, cryptographically-signed action log (Wave E).
+
+    Any app records an administrative action here via
+    ``compliance.non_repudiation.record_action``. Entries form a per-school
+    SHA-256 hash chain (``prev_hash`` → ``integrity_hash``) and each is signed
+    with an HMAC server key, so neither a single edit nor a re-ordering can pass
+    ``verify_chain`` undetected. Optional ``webauthn_presence`` carries a
+    client-side user-presence assertion id when one is supplied.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="non_repudiation_entries",
+    )
+    sequence = models.PositiveIntegerField(help_text="Per-school monotonic chain index.")
+    actor_id = models.IntegerField(null=True, blank=True)
+    action = models.CharField(max_length=80)
+    resource = models.CharField(max_length=255, blank=True)
+    payload_summary = models.JSONField(default=dict, blank=True)
+    webauthn_presence = models.CharField(max_length=255, blank=True)
+    prev_hash = models.CharField(max_length=64)
+    integrity_hash = models.CharField(max_length=64)
+    signature = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["school_id", "sequence"]
+        indexes = [models.Index(fields=["school", "sequence"])]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "sequence"], name="uniq_nonrepudiation_school_sequence"
+            )
+        ]
+
+    def __str__(self):
+        return f"#{self.sequence} {self.action} (school {self.school_id})"
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None and not self._state.adding:
+            raise NonRepudiationLogReadOnlyError("Non-repudiation entries are append-only.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise NonRepudiationLogReadOnlyError("Non-repudiation entries cannot be deleted.")
