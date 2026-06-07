@@ -42,6 +42,8 @@
     <div class="cp-hero__actions cp-hero__actions--toolbar rmc-section-nav" role="toolbar" aria-label="{% trans 'Catalog actions' %}" data-rmc-section-nav-curated="1">
       <div class="cp-hero__actions-group cp-hero__actions-group--primary" role="group" aria-label="{% trans 'Primary actions' %}">
         <a class="cp-btn cp-btn--primary" href="{% url 'admin:schools_school_add' %}">+ {% trans "New school" %}</a>
+        <a class="cp-btn" href="{% url 'super:invite_school' %}">✉ {% trans "Invite a school" %}</a>
+        <a class="cp-btn" href="{% url 'super:signup_verifications' %}">✓ {% trans "Signup verifications" %}</a>
         <a class="cp-btn" href="{% url 'siteconfig:console_domains_hub' %}">⚙ {% trans "Open Config center" %}</a>
         <a class="cp-btn" href="{% url 'studio_os:shell' %}">⌘ {% trans "Open Studio" %}</a>
         <button type="button" class="cp-btn cp-btn--ghost" data-rmc-command-bar-trigger="1" aria-label="{% trans 'Command palette' %}">⌘K · {% trans "command palette" %}</button>

@@ -1241,21 +1241,11 @@ def _bind_tenant_invite_if_present(request: HttpRequest, school) -> None:
     invite.school = school
     invite.accepted_at = timezone.now()
     invite.save(update_fields=["school", "accepted_at"])
-    try:
-        from apps.platform_runtime.event_bus import publish_event
-
-        publish_event(
-            "tenant.invite.accepted",
-            {
-                "school_id": str(school.pk),
-                "school_name": getattr(school, "name", ""),
-                "email": invite.email,
-            },
-            school_id=str(school.pk),
-            source="schools.accept_school_invite",
-        )
-    except (ImportError, AttributeError, TypeError, ValueError, OSError, RuntimeError):
-        logger.warning("tenant_invite_accepted_publish_failed", exc_info=True)
+    logger.info(
+        "tenant_invite_accepted invite=%s school_id=%s",
+        invite.id,
+        getattr(school, "pk", None),
+    )
 
 
 @never_cache

@@ -45889,3 +45889,87 @@ msgstr ""
 msgid ""
 "{{ counter }} operator online{% plural %}{{ counter }} operators online"
 msgstr ""
+
+msgid "Accept & set up my school"
+msgstr ""
+
+msgid "Accept invitation"
+msgstr ""
+
+msgid "Accepted"
+msgstr ""
+
+msgid "ISO-2"
+msgstr ""
+
+msgid "Invitation not valid"
+msgstr ""
+
+msgid "Invitations"
+msgstr ""
+
+msgid "Invite a school"
+msgstr ""
+
+msgid ""
+"Invite a school by email instead of waiting for them to sign up. They'll get"
+" a link to accept and walk through the same guided onboarding workflow."
+msgstr ""
+
+msgid "Invited:"
+msgstr ""
+
+msgid "No invitations yet."
+msgstr ""
+
+msgid "No signup verifications match this filter."
+msgstr ""
+
+msgid ""
+"Pending school signups and their email-verification status. Resend an "
+"expired link, or regenerate it (the old link stops working) — no need to "
+"make the school sign up again. Signups still unverified after {{ hours }}h "
+"are flagged stale."
+msgstr ""
+
+msgid "Regenerate"
+msgstr ""
+
+msgid "Send invitation"
+msgstr ""
+
+msgid ""
+"Set up your school on RunMyCampus. Click below to start the guided "
+"onboarding — no separate sign-up needed."
+msgstr ""
+
+msgid ""
+"Set up {{ name }} on RunMyCampus. Click below to start the guided onboarding"
+" — no separate sign-up needed."
+msgstr ""
+
+msgid "Showing the most recent {{ n }} signups."
+msgstr ""
+
+msgid "Signup verifications"
+msgstr ""
+
+msgid "Signup verifications (resend / regenerate)"
+msgstr ""
+
+msgid "Stale"
+msgstr ""
+
+msgid ""
+"This invitation link is invalid, expired, revoked, or has already been "
+"accepted."
+msgstr ""
+
+msgid "You can still sign up your school here"
+msgstr ""
+
+msgid "You're invited to RunMyCampus"
+msgstr ""
+
+msgid "accepted"
+msgstr ""

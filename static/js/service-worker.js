@@ -179,7 +179,7 @@
 // Evaluation post-save, CA-mark input UI + migration 0050, monetization
 // admin inspector. theme-experience-premium
 // v4.01.57: workflow progress strip syncs all inline hosts (header + canvas).
-const CACHE_VERSION = "sms-v4.02.57-tenant-invite-undefined-css-fix-2026-06-06";
+const CACHE_VERSION = "sms-v4.02.58-operator-verif-nav-invite-tests-2026-06-06";
 const STATIC_CACHE = `sms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `sms-dynamic-${CACHE_VERSION}`;
 

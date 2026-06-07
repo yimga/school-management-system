@@ -23,6 +23,7 @@
     <p class="rmc-lede">
       {% blocktrans with hours=stats.window_hours %}Last {{ hours }} hours of platform email sends, current SMTP configuration, and a synchronous probe. Auto-refreshes every {{ refresh_seconds }} seconds.{% endblocktrans %}
     </p>
+    <p class="mb-0"><a class="cp-btn cp-btn--ghost" href="{% url 'super:signup_verifications' %}">→ {% trans "Signup verifications (resend / regenerate)" %}</a></p>
     <meta http-equiv="refresh" content="{{ refresh_seconds|default:60 }}">
   </header>
 

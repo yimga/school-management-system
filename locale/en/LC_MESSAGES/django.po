@@ -51507,3 +51507,99 @@ msgid ""
 "{{ counter }} operator online{% plural %}{{ counter }} operators online"
 msgstr ""
 "{{ counter }} operator online{% plural %}{{ counter }} operators online"
+
+msgid "Accept & set up my school"
+msgstr "Accept & set up my school"
+
+msgid "Accept invitation"
+msgstr "Accept invitation"
+
+msgid "Accepted"
+msgstr "Accepted"
+
+msgid "ISO-2"
+msgstr "ISO-2"
+
+msgid "Invitation not valid"
+msgstr "Invitation not valid"
+
+msgid "Invitations"
+msgstr "Invitations"
+
+msgid "Invite a school"
+msgstr "Invite a school"
+
+msgid ""
+"Invite a school by email instead of waiting for them to sign up. They'll get"
+" a link to accept and walk through the same guided onboarding workflow."
+msgstr ""
+"Invite a school by email instead of waiting for them to sign up. They'll get"
+" a link to accept and walk through the same guided onboarding workflow."
+
+msgid "Invited:"
+msgstr "Invited:"
+
+msgid "No invitations yet."
+msgstr "No invitations yet."
+
+msgid "No signup verifications match this filter."
+msgstr "No signup verifications match this filter."
+
+msgid ""
+"Pending school signups and their email-verification status. Resend an "
+"expired link, or regenerate it (the old link stops working) — no need to "
+"make the school sign up again. Signups still unverified after {{ hours }}h "
+"are flagged stale."
+msgstr ""
+"Pending school signups and their email-verification status. Resend an "
+"expired link, or regenerate it (the old link stops working) — no need to "
+"make the school sign up again. Signups still unverified after {{ hours }}h "
+"are flagged stale."
+
+msgid "Regenerate"
+msgstr "Regenerate"
+
+msgid "Send invitation"
+msgstr "Send invitation"
+
+msgid ""
+"Set up your school on RunMyCampus. Click below to start the guided "
+"onboarding — no separate sign-up needed."
+msgstr ""
+"Set up your school on RunMyCampus. Click below to start the guided "
+"onboarding — no separate sign-up needed."
+
+msgid ""
+"Set up {{ name }} on RunMyCampus. Click below to start the guided onboarding"
+" — no separate sign-up needed."
+msgstr ""
+"Set up {{ name }} on RunMyCampus. Click below to start the guided onboarding"
+" — no separate sign-up needed."
+
+msgid "Showing the most recent {{ n }} signups."
+msgstr "Showing the most recent {{ n }} signups."
+
+msgid "Signup verifications"
+msgstr "Signup verifications"
+
+msgid "Signup verifications (resend / regenerate)"
+msgstr "Signup verifications (resend / regenerate)"
+
+msgid "Stale"
+msgstr "Stale"
+
+msgid ""
+"This invitation link is invalid, expired, revoked, or has already been "
+"accepted."
+msgstr ""
+"This invitation link is invalid, expired, revoked, or has already been "
+"accepted."
+
+msgid "You can still sign up your school here"
+msgstr "You can still sign up your school here"
+
+msgid "You're invited to RunMyCampus"
+msgstr "You're invited to RunMyCampus"
+
+msgid "accepted"
+msgstr "accepted"
