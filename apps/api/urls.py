@@ -79,10 +79,14 @@ from apps.api.roadmap_extended_views import (
 from apps.schools.api_views import SchoolConfigAPI
 from apps.analytics.benchmark_views import BenchmarkComparisonAPI
 from apps.api.offline_replay_views import (
+    OfflineQueueEncryptionKeyAPI,
     OfflineReplayBatchAPI,
     PrefetchUrlsAPI,
     QueueMetricsAPI,
 )
+from apps.api.boarding_monitor_api import BusBoardingIngestAPI
+from apps.api.pos_checkout_api import PosCheckoutAPI
+from apps.api.proximity_attendance_api import ProximityAttendanceIngestAPI
 from apps.api.sync_delta_api import DeltaSyncAPI
 from apps.api.offline_device_api import OfflineTokenMintView
 from apps.api.iam_offline_api import OfflineIamIntentAPI, PermissionSnapshotAPI
@@ -822,6 +826,20 @@ urlpatterns = [
         name="offline-replay-batch",
     ),
     path("offline/delta/", DeltaSyncAPI.as_view(), name="offline-delta"),
+    # Ambient capture: device-agnostic proximity attendance ping (BLE/RFID/NFC/QR)
+    path(
+        "proximity/attendance/ingest/",
+        ProximityAttendanceIngestAPI.as_view(),
+        name="proximity-attendance-ingest",
+    ),
+    # Campus commerce: cashless POS checkout with allergen barrier + wallet debit
+    path("pos/checkout/", PosCheckoutAPI.as_view(), name="pos-checkout"),
+    # Logistics: non-phone RFID/NFC/QR bus boarding tap → event + parent notify
+    path(
+        "transport/boarding/ingest/",
+        BusBoardingIngestAPI.as_view(),
+        name="bus-boarding-ingest",
+    ),
     path(
         "offline/prefetch_urls/",
         PrefetchUrlsAPI.as_view(),
@@ -831,6 +849,11 @@ urlpatterns = [
         "offline/queue_metrics/",
         QueueMetricsAPI.as_view(),
         name="offline-queue-metrics",
+    ),
+    path(
+        "offline/encryption-key/",
+        OfflineQueueEncryptionKeyAPI.as_view(),
+        name="offline-encryption-key",
     ),
     path(
         "devices/offline-token/",

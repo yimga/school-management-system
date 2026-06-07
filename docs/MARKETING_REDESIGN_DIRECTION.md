@@ -107,3 +107,20 @@ Both clipped every dedicated page (academics / enterprise-ledger / edge-mesh / z
 **Live-validated all six** (`/experience/<slug>/`): every page reports `max-height:none` + `overflow:visible` (lock gone), document height 3154–4275px (flows over multiple screens, not clipped), headlines unclipped, each page's own sim clicks through, **zero JS errors**. The seven dedicated-page partials each already carried a working client-side sim (speed-duel, edge-map, enterprise-constellation, entitlement-calculator, governance display, viewport-trinity, zero-ui playground) — they only needed unlocking, not rebuilding.
 
 **Result: zero viewport-lock / text-shield / scroll-policy tokens remain in any marketing template.** SW `sms-v4.02.26-marketing-viewport-lock-sweep`. All gates green.
+
+---
+
+## 8. Expanded "Cloud-Dependency-Collapse" paste (2026-06-07) — guard-railed
+
+The owner pasted an **expanded** version of the dominance research: PART 1 (regional competitor audit — already folded into §4), PART 2 (a 6-phase institutional lifecycle manifest — genuinely useful; converted into `docs/GLOCAL_SOVEREIGNTY_PLAN.md`), PART 3 (new Django code), and PART 4 (the "scan-all-files-until-100%" prompt — already rejected in §3.3).
+
+**PART 3 is harmful and must NOT be merged.** Full reasons + the real subsystem for each are in `docs/GLOCAL_SOVEREIGNTY_PLAN.md` §1. Summary of what to reject:
+
+1. **`apps/glocal_kernel/models.py`** — invented app; does not exist. Tenant config = `School` + the `RuntimeDefaults→SiteSettings` cascade; localization = `apps/siteconfig/country_localization_service.py`.
+2. **`CongruentTenantMeshMiddleware`** — a DB-per-tenant router with dynamic connection injection + JWT-claim RLS. Contradicts the live architecture (shared DB + `School` + `app.current_school_id` RLS in `apps/schools/middleware.py` / migration `0002_enable_rls_postgresql.py`). Would break every existing query, migration and the RLS gate.
+3. **Hardcoded DB credentials/host** (`'PASSWORD': 'SECURE_ENV_DECRYPTED_PASSWORD'`, `pgbouncer` host) — violates the no-hardcoding directive; config is env-driven `DATABASE_URL`.
+4. **`merge_offline_crdt_stream`** — not a CRDT; wall-clock string-compare last-write-wins → silent data loss under clock skew. Real offline sync = `apps/sync_engine` + `apps/api/mobile_api.OfflineSyncQueue` + `apps/api/offline_encryption.py`.
+5. **`portal_base.html` rewrite** (`100dvh` grid lock, `overflow:hidden`, `.edos-text-shield`, `user-scalable=no`) — the exact clipping/blank-box pattern already removed (§3, §7); also WCAG 1.4.4 + 1.4.10 failures.
+6. **Inline-`<script>` "layout sentinel"** mutating `element.style.*` at runtime — bypasses the token system (trips `scan_inline_style_off_token` baseline 0 + CSP nonce gate) and "fixes" overflow by clipping (the very bug it claims to detect).
+
+**The thesis is right and already largely built** — the platform already ships a mature offline-first stack (service worker, IndexedDB, `sync_engine`, `OfflineSyncQueue`, LAN-hub sync, offline encryption + auth vault). The lifecycle gaps are sequenced as bounded waves in `docs/GLOCAL_SOVEREIGNTY_PLAN.md` §5; per-feature promises tracked in `apps/schools/feature_gap_register.py` (lifecycle rows added 2026-06-07, all `planned`/`in_progress`).

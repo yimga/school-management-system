@@ -13,6 +13,7 @@ from apps.compliance.views import (
     CriticalItemsAPI,
 )
 from apps.compliance.views_api import mute_threats
+from apps.compliance.views_auditor import AuditorGrantConsoleView, auditor_inspect
 from apps.compliance.views_gdpr import data_portability_export, erasure_request_view
 from apps.compliance.views_queue import (
     approve_erase,
@@ -29,6 +30,13 @@ app_name = "compliance"
 urlpatterns = [
     # Dashboard view
     path("dashboard/", ComplianceDashboardView.as_view(), name="dashboard"),
+    # Wave E: auditor magic-link. Public inspector landing is token-gated (the
+    # signed, time-bounded, revocable grant IS the auth) and PII-masked + logged.
+    path("auditor/inspect/", auditor_inspect, name="auditor_inspect"),
+    # rbac-allow: auditor-magic-link-token-gated-anonymous-pii-masked-readonly
+    path(
+        "auditor/grants/", AuditorGrantConsoleView.as_view(), name="auditor_grants_console"
+    ),  # rbac-allow: staff-member-required-auditor-grant-console
     # Wave 5 (v2.76): Data Quality Center — tenant-scoped completeness checks.
     path("data-quality/", data_quality_center, name="data_quality_center"),
     # Pass 9.C: operator-facing GDPR/FERPA queue with SLA tracking.

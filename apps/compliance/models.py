@@ -2,6 +2,8 @@
 Compliance & Legal Framework models for regional requirements and document management.
 """
 
+import uuid
+
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
@@ -674,3 +676,68 @@ class FerpaDisclosure(models.Model):
 # ============================================
 # Re-export AuditLog from models_audit for callers that import from .models (e.g. portal)
 from apps.compliance.models_audit import AuditLog  # noqa: F401
+
+
+# ============================================
+# Auditor magic-link (Wave E — year-end governance)
+# ============================================
+class AuditorAccessGrant(models.Model):
+    """A time-bounded, revocable grant for an EXTERNAL inspector (Ofsted / state).
+
+    The magic link carries a TimestampSigner token over this row's id; the
+    inspector view never authenticates a User — the unexpired, unrevoked grant
+    IS the authorisation, and it only ever exposes PII-masked, read-only data.
+    Every view is recorded in :class:`AuditorAccessLog`.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="auditor_grants"
+    )
+    inspector_email = models.EmailField(blank=True)
+    inspector_label = models.CharField(
+        max_length=120, blank=True, help_text="e.g. 'Ofsted Lead Inspector'"
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="auditor_grants_created",
+    )
+    scope = models.JSONField(
+        default=list, blank=True, help_text='e.g. ["students:read"] (read-only scopes).'
+    )
+    note = models.CharField(max_length=255, blank=True)
+    expires_at = models.DateTimeField()
+    is_revoked = models.BooleanField(default=False)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["school", "-created_at"])]
+
+    def __str__(self):
+        return f"AuditorGrant {self.id} → {self.inspector_label or self.inspector_email}"
+
+    def is_valid(self) -> bool:
+        return (not self.is_revoked) and self.expires_at > timezone.now()
+
+
+class AuditorAccessLog(models.Model):
+    """Append-only record of what an external inspector viewed under a grant."""
+
+    grant = models.ForeignKey(
+        "compliance.AuditorAccessGrant", on_delete=models.CASCADE, related_name="access_logs"
+    )
+    resource = models.CharField(max_length=255)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    occurred_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-occurred_at"]
+        indexes = [models.Index(fields=["grant", "-occurred_at"])]
+
+    def __str__(self):
+        return f"{self.grant_id} viewed {self.resource} @ {self.occurred_at}"

@@ -326,27 +326,38 @@ def _mark_proof_upload_verification_error(proof_upload_id: int, message: str) ->
 
 def _send_payment_email(
     to_email: str, subject: str, body: str, integration: Integration | None
-) -> None:
+) -> bool:
+    """Send a reminder email. Returns True if delivered/queued, False on failure.
+
+    The caller relies on the boolean to record a SENT vs FAILED reminder log —
+    never assume success (a swallowed failure used to be logged as SENT).
+    """
     if not to_email:
-        return
+        return False
     from_email = settings.DEFAULT_FROM_EMAIL
     if integration and integration.config:
         from_email = integration.config.get("from_email", from_email)
     # Route through the reliability layer (audit H1): retried + audited.
     from apps.schoolops.email_delivery import send_transactional
 
-    result = send_transactional(
-        subject=subject,
-        body=body,
-        to=[to_email],
-        from_email=from_email,
-        priority="transactional",
-    )
+    try:
+        result = send_transactional(
+            subject=subject,
+            body=body,
+            to=[to_email],
+            from_email=from_email,
+            priority="transactional",
+        )
+    except SMTPException as exc:
+        logger.warning("Failed to deliver finance reminder email err_kind=%s", type(exc).__name__)
+        return False
     if not (result.get("ok") or result.get("queued")):
         logger.warning(
             "Failed to deliver finance reminder email err_kind=%s",
             result.get("error_kind"),
         )
+        return False
+    return True
 
 
 def _split_late_fee_policy(*, school=None) -> dict:
@@ -685,17 +696,24 @@ def run_payment_reminders(dry_run: bool = False) -> dict:
                                 or ""
                             )
                             if to_email:
-                                _send_payment_email(
+                                email_ok = _send_payment_email(
                                     to_email, subject, body, integration
                                 )
-                                PaymentReminderLog.objects.create(
-                                    reminder=reminder,
-                                    status="SENT",
-                                    note=f"Email sent to {to_email}",
-                                )
-                                channel_counts["email"] += 1
-                                sent_count += 1
-                                guardian_reminded = True
+                                if email_ok:
+                                    PaymentReminderLog.objects.create(
+                                        reminder=reminder,
+                                        status="SENT",
+                                        note=f"Email sent to {to_email}",
+                                    )
+                                    channel_counts["email"] += 1
+                                    sent_count += 1
+                                    guardian_reminded = True
+                                else:
+                                    PaymentReminderLog.objects.create(
+                                        reminder=reminder,
+                                        status="FAILED",
+                                        note=f"Failed to send email to {to_email}",
+                                    )
 
                         elif channel == "sms":
                             phone = getattr(guardian, "phone", None) or getattr(

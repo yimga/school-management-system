@@ -537,7 +537,8 @@ class SplitBillingFlowTests(TestCase):
 
     @patch("apps.finance.tasks.get_notification_channels", return_value=["email"])
     @patch(
-        "apps.finance.tasks.EmailMessage.send", side_effect=SMTPException("mail failed")
+        "apps.schoolops.email_delivery.send_transactional",
+        side_effect=SMTPException("mail failed"),
     )
     def test_reminder_logs_failed_email_delivery(self, _send_mock, _channels_mock):
         invoice = self._create_invoice()

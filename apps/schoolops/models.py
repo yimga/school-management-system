@@ -117,6 +117,66 @@ class Bus(models.Model):
         return self.identifier
 
 
+class BusBoardingEvent(models.Model):
+    """Non-phone fleet monitor: a passive RFID/NFC/QR tap as a student boards or
+    alights a bus (Wave D — logistics). Append-only event log; idempotent per tap
+    so a re-read or offline replay never double-records. A best-effort parent
+    notification fires on create.
+    """
+
+    class Direction(models.TextChoices):
+        BOARD = "board", "Boarded"
+        ALIGHT = "alight", "Alighted"
+
+    school = models.ForeignKey(
+        "schools.School", on_delete=models.CASCADE, related_name="bus_boarding_events"
+    )
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_constraint=False,
+        related_name="bus_boarding_events",
+    )
+    route = models.ForeignKey(
+        "schoolops.Route",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="boarding_events",
+    )
+    bus = models.ForeignKey(
+        "schoolops.Bus",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="boarding_events",
+    )
+    direction = models.CharField(
+        max_length=8, choices=Direction.choices, default=Direction.BOARD
+    )
+    capture_method = models.CharField(
+        max_length=16, default="rfid", help_text="rfid / nfc / qr / manual"
+    )
+    device_id = models.CharField(max_length=64, blank=True)
+    occurred_at = models.DateTimeField()
+    idempotency_key = models.CharField(max_length=128, blank=True, db_index=True)
+    parent_notified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        app_label = "schoolops"
+        db_table = "schoolops_busboardingevent"
+        ordering = ["-occurred_at"]
+        indexes = [
+            models.Index(fields=["school", "occurred_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.student_id} {self.direction} @ {self.occurred_at}"
+
+
 class Hostel(models.Model):
     school = models.ForeignKey(
         "schools.School",
@@ -515,6 +575,21 @@ class PosSaleLine(models.Model):
         help_text="Tax amount charged on this line at sale time.",
     )
     notes = models.CharField(max_length=255, blank=True)
+    student = models.ForeignKey(
+        "people.StudentProfile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_constraint=False,
+        related_name="pos_sale_lines",
+        help_text="Student charged (cashless campus POS); null for anonymous cash sales.",
+    )
+    idempotency_key = models.CharField(
+        max_length=128,
+        blank=True,
+        db_index=True,
+        help_text="Client-supplied key; a repeated key returns the prior sale (no double-charge).",
+    )
     inventory_item = models.ForeignKey(
         "schoolops.InventoryItem",
         on_delete=models.SET_NULL,
