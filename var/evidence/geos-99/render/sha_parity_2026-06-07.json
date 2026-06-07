@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "batch": "1199",
+  "recorded_at": "2026-06-07T12:04:30Z",
+  "local_head_sha": "680796575f475acdfb23a2dc137f344c808f58fe",
+  "evidence_status": "repo_complete",
+  "local_vs_deployed_parity": "drift",
+  "hosted_commit_sha": "bb75e2eb56be66637ee6cbc01b31802c1579219f",
+  "hosted_verified_live": false,
+  "classification": "HOSTED_SHA_MISMATCH",
+  "verdict": "RENDER PARITY PARTIAL \u2014 version JSON reachable but commit_sha (bb75e2eb56be\u2026) != repo HEAD (680796575f47\u2026); deploy required",
+  "notes": [
+    "Deploy repo HEAD to production"
+  ]
+}

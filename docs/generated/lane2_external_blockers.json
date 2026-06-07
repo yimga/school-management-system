@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-29T00:00:00Z",
+  "generated_at": "2026-06-07T12:00:00Z",
   "classification": "BLOCKED_EXTERNAL_AND_LANE2",
   "honesty_note": "Repo-complete stubs and evidence scaffolds are not the same as §11.4 DONE or §12 category-defining scores.",
   "batches": {
@@ -37,23 +37,22 @@
     },
     "1175": {
       "title": "Pilot UX defect closure",
-      "repo_status": "PARTIAL_REPO_INTAKE",
+      "repo_status": "REPO_INTAKE_COMPLETE",
       "lane2_status": "NOT_STARTED_EXTERNAL",
-      "evidence_on_disk": "var/evidence/geos-99/pilot/gilead-school/intake_ready_2026-05-28.json",
+      "evidence_on_disk": "var/evidence/geos-99/pilot/gilead-school/defect_backlog.json",
       "blockers": [
-        "Real school slot-2 feedback",
-        "Pilot-blocking defects filed in PilotDefect dashboard",
-        "Scorecard slot 2 population"
+        "Real school slot-2 feedback session",
+        "Pilot-blocking defects triaged to verified with linked tests"
       ]
     },
     "1199": {
       "title": "Render / custom-domain SHA parity",
-      "repo_status": "PARTIAL_REPO_LOCAL",
+      "repo_status": "HOSTED_JSON_REACHABLE",
       "lane2_status": "BLOCKED_EXTERNAL",
-      "evidence_on_disk": "var/evidence/geos-99/render/sha_parity_2026-05-28.json",
+      "evidence_on_disk": "docs/generated/manager_render_parity_report.json",
       "blockers": [
-        "Deploy repo HEAD to production",
-        "RENDER_PARITY_BASE_URL + MANAGER_PARITY_BASE_URL probe returns matching commit_sha"
+        "Deploy repo HEAD so hosted commit_sha matches local HEAD",
+        "Alias paths /api/system/version/ + /version.json on manager host after deploy"
       ]
     }
   },

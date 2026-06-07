@@ -70,6 +70,91 @@ class IntegrationAdapterCredentialTests(TestCase):
         self.assertIn("secret_key", entry.get("fields") or {})
 
 
+class IntegrationCredentialEditorTests(TestCase):
+    def test_apply_credential_field_values_marks_configured(self):
+        from apps.marketplace.integration_adapter_credentials import (
+            apply_credential_field_values,
+            build_credential_placeholder,
+        )
+
+        settings = {}
+        placeholder = build_credential_placeholder("payments:paystack", app_slug="payments-paystack")
+        settings["marketplace_integration_credentials"] = {
+            "payments:paystack": placeholder,
+        }
+        settings, changed = apply_credential_field_values(
+            settings,
+            adapter_key="payments:paystack",
+            field_values={
+                "secret_key": "sk_test_abc",
+                "public_key": "pk_test_xyz",
+            },
+        )
+        self.assertTrue(changed)
+        entry = settings["marketplace_integration_credentials"]["payments:paystack"]
+        self.assertEqual(entry["status"], "configured")
+
+    def test_credential_editor_view_requires_school(self):
+        from unittest.mock import patch
+
+        from django.test import RequestFactory
+
+        from apps.accounts.models import User
+        from apps.finance.models import ComplianceProfile
+        from apps.finance.views_marketplace_integration_credentials import (
+            marketplace_integration_credentials,
+        )
+
+        school = School.objects.create(
+            name="Cred UI School",
+            slug="cred-ui-school",
+            subdomain="cred-ui-school",
+            is_active=True,
+            settings={
+                "marketplace_integration_credentials": {
+                    "payments:paystack": {
+                        "adapter_key": "payments:paystack",
+                        "status": "pending_operator_setup",
+                        "fields": {
+                            "secret_key": {
+                                "label": "Secret",
+                                "required": True,
+                                "value": "",
+                            },
+                            "public_key": {
+                                "label": "Public",
+                                "required": True,
+                                "value": "",
+                            },
+                        },
+                    }
+                }
+            },
+        )
+        profile = ComplianceProfile.objects.create(
+            name="NG Corridor",
+            country_code="NG",
+            currency_code="NGN",
+            is_active=True,
+        )
+        user = User.objects.create_user(
+            username="cred_editor",
+            password="Test1234!",
+            is_staff=True,
+        )
+        factory = RequestFactory()
+        request = factory.get("/finance/integration-credentials/")
+        request.user = user
+        request.school = school
+        with patch(
+            "apps.finance.views_marketplace_integration_credentials._active_profile",
+            return_value=profile,
+        ):
+            response = marketplace_integration_credentials(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"payments:paystack", response.content)
+
+
 class CatalogNativeCoverageTests(TestCase):
     def test_transport_and_canteen_are_catalog_native(self):
         self.assertEqual(package_binding_mode("transport-bus-tracker"), "catalog_native")

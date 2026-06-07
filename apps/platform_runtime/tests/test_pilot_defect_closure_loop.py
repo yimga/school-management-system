@@ -75,3 +75,21 @@ class PilotDefectClosureTests(TestCase):
         body = r.content.decode("utf-8", errors="replace")
         self.assertIn("Fixes without proof", body)
         self.assertIn("1170-op-excellence", body)
+        self.assertIn("File pilot feedback", body)
+
+    def test_file_pilot_defect_exports_backlog(self):
+        from apps.platform_runtime.pilot_defect_closure import (
+            export_defect_backlog_json,
+            file_pilot_defect,
+        )
+
+        file_pilot_defect(
+            title="Sandbox nav gap",
+            source_school_slug="gilead-school",
+            severity="medium",
+            module="portal",
+            description="Back link missing on fees page",
+        )
+        path = export_defect_backlog_json("gilead-school")
+        self.assertTrue(path.is_file())
+        self.assertGreaterEqual(PilotDefect.objects.filter(source_school_slug="gilead-school").count(), 1)

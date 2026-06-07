@@ -1,18 +1,13 @@
 {
-  "generated_at": "2026-05-29T20:53:34Z",
+  "generated_at": "2026-06-07T12:04:20Z",
   "captures": {
-    "1170": {
-      "path": "var\\evidence\\geos-99\\psp\\stripe\\lane2_batch1170_preflight_2026-05-29.json",
-      "metadata_ok": false,
-      "exit_code": 2
-    },
     "1199": {
-      "path": "var\\evidence\\geos-99\\render\\sha_parity_2026-05-29.json",
+      "path": "var\\evidence\\geos-99\\render\\sha_parity_2026-06-07.json",
       "sha_match": false,
       "exit_code": 0
     },
     "1175": {
-      "path": "var\\evidence\\geos-99\\pilot\\gilead-school\\intake_ready_2026-05-29.json",
+      "path": "var\\evidence\\geos-99\\pilot\\gilead-school\\intake_ready_2026-06-07.json",
       "backlog": "var\\evidence\\geos-99\\pilot\\gilead-school\\defect_backlog.json"
     }
   }

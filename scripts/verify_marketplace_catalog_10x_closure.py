@@ -36,6 +36,10 @@ CHECKS: list[tuple[str, list[str]]] = [
         "integration_adapter_credentials",
         ["scripts/verify_integration_adapter_credential_schema.py"],
     ),
+    (
+        "integration_credentials_ui",
+        ["scripts/verify_marketplace_integration_credentials_ui.py"],
+    ),
     ("wave4_scroll_pagination", ["scripts/verify_scroll_compression_catalog_pagination.py"]),
     ("wave5_platform_mission", ["scripts/verify_marketplace_platform_mission.py"]),
 ]

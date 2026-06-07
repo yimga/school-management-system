@@ -136,6 +136,17 @@
           </a>
         </div>
       </div>
+      <div class="card shadow-sm mt-3">
+        <div class="card-body">
+          <h2 class="h5">{% trans "Marketplace integration credentials" %}</h2>
+          <p class="small text-muted mb-2">
+            {% trans "Paystack, Twilio/SMS, and SIS bridge secrets for marketplace-activated apps." %}
+          </p>
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'finance:marketplace_integration_credentials' %}">
+            {% trans "Open credential editor" %}
+          </a>
+        </div>
+      </div>
       {% if lane2_corridors %}
       <div class="card shadow-sm mt-3" data-rmc-scroll-policy="paginate">
         <div class="card-body">

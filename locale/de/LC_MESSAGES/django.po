@@ -45974,3 +45974,83 @@ msgstr ""
 
 msgid "accepted"
 msgstr ""
+
+msgid "%(level)s · %(conf)d%% confidence"
+msgstr ""
+
+msgid "%(trend)s · %(conf)d%% confidence"
+msgstr ""
+
+msgid "Adapters"
+msgstr ""
+
+msgid "Back to payment setup"
+msgstr ""
+
+msgid ""
+"Enter Paystack, SMS, and SIS bridge secrets for apps activated from the "
+"marketplace. Values stay in school settings — never auto-generated."
+msgstr ""
+
+msgid "File pilot feedback"
+msgstr ""
+
+msgid "Finance · Marketplace adapters"
+msgstr ""
+
+msgid "Integration credentials"
+msgstr ""
+
+msgid "Marketplace integration credentials"
+msgstr ""
+
+msgid ""
+"No integration adapters pending setup. Activate a payments, messaging, or "
+"SIS bridge app from the marketplace catalog first."
+msgstr ""
+
+msgid "Open credential editor"
+msgstr ""
+
+msgid "Package payloads are a separate engine catalog count"
+msgstr ""
+
+msgid ""
+"Paystack, Twilio/SMS, and SIS bridge secrets for marketplace-activated apps."
+msgstr ""
+
+msgid "Save credentials"
+msgstr ""
+
+msgid "Saved preview:"
+msgstr ""
+
+msgid "School slug"
+msgstr ""
+
+msgid "Submit defect"
+msgstr ""
+
+msgid "easing"
+msgstr ""
+
+msgid "elevated"
+msgstr ""
+
+msgid "expected · %(conf)d%% confidence"
+msgstr ""
+
+msgid "low"
+msgstr ""
+
+msgid "none expected"
+msgstr ""
+
+msgid "package payloads"
+msgstr ""
+
+msgid "rising"
+msgstr ""
+
+msgid "steady"
+msgstr ""

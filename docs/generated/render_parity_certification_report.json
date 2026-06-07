@@ -1,24 +1,42 @@
 {
-  "generated_at": "2026-05-29T20:53:53.343452Z",
-  "expected_repo_sha": "b5f42b2527e8ecf3618b649d8fdf85edb520c93d",
-  "classification": "REPO_LOCAL_PARITY_CERTIFIED",
+  "generated_at": "2026-06-07T12:04:30.746668Z",
+  "expected_repo_sha": "680796575f475acdfb23a2dc137f344c808f58fe",
+  "classification": "HOSTED_SHA_MISMATCH",
   "deployed_sha_verification": {
     "verified": false,
-    "remote_probed": false,
-    "deployed_shas": [],
-    "blocker": "Set RENDER_PARITY_BASE_URL and MANAGER_PARITY_BASE_URL; run without --skip-remote"
+    "remote_probed": true,
+    "deployed_shas": [
+      "bb75e2eb56be66637ee6cbc01b31802c1579219f",
+      "bb75e2eb56be66637ee6cbc01b31802c1579219f"
+    ],
+    "blocker": "Deploy latest main to Render until /-/version/ commit_sha matches repo HEAD"
   },
   "local_parity": {
     "version": "2026.05.17",
     "matrix_ok": true,
     "local_version_ok": true,
-    "remote_version": {}
+    "remote_version": {
+      "RENDER_PARITY_BASE_URL": {
+        "url": "https://school-management-system-2kzk.onrender.com",
+        "ok": true,
+        "commit_sha": "bb75e2eb56be66637ee6cbc01b31802c1579219f",
+        "build_time": "unknown",
+        "probe_path": "/-/version/"
+      },
+      "MANAGER_PARITY_BASE_URL": {
+        "url": "https://manager.runmycampus.com",
+        "ok": true,
+        "commit_sha": "bb75e2eb56be66637ee6cbc01b31802c1579219f",
+        "build_time": "unknown",
+        "probe_path": "/-/version/"
+      }
+    }
   },
   "direct_render_public_smoke": {
     "summary": "validated via validate_marketing_urls --smoke"
   },
-  "verdict": "RENDER PARITY PARTIAL \u2014 repo-local matrix green; hosted SHA uncertified (set RENDER_PARITY_BASE_URL + MANAGER_PARITY_BASE_URL)",
+  "verdict": "RENDER PARITY PARTIAL \u2014 version JSON reachable but commit_sha (bb75e2eb56be\u2026) != repo HEAD (680796575f47\u2026); deploy required",
   "remaining_gaps": [
-    "Probe hosted /-/version/ with operator env URLs"
+    "Deploy repo HEAD to production"
   ]
 }

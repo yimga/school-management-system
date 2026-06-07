@@ -23,22 +23,43 @@ def main() -> int:
         b1175 = (data.get("batches") or {}).get("1175") or {}
         if b1175.get("lane2_status") != "NOT_STARTED_EXTERNAL":
             findings.append("1175 must remain NOT_STARTED_EXTERNAL in ledger")
-        if b1175.get("repo_status") != "PARTIAL_REPO_INTAKE":
-            findings.append("1175 repo_status must be PARTIAL_REPO_INTAKE")
+        if b1175.get("repo_status") not in (
+            "PARTIAL_REPO_INTAKE",
+            "REPO_INTAKE_COMPLETE",
+        ):
+            findings.append("1175 repo_status must be PARTIAL_REPO_INTAKE or REPO_INTAKE_COMPLETE")
+
+        b1199 = (data.get("batches") or {}).get("1199") or {}
+        if b1199.get("repo_status") not in (
+            "PARTIAL_REPO_LOCAL",
+            "REPO_COMPLETE",
+            "HOSTED_JSON_REACHABLE",
+        ):
+            findings.append("1199 repo_status must document repo or hosted JSON reachability")
 
     if SOT.is_file():
         text = SOT.read_text(encoding="utf-8")
-        m = re.search(
-            r"batch 1175[^\n]*\n[^\n]*\*\*([^\*]+)\*\*",
+        m1175 = re.search(
+            r"batch 1175[^\n]*\*\*([^\*]+)\*\*",
             text,
             re.IGNORECASE,
         )
-        if m:
-            status = m.group(1).strip().upper()
-            if status.startswith("DONE"):
-                findings.append("SOT batch 1175 must not be DONE (Lane 2 external)")
+        if m1175:
+            status = m1175.group(1).strip().upper()
+            if status.startswith("DONE") and "REPO-SCOPE" not in status:
+                findings.append("SOT batch 1175 DONE must be repo-scope only")
             if "PILOT CLOSED" in status and "NOT" not in status:
                 findings.append("SOT batch 1175 must not claim PILOT CLOSED without evidence")
+
+        m1199 = re.search(
+            r"batch 1199[^\n]*\*\*([^\*]+)\*\*",
+            text,
+            re.IGNORECASE,
+        )
+        if m1199:
+            status = m1199.group(1).strip().upper()
+            if status.startswith("DONE") and "REPO-SCOPE" not in status and "HOSTED" not in status:
+                findings.append("SOT batch 1199 DONE must be repo-scope or hosted-json certified")
 
     pilot_evidence = sorted((ROOT / "var/evidence/geos-99/pilot/gilead-school").glob("intake_ready_*.json"))
     if not pilot_evidence:

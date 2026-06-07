@@ -26,6 +26,7 @@ from .views import (
 )
 from .views_reports import finance_reports, submit_report_request
 from .views_payment_setup import payment_readiness_setup
+from .views_marketplace_integration_credentials import marketplace_integration_credentials
 from .views_payment_readiness_dashboard import payment_readiness_dashboard
 from .views_global_payment_command_center import global_payment_command_center
 from .views_workforce_hub import workforce_command_center
@@ -44,6 +45,11 @@ urlpatterns = [
         "payment-setup/",
         payment_readiness_setup,
         name="payment_readiness_setup",
+    ),
+    path(
+        "integration-credentials/",
+        marketplace_integration_credentials,
+        name="marketplace_integration_credentials",
     ),
     path(
         "payment-readiness/",

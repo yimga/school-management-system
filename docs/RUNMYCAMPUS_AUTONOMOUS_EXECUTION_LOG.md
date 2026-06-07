@@ -1,5 +1,25 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Lane 2 + marketplace gap closure batch 1643 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1643** — credential editor UI; pilot intake form + export; hosted version JSON reachability (**1175**/**1199** repo-scope).
+
+**B. Shipped:** `finance:marketplace_integration_credentials`; pilot defect POST + `export_pilot_defect_backlog`; `verify_batch1199_hosted_version_json`; ledger + geos evidence refresh.
+
+**C. Proof:** **MARKETPLACE_INTEGRATION_CREDENTIALS_UI_PASS**; **BATCH1199_HOSTED_VERSION_JSON_PASS**; **PILOT_DEFECT_INTAKE_SCAFFOLD_PASS**; **LANE2_EXTERNAL_HONESTY_PASS**; **MARKETPLACE_CATALOG_10X_CLOSURE_PASS**; **15/15** tests OK; SW **`sms-v4.02.64-marketplace-lane2-closeout-2026-06-07`**.
+
+**D. SOT:** batches **1643**, **1175**, **1199** **DONE (repo-scope)**. **E. Honest:** Lane 2 — real pilot school session + deploy for SHA match.
+
+## Slice — Marketplace honest residuals batch 1642 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1642** — integration adapter credential placeholders on activate + mechanical proof that **41** catalog-native slugs use slug-as-`package_id` with non-empty payloads.
+
+**B. Shipped:** `integration_adapter_credentials.py`; orchestrator merge/clear; `catalog_package_coverage.py`; verifiers + closure bundle; `test_integration_adapter_credentials`.
+
+**C. Proof:** **INTEGRATION_ADAPTER_CREDENTIAL_SCHEMA_PASS**; **MARKETPLACE_CATALOG_PACKAGE_COVERAGE_PASS (32 legacy + 41 catalog-native)**; **MARKETPLACE_CATALOG_10X_CLOSURE_PASS**; **11/11** tests OK.
+
+**D. SOT:** batch **1642** **DONE**. **E. Honest:** operators still fill Paystack/Twilio/SIS secrets manually; credential editor UI shipped in batch **1643**; **1175**/**1199** external Lane 2.
+
 ## Slice — 1199 version probe urlconf + manager allowlist batch 1641 (2026-06-07)
 
 **A. Claim:** §11.4 batch **1641** — close batch **1199** repo routing gap (alias version endpoints on all urlconfs + manager anonymous access).
@@ -18,7 +38,7 @@
 
 **C. Proof:** **LEGACY_PACKAGE_ID_BINDINGS_PASS**; **MARKETPLACE_SANDBOX_EMBED_REGISTRY_PASS (73)**; **MARKETPLACE_CATALOG_10X_CLOSURE_PASS**; **13/13** tests OK.
 
-**D. SOT:** batch **1640** **DONE**. **E. Honest:** vendor creds operator setup; 41 unmapped slugs keep slug package_id; **1175**/**1199** external.
+**D. SOT:** batch **1640** **DONE** (honest residuals closed **1642**). **E. Honest:** live vendor secrets operator setup; **1175**/**1199** external.
 
 ## Slice — TOP_15 sandbox embed URL registry batch 1639 (2026-06-07)
 

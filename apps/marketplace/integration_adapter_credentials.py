@@ -195,6 +195,94 @@ def clear_credential_placeholders(
     return settings
 
 
+def mask_secret_value(value: str) -> str:
+    raw = (value or "").strip()
+    if not raw:
+        return ""
+    if len(raw) <= 4:
+        return "••••"
+    return f"{raw[:2]}••••{raw[-2:]}"
+
+
+def credential_entry_configured(entry: dict[str, Any]) -> bool:
+    fields = entry.get("fields") or {}
+    if not isinstance(fields, dict):
+        return False
+    for spec in fields.values():
+        if not isinstance(spec, dict):
+            continue
+        if spec.get("required") and not str(spec.get("value") or "").strip():
+            return False
+    return any(str((spec or {}).get("value") or "").strip() for spec in fields.values())
+
+
+def list_credential_entries(settings: dict[str, Any]) -> list[dict[str, Any]]:
+    bucket = settings.get(_SETTINGS_BUCKET)
+    if not isinstance(bucket, dict):
+        return []
+    rows: list[dict[str, Any]] = []
+    for adapter_key in sorted(bucket.keys()):
+        entry = bucket.get(adapter_key)
+        if not isinstance(entry, dict):
+            continue
+        status = entry.get("status") or "pending_operator_setup"
+        if credential_entry_configured(entry):
+            status = "configured"
+        rows.append(
+            {
+                "adapter_key": adapter_key,
+                "app_slug": entry.get("app_slug") or "",
+                "status": status,
+                "fields": entry.get("fields") or {},
+            }
+        )
+    return rows
+
+
+def apply_credential_field_values(
+    settings: dict[str, Any],
+    *,
+    adapter_key: str,
+    field_values: dict[str, str],
+) -> tuple[dict[str, Any], bool]:
+    """Merge operator-submitted values; never log secrets."""
+    key = (adapter_key or "").strip()
+    if not key:
+        return settings, False
+    bucket = settings.get(_SETTINGS_BUCKET)
+    if not isinstance(bucket, dict):
+        bucket = {}
+    entry = bucket.get(key)
+    if not isinstance(entry, dict):
+        schema = credential_schema_for_adapter(key)
+        if not schema:
+            return settings, False
+        entry = build_credential_placeholder(key, app_slug="")
+    fields = entry.get("fields")
+    if not isinstance(fields, dict):
+        fields = {}
+    changed = False
+    for field_key, raw_value in (field_values or {}).items():
+        fk = str(field_key or "").strip()
+        if not fk or fk not in fields:
+            continue
+        spec = fields.get(fk)
+        if not isinstance(spec, dict):
+            spec = {"label": fk, "required": False, "value": ""}
+        new_val = str(raw_value or "").strip()
+        if spec.get("value") != new_val:
+            spec["value"] = new_val
+            fields[fk] = spec
+            changed = True
+    entry["fields"] = fields
+    entry["status"] = (
+        "configured" if credential_entry_configured(entry) else "pending_operator_setup"
+    )
+    bucket[key] = entry
+    settings[_SETTINGS_BUCKET] = bucket
+    return settings, changed
+
+
 def adapter_schema_validation_errors() -> list[str]:
     """Every integration adapter in catalog seed has a credential schema."""
     from apps.marketplace.capability_contract import infer_capability_bindings

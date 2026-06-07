@@ -54,6 +54,42 @@
     </div>
   </div>
 
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h6 text-uppercase text-muted">{% trans "File pilot feedback" %}</h2>
+      <form method="post" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-6">
+          <label class="form-label" for="pilot-title">{% trans "Title" %}</label>
+          <input class="form-control form-control-sm" id="pilot-title" name="title" required maxlength="240">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="pilot-school">{% trans "School slug" %}</label>
+          <input class="form-control form-control-sm" id="pilot-school" name="source_school_slug" required maxlength="120" placeholder="gilead-school">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="pilot-severity">{% trans "Severity" %}</label>
+          <select class="form-select form-select-sm" id="pilot-severity" name="severity">
+            {% for sev in severity_choices %}
+            <option value="{{ sev }}">{{ sev }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="pilot-module">{% trans "Module" %}</label>
+          <input class="form-control form-control-sm" id="pilot-module" name="module" maxlength="64" value="general">
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="pilot-desc">{% trans "Description" %}</label>
+          <textarea class="form-control form-control-sm" id="pilot-desc" name="description" rows="3"></textarea>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-sm btn-primary">{% trans "Submit defect" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="table-responsive">
     <table class="table table-sm table-family align-middle rmc-data-table">
       <caption class="visually-hidden">{% trans "Fixes without proof" %}</caption>

@@ -1,8 +1,17 @@
 {
   "schema_version": 1,
   "school_slug": "gilead-school",
-  "recorded_at": "2026-05-28T00:19:40Z",
+  "recorded_at": "2026-06-07T13:23:29Z",
   "evidence_status": "repo_complete",
-  "defects": [],
-  "notes": "Append pilot-reported defects after real school feedback; use PilotDefect model in prod."
+  "defects": [
+    {
+      "id": "1",
+      "title": "Sandbox nav gap",
+      "severity": "medium",
+      "module": "portal",
+      "status": "reported",
+      "sot_batch": ""
+    }
+  ],
+  "notes": "Redacted export from PilotDefect ORM; no PII."
 }

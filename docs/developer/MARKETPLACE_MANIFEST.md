@@ -56,6 +56,7 @@ Fast artifact checks:
 `python scripts/verify_legacy_package_id_bindings.py` (catalog slug -> legacy package_id wiring)
 `python scripts/verify_marketplace_catalog_package_coverage.py` (73 apps: legacy + catalog-native payloads)
 `python scripts/verify_integration_adapter_credential_schema.py` (adapter credential field schemas)
+`python scripts/verify_marketplace_integration_credentials_ui.py` (finance integration credential editor)
 
 Seed packages after marketplace apps:
 

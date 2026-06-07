@@ -73,6 +73,64 @@ def sort_defects_for_dashboard(defects: list[dict[str, Any]]) -> list[dict[str, 
     return sorted(defects, key=key)
 
 
+def file_pilot_defect(
+    *,
+    title: str,
+    source_school_slug: str,
+    severity: str,
+    module: str,
+    description: str = "",
+) -> dict[str, Any]:
+    """Create a durable PilotDefect row (manager intake form)."""
+    from apps.platform_runtime.models import PilotDefect
+
+    defect = PilotDefect.objects.create(
+        title=(title or "").strip()[:240],
+        source_school_slug=(source_school_slug or "").strip()[:120],
+        severity=(severity or PilotDefect.Severity.MEDIUM).lower(),
+        module=(module or "general").strip()[:64],
+        status=PilotDefect.Status.REPORTED,
+        root_cause=(description or "").strip()[:2000],
+    )
+    return _defect_model_to_dict(defect)
+
+
+def export_defect_backlog_json(school_slug: str) -> Path:
+    """Write redacted defect backlog snapshot for GEOS evidence."""
+    from apps.platform_runtime.models import PilotDefect
+
+    out_dir = Path(__file__).resolve().parents[2] / "var" / "evidence" / "geos-99" / "pilot" / school_slug
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / "defect_backlog.json"
+    rows = []
+    for defect in PilotDefect.objects.filter(source_school_slug=school_slug).order_by("-created_at"):
+        rows.append(
+            {
+                "id": str(defect.pk),
+                "title": defect.title,
+                "severity": defect.severity,
+                "module": defect.module,
+                "status": defect.status,
+                "sot_batch": defect.sot_batch or "",
+            }
+        )
+    from datetime import datetime, timezone
+
+    payload = {
+        "schema_version": 1,
+        "school_slug": school_slug,
+        "recorded_at": datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z"),
+        "evidence_status": "repo_complete" if rows else "intake_ready",
+        "defects": rows,
+        "notes": "Redacted export from PilotDefect ORM; no PII.",
+    }
+    out_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return out_path
+
+
 def dashboard_bucket(defects: list[dict[str, Any]]) -> dict[str, Any]:
     open_crit = [
         d

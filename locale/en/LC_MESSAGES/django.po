@@ -51603,3 +51603,88 @@ msgstr "You're invited to RunMyCampus"
 
 msgid "accepted"
 msgstr "accepted"
+
+msgid "%(level)s · %(conf)d%% confidence"
+msgstr "%(level)s · %(conf)d%% confidence"
+
+msgid "%(trend)s · %(conf)d%% confidence"
+msgstr "%(trend)s · %(conf)d%% confidence"
+
+msgid "Adapters"
+msgstr "Adapters"
+
+msgid "Back to payment setup"
+msgstr "Back to payment setup"
+
+msgid ""
+"Enter Paystack, SMS, and SIS bridge secrets for apps activated from the "
+"marketplace. Values stay in school settings — never auto-generated."
+msgstr ""
+"Enter Paystack, SMS, and SIS bridge secrets for apps activated from the "
+"marketplace. Values stay in school settings — never auto-generated."
+
+msgid "File pilot feedback"
+msgstr "File pilot feedback"
+
+msgid "Finance · Marketplace adapters"
+msgstr "Finance · Marketplace adapters"
+
+msgid "Integration credentials"
+msgstr "Integration credentials"
+
+msgid "Marketplace integration credentials"
+msgstr "Marketplace integration credentials"
+
+msgid ""
+"No integration adapters pending setup. Activate a payments, messaging, or "
+"SIS bridge app from the marketplace catalog first."
+msgstr ""
+"No integration adapters pending setup. Activate a payments, messaging, or "
+"SIS bridge app from the marketplace catalog first."
+
+msgid "Open credential editor"
+msgstr "Open credential editor"
+
+msgid "Package payloads are a separate engine catalog count"
+msgstr "Package payloads are a separate engine catalog count"
+
+msgid ""
+"Paystack, Twilio/SMS, and SIS bridge secrets for marketplace-activated apps."
+msgstr ""
+"Paystack, Twilio/SMS, and SIS bridge secrets for marketplace-activated apps."
+
+msgid "Save credentials"
+msgstr "Save credentials"
+
+msgid "Saved preview:"
+msgstr "Saved preview:"
+
+msgid "School slug"
+msgstr "School slug"
+
+msgid "Submit defect"
+msgstr "Submit defect"
+
+msgid "easing"
+msgstr "easing"
+
+msgid "elevated"
+msgstr "elevated"
+
+msgid "expected · %(conf)d%% confidence"
+msgstr "expected · %(conf)d%% confidence"
+
+msgid "low"
+msgstr "low"
+
+msgid "none expected"
+msgstr "none expected"
+
+msgid "package payloads"
+msgstr "package payloads"
+
+msgid "rising"
+msgstr "rising"
+
+msgid "steady"
+msgstr "steady"

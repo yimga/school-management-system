@@ -17,6 +17,14 @@ def main() -> int:
     if not urls_py.is_file() or "pilot_defect_dashboard" not in urls_py.read_text(encoding="utf-8"):
         findings.append("pilot_defect_dashboard route missing from apps/platform_runtime/urls.py")
 
+    dash_tpl = ROOT / "templates/platform_runtime/pilot_defect_dashboard.html"
+    if not dash_tpl.is_file() or "File pilot feedback" not in dash_tpl.read_text(encoding="utf-8"):
+        findings.append("pilot_defect_dashboard missing intake form")
+
+    export_cmd = ROOT / "apps/platform_runtime/management/commands/export_pilot_defect_backlog.py"
+    if not export_cmd.is_file():
+        findings.append("missing export_pilot_defect_backlog management command")
+
     model_path = ROOT / "apps/platform_runtime/models.py"
     if not model_path.is_file() or "class PilotDefect" not in model_path.read_text(encoding="utf-8"):
         findings.append("PilotDefect model missing")

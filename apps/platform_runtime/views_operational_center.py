@@ -10,7 +10,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import NoReverseMatch, reverse
-from django.views.decorators.http import require_GET
+from django.contrib import messages
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_GET, require_http_methods
 
 from apps.accounts.permissions import tenant_operator_hub_eligible
 from apps.schools.control_plane import user_has_control_plane_access
@@ -20,6 +22,8 @@ from apps.platform_runtime.implementation_checklist import build_implementation_
 from apps.platform_runtime.operator_adoption_metrics import compute_operator_adoption_metrics
 from apps.platform_runtime.pilot_defect_closure import (
     dashboard_bucket,
+    export_defect_backlog_json,
+    file_pilot_defect,
     load_defects,
     sort_defects_for_dashboard,
 )
@@ -157,13 +161,37 @@ def pilot_evidence_dashboard(request):
 
 
 @login_required
+@csrf_protect
+@require_http_methods(["GET", "POST"])
 def pilot_defect_dashboard(request):
     if not _operational_access(request):
         return HttpResponseForbidden("Not allowed.")
+    if request.method == "POST":
+        title = (request.POST.get("title") or "").strip()
+        school_slug = (request.POST.get("source_school_slug") or "").strip()
+        severity = (request.POST.get("severity") or "medium").strip().lower()
+        module = (request.POST.get("module") or "general").strip()
+        description = (request.POST.get("description") or "").strip()
+        if not title or not school_slug:
+            messages.error(request, "Title and school slug are required.")
+        else:
+            file_pilot_defect(
+                title=title,
+                source_school_slug=school_slug,
+                severity=severity,
+                module=module,
+                description=description,
+            )
+            export_defect_backlog_json(school_slug)
+            messages.success(request, f"Pilot defect filed for {school_slug}.")
+        from django.shortcuts import redirect
+
+        return redirect("platform_runtime:pilot_defect_dashboard")
     defects = load_defects()
     ctx = {
         "defects": sort_defects_for_dashboard(defects),
         "buckets": dashboard_bucket(defects),
         "page_marker": "rmc-pilot-defect-dashboard",
+        "severity_choices": ["critical", "high", "medium", "low"],
     }
     return render(request, "platform_runtime/pilot_defect_dashboard.html", ctx)

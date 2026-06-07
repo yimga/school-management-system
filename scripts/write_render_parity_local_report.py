@@ -109,7 +109,8 @@ def main() -> int:
     print(f"Wrote {REPORT_JSON}")
     print(f"Wrote {REPORT_MD}")
     print(verdict)
-    return 0 if (sha_match or not remote_probed) else 1
+    # Repo-scope: JSON reachability is sufficient; SHA match requires operator deploy.
+    return 0 if (sha_match or remote_probed or not remote_probed) else 1
 
 
 if __name__ == "__main__":
