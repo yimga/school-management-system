@@ -361,10 +361,12 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
     ),
     FeatureRow(
         feature_slug="smart-fleet-route-optimizer",
-        label="Smart fleet route optimizer (offline map files)",
+        label="Offline greedy bus-route optimizer (nearest-neighbour)",
         capability_domain="logistics",
-        status="planned",
-        notes="BLOCKED on a prerequisite (verified Wave D 2026-06-07): schoolops.Stop has name+sequence but NO lat/lng coordinates — there is nothing to optimise geometrically until a geo field is added to Stop (and student home coords captured). Then a greedy nearest-neighbour kernel (like academics/timetable_solver) is the honest first cut. Marketplace stub 'transport-route-optimizer' exists but no algorithm.",
+        status="shipped",
+        proof_management_command="optimize_bus_route",
+        proof_model="schoolops.Stop",
+        notes="SHIPPED 2026-06-07 (prerequisite closed): added Stop.latitude/longitude (migration 0026); schoolops/route_optimizer.py haversine_km + nearest-neighbour optimize_stop_order/optimize_route (offline, no map API, two-phase sequence persist respecting the unique constraint) + optimize_bus_route command. Tests test_route_optimizer 7/7. Honest scope: greedy kernel; true VRP/2-opt is a later pass.",
     ),
     FeatureRow(
         feature_slug="rfid-fleet-monitor",
@@ -377,10 +379,11 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
     ),
     FeatureRow(
         feature_slug="field-trip-compliance",
-        label="Field-trip compliance (e-sign + offline medical checklist)",
+        label="Field-trip compliance (e-sign consent + offline medical checklist)",
         capability_domain="governance",
-        status="in_progress",
-        notes="VERIFIED 2026-06-07: ConsentRequest/ConsentRecord pipeline supports the field_trip category + SHA-256 signed consent (compliance/services.py record_consent_acceptance). GAP: dedicated field-trip surface + offline medical checklist. Wave D.",
+        status="shipped",
+        proof_model="compliance.ConsentRequest",
+        notes="SHIPPED 2026-06-07: schoolops/field_trip.py create_field_trip_consent (reuses ConsentRequest category=field_trip + SHA-256 ConsentRecord e-sign) + build_medical_checklist (confidential, offline-carryable, NOT masked — real name/allergies/meds/emergency contact from HealthRecord for supervising-teacher safety). Tests test_field_trip 3/3.",
     ),
     FeatureRow(
         feature_slug="auditor-magic-link",

@@ -80,6 +80,14 @@ class Stop(models.Model):
     )
     name = models.CharField(max_length=120)
     sequence = models.PositiveSmallIntegerField(default=0)
+    latitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        help_text="WGS84 latitude; enables offline route optimisation.",
+    )
+    longitude = models.DecimalField(
+        max_digits=9, decimal_places=6, null=True, blank=True,
+        help_text="WGS84 longitude; enables offline route optimisation.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
