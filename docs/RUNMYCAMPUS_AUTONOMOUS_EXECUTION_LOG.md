@@ -1,5 +1,15 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — Signup multi-language + InformationTag wiring batch 1636 (2026-06-02)
+
+**A. Claim:** §11.4 batch **1636** — ledger closeout for multi-language signup + platform InformationTag wiring (code in **`7bee1869`**, row missing).
+
+**B. Shipped:** `parse_signup_language_selection` / India state primary star; signup + Rapid Create **`language_codes`** persistence; checkbox adapter JS; **`one_record`** + Student 360 + backend detail tag surfaces with private-tag RBAC; **`verify_information_tag_wiring.py`**.
+
+**C. Proof:** **5/5** `test_signup_multilingual_selection` OK; **INFORMATION_TAG_WIRING_PASS**; **3/3** `OneRecordDataTests` OK; SW monotonic OK.
+
+**D. SOT:** batch **1636** **DONE**. **E. Honest:** Studio OS workflow overview tag chips are separate optional depth; **1175**/**1199** external.
+
 ## Slice — Manager copilot CSRF + guided fallback batch 1634 (2026-06-02)
 
 **A. Claim:** §11.4 batch **1634** — fix manager copilot send failure; rules-layer answers for tenant provisioning when LiteLLM offline.
