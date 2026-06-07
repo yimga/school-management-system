@@ -52,7 +52,10 @@ Fast artifact checks:
 
 `python scripts/verify_marketplace_package_payload_parity.py` (73 catalog slugs ↔ PackageVersion)
 `python scripts/verify_first_party_package_payload_parity.py` (27 legacy package IDs ↔ PackageVersion)
-`python scripts/verify_marketplace_sandbox_embed_registry.py` (TOP_15 sandbox iframe url_name registry)
+`python scripts/verify_marketplace_sandbox_embed_registry.py` (73-app sandbox iframe url_name registry)
+`python scripts/verify_legacy_package_id_bindings.py` (catalog slug -> legacy package_id wiring)
+`python scripts/verify_marketplace_catalog_package_coverage.py` (73 apps: legacy + catalog-native payloads)
+`python scripts/verify_integration_adapter_credential_schema.py` (adapter credential field schemas)
 
 Seed packages after marketplace apps:
 

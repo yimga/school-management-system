@@ -1,5 +1,25 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice — 1199 version probe urlconf + manager allowlist batch 1641 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1641** — close batch **1199** repo routing gap (alias version endpoints on all urlconfs + manager anonymous access).
+
+**B. Shipped:** `public_urls` / `manager_urls` / `tenant_urls` alias routes; `MANAGER_HOST_PUBLIC_ACCESS_PREFIXES` + `HEALTH_PREFIXES`; parity verifier multi-path probe; version endpoint tests.
+
+**C. Proof:** **`verify_manager_render_parity.py --skip-remote`** OK; **`test_live_version_endpoint`** **7/7** OK; SW **`sms-v4.02.63-version-probe-urlconf-2026-06-07`**.
+
+**D. SOT:** batch **1641** **DONE**; batch **1199** stays **PARTIAL** (hosted SHA). **E. Honest:** operator deploy + remote parity probe required to close **1199**; **1175** needs pilot school.
+
+## Slice — Legacy package_id wiring + full-catalog sandbox embeds batch 1640 (2026-06-07)
+
+**A. Claim:** §11.4 batch **1640** — wire **27** legacy package IDs onto catalog listings; extend sandbox embed registry to **73** apps.
+
+**B. Shipped:** `legacy_package_bindings.py`; activate vs catalog seed package_id split; full-catalog embed inference; verifiers + tests.
+
+**C. Proof:** **LEGACY_PACKAGE_ID_BINDINGS_PASS**; **MARKETPLACE_SANDBOX_EMBED_REGISTRY_PASS (73)**; **MARKETPLACE_CATALOG_10X_CLOSURE_PASS**; **13/13** tests OK.
+
+**D. SOT:** batch **1640** **DONE**. **E. Honest:** vendor creds operator setup; 41 unmapped slugs keep slug package_id; **1175**/**1199** external.
+
 ## Slice — TOP_15 sandbox embed URL registry batch 1639 (2026-06-07)
 
 **A. Claim:** §11.4 batch **1639** — per-app sandbox iframe demo URLs for all **TOP_15** catalog apps.

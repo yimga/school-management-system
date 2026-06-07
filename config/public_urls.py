@@ -138,6 +138,9 @@ urlpatterns = [
         name="pwa_manifest_icon_maskable",
     ),
     path("-/version/", obs_views.public_version, name="public_version"),
+    # SOT batch 1204 / 1199: CDN-safe aliases (identical JSON) on the public urlconf.
+    path("api/system/version/", obs_views.public_version, name="api_system_version"),
+    path("version.json", obs_views.public_version, name="public_version_json"),
     path(
         "authentication/",
         include(("apps.accounts.urls", "accounts"), namespace="accounts"),

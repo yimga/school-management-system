@@ -608,6 +608,8 @@ urlpatterns = [
     path("api/ai/health/", _ai_health, name="ai_health"),
     path("api/ai-copilot/validate/", _ai_copilot_query, name="ai_copilot_query"),
     path("-/version/", obs_views.public_version, name="public_version"),
+    path("api/system/version/", obs_views.public_version, name="api_system_version"),
+    path("version.json", obs_views.public_version, name="public_version_json"),
     path("help/", manager_help, name="manager_help"),
     path(
         "help-center/",

@@ -8,7 +8,7 @@ from apps.marketplace.capability_contract import (
     TOP_15_APP_SLUGS,
     enrich_manifest_capability_bindings,
 )
-from apps.marketplace.models import AppInstallation, MarketplaceApp
+from apps.marketplace.models import MarketplaceApp
 from apps.marketplace.sandbox_embed_registry import (
     registry_validation_errors,
     resolve_sandbox_iframe_src,
@@ -41,6 +41,20 @@ class SandboxEmbedRegistryTests(TestCase):
             self.assertTrue(widgets, msg=slug)
             primary = next(iter(widgets.values()))
             self.assertTrue(primary.get("url_name"), msg=slug)
+
+    def test_full_catalog_has_embed_widget(self):
+        from apps.marketplace.management.commands.seed_marketplace_apps import (
+            FIRST_PARTY_APPS,
+        )
+
+        for app_def in FIRST_PARTY_APPS:
+            slug = app_def["slug"]
+            widgets = widgets_dict_for_slug(slug)
+            self.assertTrue(widgets, msg=slug)
+            self.assertTrue(
+                next(iter(widgets.values())).get("url_name"),
+                msg=slug,
+            )
 
 
 class SandboxEmbedViewTests(TestCase):

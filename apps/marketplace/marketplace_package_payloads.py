@@ -17,12 +17,15 @@ from apps.marketplace.capability_contract import (
 
 
 def resolve_package_id_for_app(slug: str, manifest: dict[str, Any] | None) -> str:
-    """Package id used by capability_bindings (defaults to marketplace slug)."""
-    enriched = enrich_manifest_capability_bindings(slug, manifest or {})
-    for binding in extract_capability_bindings(enriched):
-        if binding.get("kind") == "package_id" and binding.get("target"):
-            return str(binding["target"]).strip()
+    """Package id for catalog PackageVersion seed rows (always catalog slug)."""
     return (slug or "").strip()
+
+
+def resolve_activate_package_id_for_app(slug: str, manifest: dict[str, Any] | None) -> str:
+    """Package id applied on activate (legacy mapping when wired)."""
+    from apps.marketplace.legacy_package_bindings import resolve_activate_package_id
+
+    return resolve_activate_package_id(slug, manifest)
 
 
 def _primary_section_for_slug(slug: str) -> str:

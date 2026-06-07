@@ -16,7 +16,7 @@
       "path_name": "super:schools_list",
       "path": "/super/schools/",
       "expect_strip": true,
-      "expect_paired": true,
+      "expect_paired": false,
       "paired_operator": false,
       "ok": true
     },
@@ -25,7 +25,7 @@
       "path_name": "super:marketplace_governance",
       "path": "/super/marketplace/",
       "expect_strip": true,
-      "expect_paired": true,
+      "expect_paired": false,
       "paired_operator": false,
       "ok": true
     },
@@ -34,7 +34,7 @@
       "path_name": "super:security_hub",
       "path": "/super/security/",
       "expect_strip": true,
-      "expect_paired": true,
+      "expect_paired": false,
       "paired_operator": false,
       "ok": true
     },

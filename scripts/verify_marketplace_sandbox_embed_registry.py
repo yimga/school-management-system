@@ -19,23 +19,15 @@ import django  # noqa: E402
 
 django.setup()
 
-from apps.marketplace.capability_contract import TOP_15_APP_SLUGS  # noqa: E402
-from apps.marketplace.sandbox_embed_registry import (  # noqa: E402
-    registry_validation_errors,
-    widgets_dict_for_slug,
+from apps.marketplace.management.commands.seed_marketplace_apps import (  # noqa: E402
+    FIRST_PARTY_APPS,
 )
+from apps.marketplace.sandbox_embed_registry import registry_validation_errors  # noqa: E402
 
 
 def main() -> int:
-    errors = registry_validation_errors()
-    for slug in sorted(TOP_15_APP_SLUGS):
-        widgets = widgets_dict_for_slug(slug)
-        if not widgets:
-            errors.append(f"{slug}: widgets_dict_for_slug empty")
-            continue
-        primary = next(iter(widgets.values()), {})
-        if not isinstance(primary, dict) or not primary.get("url_name"):
-            errors.append(f"{slug}: primary widget missing url_name")
+    catalog_slugs = [app["slug"] for app in FIRST_PARTY_APPS]
+    errors = registry_validation_errors(catalog_slugs=catalog_slugs)
 
     if errors:
         print("MARKETPLACE_SANDBOX_EMBED_REGISTRY_FAIL", file=sys.stderr)
@@ -47,7 +39,7 @@ def main() -> int:
 
     print(
         "MARKETPLACE_SANDBOX_EMBED_REGISTRY_PASS "
-        f"({len(TOP_15_APP_SLUGS)} TOP_15 apps)"
+        f"({len(catalog_slugs)} catalog apps)"
     )
     return 0
 

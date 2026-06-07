@@ -111,12 +111,9 @@ def infer_capability_bindings(slug: str, manifest: dict[str, Any] | None) -> lis
             }
         )
 
+    from apps.marketplace.legacy_package_bindings import resolve_activate_package_id
+
     if slug in TOP_15_APP_SLUGS:
-        pkg = (manifest.get("package_id") or slug).strip()
-        if pkg and not any(b.get("kind") == "package_id" for b in bindings):
-            bindings.append(
-                {"kind": "package_id", "target": pkg, "mode": "apply_on_activate"}
-            )
         bindings.extend(_widget_bindings_for_top_app(slug))
 
     if manifest.get("extension_hook") or manifest.get("extension_hooks"):
@@ -137,10 +134,19 @@ def infer_capability_bindings(slug: str, manifest: dict[str, Any] | None) -> lis
             }
         )
 
-    if not bindings:
-        pkg = (manifest.get("package_id") or slug).strip()
+    pkg = resolve_activate_package_id(slug, manifest)
+    if pkg and not any(b.get("kind") == "package_id" for b in bindings):
         bindings.append(
             {"kind": "package_id", "target": pkg, "mode": "apply_on_activate"}
+        )
+
+    if not bindings:
+        bindings.append(
+            {
+                "kind": "package_id",
+                "target": pkg or (slug or "").strip(),
+                "mode": "apply_on_activate",
+            }
         )
 
     # De-duplicate by (kind, target)
@@ -228,15 +234,15 @@ def validate_capability_bindings(manifest: dict[str, Any] | None) -> tuple[bool,
 def enrich_manifest_capability_bindings(
     slug: str, manifest: dict[str, Any] | None
 ) -> dict[str, Any]:
-    """Merge inferred capability_bindings into manifest (non-destructive)."""
+    """Merge inferred capability_bindings into manifest (idempotent catalog seed)."""
+    from apps.marketplace.legacy_package_bindings import resolve_activate_package_id
+    from apps.marketplace.sandbox_embed_registry import merge_sandbox_widgets_into_manifest
+
     base = dict(manifest) if isinstance(manifest, dict) else {}
-    existing = extract_capability_bindings(base)
-    if existing:
-        base["capability_bindings"] = existing
-        return base
+    base["package_id"] = resolve_activate_package_id(slug, base)
+    base = merge_sandbox_widgets_into_manifest(slug, base)
     inferred = infer_capability_bindings(slug, base)
     base["capability_bindings"] = inferred
-    # Wave 3: mirror feature bindings into enabled_features for entitlement hints
     feats = [
         b["target"]
         for b in inferred
@@ -245,11 +251,6 @@ def enrich_manifest_capability_bindings(
     if feats:
         merged_feats = list(dict.fromkeys(list(base.get("enabled_features") or []) + feats))
         base["enabled_features"] = merged_feats
-    if slug in TOP_15_APP_SLUGS and not base.get("package_id"):
-        base["package_id"] = slug
-    from apps.marketplace.sandbox_embed_registry import merge_sandbox_widgets_into_manifest
-
-    base = merge_sandbox_widgets_into_manifest(slug, base)
     return base
 
 

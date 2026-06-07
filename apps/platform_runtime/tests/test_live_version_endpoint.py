@@ -69,6 +69,28 @@ class LiveVersionEndpointTests(TestCase):
         self.assertEqual(response.status_code, 200, msg=response.content[:500])
         self.assertIn("commit_sha", response.json())
 
+    def test_public_urlconf_version_aliases_return_json(self):
+        with self.settings(ROOT_URLCONF="config.public_urls"):
+            client = Client(HTTP_HOST="runmycampus.com")
+            for path in (
+                "/api/system/version/",
+                "/version.json",
+            ):
+                with self.subTest(path=path):
+                    response = client.get(path, HTTP_ACCEPT="application/json")
+                    self.assertEqual(response.status_code, 200, msg=response.content[:200])
+                    self.assertIn("application/json", response["Content-Type"])
+                    self.assertIn("commit_sha", response.json())
+
+    def test_manager_urlconf_version_aliases_return_json(self):
+        with self.settings(ROOT_URLCONF="config.manager_urls"):
+            client = Client(HTTP_HOST="manager.runmycampus.com")
+            for path in ("/api/system/version/", "/version.json"):
+                with self.subTest(path=path):
+                    response = client.get(path, HTTP_ACCEPT="application/json")
+                    self.assertEqual(response.status_code, 200, msg=response.content[:200])
+                    self.assertIn("commit_sha", response.json())
+
     def test_version_endpoint_resolves_on_tenant_urlconf(self):
         with self.settings(ROOT_URLCONF="config.tenant_urls"):
             response = Client(HTTP_HOST="demo.runmycampus.com").get("/-/version/")

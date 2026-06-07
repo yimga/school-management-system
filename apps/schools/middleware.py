@@ -30,7 +30,14 @@ logger = logging.getLogger(__name__)
 # /admin/ is NOT skipped: on base domain we resolve no tenant → Main (Public) Admin; on tenant subdomain we redirect to Backend
 SUPER_PREFIXES = ("/super/",)
 STATIC_PREFIXES = ("/static/", "/media/", "/favicon.ico", "/api/schema", "/offline/")
-HEALTH_PREFIXES = ("/health", "/ready", "/api/health", "/-/version")
+HEALTH_PREFIXES = (
+    "/health",
+    "/ready",
+    "/api/health",
+    "/-/version",
+    "/api/system/version",
+    "/version.json",
+)
 
 # Legacy path-based tenancy marker kept for compatibility redirects only.
 TENANT_PATH_PREFIX = "/t/"
@@ -98,6 +105,7 @@ MANAGER_HOST_ALLOWED_PREFIXES = (
     "/status/",
     "/api/",
     "/-/version/",
+    "/version.json",
     "/privacy/",
     "/terms/",
     "/cookie-policy/",
@@ -136,6 +144,8 @@ MANAGER_HOST_PUBLIC_ACCESS_PREFIXES = (
     "/status/",
     "/api/health/",
     "/-/version/",
+    "/api/system/version/",
+    "/version.json",
     "/api/billing/processors/",
     "/api/observability/incidents/",
     "/static/",

@@ -24,6 +24,18 @@ CHECKS: list[tuple[str, list[str]]] = [
         "sandbox_embed_registry",
         ["scripts/verify_marketplace_sandbox_embed_registry.py"],
     ),
+    (
+        "legacy_package_id_bindings",
+        ["scripts/verify_legacy_package_id_bindings.py"],
+    ),
+    (
+        "catalog_package_coverage",
+        ["scripts/verify_marketplace_catalog_package_coverage.py"],
+    ),
+    (
+        "integration_adapter_credentials",
+        ["scripts/verify_integration_adapter_credential_schema.py"],
+    ),
     ("wave4_scroll_pagination", ["scripts/verify_scroll_compression_catalog_pagination.py"]),
     ("wave5_platform_mission", ["scripts/verify_marketplace_platform_mission.py"]),
 ]

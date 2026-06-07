@@ -17,6 +17,9 @@ OPERATOR_MFA_EXEMPT_PREFIXES = (
     "/health",
     "/healthz/",
     "/ready/",
+    "/-/version/",
+    "/api/system/version/",
+    "/version.json",
     "/ws/wal/",  # JSON stub only on WSGI; exempt from MFA redirect loop
 )
 

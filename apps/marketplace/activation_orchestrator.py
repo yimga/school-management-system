@@ -95,6 +95,10 @@ def _disable_features_if_unused(school, feature_codes: list[str], *, exclude_app
 def _record_integration_adapters(school, app_slug: str, adapters: list[str]) -> list[str]:
     if not adapters:
         return []
+    from apps.marketplace.integration_adapter_credentials import (
+        merge_credential_placeholders,
+    )
+
     settings = _school_settings_dict(school)
     bucket = settings.get("marketplace_integration_adapters")
     if not isinstance(bucket, dict):
@@ -108,12 +112,21 @@ def _record_integration_adapters(school, app_slug: str, adapters: list[str]) -> 
         recorded.append(key)
     if recorded:
         settings["marketplace_integration_adapters"] = bucket
+        settings, _seeded = merge_credential_placeholders(
+            settings,
+            app_slug=app_slug,
+            adapter_keys=recorded,
+        )
         school.settings = settings
         school.save(update_fields=["settings", "updated_at"])
     return recorded
 
 
 def _clear_integration_adapters(school, app_slug: str, adapters: list[str]) -> None:
+    from apps.marketplace.integration_adapter_credentials import (
+        clear_credential_placeholders,
+    )
+
     settings = _school_settings_dict(school)
     bucket = settings.get("marketplace_integration_adapters")
     if not isinstance(bucket, dict):
@@ -124,6 +137,11 @@ def _clear_integration_adapters(school, app_slug: str, adapters: list[str]) -> N
         if isinstance(entry, dict) and entry.get("app_slug") == app_slug:
             bucket.pop(key, None)
     settings["marketplace_integration_adapters"] = bucket
+    settings = clear_credential_placeholders(
+        settings,
+        app_slug=app_slug,
+        adapter_keys=list(adapters),
+    )
     school.settings = settings
     school.save(update_fields=["settings", "updated_at"])
 

@@ -13,7 +13,15 @@ from apps.platform_runtime.transient_db import is_transient_database_error
 logger = logging.getLogger(__name__)
 
 # Keep in sync with apps.schools.middleware.HEALTH_PREFIXES (+ healthz).
-_HEALTH_PREFIXES = ("/health", "/ready", "/api/health", "/-/version", "/healthz")
+_HEALTH_PREFIXES = (
+    "/health",
+    "/ready",
+    "/api/health",
+    "/-/version",
+    "/api/system/version",
+    "/version.json",
+    "/healthz",
+)
 
 
 def is_health_probe_path(path: str) -> bool:

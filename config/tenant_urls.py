@@ -431,6 +431,9 @@ urlpatterns = [
     path("healthz/", obs_views.healthz, name="healthz"),
     path("health/", obs_views.public_health, name="health"),
     path("ready/", obs_views.public_health, name="ready"),
+    path("-/version/", obs_views.public_version, name="public_version"),
+    path("api/system/version/", obs_views.public_version, name="api_system_version"),
+    path("version.json", obs_views.public_version, name="public_version_json"),
     path("status/", obs_views.public_status, name="status"),
     path("metrics/", obs_views.metrics, name="metrics"),
     path(

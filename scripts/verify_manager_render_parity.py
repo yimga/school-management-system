@@ -35,23 +35,44 @@ from apps.schools.super_admin_paired_surfaces import (  # noqa: E402
 
 MATRIX_JSON = REPO_ROOT / "docs" / "generated" / "super_admin_surface_matrix.json"
 PARITY_REPORT_JSON = REPO_ROOT / "docs" / "generated" / "manager_render_parity_report.json"
+VERSION_PROBE_PATHS = (
+    "/-/version/",
+    "/api/system/version/",
+    "/version.json",
+)
 
 
 def _fetch_version_json(base_url: str, host: str | None = None) -> dict:
-    url = base_url.rstrip("/") + "/-/version/"
     headers = {"Accept": "application/json"}
     if host:
         headers["Host"] = host
-    request = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(request, timeout=20) as response:
-        content_type = response.headers.get("Content-Type", "")
-        body = response.read().decode("utf-8", errors="replace")
-    if "application/json" not in content_type.lower():
-        raise ValueError(f"{url} content-type={content_type!r} body[:120]={body[:120]!r}")
-    payload = json.loads(body)
-    if "commit_sha" not in payload:
-        raise ValueError(f"{url} missing commit_sha: {payload!r}")
-    return payload
+    errors: list[str] = []
+    for suffix in VERSION_PROBE_PATHS:
+        url = base_url.rstrip("/") + suffix
+        request = urllib.request.Request(url, headers=headers)
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                content_type = response.headers.get("Content-Type", "")
+                body = response.read().decode("utf-8", errors="replace")
+        except urllib.error.URLError as exc:
+            errors.append(f"{url}: {exc}")
+            continue
+        if "application/json" not in content_type.lower():
+            errors.append(
+                f"{url} content-type={content_type!r} body[:120]={body[:120]!r}"
+            )
+            continue
+        try:
+            payload = json.loads(body)
+        except json.JSONDecodeError as exc:
+            errors.append(f"{url} invalid JSON: {exc}")
+            continue
+        if "commit_sha" not in payload:
+            errors.append(f"{url} missing commit_sha: {payload!r}")
+            continue
+        payload["_probe_path"] = suffix
+        return payload
+    raise ValueError("; ".join(errors) if errors else "no version probe paths configured")
 
 
 def _local_version_ok() -> list[str]:
@@ -64,21 +85,23 @@ def _local_version_ok() -> list[str]:
     for urlconf, host in cases:
         client = Client(HTTP_HOST=host)
         with override_settings(ROOT_URLCONF=urlconf, ALLOWED_HOSTS=["*"]):
-            response = client.get("/-/version/", HTTP_ACCEPT="application/json")
-        if response.status_code != 200:
-            errors.append(f"local {host} ({urlconf}) HTTP {response.status_code}")
-            continue
-        content_type = response.get("Content-Type", "")
-        if "application/json" not in content_type:
-            errors.append(f"local {host} ({urlconf}) not JSON: {content_type}")
-            continue
-        try:
-            payload = response.json()
-        except json.JSONDecodeError:
-            errors.append(f"local {host} ({urlconf}) invalid JSON body")
-            continue
-        if "commit_sha" not in payload:
-            errors.append(f"local {host} ({urlconf}) missing commit_sha")
+            for probe_path in VERSION_PROBE_PATHS:
+                response = client.get(probe_path, HTTP_ACCEPT="application/json")
+                label = f"local {host} ({urlconf}) {probe_path}"
+                if response.status_code != 200:
+                    errors.append(f"{label} HTTP {response.status_code}")
+                    continue
+                content_type = response.get("Content-Type", "")
+                if "application/json" not in content_type:
+                    errors.append(f"{label} not JSON: {content_type}")
+                    continue
+                try:
+                    payload = response.json()
+                except json.JSONDecodeError:
+                    errors.append(f"{label} invalid JSON body")
+                    continue
+                if "commit_sha" not in payload:
+                    errors.append(f"{label} missing commit_sha")
     return errors
 
 
@@ -164,8 +187,12 @@ def main() -> int:
                 "ok": True,
                 "commit_sha": payload.get("commit_sha"),
                 "build_time": payload.get("build_time"),
+                "probe_path": payload.get("_probe_path"),
             }
-            print(f"OK: {label} commit_sha={payload.get('commit_sha')}")
+            print(
+                f"OK: {label} commit_sha={payload.get('commit_sha')} "
+                f"via {payload.get('_probe_path')}"
+            )
 
     PARITY_REPORT_JSON.parent.mkdir(parents=True, exist_ok=True)
     PARITY_REPORT_JSON.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
