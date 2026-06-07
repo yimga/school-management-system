@@ -11,11 +11,15 @@ See docs/GLOCAL_SOVEREIGNTY_PLAN.md (Wave E) and register row ``auditor-magic-li
 
 from __future__ import annotations
 
+import ipaddress
+import logging
 from datetime import timedelta
 from typing import Any
 
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 _SIGNER_SALT = "auditor.inspector"
 _DEFAULT_TTL_HOURS = 72
@@ -27,6 +31,59 @@ def _signer() -> TimestampSigner:
     return TimestampSigner(salt=_SIGNER_SALT)
 
 
+def normalize_ip_allowlist(entries) -> list[str]:
+    """Validate + canonicalise IP/CIDR entries; drop anything unparseable.
+
+    Accepts a list, or a comma/newline/space-separated string. Each surviving
+    entry is a canonical ``str`` of an :class:`ipaddress.ip_network` (a bare host
+    becomes a /32 or /128). Invalid tokens are dropped (logged, never raised) so a
+    typo can never silently widen access — it just won't match.
+    """
+    if isinstance(entries, str):
+        raw = entries.replace(",", "\n").split()
+    else:
+        raw = list(entries or [])
+    out: list[str] = []
+    for token in raw:
+        text = str(token or "").strip()
+        if not text:
+            continue
+        try:
+            net = ipaddress.ip_network(text, strict=False)
+        except ValueError:
+            logger.info("auditor allowlist: dropping unparseable entry")
+            continue
+        canonical = str(net)
+        if canonical not in out:
+            out.append(canonical)
+    return out
+
+
+def ip_is_allowed(grant, ip_address: str | None) -> bool:
+    """True if ``ip_address`` satisfies the grant's geo-fence.
+
+    An EMPTY allowlist means "no IP restriction" (opt-in enforcement → backwards
+    compatible). A non-empty allowlist with a missing/unparseable client IP is a
+    DENY (fail-closed): if a grant is geo-fenced we refuse access we cannot place.
+    """
+    allowlist = normalize_ip_allowlist(getattr(grant, "ip_allowlist", None) or [])
+    if not allowlist:
+        return True
+    if not ip_address:
+        return False
+    try:
+        client = ipaddress.ip_address(str(ip_address).strip())
+    except ValueError:
+        return False
+    for entry in allowlist:
+        try:
+            if client in ipaddress.ip_network(entry, strict=False):
+                return True
+        except ValueError:  # pragma: no cover - normalize_ip_allowlist already filtered
+            continue
+    return False
+
+
 def create_grant(
     *,
     school_id,
@@ -36,6 +93,7 @@ def create_grant(
     ttl_hours: int = _DEFAULT_TTL_HOURS,
     scope: list[str] | None = None,
     note: str = "",
+    ip_allowlist=None,
 ) -> tuple[Any, str]:
     """Create a grant + return (grant, magic_token). Token encodes the grant id."""
     from apps.compliance.models import AuditorAccessGrant
@@ -47,6 +105,7 @@ def create_grant(
         inspector_label=(inspector_label or "").strip()[:120],
         created_by_id=created_by_id,
         scope=list(scope or ["students:read"]),
+        ip_allowlist=normalize_ip_allowlist(ip_allowlist or []),
         note=(note or "").strip()[:255],
         expires_at=timezone.now() + timedelta(hours=hours),
     )
@@ -84,11 +143,22 @@ def revoke_grant(grant_id) -> bool:
     return True
 
 
-def log_access(grant, resource: str, ip_address: str | None = None) -> None:
+def log_access(
+    grant,
+    resource: str,
+    ip_address: str | None = None,
+    *,
+    allowed: bool = True,
+    denied_reason: str = "",
+) -> None:
     from apps.compliance.models import AuditorAccessLog
 
     AuditorAccessLog.objects.create(
-        grant=grant, resource=str(resource or "")[:255], ip_address=ip_address or None
+        grant=grant,
+        resource=str(resource or "")[:255],
+        ip_address=ip_address or None,
+        allowed=bool(allowed),
+        denied_reason=str(denied_reason or "")[:64],
     )
 
 

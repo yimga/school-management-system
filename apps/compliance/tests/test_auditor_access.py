@@ -107,3 +107,70 @@ class AuditorInspectViewTests(TestCase):
         self.assertEqual(AuditorAccessLog.objects.filter(grant=grant).count(), 1)
         bad = auditor_inspect(rf.get("/compliance/auditor/inspect/?token=bogus"))
         self.assertEqual(bad.status_code, 403)
+
+
+class AuditorGeoFenceTests(TestCase):
+    databases = {"default"}
+
+    def setUp(self):
+        uid = uuid.uuid4().hex[:8]
+        self.school = School.objects.create(
+            name=f"AUDG {uid}", slug=f"audg-{uid}", subdomain=f"audg{uid}", is_active=True
+        )
+
+    def test_normalize_allowlist_accepts_ip_and_cidr_drops_garbage(self):
+        out = auditor_access.normalize_ip_allowlist(
+            ["203.0.113.5", "198.51.100.0/24", "not-an-ip", "  ", "203.0.113.5"]
+        )
+        # bare host -> /32, CIDR preserved, garbage dropped, dedup
+        self.assertEqual(out, ["203.0.113.5/32", "198.51.100.0/24"])
+
+    def test_normalize_allowlist_parses_comma_or_newline_string(self):
+        out = auditor_access.normalize_ip_allowlist("203.0.113.5, 10.0.0.0/8\n2001:db8::1")
+        self.assertIn("203.0.113.5/32", out)
+        self.assertIn("10.0.0.0/8", out)
+        self.assertIn("2001:db8::1/128", out)
+
+    def test_empty_allowlist_allows_any_ip(self):
+        grant, _ = auditor_access.create_grant(school_id=self.school.id)
+        self.assertTrue(auditor_access.ip_is_allowed(grant, "8.8.8.8"))
+        self.assertTrue(auditor_access.ip_is_allowed(grant, None))
+
+    def test_allowlist_matches_inside_cidr_and_rejects_outside(self):
+        grant, _ = auditor_access.create_grant(
+            school_id=self.school.id, ip_allowlist=["198.51.100.0/24"]
+        )
+        self.assertTrue(auditor_access.ip_is_allowed(grant, "198.51.100.77"))
+        self.assertFalse(auditor_access.ip_is_allowed(grant, "203.0.113.9"))
+
+    def test_geofenced_grant_fails_closed_on_missing_ip(self):
+        grant, _ = auditor_access.create_grant(
+            school_id=self.school.id, ip_allowlist=["198.51.100.7"]
+        )
+        # geo-fenced grant + unplaceable client -> deny
+        self.assertFalse(auditor_access.ip_is_allowed(grant, None))
+        self.assertFalse(auditor_access.ip_is_allowed(grant, "garbage"))
+
+    def test_view_denies_offnet_ip_and_logs_denial(self):
+        from apps.compliance.views_auditor import auditor_inspect
+        from django.test import RequestFactory
+
+        grant, token = auditor_access.create_grant(
+            school_id=self.school.id, ip_allowlist=["198.51.100.0/24"]
+        )
+        rf = RequestFactory()
+        # off-net -> 403, denial logged, roster NOT served
+        denied = auditor_inspect(
+            rf.get(f"/c/auditor/?token={token}", REMOTE_ADDR="203.0.113.9")
+        )
+        self.assertEqual(denied.status_code, 403)
+        log = AuditorAccessLog.objects.get(grant=grant)
+        self.assertFalse(log.allowed)
+        self.assertEqual(log.denied_reason, "ip-not-in-allowlist")
+
+        # on-net (via X-Forwarded-For) -> 200, allowed access logged
+        ok = auditor_inspect(
+            rf.get(f"/c/auditor/?token={token}", HTTP_X_FORWARDED_FOR="198.51.100.42")
+        )
+        self.assertEqual(ok.status_code, 200)
+        self.assertEqual(AuditorAccessLog.objects.filter(grant=grant, allowed=True).count(), 1)

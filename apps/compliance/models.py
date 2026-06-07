@@ -708,6 +708,14 @@ class AuditorAccessGrant(models.Model):
     scope = models.JSONField(
         default=list, blank=True, help_text='e.g. ["students:read"] (read-only scopes).'
     )
+    ip_allowlist = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            'Optional geo-fence: list of IPs/CIDRs the inspector may connect from '
+            '(e.g. ["203.0.113.0/24", "198.51.100.7"]). Empty = no IP restriction.'
+        ),
+    )
     note = models.CharField(max_length=255, blank=True)
     expires_at = models.DateTimeField()
     is_revoked = models.BooleanField(default=False)
@@ -733,6 +741,10 @@ class AuditorAccessLog(models.Model):
     )
     resource = models.CharField(max_length=255)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
+    allowed = models.BooleanField(
+        default=True, help_text="False when the geo-fence IP allowlist denied this access."
+    )
+    denied_reason = models.CharField(max_length=64, blank=True)
     occurred_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:

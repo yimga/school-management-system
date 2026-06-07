@@ -32,7 +32,23 @@ def auditor_inspect(request):
             {"ok": False, "error": "This inspection link is invalid, expired or revoked."},
             status=403,
         )
-    auditor_access.log_access(grant, resource="auditor:roster", ip_address=_client_ip(request))
+    client_ip = _client_ip(request)
+    if not auditor_access.ip_is_allowed(grant, client_ip):
+        auditor_access.log_access(
+            grant,
+            resource="auditor:roster",
+            ip_address=client_ip,
+            allowed=False,
+            denied_reason="ip-not-in-allowlist",
+        )
+        return JsonResponse(
+            {
+                "ok": False,
+                "error": "This inspection link may only be used from an approved network.",
+            },
+            status=403,
+        )
+    auditor_access.log_access(grant, resource="auditor:roster", ip_address=client_ip)
     return JsonResponse(
         {
             "ok": True,
@@ -64,7 +80,9 @@ class AuditorGrantConsoleView(View):
                 "expires_at": g.expires_at.isoformat(),
                 "valid": g.is_valid(),
                 "revoked": g.is_revoked,
-                "views": g.access_logs.count(),
+                "ip_allowlist": g.ip_allowlist or [],
+                "views": g.access_logs.filter(allowed=True).count(),
+                "denied_views": g.access_logs.filter(allowed=False).count(),
             }
             for g in qs[:100]
         ]
@@ -85,6 +103,7 @@ class AuditorGrantConsoleView(View):
             created_by_id=getattr(request.user, "id", None),
             ttl_hours=int(request.POST.get("ttl_hours") or 72),
             note=request.POST.get("note", ""),
+            ip_allowlist=request.POST.get("ip_allowlist", ""),
         )
         return JsonResponse(
             {"ok": True, "grant_id": str(grant.id), "token": token, "expires_at": grant.expires_at.isoformat()}
