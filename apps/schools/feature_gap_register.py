@@ -392,7 +392,7 @@ FEATURE_REGISTER: tuple[FeatureRow, ...] = (
         status="shipped",
         proof_route_name="compliance:auditor_inspect",
         proof_model="compliance.AuditorAccessGrant",
-        notes="SHIPPED Wave E 2026-06-07: operator mints a revocable time-bounded grant (compliance.AuditorAccessGrant, migration 0016) → TimestampSigner magic link; PUBLIC token-gated inspector view (compliance:auditor_inspect) needs no login (the signed unexpired unrevoked grant IS the auth), returns ONLY pii_masking.mask_student_for_auditor projections (initials, birth-year, guardian withheld), and logs every view to AuditorAccessLog. Operator console create/list/revoke (staff-gated). Tests test_auditor_access 6/6. NOTE: geo-fencing (IP allowlist) is captured-not-enforced (ip logged); enforcement is a follow-up.",
+        notes="SHIPPED Wave E 2026-06-07: operator mints a revocable time-bounded grant (compliance.AuditorAccessGrant, migration 0016) → TimestampSigner magic link; PUBLIC token-gated inspector view (compliance:auditor_inspect) needs no login (the signed unexpired unrevoked grant IS the auth), returns ONLY pii_masking.mask_student_for_auditor projections (initials, birth-year, guardian withheld), and logs every view to AuditorAccessLog. Operator console create/list/revoke (staff-gated). Geo-fence ENFORCED 2026-06-07 (migration 0018): AuditorAccessGrant.ip_allowlist + auditor_access.ip_is_allowed (stdlib ipaddress, CIDR-aware, fail-closed when a geo-fenced grant's client IP is unplaceable); auditor_inspect returns 403 off-net and records the denial (AuditorAccessLog.allowed/denied_reason); empty allowlist = no restriction (opt-in). Tests test_auditor_access 12/12 (+2 command).",
     ),
     FeatureRow(
         feature_slug="non-repudiation-logger",
