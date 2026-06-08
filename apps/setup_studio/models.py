@@ -1,7 +1,4 @@
-"""
-Setup Studio step models (metadata plan todo 7).
-Step models capturing: institution basics, plan choice, blueprint selection, branding, starter stack, data path.
-"""
+"""Setup Studio state for institution, plan, blueprint, brand, and data setup."""
 
 from django.db import models
 

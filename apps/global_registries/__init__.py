@@ -1,1 +1,2 @@
-# Bounded-context: countries, calendars, grade scales, institution types, terminology (metadata plan todo 2).
+# Bounded context for countries, calendars, grade scales, institution types,
+# and terminology.

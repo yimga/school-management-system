@@ -44,9 +44,8 @@ v4.00.42 scope
 * Returns 200 JSON when ``?format=json`` is passed; 302 redirect to
   ``next``/``LOGIN_REDIRECT_URL`` otherwise.
 
-Deferred to v4.00.43+:
-* Tenant binding (``request.tenant`` linkage on first-login provisioning).
-* RP-Initiated Logout per OIDC Session Management spec.
+Tenant binding and RP-Initiated Logout are implemented below. Live provider
+activation still requires operator-owned discovery URLs and client credentials.
 """
 from __future__ import annotations
 

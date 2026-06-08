@@ -1,24 +1,24 @@
 # Platform Inventory
 
 - Installed app modules: `54`
-- Python files: `6307`
-- HTML templates: `1655`
-- Markdown files: `1604`
-- Migration files: `998`
-- Management commands: `290` (full list in JSON key `management_commands_list`)
+- Python files: `6359`
+- HTML templates: `1656`
+- Markdown files: `1612`
+- Migration files: `1001`
+- Management commands: `298` (full list in JSON key `management_commands_list`)
 - `SiteSettings` refs (gross scan): `2470`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations): `214`
 - `SiteSettings` refs (`apps/**/*.py`, excl. migrations+tests): `161`
 - `get_solo()` refs: `213`
-- `except Exception`: `2572`
-- `cursor.execute()` (gross): `413`
-- `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `44`
-- `csrf_exempt` (substring, gross): `680`
-- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `110`
+- `except Exception`: `2581`
+- `cursor.execute()` (gross): `414`
+- `cursor.execute()` (`apps`+`config` `.py`, excl. migrations): `45`
+- `csrf_exempt` (substring, gross): `682`
+- `csrf_exempt` decorator lines (`apps`+`config`, excl. migrations): `112`
 - `AllowAny`: `173`
-- `print()` (gross all `.py`): `4307`
-- `print()` (`apps` product paths): `0`; `scripts/`: `4120`
-- `gilead` matches (gross corpus): `16845` across `235` files
+- `print()` (gross all `.py`): `4339`
+- `print()` (`apps` product paths): `0`; `scripts/`: `4152`
+- `gilead` matches (gross corpus): `16847` across `237` files
 - `gilead` line hits (`apps`+`templates`+`config`, excl. migrations+tests+`management/commands`): `0`
 
 Gross totals include migrations and broad file pools; use **scoped** lines around SQL/SiteSettings/Tenant gravity for trend tracking (see SOT §0 *Structural remediation stack*).
@@ -26,7 +26,7 @@ Gross totals include migrations and broad file pools; use **scoped** lines aroun
 
 ## Management Commands (full list)
 
-Total: `290` commands. First 25 by app/command:
+Total: `298` commands. First 25 by app/command:
 
 - `academics` / `export_certification_pack` — `apps/academics/management/commands/export_certification_pack.py`
 - `academics` / `fix_term_positions` — `apps/academics/management/commands/fix_term_positions.py`
@@ -53,12 +53,12 @@ Total: `290` commands. First 25 by app/command:
 - `analytics` / `ai_narrate_risk_digest` — `apps/analytics/management/commands/ai_narrate_risk_digest.py`
 - `analytics` / `bootstrap_at_risk_registry` — `apps/analytics/management/commands/bootstrap_at_risk_registry.py`
 - `analytics` / `build_student_embeddings` — `apps/analytics/management/commands/build_student_embeddings.py`
-- … and 265 more (see `platform_inventory.json` key `management_commands_list`).
+- … and 273 more (see `platform_inventory.json` key `management_commands_list`).
 
 ## Public Endpoint Review
 
 - Reviewed `csrf_exempt` files: `37`
-- Reviewed `csrf_exempt` endpoints: `110`
+- Reviewed `csrf_exempt` endpoints: `112`
 - Reviewed `AllowAny` files: `4`
 - Reviewed `AllowAny` occurrences: `10`
 
@@ -79,7 +79,7 @@ Total: `290` commands. First 25 by app/command:
 
 - `apps/siteconfig/_seed_country_localization.py`: `16897` lines / `1225749` bytes
 - `apps/siteconfig/forms_cockpit.py`: `5127` lines / `208363` bytes
-- `config/settings.py`: `3613` lines / `175951` bytes
+- `config/settings.py`: `3622` lines / `176381` bytes
 - `apps/schools/marketing_views.py`: `4175` lines / `167786` bytes
 - `apps/api/saml.py`: `3487` lines / `147039` bytes
 - `apps/accounts/views.py`: `3669` lines / `146477` bytes

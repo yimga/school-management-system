@@ -1,6 +1,7 @@
-"""
-Government / district aggregate API (Section 14.5).
-Permission-gated; returns aggregates only (no PII). Stub for EMIS/reporting extensions.
+"""Government / district aggregate API (Section 14.5).
+
+Permission-gated and de-identified. Jurisdiction-specific EMIS adapters extend
+this aggregate contract rather than replacing it.
 """
 
 from django.db import DatabaseError
@@ -43,7 +44,7 @@ class GovernmentAggregatesAPI(View):
                 {"detail": "Not allowed to view government aggregates."}, status=403
             )
 
-        # Stub: return placeholder aggregates (no PII)
+        # Return bounded aggregate defaults, then populate installed domains.
         from django.apps import apps
         from django.db.models import Count
 
@@ -77,7 +78,7 @@ class GovernmentAggregatesAPI(View):
                 ).count()
                 payload["guardian_links_count"] = StudentGuardian.objects.count()
                 # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
-                # Optional: by region (country_code) — no PII
+                # Region aggregate uses country code only and contains no PII.
                 by_region = (
                     # tenant-isolation-allow: view-layer-scoped-via-request-school-or-role-graph
                     StudentProfile.objects.filter(is_active=True)

@@ -1,5 +1,5 @@
 """
-Register UsageReference (MetadataDependency) from workflow/dashboard/policy definitions (metadata plan todo 4).
+Register usage dependencies from workflow, dashboard, and policy definitions.
 Call register_usage() where dashboards, workflows, and policies are resolved or defined.
 
 Lineage: use get_lineage_consumers() to answer "what uses this entity/field?" (downstream dashboards,

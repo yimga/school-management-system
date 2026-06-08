@@ -945,7 +945,7 @@ def at_risk_intervention_action(request: HttpRequest):
 def executive_dashboard(request: HttpRequest):
     """
     Unified Executive Dashboard: Finance + HR + student outcomes (ROI view).
-    Stub: links to existing dashboards and key metrics.
+    Composes the existing governed dashboards and key metrics.
     """
     from apps.schools.mixins import get_current_school
 

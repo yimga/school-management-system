@@ -223,7 +223,7 @@ def api_center_toggle(request, slug):
 @login_required
 @require_GET
 def api_portal_docs(request):
-    """Developer platform (8.1): public API portal — docs stub. Keys, quotas, SDK links later."""
+    """Developer platform documentation and onboarding portal."""
     if not _api_center_allowed(request):
         return HttpResponseForbidden(
             "API Center is disabled or you do not have permission."
@@ -461,7 +461,7 @@ def webhook_subscription_delete(request, pk: int):
 @login_required
 @require_GET
 def sdk_docs(request):
-    """Developer platform (8.1): SDK / client libraries stub."""
+    """SDK and language-neutral REST client guidance."""
     if not _api_center_allowed(request):
         return HttpResponseForbidden(
             "API Center is disabled or you do not have permission."
@@ -472,7 +472,7 @@ def sdk_docs(request):
 @login_required
 @require_GET
 def app_certification(request):
-    """Developer platform (8.1): App certification stub."""
+    """Marketplace app certification requirements."""
     if not _api_center_allowed(request):
         return HttpResponseForbidden(
             "API Center is disabled or you do not have permission."
@@ -483,7 +483,7 @@ def app_certification(request):
 @login_required
 @require_GET
 def partner_sandbox(request):
-    """Developer platform (8.1): Partner sandbox stub."""
+    """Partner sandbox operating and data-handling requirements."""
     if not _api_center_allowed(request):
         return HttpResponseForbidden(
             "API Center is disabled or you do not have permission."

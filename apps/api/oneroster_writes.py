@@ -31,9 +31,11 @@ import hashlib
 import json
 import logging
 import threading
+import uuid
 from typing import Any, Callable
 
 from django.core.cache import cache
+from django.db import transaction
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -169,35 +171,118 @@ def _upsert_org(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any], 
     return payload, 201 if created else 200
 
 
+def _user_role_value(role: str, User) -> str:
+    normalized = str(role or "").strip().lower()
+    role_map = {
+        "student": User.Role.STUDENT,
+        "teacher": User.Role.TEACHER,
+        "administrator": User.Role.ADMIN,
+        "staff": User.Role.ACADEMICS_STAFF,
+        "aide": User.Role.ACADEMICS_STAFF,
+        "proctor": User.Role.ACADEMICS_STAFF,
+        "parent": User.Role.PARENT,
+        "guardian": User.Role.PARENT,
+        "relative": User.Role.PARENT,
+    }
+    return role_map.get(normalized, User.Role.PARENT)
+
+
+def _schools_for_org_sourced_ids(org_sourced_ids: Any) -> list[Any]:
+    if not isinstance(org_sourced_ids, list):
+        return []
+    raw_ids = [str(value or "").strip() for value in org_sourced_ids]
+    raw_ids = [value for value in raw_ids if value][:20]
+    if not raw_ids:
+        return []
+
+    from apps.schools.models import School
+
+    found: dict[str, Any] = {}
+    for school in School.objects.filter(slug__in=raw_ids):  # tenant-isolation-allow: roster-write-explicit-org-identifiers
+        found[str(school.pk)] = school
+    uuid_ids = []
+    for value in raw_ids:
+        try:
+            uuid_ids.append(uuid.UUID(value))
+        except (TypeError, ValueError, AttributeError):
+            continue
+    if uuid_ids:
+        for school in School.objects.filter(pk__in=uuid_ids):  # tenant-isolation-allow: roster-write-explicit-org-identifiers
+            found[str(school.pk)] = school
+    return list(found.values())
+
+
+@transaction.atomic
 def _upsert_user(sourced_id: str, body: dict[str, Any]) -> tuple[dict[str, Any], int]:
     from django.contrib.auth import get_user_model
+    from apps.schools.models import SchoolMembership
 
     User = get_user_model()
-    username = (body.get("username") or "").strip()[:150]  # magic-number-allow: string-truncation-cap
+    username = (body.get("username") or sourced_id or "").strip()[:150]  # magic-number-allow: string-truncation-cap
     if not username:
         return {"error": "missing_username"}, 400
 
     given = (body.get("givenName") or "")[:150]  # magic-number-allow: string-truncation-cap
     family = (body.get("familyName") or "")[:150]  # magic-number-allow: string-truncation-cap
     email = (body.get("email") or "")[:254]  # magic-number-allow: string-truncation-cap
+    role = _user_role_value(body.get("role") or "student", User)
+    is_active = str(body.get("status") or "active").strip().lower() != "tobedeleted"
 
     with _PROCESS_LOCK:
         obj, created = User.objects.get_or_create(  # tenant-isolation-allow: roster-write-platform-scope
             username=username,
-            defaults={"first_name": given, "last_name": family, "email": email},
+            defaults={
+                "first_name": given,
+                "last_name": family,
+                "email": email,
+                "role": role,
+                "is_active": is_active,
+            },
         )
+        if created:
+            obj.set_unusable_password()
         changed = False
-        for field, raw in (("first_name", given), ("last_name", family), ("email", email)):
-            if raw and hasattr(obj, field) and getattr(obj, field) != raw:
+        for field, raw in (
+            ("first_name", given),
+            ("last_name", family),
+            ("email", email),
+            ("role", role),
+            ("is_active", is_active),
+        ):
+            if hasattr(obj, field) and getattr(obj, field) != raw:
                 setattr(obj, field, raw)
                 changed = True
-        if changed:
-            obj.save(update_fields=[f for f in ("first_name", "last_name", "email") if hasattr(obj, f)])
+        if created or changed:
+            update_fields = [
+                field
+                for field in (
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "role",
+                    "is_active",
+                    "password",
+                )
+                if hasattr(obj, field)
+            ]
+            obj.save(update_fields=update_fields)
+
+        schools = _schools_for_org_sourced_ids(body.get("orgSourcedIds"))
+        has_membership = obj.school_memberships.exists()
+        for index, school in enumerate(schools):
+            SchoolMembership.objects.update_or_create(
+                user=obj,
+                school=school,
+                defaults={
+                    "role": role,
+                    "is_primary": not has_membership and index == 0,
+                },
+            )
 
     payload = {
         "user": {
             "sourcedId": str(obj.pk),
-            "status": "active",
+            "status": "active" if obj.is_active else "tobedeleted",
             "username": obj.username,
             "givenName": getattr(obj, "first_name", "") or "",
             "familyName": getattr(obj, "last_name", "") or "",
@@ -330,3 +415,23 @@ def put_user(request, sourced_id: str):
 @require_http_methods(["PUT"])
 def put_class(request, sourced_id: str):
     return _handle_put(request, "class", sourced_id, _upsert_class)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT"])
+def org_resource(request, sourced_id: str):
+    if request.method == "PUT":
+        return put_org(request, sourced_id)
+    from apps.api.oneroster import org_detail
+
+    return org_detail(request, sourced_id)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "PUT"])
+def class_resource(request, sourced_id: str):
+    if request.method == "PUT":
+        return put_class(request, sourced_id)
+    from apps.api.oneroster import class_detail
+
+    return class_detail(request, sourced_id)

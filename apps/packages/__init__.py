@@ -1,1 +1,2 @@
-# Package engine: blueprint/workflow/dashboard/policy/theme packs — validate, preview, apply, rollback (metadata plan todo 5).
+# Package engine: blueprint/workflow/dashboard/policy/theme packs with
+# validation, preview, apply, rollback, and governed metadata.

@@ -1,6 +1,4 @@
-"""
-Signals to record MetadataChangeLog when metadata models are saved (metadata plan todo 6).
-"""
+"""Signals that record metadata model changes."""
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver

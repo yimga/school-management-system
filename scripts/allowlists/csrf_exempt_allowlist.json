@@ -211,15 +211,15 @@
       "last_reviewed": "2026-06-02"
     },
     "apps/api/oneroster_writes.py": {
-      "expected_count": 3,
+      "expected_count": 5,
       "owner": "interop_oneroster",
       "verdict": "keep",
       "auth_model": "bearer_token_oneroster",
       "replay_protection": "token_auth_only",
       "rate_limiting": "manual_review_required",
       "audit_logging": "manual_review_required",
-      "notes": "OneRoster roster mutation endpoints; machine client Bearer auth.",
-      "last_reviewed": "2026-05-29"
+      "notes": "OneRoster roster mutation endpoints (orgs/users/enrollments/classes/terms); machine client Bearer auth.",
+      "last_reviewed": "2026-06-08"
     },
     "apps/api/oneroster.py": {
       "expected_count": 1,

@@ -1,9 +1,9 @@
-"""v4.00.36 — OneRoster v1.2 read-only Rostering endpoints.
+"""OneRoster v1.2 Rostering endpoints.
 
 Implements the spec-shape JSON envelopes for the wedge-44 (Clever /
 ClassLink-style roster + SSO) operator surface. Scope:
 
-* Read-only: `GET` only. No PUT / POST / DELETE in this wave.
+* Read and governed write paths for core roster entities.
 * Pagination: ``?limit=<n>&offset=<n>`` honored per spec (default 100,
   max 1000).
 * Auth: bearer token compared against ``RMC_ONEROSTER_ACCESS_TOKEN``
@@ -24,8 +24,9 @@ Endpoints intentionally use the spec base path
 at the deployment without rewriting URLs. They're also re-exposed
 under ``/api/v1/roster/v1p2/`` for our own dashboards.
 
-Honest deferred: write-path, OAuth 2 client-credentials grant, real
-Clever / ClassLink connector adapters.
+OAuth 2 client-credentials, single-entity writes, bulk user upserts, and
+CSV bundle import are implemented. Vendor-native Clever / ClassLink adapters
+remain partner-credential integration gates; OneRoster is the open substitute.
 """
 from __future__ import annotations
 
@@ -901,14 +902,9 @@ def users_delta_v1p2(request):
 #   * same Idempotency-Key + different body  -> 409 idempotency_key_conflict
 #   * TTL: 24h
 #
-# Per-row processing strategy:
-#   This baseline VALIDATES each user payload (shape check on sourcedId,
-#   orgSourcedIds, givenName, familyName, role) and returns "skipped"
-#   with reason="bulk_create_pending_storage_impl" to honestly signal
-#   that the bulk-write storage layer (User row create/update) is
-#   deferred to a future wave. The contract surface (shape, idempotency,
-#   headers, 207, per-row reasons) is real and tested. Invalid rows
-#   return status="error" with the failing reason echoed.
+# Per-row processing validates the payload, persists through the canonical
+# single-user upsert contract, binds supplied organizations as tenant
+# memberships, and isolates row failures in the 207 response.
 _BULK_USERS_MAX_ITEMS = 500
 _BULK_USERS_IDEMPOTENCY_TTL = 60 * 60 * 24
 _BULK_USERS_REQUIRED_FIELDS = ("sourcedId", "givenName", "familyName", "role")
@@ -962,12 +958,9 @@ def _validate_bulk_user_row(row: Any) -> tuple[str, str | None]:
 
 
 def _process_bulk_users(users: list[Any]) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    """Per-row processor. v4.00.83 — VALIDATE only and return "skipped" with
-    reason="bulk_create_pending_storage_impl" to honestly signal that the
-    bulk-write storage layer is deferred to a future wave. Invalid rows
-    return status="error" with the failing reason echoed. The contract
-    surface (shape, idempotency, headers, 207) is real.
-    """
+    """Validate and persist a OneRoster bulk user batch."""
+    from apps.api.oneroster_writes import _upsert_user
+
     results: list[dict[str, Any]] = []
     summary = {"created": 0, "updated": 0, "skipped": 0, "error": 0, "total": 0}
     for row in users:
@@ -976,12 +969,34 @@ def _process_bulk_users(users: list[Any]) -> tuple[list[dict[str, Any]], dict[st
             results.append({"sourcedId": sid, "status": "error", "reason": err})
             summary["error"] += 1
         else:
-            results.append({
-                "sourcedId": sid,
-                "status": "skipped",
-                "reason": "bulk_create_pending_storage_impl",
-            })
-            summary["skipped"] += 1
+            try:
+                body, status_code = _upsert_user(sid, row)
+            except Exception:
+                logger.exception("oneroster bulk user upsert failed sourced_id=%s", sid)
+                body, status_code = {"error": "upsert_failed"}, 500
+            if status_code in (200, 201):
+                outcome = "created" if status_code == 201 else "updated"
+                persisted = body.get("user") if isinstance(body, dict) else {}
+                results.append(
+                    {
+                        "sourcedId": sid,
+                        "status": outcome,
+                        "persistedSourcedId": str(
+                            (persisted or {}).get("sourcedId") or ""
+                        ),
+                    }
+                )
+                summary[outcome] += 1
+            else:
+                reason = (
+                    str(body.get("error") or "upsert_failed")
+                    if isinstance(body, dict)
+                    else "upsert_failed"
+                )
+                results.append(
+                    {"sourcedId": sid, "status": "error", "reason": reason}
+                )
+                summary["error"] += 1
         summary["total"] += 1
     return results, summary
 
@@ -991,10 +1006,9 @@ def _process_bulk_users(users: list[Any]) -> tuple[list[dict[str, Any]], dict[st
 def users_bulk_post(request: HttpRequest):
     """v4.00.83 Wave 15 T2 — POST /api/roster/v1p2/users/bulk/
 
-    Idempotent batch user upsert per OneRoster v1.2 bulk semantics. Per-row
-    processing returns ``status="skipped"`` with ``reason="bulk_create_
-    pending_storage_impl"`` to honestly signal that the storage layer is
-    deferred. Invalid rows return ``status="error"``.
+    Idempotent batch user upsert per OneRoster v1.2 bulk semantics. Valid rows
+    are persisted and report ``created`` or ``updated``; invalid or failed rows
+    report ``error`` without aborting the rest of the batch.
 
     Required: ``Idempotency-Key`` header. Body: ``{"users": [...]}``
     (max 500 entries). Response: 207 Multi-Status with per-row results +

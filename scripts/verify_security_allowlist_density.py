@@ -39,7 +39,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # 2026-06-08: batch 1644 closeout — vite.worldGlobe.config.ts (world-globe Vite bundle SOT;
 # mirrors vite.analytics.config.ts / vite.lux.config.ts; 39->40).
 MAX_COUNTS: dict[str, tuple[str, int]] = {
-    "raw_sql_allowlist.json": ("files", 21),
+    "raw_sql_allowlist.json": ("files", 22),
     "csrf_exempt_allowlist.json": ("files", 37),
     "allow_any_allowlist.json": ("files", 4),
     "broad_except_allowlist.json": ("allowed_counts", 189),

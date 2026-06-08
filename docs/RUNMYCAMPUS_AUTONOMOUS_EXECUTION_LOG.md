@@ -1,5 +1,32 @@
 ﻿# RunMyCampus autonomous execution log
 
+## Slice - Aggressive optional-completion re-audit batch 1672 (2026-06-08)
+
+**A. Scope:** Re-open every optional, deferred, advisory, and blocked item in the
+sovereign-platform plan; implement every repository-actionable improvement and
+retain only evidence-based deployment gates.
+
+**B. Shipped:** governed browser-inference worker/manifest/UI; authenticated
+LAN voice accessibility with consent, bounds, no retention, audit metadata, and
+text fallback; signed archive-before-purge retention with exact-row verification
+and object/date legal holds; operator admin surfaces; nine-of-nine repository
+promotion eligibility with browser/voice stage ceilings; consolidated
+`verify:sovereign-optionals`; corrected deployment, promotion, retention, and
+optional-hardening SOTs.
+
+**C. Proof:** optional gate PASS; 33 focused browser/voice/promotion/chrome
+tests PASS; minimal real-model retention attack harness PASS; sovereign, edge,
+database-tenancy, sync, layout, and promotion gates PASS; settings registry,
+Django checks, migration drift, syntax, PII logging, and bare-except checks
+clean. Original eight-gate baseline PASS. Shared SQLite contention prevented
+repeat RAG/OCR test-runner completion after the baseline; neither subsystem was
+changed in this slice.
+
+**D. External-only:** staged browser artifacts and device evidence, configured
+LAN speech services and language evidence, immutable cold-storage operations,
+PostgreSQL repartitioning, real PgBouncer/load testing, and any stage above
+repository verification.
+
 ## Slice - Sovereign platform final cross-phase closure batch 1671 (2026-06-08)
 
 **A. Scope:** Re-certify the complete research-driven program after every code,

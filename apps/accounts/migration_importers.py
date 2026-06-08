@@ -255,17 +255,16 @@ def import_guardians(school, rows: Iterable[dict], *, actor=None) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Roster (Classroom + Subject + Term — SubjectAssignment deferred to pass 8.B)
+# Roster (Classroom + Subject + Term + SubjectAssignment)
 # ---------------------------------------------------------------------------
 
 
 def import_roster(school, rows: Iterable[dict], *, actor=None) -> dict:
     """
-    Create or update Classroom, Subject, and Term records.
+    Create or update Classroom, Subject, Term, Specialty, and assignment records.
 
-    SubjectAssignment requires a Specialty FK which not every tenant has
-    populated at this stage; that final linkage is deferred to pass 8.B.
-    Each row may contribute up to three records (Classroom, Subject, Term).
+    A tenant-scoped General specialty is created when the import row does not
+    provide one, so the roster is immediately usable by grading workflows.
     """
     from apps.academics.models import (
         AcademicYear,

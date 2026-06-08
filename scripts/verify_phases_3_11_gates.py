@@ -514,11 +514,9 @@ def main(argv: list[str] | None = None) -> int:
     run(
         [
             py,
-            "-m",
-            "pytest",
-            f"--rootdir={REPO}",
-            _repo_path("apps/marketplace/tests/test_marketplace_wedge_coverage.py"),
-            "-q",
+            _script_path("run_sqlite_memory_tests.py"),
+            "apps.marketplace.tests.test_marketplace_wedge_coverage",
+            "--verbosity=0",
         ],
         "Marketplace first-party: wedge_ids cover 1-45",
     )

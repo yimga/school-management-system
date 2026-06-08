@@ -1,6 +1,11 @@
 {
-  "manifest_last_reviewed": "2026-06-02",
+  "manifest_last_reviewed": "2026-06-08",
   "files": {
+    "apps/compliance/audit_retention.py": {
+      "expected_count": 1,
+      "reason": "Append-only audit purge bypasses ORM delete() guard via parameterized PK IN DELETE inside atomic transaction after archive signature verification.",
+      "last_reviewed": "2026-06-08"
+    },
     "apps/people/repositories/audit_repository.py": {
       "expected_count": 5,
       "reason": "Section 2.4 Audit DDL: set_search_path, create_audit_trigger_function, drop_audit_trigger, create_audit_trigger, revoke_audit_log_mutations; staff-only.",

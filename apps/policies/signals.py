@@ -1,6 +1,4 @@
-"""
-Record MetadataChangeLog when policy metadata is saved (metadata plan todo 6).
-"""
+"""Record metadata change history when policy objects are saved."""
 
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError

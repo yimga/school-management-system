@@ -1217,6 +1217,50 @@ See register section **`procurement_enterprise_sales`**.
 
 ## At a glance
 
+**Aggressive optional-completion re-audit - batch 1672 (2026-06-08):**
+**DONE (repository scope; external activation remains gated).** Re-audited the
+research plan, live code, prior phase evidence, optional hardening document, and
+all deferred/blocked claims. Closed the remaining repository-actionable gaps:
+(1) browser inference now has a tenant-only same-origin worker contract,
+operator-staged manifest, immutable revision, SHA-256 and byte-size checks for
+the runtime and every model asset, explicit one-action consent, device
+memory/storage gates, reversible draft insertion, and purge; (2) local voice
+now has authenticated tenant-only push-to-talk and no-store TTS endpoints,
+editable transcript fallback, explicit consent, exact endpoint-host allowlist,
+redirect denial, language/size/timeout/rate caps, and content-free audit
+metadata; (3) compliance retention now uses deterministic signed gzip JSONL,
+checksum/signature/manifest/unique-row verification, exact-ID
+approval-token-gated purge, append-only raw deletion only inside the verified
+transaction, and operator-visible object/date-range legal holds rechecked at
+purge; (4) promotion catalog now reports all nine families repository eligible,
+while browser and voice are capped at `repository_verified`; (5) the existing
+per-task AI tiers, LiteLLM-compatible self-hosting, tenant premium cap,
+high/critical and role-change alerts, module map, and transaction-pooling
+rejection are verified rather than duplicated. Added
+`verify:sovereign-optionals`.
+
+**Proof:** `SOVEREIGN_OPTIONALS_PASS`; 14/14 browser/voice tests; 19/19
+promotion/chrome tests; minimal real-model retention attack harness passes
+archive=1, object/date-held=2, exact purge=1, invalid token blocked, tamper
+blocked; `SOVEREIGN_PLATFORM_CONTRACT_PASS`;
+`EDGE_HARDWARE_CERTIFICATION_PASS`; `DATABASE_TENANCY_CONTRACT_PASS`;
+`SYNC_SEMANTICS_PASS`; `LOCAL_FIRST_SYNC_CONTRACT_PASS`;
+`LAYOUT_OBSERVABILITY_CONTRACT_PASS`; intelligence report eligible=9,
+blocked=0; Django checks, compliance migration drift, settings-registry
+coverage, JavaScript/Python/JSON syntax, PII logging, and bare-except scans are
+clean. The eight original phase gates also passed as the opening baseline.
+Later tenant-RAG/OCR reruns were aborted only because unrelated concurrent
+processes held the shared persistent SQLite runner; no RAG/OCR code changed in
+this batch and their baseline gates were green.
+
+**Honest external gates:** the committed browser pack is intentionally
+unstaged; LAN STT/TTS endpoints are intentionally unset; browser/device/model
+quality and language accessibility require signed pilot evidence; archive
+storage durability requires operator-managed immutable backup; PostgreSQL table
+repartitioning is a separately reviewed deployment migration; transaction
+pooling remains unsupported and fails closed. Repository completion does not
+claim live hardware, real-user accessibility, production load, pilot, or GA.
+
 **Sovereign platform execution - batch 1671 / final cross-phase closure
 (2026-06-08):** **DONE (repository scope).** Re-ran the canonical certification
 chain sequentially after all implementation and SOT edits:

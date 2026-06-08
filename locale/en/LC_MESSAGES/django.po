@@ -52391,3 +52391,92 @@ msgstr "Remove local model"
 
 msgid "Speak"
 msgstr "Speak"
+
+msgid "Brand colour"
+msgstr "Brand colour"
+
+msgid "Choose your brand colour"
+msgstr "Choose your brand colour"
+
+msgid ""
+"Confirm your school’s name and pick a brand colour. You can refine "
+"everything later in School Studio."
+msgstr ""
+"Confirm your school’s name and pick a brand colour. You can refine "
+"everything later in School Studio."
+
+msgid "Create a password"
+msgstr "Create a password"
+
+msgid "Email or username"
+msgstr "Email or username"
+
+msgid "Get a new link"
+msgstr "Get a new link"
+
+msgid "Go to my dashboard"
+msgstr "Go to my dashboard"
+
+msgid "Invite your team"
+msgstr "Invite your team"
+
+msgid "Just signed up and didn’t get your verification email?"
+msgstr "Just signed up and didn’t get your verification email?"
+
+msgid ""
+"Let’s finish creating your account. Tell us your name and choose a password "
+"— then you’ll be signed in."
+msgstr ""
+"Let’s finish creating your account. Tell us your name and choose a password "
+"— then you’ll be signed in."
+
+msgid "Onboarding progress"
+msgstr "Onboarding progress"
+
+msgid "Open School Studio (branding)"
+msgstr "Open School Studio (branding)"
+
+msgid "Resend it"
+msgstr "Resend it"
+
+msgid "Set up your school"
+msgstr "Set up your school"
+
+msgid ""
+"Setup links are valid for a limited time and can be used once. Request a "
+"fresh one to continue."
+msgstr ""
+"Setup links are valid for a limited time and can be used once. Request a "
+"fresh one to continue."
+
+msgid "Step {{ step }} of {{ total_steps }}"
+msgstr "Step {{ step }} of {{ total_steps }}"
+
+msgid "This setup link has expired."
+msgstr "This setup link has expired."
+
+msgid ""
+"Use the language-neutral REST contract from Python, JavaScript, mobile, "
+"server, or command-line clients without a required proprietary SDK."
+msgstr ""
+"Use the language-neutral REST contract from Python, JavaScript, mobile, "
+"server, or command-line clients without a required proprietary SDK."
+
+msgid "Welcome to {{ name }}!"
+msgstr "Welcome to {{ name }}!"
+
+msgid "Welcome — finish setting up your account"
+msgstr "Welcome — finish setting up your account"
+
+msgid ""
+"Your account is set up. Here are a couple of good next steps — or jump "
+"straight to your dashboard."
+msgstr ""
+"Your account is set up. Here are a couple of good next steps — or jump "
+"straight to your dashboard."
+
+msgid "You’re all set"
+msgstr "You’re all set"
+
+msgid "{{ name }} is ready 🎉"
+msgstr "{{ name }} is ready 🎉"

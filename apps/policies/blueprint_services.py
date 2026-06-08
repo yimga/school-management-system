@@ -99,7 +99,7 @@ def apply_blueprint_pack(school, pack, *, applied_by=None):
         tb.applied_pack = pack
         tb.save(update_fields=["active_bundle", "applied_pack", "updated_at"])
     invalidate_policy_cache(school)
-    # Wire to PackageEngine so Setup Studio and all blueprint applies are audited (metadata plan todo 7).
+    # PackageEngine keeps Setup Studio and blueprint applies auditable.
     try:
         from apps.packages.engine import PackageEngine
 

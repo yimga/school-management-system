@@ -48124,3 +48124,82 @@ msgstr ""
 
 msgid "Speak"
 msgstr ""
+
+msgid "Brand colour"
+msgstr ""
+
+msgid "Choose your brand colour"
+msgstr ""
+
+msgid ""
+"Confirm your school’s name and pick a brand colour. You can refine "
+"everything later in School Studio."
+msgstr ""
+
+msgid "Create a password"
+msgstr ""
+
+msgid "Email or username"
+msgstr ""
+
+msgid "Get a new link"
+msgstr ""
+
+msgid "Go to my dashboard"
+msgstr ""
+
+msgid "Invite your team"
+msgstr ""
+
+msgid "Just signed up and didn’t get your verification email?"
+msgstr ""
+
+msgid ""
+"Let’s finish creating your account. Tell us your name and choose a password "
+"— then you’ll be signed in."
+msgstr ""
+
+msgid "Onboarding progress"
+msgstr ""
+
+msgid "Open School Studio (branding)"
+msgstr ""
+
+msgid "Resend it"
+msgstr ""
+
+msgid "Set up your school"
+msgstr ""
+
+msgid ""
+"Setup links are valid for a limited time and can be used once. Request a "
+"fresh one to continue."
+msgstr ""
+
+msgid "Step {{ step }} of {{ total_steps }}"
+msgstr ""
+
+msgid "This setup link has expired."
+msgstr ""
+
+msgid ""
+"Use the language-neutral REST contract from Python, JavaScript, mobile, "
+"server, or command-line clients without a required proprietary SDK."
+msgstr ""
+
+msgid "Welcome to {{ name }}!"
+msgstr ""
+
+msgid "Welcome — finish setting up your account"
+msgstr ""
+
+msgid ""
+"Your account is set up. Here are a couple of good next steps — or jump "
+"straight to your dashboard."
+msgstr ""
+
+msgid "You’re all set"
+msgstr ""
+
+msgid "{{ name }} is ready 🎉"
+msgstr ""

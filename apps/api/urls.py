@@ -592,7 +592,7 @@ urlpatterns = [
     # v4.00.36: OneRoster v1.2 read-only Rostering endpoints (wedge 44)
     path("roster/v1p2/orgs/", _oneroster.orgs, name="api-roster-v1p2-orgs"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.70 — single-org detail endpoint per spec § 4.13.
-    path("roster/v1p2/orgs/<str:sourced_id>/", _oneroster.org_detail, name="api-roster-v1p2-org-detail"),
+    path("roster/v1p2/orgs/<str:sourced_id>/", _oneroster_writes.org_resource, name="api-roster-v1p2-org-detail"),
     path("roster/v1p2/schools/", _oneroster.schools, name="api-roster-v1p2-schools"),
     path("roster/v1p2/users/", _oneroster.users, name="api-roster-v1p2-users"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.82 Wave 14 T2 — delta surface per spec § 4.13.4 (?modifiedSince=<ISO>
@@ -609,7 +609,7 @@ urlpatterns = [
     path("roster/v1p2/staff/", _oneroster.staff, name="api-roster-v1p2-staff"),
     path("roster/v1p2/classes/", _oneroster.classes, name="api-roster-v1p2-classes"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.75 — single-class detail endpoint per spec § 4.13.
-    path("roster/v1p2/classes/<str:sourced_id>/", _oneroster.class_detail, name="api-roster-v1p2-class-detail"),
+    path("roster/v1p2/classes/<str:sourced_id>/", _oneroster_writes.class_resource, name="api-roster-v1p2-class-detail"),
     path("roster/v1p2/academic-sessions/", _oneroster.academic_sessions, name="api-roster-v1p2-academic-sessions"),  # rbac-allow: oneroster-oauth2-bearer-gated-via-_gate-_authenticate
     # v4.00.71 — single-academicSession detail endpoint per spec § 4.13.
     path("roster/v1p2/academic-sessions/<str:sourced_id>/", _oneroster.academic_session_detail, name="api-roster-v1p2-academic-session-detail"),

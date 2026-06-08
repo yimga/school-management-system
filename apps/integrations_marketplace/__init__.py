@@ -1,1 +1,1 @@
-# Bounded-context: providers, scopes, connectors, install metadata (metadata plan todo 2).
+# Bounded context for providers, scopes, connectors, and install metadata.

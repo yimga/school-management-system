@@ -1,18 +1,18 @@
 {
   "baseline_counts": {
     "allow_any": 173,
-    "csrf_exempt": 680,
-    "cursor_execute": 413,
-    "except_exception": 2572,
+    "csrf_exempt": 682,
+    "cursor_execute": 414,
+    "except_exception": 2581,
     "get_solo": 213,
-    "gilead": 16845,
-    "gilead_files": 235,
-    "html_files": 1655,
-    "management_commands": 290,
-    "markdown_files": 1604,
-    "migration_files": 998,
-    "print_calls": 4307,
-    "python_files": 6307,
+    "gilead": 16847,
+    "gilead_files": 237,
+    "html_files": 1656,
+    "management_commands": 298,
+    "markdown_files": 1612,
+    "migration_files": 1001,
+    "print_calls": 4339,
+    "python_files": 6359,
     "site_settings": 2470
   },
   "doc_drift": {
@@ -33,8 +33,8 @@
       "path": "apps/siteconfig/forms_cockpit.py"
     },
     {
-      "bytes": 175951,
-      "lines": 3613,
+      "bytes": 176381,
+      "lines": 3622,
       "path": "config/settings.py"
     },
     {
@@ -916,6 +916,11 @@
     },
     {
       "app": "platform_runtime",
+      "command": "certify_edge_ai",
+      "path": "apps/platform_runtime/management/commands/certify_edge_ai.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "ensure_calendar_system_registry",
       "path": "apps/platform_runtime/management/commands/ensure_calendar_system_registry.py"
     },
@@ -938,6 +943,11 @@
       "app": "platform_runtime",
       "command": "process_configuration_change_queue",
       "path": "apps/platform_runtime/management/commands/process_configuration_change_queue.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "profile_edge_hardware",
+      "path": "apps/platform_runtime/management/commands/profile_edge_hardware.py"
     },
     {
       "app": "platform_runtime",
@@ -971,6 +981,11 @@
     },
     {
       "app": "platform_runtime",
+      "command": "sign_intelligence_evidence",
+      "path": "apps/platform_runtime/management/commands/sign_intelligence_evidence.py"
+    },
+    {
+      "app": "platform_runtime",
       "command": "suggest_next_runtime_defaults_fields",
       "path": "apps/platform_runtime/management/commands/suggest_next_runtime_defaults_fields.py"
     },
@@ -978,6 +993,11 @@
       "app": "platform_runtime",
       "command": "sync_ollama_models",
       "path": "apps/platform_runtime/management/commands/sync_ollama_models.py"
+    },
+    {
+      "app": "platform_runtime",
+      "command": "verify_intelligence_promotion",
+      "path": "apps/platform_runtime/management/commands/verify_intelligence_promotion.py"
     },
     {
       "app": "platform_runtime",
@@ -1336,6 +1356,11 @@
     },
     {
       "app": "siteconfig",
+      "command": "export_tenant_rag_bundle",
+      "path": "apps/siteconfig/management/commands/export_tenant_rag_bundle.py"
+    },
+    {
+      "app": "siteconfig",
       "command": "export_ui_config",
       "path": "apps/siteconfig/management/commands/export_ui_config.py"
     },
@@ -1358,6 +1383,11 @@
       "app": "siteconfig",
       "command": "import_config",
       "path": "apps/siteconfig/management/commands/import_config.py"
+    },
+    {
+      "app": "siteconfig",
+      "command": "import_tenant_rag_bundle",
+      "path": "apps/siteconfig/management/commands/import_tenant_rag_bundle.py"
     },
     {
       "app": "siteconfig",
@@ -1533,6 +1563,16 @@
       "app": "sync_engine",
       "command": "verify_crdt_convergence",
       "path": "apps/sync_engine/management/commands/verify_crdt_convergence.py"
+    },
+    {
+      "app": "sync_engine",
+      "command": "verify_sync_semantics",
+      "path": "apps/sync_engine/management/commands/verify_sync_semantics.py"
+    },
+    {
+      "app": "tenancy",
+      "command": "verify_database_pooling",
+      "path": "apps/tenancy/management/commands/verify_database_pooling.py"
     }
   ],
   "public_endpoint_audits": {
@@ -1571,16 +1611,16 @@
         "security_observability",
         "setup_studio"
       ],
-      "reviewed_endpoints": 110,
+      "reviewed_endpoints": 112,
       "reviewed_files": 37
     }
   },
   "scoped_gravity_counts": {
-    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 110,
-    "cursor_execute_apps_config_py_excl_migrations": 44,
+    "csrf_exempt_decorator_lines_apps_config_excl_migrations": 112,
+    "cursor_execute_apps_config_py_excl_migrations": 45,
     "gilead_line_hits_apps_templates_config_excl_migrations_tests": 0,
     "print_calls_apps_py_excl_migrations_tests_management": 0,
-    "print_calls_scripts_py": 4120,
+    "print_calls_scripts_py": 4152,
     "site_settings_refs_apps_py_excl_migrations": 214,
     "site_settings_refs_apps_py_excl_migrations_tests": 161
   },

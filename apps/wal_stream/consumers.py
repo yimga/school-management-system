@@ -183,7 +183,7 @@ async def _ship_to_redis_stream(envelope: dict) -> None:
 
 
 async def _ship_to_kafka(envelope: dict) -> None:
-    """Optional Kafka sink. Stub-import — only fires when broker is configured."""
+    """Configured Kafka sink; remains inactive when no broker is declared."""
     try:
         from aiokafka import AIOKafkaProducer  # type: ignore[import-not-found]
     except ImportError:

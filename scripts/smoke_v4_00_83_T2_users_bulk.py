@@ -8,13 +8,9 @@ of the shape {"users": [<user_payload>, ...]} (max 500 entries) and
 returns 207 Multi-Status with per-row {sourcedId, status, reason?} plus
 a summary counters block.
 
-Honest deferred:
-  Per-row processing in this baseline VALIDATES each user and returns
-  status="skipped" with reason="bulk_create_pending_storage_impl" to
-  honestly signal that the bulk-write storage layer (User row create/
-  update) is deferred to a future wave. Invalid rows return
-  status="error" with the failing reason echoed. The contract surface
-  (shape, idempotency, headers, 207) is real.
+Valid rows are persisted through the canonical OneRoster user upsert and
+return status="created" or status="updated". Invalid rows return
+status="error" without aborting the rest of the batch.
 """
 import os
 import sys
@@ -134,12 +130,11 @@ assert resp.status_code == 207, resp.status_code
 body = json.loads(resp.content)
 assert len(body["results"]) == 3, body
 assert body["summary"]["total"] == 3, body
-# Per honest-deferral: each row "skipped" with reason
+# Existing rows may report updated when this smoke is rerun against a retained DB.
 for r in body["results"]:
-    assert r["status"] == "skipped", r
-    assert r.get("reason") == "bulk_create_pending_storage_impl", r
-assert body["summary"]["skipped"] == 3, body
-print("[T2-5] 3-user payload -> 207 + 3 results + summary.total=3 OK (all skipped, honest deferral)")
+    assert r["status"] in ("created", "updated"), r
+assert body["summary"]["created"] + body["summary"]["updated"] == 3, body
+print("[T2-5] 3-user payload -> 207 + 3 persisted results + summary.total=3 OK")
 
 # Case 6: POST with too many users (501) -> 400 too_many_users
 many = {"users": [{"sourcedId": f"u-{i}", "givenName": "G",
@@ -221,14 +216,14 @@ req = _post(mixed, idem_key="smoke-key-c10-" + uuid.uuid4().hex)
 resp = oneroster.users_bulk_post(req)
 assert resp.status_code == 207, resp.status_code
 body = json.loads(resp.content)
-assert body["results"][0]["status"] == "skipped", body["results"][0]
+assert body["results"][0]["status"] in ("created", "updated"), body["results"][0]
 assert body["results"][1]["status"] == "error", body["results"][1]
 assert body["results"][1]["reason"] == "missing_role", body["results"][1]
 assert body["results"][2]["status"] == "error", body["results"][2]
 assert body["results"][2]["reason"] == "bad_role", body["results"][2]
 assert body["summary"]["error"] == 2, body
-assert body["summary"]["skipped"] == 1, body
+assert body["summary"]["created"] + body["summary"]["updated"] == 1, body
 assert body["summary"]["total"] == 3, body
-print("[T2-10] mixed payload validation: 1 skipped + 2 errors OK")
+print("[T2-10] mixed payload validation: 1 persisted + 2 errors OK")
 
 print("ALL T2 CASES OK")

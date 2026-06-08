@@ -294,8 +294,8 @@ INSTALLED_APPS = [
     "apps.automation",  # Automation and background tasks
     "apps.migration_cloud.apps.MigrationCloudConfig",  # Universal Migration Cloud (Phase U1+)
     "apps.metadata.apps.MetadataConfig",  # Custom fields without DDL (metadata engine)
-    "apps.packages.apps.PackagesConfig",  # PackageEngine: validate/preview/apply/rollback (metadata plan todo 5)
-    "apps.brand_experience.apps.BrandExperienceConfig",  # Bounded-context shell (metadata plan todo 2)
+    "apps.packages.apps.PackagesConfig",  # PackageEngine: validate/preview/apply/rollback
+    "apps.brand_experience.apps.BrandExperienceConfig",  # Bounded-context shell
     "apps.runtime_blueprints.apps.RuntimeBlueprintsConfig",
     "apps.policies_rules.apps.PoliciesRulesConfig",
     "apps.plans_entitlements.apps.PlansEntitlementsConfig",

@@ -92,7 +92,7 @@ def sync_school_features_on_tenant_system(sender, instance, **kwargs):
         )
 
 
-# Metadata plan todo 8: route workflow/dashboard pack install through PackageEngine
+# Route workflow/dashboard pack assignment through the canonical PackageEngine.
 def _on_workflow_pack_assignment_save(sender, instance, created, **kwargs):
     if not created:
         return

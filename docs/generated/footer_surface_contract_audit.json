@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-06-05T23:38:22.966663+00:00",
-  "pass": true,
-  "templates_scanned": 1446,
+  "generated_at": "2026-06-08T12:29:50.552346+00:00",
+  "pass": false,
+  "templates_scanned": 1469,
   "rows": [
     {
       "check_id": "forbid_bundle_templates_control_plane_skeleton.html",
@@ -304,6 +304,18 @@
       "proof": "templates/admin/base_site.html"
     },
     {
+      "check_id": "require_rmc-footer-temporal-_templates_admin_base_site.html",
+      "description": "templates/admin/base_site.html wires 'rmc-footer-temporal-dock.css'",
+      "status": "PASS",
+      "proof": "templates/admin/base_site.html"
+    },
+    {
+      "check_id": "require__footer_temporal_doc_templates_partials_rmc_operator_footer_compact.html",
+      "description": "templates/partials/rmc_operator_footer_compact.html wires '_footer_temporal_dock.html'",
+      "status": "PASS",
+      "proof": "templates/partials/rmc_operator_footer_compact.html"
+    },
+    {
       "check_id": "require_rmc-footer-surfaces._templates_base.html",
       "description": "templates/base.html wires 'rmc-footer-surfaces.css'",
       "status": "PASS",
@@ -318,7 +330,7 @@
     {
       "check_id": "require_rmc-footer-surfaces._templates_portal_base.html",
       "description": "templates/portal_base.html wires 'rmc-footer-surfaces.css'",
-      "status": "PASS",
+      "status": "FAIL",
       "proof": "templates/portal_base.html"
     },
     {
@@ -373,7 +385,7 @@
       "check_id": "sweep_non_marketing_no_bundle",
       "description": "No non-marketing template includes corporate_footer_bundle.html",
       "status": "PASS",
-      "proof": "1446 templates scanned"
+      "proof": "1469 templates scanned"
     },
     {
       "check_id": "sweep_non_marketing_no_mkt_command",

@@ -159,7 +159,7 @@ def create_archive(
                 header = {
                     "archive_id": str(archive_id),
                     "cutoff_at": cutoff_at,
-                    "format": "gilead.audit-archive.v1",
+                    "format": "runmycampus.audit-archive.v1",
                     "model_label": model_label,
                     "record_count": record_count,
                     "timestamp_field": timestamp_field,

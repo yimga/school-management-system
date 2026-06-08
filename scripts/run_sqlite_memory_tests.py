@@ -28,7 +28,7 @@ import sys
 import time
 from pathlib import Path
 
-from sqlite_gate_db import ensure_gate_session, sqlite_sidecars_busy
+from sqlite_gate_db import ensure_gate_session, sqlite_gate_lease, sqlite_sidecars_busy
 
 
 def main() -> int:
@@ -50,7 +50,9 @@ def main() -> int:
     elif os.environ.get("DJANGO_TEST_DB_FILE", "").strip() or os.environ.get("RMC_SQLITE_GATE_SESSION", "").strip():
         tfile = ensure_gate_session(root)
     elif sqlite_sidecars_busy(stable):
-        tfile = tdir / f"rmc_sqlite_test_runner_fresh_{int(time.time())}.sqlite3"
+        tfile = tdir / (
+            f"rmc_sqlite_test_runner_fresh_{os.getpid()}_{time.time_ns()}.sqlite3"
+        )
     else:
         tfile = stable
         if "--keepdb" not in argv:
@@ -73,7 +75,8 @@ def main() -> int:
         "--settings=config.settings",
         "--noinput",
     ]
-    return subprocess.call(cmd, cwd=str(root), env=env)
+    with sqlite_gate_lease(tfile):
+        return subprocess.call(cmd, cwd=str(root), env=env)
 
 
 if __name__ == "__main__":

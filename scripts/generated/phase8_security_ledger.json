@@ -192,9 +192,9 @@
     "apps/api/oneroster_writes.py": {
       "audit_logging": "manual_review_required",
       "auth_model": "bearer_token_oneroster",
-      "expected_count": 3,
-      "last_reviewed": "2026-05-29",
-      "notes": "OneRoster roster mutation endpoints; machine client Bearer auth.",
+      "expected_count": 5,
+      "last_reviewed": "2026-06-08",
+      "notes": "OneRoster roster mutation endpoints (orgs/users/enrollments/classes/terms); machine client Bearer auth.",
       "owner": "interop_oneroster",
       "rate_limiting": "manual_review_required",
       "replay_protection": "token_auth_only",
@@ -454,7 +454,7 @@
       "verdict": "keep_with_hardening"
     }
   },
-  "generated_at": "2026-06-08T09:09:36.932161+00:00",
+  "generated_at": "2026-06-08T11:20:08.946642+00:00",
   "raw_sql": {
     "apps/accounts/legacy_hashes/key_rotation.py": {
       "expected_count": 1,
@@ -485,6 +485,11 @@
       "expected_count": 1,
       "last_reviewed": "2026-05-27",
       "reason": "Vector similarity query uses pgvector distance operator with parameterized query and bounded result limit."
+    },
+    "apps/compliance/audit_retention.py": {
+      "expected_count": 1,
+      "last_reviewed": "2026-06-08",
+      "reason": "Append-only audit purge bypasses ORM delete() guard via parameterized PK IN DELETE inside atomic transaction after archive signature verification."
     },
     "apps/migration_cloud/intake/access_intake.py": {
       "expected_count": 1,
@@ -571,6 +576,6 @@
   "summary": {
     "allow_any_files": 4,
     "csrf_exempt_files": 37,
-    "raw_sql_files": 21
+    "raw_sql_files": 22
   }
 }

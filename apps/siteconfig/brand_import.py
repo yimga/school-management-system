@@ -133,7 +133,7 @@ def fetch_and_parse_brand_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
         logger.warning("Brand import parse failed: %s", e)
         result["error"] = "Could not read page. Use manual upload instead."
 
-    # Suggest a theme pack (metadata plan todo 7: brand import assistant).
+    # Suggest the active default theme pack for the brand import assistant.
     try:
         default = (
             ThemePack.objects.filter(is_active=True)

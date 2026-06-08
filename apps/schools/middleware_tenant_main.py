@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from django.db import connection, DatabaseError
+from django.db import connection
 from django.http import JsonResponse
 from django_tenants.middleware.main import TenantMainMiddleware
 

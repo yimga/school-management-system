@@ -1,6 +1,4 @@
-"""
-Record MetadataChangeLog entries from admin and metadata-changing APIs (metadata plan todo 6).
-"""
+"""Record metadata changes from admin and governed mutation APIs."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
-"""
-Package engine models: InstalledPackage, PackageVersion, PackageChangeLog (metadata plan todo 5).
-Canonical package format is documented in docs/architecture/PACKAGE_FORMAT.md.
+"""Package engine persistence for installs, versions, and change history.
+
+The canonical package format is documented in docs/architecture/PACKAGE_FORMAT.md.
 """
 
 from django.db import models
