@@ -146,6 +146,15 @@ else:
 ONEROSTER_WEBHOOK_SECRET = (os.getenv("ONEROSTER_WEBHOOK_SECRET") or "").strip()
 # RUM: optional ingest token (>= 16 chars). When set, portal/marketing load rum-beacon.js.
 RUM_INGEST_KEY = (os.getenv("RUM_INGEST_KEY") or "").strip()
+RMC_LAYOUT_OBSERVABILITY_ENABLED = (
+    os.getenv("RMC_LAYOUT_OBSERVABILITY_ENABLED", "1").strip().lower()
+    in ("1", "true", "yes", "on")
+)
+# HMAC key for operator-reviewed intelligence promotion evidence. Keep empty
+# until a secret is provisioned; signing and external promotion then fail closed.
+INTELLIGENCE_PROMOTION_SIGNING_KEY = (
+    os.getenv("INTELLIGENCE_PROMOTION_SIGNING_KEY") or ""
+).strip()
 # Marketplace: default platform take on gross tenant app charges (see apps.marketplace.monetization).
 MARKETPLACE_PLATFORM_FEE_PERCENT = (os.getenv("MARKETPLACE_PLATFORM_FEE_PERCENT") or "20").strip()
 # When True, installing a paid catalog app (compute_install_charge > 0) requires a billing account with processor customer.
@@ -556,12 +565,13 @@ PREVIEW_DATABASE_URL = (os.getenv("PREVIEW_DATABASE_URL") or "").strip() or None
 if _RMC_TEST_LOCAL_SQLITE:
     PREVIEW_DATABASE_URL = None
 
-# DB connection tuning — env-driven so a managed-Postgres cutover (Neon /
-# Supabase / etc.) is pure config, no code change. Defaults preserve prior
-# behavior. NOTE for poolers: with a PgBouncer *transaction*-pooling endpoint,
-# django-tenants' per-request search_path is unsafe — use the provider's
-# session/unpooled endpoint, and set DB_CONN_MAX_AGE=0 +
-# DB_DISABLE_SERVER_SIDE_CURSORS=1. See docs/DB_CUTOVER_NEON_SUPABASE.md.
+# Database connection tuning is environment-driven. DB_POOL_MODE declares
+# direct, session, or transaction behavior. Both tenant modes currently require
+# session state, so transaction mode is tuned defensively and rejected by
+# system checks. See docs/PGBOUNCER_MULTI_SCHEMA.md.
+DB_POOL_MODE = (
+    os.getenv("DB_POOL_MODE", "direct").strip().lower() or "direct"
+)
 _DB_CONN_MAX_AGE = int((os.getenv("DB_CONN_MAX_AGE") or "600").strip() or "600")
 _DB_DISABLE_SS_CURSORS = (os.getenv("DB_DISABLE_SERVER_SIDE_CURSORS") or "").strip().lower() in (
     "1",
@@ -569,6 +579,11 @@ _DB_DISABLE_SS_CURSORS = (os.getenv("DB_DISABLE_SERVER_SIDE_CURSORS") or "").str
     "yes",
     "on",
 )
+if DB_POOL_MODE == "transaction":
+    # Defensive tuning only. System checks still reject this mode until
+    # transaction-local tenant binding and real-pooler tests ship.
+    _DB_CONN_MAX_AGE = 0
+    _DB_DISABLE_SS_CURSORS = True
 if DATABASE_URL:
     _default_db = dj_database_url.config(
         default=DATABASE_URL,
@@ -973,9 +988,21 @@ LOGIN_LOCKOUT_ENABLED = os.getenv("LOGIN_LOCKOUT_ENABLED", "1") in ("1", "true",
 LOGIN_LOCKOUT_THRESHOLD = int(os.getenv("LOGIN_LOCKOUT_THRESHOLD", "5"))
 LOGIN_LOCKOUT_COOLOFF_SECONDS = int(os.getenv("LOGIN_LOCKOUT_COOLOFF_SECONDS", str(60 * 15)))
 
-# Cloudflare Turnstile login bot-challenge (apps.accounts.turnstile). Inert
-# until BOTH keys are set, so sign-in keeps working before Cloudflare is wired.
-# When enabled, the challenge appears after the first failed sign-in attempt.
+# Self-hosted, account-free login bot defense (apps.accounts.bot_defense) — the
+# DEFAULT challenge. Proof-of-work after a failed attempt + always-on honeypot +
+# timing trap. No third party, no account, no external call (works offline).
+# Replaces Cloudflare Turnstile as the default; Turnstile (below) stays an opt-in
+# alternative only when LOGIN_POW_ENABLED is off AND its keys are set.
+LOGIN_POW_ENABLED = os.getenv("LOGIN_POW_ENABLED", "1") in ("1", "true", "yes")
+LOGIN_POW_BITS = int(os.getenv("LOGIN_POW_BITS", "18"))
+LOGIN_POW_TTL_SECONDS = int(os.getenv("LOGIN_POW_TTL_SECONDS", str(60 * 10)))
+LOGIN_HONEYPOT_FIELD = os.getenv("LOGIN_HONEYPOT_FIELD", "company_url")
+LOGIN_FORM_TOKEN_TTL_SECONDS = int(os.getenv("LOGIN_FORM_TOKEN_TTL_SECONDS", str(60 * 60 * 2)))
+LOGIN_MIN_FORM_SECONDS = float(os.getenv("LOGIN_MIN_FORM_SECONDS", "1.0"))
+
+# Cloudflare Turnstile login bot-challenge (apps.accounts.turnstile). OPT-IN
+# alternative to the self-hosted PoW above — used only when LOGIN_POW_ENABLED=0
+# AND both keys are set. Inert otherwise, so sign-in keeps working regardless.
 TURNSTILE_SITE_KEY = os.getenv("TURNSTILE_SITE_KEY", "").strip()
 TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "").strip()
 TURNSTILE_VERIFY_URL = os.getenv(
@@ -2890,6 +2917,11 @@ DATA_RETENTION = {
     "session_days": int(os.getenv("RETENTION_SESSION_DAYS", "90")),
     "report_days": int(os.getenv("RETENTION_REPORT_DAYS", "365")),
 }
+AUDIT_ARCHIVE_ROOT = os.getenv(
+    "AUDIT_ARCHIVE_ROOT", str(BASE_DIR / "var" / "audit-archives")
+)
+AUDIT_ARCHIVE_SIGNING_KEY = os.getenv("AUDIT_ARCHIVE_SIGNING_KEY", "")
+AUDIT_RETENTION_APPROVAL_TOKEN = os.getenv("AUDIT_RETENTION_APPROVAL_TOKEN", "")
 
 # --- Performance & Scaling ---
 COMPLIANCE_DASHBOARD_CACHE_SECONDS = int(
@@ -3102,6 +3134,9 @@ AI_GATEWAY_BUDGET_REQUESTS_PER_TENANT_DAY = int(
 # VLLM_ENDPOINT, VLLM_MODEL / LITELLM_PROXY_URL, LITELLM_MODEL only apply when those tiers are enabled.
 # Embeddings default to Ollama when AI_EMBEDDING_BACKEND is unset (services/embeddings.py).
 # AI_EMBEDDING_BACKEND=ollama|openai_compatible; AI_EMBEDDING_ENDPOINT, AI_EMBEDDING_MODEL, AI_EMBEDDING_API_KEY
+TENANT_RAG_BUNDLE_SIGNING_KEY = (
+    os.getenv("TENANT_RAG_BUNDLE_SIGNING_KEY", "") or ""
+).strip()
 # Request metadata: sensitivity_class, latency_target, output_type, allowed_backends (see ai_orchestration.md)
 # Optional: internal Open WebUI URL for Control Plane "AI Ops" link (env: OPEN_WEBUI_URL)
 OPEN_WEBUI_URL = os.getenv("OPEN_WEBUI_URL", "").strip() or None

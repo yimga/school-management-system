@@ -39,6 +39,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext as _
 from django.views import View
 
 from apps.schools.models import SignupVerification
@@ -65,6 +66,22 @@ def _public_base_url() -> str:
 def _verify_url(token) -> str:
     """The clickable verification link an operator can copy + send anywhere."""
     return f"{_public_base_url()}/verify-signup/?token={token}"
+
+
+def _audit_resend(school, action: str, actor_id) -> None:
+    """Best-effort durable audit row for a verification-email (re)send action."""
+    try:
+        from apps.schools.models import SchoolProvisioningEvent
+
+        SchoolProvisioningEvent.log_event(
+            school=school,
+            event_type=SchoolProvisioningEvent.EventType.INFO,
+            status="INFO",
+            message=f"Signup verification {action} by operator {actor_id}",
+            payload={"action": action, "actor_id": str(actor_id or "")},
+        )
+    except (ImportError, AttributeError, TypeError, ValueError, OSError):
+        pass
 
 
 def _status_of(v, now) -> str:
@@ -213,7 +230,7 @@ class SignupVerificationConsoleView(View):
         action = (request.POST.get("action") or "").strip().lower()
         back = redirect("super:signup_verifications")
         if action != "resend_stale":
-            messages.error(request, "Unknown bulk action.")
+            messages.error(request, _("Unknown bulk action."))
             return back
 
         now = timezone.now()
@@ -230,6 +247,7 @@ class SignupVerificationConsoleView(View):
                 v.expires_at = now + timezone.timedelta(days=_VERIFY_WINDOW_DAYS)
                 v.save(update_fields=["expires_at"])
             _send_signup_verification_email(request, v, base_url=_public_base_url())
+            _audit_resend(v.school, "resend_stale", getattr(request.user, "id", None))
             sent += 1
         logger.info(
             "super.signup_verification.resend_stale by=%s count=%s",
@@ -237,9 +255,12 @@ class SignupVerificationConsoleView(View):
             sent,
         )
         if sent:
-            messages.success(request, f"Re-sent {sent} stale verification link(s).")
+            messages.success(
+                request,
+                _("Re-sent %(n)s stale verification link(s).") % {"n": sent},
+            )
         else:
-            messages.info(request, "No stale verifications to resend.")
+            messages.info(request, _("No stale verifications to resend."))
         return back
 
 
@@ -258,18 +279,19 @@ class SignupVerificationActionView(View):
             .first()
         )
         if verification is None:
-            messages.error(request, "That signup verification no longer exists.")
+            messages.error(request, _("That signup verification no longer exists."))
             return back
 
         if verification.verified_at is not None:
             messages.info(
                 request,
-                f"{verification.email} is already verified — nothing to resend.",
+                _("%(email)s is already verified — nothing to resend.")
+                % {"email": verification.email},
             )
             return back
 
         if action not in ("resend", "regenerate"):
-            messages.error(request, "Unknown action.")
+            messages.error(request, _("Unknown action."))
             return back
 
         now = timezone.now()
@@ -289,15 +311,17 @@ class SignupVerificationActionView(View):
         _send_signup_verification_email(
             request, verification, base_url=_public_base_url()
         )
+        _audit_resend(verification.school, action, getattr(request.user, "id", None))
         logger.info(
             "super.signup_verification.%s by=%s school_id=%s",
             action,
             getattr(request.user, "id", None),
             getattr(verification.school, "id", None),
         )
-        verb = "regenerated and re-sent" if action == "regenerate" else "re-sent"
+        verb = _("regenerated and re-sent") if action == "regenerate" else _("re-sent")
         messages.success(
             request,
-            f"Verification link {verb} to {verification.email}.",
+            _("Verification link %(verb)s to %(email)s.")
+            % {"verb": verb, "email": verification.email},
         )
         return back

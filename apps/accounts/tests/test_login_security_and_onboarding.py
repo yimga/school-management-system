@@ -12,10 +12,15 @@ from __future__ import annotations
 
 from unittest import mock
 
+import hashlib
+import re
+
 import requests
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.template.loader import render_to_string
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
+from django.urls import reverse
 
 
 class TurnstileTests(SimpleTestCase):
@@ -189,6 +194,100 @@ class WelcomeEmailSetupLinkTests(SimpleTestCase):
         self.assertIn("https://t.example/set", out)
 
 
+@override_settings(RATELIMIT_ENABLE=False)
+class LoginViewIntegrationTests(TestCase):
+    """End-to-end POSTs through login_view — the wiring the unit tests can't see.
+
+    Status-code based (302 = signed in, 200 = re-rendered/blocked) so the
+    assertions don't depend on where the messages framework renders.
+    """
+
+    PASSWORD = "Secret123!page"
+
+    def setUp(self):
+        cache.clear()
+        self.user = get_user_model().objects.create_user(
+            username="bob", password=self.PASSWORD
+        )
+        self.url = reverse("accounts:login")
+
+    @override_settings(LOGIN_POW_ENABLED=False, LOGIN_MIN_FORM_SECONDS=0)
+    def test_successful_login_redirects(self):
+        resp = self.client.post(
+            self.url, {"username": "bob", "password": self.PASSWORD}
+        )
+        self.assertEqual(resp.status_code, 302)
+
+    @override_settings(LOGIN_POW_ENABLED=False, LOGIN_MIN_FORM_SECONDS=0)
+    def test_wrong_password_re_renders(self):
+        resp = self.client.post(self.url, {"username": "bob", "password": "nope"})
+        self.assertEqual(resp.status_code, 200)
+
+    @override_settings(
+        LOGIN_POW_ENABLED=False, LOGIN_LOCKOUT_THRESHOLD=3, LOGIN_MIN_FORM_SECONDS=0
+    )
+    def test_lockout_blocks_even_correct_password(self):
+        for _i in range(3):
+            self.client.post(self.url, {"username": "bob", "password": "nope"})
+        # Locked: the CORRECT password is now refused (200, not 302).
+        resp = self.client.post(
+            self.url, {"username": "bob", "password": self.PASSWORD}
+        )
+        self.assertEqual(resp.status_code, 200)
+
+    @override_settings(LOGIN_POW_ENABLED=False, LOGIN_MIN_FORM_SECONDS=0)
+    def test_honeypot_blocks_correct_password(self):
+        from apps.accounts import bot_defense
+
+        field = bot_defense.honeypot_field_name()
+        resp = self.client.post(
+            self.url,
+            {"username": "bob", "password": self.PASSWORD, field: "http://spam"},
+        )
+        # Honeypot filled → treated as a failed login despite correct password.
+        self.assertEqual(resp.status_code, 200)
+
+    @override_settings(LOGIN_POW_ENABLED=False, LOGIN_MIN_FORM_SECONDS=1.0)
+    def test_timing_trap_blocks_instant_submit(self):
+        from apps.accounts import bot_defense
+
+        resp = self.client.post(
+            self.url,
+            {
+                "username": "bob",
+                "password": self.PASSWORD,
+                "form_ts": bot_defense.issue_form_timestamp(),
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+
+    @override_settings(LOGIN_POW_ENABLED=True, LOGIN_POW_BITS=8, LOGIN_MIN_FORM_SECONDS=0)
+    def test_pow_gate_blocks_then_solve_admits(self):
+        # 1st wrong attempt — no challenge required yet.
+        self.client.post(self.url, {"username": "bob", "password": "nope"})
+        # 2nd attempt with the CORRECT password but no solved PoW → blocked.
+        r2 = self.client.post(
+            self.url, {"username": "bob", "password": self.PASSWORD}
+        )
+        self.assertEqual(r2.status_code, 200)
+        html = r2.content.decode()
+        token = re.search(r'name="pow_token" value="([^"]+)"', html).group(1)
+        salt = re.search(r'data-salt="([^"]+)"', html).group(1)
+        bits = int(re.search(r'data-bits="([^"]+)"', html).group(1))
+        nonce = _solve_pow(salt, bits)
+        # Same client → same session → the session-bound challenge verifies.
+        r3 = self.client.post(
+            self.url,
+            {
+                "username": "bob",
+                "password": self.PASSWORD,
+                "pow_token": token,
+                "pow_nonce": str(nonce),
+            },
+        )
+        self.assertEqual(r3.status_code, 302)
+
+
 class WelcomeEmailScrubberRegressionTests(SimpleTestCase):
     """B1 guard: the welcome-email payload runs through the secret scrubber,
     which drops keys containing 'password'/'token'. The link MUST be carried on
@@ -217,6 +316,137 @@ class WelcomeEmailScrubberRegressionTests(SimpleTestCase):
         )
         out = render_to_string("emails/tenant_admin_signup_completed.txt", ctx)
         self.assertIn("https://t.example/set", out)
+
+    def test_long_activation_url_is_not_truncated(self):
+        # A long custom-domain + next path can exceed the generic 256-char cap;
+        # a truncated link is a dead link, so _url keys must survive whole.
+        from apps.platform_runtime.platform_email_matrix import _scrub_payload
+
+        long_url = (
+            "https://"
+            + "averylongschoolsubdomainname" * 8
+            + ".runmycampus.com/authentication/legacy-setup/"
+            + "b" * 40
+            + "/?next=/backend/provisioning/"
+        )
+        self.assertGreater(len(long_url), 256)
+        scrubbed = _scrub_payload({"activation_url": long_url})
+        self.assertEqual(scrubbed.get("activation_url"), long_url)
+        self.assertNotIn("…", scrubbed.get("activation_url", ""))
+
+
+def _pow_leading_zero_bits(digest: bytes) -> int:
+    n = 0
+    for byte in digest:
+        if byte == 0:
+            n += 8
+            continue
+        n += 8 - byte.bit_length()
+        break
+    return n
+
+
+def _solve_pow(salt: str, bits: int) -> int:
+    nonce = 0
+    while True:
+        digest = hashlib.sha256(f"{salt}:{nonce}".encode("utf-8")).digest()
+        if _pow_leading_zero_bits(digest) >= bits:
+            return nonce
+        nonce += 1
+
+
+def _failing_pow_nonce(salt: str, bits: int) -> int:
+    nonce = 0
+    while True:
+        digest = hashlib.sha256(f"{salt}:{nonce}".encode("utf-8")).digest()
+        if _pow_leading_zero_bits(digest) < bits:
+            return nonce
+        nonce += 1
+
+
+@override_settings(LOGIN_POW_ENABLED=True, LOGIN_POW_BITS=8, LOGIN_POW_TTL_SECONDS=600)
+class ProofOfWorkTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_solved_nonce_verifies(self):
+        from apps.accounts import bot_defense
+
+        ch = bot_defense.issue_pow_challenge()
+        self.assertEqual(ch["bits"], 8)
+        nonce = _solve_pow(ch["salt"], ch["bits"])
+        self.assertTrue(bot_defense.verify_pow(ch["token"], str(nonce)))
+
+    def test_wrong_nonce_fails(self):
+        from apps.accounts import bot_defense
+
+        ch = bot_defense.issue_pow_challenge()
+        bad = _failing_pow_nonce(ch["salt"], ch["bits"])
+        self.assertFalse(bot_defense.verify_pow(ch["token"], str(bad)))
+
+    def test_replay_is_rejected(self):
+        from apps.accounts import bot_defense
+
+        ch = bot_defense.issue_pow_challenge()
+        nonce = _solve_pow(ch["salt"], ch["bits"])
+        self.assertTrue(bot_defense.verify_pow(ch["token"], str(nonce)))
+        # Second use of the same solved token is refused (single-use).
+        self.assertFalse(bot_defense.verify_pow(ch["token"], str(nonce)))
+
+    def test_tampered_token_fails(self):
+        from apps.accounts import bot_defense
+
+        ch = bot_defense.issue_pow_challenge()
+        nonce = _solve_pow(ch["salt"], ch["bits"])
+        self.assertFalse(bot_defense.verify_pow(ch["token"] + "x", str(nonce)))
+
+    def test_empty_inputs_fail(self):
+        from apps.accounts import bot_defense
+
+        ch = bot_defense.issue_pow_challenge()
+        self.assertFalse(bot_defense.verify_pow("", "1"))
+        self.assertFalse(bot_defense.verify_pow(ch["token"], ""))
+
+
+class HoneypotAndTimingTests(SimpleTestCase):
+    def setUp(self):
+        self.rf = RequestFactory()
+
+    def test_honeypot_tripped_when_filled(self):
+        from apps.accounts import bot_defense
+
+        field = bot_defense.honeypot_field_name()
+        req = self.rf.post("/authentication/login/", {field: "http://spam.example"})
+        self.assertTrue(bot_defense.honeypot_tripped(req))
+
+    def test_honeypot_not_tripped_when_blank(self):
+        from apps.accounts import bot_defense
+
+        req = self.rf.post("/authentication/login/", {})
+        self.assertFalse(bot_defense.honeypot_tripped(req))
+
+    @override_settings(LOGIN_MIN_FORM_SECONDS=1.0)
+    def test_timing_tripped_when_submitted_instantly(self):
+        from apps.accounts import bot_defense
+
+        token = bot_defense.issue_form_timestamp()
+        req = self.rf.post("/authentication/login/", {"form_ts": token})
+        self.assertTrue(bot_defense.timing_tripped(req))
+
+    @override_settings(LOGIN_MIN_FORM_SECONDS=0)
+    def test_timing_disabled(self):
+        from apps.accounts import bot_defense
+
+        token = bot_defense.issue_form_timestamp()
+        req = self.rf.post("/authentication/login/", {"form_ts": token})
+        self.assertFalse(bot_defense.timing_tripped(req))
+
+    @override_settings(LOGIN_MIN_FORM_SECONDS=1.0)
+    def test_timing_not_tripped_without_token(self):
+        from apps.accounts import bot_defense
+
+        req = self.rf.post("/authentication/login/", {})
+        self.assertFalse(bot_defense.timing_tripped(req))
 
 
 class SignupVerificationConsoleHelperTests(SimpleTestCase):

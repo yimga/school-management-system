@@ -133,7 +133,7 @@ def _scrub(payload: Any) -> dict:
         elif isinstance(value, (list, tuple)):
             out[str(key)] = [_scrub_value(v) for v in list(value)[:50]]
         else:
-            out[str(key)] = _truncate(value)
+            out[str(key)] = _truncate(value, key_lower=key_lower)
     return out
 
 
@@ -143,16 +143,23 @@ def _scrub_value(value: Any) -> Any:
     return _truncate(value)
 
 
-def _truncate(value: Any) -> Any:
-    if isinstance(value, str) and len(value) > _MAX_VALUE_LEN:
-        return value[:_MAX_VALUE_LEN] + "…"
+# URL-bearing keys legitimately exceed the generic 256-char cap (a tenant
+# activation link is ~120-256 chars and MUST survive intact — a truncated link
+# is a dead link). Keep them whole up to a sane ceiling.
+_MAX_URL_VALUE_LEN = 2048  # magic-number-allow: url-bearing payload value ceiling
+
+
+def _truncate(value: Any, key_lower: str = "") -> Any:
+    cap = _MAX_URL_VALUE_LEN if key_lower.endswith("_url") else _MAX_VALUE_LEN
+    if isinstance(value, str) and len(value) > cap:
+        return value[:cap] + "…"
     if isinstance(value, (int, float, bool)) or value is None:
         return value
     if isinstance(value, str):
         return value
     text = str(value)
-    if len(text) > _MAX_VALUE_LEN:
-        return text[:_MAX_VALUE_LEN] + "…"
+    if len(text) > cap:
+        return text[:cap] + "…"
     return text
 
 

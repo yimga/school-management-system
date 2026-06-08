@@ -99,6 +99,20 @@ def lockout_state(request, username: str) -> tuple[bool, int]:
     return (False, 0)
 
 
+def attempt_count(request, username: str) -> int:
+    """Current failed-attempt count for this (ip, username). 0 on error/disabled.
+
+    Lets the login view escalate to a bot challenge even from a fresh, cookie-less
+    session — the counter is keyed by IP+username, not the session.
+    """
+    if not _enabled():
+        return 0
+    try:
+        return int(cache.get(_key(request, username)) or 0)
+    except Exception:  # noqa: BLE001 - never block sign-in on a cache read error
+        return 0
+
+
 def record_failed_attempt(request, username: str) -> int:
     """Increment the failed-attempt counter; return the new count (0 on error)."""
     if not _enabled():

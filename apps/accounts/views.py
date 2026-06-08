@@ -3197,10 +3197,12 @@ def login_view(request):
 
         # Brute-force / bot defense, layered on the per-IP @ratelimit above:
         #  1. login_guard — always-on cache lockout after N failed attempts.
-        #  2. Cloudflare Turnstile — once configured, a challenge after the
-        #     first failed attempt. Both fail open so an outage never blocks
-        #     legitimate sign-in.
-        from apps.accounts import login_guard
+        #  2. bot_defense — always-on invisible honeypot + timing traps, plus a
+        #     self-hosted proof-of-work challenge after the first failed attempt
+        #     (no account, no third party, works offline). Cloudflare Turnstile
+        #     stays an opt-in fallback only when LOGIN_POW_ENABLED is off.
+        # Everything fails open so an outage never blocks a legitimate sign-in.
+        from apps.accounts import bot_defense, login_guard
         from apps.accounts.turnstile import turnstile_enabled, verify_turnstile
 
         username = request.POST.get("username")
@@ -3220,12 +3222,34 @@ def login_view(request):
                 )
                 % {"minutes": retry_minutes},
             )
+        elif bot_defense.honeypot_tripped(request) or bot_defense.timing_tripped(request):
+            # Invisible traps: behave exactly like a wrong password so an
+            # automated submitter gets no signal it was caught. Counts toward
+            # the lockout via the failed-attempt recorder below.
+            user = None
         else:
             failed_so_far = int(request.session.get("auth_failed_attempts", 0) or 0)
-            challenge_required = turnstile_enabled() and failed_so_far >= 1
-            if challenge_required and not verify_turnstile(
-                request.POST.get("cf-turnstile-response", ""), guard_ip
-            ):
+            # IP+username counter survives a fresh/cookie-less session, so a
+            # distributed stuffer that already missed this username still hits
+            # the challenge even with a brand-new cookie.
+            guard_count = login_guard.attempt_count(request, username)
+            use_pow = bot_defense.pow_enabled()
+            use_turnstile = (not use_pow) and turnstile_enabled()
+            prior_miss = failed_so_far >= 1 or guard_count >= 1
+            challenge_required = prior_miss and (use_pow or use_turnstile)
+            if challenge_required and use_pow:
+                challenge_ok = bot_defense.verify_pow(
+                    request.POST.get("pow_token", ""),
+                    request.POST.get("pow_nonce", ""),
+                    session_key=request.session.session_key or "",
+                )
+            elif challenge_required:
+                challenge_ok = verify_turnstile(
+                    request.POST.get("cf-turnstile-response", ""), guard_ip
+                )
+            else:
+                challenge_ok = True
+            if not challenge_ok:
                 login_block_reason = "challenge"
                 messages.error(
                     request,
@@ -3450,11 +3474,36 @@ def login_view(request):
                 int(request.session.get("auth_failed_attempts", 0) or 0) + 1
             )
             messages.error(request, _("Invalid username or password."))
+    from apps.accounts import bot_defense, login_guard
+
+    _pow_on = bot_defense.pow_enabled()
+    _failed_now = int(request.session.get("auth_failed_attempts", 0) or 0)
+    _guard_now = (
+        login_guard.attempt_count(request, request.POST.get("username"))
+        if request.method == "POST"
+        else 0
+    )
+    _pow_required = _pow_on and (_failed_now >= 1 or _guard_now >= 1)
+    _pow_challenge = None
+    if _pow_required:
+        # Bind the challenge to this session so a solved token can't be replayed
+        # from another session; mint a session key if the visitor has none yet.
+        if not request.session.session_key:
+            request.session.create()
+        _pow_challenge = bot_defense.issue_pow_challenge(
+            session_key=request.session.session_key or ""
+        )
     context = {
         "LOGIN_SSO_INTEGRATIONS": _get_login_sso_integrations(request),
         "is_manager_host": getattr(request, "public_host_kind", None) == "manager",
+        # Cloudflare Turnstile is only the active challenge when PoW is disabled.
         "turnstile_site_key": getattr(settings, "TURNSTILE_SITE_KEY", ""),
-        "turnstile_required": _login_challenge_required(request),
+        "turnstile_required": (not _pow_on) and _login_challenge_required(request),
+        # Self-hosted proof-of-work + always-on honeypot/timing traps.
+        "pow_required": _pow_required,
+        "pow_challenge": _pow_challenge,
+        "honeypot_field": bot_defense.honeypot_field_name(),
+        "form_ts": bot_defense.issue_form_timestamp(),
     }
     if getattr(request, "public_host_kind", None) == "manager":
         try:

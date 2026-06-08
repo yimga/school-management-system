@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{% trans "School portal login" %}{% endblock %}
 
@@ -79,6 +79,13 @@
                 {% elif request.POST.next %}
                   <input type="hidden" name="next" value="{{ request.POST.next }}">
                 {% endif %}
+                {# Bot honeypot: a real field hidden from people; automated submitters fill it. #}
+                <div class="visually-hidden" aria-hidden="true">
+                  <label for="{{ honeypot_field }}">{% trans "Leave this field blank" %}</label>
+                  <input type="text" name="{{ honeypot_field }}" id="{{ honeypot_field }}" tabindex="-1" autocomplete="off" value="">
+                </div>
+                {# Timing trap: signed render time (rejects sub-second bot submissions). #}
+                <input type="hidden" name="form_ts" value="{{ form_ts }}">
                 <div class="mb-3">
                   <label class="form-label">{% trans "I am signing in as" %}</label>
                   <select class="form-select" name="role" id="login-role">
@@ -114,7 +121,25 @@
                   <label class="form-label" for="login-password">{% trans "Password" %}</label>
                   <input id="login-password" class="form-control" type="password" name="password" autocomplete="current-password" required>
                 </div>
-                {% if turnstile_required and turnstile_site_key %}
+                {% if pow_required and pow_challenge %}
+                <div class="mb-3" id="rmc-pow"
+                     data-salt="{{ pow_challenge.salt }}" data-bits="{{ pow_challenge.bits }}"
+                     data-busy-label="{% trans 'Verifying you’re human…' %}"
+                     data-wait-label="{% trans 'Verifying… one moment.' %}"
+                     data-done-label="{% trans 'Verified ✓' %}">
+                  <input type="hidden" name="pow_token" value="{{ pow_challenge.token }}">
+                  <input type="hidden" name="pow_nonce" value="">
+                  <p class="small text-muted mb-0"><span id="rmc-pow-status" role="status" aria-live="polite">{% trans "Verifying you’re human…" %}</span></p>
+                </div>
+                <script src="{% static 'js/rmc-login-pow.js' %}" defer></script>
+                <noscript>
+                  <p class="small text-danger mb-2">{% trans "JavaScript is needed to verify you’re human. If it’s turned off, use “Reset your password” below to sign in." %}</p>
+                </noscript>
+                <p class="small text-muted mb-2">
+                  {% trans "Trouble verifying?" %}
+                  <a href="{% url 'accounts:password_reset' %}">{% trans "Reset your password instead." %}</a>
+                </p>
+                {% elif turnstile_required and turnstile_site_key %}
                 <div class="mb-3">
                   <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
                 </div>
