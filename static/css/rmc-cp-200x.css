@@ -368,8 +368,8 @@
   color: var(--text-secondary);
 }
 .lx-world__freshness--live {
-  color: rgba(110, 231, 183, 0.95);
-  border-color: rgba(52, 211, 153, 0.35);
+  color: rgba(110, 231, 183, 0.95); /* off-token-allow: dark-chrome-world-freshness-ink */
+  border-color: rgba(52, 211, 153, 0.35); /* off-token-allow: dark-chrome-world-freshness-border */
 }
 .lx-world__tour-controls {
   display: flex;
@@ -453,8 +453,8 @@
    instead of driving its height. Globe canvas uses the same contract. */
 .lx-world__svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .lx-world__svg-land {
-  fill: rgba(148, 163, 184, 0.11);
-  stroke: rgba(99, 102, 241, 0.22);
+  fill: rgba(148, 163, 184, 0.11); /* off-token-allow: dark-chrome-world-landmass-fill */
+  stroke: rgba(99, 102, 241, 0.22); /* off-token-allow: dark-chrome-world-landmass-stroke */
   stroke-width: 0.6;
   transition: fill var(--motion-fast, 180ms) var(--ease-out, ease-out),
     opacity var(--motion-fast, 180ms) var(--ease-out, ease-out);

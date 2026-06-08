@@ -72,6 +72,8 @@
     <link rel="stylesheet" href="{% static 'css/statement-header.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/portal-base-shell.css' %}">
+    {% comment %} v4.02.x (2026-06-06): clock/weather temporal dock centered on the footer line. {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/rmc-footer-temporal-dock.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-unified.css' %}">
     <link rel="stylesheet" href="{% static 'css/design-system-phase2-enforcement.css' %}">
     <link rel="stylesheet" href="{% static 'css/platform-responsive-touch.css' %}">
@@ -261,9 +263,8 @@
               {% if SHOW_OFFLINE_STATUS_BAR %}
               {% include 'components/offline_status_bar.html' %}
               {% endif %}
-              {% if SHOW_HEADER_CONTEXT_STRIP %}
-              {% include 'components/header_weather_widget.html' %}
-              {% endif %}
+              {% comment %} v4.02.x (2026-06-07): clock/weather moved out of the header to the centered
+                 footer dock (partials/cockpit/_footer_temporal_dock.html) — reclaim header height. {% endcomment %}
               {% if SHOW_ROLE_SWITCHER and EFFECTIVE_PORTAL_ROLE %}
               <span class="badge bg-light text-dark opacity-90 small" aria-label="{% trans 'Current portal view' %}">{% trans 'Viewing as' %}: {{ EFFECTIVE_PORTAL_ROLE }}</span>
               {% endif %}

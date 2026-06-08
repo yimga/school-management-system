@@ -1,6 +1,22 @@
 # CSS Retirement Docket — Scope-Honest Classification
 
-**Last updated:** 2026-06-06 (v4.02.57 — 10X of the page-progress bar + sheet/modal primitive).
+**Last updated:** 2026-06-07 (v4.02.88 — clock/weather relocated from header to a centered footer dock, platform-wide).
+
+## 2026-06-07 — v4.02.88 — Clock/weather → centered footer dock (platform-wide)
+
+**Ask:** "remove the clock/weather from the header, center it on the footer line [attached image], platform-wide everywhere; then move everything up to reclaim header vertical height." The attached band was the **operator civic footer primary ribbon** (`rmc_operator_footer_civic.html` — wordmark "Backoffice" + "Operator command surface." + "Corporate gateway" + Platform-status/Control-plane/Find-campus/Public-site + SOC2·ISO27001·FERPA·GDPR pills).
+
+**Moved, not duplicated:** the clock/weather is the `header_weather_widget.html` temporal dock. Removed from all 3 header mounts and re-mounted, centered, on the footer.
+- **New** `templates/partials/cockpit/_footer_temporal_dock.html` — wraps `header_weather_widget.html` with `HEADER_CONTEXT_DROPUP=True` (panel opens upward so it never falls off the bottom) + `SHOW_HEADER_CONTEXT_QUOTE=False`. Reuses the existing live-update JS (`components__header_weather_widget.js`) — zero new script.
+- `header_weather_widget.html`: root class gains `dropup header-context-dock--footer` when `HEADER_CONTEXT_DROPUP` is set (else unchanged `dropdown`).
+- **Operator civic footer** (`rmc_operator_footer_civic.html`): dock inserted between brand and gateway pills, **absolutely centered** on the primary ribbon line (dead-center regardless of side widths, zero added ribbon height).
+- **Tenant dashboard footer** (`components/dashboard_footer.html`): dock inserted as a centered tier after the brand row.
+- **Removed** the `header_weather_widget` include from `control_plane_unified_header.html` (operator live row), `base.html` (topbar actions), and `portal_base.html` (topbar controls) — reclaiming header space.
+- **New** `static/css/rmc-footer-temporal-dock.css` (wired into `base.html`, `control_plane_skeleton.html`, `portal_base.html`): chip styled to match `.cp-footer-pill` semantic tokens (legible on the dark operator footer AND the lighter tenant footer); absolute-center on the operator ribbon with a `<=991.98px` fallback to its own centered wrapped row; dropup menu (`bottom:100%`); caret hidden.
+
+**Also fixed (pre-existing `main` gate failure, unrelated):** the off-token gate was RED (4) before this change — `rmc-cp-200x.css` (prior world-map work) shipped 4 decorative dark-chrome literals (`.lx-world__freshness--live` color+border, `.lx-world__svg-land` fill+stroke) without `/* off-token-allow */` markers. Added the 4 markers (matching the file's own convention) → gate back to 0.
+
+**Validation (two audit passes, both clean):** render-safety 0, off-token 0, theme-locked 0, undefined-css 0, inline-style 0, sticky-overflow 0; `manage.py check` 0; SW monotonic OK. **Real-browser verified** (Playwright over a harness loading the actual footer CSS + Bootstrap): dock **dead-center** on the ribbon (offset 0) at 1440px AND 720px (drops to its own centered row narrow), chip 22px **fits** the 33px ribbon (no added footer height), menu **opens upward**. Screenshot confirmed: 🕘 time ⛅ temp centered between brand and gateway pills. SW `sms-v4.02.88-footer-temporal-dock-2026-06-08`. Files: `_footer_temporal_dock.html` (new), `header_weather_widget.html`, `rmc_operator_footer_civic.html`, `dashboard_footer.html`, `control_plane_unified_header.html`, `base.html`, `portal_base.html`, `control_plane_skeleton.html`, `rmc-footer-temporal-dock.css` (new), `rmc-cp-200x.css` (markers), `service-worker.js`. UNCOMMITTED (tree carries unrelated parallel-session edits — isolate own hunks).
 
 ## 2026-06-06 — v4.02.57 — Progress bar + sheet/modal primitive 10X (platform-wide, additive)
 
